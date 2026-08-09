@@ -150,6 +150,62 @@ describe('filtering and sorting', () => {
   })
 })
 
+describe('the free-text filter', () => {
+  const all = [
+    match({
+      listingId: 1,
+      artist: 'Robag Wruhme',
+      title: 'Wuzzelbud KK',
+      label: 'Musik Krause',
+    }),
+    match({
+      listingId: 2,
+      artist: 'Trentemøller',
+      title: 'The Last Resort',
+      label: 'Poker Flat',
+    }),
+    match({ listingId: 3, artist: 'Various', title: 'Poker Flat Vol. 5', label: 'Poker Flat' }),
+  ]
+
+  it('finds by artist, title, label and catalogue number alike', () => {
+    expect(arrange(all, [], 'score', 'robag').map((m) => m.listingId)).toEqual([1])
+    expect(arrange(all, [], 'score', 'resort').map((m) => m.listingId)).toEqual([2])
+    expect(arrange(all, [], 'score', 'poker').map((m) => m.listingId)).toEqual([2, 3])
+  })
+
+  it('requires every word, so two words narrow instead of widen', () => {
+    expect(arrange(all, [], 'score', 'poker vol').map((m) => m.listingId)).toEqual([3])
+  })
+
+  it('does not care about case or surrounding whitespace', () => {
+    expect(arrange(all, [], 'score', '  ROBAG  ').map((m) => m.listingId)).toEqual([1])
+  })
+
+  it('shows everything for an empty query', () => {
+    expect(arrange(all, [], 'score', '   ')).toHaveLength(3)
+  })
+
+  it('narrows on top of the chips rather than replacing them', () => {
+    const mixed = [
+      match({
+        listingId: 4,
+        artist: 'Robag Wruhme',
+        signals: [{ type: 'WANTLIST_EXACT', confidence: 1, evidence: {} }],
+      }),
+      ...all,
+    ]
+    expect(
+      arrange(mixed, ['WANTLIST_EXACT'], 'score', 'robag').map((m) => m.listingId),
+    ).toEqual([4])
+  })
+
+  it('finds nothing in an expired dig, where the text is gone', () => {
+    // Not a bug: six hours on there is no title left to search.
+    const expired = [match({ listingId: 9, artist: null, title: null, label: null })]
+    expect(arrange(expired, [], 'score', 'robag')).toHaveLength(0)
+  })
+})
+
 describe('an expired dig, where half the fields are gone', () => {
   // Six hours after the scan, title, artist, price and year are nulled by
   // design (docs/03 §6). Sorting still has to produce something sane.

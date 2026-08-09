@@ -92,16 +92,45 @@ export function parseSignals(raw: string, matches: Match[]): SignalType[] {
 }
 
 /**
+ * Free text over everything printed on the card. Deliberately a plain
+ * substring test on a normalised string and not the trigram cascade the
+ * matching engine uses: this is somebody typing a name they can already see,
+ * not the engine guessing whether two spellings are the same record.
+ */
+export function textMatches(match: Match, needle: string): boolean {
+  if (!needle) return true
+  const haystack = [match.artist, match.title, match.label, match.catno]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+  return needle
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .every((word) => haystack.includes(word))
+}
+
+/**
  * Chips are OR, not AND. Two selected chips answer "show me the wantlist hits
  * and the label ones", which is what somebody scanning a shelf means; AND
  * would mostly return nothing and read as a bug.
+ *
+ * Text narrows on top of the chips rather than replacing them — the two are
+ * different questions and both should be answerable at once.
  */
-export function arrange(matches: Match[], active: SignalType[], sort: SortKey): Match[] {
+export function arrange(
+  matches: Match[],
+  active: SignalType[],
+  sort: SortKey,
+  query = '',
+): Match[] {
   const wanted = new Set(active)
-  const filtered =
-    wanted.size === 0
-      ? matches
-      : matches.filter((match) => match.signals.some((signal) => wanted.has(signal.type)))
+  const needle = query.trim()
+  const filtered = matches.filter(
+    (match) =>
+      (wanted.size === 0 || match.signals.some((signal) => wanted.has(signal.type))) &&
+      textMatches(match, needle),
+  )
 
   // Score is the tiebreaker under every other key, so two records at the same
   // price come out in the order the engine ranked them.

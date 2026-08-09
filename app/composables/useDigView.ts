@@ -34,7 +34,8 @@ export function useDigView(matches: Ref<Match[]> | ComputedRef<Match[]>) {
   const sort = computed(() => parseSort(param('sort')))
   const density = computed(() => parseDensity(param('dicht')))
   const available = computed(() => availableSignals(matches.value))
-  const visible = computed(() => arrange(matches.value, active.value, sort.value))
+  const query = computed(() => param('q'))
+  const visible = computed(() => arrange(matches.value, active.value, sort.value, query.value))
 
   function apply(next: Record<string, string | undefined>) {
     // Empty values are dropped rather than written as `?sig=`, so the default
@@ -56,7 +57,20 @@ export function useDigView(matches: Ref<Match[]> | ComputedRef<Match[]>) {
   const setSort = (key: SortKey) => apply({ sort: key === 'score' ? undefined : key })
   const setDensity = (value: Density) =>
     apply({ dicht: value === 'compact' ? 'kompakt' : undefined })
-  const clear = () => apply({ sig: undefined })
+  const setQuery = (value: string) => apply({ q: value.trim() || undefined })
+  const clear = () => apply({ sig: undefined, q: undefined })
 
-  return { active, available, sort, density, visible, toggleSignal, setSort, setDensity, clear }
+  return {
+    active,
+    available,
+    sort,
+    density,
+    query,
+    visible,
+    toggleSignal,
+    setSort,
+    setDensity,
+    setQuery,
+    clear,
+  }
 }

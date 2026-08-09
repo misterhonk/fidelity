@@ -355,31 +355,21 @@ const expired = computed(() => {
             :active="view.active.value"
             :sort="view.sort.value"
             :density="view.density.value"
+            :query="view.query.value"
             :shown="view.visible.value.length"
             :total="rest.length"
             @toggle-signal="view.toggleSignal"
             @set-sort="view.setSort"
             @set-density="view.setDensity"
+            @set-query="view.setQuery"
             @clear="view.clear"
           />
 
           <p v-if="view.visible.value.length === 0" class="text-fid-sm text-fid-text-muted">
-            Kein Treffer trägt eines der gewählten Signale.
+            Nichts passt zu dieser Auswahl.
           </p>
 
-          <!-- scrollbar-gutter keeps the list from jumping sideways when a
-               filter shortens it past the fold (docs/05 §4). -->
-          <ul
-            v-else
-            class="flex flex-col"
-            :class="view.density.value === 'compact' ? 'gap-0' : 'gap-3'"
-            style="scrollbar-gutter: stable"
-          >
-            <li v-for="match in view.visible.value" :key="match.listingId">
-              <MatchRow v-if="view.density.value === 'compact'" :match="match" />
-              <MatchCard v-else :match="match" />
-            </li>
-          </ul>
+          <MatchList v-else :matches="view.visible.value" :density="view.density.value" />
         </section>
       </template>
     </section>

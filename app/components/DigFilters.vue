@@ -7,6 +7,7 @@ defineProps<{
   active: SignalType[]
   sort: SortKey
   density: Density
+  query: string
   shown: number
   total: number
 }>()
@@ -15,6 +16,7 @@ const emit = defineEmits<{
   toggleSignal: [SignalType]
   setSort: [SortKey]
   setDensity: [Density]
+  setQuery: [string]
   clear: []
 }>()
 
@@ -34,6 +36,22 @@ const DENSITIES = [
   <div
     class="sticky top-0 z-10 -mx-6 flex flex-col gap-3 border-b border-fid-border bg-fid-bg/95 px-6 py-3 backdrop-blur"
   >
+    <!--
+      The text filter. Also where the command palette lands when you pick a
+      record out of it — so a query arriving from ⌘K is visible and removable
+      rather than an unexplained short list.
+    -->
+    <input
+      :value="query"
+      type="search"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder="Künstler, Titel, Label, Katalognummer …"
+      aria-label="Treffer durchsuchen"
+      class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-1.5 text-fid-sm text-fid-text"
+      @input="emit('setQuery', ($event.target as HTMLInputElement).value)"
+    />
+
     <div v-if="available.length > 0" class="flex flex-wrap items-center gap-1.5">
       <!--
         24x24 minimum target size (WCAG 2.5.8) — the reason these are py-1.5
@@ -56,7 +74,7 @@ const DENSITIES = [
       </button>
 
       <button
-        v-if="active.length > 0"
+        v-if="active.length > 0 || query"
         type="button"
         class="min-h-6 rounded-fid-sm px-2 py-1 text-fid-xs text-fid-text-muted underline underline-offset-4"
         @click="emit('clear')"

@@ -106,6 +106,8 @@ export interface WorkerContract {
   }
   /** Every shop you have scanned, best first. */
   'dealer.list': { params: undefined; progress: never; result: Dealer[] }
+  /** Every dig, newest first — what the command palette offers to jump to. */
+  'dig.list': { params: undefined; progress: never; result: Dig[] }
 }
 
 /** What a verdict needs to keep: the identity plus the reasoning behind it. */

@@ -199,6 +199,12 @@ export const handlers: HandlerMap = {
 
   'dig.get': async ({ digId }) => loadDig(digId),
 
+  'dig.list': async () => {
+    const db = await openFidelityDb()
+    // The id is a sortable timestamp prefix, so this needs no index.
+    return (await db.getAll('digs')).sort((a, b) => b.id.localeCompare(a.id))
+  },
+
   'dig.latest': async () => {
     const db = await openFidelityDb()
     const digs = await db.getAll('digs')
