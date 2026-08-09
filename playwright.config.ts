@@ -23,17 +23,12 @@ export default defineConfig({
   ],
 
   webServer: {
-    // The production build, not the dev server — that is what actually ships.
     command: 'pnpm build && node .output/server/index.mjs',
-    url: `${baseURL}/api/health`,
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
     stdout: 'pipe',
     stderr: 'pipe',
-    env: {
-      NITRO_PORT: String(PORT),
-      DATABASE_URL:
-        process.env.DATABASE_URL ?? 'postgres://fidelity:dev@127.0.0.1:5432/fidelity',
-    },
+    env: { NITRO_PORT: String(PORT) },
   },
 })

@@ -10,9 +10,3 @@ allowBuilds:
   # Pulled in by @vueuse/* via @nuxt/ui; its postinstall only picks the Vue 2
   # or the Vue 3 entry point.
   vue-demi: true
-
-# pnpm holds back freshly published versions as a supply-chain guard. These two
-# were current when the project was scaffolded.
-minimumReleaseAgeExclude:
-  - pg-protocol@1.16.0
-  - pg@8.23.0
