@@ -1,0 +1,34 @@
+{
+  "$description": "Roles, not values. Every role is declared once and resolves per colour scheme via CSS light-dark(); DTCG has no concept of a scheme, so the dark half lives in an $extensions entry. Dark is the primary mode — record shops are dark, and cover art glows on a dark ground.",
+  "role": {
+    "$type": "color",
+    "bg": {
+      "$value": "{color.n.50}",
+      "$extensions": { "de.fidelity.dark": "{color.n.990}" }
+    },
+    "surface": {
+      "$value": "{color.white}",
+      "$extensions": { "de.fidelity.dark": "{color.n.950}" }
+    },
+    "surface-raised": {
+      "$value": "{color.n.50}",
+      "$extensions": { "de.fidelity.dark": "{color.n.900}" }
+    },
+    "border": {
+      "$value": "{color.n.200}",
+      "$extensions": { "de.fidelity.dark": "{color.n.800}" }
+    },
+    "text": {
+      "$value": "{color.n.900}",
+      "$extensions": { "de.fidelity.dark": "{color.n.100}" }
+    },
+    "text-muted": {
+      "$value": "{color.n.600}",
+      "$extensions": { "de.fidelity.dark": "{color.n.400}" }
+    },
+    "accent": {
+      "$value": "{color.accent.600}",
+      "$extensions": { "de.fidelity.dark": "{color.accent.500}" }
+    }
+  }
+}

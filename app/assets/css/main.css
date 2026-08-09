@@ -1,0 +1,47 @@
+@import 'tailwindcss';
+@import '@nuxt/ui';
+
+/* Generated from tokens/*.json by `pnpm tokens:build`. Git-ignored. */
+@import './tokens.css';
+
+/*
+ * @nuxtjs/color-mode (shipped with Nuxt UI) puts `.light` / `.dark` on <html>.
+ * Bridge that to `color-scheme` so light-dark() follows the user's explicit
+ * choice instead of only the OS setting.
+ */
+:root.light {
+  color-scheme: light;
+}
+:root.dark {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--fid-bg);
+  color: var(--fid-text);
+  font-family: var(--fid-font-sans);
+}
+
+/* Mandatory on prices, years, catalogue numbers and scores. */
+.fid-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Reduce, do not remove. Opacity crossfades and instant state changes stay;
+ * parallax, large translations, scale and scroll-driven effects go.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

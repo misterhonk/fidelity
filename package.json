@@ -9,10 +9,11 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "nuxt dev",
-    "build": "nuxt build",
+    "dev": "pnpm tokens:build && nuxt dev",
+    "build": "pnpm tokens:build && nuxt build",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "postinstall": "pnpm tokens:build && nuxt prepare",
+    "tokens:build": "node scripts/tokens/build.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -26,6 +27,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@nuxt/ui": "^4.10.0",
     "drizzle-orm": "0.45.2",
     "nuxt": "^4.5.2",
     "pg": "^8.23.0",
@@ -36,6 +38,7 @@
   "devDependencies": {
     "@types/pg": "^8.21.0",
     "drizzle-kit": "0.31.10",
+    "style-dictionary": "^5.5.1",
     "typescript": "~5.9.3",
     "vue-tsc": "^3.3.9"
   }

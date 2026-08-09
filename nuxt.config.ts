@@ -11,6 +11,12 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
+  // Nuxt UI 4 brings Tailwind 4 and registers @tailwindcss/vite itself — the
+  // Vite plugin route, not PostCSS (docs/01-ARCHITEKTUR.md §4.6).
+  modules: ['@nuxt/ui'],
+
+  css: ['~/assets/css/main.css'],
+
   typescript: {
     strict: true,
     // Type checking runs as its own job (`pnpm typecheck`), not inside dev/build.
