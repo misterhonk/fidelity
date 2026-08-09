@@ -3,7 +3,7 @@ import { openFidelityDb } from '~~/db/open'
 import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
 
 import { currentIdentity, discogs, requestPersistence, signIn, signOut } from './auth'
-import { REACHABLE, runDig } from './dig/scan'
+import { findResumable, REACHABLE, resumeDig, runDig } from './dig/scan'
 import { dealerSchema } from './discogs/inventory'
 import { computeTasteProfile } from './match/taste'
 import { syncLibrary } from './sync/library'
@@ -118,6 +118,11 @@ export const handlers: HandlerMap = {
       report: (progress) => report(progress),
       signal,
     }),
+
+  'dig.resumable': () => findResumable(),
+
+  'dig.resume': ({ digId }, { report, signal }) =>
+    resumeDig({ client: discogs(), digId, report: (progress) => report(progress), signal }),
 
   'dig.get': async ({ digId }) => loadDig(digId),
 

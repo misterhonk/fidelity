@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DigPreflight, DigWithMatches, ScanProgress } from '#shared/protocol'
+import type { Dig } from '#shared/types'
 
 useSeoMeta({
   title: 'Neuer Dig',
@@ -14,8 +15,13 @@ const progress = ref<ScanProgress | null>(null)
 const result = ref<DigWithMatches | null>(null)
 const busy = ref(false)
 const error = ref<string | null>(null)
+const resumable = ref<Dig | null>(null)
 
 onMounted(async () => {
+  // An interrupted dig is offered before anything else: the work is already
+  // paid for in requests, and throwing it away to start over would spend the
+  // rate limit twice.
+  resumable.value = await call('dig.resumable', undefined)
   result.value = await call('dig.latest', undefined)
 })
 
@@ -36,6 +42,26 @@ async function check() {
   }
 }
 
+async function resume() {
+  const dig = resumable.value
+  if (!dig || busy.value) return
+  busy.value = true
+  error.value = null
+  result.value = null
+
+  try {
+    await call('dig.resume', { digId: dig.id }, { onProgress: (p) => (progress.value = p) })
+    resumable.value = null
+    result.value = await call('dig.latest', undefined)
+  } catch (cause) {
+    error.value = cause instanceof Error ? cause.message : 'Fortsetzen fehlgeschlagen.'
+    resumable.value = await call('dig.resumable', undefined)
+  } finally {
+    busy.value = false
+    progress.value = null
+  }
+}
+
 async function start() {
   if (!preflight.value || busy.value) return
   busy.value = true
@@ -49,6 +75,7 @@ async function start() {
       { dealer: preflight.value.dealer },
       { onProgress: (p) => (progress.value = p) },
     )
+    resumable.value = null
     result.value = await call('dig.latest', undefined)
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : 'Der Dig ist fehlgeschlagen.'
@@ -110,6 +137,29 @@ const expired = computed(() => {
     </form>
 
     <p v-if="error" role="alert" class="text-fid-sm text-fid-sig-scarcity">{{ error }}</p>
+
+    <!--
+      An interrupted run is picked up, not restarted. Those pages already cost
+      requests, and the rate limit is the only genuinely scarce resource here.
+    -->
+    <section
+      v-if="resumable && !progress"
+      class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
+    >
+      <p class="text-fid-base text-fid-text">
+        Ein Dig bei <span class="font-medium">{{ resumable.dealer }}</span> wurde unterbrochen –
+        <span class="fid-num">{{ number.format(resumable.listingsScanned) }}</span> von
+        <span class="fid-num">{{ number.format(resumable.listingsTotal) }}</span> waren durch.
+      </p>
+      <button
+        type="button"
+        :disabled="busy"
+        class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-n-990 disabled:opacity-50"
+        @click="resume"
+      >
+        Dig fortsetzen
+      </button>
+    </section>
 
     <!--
       Coverage is stated before the scan, not discovered at page 101. Discogs

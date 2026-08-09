@@ -60,6 +60,9 @@ export interface WorkerContract {
   'dig.run': { params: { dealer: string }; progress: ScanProgress; result: Dig }
   'dig.get': { params: { digId: string }; progress: never; result: DigWithMatches | null }
   'dig.latest': { params: undefined; progress: never; result: DigWithMatches | null }
+  /** An interrupted dig still inside its six-hour window, if there is one. */
+  'dig.resumable': { params: undefined; progress: never; result: Dig | null }
+  'dig.resume': { params: { digId: string }; progress: ScanProgress; result: Dig }
 }
 
 export interface DigPreflight {

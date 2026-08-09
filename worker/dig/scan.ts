@@ -1,11 +1,11 @@
-import { getPreferences } from '~~/db/meta'
-import { openFidelityDb } from '~~/db/open'
 import { DIG_TTL_MS, pruneDigs } from '~~/db/expire'
+import { getPreferences } from '~~/db/meta'
+import { openFidelityDb, type FidelityDatabase } from '~~/db/open'
 import type { Dig, Match } from '#shared/types'
 
 import type { DiscogsClient } from '../discogs/client'
 import { dealerSchema, inventoryPageSchema, toListing } from '../discogs/inventory'
-import { buildIndex, evaluate, type MatchFilters } from '../match'
+import { buildIndex, evaluate, type MatchFilters, type MatchIndex } from '../match'
 import { buildReason } from '../match/reason'
 
 export const PER_PAGE = 100
@@ -18,6 +18,9 @@ export const MAX_PAGES = 100
 
 /** asc and desc give two disjoint windows, so up to 20.000 listings. */
 export const REACHABLE = PER_PAGE * MAX_PAGES * 2
+
+/** Roughly one request every 1.2 s, which is what the pacer enforces. */
+const MS_PER_REQUEST = 1200
 
 export interface ScanProgress {
   status: Dig['status']
@@ -33,24 +36,27 @@ export interface ScanProgress {
 
 export interface ScanOptions {
   client: DiscogsClient
-  dealer: string
-  digId: string
   report?: (progress: ScanProgress) => void
   signal?: AbortSignal
   now?: () => number
 }
 
-/** Roughly one request every 1.2 s, which is what the pacer enforces. */
-const MS_PER_REQUEST = 1200
+interface ScanContext {
+  client: DiscogsClient
+  db: FidelityDatabase
+  index: MatchIndex
+  filters: MatchFilters
+  report?: (progress: ScanProgress) => void
+  signal?: AbortSignal
+  now: () => number
+}
 
-export async function runDig({
+async function prepare({
   client,
-  dealer,
-  digId,
   report,
   signal,
   now = Date.now,
-}: ScanOptions): Promise<Dig> {
+}: ScanOptions): Promise<ScanContext> {
   const db = await openFidelityDb()
   const preferences = await getPreferences()
 
@@ -61,72 +67,72 @@ export async function runDig({
       .get('meta', 'tasteProfile')
       .then((row) => (row?.key === 'tasteProfile' ? row.value : null)),
   ])
-  const index = buildIndex(collection, wantlist, taste)
 
-  const filters: MatchFilters = {
-    formatsAllow: preferences.formatsAllow,
-    maxPrice: preferences.maxPrice,
-    shipsFromBlock: preferences.shipsFromBlock,
-    prefMediaCondition: preferences.prefMediaCondition,
-    targetPrice: preferences.targetPrice,
-  }
-
-  const startedAt = now()
-  let requests = 0
-  let scanned = 0
-  let matches = 0
-
-  // Pre-check. One request buys an honest answer up front instead of a
-  // surprise at page 101.
-  const profile = await client.get(`/users/${encodeURIComponent(dealer)}`, dealerSchema, {
+  return {
+    client,
+    db,
+    index: buildIndex(collection, wantlist, taste),
+    filters: {
+      formatsAllow: preferences.formatsAllow,
+      maxPrice: preferences.maxPrice,
+      shipsFromBlock: preferences.shipsFromBlock,
+      prefMediaCondition: preferences.prefMediaCondition,
+      targetPrice: preferences.targetPrice,
+    },
+    report,
     signal,
-  })
-  requests += 1
-
-  const total = profile.num_for_sale ?? 0
-  const dig: Dig = {
-    id: digId,
-    dealer,
-    status: 'scanning',
-    startedAt,
-    finishedAt: null,
-    // The ToS deadline, set once at the start and never recomputed.
-    expiresAt: startedAt + DIG_TTL_MS,
-    listingsTotal: total,
-    listingsScanned: 0,
-    coverage: 0,
-    truncated: total > REACHABLE,
-    matchCount: 0,
-    apiRequests: requests,
-    cursor: null,
+    now,
   }
-  await db.put('digs', dig)
+}
+
+/**
+ * Walks the inventory from wherever `dig.cursor` left off.
+ *
+ * A fresh dig starts at asc page 1; a resumed one at the page after the last
+ * one that was fully written. Matches are keyed by [digId, listingId], so a
+ * page written twice is idempotent — which matters, because "resume" has to be
+ * safe even when the interruption happened mid-page.
+ */
+async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
+  const { client, db, index, filters, report, signal, now } = ctx
+
+  let scanned = dig.listingsScanned
+  let matches = dig.matchCount
+  let requests = dig.apiRequests
 
   const emit = (order: 'asc' | 'desc') => {
-    const remaining = Math.max(0, Math.min(total, REACHABLE) - scanned) / PER_PAGE
+    const reachable = Math.min(dig.listingsTotal, REACHABLE)
+    const remaining = Math.max(0, reachable - scanned) / PER_PAGE
     report?.({
       status: dig.status,
       scanned,
-      total,
-      reachable: Math.min(total, REACHABLE),
+      total: dig.listingsTotal,
+      reachable,
       matches,
       requests,
       order,
       etaMs: Math.round(remaining * MS_PER_REQUEST),
     })
   }
-  emit('asc')
+
+  const startOrder = dig.cursor?.order ?? 'asc'
+  const startPage = dig.cursor ? dig.cursor.page + 1 : 1
+
+  emit(startOrder)
 
   // Two passes over disjoint windows. The second only runs when the first hit
   // the wall — below 10.000 listings it would return the same records again.
   for (const order of ['asc', 'desc'] as const) {
-    if (order === 'desc' && total <= PER_PAGE * MAX_PAGES) break
+    if (order === 'asc' && startOrder === 'desc') continue
+    if (order === 'desc' && dig.listingsTotal <= PER_PAGE * MAX_PAGES) break
 
-    for (let page = 1; page <= MAX_PAGES; page++) {
+    const from = order === startOrder ? startPage : 1
+
+    for (let page = from; page <= MAX_PAGES; page++) {
       signal?.throwIfAborted()
 
       const response = await client.get(
-        `/users/${encodeURIComponent(dealer)}/inventory`,
+        `/users/${encodeURIComponent(dig.dealer)}/inventory`,
         inventoryPageSchema,
         { query: { page, per_page: PER_PAGE, sort: 'listed', sort_order: order }, signal },
       )
@@ -144,7 +150,7 @@ export async function runDig({
         if (!result) continue
 
         fresh.push({
-          digId,
+          digId: dig.id,
           listingId: listing.listingId,
           releaseId: listing.releaseId,
           score: result.score,
@@ -175,13 +181,13 @@ export async function runDig({
         matches += fresh.length
       }
 
-      // The cursor is persisted after every page, so a closed tab or a dead
-      // connection costs one page rather than the whole run. The raw listings
-      // are dropped here — 20.000 of them would be 40 MB of nothing.
+      // Written after every page, so an interruption costs one page rather
+      // than the run. The raw listings are dropped here — 20.000 of them
+      // would be 40 MB of nothing.
       dig.listingsScanned = scanned
       dig.matchCount = matches
       dig.apiRequests = requests
-      dig.coverage = total > 0 ? Math.min(1, scanned / total) : 0
+      dig.coverage = dig.listingsTotal > 0 ? Math.min(1, scanned / dig.listingsTotal) : 0
       dig.cursor = { page, order }
       await db.put('digs', dig)
 
@@ -200,4 +206,87 @@ export async function runDig({
 
   emit('desc')
   return dig
+}
+
+export async function runDig(
+  options: ScanOptions & { dealer: string; digId: string },
+): Promise<Dig> {
+  const ctx = await prepare(options)
+  const startedAt = ctx.now()
+
+  // Pre-check. One request buys an honest answer up front instead of a
+  // surprise at page 101.
+  const profile = await ctx.client.get(
+    `/users/${encodeURIComponent(options.dealer)}`,
+    dealerSchema,
+    { signal: ctx.signal },
+  )
+
+  const total = profile.num_for_sale ?? 0
+  const dig: Dig = {
+    id: options.digId,
+    dealer: options.dealer,
+    status: 'scanning',
+    startedAt,
+    finishedAt: null,
+    // The ToS deadline, anchored at the start and never recomputed — not even
+    // by a resume, or an interrupted dig could be stretched past six hours.
+    expiresAt: startedAt + DIG_TTL_MS,
+    listingsTotal: total,
+    listingsScanned: 0,
+    coverage: 0,
+    truncated: total > REACHABLE,
+    matchCount: 0,
+    apiRequests: 1,
+    cursor: null,
+  }
+  await ctx.db.put('digs', dig)
+
+  return walk(dig, ctx)
+}
+
+export class DigNotResumable extends Error {}
+
+/**
+ * Picks an interrupted dig back up.
+ *
+ * No pre-check request: the dealer's total was recorded at the start, and the
+ * six-hour window is anchored there too. A dig that has run out of window is
+ * not resumed but retired — continuing it would produce marketplace data that
+ * may no longer be displayed.
+ */
+export async function resumeDig(options: ScanOptions & { digId: string }): Promise<Dig> {
+  const ctx = await prepare(options)
+  const dig = await ctx.db.get('digs', options.digId)
+
+  if (!dig) throw new DigNotResumable('Dieser Dig existiert nicht mehr.')
+  if (dig.status !== 'scanning') throw new DigNotResumable('Dieser Dig läuft nicht.')
+
+  if (ctx.now() > dig.expiresAt) {
+    dig.status = 'expired'
+    await ctx.db.put('digs', dig)
+    throw new DigNotResumable('Der Sechs-Stunden-Rahmen ist abgelaufen – bitte neu scannen.')
+  }
+
+  return walk(dig, ctx)
+}
+
+/** The interrupted dig worth offering to continue, if there is one. */
+export async function findResumable(now: number = Date.now()): Promise<Dig | null> {
+  const db = await openFidelityDb()
+  const digs = await db.getAll('digs')
+
+  const candidate = digs
+    .filter((dig) => dig.status === 'scanning')
+    .sort((a, b) => b.id.localeCompare(a.id))[0]
+
+  if (!candidate) return null
+
+  if (now > candidate.expiresAt) {
+    // Retired rather than offered: what it would fetch may no longer be shown.
+    await db.put('digs', { ...candidate, status: 'expired' })
+    return null
+  }
+
+  return candidate
 }
