@@ -189,24 +189,35 @@ StyleDictionary.registerFormat({
   },
 })
 
-const sd = new StyleDictionary({
-  source: [resolve(root, 'tokens/*.json')],
-  preprocessors: ['tokens-studio'],
-  platforms: {
-    css: {
-      transforms: [
-        'fidelity/color',
-        'fidelity/dimension',
-        'fidelity/font-family',
-        'fidelity/shadow',
-      ],
-      files: [{ destination: 'tokens.css', format: 'fidelity/tailwind-theme' }],
+/**
+ * Builds the CSS without touching the filesystem, so the tests can assert on
+ * the result. `source` defaults to the real token files.
+ */
+export async function buildTokensCss(source = [resolve(root, 'tokens/*.json')]) {
+  const sd = new StyleDictionary({
+    source,
+    preprocessors: ['tokens-studio'],
+    platforms: {
+      css: {
+        transforms: [
+          'fidelity/color',
+          'fidelity/dimension',
+          'fidelity/font-family',
+          'fidelity/shadow',
+        ],
+        files: [{ destination: 'tokens.css', format: 'fidelity/tailwind-theme' }],
+      },
     },
-  },
-  log: { verbosity: 'silent', warnings: 'warn' },
-})
+    log: { verbosity: 'silent', warnings: 'warn' },
+  })
 
-const [{ output }] = await sd.formatPlatform('css')
-await mkdir(dirname(outFile), { recursive: true })
-await writeFile(outFile, output, 'utf8')
-console.log(`tokens → ${outFile.replace(`${root}/`, '')}`)
+  const [{ output }] = await sd.formatPlatform('css')
+  return output
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const output = await buildTokensCss()
+  await mkdir(dirname(outFile), { recursive: true })
+  await writeFile(outFile, output, 'utf8')
+  console.log(`tokens → ${outFile.replace(`${root}/`, '')}`)
+}

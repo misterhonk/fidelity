@@ -48,7 +48,13 @@ const signals = [
 
     <p class="text-fid-sm text-fid-text-muted">
       Systemzustand:
-      <a class="text-fid-accent underline underline-offset-4" href="/api/health">/api/health</a>
+      <!--
+        Deliberately not text-fid-accent. In light mode --fid-accent resolves to
+        accent-600, which reaches only 3.09:1 against --fid-bg — below the 4.5:1
+        that WCAG 2.2 AA wants for body-sized text. The axe check below catches
+        that, so this link stays on --fid-text.
+      -->
+      <a class="text-fid-text underline underline-offset-4" href="/api/health">/api/health</a>
     </p>
   </main>
 </template>
