@@ -59,10 +59,45 @@ export default defineNuxtConfig({
       ],
     },
     workbox: {
-      // App shell only. Covers get their own runtime cache in M6 — they come
-      // from i.discogs.com, which has its own Cloudflare limit.
       globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
       navigateFallback: '/200.html',
+
+      runtimeCaching: [
+        {
+          /*
+           * Covers.
+           *
+           * They come from i.discogs.com, which has its own Cloudflare limit
+           * of roughly 30–40 requests a minute that has nothing to do with the
+           * API budget (docs/02). Caching them is therefore not a nicety: a
+           * second look at a dig would otherwise re-fetch every thumbnail and
+           * run straight into a limit the app cannot even see.
+           *
+           * CacheFirst because a cover never changes — the URLs are signed and
+           * content-addressed, so a new image is a new URL.
+           *
+           * ⚠️ docs/06 M6 asks for a 150 MB LRU cap and Workbox has no
+           * byte-based one; ExpirationPlugin counts entries and age. 6.000
+           * entries is that budget expressed in the unit available, at the
+           * ~25 KB a 150px thumbnail actually weighs. purgeOnQuotaError is the
+           * real safety net: if the estimate is wrong and the browser runs out,
+           * the cache is dropped rather than writes failing silently.
+           */
+          urlPattern: ({ url }) => url.hostname === 'i.discogs.com',
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'fidelity-covers',
+            expiration: {
+              maxEntries: 6000,
+              maxAgeSeconds: 60 * 60 * 24 * 90,
+              purgeOnQuotaError: true,
+            },
+            // 0 keeps opaque responses, which is what a cross-origin image
+            // without CORS headers comes back as.
+            cacheableResponse: { statuses: [0, 200] },
+          },
+        },
+      ],
     },
     client: {
       // The install prompt is handled in the UI, not by the module: iOS has no

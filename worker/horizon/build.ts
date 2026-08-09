@@ -7,7 +7,7 @@ import { log } from '../log'
 import type { DiscogsClient } from '../discogs/client'
 
 import { expandEntity } from './expand'
-import { creditCandidates } from './credits'
+import { creditCandidates } from './credit-select'
 import { planRevalidation, type RevalidationPlan } from './revalidate'
 import { candidateKey, selectCandidates, type Candidate } from './select'
 

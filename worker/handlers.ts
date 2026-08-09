@@ -9,7 +9,6 @@ import { enrichTopMatches } from './dig/enrich'
 import { forgetLookup } from './dig/detail'
 import { affinityFactor } from './dig/fingerprint'
 import { allFeedback, clearFeedback, feedbackVerdicts, recordFeedback } from './feedback'
-import { buildHorizon, horizonStatus, revalidateHorizon } from './horizon/build'
 import { dealerSchema } from './discogs/inventory'
 import { bestPerRelease, topFive } from './match/select'
 import { computeTasteProfile } from './match/taste'
@@ -135,9 +134,21 @@ export const handlers: HandlerMap = {
   'dig.resume': ({ digId }, { report, signal }) =>
     resumeDig({ client: discogs(), digId, report: (progress) => report(progress), signal }),
 
-  'horizon.status': () => horizonStatus(),
+  /*
+   * Building, revalidating and gap-filling all load on demand.
+   *
+   * None of them is needed to run a dig — the scan needs the *lookup*, which
+   * is a different module — and a dig is what somebody waits for. Each is a
+   * deliberate, visible operation with its own progress bar, so a chunk fetch
+   * in front of it costs nothing anybody notices.
+   */
+  'horizon.status': async () => {
+    const { horizonStatus } = await import('./horizon/build')
+    return horizonStatus()
+  },
 
   'horizon.build': async (_params, { report, signal }) => {
+    const { buildHorizon } = await import('./horizon/build')
     const result = await buildHorizon({
       client: discogs(),
       report: (progress) => report(progress),
@@ -149,6 +160,7 @@ export const handlers: HandlerMap = {
   },
 
   'horizon.revalidate': async (_params, { report, signal }) => {
+    const { revalidateHorizon } = await import('./horizon/build')
     const { plan, ...result } = await revalidateHorizon({
       client: discogs(),
       report: (progress) => report(progress),
@@ -190,6 +202,7 @@ export const handlers: HandlerMap = {
     const misses = takeNearMisses()
     if (misses.length === 0) return { expanded: 0, requests: 0, titles: [] }
 
+    const { buildHorizon } = await import('./horizon/build')
     // One request per master, and only the ones the dig actually pointed at.
     const result = await buildHorizon({
       client: discogs(),

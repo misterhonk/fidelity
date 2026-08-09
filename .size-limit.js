@@ -28,21 +28,56 @@ if (entryAssets.length === 0) {
 }
 
 /**
- * The worker chunk, found by what only it contains.
+ * The worker's start-up cost: its entry chunk plus everything it *statically*
+ * imports, transitively.
  *
- * It is the only module that talks to api.discogs.com (CLAUDE.md rule 3), so
- * that string identifies it without depending on a build hash. It has its own
- * budget because it is what stands between "the page rendered" and "the app
- * can do anything" — off the first-paint path, but not off the critical path
- * to the first useful action.
+ * Following the imports is the whole point. `worker.format: 'es'` lets Vite
+ * split the worker, and a naive measurement of the entry file alone rewards
+ * exactly the wrong thing: pushing code into a sibling chunk the entry loads
+ * anyway reads as a 19 kB saving and changes nothing a user would notice. A
+ * budget that can be satisfied by moving bytes sideways is not a budget.
+ *
+ * `import("./x.js")` is excluded — that is a real deferral, fetched only when
+ * a handler needs it. `import "./x.js"` and `from "./x.js"` are not.
  */
-const workerChunk = readdirSync('.output/public/_nuxt')
+const WORKER_DIR = '.output/public/_nuxt'
+
+const workerEntry = readdirSync(WORKER_DIR)
   .filter((file) => file.endsWith('.js'))
-  .map((file) => `.output/public/_nuxt/${file}`)
+  .map((file) => `${WORKER_DIR}/${file}`)
   .find((file) => readFileSync(file, 'utf8').includes('api.discogs.com'))
 
-if (!workerChunk) {
+if (!workerEntry) {
   throw new Error('worker chunk not found — did the Discogs client move?')
+}
+
+function staticImports(file) {
+  const code = readFileSync(file, 'utf8')
+  const found = new Set()
+
+  // Static forms only. The negative lookbehind on `(` is what keeps dynamic
+  // imports out: `import("./x.js")` is deferred, `import"./x.js"` is not.
+  for (const [, specifier] of code.matchAll(/(?:^|[^.\w])import\s*(?!\()["']([^"']+)["']/g)) {
+    found.add(specifier)
+  }
+  for (const [, specifier] of code.matchAll(/\bfrom\s*["']([^"']+)["']/g)) {
+    found.add(specifier)
+  }
+
+  return [...found]
+    .filter((specifier) => specifier.startsWith('./') || specifier.startsWith('../'))
+    .map((specifier) => `${WORKER_DIR}/${specifier.replace(/^\.+\//, '')}`)
+}
+
+const workerChunks = new Set([workerEntry])
+const queue = [workerEntry]
+
+while (queue.length > 0) {
+  for (const next of staticImports(queue.pop())) {
+    if (workerChunks.has(next)) continue
+    workerChunks.add(next)
+    queue.push(next)
+  }
 }
 
 export default [
@@ -54,7 +89,7 @@ export default [
   },
   {
     name: 'Worker (lazy, nach dem ersten Paint)',
-    path: [workerChunk],
+    path: [...workerChunks],
     limit: '35 kB',
     gzip: true,
   },
