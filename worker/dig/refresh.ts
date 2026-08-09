@@ -328,3 +328,88 @@ export async function refreshMarked({
 
   return { prices, sold, requests }
 }
+
+/**
+ * From the shortlist into the basket, weeks later.
+ *
+ * Without this the shortlist is a dead end. The dig it came from was pruned
+ * long ago, so there is no `Match` left to add — only a listing id, a title
+ * and the name of a shop. The listing endpoint supplies the rest.
+ *
+ * One request per record and always a fresh one, even seconds after a check:
+ * the basket is where money gets added up, and a price that came out of a
+ * variable somewhere is not one this app is willing to total. What sold is
+ * marked and skipped rather than silently dropped.
+ */
+export async function basketFromMarked({
+  client,
+  listingIds,
+  currency,
+  now = Date.now(),
+  report,
+  signal,
+}: Omit<RefreshOptions, 'digId'> & { listingIds: number[] }): Promise<{
+  added: number
+  sold: number
+  requests: number
+}> {
+  const db = await openFidelityDb()
+  const { addToBasket } = await import('../basket')
+
+  let requests = 0
+  let added = 0
+  let sold = 0
+  let done = 0
+
+  report?.({ done, total: listingIds.length, requests, sold })
+
+  for (const listingId of listingIds) {
+    signal?.throwIfAborted()
+
+    const marked = await db.get('feedback', listingId)
+    if (!marked) {
+      done += 1
+      continue
+    }
+
+    let listing
+    try {
+      listing = await client.get(`/marketplace/listings/${listingId}`, listingSchema, {
+        query: { curr_abbr: currency },
+        signal,
+      })
+      requests += 1
+    } catch (error) {
+      if (signal?.aborted) throw error
+      await db.put('feedback', { ...marked, soldAt: now })
+      sold += 1
+      done += 1
+      report?.({ done, total: listingIds.length, requests, sold })
+      continue
+    }
+
+    if ((listing.status ?? FOR_SALE) !== FOR_SALE) {
+      await db.put('feedback', { ...marked, soldAt: now })
+      sold += 1
+    } else {
+      await addToBasket(
+        {
+          listingId,
+          releaseId: marked.releaseId,
+          artist: marked.artist ?? '',
+          title: marked.title ?? '',
+          price: listing.price?.value ?? 0,
+          currency: listing.price?.currency ?? currency,
+        } as Match,
+        marked.dealer ?? '',
+        now,
+      )
+      added += 1
+    }
+
+    done += 1
+    report?.({ done, total: listingIds.length, requests, sold })
+  }
+
+  return { added, sold, requests }
+}

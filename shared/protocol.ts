@@ -252,6 +252,16 @@ export interface WorkerContract {
    * line (docs/02). The answer that matters is not the price but `status`.
    */
   'basket.refresh': { params: undefined; progress: RefreshProgress; result: BasketView }
+  /**
+   * From the shortlist into the basket. One fresh request per record — the
+   * dig is long gone, so there is no `Match` left to add, and a basket total
+   * is not something to build out of a remembered price.
+   */
+  'basket.fromMarked': {
+    params: { listingIds: number[] }
+    progress: RefreshProgress
+    result: { view: BasketView; added: number; sold: number }
+  }
   /** A hand-entered postage table. Replaces any earlier one for this dealer. */
   'basket.setShipping': {
     params: { dealer: string; tiers: Omit<ShippingTier, 'source'>[] }

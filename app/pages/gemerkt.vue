@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MarkedOverview } from '#shared/types'
+import type { MarkedOverview, MarkedRecord } from '#shared/types'
 
 useSeoMeta({
   title: 'Gemerkt',
@@ -27,6 +27,59 @@ const prices = ref<
 const checking = ref(false)
 const progress = ref<{ done: number; total: number } | null>(null)
 const checkResult = ref<string | null>(null)
+
+/*
+ * Into the basket, weeks later.
+ *
+ * Without this the shortlist is a dead end: the dig it came from was pruned
+ * long ago, so there is nothing left to add from. One shop at a time, because
+ * a basket is one shipment — the worker enforces that anyway, and saying it
+ * here beats letting somebody discover it by losing a basket.
+ */
+const { refresh: refreshBasket } = useBasket()
+const moving = ref<string | null>(null)
+/** Whose result this is — otherwise one message appears under every shop. */
+const moveResult = ref<{ dealer: string; text: string } | null>(null)
+
+async function intoBasket(group: { dealer: string | null; records: MarkedRecord[] }) {
+  if (moving.value) return
+
+  const open = group.records
+    .filter((record) => !record.soldAt)
+    .map((record) => record.listingId)
+  if (open.length === 0) return
+
+  moving.value = group.dealer ?? ''
+  moveResult.value = null
+  error.value = null
+
+  try {
+    const result = await call(
+      'basket.fromMarked',
+      { listingIds: open },
+      {
+        onProgress: (update) => {
+          progress.value = update
+        },
+      },
+    )
+    await refreshBasket()
+    await load()
+
+    moveResult.value = {
+      dealer: group.dealer ?? '',
+      text:
+        result.sold === 0
+          ? `${number.format(result.added)} im Korb.`
+          : `${number.format(result.added)} im Korb, ${number.format(result.sold)} war schon weg.`,
+    }
+  } catch (cause) {
+    error.value = cause
+  } finally {
+    moving.value = null
+    progress.value = null
+  }
+}
 
 async function load() {
   overview.value = await call('feedback.marked', undefined)
@@ -151,13 +204,50 @@ async function check() {
         :key="group.dealer ?? 'unbekannt'"
         class="flex flex-col gap-2"
       >
-        <h2 class="text-fid-lg font-bold text-fid-text">
-          <template v-if="group.dealer">{{ group.dealer }}</template>
-          <template v-else>Ohne Laden</template>
-          <span class="fid-num ml-2 text-fid-sm font-normal text-fid-text-muted">
-            {{ group.records.length }}
-          </span>
-        </h2>
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <h2 class="text-fid-lg font-bold text-fid-text">
+            <template v-if="group.dealer">{{ group.dealer }}</template>
+            <template v-else>Ohne Laden</template>
+            <span class="fid-num ml-2 text-fid-sm font-normal text-fid-text-muted">
+              {{ group.records.length }}
+            </span>
+          </h2>
+
+          <!--
+            The whole shop at once, because postage is per shipment and that is
+            the only reason to group by shop in the first place. The cost is
+            named; the basket holds one shop, so this replaces what is in it.
+          -->
+          <button
+            v-if="group.dealer && group.open > 0"
+            type="button"
+            class="shrink-0 text-fid-sm text-fid-accent underline underline-offset-4 disabled:opacity-50"
+            :disabled="moving !== null"
+            @click="intoBasket(group)"
+          >
+            <template v-if="moving === group.dealer">
+              Hole …
+              <template v-if="progress">
+                <span class="fid-num">{{ progress.done }}</span
+                >/<span class="fid-num">{{ progress.total }}</span>
+              </template>
+            </template>
+            <template v-else>
+              In den Korb<span class="fid-num"> ({{ group.open }})</span>
+            </template>
+          </button>
+        </div>
+
+        <p
+          v-if="moveResult?.dealer === (group.dealer ?? '') && moving === null"
+          class="text-fid-sm text-fid-text-muted"
+          aria-live="polite"
+        >
+          {{ moveResult.text }}
+          <NuxtLink to="/korb" class="text-fid-accent underline underline-offset-4">
+            Versand rechnen
+          </NuxtLink>
+        </p>
 
         <ul class="flex flex-col gap-2">
           <li

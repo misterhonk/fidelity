@@ -376,6 +376,19 @@ export const handlers: HandlerMap = {
 
   'basket.get': () => basketView(),
 
+  'basket.fromMarked': async ({ listingIds }, { report, signal }) => {
+    const { basketFromMarked } = await import('./dig/refresh')
+    const { currency } = await getPreferences()
+    const { added, sold } = await basketFromMarked({
+      client: discogs(),
+      listingIds,
+      currency,
+      report: (progress) => report(progress),
+      signal,
+    })
+    return { view: await basketView(), added, sold }
+  },
+
   'feedback.marked': async () => {
     const { markedOverview } = await import('./feedback')
     return markedOverview()
