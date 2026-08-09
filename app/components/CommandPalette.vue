@@ -72,7 +72,9 @@ const entries = computed<Entry[]>(() => [
     group: 'Digs',
     label: dig.dealer,
     hint: `${dig.matchCount} Treffer · ${dateFormat.format(dig.startedAt)}`,
-    run: go('/dig'),
+    // Every dig entry used to land on the newest one. Five are kept; four
+    // were unreachable.
+    run: go('/dig', { id: dig.id }),
   })),
 
   // Matches jump into the dig with the text filter already set, which is the

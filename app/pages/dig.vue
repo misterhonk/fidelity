@@ -17,12 +17,24 @@ const { online, noteFailure } = useOnline()
 const { load: loadFeedback } = useFeedback()
 const { load: loadBasket } = useBasket()
 const route = useRoute()
+const router = useRouter()
 
 const dealer = ref('')
 const preflight = ref<DigPreflight | null>(null)
 const progress = ref<ScanProgress | null>(null)
 const enriching = ref<EnrichProgress | null>(null)
 const gaps = ref<{ expanded: number; requests: number; titles: string[] } | null>(null)
+const history = ref<Dig[]>([])
+
+async function loadHistory() {
+  history.value = await call('dig.list', undefined)
+}
+
+/** Switching digs is a navigation, so it goes through the URL and back works. */
+async function showDig(digId: string) {
+  await router.replace({ query: { ...route.query, id: digId } })
+  result.value = await call('dig.get', { digId })
+}
 const result = ref<DigWithMatches | null>(null)
 const busy = ref(false)
 const error = ref<unknown>(null)
@@ -33,8 +45,20 @@ onMounted(async () => {
   // paid for in requests, and throwing it away to start over would spend the
   // rate limit twice.
   resumable.value = await call('dig.resumable', undefined)
-  result.value = await call('dig.latest', undefined)
-  await Promise.all([loadFeedback(), loadBasket()])
+  await Promise.all([loadFeedback(), loadBasket(), loadHistory()])
+
+  /*
+   * ?id= opens a particular dig.
+   *
+   * The command palette has been offering every stored dig since M3 and every
+   * one of them landed on the newest — `dig.get` existed in the protocol and
+   * nothing called it. Five digs are kept; four of them were unreachable.
+   */
+  const wantedDig = route.query.id
+  result.value =
+    typeof wantedDig === 'string' && wantedDig
+      ? await call('dig.get', { digId: wantedDig })
+      : await call('dig.latest', undefined)
 
   // ?dealer= comes from the watchlist banner. Filled in and checked, never
   // started: a scan is two minutes of somebody's rate limit and a link should
@@ -334,6 +358,29 @@ const expired = computed(() => {
         >: {{ gaps.titles.join(', ') }}</template
       >. Beim nächsten Dig zählt das mit.
     </p>
+
+    <!--
+      Which dig is on screen, and the others. Five are kept (docs/03 §5) and
+      until now only the newest could be opened.
+    -->
+    <nav v-if="history.length > 1" aria-label="Frühere Digs" class="flex flex-wrap gap-2">
+      <button
+        v-for="entry in history"
+        :key="entry.id"
+        type="button"
+        :aria-current="result?.dig.id === entry.id ? 'true' : undefined"
+        class="min-h-9 rounded-fid-sm border px-3 py-1 text-fid-sm transition-colors"
+        :class="
+          result?.dig.id === entry.id
+            ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
+            : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+        "
+        @click="showDig(entry.id)"
+      >
+        {{ entry.dealer }}
+        <span class="fid-num text-fid-xs text-fid-text-muted">{{ entry.matchCount }}</span>
+      </button>
+    </nav>
 
     <section v-if="result" class="flex flex-col gap-4">
       <div class="flex flex-wrap items-baseline justify-between gap-2">
