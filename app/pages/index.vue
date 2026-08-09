@@ -40,21 +40,23 @@ async function signOut() {
     <template v-if="ready">
       <TokenForm v-if="!identity" @signed-in="identity = $event" />
 
-      <section v-else class="flex flex-col gap-4" aria-labelledby="signed-in-heading">
-        <h2 id="signed-in-heading" class="text-fid-xl font-bold text-fid-text">
-          Angemeldet als {{ identity.username }}
-        </h2>
-        <p class="text-fid-base text-fid-text-muted">
-          Der nächste Schritt ist der Sammlungs-Sync – und danach deine Landkarte.
-        </p>
-        <button
-          type="button"
-          class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
-          @click="signOut"
-        >
-          Abmelden und alle Daten löschen
-        </button>
-      </section>
+      <template v-else>
+        <LibrarySync />
+
+        <section class="flex flex-col gap-3 border-t border-fid-border pt-6">
+          <p class="text-fid-sm text-fid-text-muted">
+            Angemeldet als <span class="text-fid-text">{{ identity.username }}</span
+            >. Alles liegt auf diesem Gerät.
+          </p>
+          <button
+            type="button"
+            class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+            @click="signOut"
+          >
+            Abmelden und alle Daten löschen
+          </button>
+        </section>
+      </template>
     </template>
   </main>
 </template>

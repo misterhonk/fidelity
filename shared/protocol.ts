@@ -44,6 +44,38 @@ export interface WorkerContract {
   'auth.identity': { params: undefined; progress: never; result: Identity | null }
   /** Deletes the whole database, not just the token. */
   'auth.signOut': { params: undefined; progress: never; result: { signedOut: true } }
+
+  /**
+   * Mirrors collection and wantlist. Reports per page, because the first run
+   * takes ~25 requests and a spinner for half a minute is not an answer.
+   */
+  'library.sync': { params: undefined; progress: SyncProgress; result: SyncResult }
+  'library.summary': { params: undefined; progress: never; result: LibrarySummary }
+}
+
+export interface SyncProgress {
+  kind: 'collection' | 'wantlist'
+  stored: number
+  total: number
+  requests: number
+}
+
+export interface SyncSummary {
+  stored: number
+  requests: number
+  total: number
+}
+
+export interface SyncResult {
+  collection: SyncSummary
+  wantlist: SyncSummary
+}
+
+export interface LibrarySummary {
+  collection: number
+  wantlist: number
+  collectionSyncedAt: number | null
+  wantlistSyncedAt: number | null
 }
 
 export type RequestKind = keyof WorkerContract

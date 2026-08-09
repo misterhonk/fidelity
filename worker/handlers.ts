@@ -1,7 +1,9 @@
+import { getSyncState } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
 
-import { currentIdentity, signIn, signOut } from './auth'
+import { currentIdentity, discogs, requestPersistence, signIn, signOut } from './auth'
+import { syncLibrary } from './sync/library'
 
 /**
  * A handler gets its params and a way to report progress, and returns the
@@ -60,5 +62,29 @@ export const handlers: HandlerMap = {
   'auth.signOut': async () => {
     await signOut()
     return { signedOut: true as const }
+  },
+
+  'library.sync': async (_params, { report, signal }) => {
+    const identity = await currentIdentity()
+    if (!identity) throw new Error('Nicht angemeldet.')
+
+    await requestPersistence()
+    return syncLibrary({
+      client: discogs(),
+      username: identity.username,
+      report: (progress) => report(progress),
+      signal,
+    })
+  },
+
+  'library.summary': async () => {
+    const db = await openFidelityDb()
+    const syncState = await getSyncState()
+    return {
+      collection: await db.count('collection'),
+      wantlist: await db.count('wantlist'),
+      collectionSyncedAt: syncState.collectionSyncedAt,
+      wantlistSyncedAt: syncState.wantlistSyncedAt,
+    }
   },
 }

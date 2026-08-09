@@ -53,7 +53,29 @@ export async function signIn(token: string): Promise<Identity> {
 
   await setMeta('token', trimmed)
   await setMeta('identity', stored)
+  await requestPersistence()
   return stored
+}
+
+/**
+ * Asks the browser not to evict us.
+ *
+ * WebKit clears site data after roughly seven days of inactivity, which would
+ * silently take the token and the whole horizon with it — thirteen minutes of
+ * expansion, gone, and the user has no idea why they are signed out. Installed
+ * home-screen apps are exempt, but this costs one call and covers the rest.
+ *
+ * Best effort by definition: browsers grant it on their own heuristics, and a
+ * refusal is not an error.
+ */
+export async function requestPersistence(): Promise<boolean> {
+  try {
+    if (typeof navigator === 'undefined' || !navigator.storage?.persist) return false
+    if (await navigator.storage.persisted()) return true
+    return await navigator.storage.persist()
+  } catch {
+    return false
+  }
 }
 
 export async function currentIdentity(): Promise<Identity | null> {
