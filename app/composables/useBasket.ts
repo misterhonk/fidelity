@@ -10,6 +10,8 @@ import type { BasketView } from '#shared/types'
  */
 const view = shallowRef<BasketView>({ summary: null, listingIds: [], candidates: [] })
 const ids = shallowRef(new Set<number>())
+/** The last add or remove that did not survive the trip to the worker. */
+const failure = shallowRef<unknown>(null)
 let loaded = false
 
 function apply(next: BasketView) {
@@ -38,17 +40,27 @@ export function useBasket() {
    */
   async function toggle(digId: string, listingId: number) {
     const inBasket = ids.value.has(listingId)
+    const before = ids.value
+    failure.value = null
 
     const optimistic = new Set(ids.value)
     if (inBasket) optimistic.delete(listingId)
     else optimistic.add(listingId)
     ids.value = optimistic
 
-    apply(
-      inBasket
-        ? await call('basket.remove', { listingId })
-        : await call('basket.add', { digId, listingId }),
-    )
+    try {
+      apply(
+        inBasket
+          ? await call('basket.remove', { listingId })
+          : await call('basket.add', { digId, listingId }),
+      )
+    } catch (cause) {
+      // Rolled back. A record that looks like it is in the basket and is not
+      // is the one lie this screen must never tell — the whole point of it is
+      // knowing what an order will cost before Discogs says so.
+      ids.value = before
+      failure.value = cause
+    }
   }
 
   async function clear() {
@@ -58,6 +70,7 @@ export function useBasket() {
   return {
     view: readonly(view),
     ids: readonly(ids),
+    failure: readonly(failure),
     contains: (listingId: number) => ids.value.has(listingId),
     load,
     refresh,

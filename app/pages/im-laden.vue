@@ -8,8 +8,8 @@ useSeoMeta({
 
 const { call } = useFidelityWorker()
 const { online } = useOnline()
-const { verdicts, judge, load: loadFeedback } = useFeedback()
-const { contains, toggle, load: loadBasket } = useBasket()
+const { verdicts, judge, failure: judgeFailure, load: loadFeedback } = useFeedback()
+const { contains, toggle, failure: basketFailure, load: loadBasket } = useBasket()
 
 // Shallow: the in-store screen judges records too, and a proxy cannot
 // cross postMessage. Same reason as the dig screen.
@@ -88,6 +88,15 @@ function money(value: number | null, currency: string | null) {
         Älter als sechs Stunden – Preise und Zustände dürfen nicht mehr angezeigt werden. Die
         Treffer und ihre Begründungen stehen weiter.
       </p>
+
+      <!--
+        A verdict or a basket click that did not survive the trip to the
+        worker. Both roll back, so without this the button would spring back
+        with no explanation — and in a shop, with the record in your hand, that
+        is the worst place to be guessing.
+      -->
+      <ErrorNote v-if="judgeFailure" :cause="judgeFailure" />
+      <ErrorNote v-else-if="basketFailure" :cause="basketFailure" />
 
       <!-- Big enough to hit while walking. -->
       <input

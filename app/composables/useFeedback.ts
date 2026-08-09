@@ -12,6 +12,17 @@ import type { Verdict } from '#shared/types'
 const verdicts = shallowRef<Record<number, Verdict>>({})
 let loaded = false
 
+/**
+ * The last verdict that did not survive the trip to the worker.
+ *
+ * Optimism is right here — the worker is mid-scan half the time this gets
+ * pressed — but optimism without a rollback is just a lie told quickly. This
+ * store went a whole milestone accepting verdicts that were never written,
+ * because a button that lights up is indistinguishable from a button that
+ * worked. Now it goes back, and something on screen says so.
+ */
+const failure = shallowRef<unknown>(null)
+
 export const VERDICTS = [
   { key: 'interesting', icon: '👍', label: 'Interessant' },
   { key: 'meh', icon: '😐', label: 'Naja' },
@@ -35,6 +46,8 @@ export function useFeedback() {
    */
   async function judge(match: FeedbackSubject, verdict: Verdict) {
     const current = verdicts.value[match.listingId]
+    const before = verdicts.value
+    failure.value = null
 
     // Applied before the round trip. The worker is doing a rate-limited scan
     // half the time this gets pressed, and a button that waits for it feels
@@ -45,11 +58,18 @@ export function useFeedback() {
         : [...Object.entries(verdicts.value), [String(match.listingId), verdict]],
     )
 
-    verdicts.value =
-      current === verdict
-        ? await call('feedback.clear', { listingId: match.listingId })
-        : await call('feedback.set', { match: feedbackSubject(match), verdict })
+    try {
+      verdicts.value =
+        current === verdict
+          ? await call('feedback.clear', { listingId: match.listingId })
+          : await call('feedback.set', { match: feedbackSubject(match), verdict })
+    } catch (cause) {
+      // Back to what was actually saved. A button that stays lit after the
+      // write failed is worse than one that never lit up.
+      verdicts.value = before
+      failure.value = cause
+    }
   }
 
-  return { verdicts: readonly(verdicts), load, judge }
+  return { verdicts: readonly(verdicts), failure: readonly(failure), load, judge }
 }

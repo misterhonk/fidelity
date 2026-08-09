@@ -15,8 +15,8 @@ useSeoMeta({
 
 const { call } = useFidelityWorker()
 const { online, noteFailure } = useOnline()
-const { load: loadFeedback } = useFeedback()
-const { load: loadBasket } = useBasket()
+const { failure: judgeFailure, load: loadFeedback } = useFeedback()
+const { failure: basketFailure, load: loadBasket } = useBasket()
 const route = useRoute()
 const router = useRouter()
 
@@ -283,6 +283,13 @@ const expired = computed(() => {
     </form>
 
     <ErrorNote v-if="error" :cause="error" />
+    <!--
+      A verdict or a basket click that did not survive the trip to the worker.
+      Both are applied optimistically and both roll back, so without this the
+      button would simply spring back with no explanation.
+    -->
+    <ErrorNote v-if="judgeFailure" :cause="judgeFailure" />
+    <ErrorNote v-else-if="basketFailure" :cause="basketFailure" />
 
     <!--
       Offline the last dig is still fully readable — it is on this device. Only
