@@ -23,6 +23,10 @@ data/tmp/
 # Generated design tokens (built from tokens/*.json by `pnpm tokens:build`)
 app/assets/css/tokens.css
 
+# Generated app icons (built from tokens/core.json by `pnpm icons:build`)
+public/icons/
+public/icon.svg
+
 # Test artifacts
 coverage/
 playwright-report/

@@ -26,9 +26,54 @@ export default defineNuxtConfig({
 
   // Nuxt UI 4 brings Tailwind 4 and registers @tailwindcss/vite itself — the
   // Vite plugin route, not PostCSS (docs/01-ARCHITEKTUR.md §4.4).
-  modules: ['@nuxt/ui', '@nuxt/eslint'],
+  modules: ['@nuxt/ui', '@nuxt/eslint', '@vite-pwa/nuxt'],
 
   css: ['~/assets/css/main.css'],
+
+  pwa: {
+    // Never 'autoUpdate'. A silent skipWaiting would swap the code out from
+    // under a running dig — four minutes of scanning, gone. The user gets
+    // asked, and the answer can be "later".
+    registerType: 'prompt',
+    manifest: {
+      name: 'Fidelity',
+      short_name: 'Fidelity',
+      description: 'Der Verkäufer hinter der Theke – für Discogs.',
+      lang: 'de',
+      start_url: '/',
+      scope: '/',
+      display: 'standalone',
+      // The neutral ramp's darkest step: the shell must not flash white while
+      // the app boots on a phone.
+      background_color: '#0a0908',
+      theme_color: '#0a0908',
+      icons: [
+        { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+        {
+          src: '/icons/icon-maskable-512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'maskable',
+        },
+      ],
+    },
+    workbox: {
+      // App shell only. Covers get their own runtime cache in M6 — they come
+      // from i.discogs.com, which has its own Cloudflare limit.
+      globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+      navigateFallback: '/200.html',
+    },
+    client: {
+      // The install prompt is handled in the UI, not by the module: iOS has no
+      // beforeinstallprompt at all and needs a coach mark instead (M6).
+      installPrompt: false,
+    },
+    devOptions: {
+      // A service worker in dev caches the very thing being edited.
+      enabled: false,
+    },
+  },
 
   typescript: {
     strict: true,

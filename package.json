@@ -9,11 +9,12 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "pnpm tokens:build && nuxt dev",
-    "build": "pnpm tokens:build && nuxt build",
+    "dev": "pnpm tokens:build && pnpm icons:build && nuxt dev",
+    "build": "pnpm tokens:build && pnpm icons:build && nuxt build",
     "preview": "nuxt preview",
-    "postinstall": "pnpm tokens:build && nuxt prepare",
+    "postinstall": "pnpm tokens:build && pnpm icons:build && nuxt prepare",
     "tokens:build": "node scripts/tokens/build.mjs",
+    "icons:build": "node scripts/icons/build.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -40,6 +41,7 @@
     "@commitlint/config-conventional": "^21.2.0",
     "@nuxt/eslint": "^1.17.0",
     "@playwright/test": "^1.62.1",
+    "@vite-pwa/nuxt": "^1.1.1",
     "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^10.8.1",
     "eslint-config-prettier": "^10.1.8",
