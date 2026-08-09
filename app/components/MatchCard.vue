@@ -3,6 +3,9 @@ import type { Match } from '#shared/types'
 
 const props = defineProps<{ match: Match }>()
 
+const { verdicts, judge } = useFeedback()
+const verdict = computed(() => verdicts.value[props.match.listingId])
+
 /** Which token colours a chip. S1 and S2 share one — ten for eleven signals. */
 const SIGNAL_TOKEN: Record<string, string> = {
   WANTLIST_EXACT: 'wantlist',
@@ -108,17 +111,44 @@ const meta = computed(() =>
     <!-- Never truncated. The sentence is the product. -->
     <p class="text-fid-sm text-fid-text">{{ match.reason }}</p>
 
-    <p class="flex flex-wrap items-center gap-x-3 text-fid-sm text-fid-text-muted">
-      <span v-if="match.condition">{{ match.condition }}</span>
-      <span v-if="price" class="fid-num text-fid-text">{{ price }}</span>
-      <a
-        class="text-fid-accent underline underline-offset-4"
-        :href="`https://www.discogs.com/sell/item/${match.listingId}`"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Bei Discogs ansehen
-      </a>
-    </p>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <p class="flex flex-wrap items-center gap-x-3 text-fid-sm text-fid-text-muted">
+        <span v-if="match.condition">{{ match.condition }}</span>
+        <span v-if="price" class="fid-num text-fid-text">{{ price }}</span>
+        <a
+          class="text-fid-accent underline underline-offset-4"
+          :href="`https://www.discogs.com/sell/item/${match.listingId}`"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Bei Discogs ansehen
+        </a>
+      </p>
+
+      <!--
+        The only way Barry ever gets calibrated. Each press stores the signals
+        as they were at the moment of the verdict — the verdict alone would be
+        worthless once the weights move (docs/03 §7).
+      -->
+      <div class="flex gap-1" role="group" aria-label="Wie war der Treffer?">
+        <button
+          v-for="option in VERDICTS"
+          :key="option.key"
+          type="button"
+          :title="option.label"
+          :aria-label="option.label"
+          :aria-pressed="verdict === option.key"
+          class="rounded-fid-sm border px-2 py-1 text-fid-sm transition-colors"
+          :class="
+            verdict === option.key
+              ? 'border-fid-accent bg-fid-accent/15'
+              : 'border-transparent opacity-45 hover:opacity-100'
+          "
+          @click="judge(match, option.key)"
+        >
+          <span aria-hidden="true">{{ option.icon }}</span>
+        </button>
+      </div>
+    </div>
   </article>
 </template>

@@ -13,6 +13,7 @@ useSeoMeta({
 })
 
 const { call } = useFidelityWorker()
+const { load: loadFeedback } = useFeedback()
 
 const dealer = ref('')
 const preflight = ref<DigPreflight | null>(null)
@@ -29,6 +30,7 @@ onMounted(async () => {
   // rate limit twice.
   resumable.value = await call('dig.resumable', undefined)
   result.value = await call('dig.latest', undefined)
+  await loadFeedback()
 })
 
 const number = new Intl.NumberFormat('de-DE')

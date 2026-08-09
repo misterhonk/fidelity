@@ -6,6 +6,7 @@ import { currentIdentity, discogs, requestPersistence, signIn, signOut } from '.
 import { findResumable, REACHABLE, resumeDig, runDig } from './dig/scan'
 import { enrichTopMatches } from './dig/enrich'
 import { affinityFactor } from './dig/fingerprint'
+import { allFeedback, clearFeedback, feedbackVerdicts, recordFeedback } from './feedback'
 import { buildHorizon, horizonStatus } from './horizon/build'
 import { dealerSchema } from './discogs/inventory'
 import { bestPerRelease, topFive } from './match/select'
@@ -141,6 +142,20 @@ export const handlers: HandlerMap = {
       report: (progress) => report(progress),
       signal,
     }),
+
+  'feedback.set': async ({ match, verdict }) => {
+    await recordFeedback(match, verdict, Date.now())
+    return feedbackVerdicts()
+  },
+
+  'feedback.clear': async ({ listingId }) => {
+    await clearFeedback(listingId)
+    return feedbackVerdicts()
+  },
+
+  'feedback.verdicts': () => feedbackVerdicts(),
+
+  'feedback.export': () => allFeedback(),
 
   'dealer.profile': async ({ dealer: username }) => {
     const db = await openFidelityDb()

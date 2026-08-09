@@ -351,10 +351,12 @@ export interface BasketItem {
   note: string | null
 }
 
+export type Verdict = 'interesting' | 'meh' | 'wrong' | 'bought'
+
 export interface Feedback {
   listingId: number
   releaseId: number
-  verdict: 'interesting' | 'meh' | 'wrong' | 'bought'
+  verdict: Verdict
   /** Signal snapshot at the time of the verdict — otherwise it is unusable later. */
   signals: Signal[]
   score: number

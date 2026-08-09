@@ -13,7 +13,7 @@
  * The Personal Access Token crosses it exactly once, on sign-in. It never
  * comes back the other way (CLAUDE.md rule 6).
  */
-import type { Dealer, Dig, Identity, Match, TasteProfile } from './types'
+import type { Dealer, Dig, Feedback, Identity, Match, TasteProfile, Verdict } from './types'
 
 export interface PingResult {
   pong: true
@@ -80,6 +80,24 @@ export interface WorkerContract {
   'horizon.status': { params: undefined; progress: never; result: HorizonStatus }
   'horizon.build': { params: undefined; progress: HorizonProgress; result: HorizonResult }
 
+  /**
+   * Feedback. Carries the signal snapshot, because a verdict without the
+   * reasoning behind it is unusable once the weights move (docs/03 §7).
+   */
+  'feedback.set': {
+    params: { match: FeedbackSubject; verdict: Verdict }
+    progress: never
+    result: Record<number, Verdict>
+  }
+  'feedback.clear': {
+    params: { listingId: number }
+    progress: never
+    result: Record<number, Verdict>
+  }
+  'feedback.verdicts': { params: undefined; progress: never; result: Record<number, Verdict> }
+  /** The whole store, for the offline analysis docs/03 §7 describes. */
+  'feedback.export': { params: undefined; progress: never; result: Feedback[] }
+
   /** The Clerk's Take: what a shop is, and how it ranks against your others. */
   'dealer.profile': {
     params: { dealer: string }
@@ -87,6 +105,9 @@ export interface WorkerContract {
     result: DealerProfile | null
   }
 }
+
+/** What a verdict needs to keep: the identity plus the reasoning behind it. */
+export type FeedbackSubject = Pick<Match, 'listingId' | 'releaseId' | 'signals' | 'score'>
 
 export interface EnrichProgress {
   done: number
