@@ -6,57 +6,72 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 Für eine App bedeutet SemVer:
-**MAJOR** = Datenmigration oder Breaking Config · **MINOR** = Features · **PATCH** = Fixes.
-
-## 0.1.0 (2026-08-09)
-
-
-### Added
-
-* add /api/health with a database check ([6513a3f](https://github.com/misterhonk/fidelity/commit/6513a3fc116ae89fea0849f3a0758ec814b1c2cf))
-* add the hub ports with their local implementations ([5a5ffd7](https://github.com/misterhonk/fidelity/commit/5a5ffd7d05e7806ee0a108a939589ce5e84c202d))
-* add the web worker and its typed postMessage protocol ([f404800](https://github.com/misterhonk/fidelity/commit/f4048000f19db01ebd365accda6fb3e799a3a39d))
-* **db:** add drizzle schema and first migration for the app schema ([46bcf75](https://github.com/misterhonk/fidelity/commit/46bcf75137cfa276c146c5e106da6bce5f19fb72))
-* **db:** add the indexeddb stores via idb ([d7bd142](https://github.com/misterhonk/fidelity/commit/d7bd14210521e9dbf036406d4abf296901984956))
-* **deploy:** add docker compose stack with app, postgres 15 and mailpit ([6777b08](https://github.com/misterhonk/fidelity/commit/6777b08ccc899d74aa11dbe6c455c4a2440941e3))
-* **pwa:** add the manifest, icons and a prompted update ([83237a9](https://github.com/misterhonk/fidelity/commit/83237a91752761afb420c59cfa5b137bce16ea1b))
-* scaffold nuxt 4.5 skeleton with typescript and pnpm ([50205bb](https://github.com/misterhonk/fidelity/commit/50205bbb7ec0d180d8c4a235a8208f6ed867eef7))
-* switch nuxt to spa mode with static output ([ad13e63](https://github.com/misterhonk/fidelity/commit/ad13e6368bd8faacf8c6b23d2accaff7bae35757))
-* **ui:** add DTCG design tokens, tailwind 4 and nuxt ui 4 ([c659f29](https://github.com/misterhonk/fidelity/commit/c659f29ef1789c22de8fc6b9a8ab3d4ca0baf5aa))
-
-
-### Fixed
-
-* pin the first release to v0.1.0 and align the commit scopes ([38333bc](https://github.com/misterhonk/fidelity/commit/38333bcfca032add76f52c704b7528cca0e59ef1))
-* stop tracking the dist symlink ([74342a9](https://github.com/misterhonk/fidelity/commit/74342a9923b1b66f398afdb68e195ea0806d5623))
-
-
-### Changed
-
-* remove the server layer, database and docker stack ([ae387fb](https://github.com/misterhonk/fidelity/commit/ae387fb35c0971a791063c055191456cfd9ce658))
+**MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
+**MINOR** = Features · **PATCH** = Fixes.
 
 ## [Unreleased]
 
-### Changed
+## [0.1.0] - 2026-08-09
 
-- **Architektur auf reine Client-PWA umgestellt (ADR-007).** Kein Backend, keine
-  Datenbank, kein Serverprozess. Grundlage: Discogs erlaubt CORS aus dem Browser
-  (`allow-origin: *`, `authorization` erlaubt), verifiziert am 2026-08-09
-- Speicher von PostgreSQL auf IndexedDB umgestellt
-- Auth von OAuth 1.0a auf Personal Access Token
-  (`POST /oauth/access_token` ist per CORS gesperrt)
-- Katalogdaten: Volldump (10,4 GB) durch bedarfsgesteuerten Horizont ersetzt (ADR-005)
-- Deployment auf statisches Hosting reduziert
+**M0 · Fundament.** Eine leere, aber vollständig verdrahtete PWA: `pnpm dev`
+startet sie, `pnpm build` erzeugt statische Dateien, und alle Prüfungen laufen
+durch. Ein Dig ist noch nicht drin – der kommt mit M2.
 
 ### Added
 
-- Projektkonzept und vollständige Architekturdokumentation unter `docs/`
-- ADR-007 (Client-only PWA), ADR-005 neu gefasst
-- `docs/11-KATALOG-STRATEGIE.md`, `docs/12-RESSOURCEN-BUDGET.md`, `docs/13-HUB-ADDON.md`
-- ADR-008: optionaler, selbst hostbarer Hub (M9)
-- Architecture Decision Records ADR-001 bis ADR-006
-- Design-System-Spezifikation mit OKLCH-Tokens im DTCG-Format
-- HTML-Onepager und UI-Wireframes (9 Screens)
-- Deployment-Alternativen: VPS, Homeserver mit Cloudflare Tunnel
+- **Nuxt 4.5 als statisch generierte SPA** (`ssr: false`), Vue 3.5, TypeScript
+  im `strict`-Modus. Kein Node zur Laufzeit, das Deployment ist ein Docroot.
+- **IndexedDB-Datenmodell** über `idb` (~2 KB): neun Stores samt Indizes,
+  Präferenzen mit Default-Merge, und der Verfallsjob, der die 6-Stunden-Regel
+  der Discogs-ToS durchsetzt – Marktplatzfelder werden genullt, Score, Signale
+  und Begründung bleiben.
+- **Web Worker mit typisiertem `postMessage`-Protokoll.** Request/Response mit
+  offenem Fortschrittskanal und Abbruch über `AbortSignal`. Der Main-Thread
+  rendert, sonst nichts.
+- **Design Tokens im DTCG-Format** (`tokens/*.json`) → Style Dictionary →
+  Tailwind-4-`@theme`. OKLCH durchgehend, Farbschema-Rollen als eine einzige
+  `light-dark()`-Deklaration, fluide Typo-Skala mit erzwungenem `rem`-Term
+  (WCAG 1.4.4). Dazu Nuxt UI 4.
+- **PWA**: Manifest, Maskable-Icons aus den Tokens gerendert, und
+  `registerType: 'prompt'` samt Update-Banner – ein stilles `skipWaiting`
+  würde den Code mitten in einem laufenden Dig austauschen.
+- **Die drei Hub-Ports** (`HorizonSource`, `ShippingProfileSource`,
+  `WatchService`) mit lokalen Implementierungen und der Fallback-Kette:
+  2 s Timeout, kein Retry, lautloser Rückfall. Ein kaputter oder gar nicht
+  vorhandener Hub ist ununterscheidbar (ADR-008).
+- **Toolchain**: ESLint 10 mit `@nuxt/eslint`, Prettier, lefthook,
+  commitlint, Vitest 4 mit `fake-indexeddb`, Playwright inklusive WebKit und
+  `@axe-core/playwright`.
+- **CI** mit Bundle-Budget: 120 KB gzip für den ersten sinnvollen Paint,
+  Überschreitung bricht den Build. Alle Actions auf Commit-SHA gepinnt.
+- **release-please** mit Keep-a-Changelog-Mapping.
+- Projektkonzept und vollständige Architekturdokumentation unter `docs/`,
+  ADR-001 bis ADR-008, HTML-Onepager und UI-Wireframes (9 Screens).
 
-[Unreleased]: https://github.com/mister-honk/fidelity/compare/v0.0.0...HEAD
+### Changed
+
+Entscheidungen, die während M0 revidiert wurden – vor dem ersten Release, also
+ohne Migrationspfad:
+
+- **Architektur auf reine Client-PWA umgestellt (ADR-007).** Kein Backend,
+  keine Datenbank, kein Serverprozess. Grundlage: Discogs erlaubt CORS aus dem
+  Browser (`allow-origin: *`, `authorization` erlaubt), am 2026-08-09
+  verifiziert. Der eigentliche Gewinn ist das Rate-Limit – es gilt pro IP, im
+  Browser also pro Nutzer statt einmal für alle.
+- Speicher von PostgreSQL auf IndexedDB umgestellt.
+- Auth von OAuth 1.0a auf Personal Access Token
+  (`POST /oauth/access_token` ist per CORS gesperrt).
+- Katalogdaten: Volldump (10,4 GB) durch bedarfsgesteuerten Horizont ersetzt
+  (ADR-005).
+- Deployment auf statisches Hosting reduziert.
+
+### Known Issues
+
+- Der erste sinnvolle Paint liegt bei 114 von 120 KB gzip – und das mit einer
+  leeren App. Nuxt UI und sein CSS machen den Löwenanteil aus.
+- `--fid-accent` erreicht im Light Mode nur 3,09:1 gegen `--fid-bg` und
+  verfehlt damit WCAG 2.2 AA für Fließtext. Betroffene Stellen weichen
+  vorerst auf `--fid-text` aus.
+
+[Unreleased]: https://github.com/misterhonk/fidelity/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/misterhonk/fidelity/releases/tag/v0.1.0
