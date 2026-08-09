@@ -1,7 +1,7 @@
 import type { CollectionItem, Signal, TasteProfile, WantlistItem } from '#shared/types'
 
 import { matchesFormat } from './format'
-import { isAnonymousArtist, norm, tokens } from './normalize'
+import { isAnonymousArtist, norm, splitArtists, tokens } from './normalize'
 import { barryScore, MIN_STORED_SCORE, type ScoreContext } from './score'
 import { TrigramIndex } from './trigram'
 
@@ -134,8 +134,15 @@ function matchArtist(
   const exact = index.artistWeight.get(normalised)
   if (exact) return { ...exact, confidence: 1 }
 
-  // "Kraftwerk / Neu!" contains "kraftwerk". Tokens are cheap; this is still
-  // string work, not similarity work.
+  // "Kraftwerk / Neu!" is two artists in one field. Splitting on the separator
+  // Discogs actually uses finds both, including the multi-word ones that a
+  // single-token lookup could never match.
+  for (const part of splitArtists(artist)) {
+    const hit = index.artistWeight.get(part)
+    if (hit) return { ...hit, confidence: 0.85 }
+  }
+
+  // Single tokens catch the rest: "Neu! 2" against "neu".
   for (const token of tokens(normalised)) {
     const hit = index.artistWeight.get(token)
     if (hit) return { ...hit, confidence: 0.85 }
@@ -180,9 +187,12 @@ export function evaluate(
   if (artist) {
     signals.push({
       type: 'ARTIST_KNOWN',
-      // Someone you own twelve records by counts more than someone you own
-      // one by, so the collection weight scales the confidence.
-      confidence: artist.confidence * ownershipFactor(artist.n),
+      // Confidence is the cascade stage and nothing else. An earlier version
+      // scaled it by how many records you own of that artist, which sounds
+      // reasonable and quietly broke the calibration table: "Künstler bekannt
+      // allein" has to be 48, and that assumes confidence 1.0. How many you
+      // own belongs in the evidence and the sentence, not in the score.
+      confidence: artist.confidence,
       evidence: { artist: artist.name, owned: artist.n },
     })
   }
@@ -215,11 +225,6 @@ export function evaluate(
   })
 
   return score >= MIN_STORED_SCORE ? { signals, score } : null
-}
-
-/** Twelve records by someone means more than one, with diminishing returns. */
-function ownershipFactor(owned: number): number {
-  return Math.min(1, 0.6 + 0.1 * Math.log2(owned + 1))
 }
 
 function isBelowPreference(condition: string | null, preference: string): boolean {

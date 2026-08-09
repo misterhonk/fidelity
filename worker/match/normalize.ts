@@ -62,6 +62,20 @@ export function isAnonymousArtist(normalised: string): boolean {
 }
 
 /**
+ * Splits the several artists an inventory listing crams into one string.
+ *
+ * Only on "/", which is what Discogs uses to join credited artists. Not on
+ * "&": "Simon & Garfunkel" is one act, and splitting it would invent two
+ * artists that do not exist.
+ */
+export function splitArtists(raw: string): string[] {
+  return raw
+    .split('/')
+    .map((part) => norm(part))
+    .filter((part) => part.length > 0)
+}
+
+/**
  * Tokens for the containment stage of the cascade: an inventory listing gives
  * "Kraftwerk / Neu!" as one string, and the collection knows them separately.
  */
