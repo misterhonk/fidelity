@@ -1,0 +1,26 @@
+{
+  // Nuxt only generates projects for app/, shared/ and its own config. db/ and
+  // worker/ live outside all of them, so they get their own project — without
+  // it `pnpm typecheck` would silently skip the code that does the actual work.
+  //
+  // WebWorker is in `lib` alongside DOM because db/ is imported from both the
+  // main thread and the worker.
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
+    "types": [],
+    "strict": true,
+    "noEmit": true,
+    "noUncheckedIndexedAccess": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "#shared/*": ["./shared/*"]
+    }
+  },
+  "include": ["db/**/*", "worker/**/*", "shared/**/*"]
+}

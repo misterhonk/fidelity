@@ -6,14 +6,15 @@ export default defineConfig({
   test: {
     include: ['tests/unit/**/*.spec.ts'],
     environment: 'node',
-    // The scoring engine is a pure function on purpose (docs/04, CLAUDE.md).
-    // Nothing under test here needs a DOM; component tests get Vitest browser
-    // mode when there are components worth testing (M3).
+    setupFiles: ['tests/setup/indexeddb.ts'],
+    // The matching engine is a pure function on purpose (CLAUDE.md), so most
+    // of what matters here needs no DOM. Component tests get Vitest browser
+    // mode once there are components worth testing (M3).
     globals: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
-      include: ['server/lib/**', 'shared/**', 'scripts/**'],
+      include: ['db/**', 'worker/**', 'shared/**', 'scripts/**'],
     },
   },
   resolve: {
