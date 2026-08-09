@@ -14,12 +14,15 @@
  * comes back the other way (CLAUDE.md rule 6).
  */
 import type {
+  BasketPlan,
+  BasketView,
   Dealer,
   Dig,
   Feedback,
   Identity,
   Match,
   MatchDetail,
+  ShippingTier,
   TasteProfile,
   Verdict,
 } from './types'
@@ -117,6 +120,28 @@ export interface WorkerContract {
   'dealer.list': { params: undefined; progress: never; result: Dealer[] }
   /** Every dig, newest first — what the command palette offers to jump to. */
   'dig.list': { params: undefined; progress: never; result: Dig[] }
+
+  /**
+   * The basket. One dealer at a time, because postage is per shipment.
+   * Every mutation answers with the whole view, so the UI never has to
+   * reconstruct what the worker already knows.
+   */
+  'basket.add': {
+    params: { digId: string; listingId: number }
+    progress: never
+    result: BasketView
+  }
+  'basket.remove': { params: { listingId: number }; progress: never; result: BasketView }
+  'basket.clear': { params: undefined; progress: never; result: BasketView }
+  'basket.get': { params: undefined; progress: never; result: BasketView }
+  /** A hand-entered postage table. Replaces any earlier one for this dealer. */
+  'basket.setShipping': {
+    params: { dealer: string; tiers: Omit<ShippingTier, 'source'>[] }
+    progress: never
+    result: BasketView
+  }
+  /** Greedy plus swap improvement over what this dealer has that you want. */
+  'basket.plan': { params: { budget: number }; progress: never; result: BasketPlan | null }
   /**
    * Everything the detail sheet shows. Costs no request: it is all horizon and
    * stored match, which is the whole reason the collection was expanded.
@@ -238,6 +263,7 @@ export interface LibrarySummary {
   wantlist: number
   /** Shops scanned so far — what decides whether The Clerk's Take has anything to say. */
   dealers: number
+  basket: number
   collectionSyncedAt: number | null
   wantlistSyncedAt: number | null
 }

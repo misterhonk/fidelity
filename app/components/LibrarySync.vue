@@ -99,6 +99,14 @@ const formatDate = (at: number | null) =>
       >
         The Clerk's Take
       </NuxtLink>
+
+      <NuxtLink
+        v-if="(summary?.basket ?? 0) > 0"
+        to="/korb"
+        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+      >
+        Der Korb ({{ summary?.basket }})
+      </NuxtLink>
     </div>
   </section>
 </template>

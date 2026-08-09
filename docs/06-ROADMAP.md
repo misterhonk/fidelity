@@ -94,15 +94,29 @@ in S9 gefunden (siehe `docs/04` §S9).
 
 ## M4 · Der Korb → `v0.5.0`
 
-- [ ] Warenkorb pro Händler
-- [ ] Versandstaffel: Nutzereingabe + `shipping-profiles.json` aus dem Repo
-- [ ] Freitext-Parser für `seller.shipping` (klar als Heuristik gekennzeichnet)
-- [ ] Grenzkosten-Kurve + „+1 Platte spart X €/Stk"
-- [ ] Kandidatenvorschläge im passenden Preisfenster
-- [ ] Signale **S10** (Preis) + **S11** (Seltenheit) via `/marketplace/stats/` —
+- [x] Warenkorb pro Händler
+- [x] Versandstaffel: Nutzereingabe + `shipping-profiles.json` aus dem Repo
+- [x] Freitext-Parser für `seller.shipping` (klar als Heuristik gekennzeichnet)
+- [x] Grenzkosten-Kurve + „+1 Platte spart X €/Stk"
+- [x] Kandidatenvorschläge im passenden Preisfenster
+- [x] Signale **S10** (Preis) + **S11** (Seltenheit) via `/marketplace/stats/` —
       **nur für die Top 50** nach Vorscore
-- [ ] Greedy-Optimierer + Swap-Verbesserung
-- [ ] Deeplinks zu Discogs (kein eigener Checkout)
+- [x] Greedy-Optimierer + Swap-Verbesserung
+- [x] Deeplinks zu Discogs (kein eigener Checkout)
+
+**Anmerkungen:**
+
+- S10/S11 laufen im selben Top-50-Durchgang wie S7, nicht in einem zweiten.
+  Zwei Abfragen je Platte, rund zwei Minuten – die Liste steht vorher schon da.
+- Das **Preisfenster für Kandidaten ist der Wohlfühlpreis des Nutzers**, keine
+  aus der Versandersparnis abgeleitete Zahl. Niemand kauft eine Platte, weil sie
+  Porto spart; die Ersparnis kippt nur eine ohnehin knappe Entscheidung.
+- Der Korb zeigt Preise nach sechs Stunden **nicht mehr an** (CLAUDE.md Regel 4).
+  Die Platte bleibt drin, nur die Zahl geht. Eine Teilsumme über die noch
+  frischen Zeilen wäre eine kleinere Zahl als die Wahrheit.
+- Der Worker wurde dafür aufgeteilt: Korb und Detail-Sheet laden erst beim
+  Öffnen (`worker.format: 'es'`), sonst hätte der Korb das 35-KB-Budget aus
+  `docs/12` §2 gerissen.
 
 ---
 

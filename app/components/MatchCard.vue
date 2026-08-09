@@ -7,6 +7,7 @@ const { verdicts, judge } = useFeedback()
 const verdict = computed(() => verdicts.value[props.match.listingId])
 
 const { show } = useReleaseSheet()
+const { contains, toggle } = useBasket()
 
 const band = computed(() => {
   if (props.match.score >= 85) return { key: 'S', label: 'Side One, Track One' }
@@ -108,24 +109,40 @@ const meta = computed(() =>
         as they were at the moment of the verdict — the verdict alone would be
         worthless once the weights move (docs/03 §7).
       -->
-      <div class="flex gap-1" role="group" aria-label="Wie war der Treffer?">
+      <div class="flex items-center gap-2">
         <button
-          v-for="option in VERDICTS"
-          :key="option.key"
           type="button"
-          :title="option.label"
-          :aria-label="option.label"
-          :aria-pressed="verdict === option.key"
-          class="rounded-fid-sm border px-2 py-1 text-fid-sm transition-colors"
+          :aria-pressed="contains(match.listingId)"
+          class="rounded-fid-sm border px-3 py-1 text-fid-sm transition-colors"
           :class="
-            verdict === option.key
-              ? 'border-fid-accent bg-fid-accent/15'
-              : 'border-transparent opacity-45 hover:opacity-100'
+            contains(match.listingId)
+              ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
+              : 'border-fid-border text-fid-text-muted hover:text-fid-text'
           "
-          @click="judge(match, option.key)"
+          @click="toggle(match.digId, match.listingId)"
         >
-          <span aria-hidden="true">{{ option.icon }}</span>
+          {{ contains(match.listingId) ? 'Im Korb' : 'In den Korb' }}
         </button>
+
+        <div class="flex gap-1" role="group" aria-label="Wie war der Treffer?">
+          <button
+            v-for="option in VERDICTS"
+            :key="option.key"
+            type="button"
+            :title="option.label"
+            :aria-label="option.label"
+            :aria-pressed="verdict === option.key"
+            class="rounded-fid-sm border px-2 py-1 text-fid-sm transition-colors"
+            :class="
+              verdict === option.key
+                ? 'border-fid-accent bg-fid-accent/15'
+                : 'border-transparent opacity-45 hover:opacity-100'
+            "
+            @click="judge(match, option.key)"
+          >
+            <span aria-hidden="true">{{ option.icon }}</span>
+          </button>
+        </div>
       </div>
     </div>
   </article>

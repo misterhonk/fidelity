@@ -1,11 +1,12 @@
-import { getMeta, getSyncState, setMeta } from '~~/db/meta'
+import { getMeta, getPreferences, getSyncState, setMeta } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
+import type { BasketCandidate, BasketView } from '#shared/types'
 
 import { currentIdentity, discogs, requestPersistence, signIn, signOut } from './auth'
 import { findResumable, REACHABLE, resumeDig, runDig } from './dig/scan'
 import { enrichTopMatches } from './dig/enrich'
-import { forgetLookup, matchDetail } from './dig/detail'
+import { forgetLookup } from './dig/detail'
 import { affinityFactor } from './dig/fingerprint'
 import { allFeedback, clearFeedback, feedbackVerdicts, recordFeedback } from './feedback'
 import { buildHorizon, horizonStatus } from './horizon/build'
@@ -212,7 +213,62 @@ export const handlers: HandlerMap = {
 
   'dig.get': async ({ digId }) => loadDig(digId),
 
-  'dig.detail': ({ digId, listingId }) => matchDetail(digId, listingId),
+  /*
+   * The basket and the detail sheet load on demand.
+   *
+   * Neither is needed to run a dig, and a dig is the thing somebody waits for.
+   * Vite splits each dynamic import into its own chunk, so the worker that has
+   * to be there before the first scan carries only what the scan needs
+   * (docs/12 §2: route-splitting before any library surgery).
+   */
+  'dig.detail': async ({ digId, listingId }) => {
+    const { matchDetail } = await import('./dig/detail')
+    return matchDetail(digId, listingId)
+  },
+
+  'basket.add': async ({ digId, listingId }) => {
+    const { addToBasket } = await import('./basket')
+    const db = await openFidelityDb()
+    const match = await db.get('matches', [digId, listingId])
+    const dig = await db.get('digs', digId)
+    if (!match || !dig) throw new Error('Treffer nicht gefunden.')
+
+    await addToBasket(match, dig.dealer, Date.now())
+    return basketView()
+  },
+
+  'basket.remove': async ({ listingId }) => {
+    const { removeFromBasket } = await import('./basket')
+    await removeFromBasket(listingId)
+    return basketView()
+  },
+
+  'basket.clear': async () => {
+    const { clearBasket } = await import('./basket')
+    await clearBasket()
+    return basketView()
+  },
+
+  'basket.get': () => basketView(),
+
+  'basket.setShipping': async ({ dealer, tiers }) => {
+    const { saveUserShipping } = await import('./basket/profiles')
+    await saveUserShipping(dealer, tiers)
+    return basketView()
+  },
+
+  'basket.plan': async ({ budget }) => {
+    const view = await basketView()
+    const dealer = view.summary?.dealer
+    if (!dealer) return null
+
+    const { planBasket } = await import('./basket/optimise')
+    const db = await openFidelityDb()
+    const tiers = (await db.get('dealers', dealer))?.shippingTiers ?? []
+    // Everything this dealer has that you want, not only what is in the basket
+    // — the plan's whole job is to say which set to buy.
+    return planBasket(await candidatesFor(dealer), tiers, budget)
+  },
 
   'dig.list': async () => {
     const db = await openFidelityDb()
@@ -234,10 +290,56 @@ export const handlers: HandlerMap = {
       collection: await db.count('collection'),
       wantlist: await db.count('wantlist'),
       dealers: await db.count('dealers'),
+      basket: await db.count('basket'),
       collectionSyncedAt: syncState.collectionSyncedAt,
       wantlistSyncedAt: syncState.wantlistSyncedAt,
     }
   },
+}
+
+/**
+ * Everything the basket screen needs, in one message.
+ *
+ * Assembled here rather than in three calls because every mutation changes all
+ * of it: adding a record moves the total, the postage tier, the advice and
+ * which candidates are still worth suggesting.
+ */
+async function basketView(): Promise<BasketView> {
+  const [{ basketListingIds, basketSummary }, { suggestCandidates }] = await Promise.all([
+    import('./basket'),
+    import('./basket/optimise'),
+  ])
+
+  const preferences = await getPreferences()
+  const summary = await basketSummary(Date.now(), preferences.shipsToCountry)
+  const listingIds = await basketListingIds()
+
+  const candidates = summary
+    ? suggestCandidates(
+        await candidatesFor(summary.dealer),
+        new Set(listingIds),
+        preferences.targetPrice,
+      )
+    : []
+
+  return { summary, listingIds, candidates }
+}
+
+/** The scored records this dealer still has, newest dig first. */
+async function candidatesFor(dealer: string): Promise<BasketCandidate[]> {
+  const { toCandidate } = await import('./basket/optimise')
+  const db = await openFidelityDb()
+  const dig = (await db.getAll('digs'))
+    .filter((entry) => entry.dealer === dealer)
+    .sort((a, b) => b.id.localeCompare(a.id))[0]
+  if (!dig) return []
+
+  const matches = await db
+    .transaction('matches')
+    .store.index('by-dig-score')
+    .getAll(IDBKeyRange.bound([dig.id, -Infinity], [dig.id, Infinity]))
+
+  return matches.map(toCandidate).filter((item): item is BasketCandidate => item !== null)
 }
 
 /** A dig plus its matches, strongest first. */

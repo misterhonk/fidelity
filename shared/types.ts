@@ -340,6 +340,83 @@ export interface Dealer {
   shippingTiers: ShippingTier[]
 }
 
+/**
+ * Everything the basket screen renders, in one message.
+ *
+ * `summary` is null for an empty basket; `candidates` is what else this dealer
+ * has that scores well, so "noch eine Platte spart X" can be acted on without
+ * a second round trip.
+ */
+export interface BasketView {
+  summary: BasketSummary | null
+  listingIds: number[]
+  candidates: BasketCandidate[]
+}
+
+export interface BasketCandidate {
+  listingId: number
+  releaseId: number
+  score: number
+  price: number
+  currency: string
+  title: string
+  reason: string
+}
+
+export interface ShippingPoint {
+  items: number
+  total: number | null
+  perItem: number | null
+  marginal: number | null
+}
+
+export interface ShippingAdvice {
+  addItems: number
+  perItemNow: number
+  perItemThen: number
+  savedPerItem: number
+}
+
+export interface BasketLine {
+  listingId: number
+  dealer: string
+  releaseId: number
+  title: string
+  price: number
+  currency: string
+  addedAt: number
+  note: string | null
+  /** Six hours on the price may no longer be shown (CLAUDE.md rule 4). */
+  priceExpired: boolean
+}
+
+export interface BasketSummary {
+  dealer: string
+  displayName: string
+  lines: BasketLine[]
+  /** null when a price has aged out or two currencies are in play. */
+  subtotal: number | null
+  currency: string | null
+  shipping: number | null
+  shippingSource: ShippingTier['source'] | null
+  shippingMatched: string[]
+  total: number | null
+  perItem: number | null
+  advice: ShippingAdvice | null
+  curve: ShippingPoint[]
+  minOrderTotal: number
+  belowMinimum: boolean
+}
+
+export interface BasketPlan {
+  chosen: BasketCandidate[]
+  score: number
+  goods: number
+  shipping: number | null
+  total: number | null
+  improvements: number
+}
+
 export interface BasketItem {
   listingId: number
   dealer: string

@@ -75,6 +75,16 @@ export default defineNuxtConfig({
     },
   },
 
+  vite: {
+    worker: {
+      // Without this Vite bundles the whole worker into one file and the
+      // dynamic imports in worker/handlers.ts split into nothing. The basket
+      // and the detail sheet are not needed to run a dig, and a dig is the
+      // thing somebody actually waits for (docs/12 §2).
+      format: 'es',
+    },
+  },
+
   typescript: {
     strict: true,
     // Type checking runs as its own job (`pnpm typecheck`), not inside dev/build.
