@@ -41,7 +41,15 @@ export function wantlistPressing(
     return {
       type: 'WANTLIST_PRESSING',
       confidence: suspiciouslyLate ? 0.6 : 0.9,
-      evidence: { album: wanted.title, wantedYear: wanted.year, pressingYear: listingYear },
+      // The master id travels along so a wantlist screen can say "this album
+      // turned up at a dealer" even when the pressing offered was a different
+      // one — which is the entire point of this signal.
+      evidence: {
+        masterId: hit.entityId,
+        album: wanted.title,
+        wantedYear: wanted.year,
+        pressingYear: listingYear,
+      },
     }
   }
 

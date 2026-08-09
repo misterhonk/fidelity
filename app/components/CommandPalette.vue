@@ -52,9 +52,11 @@ const dateFormat = new Intl.DateTimeFormat('de-DE', { dateStyle: 'short' })
 const entries = computed<Entry[]>(() => [
   { id: 'nav-dig', group: 'Gehe zu', label: 'Neuer Dig', run: go('/dig') },
   { id: 'nav-map', group: 'Gehe zu', label: 'Deine Landkarte', run: go('/landkarte') },
+  { id: 'nav-want', group: 'Gehe zu', label: 'Wantlist', run: go('/wantlist') },
   { id: 'nav-clerk', group: 'Gehe zu', label: "The Clerk's Take", run: go('/haendler') },
   { id: 'nav-basket', group: 'Gehe zu', label: 'Der Korb', run: go('/korb') },
   { id: 'nav-store', group: 'Gehe zu', label: 'Im Laden', run: go('/im-laden') },
+  { id: 'nav-settings', group: 'Gehe zu', label: 'Einstellungen', run: go('/einstellungen') },
   { id: 'nav-home', group: 'Gehe zu', label: 'Championship', run: go('/') },
 
   ...dealers.value.map((dealer) => ({

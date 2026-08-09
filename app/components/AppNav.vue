@@ -30,12 +30,27 @@ const SECTIONS = [
   { to: '/', label: 'Start', hint: 'Was ist neu, was steht an' },
   { to: '/dig', label: 'Graben', hint: 'Einen Händler scannen' },
   { to: '/korb', label: 'Korb', hint: 'Was du kaufen willst' },
-  { to: '/landkarte', label: 'Sammlung', hint: 'Was du hast' },
+  {
+    to: '/landkarte',
+    label: 'Sammlung',
+    hint: 'Was du hast und was du suchst',
+    also: ['/wantlist'],
+  },
   { to: '/haendler', label: 'Läden', hint: 'Bei wem du kaufst' },
 ] as const
 
 const route = useRoute()
-const isCurrent = (to: string) => (to === '/' ? route.path === '/' : route.path.startsWith(to))
+/**
+ * A section stays lit for the screens that belong to it.
+ *
+ * The wantlist lives under "Sammlung" — same subject, other side — and a tab
+ * that goes dark when you switch to it would say you had left the section.
+ */
+const isCurrent = (section: { to: string; also?: readonly string[] }) => {
+  if (section.to === '/') return route.path === '/'
+  if (route.path.startsWith(section.to)) return true
+  return (section.also ?? []).some((path) => route.path.startsWith(path))
+}
 
 const basketCount = computed(() => basketIds.value.size)
 </script>
@@ -60,11 +75,11 @@ const basketCount = computed(() => basketIds.value.size)
         v-for="section in SECTIONS"
         :key="section.to"
         :to="section.to"
-        :aria-current="isCurrent(section.to) ? 'page' : undefined"
+        :aria-current="isCurrent(section) ? 'page' : undefined"
         :title="section.hint"
         class="relative flex min-h-11 items-center justify-center gap-2 border-b-2 px-3 text-fid-sm transition-colors max-md:flex-1 max-md:flex-col max-md:gap-0.5 max-md:border-b-0 max-md:border-t-2 max-md:px-1 max-md:py-2 max-md:text-fid-xs"
         :class="
-          isCurrent(section.to)
+          isCurrent(section)
             ? 'border-fid-accent text-fid-text'
             : 'border-transparent text-fid-text-muted hover:text-fid-text'
         "
@@ -86,12 +101,12 @@ const basketCount = computed(() => basketIds.value.size)
 
       <NuxtLink
         to="/einstellungen"
-        :aria-current="isCurrent('/einstellungen') ? 'page' : undefined"
+        :aria-current="isCurrent({ to: '/einstellungen' }) ? 'page' : undefined"
         aria-label="Einstellungen"
         title="Einstellungen"
         class="flex min-h-11 min-w-11 items-center justify-center border-b-2 text-fid-base transition-colors md:ml-auto max-md:border-b-0 max-md:border-t-2"
         :class="
-          isCurrent('/einstellungen')
+          isCurrent({ to: '/einstellungen' })
             ? 'border-fid-accent text-fid-text'
             : 'border-transparent text-fid-text-muted hover:text-fid-text'
         "

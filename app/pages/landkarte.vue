@@ -44,6 +44,7 @@ const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
   <main class="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-16">
     <div class="flex flex-col gap-3">
       <h1 class="text-fid-2xl font-bold text-fid-text">Deine Landkarte</h1>
+      <CollectionTabs />
       <p v-if="profile" class="text-fid-base text-fid-text-muted">
         <span class="fid-num">{{ profile.releaseCount }}</span> Platten. Was daraus über deinen
         Geschmack ablesbar ist.

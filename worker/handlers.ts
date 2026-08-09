@@ -106,6 +106,11 @@ export const handlers: HandlerMap = {
     return collectionGaps()
   },
 
+  'collection.wantlist': async () => {
+    const { wantlistOverview } = await import('./collection/wantlist')
+    return wantlistOverview(Date.now())
+  },
+
   'dig.preflight': async ({ dealer }, { signal }) => {
     const profile = await discogs().get(`/users/${encodeURIComponent(dealer)}`, dealerSchema, {
       signal,

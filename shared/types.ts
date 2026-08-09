@@ -184,6 +184,28 @@ export interface CollectionGaps {
   labels: LabelStanding[]
 }
 
+/** One record on the wantlist, with what the device already knows about it. */
+export interface WantedRecord {
+  releaseId: number
+  masterId: number
+  title: string
+  artist: string
+  year: number
+  /** ISO 8601 from Discogs, so it sorts as a string. */
+  addedAt: string
+  /** Pressings the horizon knows of. Null means it has not expanded this album. */
+  pressings: number | null
+  /** Where a dig last offered this album — by master, so any pressing counts. */
+  lastSeen: { dealer: string; at: number; score: number } | null
+}
+
+export interface WantlistOverview {
+  total: number
+  records: WantedRecord[]
+  withPressings: number
+  seenRecently: number
+}
+
 export interface CreditPerson {
   entityId: number
   name: string

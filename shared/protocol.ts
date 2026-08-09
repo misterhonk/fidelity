@@ -30,6 +30,7 @@ import type {
   ShippingTier,
   TasteProfile,
   Verdict,
+  WantlistOverview,
   WatchAlert,
 } from './types'
 
@@ -74,6 +75,8 @@ export interface WorkerContract {
    * requests: it is a reading of the horizon that already exists.
    */
   'collection.gaps': { params: undefined; progress: never; result: CollectionGaps }
+  /** The wantlist, with pressing counts and where a dig last saw each album. */
+  'collection.wantlist': { params: undefined; progress: never; result: WantlistOverview }
   /** Recomputed after every sync; null until there has been one. */
   'taste.profile': { params: undefined; progress: never; result: TasteProfile | null }
 
