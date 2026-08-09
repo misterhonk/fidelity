@@ -1,156 +1,94 @@
-# 08 – Deployment auf Uberspace
+# 08 – Deployment
 
-> **Lokal entwickeln in Docker, produktiv auf Uberspace 7.**
-> Uberspace kann **kein Docker**. Deployed wird das fertig gebaute Nitro-`.output`.
+> **Es gibt nichts zu deployen außer statischen Dateien.**
+> Kein Server, keine Datenbank, keine Migrationen, keine Backups, kein Monitoring-Stack.
+> Siehe ADR-007.
+
+---
+
+## 1. Was gebaut wird
+
+```bash
+pnpm build          # nuxt generate  →  .output/public/
+```
+
+Ergebnis: HTML, JS, CSS, Service Worker, Manifest, Icons. **Ein paar hundert Kilobyte.**
+Kein Node zur Laufzeit, kein Prozess, der laufen muss.
+
+**Anforderungen an das Hosting:**
+
+- HTTPS (Pflicht für Service Worker, PWA-Installation und den Token-Umgang)
+- SPA-Fallback: alle unbekannten Pfade auf `index.html`
+- Korrekte MIME-Types, `Cache-Control: immutable` für gehashte Assets
+- Ein paar Security-Header
+
+Das kann jeder Webserver. Es gibt keinen Grund, dafür Geld auszugeben.
+
+---
+
+## 2. Optionen
+
+| Option | Kosten | Aufwand | Anmerkung |
+|---|---:|---|---|
+| **Uberspace-Docroot** | hast du | rsync im CI | Eigene Domain, deutscher Anbieter. Keine 1,5-GB-RAM-Grenze mehr, weil nichts läuft. |
+| **Cloudflare Pages** | 0 € | Git-Push | Global CDN, Preview-Deploys pro PR, automatisches TLS |
+| **GitHub Pages** | 0 € | Actions | Am simpelsten, wenn das Repo ohnehin dort liegt |
+| **Homeserver + Caddy** | Strom | Container | Nur noch statische Dateien – Verfügbarkeit ist unkritischer als beim Serverentwurf |
+
+> **Der frühere Zielkonflikt ist weg.** `10-DEPLOYMENT-ALTERNATIVEN.md` verglich Uberspace,
+> VPS und Homeserver anhand von RAM, Plattenplatz und ausgehender IP. Nichts davon spielt
+> noch eine Rolle: Es gibt keinen Prozess, keine Datenbank, und die Discogs-Requests gehen
+> von der IP des **Nutzers** aus.
 >
-> ⚠️ **Diese Entscheidung ist nicht endgültig.** Uberspace hat für genau diese Arbeitslast
-> zwei ungünstige Eigenschaften (geteilte ausgehende IP, 1,5 GB RAM). Alternativen –
-> kleiner VPS, Homeserver mit Traefik/Cloudflare Tunnel – stehen in
-> [`10-DEPLOYMENT-ALTERNATIVEN.md`](10-DEPLOYMENT-ALTERNATIVEN.md).
-> Die App wird so gebaut, dass beides ohne Umbau geht.
+> **Empfehlung: Uberspace-Docroot**, weil du es hast und eine eigene Domain willst.
+> Cloudflare Pages als Zweitweg für Preview-Deploys pro Pull Request.
 
 ---
 
-## 1. Die Randbedingungen von Uberspace 7
+## 3. Uberspace
 
-| Ressource | Limit | Konsequenz |
-|---|---:|---|
-| **RAM** | **1,5 GB gesamt** | Prozesse über dem Limit werden **beendet**. Ein Prozess für App+Worker. |
-| **Disk** | 10 GB (Soft), 11 GB (Hard), bis 100 GB buchbar | Katalog-DB ist der Engpass |
-| **Node** | **18 / 20 / 22** – 22 ist Default | ⚠️ **Kein Node 24.** Lokal ebenfalls 22. |
-| **PostgreSQL** | via `uberspace tools version use postgresql` | ⚠️ **Vor Projektstart `uberspace tools version list postgresql` prüfen** und lokal dieselbe Major pinnen |
-| **CPU** | „fairer Anteil", Drosselung statt Kill | Scans sind I/O-gebunden – unkritisch |
-| **Docker** | ❌ nicht verfügbar | Deploy per rsync |
-| **Ausgehende IP** | geteilt | ⚠️ siehe unten |
-
-> ⚠️ **Das größte betriebliche Risiko:** Discogs limitiert **pro Quell-IP**. Uberspace-Hosts
-> haben eine geteilte ausgehende IP. Theoretisch teilen wir uns 60 Requests/Minute mit
-> anderen Uberspace-Kunden, die dieselbe API nutzen. Wahrscheinlichkeit gering, Wirkung
-> spürbar.
-> **Mitigation:** Der Token-Bucket steuert über `X-Discogs-Ratelimit-Remaining` aus der
-> *Antwort*, nicht über einen eigenen Zähler – er merkt fremden Verbrauch automatisch.
-> Zusätzlich: 429-Backoff und ein sichtbarer Hinweis in der UI („API gerade ausgelastet,
-> Scan läuft langsamer").
-
-### RAM-Budget
-
-| Prozess | Ziel |
-|---|---:|
-| PostgreSQL (`shared_buffers=128MB`, `max_connections=20`) | ~250 MB |
-| Nitro (SSR + API + pg-boss-Worker in-process) | ~250 MB |
-| Reserve (Deploy, Migration, `psql`, Cron) | ~200 MB |
-| **Summe** | **~700 / 1.500 MB** |
-
----
-
-## 2. Einmalige Einrichtung
-
-### 2.1 PostgreSQL
+### Einmalig
 
 ```bash
-uberspace tools version list postgresql          # verfügbare Majors prüfen!
-uberspace tools version use postgresql <MAJOR>
-
-mkdir -p ~/opt/postgresql
-initdb -D ~/opt/postgresql/data -E UTF8 --locale=de_DE.UTF-8
-
-# ~/opt/postgresql/data/postgresql.conf – RAM-schonend
-cat >> ~/opt/postgresql/data/postgresql.conf <<'EOF'
-unix_socket_directories = '/home/<USER>/tmp'
-listen_addresses = ''
-max_connections = 20
-shared_buffers = 128MB
-work_mem = 8MB
-maintenance_work_mem = 64MB
-max_worker_processes = 4
-max_files_per_process = 64
-logging_collector = on
-log_directory = 'log'
-EOF
-```
-
-```ini
-; ~/etc/services.d/postgresql.ini
-[program:postgresql]
-command=postgres -D %(ENV_HOME)s/opt/postgresql/data/
-autostart=true
-autorestart=true
-startsecs=30
-```
-
-```bash
-supervisorctl reread && supervisorctl update
-createdb fidelity
-psql fidelity -c 'CREATE EXTENSION pg_trgm; CREATE EXTENSION unaccent; CREATE EXTENSION pgcrypto;'
-```
-
-> Extensions liegen unter `/usr/pgsql-<MAJOR>/share/extension/`. `CREATE EXTENSION` braucht
-> Superuser – als DB-Eigentümer auf Uberspace gegeben.
-
-### 2.2 Node & App
-
-```bash
-uberspace tools version use node 22
-mkdir -p ~/apps/fidelity/{releases,shared}
-```
-
-```ini
-; ~/etc/services.d/fidelity.ini
-[program:fidelity]
-directory=%(ENV_HOME)s/apps/fidelity/current
-command=node server/index.mjs
-environment=NODE_ENV="production",PORT="8080",HOST="0.0.0.0"
-autostart=true
-autorestart=true
-startsecs=15
-stdout_logfile=%(ENV_HOME)s/logs/fidelity.log
-stderr_logfile=%(ENV_HOME)s/logs/fidelity.err.log
-```
-
-> ⚠️ Die App **muss** auf `0.0.0.0` lauschen, Port zwischen 1024 und 65535.
-
-```bash
-uberspace web backend set / --http --port 8080
 uberspace web domain add fidelity.example.de     # TLS kommt automatisch
+mkdir -p ~/html/fidelity
 ```
 
-### 2.3 Secrets
+SPA-Fallback und Header über `~/html/fidelity/.htaccess`:
 
-```bash
-touch ~/apps/fidelity/shared/.env && chmod 600 ~/apps/fidelity/shared/.env
+```apache
+# SPA-Fallback: alles, was keine echte Datei ist, geht an index.html
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+
+# Gehashte Assets ewig cachen, index.html nie
+<FilesMatch "\.(js|css|woff2)$">
+  Header set Cache-Control "public, max-age=31536000, immutable"
+</FilesMatch>
+<FilesMatch "^(index\.html|sw\.js|manifest\.webmanifest)$">
+  Header set Cache-Control "no-cache"
+</FilesMatch>
+
+Header set X-Content-Type-Options "nosniff"
+Header set Referrer-Policy "strict-origin-when-cross-origin"
+Header set Strict-Transport-Security "max-age=31536000"
+Header set Content-Security-Policy "default-src 'self'; \
+  connect-src 'self' https://api.discogs.com; \
+  img-src 'self' https://i.discogs.com data: blob:; \
+  script-src 'self'; style-src 'self' 'unsafe-inline'; \
+  worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'"
 ```
 
-```dotenv
-DATABASE_URL=postgres:///fidelity?host=/home/<USER>/tmp
-NUXT_DISCOGS_CONSUMER_KEY=…
-NUXT_DISCOGS_CONSUMER_SECRET=…
-NUXT_DISCOGS_USER_AGENT=Fidelity/0.1.0 +https://fidelity.example.de
-FIDELITY_TOKEN_KEY=…            # 32 Byte, für pgcrypto
-FIDELITY_SESSION_SECRET=…
-SENTRY_DSN=…
-VAPID_PUBLIC_KEY=…
-VAPID_PRIVATE_KEY=…
-```
+> ⚠️ **`connect-src` auf `api.discogs.com` beschränken.** Das ist der wirksamste Schutz
+> für den Personal Access Token: Selbst wenn irgendwann fremder Code in die Seite käme,
+> könnte er den Token nirgendwohin schicken.
 
-Nie im Repo. In CI als GitHub Secrets.
-
----
-
-## 3. Deploy
-
-Symlink-Releases (Capistrano-Muster), Rollback in einer Sekunde:
-
-```
-~/apps/fidelity/
-├── releases/
-│   ├── 20260809-141230-a1b2c3d/
-│   └── 20260812-093015-e4f5g6h/
-├── shared/.env
-└── current -> releases/20260812-093015-e4f5g6h
-```
+### Deploy
 
 ```yaml
-# .github/workflows/deploy.yml (Auszug)
+# .github/workflows/deploy.yml
 name: Deploy
 on:
   push: { tags: ['v*'] }
@@ -168,7 +106,7 @@ jobs:
       - uses: actions/setup-node@<SHA>
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build                       # → .output/  (self-contained)
+      - run: pnpm build
 
       - name: SSH-Key
         run: |
@@ -176,147 +114,104 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           echo "${{ secrets.UBERSPACE_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
 
+      # Ein rsync. Das ist das ganze Deployment.
       - name: Upload
         run: |
-          REL=$(date +%Y%m%d-%H%M%S)-${GITHUB_SHA::7}
-          echo "REL=$REL" >> $GITHUB_ENV
-          rsync -az --delete .output/ \
-            ${{ secrets.UBERSPACE_USER }}@${{ secrets.UBERSPACE_HOST }}:apps/fidelity/releases/$REL/
-
-      - name: Migrate, umschalten, neu starten
-        run: |
-          ssh ${{ secrets.UBERSPACE_USER }}@${{ secrets.UBERSPACE_HOST }} bash -s <<EOSSH
-            set -euo pipefail
-            cd ~/apps/fidelity
-            # ⚠️ absoluter Pfad – ein relativer würde gegen das LINK-Verzeichnis
-            #    aufgelöst und landete bei releases/$REL/shared/.env (existiert nicht)
-            ln -sfn ~/apps/fidelity/shared/.env releases/${{ env.REL }}/.env
-            # Migrationen VOR dem Umschalten – müssen abwärtskompatibel sein
-            cd releases/${{ env.REL }} && node server/migrate.mjs
-            cd ~/apps/fidelity
-            ln -sfn releases/${{ env.REL }} current
-            supervisorctl restart fidelity
-            ls -1dt releases/*/ | tail -n +6 | xargs -r rm -rf   # 5 Releases behalten
-          EOSSH
+          rsync -az --delete --exclude='.htaccess' \
+            .output/public/ \
+            ${{ secrets.UBERSPACE_USER }}@${{ secrets.UBERSPACE_HOST }}:html/fidelity/
 
       - name: Smoke-Test
-        run: curl -fsS https://fidelity.example.de/api/health
+        run: curl -fsS https://fidelity.example.de/ | grep -q "Fidelity"
 ```
 
-> ⚠️ **Migrationen laufen vor dem Symlink-Wechsel.** Sie müssen daher mit der *alten*
-> Codeversion kompatibel sein: erst Spalte hinzufügen, in einem späteren Release
-> befüllen/umstellen, in einem noch späteren die alte entfernen. Expand/Contract.
+Kein Build-Secret nötig – die App hat kein Consumer Secret, weil sie kein OAuth macht.
 
-**Rollback:**
+**Rollback:** vorherigen Tag auschecken, `pnpm build`, rsync. Oder direkt aus dem
+Actions-Artefakt des letzten grünen Builds.
 
-```bash
-ln -sfn releases/<VORIGE> current && supervisorctl restart fidelity
-```
+> ⚠️ **Service-Worker-Fallstrick:** Nach einem Deploy laufen alte Clients weiter, bis der
+> SW aktualisiert. `@vite-pwa/nuxt` mit `registerType: 'prompt'` konfigurieren und dem
+> Nutzer ein „Neue Version verfügbar – neu laden" anbieten. **Kein `skipWaiting` ohne
+> Prompt** – sonst tauschen wir mitten in einem laufenden Dig den Code aus.
 
 ---
 
-## 4. Katalog-Deploy (M5)
-
-Läuft **nicht** auf Uberspace – 10,4 GB gz und ~110 GB entpackt sind dort unmöglich.
+## 4. Lokale Entwicklung
 
 ```bash
-# LOKAL (Docker, viel Platte)
-pnpm catalog:download              # inkl. SHA-256 gegen CHECKSUM.txt
-pnpm catalog:build                 # Streaming-SAX → catalog-Schema
-pnpm catalog:verify                # Stichproben gegen die Live-API
-pg_dump -n catalog --no-owner fidelity | zstd -19 > catalog-202608.sql.zst
-
-# HOCHLADEN (~1,5–3 GB → besser über Nacht)
-rsync -avz --progress catalog-202608.sql.zst uber:~/tmp/
-
-# AUF UBERSPACE – blau/grün, damit die App nie ohne Katalog dasteht
-# ⚠️ NICHT per sed am Dump herumschneiden: pg_dump ab PG 11 schreibt kein
-#    "SET search_path = catalog" mehr, sondern set_config('search_path','') plus
-#    voll qualifizierte Namen und ein eigenes CREATE SCHEMA. Stattdessen:
-#    altes Schema wegbenennen, Dump normal einspielen, altes löschen.
-ssh uber <<'EOF'
-  set -euo pipefail
-  psql fidelity -c 'DROP SCHEMA IF EXISTS catalog_old CASCADE;'
-  psql fidelity -c 'ALTER SCHEMA catalog RENAME TO catalog_old;'
-  # ab hier fehlen die M5-Signale kurzzeitig – S1/S3/S5/S7 laufen weiter
-  zstd -dc ~/tmp/catalog-202608.sql.zst | psql fidelity --single-transaction
-  psql fidelity -c 'DROP SCHEMA catalog_old CASCADE;'
-  psql fidelity -c 'ANALYZE;'
-  rm ~/tmp/catalog-202608.sql.zst
-EOF
+pnpm install
+pnpm dev            # http://localhost:3000
 ```
 
-> ⚠️ **Vorher Platz prüfen.** Während des Umschaltens liegen kurzzeitig **zwei** Katalog-
-> Schemas parallel (`catalog_old` + der neue Import). Bei ~6 GB pro Schema und 10 GB
-> Quota geht das **nicht** auf.
-> Optionen, in dieser Reihenfolge:
-> 1. Quota vor dem Refresh auf 25 GB hochbuchen (Uberspace erlaubt bis 100 GB)
-> 2. Oder: `catalog` löschen und neu importieren (kurze Downtime der M5-Signale,
->    die Basis-Signale S1/S3/S5 laufen weiter)
->
-> **Vor M5 den echten Platzbedarf messen** – die 6 GB sind eine Schätzung.
+Kein Docker nötig. Keine Datenbank, kein Compose-Stack, kein Seed. Man braucht nur
+einen Personal Access Token aus `discogs.com/settings/developers`.
 
-**Kadenz:** monatlich, halbautomatisch, manuell ausgelöst. Kein Cron – das ist ein
-bewusster Wartungsvorgang.
-
----
-
-## 5. Backups
-
-```bash
-# ~/bin/backup.sh  (täglich per Cron, 03:30)
-set -euo pipefail
-D=$(date +%F)
-# NUR das app-Schema. catalog ist aus CC0-Dumps jederzeit reproduzierbar
-# und würde das Quota sprengen.
-pg_dump -n app --no-owner fidelity | zstd -12 > ~/backups/app-$D.sql.zst
-find ~/backups -name 'app-*.sql.zst' -mtime +30 -delete
-```
-
-```
-30 3 * * * ~/bin/backup.sh >> ~/logs/backup.log 2>&1
-```
-
-**Zusätzlich wöchentlich vom lokalen Rechner ziehen** – ein Backup, das nur auf demselben
-Host liegt, ist kein Backup:
-
-```bash
-rsync -az uber:~/backups/ ~/Backups/fidelity/
-```
-
-**Restore-Test:** einmal pro Quartal. Ein ungetestetes Backup ist eine Vermutung.
-
----
-
-## 6. Betrieb
-
-```bash
-supervisorctl status
-supervisorctl restart fidelity
-tail -f ~/logs/fidelity.log
-psql fidelity -c "SELECT status, count(*) FROM app.dig GROUP BY 1;"
-psql fidelity -c "SELECT name, state, count(*) FROM pgboss.job GROUP BY 1,2;"
-quota -gs                                   # Disk-Verbrauch
-ps -u $USER -o rss,comm --sort=-rss | head  # RAM-Verbrauch
-```
-
-### Wenn das RAM-Limit reißt
-
-Reihenfolge der Gegenmaßnahmen:
-
-1. `shared_buffers` in Postgres auf 64 MB senken
-2. Nuxt auf `ssr: false` umstellen – statisches SPA-Bundle aus dem Docroot, Nitro nur noch
-   als API-Daemon. Spart ~80 MB und macht den Prozess schlanker
-3. Node mit `--max-old-space-size=384` starten
-4. Katalog-Abfragen mit `LIMIT` härten (ein unbeschränkter Credit-Graph-Join kann eskalieren)
-5. Erst dann: VPS statt Uberspace erwägen (das Docker-Image liegt bereit)
+> Docker bleibt optional als Prod-Parität-Check (`docker run` mit einem statischen
+> Webserver plus `.htaccess`-Äquivalent), ist aber für die tägliche Arbeit überflüssig.
 
 ### Mobile Tests
 
-Für PWA-Installation, Web Push und OAuth-Callback braucht es HTTPS. Lokal über
-Cloudflare Tunnel (siehe `07-DEV-PIPELINE.md` §5) — **oder** direkt gegen die
-Uberspace-Staging-Domain testen.
+PWA-Installation und Service Worker brauchen HTTPS. Zwei Wege:
 
-Empfehlung: **zweiter Uberspace-Bereich als Staging** (`fidelity-stage.example.de`,
-eigene DB `fidelity_stage`, eigener supervisord-Service auf Port 8081). Kostet fast nichts
-und erspart „auf Produktion testen".
+```bash
+# a) Cloudflare Tunnel gegen den Dev-Server
+cloudflared tunnel --url http://localhost:3000
+
+# b) Staging-Domain auf Uberspace
+uberspace web domain add fidelity-stage.example.de
+# eigener Ordner ~/html/fidelity-stage, Deploy von main statt von Tags
+```
+
+Empfehlung: **beides**. Der Tunnel für schnelle Iteration am Handy, die Staging-Domain
+für alles, was einen stabilen Origin braucht – IndexedDB und Service Worker sind an den
+Origin gebunden, ein wechselnder Tunnel-Hostname wirft bei jedem Start alles weg.
+
+---
+
+## 5. Betrieb
+
+Es gibt keinen.
+
+| Frühere Aufgabe | Jetzt |
+|---|---|
+| supervisord-Services überwachen | entfällt |
+| PostgreSQL-Backups | entfällt – Daten liegen beim Nutzer und sind aus der API reproduzierbar |
+| RAM-Limit überwachen | entfällt |
+| Disk-Quota überwachen | ein paar hundert KB |
+| Migrationen ausrollen | IndexedDB-Upgrade läuft im Client |
+| Katalog-Dump einspielen | entfällt (siehe `11-KATALOG-STRATEGIE.md`) |
+| Rate-Limit-Warteschlange verwalten | entfällt – jeder Nutzer hat sein eigenes Budget |
+
+**Was bleibt:**
+
+- Uptime des statischen Hostings (Uberspace macht das)
+- Bundle-Budget im CI (siehe `12-RESSOURCEN-BUDGET.md` §7)
+- Optional Sentry für Client-Fehler – **ohne** Session Replay, mit `sendDefaultPii: false`
+  und **Redaction des Tokens** in der `beforeSend`-Hook
+
+```ts
+// Der Token darf unter keinen Umständen in einen Fehler-Report geraten
+beforeSend(event) {
+  const s = JSON.stringify(event)
+  return s.includes(getToken()) ? null : event
+}
+```
+
+---
+
+## 6. Wann doch ein Server dazukommt
+
+Nur für zwei Dinge, und beide sind **additiv** – die App funktioniert ohne sie weiter:
+
+| Funktion | Warum ein Server nötig ist | Möglicher Weg |
+|---|---|---|
+| **Push-Benachrichtigungen** | Web Push braucht einen Application Server, der an den Push-Dienst zustellt | Cloudflare Worker, gratis bis 100k Requests/Tag |
+| **Nächtliche Watchlist-Läufe** | Ein Browser scannt nicht, während er zu ist | Derselbe Worker, mit Cron-Trigger |
+
+> ⚠️ **Achtung beim Watchlist-Server:** Er würde von *einer* IP scannen – damit wäre das
+> geteilte Rate-Limit zurück. Sinnvoller Zuschnitt: der Worker prüft nur `num_for_sale`
+> pro beobachtetem Händler (**1 Request statt 100**) und schickt bei Veränderung einen
+> Push. Den eigentlichen Scan macht dann wieder der Client mit seinem eigenen Budget.
+
+**Auslöser:** Push wird tatsächlich vermisst. Nicht vorher.

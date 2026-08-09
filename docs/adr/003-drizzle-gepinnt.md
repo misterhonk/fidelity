@@ -1,6 +1,9 @@
 # ADR-003: Drizzle 0.45 gepinnt, nicht 1.0-RC
 
-**Status:** Akzeptiert · **Datum:** 2026-08-09
+**Status:** **Ersetzt durch ADR-007** · **Datum:** 2026-08-09
+
+> **Gegenstandslos.** Kein Server, keine SQL-Datenbank, kein ORM.
+> Dokument bleibt als Entscheidungshistorie erhalten.
 
 ## Kontext
 

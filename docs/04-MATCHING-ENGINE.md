@@ -84,8 +84,8 @@ wegzuwerfen ist bei 10.000 Listings pure Verschwendung.
 
 ### S1 · `WANTLIST_EXACT` — Gewicht 100
 
-```sql
-listing.release_id IN (SELECT discogs_release_id FROM app.wantlist_item WHERE user_id = $1)
+```ts
+wantlistIds.has(listing.releaseId)      // Set<number>, O(1)
 ```
 
 Konfidenz immer 1.0. Kostenlos. Der Basis-Treffer, den auch Discogs schon kann – aber wir
@@ -97,13 +97,11 @@ zeigen ihn im Kontext des gesamten Digs.
 
 Anderes Pressing eines Wantlist-Albums, über `catalog.release.master_id`.
 
-```sql
-SELECT 1 FROM catalog.release r
-JOIN app.wantlist_item w
-  ON w.discogs_master_id = r.master_id
- AND w.user_id = $1                      -- ⚠️ ohne das: Wantlist-Treffer FREMDER Nutzer
-WHERE r.id = $listing_release_id
-  AND r.master_id IS NOT NULL AND r.master_id <> 0
+```ts
+// Der Horizont enthaelt fuer jedes Wantlist-Album ALLE Pressungen
+// (aus /masters/{id}/versions, 1 Request je Album).
+const hit = horizonIndex.get(listing.releaseId)
+hit?.some(h => h.kind === 'master' && wantlistMasterIds.has(h.entityId))
 ```
 
 Konfidenz 0.9, gedämpft auf 0.6 wenn das Pressing deutlich jünger ist als das gewünschte
@@ -120,13 +118,17 @@ Der Kern des MVP. Künstler in der Sammlung, dieses Release nicht.
 
 | Stufe | Bedingung | Konfidenz |
 |---|---|---|
-| 1 | `artist_norm = taste_name.name_norm` | **1.00** |
+| 1 | `artistMap.get(norm)` - Map-Lookup, O(1) | **1.00** |
 | 2 | Token-Containment: `"Kraftwerk / Neu!"` enthält `"kraftwerk"` | **0.85** |
-| 3 | `similarity(artist_norm, name_norm) ≥ 0.85` (pg_trgm) | **0.70** |
+| 3 | Trigram-Ähnlichkeit ≥ 0.85 - **nur für die Reste**, in JS | **0.70** |
 | — | `artist_norm IN ('various','various artists','v/a','unknown')` | **verwerfen** |
 
-Zusätzlich mit `taste_name.weight` multipliziert: Ein Künstler, von dem du 12 Platten hast,
-zählt mehr als einer mit einer.
+Zusätzlich mit dem Gewicht aus dem Geschmacksprofil multipliziert: Ein Künstler, von dem
+du 12 Platten hast, zählt mehr als einer mit einer.
+
+> **Performance:** Stufe 1 und 2 sind Map- bzw. String-Operationen und kosten für 20.000
+> Listings zusammen unter 10 ms. Stufe 3 ist die einzige teure – sie läuft nur für die
+> wenigen hundert Listings, die 1 und 2 nicht getroffen haben. Gesamtbudget < 60 ms.
 
 > ⚠️ **Disambiguierungs-Suffixe niemals strippen.** `"Nirvana (2)"` ist ein *anderer*
 > Künstler als `"Nirvana"`. Das ist der klassische Fehler, der die Precision zerstört.
@@ -144,8 +146,7 @@ Für jeden Künstler in der Sammlung mit ≥ 3 Releases:
   Konfidenz = gap_ratio  (0.5 → 0.5 … 0.9 → 0.9)
 ```
 
-Relevanzfilter: nur `role = 'main'` (Hauptkünstler – PK-Spalten können nicht NULL sein,
-siehe `03-DATENMODELL.md`), nur Alben, keine Compilations/Singles,
+Relevanzfilter: nur `role === 'main'` im Horizont, nur Alben, keine Compilations/Singles,
 Zeitfenster aus der eigenen Sammlung ableiten (wer nur 60er-Miles sammelt, will keinen 80er).
 
 > *„Du hast 4 von 6 Blue-Note-Leader-Dates von Hank Mobley aus 1960–61. Das hier ist die
@@ -223,15 +224,13 @@ auftauchen, aber nie als Hauptkünstler – der klassische Jazz- und Dub-Navigat
 
 Du besitzt den Master auf CD, hier gibt es Vinyl (oder eine ältere Pressung).
 
-```sql
-$master IS NOT NULL AND $master <> 0          -- ⚠️ sonst kippen ALLE masterlosen
-AND EXISTS (                                   --    Releases in einen Topf
-  SELECT 1 FROM app.collection_item c
-   WHERE c.user_id = $1
-     AND c.discogs_master_id = $master
-     AND c.discogs_master_id <> 0
-     AND NOT (c.formats && ARRAY['Vinyl']))
-AND listing.format ILIKE '%Vinyl%'
+```ts
+// ⚠️ masterId 0 heisst "kein Master" - ohne diesen Guard landen ALLE
+//    masterlosen Releases in einem Topf und erzeugen Falschtreffer.
+const masterId = horizonMasterOf(listing.releaseId)
+masterId !== 0
+  && nonVinylMasterIds.has(masterId)          // Set<number>, beim Sync gebaut
+  && /vinyl/i.test(listing.format)
 ```
 
 > *„Hast du auf CD. Das hier ist die deutsche Erstpressung."*
@@ -241,7 +240,7 @@ AND listing.format ILIKE '%Vinyl%'
 `GET /marketplace/stats/{release_id}` → `lowest_price`, `num_for_sale`.
 
 > ⚠️ **Niemals für alle Treffer.** Nur für die **Top 50 nach Vorscore**, nach dem Scan,
-> als eigene Job-Phase. Sonst kostet ein Dig 10.100 statt 101 Requests.
+> als eigene Phase im Worker. Sonst kostet ein Dig 10.100 statt 101 Requests.
 > ⚠️ `lowest_price` aus `/releases/{id}` ist nachweislich fehlerhaft – `/marketplace/stats/`
 > verwenden.
 
@@ -445,10 +444,10 @@ Zielwert ≥ 0,6.
 Die Engine ist eine **reine Funktion** – das ist Absicht:
 
 ```ts
-scoreListing(listing, tasteProfile, preferences, catalogLookups) → Match
+scoreListing(listing, tasteProfile, preferences, horizonIndex) → Match | null
 ```
 
-Keine I/O, keine Datenbank, kein Netz. Damit:
+Keine I/O, kein IndexedDB, kein Netz. Läuft im Web Worker. Damit:
 
 - **Golden-File-Tests**: eingefrorene Fixtures aus echten Inventaren, erwartete Scores
   im Snapshot. Jede Gewichtsänderung zeigt sofort ihren Effekt auf die gesamte Liste.
@@ -456,3 +455,5 @@ Keine I/O, keine Datenbank, kein Netz. Damit:
   Score liegt immer in [0,100].
 - **Regressionskorpus**: Martins und Jens' echte Sammlungen gegen 3 eingefrorene
   Händlerinventare. Vor jedem Release durchlaufen lassen und die Top Five vergleichen.
+- **Performance-Benchmark**: 20.000 synthetische Listings müssen unter **250 ms** bleiben.
+  Bricht der Build, wenn überschritten (siehe `12-RESSOURCEN-BUDGET.md`).

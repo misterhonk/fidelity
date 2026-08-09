@@ -155,7 +155,7 @@ Eine Deklaration pro Token statt eines doppelten `.dark`-Blocks. Nutzer-Override
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │ ┌────────┐  Neu! – Neu! 2                          ╭──────╮  │
-│ │        │  Brain · BRAIN 1031 · DE · 1973         │  91  │  │
+│ │        │  Brain · BRAIN 1028 · DE · 1973         │  91  │  │
 │ │ Cover  │                                          │Side 1│  │
 │ │ 96×96  │  ◆ Credit  ◆ Katalog-Serie  ◆ Preis     ╰──────╯  │
 │ │        │                                                    │
@@ -250,8 +250,8 @@ Versand zu dir (DE)              aktuell 2 Platten · 9,00 € gesamt · 4,50 �
 | **Virtualisierung** | Ab ~200 Zeilen `@tanstack/vue-virtual`. Sammlungen haben 5.000+ Einträge. |
 | **View Transitions** | Same-document, für Karte → Detail-Sheet. Cross-document noch nicht (Interop-2026-Baustelle). |
 | **Optimistic UI** | Nur für Korb, Wantlist-Add, Feedback. **Nicht** für alles mit Geld oder echter Fehlerrate. |
-| **SSE für Scan** | Server-Sent Events, kein Polling, kein WebSocket. Einseitiger Stream reicht. |
-| **URL ist der State** | Filter, Sortierung, Dichte in Query-Params. Digs sind teilbar (an Jens schicken). |
+| **Worker-Fortschritt** | `postMessage` aus dem Web Worker. Kein Polling, kein SSE - es gibt keinen Server. |
+| **URL ist der State** | Filter, Sortierung, Dichte in Query-Params. Digs liegen lokal - zum Teilen gibt es JSON-Export. |
 | **`scrollbar-gutter: stable`** | Auf allen Listen-Panes. Kein Layout-Sprung beim Filtern. |
 | **Skeletons** | Nur mit exakt den Maßen des echten Inhalts, sonst tauscht man Spinner gegen CLS. |
 
@@ -325,7 +325,7 @@ vom März 2026 „an incomplete draft" und noch Jahre entfernt.
 | Aspekt | Stand August 2026 |
 |---|---|
 | **iOS-Installation** | Safari 26 hat **alle Installability-Anforderungen abgeschafft** – jede Website öffnet als Web-App vom Home-Bildschirm. Aber: **kein `beforeinstallprompt` auf iOS.** Manueller Coach-Mark „Teilen → Zum Home-Bildschirm" nötig. |
-| **Push** | Web Push funktioniert auf iOS **nur nach Home-Screen-Installation**. Declarative Web Push (ab iOS 18.4) rendert Benachrichtigungen ohne Service Worker – robuster gegen ITP-Eviction. |
+| **Push** | **Gibt es nicht.** Web Push braucht einen Application Server, den wir bewusst nicht haben (ADR-007). Ersatz: Pruefung beim App-Start, Badge-API, Banner mit den Neuigkeiten seit dem letzten Besuch. |
 | **Background Sync** | ⚠️ **Chromium-only, nicht Baseline** (Safari: nein). **Keinen Flow darauf bauen.** Eigene IndexedDB-Outbox, geleert bei `online`/`visibilitychange`. |
 | **Speicher-Eviction** | WebKit räumt Site-Daten nach ~7 Tagen Inaktivität ab – **installierte Home-Screen-Apps sind ausgenommen.** Noch ein Grund, auf Installation zu drängen. |
 
@@ -334,7 +334,7 @@ vom März 2026 „an incomplete draft" und noch Jahre entfernt.
 | Daten | Strategie |
 |---|---|
 | App-Shell | Precache (`generateSW`) |
-| Sammlung/Wantlist | IndexedDB, muss offline funktionieren (In-Store-Modus!) |
+| Sammlung/Wantlist | IndexedDB - ohnehin der einzige Speicherort, offline ist der Normalfall |
 | Dig-Ergebnisse | IndexedDB, **mit sichtbarem Zeitstempel** („Stand 09:14") |
 | Cover | CacheStorage, stale-while-revalidate, LRU-Deckel ~200 MB |
 | Preise | Network-first. Still veraltende Preise sind schlimmer als ein ehrliches Label. |

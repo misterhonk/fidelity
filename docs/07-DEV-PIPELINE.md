@@ -11,15 +11,12 @@ discogs-hifi/                    (GitHub: mister-honk/fidelity, privat)
 │   ├── release.yml
 │   └── deploy.yml
 ├── app/                         # Nuxt: pages, components, composables, layouts
-├── server/                      # Nitro: api, lib/discogs, jobs, db
-├── shared/                      # zwischen Client & Server geteilte Typen/Zod-Schemas
-├── scripts/catalog/             # Dump-Pipeline (läuft NUR lokal)
+├── worker/                      # Web Worker: discogs/, match/, horizon/
+├── db/                          # IndexedDB-Schema und Zugriff via idb
+├── shared/                      # Typen + postMessage-Protokoll
 ├── tokens/                      # DTCG Design Tokens
 ├── tests/{unit,e2e,fixtures}/
 ├── docs/
-├── docker/
-│   ├── Dockerfile
-│   └── compose.yml
 ├── CHANGELOG.md
 ├── CLAUDE.md
 └── release-please-config.json
@@ -146,12 +143,6 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15       # exakt die Uberspace-Major-Version
-        env: { POSTGRES_PASSWORD: test }
-        options: >-
-          --health-cmd pg_isready --health-interval 10s --health-retries 5
     steps:
       - uses: actions/checkout@<SHA>
       - uses: pnpm/action-setup@<SHA>
@@ -159,8 +150,8 @@ jobs:
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium webkit
-      - run: pnpm db:migrate
       - run: pnpm test:e2e        # inkl. @axe-core/playwright
+      - run: pnpm size            # Bundle-Budget
 ```
 
 > ⚠️ **WebKit im CI installieren.** Die App ist eine PWA, deren schwächstes Ziel iOS Safari
@@ -172,94 +163,44 @@ pro PR – sonst brennt man das Rate-Limit für Merges.
 
 ---
 
-## 5. Docker
+## 5. Lokale Entwicklung
 
-### Lokal
-
-```yaml
-# docker/compose.yml
-services:
-  app:
-    build: { context: .., dockerfile: docker/Dockerfile, target: dev }
-    ports: ["3000:3000"]
-    volumes: ["..:/app", "/app/node_modules"]
-    environment:
-      DATABASE_URL: postgres://fidelity:dev@db:5432/fidelity
-      NUXT_DISCOGS_CONSUMER_KEY: ${DISCOGS_KEY}
-      NUXT_DISCOGS_CONSUMER_SECRET: ${DISCOGS_SECRET}
-    depends_on: { db: { condition: service_healthy } }
-
-  db:
-    image: postgres:15          # gleiche Major wie Uberspace (12–15, Default 15)
-    environment:
-      POSTGRES_USER: fidelity
-      POSTGRES_PASSWORD: dev
-      POSTGRES_DB: fidelity
-    ports: ["5432:5432"]
-    volumes: ["pgdata:/var/lib/postgresql/data"]
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fidelity"]
-      interval: 5s
-
-  mailpit:                      # Digest-Mails lokal ansehen
-    image: axllent/mailpit
-    ports: ["8025:8025"]
-
-volumes: { pgdata: {} }
+```bash
+pnpm install
+pnpm dev            # http://localhost:3000
 ```
 
-### Production-Image (mehrstufig)
+**Kein Docker, keine Datenbank, kein Compose-Stack.** Es gibt nichts zu orchestrieren.
+Man braucht nur einen Personal Access Token aus `discogs.com/settings/developers`.
 
-```dockerfile
-FROM node:22-alpine AS deps
-WORKDIR /app
-RUN corepack enable
-COPY package.json pnpm-lock.yaml ./
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile
+### Mobile Tests
 
-FROM deps AS build
-COPY . .
-RUN pnpm build           # → .output/
+PWA-Installation und Service Worker brauchen HTTPS:
 
-FROM node:22-alpine AS runtime
-WORKDIR /app
-ENV NODE_ENV=production
-# Nitros .output ist self-contained – KEIN node_modules nötig.
-# Das ist der größte Image-Size-Gewinn und wird oft übersehen.
-COPY --from=build /app/.output ./
-USER node
-EXPOSE 3000
-HEALTHCHECK --interval=30s --timeout=3s CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-CMD ["node", "server/index.mjs"]
+```bash
+cloudflared tunnel --url http://localhost:3000     # schnelle Iteration
 ```
 
-> **Hinweis:** Auf Uberspace läuft **kein Docker**. Das Image ist für lokale
-> Production-Parität und einen späteren VPS-Umzug. Der Uberspace-Deploy nutzt direkt
-> das `.output`-Verzeichnis (siehe `08-DEPLOYMENT.md`).
+Für alles, was einen **stabilen Origin** braucht (IndexedDB und Service Worker hängen
+am Origin!), lieber die Staging-Domain nutzen – ein wechselnder Tunnel-Hostname wirft
+bei jedem Start alle lokalen Daten weg. Siehe `08-DEPLOYMENT.md` §4.
 
-### Cloudflare Tunnel für Mobile-Tests
+### Bundle-Budget
 
-```yaml
-  tunnel:
-    image: cloudflare/cloudflared:latest
-    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
-    profiles: ["tunnel"]        # docker compose --profile tunnel up
+```bash
+pnpm size          # size-limit, bricht bei Überschreitung
 ```
 
-Damit ist die lokale Instanz unter einer echten HTTPS-URL erreichbar – nötig für:
-PWA-Installation auf dem iPhone, Web Push (braucht HTTPS), und die
-**OAuth-Callback-URL**, die Discogs sonst nicht akzeptiert.
-
----
+Budget und Begründung: `12-RESSOURCEN-BUDGET.md` §2. Läuft auch im CI.
 
 ## 6. Testing
 
 | Ebene | Werkzeug | Was |
 |---|---|---|
-| Unit | Vitest 4 | **Scoring-Engine** (reine Funktion → Golden Files), Normalisierung, Rate-Limiter, Versandstaffel-Mathematik |
+| Unit | Vitest 4 | **Scoring-Engine** (reine Funktion → Golden Files), Normalisierung, Drosselung, Versandstaffel-Mathematik |
 | Component | Vitest Browser Mode (Provider: Playwright) | `MatchCard`, `ScanProgress`, `CatalogRunGrid` |
-| Integration | Vitest + echte Postgres im CI | Matching-Queries, Migrationen |
+| Integration | Vitest + fake-indexeddb | Stores, Migrationen, Horizont-Packung |
+| Performance | Vitest Benchmark | 20.000 Listings scoren < 250 ms |
 | E2E | Playwright | Login-Flow (gemockt), Dig-Ablauf, Korb |
 | A11y | `@axe-core/playwright` | Jeder E2E-Screen |
 | Contract | Fixtures aus echten API-Antworten | Discogs-Antwortformen, **beide Fehlerformate** |
@@ -291,29 +232,33 @@ die **gepinnten Action-SHAs** samt Kommentar-Tag.
   "packageRules": [
     { "matchUpdateTypes": ["patch"], "matchDepTypes": ["devDependencies"], "automerge": true },
     { "matchPackagePatterns": ["^@nuxt/", "^nuxt$"], "groupName": "nuxt" },
-    { "matchPackagePatterns": ["^drizzle"], "enabled": false }   // ⚠️ bewusst gepinnt
+    { "matchPackagePatterns": ["^@vite-pwa"], "automerge": false }  // SW-Änderungen prüfen
   ]
 }
 ```
 
-> ⚠️ **Drizzle bewusst von Renovate ausgenommen.** Die 1.0-Linie ist seit über 18 Monaten
-> im RC; ein automatischer Sprung dorthin wäre ein Ausfall. Manuell und bewusst upgraden.
+> ⚠️ **PWA-Updates nie automergen.** Ein kaputter Service Worker ist der einzige Fehler,
+> den man nicht per Deploy zurücknehmen kann – alte Clients halten ihn fest.
 
 ---
 
 ## 8. Observability
 
-- **Sentry** `@sentry/nuxt` (Free Tier reicht) – Errors, Performance, Release Health,
-  verknüpft mit den release-please-Tags via `sentry-cli releases`
-- **OpenTelemetry** für die Scan-Schleife (Sentry v8+ baut ohnehin auf OTel auf):
-  - Span pro Inventarseite, Attribut `discogs.rate_limit_remaining`
-  - Counter für 429er
-  - Histogramm der Seiten-Latenz
+**Optional** – und bewusst sparsam, weil jedes Byte beim Nutzer landet:
 
-Das ist der Unterschied zwischen *„der Scan ist langsam"* und *„wir werden ab Seite 84
-gedrosselt, weil `remaining` auf 3 steht."*
+- **Sentry** `@sentry/nuxt`, **ohne Session Replay**, `sendDefaultPii: false`
+- ⚠️ **`beforeSend`-Hook, der den Personal Access Token herausfiltert.** Ein Token in
+  einem Fehler-Report wäre der schlimmste denkbare Bug dieser App:
 
-- **Strukturiertes Logging** (JSON), Level über ENV. **Niemals** OAuth-Tokens loggen –
-  Redaction-Liste im Logger fest verdrahtet.
-- **Health-Endpunkt** `/api/health`: DB-Ping, pg-boss-Status, letzter erfolgreicher Dig,
-  aktuelles Rate-Limit-Budget.
+```ts
+beforeSend(event) {
+  const s = JSON.stringify(event)
+  return s.includes(getToken()) ? null : event
+}
+```
+
+- **Kein OpenTelemetry**, kein Health-Endpunkt, kein strukturiertes Server-Logging –
+  es gibt keinen Server.
+- **In-App-Diagnose statt Monitoring:** ein Debug-Screen zeigt Anzahl Requests, 429er,
+  Dauer der letzten Digs und Größe der IndexedDB. Das reicht für ein Freundes-Tool und
+  kostet niemanden Bandbreite.

@@ -372,7 +372,7 @@ code{font-family:var(--mono);font-size:.86em;background:var(--raised);padding:1p
       <div class="cov"></div>
       <div class="body">
         <div class="title">Neu! — Neu! 2</div>
-        <div class="meta">Brain · BRAIN 1031 · DE · 1973 · VG+ / VG+</div>
+        <div class="meta">Brain · BRAIN 1028 · DE · 1973 · VG+ / VG+</div>
         <div class="chips">
           <span class="chip" style="--c:var(--sig-credit)">◆ Credit-Graph</span>
           <span class="chip" style="--c:var(--sig-catalog)">◆ Katalog-Serie</span>
@@ -451,17 +451,17 @@ code{font-family:var(--mono);font-size:.86em;background:var(--raised);padding:1p
       anbietet — und lokal muss identisch sein, sonst debuggt man Unterschiede statt Features.
     </p>
 <pre><b>Runtime</b>    Node 22 LTS · pnpm                    <span style="color:var(--n-600)">← Uberspace-Limit, kein 24</span>
-<b>Framework</b>  Nuxt 4.5 · Vue 3.5 · Vite 8           <span style="color:var(--n-600)">← Nuxt 3 ist seit Juli EOL</span>
-<b>Server</b>     Nitro + pg-boss (Worker in-process)   <span style="color:var(--n-600)">← 1,5 GB RAM gesamt</span>
-<b>Datenbank</b>  PostgreSQL 15 + pg_trgm + unaccent
-<b>ORM</b>        Drizzle 0.45.x, hart gepinnt          <span style="color:var(--n-600)">← 1.0 ist seit 18 Mon. RC</span>
+<b>Framework</b>  Nuxt 4.5 <b>ssr: false</b> · Vue 3.5      <span style="color:var(--n-600)">← statisch generiert</span>
+<b>Arbeit</b>     Web Worker — Scan, Matching, Horizont  <span style="color:var(--n-600)">← Main-Thread bleibt bei 60 fps</span>
+<b>Speicher</b>   IndexedDB im Browser (idb, ~2 KB)
+<b>Auth</b>       Discogs Personal Access Token         <span style="color:var(--n-600)">← OAuth ist per CORS gesperrt</span>
 <b>UI</b>         Tailwind 4 · Nuxt UI 4 · Reka UI      <span style="color:var(--n-600)">← Radix Vue ist tot</span>
 <b>Tokens</b>     DTCG 2025.10 · OKLCH · Style Dictionary
 <b>Listen</b>     TanStack Table + Virtual              <span style="color:var(--n-600)">← Sammlungen mit 5000+</span>
 <b>PWA</b>        @vite-pwa/nuxt · eigene IndexedDB-Outbox <span style="color:var(--n-600)">← Background Sync ist Chromium-only</span>
 <b>Test</b>       Vitest · Playwright inkl. WebKit · axe-core
 <b>Release</b>    Conventional Commits · release-please · Keep a Changelog
-<b>Deploy</b>     lokal Docker → Uberspace 7            <span style="color:var(--n-600)">← dort kein Docker</span>
+<b>Deploy</b>     ein rsync statischer Dateien          <span style="color:var(--n-600)">← kein Backend, 0 € Betrieb</span>
 <b>A11y</b>       WCAG 2.2 AA · EN 301 549              <span style="color:var(--n-600)">← BFSG seit Juni 2025</span></pre>
   </div>
 </section>

@@ -1,6 +1,10 @@
 # ADR-001: Nuxt/Node statt Laravel/PHP
 
-**Status:** Akzeptiert · **Datum:** 2026-08-09
+**Status:** Akzeptiert, teilweise ersetzt durch **ADR-007** · **Datum:** 2026-08-09
+
+> Die Wahl von Nuxt/Vue bleibt gueltig. Die Begruendung ueber Nitro als Server-Runtime
+> ist ueberholt: Fidelity hat kein Backend mehr, Nuxt laeuft im SPA-Modus (`ssr: false`)
+> und wird statisch generiert. Siehe ADR-007.
 
 ## Kontext
 

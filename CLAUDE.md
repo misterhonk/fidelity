@@ -6,56 +6,70 @@ Arbeitsanweisungen für Claude Code in diesem Repository.
 
 ## Was das hier ist
 
-**Fidelity** – ein Kaufberater für Discogs. Scannt das Sortiment eines Händlers, gleicht es
-gegen Sammlung und Wantlist des Nutzers ab, liefert eine bewertete Fundliste mit
-Begründungssatz pro Treffer.
+**Fidelity** – ein Kaufberater für Discogs. Scannt das Sortiment eines Händlers, gleicht
+es gegen Sammlung und Wantlist ab, liefert eine bewertete Fundliste mit Begründungssatz
+pro Treffer.
+
+**Es ist eine reine Client-PWA. Es gibt kein Backend.** Statische Dateien, IndexedDB,
+direkter Zugriff auf `api.discogs.com` aus dem Browser. Siehe `docs/adr/007-client-only-pwa.md`.
 
 **Lies vor der ersten Aufgabe:** `docs/00-KONZEPT.md`, `docs/01-ARCHITEKTUR.md`,
-`docs/02-DISCOGS-API.md`.
+`docs/02-DISCOGS-API.md`, `docs/12-RESSOURCEN-BUDGET.md`.
 
 ---
 
-## Die fünf Regeln, die du nie brechen darfst
+## Die sieben Regeln, die du nie brichst
 
-1. **Niemals `/releases/{id}` in einer Scan-Schleife.**
-   10.000 Releases = 10.000 Requests ≈ 3 Stunden. Release-Metadaten kommen aus dem
-   `catalog`-Schema (CC0-Dumps) oder gar nicht.
+1. **Kein Backend, keine Datenbank, kein Server-Prozess.**
+   Wenn eine Aufgabe nach einem Server verlangt, ist die Aufgabe falsch gestellt – frag nach.
 
-2. **Niemals nebenläufige Discogs-Requests.**
-   Das Rate-Limit gilt **pro IP**. Parallelität erzeugt nur 429er. Genau ein In-Flight-
-   Request app-weit, gesteuert über den zentralen Client in `server/lib/discogs/`.
+2. **Niemals `/releases/{id}` in einer Schleife.**
+   10.000 Releases ≈ 3 Stunden. Release-Metadaten kommen aus dem Horizont oder gar nicht.
 
-3. **Niemals Marktplatzdaten älter als 6 Stunden anzeigen.**
-   ToS-Vorgabe. `app.dig.expires_at` erzwingt das im Datenmodell. Nicht umgehen, nicht
-   „nur für die Entwicklung" aushebeln.
+3. **Niemals nebenläufige Discogs-Requests.**
+   Genau ein In-Flight-Request, feste 1.200 ms Abstand. Alles läuft durch den einen
+   `DiscogsClient` im Worker.
 
-4. **Niemals scrapen.** Kein `discogs.com/sell/…`-HTML, kein undokumentiertes
+4. **Niemals Marktplatzdaten älter als 6 Stunden anzeigen.**
+   ToS. `dig.expiresAt` erzwingt das. Nicht umgehen, auch nicht „nur für die Entwicklung".
+
+5. **Niemals scrapen.** Kein `discogs.com/sell/…`-HTML, kein undokumentiertes
    `/marketplace/search`. Nur dokumentierte API-Endpunkte.
 
-5. **Niemals OAuth-Tokens loggen, ausgeben oder an den Client schicken.**
-   Verschlüsselt via `pgcrypto`, Redaction-Liste im Logger.
+6. **Der Personal Access Token verlässt IndexedDB nicht.**
+   Nie loggen, nie in eine URL, nie in einen Fehler-Report, nie an Dritte.
+
+7. **Jede neue Abhängigkeit muss ihren Platz im Bundle-Budget rechtfertigen.**
+   Budget: ≤ 120 KB gzip für den ersten sinnvollen Paint. Siehe `docs/12-RESSOURCEN-BUDGET.md`.
+
+8. **Kein Feature darf den optionalen Hub voraussetzen.**
+   Ab M2 gibt es die Ports `HorizonSource`, `ShippingProfileSource` und `WatchService`
+   (`shared/ports.ts`). Hub-Abfragen laufen immer mit 2 s Timeout, ohne Retry, und fallen
+   **lautlos** auf den lokalen Weg zurück. Siehe `docs/13-HUB-ADDON.md` und ADR-008.
 
 ---
 
 ## Fakten über die Discogs-API, die du dir merken musst
 
+Alle am 2026-08-09 live verifiziert.
+
 | Fakt | Konsequenz |
 |---|---|
+| **CORS ist offen** (`allow-origin: *`, `authorization` erlaubt) | Der Browser darf direkt zugreifen – Grundlage der ganzen Architektur |
+| **`x-discogs-ratelimit-*` steht NICHT in `expose-headers`** | JS kann die Rate-Limit-Header **nicht lesen**. Blind mit 1.200 ms fahren, auf 429-**Status** reagieren |
+| **`POST /oauth/access_token` per CORS gesperrt** | OAuth ist unmöglich → Personal Access Token |
+| **`fetch()` kann keinen User-Agent setzen** | Verifiziert unkritisch – Discogs akzeptiert Browser-UAs. Trotzdem: erster Test in M1 |
 | **Max. 10.000 Listings** pro fremdem Händler (Seite 101 → 403) | `sort_order` asc+desc für 20.000; Coverage ehrlich anzeigen |
 | `pagination.pages` **lügt** bei Inventory | Nie darauf verlassen, immer auf 403 vorbereitet sein |
-| **60 Req/min pro IP**, gleitendes Fenster | Token-Bucket über `X-Discogs-Ratelimit-Remaining` steuern, nicht über eigenen Zähler |
-| **Kein `Retry-After`** bei 429 | Eigener exponentieller Backoff mit Jitter |
-| `X-Discogs-Ratelimit-Used` ist **nicht monoton** | Nur `-Remaining` als Steuergröße nutzen |
-| Inventory-`release` hat **kein `master_id`, kein `genre`/`style`** | „Anderes Pressing" braucht das `catalog`-Schema |
+| **60 Req/min pro IP** – und die IP ist die des **Nutzers** | Kein geteiltes Budget, keine Warteschlange |
+| Inventory-`release` hat **kein `master_id`, kein `genre`/`style`** | „Anderes Pressing" braucht den Horizont |
 | Inventory-`release.label` ist **nur das erste Label** | Multi-Label-Releases werden unterschätzt |
-| Inventory-`artist` ist ein **String ohne IDs** | Fuzzy-Kaskade: exact → Token → `pg_trgm` |
+| Inventory-`artist` ist ein **String ohne IDs** | Fuzzy-Kaskade: Map-Lookup → Token → Trigram |
 | `status`-Filter wird bei fremden Händlern **ignoriert** | Clientseitig filtern |
+| **`/artists/{id}/releases` liefert ein `role`-Feld** (`Producer`, `Remix`, …) | Der Credit-Graph kostet 11 Requests statt 10,4 GB |
 | **Zwei Fehlerformate** (legacy + FastAPI) | Beide parsen |
-| **User-Agent ist Pflicht** | Sonst leere Antwort oder 403 |
-| Bilder: **separates Cloudflare-Limit** (~30–40/min) | Bilder **nur** clientseitig laden, nie serverseitig |
+| Bilder: **separates Cloudflare-Limit** (~30–40/min) | Nur `loading="lazy"`, nie aktiv fetchen |
 | Wantlist-Pfad heißt **`/wants`**, nicht `/wantlist` | |
-| OAuth: **PLAINTEXT-Signatur**, von Discogs empfohlen | Kein HMAC-SHA1, spart die Base-String-Hölle |
-| Fast alle Wantlists sind **privat** | OAuth ist Pflicht, auch für eigene Daten |
 
 Vollständig: `docs/02-DISCOGS-API.md`.
 
@@ -64,27 +78,29 @@ Vollständig: `docs/02-DISCOGS-API.md`.
 ## Codekonventionen
 
 **Sprache:** Code, Kommentare, Commits, Variablennamen: **Englisch**.
-Nutzersichtbare Texte und die Projektdokumentation: **Deutsch**.
+Nutzersichtbare Texte und Projektdokumentation: **Deutsch**.
 
 ```
-server/lib/discogs/    Der einzige Ort, an dem HTTP zu Discogs stattfindet.
-                       Kein anderes Modul ruft die API direkt auf.
-server/lib/match/      Scoring-Engine. REINE FUNKTIONEN, kein I/O, keine DB.
-                       Das ist Absicht – so ist sie Golden-File-testbar.
-server/jobs/           pg-boss Job-Handler.
-server/db/             Drizzle-Schema und Migrationen.
-shared/                Zod-Schemas und Typen für beide Seiten.
-app/                   Nuxt: pages, components, composables.
-scripts/catalog/       Dump-Pipeline. Läuft NUR lokal, nie in Produktion.
+worker/discogs/    Der einzige Ort, an dem fetch() gegen Discogs stattfindet.
+                   Kein anderes Modul ruft die API direkt auf.
+worker/match/      Scoring-Engine. REINE FUNKTIONEN, kein I/O, kein IndexedDB.
+                   Das ist Absicht – so ist sie Golden-File-testbar.
+worker/horizon/    Expansion der Sammlung in Release-ID-Mengen.
+db/                IndexedDB-Schema und Zugriff via idb.
+shared/            Typen und das postMessage-Protokoll zwischen Main und Worker.
+app/               Nuxt: pages, components, composables. NUR Darstellung.
 ```
 
-**TypeScript:** `strict`. Kein `any`. Externe Daten (API-Antworten, Formulare) immer durch
-ein Zod-Schema an der Grenze.
+**Der Main-Thread rechnet nicht.** Scannen, Matching, Scoring und Horizont-Expansion
+laufen ausschließlich im Web Worker. Der Main-Thread rendert und nimmt Eingaben entgegen.
 
-**Geld:** `numeric(10,2)` in der DB, in TS als Integer-Cents oder `decimal.js`.
-**Niemals `float` für Preise.**
+**TypeScript:** `strict`. Kein `any`. Externe Daten (API-Antworten) immer durch ein
+Zod-Schema an der Grenze.
 
-**Zeit:** immer `timestamptz`, immer UTC in der DB, Formatierung nur in der UI.
+**Geld:** Integer-Cents oder `decimal.js`. **Niemals `float` für Preise.**
+
+**Große Datenmengen:** TypedArrays statt Objektlisten. Ergebnislisten als `shallowRef`,
+nicht `ref` – Vue soll nicht 20.000 Objekte reaktiv machen.
 
 ---
 
@@ -95,11 +111,11 @@ Conventional Commits, erzwungen durch commitlint:
 ```
 feat(dig): add incremental matching during inventory scan
 fix(discogs): handle both legacy and FastAPI error shapes
-perf(match): add trigram index on normalized artist names
+perf(horizon): pack release ids as Int32Array
 docs(api): document the 10k pagination wall
 ```
 
-Scopes: `dig` `match` `discogs` `auth` `catalog` `basket` `ui` `db` `deploy`
+Scopes: `dig` `match` `discogs` `horizon` `auth` `basket` `ui` `db` `pwa` `deploy`
 
 Releases macht `release-please`. **Version niemals von Hand hochsetzen**,
 **CHANGELOG.md niemals direkt für ein Release editieren** – nur im Release-PR nachschärfen.
@@ -108,38 +124,42 @@ Releases macht `release-please`. **Version niemals von Hand hochsetzen**,
 
 ## Tests
 
-Vor jedem PR: `pnpm lint && pnpm typecheck && pnpm test:unit`
+Vor jedem PR: `pnpm lint && pnpm typecheck && pnpm test:unit && pnpm size`
+
+**Der wichtigste Test des Projekts** ist der Golden-File-Test der Scoring-Engine
+(`tests/unit/scoring.spec.ts`) gegen eingefrorene Fixtures echter Inventare und
+Sammlungen. **Jede Änderung an Signalgewichten muss den Snapshot aktualisieren** – und
+der Diff muss im PR erklärt werden.
 
 **Score-Formel:** stärkstes Signal + 0,3 × Summe der übrigen, skaliert auf 115 = 100 Punkte.
 `SCALE` und `SECONDARY` sind **Konstanten und bleiben es** – wer sie pro Meilenstein
 nachjustiert, macht Scores über die Zeit unvergleichbar. Details in
 `docs/04-MATCHING-ENGINE.md` §4.
 
-**Der wichtigste Test des Projekts** ist der Golden-File-Test der Scoring-Engine
-(`tests/unit/scoring.spec.ts`). Er läuft gegen eingefrorene Fixtures echter Inventare und
-Sammlungen. **Jede Änderung an Signalgewichten muss den Snapshot aktualisieren** – und der
-Diff muss im PR erklärt werden. Ohne das ist die Score-Entwicklung Blindflug.
+**Zusätzlich Pflicht:**
 
-Discogs-API im Test: **immer gemockt**. Fixtures unter `tests/fixtures/`. Ein echter
-Smoke-Test läuft nightly, nicht pro PR.
+- **Performance-Benchmark:** 20.000 synthetische Listings scoren in < 250 ms
+- **Bundle-Budget** (`size-limit`) – Überschreitung bricht den Build
+- Discogs-API im Test **immer gemockt**, Fixtures unter `tests/fixtures/`
+- Playwright **inkl. WebKit** – schwächstes Ziel ist iOS Safari
 
 ---
 
 ## Wenn du unsicher bist
 
 - **Neue Discogs-Endpunkte:** erst `docs/02-DISCOGS-API.md` prüfen. Steht er nicht drin,
-  vor der Nutzung Request-Kosten und Auth-Anforderungen recherchieren und dort ergänzen.
+  vorher Request-Kosten, Auth-Anforderungen **und CORS-Verhalten** klären und dort ergänzen.
 - **Architekturentscheidungen:** ADR unter `docs/adr/` anlegen (Vorlage: ADR-001).
-- **Neue Signale in der Matching-Engine:** erst `docs/04-MATCHING-ENGINE.md` erweitern,
-  dann implementieren. Gewicht begründen.
-- **Neue Abhängigkeit:** Ist sie nötig? Uberspace hat 1,5 GB RAM und 10 GB Platte.
-  Jede Abhängigkeit ist eine Wette auf deren Wartung.
+- **Neue Signale:** erst `docs/04-MATCHING-ENGINE.md` erweitern, dann implementieren.
+- **Neue Abhängigkeit:** Rechtfertigt sie ihre Bytes? Siehe `docs/12-RESSOURCEN-BUDGET.md`.
 
-## Was du nicht ohne Rückfrage tun sollst
+## Was du nicht ohne Rückfrage tust
 
-- Den Stack wechseln oder eine Kernabhängigkeit ersetzen (Nuxt, Postgres, Drizzle, pg-boss)
-- Drizzle auf die 1.0-RC-Linie heben (bewusst gepinnt, siehe ADR-003)
-- Auf TypeScript 7 wechseln (vue-tsc/typescript-eslint hinken noch)
-- Redis/Valkey einführen (RAM-Budget)
-- Serverseitiges Bild-Fetching einbauen
-- Die 6-Stunden-Regel oder das `expires_at`-Feld anfassen
+- Ein Backend einführen – in irgendeiner Form
+- IndexedDB gegen SQLite-WASM oder eine andere Speicher-Engine tauschen
+- Eine Chart-Bibliothek hinzufügen (Balken sind `<div>`s, Raster ist CSS Grid)
+- `ssr: true` setzen
+- Auf TypeScript 7 wechseln (`vue-tsc` hinkt noch)
+- Die 6-Stunden-Regel oder `dig.expiresAt` anfassen
+- Rechenarbeit vom Worker in den Main-Thread verlagern
+- Bilder aktiv per `fetch()` laden

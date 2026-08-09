@@ -12,8 +12,8 @@
 |---|---|---|---|
 | Ohne | nein | 25/min | nein |
 | Key + Secret | **nein** | 60/min | nein (liest keine privaten Sammlungen) |
-| Personal Access Token | nur den Besitzer | 60/min | nur für lokale Skripte |
-| **OAuth 1.0a** | jeden zustimmenden Nutzer | 60/min | ✅ **das ist unser Weg** |
+| **Personal Access Token** | nur den Besitzer | 60/min | ✅ **unser Weg** - jeder Nutzer liest seine eigenen Daten |
+| **OAuth 1.0a** | jeden zustimmenden Nutzer | 60/min | ❌ per CORS gesperrt, siehe 1b |
 
 ### OAuth 1.0a mit PLAINTEXT
 
@@ -47,6 +47,47 @@ Antwort ist **form-encoded, nicht JSON**: `oauth_token`, `oauth_token_secret`,
 - **User-Agent ist Pflicht**: `Fidelity/0.1.0 +https://fidelity.example.de`.
   Ohne UA: leere Antwort oder 403 ohne brauchbare Meldung. Nie `curl` oder `Mozilla/…`
 - Auth **immer als Header**, nie im Querystring (historischer Bug: 25/min statt 60/min)
+
+---
+
+## 1b. CORS - Zugriff direkt aus dem Browser
+
+**Verifiziert am 2026-08-09.** Das ist die Grundlage der gesamten Architektur (ADR-007).
+
+```
+access-control-allow-origin:   *
+access-control-allow-headers:  Content-Type, authorization, User-Agent,
+                               Private-Auth-Secret, Discogs-UID
+access-control-allow-methods:  HEAD, OPTIONS, GET        (Datenbank-/Marketplace-Endpunkte)
+                               DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT  (User-Endpunkte)
+access-control-expose-headers: Location
+```
+
+| Test | Ergebnis |
+|---|---|
+| `GET /releases/{id}` mit `Origin` | 200, `allow-origin: *` |
+| Preflight mit `authorization` | 204, Header erlaubt |
+| `/users/juno_records/inventory` mit **Safari-User-Agent** | **200**, 43.223 Listings |
+| Preflight `POST /oauth/access_token` | **500**, nur `HEAD, OPTIONS` |
+
+### Drei Konsequenzen
+
+**1. Die Rate-Limit-Header sind fuer JavaScript unsichtbar.**
+`access-control-expose-headers` listet nur `Location`. `x-discogs-ratelimit-remaining`
+kommt zwar ueber die Leitung, aber `fetch()` gibt den Header nicht heraus. Ein adaptiver
+Token-Bucket ist damit **nicht baubar**.
+Konsequenz: blind und konservativ drosseln - **1 Request/1.200 ms** (= 50/min, 10 unter
+dem Limit). Der **429-Status** ist lesbar, darauf reagieren wir mit exponentiellem Backoff.
+
+**2. OAuth 1.0a ist unmoeglich.**
+`POST /oauth/access_token` ist per CORS gesperrt. Deshalb: **Personal Access Token**,
+vom Nutzer selbst unter `discogs.com/settings/developers` erzeugt.
+
+**3. `fetch()` kann keinen User-Agent setzen.**
+Der Browser sendet seinen eigenen. Die Doku sagt "avoid Mozilla" - der Live-Test zeigt
+aber, dass Discogs Browser-User-Agents akzeptiert (200 auf dem Inventory-Endpunkt).
+**Das ist die riskanteste Annahme des Projekts** und gehoert in M1 als allererstes
+aus einem echten Browser gegengeprueft.
 
 ---
 

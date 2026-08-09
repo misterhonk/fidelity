@@ -1,6 +1,10 @@
 # ADR-002: PostgreSQL statt SQLite
 
-**Status:** Akzeptiert · **Datum:** 2026-08-09
+**Status:** **Ersetzt durch ADR-007** · **Datum:** 2026-08-09
+
+> **Gegenstandslos.** Es gibt keinen Server und damit keine serverseitige Datenbank.
+> Gespeichert wird in IndexedDB im Browser des Nutzers (`03-DATENMODELL.md`).
+> Dokument bleibt als Entscheidungshistorie erhalten.
 
 ## Kontext
 

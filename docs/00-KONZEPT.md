@@ -290,10 +290,13 @@ Das wird als Limitation dokumentiert, nicht versteckt.
 **Phase 1 (jetzt):** Martin + Jens. Danach Freundeskreis. Kein Public Launch.
 
 Konsequenzen:
-- OAuth 1.0a wird **trotzdem von Anfang an** gebaut (Personal Access Tokens lesen nur die
-  Daten ihres eigenen Besitzers – für zwei Nutzer bereits untauglich)
-- Multi-User-Datenmodell von Tag 1, aber ohne Registrierungs-Flow (Einladungs-Codes)
-- Keine Monetarisierung (ToS-Konflikt, siehe `09-LEGAL.md`)
+- **Reine Client-PWA ohne Backend** (ADR-007). Jeder Nutzer bringt seinen eigenen
+  Discogs Personal Access Token mit - und damit sein eigenes Rate-Limit-Budget
+- Kein Multi-User-Datenmodell noetig, weil es keine gemeinsame Datenbank gibt.
+  Weitergeben heisst: die URL schicken
+- Keine Registrierung, keine Einladungscodes, keine Nutzerverwaltung
+- Keine Monetarisierung (ToS-Konflikt, siehe `09-LEGAL.md`) - und ohne Server
+  auch nichts zu finanzieren
 
 ---
 

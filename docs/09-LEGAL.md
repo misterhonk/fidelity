@@ -20,7 +20,7 @@ service to Your application's users."*
 **Das ist eine Aktualitäts-, keine Cache-Dauer-Regel.** Wir dürfen keinen Inventar-Snapshot
 von gestern anzeigen.
 
-**Umsetzung:** `app.dig.expires_at = created_at + 6h`, hart im Datenmodell. Danach sperrt
+**Umsetzung:** `dig.expiresAt = startedAt + 6h`, hart im Datenmodell. Danach sperrt
 die UI die Preis- und Zustandsdaten und bietet einen neuen Scan an. Unsere **abgeleiteten**
 Daten (Scores, Signale, Händler-Fingerprint) sind keine Discogs-Content-Kopien und dürfen
 bleiben.
@@ -61,6 +61,7 @@ gelten als **Restricted Data**:
 > Our express written permission."
 
 **Konsequenz für dieses Projekt:** Fidelity ist **kostenlos**. Punkt.
+Ohne Server gibt es ohnehin nichts zu finanzieren.
 
 > **Zur Einordnung:** Discogs Enhancer (3–10 €/Jahr, 10.000+ Nutzer) und Vizcogs
 > (4 €/Monat) verlangen Geld und werden sichtbar toleriert. Die verteidigbare Lesart wäre:
@@ -127,38 +128,34 @@ Für Releases, Artists, Labels, Masters aus den monatlichen Dumps gilt damit:
 
 ---
 
-## 3. DSGVO
+## 3. DSGVO - fast nichts zu tun
 
-Auch ein privates Freundes-Tool auf einer öffentlichen Domain verarbeitet personenbezogene
-Daten.
+**Fidelity hat keinen Server.** Es gibt keine Stelle, an der personenbezogene Daten
+anderer Menschen verarbeitet werden. Alles - Token, Sammlung, Wantlist, Dig-Ergebnisse -
+liegt in IndexedDB im Browser des Nutzers und verlaesst das Geraet nie.
 
-### Was wir verarbeiten
+| Frueher (Serverentwurf) | Jetzt |
+|---|---|
+| Auftragsverarbeitungsvertrag mit dem Hoster | entfaellt |
+| OAuth-Tokens verschluesselt at rest | Token liegt beim Nutzer selbst |
+| Auskunft und Datenexport (Art. 15, 20) | trivial - Export-Button, Daten sind ohnehin lokal |
+| Loeschung (Art. 17) | trivial - `indexedDB.deleteDatabase()` |
+| Server-Logs, Aufbewahrungsfristen | es gibt keine |
+| Cookie-Banner | keins - kein Cookie, kein Tracking, kein Analytics |
 
-| Datum | Rechtsgrundlage | Aufbewahrung |
-|---|---|---|
-| Discogs-User-ID, Username, Avatar | Art. 6(1)(b) – Vertragserfüllung | bis Kontolöschung |
-| OAuth-Token (verschlüsselt) | Art. 6(1)(b) | bis Kontolöschung/Widerruf |
-| Sammlung & Wantlist (gespiegelt) | Art. 6(1)(b) | 24-h-TTL, dann Refresh |
-| Dig-Ergebnisse | Art. 6(1)(b) | 30 Tage, Marktdaten nach 6 h entkernt |
-| Feedback-Urteile | Art. 6(1)(f) – Verbesserung | bis Kontolöschung |
-| Server-Logs | Art. 6(1)(f) | 7 Tage |
+**Was trotzdem noetig ist**, sobald die App unter einer oeffentlichen Domain liegt:
 
-### Pflichten
+- [ ] **Impressum** (Paragraph 5 DDG)
+- [ ] **Datenschutzerklaerung** - kurz und ehrlich: was die App an Discogs sendet
+      (den Token des Nutzers), was lokal gespeichert wird, und dass nichts davon
+      an uns oder Dritte geht
+- [ ] Falls Sentry: als Auftragsverarbeiter benennen, EU-Region, `sendDefaultPii: false`,
+      **Token-Redaction im `beforeSend`-Hook**
+- [ ] Der Hoster verarbeitet Zugriffs-Logs - gehoert in die Datenschutzerklaerung
 
-- [ ] **Datenschutzerklärung** – auch bei nicht-kommerziellem Betrieb
-- [ ] **Impressum** (§ 5 DDG) – bei einer öffentlich erreichbaren Domain
-- [ ] **Auskunft & Export** (Art. 15, 20) – JSON-Export in den Einstellungen
-- [ ] **Löschung** (Art. 17) – „Konto löschen" entfernt alles, inkl. OAuth-Token-Widerruf
-- [ ] **Verschlüsselung** (Art. 32) – `pgcrypto` für Tokens, TLS überall
-- [ ] **Auftragsverarbeitung** – AV-Vertrag mit Uberspace; Sentry nur mit gesetzten
-      `sendDefaultPii: false` und EU-Region
-- [ ] **Datenminimierung** – wir speichern nur, was für Matching und Diff nötig ist
-
-> **Kein Cookie-Banner nötig**, solange ausschließlich das technisch notwendige
-> Session-Cookie gesetzt wird (§ 25 Abs. 2 TDDDG). Kein Analytics, kein Tracking – dann
-> bleibt das so.
-
----
+> **Die Datenschutzerklaerung darf ehrlich kurz sein.** Der wichtigste Satz ist:
+> *"Diese App hat keinen Server. Deine Discogs-Daten werden ausschliesslich in deinem
+> Browser verarbeitet und gespeichert."*
 
 ## 4. Barrierefreiheit (BFSG / EAA)
 

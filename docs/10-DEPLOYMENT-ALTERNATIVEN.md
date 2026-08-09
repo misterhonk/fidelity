@@ -1,8 +1,17 @@
-# 10 – Deployment-Alternativen
+# 10 - Deployment-Alternativen
 
-> **Offen.** Uberspace ist der dokumentierte Standardpfad (`08-DEPLOYMENT.md`),
-> aber nicht zwingend die beste Wahl für genau diese Arbeitslast.
-> Entscheidung vertagt bis der Homeserver gescannt ist.
+> **WEITGEHEND UEBERHOLT (2026-08-09).** Dieses Dokument verglich Hosting-Optionen fuer
+> den Serverentwurf anhand von RAM, Plattenplatz und ausgehender IP. Seit **ADR-007** hat
+> Fidelity **kein Backend mehr** - deployed werden nur statische Dateien. Damit ist keine
+> dieser Groessen mehr relevant.
+>
+> **Aktuelle Optionen stehen in [`08-DEPLOYMENT.md`](08-DEPLOYMENT.md) Abschnitt 2.**
+> Kurzfassung: Uberspace-Docroot, Cloudflare Pages oder GitHub Pages - alle kostenlos,
+> alle gleichwertig, alle austauschbar. Der Homeserver bleibt eine Option und ist als
+> reines Static-Hosting deutlich unkritischer als beim Serverentwurf.
+>
+> Der Rest bleibt als Entscheidungshistorie stehen - und fuer den Fall, dass spaeter doch
+> ein kleiner Dienst fuer Push dazukommt (`08-DEPLOYMENT.md` Abschnitt 6).
 
 ---
 

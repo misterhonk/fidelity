@@ -1,6 +1,9 @@
 # ADR-004: Ein Node-Prozess für App und Worker
 
-**Status:** Akzeptiert · **Datum:** 2026-08-09
+**Status:** **Ersetzt durch ADR-007** · **Datum:** 2026-08-09
+
+> **Gegenstandslos.** Es gibt null Serverprozesse. Die Trennung, die zaehlt, verlaeuft
+> jetzt zwischen Main-Thread und Web Worker im Browser (`01-ARCHITEKTUR.md` Abschnitt 2).
 
 ## Kontext
 
