@@ -3,6 +3,7 @@ import type {
   DigPreflight,
   DigWithMatches,
   EnrichProgress,
+  RefreshProgress,
   ScanProgress,
 } from '#shared/protocol'
 import type { Dig } from '#shared/types'
@@ -24,6 +25,40 @@ const preflight = ref<DigPreflight | null>(null)
 const progress = ref<ScanProgress | null>(null)
 const enriching = ref<EnrichProgress | null>(null)
 const gaps = ref<{ expanded: number; requests: number; titles: string[] } | null>(null)
+const refreshing = ref<RefreshProgress | null>(null)
+const refreshed = ref<{ refreshed: number; sold: number; gone: number } | null>(null)
+
+/**
+ * Re-reads each match's own listing (docs/02).
+ *
+ * One request per match instead of a whole rescan: nineteen matches are
+ * twenty-three seconds rather than four minutes. The cost is stated before it
+ * is spent, as everywhere else that spends the rate limit.
+ */
+async function refresh() {
+  const dig = result.value?.dig
+  if (!dig || busy.value) return
+
+  busy.value = true
+  error.value = null
+  refreshed.value = null
+
+  try {
+    const outcome = await call(
+      'dig.refresh',
+      { digId: dig.id },
+      { onProgress: (p) => (refreshing.value = p) },
+    )
+    refreshed.value = outcome
+    result.value = await call('dig.get', { digId: dig.id })
+  } catch (cause) {
+    noteFailure()
+    error.value = cause
+  } finally {
+    busy.value = false
+    refreshing.value = null
+  }
+}
 const history = ref<Dig[]>([])
 
 async function loadHistory() {
@@ -398,13 +433,60 @@ const expired = computed(() => {
       </div>
 
       <!-- The ToS deadline, enforced in the UI and not only in the cleanup job. -->
-      <p
+      <section
         v-if="expired"
         role="status"
-        class="rounded-fid-sm border border-fid-border p-3 text-fid-sm text-fid-text-muted"
+        class="flex flex-col gap-2 rounded-fid-sm border border-fid-border p-3"
       >
-        Dieser Snapshot ist älter als sechs Stunden. Preise und Zustände dürfen nicht mehr
-        angezeigt werden – scanne neu.
+        <p class="text-fid-sm text-fid-text-muted">
+          Älter als sechs Stunden – Preise und Zustände dürfen nicht mehr angezeigt werden. Die
+          Treffer und ihre Begründungen bleiben.
+        </p>
+        <!--
+          The way out that is not a four-minute rescan: each match's own
+          listing, one request apiece.
+        -->
+        <button
+          type="button"
+          :disabled="busy || !online"
+          class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 text-fid-sm font-medium text-fid-n-990 disabled:opacity-50"
+          @click="refresh"
+        >
+          Preise auffrischen
+          <span class="fid-num">({{ result.matches.length }})</span>
+        </button>
+        <p class="text-fid-xs text-fid-text-muted">
+          <span class="fid-num">{{ result.matches.length }}</span> Abfragen, also rund
+          {{ Math.ceil((result.matches.length * 1.2) / 60) || 1 }} Minute. Findet nichts Neues –
+          nur das wieder, was dieser Dig schon gefunden hat.
+        </p>
+      </section>
+
+      <div v-if="refreshing" class="flex flex-col gap-1" aria-live="polite">
+        <div class="h-1.5 w-full overflow-hidden rounded-full bg-fid-n-800">
+          <div
+            class="h-full rounded-full bg-fid-accent transition-[width] duration-300"
+            :style="{
+              width: `${refreshing.total > 0 ? Math.round((refreshing.done / refreshing.total) * 100) : 0}%`,
+            }"
+          />
+        </div>
+        <p class="text-fid-sm text-fid-text-muted">
+          <span class="fid-num">{{ refreshing.done }}</span> von
+          <span class="fid-num">{{ refreshing.total }}</span> nachgesehen<template
+            v-if="refreshing.sold > 0"
+            >, <span class="fid-num">{{ refreshing.sold }}</span> schon verkauft</template
+          >
+        </p>
+      </div>
+
+      <p v-if="refreshed" role="status" class="text-fid-sm text-fid-text-muted">
+        <span class="fid-num text-fid-text">{{ refreshed.refreshed }}</span> wieder
+        aktuell<template v-if="refreshed.sold > 0"
+          >, <span class="fid-num">{{ refreshed.sold }}</span> inzwischen verkauft</template
+        ><template v-if="refreshed.gone > 0"
+          >, <span class="fid-num">{{ refreshed.gone }}</span> nicht mehr auffindbar</template
+        >.
       </p>
 
       <p v-if="result.matches.length === 0" class="text-fid-base text-fid-text-muted">

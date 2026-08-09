@@ -334,6 +334,18 @@ export const handlers: HandlerMap = {
    * to be there before the first scan carries only what the scan needs
    * (docs/12 §2: route-splitting before any library surgery).
    */
+  'dig.refresh': async ({ digId }, { report, signal }) => {
+    const { refreshDig } = await import('./dig/refresh')
+    const { currency } = await getPreferences()
+    return refreshDig({
+      client: discogs(),
+      digId,
+      currency,
+      report: (progress) => report(progress),
+      signal,
+    })
+  },
+
   'dig.detail': async ({ digId, listingId }) => {
     const { matchDetail } = await import('./dig/detail')
     return matchDetail(digId, listingId)

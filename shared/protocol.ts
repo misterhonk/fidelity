@@ -85,6 +85,15 @@ export interface WorkerContract {
   /** The scan. Reports per page — first matches appear after a few seconds. */
   'dig.run': { params: { dealer: string }; progress: ScanProgress; result: Dig }
   'dig.get': { params: { digId: string }; progress: never; result: DigWithMatches | null }
+  /**
+   * Re-reads each match's own listing. One request per match instead of a
+   * whole rescan — and `status` says which ones have sold (docs/02).
+   */
+  'dig.refresh': {
+    params: { digId: string }
+    progress: RefreshProgress
+    result: { refreshed: number; sold: number; requests: number; gone: number }
+  }
   'dig.latest': { params: undefined; progress: never; result: DigWithMatches | null }
   /** An interrupted dig still inside its six-hour window, if there is one. */
   'dig.resumable': { params: undefined; progress: never; result: Dig | null }
@@ -262,6 +271,13 @@ export interface DealerProfile {
    */
   priceFactor: number | null
   scannedDealers: number
+}
+
+export interface RefreshProgress {
+  done: number
+  total: number
+  requests: number
+  sold: number
 }
 
 export interface WatchCheck {

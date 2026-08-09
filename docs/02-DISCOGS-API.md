@@ -266,12 +266,40 @@ zur Sammlung – ein Parser reicht für beides.
 |---|---|---|---|
 | `GET /users/{u}` | nein | 1 | `num_for_sale` als **Vorabprüfung der Inventargröße** |
 | `GET /marketplace/stats/{release_id}` | **nein** | 1/Release | `num_for_sale`, `lowest_price` → Signale 10 + 11 |
+| `GET /marketplace/listings/{listing_id}` | nein (mit Token bessere Währung) | 1/Listing | **Ein einzelnes Angebot auffrischen** – siehe unten |
 | `GET /marketplace/price_suggestions/{id}` | ja **+ Verkäufer-Settings** | 1/Release | ❌ für eine Käufer-App unbrauchbar |
 | `GET /masters/{id}/versions` | nein | 1/100 | **Beste Quelle für „alle Pressungen"**, undokumentierte Facetten-Filter `format`, `label`, `country`, `released` |
 | `GET /artists/{id}/releases` | nein | 1/100 | keine Seitengrenze; Basis für `ARTIST_GAP` |
 | `GET /labels/{id}/releases` | nein | 1/100 | keine Seitengrenze; Basis für `CATALOG_RUN` |
 | `GET /releases/{id}` | nein | **1/Release, ~16 KB → ~3 h für 10.000** | ⛔ **niemals in der Scan-Schleife**; liefert `styles`, `extraartists`, `identifiers` (siehe unten) |
 | `GET /database/search` | nein (Doku sagt ja) | 1/100, max 100 Seiten | Händlersuche, Disambiguierung via `barcode` |
+
+### `GET /marketplace/listings/{listing_id}` – der Ausweg aus der 6-Stunden-Regel
+
+Am 2026-08-09 live verifiziert. Nicht zu verwechseln mit
+`/marketplace/listings?release_id=…`, das **405** liefert (siehe unten): ein Angebot über
+**seine eigene ID** ist abrufbar.
+
+| | ohne Token | mit Token |
+|---|---|---|
+| HTTP | 200 | 200 |
+| `price` | in USD | in der Kontowährung, `curr_abbr` wird beachtet |
+
+Zurück kommen `status`, `condition`, `sleeve_condition`, `comments`, `ships_from`,
+`posted`, `price`, `original_price`.
+
+**Warum das viel wert ist:** Nach sechs Stunden müssen Preise und Zustände gelöscht werden
+(`docs/09` §1.1). Bisher hieß „ich will den Preis von gestern wiedersehen" einen kompletten
+Rescan – bei 20.000 Listings 200 Requests und vier Minuten. Über diesen Endpunkt kostet es
+**einen Request pro Treffer**: 19 Treffer sind 23 Sekunden.
+
+**Und `status` beantwortet die andere Frage:** Steht dort nicht mehr `For Sale`, ist die
+Platte verkauft. Für den Korb ist das der Unterschied zwischen „liegt bereit" und „ist weg".
+
+> ⚠️ Auffrischen ist **kein** Ersatz für einen Dig. Es sieht nur Angebote wieder an, die
+> ein Dig schon gefunden hat – neue Ware des Händlers findet ausschließlich ein Scan.
+
+---
 
 ### Was `/releases/{id}` für die Pressing-Beratung hergibt
 
