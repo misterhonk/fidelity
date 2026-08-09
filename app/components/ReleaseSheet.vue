@@ -222,6 +222,66 @@ function onKeydown(event: KeyboardEvent) {
           </ul>
         </section>
 
+        <!--
+          The pressing. Everything here is traceable to a field: "Neuauflage"
+          is Discogs' own word, and the runout is printed verbatim so somebody
+          can hold the record up and compare.
+        -->
+        <section
+          v-if="match.pressing"
+          class="flex flex-col gap-2"
+          aria-labelledby="sheet-pressing"
+        >
+          <h3 id="sheet-pressing" class="text-fid-sm font-medium text-fid-text">Pressung</h3>
+
+          <ul v-if="match.pressingWarnings?.length" class="flex flex-col gap-1">
+            <li
+              v-for="warning in match.pressingWarnings"
+              :key="warning.text"
+              class="text-fid-sm"
+              :class="
+                warning.severity === 'high' ? 'text-fid-sig-scarcity' : 'text-fid-sig-gap'
+              "
+            >
+              {{ warning.text }}
+            </li>
+          </ul>
+
+          <p class="text-fid-sm text-fid-text-muted">
+            <template v-if="match.pressing.country">{{ match.pressing.country }}</template>
+            <template v-if="match.pressing.year">
+              · <span class="fid-num">{{ match.pressing.year }}</span></template
+            >
+            <template v-if="match.pressing.plant">
+              · Presswerk {{ match.pressing.plant }}</template
+            >
+            <template v-if="match.pressing.freeText.length">
+              · {{ match.pressing.freeText.join(', ') }}</template
+            >
+          </p>
+
+          <ul v-if="match.pressing.stamps.length" class="flex flex-col gap-1">
+            <li
+              v-for="stamp in match.pressing.stamps"
+              :key="stamp.key"
+              class="text-fid-sm text-fid-text-muted"
+            >
+              <span class="text-fid-text">{{ stamp.label }}</span> – {{ stamp.note }}
+            </li>
+          </ul>
+
+          <!-- Printed verbatim: this is what you compare against the record. -->
+          <ul v-if="match.pressing.runouts.length" class="flex flex-col gap-0.5">
+            <li
+              v-for="runout in match.pressing.runouts"
+              :key="runout"
+              class="font-fid-mono text-fid-xs break-all text-fid-text-muted"
+            >
+              {{ runout }}
+            </li>
+          </ul>
+        </section>
+
         <CatalogRunGrid v-if="detail?.catalogue" :run="detail.catalogue" />
 
         <section

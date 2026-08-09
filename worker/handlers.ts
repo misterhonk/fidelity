@@ -5,7 +5,6 @@ import type { BasketCandidate, BasketView } from '#shared/types'
 
 import { currentIdentity, discogs, requestPersistence, signIn, signOut } from './auth'
 import { findResumable, REACHABLE, resumeDig, runDig, takeNearMisses } from './dig/scan'
-import { enrichTopMatches } from './dig/enrich'
 import { forgetLookup } from './dig/detail'
 import { affinityFactor } from './dig/fingerprint'
 import { allFeedback, clearFeedback, feedbackVerdicts, recordFeedback } from './feedback'
@@ -227,14 +226,17 @@ export const handlers: HandlerMap = {
     }
   },
 
-  'dig.enrich': async ({ digId }, { report, signal }) =>
-    enrichTopMatches({
+  // Runs only after a scan, so it has no business in the startup path either.
+  'dig.enrich': async ({ digId }, { report, signal }) => {
+    const { enrichTopMatches } = await import('./dig/enrich')
+    return enrichTopMatches({
       client: discogs(),
       digId,
       taste: (await getMeta('tasteProfile')) ?? null,
       report: (progress) => report(progress),
       signal,
-    }),
+    })
+  },
 
   'feedback.set': async ({ match, verdict }) => {
     await recordFeedback(match, verdict, Date.now())

@@ -5,17 +5,20 @@ import type { Match, Signal, TasteProfile } from '#shared/types'
 
 import type { DiscogsClient } from '../discogs/client'
 import { priceSignal, scarcitySignal, type MarketStats } from '../match/market'
+import { pressingContradictions, pressingWarnings, readPressing } from '../match/pressing'
 import { buildReason } from '../match/reason'
 import { barryScore, type ScoreContext } from '../match/score'
 
 /**
  * The enrichment pass.
  *
- * Three signals need data that nothing reachable in bulk carries. S7 needs a
- * release's styles, which live only in `/releases/{id}`. S10 and S11 need the
- * marketplace's lowest price and how many copies are for sale, which live only
- * in `/marketplace/stats/{id}`. Calling either per listing is the single most
- * expensive mistake available here — twenty thousand records would be hours.
+ * Four things need data that nothing reachable in bulk carries. S7 needs a
+ * release's styles and the pressing advice needs its runout and format
+ * descriptions, both of which live only in `/releases/{id}`. S10 and S11 need
+ * the marketplace's lowest price and how many copies are for sale, which live
+ * only in `/marketplace/stats/{id}`. Calling either per listing is the single
+ * most expensive mistake available here — twenty thousand records would be
+ * hours.
  *
  * So it runs as one bounded pass over the best fifty matches after scoring
  * (docs/04 §S10): two requests per record, about two minutes, and only for
@@ -30,12 +33,43 @@ export const TOP_N = 50
 /** Fires from here up (docs/04 §S7). */
 export const STYLE_THRESHOLD = 0.6
 
-export const releaseStylesSchema = z.object({
+/**
+ * One request, three jobs.
+ *
+ * `styles` feeds S7, and `identifiers`/`formats`/`country`/`year` feed the
+ * pressing advice (M7). Asking for them separately would be fifty more
+ * requests for data that arrives in this response anyway (docs/02).
+ */
+export const releaseDetailSchema = z.object({
   id: z.number().int(),
   styles: z.array(z.string()).optional(),
   genres: z.array(z.string()).optional(),
   country: z.string().optional(),
+  year: z.number().int().optional(),
+  released: z.string().optional(),
+  master_id: z.number().int().optional(),
+  formats: z
+    .array(
+      z.object({
+        name: z.string().optional(),
+        text: z.string().optional(),
+        descriptions: z.array(z.string()).optional(),
+      }),
+    )
+    .optional(),
+  identifiers: z
+    .array(
+      z.object({
+        type: z.string(),
+        value: z.string(),
+        description: z.string().optional(),
+      }),
+    )
+    .optional(),
 })
+
+/** @deprecated Kept as the old name; the schema grew for M7. */
+export const releaseStylesSchema = releaseDetailSchema
 
 /**
  * `/marketplace/stats/{id}`.
@@ -115,6 +149,10 @@ export async function enrichTopMatches({
   // still worth doing, so this only skips the style half.
   const wantStyles = Object.keys(centroid).length > 0
 
+  // The album's own first year, per master. What turns "pressed 2015" into
+  // "a 2015 pressing of a 1959 album" — a year on its own says nothing.
+  const masterYears = await firstYearByMaster()
+
   const db = await openFidelityDb()
   const stored = await db
     .transaction('matches')
@@ -139,12 +177,24 @@ export async function enrichTopMatches({
     let context = scoreContext
     let added = false
 
-    if (wantStyles) {
-      const release = await client.get(`/releases/${match.releaseId}`, releaseStylesSchema, {
-        signal,
-      })
-      requests += 1
+    /*
+     * The release lookup is unconditional now.
+     *
+     * It used to be skipped without a style centroid, because S7 was the only
+     * thing that needed it. The pressing advice (M7) needs nothing but the
+     * release, and it is the more useful half for somebody who has never rated
+     * a style — precisely the person the old condition would have skipped.
+     *
+     * The honest consequence: a pass now costs two requests per record instead
+     * of one for those users. Bounded at fifty either way, and the progress
+     * panel says the number before it is spent.
+     */
+    const release = await client.get(`/releases/${match.releaseId}`, releaseDetailSchema, {
+      signal,
+    })
+    requests += 1
 
+    if (wantStyles) {
       const similarity = styleSimilarity(release.styles ?? [], centroid)
       if (similarity >= STYLE_THRESHOLD) {
         signals.push({
@@ -155,6 +205,13 @@ export async function enrichTopMatches({
         added = true
       }
     }
+
+    const pressing = readPressing(release, masterYears.get(release.master_id ?? 0) ?? null)
+    const warnings = [
+      ...pressingWarnings(pressing),
+      ...pressingContradictions(match.comments, pressing),
+    ]
+    if (warnings.length > 0) added = true
 
     const stats = await fetchStats(client, match, signal)
     requests += 1
@@ -182,6 +239,8 @@ export async function enrichTopMatches({
       signals,
       marketLowestPrice: stats.lowestPrice,
       marketNumForSale: stats.numForSale,
+      pressing,
+      pressingWarnings: warnings,
       score: barryScore(signals, context),
       reason: buildReason(signals),
     }
@@ -193,6 +252,30 @@ export async function enrichTopMatches({
   }
 
   return { enriched: candidates.length, fired, requests }
+}
+
+/**
+ * The earliest year the horizon knows for each master.
+ *
+ * Cheap: the chunks are already in IndexedDB and this walks them once. A
+ * master the horizon has never expanded simply has no year, and the pressing
+ * profile says "unknown" rather than guessing one.
+ */
+async function firstYearByMaster(): Promise<Map<number, number>> {
+  const db = await openFidelityDb()
+  const years = new Map<number, number>()
+
+  for (const chunk of await db.getAll('horizon')) {
+    if (chunk.kind !== 'master') continue
+
+    let earliest = 0
+    for (const year of chunk.years) {
+      if (year > 1880 && (earliest === 0 || year < earliest)) earliest = year
+    }
+    if (earliest > 0) years.set(chunk.entityId, earliest)
+  }
+
+  return years
 }
 
 /**

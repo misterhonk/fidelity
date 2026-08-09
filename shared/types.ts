@@ -104,6 +104,42 @@ export interface SyncState {
  * it says truthfully is that this shop changed — the interface words it that
  * way and never promises more.
  */
+/**
+ * A mark in the runout groove, or the plant that pressed it.
+ *
+ * Read out of `identifiers[].value` and `formats[].text`, which is where
+ * whoever catalogued the release transcribed the groove by hand (docs/02).
+ */
+export interface PressingStamp {
+  key: 'RVG' | 'PLASTYLITE' | 'STERLING' | 'MASTERDISK' | 'RL' | 'PORKY' | 'KENDUN'
+  label: string
+  note: string
+}
+
+export interface PressingProfile {
+  /** Discogs' own word, from formats[].descriptions — stated, not inferred. */
+  statedReissue: boolean
+  /** Promo, Test Pressing, White Label … — not a normal commercial copy. */
+  special: string[]
+  country: string | null
+  /** The year *this pressing* was made, not the album's. */
+  year: number | null
+  /** The album's own first year, from the horizon. */
+  masterYear: number | null
+  /** Positive when the pressing is younger than the album. */
+  yearGap: number | null
+  stamps: PressingStamp[]
+  runouts: string[]
+  plant: string | null
+  freeText: string[]
+}
+
+export interface PressingWarning {
+  kind: 'reissue' | 'late-pressing' | 'special' | 'contradiction'
+  severity: 'high' | 'medium'
+  text: string
+}
+
 export interface WatchAlert {
   dealer: string
   newListings: number
@@ -317,6 +353,16 @@ export interface Match {
   /** From /marketplace/stats/ — the lowest price, NOT a median. */
   marketLowestPrice: number | null
   marketNumForSale: number | null
+
+  /**
+   * What this pressing is (M7). Filled by the top-fifty pass at no extra
+   * request cost; null for everything below it.
+   *
+   * Derived from public release facts, not from marketplace content, so it
+   * outlives the six-hour window — unlike the price beside it.
+   */
+  pressing?: PressingProfile | null
+  pressingWarnings?: PressingWarning[]
   expired: boolean
 }
 

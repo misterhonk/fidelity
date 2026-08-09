@@ -199,7 +199,7 @@ describe('the style pass', () => {
     expect(STYLE_THRESHOLD).toBe(0.6)
   })
 
-  it('looks up no styles without a centroid to compare against', async () => {
+  it('still reads the release without a centroid, for the pressing advice', async () => {
     const db = await openFidelityDb()
     await db.put('matches', match(1, 48))
 
@@ -210,11 +210,16 @@ describe('the style pass', () => {
       taste: { ...taste, styleCentroid: {} },
     })
 
-    // Comparing against nothing is not worth a request. The market lookups
-    // are still worth making, so only the style half is skipped.
-    expect(releases).not.toHaveBeenCalled()
+    // S7 skips — there is nothing to compare against — but the pressing
+    // advice needs only the release, and it is the more useful half for
+    // somebody who has never rated a style.
+    expect(releases).toHaveBeenCalledTimes(1)
     expect(stats).toHaveBeenCalledTimes(1)
-    expect(result.requests).toBe(1)
+    expect(result.requests).toBe(2)
+
+    const updated = await db.get('matches', ['01A', 1])
+    expect(updated?.signals.map((s) => s.type)).not.toContain('STYLE_ADJACENT')
+    expect(updated?.pressing).toBeTruthy()
   })
 
   it('does not pay twice for a match it already enriched', async () => {
@@ -406,6 +411,10 @@ describe('the market pass', () => {
 
     const get = vi.fn(async (path: string, schema: { parse: (v: unknown) => unknown }) => {
       if (path.includes('/marketplace/stats/1')) throw new Error('404')
+      // The release lookup happens for both records now; only the stats call
+      // for listing 1 is the one that fails.
+      const releaseMatch = /\/releases\/(\d+)/.exec(path)
+      if (releaseMatch) return schema.parse({ id: Number(releaseMatch[1]) })
       return schema.parse({ num_for_sale: 2, lowest_price: null })
     })
 

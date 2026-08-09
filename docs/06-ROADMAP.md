@@ -215,11 +215,31 @@ in S9 gefunden (siehe `docs/04` §S9).
 
 ## M7 · Pressing-Beratung → `v0.8.0`
 
-- [ ] Matrix/Runout aus `identifiers` (bedarfsgesteuert für Top-Treffer)
-- [ ] Mastering-Stempel erkennen (RVG, Porky, RL, Pecko)
-- [ ] Original vs. Reissue heuristisch aus Land, Jahr, Labelvariante
-- [ ] Fallen-Warnung: „Japan-Reissue 1983, kein 65er Original"
-- [ ] Widerspruchsprüfung: Händler-`comments` vs. Release-Daten
+- [x] Matrix/Runout aus `identifiers` (bedarfsgesteuert für Top-Treffer)
+- [x] Mastering-Stempel erkennen (RVG, Porky, RL, Pecko + Plastylite, Sterling,
+      Masterdisk, Kendun)
+- [x] Original vs. Reissue — **nicht heuristisch, sondern aus `formats[].descriptions`**
+- [x] Fallen-Warnung: „Europe-Neuauflage von 2017, nicht das Original von 1994"
+- [x] Widerspruchsprüfung: Händler-`comments` vs. Release-Daten
+
+**Anmerkungen:**
+
+- **Kostet null zusätzliche Requests.** Die Pressing-Felder kommen in derselben
+  Antwort wie `styles` für S7 — der Top-50-Nachschlag lief ohnehin. Die Felder
+  sind jetzt in `docs/02` dokumentiert, live verifiziert an drei Pressungen von
+  Blue Notes „Newk's Time".
+- **„Reissue" ist keine Heuristik.** Discogs pflegt das Feld selbst. Nur wo
+  wirklich geschlossen wird — ein Jahresabstand ohne Eintrag — sagt der Text
+  „vermutlich" und die Warnung ist eine Stufe milder.
+- **Der Nachschlag ist jetzt unbedingt.** Vorher wurde `/releases/{id}` ohne
+  Stil-Zentroid übersprungen; die Pressungsberatung braucht aber nur das
+  Release und ist gerade für jemanden ohne Geschmacksprofil die nützlichere
+  Hälfte. Ehrliche Folge: zwei Requests je Platte statt einem, gedeckelt bei 50,
+  und der Fortschrittsbalken nennt die Zahl vorher.
+- **An echten Daten geprüft:** Der höchstbewertete Treffer eines echten Digs
+  (87 Punkte, 33,99 €) ist eine Europa-Pressung von 2017 eines Albums von 1994,
+  das auf der Wantlist steht. Release 10147986 → Master 5542 → Horizont kennt
+  1994 über 160 Pressungen. Als Test festgehalten.
 
 ---
 

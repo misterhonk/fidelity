@@ -90,6 +90,33 @@ const meta = computed(() =>
     <!-- Never truncated. The sentence is the product. -->
     <p class="text-fid-sm text-fid-text">{{ match.reason }}</p>
 
+    <!--
+      What this pressing is (M7). Never says a reissue is bad — plenty of
+      people want the 180 g remaster — only what the record is, so the price
+      can be judged against the right thing.
+    -->
+    <ul v-if="match.pressingWarnings?.length" class="flex flex-col gap-1">
+      <li
+        v-for="warning in match.pressingWarnings"
+        :key="warning.text"
+        class="text-fid-sm"
+        :class="warning.severity === 'high' ? 'text-fid-sig-scarcity' : 'text-fid-sig-gap'"
+      >
+        {{ warning.text }}
+      </li>
+    </ul>
+
+    <p v-if="match.pressing?.stamps.length" class="flex flex-wrap gap-x-3 text-fid-xs">
+      <span
+        v-for="stamp in match.pressing.stamps"
+        :key="stamp.key"
+        class="text-fid-text-muted"
+        :title="stamp.note"
+      >
+        <span class="text-fid-text">{{ stamp.label }}</span> im Auslauf
+      </span>
+    </p>
+
     <div class="flex flex-wrap items-center justify-between gap-3">
       <p class="flex flex-wrap items-center gap-x-3 text-fid-sm text-fid-text-muted">
         <span v-if="match.condition">{{ match.condition }}</span>

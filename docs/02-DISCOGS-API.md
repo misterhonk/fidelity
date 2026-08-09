@@ -270,8 +270,34 @@ zur Sammlung – ein Parser reicht für beides.
 | `GET /masters/{id}/versions` | nein | 1/100 | **Beste Quelle für „alle Pressungen"**, undokumentierte Facetten-Filter `format`, `label`, `country`, `released` |
 | `GET /artists/{id}/releases` | nein | 1/100 | keine Seitengrenze; Basis für `ARTIST_GAP` |
 | `GET /labels/{id}/releases` | nein | 1/100 | keine Seitengrenze; Basis für `CATALOG_RUN` |
-| `GET /releases/{id}` | nein | **1/Release, ~16 KB → ~3 h für 10.000** | ⛔ **niemals in der Scan-Schleife** |
+| `GET /releases/{id}` | nein | **1/Release, ~16 KB → ~3 h für 10.000** | ⛔ **niemals in der Scan-Schleife**; liefert `styles`, `extraartists`, `identifiers` (siehe unten) |
 | `GET /database/search` | nein (Doku sagt ja) | 1/100, max 100 Seiten | Händlersuche, Disambiguierung via `barcode` |
+
+### Was `/releases/{id}` für die Pressing-Beratung hergibt
+
+Am 2026-08-09 an echten Releases verifiziert (Blue Note „Newk's Time", drei Pressungen):
+
+| Feld | Form | Wofür |
+|---|---|---|
+| `identifiers[]` | `{ type, value, description? }` | `type` ist u. a. `Matrix / Runout`, `Pressing Plant ID`, `Rights Society`, `Barcode` |
+| `formats[].descriptions[]` | `["LP","Album","Reissue","Remastered","Stereo"]` | **„Reissue" steht hier als Faktum** – das ist keine Heuristik |
+| `formats[].text` | `"Plastylite Pressing"`, `"180g"` | Freitext des Einpflegers |
+| `country` | `"US"`, `"Japan"`, `"Worldwide"` | „Worldwide" heißt in der Praxis moderne Neuauflage |
+| `released` / `year` | `"1959"` / `1959` | Pressjahr, **nicht** Erscheinungsjahr des Albums |
+
+Belegbeispiele aus denselben drei Pressungen:
+
+```
+1959 US    Mono                     BN-LP-4001-A [ear] M9 RVG   ← Original: RVG + Plastylite-Ohr
+2015 US    Reissue, Remastered      MASTERED BY CAPITOL
+2023 Worldwide  Reissue             (kein Stempel)
+```
+
+> ⚠️ **Kostet nichts extra.** Der Nachschlag über die Top 50 läuft für S7 und S10/S11
+> ohnehin – die Pressing-Felder kommen in derselben Antwort mit. Ein eigener Durchgang
+> dafür wäre 50 Requests für Daten, die schon da waren.
+
+---
 
 ### ❌ Der Endpunkt, den es nicht gibt
 
