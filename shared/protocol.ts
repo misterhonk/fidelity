@@ -104,6 +104,8 @@ export interface WorkerContract {
     progress: never
     result: DealerProfile | null
   }
+  /** Every shop you have scanned, best first. */
+  'dealer.list': { params: undefined; progress: never; result: Dealer[] }
 }
 
 /** What a verdict needs to keep: the identity plus the reasoning behind it. */
@@ -124,6 +126,12 @@ export interface DealerProfile {
    * one has been scanned, rather than a made-up 1.0.
    */
   factor: number | null
+  /**
+   * Median price against the median of your other shops' medians. Above 1 is
+   * the expensive end of your dealers, below 1 the cheap one — and that is all
+   * it claims, because a browser cannot see the wider market.
+   */
+  priceFactor: number | null
   scannedDealers: number
 }
 
@@ -208,6 +216,8 @@ export interface SyncResult {
 export interface LibrarySummary {
   collection: number
   wantlist: number
+  /** Shops scanned so far — what decides whether The Clerk's Take has anything to say. */
+  dealers: number
   collectionSyncedAt: number | null
   wantlistSyncedAt: number | null
 }

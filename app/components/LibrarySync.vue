@@ -91,6 +91,14 @@ const formatDate = (at: number | null) =>
       >
         Neuer Dig
       </NuxtLink>
+
+      <NuxtLink
+        v-if="(summary?.dealers ?? 0) > 0"
+        to="/haendler"
+        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+      >
+        The Clerk's Take
+      </NuxtLink>
     </div>
   </section>
 </template>

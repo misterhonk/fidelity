@@ -162,18 +162,39 @@ export const handlers: HandlerMap = {
     const dealer = await db.get('dealers', username)
     if (!dealer) return null
 
-    const others = (await db.getAll('dealers'))
-      .filter((other) => other.username !== username && other.affinity !== null)
-      .map((other) => other.affinity as number)
+    const all = await db.getAll('dealers')
+    const others = all.filter((other) => other.username !== username)
 
     const rate = dealer.affinity ?? 0
+    const median = dealer.fingerprint?.medianPrice ?? 0
+    const otherMedians = others
+      .map((other) => other.fingerprint?.medianPrice ?? 0)
+      .filter((value) => value > 0)
+
     return {
       dealer,
       rate,
-      // Computed on read, because it moves the moment another shop is scanned.
-      factor: affinityFactor(rate, others),
-      scannedDealers: others.length + 1,
+      // Computed on read, both of them, because they move the moment another
+      // shop is scanned. Storing them would mean every shop's numbers going
+      // stale the next time you dig somewhere else.
+      factor: affinityFactor(
+        rate,
+        others.filter((other) => other.affinity !== null).map((other) => other.affinity!),
+      ),
+      priceFactor: median > 0 ? affinityFactor(median, otherMedians) : null,
+      scannedDealers: all.length,
     }
+  },
+
+  'dealer.list': async () => {
+    const db = await openFidelityDb()
+    const dealers = await db.getAll('dealers')
+
+    // Ranked by how much of their stock is for you, which is the only ordering
+    // that answers "where should I look first".
+    return dealers
+      .filter((dealer) => dealer.lastScannedAt !== null)
+      .sort((a, b) => (b.affinity ?? 0) - (a.affinity ?? 0))
   },
 
   'dig.get': async ({ digId }) => loadDig(digId),
@@ -191,6 +212,7 @@ export const handlers: HandlerMap = {
     return {
       collection: await db.count('collection'),
       wantlist: await db.count('wantlist'),
+      dealers: await db.count('dealers'),
       collectionSyncedAt: syncState.collectionSyncedAt,
       wantlistSyncedAt: syncState.wantlistSyncedAt,
     }
