@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 
 /**
  * Bundle budget (docs/12-RESSOURCEN-BUDGET.md §2).
@@ -27,11 +27,35 @@ if (entryAssets.length === 0) {
   throw new Error('no entry assets found — run `pnpm build` before `pnpm size`')
 }
 
+/**
+ * The worker chunk, found by what only it contains.
+ *
+ * It is the only module that talks to api.discogs.com (CLAUDE.md rule 3), so
+ * that string identifies it without depending on a build hash. It has its own
+ * budget because it is what stands between "the page rendered" and "the app
+ * can do anything" — off the first-paint path, but not off the critical path
+ * to the first useful action.
+ */
+const workerChunk = readdirSync('.output/public/_nuxt')
+  .filter((file) => file.endsWith('.js'))
+  .map((file) => `.output/public/_nuxt/${file}`)
+  .find((file) => readFileSync(file, 'utf8').includes('api.discogs.com'))
+
+if (!workerChunk) {
+  throw new Error('worker chunk not found — did the Discogs client move?')
+}
+
 export default [
   {
     name: 'Erster sinnvoller Paint',
     path: entryAssets,
     limit: '120 kB',
+    gzip: true,
+  },
+  {
+    name: 'Worker (lazy, nach dem ersten Paint)',
+    path: [workerChunk],
+    limit: '35 kB',
     gzip: true,
   },
 ]

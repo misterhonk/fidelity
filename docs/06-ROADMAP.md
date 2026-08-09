@@ -76,13 +76,19 @@ Platte, die er ohne die App nicht gefunden hätte. **Das ist der eigentliche Pro
 
 ## M3 · Barry wird klüger → `v0.4.0`
 
-- [ ] Signal **S7** (Stil-Adjazenz, Kosinus über Sparse-Vektoren)
-- [ ] Feedback-Buttons (👍😐👎🛒) mit Signal-Snapshot
-- [ ] Händler-Fingerprint + Affinity-Score → „The Clerk's Take"
-- [ ] Filterleiste mit Signal-Chips, Sortierung, Dichte-Umschalter
-- [ ] Virtualisierte Liste, Command Palette (⌘K)
-- [ ] Release-Detail-Sheet mit View Transition
-- [ ] Golden-File-Tests der Scoring-Engine, Precision@5 messen (Ziel ≥ 0,6)
+- [x] Signal **S7** (Stil-Adjazenz, Kosinus über Sparse-Vektoren)
+- [x] Feedback-Buttons (👍😐👎🛒) mit Signal-Snapshot
+- [x] Händler-Fingerprint + Affinity-Score → „The Clerk's Take"
+- [x] Filterleiste mit Signal-Chips, Sortierung, Dichte-Umschalter
+- [x] Virtualisierte Liste, Command Palette (⌘K)
+- [x] Release-Detail-Sheet mit View Transition
+- [x] Golden-File-Tests der Scoring-Engine, Precision@5 messen (Ziel ≥ 0,6)
+
+**Ergebnis:** Precision@5 = 1,0 · Precision@10 = 0,9 gegen den Golden-Dig.
+S7 läuft als Top-50-Nachschlag über `/releases/{id}` nach dem Scan – dieselbe
+Form wie S10/S11 in M4 –, weil die Stile eines Releases sonst nirgends in
+Massen erreichbar sind. Der Golden-Dig hat beim ersten Lauf einen echten Fehler
+in S9 gefunden (siehe `docs/04` §S9).
 
 ---
 

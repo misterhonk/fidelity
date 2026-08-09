@@ -222,18 +222,32 @@ auftauchen, aber nie als Hauptkünstler – der klassische Jazz- und Dub-Navigat
 
 ### S9 · `FORMAT_UPGRADE` — Gewicht 40 · ab M5
 
-Du besitzt den Master auf CD, hier gibt es Vinyl (oder eine ältere Pressung).
+Du besitzt den Master, aber nicht auf **diesem Medium**.
 
 ```ts
 // ⚠️ masterId 0 heisst "kein Master" - ohne diesen Guard landen ALLE
 //    masterlosen Releases in einem Topf und erzeugen Falschtreffer.
 const masterId = horizonMasterOf(listing.releaseId)
 masterId !== 0
-  && nonVinylMasterIds.has(masterId)          // Set<number>, beim Sync gebaut
-  && /vinyl/i.test(listing.format)
+  && nonVinylMasterIds.has(masterId)              // Set<number>, beim Sync gebaut
+  && matchesFormat(listing.format, prefFormats)   // passt zu deiner Präferenz
+  && !ownedFormats.some((f) => sameMedium(listing.format, f))
 ```
 
 > *„Hast du auf CD. Das hier ist die deutsche Erstpressung."*
+
+**Warum nicht einfach `/vinyl/i.test(listing.format)`** (so stand es hier bis M3):
+Das war zu eng und zugleich zu locker. Zu eng, weil es „du hast es auf Kassette,
+hier ist die CD" nicht abdeckt und die eingestellten Formatpräferenzen ignoriert.
+Zu locker, weil die Präferenzprüfung allein nichts taugt: eine leere
+Präferenzliste heisst „kein Filter" und lässt alles durch – dann wird die CD
+einer Platte, die du schon auf CD hast, als Upgrade zu sich selbst angeboten.
+
+Der Medienvergleich gehört deshalb ins Signal und nicht in den Filter. Bei
+unbekanntem Medium auf einer der beiden Seiten gilt „verschieden" – „ich kann es
+nicht erkennen" darf nicht stillschweigend zu „das ist dasselbe" werden.
+
+Gefunden hat das der Golden-Dig (`tests/unit/golden.spec.ts`) beim ersten Lauf.
 
 ### S10 · `PRICE_SIGNAL` — Gewicht 35 · ab M4 · **1 API-Request pro Release**
 

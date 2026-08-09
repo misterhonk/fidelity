@@ -26,13 +26,26 @@ Cloudflare Pages oder GitHub Pages – überall kostenlos, überall austauschbar
 
 Das Ding muss im Keller eines Plattenladens über 3G laden.
 
-| Teil | Budget (gzip) |
-|---|---:|
-| HTML + kritisches CSS | ≤ 8 KB |
-| App-Shell JS (Vue + Router + UI-Kern) | ≤ 90 KB |
-| Matching-Engine (Worker, lazy) | ≤ 25 KB |
-| Restliche Routen (lazy) | je ≤ 30 KB |
-| **Erster sinnvoller Paint** | **≤ 120 KB** |
+| Teil | Budget (gzip) | Stand M3 |
+|---|---:|---:|
+| HTML + kritisches CSS | ≤ 8 KB | |
+| App-Shell JS (Vue + Router + UI-Kern) | ≤ 90 KB | |
+| Matching-Engine (Worker, lazy) | ≤ 35 KB | 31,5 KB |
+| Restliche Routen (lazy) | je ≤ 30 KB | 13,9 KB |
+| **Erster sinnvoller Paint** | **≤ 120 KB** | **118 KB** |
+
+> **Warum der Worker von 25 auf 35 KB gegangen ist (M3).** Die 25 KB waren
+> geschätzt, bevor es Code gab. Gemessen sind es 31,5 KB, davon rund 16 KB Zod.
+> Der naheliegende Ausweg wäre `zod/mini` gewesen – spart etwa 13 KB.
+> Dagegen sprach: die Schemas *sind* die Grenze zwischen ungeprüften API-Daten
+> und allem anderen (CLAUDE.md), und der Worker blockiert den ersten Paint
+> nicht, er lädt parallel dazu. Die entscheidende Zahl, die 120 KB, ist
+> eingehalten. Zods Kern ist außerdem monolithisch: die 16 KB sind einmalig
+> bezahlt, weitere Schemas kosten kaum noch etwas – das Budget läuft also nicht
+> von selbst weiter weg.
+>
+> Falls der Worker doch einmal deutlich über 35 KB steigt, ist die Reihenfolge:
+> erst Horizont- und Matching-Code erst beim Dig nachladen, dann `zod/mini`.
 
 **Maßnahmen**
 
