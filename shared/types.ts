@@ -351,6 +351,37 @@ export interface BasketItem {
   note: string | null
 }
 
+// ---------------------------------------------------------------------------
+// The detail sheet
+// ---------------------------------------------------------------------------
+
+/** A catalogue series around one record: Brain's 1000s, Blue Note's 4000s. */
+export interface CatalogueContext {
+  label: string
+  prefix: string
+  /** This record's number in the series. */
+  number: number
+  /** Neighbours around it, with whether the collection already has each. */
+  neighbours: { number: number; owned: boolean; isThis: boolean }[]
+}
+
+/** How much of an artist's main discography the collection holds. */
+export interface DiscographyContext {
+  artist: string
+  owned: number
+  total: number
+  from: number
+  to: number
+}
+
+export interface MatchDetail {
+  match: Match
+  catalogue: CatalogueContext | null
+  discography: DiscographyContext[]
+  /** Names from the horizon that point at this release, main credits first. */
+  connections: { kind: string; name: string; role: number }[]
+}
+
 export type Verdict = 'interesting' | 'meh' | 'wrong' | 'bought'
 
 export interface Feedback {

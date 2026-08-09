@@ -6,6 +6,8 @@ const props = defineProps<{ match: Match }>()
 const { verdicts, judge } = useFeedback()
 const verdict = computed(() => verdicts.value[props.match.listingId])
 
+const { show } = useReleaseSheet()
+
 const band = computed(() => {
   if (props.match.score >= 85) return { key: 'S', label: 'Side One, Track One' }
   if (props.match.score >= 70) return { key: 'A', label: 'Top Five' }
@@ -47,9 +49,17 @@ const meta = computed(() =>
       <div v-else class="size-18 shrink-0 rounded-fid-cover bg-fid-n-800" aria-hidden="true" />
 
       <div class="flex min-w-0 grow flex-col gap-1">
-        <p class="truncate text-fid-base font-medium text-fid-text">
+        <!--
+          The title is the way in. A whole-card click would swallow the
+          Discogs link and the four verdict buttons that sit inside it.
+        -->
+        <button
+          type="button"
+          class="truncate text-left text-fid-base font-medium text-fid-text underline-offset-4 hover:underline"
+          @click="show(match.digId, match.listingId)"
+        >
           {{ match.artist }} – {{ match.title }}
-        </p>
+        </button>
         <p v-if="meta" class="truncate font-fid-mono text-fid-xs text-fid-text-muted">
           {{ meta }}
         </p>

@@ -1,4 +1,5 @@
 import { hitsFor, type HorizonLookup } from '../horizon/lookup'
+import { parseCatno } from '../horizon/pack'
 import type { Signal } from '#shared/types'
 
 import { matchesFormat } from './format'
@@ -178,15 +179,12 @@ export function formatUpgrade(
   return null
 }
 
-/** Same shape as the horizon's parser, applied to a listing's own number. */
+/**
+ * A listing's own catalogue number, read by the horizon's parser.
+ *
+ * Shared rather than copied: the two have to agree exactly or a record lands
+ * in a series the collection was indexed under a different prefix.
+ */
 function parseListingCatno(catno: string | null): { prefix: string; num: number } | null {
-  if (!catno) return null
-  const match = /^([A-Za-z][A-Za-z\s.-]{0,9}?)\s*[-\s]?\s*(\d{1,6})\s*[A-Za-z]{0,4}$/.exec(
-    catno.trim(),
-  )
-  if (!match) return null
-
-  const prefix = match[1]!.replace(/[\s.-]+$/, '').toUpperCase()
-  const num = Number(match[2])
-  return prefix.length > 0 && Number.isFinite(num) ? { prefix, num } : null
+  return parseCatno(catno ?? undefined)
 }

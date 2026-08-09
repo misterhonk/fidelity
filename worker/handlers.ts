@@ -5,6 +5,7 @@ import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
 import { currentIdentity, discogs, requestPersistence, signIn, signOut } from './auth'
 import { findResumable, REACHABLE, resumeDig, runDig } from './dig/scan'
 import { enrichTopMatches } from './dig/enrich'
+import { forgetLookup, matchDetail } from './dig/detail'
 import { affinityFactor } from './dig/fingerprint'
 import { allFeedback, clearFeedback, feedbackVerdicts, recordFeedback } from './feedback'
 import { buildHorizon, horizonStatus } from './horizon/build'
@@ -84,6 +85,10 @@ export const handlers: HandlerMap = {
       signal,
     })
 
+    // The detail sheet's cached lookup counts what you own; the sync just
+    // changed that.
+    forgetLookup()
+
     // Recomputed here rather than during a dig: a dig has a two-minute budget
     // and this is not part of it.
     const db = await openFidelityDb()
@@ -131,8 +136,16 @@ export const handlers: HandlerMap = {
 
   'horizon.status': () => horizonStatus(),
 
-  'horizon.build': (_params, { report, signal }) =>
-    buildHorizon({ client: discogs(), report: (progress) => report(progress), signal }),
+  'horizon.build': async (_params, { report, signal }) => {
+    const result = await buildHorizon({
+      client: discogs(),
+      report: (progress) => report(progress),
+      signal,
+    })
+    // The detail sheet caches the lookup; a rebuild has just invalidated it.
+    forgetLookup()
+    return result
+  },
 
   'dig.enrich': async ({ digId }, { report, signal }) =>
     enrichTopMatches({
@@ -198,6 +211,8 @@ export const handlers: HandlerMap = {
   },
 
   'dig.get': async ({ digId }) => loadDig(digId),
+
+  'dig.detail': ({ digId, listingId }) => matchDetail(digId, listingId),
 
   'dig.list': async () => {
     const db = await openFidelityDb()

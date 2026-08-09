@@ -13,7 +13,16 @@
  * The Personal Access Token crosses it exactly once, on sign-in. It never
  * comes back the other way (CLAUDE.md rule 6).
  */
-import type { Dealer, Dig, Feedback, Identity, Match, TasteProfile, Verdict } from './types'
+import type {
+  Dealer,
+  Dig,
+  Feedback,
+  Identity,
+  Match,
+  MatchDetail,
+  TasteProfile,
+  Verdict,
+} from './types'
 
 export interface PingResult {
   pong: true
@@ -108,6 +117,15 @@ export interface WorkerContract {
   'dealer.list': { params: undefined; progress: never; result: Dealer[] }
   /** Every dig, newest first — what the command palette offers to jump to. */
   'dig.list': { params: undefined; progress: never; result: Dig[] }
+  /**
+   * Everything the detail sheet shows. Costs no request: it is all horizon and
+   * stored match, which is the whole reason the collection was expanded.
+   */
+  'dig.detail': {
+    params: { digId: string; listingId: number }
+    progress: never
+    result: MatchDetail | null
+  }
 }
 
 /** What a verdict needs to keep: the identity plus the reasoning behind it. */

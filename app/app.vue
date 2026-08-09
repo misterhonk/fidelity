@@ -18,6 +18,10 @@ useHead({
  */
 const paletteOpen = ref(false)
 
+// The sheet lives here rather than on the dig page: the shortlist and the long
+// list both open it, and only ever one at a time.
+const sheet = useReleaseSheet()
+
 function onKeydown(event: KeyboardEvent) {
   if (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)) {
     event.preventDefault()
@@ -34,4 +38,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   <NuxtPage />
   <PwaUpdatePrompt />
   <LazyCommandPalette v-if="paletteOpen" @close="paletteOpen = false" />
+  <LazyReleaseSheet
+    v-if="sheet.open.value"
+    :key="sheet.open.value.listingId"
+    :dig-id="sheet.open.value.digId"
+    :listing-id="sheet.open.value.listingId"
+    @close="sheet.hide()"
+  />
 </template>

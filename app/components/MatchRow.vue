@@ -6,6 +6,8 @@ const props = defineProps<{ match: Match }>()
 const { verdicts, judge } = useFeedback()
 const verdict = computed(() => verdicts.value[props.match.listingId])
 
+const { show } = useReleaseSheet()
+
 const price = computed(() => {
   const { price: value, currency } = props.match
   if (value === null || !currency) return null
@@ -34,9 +36,13 @@ const price = computed(() => {
     </span>
 
     <p class="flex min-w-0 items-baseline gap-2">
-      <span class="shrink-0 truncate text-fid-sm text-fid-text">
+      <button
+        type="button"
+        class="shrink-0 truncate text-left text-fid-sm text-fid-text underline-offset-4 hover:underline"
+        @click="show(match.digId, match.listingId)"
+      >
         {{ match.artist }} – {{ match.title }}
-      </span>
+      </button>
       <span class="truncate text-fid-xs text-fid-text-muted" :title="match.reason">
         {{ match.reason }}
       </span>
