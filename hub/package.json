@@ -1,0 +1,20 @@
+{
+  "name": "@fidelity/hub",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Optionaler Beschleuniger für Fidelity. Kein Fundament (ADR-008).",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "dev": "node --watch src/server.ts",
+    "start": "node src/server.ts",
+    "test": "node --test test/*.test.ts"
+  },
+  "dependencies": {
+    "hono": "^4.9.10",
+    "@hono/node-server": "^1.19.5",
+    "zod": "^4.4.3"
+  }
+}

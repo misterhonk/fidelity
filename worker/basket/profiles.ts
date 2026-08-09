@@ -1,8 +1,11 @@
 import { z } from 'zod'
 
+import { getPreferences } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 import type { Dealer, ShippingTier } from '#shared/types'
 
+import { createHubClient } from '../hub/client'
+import { withTimeout, HUB_TIMEOUT_MS } from '../hub/fallback'
 import { parseShippingText } from './parse-shipping'
 import { sortTiers } from './shipping'
 
@@ -77,7 +80,25 @@ export async function resolveShipping(
   const user = dealer.shippingTiers.filter((tier) => tier.source === 'user')
   if (user.length > 0) return { tiers: sortTiers(user), source: 'user', matched: [] }
 
-  // 2. What the repository knows.
+  // 2. What a hub knows, when one is configured (M9). Ranked here — above
+  // the repository file and below a hand-entered table — because it is
+  // somebody's hand-entered table, just not yours. A hub that is slow or off
+  // costs two seconds once and then stops existing for this call.
+  const preferences = await getPreferences()
+  const hub = createHubClient({ baseUrl: preferences.hubUrl, secret: preferences.hubSecret })
+
+  if (hub) {
+    try {
+      const shared = await withTimeout(hub.shipping(dealer.username, country), HUB_TIMEOUT_MS)
+      if (shared && shared.length > 0) {
+        return { tiers: sortTiers(shared), source: 'bundled', matched: [] }
+      }
+    } catch {
+      // Deliberately silent (rule 8). The file below is not a degraded mode.
+    }
+  }
+
+  // 3. What the repository knows.
   const file = await loadBundled()
   const entry = file?.profiles[`${dealer.username}|${country}`]
   if (entry && entry.length > 0) {
@@ -88,13 +109,13 @@ export async function resolveShipping(
     }
   }
 
-  // 3. What the dealer's own free text can be made to say. Always labelled.
+  // 4. What the dealer's own free text can be made to say. Always labelled.
   const parsed = parseShippingText(dealer.shippingNote)
   if (parsed.tiers.length > 0) {
     return { tiers: parsed.tiers, source: 'parsed', matched: parsed.matched }
   }
 
-  // 4. Nothing. "Versand unbekannt – trag ihn ein und ich rechne" (docs/00 §7).
+  // 5. Nothing. "Versand unbekannt – trag ihn ein und ich rechne" (docs/00 §7).
   return { tiers: [], source: null, matched: [] }
 }
 
@@ -121,6 +142,17 @@ export async function saveUserShipping(
     shippingTiers: sortTiers(tiers.map((tier) => ({ ...tier, source: 'user' as const }))),
   }
   await db.put('dealers', updated)
+
+  // Offered to the hub, never awaited: one person types a ladder in and
+  // everybody who shares that hub has it. A refusal changes nothing here.
+  const preferences = await getPreferences()
+  const hub = createHubClient({ baseUrl: preferences.hubUrl, secret: preferences.hubSecret })
+  if (hub) {
+    void hub
+      .contributeShipping(username, preferences.shipsToCountry, updated.shippingTiers)
+      .catch(() => {})
+  }
+
   return updated
 }
 

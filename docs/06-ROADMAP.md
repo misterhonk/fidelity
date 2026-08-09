@@ -292,16 +292,40 @@ in S9 gefunden (siehe `docs/04` §S9).
 **Ziel:** Ein winziger, selbst hostbarer Dienst, der die App anreichert – ohne dass
 irgendein Feature ihn voraussetzt. Vollständiges Konzept: `docs/13-HUB-ADDON.md`.
 
-- [ ] `hub/` als eigenes Paket: Node 22 + Hono + SQLite, ~8 Routen
-- [ ] Horizont-Cache (`GET/PUT /v1/horizon/:kind/:id`) – erspart jedem weiteren Nutzer
+- [x] `hub/` als eigenes Paket: Node + Hono + `node:sqlite`, 5 Routen
+- [x] Horizont-Cache (`GET/PUT /v1/horizon/:kind/:id`) – erspart jedem weiteren Nutzer
       die 13-minütige Ersteinrichtung
-- [ ] Versandstaffeln als Community-Speicher statt Pull Request
+- [x] Versandstaffeln als Community-Speicher statt Pull Request
 - [ ] Wächter: pollt stündlich `num_for_sale` je Händler – **1 Request statt 100**,
       **ohne Token** – und schickt bei Veränderung Web Push
 - [ ] Geräte-Sync für Korb, Feedback und Wantlist-Notizen
 - [ ] Dig teilen per Link (TTL 6 h, ToS-konform)
 - [ ] Docker-Image + Uberspace-Anleitung (supervisord + `uberspace web backend`)
-- [ ] **CI-Test: Die App muss mit leerer `hubUrl` vollständig durchlaufen**
+- [x] **CI-Test: Die App muss mit leerer `hubUrl` vollständig durchlaufen**
+
+**Umgesetzt ist der unstrittige Kern** — Horizont-Cache und Versandstaffeln.
+Beide brauchen keinen Token, keine Marktplatzdaten und keinen Dauerbetrieb; der
+Hub darf jederzeit aus sein. Wächter, Web Push, Geräte-Sync und „Dig teilen"
+stehen noch offen.
+
+**Anmerkungen:**
+
+- **SQLite kommt aus `node:sqlite`.** Kein Treiber, keine native Abhängigkeit,
+  nichts zu kompilieren — für einen Dienst, dessen Sinn das einfache
+  Selbsthosten ist, wiegt das schwerer als jedes Feature eines echten Treibers.
+- **Der Horizont reist als Base64.** `JSON.stringify(new Int32Array([1,2]))`
+  ergibt `{"0":1,"1":2}` — falsch beim Zurücklesen und größer als das Array.
+  Das Format steht in `shared/wire.ts`, weil Hub und Client sich einig sein
+  müssen und ein doppelt vorhandenes Format auseinanderläuft.
+- **Jede Antwort wird misstraut.** Zod-Schema *und* eine Plausibilitätsprüfung:
+  wenn die Parallelarrays unterschiedlich lang sind, beschreibt Index *i* von
+  `roles` eine andere Platte als Index *i* von `releaseIds`. So ein Chunk würde
+  den Horizont still und dauerhaft verderben — schlimmer als jede Langsamkeit.
+- **Geteilt werden nur handgetippte Versandstaffeln.** Eine geparste Vermutung
+  weiterzureichen hieße, eine Heuristik als Tatsache zu waschen.
+- **Acht Tests für „läuft ohne Hub"**, weil das mehrere Formen hat: nie
+  konfiguriert, konfiguriert aber tot, langsam, oder lügend. Alle vier müssen
+  im lokalen Weg enden, ohne ein Wort darüber zu verlieren.
 
 > ⚠️ **Der Hub scannt keine Inventare** und **speichert keine Discogs-Tokens.**
 > Beides würde die Vorteile der Client-Architektur wieder einreißen (ADR-008).

@@ -1,4 +1,4 @@
-import { getMeta, updateSyncState } from '~~/db/meta'
+import { getMeta, getPreferences, updateSyncState } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 
 import type { CollectionItem, WantlistItem } from '#shared/types'
@@ -6,6 +6,8 @@ import type { CollectionItem, WantlistItem } from '#shared/types'
 import { log } from '../log'
 import type { DiscogsClient } from '../discogs/client'
 
+import { createHubClient } from '../hub/client'
+import { preferHub } from '../hub/fallback'
 import { expandEntity } from './expand'
 import { creditCandidates } from './credit-select'
 import { planRevalidation, type RevalidationPlan } from './revalidate'
@@ -84,6 +86,18 @@ export async function buildHorizon({
   ])
 
   const candidates = only ?? (await allCandidates(collection, wantlist))
+
+  /*
+   * The hub, if there is one (M9). Normally null, and everything below reads
+   * the same either way — `preferHub` asks it, waits two seconds at most, and
+   * falls through to Discogs on anything that is not a clean answer.
+   *
+   * What it buys: whoever expanded Conny Plank first saves everybody else
+   * eleven requests. With three users the thirteen-minute first run becomes
+   * seconds. What it costs when it is broken: two seconds, once per entity.
+   */
+  const preferences = await getPreferences()
+  const hub = createHubClient({ baseUrl: preferences.hubUrl, secret: preferences.hubSecret })
   const existing = new Map((await db.getAll('horizon')).map((chunk) => [chunk.key, chunk]))
 
   let done = 0
@@ -127,7 +141,19 @@ export async function buildHorizon({
 
     let result
     try {
-      result = await expandEntity(candidate, { client, signal, now })
+      result = await preferHub(() => expandEntity(candidate, { client, signal, now }), {
+        hub: hub
+          ? async () => {
+              const cached = await hub.horizon(candidate.kind, candidate.id)
+              // A hub hit costs no Discogs requests at all, which is the whole
+              // point — so it reports zero rather than pretending it paid.
+              return cached
+                ? { chunk: cached, catalogueSize: cached.catalogueSize, requests: 0 }
+                : null
+            }
+          : null,
+        contribute: hub ? (fresh) => hub.contributeHorizon(fresh.chunk) : null,
+      })
       consecutiveFailures = 0
     } catch (error) {
       if (signal?.aborted) throw error

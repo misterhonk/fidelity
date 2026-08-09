@@ -36,6 +36,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   shipsToCountry: 'Germany',
   // Empty, and empty is the supported configuration. No feature may require it.
   hubUrl: null,
+  hubSecret: null,
 }
 
 export const DEFAULT_SYNC_STATE: SyncState = {

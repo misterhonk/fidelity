@@ -38,6 +38,7 @@ export default {
         'auth',
         'basket',
         'watch',
+        'hub',
         'ui',
         'db',
         'pwa',

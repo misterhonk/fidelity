@@ -25,6 +25,7 @@ import type {
   Identity,
   Match,
   MatchDetail,
+  Preferences,
   ShippingTier,
   TasteProfile,
   Verdict,
@@ -177,6 +178,20 @@ export interface WorkerContract {
   'data.exportAll': { params: undefined; progress: never; result: unknown }
   /** Deletes the database outright, token included. There is no undo. */
   'data.deleteAll': { params: undefined; progress: never; result: { deleted: true } }
+
+  /** Settings. The hub URL lives here; the token never does. */
+  'preferences.get': { params: undefined; progress: never; result: Preferences }
+  'preferences.set': { params: Partial<Preferences>; progress: never; result: Preferences }
+  /**
+   * Is that hub there? Answered before anything is saved, because a broken
+   * hub is invisible by design (ADR-008) and this is the only place somebody
+   * can tell "pointing at nothing" from "working".
+   */
+  'hub.check': {
+    params: { url: string; secret?: string }
+    progress: never
+    result: { ok: boolean; horizon: number; shipping: number; secured: boolean }
+  }
 
   /** Every dig, newest first — what the command palette offers to jump to. */
   'dig.list': { params: undefined; progress: never; result: Dig[] }

@@ -119,6 +119,18 @@ export default defineNuxtConfig({
   },
 
   vite: {
+    server: {
+      /*
+       * Vite rejects requests whose Host header it does not recognise, which is
+       * right — it stops DNS rebinding against a dev server. A Cloudflare quick
+       * tunnel arrives as `<something>.trycloudflare.com`, so that one suffix is
+       * allowed explicitly rather than the check being switched off.
+       *
+       * Dev only: `nuxt generate` produces static files and has no server.
+       */
+      allowedHosts: ['.trycloudflare.com'],
+    },
+
     worker: {
       // Without this Vite bundles the whole worker into one file and the
       // dynamic imports in worker/handlers.ts split into nothing. The basket

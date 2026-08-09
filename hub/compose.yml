@@ -1,0 +1,21 @@
+# Ein Dienst, eine Datei, ein Volume. Mehr braucht ein Cache nicht.
+services:
+  hub:
+    image: node:24-alpine
+    working_dir: /app
+    command: sh -c "npm install --omit=dev --no-audit --no-fund && node src/server.ts"
+    environment:
+      HUB_PORT: 8787
+      HUB_DB: /data/hub.sqlite
+      # Ohne Secret läuft der Hub offen. Für ein Heimnetz in Ordnung,
+      # für alles andere hier eintragen.
+      HUB_SECRET: ${HUB_SECRET:-}
+    ports:
+      - '8787:8787'
+    volumes:
+      - ./:/app
+      - hub-data:/data
+    restart: unless-stopped
+
+volumes:
+  hub-data:

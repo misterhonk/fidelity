@@ -62,6 +62,10 @@ async function signOut() {
         </div>
 
         <div class="border-t border-fid-border pt-6">
+          <HubSettings />
+        </div>
+
+        <div class="border-t border-fid-border pt-6">
           <DataControls @deleted="identity = null" />
         </div>
 

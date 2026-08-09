@@ -1,4 +1,4 @@
-import { getMeta, getPreferences, getSyncState, setMeta } from '~~/db/meta'
+import { getMeta, getPreferences, getSyncState, setMeta, updatePreferences } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
 import type { BasketCandidate, BasketView } from '#shared/types'
@@ -392,6 +392,38 @@ export const handlers: HandlerMap = {
     // Same operation as signing out, under the name that says what it does.
     await signOut()
     return { deleted: true as const }
+  },
+
+  'preferences.get': () => getPreferences(),
+
+  'preferences.set': ({ ...patch }) => updatePreferences(patch),
+
+  'hub.check': async ({ url, secret }) => {
+    const base = url.trim().replace(/\/+$/, '')
+    if (!base) throw new Error('Keine Hub-URL angegeben.')
+
+    // Deliberately a plain fetch rather than the hub client: this is the one
+    // place a failure has to be *reported* instead of swallowed.
+    const response = await fetch(`${base}/v1/health`, {
+      headers: secret ? { 'x-hub-secret': secret } : {},
+      signal: AbortSignal.timeout(5000),
+    })
+    if (!response.ok) throw new Error(`Der Hub antwortete mit HTTP ${response.status}.`)
+
+    const body = (await response.json()) as {
+      ok?: boolean
+      horizon?: number
+      shipping?: number
+      secured?: boolean
+    }
+    if (body.ok !== true) throw new Error('Das ist kein Fidelity-Hub.')
+
+    return {
+      ok: true,
+      horizon: body.horizon ?? 0,
+      shipping: body.shipping ?? 0,
+      secured: body.secured ?? false,
+    }
   },
 
   'dig.list': async () => {

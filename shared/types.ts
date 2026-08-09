@@ -76,6 +76,8 @@ export interface Preferences {
    * for most users — no feature may depend on it.
    */
   hubUrl: string | null
+  /** Shared secret for that hub, if it asks for one. Never a Discogs token. */
+  hubSecret: string | null
 }
 
 export interface SyncState {
