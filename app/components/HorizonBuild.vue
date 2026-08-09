@@ -12,7 +12,29 @@ async function refresh() {
   status.value = await call('horizon.status', undefined)
 }
 
-onMounted(refresh)
+const stale = ref(0)
+
+onMounted(async () => {
+  await refresh()
+
+  /*
+   * The staggered revalidation (docs/11 §3).
+   *
+   * Runs on opening rather than on a schedule: there is no server to schedule
+   * anything, and a visit is exactly when spending somebody's rate limit is
+   * least in the way. It takes a day's worth — about twenty requests, oldest
+   * first — and refuses to run twice in one day however often the app is
+   * opened. Entities that were never expanded stay out of it; those belong to
+   * the deliberate build below.
+   */
+  try {
+    const result = await call('horizon.revalidate', undefined)
+    stale.value = result.stale
+    if (result.expanded > 0) await refresh()
+  } catch {
+    // A stale horizon is still a horizon.
+  }
+})
 
 async function build() {
   if (running.value) return
@@ -49,6 +71,12 @@ const eta = computed(() => {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
 })
 
+const staleNote = computed(() =>
+  stale.value > 0
+    ? `${number.format(stale.value)} ${stale.value === 1 ? 'Eintrag ist' : 'Einträge sind'} älter als 30 Tage. Die werden nach und nach aufgefrischt, ein kleines Kontingent pro Tag.`
+    : null,
+)
+
 const complete = computed(
   () => status.value !== null && status.value.expanded >= status.value.entities,
 )
@@ -77,6 +105,10 @@ const complete = computed(
       Noch etwa <span class="fid-num">{{ status.estimatedRequests }}</span> Requests, also rund
       {{ Math.ceil((status.estimatedRequests * 1.2) / 60) }} Minuten. Läuft in Häppchen und
       übersteht ein Neuladen – abgeschlossene Entitäten werden nicht noch einmal geholt.
+    </p>
+
+    <p v-if="staleNote && !running" class="text-fid-sm text-fid-text-muted">
+      {{ staleNote }}
     </p>
 
     <div v-if="progress" class="flex flex-col gap-2" aria-live="polite">

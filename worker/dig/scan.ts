@@ -8,6 +8,7 @@ import { dealerSchema, inventoryPageSchema, toListing } from '../discogs/invento
 import { buildIndex, evaluate, type MatchFilters, type MatchIndex } from '../match'
 import { buildReason } from '../match/reason'
 
+import { NearMissAccumulator, type NearMiss } from '../horizon/nearmiss'
 import { FingerprintAccumulator, matchesPerThousand } from './fingerprint'
 
 export const PER_PAGE = 100
@@ -59,6 +60,7 @@ interface ScanContext {
   client: DiscogsClient
   db: FidelityDatabase
   index: MatchIndex
+  nearMisses: NearMissAccumulator
   filters: MatchFilters
   report?: (progress: ScanProgress) => void
   signal?: AbortSignal
@@ -85,10 +87,15 @@ async function prepare({
     db.getAll('horizon'),
   ])
 
+  const index = buildIndex(collection, wantlist, taste, chunks)
+
   return {
     client,
     db,
-    index: buildIndex(collection, wantlist, taste, chunks),
+    index,
+    // Stage two of the master/release two-step (docs/11 §4). Collected while
+    // the scan runs and expanded afterwards, one request each.
+    nearMisses: new NearMissAccumulator(index.horizon, collection, wantlist, chunks),
     filters: {
       formatsAllow: preferences.formatsAllow,
       maxPrice: preferences.maxPrice,
@@ -110,6 +117,21 @@ async function prepare({
  * page written twice is idempotent — which matters, because "resume" has to be
  * safe even when the interruption happened mid-page.
  */
+/**
+ * What the last dig noticed the horizon was missing.
+ *
+ * Module state rather than a return value because `runDig` and `resumeDig`
+ * both promise a `Dig` and the protocol is typed on that. It is read once,
+ * immediately after the scan, by the same worker that wrote it.
+ */
+let pendingNearMisses: NearMiss[] = []
+
+export function takeNearMisses(): NearMiss[] {
+  const found = pendingNearMisses
+  pendingNearMisses = []
+  return found
+}
+
 async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   const { client, db, index, filters, report, signal, now } = ctx
 
@@ -120,6 +142,7 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   // Built while the listings stream past. Keeping them to compute this
   // afterwards would mean holding 40 MB of inventory for a few percentages.
   const fingerprint = new FingerprintAccumulator()
+  const { nearMisses } = ctx
 
   const emit = (order: 'asc' | 'desc') => {
     const reachable = Math.min(dig.listingsTotal, REACHABLE)
@@ -168,6 +191,7 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
 
         const listing = toListing(row)
         fingerprint.add(listing)
+        nearMisses.add(listing)
 
         const result = evaluate(listing, index, filters)
         if (!result) continue
@@ -227,6 +251,11 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   await db.put('digs', dig)
   await saveDealer(ctx, dig, fingerprint)
   await pruneDigs(db)
+
+  // What this dig taught the horizon. Handed back rather than acted on here:
+  // the scan's job is over, and paying for it is a decision the caller makes
+  // (and reports on) as its own phase.
+  pendingNearMisses = nearMisses.build()
 
   emit('desc')
   return dig

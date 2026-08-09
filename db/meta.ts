@@ -43,6 +43,7 @@ export const DEFAULT_SYNC_STATE: SyncState = {
   wantlistSyncedAt: null,
   horizonBuiltAt: null,
   horizonProgress: null,
+  horizonRevalidatedAt: null,
   lastCollectionAdd: null,
 }
 

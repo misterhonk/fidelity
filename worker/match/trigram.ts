@@ -1,4 +1,30 @@
 /**
+ * How much of `needle` appears in `haystack`, 0–1.
+ *
+ * Jaccard is the wrong measure when one string is the other plus decoration.
+ * A marketplace title is the album title with things bolted on — "Dummy
+ * (Reissue)", "Dummy - 180g Vinyl, Gatefold" — and Jaccard reads those as
+ * barely related (0,43) because it divides by the union, which the decoration
+ * inflated. Containment divides by the needle alone, so extra words cost
+ * nothing and a missing word still costs everything.
+ *
+ * Deliberately not a replacement for `similarity`: containment says nothing
+ * about the other direction, which is exactly what the artist cascade needs
+ * it to say.
+ */
+export function containment(needle: string, haystack: string): number {
+  const small = trigrams(needle)
+  const large = trigrams(haystack)
+  if (small.size === 0 || large.size === 0) return 0
+
+  let shared = 0
+  for (const gram of small) {
+    if (large.has(gram)) shared += 1
+  }
+  return shared / small.size
+}
+
+/**
  * Trigram similarity — stage three of the fuzzy cascade, and the only
  * expensive one. It runs for the few hundred listings that the map lookup and
  * token containment did not catch, never for all 20.000.

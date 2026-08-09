@@ -91,6 +91,24 @@ export interface WorkerContract {
    */
   'horizon.status': { params: undefined; progress: never; result: HorizonStatus }
   'horizon.build': { params: undefined; progress: HorizonProgress; result: HorizonResult }
+  /**
+   * A day's worth of revalidation, oldest first. Cheap enough to offer on a
+   * visit rather than schedule (docs/11 §3: ~20 Requests/Tag, gestaffelt).
+   */
+  'horizon.revalidate': {
+    params: undefined
+    progress: HorizonProgress
+    result: HorizonResult & { stale: number; reason: string }
+  }
+  /**
+   * Stage two of the master/release two-step: the pressings the last dig
+   * showed were missing. One request each, and permanent (docs/11 §4).
+   */
+  'horizon.fillGaps': {
+    params: undefined
+    progress: HorizonProgress
+    result: { expanded: number; requests: number; titles: string[] }
+  }
 
   /**
    * Feedback. Carries the signal snapshot, because a verdict without the

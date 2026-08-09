@@ -83,6 +83,8 @@ export interface SyncState {
   wantlistSyncedAt: number | null
   horizonBuiltAt: number | null
   horizonProgress: { done: number; total: number } | null
+  /** When the staggered revalidation last spent its daily budget. */
+  horizonRevalidatedAt: number | null
   /** Newest `date_added` seen, so the daily sync is a delta and not a full run. */
   lastCollectionAdd: string | null
 }

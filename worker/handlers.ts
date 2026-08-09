@@ -4,12 +4,12 @@ import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
 import type { BasketCandidate, BasketView } from '#shared/types'
 
 import { currentIdentity, discogs, requestPersistence, signIn, signOut } from './auth'
-import { findResumable, REACHABLE, resumeDig, runDig } from './dig/scan'
+import { findResumable, REACHABLE, resumeDig, runDig, takeNearMisses } from './dig/scan'
 import { enrichTopMatches } from './dig/enrich'
 import { forgetLookup } from './dig/detail'
 import { affinityFactor } from './dig/fingerprint'
 import { allFeedback, clearFeedback, feedbackVerdicts, recordFeedback } from './feedback'
-import { buildHorizon, horizonStatus } from './horizon/build'
+import { buildHorizon, horizonStatus, revalidateHorizon } from './horizon/build'
 import { dealerSchema } from './discogs/inventory'
 import { bestPerRelease, topFive } from './match/select'
 import { computeTasteProfile } from './match/taste'
@@ -146,6 +146,44 @@ export const handlers: HandlerMap = {
     // The detail sheet caches the lookup; a rebuild has just invalidated it.
     forgetLookup()
     return result
+  },
+
+  'horizon.revalidate': async (_params, { report, signal }) => {
+    const { plan, ...result } = await revalidateHorizon({
+      client: discogs(),
+      report: (progress) => report(progress),
+      signal,
+    })
+    if (result.expanded > 0) forgetLookup()
+    return { ...result, stale: plan.stale, reason: plan.reason }
+  },
+
+  'horizon.fillGaps': async (_params, { report, signal }) => {
+    const misses = takeNearMisses()
+    if (misses.length === 0) return { expanded: 0, requests: 0, titles: [] }
+
+    // One request per master, and only the ones the dig actually pointed at.
+    const result = await buildHorizon({
+      client: discogs(),
+      report: (progress) => report(progress),
+      signal,
+      only: misses.map((miss) => ({
+        kind: 'master' as const,
+        id: miss.masterId,
+        name: miss.title,
+        owned: 1,
+      })),
+      // These are gaps, not stale entries: expand even if something with the
+      // same key was written moments ago.
+      ttlMs: 0,
+    })
+
+    if (result.expanded > 0) forgetLookup()
+    return {
+      expanded: result.expanded,
+      requests: result.requests,
+      titles: misses.slice(0, result.expanded).map((miss) => miss.title),
+    }
   },
 
   'dig.enrich': async ({ digId }, { report, signal }) =>

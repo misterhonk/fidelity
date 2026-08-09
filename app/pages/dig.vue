@@ -19,6 +19,7 @@ const dealer = ref('')
 const preflight = ref<DigPreflight | null>(null)
 const progress = ref<ScanProgress | null>(null)
 const enriching = ref<EnrichProgress | null>(null)
+const gaps = ref<{ expanded: number; requests: number; titles: string[] } | null>(null)
 const result = ref<DigWithMatches | null>(null)
 const busy = ref(false)
 const error = ref<string | null>(null)
@@ -58,6 +59,16 @@ async function finish(dig: Dig) {
     // Deliberately silent. A dig with unenriched matches is still a dig.
   } finally {
     enriching.value = null
+  }
+
+  // Stage two of the master/release two-step: the pressings this dig showed
+  // were missing. At most eight requests, and permanent — the horizon gets
+  // better with every dig, which is the design and not a workaround.
+  try {
+    const filled = await call('horizon.fillGaps', undefined)
+    if (filled.expanded > 0) gaps.value = filled
+  } catch {
+    // A gap that stays a gap is the state we were already in.
   }
 }
 
@@ -106,6 +117,7 @@ async function start() {
   error.value = null
   result.value = null
   progress.value = null
+  gaps.value = null
 
   try {
     const done = await call(
@@ -287,6 +299,23 @@ const expired = computed(() => {
         (<span class="fid-num">{{ enriching.requests }}</span> Abfragen)
       </p>
     </section>
+
+    <!--
+      What this dig taught the horizon. Worth saying out loud: it explains why
+      the same shop can turn up more next time.
+    -->
+    <p
+      v-if="gaps"
+      role="status"
+      class="rounded-fid-sm border border-fid-border p-3 text-fid-sm text-fid-text-muted"
+    >
+      Der Horizont kennt jetzt
+      <span class="fid-num">{{ gaps.expanded }}</span>
+      {{ gaps.expanded === 1 ? 'Album' : 'Alben' }} mehr in allen Pressungen<template
+        v-if="gaps.titles.length"
+        >: {{ gaps.titles.join(', ') }}</template
+      >. Beim nächsten Dig zählt das mit.
+    </p>
 
     <section v-if="result" class="flex flex-col gap-4">
       <div class="flex flex-wrap items-baseline justify-between gap-2">

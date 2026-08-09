@@ -5,6 +5,7 @@ import { log } from '../log'
 import type { DiscogsClient } from '../discogs/client'
 
 import { expandEntity } from './expand'
+import { planRevalidation, type RevalidationPlan } from './revalidate'
 import { candidateKey, selectCandidates, type Candidate } from './select'
 
 /** Revalidation interval from docs/01 §6. */
@@ -47,6 +48,11 @@ export interface BuildOptions {
   now?: () => number
   /** Re-expand entities older than this. */
   ttlMs?: number
+  /**
+   * Only these entities, in this order. What the staggered revalidation uses
+   * to spend a day's budget instead of rebuilding everything.
+   */
+  only?: Candidate[]
 }
 
 /**
@@ -65,6 +71,7 @@ export async function buildHorizon({
   signal,
   now = Date.now,
   ttlMs = HORIZON_TTL_MS,
+  only,
 }: BuildOptions): Promise<HorizonResult> {
   const db = await openFidelityDb()
 
@@ -73,7 +80,7 @@ export async function buildHorizon({
     db.getAll('wantlist'),
   ])
 
-  const candidates = selectCandidates(collection, wantlist)
+  const candidates = only ?? selectCandidates(collection, wantlist)
   const existing = new Map((await db.getAll('horizon')).map((chunk) => [chunk.key, chunk]))
 
   let done = 0
@@ -145,10 +152,60 @@ export async function buildHorizon({
     emit(candidate.name)
   }
 
-  await updateSyncState({ horizonBuiltAt: now(), horizonProgress: null })
+  // A partial run must not claim the whole horizon was rebuilt: the progress
+  // display and the staleness check both read horizonBuiltAt.
+  await updateSyncState(
+    only ? { horizonRevalidatedAt: now() } : { horizonBuiltAt: now(), horizonProgress: null },
+  )
   emit('')
 
   return { expanded, skipped, failed, requests, releaseIds }
+}
+
+/**
+ * A day's worth of revalidation, and nothing more.
+ *
+ * Runs on the entities that have aged past the TTL, oldest first, capped at
+ * roughly twenty requests. Entities that were *never* expanded stay out of it:
+ * those belong to the initial build, which somebody starts deliberately and
+ * watches, and spending their rate limit on it silently would be the same
+ * mistake as a background sync nobody asked for.
+ */
+export async function revalidateHorizon({
+  client,
+  report,
+  signal,
+  now = Date.now,
+  ttlMs = HORIZON_TTL_MS,
+}: BuildOptions): Promise<HorizonResult & { plan: RevalidationPlan }> {
+  const plan = await horizonRevalidationPlan(now(), ttlMs)
+
+  if (plan.due.length === 0) {
+    return { expanded: 0, skipped: 0, failed: 0, requests: 0, releaseIds: 0, plan }
+  }
+
+  const result = await buildHorizon({ client, report, signal, now, ttlMs, only: plan.due })
+  return { ...result, plan }
+}
+
+export async function horizonRevalidationPlan(
+  now: number,
+  ttlMs: number = HORIZON_TTL_MS,
+): Promise<RevalidationPlan> {
+  const db = await openFidelityDb()
+  const [collection, wantlist, chunks] = await Promise.all([
+    db.getAll('collection'),
+    db.getAll('wantlist'),
+    db.getAll('horizon'),
+  ])
+
+  return planRevalidation({
+    candidates: selectCandidates(collection, wantlist),
+    chunks,
+    now,
+    lastRunAt: (await getMeta('syncState'))?.horizonRevalidatedAt ?? null,
+    ttlMs,
+  })
 }
 
 /** How much of the horizon exists, for the UI. */
