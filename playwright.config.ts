@@ -23,12 +23,14 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'pnpm build && node .output/server/index.mjs',
+    // The generated static output, served the way a docroot would serve it —
+    // that is what actually ships.
+    command: 'pnpm build && pnpm preview',
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
     stdout: 'pipe',
     stderr: 'pipe',
-    env: { NITRO_PORT: String(PORT) },
+    env: { PORT: String(PORT) },
   },
 })
