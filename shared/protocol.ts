@@ -90,7 +90,12 @@ export interface ScanProgress {
 
 export interface DigWithMatches {
   dig: Dig
+  /** Best copy per release, strongest first. */
   matches: Match[]
+  /** The shortlist: up to five, at most one record per artist. */
+  topFive: Match[]
+  /** Extra copies of the same record that were folded away. */
+  folded: number
 }
 
 export interface SyncProgress {

@@ -52,6 +52,19 @@ test.describe('smoke', () => {
     expect(violations.map((v) => `${v.id}: ${v.help}`)).toEqual([])
   })
 
+  test('the dig screen asks for a dealer and stays accessible', async ({ page }) => {
+    await page.goto('/dig')
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Neuer Dig' })).toBeVisible()
+    await expect(page.getByLabel('Händlername')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Prüfen' })).toBeDisabled()
+
+    const { violations } = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+      .analyze()
+    expect(violations.map((v) => `${v.id}: ${v.help}`)).toEqual([])
+  })
+
   test('the entry screen has no axe violations', async ({ page }) => {
     await page.goto('/')
     await expect(page.getByRole('heading', { name: 'Token eintragen' })).toBeVisible()

@@ -5,6 +5,7 @@ import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
 import { currentIdentity, discogs, requestPersistence, signIn, signOut } from './auth'
 import { findResumable, REACHABLE, resumeDig, runDig } from './dig/scan'
 import { dealerSchema } from './discogs/inventory'
+import { bestPerRelease, topFive } from './match/select'
 import { computeTasteProfile } from './match/taste'
 import { syncLibrary } from './sync/library'
 
@@ -151,10 +152,13 @@ async function loadDig(digId: string) {
   const dig = await db.get('digs', digId)
   if (!dig) return null
 
-  const matches = await db
+  const stored = await db
     .transaction('matches')
     .store.index('by-dig-score')
     .getAll(IDBKeyRange.bound([digId, -Infinity], [digId, Infinity]))
 
-  return { dig, matches: matches.sort((a, b) => b.score - a.score) }
+  // Selection happens here rather than in the template: what gets shown first
+  // is a product decision, and the main thread only renders.
+  const { matches, folded } = bestPerRelease(stored)
+  return { dig, matches, topFive: topFive(matches), folded }
 }

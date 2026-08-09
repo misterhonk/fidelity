@@ -102,6 +102,13 @@ const eta = computed(() => {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
 })
 
+/** Everything the shortlist did not already show. */
+const rest = computed(() => {
+  if (!result.value) return []
+  const shown = new Set(result.value.topFive.map((match) => match.listingId))
+  return result.value.matches.filter((match) => !shown.has(match.listingId))
+})
+
 const expired = computed(() => {
   const dig = result.value?.dig
   return dig ? Date.now() > dig.expiresAt : false
@@ -220,7 +227,10 @@ const expired = computed(() => {
         <p class="text-fid-sm text-fid-text-muted">
           <span class="fid-num">{{ number.format(result.dig.listingsScanned) }}</span> von
           <span class="fid-num">{{ number.format(result.dig.listingsTotal) }}</span> gescannt
-          ({{ Math.round(result.dig.coverage * 100) }} %)
+          ({{ Math.round(result.dig.coverage * 100) }} %)<template v-if="result.folded > 0">
+            · <span class="fid-num">{{ result.folded }}</span> weitere Exemplare
+            zusammengefasst</template
+          >
         </p>
       </div>
 
@@ -238,11 +248,47 @@ const expired = computed(() => {
         Bei diesem Händler nichts für dich. Das ist ein Ergebnis, kein Fehler.
       </p>
 
-      <ul v-else class="flex flex-col gap-3">
-        <li v-for="match in result.matches" :key="match.listingId">
-          <MatchCard :match="match" />
-        </li>
-      </ul>
+      <template v-else>
+        <!--
+          The shortlist first, one record per artist. Three records by the same
+          name are a finding, but they are not five different reasons to look.
+        -->
+        <section class="flex flex-col gap-3" aria-labelledby="top-five">
+          <h3 id="top-five" class="text-fid-sm uppercase tracking-[0.2em] text-fid-text-muted">
+            Top Five
+          </h3>
+          <p
+            v-if="result.topFive[0] && result.topFive[0].score >= 85"
+            class="text-fid-sm text-fid-text-muted"
+          >
+            <span class="text-fid-text">Side One, Track One:</span>
+            {{ result.topFive[0].artist }} – {{ result.topFive[0].title }}
+          </p>
+          <ul class="flex flex-col gap-3">
+            <li v-for="match in result.topFive" :key="match.listingId">
+              <MatchCard :match="match" />
+            </li>
+          </ul>
+        </section>
+
+        <section
+          v-if="rest.length > 0"
+          class="flex flex-col gap-3"
+          aria-labelledby="all-matches"
+        >
+          <h3
+            id="all-matches"
+            class="text-fid-sm uppercase tracking-[0.2em] text-fid-text-muted"
+          >
+            Alle Treffer
+          </h3>
+          <ul class="flex flex-col gap-3">
+            <li v-for="match in rest" :key="match.listingId">
+              <MatchCard :match="match" />
+            </li>
+          </ul>
+        </section>
+      </template>
     </section>
   </main>
 </template>
