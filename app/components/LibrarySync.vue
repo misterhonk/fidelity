@@ -6,7 +6,7 @@ const { call } = useFidelityWorker()
 const summary = ref<LibrarySummary | null>(null)
 const progress = ref<SyncProgress | null>(null)
 const running = ref(false)
-const error = ref<string | null>(null)
+const error = ref<unknown>(null)
 
 async function refresh() {
   summary.value = await call('library.summary', undefined)
@@ -24,7 +24,7 @@ async function sync() {
     await call('library.sync', undefined, { onProgress: (p) => (progress.value = p) })
     await refresh()
   } catch (cause) {
-    error.value = cause instanceof Error ? cause.message : 'Der Sync ist fehlgeschlagen.'
+    error.value = cause
   } finally {
     running.value = false
   }
@@ -64,7 +64,7 @@ const formatDate = (at: number | null) =>
       {{ label }}
     </p>
 
-    <p v-if="error" role="alert" class="text-fid-sm text-fid-sig-scarcity">{{ error }}</p>
+    <ErrorNote v-if="error" :cause="error" />
 
     <div class="flex flex-wrap items-center gap-3">
       <button

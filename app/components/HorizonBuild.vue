@@ -6,7 +6,7 @@ const { call } = useFidelityWorker()
 const status = ref<HorizonStatus | null>(null)
 const progress = ref<HorizonProgress | null>(null)
 const running = ref(false)
-const error = ref<string | null>(null)
+const error = ref<unknown>(null)
 
 async function refresh() {
   status.value = await call('horizon.status', undefined)
@@ -45,8 +45,7 @@ async function build() {
     await call('horizon.build', undefined, { onProgress: (p) => (progress.value = p) })
     await refresh()
   } catch (cause) {
-    error.value =
-      cause instanceof Error ? cause.message : 'Der Horizont konnte nicht gebaut werden.'
+    error.value = cause
     // Whatever was expanded before the interruption is kept; refreshing shows
     // how far it got.
     await refresh()
@@ -127,7 +126,7 @@ const complete = computed(
       </p>
     </div>
 
-    <p v-if="error" role="alert" class="text-fid-sm text-fid-sig-scarcity">{{ error }}</p>
+    <ErrorNote v-if="error" :cause="error" />
 
     <button
       type="button"

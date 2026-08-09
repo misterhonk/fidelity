@@ -35,7 +35,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
 <template>
   <NuxtRouteAnnouncer />
-  <NuxtPage />
+  <div class="flex min-h-dvh flex-col">
+    <NuxtPage />
+    <SiteFooter />
+  </div>
   <PwaUpdatePrompt />
   <LazyCommandPalette v-if="paletteOpen" @close="paletteOpen = false" />
   <LazyReleaseSheet

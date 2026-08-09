@@ -25,7 +25,7 @@ const enriching = ref<EnrichProgress | null>(null)
 const gaps = ref<{ expanded: number; requests: number; titles: string[] } | null>(null)
 const result = ref<DigWithMatches | null>(null)
 const busy = ref(false)
-const error = ref<string | null>(null)
+const error = ref<unknown>(null)
 const resumable = ref<Dig | null>(null)
 
 onMounted(async () => {
@@ -94,7 +94,7 @@ async function check() {
     preflight.value = await call('dig.preflight', { dealer: dealer.value.trim() })
   } catch (cause) {
     noteFailure()
-    error.value = cause instanceof Error ? cause.message : 'Händler nicht gefunden.'
+    error.value = cause
   } finally {
     busy.value = false
   }
@@ -116,7 +116,7 @@ async function resume() {
     resumable.value = null
     await finish(done)
   } catch (cause) {
-    error.value = cause instanceof Error ? cause.message : 'Fortsetzen fehlgeschlagen.'
+    error.value = cause
     resumable.value = await call('dig.resumable', undefined)
   } finally {
     busy.value = false
@@ -141,7 +141,7 @@ async function start() {
     resumable.value = null
     await finish(done)
   } catch (cause) {
-    error.value = cause instanceof Error ? cause.message : 'Der Dig ist fehlgeschlagen.'
+    error.value = cause
     // A failed run usually means an interrupted one, so ask again what can be
     // continued rather than leaving a stale offer on screen.
     resumable.value = await call('dig.resumable', undefined)
@@ -214,7 +214,7 @@ const expired = computed(() => {
       </button>
     </form>
 
-    <p v-if="error" role="alert" class="text-fid-sm text-fid-sig-scarcity">{{ error }}</p>
+    <ErrorNote v-if="error" :cause="error" />
 
     <!--
       Offline the last dig is still fully readable — it is on this device. Only

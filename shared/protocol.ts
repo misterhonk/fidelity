@@ -169,6 +169,15 @@ export interface WorkerContract {
    * for when the horizon was built.
    */
   'dig.credits': { params: { digId: string }; progress: never; result: CreditGroup[] }
+  /**
+   * Taking your data with you. Never carries the token and never carries
+   * marketplace data — see worker/export.ts for why.
+   */
+  'data.exportDig': { params: { digId: string }; progress: never; result: unknown | null }
+  'data.exportAll': { params: undefined; progress: never; result: unknown }
+  /** Deletes the database outright, token included. There is no undo. */
+  'data.deleteAll': { params: undefined; progress: never; result: { deleted: true } }
+
   /** Every dig, newest first — what the command palette offers to jump to. */
   'dig.list': { params: undefined; progress: never; result: Dig[] }
 

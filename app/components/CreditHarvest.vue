@@ -6,7 +6,7 @@ const { call } = useFidelityWorker()
 const status = ref<CreditStatus | null>(null)
 const progress = ref<HarvestProgress | null>(null)
 const running = ref(false)
-const error = ref<string | null>(null)
+const error = ref<unknown>(null)
 
 async function refresh() {
   status.value = await call('credits.status', undefined)
@@ -22,8 +22,7 @@ async function harvest() {
   try {
     await call('credits.harvest', {}, { onProgress: (p) => (progress.value = p) })
   } catch (cause) {
-    error.value =
-      cause instanceof Error ? cause.message : 'Die Credits konnten nicht gelesen werden.'
+    error.value = cause
   } finally {
     // Whatever was read before an interruption is kept — the next run picks up
     // where this one stopped.
@@ -68,7 +67,7 @@ const eta = computed(() => {
       <span class="fid-num">4</span> und <span class="fid-num">5</span> Sterne.
     </p>
 
-    <p v-if="error" role="alert" class="text-fid-sm text-fid-sig-scarcity">{{ error }}</p>
+    <ErrorNote v-if="error" :cause="error" />
 
     <p v-if="status.favourites === 0" class="text-fid-sm text-fid-text-muted">
       Du hast noch keine Platte mit vier oder fünf Sternen bewertet. Bewerte deine

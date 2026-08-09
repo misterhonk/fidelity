@@ -12,7 +12,7 @@ const { view, load, refresh, clear } = useBasket()
 onMounted(load)
 
 const summary = computed(() => view.value.summary)
-const error = ref<string | null>(null)
+const error = ref<unknown>(null)
 
 function money(value: number | null | undefined, currency: string | null | undefined) {
   if (value === null || value === undefined || !currency) return null
@@ -66,7 +66,7 @@ async function saveShipping() {
     editing.value = false
     await refresh()
   } catch (cause) {
-    error.value = cause instanceof Error ? cause.message : 'Konnte nicht gespeichert werden.'
+    error.value = cause
   }
 }
 
@@ -104,7 +104,7 @@ async function makePlan() {
   try {
     plan.value = await call('basket.plan', { budget: budget.value })
   } catch (cause) {
-    error.value = cause instanceof Error ? cause.message : 'Konnte nicht geplant werden.'
+    error.value = cause
   } finally {
     planning.value = false
   }
@@ -127,7 +127,7 @@ const peak = computed(() =>
       </p>
     </div>
 
-    <p v-if="error" role="alert" class="text-fid-sm text-fid-sig-scarcity">{{ error }}</p>
+    <ErrorNote v-if="error" :cause="error" />
 
     <p v-if="!summary" class="text-fid-base text-fid-text-muted">
       Noch nichts drin. Leg im Dig etwas hinein – der Korb rechnet dann mit.

@@ -5,7 +5,7 @@
  *
  * The main thread never computes (CLAUDE.md). It renders and takes input.
  */
-import type { RequestKind, WorkerInbound, WorkerOutbound } from '#shared/protocol'
+import type { RequestKind, WorkerError, WorkerInbound, WorkerOutbound } from '#shared/protocol'
 
 import { handlers } from './handlers'
 
@@ -58,12 +58,33 @@ async function dispatch(id: string, kind: RequestKind, params: unknown) {
       type: 'error',
       error: {
         message: error instanceof Error ? error.message : String(error),
-        code: controller.signal.aborted ? 'cancelled' : undefined,
+        code: codeOf(error, controller.signal.aborted),
       },
     })
   } finally {
     inFlight.delete(id)
   }
+}
+
+/**
+ * Which of the known failures this was.
+ *
+ * Errors do not survive `postMessage` — only their message does — so the code
+ * has to be lifted out here or the main thread sees an anonymous string. It
+ * used to set only 'cancelled', which meant "Token abgelaufen" and "429"
+ * arrived as raw text and the interface had nothing to explain.
+ *
+ * Cancellation wins over everything: a request aborted mid-flight often fails
+ * with a network error on the way out, and reporting that as "offline" would
+ * be a lie about a button somebody pressed on purpose.
+ */
+function codeOf(error: unknown, aborted: boolean): WorkerError['code'] {
+  if (aborted) return 'cancelled'
+
+  const code = (error as { code?: unknown } | null)?.code
+  return typeof code === 'string' && code !== 'cancelled'
+    ? (code as WorkerError['code'])
+    : undefined
 }
 
 scope.addEventListener('message', (event: MessageEvent) => {

@@ -311,3 +311,16 @@ describe('a dropped connection', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(NETWORK_RETRY_MS.length + 1)
   })
 })
+
+describe('the code a failure carries across postMessage', () => {
+  it('survives being turned into a DiscogsError', () => {
+    // Errors do not survive postMessage — only their message does — so the
+    // code has to be liftable out of the error object. Without this the UI
+    // sees "429" as anonymous text and can explain nothing.
+    expect(new DiscogsError(429, 'slow down').code).toBe('rate-limited')
+    expect(new DiscogsError(401, 'nope').code).toBe('unauthorized')
+    expect(new DiscogsError(403, 'nope').code).toBe('unauthorized')
+    expect(new DiscogsError(0, 'network').code).toBe('offline')
+    expect(new DiscogsError(500, 'boom').code).toBeUndefined()
+  })
+})

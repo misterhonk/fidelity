@@ -378,6 +378,22 @@ export const handlers: HandlerMap = {
     return creditGroups(digId)
   },
 
+  'data.exportDig': async ({ digId }) => {
+    const { exportDig } = await import('./export')
+    return exportDig(digId, Date.now())
+  },
+
+  'data.exportAll': async () => {
+    const { exportEverything } = await import('./export')
+    return exportEverything(Date.now())
+  },
+
+  'data.deleteAll': async () => {
+    // Same operation as signing out, under the name that says what it does.
+    await signOut()
+    return { deleted: true as const }
+  },
+
   'dig.list': async () => {
     const db = await openFidelityDb()
     // The id is a sortable timestamp prefix, so this needs no index.
