@@ -21,7 +21,7 @@ const showDetail = ref(false)
       <button
         v-if="!showDetail"
         type="button"
-        class="self-start text-fid-xs text-fid-text-muted underline underline-offset-4"
+        class="fid-action self-start text-fid-xs text-fid-text-muted underline underline-offset-4"
         @click="showDetail = true"
       >
         Was Discogs genau gesagt hat

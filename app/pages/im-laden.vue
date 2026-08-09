@@ -62,7 +62,10 @@ function money(value: number | null, currency: string | null) {
     -->
     <div class="flex items-baseline justify-between gap-3">
       <h1 class="text-fid-xl font-bold text-fid-text">Im Laden</h1>
-      <NuxtLink class="text-fid-sm text-fid-text-muted underline underline-offset-4" to="/">
+      <NuxtLink
+        class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
+        to="/"
+      >
         Zurück
       </NuxtLink>
     </div>

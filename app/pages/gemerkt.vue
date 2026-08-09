@@ -175,7 +175,7 @@ async function check() {
         <button
           v-if="overview.stillOpen > 0"
           type="button"
-          class="shrink-0 text-fid-sm text-fid-accent underline underline-offset-4 disabled:opacity-50"
+          class="fid-action shrink-0 text-fid-sm text-fid-accent underline underline-offset-4 disabled:opacity-50"
           :disabled="checking"
           @click="check()"
         >
@@ -221,7 +221,7 @@ async function check() {
           <button
             v-if="group.dealer && group.open > 0"
             type="button"
-            class="shrink-0 text-fid-sm text-fid-accent underline underline-offset-4 disabled:opacity-50"
+            class="fid-action shrink-0 text-fid-sm text-fid-accent underline underline-offset-4 disabled:opacity-50"
             :disabled="moving !== null"
             @click="intoBasket(group)"
           >

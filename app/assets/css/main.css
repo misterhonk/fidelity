@@ -40,6 +40,23 @@ body {
 }
 
 /*
+ * Any control that reads as a text link but acts as a button.
+ *
+ * WCAG 2.2 SC 2.5.8 wants 24×24 CSS pixels and docs/05 §6 names it as one of
+ * the criteria that bites this app specifically. A line of 14px text comes out
+ * at twenty-one, which looks fine and misses by three — the kind of gap
+ * nothing catches, because axe has no rule for target size and the eye has no
+ * ruler. This makes the floor structural rather than remembered.
+ *
+ * Links inside a running sentence are exempt by the spec and do not get this.
+ */
+.fid-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+}
+
+/*
  * Reduce, do not remove. Opacity crossfades and instant state changes stay;
  * parallax, large translations, scale and scroll-driven effects go.
  */

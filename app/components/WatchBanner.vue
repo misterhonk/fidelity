@@ -24,7 +24,7 @@ const number = new Intl.NumberFormat('de-DE')
       </h2>
       <button
         type="button"
-        class="text-fid-sm text-fid-text-muted underline underline-offset-4"
+        class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
         @click="dismiss()"
       >
         Gelesen

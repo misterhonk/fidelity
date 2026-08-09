@@ -339,7 +339,7 @@ function onKeydown(event: KeyboardEvent) {
           </div>
 
           <a
-            class="text-fid-sm text-fid-accent underline underline-offset-4"
+            class="fid-action text-fid-sm text-fid-accent underline underline-offset-4"
             :href="`https://www.discogs.com/sell/item/${match.listingId}`"
             target="_blank"
             rel="noopener noreferrer"

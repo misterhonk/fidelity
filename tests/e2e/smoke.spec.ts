@@ -144,3 +144,62 @@ test.describe('accessibility', () => {
     await expect(dialog).toBeHidden()
   })
 })
+
+/**
+ * SC 2.5.8, the one axe cannot check.
+ *
+ * Target Size (Minimum) is 24×24 CSS pixels, and docs/05 §6 names exactly
+ * where it bites in this app: chips and row actions in the compact modes. axe
+ * has no rule for it, so it is measured here — text links styled as actions
+ * are the ones that quietly come out at twenty-one.
+ *
+ * Inline links inside a sentence are exempt by the spec and are excluded the
+ * same way: only elements that stand alone as controls are measured. So is a
+ * checkbox inside its own label — the label is part of the target, which is
+ * what "target" means in the criterion, and measuring the box alone would
+ * report a failure that does not exist.
+ */
+test.describe('target size', () => {
+  for (const path of SCREENS) {
+    test(`${path} has no control under 24×24`, async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 812 })
+      await page.goto(path)
+      await expect(page.locator('main')).toBeVisible()
+
+      const small = await page.evaluate(() => {
+        const out: string[] = []
+        for (const el of document.querySelectorAll(
+          'main button, main a, main input, main select',
+        )) {
+          // Inline links in running text are exempt (SC 2.5.8 exception).
+          const parent = el.parentElement
+          const inSentence =
+            parent !== null &&
+            (parent.tagName === 'P' || parent.tagName === 'LI') &&
+            (parent.textContent ?? '').trim() !== (el.textContent ?? '').trim()
+          if (inSentence) continue
+
+          // A control wrapped in its own label is as big as the label.
+          const label = el.closest('label')
+          if (label !== null && label !== el) {
+            const outer = label.getBoundingClientRect()
+            if (outer.width >= 24 && outer.height >= 24) continue
+          }
+
+          const box = el.getBoundingClientRect()
+          if (box.width === 0 || box.height === 0) continue
+          if (box.height < 24 || box.width < 24) {
+            out.push(
+              `${Math.round(box.width)}×${Math.round(box.height)} ${
+                (el.textContent ?? '').trim() || el.getAttribute('aria-label') || el.tagName
+              }`,
+            )
+          }
+        }
+        return out
+      })
+
+      expect(small).toEqual([])
+    })
+  }
+})

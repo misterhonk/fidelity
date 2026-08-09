@@ -103,7 +103,7 @@ async function deleteAll() {
         v-if="!confirming"
         type="button"
         :disabled="busy"
-        class="self-start text-fid-sm text-fid-sig-scarcity underline underline-offset-4 disabled:opacity-50"
+        class="fid-action self-start text-fid-sm text-fid-sig-scarcity underline underline-offset-4 disabled:opacity-50"
         @click="confirming = true"
       >
         Alles löschen

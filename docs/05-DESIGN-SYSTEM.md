@@ -296,12 +296,22 @@ vom März 2026 „an incomplete draft" und noch Jahre entfernt.
 > klar darunter. **Trotzdem von Tag 1 auf AA bauen** – Barrierefreiheit nachträglich in
 > eine dichte Filter-/Tabellen-UI zu bekommen ist brutal.
 
+> **`.fid-action` ist Pflicht** auf jedem Bedienelement, das wie ein Textlink aussieht
+> und wie ein Knopf funktioniert – „Noch da?", „Korb leeren", „raus", „Zurück". Eine Zeile
+> 14-px-Text wird 21 px hoch: sieht richtig aus, verfehlt die Grenze um drei. axe hat für
+> Target Size **keine Regel**, und das Auge hat kein Lineal – deshalb misst
+> `tests/e2e/smoke.spec.ts` jeden Screen bei 375 px nach.
+>
+> Links **mitten im Fließtext** sind laut Kriterium ausgenommen und bekommen die Klasse
+> nicht; `inline-flex` würde dort die Grundlinie verschieben. Ein Ankreuzfeld in seinem
+> eigenen `<label>` ist so groß wie das Label – das Label *ist* das Ziel.
+
 ### WCAG-2.2-Kriterien, die genau diese App treffen
 
 | SC | Kriterium | Wo es beißt |
 |---|---|---|
 | 2.4.11 | Focus Not Obscured | **Sticky Filterleiste** verdeckt fokussierte Zeilen → `scroll-margin-top` |
-| 2.5.8 | Target Size 24×24 | Signal-Chips, Zeilenaktionen im Compact-Modus |
+| 2.5.8 | Target Size 24×24 | Signal-Chips, Zeilenaktionen im Compact-Modus, **Textlinks, die Aktionen sind** |
 | 2.5.7 | Dragging Movements | Falls Korb-Sortierung per Drag → Tastatur-Alternative Pflicht |
 | 3.2.6 | Consistent Help | Hilfe-Einstiegspunkt an jeder Stelle gleich |
 | 3.3.7 | Redundant Entry | Händlername nicht zweimal eintippen lassen |

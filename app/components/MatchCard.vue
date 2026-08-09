@@ -122,7 +122,7 @@ const meta = computed(() =>
         <span v-if="match.condition">{{ match.condition }}</span>
         <span v-if="price" class="fid-num text-fid-text">{{ price }}</span>
         <a
-          class="text-fid-accent underline underline-offset-4"
+          class="fid-action text-fid-accent underline underline-offset-4"
           :href="`https://www.discogs.com/sell/item/${match.listingId}`"
           target="_blank"
           rel="noopener noreferrer"

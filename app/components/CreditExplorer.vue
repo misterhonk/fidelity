@@ -54,7 +54,7 @@ function line(group: CreditGroup): string {
       <button
         v-if="groups.length === 0"
         type="button"
-        class="text-fid-sm text-fid-text-muted underline underline-offset-4"
+        class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
         @click="load"
       >
         Nachsehen

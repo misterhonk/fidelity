@@ -61,7 +61,7 @@ function dismissCoach() {
         <p class="text-fid-base text-fid-text">Aufs Handy legen</p>
         <button
           type="button"
-          class="text-fid-sm text-fid-text-muted underline underline-offset-4"
+          class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
           @click="dismissCoach"
         >
           Verstanden

@@ -39,7 +39,7 @@ async function submit() {
     <ol class="flex list-decimal flex-col gap-1 pl-5 text-fid-sm text-fid-text-muted">
       <li>
         <a
-          class="text-fid-accent underline underline-offset-4"
+          class="fid-action text-fid-accent underline underline-offset-4"
           href="https://www.discogs.com/settings/developers"
           target="_blank"
           rel="noopener noreferrer"

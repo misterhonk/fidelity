@@ -186,7 +186,7 @@ const peak = computed(() =>
           <div class="flex items-baseline gap-4">
             <button
               type="button"
-              class="text-fid-sm text-fid-accent underline underline-offset-4 disabled:opacity-50"
+              class="fid-action text-fid-sm text-fid-accent underline underline-offset-4 disabled:opacity-50"
               :disabled="checking"
               @click="checkStock()"
             >
@@ -196,7 +196,7 @@ const peak = computed(() =>
             </button>
             <button
               type="button"
-              class="text-fid-sm text-fid-text-muted underline underline-offset-4"
+              class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
               @click="clear()"
             >
               Korb leeren
@@ -252,7 +252,7 @@ const peak = computed(() =>
             </span>
             <button
               type="button"
-              class="shrink-0 text-fid-xs text-fid-text-muted underline underline-offset-4"
+              class="fid-action shrink-0 text-fid-xs text-fid-text-muted underline underline-offset-4"
               :aria-label="`${line.title} entfernen`"
               @click="remove(line.listingId)"
             >
