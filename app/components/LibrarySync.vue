@@ -83,6 +83,14 @@ const formatDate = (at: number | null) =>
       >
         Deine Landkarte
       </NuxtLink>
+
+      <NuxtLink
+        v-if="(summary?.collection ?? 0) > 0"
+        to="/dig"
+        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+      >
+        Neuer Dig
+      </NuxtLink>
     </div>
   </section>
 </template>

@@ -3,6 +3,8 @@ import { openFidelityDb } from '~~/db/open'
 import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
 
 import { currentIdentity, discogs, requestPersistence, signIn, signOut } from './auth'
+import { REACHABLE, runDig } from './dig/scan'
+import { dealerSchema } from './discogs/inventory'
 import { computeTasteProfile } from './match/taste'
 import { syncLibrary } from './sync/library'
 
@@ -90,6 +92,42 @@ export const handlers: HandlerMap = {
 
   'taste.profile': async () => (await getMeta('tasteProfile')) ?? null,
 
+  'dig.preflight': async ({ dealer }, { signal }) => {
+    const profile = await discogs().get(`/users/${encodeURIComponent(dealer)}`, dealerSchema, {
+      signal,
+    })
+    const numForSale = profile.num_for_sale ?? 0
+    return {
+      dealer: profile.username,
+      displayName: profile.username,
+      numForSale,
+      reachable: Math.min(numForSale, REACHABLE),
+      truncated: numForSale > REACHABLE,
+      sellerRating: profile.seller_rating ?? null,
+      location: profile.location ?? null,
+    }
+  },
+
+  'dig.run': async ({ dealer }, { report, signal }) =>
+    runDig({
+      client: discogs(),
+      dealer,
+      // ULID-shaped enough for our purposes: time-sortable, collision-free
+      // within one browser.
+      digId: `${Date.now().toString(36).padStart(9, '0')}-${crypto.randomUUID().slice(0, 8)}`,
+      report: (progress) => report(progress),
+      signal,
+    }),
+
+  'dig.get': async ({ digId }) => loadDig(digId),
+
+  'dig.latest': async () => {
+    const db = await openFidelityDb()
+    const digs = await db.getAll('digs')
+    const newest = digs.sort((a, b) => b.id.localeCompare(a.id))[0]
+    return newest ? loadDig(newest.id) : null
+  },
+
   'library.summary': async () => {
     const db = await openFidelityDb()
     const syncState = await getSyncState()
@@ -100,4 +138,18 @@ export const handlers: HandlerMap = {
       wantlistSyncedAt: syncState.wantlistSyncedAt,
     }
   },
+}
+
+/** A dig plus its matches, strongest first. */
+async function loadDig(digId: string) {
+  const db = await openFidelityDb()
+  const dig = await db.get('digs', digId)
+  if (!dig) return null
+
+  const matches = await db
+    .transaction('matches')
+    .store.index('by-dig-score')
+    .getAll(IDBKeyRange.bound([digId, -Infinity], [digId, Infinity]))
+
+  return { dig, matches: matches.sort((a, b) => b.score - a.score) }
 }

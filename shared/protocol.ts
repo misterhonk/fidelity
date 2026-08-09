@@ -13,7 +13,7 @@
  * The Personal Access Token crosses it exactly once, on sign-in. It never
  * comes back the other way (CLAUDE.md rule 6).
  */
-import type { Identity, TasteProfile } from './types'
+import type { Dig, Identity, Match, TasteProfile } from './types'
 
 export interface PingResult {
   pong: true
@@ -53,6 +53,41 @@ export interface WorkerContract {
   'library.summary': { params: undefined; progress: never; result: LibrarySummary }
   /** Recomputed after every sync; null until there has been one. */
   'taste.profile': { params: undefined; progress: never; result: TasteProfile | null }
+
+  /** One request, so the UI can be honest about coverage before committing. */
+  'dig.preflight': { params: { dealer: string }; progress: never; result: DigPreflight }
+  /** The scan. Reports per page — first matches appear after a few seconds. */
+  'dig.run': { params: { dealer: string }; progress: ScanProgress; result: Dig }
+  'dig.get': { params: { digId: string }; progress: never; result: DigWithMatches | null }
+  'dig.latest': { params: undefined; progress: never; result: DigWithMatches | null }
+}
+
+export interface DigPreflight {
+  dealer: string
+  displayName: string
+  numForSale: number
+  /** At most 20.000 — asc and desc give two disjoint windows. */
+  reachable: number
+  /** True when full coverage is impossible and the UI has to say so. */
+  truncated: boolean
+  sellerRating: number | null
+  location: string | null
+}
+
+export interface ScanProgress {
+  status: Dig['status']
+  scanned: number
+  total: number
+  reachable: number
+  matches: number
+  requests: number
+  order: 'asc' | 'desc'
+  etaMs: number | null
+}
+
+export interface DigWithMatches {
+  dig: Dig
+  matches: Match[]
 }
 
 export interface SyncProgress {
