@@ -5,9 +5,11 @@ node_modules/
 # Build output
 .output/
 .nuxt/
-dist/
 .nitro/
 .cache/
+# Symlink to .output/public that the static Nitro preset creates.
+# Without the trailing slash this also matches the symlink itself.
+dist
 
 # Env & secrets
 .env
