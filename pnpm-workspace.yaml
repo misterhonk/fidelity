@@ -1,0 +1,5 @@
+# pnpm 11 reads project-level settings from here, not from package.json.
+# Dependency build scripts are blocked by default; this is the explicit
+# allow-list. Every entry is a deliberate decision, not a convenience.
+allowBuilds:
+  esbuild: true

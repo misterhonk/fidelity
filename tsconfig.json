@@ -1,0 +1,11 @@
+{
+  // Nuxt generates one project per context. Keep them separate so a server-only
+  // import can never leak into the client bundle without TypeScript noticing.
+  "files": [],
+  "references": [
+    { "path": "./.nuxt/tsconfig.app.json" },
+    { "path": "./.nuxt/tsconfig.server.json" },
+    { "path": "./.nuxt/tsconfig.shared.json" },
+    { "path": "./.nuxt/tsconfig.node.json" }
+  ]
+}
