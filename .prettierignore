@@ -1,0 +1,20 @@
+node_modules
+.nuxt
+.output
+.data
+coverage
+playwright-report
+test-results
+pnpm-lock.yaml
+
+# Generated
+app/assets/css/tokens.css
+server/db/migrations
+
+# Written by hand with deliberate line breaks and hard-wrapped tables.
+# Prettier would reflow them into something much harder to read in a diff.
+docs
+CLAUDE.md
+README.md
+CHANGELOG.md
+*.html

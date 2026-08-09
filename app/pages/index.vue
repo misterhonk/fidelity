@@ -27,8 +27,8 @@ const signals = [
       <p class="text-fid-xs uppercase tracking-[0.2em] text-fid-text-muted">Championship</p>
       <h1 class="text-fid-2xl font-bold text-fid-text">Fidelity</h1>
       <p class="text-fid-base text-fid-text-muted">
-        Ein Händler rein, eine bewertete Fundliste raus – mit Begründung pro Treffer.
-        Das Fundament steht. Der erste Dig kommt mit M2.
+        Ein Händler rein, eine bewertete Fundliste raus – mit Begründung pro Treffer. Das
+        Fundament steht. Der erste Dig kommt mit M2.
       </p>
     </div>
 

@@ -68,7 +68,9 @@ const round = (n) => Number(n.toFixed(4))
 
 function oklch({ components: [l, c, h], alpha }) {
   const base = `${round(l)} ${round(c)} ${round(h)}`
-  return alpha === undefined || alpha === 1 ? `oklch(${base})` : `oklch(${base} / ${round(alpha)})`
+  return alpha === undefined || alpha === 1
+    ? `oklch(${base})`
+    : `oklch(${base} / ${round(alpha)})`
 }
 
 const dimension = ({ value, unit }) => `${round(value)}${unit}`
@@ -192,7 +194,12 @@ const sd = new StyleDictionary({
   preprocessors: ['tokens-studio'],
   platforms: {
     css: {
-      transforms: ['fidelity/color', 'fidelity/dimension', 'fidelity/font-family', 'fidelity/shadow'],
+      transforms: [
+        'fidelity/color',
+        'fidelity/dimension',
+        'fidelity/font-family',
+        'fidelity/shadow',
+      ],
       files: [{ destination: 'tokens.css', format: 'fidelity/tailwind-theme' }],
     },
   },

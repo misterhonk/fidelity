@@ -3,6 +3,10 @@
 # allow-list. Every entry is a deliberate decision, not a convenience.
 allowBuilds:
   esbuild: true
+  # Downloads the platform binary and installs the git hooks.
+  lefthook: true
+  # Native resolver behind eslint-plugin-import-x; fetches its platform binary.
+  unrs-resolver: true
   # Pulled in by @vueuse/* via @nuxt/ui; its postinstall only picks the Vue 2
   # or the Vue 3 entry point.
   vue-demi: true

@@ -1,0 +1,28 @@
+# lefthook, not husky — husky's last release is from November 2024.
+# Install the hooks with `pnpm lefthook install` (pnpm install does it too).
+
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: '*.{ts,vue,js,mjs}'
+      run: pnpm eslint --fix {staged_files}
+      stage_fixed: true
+    format:
+      glob: '*.{ts,vue,css,json,md,mjs,yml,yaml}'
+      run: pnpm prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
+    typecheck:
+      glob: '*.{ts,vue}'
+      # Whole-project, not per-file: a change in one file breaks types in another.
+      run: pnpm typecheck
+
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm commitlint --edit {1}
+
+pre-push:
+  commands:
+    test:
+      run: pnpm test:unit

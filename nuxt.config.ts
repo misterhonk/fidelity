@@ -13,7 +13,9 @@ export default defineNuxtConfig({
 
   // Nuxt UI 4 brings Tailwind 4 and registers @tailwindcss/vite itself — the
   // Vite plugin route, not PostCSS (docs/01-ARCHITEKTUR.md §4.6).
-  modules: ['@nuxt/ui'],
+  // @nuxt/eslint generates .nuxt/eslint.config.mjs, which knows about
+  // auto-imports, route types and the component names in scope.
+  modules: ['@nuxt/ui', '@nuxt/eslint'],
 
   css: ['~/assets/css/main.css'],
 
