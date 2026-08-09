@@ -22,6 +22,18 @@ export const REACHABLE = PER_PAGE * MAX_PAGES * 2
 /** Roughly one request every 1.2 s, which is what the pacer enforces. */
 const MS_PER_REQUEST = 1200
 
+/**
+ * The dig this worker is scanning right now, if any.
+ *
+ * A record in status 'scanning' means one of two very different things: a run
+ * that died with its tab, or one that is in flight this second. The database
+ * cannot tell them apart — but the worker can, because a freshly started
+ * worker is by definition not scanning anything. Without this, opening the
+ * page mid-scan offers to "resume" the run that is already going, and
+ * accepting would put two scans on the same rate limit.
+ */
+let running: string | null = null
+
 export interface ScanProgress {
   status: Dig['status']
   scanned: number
@@ -208,21 +220,54 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   return dig
 }
 
+/**
+ * Claims the scanning slot. Check and set sit in the same synchronous block on
+ * purpose: split by an await, two callers both pass the check before either
+ * sets it, and two scans end up sharing one rate limit.
+ */
+function acquire(digId: string): void {
+  if (running !== null) {
+    throw new DigNotResumable(
+      running === digId ? 'Dieser Dig läuft gerade.' : 'Es läuft bereits ein Dig.',
+    )
+  }
+  running = digId
+}
+
+async function walkExclusively(dig: Dig, ctx: ScanContext): Promise<Dig> {
+  try {
+    return await walk(dig, ctx)
+  } finally {
+    running = null
+  }
+}
+
 export async function runDig(
   options: ScanOptions & { dealer: string; digId: string },
 ): Promise<Dig> {
-  const ctx = await prepare(options)
+  // Claimed before the pre-check, so a second start cannot slip in during it.
+  acquire(options.digId)
+
+  let ctx: ScanContext
+  try {
+    ctx = await prepare(options)
+  } catch (error) {
+    running = null
+    throw error
+  }
   const startedAt = ctx.now()
 
   // Pre-check. One request buys an honest answer up front instead of a
   // surprise at page 101.
-  const profile = await ctx.client.get(
-    `/users/${encodeURIComponent(options.dealer)}`,
-    dealerSchema,
-    { signal: ctx.signal },
-  )
+  const profile = await ctx.client
+    .get(`/users/${encodeURIComponent(options.dealer)}`, dealerSchema, { signal: ctx.signal })
+    .catch((error: unknown) => {
+      running = null
+      throw error
+    })
 
   const total = profile.num_for_sale ?? 0
+
   const dig: Dig = {
     id: options.digId,
     dealer: options.dealer,
@@ -242,7 +287,7 @@ export async function runDig(
   }
   await ctx.db.put('digs', dig)
 
-  return walk(dig, ctx)
+  return walkExclusively(dig, ctx)
 }
 
 export class DigNotResumable extends Error {}
@@ -256,19 +301,30 @@ export class DigNotResumable extends Error {}
  * may no longer be displayed.
  */
 export async function resumeDig(options: ScanOptions & { digId: string }): Promise<Dig> {
-  const ctx = await prepare(options)
-  const dig = await ctx.db.get('digs', options.digId)
+  // Claimed first, then verified. The other way round, the record is read
+  // before the wait and judged after it — by which point the dig it described
+  // may already have finished, and the "resume" walks pages that are done.
+  acquire(options.digId)
 
-  if (!dig) throw new DigNotResumable('Dieser Dig existiert nicht mehr.')
-  if (dig.status !== 'scanning') throw new DigNotResumable('Dieser Dig läuft nicht.')
+  try {
+    const ctx = await prepare(options)
+    const dig = await ctx.db.get('digs', options.digId)
 
-  if (ctx.now() > dig.expiresAt) {
-    dig.status = 'expired'
-    await ctx.db.put('digs', dig)
-    throw new DigNotResumable('Der Sechs-Stunden-Rahmen ist abgelaufen – bitte neu scannen.')
+    if (!dig) throw new DigNotResumable('Dieser Dig existiert nicht mehr.')
+    if (dig.status !== 'scanning') throw new DigNotResumable('Dieser Dig läuft nicht.')
+
+    if (ctx.now() > dig.expiresAt) {
+      dig.status = 'expired'
+      await ctx.db.put('digs', dig)
+      throw new DigNotResumable('Der Sechs-Stunden-Rahmen ist abgelaufen – bitte neu scannen.')
+    }
+
+    return await walkExclusively(dig, ctx)
+  } finally {
+    // walkExclusively releases it on the happy path; this covers every way
+    // out before the walk ever starts.
+    running = null
   }
-
-  return walk(dig, ctx)
 }
 
 /** The interrupted dig worth offering to continue, if there is one. */
@@ -277,7 +333,9 @@ export async function findResumable(now: number = Date.now()): Promise<Dig | nul
   const digs = await db.getAll('digs')
 
   const candidate = digs
-    .filter((dig) => dig.status === 'scanning')
+    // Not the one this worker is scanning right now — that is not an
+    // interruption, that is progress.
+    .filter((dig) => dig.status === 'scanning' && dig.id !== running)
     .sort((a, b) => b.id.localeCompare(a.id))[0]
 
   if (!candidate) return null

@@ -181,3 +181,39 @@ describe('what may be resumed at all', () => {
     ).rejects.toBeInstanceOf(DigNotResumable)
   })
 })
+
+describe('a dig that is running right now', () => {
+  it('is not offered as resumable while this worker is scanning it', async () => {
+    // 'scanning' in the database means two very different things: a run that
+    // died with its tab, and one that is in flight. Offering the second one
+    // and accepting would put two scans on the same rate limit.
+    const seen: (string | null)[] = []
+    const { client } = fakeClient()
+
+    await runDig({
+      client,
+      dealer: 'vinyl-tom',
+      digId: '01A',
+      report: () => {
+        // Cannot await inside the callback, so the answer is collected and
+        // asserted once the run is over.
+        void findResumable().then((dig) => seen.push(dig?.id ?? null))
+      },
+    })
+
+    await vi.waitFor(() => expect(seen.length).toBeGreaterThan(2))
+    expect(seen.every((id) => id === null)).toBe(true)
+  })
+
+  it('refuses a second resume of the same dig', async () => {
+    const { client } = fakeClient({ failFromPage: 3 })
+    await runDig({ client, dealer: 'vinyl-tom', digId: '01A' }).catch(() => undefined)
+
+    const slow = fakeClient()
+    const first = resumeDig({ client: slow.client, digId: '01A' })
+    const second = resumeDig({ client: slow.client, digId: '01A' })
+
+    await expect(second).rejects.toBeInstanceOf(DigNotResumable)
+    await expect(first).resolves.toMatchObject({ status: 'done' })
+  })
+})

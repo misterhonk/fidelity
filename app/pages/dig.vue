@@ -79,6 +79,9 @@ async function start() {
     result.value = await call('dig.latest', undefined)
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : 'Der Dig ist fehlgeschlagen.'
+    // A failed run usually means an interrupted one, so ask again what can be
+    // continued rather than leaving a stale offer on screen.
+    resumable.value = await call('dig.resumable', undefined)
   } finally {
     busy.value = false
     progress.value = null
