@@ -101,6 +101,11 @@ export const handlers: HandlerMap = {
 
   'taste.profile': async () => (await getMeta('tasteProfile')) ?? null,
 
+  'collection.gaps': async () => {
+    const { collectionGaps } = await import('./collection/gaps')
+    return collectionGaps()
+  },
+
   'dig.preflight': async ({ dealer }, { signal }) => {
     const profile = await discogs().get(`/users/${encodeURIComponent(dealer)}`, dealerSchema, {
       signal,

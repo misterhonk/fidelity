@@ -16,6 +16,7 @@
 import type {
   BasketPlan,
   BasketView,
+  CollectionGaps,
   CreditGroup,
   CreditHarvest,
   CreditPerson,
@@ -68,6 +69,11 @@ export interface WorkerContract {
    */
   'library.sync': { params: undefined; progress: SyncProgress; result: SyncResult }
   'library.summary': { params: undefined; progress: never; result: LibrarySummary }
+  /**
+   * Where the shelf has holes, and which labels you really collect. Costs no
+   * requests: it is a reading of the horizon that already exists.
+   */
+  'collection.gaps': { params: undefined; progress: never; result: CollectionGaps }
   /** Recomputed after every sync; null until there has been one. */
   'taste.profile': { params: undefined; progress: never; result: TasteProfile | null }
 

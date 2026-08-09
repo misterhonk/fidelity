@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TasteFacet, TasteProfile } from '#shared/types'
+import type { CollectionGaps, TasteFacet, TasteProfile } from '#shared/types'
 
 useSeoMeta({
   title: 'Deine Landkarte',
@@ -7,6 +7,8 @@ useSeoMeta({
 })
 
 const { call } = useFidelityWorker()
+
+const gaps = ref<CollectionGaps | null>(null)
 
 const profile = ref<TasteProfile | null>(null)
 const ready = ref(false)
@@ -17,6 +19,7 @@ onMounted(async () => {
   } finally {
     ready.value = true
   }
+  gaps.value = await call('collection.gaps', undefined)
 })
 
 /** Strongest first; ties alphabetically so the order never jitters. */
@@ -32,6 +35,9 @@ const decades = computed(() =>
     .sort(([a], [b]) => Number(a) - Number(b))
     .map(([, facet]) => facet),
 )
+
+const number = new Intl.NumberFormat('de-DE')
+const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
 </script>
 
 <template>
@@ -68,10 +74,100 @@ const decades = computed(() =>
       would separate "you own a lot of Warner" from "you collect Ohr on
       purpose" needs a denominator the app cannot reach yet.
     -->
-    <p v-if="profile" class="max-w-prose text-fid-xs text-fid-text-muted">
-      Noch ohne Lift: Wie sehr ein Label oder Künstler gegenüber dem Durchschnitt
-      überrepräsentiert ist, lässt sich erst sagen, wenn der Horizont in M2 weiß, wie viele
-      Releases es dort insgesamt gibt. Bis dahin zählt hier nur, was in deiner Sammlung steht.
+    <!--
+      What the counts above cannot say on their own.
+
+      "Cocoon Recordings 6" is six of something — and six of four hundred is a
+      different fact from five of a hundred and fifty. Both answers were
+      already in the horizon; nothing had surfaced them.
+    -->
+    <template v-if="gaps?.built">
+      <section
+        v-if="gaps.artists.length > 0"
+        class="flex flex-col gap-3 border-t border-fid-border pt-6"
+        aria-labelledby="shelf-gaps"
+      >
+        <div class="flex flex-col gap-1">
+          <h2 id="shelf-gaps" class="text-fid-lg font-medium text-fid-text">
+            Wie viel es noch gibt
+          </h2>
+          <!--
+            Deliberately not "wie weit du durch bist".
+            `/artists/{id}/releases` lists everything filed under a name —
+            albums, singles, remixes, compilation appearances — so 252 Robag
+            Wruhme entries are not a discography of 252 albums, and a progress
+            bar towards them would be a goal nobody has.
+
+            What the number honestly says: how likely a dig is to turn up
+            something of theirs you do not have.
+          -->
+          <p class="text-fid-sm text-fid-text-muted">
+            Discogs führt unter einem Namen alles: Alben, Singles, Remixe, Beiträge zu Samplern.
+            Die Zahl rechts ist deshalb kein Sammelziel, sondern eine Auskunft darüber, wie
+            wahrscheinlich ein Dig noch etwas von ihnen zutage fördert.
+          </p>
+        </div>
+
+        <ul class="flex flex-col gap-2">
+          <li
+            v-for="artist in gaps.artists"
+            :key="artist.entityId"
+            class="flex flex-col gap-1 rounded-fid-sm border border-fid-border px-3 py-2"
+          >
+            <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+              <span class="text-fid-base text-fid-text">{{ artist.name }}</span>
+              <span class="text-fid-sm text-fid-text-muted">
+                <span class="fid-num text-fid-text">{{ artist.owned }}</span> von
+                <span class="fid-num">{{ number.format(artist.total) }}</span> Einträgen
+                <template v-if="artist.from > 0">
+                  · deine von <span class="fid-num">{{ artist.from }}</span
+                  ><template v-if="artist.to !== artist.from">
+                    bis <span class="fid-num">{{ artist.to }}</span></template
+                  >
+                </template>
+              </span>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <section
+        v-if="gaps.labels.length > 0"
+        class="flex flex-col gap-3 border-t border-fid-border pt-6"
+        aria-labelledby="label-standing"
+      >
+        <div class="flex flex-col gap-1">
+          <h2 id="label-standing" class="text-fid-lg font-medium text-fid-text">
+            Welche Labels du wirklich sammelst
+          </h2>
+          <p class="text-fid-sm text-fid-text-muted">
+            Der Lift vergleicht deinen Anteil an einem Label mit dem, was bei zufälliger Auswahl
+            aus deinen Labels zu erwarten wäre. Verglichen wird gegen deine eigenen Labels – was
+            der Gesamtkatalog von Discogs hergibt, kann ein Browser nicht sehen.
+          </p>
+        </div>
+
+        <dl class="grid grid-cols-[1fr_auto_auto] items-baseline gap-x-4 gap-y-1.5">
+          <template v-for="label in gaps.labels" :key="label.entityId">
+            <dt class="min-w-0 truncate text-fid-sm text-fid-text">{{ label.name }}</dt>
+            <dd class="fid-num text-right text-fid-sm text-fid-text-muted">
+              {{ label.owned }} / {{ number.format(label.catalogueSize) }}
+            </dd>
+            <dd
+              class="fid-num text-right text-fid-sm"
+              :class="(label.lift ?? 0) >= 2 ? 'text-fid-sig-label' : 'text-fid-text-muted'"
+            >
+              <template v-if="label.lift">{{ lift.format(label.lift) }}×</template>
+              <template v-else>–</template>
+            </dd>
+          </template>
+        </dl>
+      </section>
+    </template>
+
+    <p v-else-if="gaps" class="max-w-prose text-fid-xs text-fid-text-muted">
+      Lücken und Label-Lift brauchen den Horizont. Sobald der gebaut ist, steht hier, wie viel
+      dir bei welchem Künstler noch fehlt.
     </p>
   </main>
 </template>

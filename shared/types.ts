@@ -148,6 +148,42 @@ export interface WatchAlert {
   seenAt: number
 }
 
+/**
+ * An artist whose discography the shelf has holes in.
+ *
+ * `total` counts main credits only — producing somebody else's record is not
+ * a hole in your own collection of that artist (docs/04 §S4).
+ */
+export interface ShelfGap {
+  entityId: number
+  name: string
+  owned: number
+  total: number
+  /** owned / total, so the interface can rank by "how close am I". */
+  share: number
+  missing: number
+  /** The years you actually collect them across; 0 when unknown. */
+  from: number
+  to: number
+}
+
+/** A label, with the denominator that makes its count mean something. */
+export interface LabelStanding {
+  entityId: number
+  name: string
+  owned: number
+  catalogueSize: number
+  /** Against your own labels, not against all of Discogs. Null when unknowable. */
+  lift: number | null
+}
+
+export interface CollectionGaps {
+  /** False before the horizon exists — the map then says so instead of lying. */
+  built: boolean
+  artists: ShelfGap[]
+  labels: LabelStanding[]
+}
+
 export interface CreditPerson {
   entityId: number
   name: string
