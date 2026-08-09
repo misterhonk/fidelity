@@ -26,10 +26,23 @@ export default {
     ],
     // A scope is optional — repo-wide changes have none — but if one is given
     // it has to be from the list.
+    // The list from CLAUDE.md, plus 'deps' for Renovate's semantic commits.
     'scope-enum': [
       2,
       'always',
-      ['dig', 'match', 'discogs', 'auth', 'catalog', 'basket', 'ui', 'db', 'deploy', 'deps'],
+      [
+        'dig',
+        'match',
+        'discogs',
+        'horizon',
+        'auth',
+        'basket',
+        'ui',
+        'db',
+        'pwa',
+        'deploy',
+        'deps',
+      ],
     ],
     'subject-case': [2, 'never', ['upper-case', 'pascal-case', 'start-case']],
     'body-max-line-length': [1, 'always', 100],
