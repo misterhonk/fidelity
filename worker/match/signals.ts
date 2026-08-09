@@ -2,7 +2,7 @@ import { hitsFor, type HorizonLookup } from '../horizon/lookup'
 import { parseCatno } from '../horizon/pack'
 import type { Signal } from '#shared/types'
 
-import { matchesFormat } from './format'
+import { matchesFormat, sameMedium } from './format'
 
 /**
  * The five signals the horizon unlocks (docs/04 §3, S2/S4/S6/S8/S9).
@@ -154,7 +154,7 @@ export function catalogueRun(listing: SignalInput, lookup: HorizonLookup): Signa
   return null
 }
 
-/** S9 — you own it, but not on vinyl. */
+/** S9 — you own it, but not on this medium. */
 export function formatUpgrade(
   listing: SignalInput,
   lookup: HorizonLookup,
@@ -168,6 +168,12 @@ export function formatUpgrade(
 
     const owned = lookup.upgradeMasters.get(hit.entityId)
     if (!owned) continue
+
+    // And only if it is a *different* medium. The preference check above
+    // cannot carry this on its own: with no preference set it passes
+    // everything, and the CD of a record you already have on CD would be
+    // offered as an upgrade to itself.
+    if (owned.formats.some((format) => sameMedium(listing.format, format))) return null
 
     return {
       type: 'FORMAT_UPGRADE',

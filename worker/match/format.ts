@@ -36,6 +36,32 @@ const MEDIUM_TOKENS: Record<string, RegExp> = {
   DVD: medium(['dvd', 'blu-ray', 'bluray']),
 }
 
+/**
+ * Which medium a format string names, or null when it names none we know.
+ *
+ * Discogs writes the medium a dozen ways — "2xLP", '12"', "CD, Album", "Vinyl,
+ * LP, Album, RE" — so this reads the same token table the filter does rather
+ * than a second, quietly different one.
+ */
+export function mediumOf(format: string | null): string | null {
+  if (!format) return null
+  for (const [name, pattern] of Object.entries(MEDIUM_TOKENS)) {
+    if (pattern.test(format)) return name
+  }
+  return null
+}
+
+/**
+ * Whether two format strings name the same medium.
+ *
+ * Unknown on either side is false: "I cannot tell" must not become "these are
+ * the same", or a record gets silently dropped from a signal on a guess.
+ */
+export function sameMedium(a: string | null, b: string | null): boolean {
+  const left = mediumOf(a)
+  return left !== null && left === mediumOf(b)
+}
+
 export function matchesFormat(format: string | null, allowed: string[]): boolean {
   // No preference means no filter.
   if (allowed.length === 0) return true

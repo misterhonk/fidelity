@@ -1,0 +1,116 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the golden dig > has a precision@5 of at least 0,6 1`] = `
+{
+  "hits": 5,
+  "of": 5,
+  "precision": 1,
+}
+`;
+
+exports[`the golden dig > ranks the shelf-related records the way the engine is documented to 1`] = `
+[
+  {
+    "release": 9001,
+    "score": 87,
+    "signals": [
+      "WANTLIST_EXACT",
+    ],
+    "who": "Portishead – Dummy",
+  },
+  {
+    "release": 9002,
+    "score": 87,
+    "signals": [
+      "WANTLIST_EXACT",
+    ],
+    "who": "Aphex Twin – Selected Ambient Works 85-92",
+  },
+  {
+    "release": 9201,
+    "score": 73,
+    "signals": [
+      "ARTIST_GAP",
+      "ARTIST_KNOWN",
+      "LABEL_AFFINITY",
+    ],
+    "who": "Robag Wruhme – Wuppdeck",
+  },
+  {
+    "release": 9202,
+    "score": 62,
+    "signals": [
+      "ARTIST_GAP",
+      "ARTIST_KNOWN",
+    ],
+    "who": "Robag Wruhme – Bumsty",
+  },
+  {
+    "release": 9401,
+    "score": 62,
+    "signals": [
+      "CREDIT_GRAPH",
+      "LABEL_AFFINITY",
+    ],
+    "who": "Anderer Act – Von Plank produziert",
+  },
+  {
+    "release": 9501,
+    "score": 58,
+    "signals": [
+      "ARTIST_KNOWN",
+      "FORMAT_UPGRADE",
+    ],
+    "who": "Daft Punk – Homework",
+  },
+  {
+    "release": 9301,
+    "score": 53,
+    "signals": [
+      "CATALOG_RUN",
+      "LABEL_AFFINITY",
+    ],
+    "who": "Krautrock Band 4 – Brain 1003",
+  },
+  {
+    "release": 9704,
+    "score": 48,
+    "signals": [
+      "ARTIST_KNOWN",
+    ],
+    "who": "Daft Punk – Homework",
+  },
+  {
+    "release": 9101,
+    "score": 39,
+    "signals": [
+      "WANTLIST_PRESSING",
+    ],
+    "who": "Portishead – Dummy",
+  },
+  {
+    "release": 9601,
+    "score": 39,
+    "signals": [
+      "LABEL_AFFINITY",
+    ],
+    "who": "Kompakt Act 9 – Total 9",
+  },
+  {
+    "release": 9602,
+    "score": 39,
+    "signals": [
+      "LABEL_AFFINITY",
+    ],
+    "who": "Neuer Act – Kompakt Sache",
+  },
+  {
+    "release": 9703,
+    "score": 39,
+    "signals": [
+      "LABEL_AFFINITY",
+    ],
+    "who": "Krautrock Band 9 – Brain 1205",
+  },
+]
+`;
