@@ -89,6 +89,29 @@ export interface SyncState {
   lastCollectionAdd: string | null
 }
 
+/**
+ * One person credited on the records you rated highest.
+ *
+ * `appearances` is a count, not a lift: a lift needs a baseline for how often
+ * this person turns up in music at large, and no browser can measure that
+ * (docs/11 §3 asks for one anyway — see `worker/horizon/credits.ts`).
+ */
+export interface CreditPerson {
+  entityId: number
+  name: string
+  /** Harvested favourites they shaped. */
+  appearances: number
+  roles: string[]
+}
+
+export interface CreditHarvest {
+  harvestedAt: number | null
+  /** Which records have been read, so a run resumes instead of restarting. */
+  harvestedReleaseIds: number[]
+  totalFavourites: number
+  people: CreditPerson[]
+}
+
 export interface Identity {
   userId: number
   username: string

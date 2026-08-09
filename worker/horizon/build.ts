@@ -1,10 +1,13 @@
 import { getMeta, updateSyncState } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 
+import type { CollectionItem, WantlistItem } from '#shared/types'
+
 import { log } from '../log'
 import type { DiscogsClient } from '../discogs/client'
 
 import { expandEntity } from './expand'
+import { creditCandidates } from './credits'
 import { planRevalidation, type RevalidationPlan } from './revalidate'
 import { candidateKey, selectCandidates, type Candidate } from './select'
 
@@ -80,7 +83,7 @@ export async function buildHorizon({
     db.getAll('wantlist'),
   ])
 
-  const candidates = only ?? selectCandidates(collection, wantlist)
+  const candidates = only ?? (await allCandidates(collection, wantlist))
   const existing = new Map((await db.getAll('horizon')).map((chunk) => [chunk.key, chunk]))
 
   let done = 0
@@ -163,6 +166,23 @@ export async function buildHorizon({
 }
 
 /**
+ * Everything worth expanding: what the collection points at, plus the people
+ * the credit harvest turned up.
+ *
+ * Credits go last. They are the weakest claim of the four — somebody who
+ * engineered three of your favourites, not somebody whose records you buy —
+ * and an interrupted first run should have spent itself on the rest.
+ */
+async function allCandidates(
+  collection: CollectionItem[],
+  wantlist: WantlistItem[],
+): Promise<Candidate[]> {
+  const base = selectCandidates(collection, wantlist)
+  const selected = new Set(base.filter((c) => c.kind === 'artist').map((c) => c.id))
+  return [...base, ...creditCandidates((await getMeta('credits')) ?? null, selected)]
+}
+
+/**
  * A day's worth of revalidation, and nothing more.
  *
  * Runs on the entities that have aged past the TTL, oldest first, capped at
@@ -200,7 +220,7 @@ export async function horizonRevalidationPlan(
   ])
 
   return planRevalidation({
-    candidates: selectCandidates(collection, wantlist),
+    candidates: await allCandidates(collection, wantlist),
     chunks,
     now,
     lastRunAt: (await getMeta('syncState'))?.horizonRevalidatedAt ?? null,
@@ -217,7 +237,7 @@ export async function horizonStatus(now: number = Date.now()) {
     db.getAll('horizon'),
   ])
 
-  const candidates = selectCandidates(collection, wantlist)
+  const candidates = await allCandidates(collection, wantlist)
   const fresh = new Set(
     chunks.filter((chunk) => now - chunk.fetchedAt < HORIZON_TTL_MS).map((chunk) => chunk.key),
   )

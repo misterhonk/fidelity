@@ -125,7 +125,7 @@ in S9 gefunden (siehe `docs/04` §S9).
 **Ziel:** Die fünf teuren Signale freischalten – ohne Volldump, ohne XML-Parser.
 
 - [x] Relevante Entitäten ermitteln (Künstler ≥ 2 Platten · Labels · Wantlist-Master)
-- [ ] **Credits mit Lift ≥ 3 als eigene Entitäten** — siehe offene Frage unten
+- [x] **Credits als eigene Entitäten** — geerntet von den Lieblingsplatten
 - [x] Expansion über `/artists/{id}/releases`, `/labels/{id}/releases`,
       `/masters/{id}/versions`
 - [x] `role`-Feld auswerten (`Main`, `Producer`, `Remix`, `Engineer`, …)
@@ -151,21 +151,28 @@ in S9 gefunden (siehe `docs/04` §S9).
 - Der Credit-Explorer kostet **null Requests**. Er gruppiert nur um, was der
   Horizont ohnehin weiß.
 
-> ### ⚠️ Offen: wie werden Credit-Personen überhaupt gefunden?
+> ### Wie Credit-Personen gefunden werden
 >
 > `docs/11` §3 wählt „Personen mit Lift ≥ 3 in der Sammlung" als vierte
-> Entitätenklasse. Um den Lift einer Person zu kennen, muss man wissen, wie oft
-> sie in der Sammlung vorkommt — und das steht in `extraartists`, das es nur in
-> `/releases/{id}` gibt. Ein Durchlauf über 2.412 Platten sind 2.412 Requests
-> (~48 Min), und CLAUDE.md Regel 2 verbietet genau dieses Muster.
+> Entitätenklasse, sagt aber nicht, wie man sie findet. Man kann es auch nicht
+> billig: `extraartists` steht ausschließlich in `/releases/{id}`, ein
+> Durchlauf über 2.412 Platten wären 2.412 Requests (~48 Min) — genau das
+> Muster, das CLAUDE.md Regel 2 verbietet.
 >
-> **Heute funktioniert S8 trotzdem**, aber nur für Personen, von denen die
-> Sammlung ≥ 2 eigene Platten hat: deren Chunk enthält auch ihre Produktionen
-> für andere. Was fehlt, ist der Fall „Conny Plank hat 9 deiner Platten
-> produziert, du besitzt aber keine *von* ihm".
+> **Gelöst über die Lieblingsplatten:** geerntet werden nur Platten mit
+> **4 oder 5 Sternen**. Die sind ein paar hundert statt ein paar tausend, es
+> sind genau die, deren Produktion einen interessiert, und der Lauf ist
+> begrenzt, wiederaufnehmbar und wird von Hand gestartet.
 >
-> Die Docs sagen nicht, wie diese Personen entdeckt werden sollen. Das ist eine
-> Lücke in `docs/11`, keine im Code.
+> **Aus „Lift ≥ 3" wurde „auf ≥ 3 Lieblingsplatten".** Ein Lift braucht einen
+> Nenner — wie oft eine Person in Musik allgemein vorkommt —, den kein Browser
+> messen kann. Der Label-Lift hat einen, weil Katalogumfänge bei der Expansion
+> gratis mitkommen; bei einer Person käme der Umfang erst *nach* der
+> Entscheidung, sie zu expandieren. Also eine schlichte Anzahl, mit der Zahl
+> aus dem Dokument.
+>
+> ⚠️ **Voraussetzung: bewertete Platten.** Wer bei Discogs keine Sterne vergibt,
+> bekommt hier nichts — der Screen sagt das und nennt den Grund.
 
 **Kein Download, kein Parser, kein Wartungstermin.** Siehe `11-KATALOG-STRATEGIE.md`.
 

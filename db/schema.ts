@@ -3,6 +3,7 @@ import type { DBSchema } from 'idb'
 import type {
   BasketItem,
   CollectionItem,
+  CreditHarvest,
   Dealer,
   Dig,
   Feedback,
@@ -32,6 +33,7 @@ export type MetaValue =
   | { key: 'preferences'; value: Preferences }
   | { key: 'tasteProfile'; value: TasteProfile }
   | { key: 'syncState'; value: SyncState }
+  | { key: 'credits'; value: CreditHarvest }
 
 export type MetaKey = MetaValue['key']
 

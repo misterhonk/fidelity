@@ -17,6 +17,8 @@ import type {
   BasketPlan,
   BasketView,
   CreditGroup,
+  CreditHarvest,
+  CreditPerson,
   Dealer,
   Dig,
   Feedback,
@@ -101,6 +103,18 @@ export interface WorkerContract {
     progress: HorizonProgress
     result: HorizonResult & { stale: number; reason: string }
   }
+  /**
+   * Reads the credits off the records you rated highest. One request each,
+   * bounded, resumable — what makes "Conny Plank hat 9 deiner Platten
+   * produziert" answerable at all (docs/11 §3).
+   */
+  'credits.harvest': {
+    params: { limit?: number }
+    progress: HarvestProgress
+    result: CreditHarvest
+  }
+  'credits.status': { params: undefined; progress: never; result: CreditStatus }
+
   /**
    * Stage two of the master/release two-step: the pressings the last dig
    * showed were missing. One request each, and permanent (docs/11 §4).
@@ -202,6 +216,25 @@ export interface DealerProfile {
    */
   priceFactor: number | null
   scannedDealers: number
+}
+
+export interface HarvestProgress {
+  done: number
+  total: number
+  requests: number
+  current: string
+  people: number
+  etaMs: number
+}
+
+export interface CreditStatus {
+  /** Records rated 4 or 5 — how big the job is at all. */
+  favourites: number
+  harvested: number
+  harvestedAt: number | null
+  /** People appearing often enough to be worth expanding. */
+  worthExpanding: number
+  people: CreditPerson[]
 }
 
 export interface HorizonStatus {

@@ -158,6 +158,34 @@ export const handlers: HandlerMap = {
     return { ...result, stale: plan.stale, reason: plan.reason }
   },
 
+  'credits.harvest': async ({ limit }, { report, signal }) => {
+    const { harvestCredits } = await import('./horizon/credits')
+    const harvest = await harvestCredits({
+      client: discogs(),
+      report: (progress) => report(progress),
+      signal,
+      limit,
+    })
+    // New people mean new candidates; the status screen has to see that.
+    forgetLookup()
+    return harvest
+  },
+
+  'credits.status': async () => {
+    const { creditCandidates, MIN_RATING } = await import('./horizon/credits')
+    const db = await openFidelityDb()
+    const collection = await db.getAll('collection')
+    const harvest = (await getMeta('credits')) ?? null
+
+    return {
+      favourites: collection.filter((item) => item.rating >= MIN_RATING).length,
+      harvested: harvest?.harvestedReleaseIds.length ?? 0,
+      harvestedAt: harvest?.harvestedAt ?? null,
+      worthExpanding: creditCandidates(harvest, new Set()).length,
+      people: (harvest?.people ?? []).slice(0, 20),
+    }
+  },
+
   'horizon.fillGaps': async (_params, { report, signal }) => {
     const misses = takeNearMisses()
     if (misses.length === 0) return { expanded: 0, requests: 0, titles: [] }
