@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { DbStats } from '#shared/protocol'
+
 useSeoMeta({
   title: 'Championship',
   description: 'Fidelity – der Verkäufer hinter der Theke für dein Discogs-Sortiment.',
@@ -19,6 +21,26 @@ const signals = [
   { key: 'price', label: 'Preis' },
   { key: 'scarcity', label: 'Seltenheit' },
 ]
+
+const { call } = useFidelityWorker()
+const status = ref('Worker startet …')
+const stats = ref<DbStats | null>(null)
+
+onMounted(async () => {
+  try {
+    // Round-trip through the worker, then a read out of IndexedDB from inside
+    // it. If both come back, main thread, worker and storage are wired up.
+    const pong = await call('ping', { echo: 'm0' })
+    stats.value = await call('db.stats', undefined)
+    status.value = pong.echo === 'm0' ? 'Worker bereit' : 'Worker antwortet falsch'
+  } catch (error) {
+    status.value = `Worker nicht erreichbar: ${error instanceof Error ? error.message : error}`
+  }
+})
+
+const storedRecords = computed(() =>
+  stats.value ? Object.values(stats.value.counts).reduce((sum, n) => sum + n, 0) : null,
+)
 </script>
 
 <template>
@@ -45,5 +67,12 @@ const signals = [
         {{ signal.label }}
       </li>
     </ul>
+
+    <p class="text-fid-sm text-fid-text-muted" data-testid="wiring-status" aria-live="polite">
+      {{ status
+      }}<template v-if="storedRecords !== null">
+        · IndexedDB: <span class="fid-num">{{ storedRecords }}</span> Einträge</template
+      >
+    </p>
   </main>
 </template>

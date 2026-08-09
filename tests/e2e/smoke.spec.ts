@@ -26,6 +26,15 @@ test.describe('smoke', () => {
     expect(signalColour).not.toBe('')
   })
 
+  test('the worker answers and can read IndexedDB', async ({ page }) => {
+    await page.goto('/')
+
+    // Round-trip main → worker → IndexedDB → back. Nothing stubbed: this is
+    // the actual module worker running against the browser's own storage.
+    await expect(page.getByTestId('wiring-status')).toContainText('Worker bereit')
+    await expect(page.getByTestId('wiring-status')).toContainText('IndexedDB: 0 Einträge')
+  })
+
   test('the entry screen has no axe violations', async ({ page }) => {
     await page.goto('/')
 

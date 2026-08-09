@@ -19,7 +19,8 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "#shared/*": ["./shared/*"]
+      "#shared/*": ["./shared/*"],
+      "~~/*": ["./*"]
     }
   },
   "include": ["db/**/*", "worker/**/*", "shared/**/*"]
