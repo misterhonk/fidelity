@@ -7,7 +7,7 @@ const { call } = useFidelityWorker()
 
 const token = ref('')
 const busy = ref(false)
-const error = ref<string | null>(null)
+const error = ref<unknown>(null)
 
 async function submit() {
   if (busy.value) return
@@ -19,10 +19,7 @@ async function submit() {
     // Not kept a moment longer than the request needs it.
     token.value = ''
   } catch (cause) {
-    error.value =
-      cause instanceof Error && cause.message
-        ? cause.message
-        : 'Der Token wurde nicht akzeptiert.'
+    error.value = cause
   } finally {
     busy.value = false
   }
@@ -74,9 +71,9 @@ async function submit() {
         Der Token bleibt in der IndexedDB dieses Geräts. Er wird nie geloggt, nie in eine URL
         geschrieben und an niemanden weitergegeben.
       </p>
-      <p v-if="error" id="token-error" role="alert" class="text-fid-sm text-fid-sig-scarcity">
-        {{ error }}
-      </p>
+      <div v-if="error" id="token-error">
+        <ErrorNote :cause="error" />
+      </div>
     </div>
 
     <button

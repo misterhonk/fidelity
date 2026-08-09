@@ -31,25 +31,37 @@ if (entryAssets.length === 0) {
  * The worker's start-up cost: its entry chunk plus everything it *statically*
  * imports, transitively.
  *
- * Following the imports is the whole point. `worker.format: 'es'` lets Vite
- * split the worker, and a naive measurement of the entry file alone rewards
- * exactly the wrong thing: pushing code into a sibling chunk the entry loads
- * anyway reads as a 19 kB saving and changes nothing a user would notice. A
- * budget that can be satisfied by moving bytes sideways is not a budget.
+ * The entry is found the only way that cannot drift: Vite writes the worker's
+ * filename into the chunk that constructs it, as
+ * `new Worker(new URL("index-<hash>.js", import.meta.url))`. Reading it from
+ * there is reading the build's own answer.
  *
- * `import("./x.js")` is excluded — that is a real deferral, fetched only when
- * a handler needs it. `import "./x.js"` and `from "./x.js"` are not.
+ * It used to be found by searching every chunk for "api.discogs.com", on the
+ * grounds that only the worker talks to Discogs. Then a privacy page mentioned
+ * the hostname in prose, the search matched a page chunk, and the budget
+ * reported 54 kB of things the worker never loads. A heuristic that any German
+ * sentence can break is not a measurement.
+ *
+ * Following the imports matters just as much. `worker.format: 'es'` lets Vite
+ * split the worker, and measuring the entry alone rewards pushing code into a
+ * sibling chunk the entry loads anyway — a saving on paper and nothing a user
+ * would notice. `import("./x.js")` is excluded; that is a real deferral.
  */
 const WORKER_DIR = '.output/public/_nuxt'
 
-const workerEntry = readdirSync(WORKER_DIR)
+const chunkFiles = readdirSync(WORKER_DIR)
   .filter((file) => file.endsWith('.js'))
   .map((file) => `${WORKER_DIR}/${file}`)
-  .find((file) => readFileSync(file, 'utf8').includes('api.discogs.com'))
+
+const workerEntry = chunkFiles
+  .map((file) => /new Worker\(new URL\([^)]*?["'`]([\w.-]+\.js)["'`]/.exec(readFileSync(file, 'utf8'))?.[1])
+  .find((name) => name !== undefined)
 
 if (!workerEntry) {
-  throw new Error('worker chunk not found — did the Discogs client move?')
+  throw new Error('worker entry not found — did `new Worker(new URL(...))` change shape?')
 }
+
+const workerPath = `${WORKER_DIR}/${workerEntry}`
 
 function staticImports(file) {
   const code = readFileSync(file, 'utf8')
@@ -69,8 +81,8 @@ function staticImports(file) {
     .map((specifier) => `${WORKER_DIR}/${specifier.replace(/^\.+\//, '')}`)
 }
 
-const workerChunks = new Set([workerEntry])
-const queue = [workerEntry]
+const workerChunks = new Set([workerPath])
+const queue = [workerPath]
 
 while (queue.length > 0) {
   for (const next of staticImports(queue.pop())) {

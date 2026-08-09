@@ -82,7 +82,7 @@ const complete = computed(
 </script>
 
 <template>
-  <section class="flex flex-col gap-4" aria-labelledby="horizon-heading">
+  <section class="scroll-mt-6 flex flex-col gap-4" aria-labelledby="horizon-heading">
     <h2 id="horizon-heading" class="text-fid-xl font-bold text-fid-text">Der Horizont</h2>
 
     <p class="max-w-prose text-fid-base text-fid-text-muted">

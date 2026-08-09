@@ -30,6 +30,14 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  app: {
+    head: {
+      // Nothing here is meant for a search index (docs/00 §9). robots.txt asks
+      // politely; this is the part crawlers actually honour.
+      meta: [{ name: 'robots', content: 'noindex, nofollow' }],
+    },
+  },
+
   pwa: {
     // Never 'autoUpdate'. A silent skipWaiting would swap the code out from
     // under a running dig — four minutes of scanning, gone. The user gets

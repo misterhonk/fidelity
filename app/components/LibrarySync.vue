@@ -44,7 +44,7 @@ const formatDate = (at: number | null) =>
 </script>
 
 <template>
-  <section class="flex flex-col gap-4" aria-labelledby="sync-heading">
+  <section id="library" class="scroll-mt-6 flex flex-col gap-4" aria-labelledby="sync-heading">
     <h2 id="sync-heading" class="text-fid-xl font-bold text-fid-text">Deine Daten</h2>
 
     <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-fid-sm">

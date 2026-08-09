@@ -1,0 +1,6 @@
+# Fidelity ist ein privates Werkzeug für einen Freundeskreis, kein
+# öffentliches Angebot (docs/00 §9). Es gibt nichts zu indexieren: hinter der
+# Startseite liegt eine Anmeldung, und alle Inhalte entstehen erst im Browser
+# des Nutzers.
+User-agent: *
+Disallow: /

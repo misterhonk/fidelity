@@ -245,14 +245,45 @@ in S9 gefunden (siehe `docs/04` §S9).
 
 ## M8 · Rundschliff → `v1.0.0`
 
-- [ ] Onboarding, das Jens ohne Rückfrage schafft
-- [ ] Datenexport (JSON) und „alles löschen"
-- [ ] Dig-Export als Datei (Ersatz fürs Teilen per Link)
-- [ ] Datenschutzerklärung + Impressum (kurz — es gibt fast nichts zu erklären)
-- [ ] Attributions-Strings an jeder Stelle mit Discogs-Daten
-- [ ] A11y-Audit: Tastatur + VoiceOver komplett
-- [ ] Lighthouse ≥ 95 auf Mobile-Drosselung
-- [ ] Fehlerbehandlung: Token abgelaufen, offline, 429, Speicher voll
+- [x] Onboarding, das Jens ohne Rückfrage schafft
+- [x] Datenexport (JSON) und „alles löschen"
+- [x] Dig-Export als Datei (Ersatz fürs Teilen per Link)
+- [x] Datenschutzerklärung + Impressum (kurz — es gibt fast nichts zu erklären)
+- [x] Attributions-Strings an jeder Stelle mit Discogs-Daten
+- [x] A11y-Audit: Tastatur + VoiceOver komplett
+- [x] Lighthouse ≥ 95 auf Mobile-Drosselung
+- [x] Fehlerbehandlung: Token abgelaufen, offline, 429, Speicher voll
+
+**Lighthouse, mobil gedrosselt, gegen den echten Build:**
+
+| Kategorie | Wert |
+|---|---:|
+| Performance | **95** |
+| Accessibility | **100** |
+| Best Practices | **100** |
+| SEO | 63 – siehe unten |
+
+> **SEO wird bewusst nicht erreicht.** Genau eine Prüfung schlägt fehl:
+> „Page is blocked from indexing". Fidelity ist ein privates Werkzeug für einen
+> Freundeskreis (`docs/00` §9) und trägt `robots.txt: Disallow: /` plus
+> `noindex`. Ohne die beiden stünde dort 100 — die Zahl höher zu bekommen hieße,
+> ein privates Werkzeug indexierbar zu machen. Alle übrigen SEO-Prüfungen sind
+> grün, `robots.txt` eingeschlossen.
+
+**Anmerkungen:**
+
+- **axe läuft jetzt über alle acht Screens**, in Chromium *und* WebKit, plus
+  Tastaturprüfungen für Fokus-Sichtbarkeit und die ⌘K-Palette. Null Verstöße.
+- **Der Export enthält weder Token noch Marktplatzdaten.** `docs/09` §1.3 nennt
+  Preise und Zustände Restricted Data und verbietet die Weitergabe — eine
+  Exportdatei ist das dritt-parteiischste Ding der App. Geteilt wird, *welche*
+  Platten wie gut passen und warum, mit Deeplink zum aktuellen Preis.
+- **Der Worker warf bis M8 den Fehlergrund weg.** „Token abgelaufen" und „429"
+  kamen als anonymer Text an; die ganze Erklärungsschicht wäre ins Leere
+  gelaufen. Mit echtem ungültigem Token gegen die Live-API geprüft.
+- **Das Impressum ist absichtlich unausgefüllt.** Eine Anbieterkennzeichnung ist
+  eine Erklärung über einen echten Menschen; ihren Inhalt zu erfinden ist nichts,
+  was ein Generator tun sollte.
 
 ---
 

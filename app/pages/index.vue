@@ -49,6 +49,7 @@ async function signOut() {
       <template v-else>
         <OfflineNotice />
         <WatchBanner />
+        <NextStep />
 
         <LibrarySync />
 
