@@ -13,7 +13,7 @@
  * The Personal Access Token crosses it exactly once, on sign-in. It never
  * comes back the other way (CLAUDE.md rule 6).
  */
-import type { Identity } from './types'
+import type { Identity, TasteProfile } from './types'
 
 export interface PingResult {
   pong: true
@@ -51,6 +51,8 @@ export interface WorkerContract {
    */
   'library.sync': { params: undefined; progress: SyncProgress; result: SyncResult }
   'library.summary': { params: undefined; progress: never; result: LibrarySummary }
+  /** Recomputed after every sync; null until there has been one. */
+  'taste.profile': { params: undefined; progress: never; result: TasteProfile | null }
 }
 
 export interface SyncProgress {

@@ -1,3 +1,4 @@
+import { openDB } from 'idb'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { DIG_TTL_MS, expireDigs, pruneDigs } from '~~/db/expire'
@@ -175,5 +176,54 @@ describe('dig history', () => {
     await db.put('digs', dig('01A'))
 
     expect(await pruneDigs(db)).toEqual([])
+  })
+})
+
+describe('the v1 → v2 migration', () => {
+  it('drops mirrored rows written before artistNames existed', async () => {
+    // A v1 database, built the way the shipped code built it.
+    const legacy = await openDB('fidelity', 1, {
+      upgrade(db) {
+        db.createObjectStore('meta', { keyPath: 'key' })
+        db.createObjectStore('collection', { keyPath: 'releaseId' }).createIndex(
+          'by-master',
+          'masterId',
+        )
+        db.createObjectStore('wantlist', { keyPath: 'releaseId' }).createIndex(
+          'by-master',
+          'masterId',
+        )
+        db.createObjectStore('horizon', { keyPath: 'key' })
+        db.createObjectStore('dealers', { keyPath: 'username' })
+        db.createObjectStore('digs', { keyPath: 'id' })
+        db.createObjectStore('matches', { keyPath: ['digId', 'listingId'] }).createIndex(
+          'by-dig-score',
+          ['digId', 'score'],
+        )
+        db.createObjectStore('basket', { keyPath: 'listingId' })
+        db.createObjectStore('feedback', { keyPath: 'listingId' })
+      },
+    })
+    // No artistNames, no labelNames — exactly what v1 stored.
+    await legacy.put('collection', {
+      releaseId: 1,
+      masterId: 0,
+      title: 'Wighnomy EP',
+      artistIds: [1],
+      artistNorms: ['wighnomy brothers'],
+      labelIds: [5],
+      labelNorms: ['freude am tanzen'],
+    })
+    await legacy.put('meta', { key: 'syncState', value: { lastCollectionAdd: '2026-08-09' } })
+    await legacy.put('meta', { key: 'token', value: 'a-personal-access-token' })
+    legacy.close()
+
+    const db = await openFidelityDb()
+
+    // Refetchable data goes; the token does not — that would sign the user out
+    // for a schema change they never asked for.
+    expect(await db.count('collection')).toBe(0)
+    expect(await db.get('meta', 'syncState')).toBeUndefined()
+    expect(await db.get('meta', 'token')).toBeDefined()
   })
 })

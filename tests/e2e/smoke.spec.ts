@@ -40,6 +40,18 @@ test.describe('smoke', () => {
     expect(accent).not.toBe('')
   })
 
+  test('the map says what to do instead of showing empty bars', async ({ page }) => {
+    await page.goto('/landkarte')
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Deine Landkarte' })).toBeVisible()
+    await expect(page.getByText('Noch kein Profil')).toBeVisible()
+
+    const { violations } = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+      .analyze()
+    expect(violations.map((v) => `${v.id}: ${v.help}`)).toEqual([])
+  })
+
   test('the entry screen has no axe violations', async ({ page }) => {
     await page.goto('/')
     await expect(page.getByRole('heading', { name: 'Token eintragen' })).toBeVisible()

@@ -66,13 +66,23 @@ const formatDate = (at: number | null) =>
 
     <p v-if="error" role="alert" class="text-fid-sm text-fid-sig-scarcity">{{ error }}</p>
 
-    <button
-      type="button"
-      :disabled="running"
-      class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-n-990 disabled:opacity-50"
-      @click="sync"
-    >
-      {{ summary?.collectionSyncedAt ? 'Neu synchronisieren' : 'Sammlung synchronisieren' }}
-    </button>
+    <div class="flex flex-wrap items-center gap-3">
+      <button
+        type="button"
+        :disabled="running"
+        class="rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-n-990 disabled:opacity-50"
+        @click="sync"
+      >
+        {{ summary?.collectionSyncedAt ? 'Neu synchronisieren' : 'Sammlung synchronisieren' }}
+      </button>
+
+      <NuxtLink
+        v-if="(summary?.collection ?? 0) > 0"
+        to="/landkarte"
+        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+      >
+        Deine Landkarte
+      </NuxtLink>
+    </div>
   </section>
 </template>

@@ -1,8 +1,9 @@
-import { getSyncState } from '~~/db/meta'
+import { getMeta, getSyncState, setMeta } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
 
 import { currentIdentity, discogs, requestPersistence, signIn, signOut } from './auth'
+import { computeTasteProfile } from './match/taste'
 import { syncLibrary } from './sync/library'
 
 /**
@@ -69,13 +70,25 @@ export const handlers: HandlerMap = {
     if (!identity) throw new Error('Nicht angemeldet.')
 
     await requestPersistence()
-    return syncLibrary({
+    const result = await syncLibrary({
       client: discogs(),
       username: identity.username,
       report: (progress) => report(progress),
       signal,
     })
+
+    // Recomputed here rather than during a dig: a dig has a two-minute budget
+    // and this is not part of it.
+    const db = await openFidelityDb()
+    await setMeta(
+      'tasteProfile',
+      computeTasteProfile(await db.getAll('collection'), Date.now()),
+    )
+
+    return result
   },
+
+  'taste.profile': async () => (await getMeta('tasteProfile')) ?? null,
 
   'library.summary': async () => {
     const db = await openFidelityDb()

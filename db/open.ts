@@ -14,7 +14,7 @@ let handle: Promise<FidelityDatabase> | undefined
  */
 export function openFidelityDb(): Promise<FidelityDatabase> {
   handle ??= openDB<FidelityDB>(DB_NAME, DB_VERSION, {
-    upgrade(db, oldVersion) {
+    upgrade(db, oldVersion, _newVersion, tx) {
       if (oldVersion < 1) {
         db.createObjectStore('meta', { keyPath: 'key' })
 
@@ -33,6 +33,21 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
 
         db.createObjectStore('basket', { keyPath: 'listingId' })
         db.createObjectStore('feedback', { keyPath: 'listingId' })
+      }
+
+      if (oldVersion > 0 && oldVersion < 2) {
+        // v2 added artistNames/labelNames to the mirrored rows. Rows written
+        // by v1 lack them, and code that reads a field the data does not have
+        // fails in whatever place happens to touch it first.
+        //
+        // Dropping and refetching is the right migration here, not a
+        // workaround: every row is reproducible from the API, so this costs a
+        // resync and nothing else. Clearing the watermark is what makes the
+        // next sync a full walk rather than a delta over a hole.
+        tx.objectStore('collection').clear()
+        tx.objectStore('wantlist').clear()
+        tx.objectStore('meta').delete('syncState')
+        tx.objectStore('meta').delete('tasteProfile')
       }
 
       // Future versions go here. The rule: never migrate destructively unless

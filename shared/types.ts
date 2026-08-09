@@ -93,28 +93,44 @@ export interface Identity {
   avatarUrl: string
 }
 
-/**
- * Weighted distribution of one facet of the collection.
- * `lift` = share in this collection / share globally. Above 1 means it is
- * collected on purpose rather than by accident.
- */
+/** One facet of the collection: how much of it is this thing. */
 export interface TasteFacet {
+  /** Readable, for the map and the reason sentences. */
+  name: string
+  /** Releases in the collection carrying it. */
   n: number
+  /** n / releaseCount — share within this collection. */
   weight: number
-  lift: number
+  /**
+   * Share here divided by share globally; above 1 means it is collected on
+   * purpose rather than by accident (docs/04 §S5).
+   *
+   * null until the horizon can supply the denominator. The catalog dumps that
+   * would have provided it are gone with ADR-007, and the per-entity release
+   * counts only arrive with the horizon expansion in M2 — so LABEL_AFFINITY
+   * cannot fire before then, and pretending otherwise would mean inventing a
+   * number that silently steers the score.
+   */
+  lift: number | null
 }
 
-/** Barry's knowledge base. Recomputed after every collection sync (M1). */
+/**
+ * Barry's knowledge base. Recomputed after every collection sync, never during
+ * a dig — a dig has a two-minute budget and none of it belongs here.
+ *
+ * No country facet: basic_information does not carry one (docs/02 §4).
+ * No credits facet: those come out of the horizon (M2+).
+ */
 export interface TasteProfile {
   computedAt: number
   releaseCount: number
+  /** Keyed by Discogs id. */
   artists: Record<string, TasteFacet>
   labels: Record<string, TasteFacet>
+  /** Keyed by the name itself. */
   styles: Record<string, TasteFacet>
   genres: Record<string, TasteFacet>
   decades: Record<string, TasteFacet>
-  countries: Record<string, TasteFacet>
-  credits: Record<string, TasteFacet>
   /** Normalised style centroid, for the style-adjacency signal (M3). */
   styleCentroid: Record<string, number>
 }
@@ -131,8 +147,15 @@ export interface CollectionItem {
   artistIds: number[]
   /** Normalised once at sync time — that is the difference between 40 ms and 40 ms per dig. */
   artistNorms: string[]
+  /**
+   * Kept alongside the normalised form, unlike docs/03 §3: the map and the
+   * reason sentences have to say "AC/DC", and "ac dc" cannot be turned back
+   * into it. Costs roughly 70 KB for 2.400 releases.
+   */
+  artistNames: string[]
   labelIds: number[]
   labelNorms: string[]
+  labelNames: string[]
   catnos: string[]
   genres: string[]
   styles: string[]
