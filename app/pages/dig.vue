@@ -369,6 +369,8 @@ const expired = computed(() => {
           </ul>
         </section>
 
+        <CreditExplorer :dig-id="result.dig.id" />
+
         <section
           v-if="rest.length > 0"
           class="flex flex-col gap-3"

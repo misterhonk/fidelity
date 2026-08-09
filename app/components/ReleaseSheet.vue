@@ -222,47 +222,7 @@ function onKeydown(event: KeyboardEvent) {
           </ul>
         </section>
 
-        <!--
-          The catalogue series as a grid. This is the one view where the
-          horizon shows its work: Brain 1001, 1002, 1004, 1005 filled in and
-          1003 the gap you are looking at.
-        -->
-        <section
-          v-if="detail?.catalogue"
-          class="flex flex-col gap-2"
-          aria-labelledby="sheet-run"
-        >
-          <h3 id="sheet-run" class="text-fid-sm font-medium text-fid-text">
-            {{ detail.catalogue.label }} · {{ detail.catalogue.prefix }}
-          </h3>
-          <!-- CSS Grid, not a chart library (docs/12 §2). -->
-          <ul class="grid grid-cols-[repeat(auto-fill,minmax(3.5rem,1fr))] gap-1">
-            <li
-              v-for="entry in detail.catalogue.neighbours"
-              :key="entry.number"
-              class="fid-num rounded-fid-sm border px-1 py-1 text-center text-fid-xs"
-              :class="[
-                entry.isThis
-                  ? 'border-fid-accent bg-fid-accent/20 text-fid-text'
-                  : entry.owned
-                    ? 'border-fid-border bg-fid-n-800 text-fid-text'
-                    : 'border-transparent text-fid-text-muted',
-              ]"
-              :aria-label="
-                entry.isThis
-                  ? `${entry.number} – diese Platte`
-                  : entry.owned
-                    ? `${entry.number} – hast du`
-                    : `${entry.number} – fehlt dir`
-              "
-            >
-              {{ entry.number }}
-            </li>
-          </ul>
-          <p class="text-fid-xs text-fid-text-muted">
-            Ausgefüllt = im Regal. Umrandet = diese Platte.
-          </p>
-        </section>
+        <CatalogRunGrid v-if="detail?.catalogue" :run="detail.catalogue" />
 
         <section
           v-if="detail && detail.discography.length > 0"

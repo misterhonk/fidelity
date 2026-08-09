@@ -16,6 +16,7 @@
 import type {
   BasketPlan,
   BasketView,
+  CreditGroup,
   Dealer,
   Dig,
   Feedback,
@@ -136,6 +137,11 @@ export interface WorkerContract {
   }
   /** Every shop you have scanned, best first. */
   'dealer.list': { params: undefined; progress: never; result: Dealer[] }
+  /**
+   * The credit graph, regrouped by person. Costs nothing: every edge was paid
+   * for when the horizon was built.
+   */
+  'dig.credits': { params: { digId: string }; progress: never; result: CreditGroup[] }
   /** Every dig, newest first — what the command palette offers to jump to. */
   'dig.list': { params: undefined; progress: never; result: Dig[] }
 

@@ -308,6 +308,11 @@ export const handlers: HandlerMap = {
     return planBasket(await candidatesFor(dealer), tiers, budget)
   },
 
+  'dig.credits': async ({ digId }) => {
+    const { creditGroups } = await import('./dig/credits')
+    return creditGroups(digId)
+  },
+
   'dig.list': async () => {
     const db = await openFidelityDb()
     // The id is a sortable timestamp prefix, so this needs no index.

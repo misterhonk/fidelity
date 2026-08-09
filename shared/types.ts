@@ -349,6 +349,31 @@ export interface Dealer {
  * has that scores well, so "noch eine Platte spart X" can be acted on without
  * a second round trip.
  */
+/**
+ * One person and everything of theirs a dealer has (docs/00 §5).
+ *
+ * The credit graph is the feature nothing else consumes, and a sentence on a
+ * card only ever shows one record of it at a time. This is the regroup that
+ * answers the obvious next question.
+ */
+export interface CreditGroup {
+  entityId: number
+  name: string
+  /** Main releases of theirs already on the shelf. */
+  owned: number
+  total: number
+  matches: {
+    listingId: number
+    releaseId: number
+    title: string
+    score: number
+    price: number | null
+    currency: string | null
+    /** 'Main' for their own record, otherwise Producer, Remix, Engineer … */
+    role: string
+  }[]
+}
+
 export interface BasketView {
   summary: BasketSummary | null
   listingIds: number[]

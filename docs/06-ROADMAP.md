@@ -124,20 +124,48 @@ in S9 gefunden (siehe `docs/04` §S9).
 
 **Ziel:** Die fünf teuren Signale freischalten – ohne Volldump, ohne XML-Parser.
 
-- [ ] Relevante Entitäten ermitteln (Künstler ≥ 2 Platten · Labels Lift ≥ 2 und
-      < 1.500 Releases · Wantlist-Master · Credits mit Lift ≥ 3)
-- [ ] Expansion über `/artists/{id}/releases`, `/labels/{id}/releases`,
+- [x] Relevante Entitäten ermitteln (Künstler ≥ 2 Platten · Labels · Wantlist-Master)
+- [ ] **Credits mit Lift ≥ 3 als eigene Entitäten** — siehe offene Frage unten
+- [x] Expansion über `/artists/{id}/releases`, `/labels/{id}/releases`,
       `/masters/{id}/versions`
-- [ ] `role`-Feld auswerten (`Main`, `Producer`, `Remix`, `Engineer`, …)
-- [ ] Master/Release-Zweischritt: `main_release` sofort, `versions` bedarfsgesteuert nach
-- [ ] Packen als `Int32Array`/`Uint8Array`-Parallelarrays (~1,4 MB statt ~9 MB)
-- [ ] Fortschrittsanzeige für die Ersteinrichtung (~670 Requests ≈ 13 Min),
+- [x] `role`-Feld auswerten (`Main`, `Producer`, `Remix`, `Engineer`, …)
+- [x] Master/Release-Zweischritt: `main_release` sofort, `versions` bedarfsgesteuert nach
+- [x] Packen als `Int32Array`/`Uint8Array`-Parallelarrays (~1,4 MB statt ~9 MB)
+- [x] Fortschrittsanzeige für die Ersteinrichtung (~670 Requests ≈ 13 Min),
       häppchenweise und reload-fest
-- [ ] Revalidierung alle 30 Tage, gestaffelt
-- [ ] Signale **S2** (Pressing), **S4** (Diskografie-Lücke), **S6** (Katalogserie),
+- [x] Revalidierung alle 30 Tage, gestaffelt
+- [x] Signale **S2** (Pressing), **S4** (Diskografie-Lücke), **S6** (Katalogserie),
       **S8** (Credit-Graph), **S9** (Format-Upgrade)
-- [ ] `CatalogRunGrid`-Komponente
-- [ ] Credit-Graph-Explorer: „Alle Conny-Plank-Produktionen bei diesem Händler"
+- [x] `CatalogRunGrid`-Komponente
+- [x] Credit-Graph-Explorer: „Alle Conny-Plank-Produktionen bei diesem Händler"
+
+**Anmerkungen:**
+
+- Der **Lift ≥ 2 / < 1.500 Releases**-Filter für Labels kann die Auswahl nicht
+  steuern: beide Zahlen entstehen erst in der Expansion. Die billige Bedingung
+  wählt aus, die Expansion bricht ein zu großes Label nach einer Seite ab und
+  markiert es als unvollständig.
+- Stufe 2 des Zweischritts sammelt Beinahetreffer **während** des Scans mit,
+  wie der Fingerprint — 20.000 Listings danach noch zu haben wären 40 MB.
+  Höchstens acht Master pro Dig, weil ein Beinahetreffer eine Vermutung ist.
+- Der Credit-Explorer kostet **null Requests**. Er gruppiert nur um, was der
+  Horizont ohnehin weiß.
+
+> ### ⚠️ Offen: wie werden Credit-Personen überhaupt gefunden?
+>
+> `docs/11` §3 wählt „Personen mit Lift ≥ 3 in der Sammlung" als vierte
+> Entitätenklasse. Um den Lift einer Person zu kennen, muss man wissen, wie oft
+> sie in der Sammlung vorkommt — und das steht in `extraartists`, das es nur in
+> `/releases/{id}` gibt. Ein Durchlauf über 2.412 Platten sind 2.412 Requests
+> (~48 Min), und CLAUDE.md Regel 2 verbietet genau dieses Muster.
+>
+> **Heute funktioniert S8 trotzdem**, aber nur für Personen, von denen die
+> Sammlung ≥ 2 eigene Platten hat: deren Chunk enthält auch ihre Produktionen
+> für andere. Was fehlt, ist der Fall „Conny Plank hat 9 deiner Platten
+> produziert, du besitzt aber keine *von* ihm".
+>
+> Die Docs sagen nicht, wie diese Personen entdeckt werden sollen. Das ist eine
+> Lücke in `docs/11`, keine im Code.
 
 **Kein Download, kein Parser, kein Wartungstermin.** Siehe `11-KATALOG-STRATEGIE.md`.
 
