@@ -85,6 +85,20 @@ const usage = computed(() => {
         <LibrarySync />
       </SettingsCard>
 
+      <!--
+        The filters sit right under the collection, because they are the next
+        thing somebody wants after seeing what Fidelity knows: not "what do I
+        have" but "what should it look for". Twelve of these were already read
+        by the matching engine and none of them could be set.
+      -->
+      <SettingsCard
+        anchor="filter"
+        title="Wonach gesucht wird"
+        description="Gilt für jeden Dig: was gar nicht erst auftaucht, und was nur weiter unten landet."
+      >
+        <MatchPreferences />
+      </SettingsCard>
+
       <SettingsCard
         anchor="horizon"
         title="Horizont"

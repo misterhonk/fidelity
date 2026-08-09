@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { getPreferences } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 import type { Match, Signal, TasteProfile } from '#shared/types'
 
@@ -148,6 +149,7 @@ export async function enrichTopMatches({
   // nothing would be worse than not running — but the market lookups are
   // still worth doing, so this only skips the style half.
   const wantStyles = Object.keys(centroid).length > 0
+  const { excludeReissues } = await getPreferences()
 
   // The album's own first year, per master. What turns "pressed 2015" into
   // "a 2015 pressing of a 1959 album" — a year on its own says nothing.
@@ -212,6 +214,12 @@ export async function enrichTopMatches({
       ...pressingContradictions(match.comments, pressing),
     ]
     if (warnings.length > 0) added = true
+
+    // "Originalpressungen bevorzugen", finally readable — this is the first
+    // moment in a dig where anybody knows whether a record is a reissue.
+    if (excludeReissues && pressing.statedReissue) {
+      context = { ...context, reissueAgainstPreference: true }
+    }
 
     const stats = await fetchStats(client, match, signal)
     requests += 1

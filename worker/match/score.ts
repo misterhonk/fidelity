@@ -39,6 +39,19 @@ export interface ScoreContext {
   priceAboveTarget?: boolean
   /** Clearly above the going rate. */
   priceSignalNegative?: boolean
+  /**
+   * A reissue, when the collector said they prefer originals.
+   *
+   * docs/03 §2 lists `excludeReissues` under the hard criteria, and it cannot
+   * be one: whether a record is a reissue comes out of `/releases/{id}`, which
+   * the scan never calls (CLAUDE.md rule 2). It is known only for the fifty
+   * records the enrichment pass looks at, and only afterwards.
+   *
+   * So it dampens rather than discards. That keeps docs/04 §2's rule intact —
+   * a criterion is one or the other, never both — and the interface says
+   * "zählt weniger" rather than promising something the data cannot deliver.
+   */
+  reissueAgainstPreference?: boolean
   alreadyInBasket?: boolean
 }
 
@@ -67,6 +80,7 @@ export function barryScore(signals: Signal[], ctx: ScoreContext = {}): number {
   if (ctx.conditionBelowPreference) score *= 0.4
   if (ctx.priceAboveTarget) score *= 0.55
   if (ctx.priceSignalNegative) score *= 0.75
+  if (ctx.reissueAgainstPreference) score *= 0.6
   if (ctx.alreadyInBasket) score = 0
 
   return Math.round(score)

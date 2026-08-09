@@ -159,3 +159,32 @@ describe('what M2 can actually reach', () => {
     expect(barryScore([signal('ARTIST_KNOWN'), signal('LABEL_AFFINITY', 0.8)])).toBe(57)
   })
 })
+
+describe('the soft dampeners, and why the reissue one is soft', () => {
+  const one = [signal('WANTLIST_EXACT')]
+
+  it('halves nothing on its own', () => {
+    expect(barryScore(one, {})).toBe(87)
+  })
+
+  it('dampens a reissue when originals are preferred', () => {
+    // docs/03 §2 lists excludeReissues under the *hard* criteria and it cannot
+    // be one: whether a record is a reissue comes from /releases/{id}, which
+    // the scan never calls (CLAUDE.md rule 2). It is known only for the fifty
+    // records the enrichment pass looks at, and only afterwards — so it
+    // dampens rather than discards, and the interface says "zählt weniger".
+    expect(barryScore(one, { reissueAgainstPreference: true })).toBe(52)
+  })
+
+  it('stacks with the other dampeners rather than replacing them', () => {
+    // 87 × 0,6 × 0,55 — somebody who wants originals and set a comfort price
+    // gets both answers, not the louder one.
+    expect(barryScore(one, { reissueAgainstPreference: true, priceAboveTarget: true })).toBe(29)
+  })
+
+  it('still loses to an empty basket entry', () => {
+    // Already in the basket wins over everything: there is nothing to
+    // recommend about a record you have already decided on.
+    expect(barryScore(one, { reissueAgainstPreference: true, alreadyInBasket: true })).toBe(0)
+  })
+})

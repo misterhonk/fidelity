@@ -77,6 +77,14 @@ wegzuwerfen ist bei 10.000 Listings pure Verschwendung.
 > | Zustand | **weich** – dämpfen ×0.4 | `pref_media_cond` |
 > | Wohlfühlpreis | **weich** – dämpfen ×0.55 | `target_price` |
 > | Negatives Preissignal | **weich** – dämpfen ×0.75 | – |
+> | Neuauflage | **weich** – dämpfen ×0.6 | `exclude_reissues` |
+>
+> **Warum „Neuauflage" weich ist, obwohl `docs/03` §2 es hart listet:** Ob eine
+> Platte eine Neuauflage ist, steht in `formats[].descriptions` und damit nur in
+> `/releases/{id}`. Der Scan ruft das nie auf (CLAUDE.md Regel 2) — bekannt ist
+> es erst im Top-50-Nachschlag, also *nach* dem Scan. Etwas zu verwerfen, das
+> man zum Zeitpunkt des Verwerfens nicht weiß, geht nicht. Die Oberfläche sagt
+> deshalb „zählt weniger" und verspricht nichts, was die Daten nicht hergeben.
 
 ---
 
