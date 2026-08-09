@@ -36,12 +36,13 @@ onMounted(async () => {
 const number = new Intl.NumberFormat('de-DE')
 
 /**
- * The style pass, after the scan.
+ * The enrichment pass, after the scan.
  *
- * Fifty more requests, about a minute, and only over matches that already
- * earned their place — S7 needs per-release styles and nothing reachable in
- * bulk carries them. It runs on its own and is allowed to fail: a dig with
- * unenriched matches is still a dig, so a failure here only stops the phase.
+ * Two lookups over each of the best fifty matches — styles for S7, market
+ * price and copies for S10 and S11 — because none of those are reachable in
+ * bulk. About a hundred requests and two minutes, and only for records that
+ * already earned their place. It is allowed to fail: a dig with unenriched
+ * matches is still a dig, so a failure here only stops the phase.
  */
 async function finish(dig: Dig) {
   // The list goes on screen before the style pass starts. Those matches are
@@ -262,8 +263,8 @@ const expired = computed(() => {
     </section>
 
     <!--
-      The style pass runs while the matches are already readable. It says what
-      it is spending, because fifty requests is a minute of somebody's rate
+      The pass runs while the matches are already readable. It says what it is
+      spending, because a hundred requests is two minutes of somebody's rate
       limit and that should never happen behind their back.
     -->
     <section
@@ -280,9 +281,10 @@ const expired = computed(() => {
         />
       </div>
       <p class="text-fid-sm text-fid-text-muted">
-        Stile werden nachgeschlagen –
+        Stile und Marktpreise werden nachgeschlagen –
         <span class="fid-num">{{ enriching.done }}</span> von
         <span class="fid-num">{{ enriching.total }}</span>
+        (<span class="fid-num">{{ enriching.requests }}</span> Abfragen)
       </p>
     </section>
 

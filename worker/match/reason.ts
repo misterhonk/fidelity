@@ -90,6 +90,37 @@ const LEAD: Partial<Record<Signal['type'], Phrase>> = {
       ? `${album} hast du schon – aber als ${ownedAs}. Hier ist es auf Vinyl.`
       : `${album} hast du in einem anderen Format.`
   },
+
+  PRICE_SIGNAL: (evidence) => {
+    const price = Number(evidence.price ?? 0)
+    const lowest = Number(evidence.marketLowest ?? 0)
+    const currency = String(evidence.currency ?? '')
+    if (price <= 0 || lowest <= 0 || !currency) return null
+    // Both numbers named, not the ratio. "0,58×" is arithmetic; "24 € bei
+    // einem Markt-Tiefstpreis von 41 €" is an argument (docs/04 §S10).
+    return `${money(price, currency)} bei einem Markt-Tiefstpreis von ${money(lowest, currency)}.`
+  },
+
+  SCARCITY: (evidence) => {
+    const n = Number(evidence.numForSale ?? 0)
+    if (n <= 0) return null
+    return n === 1
+      ? 'Weltweit genau ein Exemplar im Angebot.'
+      : `Nur ${number.format(n)} Exemplare weltweit im Angebot.`
+  },
+}
+
+/**
+ * Prices in the sentence carry their currency. A dealer in London quotes
+ * pounds, and "24 €" would be a different claim than the one the market made.
+ */
+function money(value: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(value)
+  } catch {
+    // An unknown ISO code must not take the whole sentence down with it.
+    return `${number.format(value)} ${currency}`
+  }
 }
 
 const SUPPORT: Partial<Record<Signal['type'], Phrase>> = {
@@ -108,6 +139,15 @@ const SUPPORT: Partial<Record<Signal['type'], Phrase>> = {
   STYLE_ADJACENT: (evidence) => {
     const styles = Array.isArray(evidence.styles) ? (evidence.styles as string[]) : []
     return styles.length > 0 ? `Stil passt (${styles[0]})` : null
+  },
+  PRICE_SIGNAL: (evidence) => {
+    const lowest = Number(evidence.marketLowest ?? 0)
+    const currency = String(evidence.currency ?? '')
+    return lowest > 0 && currency ? `unter Markt (${money(lowest, currency)})` : 'unter Markt'
+  },
+  SCARCITY: (evidence) => {
+    const n = Number(evidence.numForSale ?? 0)
+    return n > 0 ? `nur ${number.format(n)} im Angebot` : null
   },
 }
 

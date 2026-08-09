@@ -28,6 +28,13 @@ const price = computed(() => {
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(value)
 })
 
+const marketLowest = computed(() => {
+  const value = match.value?.marketLowestPrice
+  const currency = match.value?.currency
+  if (value === null || value === undefined || !currency) return null
+  return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(value)
+})
+
 const meta = computed(() =>
   [match.value?.label, match.value?.catno, match.value?.format, match.value?.year]
     .filter(Boolean)
@@ -83,6 +90,10 @@ const EVIDENCE_LABEL: Record<string, string> = {
   inRun: 'in der Serie',
   wantedYear: 'gewünscht',
   pressingYear: 'diese Pressung',
+  price: 'Preis',
+  marketLowest: 'Markt-Tiefstpreis',
+  ratio: 'Verhältnis',
+  numForSale: 'im Angebot',
 }
 
 /**
@@ -165,6 +176,28 @@ function onKeydown(event: KeyboardEvent) {
         </div>
 
         <p class="text-fid-base text-fid-text">{{ match.reason }}</p>
+
+        <!--
+          The market numbers, whenever the enrichment pass paid for them. Shown
+          even where neither signal fired: "40 im Angebot, Tiefstpreis 8 €" is
+          the answer to "ist das ein Fund oder Massenware", and that question
+          does not stop being interesting because the answer is no.
+        -->
+        <section
+          v-if="match.marketNumForSale !== null"
+          class="flex flex-col gap-1"
+          aria-labelledby="sheet-market"
+        >
+          <h3 id="sheet-market" class="text-fid-sm font-medium text-fid-text">Marktlage</h3>
+          <p class="text-fid-sm text-fid-text-muted">
+            <span class="fid-num">{{ match.marketNumForSale }}</span>
+            {{ match.marketNumForSale === 1 ? 'Exemplar' : 'Exemplare' }} weltweit im
+            Angebot<template v-if="marketLowest">
+              · Tiefstpreis
+              <span class="fid-num text-fid-text">{{ marketLowest }}</span></template
+            >
+          </p>
+        </section>
 
         <!-- Every signal with its evidence — the follow-up to the sentence. -->
         <section class="flex flex-col gap-2" aria-labelledby="sheet-signals">
