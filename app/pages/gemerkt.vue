@@ -164,11 +164,21 @@ async function check() {
       -->
       <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <p class="text-fid-base text-fid-text-muted">
-          <span class="fid-num text-fid-text">{{ number.format(overview.total) }}</span>
-          {{ overview.total === 1 ? 'Platte' : 'Platten' }} vorgemerkt bei
-          <span class="fid-num text-fid-text">{{ overview.groups.length }}</span>
-          {{ overview.groups.length === 1 ? 'Laden' : 'Läden' }}. Digs werden nach fünf
-          weggeräumt – das hier bleibt.
+          <template v-if="overview.total === 1">Eine Platte</template>
+          <template v-else>
+            <span class="fid-num text-fid-text">{{ number.format(overview.total) }}</span>
+            Platten
+          </template>
+          vorgemerkt bei
+          <!--
+            "bei 1 Laden" is arithmetic, not German. A number that reads out
+            loud as a word gets written as one.
+          -->
+          <template v-if="overview.groups.length === 1">einem Laden.</template>
+          <template v-else>
+            <span class="fid-num text-fid-text">{{ overview.groups.length }}</span> Läden.
+          </template>
+          Digs werden nach fünf weggeräumt – das hier bleibt.
         </p>
 
         <!-- The cost named before it is spent, same as everywhere else. -->

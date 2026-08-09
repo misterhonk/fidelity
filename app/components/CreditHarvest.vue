@@ -76,8 +76,9 @@ const eta = computed(() => {
         <span class="fid-num">{{ number.format(status.favourites) }}</span> Lieblingsplatten
         gelesen<template v-if="status.worthExpanding > 0">
           · <span class="fid-num">{{ status.worthExpanding }}</span>
-          {{ status.worthExpanding === 1 ? 'Person' : 'Personen' }} tauchen oft genug auf, um in
-          den Horizont zu wandern</template
+          <!-- "1 Person tauchen" — the verb has to agree with the number too. -->
+          {{ status.worthExpanding === 1 ? 'Person taucht' : 'Personen tauchen' }} oft genug
+          auf, um in den Horizont zu wandern</template
         >.
       </p>
 
