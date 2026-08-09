@@ -25,7 +25,8 @@
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "test:unit:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "size": "size-limit"
   },
   "dependencies": {
     "@nuxt/ui": "^4.10.0",
@@ -41,6 +42,7 @@
     "@commitlint/config-conventional": "^21.2.0",
     "@nuxt/eslint": "^1.17.0",
     "@playwright/test": "^1.62.1",
+    "@size-limit/file": "^13.0.3",
     "@vite-pwa/nuxt": "^1.1.1",
     "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^10.8.1",
@@ -48,6 +50,7 @@
     "fake-indexeddb": "^6.2.5",
     "lefthook": "^2.1.10",
     "prettier": "^3.9.6",
+    "size-limit": "^13.0.3",
     "style-dictionary": "^5.5.1",
     "typescript": "~5.9.3",
     "vitest": "^4.1.10",

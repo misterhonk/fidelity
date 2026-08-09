@@ -48,25 +48,12 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      # The app has to load in the basement of a record shop over 3G.
+      # Exceeding the budget breaks the build — that is the whole point of it.
+      - run: pnpm size
 
   e2e:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        # Exactly the Uberspace major.
-        image: postgres:15
-        env:
-          POSTGRES_USER: fidelity
-          POSTGRES_PASSWORD: fidelity
-          POSTGRES_DB: fidelity
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    env:
-      DATABASE_URL: postgres://fidelity:fidelity@127.0.0.1:5432/fidelity
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
@@ -78,10 +65,9 @@ jobs:
       # WebKit is not optional. The app is a PWA whose weakest target is iOS
       # Safari — testing only Chromium means not testing the browser that matters.
       - run: pnpm exec playwright install --with-deps chromium webkit
-      - run: pnpm db:migrate
       # Includes the @axe-core/playwright pass. The Discogs API is never called
-      # here; a real smoke test runs nightly, not per PR, or merges would burn
-      # the rate limit.
+      # here; a real smoke test belongs in a nightly run, not in a per-PR job
+      # that would burn the rate limit for merges.
       - run: pnpm test:e2e
       - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
