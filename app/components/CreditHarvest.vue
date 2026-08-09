@@ -55,11 +55,7 @@ const eta = computed(() => {
 </script>
 
 <template>
-  <section v-if="status" class="flex flex-col gap-4" aria-labelledby="credits-harvest">
-    <h2 id="credits-harvest" class="text-fid-xl font-bold text-fid-text">
-      Wer deine Platten gemacht hat
-    </h2>
-
+  <section v-if="status" class="flex flex-col gap-4">
     <p class="text-fid-base text-fid-text-muted">
       Discogs' größter ungenutzter Schatz sind die Credits – wer produziert, gemischt, gemastert
       hat. Sie stehen nur in der Einzelabfrage pro Platte, und deine ganze Sammlung durchzugehen

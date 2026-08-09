@@ -184,11 +184,8 @@ const expired = computed(() => {
 </script>
 
 <template>
-  <main class="mx-auto flex min-h-dvh max-w-3xl flex-col gap-8 px-6 py-16">
+  <main class="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 py-16">
     <div class="flex flex-col gap-3">
-      <NuxtLink class="text-fid-sm text-fid-text-muted underline underline-offset-4" to="/">
-        ← Championship
-      </NuxtLink>
       <h1 class="text-fid-2xl font-bold text-fid-text">Neuer Dig</h1>
     </div>
 

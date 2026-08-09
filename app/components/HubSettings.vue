@@ -56,9 +56,7 @@ async function save() {
 </script>
 
 <template>
-  <section class="flex flex-col gap-3" aria-labelledby="hub-settings">
-    <h2 id="hub-settings" class="text-fid-lg font-medium text-fid-text">Hub (optional)</h2>
-
+  <section class="flex flex-col gap-3">
     <!--
       The rule ADR-008 exists to protect, said plainly on the one screen where
       somebody might think otherwise.

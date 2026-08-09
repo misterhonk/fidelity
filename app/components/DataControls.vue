@@ -65,9 +65,7 @@ async function deleteAll() {
 </script>
 
 <template>
-  <section class="flex flex-col gap-3" aria-labelledby="data-controls">
-    <h2 id="data-controls" class="text-fid-lg font-medium text-fid-text">Deine Daten</h2>
-
+  <section class="flex flex-col gap-3">
     <ErrorNote v-if="error" :cause="error" />
 
     <div class="flex flex-wrap gap-2">

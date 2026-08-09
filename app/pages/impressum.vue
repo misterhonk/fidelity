@@ -3,7 +3,7 @@ useSeoMeta({ title: 'Impressum', description: 'Anbieterkennzeichnung.' })
 </script>
 
 <template>
-  <main class="mx-auto flex min-h-dvh max-w-2xl flex-col gap-6 px-6 py-16">
+  <main class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-16">
     <NuxtLink class="text-fid-sm text-fid-text-muted underline underline-offset-4" to="/">
       ← Championship
     </NuxtLink>

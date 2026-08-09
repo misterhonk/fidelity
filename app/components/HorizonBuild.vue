@@ -82,16 +82,7 @@ const complete = computed(
 </script>
 
 <template>
-  <section class="scroll-mt-6 flex flex-col gap-4" aria-labelledby="horizon-heading">
-    <h2 id="horizon-heading" class="text-fid-xl font-bold text-fid-text">Der Horizont</h2>
-
-    <p class="max-w-prose text-fid-base text-fid-text-muted">
-      Statt jedes Inventar-Listing einzeln nachzuschlagen, wird einmal deine Sammlung
-      ausgeklappt: alle Platten deiner Künstler, deiner Labels und jede Pressung deiner
-      Wantlist-Alben. Danach kostet jeder Dig dafür
-      <span class="text-fid-text">null zusätzliche Requests</span>.
-    </p>
-
+  <section class="flex flex-col gap-4">
     <dl v-if="status" class="grid grid-cols-2 gap-x-6 gap-y-2 text-fid-sm">
       <dt class="text-fid-text-muted">Entitäten</dt>
       <dd class="fid-num text-fid-text">{{ status.expanded }} von {{ status.entities }}</dd>

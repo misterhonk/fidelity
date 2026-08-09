@@ -49,7 +49,7 @@ function money(value: number | null, currency: string | null) {
 </script>
 
 <template>
-  <main class="mx-auto flex min-h-dvh max-w-xl flex-col gap-4 px-4 py-6">
+  <main class="mx-auto flex w-full max-w-xl flex-col gap-4 px-4 py-6">
     <!--
       The in-store screen (docs/05 §3 row 9).
 

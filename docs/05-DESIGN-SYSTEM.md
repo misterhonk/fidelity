@@ -359,3 +359,20 @@ Background Sync, kein NFC auf iOS. Nichts davon ist für Fidelity blockierend.
 | 7 | **The Clerk's Take** | Händler-Steckbrief: Fingerprint, Affinity, Preispositionierung |
 | 8 | **Deine Landkarte** | Sammlungsprofil: Labels, Dekaden, Stile, Lücken |
 | 9 | **In-Store** (nur mobil) | Große Touch-Targets, offline, Dig-Liste nach Score |
+| 10 | **Einstellungen** | Konto, Sammlung, Horizont, Credits, Hub, Datenexport – alles, was man einmal einrichtet |
+
+### Navigation (ergänzt nach M9)
+
+Fünf Bereiche, in der Reihenfolge, in der man sich durch sie bewegt:
+**Start · Graben · Korb · Sammlung · Läden**, dazu ein Zahnrad für die
+Einstellungen. Auf dem Desktop eine Leiste oben, auf dem Handy eine feste
+Leiste unten in Daumenreichweite.
+
+> **Warum überhaupt:** Bis M9 lagen die Sprungmarken als Buttons *innerhalb*
+> des Sync-Panels und das Dashboard trug neun gleichgewichtige Panels — von
+> „letzter Dig" bis „alles löschen". Ein Bildschirm, auf dem alles gleich
+> dringend aussieht, beantwortet die Frage „was jetzt?" nicht.
+>
+> **In-Store ist bewusst kein Reiter.** Das ist ein *Modus*, in den man mit
+> einer Platte in der Hand geht, kein Bereich zum Blättern — erreichbar von der
+> Startseite und aus dem Dig-Ergebnis, also dort, wo diese Entscheidung fällt.

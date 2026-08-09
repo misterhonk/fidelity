@@ -35,11 +35,8 @@ const decades = computed(() =>
 </script>
 
 <template>
-  <main class="mx-auto flex min-h-dvh max-w-3xl flex-col gap-10 px-6 py-16">
+  <main class="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-16">
     <div class="flex flex-col gap-3">
-      <NuxtLink class="text-fid-sm text-fid-text-muted underline underline-offset-4" to="/">
-        ← Championship
-      </NuxtLink>
       <h1 class="text-fid-2xl font-bold text-fid-text">Deine Landkarte</h1>
       <p v-if="profile" class="text-fid-base text-fid-text-muted">
         <span class="fid-num">{{ profile.releaseCount }}</span> Platten. Was daraus über deinen

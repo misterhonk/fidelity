@@ -44,9 +44,7 @@ const formatDate = (at: number | null) =>
 </script>
 
 <template>
-  <section id="library" class="scroll-mt-6 flex flex-col gap-4" aria-labelledby="sync-heading">
-    <h2 id="sync-heading" class="text-fid-xl font-bold text-fid-text">Deine Daten</h2>
-
+  <section id="library" class="flex flex-col gap-4" aria-labelledby="sync-heading">
     <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-fid-sm">
       <dt class="text-fid-text-muted">Sammlung</dt>
       <dd class="fid-num text-fid-text">{{ summary?.collection ?? '–' }}</dd>
@@ -75,45 +73,6 @@ const formatDate = (at: number | null) =>
       >
         {{ summary?.collectionSyncedAt ? 'Neu synchronisieren' : 'Sammlung synchronisieren' }}
       </button>
-
-      <NuxtLink
-        v-if="(summary?.collection ?? 0) > 0"
-        to="/landkarte"
-        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
-      >
-        Deine Landkarte
-      </NuxtLink>
-
-      <NuxtLink
-        v-if="(summary?.collection ?? 0) > 0"
-        to="/dig"
-        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
-      >
-        Neuer Dig
-      </NuxtLink>
-
-      <NuxtLink
-        v-if="(summary?.dealers ?? 0) > 0"
-        to="/haendler"
-        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
-      >
-        The Clerk's Take
-      </NuxtLink>
-
-      <NuxtLink
-        v-if="(summary?.basket ?? 0) > 0"
-        to="/korb"
-        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
-      >
-        Der Korb ({{ summary?.basket }})
-      </NuxtLink>
-
-      <NuxtLink
-        to="/im-laden"
-        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
-      >
-        Im Laden
-      </NuxtLink>
     </div>
   </section>
 </template>

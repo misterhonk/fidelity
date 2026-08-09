@@ -35,32 +35,35 @@ const step = computed(() => {
 
   if (library.value.collection === 0) {
     return {
+      cta: 'Sammlung holen',
       title: 'Als Erstes: deine Sammlung holen',
       body:
         'Ohne sie weiß Fidelity nicht, was du magst. Ein paar Sekunden pro tausend ' +
         'Platten, danach ist sie auf diesem Gerät.',
-      anchor: '#library',
+      to: '/einstellungen#library',
     }
   }
 
   if (horizon.value.expanded < horizon.value.entities) {
     const minutes = Math.ceil((horizon.value.estimatedRequests * 1.2) / 60)
     return {
+      cta: 'Horizont bauen',
       title: 'Dann: den Horizont bauen',
       body:
         `Einmalig rund ${minutes} Minuten. Danach erkennt jeder Dig auch Produzenten, ` +
         'Katalogserien und andere Pressungen – und kostet dafür keinen einzigen Request extra.',
-      anchor: '#horizon-heading',
+      to: '/einstellungen#horizon',
     }
   }
 
   if (digs.value === 0) {
     return {
+      cta: 'Neuer Dig',
       title: 'Jetzt: den ersten Händler scannen',
       body:
         'Nimm einen, bei dem du ohnehin kaufst. Zwei bis vier Minuten für zwanzigtausend ' +
         'Listings, und am Ende steht eine Liste mit einem Satz pro Treffer.',
-      anchor: null,
+      to: '/dig',
     }
   }
 
@@ -76,19 +79,16 @@ const step = computed(() => {
   >
     <h2 id="next-step" class="text-fid-base font-medium text-fid-text">{{ step.title }}</h2>
     <p class="text-fid-sm text-fid-text-muted">{{ step.body }}</p>
+    <!--
+      One button, always in the same place, always the thing the sentence
+      above just named. Two different affordances for "go here" was a choice
+      nobody needed to make.
+    -->
     <NuxtLink
-      v-if="step.anchor === null"
-      to="/dig"
+      :to="step.to"
       class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 text-fid-sm font-medium text-fid-n-990"
     >
-      Neuer Dig
+      {{ step.cta }}
     </NuxtLink>
-    <a
-      v-else
-      :href="step.anchor"
-      class="self-start text-fid-sm text-fid-accent underline underline-offset-4"
-    >
-      Dahin
-    </a>
   </section>
 </template>

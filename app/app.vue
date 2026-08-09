@@ -35,7 +35,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
 <template>
   <NuxtRouteAnnouncer />
-  <div class="flex min-h-dvh flex-col">
+  <!--
+    The bottom padding belongs on the shell, not on each page: the nav bar is
+    fixed on phones and the footer sits outside <main>, so padding the pages
+    left the attribution — which is a licence condition — hidden behind it.
+  -->
+  <div class="flex min-h-dvh flex-col max-md:pb-20">
+    <AppNav />
     <NuxtPage />
     <SiteFooter />
   </div>
