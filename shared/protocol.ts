@@ -13,7 +13,7 @@
  * The Personal Access Token crosses it exactly once, on sign-in. It never
  * comes back the other way (CLAUDE.md rule 6).
  */
-import type { Dig, Identity, Match, TasteProfile } from './types'
+import type { Dealer, Dig, Identity, Match, TasteProfile } from './types'
 
 export interface PingResult {
   pong: true
@@ -63,6 +63,15 @@ export interface WorkerContract {
   /** An interrupted dig still inside its six-hour window, if there is one. */
   'dig.resumable': { params: undefined; progress: never; result: Dig | null }
   'dig.resume': { params: { digId: string }; progress: ScanProgress; result: Dig }
+  /**
+   * The style pass: fifty requests over the best matches, because S7 needs
+   * per-release styles that nothing else in this app can reach.
+   */
+  'dig.enrich': {
+    params: { digId: string }
+    progress: EnrichProgress
+    result: { enriched: number; fired: number; requests: number }
+  }
 
   /**
    * The horizon: the collection expanded into release-id sets, once, so that
@@ -70,6 +79,31 @@ export interface WorkerContract {
    */
   'horizon.status': { params: undefined; progress: never; result: HorizonStatus }
   'horizon.build': { params: undefined; progress: HorizonProgress; result: HorizonResult }
+
+  /** The Clerk's Take: what a shop is, and how it ranks against your others. */
+  'dealer.profile': {
+    params: { dealer: string }
+    progress: never
+    result: DealerProfile | null
+  }
+}
+
+export interface EnrichProgress {
+  done: number
+  total: number
+  requests: number
+}
+
+export interface DealerProfile {
+  dealer: Dealer
+  /** Matches per thousand listings — comparable between shops. */
+  rate: number
+  /**
+   * How this shop compares to the median of your others. null until a second
+   * one has been scanned, rather than a made-up 1.0.
+   */
+  factor: number | null
+  scannedDealers: number
 }
 
 export interface HorizonStatus {

@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import type { DigPreflight, DigWithMatches, ScanProgress } from '#shared/protocol'
+import type {
+  DigPreflight,
+  DigWithMatches,
+  EnrichProgress,
+  ScanProgress,
+} from '#shared/protocol'
 import type { Dig } from '#shared/types'
 
 useSeoMeta({
@@ -12,6 +17,7 @@ const { call } = useFidelityWorker()
 const dealer = ref('')
 const preflight = ref<DigPreflight | null>(null)
 const progress = ref<ScanProgress | null>(null)
+const enriching = ref<EnrichProgress | null>(null)
 const result = ref<DigWithMatches | null>(null)
 const busy = ref(false)
 const error = ref<string | null>(null)
@@ -26,6 +32,31 @@ onMounted(async () => {
 })
 
 const number = new Intl.NumberFormat('de-DE')
+
+/**
+ * The style pass, after the scan.
+ *
+ * Fifty more requests, about a minute, and only over matches that already
+ * earned their place — S7 needs per-release styles and nothing reachable in
+ * bulk carries them. It runs on its own and is allowed to fail: a dig with
+ * unenriched matches is still a dig, so a failure here only stops the phase.
+ */
+async function finish(dig: Dig) {
+  // The list goes on screen before the style pass starts. Those matches are
+  // already complete; making somebody wait another minute for a refinement
+  // would be the worse trade.
+  progress.value = null
+  result.value = await call('dig.latest', undefined)
+
+  try {
+    await call('dig.enrich', { digId: dig.id }, { onProgress: (p) => (enriching.value = p) })
+    result.value = await call('dig.latest', undefined)
+  } catch {
+    // Deliberately silent. A dig with unenriched matches is still a dig.
+  } finally {
+    enriching.value = null
+  }
+}
 
 async function check() {
   if (!dealer.value.trim() || busy.value) return
@@ -50,9 +81,13 @@ async function resume() {
   result.value = null
 
   try {
-    await call('dig.resume', { digId: dig.id }, { onProgress: (p) => (progress.value = p) })
+    const done = await call(
+      'dig.resume',
+      { digId: dig.id },
+      { onProgress: (p) => (progress.value = p) },
+    )
     resumable.value = null
-    result.value = await call('dig.latest', undefined)
+    await finish(done)
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : 'Fortsetzen fehlgeschlagen.'
     resumable.value = await call('dig.resumable', undefined)
@@ -70,13 +105,13 @@ async function start() {
   progress.value = null
 
   try {
-    await call(
+    const done = await call(
       'dig.run',
       { dealer: preflight.value.dealer },
       { onProgress: (p) => (progress.value = p) },
     )
     resumable.value = null
-    result.value = await call('dig.latest', undefined)
+    await finish(done)
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : 'Der Dig ist fehlgeschlagen.'
     // A failed run usually means an interrupted one, so ask again what can be
@@ -153,7 +188,7 @@ const expired = computed(() => {
       requests, and the rate limit is the only genuinely scarce resource here.
     -->
     <section
-      v-if="resumable && !progress"
+      v-if="resumable && !progress && !enriching"
       class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
     >
       <p class="text-fid-base text-fid-text">
@@ -176,7 +211,7 @@ const expired = computed(() => {
       hands out at most 10.000 listings per sort order, so 20.000 in total.
     -->
     <section
-      v-if="preflight && !progress"
+      v-if="preflight && !progress && !enriching"
       class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
     >
       <p class="text-fid-base text-fid-text">
@@ -216,6 +251,31 @@ const expired = computed(() => {
         <span class="fid-num">{{ number.format(progress.reachable) }}</span> ·
         <span class="fid-num">{{ progress.matches }}</span> Treffer
         <template v-if="eta"> · noch ca. {{ eta }}</template>
+      </p>
+    </section>
+
+    <!--
+      The style pass runs while the matches are already readable. It says what
+      it is spending, because fifty requests is a minute of somebody's rate
+      limit and that should never happen behind their back.
+    -->
+    <section
+      v-if="enriching"
+      class="flex items-center gap-3 rounded-fid-sm border border-fid-border px-3 py-2"
+      aria-live="polite"
+    >
+      <div class="h-1 w-24 overflow-hidden rounded-full bg-fid-n-800">
+        <div
+          class="h-full rounded-full bg-fid-accent transition-[width] duration-300"
+          :style="{
+            width: `${enriching.total > 0 ? Math.round((enriching.done / enriching.total) * 100) : 0}%`,
+          }"
+        />
+      </div>
+      <p class="text-fid-sm text-fid-text-muted">
+        Stile werden nachgeschlagen –
+        <span class="fid-num">{{ enriching.done }}</span> von
+        <span class="fid-num">{{ enriching.total }}</span>
       </p>
     </section>
 

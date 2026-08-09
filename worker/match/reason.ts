@@ -76,6 +76,12 @@ const LEAD: Partial<Record<Signal['type'], Phrase>> = {
       : `${person} hat hier mitgewirkt.`
   },
 
+  STYLE_ADJACENT: (evidence) => {
+    const styles = Array.isArray(evidence.styles) ? (evidence.styles as string[]) : []
+    if (styles.length === 0) return null
+    return `${styles.slice(0, 3).join(', ')} – dein Kernrevier.`
+  },
+
   FORMAT_UPGRADE: (evidence) => {
     const album = String(evidence.album ?? '')
     const ownedAs = String(evidence.ownedAs ?? '')
@@ -99,6 +105,10 @@ const SUPPORT: Partial<Record<Signal['type'], Phrase>> = {
     evidence.prefix ? `Katalogserie ${String(evidence.prefix)}` : null,
   CREDIT_GRAPH: (evidence) => (evidence.person ? `${String(evidence.person)} am Werk` : null),
   FORMAT_UPGRADE: () => 'Format-Upgrade',
+  STYLE_ADJACENT: (evidence) => {
+    const styles = Array.isArray(evidence.styles) ? (evidence.styles as string[]) : []
+    return styles.length > 0 ? `Stil passt (${styles[0]})` : null
+  },
 }
 
 /** Strongest signal first — the same ordering the score uses. */

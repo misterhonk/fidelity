@@ -4,6 +4,8 @@ import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
 
 import { currentIdentity, discogs, requestPersistence, signIn, signOut } from './auth'
 import { findResumable, REACHABLE, resumeDig, runDig } from './dig/scan'
+import { enrichTopMatches } from './dig/enrich'
+import { affinityFactor } from './dig/fingerprint'
 import { buildHorizon, horizonStatus } from './horizon/build'
 import { dealerSchema } from './discogs/inventory'
 import { bestPerRelease, topFive } from './match/select'
@@ -130,6 +132,34 @@ export const handlers: HandlerMap = {
 
   'horizon.build': (_params, { report, signal }) =>
     buildHorizon({ client: discogs(), report: (progress) => report(progress), signal }),
+
+  'dig.enrich': async ({ digId }, { report, signal }) =>
+    enrichTopMatches({
+      client: discogs(),
+      digId,
+      taste: (await getMeta('tasteProfile')) ?? null,
+      report: (progress) => report(progress),
+      signal,
+    }),
+
+  'dealer.profile': async ({ dealer: username }) => {
+    const db = await openFidelityDb()
+    const dealer = await db.get('dealers', username)
+    if (!dealer) return null
+
+    const others = (await db.getAll('dealers'))
+      .filter((other) => other.username !== username && other.affinity !== null)
+      .map((other) => other.affinity as number)
+
+    const rate = dealer.affinity ?? 0
+    return {
+      dealer,
+      rate,
+      // Computed on read, because it moves the moment another shop is scanned.
+      factor: affinityFactor(rate, others),
+      scannedDealers: others.length + 1,
+    }
+  },
 
   'dig.get': async ({ digId }) => loadDig(digId),
 

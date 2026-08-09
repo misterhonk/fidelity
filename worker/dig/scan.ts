@@ -8,6 +8,8 @@ import { dealerSchema, inventoryPageSchema, toListing } from '../discogs/invento
 import { buildIndex, evaluate, type MatchFilters, type MatchIndex } from '../match'
 import { buildReason } from '../match/reason'
 
+import { FingerprintAccumulator, matchesPerThousand } from './fingerprint'
+
 export const PER_PAGE = 100
 
 /**
@@ -115,6 +117,10 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   let matches = dig.matchCount
   let requests = dig.apiRequests
 
+  // Built while the listings stream past. Keeping them to compute this
+  // afterwards would mean holding 40 MB of inventory for a few percentages.
+  const fingerprint = new FingerprintAccumulator()
+
   const emit = (order: 'asc' | 'desc') => {
     const reachable = Math.min(dig.listingsTotal, REACHABLE)
     const remaining = Math.max(0, reachable - scanned) / PER_PAGE
@@ -161,6 +167,8 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
         if (row.status && row.status !== 'For Sale') continue
 
         const listing = toListing(row)
+        fingerprint.add(listing)
+
         const result = evaluate(listing, index, filters)
         if (!result) continue
 
@@ -217,6 +225,7 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   dig.finishedAt = now()
   dig.cursor = null
   await db.put('digs', dig)
+  await saveDealer(ctx, dig, fingerprint)
   await pruneDigs(db)
 
   emit('desc')
@@ -350,4 +359,37 @@ export async function findResumable(now: number = Date.now()): Promise<Dig | nul
   }
 
   return candidate
+}
+
+/**
+ * The dealer profile: what the shop is, and how it ranks against the others
+ * you have scanned. A resumed dig only sees the pages it walked itself, so the
+ * fingerprint it writes covers those — coverage says so.
+ */
+async function saveDealer(
+  ctx: ScanContext,
+  dig: Dig,
+  fingerprint: FingerprintAccumulator,
+): Promise<void> {
+  const { db } = ctx
+
+  const rate = matchesPerThousand(dig.matchCount, dig.listingsScanned)
+  const existing = await db.get('dealers', dig.dealer)
+
+  await db.put('dealers', {
+    username: dig.dealer,
+    displayName: existing?.displayName ?? dig.dealer,
+    shipsFrom: existing?.shipsFrom ?? '',
+    sellerRating: existing?.sellerRating ?? 0,
+    ratingCount: existing?.ratingCount ?? 0,
+    numForSale: dig.listingsTotal,
+    minOrderTotal: existing?.minOrderTotal ?? 0,
+    shippingNote: existing?.shippingNote ?? '',
+    lastScannedAt: dig.finishedAt,
+    // Stored as the comparable rate; the factor is derived on read, because it
+    // changes as soon as another shop is scanned.
+    affinity: rate,
+    fingerprint: fingerprint.build(dig.listingsTotal),
+    shippingTiers: existing?.shippingTiers ?? [],
+  })
 }
