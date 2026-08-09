@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "note": "Versandstaffeln pro Händler und Zielland. Discogs liefert shipping_price in der Inventory-API bei den meisten Händlern leer, deshalb wird die Staffel hier gepflegt – per Pull Request, ohne Server. Schlüssel: '<discogs-username>|<zielland>'. maxItems null heißt 'nach oben offen'.",
+  "profiles": {}
+}
