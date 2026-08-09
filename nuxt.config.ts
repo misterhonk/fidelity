@@ -1,4 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import pkg from './package.json'
 
 // Directory layout is the Nuxt 4 default and matches docs/07-DEV-PIPELINE.md §1:
 //   app/     pages, components, composables, layouts, assets
@@ -27,6 +28,9 @@ export default defineNuxtConfig({
       // hands back an empty body (docs/02-DISCOGS-API.md).
       userAgent: 'Fidelity/0.1.0 +https://fidelity.example.de',
     },
-    public: {},
+    public: {
+      // Bumped by release-please, surfaced through /api/health.
+      version: pkg.version,
+    },
   },
 })
