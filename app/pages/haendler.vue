@@ -8,6 +8,7 @@ useSeoMeta({
 })
 
 const { call } = useFidelityWorker()
+const { isWatched, toggle, load: loadWatchlist } = useWatchlist()
 
 const dealers = ref<Dealer[]>([])
 const selected = ref<string | null>(null)
@@ -15,6 +16,7 @@ const profile = ref<DealerProfile | null>(null)
 
 onMounted(async () => {
   dealers.value = await call('dealer.list', undefined)
+  await loadWatchlist()
   const first = dealers.value[0]
   if (first) await select(first.username)
 })
@@ -125,7 +127,10 @@ const scanned = computed(() => {
 
       <section v-if="profile" class="flex flex-col gap-8">
         <div class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4">
-          <p class="text-fid-lg text-fid-text">{{ verdict }}</p>
+          <p v-if="profile.dealer.lastScannedAt === null" class="text-fid-lg text-fid-text">
+            Diesen Laden kenne ich nur vom Namen – gescannt wurde er noch nicht.
+          </p>
+          <p v-else class="text-fid-lg text-fid-text">{{ verdict }}</p>
           <p class="text-fid-sm text-fid-text-muted">
             <span class="fid-num">{{ number.format(profile.dealer.numForSale) }}</span> Listings
             <template v-if="profile.dealer.shipsFrom">
@@ -138,6 +143,30 @@ const scanned = computed(() => {
             </template>
             <template v-if="scanned"> · zuletzt gescannt am {{ scanned }}</template>
           </p>
+
+          <!--
+            Watching costs one request per app start, not a rescan. Worth
+            saying, because "beobachten" usually means somebody is polling.
+          -->
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              :aria-pressed="isWatched(profile.dealer.username)"
+              class="rounded-fid-sm border px-3 py-1.5 text-fid-sm transition-colors"
+              :class="
+                isWatched(profile.dealer.username)
+                  ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
+                  : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+              "
+              @click="toggle(profile.dealer.username)"
+            >
+              {{ isWatched(profile.dealer.username) ? 'Wird beobachtet' : 'Händler merken' }}
+            </button>
+            <span class="text-fid-xs text-fid-text-muted">
+              Beim Öffnen der App wird nachgesehen, ob sich das Sortiment bewegt hat – eine
+              einzige Abfrage, kein neuer Scan.
+            </span>
+          </div>
         </div>
 
         <!--

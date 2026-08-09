@@ -7,6 +7,7 @@ useSeoMeta({
 })
 
 const { call } = useFidelityWorker()
+const { checkOnce } = useWatchlist()
 
 const identity = ref<Identity | null>(null)
 const ready = ref(false)
@@ -17,6 +18,11 @@ onMounted(async () => {
   } finally {
     ready.value = true
   }
+
+  // The watchlist check, deliberately not awaited: a shop that is slow to
+  // answer must not hold up the screen. There is no nightly job because there
+  // is no night — a browser does not run while it is closed.
+  if (identity.value) void checkOnce()
 })
 
 async function signOut() {
@@ -41,6 +47,8 @@ async function signOut() {
       <TokenForm v-if="!identity" @signed-in="identity = $event" />
 
       <template v-else>
+        <WatchBanner />
+
         <LibrarySync />
 
         <div class="border-t border-fid-border pt-6">

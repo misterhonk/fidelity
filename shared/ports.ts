@@ -12,7 +12,7 @@
  * These interfaces exist now, with local implementations behind them, because
  * retrofitting them in M9 would be a refactor across the whole worker.
  */
-import type { HorizonChunk, HorizonKind, ShippingTier } from './types'
+import type { HorizonChunk, HorizonKind, ShippingTier, WatchAlert } from './types'
 
 export interface HorizonSource {
   /** Edges for one entity. A hub is asked first; the API is the fallback. */
@@ -26,15 +26,10 @@ export interface ShippingProfileSource {
   contribute?(dealer: string, toCountry: string, tiers: ShippingTier[]): Promise<void>
 }
 
-export interface WatchAlert {
-  dealer: string
-  /** Listings seen now that were not there at the last check. */
-  newListings: number
-  seenAt: number
-}
-
 export interface WatchService {
   /** Without a hub: checked at app start. With a hub: push. */
   register(dealers: string[]): Promise<void>
   pending(): Promise<WatchAlert[]>
 }
+
+export type { WatchAlert }

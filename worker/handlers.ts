@@ -266,15 +266,37 @@ export const handlers: HandlerMap = {
     }
   },
 
+  'watch.set': async ({ dealer, watching }) => {
+    const { setWatching, watchedDealers } = await import('./watch/check')
+    await setWatching(dealer, watching)
+    return watchedDealers()
+  },
+
+  'watch.list': async () => {
+    const { watchedDealers } = await import('./watch/check')
+    return watchedDealers()
+  },
+
+  'watch.check': async ({ force }, { signal }) => {
+    const { checkWatched } = await import('./watch/check')
+    return checkWatched({ client: discogs(), force, signal })
+  },
+
   'dealer.list': async () => {
     const db = await openFidelityDb()
     const dealers = await db.getAll('dealers')
 
     // Ranked by how much of their stock is for you, which is the only ordering
-    // that answers "where should I look first".
-    return dealers
-      .filter((dealer) => dealer.lastScannedAt !== null)
-      .sort((a, b) => (b.affinity ?? 0) - (a.affinity ?? 0))
+    // that answers "where should I look first". Dealers that were never
+    // scanned come last but are *not* hidden: a shipping table entered by hand
+    // creates one, and a shop you can compute postage for should not be
+    // invisible on the screen about shops.
+    return dealers.sort(
+      (a, b) =>
+        Number(b.lastScannedAt !== null) - Number(a.lastScannedAt !== null) ||
+        (b.affinity ?? 0) - (a.affinity ?? 0) ||
+        a.username.localeCompare(b.username),
+    )
   },
 
   'dig.get': async ({ digId }) => loadDig(digId),

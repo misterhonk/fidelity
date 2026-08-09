@@ -5,7 +5,8 @@ import { createApiHorizonSource, horizonKey } from '~~/worker/horizon/source-api
 import { preferHub, TimeoutError, withTimeout } from '~~/worker/hub/fallback'
 import { createBundledShippingSource } from '~~/worker/shipping/source-bundled'
 import { createLocalWatchService } from '~~/worker/watch/service-local'
-import type { HorizonChunk } from '#shared/types'
+import type { Dealer, HorizonChunk } from '#shared/types'
+import type { DiscogsClient } from '~~/worker/discogs/client'
 
 afterEach(async () => {
   await deleteFidelityDb()
@@ -173,17 +174,74 @@ describe('the bundled shipping source', () => {
 })
 
 describe('the local watch service', () => {
-  it('registers dealers without duplicates', async () => {
-    const service = createLocalWatchService()
-    await service.register(['vinyl-tom', 'vinyl-tom', 'juno_records'])
-
-    expect(service.dealers).toEqual(['vinyl-tom', 'juno_records'])
+  const dealer = (username: string, over: Partial<Dealer> = {}): Dealer => ({
+    username,
+    displayName: username,
+    shipsFrom: 'Germany',
+    sellerRating: 99,
+    ratingCount: 10,
+    numForSale: 1000,
+    minOrderTotal: 0,
+    shippingNote: '',
+    lastScannedAt: 1,
+    affinity: null,
+    fingerprint: null,
+    shippingTiers: [],
+    ...over,
   })
 
-  it('reports no alerts — a closed browser does not scan', async () => {
-    const service = createLocalWatchService()
+  const client = (numForSale: Record<string, number>) =>
+    ({
+      get: async (path: string, schema: { parse: (v: unknown) => unknown }) => {
+        const username = decodeURIComponent(/\/users\/([^/?]+)/.exec(path)?.[1] ?? '')
+        return schema.parse({ username, num_for_sale: numForSale[username] ?? 0 })
+      },
+    }) as unknown as DiscogsClient
+
+  afterEach(async () => {
+    await deleteFidelityDb()
+  })
+
+  it('registers dealers without duplicates', async () => {
+    const db = await openFidelityDb()
+    await db.put('dealers', dealer('vinyl-tom'))
+    await db.put('dealers', dealer('juno_records'))
+
+    const service = createLocalWatchService(() => client({}))
+    await service.register(['vinyl-tom', 'vinyl-tom', 'juno_records'])
+
+    expect((await service.dealers()).sort()).toEqual(['juno_records', 'vinyl-tom'])
+  })
+
+  it('unwatches by leaving somebody out of the set', async () => {
+    const db = await openFidelityDb()
+    await db.put('dealers', dealer('vinyl-tom'))
+    await db.put('dealers', dealer('juno_records'))
+
+    const service = createLocalWatchService(() => client({}))
+    await service.register(['vinyl-tom', 'juno_records'])
     await service.register(['vinyl-tom'])
 
+    expect(await service.dealers()).toEqual(['vinyl-tom'])
+  })
+
+  it('says nothing on the first check, having nothing to compare against', async () => {
+    const db = await openFidelityDb()
+    // Watched, but never checked: watchNumForSale is the baseline from the
+    // moment it was added, and the count has not moved since.
+    await db.put('dealers', dealer('vinyl-tom', { watching: true, watchNumForSale: 1000 }))
+
+    const service = createLocalWatchService(() => client({ 'vinyl-tom': 1000 }))
     await expect(service.pending()).resolves.toEqual([])
+  })
+
+  it('reports a shop whose stock grew since the last look', async () => {
+    const db = await openFidelityDb()
+    await db.put('dealers', dealer('vinyl-tom', { watching: true, watchNumForSale: 1000 }))
+
+    const service = createLocalWatchService(() => client({ 'vinyl-tom': 1040 }))
+    await expect(service.pending()).resolves.toEqual([
+      { dealer: 'vinyl-tom', newListings: 40, seenAt: expect.any(Number) },
+    ])
   })
 })

@@ -28,6 +28,7 @@ import type {
   ShippingTier,
   TasteProfile,
   Verdict,
+  WatchAlert,
 } from './types'
 
 export interface PingResult {
@@ -151,6 +152,18 @@ export interface WorkerContract {
   }
   /** Every shop you have scanned, best first. */
   'dealer.list': { params: undefined; progress: never; result: Dealer[] }
+
+  /**
+   * The watchlist. One request per shop, not a hundred — `num_for_sale` off
+   * the profile is the whole change detector (docs/06 M6).
+   */
+  'watch.set': {
+    params: { dealer: string; watching: boolean }
+    progress: never
+    result: Dealer[]
+  }
+  'watch.list': { params: undefined; progress: never; result: Dealer[] }
+  'watch.check': { params: { force?: boolean }; progress: never; result: WatchCheck }
   /**
    * The credit graph, regrouped by person. Costs nothing: every edge was paid
    * for when the horizon was built.
@@ -216,6 +229,14 @@ export interface DealerProfile {
    */
   priceFactor: number | null
   scannedDealers: number
+}
+
+export interface WatchCheck {
+  alerts: WatchAlert[]
+  checked: number
+  requests: number
+  /** Watched but looked at recently enough to leave alone. */
+  skipped: number
 }
 
 export interface HarvestProgress {

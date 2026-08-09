@@ -37,6 +37,7 @@ export default {
         'horizon',
         'auth',
         'basket',
+        'watch',
         'ui',
         'db',
         'pwa',

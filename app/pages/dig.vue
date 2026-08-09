@@ -14,6 +14,8 @@ useSeoMeta({
 
 const { call } = useFidelityWorker()
 const { load: loadFeedback } = useFeedback()
+const { load: loadBasket } = useBasket()
+const route = useRoute()
 
 const dealer = ref('')
 const preflight = ref<DigPreflight | null>(null)
@@ -31,7 +33,16 @@ onMounted(async () => {
   // rate limit twice.
   resumable.value = await call('dig.resumable', undefined)
   result.value = await call('dig.latest', undefined)
-  await loadFeedback()
+  await Promise.all([loadFeedback(), loadBasket()])
+
+  // ?dealer= comes from the watchlist banner. Filled in and checked, never
+  // started: a scan is two minutes of somebody's rate limit and a link should
+  // not be able to spend it.
+  const wanted = route.query.dealer
+  if (typeof wanted === 'string' && wanted.trim()) {
+    dealer.value = wanted.trim()
+    await check()
+  }
 })
 
 const number = new Intl.NumberFormat('de-DE')

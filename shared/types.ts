@@ -96,6 +96,20 @@ export interface SyncState {
  * this person turns up in music at large, and no browser can measure that
  * (docs/11 §3 asks for one anyway — see `worker/horizon/credits.ts`).
  */
+/**
+ * A watched dealer whose stock count moved since the last check.
+ *
+ * `newListings` is the change in `num_for_sale`, not a count of records that
+ * are genuinely new: a shop that sells five and lists five moves by zero. What
+ * it says truthfully is that this shop changed — the interface words it that
+ * way and never promises more.
+ */
+export interface WatchAlert {
+  dealer: string
+  newListings: number
+  seenAt: number
+}
+
 export interface CreditPerson {
   entityId: number
   name: string
@@ -363,6 +377,18 @@ export interface Dealer {
   /** Derived, not marketplace content — so it outlives the six-hour window. */
   fingerprint: DealerFingerprint | null
   shippingTiers: ShippingTier[]
+
+  // --- Watchlist (M6) ------------------------------------------------------
+  // Not in docs/03 §6. Deliberately fields on the dealer rather than a store
+  // of their own: "einen Händler merken" is a property of that dealer, and a
+  // second store keyed by the same username would be two rows to keep in step.
+  // Absent on rows written before M6, which reads as "not watched".
+
+  /** Whether the app checks this dealer on start-up. */
+  watching?: boolean
+  /** `num_for_sale` at the last check — the whole change detector. */
+  watchNumForSale?: number | null
+  watchCheckedAt?: number | null
 }
 
 /**
