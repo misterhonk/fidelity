@@ -1,0 +1,25 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+# release-please, not semantic-release: it opens a release PR that collects the
+# changelog and the version bump and can be edited before the merge. For an app
+# that human gate is the point (docs/07-DEV-PIPELINE.md §3).
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
