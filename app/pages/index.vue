@@ -47,6 +47,7 @@ async function signOut() {
       <TokenForm v-if="!identity" @signed-in="identity = $event" />
 
       <template v-else>
+        <OfflineNotice />
         <WatchBanner />
 
         <LibrarySync />

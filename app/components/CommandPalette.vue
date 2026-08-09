@@ -54,6 +54,7 @@ const entries = computed<Entry[]>(() => [
   { id: 'nav-map', group: 'Gehe zu', label: 'Deine Landkarte', run: go('/landkarte') },
   { id: 'nav-clerk', group: 'Gehe zu', label: "The Clerk's Take", run: go('/haendler') },
   { id: 'nav-basket', group: 'Gehe zu', label: 'Der Korb', run: go('/korb') },
+  { id: 'nav-store', group: 'Gehe zu', label: 'Im Laden', run: go('/im-laden') },
   { id: 'nav-home', group: 'Gehe zu', label: 'Championship', run: go('/') },
 
   ...dealers.value.map((dealer) => ({

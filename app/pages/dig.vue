@@ -13,6 +13,7 @@ useSeoMeta({
 })
 
 const { call } = useFidelityWorker()
+const { online, noteFailure } = useOnline()
 const { load: loadFeedback } = useFeedback()
 const { load: loadBasket } = useBasket()
 const route = useRoute()
@@ -92,6 +93,7 @@ async function check() {
   try {
     preflight.value = await call('dig.preflight', { dealer: dealer.value.trim() })
   } catch (cause) {
+    noteFailure()
     error.value = cause instanceof Error ? cause.message : 'Händler nicht gefunden.'
   } finally {
     busy.value = false
@@ -205,7 +207,7 @@ const expired = computed(() => {
       </div>
       <button
         type="submit"
-        :disabled="busy || dealer.trim().length === 0"
+        :disabled="busy || !online || dealer.trim().length === 0"
         class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
       >
         Prüfen
@@ -213,6 +215,14 @@ const expired = computed(() => {
     </form>
 
     <p v-if="error" role="alert" class="text-fid-sm text-fid-sig-scarcity">{{ error }}</p>
+
+    <!--
+      Offline the last dig is still fully readable — it is on this device. Only
+      the parts that need Discogs are gone, and the screen says which.
+    -->
+    <p v-if="!online" role="status" class="text-fid-sm text-fid-sig-gap">
+      Kein Netz – ein neuer Dig geht gerade nicht. Der letzte steht unten und ist vollständig.
+    </p>
 
     <!--
       An interrupted run is picked up, not restarted. Those pages already cost

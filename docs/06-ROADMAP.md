@@ -183,15 +183,30 @@ in S9 gefunden (siehe `docs/04` §S9).
 
 ## M6 · Offline & Watchlist → `v0.7.0`
 
-- [ ] Service Worker: App-Shell precache, Cover-Cache mit LRU-Deckel (150 MB)
-- [ ] `navigator.storage.persist()` anfragen
-- [ ] Offline-Modus: Sammlung und letzte Digs vollständig nutzbar
-- [ ] **In-Store-Screen** (mobil, große Targets, offline) — der Keller-im-Plattenladen-Fall
-- [ ] iOS-Coach-Mark „Teilen → Zum Home-Bildschirm" (kein `beforeinstallprompt` auf iOS)
-- [ ] Watchlist: Händler merken, **Prüfung beim App-Start** statt nachts
-- [ ] Günstige Änderungserkennung: `GET /users/{dealer}` → `num_for_sale` vergleichen
+- [x] Service Worker: App-Shell precache, Cover-Cache mit LRU-Deckel (150 MB)
+- [x] `navigator.storage.persist()` anfragen
+- [x] Offline-Modus: Sammlung und letzte Digs vollständig nutzbar
+- [x] **In-Store-Screen** (mobil, große Targets, offline) — der Keller-im-Plattenladen-Fall
+- [x] iOS-Coach-Mark „Teilen → Zum Home-Bildschirm" (kein `beforeinstallprompt` auf iOS)
+- [x] Watchlist: Händler merken, **Prüfung beim App-Start** statt nachts
+- [x] Günstige Änderungserkennung: `GET /users/{dealer}` → `num_for_sale` vergleichen
       (**1 Request statt 100**), Vollscan nur bei Veränderung
-- [ ] Badge-API + „seit deinem letzten Besuch"-Banner
+- [x] Badge-API + „seit deinem letzten Besuch"-Banner
+
+**Anmerkungen:**
+
+- **Der 150-MB-Deckel wurde zu 6.000 Einträgen.** Workbox' `ExpirationPlugin`
+  zählt Einträge und Alter, nicht Bytes — einen Byte-Deckel gibt es dort nicht.
+  6.000 ist dasselbe Budget in der verfügbaren Einheit, gerechnet mit den
+  ~25 KB, die ein 150px-Thumbnail wiegt. `purgeOnQuotaError` ist das eigentliche
+  Sicherheitsnetz, falls die Schätzung danebenliegt.
+- **Der Banner verspricht nicht mehr, als die Zahl hergibt.** `num_for_sale`
+  bewegt sich um 40 heißt nicht „40 neue Platten" — wer fünf verkauft und fünf
+  einstellt, bewegt sich um null. Der Text sagt „40 Listings mehr im Angebot
+  als beim letzten Mal" und erklärt den Vorbehalt darunter.
+- **Offline live geprüft:** Build ausgeliefert, Service Worker registriert,
+  Server abgeschaltet, Seite neu geladen — Shell, Worker und IndexedDB-Abfrage
+  liefen vollständig ohne Netz.
 
 > ⚠️ **Keine Push-Benachrichtigungen.** Web Push braucht einen Application Server, den
 > wir bewusst nicht haben. Falls Push später wirklich vermisst wird: `08-DEPLOYMENT.md` §6.
