@@ -19,35 +19,15 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { deflateSync } from 'node:zlib'
 
+import { oklchToRgb, toHex } from '../tokens/color.mjs'
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 const outDir = resolve(root, 'public/icons')
 
 // --- colour ----------------------------------------------------------------
 
-/** OKLCH → sRGB. The tokens are OKLCH; PNG is not. */
-function oklchToRgb([lightness, chroma, hue]) {
-  const h = (hue * Math.PI) / 180
-  const a = chroma * Math.cos(h)
-  const b = chroma * Math.sin(h)
-
-  const l = (lightness + 0.3963377774 * a + 0.2158037573 * b) ** 3
-  const m = (lightness - 0.1055613458 * a - 0.0638541728 * b) ** 3
-  const s = (lightness - 0.0894841775 * a - 1.291485548 * b) ** 3
-
-  const linear = [
-    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
-    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
-    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
-  ]
-
-  return linear.map((c) => {
-    const encoded = c <= 0.0031308 ? 12.92 * c : 1.055 * Math.max(c, 0) ** (1 / 2.4) - 0.055
-    return Math.round(Math.min(1, Math.max(0, encoded)) * 255)
-  })
-}
-
-const hex = ([r, g, b]) => `#${[r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')}`
-
+// Shared with the contrast test, so the icon can never be drawn from a
+// different interpretation of the tokens than the one we assert on.
 // --- PNG encoding ----------------------------------------------------------
 
 const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
@@ -185,14 +165,14 @@ const circles = artwork(1)
   .reverse()
   .map(
     (d) =>
-      `  <circle cx="256" cy="256" r="${(d.radius * 512).toFixed(1)}" fill="${hex(d.colour)}"/>`,
+      `  <circle cx="256" cy="256" r="${(d.radius * 512).toFixed(1)}" fill="${toHex(d.colour)}"/>`,
   )
   .join('\n')
 
 await writeFile(
   resolve(root, 'public/icon.svg'),
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Fidelity">
-  <rect width="512" height="512" fill="${hex(sleeve)}"/>
+  <rect width="512" height="512" fill="${toHex(sleeve)}"/>
 ${circles}
 </svg>
 `,

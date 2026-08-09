@@ -27,7 +27,8 @@
       "$extensions": { "de.fidelity.dark": "{color.n.400}" }
     },
     "accent": {
-      "$value": "{color.accent.600}",
+      "$value": "{color.accent.700}",
+      "$description": "Light mode uses 700, not 600: 600 reaches only 3.10:1 against --fid-bg and misses WCAG 2.2 AA for body text. 700 gives 4.63:1. Dark mode keeps 500 at 8.51:1.",
       "$extensions": { "de.fidelity.dark": "{color.accent.500}" }
     }
   }
