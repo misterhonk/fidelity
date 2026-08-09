@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fidelity — Projektkonzept</title>
+<style>
+:root{
+  color-scheme: dark;
+  --n-50:oklch(.980 .004 70); --n-100:oklch(.955 .006 70); --n-200:oklch(.900 .008 70);
+  --n-300:oklch(.820 .009 70); --n-400:oklch(.680 .010 70); --n-500:oklch(.560 .011 70);
+  --n-600:oklch(.450 .012 70); --n-700:oklch(.340 .012 70); --n-800:oklch(.245 .011 70);
+  --n-900:oklch(.180 .010 70); --n-950:oklch(.135 .009 70); --n-990:oklch(.105 .008 70);
+  --acc-400:oklch(.800 .140 62); --acc-500:oklch(.740 .165 58); --acc-600:oklch(.660 .170 54);
+
+  --sig-wantlist:oklch(.72 .170 350); --sig-gap:oklch(.78 .150 85);
+  --sig-credit:oklch(.75 .120 190);   --sig-artist:oklch(.70 .140 250);
+  --sig-label:oklch(.70 .160 300);    --sig-catalog:oklch(.74 .150 150);
+  --sig-style:oklch(.76 .110 210);    --sig-price:oklch(.78 .160 130);
+  --sig-scarcity:oklch(.70 .180 28);  --sig-upgrade:oklch(.74 .130 170);
+
+  --bg:var(--n-990); --surface:var(--n-950); --raised:var(--n-900);
+  --border:var(--n-800); --text:var(--n-100); --muted:var(--n-400); --acc:var(--acc-500);
+
+  --sp:4px; --r-sm:6px; --r-md:10px; --r-lg:16px;
+  --font: ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+  --mono: ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--text); font-family:var(--font);
+  font-size:clamp(1rem,.96rem + .2vw,1.0625rem); line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+section{padding:72px 0;border-top:1px solid var(--border)}
+section:first-of-type{border-top:0}
+
+/* ---------- hero ---------- */
+.hero{
+  padding:96px 0 80px; border:0;
+  background:
+    radial-gradient(900px 420px at 12% -10%, oklch(.74 .165 58 / .16), transparent 62%),
+    radial-gradient(700px 380px at 92% 8%, oklch(.72 .17 350 / .10), transparent 60%);
+}
+.eyebrow{
+  font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--acc);font-weight:650;margin-bottom:20px
+}
+h1{
+  font-size:clamp(2.6rem,1.9rem + 3.4vw,5rem); line-height:.98;
+  letter-spacing:-.035em; font-weight:800; margin-bottom:8px
+}
+.h1sub{
+  font-size:clamp(1.1rem,1rem + .6vw,1.6rem); color:var(--n-300);
+  font-weight:400; letter-spacing:-.01em; margin-bottom:32px
+}
+.lede{font-size:clamp(1.05rem,1rem + .35vw,1.3rem);color:var(--n-200);max-width:60ch}
+.lede strong{color:var(--text);font-weight:650}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:36px}
+.pill{
+  font-size:.8rem;padding:6px 13px;border-radius:999px;
+  border:1px solid var(--border);background:var(--surface);color:var(--n-300)
+}
+.pill.hot{border-color:oklch(.74 .165 58 / .45);color:var(--acc-400);background:oklch(.74 .165 58 / .08)}
+
+h2{
+  font-size:clamp(1.6rem,1.35rem + 1.2vw,2.3rem);letter-spacing:-.025em;
+  font-weight:750;margin-bottom:10px;text-wrap:balance
+}
+h3{font-size:1.05rem;font-weight:680;letter-spacing:-.01em;margin-bottom:8px}
+.sec-note{color:var(--muted);margin-bottom:36px;max-width:66ch}
+p+p{margin-top:14px}
+
+/* ---------- quote ---------- */
+.quote{
+  border-left:3px solid var(--acc);padding:14px 0 14px 22px;margin:26px 0;
+  font-size:1.15rem;color:var(--n-200);font-style:italic
+}
+
+/* ---------- grid/cards ---------- */
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:22px
+}
+.card .k{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.card p{font-size:.94rem;color:var(--n-300)}
+.big{font-size:2.5rem;font-weight:780;letter-spacing:-.03em;line-height:1;margin-bottom:6px}
+
+/* ---------- table ---------- */
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin-top:8px}
+th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.n{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:.85rem}
+tbody tr:hover{background:oklch(1 0 0 / .022)}
+
+/* ---------- matrix ---------- */
+.matrix{
+  position:relative;height:430px;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r-lg);margin-top:8px;overflow:hidden
+}
+.matrix .ax{position:absolute;background:var(--n-700)}
+.matrix .ax.v{left:50%;top:26px;bottom:26px;width:1px}
+.matrix .ax.h{top:50%;left:26px;right:26px;height:1px}
+.axl{position:absolute;font-size:.68rem;letter-spacing:.11em;text-transform:uppercase;color:var(--n-500)}
+.dot{position:absolute;transform:translate(-50%,-50%);text-align:center;width:130px}
+.dot b{
+  display:block;width:11px;height:11px;border-radius:50%;background:var(--n-400);
+  margin:0 auto 7px
+}
+.dot span{font-size:.76rem;color:var(--n-300);line-height:1.3;display:block}
+.dot small{font-size:.66rem;color:var(--n-500);display:block;margin-top:2px}
+.dot.star b{
+  width:20px;height:20px;background:var(--acc);
+  box-shadow:0 0 0 7px oklch(.74 .165 58 / .16),0 0 26px oklch(.74 .165 58 / .55)
+}
+.dot.star span{color:var(--acc-400);font-weight:700;font-size:.86rem}
+
+/* ---------- flow ---------- */
+.flow{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-top:8px}
+.step{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:16px;position:relative
+}
+.step .no{
+  font-family:var(--mono);font-size:.7rem;color:var(--acc);
+  border:1px solid oklch(.74 .165 58 / .35);border-radius:4px;
+  padding:1px 6px;display:inline-block;margin-bottom:9px
+}
+.step h4{font-size:.92rem;font-weight:650;margin-bottom:5px}
+.step p{font-size:.82rem;color:var(--muted);line-height:1.5}
+
+/* ---------- signals ---------- */
+.sigs{display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));margin-top:8px}
+.sig{
+  display:flex;gap:12px;align-items:flex-start;padding:13px 15px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+  border-left:3px solid var(--c)
+}
+.sig .id{font-family:var(--mono);font-size:.7rem;color:var(--c);padding-top:2px;min-width:22px}
+.sig .t{font-size:.88rem;font-weight:620;margin-bottom:2px}
+.sig .d{font-size:.79rem;color:var(--muted);line-height:1.45}
+.sig .w{margin-left:auto;font-family:var(--mono);font-size:.72rem;color:var(--n-500);padding-top:2px}
+
+/* ---------- match demo ---------- */
+.match{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:20px;display:flex;gap:18px;margin-top:8px
+}
+.cov{
+  width:104px;height:104px;flex:0 0 104px;border-radius:3px;
+  background:
+    radial-gradient(circle at 50% 50%, var(--n-990) 0 15%, transparent 15.5%),
+    conic-gradient(from 0deg, oklch(.30 .05 60), oklch(.20 .04 300), oklch(.34 .06 200), oklch(.30 .05 60));
+  border:1px solid var(--n-800);position:relative
+}
+.cov::after{
+  content:"";position:absolute;inset:0;border-radius:3px;
+  background:repeating-radial-gradient(circle at 50% 50%, transparent 0 2px, oklch(1 0 0 /.035) 2px 3px)
+}
+.match .body{flex:1;min-width:0}
+.match .title{font-size:1.08rem;font-weight:680;letter-spacing:-.012em}
+.match .meta{font-family:var(--mono);font-size:.76rem;color:var(--muted);margin:4px 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{
+  font-size:.72rem;padding:3px 10px;border-radius:999px;
+  background:color-mix(in oklch, var(--c) 14%, transparent);
+  border:1px solid color-mix(in oklch, var(--c) 42%, transparent);
+  color:var(--c);font-weight:600
+}
+.reason{font-size:.93rem;color:var(--n-200);line-height:1.55}
+.match .foot{
+  display:flex;gap:16px;align-items:baseline;margin-top:14px;
+  font-family:var(--mono);font-size:.8rem;color:var(--muted)
+}
+.match .foot .price{font-size:1.05rem;color:var(--text);font-weight:640}
+.match .foot .strike{color:var(--sig-price)}
+.score{
+  flex:0 0 78px;text-align:center;align-self:flex-start
+}
+.ring{
+  width:78px;height:78px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(var(--acc) 0 91%, var(--n-800) 91% 100%);
+  position:relative
+}
+.ring::before{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--surface)}
+.ring b{position:relative;font-size:1.6rem;font-weight:760;font-variant-numeric:tabular-nums}
+.score small{display:block;font-size:.66rem;color:var(--acc-400);margin-top:7px;letter-spacing:.04em;font-weight:650}
+
+/* ---------- facts ---------- */
+.fact{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:22px;border-top:3px solid var(--warn,var(--acc))
+}
+.fact .big{color:var(--acc)}
+.fact.f2{--warn:var(--sig-scarcity)} .fact.f2 .big{color:var(--sig-scarcity)}
+.fact.f3{--warn:var(--sig-catalog)} .fact.f3 .big{color:var(--sig-catalog)}
+
+/* ---------- stack ---------- */
+pre{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:.8rem;
+  line-height:1.75;color:var(--n-200)
+}
+pre b{color:var(--acc-400);font-weight:600}
+code{font-family:var(--mono);font-size:.86em;background:var(--raised);padding:1px 5px;border-radius:4px}
+
+/* ---------- roadmap ---------- */
+.road{display:grid;gap:0;margin-top:8px}
+.ms{display:grid;grid-template-columns:64px 1fr;gap:18px;padding:16px 0;border-bottom:1px solid var(--border)}
+.ms:last-child{border-bottom:0}
+.ms .tag{
+  font-family:var(--mono);font-size:.78rem;color:var(--acc);font-weight:600;
+  padding-top:2px
+}
+.ms .v{font-family:var(--mono);font-size:.7rem;color:var(--n-500);display:block;margin-top:3px}
+.ms h4{font-size:.98rem;font-weight:650;margin-bottom:3px}
+.ms p{font-size:.86rem;color:var(--muted);line-height:1.5}
+.ms.key{background:oklch(.74 .165 58 / .05);margin:0 -16px;padding:16px;border-radius:var(--r-md);border-bottom-color:transparent}
+.ms.key h4{color:var(--acc-400)}
+
+.foot{padding:44px 0 64px;color:var(--n-600);font-size:.8rem;line-height:1.7;border-top:1px solid var(--border)}
+.foot a{color:var(--n-400)}
+@media (max-width:640px){
+  .match{flex-direction:column} .score{align-self:flex-start}
+  .matrix{height:520px}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Projektkonzept · v0.1 · August 2026</div>
+    <h1>Fidelity</h1>
+    <div class="h1sub">Der Verkäufer hinter der Theke — für Discogs</div>
+    <p class="lede">
+      Discogs ist eine <strong>Suchmaschine</strong>, kein Plattenladen. Es beantwortet
+      perfekt „Habt ihr Platte X?" — und nie die Frage, die man im Laden wirklich stellt:
+      <strong>„Was hättet ihr für mich?"</strong>
+    </p>
+    <div class="hero-meta">
+      <span class="pill hot">Hommage an <em>High Fidelity</em></span>
+      <span class="pill">Nuxt 4 · Node 22 · PostgreSQL</span>
+      <span class="pill">PWA</span>
+      <span class="pill">Uberspace</span>
+      <span class="pill">11 Match-Signale</span>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>Das Problem</h2>
+    <p class="sec-note">
+      Man kauft bei Discogs immer mehrere Platten beim selben Händler, um Versand zu sparen.
+      Also muss man sich durch dessen Sortiment wühlen — 20.000 Einträge, alphabetisch,
+      ohne jeden Bezug zur eigenen Sammlung.
+    </p>
+
+    <div class="quote">
+      „I was tired of missing out on records just because Discogs only matches exact versions
+      from my wantlist. It's so frustrating when a seller has a different pressing of an album
+      I want, but it doesn't show up!"
+      <div style="font-style:normal;font-size:.82rem;color:var(--n-500);margin-top:10px">
+        — Discogs Forum #1101834
+      </div>
+    </div>
+
+    <div class="grid g3" style="margin-top:32px">
+      <div class="card">
+        <div class="k">Items I Want</div>
+        <p>Discogs' eigene Händler-Übersicht. Zeigt nur <strong style="color:var(--n-100)">exakte
+        Release-Versionen</strong>, Top 5, und ist so tief vergraben, dass sie im Forum alle
+        paar Monate neu entdeckt wird.</p>
+      </div>
+      <div class="card">
+        <div class="k">Wantlister</div>
+        <p>2024 von Discogs zugekauft. Echtzeit-Alerts, gute Filter — aber kennt nur deine
+        <strong style="color:var(--n-100)">Wantlist</strong>, nie deine Sammlung.</p>
+      </div>
+      <div class="card">
+        <div class="k">Empfehlungen</div>
+        <p>~20 Vorschläge, nicht händlerbezogen, praktisch tot. Der gesamte Credit-Graph
+        — Produzenten, Engineers, Studios — bleibt <strong style="color:var(--n-100)">völlig
+        ungenutzt</strong>.</p>
+      </div>
+    </div>
+
+    <p style="margin-top:28px;font-size:1.05rem;color:var(--n-200);max-width:66ch">
+      Der blinde Fleck: <strong style="color:var(--acc-400)">Alle existierenden Werkzeuge starten
+      bei der Wantlist</strong> — also bei Platten, von denen du schon weißt, dass du sie willst.
+      Keines startet bei der Sammlung — also bei dem, was dein Geschmack über dich verrät.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Wo das Feld leer ist</h2>
+    <p class="sec-note">
+      Recherchierte Wettbewerbslage, August 2026. Ein Vorläufer der Idee existierte 2021 als
+      <code>crate_digger.php</code> unter einer nackten IP im Discogs-Forum — nie benannt,
+      nie gelauncht, heute tot.
+    </p>
+
+    <div class="matrix">
+      <div class="ax v"></div><div class="ax h"></div>
+      <div class="axl" style="top:8px;left:50%;transform:translateX(-50%)">personalisiert auf deine Sammlung</div>
+      <div class="axl" style="bottom:8px;left:50%;transform:translateX(-50%)">nicht personalisiert</div>
+      <div class="axl" style="left:26px;top:50%;transform:translateY(-50%) translateY(-14px)">Sammlungsseite</div>
+      <div class="axl" style="right:26px;top:50%;transform:translateY(-50%) translateY(-14px);text-align:right">Händlerseite</div>
+
+      <div class="dot" style="left:24%;top:24%"><b></b><span>recordsv.lt</span><small>nur Analyse, kein Marktplatz</small></div>
+      <div class="dot star" style="left:76%;top:20%"><b></b><span>FIDELITY</span><small>Sammlung × Händlerinventar</small></div>
+      <div class="dot" style="left:19%;top:74%"><b></b><span>Vizcogs · Groovv</span><small>Sammlungs-Visualisierung</small></div>
+      <div class="dot" style="left:21%;top:88%"><b></b><span>Discogs Enhancer</span><small>Browser-Ext., 10k+ Nutzer</small></div>
+      <div class="dot" style="left:78%;top:66%"><b></b><span>milkcrate.fm</span><small>Händler-Storefronts</small></div>
+      <div class="dot" style="left:74%;top:84%"><b></b><span>Waxrunner · Wantlister</span><small>Wantlist-Solver</small></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>So funktioniert es</h2>
+    <p class="sec-note">Ein Händlername rein, eine bewertete Fundliste raus — in etwa zwei Minuten.</p>
+    <div class="flow">
+      <div class="step"><span class="no">01</span><h4>Händler nennen</h4>
+        <p>Discogs-Username eingeben. Vorabprüfung sagt sofort, wie viel vom Sortiment erreichbar ist.</p></div>
+      <div class="step"><span class="no">02</span><h4>Inventar scannen</h4>
+        <p>Bis 20.000 Listings, 100 pro Seite, ~1 Request/Sekunde. Treffer strömen ab Sekunde 5 ein.</p></div>
+      <div class="step"><span class="no">03</span><h4>Gegen dich abgleichen</h4>
+        <p>Sammlung, Wantlist, Geschmacksprofil, Credit-Graph. 11 Signale, jedes mit Beleg.</p></div>
+      <div class="step"><span class="no">04</span><h4>Barry urteilt</h4>
+        <p>Score 0–100 plus <em>einem Satz Begründung</em>. Das ist der Unterschied zwischen Filter und Verkäufer.</p></div>
+      <div class="step"><span class="no">05</span><h4>Korb optimieren</h4>
+        <p>„Die 3. Platte senkt den Versand von 4,50 € auf 3,00 € pro Stück — hier sind die Kandidaten."</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Die elf Signale</h2>
+    <p class="sec-note">
+      Jeder Treffer trägt ein oder mehrere Signale, jedes mit einem konkreten Beleg.
+      Vier davon sind gratis und laufen ab Tag 1 — der Rest braucht die Katalog-Datenbank
+      aus den CC0-Dumps.
+    </p>
+    <div class="sigs">
+      <div class="sig" style="--c:var(--sig-wantlist)"><span class="id">S1</span><div><div class="t">Wantlist exakt</div><div class="d">Genau diese Release-ID steht auf deiner Wantlist</div></div><span class="w">100</span></div>
+      <div class="sig" style="--c:var(--sig-wantlist)"><span class="id">S2</span><div><div class="t">Anderes Pressing</div><div class="d">Dasselbe Album, andere Pressung — was Discogs nicht kann</div></div><span class="w">75</span></div>
+      <div class="sig" style="--c:var(--sig-gap)"><span class="id">S4</span><div><div class="t">Diskografie-Lücke</div><div class="d">Du hast 4 von 6. Das hier ist die fünfte.</div></div><span class="w">70</span></div>
+      <div class="sig" style="--c:var(--sig-credit)"><span class="id">S8</span><div><div class="t">Credit-Graph</div><div class="d">Gleicher Produzent, Engineer, Studio, Sideman</div></div><span class="w">65</span></div>
+      <div class="sig" style="--c:var(--sig-catalog)"><span class="id">S6</span><div><div class="t">Katalog-Serie</div><div class="d">Blue Note 4000er, ECM 1000er, Brain/Ohr/Pilz</div></div><span class="w">60</span></div>
+      <div class="sig" style="--c:var(--sig-artist)"><span class="id">S3</span><div><div class="t">Künstler bekannt</div><div class="d">Steht im Regal — dieses Release aber nicht</div></div><span class="w">55</span></div>
+      <div class="sig" style="--c:var(--sig-label)"><span class="id">S5</span><div><div class="t">Label-Affinität</div><div class="d">Nicht die Menge zählt, sondern der Lift</div></div><span class="w">45</span></div>
+      <div class="sig" style="--c:var(--sig-upgrade)"><span class="id">S9</span><div><div class="t">Format-Upgrade</div><div class="d">Hast du auf CD — hier gibt's das Original</div></div><span class="w">40</span></div>
+      <div class="sig" style="--c:var(--sig-price)"><span class="id">S10</span><div><div class="t">Preis-Signal</div><div class="d">Deutlich unter Marktniveau</div></div><span class="w">35</span></div>
+      <div class="sig" style="--c:var(--sig-style)"><span class="id">S7</span><div><div class="t">Stil-Adjazenz</div><div class="d">Nachbarschaft zum Zentroid deiner Sammlung</div></div><span class="w">30</span></div>
+      <div class="sig" style="--c:var(--sig-scarcity)"><span class="id">S11</span><div><div class="t">Seltenheit</div><div class="d">Taucht selten im Marktplatz auf</div></div><span class="w">30</span></div>
+    </div>
+
+    <h3 style="margin-top:44px">So sieht ein Treffer aus</h3>
+    <div class="match">
+      <div class="cov"></div>
+      <div class="body">
+        <div class="title">Neu! — Neu! 2</div>
+        <div class="meta">Brain · BRAIN 1031 · DE · 1973 · VG+ / VG+</div>
+        <div class="chips">
+          <span class="chip" style="--c:var(--sig-credit)">◆ Credit-Graph</span>
+          <span class="chip" style="--c:var(--sig-catalog)">◆ Katalog-Serie</span>
+          <span class="chip" style="--c:var(--sig-label)">◆ Label-Affinität</span>
+          <span class="chip" style="--c:var(--sig-price)">◆ Preis</span>
+        </div>
+        <p class="reason">
+          Conny Plank am Pult — du hast 9 seiner Produktionen, diese nicht. In der
+          Brain-1000er-Reihe fehlen dir nur noch 1051 und 1060.
+        </p>
+        <div class="foot">
+          <span class="price">24,00 €</span>
+          <span class="strike">Markt ab 41 €</span>
+          <span>nur 3 im Angebot</span>
+        </div>
+      </div>
+      <div class="score">
+        <div class="ring"><b>91</b></div>
+        <small>SIDE ONE<br>TRACK ONE</small>
+      </div>
+    </div>
+    <p style="margin-top:18px;color:var(--muted);font-size:.9rem;max-width:64ch">
+      Der Begründungssatz ist kein Nice-to-have. Eine Empfehlung ohne Begründung ist Rauschen —
+      eine mit Begründung ist ein Verkäufer. Erzeugt aus Templates plus echten Belegen,
+      deterministisch, ohne LLM.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Die drei Fakten, die alles bestimmen</h2>
+    <p class="sec-note">
+      Am 2026-08-09 live gegen die Produktions-API verifiziert. Sie legen die Architektur
+      praktisch vollständig fest — und stehen so in keiner offiziellen Dokumentation.
+    </p>
+    <div class="grid g3">
+      <div class="fact">
+        <div class="big num">10.000</div>
+        <h3>Listings pro fremdem Händler</h3>
+        <p style="font-size:.88rem;color:var(--muted);margin-top:8px">
+          Seite 101 liefert <code>403</code>. Und <code>pagination.pages</code> lügt: meldet
+          433 Seiten bei 43.234 Items. Mit <code>sort_order</code> asc + desc kommt man auf
+          20.000. Darüber ist vollständige Abdeckung <strong style="color:var(--n-200)">unmöglich</strong>
+          — und die UI muss das ehrlich sagen.
+        </p>
+      </div>
+      <div class="fact f2">
+        <div class="big num">60/min</div>
+        <h3>Rate-Limit — pro IP, nicht pro Token</h3>
+        <p style="font-size:.88rem;color:var(--muted);margin-top:8px">
+          Mehr Nutzer bringen kein größeres Budget. Kein <code>Retry-After</code> bei 429.
+          Ein Dig kostet ~101 Requests ≈ 2 Minuten. Bilder haben ein <em>separates,
+          undokumentiertes</em> Cloudflare-Limit — die holt nur der Browser.
+        </p>
+      </div>
+      <div class="fact f3">
+        <div class="big">CC0</div>
+        <h3>Katalogdaten sind Public Domain</h3>
+        <p style="font-size:.88rem;color:var(--muted);margin-top:8px">
+          Marktplatzdaten dürfen max. <strong style="color:var(--n-200)">6 Stunden</strong> alt
+          angezeigt werden. Die monatlichen Data Dumps dagegen: keine Frist, keine Attribution,
+          keine Speichergrenze. <strong style="color:var(--n-200)">Katalog offline aus Dumps,
+          Marktplatz live aus der API.</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Tech-Stack</h2>
+    <p class="sec-note">
+      Alle Versionen zum 2026-08-09 verifiziert. Node 22 statt 24, weil Uberspace nicht mehr
+      anbietet — und lokal muss identisch sein, sonst debuggt man Unterschiede statt Features.
+    </p>
+<pre><b>Runtime</b>    Node 22 LTS · pnpm                    <span style="color:var(--n-600)">← Uberspace-Limit, kein 24</span>
+<b>Framework</b>  Nuxt 4.5 · Vue 3.5 · Vite 8           <span style="color:var(--n-600)">← Nuxt 3 ist seit Juli EOL</span>
+<b>Server</b>     Nitro + pg-boss (Worker in-process)   <span style="color:var(--n-600)">← 1,5 GB RAM gesamt</span>
+<b>Datenbank</b>  PostgreSQL 15 + pg_trgm + unaccent
+<b>ORM</b>        Drizzle 0.45.x, hart gepinnt          <span style="color:var(--n-600)">← 1.0 ist seit 18 Mon. RC</span>
+<b>UI</b>         Tailwind 4 · Nuxt UI 4 · Reka UI      <span style="color:var(--n-600)">← Radix Vue ist tot</span>
+<b>Tokens</b>     DTCG 2025.10 · OKLCH · Style Dictionary
+<b>Listen</b>     TanStack Table + Virtual              <span style="color:var(--n-600)">← Sammlungen mit 5000+</span>
+<b>PWA</b>        @vite-pwa/nuxt · eigene IndexedDB-Outbox <span style="color:var(--n-600)">← Background Sync ist Chromium-only</span>
+<b>Test</b>       Vitest · Playwright inkl. WebKit · axe-core
+<b>Release</b>    Conventional Commits · release-please · Keep a Changelog
+<b>Deploy</b>     lokal Docker → Uberspace 7            <span style="color:var(--n-600)">← dort kein Docker</span>
+<b>A11y</b>       WCAG 2.2 AA · EN 301 549              <span style="color:var(--n-600)">← BFSG seit Juni 2025</span></pre>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Roadmap</h2>
+    <p class="sec-note">Jeder Meilenstein endet mit Tag, Changelog-Eintrag und Definition of Done.</p>
+    <div class="road">
+      <div class="ms"><div class="tag">M0<span class="v">v0.1.0</span></div>
+        <div><h4>Fundament</h4><p>Nuxt-Skeleton, Docker Compose, Migrationen, Design Tokens, CI, release-please. <code>docker compose up</code> läuft.</p></div></div>
+      <div class="ms"><div class="tag">M1<span class="v">v0.2.0</span></div>
+        <div><h4>Auth &amp; Sync</h4><p>OAuth 1.0a mit PLAINTEXT-Signatur, Discogs-Client mit adaptivem Token-Bucket, Sammlung + Wantlist, Geschmacksprofil.</p></div></div>
+      <div class="ms key"><div class="tag">M2<span class="v">v0.3.0</span></div>
+        <div><h4>Der erste Dig — der Beweis-Meilenstein</h4><p>Inventar-Scan mit SSE-Fortschritt, Signale S1/S3/S5, Barry Score v1, Begründungssätze. <strong>Definition of Done: Martin findet eine Platte, die er sonst übersehen hätte.</strong></p></div></div>
+      <div class="ms"><div class="tag">M3<span class="v">v0.4.0</span></div>
+        <div><h4>Barry wird klüger</h4><p>Stil-Adjazenz, Feedback-Buttons, Händler-Fingerprint, Filterleiste, Command Palette, Precision@5 messen.</p></div></div>
+      <div class="ms"><div class="tag">M4<span class="v">v0.5.0</span></div>
+        <div><h4>Der Korb</h4><p>Versandstaffel, Grenzkosten-Kurve, Kandidatenvorschläge, Preis- und Seltenheitssignale, Greedy-Optimierer.</p></div></div>
+      <div class="ms"><div class="tag">M5<span class="v">v0.6.0</span></div>
+        <div><h4>Katalog-Datenbank</h4><p>10,4 GB Dumps lokal streamen, kompaktes Schema, rsync nach Uberspace. Schaltet Credit-Graph, Diskografie-Lücken und Katalogserien frei.</p></div></div>
+      <div class="ms"><div class="tag">M6<span class="v">v0.7.0</span></div>
+        <div><h4>Watchlist &amp; PWA</h4><p>Händler beobachten, Web Push, Offline-Modus, In-Store-Screen fürs Handy im Kellerladen.</p></div></div>
+      <div class="ms"><div class="tag">M7<span class="v">v0.8.0</span></div>
+        <div><h4>Pressing-Beratung</h4><p>Matrix/Runout, Mastering-Stempel, Original vs. Reissue, Fallen-Warnung.</p></div></div>
+      <div class="ms"><div class="tag">M8<span class="v">v1.0.0</span></div>
+        <div><h4>Härtung &amp; Freundeskreis</h4><p>Multi-User, Warteschlange, Backups, DSGVO, A11y-Audit, Onboarding das Jens ohne Rückfrage schafft.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Namensgebung</h2>
+    <p class="sec-note">
+      Hommage an <em>High Fidelity</em>. Ein Wort, drei Bedeutungsebenen — und markenrechtlich
+      unproblematisch.
+    </p>
+    <div class="grid g2">
+      <div class="card">
+        <div class="k">Produktname</div>
+        <div style="font-size:2rem;font-weight:780;letter-spacing:-.03em;margin-bottom:12px">Fidelity</div>
+        <p><strong style="color:var(--n-100)">High Fidelity</strong> — die Hommage.<br>
+           <strong style="color:var(--n-100)">Klangtreue</strong> — Pressqualität, Original vs. Reissue.<br>
+           <strong style="color:var(--n-100)">Verlässlichkeit</strong> — ehrliches Grading, vertrauenswürdige Händler.</p>
+      </div>
+      <div class="card">
+        <div class="k">Naming-System</div>
+        <table style="margin-top:0">
+          <tr><td style="border:0;padding:5px 0"><strong>Barry</strong></td><td style="border:0;padding:5px 0;color:var(--muted)">Die Empfehlungs-Engine — Jack Blacks Barry Judd</td></tr>
+          <tr><td style="border:0;padding:5px 0"><strong>Dig</strong></td><td style="border:0;padding:5px 0;color:var(--muted)">Ein Händler-Scan</td></tr>
+          <tr><td style="border:0;padding:5px 0"><strong>Top Five</strong></td><td style="border:0;padding:5px 0;color:var(--muted)">Die besten Treffer — der Running Gag des Films</td></tr>
+          <tr><td style="border:0;padding:5px 0"><strong>Side One,<br>Track One</strong></td><td style="border:0;padding:5px 0;color:var(--muted)">Der beste Treffer eines Digs — Rob Gordons Kategorie</td></tr>
+          <tr><td style="border:0;padding:5px 0"><strong>Championship</strong></td><td style="border:0;padding:5px 0;color:var(--muted)">Der Dashboard-Screen — <em>nur intern</em>, nicht als Produktname</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap">
+    <p><strong style="color:var(--n-300)">Fidelity — Projektkonzept v0.1</strong> · 9. August 2026 ·
+       Vollständige Dokumentation unter <code>docs/</code></p>
+    <p style="margin-top:14px">
+      This application uses Discogs' API but is not affiliated with, sponsored or endorsed by
+      Discogs. "Discogs" is a trademark of Zink Media, LLC.<br>
+      Data provided by <a href="https://www.discogs.com">Discogs</a>.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

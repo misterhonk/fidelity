@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+.output/
+.nuxt/
+dist/
+.nitro/
+.cache/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# Local data
+data/dumps/
+data/tmp/
+*.sqlite
+*.sqlite-*
+
+# Generated design tokens (built from tokens/*.json by `pnpm tokens:build`)
+app/assets/css/tokens.css
+
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+
+# Logs
+*.log
+logs/
+
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
