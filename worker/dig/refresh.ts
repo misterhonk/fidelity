@@ -163,6 +163,82 @@ export async function refreshDig({
   return { refreshed, sold, requests, gone }
 }
 
+/**
+ * The same question for the basket: is this still there, and at what price.
+ *
+ * More pressing here than on a dig. A dig is a list you browse; a basket is a
+ * decision you have already made, and finding out at the checkout that the
+ * record sold last night is the worst possible moment to learn it.
+ *
+ * Sold lines are kept, not deleted. Removing somebody's basket entry behind
+ * their back would be the app making a decision that is theirs — the line says
+ * "verkauft" and they take it out, or leave it as a reminder.
+ */
+export async function refreshBasket({
+  client,
+  currency,
+  now = Date.now(),
+  report,
+  signal,
+}: Omit<RefreshOptions, 'digId'>): Promise<RefreshResult> {
+  const db = await openFidelityDb()
+
+  /*
+   * A listing that has sold stays sold — the id does not come back on the
+   * market, a relisting gets a new one. So asking about it again would spend a
+   * request on an answer we already have, every single time.
+   */
+  const items = (await db.getAll('basket')).filter((item) => !item.soldAt)
+
+  let requests = 0
+  let refreshed = 0
+  let sold = 0
+  let gone = 0
+  let done = 0
+
+  report?.({ done, total: items.length, requests, sold })
+
+  for (const item of items) {
+    signal?.throwIfAborted()
+
+    let listing
+    try {
+      listing = await client.get(`/marketplace/listings/${item.listingId}`, listingSchema, {
+        query: { curr_abbr: currency },
+        signal,
+      })
+      requests += 1
+    } catch (error) {
+      if (signal?.aborted) throw error
+      await db.put('basket', { ...item, soldAt: now })
+      gone += 1
+      done += 1
+      report?.({ done, total: items.length, requests, sold })
+      continue
+    }
+
+    if ((listing.status ?? FOR_SALE) === FOR_SALE) {
+      await db.put('basket', {
+        ...item,
+        price: listing.price?.value ?? item.price,
+        currency: listing.price?.currency ?? item.currency,
+        // The clock is per line: a refreshed price is six hours young again.
+        addedAt: now,
+        soldAt: null,
+      })
+      refreshed += 1
+    } else {
+      await db.put('basket', { ...item, soldAt: now })
+      sold += 1
+    }
+
+    done += 1
+    report?.({ done, total: items.length, requests, sold })
+  }
+
+  return { refreshed, sold, requests, gone }
+}
+
 /** Everything the six-hour rule deletes, in one place (docs/03 §5). */
 function stripMarketplace(match: Match) {
   return {

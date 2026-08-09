@@ -72,6 +72,7 @@ const line = (over: Partial<BasketLine> = {}): BasketLine => ({
   addedAt: 0,
   note: null,
   priceExpired: false,
+  sold: false,
   ...over,
 })
 
@@ -180,6 +181,47 @@ describe('what a basket costs', () => {
     const summary = await basketSummary(PRICE_TTL_MS + 1, 'Germany')
     expect(summary?.lines[0]?.priceExpired).toBe(true)
     expect(PRICE_TTL_MS).toBe(6 * 60 * 60 * 1000)
+  })
+
+  it('shows a sold line but stops counting it', () => {
+    /*
+     * Four records, one of them gone. The subtotal is over the three that are
+     * left, and the postage tier drops with them — five back down to four may
+     * genuinely be a rung cheaper, and that is the useful half of the news.
+     */
+    const summary = summarise(
+      [
+        line({ listingId: 1, price: 10 }),
+        line({ listingId: 2, price: 10 }),
+        line({ listingId: 3, price: 10 }),
+        line({ listingId: 4, price: 10, sold: true }),
+      ],
+      dealer(),
+      shipping(table),
+    )
+
+    // Still shown — removing somebody's basket entry is their decision.
+    expect(summary.lines).toHaveLength(4)
+    expect(summary.subtotal).toBe(30)
+    // 4–6 LP would have been 12 €; three fall into the 2–3 rung at 9 €.
+    expect(summary.shipping).toBe(9)
+    expect(summary.total).toBe(39)
+    expect(summary.perItem).toBe(13)
+  })
+
+  it('ignores an aged-out price on a line that has already sold', () => {
+    // The sold line is out of the arithmetic entirely, so its stale price
+    // cannot poison a total that is otherwise perfectly knowable.
+    const summary = summarise(
+      [
+        line({ listingId: 1, price: 10 }),
+        line({ listingId: 2, priceExpired: true, sold: true }),
+      ],
+      dealer(),
+      shipping(table),
+    )
+    expect(summary.subtotal).toBe(10)
+    expect(summary.total).toBe(16)
   })
 
   it('refuses to add two currencies together', () => {

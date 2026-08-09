@@ -376,6 +376,18 @@ export const handlers: HandlerMap = {
 
   'basket.get': () => basketView(),
 
+  'basket.refresh': async (_params, { report, signal }) => {
+    const { refreshBasket } = await import('./dig/refresh')
+    const { currency } = await getPreferences()
+    await refreshBasket({
+      client: discogs(),
+      currency,
+      report: (progress) => report(progress),
+      signal,
+    })
+    return basketView()
+  },
+
   'basket.setShipping': async ({ dealer, tiers }) => {
     const { saveUserShipping } = await import('./basket/profiles')
     await saveUserShipping(dealer, tiers)

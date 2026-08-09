@@ -33,6 +33,54 @@ async function remove(listingId: number) {
   await refresh()
 }
 
+// --- Is this still there? ---------------------------------------------------
+
+/*
+ * The one question a basket cannot answer on its own.
+ *
+ * Prices age out after six hours and the records themselves sell — and finding
+ * out at the Discogs checkout that the record you built the whole order around
+ * went last night is the worst possible moment to learn it. One request per
+ * line answers both at once (docs/02, `GET /marketplace/listings/{id}`).
+ */
+/** What the button will actually cost: one request per line still on offer. */
+const stillToCheck = computed(
+  () => summary.value?.lines.filter((line) => !line.sold).length ?? 0,
+)
+
+const checking = ref(false)
+const checkProgress = ref<{ done: number; total: number; sold: number } | null>(null)
+const checkResult = ref<string | null>(null)
+
+async function checkStock() {
+  if (checking.value) return
+
+  checking.value = true
+  checkResult.value = null
+  error.value = null
+
+  try {
+    const before = stillToCheck.value
+    await call('basket.refresh', undefined, {
+      onProgress: (progress) => {
+        checkProgress.value = progress
+      },
+    })
+    await refresh()
+
+    const sold = summary.value?.lines.filter((line) => line.sold).length ?? 0
+    checkResult.value =
+      sold === 0
+        ? `Alles noch da – ${number.format(before)} ${before === 1 ? 'Platte' : 'Platten'}, Preise wieder aktuell.`
+        : `${number.format(sold)} inzwischen verkauft. Der Rest ist wieder aktuell.`
+  } catch (cause) {
+    error.value = cause
+  } finally {
+    checking.value = false
+    checkProgress.value = null
+  }
+}
+
 // --- Entering a shipping table by hand -------------------------------------
 
 const editing = ref(false)
@@ -134,30 +182,68 @@ const peak = computed(() =>
       <section class="flex flex-col gap-3">
         <div class="flex flex-wrap items-baseline justify-between gap-2">
           <h2 class="text-fid-xl font-bold text-fid-text">{{ summary.displayName }}</h2>
-          <button
-            type="button"
-            class="text-fid-sm text-fid-text-muted underline underline-offset-4"
-            @click="clear()"
-          >
-            Korb leeren
-          </button>
+          <div class="flex items-baseline gap-4">
+            <button
+              type="button"
+              class="text-fid-sm text-fid-accent underline underline-offset-4 disabled:opacity-50"
+              :disabled="checking"
+              @click="checkStock()"
+            >
+              Noch da?<template v-if="stillToCheck > 0">
+                <span class="fid-num"> ({{ stillToCheck }})</span></template
+              >
+            </button>
+            <button
+              type="button"
+              class="text-fid-sm text-fid-text-muted underline underline-offset-4"
+              @click="clear()"
+            >
+              Korb leeren
+            </button>
+          </div>
         </div>
+
+        <!--
+          The cost is named before it is spent, and while it runs the count
+          moves — a rate-limited loop with no visible progress reads as broken.
+        -->
+        <p v-if="checking" class="text-fid-sm text-fid-text-muted" aria-live="polite">
+          Frage nach …
+          <template v-if="checkProgress">
+            <span class="fid-num">{{ checkProgress.done }}</span> von
+            <span class="fid-num">{{ checkProgress.total }}</span>
+          </template>
+        </p>
+        <p v-else-if="checkResult" class="text-fid-sm text-fid-text-muted" aria-live="polite">
+          {{ checkResult }}
+        </p>
 
         <ul class="flex flex-col gap-2">
           <li
             v-for="line in summary.lines"
             :key="line.listingId"
-            class="flex items-baseline gap-3 rounded-fid-sm border border-fid-border px-3 py-2"
+            class="flex items-baseline gap-3 rounded-fid-sm border px-3 py-2"
+            :class="line.sold ? 'border-fid-border/50' : 'border-fid-border'"
           >
-            <span class="min-w-0 grow truncate text-fid-sm text-fid-text">{{
-              line.title
-            }}</span>
+            <span
+              class="min-w-0 grow truncate text-fid-sm"
+              :class="line.sold ? 'text-fid-text-muted line-through' : 'text-fid-text'"
+              >{{ line.title }}</span
+            >
+            <!--
+              Sold. Shown rather than deleted — that removal is the collector's
+              call — but no price: it is not an offer any more, and it no
+              longer counts towards the total or the postage tier.
+            -->
+            <span v-if="line.sold" class="shrink-0 text-fid-xs text-fid-sig-gap">
+              verkauft
+            </span>
             <!--
               Six hours on the price may not be shown any more — the same rule
               a dig lives under (CLAUDE.md rule 4). The record stays in the
               basket; only the number goes.
             -->
-            <span v-if="line.priceExpired" class="shrink-0 text-fid-xs text-fid-sig-gap">
+            <span v-else-if="line.priceExpired" class="shrink-0 text-fid-xs text-fid-sig-gap">
               Preis abgelaufen
             </span>
             <span v-else class="fid-num shrink-0 text-fid-sm text-fid-text">

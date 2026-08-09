@@ -570,6 +570,10 @@ export interface BasketLine {
   note: string | null
   /** Six hours on the price may no longer be shown (CLAUDE.md rule 4). */
   priceExpired: boolean
+  /** Set once a refresh found the offer gone. */
+  soldAt?: number | null
+  /** Shown, but not counted: a sold record is not part of the order. */
+  sold: boolean
 }
 
 export interface BasketSummary {
@@ -608,6 +612,12 @@ export interface BasketItem {
   currency: string
   addedAt: number
   note: string | null
+  /**
+   * When a refresh found this offer gone. Kept rather than removed: taking
+   * somebody's basket entry away behind their back is a decision that is
+   * theirs to make.
+   */
+  soldAt?: number | null
 }
 
 // ---------------------------------------------------------------------------

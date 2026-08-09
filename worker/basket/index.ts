@@ -76,7 +76,11 @@ export async function basketSummary(
   const dealer = await db.get('dealers', dealerName)
 
   const lines: BasketLine[] = items
-    .map((item) => ({ ...item, priceExpired: now - item.addedAt > PRICE_TTL_MS }))
+    .map((item) => ({
+      ...item,
+      priceExpired: now - item.addedAt > PRICE_TTL_MS,
+      sold: Boolean(item.soldAt),
+    }))
     .sort((a, b) => a.addedAt - b.addedAt)
 
   return summarise(lines, dealer ?? null, await tiersFor(dealer, country))
@@ -102,17 +106,30 @@ export function summarise(
   dealer: Dealer | null,
   shipping: ShippingResolution,
 ): BasketSummary {
-  const anyExpired = lines.some((line) => line.priceExpired)
-  const currency = lines.find((line) => line.currency)?.currency ?? null
+  /*
+   * A sold line is still shown but no longer counted.
+   *
+   * It is not part of the order any more, so leaving it in the subtotal would
+   * be a total nobody can pay — and dropping it out of the postage count is
+   * the useful half of the bad news: five records back down to four may also
+   * be one shipping tier cheaper.
+   *
+   * The line itself stays. Removing somebody's basket entry behind their back
+   * is a decision that is theirs.
+   */
+  const live = lines.filter((line) => !line.sold)
+
+  const anyExpired = live.some((line) => line.priceExpired)
+  const currency = live.find((line) => line.currency)?.currency ?? null
 
   // Two currencies in one basket cannot be added up, and a browser has no
   // exchange rate it can trust (same reason S10 refuses to convert).
-  const mixedCurrency = new Set(lines.map((line) => line.currency).filter(Boolean)).size > 1
+  const mixedCurrency = new Set(live.map((line) => line.currency).filter(Boolean)).size > 1
 
   const subtotal =
-    anyExpired || mixedCurrency ? null : lines.reduce((sum, line) => sum + line.price, 0)
+    anyExpired || mixedCurrency ? null : live.reduce((sum, line) => sum + line.price, 0)
 
-  const postage = shippingFor(shipping.tiers, lines.length)?.price ?? null
+  const postage = shippingFor(shipping.tiers, live.length)?.price ?? null
   const total = subtotal === null || postage === null ? null : subtotal + postage
   const minOrderTotal = dealer?.minOrderTotal ?? 0
 
@@ -126,11 +143,11 @@ export function summarise(
     shippingSource: shipping.source,
     shippingMatched: shipping.matched,
     total,
-    perItem: total === null || lines.length === 0 ? null : total / lines.length,
-    advice: shippingAdvice(shipping.tiers, lines.length),
+    perItem: total === null || live.length === 0 ? null : total / live.length,
+    advice: shippingAdvice(shipping.tiers, live.length),
     // Two past the current count is enough to see the next step without
     // turning the panel into a table nobody reads.
-    curve: shippingCurve(shipping.tiers, Math.max(6, lines.length + 2)),
+    curve: shippingCurve(shipping.tiers, Math.max(6, live.length + 2)),
     minOrderTotal,
     belowMinimum: subtotal !== null && minOrderTotal > 0 && subtotal < minOrderTotal,
   }

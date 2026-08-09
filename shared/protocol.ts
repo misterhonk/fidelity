@@ -227,6 +227,11 @@ export interface WorkerContract {
   'basket.remove': { params: { listingId: number }; progress: never; result: BasketView }
   'basket.clear': { params: undefined; progress: never; result: BasketView }
   'basket.get': { params: undefined; progress: never; result: BasketView }
+  /**
+   * Ask the marketplace whether the basket is still buyable — one request per
+   * line (docs/02). The answer that matters is not the price but `status`.
+   */
+  'basket.refresh': { params: undefined; progress: RefreshProgress; result: BasketView }
   /** A hand-entered postage table. Replaces any earlier one for this dealer. */
   'basket.setShipping': {
     params: { dealer: string; tiers: Omit<ShippingTier, 'source'>[] }
