@@ -23,6 +23,12 @@ export default withNuxt(
     rules: { 'no-console': 'off' },
   },
   {
+    // The one module allowed to reach the console. Everything else goes
+    // through it, because that is where the token redaction happens.
+    files: ['worker/log.ts'],
+    rules: { 'no-console': 'off' },
+  },
+  {
     ignores: ['app/assets/css/tokens.css', 'server/db/migrations/**', 'docs/**', '*.html'],
   },
   // Must stay last: switches off everything Prettier already decides.

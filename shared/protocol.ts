@@ -9,7 +9,11 @@
  * All payloads must be structured-cloneable — plain objects, arrays and
  * TypedArrays. That is deliberate: the horizon crosses this boundary as
  * Int32Array, and copying it as JSON would cost an order of magnitude.
+ *
+ * The Personal Access Token crosses it exactly once, on sign-in. It never
+ * comes back the other way (CLAUDE.md rule 6).
  */
+import type { Identity } from './types'
 
 export interface PingResult {
   pong: true
@@ -34,6 +38,12 @@ export interface DbStats {
 export interface WorkerContract {
   ping: { params: { echo: string }; progress: never; result: PingResult }
   'db.stats': { params: undefined; progress: never; result: DbStats }
+
+  /** Validates the token against /oauth/identity and only then stores it. */
+  'auth.signIn': { params: { token: string }; progress: never; result: Identity }
+  'auth.identity': { params: undefined; progress: never; result: Identity | null }
+  /** Deletes the whole database, not just the token. */
+  'auth.signOut': { params: undefined; progress: never; result: { signedOut: true } }
 }
 
 export type RequestKind = keyof WorkerContract

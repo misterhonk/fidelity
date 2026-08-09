@@ -2,41 +2,47 @@ import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 
 /**
- * The M0 smoke test: a fresh clone builds to static files, those files boot in
- * a browser, and what comes up is accessible. Nothing is mocked, and nothing
- * server-side is involved — there is no server.
+ * The smoke test: a fresh clone builds to static files, those files boot in a
+ * browser, the worker comes up, and what the user sees is accessible.
+ *
+ * Discogs is never called here. The one real call against the live API is a
+ * manual check, not a per-PR job — running it on every merge would spend the
+ * rate limit on CI instead of on digs.
  */
 test.describe('smoke', () => {
-  test('the entry screen renders with the design tokens applied', async ({ page }) => {
+  test('a signed-out visitor lands on the token form', async ({ page }) => {
     await page.goto('/')
 
     await expect(page).toHaveTitle('Championship · Fidelity')
     await expect(page.getByRole('heading', { level: 1, name: 'Fidelity' })).toBeVisible()
 
-    // Ten signal chips — S1 and S2 share a colour, so eleven signals need ten.
-    await expect(page.getByRole('list', { name: 'Die Match-Signale' })).toBeVisible()
-    await expect(page.getByRole('listitem')).toHaveCount(10)
+    // Rendered only after the worker answered auth.identity — so this also
+    // proves main thread, worker and IndexedDB are wired together.
+    await expect(page.getByRole('heading', { name: 'Token eintragen' })).toBeVisible()
+    await expect(page.getByLabel('Personal Access Token')).toHaveAttribute('type', 'password')
 
-    // A token that only resolves if tokens.css reached the @theme block.
-    const signalColour = await page.evaluate(() =>
-      getComputedStyle(document.documentElement)
-        .getPropertyValue('--color-fid-sig-credit')
-        .trim(),
-    )
-    expect(signalColour).not.toBe('')
+    // Sending is blocked until something has been entered.
+    await expect(page.getByRole('button', { name: 'Anmelden' })).toBeDisabled()
   })
 
-  test('the worker answers and can read IndexedDB', async ({ page }) => {
+  test('the design tokens reach the browser', async ({ page }) => {
     await page.goto('/')
 
-    // Round-trip main → worker → IndexedDB → back. Nothing stubbed: this is
-    // the actual module worker running against the browser's own storage.
-    await expect(page.getByTestId('wiring-status')).toContainText('Worker bereit')
-    await expect(page.getByTestId('wiring-status')).toContainText('IndexedDB: 0 Einträge')
+    const [signal, accent] = await page.evaluate(() => {
+      const style = getComputedStyle(document.documentElement)
+      return [
+        style.getPropertyValue('--color-fid-sig-credit').trim(),
+        style.getPropertyValue('--color-fid-accent').trim(),
+      ]
+    })
+
+    expect(signal).not.toBe('')
+    expect(accent).not.toBe('')
   })
 
   test('the entry screen has no axe violations', async ({ page }) => {
     await page.goto('/')
+    await expect(page.getByRole('heading', { name: 'Token eintragen' })).toBeVisible()
 
     const { violations } = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])

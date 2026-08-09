@@ -227,6 +227,33 @@ describe('the Discogs client', () => {
     expect((error as DiscogsError).code).toBe('offline')
   })
 
+  it('uses the global fetch with a valid receiver when none is injected', async () => {
+    // Regression: holding `fetch` as a property and calling it as
+    // `this.#options.fetchImpl(...)` hands it a foreign `this`, which the
+    // browser rejects with "Illegal invocation". The client caught that and
+    // reported it as being offline — a network error that was really a bug.
+    // Every other test here injects a mock, so this path had no cover at all.
+    const calls: unknown[] = []
+    const original = globalThis.fetch
+    globalThis.fetch = function (this: unknown) {
+      calls.push(this)
+      return Promise.resolve(jsonResponse({ id: 1, username: 'martin' }))
+    } as unknown as typeof fetch
+
+    try {
+      const client = new DiscogsClient({
+        getToken: () => 'a-pat',
+        pacer: createPacer({ now: () => 0, sleep: async () => {} }),
+      })
+      await expect(client.get('/oauth/identity', identity)).resolves.toMatchObject({
+        username: 'martin',
+      })
+      expect(calls[0]).toBe(globalThis)
+    } finally {
+      globalThis.fetch = original
+    }
+  })
+
   it('rejects a response that does not match the schema', async () => {
     const { client } = makeClient([jsonResponse({ id: 'not-a-number', username: 'martin' })])
     await expect(client.get('/oauth/identity', identity)).rejects.toThrow()

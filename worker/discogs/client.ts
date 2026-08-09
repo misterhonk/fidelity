@@ -35,7 +35,10 @@ export class DiscogsClient {
 
   constructor(options: DiscogsClientOptions) {
     this.#options = {
-      fetchImpl: globalThis.fetch,
+      // Bound to the global scope on purpose. `fetch` refuses to run with a
+      // foreign `this` ("Illegal invocation"), and holding it as a property
+      // would supply exactly that — a failure that looks like being offline.
+      fetchImpl: globalThis.fetch.bind(globalThis),
       pacer: options.pacer ?? createPacer(),
       sleep: defaultSleep,
       jitter: Math.random,
@@ -78,9 +81,10 @@ export class DiscogsClient {
 
   async #send(url: URL, signal?: AbortSignal): Promise<Response> {
     const token = await this.#options.getToken()
+    const send = this.#options.fetchImpl
 
     try {
-      return await this.#options.fetchImpl(url, {
+      return await send(url, {
         signal,
         headers: {
           Accept: 'application/json',

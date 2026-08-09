@@ -1,6 +1,8 @@
 import { openFidelityDb } from '~~/db/open'
 import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
 
+import { currentIdentity, signIn, signOut } from './auth'
+
 /**
  * A handler gets its params and a way to report progress, and returns the
  * result. Cancellation arrives as an AbortSignal — the scan in M2 checks it
@@ -52,4 +54,11 @@ async function dbStats(): Promise<DbStats> {
 export const handlers: HandlerMap = {
   ping: async ({ echo }) => ({ pong: true, echo }),
   'db.stats': dbStats,
+
+  'auth.signIn': ({ token }) => signIn(token),
+  'auth.identity': () => currentIdentity(),
+  'auth.signOut': async () => {
+    await signOut()
+    return { signedOut: true as const }
+  },
 }

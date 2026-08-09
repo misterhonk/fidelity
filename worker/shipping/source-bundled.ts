@@ -39,7 +39,9 @@ export interface BundledShippingOptions {
  */
 export function createBundledShippingSource({
   url = '/shipping-profiles.json',
-  fetchImpl = globalThis.fetch,
+  // Bound: `fetch` refuses a foreign `this`, and a destructured default would
+  // hand it one.
+  fetchImpl = globalThis.fetch.bind(globalThis),
 }: BundledShippingOptions = {}): ShippingProfileSource {
   let profiles: Promise<Record<string, ShippingTier[]>> | undefined
 

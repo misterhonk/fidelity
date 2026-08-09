@@ -1,5 +1,7 @@
 import { deleteDB, openDB, type IDBPDatabase } from 'idb'
 
+import { log } from '~~/worker/log'
+
 import { DB_NAME, DB_VERSION, type FidelityDB } from './schema'
 
 export type FidelityDatabase = IDBPDatabase<FidelityDB>
@@ -39,7 +41,7 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
 
     blocked() {
       // Another tab still holds the old version.
-      console.warn('[db] upgrade blocked by another tab')
+      log.warn('[db] upgrade blocked by another tab')
     },
 
     blocking() {
