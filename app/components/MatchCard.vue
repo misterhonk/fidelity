@@ -6,35 +6,6 @@ const props = defineProps<{ match: Match }>()
 const { verdicts, judge } = useFeedback()
 const verdict = computed(() => verdicts.value[props.match.listingId])
 
-/** Which token colours a chip. S1 and S2 share one — ten for eleven signals. */
-const SIGNAL_TOKEN: Record<string, string> = {
-  WANTLIST_EXACT: 'wantlist',
-  WANTLIST_PRESSING: 'wantlist',
-  ARTIST_KNOWN: 'artist',
-  ARTIST_GAP: 'gap',
-  LABEL_AFFINITY: 'label',
-  CATALOG_RUN: 'catalog',
-  STYLE_ADJACENT: 'style',
-  CREDIT_GRAPH: 'credit',
-  FORMAT_UPGRADE: 'upgrade',
-  PRICE_SIGNAL: 'price',
-  SCARCITY: 'scarcity',
-}
-
-const SIGNAL_LABEL: Record<string, string> = {
-  WANTLIST_EXACT: 'Wantlist',
-  WANTLIST_PRESSING: 'Anderes Pressing',
-  ARTIST_KNOWN: 'Künstler',
-  ARTIST_GAP: 'Lücke',
-  LABEL_AFFINITY: 'Label',
-  CATALOG_RUN: 'Katalogserie',
-  STYLE_ADJACENT: 'Stil',
-  CREDIT_GRAPH: 'Credits',
-  FORMAT_UPGRADE: 'Upgrade',
-  PRICE_SIGNAL: 'Preis',
-  SCARCITY: 'Seltenheit',
-}
-
 const band = computed(() => {
   if (props.match.score >= 85) return { key: 'S', label: 'Side One, Track One' }
   if (props.match.score >= 70) return { key: 'A', label: 'Top Five' }
@@ -55,7 +26,7 @@ const meta = computed(() =>
 
 <template>
   <article
-    class="@container flex flex-col gap-3 rounded-fid-md border border-fid-border bg-fid-surface p-4"
+    class="@container flex scroll-mt-28 flex-col gap-3 rounded-fid-md border border-fid-border bg-fid-surface p-4"
   >
     <div class="flex items-start gap-4">
       <!--
@@ -99,12 +70,9 @@ const meta = computed(() =>
         v-for="signal in match.signals"
         :key="signal.type"
         class="rounded-fid-sm border px-2 py-0.5 text-fid-xs text-fid-text"
-        :style="{
-          backgroundColor: `color-mix(in oklch, var(--fid-sig-${SIGNAL_TOKEN[signal.type]}) 12%, transparent)`,
-          borderColor: `color-mix(in oklch, var(--fid-sig-${SIGNAL_TOKEN[signal.type]}) 40%, transparent)`,
-        }"
+        :style="signalChipStyle(signal.type)"
       >
-        {{ SIGNAL_LABEL[signal.type] ?? signal.type }}
+        {{ signalLabel(signal.type) }}
       </li>
     </ul>
 

@@ -14,13 +14,14 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
-      include: ['db/**', 'worker/**', 'shared/**', 'scripts/**'],
+      include: ['db/**', 'worker/**', 'shared/**', 'scripts/**', 'app/utils/**'],
     },
   },
   resolve: {
     alias: {
       '#shared': fileURLToPath(new URL('./shared', import.meta.url)),
       '~~': fileURLToPath(new URL('.', import.meta.url)),
+      '~': fileURLToPath(new URL('./app', import.meta.url)),
     },
   },
 })

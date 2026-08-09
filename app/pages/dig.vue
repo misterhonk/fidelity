@@ -146,6 +146,11 @@ const rest = computed(() => {
   return result.value.matches.filter((match) => !shown.has(match.listingId))
 })
 
+// The filter bar acts on the long list only. The shortlist is the answer to
+// "was soll ich mir ansehen" and stays put — filtering it would leave you
+// looking at the top five of a subset, which is a different question.
+const view = useDigView(rest)
+
 const expired = computed(() => {
   const dig = result.value?.dig
   return dig ? Date.now() > dig.expiresAt : false
@@ -344,9 +349,35 @@ const expired = computed(() => {
           >
             Alle Treffer
           </h3>
-          <ul class="flex flex-col gap-3">
-            <li v-for="match in rest" :key="match.listingId">
-              <MatchCard :match="match" />
+
+          <DigFilters
+            :available="view.available.value"
+            :active="view.active.value"
+            :sort="view.sort.value"
+            :density="view.density.value"
+            :shown="view.visible.value.length"
+            :total="rest.length"
+            @toggle-signal="view.toggleSignal"
+            @set-sort="view.setSort"
+            @set-density="view.setDensity"
+            @clear="view.clear"
+          />
+
+          <p v-if="view.visible.value.length === 0" class="text-fid-sm text-fid-text-muted">
+            Kein Treffer trägt eines der gewählten Signale.
+          </p>
+
+          <!-- scrollbar-gutter keeps the list from jumping sideways when a
+               filter shortens it past the fold (docs/05 §4). -->
+          <ul
+            v-else
+            class="flex flex-col"
+            :class="view.density.value === 'compact' ? 'gap-0' : 'gap-3'"
+            style="scrollbar-gutter: stable"
+          >
+            <li v-for="match in view.visible.value" :key="match.listingId">
+              <MatchRow v-if="view.density.value === 'compact'" :match="match" />
+              <MatchCard v-else :match="match" />
             </li>
           </ul>
         </section>
