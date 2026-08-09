@@ -510,6 +510,10 @@ export const handlers: HandlerMap = {
       wantlist: await db.count('wantlist'),
       dealers: await db.count('dealers'),
       basket: await db.count('basket'),
+      // Counted rather than stored: a verdict can be taken back, and a number
+      // that drifts from the list it describes is worse than no number.
+      marked: (await db.getAll('feedback')).filter((entry) => entry.verdict === 'interesting')
+        .length,
       collectionSyncedAt: syncState.collectionSyncedAt,
       wantlistSyncedAt: syncState.wantlistSyncedAt,
     }

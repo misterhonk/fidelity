@@ -431,6 +431,8 @@ export interface SyncResult {
 export interface LibrarySummary {
   collection: number
   wantlist: number
+  /** The shortlist — records judged worth a second look and not yet bought. */
+  marked: number
   /** Shops scanned so far — what decides whether The Clerk's Take has anything to say. */
   dealers: number
   basket: number

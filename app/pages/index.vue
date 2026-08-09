@@ -43,6 +43,37 @@ const digAge = computed(() => {
 
 /** The one number worth putting first: what is waiting for you right now. */
 const topHit = computed(() => latest.value?.topFive[0] ?? null)
+
+/**
+ * Whether the last dig's prices have aged out (CLAUDE.md rule 4).
+ *
+ * Only worth saying while a refresh is still the sensible answer. After a day
+ * the shop has moved on and scanning again is the honest option, so the line
+ * goes away rather than nagging forever.
+ */
+const REFRESH_WORTH_IT_MS = 24 * 60 * 60 * 1000
+
+const pricesGone = computed(() => {
+  const dig = latest.value?.dig
+  if (!dig || (latest.value?.matches.length ?? 0) === 0) return false
+
+  const now = Date.now()
+  return dig.expiresAt < now && now - dig.startedAt < REFRESH_WORTH_IT_MS
+})
+
+/** What is here, and where each of it lives. Ordered as the nav bar is. */
+const tiles = computed(() => {
+  const summary = library.value
+  if (!summary) return []
+
+  return [
+    { label: 'Sammlung', count: summary.collection, to: '/landkarte' },
+    { label: 'Wantlist', count: summary.wantlist, to: '/wantlist' },
+    { label: 'Gemerkt', count: summary.marked, to: '/gemerkt' },
+    { label: 'Läden', count: summary.dealers, to: '/haendler' },
+    { label: 'Im Korb', count: summary.basket, to: '/korb' },
+  ]
+})
 </script>
 
 <template>
@@ -99,6 +130,17 @@ const topHit = computed(() => latest.value?.topFive[0] ?? null)
           Nichts dabei. Das ist ein Ergebnis, kein Fehler.
         </p>
 
+        <!--
+          Said here because this is where somebody looks before deciding
+          whether to open the list at all. The action itself stays on the dig
+          screen — two buttons for one thing is a choice nobody needs.
+        -->
+        <p v-if="pricesGone" class="text-fid-sm text-fid-sig-gap">
+          Die Preise sind älter als sechs Stunden und dürfen nicht mehr angezeigt werden. Die
+          Treffer und ihre Begründungen stehen weiter – auffrischen kostet
+          <span class="fid-num">{{ latest.matches.length }}</span> Abfragen.
+        </p>
+
         <div class="flex flex-wrap gap-2">
           <NuxtLink
             to="/dig"
@@ -125,32 +167,26 @@ const topHit = computed(() => latest.value?.topFive[0] ?? null)
         aria-labelledby="whats-here"
       >
         <h2 id="whats-here" class="text-fid-base font-medium text-fid-text">Was hier liegt</h2>
-        <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-fid-sm @sm:grid-cols-4">
-          <div class="flex flex-col">
-            <dt class="text-fid-text-muted">Sammlung</dt>
-            <dd class="fid-num text-fid-lg text-fid-text">
-              {{ number.format(library.collection) }}
-            </dd>
-          </div>
-          <div class="flex flex-col">
-            <dt class="text-fid-text-muted">Wantlist</dt>
-            <dd class="fid-num text-fid-lg text-fid-text">
-              {{ number.format(library.wantlist) }}
-            </dd>
-          </div>
-          <div class="flex flex-col">
-            <dt class="text-fid-text-muted">Läden</dt>
-            <dd class="fid-num text-fid-lg text-fid-text">
-              {{ number.format(library.dealers) }}
-            </dd>
-          </div>
-          <div class="flex flex-col">
-            <dt class="text-fid-text-muted">Im Korb</dt>
-            <dd class="fid-num text-fid-lg text-fid-text">
-              {{ number.format(library.basket) }}
-            </dd>
-          </div>
-        </dl>
+        <!--
+          Every one of these numbers names a place, so every one of them goes
+          there. They were dead labels next to a nav bar that led to the same
+          five screens — a count somebody reads and then has to go find is a
+          count that made them do the work twice.
+        -->
+        <ul class="grid grid-cols-2 gap-2 text-fid-sm @sm:grid-cols-5">
+          <li v-for="tile in tiles" :key="tile.to">
+            <NuxtLink
+              :to="tile.to"
+              class="flex min-h-16 flex-col justify-center rounded-fid-sm px-3 py-2 transition-colors hover:bg-fid-surface"
+              :aria-label="`${tile.label}: ${number.format(tile.count)}`"
+            >
+              <span class="text-fid-text-muted">{{ tile.label }}</span>
+              <span class="fid-num text-fid-lg text-fid-text" aria-hidden="true">
+                {{ number.format(tile.count) }}
+              </span>
+            </NuxtLink>
+          </li>
+        </ul>
       </section>
     </template>
   </main>
