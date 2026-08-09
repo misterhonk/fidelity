@@ -63,6 +63,40 @@ export interface WorkerContract {
   /** An interrupted dig still inside its six-hour window, if there is one. */
   'dig.resumable': { params: undefined; progress: never; result: Dig | null }
   'dig.resume': { params: { digId: string }; progress: ScanProgress; result: Dig }
+
+  /**
+   * The horizon: the collection expanded into release-id sets, once, so that
+   * every later dig is a set lookup at no request cost.
+   */
+  'horizon.status': { params: undefined; progress: never; result: HorizonStatus }
+  'horizon.build': { params: undefined; progress: HorizonProgress; result: HorizonResult }
+}
+
+export interface HorizonStatus {
+  entities: number
+  expanded: number
+  releaseIds: number
+  builtAt: number | null
+  estimatedRequests: number
+}
+
+export interface HorizonProgress {
+  done: number
+  total: number
+  requests: number
+  /** What is being expanded right now, so the wait has a subject. */
+  current: string
+  releaseIds: number
+  etaMs: number
+}
+
+export interface HorizonResult {
+  expanded: number
+  skipped: number
+  /** Entities that could not be expanded this run; a later run retries them. */
+  failed: number
+  requests: number
+  releaseIds: number
 }
 
 export interface DigPreflight {

@@ -12,6 +12,14 @@ export const DISCOGS_API = 'https://api.discogs.com'
  */
 export const BACKOFF_MS = [60_000, 120_000, 240_000]
 
+/**
+ * A dropped connection is a different animal from a rate limit and deserves a
+ * different answer: short, and soon. The horizon spends hundreds of requests
+ * over many minutes, and letting one blip end the run would be absurd — the
+ * work is resumable, but it should not need resuming for a hiccup.
+ */
+export const NETWORK_RETRY_MS = [2_000, 5_000]
+
 export interface DiscogsClientOptions {
   /** Read per request so that signing out takes effect immediately. */
   getToken: () => Promise<string | null> | string | null
@@ -62,8 +70,25 @@ export class DiscogsClient {
       if (value !== undefined) url.searchParams.set(key, String(value))
     }
 
+    let networkAttempt = 0
+
     for (let attempt = 0; ; attempt++) {
-      const response = await this.#options.pacer.run(() => this.#send(url, signal), signal)
+      let response: Response
+      try {
+        response = await this.#options.pacer.run(() => this.#send(url, signal), signal)
+      } catch (error) {
+        const transient =
+          error instanceof DiscogsError &&
+          error.status === 0 &&
+          networkAttempt < NETWORK_RETRY_MS.length &&
+          !signal?.aborted
+        if (!transient) throw error
+
+        await this.#options.sleep(NETWORK_RETRY_MS[networkAttempt]!)
+        networkAttempt += 1
+        attempt -= 1
+        continue
+      }
 
       if (response.status === 429 && attempt < BACKOFF_MS.length) {
         // Jitter so that two tabs of the same user do not resynchronise on

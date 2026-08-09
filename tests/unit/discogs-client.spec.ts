@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
-import { BACKOFF_MS, DiscogsClient } from '~~/worker/discogs/client'
+import { BACKOFF_MS, DiscogsClient, NETWORK_RETRY_MS } from '~~/worker/discogs/client'
 import { DiscogsError, toDiscogsError } from '~~/worker/discogs/errors'
 import { createPacer, MIN_REQUEST_INTERVAL_MS } from '~~/worker/discogs/pacer'
 
@@ -221,6 +221,8 @@ describe('the Discogs client', () => {
       fetchImpl: (() =>
         Promise.reject(new TypeError('Failed to fetch'))) as unknown as typeof fetch,
       pacer: createPacer({ now: () => 0, sleep: async () => {} }),
+      // Injected, or the retries would spend seven real seconds here.
+      sleep: async () => {},
     })
 
     const error = await client.get('/oauth/identity', identity).catch((e: unknown) => e)
@@ -257,5 +259,55 @@ describe('the Discogs client', () => {
   it('rejects a response that does not match the schema', async () => {
     const { client } = makeClient([jsonResponse({ id: 'not-a-number', username: 'martin' })])
     await expect(client.get('/oauth/identity', identity)).rejects.toThrow()
+  })
+})
+
+describe('a dropped connection', () => {
+  const identitySchema = z.object({ id: z.number(), username: z.string() })
+
+  function flaky(failures: number) {
+    const clock = fakeClock()
+    let calls = 0
+    const fetchImpl = vi.fn(async () => {
+      calls += 1
+      if (calls <= failures) throw new TypeError('Failed to fetch')
+      return new Response(JSON.stringify({ id: 1, username: 'martin' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    })
+    const client = new DiscogsClient({
+      getToken: () => 'a-pat',
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      pacer: createPacer({ now: clock.now, sleep: clock.sleep }),
+      sleep: clock.sleep,
+      jitter: () => 0,
+    })
+    return { client, fetchImpl, clock }
+  }
+
+  it('retries a blip instead of ending a 670-request run', async () => {
+    const { client, fetchImpl } = flaky(1)
+
+    await expect(client.get('/oauth/identity', identitySchema)).resolves.toMatchObject({
+      username: 'martin',
+    })
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
+  })
+
+  it('waits seconds, not minutes — this is not a rate limit', async () => {
+    const { client, clock } = flaky(1)
+    await client.get('/oauth/identity', identitySchema)
+
+    expect(clock.time).toBe(NETWORK_RETRY_MS[0])
+    expect(clock.time).toBeLessThan(BACKOFF_MS[0]!)
+  })
+
+  it('gives up once it is clearly not a blip', async () => {
+    const { client, fetchImpl } = flaky(99)
+
+    const error = await client.get('/oauth/identity', identitySchema).catch((e: unknown) => e)
+    expect((error as DiscogsError).code).toBe('offline')
+    expect(fetchImpl).toHaveBeenCalledTimes(NETWORK_RETRY_MS.length + 1)
   })
 })

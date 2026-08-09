@@ -4,6 +4,7 @@ import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
 
 import { currentIdentity, discogs, requestPersistence, signIn, signOut } from './auth'
 import { findResumable, REACHABLE, resumeDig, runDig } from './dig/scan'
+import { buildHorizon, horizonStatus } from './horizon/build'
 import { dealerSchema } from './discogs/inventory'
 import { bestPerRelease, topFive } from './match/select'
 import { computeTasteProfile } from './match/taste'
@@ -124,6 +125,11 @@ export const handlers: HandlerMap = {
 
   'dig.resume': ({ digId }, { report, signal }) =>
     resumeDig({ client: discogs(), digId, report: (progress) => report(progress), signal }),
+
+  'horizon.status': () => horizonStatus(),
+
+  'horizon.build': (_params, { report, signal }) =>
+    buildHorizon({ client: discogs(), report: (progress) => report(progress), signal }),
 
   'dig.get': async ({ digId }) => loadDig(digId),
 

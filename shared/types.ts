@@ -198,6 +198,16 @@ export interface HorizonChunk {
   /** false when the entity was too large to page through completely. */
   complete: boolean
   requests: number
+  /**
+   * How many releases the entity has in total, straight from
+   * pagination.items.
+   *
+   * Not in docs/03 §4, and the reason it is here: this is the denominator the
+   * lift has been missing since the catalog dumps went away with ADR-007. Ten
+   * Warner records mean nothing and three Ohr records mean everything, and
+   * without a catalogue size there is no way to tell those apart.
+   */
+  catalogueSize?: number
 
   /** Sorted, so a binary search is possible and so it compresses well. */
   releaseIds: Int32Array

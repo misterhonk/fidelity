@@ -43,6 +43,10 @@ async function signOut() {
       <template v-else>
         <LibrarySync />
 
+        <div class="border-t border-fid-border pt-6">
+          <HorizonBuild />
+        </div>
+
         <section class="flex flex-col gap-3 border-t border-fid-border pt-6">
           <p class="text-fid-sm text-fid-text-muted">
             Angemeldet als <span class="text-fid-text">{{ identity.username }}</span
