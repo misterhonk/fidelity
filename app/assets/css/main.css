@@ -1,5 +1,17 @@
 @import 'tailwindcss';
-@import '@nuxt/ui';
+
+/*
+ * Nuxt UI's component stylesheet is deliberately **not** imported.
+ *
+ * docs/12 §2 says to take Nuxt UI selectively, and this app renders none of
+ * its components — every control here is hand-built from tokens. What that
+ * import brought was the state surface of a component library we never
+ * instantiate: `data-[state=…]`, `data-highlighted`, `data-swipe` and friends
+ * made up the bulk of a 28 kB stylesheet.
+ *
+ * The module stays in nuxt.config: it wires up Tailwind 4's Vite plugin and
+ * @nuxtjs/color-mode, both of which are load-bearing. Only the CSS goes.
+ */
 
 /* Generated from tokens/*.json by `pnpm tokens:build`. Git-ignored. */
 @import './tokens.css';

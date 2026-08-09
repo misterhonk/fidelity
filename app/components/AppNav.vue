@@ -1,8 +1,19 @@
 <script setup lang="ts">
-const { identity } = useIdentity()
+const { identity, load } = useIdentity()
 const { ids: basketIds, load: loadBasket } = useBasket()
 
-onMounted(loadBasket)
+/*
+ * The nav asks for the identity itself.
+ *
+ * It used to read the shared ref and rely on whichever page happened to have
+ * loaded it — so opening /dig directly showed no navigation at all, because
+ * that page never asks who is signed in. The composable is idempotent: several
+ * components asking on one load still make one request.
+ */
+onMounted(() => {
+  void load()
+  void loadBasket()
+})
 
 /**
  * The five nouns of the hobby, in the order somebody moves through them.
