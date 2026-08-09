@@ -29,7 +29,7 @@ onMounted(() => {
 const SECTIONS = [
   { to: '/', label: 'Start', hint: 'Was ist neu, was steht an' },
   { to: '/dig', label: 'Graben', hint: 'Einen Händler scannen' },
-  { to: '/korb', label: 'Korb', hint: 'Was du kaufen willst' },
+  { to: '/korb', label: 'Korb', hint: 'Was du kaufen willst', also: ['/gemerkt'] },
   {
     to: '/landkarte',
     label: 'Sammlung',

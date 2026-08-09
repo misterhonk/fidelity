@@ -48,7 +48,7 @@ export function useFeedback() {
     verdicts.value =
       current === verdict
         ? await call('feedback.clear', { listingId: match.listingId })
-        : await call('feedback.set', { match, verdict })
+        : await call('feedback.set', { match: feedbackSubject(match), verdict })
   }
 
   return { verdicts: readonly(verdicts), load, judge }

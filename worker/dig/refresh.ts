@@ -253,3 +253,78 @@ function stripMarketplace(match: Match) {
     marketNumForSale: null,
   }
 }
+
+/**
+ * The shortlist, checked.
+ *
+ * Same endpoint again, but the bookkeeping is deliberately different: what
+ * sold is written down (a fact about the past, and it stops the request being
+ * spent twice), and what is still for sale comes back as a number the caller
+ * shows and nobody stores. A price on disk past six hours is precisely what
+ * CLAUDE.md rule 4 forbids, and a shortlist is meant to outlive six hours.
+ */
+export async function refreshMarked({
+  client,
+  currency,
+  now = Date.now(),
+  report,
+  signal,
+}: Omit<RefreshOptions, 'digId'>): Promise<{
+  prices: Record<
+    number,
+    { price: number | null; currency: string | null; condition: string | null }
+  >
+  sold: number
+  requests: number
+}> {
+  const db = await openFidelityDb()
+  const open = (await db.getAll('feedback')).filter(
+    (entry) => entry.verdict === 'interesting' && !entry.soldAt,
+  )
+
+  const prices: Record<
+    number,
+    { price: number | null; currency: string | null; condition: string | null }
+  > = {}
+  let requests = 0
+  let sold = 0
+  let done = 0
+
+  report?.({ done, total: open.length, requests, sold })
+
+  for (const entry of open) {
+    signal?.throwIfAborted()
+
+    let listing
+    try {
+      listing = await client.get(`/marketplace/listings/${entry.listingId}`, listingSchema, {
+        query: { curr_abbr: currency },
+        signal,
+      })
+      requests += 1
+    } catch (error) {
+      if (signal?.aborted) throw error
+      await db.put('feedback', { ...entry, soldAt: now })
+      sold += 1
+      done += 1
+      report?.({ done, total: open.length, requests, sold })
+      continue
+    }
+
+    if ((listing.status ?? FOR_SALE) === FOR_SALE) {
+      prices[entry.listingId] = {
+        price: listing.price?.value ?? null,
+        currency: listing.price?.currency ?? null,
+        condition: listing.condition ?? null,
+      }
+    } else {
+      await db.put('feedback', { ...entry, soldAt: now })
+      sold += 1
+    }
+
+    done += 1
+    report?.({ done, total: open.length, requests, sold })
+  }
+
+  return { prices, sold, requests }
+}

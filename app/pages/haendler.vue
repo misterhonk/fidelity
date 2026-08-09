@@ -10,7 +10,7 @@ useSeoMeta({
 const { call } = useFidelityWorker()
 const { isWatched, toggle, load: loadWatchlist } = useWatchlist()
 
-const dealers = ref<Dealer[]>([])
+const dealers = shallowRef<Dealer[]>([])
 const selected = ref<string | null>(null)
 const profile = ref<DealerProfile | null>(null)
 

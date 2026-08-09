@@ -59,7 +59,7 @@ async function refresh() {
     refreshing.value = null
   }
 }
-const history = ref<Dig[]>([])
+const history = shallowRef<Dig[]>([])
 
 async function loadHistory() {
   history.value = await call('dig.list', undefined)
@@ -70,7 +70,19 @@ async function showDig(digId: string) {
   await router.replace({ query: { ...route.query, id: digId } })
   result.value = await call('dig.get', { digId })
 }
-const result = ref<DigWithMatches | null>(null)
+/*
+ * Shallow, and not only for the reason CLAUDE.md gives.
+ *
+ * A deep `ref` proxies every match, every signal and every piece of evidence —
+ * thousands of objects Vue has no reason to track, since the whole result is
+ * only ever replaced wholesale. That is the documented rule.
+ *
+ * The sharper reason is that a proxy cannot cross `postMessage`: structured
+ * clone rejects them outright. Handing a match from a deep ref back to the
+ * worker threw DataCloneError, and because the verdict buttons apply
+ * optimistically, the button lit up and the verdict was silently never saved.
+ */
+const result = shallowRef<DigWithMatches | null>(null)
 const busy = ref(false)
 const error = ref<unknown>(null)
 const resumable = ref<Dig | null>(null)

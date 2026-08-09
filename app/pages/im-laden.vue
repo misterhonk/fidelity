@@ -11,7 +11,9 @@ const { online } = useOnline()
 const { verdicts, judge, load: loadFeedback } = useFeedback()
 const { contains, toggle, load: loadBasket } = useBasket()
 
-const result = ref<DigWithMatches | null>(null)
+// Shallow: the in-store screen judges records too, and a proxy cannot
+// cross postMessage. Same reason as the dig screen.
+const result = shallowRef<DigWithMatches | null>(null)
 const loading = ref(true)
 const query = ref('')
 

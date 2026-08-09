@@ -24,6 +24,7 @@ import type {
   Dig,
   Feedback,
   Identity,
+  MarkedOverview,
   Match,
   MatchDetail,
   Preferences,
@@ -160,6 +161,25 @@ export interface WorkerContract {
     result: Record<number, Verdict>
   }
   'feedback.verdicts': { params: undefined; progress: never; result: Record<number, Verdict> }
+  /** The shortlist, grouped by shop — what outlives a pruned dig. */
+  'feedback.marked': { params: undefined; progress: never; result: MarkedOverview }
+  /**
+   * Are the shortlisted records still there? One request per record still open
+   * (docs/02). Fresh prices come back in the result and are never stored — a
+   * price on disk past six hours is exactly what CLAUDE.md rule 4 forbids.
+   */
+  'feedback.check': {
+    params: undefined
+    progress: RefreshProgress
+    result: {
+      prices: Record<
+        number,
+        { price: number | null; currency: string | null; condition: string | null }
+      >
+      sold: number
+      requests: number
+    }
+  }
   /** The whole store, for the offline analysis docs/03 §7 describes. */
   'feedback.export': { params: undefined; progress: never; result: Feedback[] }
 
@@ -252,7 +272,15 @@ export interface WorkerContract {
 }
 
 /** What a verdict needs to keep: the identity plus the reasoning behind it. */
-export type FeedbackSubject = Pick<Match, 'listingId' | 'releaseId' | 'signals' | 'score'>
+/**
+ * What a verdict carries. The signals are the part that makes it analysable
+ * later; the title, artist and dig are the part that makes it *readable* later,
+ * once the dig itself has been pruned.
+ */
+export type FeedbackSubject = Pick<
+  Match,
+  'listingId' | 'releaseId' | 'signals' | 'score' | 'digId' | 'title' | 'artist'
+>
 
 export interface EnrichProgress {
   done: number

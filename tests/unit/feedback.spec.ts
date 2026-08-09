@@ -6,6 +6,7 @@ import {
   allFeedback,
   clearFeedback,
   feedbackVerdicts,
+  markedOverview,
   recordFeedback,
 } from '~~/worker/feedback'
 
@@ -18,7 +19,27 @@ const subject = (listingId: number, signals: Signal[] = []) => ({
   releaseId: listingId * 10,
   score: 71,
   signals,
+  digId: '',
+  title: '',
+  artist: '',
 })
+
+/** A dig has to exist for the dealer lookup to find anything. */
+async function dig(id: string, dealer: string) {
+  const db = await openFidelityDb()
+  await db.put('digs', {
+    id,
+    dealer,
+    startedAt: 1000,
+    expiresAt: 2000,
+    status: 'done',
+    scanned: 0,
+    total: 0,
+    matched: 0,
+    coverage: 'full',
+    currency: 'EUR',
+  } as never)
+}
 
 describe('feedback', () => {
   it('keeps the reasoning, not only the verdict', async () => {
@@ -79,15 +100,113 @@ describe('feedback', () => {
 
     const db = await openFidelityDb()
     const entry = await db.get('feedback', 1)
-    // No price, no condition, no dealer — so this outlives the ToS window and
-    // is the one part of a dig that is meant to be permanent.
+
+    /*
+     * The line is drawn at numbers, not at facts.
+     *
+     * What CLAUDE.md rule 4 deletes after six hours is the offer: the price,
+     * the condition, the sleeve grade, the seller's note. None of those are
+     * here and none ever will be — this store is meant to be permanent.
+     *
+     * Who made the record, what it is called and which shop had it are not the
+     * offer. They are how a shortlist is still readable a year later, once the
+     * dig it came from was pruned at five. The basket has kept the title for
+     * exactly this reason since M4.
+     */
     expect(Object.keys(entry!).sort()).toEqual([
+      'artist',
       'createdAt',
+      'dealer',
       'listingId',
       'releaseId',
       'score',
       'signals',
+      'title',
       'verdict',
     ])
+  })
+})
+
+describe('the shortlist', () => {
+  it('keeps enough to still be readable once the dig is gone', async () => {
+    // Only the last five digs survive. Two integers are not a shortlist.
+    await dig('D1', 'plattenkiste')
+    await recordFeedback(
+      { ...subject(1), digId: 'D1', artist: 'Robag Wruhme', title: 'Wuzzelbud KK' },
+      'interesting',
+      1000,
+    )
+
+    const [entry] = await allFeedback()
+    expect(entry?.artist).toBe('Robag Wruhme')
+    expect(entry?.title).toBe('Wuzzelbud KK')
+    expect(entry?.dealer).toBe('plattenkiste')
+
+    // And still no numbers off the marketplace — that is what expires.
+    expect(entry).not.toHaveProperty('price')
+    expect(entry).not.toHaveProperty('condition')
+  })
+
+  it('groups by shop, fullest shop first', async () => {
+    await dig('D1', 'einer')
+    await dig('D2', 'zwei')
+
+    await recordFeedback({ ...subject(1), digId: 'D1' }, 'interesting', 1000)
+    await recordFeedback({ ...subject(2), digId: 'D2' }, 'interesting', 2000)
+    await recordFeedback({ ...subject(3), digId: 'D2' }, 'interesting', 3000)
+
+    const overview = await markedOverview()
+    // Postage is per shipment: the shop with three is where an order forms.
+    expect(overview.groups.map((group) => group.dealer)).toEqual(['zwei', 'einer'])
+    // Newest first inside a shop — that is the dig you are still thinking about.
+    expect(overview.groups[0]?.records.map((record) => record.listingId)).toEqual([3, 2])
+    expect(overview.total).toBe(3)
+  })
+
+  it('shows only what you said yes to', async () => {
+    await dig('D1', 'einer')
+    await recordFeedback({ ...subject(1), digId: 'D1' }, 'interesting', 1000)
+    await recordFeedback({ ...subject(2), digId: 'D1' }, 'meh', 1000)
+    await recordFeedback({ ...subject(3), digId: 'D1' }, 'wrong', 1000)
+    await recordFeedback({ ...subject(4), digId: 'D1' }, 'bought', 1000)
+
+    const overview = await markedOverview()
+    // "meh" and "wrong" are training data, not a list anybody wants to read.
+    expect(overview.total).toBe(1)
+    expect(overview.bought.map((record) => record.listingId)).toEqual([4])
+  })
+
+  it('does not count a sold record as still worth a request', async () => {
+    await dig('D1', 'einer')
+    await recordFeedback({ ...subject(1), digId: 'D1' }, 'interesting', 1000)
+    await recordFeedback({ ...subject(2), digId: 'D1' }, 'interesting', 1000)
+
+    const db = await openFidelityDb()
+    const gone = await db.get('feedback', 2)
+    await db.put('feedback', { ...gone!, soldAt: 5000 })
+
+    const overview = await markedOverview()
+    expect(overview.total).toBe(2)
+    // A listing id does not come back on the market, so asking again is waste.
+    expect(overview.stillOpen).toBe(1)
+    expect(overview.groups[0]?.open).toBe(1)
+  })
+
+  it('survives rows written before titles were kept', async () => {
+    const db = await openFidelityDb()
+    await db.put('feedback', {
+      listingId: 9,
+      releaseId: 90,
+      verdict: 'interesting',
+      signals: [],
+      score: 60,
+      createdAt: 1000,
+    })
+
+    const overview = await markedOverview()
+    // Says so rather than inventing one; the release id still links out.
+    expect(overview.groups[0]?.records[0]?.title).toBeNull()
+    expect(overview.groups[0]?.records[0]?.dealer).toBeNull()
+    expect(overview.groups[0]?.dealer).toBeNull()
   })
 })

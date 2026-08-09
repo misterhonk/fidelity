@@ -8,7 +8,8 @@ useSeoMeta({
 
 const { call } = useFidelityWorker()
 
-const overview = ref<WantlistOverview | null>(null)
+// Replaced wholesale, never mutated — Vue has no reason to proxy every row.
+const overview = shallowRef<WantlistOverview | null>(null)
 const loading = ref(true)
 const query = ref('')
 

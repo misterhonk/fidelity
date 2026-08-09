@@ -376,6 +376,22 @@ export const handlers: HandlerMap = {
 
   'basket.get': () => basketView(),
 
+  'feedback.marked': async () => {
+    const { markedOverview } = await import('./feedback')
+    return markedOverview()
+  },
+
+  'feedback.check': async (_params, { report, signal }) => {
+    const { refreshMarked } = await import('./dig/refresh')
+    const { currency } = await getPreferences()
+    return refreshMarked({
+      client: discogs(),
+      currency,
+      report: (progress) => report(progress),
+      signal,
+    })
+  },
+
   'basket.refresh': async (_params, { report, signal }) => {
     const { refreshBasket } = await import('./dig/refresh')
     const { currency } = await getPreferences()

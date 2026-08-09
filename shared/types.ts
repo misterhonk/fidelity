@@ -653,9 +653,38 @@ export interface MatchDetail {
 
 export type Verdict = 'interesting' | 'meh' | 'wrong' | 'bought'
 
+/** One shortlisted record, stripped of everything the six-hour rule deletes. */
+export interface MarkedRecord {
+  listingId: number
+  releaseId: number
+  title: string | null
+  artist: string | null
+  dealer: string | null
+  score: number
+  createdAt: number
+  soldAt: number | null
+}
+
+export interface MarkedOverview {
+  groups: { dealer: string | null; records: MarkedRecord[]; open: number }[]
+  bought: MarkedRecord[]
+  total: number
+  stillOpen: number
+}
+
 export interface Feedback {
   listingId: number
   releaseId: number
+  /** Catalogue, not marketplace — kept so a shortlist is still readable later. */
+  title?: string | null
+  artist?: string | null
+  /** Which shop had it. You cannot go back to a shop you cannot name. */
+  dealer?: string | null
+  /**
+   * When a check found the offer gone. A fact about the past, not a number off
+   * the marketplace — and it stops the same request being spent twice.
+   */
+  soldAt?: number | null
   verdict: Verdict
   /** Signal snapshot at the time of the verdict — otherwise it is unusable later. */
   signals: Signal[]

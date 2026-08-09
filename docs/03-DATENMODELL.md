@@ -314,6 +314,10 @@ interface BasketItem {
 interface Feedback {
   listingId: number
   releaseId: number
+  title:     string | null   // Katalog, kein Marktplatz
+  artist:    string | null
+  dealer:    string | null   // wo sie stand
+  soldAt:    number | null   // wann eine Prüfung sie als weg vorfand
   verdict:   'interesting' | 'meh' | 'wrong' | 'bought'
   signals:   Signal[]     // Snapshot zum Zeitpunkt des Urteils
   score:     number
@@ -323,6 +327,23 @@ interface Feedback {
 
 Bleibt lokal. Für die Auswertung exportiert man es als JSON und wertet es offline aus –
 ab ~200 Urteilen lohnt sich der Blick, welche Signale mit „interessant" korrelieren.
+
+**Wo die Grenze läuft.** Was die Sechs-Stunden-Regel löscht, ist das *Angebot*: Preis,
+Zustand, Hüllenzustand, Händlernotiz. Nichts davon steht hier und wird nie hier stehen.
+
+Wer die Platte gemacht hat, wie sie heißt und welcher Laden sie hatte, ist nicht das
+Angebot. Das ist, was eine Merkliste ein Jahr später noch lesbar macht – Digs werden nach
+fünf weggeräumt, und zwei nackte Ganzzahlen sind keine Merkliste. Der Korb hält den Titel
+aus demselben Grund seit M4.
+
+`soldAt` ist eine Tatsache über die Vergangenheit, keine Zahl vom Marktplatz – und sie
+verhindert, dass derselbe Request zweimal ausgegeben wird: eine Listing-ID kommt nicht
+zurück auf den Markt, eine Neueinstellung bekommt eine neue.
+
+**Der Screen dazu** ist `/gemerkt`: gruppiert nach Laden (Porto ist pro Sendung, also ist
+vier Platten bei einem Laden etwas anderes als vier bei vieren), voller Laden zuerst.
+Frische Preise holt „Noch da?" über `GET /marketplace/listings/{id}` – sie stehen im
+Ergebnis und landen **nie** auf der Platte.
 
 ---
 

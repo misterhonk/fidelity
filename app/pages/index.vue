@@ -11,7 +11,7 @@ const { checkOnce } = useWatchlist()
 const { identity, ready, load, set } = useIdentity()
 
 const library = ref<LibrarySummary | null>(null)
-const latest = ref<DigWithMatches | null>(null)
+const latest = shallowRef<DigWithMatches | null>(null)
 
 onMounted(async () => {
   await load()
