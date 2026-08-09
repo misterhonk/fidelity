@@ -1,6 +1,20 @@
-import type { CollectionItem, Signal, TasteProfile, WantlistItem } from '#shared/types'
+import { buildLookup, labelLift, type HorizonLookup } from '../horizon/lookup'
+import type {
+  CollectionItem,
+  HorizonChunk,
+  Signal,
+  TasteProfile,
+  WantlistItem,
+} from '#shared/types'
 
 import { matchesFormat } from './format'
+import {
+  artistGap,
+  catalogueRun,
+  creditGraph,
+  formatUpgrade,
+  wantlistPressing,
+} from './signals'
 import { isAnonymousArtist, norm, splitArtists, tokens } from './normalize'
 import { barryScore, MIN_STORED_SCORE, type ScoreContext } from './score'
 import { TrigramIndex } from './trigram'
@@ -53,6 +67,12 @@ export interface MatchIndex {
   /** Stage three of the cascade, prepared once. */
   artistTrigrams: TrigramIndex<string>
   releaseCount: number
+  /** Everything the horizon knows, or an empty one before it is built. */
+  horizon: HorizonLookup
+  /** Normalised label name → its Discogs id, for the lift. */
+  labelIds: Map<string, number>
+  /** Label id → records owned, the numerator of the lift. */
+  ownedByLabel: Map<number, number>
 }
 
 const CONDITION_RANK: Record<string, number> = {
@@ -71,6 +91,7 @@ export function buildIndex(
   collection: CollectionItem[],
   wantlist: WantlistItem[],
   taste: TasteProfile | null,
+  chunks: HorizonChunk[] = [],
 ): MatchIndex {
   const artistWeight = new Map<string, { name: string; weight: number; n: number }>()
   const labelWeight = new Map<string, { name: string; weight: number; n: number }>()
@@ -87,6 +108,19 @@ export function buildIndex(
       labelWeight.set(key, { name: facet.name, weight: facet.weight, n: facet.n })
   }
 
+  // Label ids, so the lift can be looked up from a listing's label string.
+  const labelIds = new Map<string, number>()
+  const ownedByLabel = new Map<number, number>()
+  for (const item of collection) {
+    const seen = new Set<number>()
+    for (const [index, id] of item.labelIds.entries()) {
+      if (seen.has(id)) continue
+      seen.add(id)
+      labelIds.set(norm(item.labelNames[index] ?? ''), id)
+      ownedByLabel.set(id, (ownedByLabel.get(id) ?? 0) + 1)
+    }
+  }
+
   return {
     wantlistReleaseIds: new Set(wantlist.map((item) => item.releaseId)),
     collectionReleaseIds: new Set(collection.map((item) => item.releaseId)),
@@ -96,6 +130,9 @@ export function buildIndex(
       [...artistWeight.keys()].map((key) => ({ key, value: key })),
     ),
     releaseCount: taste?.releaseCount ?? collection.length,
+    horizon: buildLookup(chunks, collection, wantlist),
+    labelIds,
+    ownedByLabel,
   }
 }
 
@@ -174,7 +211,8 @@ export function evaluate(
   const signals: Signal[] = []
 
   // S1 — the exact release is on the wantlist. Free, and confidence is always 1.
-  if (index.wantlistReleaseIds.has(listing.releaseId)) {
+  const wantlistExact = index.wantlistReleaseIds.has(listing.releaseId)
+  if (wantlistExact) {
     signals.push({
       type: 'WANTLIST_EXACT',
       confidence: 1,
@@ -199,18 +237,45 @@ export function evaluate(
 
   // S5 — a label the collection leans on.
   //
-  // docs/04 §S5 defines this over lift, which needs a global denominator the
-  // client cannot reach before the horizon exists (M5). Until then the share
-  // within the collection is what is actually knowable: "five of your
-  // twenty-nine records are Border Community" is true and useful, it is just
-  // not the same statement as "nine times the average".
-  const label = listing.label ? index.labelWeight.get(norm(listing.label)) : undefined
+  // The lift, once the horizon can supply a catalogue size: how
+  // over-represented the label is among the labels this collection buys from.
+  // Confidence is min(1, log2(lift) / 3) and it fires from lift ≥ 2, per
+  // docs/04 §S5. Without a horizon there is no denominator, and the collection
+  // share stands in — true and useful, just a weaker statement.
+  const normalisedLabel = listing.label ? norm(listing.label) : ''
+  const label = normalisedLabel ? index.labelWeight.get(normalisedLabel) : undefined
   if (label && label.n >= 2) {
-    signals.push({
-      type: 'LABEL_AFFINITY',
-      confidence: Math.min(1, label.weight * 4),
-      evidence: { label: label.name, owned: label.n, share: label.weight },
-    })
+    const labelId = index.labelIds.get(normalisedLabel)
+    const lift =
+      labelId === undefined ? null : labelLift(index.horizon, labelId, index.ownedByLabel)
+
+    if (lift !== null) {
+      if (lift >= 2) {
+        signals.push({
+          type: 'LABEL_AFFINITY',
+          confidence: Math.min(1, Math.log2(lift) / 3),
+          evidence: { label: label.name, owned: label.n, lift },
+        })
+      }
+    } else {
+      signals.push({
+        type: 'LABEL_AFFINITY',
+        confidence: Math.min(1, label.weight * 4),
+        evidence: { label: label.name, owned: label.n, share: label.weight },
+      })
+    }
+  }
+
+  // The five the horizon unlocks. Each is a lookup, none costs a request.
+  const fromHorizon = [
+    wantlistPressing(listing, index.horizon, wantlistExact),
+    artistGap(listing, index.horizon),
+    catalogueRun(listing, index.horizon),
+    creditGraph(listing, index.horizon),
+    formatUpgrade(listing, index.horizon, filters.formatsAllow),
+  ]
+  for (const signal of fromHorizon) {
+    if (signal) signals.push(signal)
   }
 
   if (signals.length === 0) return null

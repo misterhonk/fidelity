@@ -72,18 +72,21 @@ async function prepare({
   const db = await openFidelityDb()
   const preferences = await getPreferences()
 
-  const [collection, wantlist, taste] = await Promise.all([
+  const [collection, wantlist, taste, chunks] = await Promise.all([
     db.getAll('collection'),
     db.getAll('wantlist'),
     db
       .get('meta', 'tasteProfile')
       .then((row) => (row?.key === 'tasteProfile' ? row.value : null)),
+    // The horizon. Empty before it is built, and everything still works —
+    // just with three signals instead of eight.
+    db.getAll('horizon'),
   ])
 
   return {
     client,
     db,
-    index: buildIndex(collection, wantlist, taste),
+    index: buildIndex(collection, wantlist, taste, chunks),
     filters: {
       formatsAllow: preferences.formatsAllow,
       maxPrice: preferences.maxPrice,
