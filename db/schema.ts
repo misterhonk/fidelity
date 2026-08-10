@@ -53,6 +53,15 @@ export type MetaValue =
    * the moment it is read.
    */
   | { key: 'cloudTokens'; value: Record<string, CloudTokens> }
+  /**
+   * The vault passphrase, when the device was told to remember it.
+   *
+   * Looks like the key beside the lock and is not: the lock is on the *remote*
+   * copy. This database is plaintext and always was — the collection, the
+   * shortlist and the Discogs token are already here. What it buys is a
+   * feature somebody uses rather than one they set up once and abandon.
+   */
+  | { key: 'vaultPassphrase'; value: string }
 
 export type MetaKey = MetaValue['key']
 

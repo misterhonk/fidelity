@@ -90,6 +90,15 @@ export interface Preferences {
   vaultTarget: VaultTarget
   vaultSyncedAt: number | null
   /**
+   * Whether this device keeps the passphrase.
+   *
+   * A stored choice, not one derived from whether a passphrase happens to be
+   * lying around: inferring it meant somebody who had already synced once got
+   * the option silently switched off, and a default that depends on history
+   * is not a default.
+   */
+  vaultRemember: boolean
+  /**
    * Your own OAuth client id, per provider.
    *
    * Public by design — PKCE needs no secret — and yours rather than the app's,

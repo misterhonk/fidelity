@@ -39,6 +39,9 @@ export const DEFAULT_PREFERENCES: Preferences = {
   // One device needs no vault, so the default configuration is no vault.
   vaultTarget: 'none' as const,
   vaultSyncedAt: null,
+  // On, because a vault nobody remembers to open is out of date on the one
+  // device they pick up. Off is a deliberate choice for a shared machine.
+  vaultRemember: true,
   cloudClientIds: {},
   // Empty, and empty is the supported configuration. No feature may require it.
   hubUrl: null,

@@ -5,6 +5,16 @@ import { CLOUD_PROVIDERS } from '~/utils/cloud-vault'
 const { call } = useFidelityWorker()
 const vaultFile = useVaultFile()
 const cloud = useVaultCloud()
+const vaultSync = useVaultSync()
+
+/*
+ * Remembered by default once a target is chosen.
+ *
+ * The lock is on the remote copy; this database is plaintext either way. What
+ * it buys is a vault that stays current instead of one somebody set up in
+ * March and never opened again.
+ */
+const keepPassphrase = ref(true)
 
 const fileName = ref<string | null>(null)
 const clientIds = ref<Record<string, string>>({})
@@ -37,7 +47,22 @@ onMounted(async () => {
 
   for (const key of ['dropbox', 'drive'] as const)
     linked.value[key] = await cloud.connected(key)
+
+  keepPassphrase.value = prefs.vaultRemember
 })
+
+/**
+ * The choice is stored, not derived.
+ *
+ * Deriving it from whether a passphrase happens to be lying around meant
+ * somebody who had already synced once got the option switched off without
+ * being asked — and a default that depends on history is not a default.
+ */
+async function setRemember(value: boolean) {
+  keepPassphrase.value = value
+  await call('preferences.set', { vaultRemember: value })
+  if (!value) await vaultSync.remember(null)
+}
 
 /** Which of the two, when one of them is the chosen target. */
 const currentCloud = computed(() =>
@@ -162,6 +187,9 @@ async function sync() {
       : `Erstmals gesichert: ${total} Einträge.`
     // Out of memory the moment it is no longer needed. It is the key to
     // everything in the block and has no business sitting in a form.
+    // Kept or dropped as asked, and only after a round that worked — there is
+    // no point remembering a passphrase that has not opened anything yet.
+    await vaultSync.remember(keepPassphrase.value ? passphrase.value : null)
     passphrase.value = ''
     status.value = await call('vault.status', undefined)
   } catch (cause) {
@@ -295,13 +323,36 @@ const date = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 
         </span>
       </label>
 
+      <label class="flex items-start gap-3">
+        <input
+          :checked="keepPassphrase"
+          type="checkbox"
+          class="mt-1 size-4"
+          @change="setRemember(($event.target as HTMLInputElement).checked)"
+        />
+        <span class="flex flex-col gap-0.5">
+          <span class="text-fid-sm text-fid-text">Auf diesem Gerät merken</span>
+          <span class="text-fid-xs text-fid-text-muted">
+            Dann gleicht sich Fidelity beim Öffnen von selbst ab.
+          </span>
+        </span>
+      </label>
+
+      <WhyNote label="Ist das nicht der Schlüssel neben dem Schloss">
+        Nein – das Schloss sitzt auf der Kopie in der Ferne. Diese Datenbank hier ist
+        unverschlüsselt und war es immer: Sammlung, Merkliste und der Discogs-Token liegen
+        längst darin. Die Passphrase daneben zu legen gibt niemandem etwas, das der Besitz des
+        Geräts nicht ohnehin gibt. Auf einem geteilten Rechner ist das eine andere Frage – dann
+        Haken weg und jedes Mal tippen.
+      </WhyNote>
+
       <button
         type="button"
         :disabled="busy || passphrase.length < 8"
         class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 text-fid-sm font-medium text-fid-n-990 disabled:opacity-50"
         @click="sync()"
       >
-        {{ busy ? 'Gleiche ab …' : 'Jetzt abgleichen' }}
+        {{ busy ? 'Gleiche ab …' : status.lastSyncedAt ? 'Jetzt abgleichen' : 'Einrichten' }}
       </button>
 
       <p v-if="result" class="text-fid-sm text-fid-text-muted" aria-live="polite">

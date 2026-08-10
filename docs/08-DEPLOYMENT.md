@@ -98,6 +98,22 @@ Schlüssel aus deiner Passphrase — der Speicherort spielt deshalb keine Rolle.
 **Nicht dabei:** der Discogs-Token (Regel 6 — jedes Gerät meldet sich einmal selbst an)
 und Digs (Regel 4 — Preise sind nach sechs Stunden gelöscht).
 
+### Einmal einrichten, dann von selbst
+
+Ziel wählen, Passphrase setzen, einmal abgleichen. Danach läuft es beim Öffnen der App
+mit, gedrosselt auf höchstens alle fünf Minuten und **nie abgewartet** — ein Ziel, das
+gerade nicht erreichbar ist, hält niemandem den Bildschirm auf. Wann es zuletzt geklappt
+hat, steht in den Einstellungen; da würde man auch nachsehen.
+
+**Die Passphrase darf auf dem Gerät bleiben** — voreingestellt tut sie das. Das sieht nach
+Schlüssel neben dem Schloss aus und ist keiner: das Schloss sitzt auf der Kopie in der
+Ferne. Die lokale Datenbank ist unverschlüsselt und war es immer; Sammlung, Merkliste und
+der Discogs-Token liegen längst darin. Die Passphrase daneben zu legen gibt niemandem
+etwas, das der Besitz des Geräts nicht ohnehin gibt.
+
+Auf einem geteilten Rechner ist das eine andere Frage. Dann Haken weg — die Passphrase
+wird gelöscht, und jeder Abgleich fragt wieder.
+
 ### Dropbox und Drive: deine eigene Registrierung
 
 Es gibt keinen Fidelity-Server und deshalb auch keine Fidelity-App bei Dropbox oder

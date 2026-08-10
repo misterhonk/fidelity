@@ -8,6 +8,7 @@ useSeoMeta({
 
 const { call } = useFidelityWorker()
 const { checkOnce } = useWatchlist()
+const { syncOnStart } = useVaultSync()
 const { identity, ready, load, set } = useIdentity()
 
 const library = ref<LibrarySummary | null>(null)
@@ -17,9 +18,11 @@ onMounted(async () => {
   await load()
   if (!identity.value) return
 
-  // The watchlist check is deliberately not awaited: a shop that is slow to
-  // answer must not hold up the screen.
+  // Neither of these is awaited: a shop that is slow to answer and a vault
+  // that is unreachable must not hold up the screen. Both report where
+  // somebody would look for them, not in front of what they came for.
   void checkOnce()
+  void syncOnStart()
 
   const [summary, dig] = await Promise.all([
     call('library.summary', undefined),
