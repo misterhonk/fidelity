@@ -544,11 +544,31 @@ export const handlers: HandlerMap = {
     if (!view.baskets.some((basket) => basket.dealer === dealer)) return null
 
     const { planBasket } = await import('./basket/optimise')
+    const { resolveShipping } = await import('./basket/profiles')
     const db = await openFidelityDb()
-    const tiers = (await db.get('dealers', dealer))?.shippingTiers ?? []
+    const row = await db.get('dealers', dealer)
+
+    /*
+     * The same postage the card above it shows, which means the same ladder of
+     * sources — hand-entered, hub, repository, parsed. Reading `shippingTiers`
+     * straight off the dealer looked equivalent and was not: it holds only the
+     * hand-entered table, so for every shop nobody has typed one for, the plan
+     * had no tiers, every total came out null, and the screen blamed the
+     * budget for a postage table it had simply not asked for.
+     */
+    const preferences = await getPreferences()
+    const shipping = row
+      ? await resolveShipping(row, preferences.shipsToCountry)
+      : { tiers: [], source: null, matched: [] }
+
     // Everything this dealer has that you want, not only what is in the basket
     // — the plan's whole job is to say which set to buy.
-    return planBasket(await candidatesFor(dealer), tiers, budget)
+    return planBasket(
+      await candidatesFor(dealer),
+      shipping.tiers,
+      budget,
+      row?.minOrderTotal ?? 0,
+    )
   },
 
   'dig.credits': async ({ digId }) => {
@@ -672,6 +692,8 @@ async function basketView(): Promise<BasketView> {
         await candidatesFor(summary.dealer),
         inBasket,
         preferences.targetPrice,
+        undefined,
+        summary.missingToMinimum,
       ),
     })),
   )

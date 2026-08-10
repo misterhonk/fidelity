@@ -156,6 +156,15 @@ export function summarise(
   const postage = shippingFor(shipping.tiers, live.length)?.price ?? null
   const total = subtotal === null || postage === null ? null : subtotal + postage
   const minOrderTotal = dealer?.minOrderTotal ?? 0
+  /*
+   * How far under the dealer's floor this basket is. The threshold on its own
+   * is a fact about the shop; the difference is the only part that is about
+   * the decision in front of somebody.
+   */
+  const missingToMinimum =
+    subtotal !== null && minOrderTotal > 0 && subtotal < minOrderTotal
+      ? minOrderTotal - subtotal
+      : null
 
   return {
     dealer: lines[0]?.dealer ?? '',
@@ -176,6 +185,7 @@ export function summarise(
     // turning the panel into a table nobody reads.
     curve: shippingCurve(shipping.tiers, Math.max(6, live.length + 2)),
     minOrderTotal,
-    belowMinimum: subtotal !== null && minOrderTotal > 0 && subtotal < minOrderTotal,
+    belowMinimum: missingToMinimum !== null,
+    missingToMinimum,
   }
 }

@@ -68,6 +68,7 @@ export function planBasket(
   candidates: BasketCandidate[],
   tiers: ShippingTier[],
   budget: number,
+  minOrderTotal = 0,
 ): BasketPlan {
   const affordable = candidates.filter((item) => item.price > 0 && item.price <= budget)
 
@@ -76,8 +77,31 @@ export function planBasket(
   )
   const byScore = [...affordable].sort((a, b) => b.score - a.score || a.price - b.price)
 
-  const plans = [byValue, byScore].map((order) => improve(order, tiers, budget))
-  return plans.reduce((best, plan) => (plan.score > best.score ? plan : best))
+  /*
+   * Every shop has a floor — `min_order_total`, five or ten euros — and under
+   * it the checkout refuses the order. A plan that lands below it is not a
+   * cheaper plan, it is one that cannot be bought, and presenting it with the
+   * same confidence as a real one is the same mistake as a postage rate read
+   * off the wrong continent.
+   *
+   * Nothing is added to reach the floor. Both passes have already spent the
+   * budget as far as it goes, so there is nothing left to add — and buying a
+   * record to satisfy a shop's minimum is the shop's interest, not yours. What
+   * changes is which of the two plans wins: one that clears the floor beats
+   * one that does not, however well the second scores. Between two that both
+   * clear it, the higher score wins as always.
+   */
+  const plans = [byValue, byScore]
+    .map((order) => improve(order, tiers, budget))
+    .map((plan) => ({
+      ...plan,
+      belowMinimum: plan.chosen.length > 0 && plan.goods < minOrderTotal,
+    }))
+
+  return plans.reduce((best, plan) => {
+    if (best.belowMinimum !== plan.belowMinimum) return best.belowMinimum ? plan : best
+    return plan.score > best.score ? plan : best
+  })
 }
 
 function improve(order: BasketCandidate[], tiers: ShippingTier[], budget: number): BasketPlan {
@@ -123,7 +147,15 @@ function improve(order: BasketCandidate[], tiers: ShippingTier[], budget: number
   }
 
   const { goods, shipping, total } = cost(chosen, tiers)
-  return { chosen, score: scoreOf(chosen), goods, shipping, total, improvements }
+  return {
+    chosen,
+    score: scoreOf(chosen),
+    goods,
+    shipping,
+    total,
+    improvements,
+    belowMinimum: false,
+  }
 }
 
 /**
@@ -139,10 +171,22 @@ export function suggestCandidates(
   inBasket: Set<number>,
   maxPrice: number | null,
   limit = 12,
+  /** What is still missing to the dealer's minimum, when something is. */
+  missingToMinimum: number | null = null,
 ): BasketCandidate[] {
   return candidates
     .filter((item) => !inBasket.has(item.listingId))
     .filter((item) => maxPrice === null || item.price <= maxPrice)
     .sort((a, b) => b.score - a.score || a.price - b.price)
     .slice(0, limit)
+    .map((item) => ({
+      ...item,
+      /*
+       * Marked, not moved. A record that clears the dealer's floor on its own
+       * is worth knowing about when you are short — but ranking by it would
+       * put the shop's minimum ahead of your own taste, and the shopping list
+       * would quietly start serving the shop.
+       */
+      closesGap: missingToMinimum !== null && item.price >= missingToMinimum,
+    }))
 }

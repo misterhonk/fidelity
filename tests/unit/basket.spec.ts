@@ -278,6 +278,35 @@ describe('what a basket costs', () => {
     ).toBe(false)
   })
 
+  it('says how much is missing, not only where the floor is', () => {
+    // The threshold is a fact about the shop. The difference is the only part
+    // that is about the decision in front of somebody.
+    expect(
+      summarise([line({ price: 17.88 })], dealer({ minOrderTotal: 25 }), shipping(table))
+        .missingToMinimum,
+    ).toBeCloseTo(7.12, 10)
+  })
+
+  it('has no gap to report when there is none', () => {
+    expect(
+      summarise([line({ price: 30 })], dealer({ minOrderTotal: 25 }), shipping(table))
+        .missingToMinimum,
+    ).toBeNull()
+    expect(summarise([line()], dealer(), shipping(table)).missingToMinimum).toBeNull()
+  })
+
+  it('reports no gap while a price is too old to add up', () => {
+    // The subtotal is null on purpose there, and a gap computed from a partial
+    // sum would be a larger number than the truth.
+    const summary = summarise(
+      [line({ priceExpired: true })],
+      dealer({ minOrderTotal: 25 }),
+      shipping(table),
+    )
+    expect(summary.missingToMinimum).toBeNull()
+    expect(summary.belowMinimum).toBe(false)
+  })
+
   it('offers the saving that is one record away', () => {
     const summary = summarise(
       [line({ listingId: 1 }), line({ listingId: 2 })],
@@ -386,6 +415,52 @@ describe('planning a shipment', () => {
     // is a guess dressed as arithmetic.
     expect(planBasket([c()], [], 100).chosen).toEqual([])
   })
+
+  it('says so when the budget cannot reach the minimum', () => {
+    // 20 € of budget, 6 € of postage, a 25 € floor: there is no set that works,
+    // and presenting the affordable one as a plan would be a wrong number.
+    const plan = planBasket([c({ listingId: 1, price: 12 })], table, 20, 25)
+    expect(plan.belowMinimum).toBe(true)
+  })
+
+  it('prefers a shippable plan over a higher-scoring one that is not', () => {
+    /*
+     * By value the two cheap records win on score — and together they come to
+     * 9 €, which this shop will not post. By score the single 30 € record wins
+     * on nothing except being an order that exists.
+     */
+    const plan = planBasket(
+      [
+        c({ listingId: 1, price: 4, score: 80 }),
+        c({ listingId: 2, price: 5, score: 90 }),
+        c({ listingId: 3, price: 30, score: 95 }),
+      ],
+      table,
+      40,
+      25,
+    )
+    expect(plan.belowMinimum).toBe(false)
+    expect(plan.chosen.map((item) => item.listingId)).toEqual([3])
+    expect(plan.score).toBe(95)
+  })
+
+  it('still takes the better score when both plans are shippable', () => {
+    const plan = planBasket(
+      [
+        c({ listingId: 1, price: 4, score: 80 }),
+        c({ listingId: 2, price: 5, score: 90 }),
+        c({ listingId: 3, price: 30, score: 95 }),
+      ],
+      table,
+      40,
+      0,
+    )
+    expect(plan.score).toBe(170)
+  })
+
+  it('ignores a minimum nobody set', () => {
+    expect(planBasket([c({ price: 10 })], table, 60).belowMinimum).toBe(false)
+  })
 })
 
 describe('what else to put in', () => {
@@ -411,6 +486,38 @@ describe('what else to put in', () => {
       null,
     )
     expect(suggestions.map((item) => item.listingId)).toEqual([1, 3])
+  })
+
+  it('marks which suggestions clear the dealer floor on their own', () => {
+    const suggestions = suggestCandidates(
+      [c({ listingId: 1, score: 90, price: 9 }), c({ listingId: 2, score: 80, price: 5 })],
+      new Set(),
+      null,
+      12,
+      7.12,
+    )
+    expect(suggestions.map((item) => item.closesGap)).toEqual([true, false])
+  })
+
+  it('marks nothing when the basket is over the minimum already', () => {
+    const suggestions = suggestCandidates([c(), c({ listingId: 2 })], new Set(), null)
+    expect(suggestions.every((item) => item.closesGap === false)).toBe(true)
+  })
+
+  it('marks without reordering', () => {
+    /*
+     * Ranking by the shop's floor would put the shop ahead of your own taste,
+     * and a shopping list that quietly serves the shop is the whole failure
+     * mode this app exists against.
+     */
+    const suggestions = suggestCandidates(
+      [c({ listingId: 1, score: 90, price: 4 }), c({ listingId: 2, score: 50, price: 20 })],
+      new Set(),
+      null,
+      12,
+      10,
+    )
+    expect(suggestions.map((item) => item.listingId)).toEqual([1, 2])
   })
 
   it('respects the comfort price rather than a number derived from the saving', () => {

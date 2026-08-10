@@ -55,6 +55,9 @@ async function clearThisOne() {
   await refresh()
 }
 
+/** How many of the suggestions clear the dealer's floor on their own. */
+const closers = computed(() => props.summary.candidates.filter((c) => c.closesGap).length)
+
 // --- Is this still there? ---------------------------------------------------
 
 /** What the button will actually cost: one request per line still on offer. */
@@ -322,10 +325,12 @@ const peak = computed(() =>
         als die Wahrheit – scanne den Händler neu.
       </p>
 
-      <p v-if="summary.belowMinimum" class="text-fid-sm text-fid-sig-gap">
-        Der Händler verschickt erst ab
+      <p v-if="summary.missingToMinimum !== null" class="text-fid-sm text-fid-sig-gap">
+        Noch
+        <span class="fid-num">{{ money(summary.missingToMinimum, summary.currency) }}</span>
+        bis zum Mindestbestellwert von
         <span class="fid-num">{{ money(summary.minOrderTotal, summary.currency) }}</span
-        >.
+        >, sonst verschickt der Händler nicht.
       </p>
 
       <!-- The sentence the whole feature exists for (docs/00 §7). -->
@@ -501,6 +506,11 @@ const peak = computed(() =>
               money(plan.total, summary.currency) ?? '?'
             }}</span>
           </p>
+          <p v-if="plan.belowMinimum" class="text-fid-sm text-fid-sig-gap">
+            Das bleibt unter dem Mindestbestellwert von
+            <span class="fid-num">{{ money(summary.minOrderTotal, summary.currency) }}</span
+            >– der Händler verschickt es so nicht. Mehr Budget oder ein anderer Laden.
+          </p>
           <p class="text-fid-xs text-fid-text-muted">
             Ein Vorschlag, kein Beweis: gierig gefüllt und dann getauscht, nicht exakt
             optimiert. Der Korb bleibt, wie er ist – das hier ändert nichts.
@@ -522,22 +532,32 @@ const peak = computed(() =>
       <h3 id="candidates" class="text-fid-sm font-medium text-fid-text">
         Käme auch noch infrage
       </h3>
+      <p v-if="summary.missingToMinimum !== null" class="text-fid-xs text-fid-text-muted">
+        <template v-if="closers > 0">
+          <span class="fid-num">{{ closers }}</span>
+          {{ closers === 1 ? 'davon hebt' : 'davon heben' }} den Korb allein über den
+          Mindestbestellwert.
+        </template>
+        <template v-else>
+          Keine davon reicht allein über den Mindestbestellwert – zwei zusammen schon.
+        </template>
+      </p>
       <ul class="flex flex-col gap-2">
         <li
           v-for="candidate in summary.candidates"
           :key="candidate.listingId"
-          class="flex items-baseline gap-3 rounded-fid-sm border border-fid-border px-3 py-2"
+          class="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-fid-sm border border-fid-border px-3 py-2"
         >
-          <span class="fid-num shrink-0 text-fid-sm font-medium text-fid-text">
+          <span class="fid-num text-fid-sm font-medium text-fid-text">
             {{ candidate.score }}
           </span>
-          <span
-            class="min-w-0 grow truncate text-fid-sm text-fid-text"
-            :title="candidate.reason"
-          >
+          <span class="min-w-0 grow text-fid-sm text-fid-text" :title="candidate.reason">
             {{ candidate.title }}
           </span>
-          <span class="fid-num shrink-0 text-fid-sm text-fid-text-muted">
+          <span v-if="candidate.closesGap" class="text-fid-xs text-fid-text-muted">
+            schließt die Lücke
+          </span>
+          <span class="fid-num text-fid-sm text-fid-text-muted">
             {{ money(candidate.price, candidate.currency) }}
           </span>
         </li>

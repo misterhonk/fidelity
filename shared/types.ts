@@ -741,6 +741,8 @@ export interface BasketCandidate {
   currency: string
   title: string
   reason: string
+  /** Whether this one alone lifts the basket over the dealer's minimum. */
+  closesGap?: boolean
 }
 
 export interface ShippingPoint {
@@ -794,6 +796,8 @@ export interface BasketSummary {
   curve: ShippingPoint[]
   minOrderTotal: number
   belowMinimum: boolean
+  /** How much is still missing to that minimum, when something is. */
+  missingToMinimum: number | null
 }
 
 export interface BasketPlan {
@@ -803,6 +807,8 @@ export interface BasketPlan {
   shipping: number | null
   total: number | null
   improvements: number
+  /** The dealer would not ship this — the goods stay under `min_order_total`. */
+  belowMinimum: boolean
 }
 
 export interface BasketItem {
