@@ -733,6 +733,19 @@ export interface BasketView {
   listingIds: number[]
 }
 
+export interface BasketDig {
+  /** `Dig.startedAt`. */
+  at: number
+  /**
+   * Whether it is past `Dig.expiresAt` — startedAt + 6 h.
+   *
+   * Decided in the worker rather than by comparing timestamps on screen: the
+   * six-hour rule is the ToS, and a rule that lives in a template is one
+   * `v-if` away from being wrong on one screen and right on another.
+   */
+  expired: boolean
+}
+
 export interface BasketCandidate {
   listingId: number
   releaseId: number
@@ -798,6 +811,16 @@ export interface BasketSummary {
   belowMinimum: boolean
   /** How much is still missing to that minimum, when something is. */
   missingToMinimum: number | null
+  /**
+   * The dig the suggestions were read out of, or `null` for a shop nobody has
+   * walked yet.
+   *
+   * Carried so that an empty suggestion list can say *why* it is empty. Never
+   * dug, dug but past `expiresAt` (the six-hour rule, so the prices may not be
+   * shown any more), and dug with genuinely nothing else worth having all look
+   * the same on screen and mean entirely different things.
+   */
+  dig: BasketDig | null
 }
 
 export interface BasketPlan {

@@ -1,7 +1,7 @@
 import { getMeta, getPreferences, getSyncState, setMeta, updatePreferences } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
-import type { BasketCandidate, BasketView } from '#shared/types'
+import type { BasketCandidate, BasketDig, BasketView } from '#shared/types'
 
 import { currentIdentity, discogs, requestPersistence, signOut } from './auth'
 
@@ -563,12 +563,8 @@ export const handlers: HandlerMap = {
 
     // Everything this dealer has that you want, not only what is in the basket
     // — the plan's whole job is to say which set to buy.
-    return planBasket(
-      await candidatesFor(dealer),
-      shipping.tiers,
-      budget,
-      row?.minOrderTotal ?? 0,
-    )
+    const { candidates } = await candidatesFor(dealer, Date.now())
+    return planBasket(candidates, shipping.tiers, budget, row?.minOrderTotal ?? 0)
   },
 
   'dig.credits': async ({ digId }) => {
@@ -675,8 +671,9 @@ async function basketView(): Promise<BasketView> {
     import('./basket/optimise'),
   ])
 
+  const now = Date.now()
   const preferences = await getPreferences()
-  const summaries = await basketSummaries(Date.now(), preferences.shipsToCountry)
+  const summaries = await basketSummaries(now, preferences.shipsToCountry)
   const listingIds = await basketListingIds()
   const inBasket = new Set(listingIds)
 
@@ -686,36 +683,57 @@ async function basketView(): Promise<BasketView> {
    * from the wrong shop is the one mistake that would cost real money.
    */
   const baskets = await Promise.all(
-    summaries.map(async (summary) => ({
-      ...summary,
-      candidates: suggestCandidates(
-        await candidatesFor(summary.dealer),
-        inBasket,
-        preferences.targetPrice,
-        undefined,
-        summary.missingToMinimum,
-      ),
-    })),
+    summaries.map(async (summary) => {
+      const { candidates, dig } = await candidatesFor(summary.dealer, now)
+      return {
+        ...summary,
+        /*
+         * Which dig the suggestions came out of, so an empty list can say
+         * why. Three silences look identical on screen and mean different
+         * things: a shop nobody has walked, a dig whose prices have aged past
+         * the six-hour rule, and a shop that simply has nothing else for you.
+         * Only the last one is an answer.
+         */
+        dig,
+        candidates: suggestCandidates(
+          candidates,
+          inBasket,
+          preferences.targetPrice,
+          undefined,
+          summary.missingToMinimum,
+        ),
+      }
+    }),
   )
 
   return { baskets, listingIds }
 }
 
 /** The scored records this dealer still has, newest dig first. */
-async function candidatesFor(dealer: string): Promise<BasketCandidate[]> {
+async function candidatesFor(
+  dealer: string,
+  now: number,
+): Promise<{ candidates: BasketCandidate[]; dig: BasketDig | null }> {
   const { toCandidate } = await import('./basket/optimise')
   const db = await openFidelityDb()
-  const dig = (await db.getAll('digs'))
+  const newest = (await db.getAll('digs'))
     .filter((entry) => entry.dealer === dealer)
     .sort((a, b) => b.id.localeCompare(a.id))[0]
-  if (!dig) return []
+  if (!newest) return { candidates: [], dig: null }
+
+  const dig = { at: newest.startedAt, expired: newest.expiresAt <= now }
 
   const matches = await db
     .transaction('matches')
     .store.index('by-dig-score')
-    .getAll(IDBKeyRange.bound([dig.id, -Infinity], [dig.id, Infinity]))
+    .getAll(IDBKeyRange.bound([newest.id, -Infinity], [newest.id, Infinity]))
 
-  return matches.map(toCandidate).filter((item): item is BasketCandidate => item !== null)
+  return {
+    dig,
+    candidates: matches
+      .map(toCandidate)
+      .filter((item): item is BasketCandidate => item !== null),
+  }
 }
 
 /** A dig plus its matches, strongest first. */

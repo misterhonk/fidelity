@@ -524,11 +524,41 @@ const peak = computed(() =>
       own comfort price, not a number derived from the postage saving —
       nobody buys a record because it saves postage.
     -->
+    <!--
+      Nichts vorzuschlagen ist kein Zustand, es sind drei.
+      A shop nobody has walked, a dig whose prices have aged past the six-hour
+      rule, and a shop that genuinely has nothing else. They look identical as
+      an empty list, and only the last one is an answer.
+    -->
     <section
-      v-if="summary.candidates.length > 0"
-      class="flex flex-col gap-3"
-      aria-labelledby="candidates"
+      v-if="summary.candidates.length === 0"
+      class="flex flex-col gap-2 rounded-fid-md border border-fid-border p-4"
     >
+      <h3 class="text-fid-sm font-medium text-fid-text">Käme auch noch infrage</h3>
+
+      <p class="max-w-prose text-fid-sm text-fid-text-muted">
+        <template v-if="!summary.dig">
+          Diesen Laden hast du noch nicht durchsucht. Ein Dig sagt dir, was hier sonst noch zu
+          dir passt – und was davon der Versand ohnehin mitnimmt.
+        </template>
+        <template v-else-if="summary.dig.expired">
+          Der letzte Dig war {{ since(summary.dig.at) }}. Marktpreise, die älter als sechs
+          Stunden sind, zeige ich nicht – ich weiß gerade nicht, was hier liegt.
+        </template>
+        <template v-else>
+          Beim Dig {{ since(summary.dig.at) }} war hier sonst nichts dabei, das zu dir passt.
+        </template>
+      </p>
+
+      <NuxtLink
+        class="self-start text-fid-sm text-fid-text underline underline-offset-4"
+        :to="{ path: '/dig', query: { dealer: summary.dealer } }"
+      >
+        {{ summary.dig ? 'Neu durchsuchen' : `${summary.displayName} durchsuchen` }}
+      </NuxtLink>
+    </section>
+
+    <section v-else class="flex flex-col gap-3" aria-labelledby="candidates">
       <h3 id="candidates" class="text-fid-sm font-medium text-fid-text">
         Käme auch noch infrage
       </h3>
