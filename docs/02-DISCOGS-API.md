@@ -291,12 +291,36 @@ Warenkorb zeigt. Gelegt wird dort, Zeile für Zeile.
       "label": "Emanate Records",         // STRING, nur das ERSTE Label
       "catalog_number": "EMA005 CD",
       "year": 2000,
-      "thumbnail": "",
+      "thumbnail": "",                    // IMMER leer, siehe unten
       "stats": { "community": { "in_wantlist": 15, "in_collection": 48 } }
     }
   }]
 }
 ```
+
+### `thumbnail` ist immer leer — gemessen, nicht vermutet
+
+**1.200 von 1.200 Inventarzeilen** über vier Läden (schoenwettermusik, 430AM_Studio,
+spirax.records, fatplastics), gemessen am 2026-08-10, unangemeldet: `release.thumbnail`
+ist ein leerer String und `images` ein leeres Array. Dieselben Releases über
+`GET /releases/{id}` abgefragt haben 1 bis 29 Bilder.
+
+Ob ein Token daran etwas ändert, ist **ungeprüft** — dafür müsste der Token das Gerät
+verlassen (Regel 6), also steht es hier als offene Frage und nicht als Behauptung.
+
+**Konsequenz:** `Match.thumbUrl` ist für jeden Treffer `null`, den diese App je erzeugt
+hat. Cover kommen deshalb aus einer eigenen Ablage (`db/covers.ts`):
+
+- **gratis** aus Sammlung und Wantlist — `basic_information` führt `thumb` und
+  `cover_image` mit, ein synchronisiertes Regal liefert also ein paar tausend Cover ohne
+  eine einzige zusätzliche Anfrage;
+- **je eine Anfrage** an `/releases/{id}` für alles andere, und nur für Kacheln, die
+  tatsächlich ins Bild scrollen, gedeckelt auf 120 pro Besuch;
+- **geteilt**, wenn ein Hub eingerichtet ist (`13-HUB-ADDON.md`) — ein Cover ist für alle
+  dasselbe und ändert sich nie.
+
+Auch das Nichts wird gespeichert: „Discogs hat für dieses Release kein Bild" ist genauso
+viel wert wie ein Bild und kostet dieselbe Anfrage, um es herauszufinden.
 
 ### Was im `release`-Objekt fehlt – und warum das wehtut
 

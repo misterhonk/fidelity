@@ -79,6 +79,7 @@ Alle am 2026-08-09 live verifiziert.
 | `status`-Filter wird bei fremden Händlern **ignoriert** | Clientseitig filtern |
 | **`/artists/{id}/releases` liefert ein `role`-Feld** (`Producer`, `Remix`, …) | Der Credit-Graph kostet 11 Requests statt 10,4 GB |
 | **Zwei Fehlerformate** (legacy + FastAPI) | Beide parsen |
+| **Inventory liefert gar keine Bilder** – `release.thumbnail` ist leer, in 1.200 von 1.200 Zeilen über vier Läden (gemessen 2026-08-10) | `Match.thumbUrl` ist immer `null`. Cover kommen aus `db/covers.ts`: gratis aus der Sammlung, sonst je ein `/releases/{id}` für das, was auf dem Schirm ist |
 | Bilder: **separates Cloudflare-Limit** (~30–40/min) | Nur `loading="lazy"`, nie aktiv fetchen |
 | Wantlist-Pfad heißt **`/wants`**, nicht `/wantlist` | |
 
