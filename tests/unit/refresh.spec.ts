@@ -3,7 +3,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import type { Dig, Match } from '#shared/types'
 import type { DiscogsClient } from '~~/worker/discogs/client'
-import { FOR_SALE, refreshDig } from '~~/worker/dig/refresh'
+import {
+  basketFromMarked,
+  FOR_SALE,
+  refreshBasket,
+  refreshDig,
+  refreshMarked,
+} from '~~/worker/dig/refresh'
 
 afterEach(async () => {
   await deleteFidelityDb()
@@ -178,5 +184,210 @@ describe('bringing an expired dig back', () => {
     await expect(
       refreshDig({ client: api, digId: 'weg', currency: 'EUR', now: NOW }),
     ).rejects.toThrow()
+  })
+})
+
+/** A basket line, the shape `addToBasket` writes. */
+function line(over: Record<string, unknown> = {}) {
+  return {
+    listingId: 1,
+    dealer: '430AM_Studio',
+    releaseId: 10,
+    title: 'Portishead – Dummy',
+    price: 33.99,
+    currency: 'EUR',
+    addedAt: NOW - 7 * 3600_000,
+    note: null,
+    ...over,
+  }
+}
+
+describe('checking whether the basket is still there', () => {
+  it('refreshes the price and restarts the clock per line', async () => {
+    const db = await openFidelityDb()
+    await db.put('basket', line({ listingId: 1 }) as never)
+    const { client: api, get } = client({ 1: forSale(1, 29.99) })
+
+    const result = await refreshBasket({ client: api, currency: 'EUR', now: NOW })
+
+    expect(get).toHaveBeenCalledTimes(1)
+    expect(result).toMatchObject({ refreshed: 1, sold: 0 })
+
+    const fresh = await db.get('basket', 1)
+    expect(fresh?.price).toBe(29.99)
+    // Six hours young again, which is the other half of what the check buys.
+    expect(fresh?.addedAt).toBe(NOW)
+    expect(fresh?.soldAt).toBeNull()
+  })
+
+  it('marks a sold line instead of removing it', async () => {
+    const db = await openFidelityDb()
+    await db.put('basket', line({ listingId: 2 }) as never)
+    const { client: api } = client({ 2: { ...forSale(2, 10), status: 'Sold' } })
+
+    const result = await refreshBasket({ client: api, currency: 'EUR', now: NOW })
+
+    expect(result).toMatchObject({ refreshed: 0, sold: 1 })
+    // Taking somebody's basket entry away behind their back is a decision that
+    // is theirs — the line says "verkauft" and they take it out.
+    expect(await db.get('basket', 2)).toMatchObject({ soldAt: NOW })
+  })
+
+  it('does not spend a second request on a line already known sold', async () => {
+    const db = await openFidelityDb()
+    await db.put('basket', line({ listingId: 3, soldAt: NOW - 1000 }) as never)
+    const { client: api, get } = client({ 3: forSale(3, 10) })
+
+    const result = await refreshBasket({ client: api, currency: 'EUR', now: NOW })
+
+    // A listing id does not come back on the market; a relisting gets a new one.
+    expect(get).not.toHaveBeenCalled()
+    expect(result.requests).toBe(0)
+  })
+})
+
+describe('checking the shortlist', () => {
+  async function marked(...entries: { listingId: number; soldAt?: number }[]) {
+    const db = await openFidelityDb()
+    for (const entry of entries) {
+      await db.put('feedback', {
+        listingId: entry.listingId,
+        releaseId: entry.listingId * 10,
+        title: 'Dummy',
+        artist: 'Portishead',
+        dealer: '430AM_Studio',
+        soldAt: entry.soldAt ?? null,
+        verdict: 'interesting',
+        signals: [],
+        score: 70,
+        createdAt: NOW - 86_400_000,
+      } as never)
+    }
+    return db
+  }
+
+  it('hands the prices back and writes none of them down', async () => {
+    const db = await marked({ listingId: 1 })
+    const { client: api } = client({ 1: forSale(1, 19.99) })
+
+    const result = await refreshMarked({ client: api, currency: 'EUR', now: NOW })
+
+    expect(result.prices[1]).toEqual({ price: 19.99, currency: 'EUR', condition: 'Mint (M)' })
+    /*
+     * A price on disk past six hours is exactly what rule 4 forbids, and the
+     * shortlist is meant to outlive six hours. So the number goes to the
+     * screen and nowhere else — a reload throws it away, which is right,
+     * because the next reload could not say how old it was.
+     */
+    const stored = await db.get('feedback', 1)
+    expect(stored).not.toHaveProperty('price')
+    expect(stored).not.toHaveProperty('condition')
+  })
+
+  it('remembers what sold, because that answer does not change', async () => {
+    const db = await marked({ listingId: 2 })
+    const { client: api } = client({ 2: { ...forSale(2, 10), status: 'Sold' } })
+
+    const result = await refreshMarked({ client: api, currency: 'EUR', now: NOW })
+
+    expect(result.sold).toBe(1)
+    expect(result.prices[2]).toBeUndefined()
+    expect(await db.get('feedback', 2)).toMatchObject({ soldAt: NOW })
+  })
+
+  it('skips what it already knows is gone', async () => {
+    await marked({ listingId: 3, soldAt: NOW - 5000 })
+    const { client: api, get } = client({ 3: forSale(3, 10) })
+
+    const result = await refreshMarked({ client: api, currency: 'EUR', now: NOW })
+    expect(get).not.toHaveBeenCalled()
+    expect(result.requests).toBe(0)
+  })
+
+  it('treats a listing that will not load as gone', async () => {
+    const db = await marked({ listingId: 4 })
+    const { client: api } = client({})
+
+    const result = await refreshMarked({ client: api, currency: 'EUR', now: NOW })
+
+    expect(result.sold).toBe(1)
+    expect(await db.get('feedback', 4)).toMatchObject({ soldAt: NOW })
+  })
+})
+
+describe('from the shortlist into the basket', () => {
+  async function marked(listingId: number, over: Record<string, unknown> = {}) {
+    const db = await openFidelityDb()
+    await db.put('feedback', {
+      listingId,
+      releaseId: listingId * 10,
+      title: 'Dummy',
+      artist: 'Portishead',
+      dealer: '430AM_Studio',
+      soldAt: null,
+      verdict: 'interesting',
+      signals: [],
+      score: 70,
+      createdAt: NOW - 86_400_000,
+      ...over,
+    } as never)
+    return db
+  }
+
+  it('fetches a fresh price rather than trusting a remembered one', async () => {
+    const db = await marked(1)
+    const { client: api, get } = client({ 1: forSale(1, 24.5) })
+
+    const result = await basketFromMarked({
+      client: api,
+      listingIds: [1],
+      currency: 'EUR',
+      now: NOW,
+    })
+
+    expect(get).toHaveBeenCalledTimes(1)
+    expect(result).toMatchObject({ added: 1, sold: 0, requests: 1 })
+
+    // The basket is where money gets added up. Every number in it was fetched.
+    const item = await db.get('basket', 1)
+    expect(item).toMatchObject({
+      price: 24.5,
+      currency: 'EUR',
+      dealer: '430AM_Studio',
+      title: 'Portishead – Dummy',
+      addedAt: NOW,
+    })
+  })
+
+  it('does not put a sold record in the basket, and says so', async () => {
+    const db = await marked(2)
+    const { client: api } = client({ 2: { ...forSale(2, 10), status: 'Sold' } })
+
+    const result = await basketFromMarked({
+      client: api,
+      listingIds: [2],
+      currency: 'EUR',
+      now: NOW,
+    })
+
+    expect(result).toMatchObject({ added: 0, sold: 1 })
+    expect(await db.get('basket', 2)).toBeUndefined()
+    // And it is written down, so the next check does not ask again.
+    expect(await db.get('feedback', 2)).toMatchObject({ soldAt: NOW })
+  })
+
+  it('ignores a listing that is not on the shortlist at all', async () => {
+    await openFidelityDb()
+    const { client: api, get } = client({ 9: forSale(9, 10) })
+
+    const result = await basketFromMarked({
+      client: api,
+      listingIds: [9],
+      currency: 'EUR',
+      now: NOW,
+    })
+
+    expect(get).not.toHaveBeenCalled()
+    expect(result.added).toBe(0)
   })
 })
