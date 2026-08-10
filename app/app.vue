@@ -42,8 +42,24 @@ function onKeydown(event: KeyboardEvent) {
   }
 }
 
-onMounted(() => window.addEventListener('keydown', onKeydown))
-onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
+/**
+ * Der Kurator läuft ab dem ersten Bildschirm.
+ *
+ * Here rather than on the start page, because the person whose collection is a
+ * week out of date is exactly the one who opens a bookmark straight to /korb.
+ * It does nothing while a tab is hidden and nothing while something somebody
+ * started is running (worker/keeper.ts).
+ */
+const keeper = useKeeper()
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+  keeper.start()
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
+  keeper.stop()
+})
 </script>
 
 <template>

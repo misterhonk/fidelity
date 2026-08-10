@@ -14,6 +14,7 @@
  * comes back the other way (CLAUDE.md rule 6).
  */
 import type { CoverProgress } from '~~/worker/covers'
+import type { KeeperResult } from '~~/worker/keeper'
 import type { DemoProgress, DemoResult } from '~~/worker/demo'
 import type {
   BasketPlan,
@@ -110,6 +111,15 @@ export interface WorkerContract {
    * mock-up, which is the only reason it is worth showing.
    */
   'demo.run': { params: { listingIds: number[] }; progress: DemoProgress; result: DemoResult }
+  /**
+   * Nachsehen, ob etwas aufzufrischen ist — und es dann tun.
+   *
+   * Called by the app itself rather than by a button (app/composables/
+   * useKeeper.ts). Does nothing at all while something somebody started is
+   * running, and nothing that costs minutes ever. See worker/keeper.ts for
+   * what it deliberately leaves alone.
+   */
+  'keeper.tick': { params: { force?: boolean }; progress: never; result: KeeperResult }
   /**
    * Cover, die schon da sind. Kostet keinen Request.
    *

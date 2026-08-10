@@ -7,6 +7,7 @@
  */
 import type { RequestKind, WorkerError, WorkerInbound, WorkerOutbound } from '#shared/protocol'
 
+import { trackForeground } from './busy'
 import { handlers } from './handlers'
 
 const scope = self as unknown as DedicatedWorkerGlobalScope
@@ -46,10 +47,20 @@ async function dispatch(id: string, kind: RequestKind, params: unknown) {
       ctx: { report: (progress: unknown) => void; signal: AbortSignal },
     ) => Promise<unknown>
 
-    const result = await handler(params, {
-      report: (progress) => send({ id, type: 'progress', progress }),
-      signal: controller.signal,
-    })
+    const run = () =>
+      handler(params, {
+        report: (progress) => send({ id, type: 'progress', progress }),
+        signal: controller.signal,
+      })
+
+    /*
+     * Alles außer dem Kurator zählt als Vordergrund.
+     *
+     * The keeper stands aside for anything somebody asked for (worker/busy.ts);
+     * counting its own tick as foreground would make it stand aside for itself
+     * and never run at all.
+     */
+    const result = kind === 'keeper.tick' ? await run() : await trackForeground(run)
 
     send({ id, type: 'result', result })
   } catch (error) {

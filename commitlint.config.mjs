@@ -43,6 +43,7 @@ export default {
         'hub',
         // Fidelity ohne Token: die Vorführung an ein, zwei Platten.
         'demo',
+        'sync',
         'ui',
         'db',
         'pwa',

@@ -41,6 +41,16 @@ onMounted(async () => {
   void checkOnce()
   void syncOnStart()
 
+  await reload()
+})
+
+/**
+ * Alles, was die Startseite zeigt — neu geholt.
+ *
+ * Also the callback after "Alles auffrischen": a refresh that leaves the
+ * numbers on screen unchanged looks exactly like a refresh that did nothing.
+ */
+async function reload() {
   home.value = await call('home.overview', undefined)
 
   /*
@@ -58,7 +68,7 @@ onMounted(async () => {
    */
   const finds = home.value?.finds ?? []
   if (finds.length > 0) void requestCovers(finds.map((find) => find.releaseId))
-})
+}
 
 const digAge = computed(() => {
   const dig = home.value?.dig
@@ -110,6 +120,18 @@ const tiles = computed(() => {
           <h1 class="fid-display text-fid-xl font-bold text-fid-text">Start</h1>
           <p class="text-fid-sm text-fid-text-muted">{{ identity.username }}</p>
         </header>
+
+        <!--
+          Wie aktuell das hier ist, direkt unter der Überschrift.
+
+          The refresh buttons were spread over three settings pages and the app
+          never said how old anything was — so the honest state of the data was
+          something you could only find out by going looking for it.
+        -->
+        <SyncStatus
+          :collection-synced-at="home?.library.collectionSyncedAt ?? null"
+          @refreshed="reload"
+        />
 
         <OfflineNotice />
         <WatchBanner />

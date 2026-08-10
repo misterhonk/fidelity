@@ -696,6 +696,16 @@ export const handlers: HandlerMap = {
     })
   },
 
+  'keeper.tick': async ({ force }, { signal }) => {
+    const { runKeeper } = await import('./keeper')
+    return runKeeper({
+      client: discogs(),
+      username: (await currentIdentity())?.username ?? null,
+      force,
+      signal,
+    })
+  },
+
   /*
    * Cover. Zwei Wege, weil sie zwei verschiedene Dinge kosten.
    *
