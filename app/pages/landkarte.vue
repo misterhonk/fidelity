@@ -41,7 +41,7 @@ const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
 </script>
 
 <template>
-  <main class="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-16">
+  <main class="@container mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-16">
     <div class="flex flex-col gap-3">
       <h1 class="text-fid-2xl font-bold text-fid-text">Deine Landkarte</h1>
       <CollectionTabs />
