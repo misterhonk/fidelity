@@ -9,6 +9,8 @@ import { buildIndex, evaluate, type MatchFilters, type MatchIndex } from '../mat
 import { buildReason } from '../match/reason'
 
 import { NearMissAccumulator, type NearMiss } from '../horizon/nearmiss'
+import { blankDealer } from '~~/db/dealer'
+
 import { FingerprintAccumulator, matchesPerThousand } from './fingerprint'
 
 export const PER_PAGE = 100
@@ -405,20 +407,26 @@ async function saveDealer(
   const rate = matchesPerThousand(dig.matchCount, dig.listingsScanned)
   const existing = await db.get('dealers', dig.dealer)
 
+  /*
+   * Merged onto the existing row, not written over it.
+   *
+   * A scan learns four things about a shop — how much it has, how well it
+   * suits you, what it stocks, and when it was last looked at. Everything else
+   * on the row came from somewhere else and has to survive: a postage table
+   * somebody typed in, and the watch state.
+   *
+   * Listing the fields by hand is what broke it. The watch fields arrived in
+   * M6, this function was written in M3, and nothing connected the two — so
+   * scanning a shop you were watching silently stopped watching it, which is
+   * exactly the shop somebody most wants watched.
+   */
   await db.put('dealers', {
-    username: dig.dealer,
-    displayName: existing?.displayName ?? dig.dealer,
-    shipsFrom: existing?.shipsFrom ?? '',
-    sellerRating: existing?.sellerRating ?? 0,
-    ratingCount: existing?.ratingCount ?? 0,
+    ...(existing ?? blankDealer(dig.dealer)),
     numForSale: dig.listingsTotal,
-    minOrderTotal: existing?.minOrderTotal ?? 0,
-    shippingNote: existing?.shippingNote ?? '',
     lastScannedAt: dig.finishedAt,
     // Stored as the comparable rate; the factor is derived on read, because it
     // changes as soon as another shop is scanned.
     affinity: rate,
     fingerprint: fingerprint.build(dig.listingsTotal),
-    shippingTiers: existing?.shippingTiers ?? [],
   })
 }

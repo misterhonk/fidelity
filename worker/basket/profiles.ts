@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { getPreferences } from '~~/db/meta'
+import { blankDealer } from '~~/db/dealer'
 import { openFidelityDb } from '~~/db/open'
 import type { Dealer, ShippingTier } from '#shared/types'
 
@@ -154,22 +155,4 @@ export async function saveUserShipping(
   }
 
   return updated
-}
-
-/** Everything a scan would fill in, left empty until one runs. */
-function blankDealer(username: string): Dealer {
-  return {
-    username,
-    displayName: username,
-    shipsFrom: '',
-    sellerRating: 0,
-    ratingCount: 0,
-    numForSale: 0,
-    minOrderTotal: 0,
-    shippingNote: '',
-    lastScannedAt: null,
-    affinity: null,
-    fingerprint: null,
-    shippingTiers: [],
-  }
 }

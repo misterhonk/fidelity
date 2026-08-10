@@ -136,12 +136,23 @@ function waiting(addedAt: string): string | null {
               Kein Master bei Discogs – nur genau diese Pressung ist erkennbar
             </span>
 
-            <!-- Seen by master, so a different pressing still counts. -->
-            <span v-if="record.lastSeen" class="text-fid-sig-wantlist">
+            <!--
+              Seen by master, so a different pressing still counts.
+
+              And it links to a new dig at that shop, because "gesehen bei X"
+              with nothing to click is a fact the reader then has to act on by
+              hand — the shop that had it once is the best guess anybody has
+              about where it turns up again.
+            -->
+            <NuxtLink
+              v-if="record.lastSeen"
+              :to="`/dig?dealer=${encodeURIComponent(record.lastSeen.dealer)}`"
+              class="fid-action text-fid-sig-wantlist underline-offset-4 hover:underline"
+            >
               zuletzt bei
               <span class="text-fid-text">{{ record.lastSeen.dealer }}</span>
               am {{ date.format(record.lastSeen.at) }}
-            </span>
+            </NuxtLink>
           </p>
         </li>
       </ul>
