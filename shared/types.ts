@@ -302,6 +302,33 @@ export interface CollectionItem {
 
 export type WantlistItem = Omit<CollectionItem, 'rating'>
 
+/**
+ * One answer to "habe ich die schon?", asked with a record in your hand.
+ *
+ * Read straight out of IndexedDB, so it works in a basement with no signal —
+ * which is where record shops are.
+ */
+export interface ShelfHit {
+  source: 'collection' | 'wantlist'
+  releaseId: number
+  title: string
+  artist: string
+  year: number
+  formats: string[]
+  /** Collection only; 0 when unrated. */
+  rating: number
+  /** Wantlist only: how many pressings the horizon knows of the album. */
+  pressings: number | null
+  /** Wantlist only: how long it has been on the list. */
+  waitingDays: number | null
+}
+
+export interface ShelfResult {
+  hits: ShelfHit[]
+  collection: number
+  wantlist: number
+}
+
 // ---------------------------------------------------------------------------
 // Horizon
 // ---------------------------------------------------------------------------

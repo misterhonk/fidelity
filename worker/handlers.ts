@@ -389,6 +389,11 @@ export const handlers: HandlerMap = {
     return { view: await basketView(), added, sold }
   },
 
+  'collection.shelf': async ({ query }) => {
+    const { searchShelf } = await import('./collection/shelf')
+    return searchShelf(query, Date.now())
+  },
+
   'feedback.marked': async () => {
     const { markedOverview } = await import('./feedback')
     return markedOverview()

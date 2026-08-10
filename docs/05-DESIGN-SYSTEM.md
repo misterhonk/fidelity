@@ -368,7 +368,7 @@ Background Sync, kein NFC auf iOS. Nichts davon ist für Fidelity blockierend.
 | 6 | **Der Korb** | Versandstaffel, Grenzkosten, Kandidatenvorschläge, Deeplinks zu Discogs |
 | 7 | **The Clerk's Take** | Händler-Steckbrief: Fingerprint, Affinity, Preispositionierung |
 | 8 | **Deine Landkarte** | Sammlungsprofil: Labels, Dekaden, Stile, Lücken |
-| 9 | **In-Store** (nur mobil) | Große Touch-Targets, offline, Dig-Liste nach Score |
+| 9 | **In-Store** (nur mobil) | Große Touch-Targets, offline, Dig-Liste nach Score, **Sammlung + Wantlist durchsuchbar** („Habe ich die schon?“) |
 | 10 | **Einstellungen** | Konto, Sammlung, Horizont, Credits, Hub, Datenexport – alles, was man einmal einrichtet |
 
 ### Navigation (ergänzt nach M9)

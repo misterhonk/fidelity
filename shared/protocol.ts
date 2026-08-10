@@ -28,6 +28,7 @@ import type {
   Match,
   MatchDetail,
   Preferences,
+  ShelfResult,
   ShippingTier,
   TasteProfile,
   Verdict,
@@ -78,6 +79,11 @@ export interface WorkerContract {
   'collection.gaps': { params: undefined; progress: never; result: CollectionGaps }
   /** The wantlist, with pressing counts and where a dig last saw each album. */
   'collection.wantlist': { params: undefined; progress: never; result: WantlistOverview }
+  /**
+   * "Habe ich die schon?" — collection and wantlist, by name. No requests, so
+   * it answers in a shop basement with no signal.
+   */
+  'collection.shelf': { params: { query: string }; progress: never; result: ShelfResult }
   /** Recomputed after every sync; null until there has been one. */
   'taste.profile': { params: undefined; progress: never; result: TasteProfile | null }
 

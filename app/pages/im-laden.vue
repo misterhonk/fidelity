@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DigWithMatches } from '#shared/protocol'
+import type { ShelfHit, ShelfResult } from '#shared/types'
 
 useSeoMeta({
   title: 'Im Laden',
@@ -39,6 +40,56 @@ const matches = computed(() => {
   return needle ? all.filter((match) => textMatches(match, needle)) : all
 })
 
+/*
+ * "Habe ich die schon?"
+ *
+ * The question this screen says it exists for — and until now it could only
+ * answer it about records the last dig happened to find, which is one online
+ * dealer's stock and never the crate in front of you.
+ *
+ * The collection and the wantlist have been on this device since M1. No
+ * request, no network, no rate limit, which is the whole point: record shops
+ * are basements and basements have no signal.
+ */
+const shelf = shallowRef<ShelfResult | null>(null)
+
+let shelfToken = 0
+watch(query, (value) => {
+  const mine = ++shelfToken
+  if (value.trim().length < 2) {
+    shelf.value = null
+    return
+  }
+
+  void call('collection.shelf', { query: value }).then((result) => {
+    // A slower answer to an older query must not overwrite a newer one.
+    if (mine === shelfToken) shelf.value = result
+  })
+})
+
+/** Nothing anywhere — which in a shop is an answer, not an empty state. */
+const nothingAnywhere = computed(
+  () =>
+    query.value.trim().length >= 2 &&
+    matches.value.length === 0 &&
+    shelf.value?.hits.length === 0,
+)
+
+function formats(hit: ShelfHit): string {
+  return hit.formats.slice(0, 2).join(', ')
+}
+
+/** How long it has been wanted — the part that makes the answer sting. */
+function waiting(days: number | null): string | null {
+  if (days === null) return null
+  if (days < 1) return 'heute notiert'
+  if (days === 1) return 'seit gestern'
+  if (days < 31) return `seit ${days} Tagen`
+  const months = Math.floor(days / 30)
+  if (months < 24) return `seit ${months} Monaten`
+  return `seit ${Math.floor(months / 12)} Jahren`
+}
+
 const expired = computed(() => {
   const dig = result.value?.dig
   return dig ? Date.now() > dig.expiresAt : false
@@ -72,19 +123,23 @@ function money(value: number | null, currency: string | null) {
 
     <p v-if="loading" class="text-fid-base text-fid-text-muted">Wird geladen …</p>
 
-    <p v-else-if="!result" class="text-fid-base text-fid-text-muted">
-      Noch kein Dig da. Scanne einen Händler, bevor du losgehst – hier drin geht es dann auch
-      ohne Empfang.
-    </p>
-
     <template v-else>
-      <p class="text-fid-sm text-fid-text-muted">
+      <p v-if="result" class="text-fid-sm text-fid-text-muted">
         {{ result.dig.dealer }} ·
         <span class="fid-num">{{ result.matches.length }}</span> Treffer<template
           v-if="!online"
         >
           · offline, alles aus dem Gerät</template
         >
+      </p>
+      <!--
+        No dig is not an empty screen any more. The Fundliste needs one; "habe
+        ich die schon?" does not, and that is the question somebody actually
+        has standing in a shop.
+      -->
+      <p v-else class="text-fid-sm text-fid-text-muted">
+        Noch kein Dig – die Fundliste bleibt also leer. Deine Sammlung und deine Wantlist kannst
+        du trotzdem durchsuchen, auch ohne Empfang.
       </p>
 
       <p v-if="expired" role="status" class="text-fid-sm text-fid-sig-gap">
@@ -108,11 +163,71 @@ function money(value: number | null, currency: string | null) {
         autocomplete="off"
         spellcheck="false"
         placeholder="Künstler oder Titel"
-        aria-label="Treffer durchsuchen"
+        aria-label="Sammlung, Wantlist und die Fundliste durchsuchen"
         class="rounded-fid-md border border-fid-border bg-fid-surface px-4 py-3 text-fid-base text-fid-text"
       />
 
-      <p v-if="matches.length === 0" class="text-fid-base text-fid-text-muted">
+      <!--
+        Your own shelf first. Standing in a shop the two answers that stop you
+        short are "die hast du schon" and "die suchst du seit vier Jahren", and
+        both come out of IndexedDB — no request, no signal needed.
+      -->
+      <ul v-if="shelf && shelf.hits.length > 0" class="flex flex-col gap-2">
+        <li
+          v-for="hit in shelf.hits"
+          :key="`${hit.source}-${hit.releaseId}`"
+          class="flex min-h-14 flex-col justify-center gap-0.5 rounded-fid-md border px-3 py-2"
+          :class="
+            hit.source === 'wantlist'
+              ? 'border-fid-sig-wantlist/50 bg-fid-sig-wantlist/5'
+              : 'border-fid-border'
+          "
+        >
+          <span class="flex flex-wrap items-baseline gap-x-2">
+            <span
+              class="text-fid-sm font-medium"
+              :class="
+                hit.source === 'wantlist' ? 'text-fid-sig-wantlist' : 'text-fid-text-muted'
+              "
+            >
+              {{ hit.source === 'wantlist' ? 'Suchst du' : 'Hast du' }}
+            </span>
+            <span class="min-w-0 text-fid-base text-fid-text">
+              {{ hit.artist }} – {{ hit.title }}
+            </span>
+          </span>
+
+          <span class="flex flex-wrap gap-x-2 text-fid-xs text-fid-text-muted">
+            <span v-if="hit.year > 0" class="fid-num">{{ hit.year }}</span>
+            <!--
+              The format is the whole answer when you own the record already:
+              holding the vinyl of something you have on CD is a buy, not a
+              stop.
+            -->
+            <span v-if="formats(hit)">{{ formats(hit) }}</span>
+            <span v-if="hit.rating > 0" class="fid-num">{{ hit.rating }}/5</span>
+            <span v-if="waiting(hit.waitingDays)">{{ waiting(hit.waitingDays) }}</span>
+            <!--
+              How likely the copy in your hand is the one you meant. One of two
+              hundred and forty-seven pressings is a different proposition from
+              the only one there is.
+            -->
+            <span v-if="hit.pressings !== null" class="fid-num">
+              {{ hit.pressings }} Pressungen
+            </span>
+          </span>
+        </li>
+      </ul>
+
+      <p v-if="nothingAnywhere" class="text-fid-base text-fid-text-muted">
+        Weder in deiner Sammlung noch auf der Wantlist<template v-if="result">
+          – und der letzte Dig kennt sie auch nicht</template
+        >.
+      </p>
+      <p
+        v-else-if="matches.length === 0 && (!shelf || shelf.hits.length === 0)"
+        class="text-fid-base text-fid-text-muted"
+      >
         Nichts dabei mit diesem Namen.
       </p>
 
