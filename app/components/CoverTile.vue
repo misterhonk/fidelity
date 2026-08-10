@@ -18,9 +18,34 @@ withDefaults(
     note?: string | null
     /** Staggers the entrance, so the rail assembles rather than appears. */
     index?: number
+    /**
+     * Where the cover leads, for rails that have somewhere to lead.
+     *
+     * Without either this or an `open` listener the tile renders as a plain
+     * `<div>` — which is what three of the four rails on the start screen were
+     * doing: a shelf, a wantlist and a shop, all of them shown and none of
+     * them reachable.
+     */
+    href?: string | null
+    /**
+     * Was passiert, wenn jemand die Kachel antippt.
+     *
+     * A callback rather than an emit, and that is the whole point. This used to
+     * be `@open`, and the element decided what to render by asking
+     * `$attrs.onOpen` — which Vue strips the moment the event is declared in
+     * `defineEmits`. So the test was always false, every tile rendered as a
+     * `<div>`, and the release sheet on the start screen could not be opened at
+     * all: the listener was bound to something that was never clickable.
+     *
+     * Passed as a prop, there is one fact instead of two. A tile is a button
+     * when it has something to do, and it cannot be bound without becoming one.
+     */
+    open?: (() => void) | null
   }>(),
   {
     index: 0,
+    href: null,
+    open: null,
     thumbUrl: null,
     coverUrl: null,
     subtitle: null,
@@ -28,8 +53,6 @@ withDefaults(
     note: null,
   },
 )
-
-defineEmits<{ open: [] }>()
 </script>
 
 <template>
@@ -38,10 +61,14 @@ defineEmits<{ open: [] }>()
     :style="{ '--fid-stagger': index }"
   >
     <component
-      :is="$attrs.onOpen ? 'button' : 'div'"
-      :type="$attrs.onOpen ? 'button' : undefined"
+      :is="open ? 'button' : href ? 'a' : 'div'"
+      :type="open ? 'button' : undefined"
+      :href="open ? undefined : (href ?? undefined)"
+      :target="open ? undefined : href ? '_blank' : undefined"
+      :rel="open ? undefined : href ? 'noopener noreferrer' : undefined"
+      :aria-label="!open && href ? `${title}, bei Discogs ansehen` : undefined"
       class="group relative block w-full text-left"
-      @click="$emit('open')"
+      @click="open?.()"
     >
       <img
         v-if="thumbUrl"

@@ -50,7 +50,8 @@ const step = computed(() => {
       cta: 'Horizont bauen',
       title: 'Dann: den Horizont bauen',
       body:
-        `Einmalig rund ${minutes} Minuten. Danach erkennt jeder Dig auch Produzenten, ` +
+        `Einmalig rund ${counted(minutes, 'Minute', 'Minuten')}. Danach erkennt jeder Dig ` +
+        'auch Produzenten, ' +
         'Katalogserien und andere Pressungen – und kostet dafür keinen einzigen Request extra.',
       to: '/einstellungen/sammlung#horizon',
     }

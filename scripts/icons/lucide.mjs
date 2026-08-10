@@ -41,6 +41,10 @@ const NEEDED = {
   download: 'Export',
   'trash-2': 'Alles löschen',
   'wifi-off': 'Offline-Hinweis',
+  'thumbs-up': 'Bewertung: interessant',
+  'thumbs-down': 'Bewertung: danebengegriffen',
+  meh: 'Bewertung: naja',
+  'shopping-cart': 'Bewertung: gekauft',
 }
 
 /**

@@ -152,6 +152,9 @@ export async function homeOverview(): Promise<HomeOverview> {
           startedAt: latest.startedAt,
           expiresAt: latest.expiresAt,
           matches: latest.matchCount,
+          complete: latest.status === 'done',
+          scanned: latest.listingsScanned,
+          listingsTotal: latest.listingsTotal,
         }
       : null,
     finds,

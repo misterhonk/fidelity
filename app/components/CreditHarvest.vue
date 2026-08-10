@@ -86,10 +86,12 @@ const eta = computed(() => {
 
       <!-- The cost is stated before it is spent, never after. -->
       <p v-if="remaining > 0 && !running" class="text-fid-sm text-fid-text-muted">
-        Noch <span class="fid-num">{{ number.format(remaining) }}</span> Platten, also
-        <span class="fid-num">{{ number.format(remaining) }}</span> Requests – rund
-        {{ minutes }} {{ minutes === 1 ? 'Minute' : 'Minuten' }}. Läuft in Häppchen und
-        übersteht ein Neuladen.
+        Noch <span class="fid-num">{{ number.format(remaining) }}</span>
+        {{ plural(remaining, 'Platte', 'Platten') }}, also
+        <span class="fid-num">{{ number.format(remaining) }}</span>
+        {{ plural(remaining, 'Request', 'Requests') }} – rund
+        {{ counted(minutes, 'Minute', 'Minuten') }}. Läuft in Häppchen und übersteht ein
+        Neuladen.
       </p>
 
       <div v-if="progress" class="flex flex-col gap-2" aria-live="polite">

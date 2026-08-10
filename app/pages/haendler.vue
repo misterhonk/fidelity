@@ -9,6 +9,7 @@ useSeoMeta({
 
 const { call } = useFidelityWorker()
 const { isWatched, toggle, load: loadWatchlist } = useWatchlist()
+const route = useRoute()
 
 const dealers = shallowRef<Dealer[]>([])
 const selected = ref<string | null>(null)
@@ -17,7 +18,21 @@ const profile = ref<DealerProfile | null>(null)
 async function load() {
   dealers.value = await call('dealer.list', undefined)
   const first = dealers.value[0]
-  if (first && !selected.value) await select(first.username)
+  /*
+   * ?dealer= kommt von der Startseite.
+   * Every shop tile there shows a hit rate and a stock size and led nowhere;
+   * the heading led here and landed on whichever shop sorted first. A name in
+   * the query picks the one somebody actually tapped — and an unknown one
+   * falls through to the default rather than showing an empty profile.
+   */
+  const wanted = route.query.dealer
+  const asked =
+    typeof wanted === 'string' && dealers.value.some((dealer) => dealer.username === wanted)
+      ? wanted
+      : null
+
+  if (asked) await select(asked)
+  else if (first && !selected.value) await select(first.username)
 }
 
 onMounted(async () => {
@@ -226,7 +241,7 @@ const scanned = computed(() => {
 
         <div class="grid gap-8 @md:grid-cols-2 @5xl:grid-cols-3">
           <FacetBars
-            title="Labels im Regal"
+            title="Labels im Sortiment"
             signal="label"
             :facets="labels"
             empty="Keine Labelangaben im Sortiment."

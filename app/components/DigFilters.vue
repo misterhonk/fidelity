@@ -97,6 +97,7 @@ const DENSITIES = [
               ? 'bg-fid-accent/15 text-fid-text'
               : 'text-fid-text-muted hover:text-fid-text'
           "
+          :title="option.about"
           @click="emit('setSort', option.key)"
         >
           {{ option.label }}

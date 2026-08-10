@@ -633,6 +633,18 @@ export interface HomeOverview {
     startedAt: number
     expiresAt: number
     matches: number
+    /**
+     * Whether the scan actually got through the shop.
+     *
+     * A dig that was interrupted — closed tab, lost connection — keeps its
+     * matches and its dealer name, and read without this it presents them as
+     * the answer: "fatplastics · 3 Treffer" off 1.400 of 2.881 listings. The
+     * dig screen has always said so; the screens that borrow its results had
+     * no way to.
+     */
+    complete: boolean
+    scanned: number
+    listingsTotal: number
   } | null
   finds: HomeFind[]
   shelf: HomeCover[]

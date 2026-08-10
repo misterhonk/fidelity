@@ -5,18 +5,33 @@ const { current, apply, sets } = useTypeset()
 <template>
   <section class="flex flex-col gap-3">
     <div class="flex flex-col gap-2">
+      <!--
+        Der Name ist der Name, der Rest ist Beschreibung.
+        A `<label>` wrapping all three lines makes the option's accessible name
+        the whole block: "Presswerk Switzer · Chivo Mono · Array Schmal und
+        technisch, wie die Schrift auf einem Plattenrücken". Spoken aloud that
+        is one option read as a paragraph, three times over, with the word that
+        tells them apart buried at the front of each. `aria-labelledby` names
+        it and `aria-describedby` carries the rest.
+      -->
       <label v-for="set in sets" :key="set.key" class="flex items-start gap-3">
         <input
           type="radio"
           name="typeset"
           class="mt-1 size-4"
           :checked="current === set.key"
+          :aria-labelledby="`typeset-${set.key}-label`"
+          :aria-describedby="`typeset-${set.key}-about`"
           @change="apply(set.key)"
         />
         <span class="flex flex-col gap-1">
-          <span class="text-fid-sm text-fid-text">{{ set.label }}</span>
-          <span class="fid-num text-fid-xs text-fid-text-muted">{{ set.hint }}</span>
-          <span class="text-fid-xs text-fid-text-muted">{{ set.about }}</span>
+          <span :id="`typeset-${set.key}-label`" class="text-fid-sm text-fid-text">
+            {{ set.label }}
+          </span>
+          <span :id="`typeset-${set.key}-about`" class="flex flex-col gap-1">
+            <span class="fid-num text-fid-xs text-fid-text-muted">{{ set.hint }}</span>
+            <span class="text-fid-xs text-fid-text-muted">{{ set.about }}</span>
+          </span>
         </span>
       </label>
     </div>

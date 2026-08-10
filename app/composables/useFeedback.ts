@@ -23,11 +23,19 @@ let loaded = false
  */
 const failure = shallowRef<unknown>(null)
 
+/**
+ * Die vier Urteile, mit Namen aus dem Icon-Satz statt mit Emoji.
+ *
+ * They were 👍😐👎🛒, which renders as four colour pictures from whatever font
+ * the operating system happens to ship — a different drawing on every device,
+ * beside an icon set that was drawn once and deliberately. Emoji also carry no
+ * weight and no stroke, so they cannot line up with anything around them.
+ */
 export const VERDICTS = [
-  { key: 'interesting', icon: '👍', label: 'Interessant' },
-  { key: 'meh', icon: '😐', label: 'Naja' },
-  { key: 'wrong', icon: '👎', label: 'Danebengegriffen' },
-  { key: 'bought', icon: '🛒', label: 'Gekauft' },
+  { key: 'interesting', icon: 'thumbs-up', label: 'Interessant' },
+  { key: 'meh', icon: 'meh', label: 'Naja' },
+  { key: 'wrong', icon: 'thumbs-down', label: 'Danebengegriffen' },
+  { key: 'bought', icon: 'shopping-cart', label: 'Gekauft' },
 ] as const satisfies readonly { key: Verdict; icon: string; label: string }[]
 
 export function useFeedback() {

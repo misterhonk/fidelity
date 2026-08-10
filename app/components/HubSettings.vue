@@ -121,8 +121,10 @@ async function save() {
     </div>
 
     <p v-if="status" class="text-fid-sm text-fid-text-muted" aria-live="polite">
-      Erreichbar · <span class="fid-num">{{ status.horizon }}</span> Entitäten im geteilten
-      Horizont · <span class="fid-num">{{ status.shipping }}</span> Versandstaffeln ·
+      Erreichbar · <span class="fid-num">{{ status.horizon }}</span>
+      {{ plural(status.horizon, 'Entität', 'Entitäten') }} im geteilten Horizont ·
+      <span class="fid-num">{{ status.shipping }}</span>
+      {{ plural(status.shipping, 'Versandstaffel', 'Versandstaffeln') }} ·
       {{ status.secured ? 'mit Geheimnis gesichert' : 'offen' }}
     </p>
   </section>

@@ -167,7 +167,7 @@ async function check() {
 <template>
   <main class="@container mx-auto flex w-full max-w-[80rem] flex-col gap-6 px-6 py-10">
     <header class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Korb</h1>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Gemerkt</h1>
       <BasketTabs />
     </header>
 

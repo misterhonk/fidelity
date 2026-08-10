@@ -19,10 +19,7 @@ useSeoMeta({ title: 'Impressum', description: 'Anbieterkennzeichnung.' })
       about a real person, and inventing its contents is not something a
       generator should do.
     -->
-    <p class="text-fid-base text-fid-text-muted">
-      Angaben gemäß § 5 DDG. Diese Seite ist noch auszufüllen – siehe
-      <span class="font-fid-mono">app/pages/impressum.vue</span>.
-    </p>
+    <p class="text-fid-base text-fid-text-muted">Angaben gemäß § 5 DDG.</p>
 
     <address class="flex flex-col gap-1 text-fid-base text-fid-text not-italic">
       <span>Martin Melcher</span>

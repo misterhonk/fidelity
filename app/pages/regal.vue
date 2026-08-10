@@ -14,12 +14,13 @@ const query = ref('')
 const sort = ref<ShelfSort>('added')
 const shown = ref(120)
 
+/** Die Richtung steht am Etikett – siehe `SORTS` in app/utils/digview.ts. */
 const SORTS = [
-  { key: 'added', label: 'Zuletzt dazu' },
-  { key: 'artist', label: 'Künstler' },
-  { key: 'year', label: 'Jahr' },
-  { key: 'rating', label: 'Bewertung' },
-] as const satisfies readonly { key: ShelfSort; label: string }[]
+  { key: 'added', label: 'Zuletzt dazu', about: 'Neuester Zugang zuerst' },
+  { key: 'artist', label: 'Künstler', about: 'Alphabetisch' },
+  { key: 'year', label: 'Jahr ↑', about: 'Älteste zuerst' },
+  { key: 'rating', label: 'Bewertung ↓', about: 'Beste zuerst, unbewertete zuletzt' },
+] as const satisfies readonly { key: ShelfSort; label: string; about: string }[]
 
 let token = 0
 async function load() {
@@ -101,6 +102,7 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
                 ? 'bg-fid-accent/15 text-fid-text'
                 : 'text-fid-text-muted hover:text-fid-text'
             "
+            :title="option.about"
             @click="sort = option.key"
           >
             {{ option.label }}
@@ -125,10 +127,19 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
         class="grid grid-cols-3 gap-x-4 gap-y-6 @md:grid-cols-4 @2xl:grid-cols-6 @5xl:grid-cols-8"
       >
         <li v-for="record in view.records" :key="record.releaseId" class="flex flex-col gap-2">
+          <!--
+            Nach außen, und es sagt das auch.
+            A record in your own shelf has no richer page inside Fidelity — the
+            detail sheet is built on a dig match and its market data, which a
+            collection entry does not have. Discogs is where the record's page
+            is, so that is where this goes; the only thing missing was saying
+            so to anyone who cannot see the new tab open.
+          -->
           <a
             :href="`https://www.discogs.com/release/${record.releaseId}`"
             target="_blank"
             rel="noopener noreferrer"
+            :aria-label="`${record.artist} – ${record.title}, bei Discogs ansehen`"
             class="group flex flex-col gap-2 rounded-fid-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fid-accent"
           >
             <!--

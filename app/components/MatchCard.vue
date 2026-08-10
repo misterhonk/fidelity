@@ -181,7 +181,7 @@ const meta = computed(() =>
             "
             @click="judge(match, option.key)"
           >
-            <span aria-hidden="true">{{ option.icon }}</span>
+            <FidIcon :name="option.icon" :size="16" />
           </button>
         </div>
       </div>

@@ -130,11 +130,27 @@ const tiles = computed(() => {
             :subtitle="find.artist"
             :score="find.score"
             :note="money(find.price, find.currency)"
-            @open="show(find.digId, find.listingId)"
+            :open="() => show(find.digId, find.listingId)"
           />
         </CoverRail>
 
         <div v-if="home.finds.length > 0" class="flex flex-col gap-2 px-6">
+          <!--
+            Ein abgebrochener Dig ist kein Ergebnis.
+            A scan that stopped — closed tab, lost connection — keeps whatever
+            it found, and shown without this it reads as the answer: three
+            records "bei fatplastics" off 1.400 of 2.881 listings. The dig
+            screen has always said so and offered to finish; this one borrowed
+            its results and none of its honesty.
+          -->
+          <p v-if="home.dig && !home.dig.complete" class="text-fid-sm text-fid-sig-gap">
+            Dieser Dig wurde unterbrochen –
+            <span class="fid-num">{{ number.format(home.dig.scanned) }}</span> von
+            <span class="fid-num">{{ number.format(home.dig.listingsTotal) }}</span> waren
+            durch.
+            <NuxtLink to="/dig" class="underline underline-offset-4">Dort fortsetzen</NuxtLink>
+          </p>
+
           <p v-if="pricesGone" class="text-fid-sm text-fid-sig-gap">
             Preise älter als sechs Stunden, dürfen nicht mehr gezeigt werden. Treffer und
             Begründungen bleiben.
@@ -179,6 +195,7 @@ const tiles = computed(() => {
             :title="record.title"
             :subtitle="record.artist"
             :note="record.year ? String(record.year) : null"
+            :href="`https://www.discogs.com/release/${record.releaseId}`"
           />
         </CoverRail>
 
@@ -197,6 +214,7 @@ const tiles = computed(() => {
             :title="record.title"
             :subtitle="record.artist"
             :note="record.year ? String(record.year) : null"
+            :href="`https://www.discogs.com/release/${record.releaseId}`"
           />
         </CoverRail>
 
@@ -213,26 +231,35 @@ const tiles = computed(() => {
           </h2>
 
           <ul class="grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3">
-            <li
-              v-for="shop in home.shops"
-              :key="shop.username"
-              class="flex flex-col gap-1 rounded-fid-md border border-fid-border bg-fid-surface p-4"
-            >
-              <div class="flex items-baseline justify-between gap-3">
-                <span class="truncate text-fid-sm font-medium text-fid-text">
-                  {{ shop.displayName }}
-                </span>
-                <span v-if="shop.affinity" class="fid-num shrink-0 text-fid-xs text-fid-text">
-                  {{ shop.affinity.toFixed(1) }}
-                </span>
-              </div>
-              <p class="fid-num text-fid-xs text-fid-text-muted">
-                {{ number.format(shop.numForSale) }} im Angebot<template
-                  v-if="shop.lastScannedAt"
-                >
-                  · {{ since(shop.lastScannedAt) }}</template
-                >
-              </p>
+            <!--
+              Jede Kachel führt zu ihrem Laden.
+              The name, the hit rate and the size of the stock were all here
+              and none of it was reachable. A shop has a profile page — its
+              fingerprint, its price band, the labels it actually stocks — and
+              the only way in was the heading above, which lands on whichever
+              shop happens to be first in the list.
+            -->
+            <li v-for="shop in home.shops" :key="shop.username">
+              <NuxtLink
+                :to="{ path: '/haendler', query: { dealer: shop.username } }"
+                class="flex flex-col gap-1 rounded-fid-md border border-fid-border bg-fid-surface p-4 transition-colors hover:border-fid-text-muted"
+              >
+                <div class="flex items-baseline justify-between gap-3">
+                  <span class="truncate text-fid-sm font-medium text-fid-text">
+                    {{ shop.displayName }}
+                  </span>
+                  <span v-if="shop.affinity" class="fid-num shrink-0 text-fid-xs text-fid-text">
+                    {{ shop.affinity.toFixed(1) }}
+                  </span>
+                </div>
+                <p class="fid-num text-fid-xs text-fid-text-muted">
+                  {{ number.format(shop.numForSale) }} im Angebot<template
+                    v-if="shop.lastScannedAt"
+                  >
+                    · {{ since(shop.lastScannedAt) }}</template
+                  >
+                </p>
+              </NuxtLink>
             </li>
           </ul>
         </section>

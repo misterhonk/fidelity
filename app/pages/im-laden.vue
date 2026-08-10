@@ -129,11 +129,27 @@ function money(value: number | null, currency: string | null) {
     <template v-else>
       <p v-if="result" class="text-fid-sm text-fid-text-muted">
         {{ result.dig.dealer }} ·
-        <span class="fid-num">{{ result.matches.length }}</span> Treffer<template
-          v-if="!online"
-        >
-          · offline, alles aus dem Gerät</template
-        >
+        <span class="fid-num">{{ result.matches.length }}</span>
+        {{ plural(result.matches.length, 'Treffer', 'Treffer')
+        }}<template v-if="!online"> · offline, alles aus dem Gerät</template>
+      </p>
+
+      <!--
+        Ein abgebrochener Dig ist kein Ergebnis.
+        Standing in a shop is the worst place to be told three records are all
+        there is, when the scan behind that number stopped halfway. The dig
+        screen says so and offers to finish; this one showed the same matches
+        with none of it.
+      -->
+      <p
+        v-if="result && result.dig.status !== 'done'"
+        role="status"
+        class="text-fid-sm text-fid-sig-gap"
+      >
+        Dieser Dig wurde unterbrochen –
+        <span class="fid-num">{{ result.dig.listingsScanned }}</span> von
+        <span class="fid-num">{{ result.dig.listingsTotal }}</span> waren durch. Was hier steht,
+        ist also nicht alles.
       </p>
       <!--
         No dig is not an empty screen any more. The Fundliste needs one; "habe
@@ -283,7 +299,7 @@ function money(value: number | null, currency: string | null) {
             "
             @click="toggle(match.digId, match.listingId)"
           >
-            <span aria-hidden="true">🛒</span>
+            <FidIcon name="shopping-cart" :size="20" />
           </button>
 
           <button
@@ -298,7 +314,7 @@ function money(value: number | null, currency: string | null) {
             "
             @click="judge(match, 'wrong')"
           >
-            <span aria-hidden="true">👎</span>
+            <FidIcon name="thumbs-down" :size="20" />
           </button>
         </li>
       </ul>

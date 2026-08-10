@@ -92,9 +92,11 @@ const complete = computed(
 
     <!-- Minutes, not seconds. The only honest thing to show is what it costs. -->
     <p v-if="!complete && status && !running" class="text-fid-sm text-fid-text-muted">
-      Noch etwa <span class="fid-num">{{ status.estimatedRequests }}</span> Requests, also rund
-      {{ Math.ceil((status.estimatedRequests * 1.2) / 60) }} Minuten. Läuft in Häppchen und
-      übersteht ein Neuladen – abgeschlossene Entitäten werden nicht noch einmal geholt.
+      Noch etwa <span class="fid-num">{{ status.estimatedRequests }}</span>
+      {{ plural(status.estimatedRequests, 'Request', 'Requests') }}, also rund
+      {{ counted(Math.ceil((status.estimatedRequests * 1.2) / 60), 'Minute', 'Minuten') }}.
+      Läuft in Häppchen und übersteht ein Neuladen – abgeschlossene Entitäten werden nicht noch
+      einmal geholt.
     </p>
 
     <p v-if="staleNote && !running" class="text-fid-sm text-fid-text-muted">

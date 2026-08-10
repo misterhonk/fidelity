@@ -63,10 +63,18 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   -->
   <div class="flex min-h-dvh flex-col max-md:pb-[calc(env(safe-area-inset-bottom)+5rem)]">
     <AppNav />
+    <!--
+      In der Spalte, nicht darüber.
+      It used to float — `fixed bottom-4` — which put it on top of whatever was
+      underneath: a match card, the attribution in the footer, and on a phone
+      the nav bar itself. "Later" is a valid answer to this notice, so it has
+      no business covering the thing somebody is reading. In the flow, under
+      the nav, it pushes the page down by its own height and hides nothing.
+    -->
+    <PwaUpdatePrompt />
     <NuxtPage />
     <SiteFooter />
   </div>
-  <PwaUpdatePrompt />
   <LazyCommandPalette v-if="paletteOpen" @close="paletteOpen = false" />
   <LazyReleaseSheet
     v-if="sheet.open.value"

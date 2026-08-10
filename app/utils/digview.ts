@@ -9,12 +9,20 @@ import type { Match, SignalType } from '#shared/types'
 export type SortKey = 'score' | 'price' | 'year' | 'artist'
 export type Density = 'comfortable' | 'compact'
 
+/**
+ * Die Richtung steht am Etikett.
+ *
+ * "Jahr" here means newest first — a shop's stock, where a 2026 pressing is
+ * news. "Jahr" in the shelf means oldest first, because a shelf sorted by year
+ * is a timeline and timelines run forwards. Both are right and neither is
+ * guessable from the word alone, so both say which way they run.
+ */
 export const SORTS = [
-  { key: 'score', label: 'Score' },
-  { key: 'price', label: 'Preis' },
-  { key: 'year', label: 'Jahr' },
-  { key: 'artist', label: 'Künstler' },
-] as const satisfies readonly { key: SortKey; label: string }[]
+  { key: 'score', label: 'Score', about: 'Bester Treffer zuerst' },
+  { key: 'price', label: 'Preis ↑', about: 'Günstigste zuerst' },
+  { key: 'year', label: 'Jahr ↓', about: 'Neueste zuerst' },
+  { key: 'artist', label: 'Künstler', about: 'Alphabetisch' },
+] as const satisfies readonly { key: SortKey; label: string; about: string }[]
 
 const SORT_KEYS = new Set<string>(SORTS.map((sort) => sort.key))
 
