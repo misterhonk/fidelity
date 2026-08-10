@@ -257,6 +257,26 @@ Versand zu dir (DE)              aktuell 2 Platten · 9,00 € gesamt · 4,50 �
 
 ---
 
+## 3a. Breite
+
+**Daten dürfen breit werden, Text nicht.**
+
+Die App war mobil-zuerst gebaut und blieb auf jedem Monitor eine Spalte von 768 px. Für
+ein Regal voller Cover und fünf Balkendiagramme ist das die falsche Form.
+
+| Seite | Breite | Warum |
+|---|---|---|
+| Regal | `110rem` | Cover sind das Einzige hier, was mit Platz besser wird – 3 Spalten am Telefon, 8 am Monitor |
+| Landkarte | `90rem` | Fünf Facetten nebeneinander statt 2×2 über mehrere Bildschirmhöhen |
+| Dig, Wantlist, Gemerkt, Läden | `80rem` | Zwei Spalten ab `@4xl`, mehr Treffer gleichzeitig sichtbar |
+| Korb | `48rem` | Ein Kassenzettel wird nicht besser, wenn er breiter ist |
+| Datenschutz, Impressum, Im Laden | `48rem` / `36rem` | Fließtext und Daumenbedienung |
+
+**Innen bleibt Text schmal.** `max-w-prose` auf jeden Absatz und jeden Begründungssatz,
+auch in einer 1400 px breiten Karte. Eine Zeile mit 200 Zeichen liest niemand zweimal.
+
+---
+
 ## 4a. Text
 
 **Die Zahl zuerst, die Begründung einen Klick entfernt.**

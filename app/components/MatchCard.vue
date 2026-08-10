@@ -88,7 +88,8 @@ const meta = computed(() =>
     </ul>
 
     <!-- Never truncated. The sentence is the product. -->
-    <p class="text-fid-sm text-fid-text">{{ match.reason }}</p>
+    <!-- A sentence, so it keeps a sentence's width however wide the card gets. -->
+    <p class="max-w-prose text-fid-sm text-fid-text">{{ match.reason }}</p>
 
     <!--
       What this pressing is (M7). Never says a reissue is bad — plenty of

@@ -255,7 +255,12 @@ const expired = computed(() => {
 </script>
 
 <template>
-  <main class="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 py-16">
+  <main class="@container mx-auto flex w-full max-w-[80rem] flex-col gap-8 px-6 py-16">
+    <!--
+      The working surface. A dig is a list somebody reads for minutes, and a
+      wider one shows more of it at once — which is the whole reason to sit at
+      a desk for this. The prose blocks inside keep their own width.
+    -->
     <div class="flex flex-col gap-3">
       <h1 class="text-fid-2xl font-bold text-fid-text">Neuer Dig</h1>
     </div>
@@ -528,7 +533,8 @@ const expired = computed(() => {
             <span class="text-fid-text">Side One, Track One:</span>
             {{ result.topFive[0].artist }} – {{ result.topFive[0].title }}
           </p>
-          <ul class="flex flex-col gap-3">
+          <!-- Five cards, two abreast once there is room for two. -->
+          <ul class="grid gap-3 @4xl:grid-cols-2">
             <li v-for="match in result.topFive" :key="match.listingId">
               <MatchCard :match="match" />
             </li>

@@ -41,11 +41,16 @@ const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
 </script>
 
 <template>
-  <main class="@container mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-16">
+  <main class="@container mx-auto flex w-full max-w-[90rem] flex-col gap-10 px-6 py-16">
+    <!--
+      Wide, because this screen is five bar charts and two rankings — data, not
+      reading. The prose inside stays narrow: a sentence that runs 1400 pixels
+      is unreadable however much room there is.
+    -->
     <div class="flex flex-col gap-3">
       <h1 class="text-fid-2xl font-bold text-fid-text">Deine Landkarte</h1>
       <CollectionTabs />
-      <p v-if="profile" class="text-fid-base text-fid-text-muted">
+      <p v-if="profile" class="max-w-prose text-fid-base text-fid-text-muted">
         <span class="fid-num">{{ profile.releaseCount }}</span> Platten. Was daraus über deinen
         Geschmack ablesbar ist.
       </p>
@@ -57,7 +62,15 @@ const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
       >.
     </p>
 
-    <div v-else-if="profile" class="grid gap-10 sm:grid-cols-2">
+    <!--
+      Five facets. Two abreast on a tablet, all five in a row on a monitor —
+      which is the point of the screen: your taste at a glance rather than in
+      five scrolls.
+    -->
+    <div
+      v-else-if="profile"
+      class="grid gap-x-8 gap-y-10 @lg:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-5"
+    >
       <FacetBars title="Künstler" signal="artist" :facets="top(profile.artists, 12)" />
       <FacetBars title="Labels" signal="label" :facets="top(profile.labels, 12)" />
       <FacetBars title="Stile" signal="style" :facets="top(profile.styles, 12)" />
@@ -82,7 +95,7 @@ const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
       different fact from five of a hundred and fifty. Both answers were
       already in the horizon; nothing had surfaced them.
     -->
-    <template v-if="gaps?.built">
+    <div v-if="gaps?.built" class="grid gap-8 @5xl:grid-cols-2">
       <section
         v-if="gaps.artists.length > 0"
         class="flex flex-col gap-3 border-t border-fid-border pt-6"
@@ -164,7 +177,7 @@ const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
           </template>
         </dl>
       </section>
-    </template>
+    </div>
 
     <p v-else-if="gaps" class="max-w-prose text-fid-xs text-fid-text-muted">
       Lücken und Label-Lift brauchen den Horizont. Sobald der gebaut ist, steht hier, wie viel

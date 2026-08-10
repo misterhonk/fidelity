@@ -173,7 +173,7 @@ async function check() {
 </script>
 
 <template>
-  <main class="@container mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
+  <main class="@container mx-auto flex w-full max-w-[80rem] flex-col gap-6 px-6 py-10">
     <header class="flex flex-col gap-3">
       <h1 class="text-fid-2xl font-bold text-fid-text">Gemerkt</h1>
       <BasketTabs />
@@ -289,7 +289,7 @@ async function check() {
           </NuxtLink>
         </p>
 
-        <ul class="flex flex-col gap-2">
+        <ul class="grid gap-2 @4xl:grid-cols-2">
           <li
             v-for="record in group.records"
             :key="record.listingId"
