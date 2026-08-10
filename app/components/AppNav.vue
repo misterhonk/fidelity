@@ -134,12 +134,25 @@ const basketCount = computed(() => basketIds.value.size)
         {{ section.label }}
       </NuxtLink>
 
+      <!--
+        Auf dieselbe Linie wie die fünf anderen.
+
+        The gear carries no label, so centring it in a bar sized for
+        icon-plus-word put its glyph eleven pixels below the rest. Centred is
+        right for a box on its own and wrong for the sixth thing in a row: the
+        eye reads the line of icons, and one sitting low reads as a mistake
+        rather than as a different kind of control.
+
+        Same column and the same top padding as the labelled tabs, minus the
+        label. On a desktop the bar is a row of centred items and this changes
+        nothing.
+      -->
       <NuxtLink
         to="/einstellungen"
         :aria-current="isCurrent({ to: '/einstellungen' }) ? 'page' : undefined"
         aria-label="Einstellungen"
         title="Einstellungen"
-        class="flex min-h-11 min-w-11 items-center justify-center border-b-2 text-fid-base transition-colors md:ml-auto max-md:min-h-14 max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0"
+        class="flex min-h-11 min-w-11 items-center justify-center border-b-2 text-fid-base transition-colors md:ml-auto max-md:min-h-14 max-md:flex-col max-md:justify-start max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0 max-md:py-2"
         :class="
           isCurrent({ to: '/einstellungen' })
             ? 'border-fid-accent text-fid-text max-md:bg-fid-accent/15'

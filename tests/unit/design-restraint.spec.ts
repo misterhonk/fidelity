@@ -170,4 +170,19 @@ describe('the basket badge', () => {
     const badge = code.slice(code.indexOf('basketCount > 0'))
     expect(badge).toMatch(/pointer-events-none/)
   })
+
+  /**
+   * Die Icons stehen auf einer Linie.
+   *
+   * The gear has no label, so centring it in a bar sized for icon-plus-word
+   * dropped its glyph eleven pixels below the other five. Measured rather than
+   * guessed at the time; kept here as the shape that produced it, because a
+   * unit test cannot read a bounding box.
+   */
+  it('starts the unlabelled tab at the same height as the labelled ones', () => {
+    const gear = code.slice(code.indexOf('to="/einstellungen"'))
+    for (const rule of ['max-md:flex-col', 'max-md:justify-start', 'max-md:py-2']) {
+      expect(gear.slice(0, 600)).toContain(rule)
+    }
+  })
 })
