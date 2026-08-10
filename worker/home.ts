@@ -78,8 +78,17 @@ export async function homeOverview(): Promise<HomeOverview> {
     newest(db, 'wantlist', RAIL),
   ])
 
-  // Dig ids are time-ordered by construction, so the newest sorts last.
-  const latest = digs.sort((a, b) => b.id.localeCompare(a.id))[0] ?? null
+  /*
+   * The newest dig that found something, and only then the newest of all.
+   *
+   * Dig ids are time-ordered by construction. Taking the newest outright was
+   * right until "nur das Neue" existed: that visit costs one request and
+   * frequently turns up nothing, which is a perfectly good answer — but it
+   * would then hide a shop's real find list behind an empty rail. The heading
+   * names the shop and how long ago, so an older dig here says what it is.
+   */
+  const byNewest = digs.sort((a, b) => b.id.localeCompare(a.id))
+  const latest = byNewest.find((dig) => dig.matchCount > 0) ?? byNewest[0] ?? null
 
   let finds: HomeFind[] = []
   if (latest) {

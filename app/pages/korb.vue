@@ -226,11 +226,30 @@ const peak = computed(() =>
             class="flex items-baseline gap-3 rounded-fid-sm border px-3 py-2"
             :class="line.sold ? 'border-fid-border/50' : 'border-fid-border'"
           >
-            <span
-              class="min-w-0 grow truncate text-fid-sm"
-              :class="line.sold ? 'text-fid-text-muted line-through' : 'text-fid-text'"
-              >{{ line.title }}</span
+            <!--
+              Every line goes to its own listing, because that is the only
+              place the record can actually be bought.
+
+              Discogs has no cart in its API — `/marketplace/cart` answers 404
+              where a real endpoint answers 401 (measured 2026-08-10). So this
+              list cannot become a Discogs cart by itself; what it can do is
+              put every record one tap away from the "Add to Cart" button on
+              its own page.
+            -->
+            <a
+              v-if="!line.sold"
+              class="min-w-0 grow truncate text-fid-sm text-fid-text underline-offset-4 hover:underline"
+              :href="`https://www.discogs.com/sell/item/${line.listingId}`"
+              target="_blank"
+              rel="noopener noreferrer"
+              >{{ line.title }}</a
             >
+            <span
+              v-else
+              class="min-w-0 grow truncate text-fid-sm text-fid-text-muted line-through"
+            >
+              {{ line.title }}
+            </span>
             <!--
               Sold. Shown rather than deleted — that removal is the collector's
               call — but no price: it is not an offer any more, and it no
@@ -533,8 +552,20 @@ const peak = computed(() =>
       >
         Bei {{ summary.displayName }} weiter
       </a>
-      <p class="text-fid-xs text-fid-text-muted">
-        Gekauft wird bei Discogs. Diese App hat keinen eigenen Checkout und will keinen –
+      <!--
+        Why this is a list of links and not a button that fills a cart.
+
+        Discogs' API has no cart: `/marketplace/cart` and `/users/{u}/cart`
+        both answer 404, where an endpoint that exists but needs a token
+        answers 401 (measured 2026-08-10). Reading or filling the Discogs cart
+        is therefore not possible without scraping, which CLAUDE.md rule 5
+        forbids. Saying so beats letting somebody wait for a button that
+        cannot exist.
+      -->
+      <p class="max-w-prose text-fid-xs text-fid-text-muted">
+        Gekauft wird bei Discogs, und in den Warenkorb legen auch: Discogs bietet dafür keine
+        Schnittstelle an. Jede Zeile oben führt direkt zu ihrem Angebot – dort sitzt der „Add to
+        Cart"-Knopf.
         <span class="fid-num">{{ number.format(summary.lines.length) }}</span>
         {{ summary.lines.length === 1 ? 'Platte' : 'Platten' }} liegen für dich bereit.
       </p>

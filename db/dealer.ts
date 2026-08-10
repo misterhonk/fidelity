@@ -20,6 +20,7 @@ export function blankDealer(username: string): Dealer {
     minOrderTotal: 0,
     shippingNote: '',
     lastScannedAt: null,
+    newestListedAt: null,
     affinity: null,
     fingerprint: null,
     shippingTiers: [],

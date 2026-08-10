@@ -111,7 +111,7 @@ export interface WorkerContract {
    * always something somebody asked for, never a default.
    */
   'dig.run': {
-    params: { dealer: string; depth?: 'normal' | 'deep' }
+    params: { dealer: string; depth?: 'normal' | 'deep' | 'neu' }
     progress: ScanProgress
     result: Dig
   }
@@ -481,6 +481,13 @@ export interface DigPreflight {
   deepRequests: number | null
   /** How far a deep scan could reach, against `numForSale`. */
   deepReachable: number | null
+  /**
+   * The newest listing a previous dig saw here, or null when there was none.
+   *
+   * Its presence is what makes "nur das Neue" possible: with it, a visit walks
+   * newest-first and stops at the first record it already knows.
+   */
+  since: string | null
   sellerRating: number | null
   location: string | null
 }

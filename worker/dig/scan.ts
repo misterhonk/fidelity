@@ -70,6 +70,37 @@ export type ScanPass = (typeof SCAN_PASSES)[number]
  */
 export const NORMAL_PASSES = SCAN_PASSES.slice(0, 2)
 
+/**
+ * Was ein „nur das Neue"-Besuch läuft: das Neueste zuerst, und nur so weit.
+ *
+ * `listed desc` is the one ordering where stopping early is sound — everything
+ * after the first already-known listing is older still. Any other key would
+ * have to walk the whole shop to be sure it had seen the new records.
+ */
+export const SINCE_PASSES = [SCAN_PASSES[1]!] as const
+
+/**
+ * Ab wann ein „nur das Neue"-Besuch zählt, was er findet.
+ *
+ * Normally the newest listing the last dig actually saw. Shops scanned before
+ * that was recorded fall back to when they were last walked, minus an hour:
+ * the scan itself takes minutes, and a record listed while it ran would sit
+ * just under a finish-time anchor and never be seen again. An hour of slack
+ * costs a handful of records read twice — writing a match twice is idempotent
+ * — and it is the difference between the feature working on every shop today
+ * and only on shops dug from today on.
+ */
+const ANCHOR_SLACK_MS = 60 * 60 * 1000
+
+export function anchorFor(
+  dealer: { newestListedAt?: string | null; lastScannedAt: number | null } | undefined,
+): string | null {
+  if (!dealer) return null
+  if (dealer.newestListedAt) return dealer.newestListedAt
+  if (dealer.lastScannedAt === null) return null
+  return new Date(dealer.lastScannedAt - ANCHOR_SLACK_MS).toISOString()
+}
+
 /** Roughly one request every 1.2 s, which is what the pacer enforces. */
 const MS_PER_REQUEST = 1200
 
@@ -111,6 +142,8 @@ interface ScanContext {
   report?: (progress: ScanProgress) => void
   signal?: AbortSignal
   now: () => number
+  /** The newest listing a previous dig saw here; only a 'neu' run reads it. */
+  since?: string | null
 }
 
 async function prepare({
@@ -206,7 +239,22 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   const seen = new Set<number>()
   let unique = dig.uniqueSeen ?? 0
 
-  const passes = dig.depth === 'deep' ? SCAN_PASSES : NORMAL_PASSES
+  const passes =
+    dig.depth === 'deep' ? SCAN_PASSES : dig.depth === 'neu' ? SINCE_PASSES : NORMAL_PASSES
+
+  /**
+   * Das neueste Angebot, das dieser Lauf gesehen hat.
+   *
+   * Written to the dealer at the end, and read by the *next* "nur das Neue"
+   * visit as the line to stop at. Kept as the string Discogs sent rather than
+   * a parsed date: it is only ever compared to another one of its own kind,
+   * and ISO 8601 with an offset does not compare as a string across offsets.
+   */
+  let newestSeen: string | null = null
+
+  /** Where a "nur das Neue" run stops. Null on every other kind. */
+  const anchor = dig.depth === 'neu' ? (ctx.since ?? null) : null
+  let reachedKnown = false
 
   const emit = (passIndex: number, order: 'asc' | 'desc') => {
     const reachable = Math.min(dig.listingsTotal, PER_PAGE * MAX_PAGES * passes.length)
@@ -264,7 +312,29 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
 
       const fresh: Match[] = []
       for (const row of response.listings) {
+        /*
+         * The line between "new since last time" and "was already here".
+         *
+         * `sort=listed&sort_order=desc` hands the shop back newest first, so
+         * the first listing that is not newer than the anchor means every one
+         * after it is older too. Breaking here rather than filtering is the
+         * whole point: it is what turns two hundred requests into one.
+         *
+         * A listing without a `posted` is treated as new. Discogs has always
+         * sent one; if that ever changes, over-reporting a few records is a
+         * better failure than silently stopping the scan at the first gap.
+         */
+        if (anchor !== null && row.posted && Date.parse(row.posted) <= Date.parse(anchor)) {
+          reachedKnown = true
+          break
+        }
+
         scanned += 1
+        if (
+          row.posted &&
+          (newestSeen === null || Date.parse(row.posted) > Date.parse(newestSeen))
+        )
+          newestSeen = row.posted
 
         if (!seen.has(row.id)) {
           seen.add(row.id)
@@ -330,9 +400,12 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
 
       emit(passIndex, pass.order)
 
+      if (reachedKnown) break
       if (response.listings.length < PER_PAGE) break
       if (page >= response.pagination.pages) break
     }
+
+    if (reachedKnown) break
 
     /*
      * Loop until dry, rather than to a fixed number of passes.
@@ -347,11 +420,23 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
     if (passIndex >= NORMAL_PASSES.length && freshThisPass === 0) break
   }
 
+  /*
+   * A "nur das Neue" run is complete by construction: it stopped at the line
+   * where the known stock begins, so it saw every listing that was new. Its
+   * denominator is therefore what it found, not what the shop holds — the
+   * shop's total lives on the dealer record, where it is not a coverage claim.
+   */
+  if (dig.depth === 'neu') {
+    dig.listingsTotal = unique
+    dig.coverage = 1
+    dig.truncated = false
+  }
+
   dig.status = 'done'
   dig.finishedAt = now()
   dig.cursor = null
   await db.put('digs', dig)
-  await saveDealer(ctx, dig, fingerprint)
+  await saveDealer(ctx, dig, fingerprint, newestSeen)
   await pruneDigs(db)
 
   // What this dig taught the horizon. Handed back rather than acted on here:
@@ -400,8 +485,10 @@ async function walkExclusively(dig: Dig, ctx: ScanContext): Promise<Dig> {
   }
 }
 
+export class NoAnchorYet extends Error {}
+
 export async function runDig(
-  options: ScanOptions & { dealer: string; digId: string; depth?: 'normal' | 'deep' },
+  options: ScanOptions & { dealer: string; digId: string; depth?: 'normal' | 'deep' | 'neu' },
 ): Promise<Dig> {
   // Claimed before the pre-check, so a second start cannot slip in during it.
   acquire(options.digId)
@@ -414,17 +501,36 @@ export async function runDig(
     throw error
   }
   const startedAt = ctx.now()
+  const known = await ctx.db.get('dealers', options.dealer)
 
-  // Pre-check. One request buys an honest answer up front instead of a
-  // surprise at page 101.
-  const profile = await ctx.client
-    .get(`/users/${encodeURIComponent(options.dealer)}`, dealerSchema, { signal: ctx.signal })
-    .catch((error: unknown) => {
-      running = null
-      throw error
-    })
+  /*
+   * A "nur das Neue" visit spends no request finding out what it already
+   * knows. The shop's total and the line where its new stock begins are both
+   * on the dealer record, put there by the full dig that has to come first —
+   * so this kind of run costs exactly the pages it reads, usually one.
+   */
+  const incremental = options.depth === 'neu'
+  const anchor = anchorFor(known)
+  if (incremental && !anchor) {
+    running = null
+    throw new NoAnchorYet('Für diesen Laden gibt es noch keinen Dig, an den sich das anhängt.')
+  }
 
-  const total = profile.num_for_sale ?? 0
+  let total = known?.numForSale ?? 0
+  if (!incremental) {
+    // Pre-check. One request buys an honest answer up front instead of a
+    // surprise at page 101.
+    const profile = await ctx.client
+      .get(`/users/${encodeURIComponent(options.dealer)}`, dealerSchema, { signal: ctx.signal })
+      .catch((error: unknown) => {
+        running = null
+        throw error
+      })
+
+    total = profile.num_for_sale ?? 0
+  }
+
+  ctx.since = anchor
 
   const dig: Dig = {
     id: options.digId,
@@ -442,7 +548,7 @@ export async function runDig(
     depth: options.depth ?? 'normal',
     truncated: total > REACHABLE,
     matchCount: 0,
-    apiRequests: 1,
+    apiRequests: incremental ? 0 : 1,
     cursor: null,
   }
   await ctx.db.put('digs', dig)
@@ -531,11 +637,30 @@ async function saveDealer(
   ctx: ScanContext,
   dig: Dig,
   fingerprint: FingerprintAccumulator,
+  newestListedAt: string | null,
 ): Promise<void> {
   const { db } = ctx
+  const existing = await db.get('dealers', dig.dealer)
+
+  /*
+   * A "nur das Neue" visit learns one thing and must not claim the others.
+   *
+   * It saw a handful of records off the top of the shop — so its hit rate is
+   * noise, its fingerprint would describe the last week of stock rather than
+   * the shop, and its total is the number of new arrivals. Writing any of
+   * those would quietly corrupt a profile the full digs built. What it *does*
+   * know, and nothing else does, is where the new stock now begins.
+   */
+  if (dig.depth === 'neu') {
+    await db.put('dealers', {
+      ...(existing ?? blankDealer(dig.dealer)),
+      newestListedAt: newestListedAt ?? existing?.newestListedAt ?? null,
+      updatedAt: dig.finishedAt ?? Date.now(),
+    })
+    return
+  }
 
   const rate = matchesPerThousand(dig.matchCount, dig.listingsScanned)
-  const existing = await db.get('dealers', dig.dealer)
 
   /*
    * Merged onto the existing row, not written over it.
@@ -554,6 +679,8 @@ async function saveDealer(
     ...(existing ?? blankDealer(dig.dealer)),
     numForSale: dig.listingsTotal,
     lastScannedAt: dig.finishedAt,
+    // The line a later "nur das Neue" visit stops at.
+    newestListedAt: newestListedAt ?? existing?.newestListedAt ?? null,
     // Stored as the comparable rate; the factor is derived on read, because it
     // changes as soon as another shop is scanned.
     affinity: rate,

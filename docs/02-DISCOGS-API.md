@@ -206,6 +206,26 @@ vollständiger als jeder Einzelscan es je sein könnte, und der Altbestand füll
 Das ist der Grund, warum die Watchlist (M6) und die lokale Ablage keine Bequemlichkeit sind,
 sondern die eigentliche Antwort auf die 10.000er-Wand.
 
+#### Kein Warenkorb in der API
+
+Am 2026-08-10 nachgemessen. Ein Endpunkt, den es gibt und der nur Auth braucht,
+antwortet **401**; einen, den es nicht gibt, **404**:
+
+```
+GET /marketplace/orders    → 401  You must authenticate to access this resource.
+GET /marketplace/cart      → 404  The requested resource was not found.
+GET /users/{user}/cart     → 404  The requested resource was not found.
+```
+
+**Der Discogs-Warenkorb ist nicht Teil der API** – weder lesen noch füllen. Die
+Marketplace-Endpunkte decken Inventar, einzelne Listings, Bestellungen (Verkäuferseite),
+Gebühren und Preisvorschläge ab, und damit hört es auf. Was bleibt, ist der direkte Link
+auf `discogs.com/sell/item/{listing_id}`; dort sitzt der „Add to Cart"-Knopf.
+
+Für Fidelity heißt das: Der Korb rechnet den kombinierten Versand **vorher** aus – das ist
+genau die Lücke, die Discogs offen lässt, weil es den kombinierten Versand erst im eigenen
+Warenkorb zeigt. Gelegt wird dort, Zeile für Zeile.
+
 #### Was **nicht** geht
 
 - **`per_page` hochdrehen.** 250 und 500 werden beide auf 100 geklemmt, gemessen.

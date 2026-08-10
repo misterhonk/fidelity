@@ -140,6 +140,21 @@ describe('homeOverview', () => {
     expect((await homeOverview()).dig?.dealer).toBe('neu')
   })
 
+  it('does not let an empty visit hide a shop that had finds', async () => {
+    /*
+     * "Nur das Neue" costs one request and often turns up nothing, which is a
+     * good answer and a bad rail. Before this, a dig that found nothing an
+     * hour after a dig that found fifteen would blank the start screen.
+     */
+    await dig('01J000000000000000000000A', 'juno_records', 15)
+    await dig('01J000000000000000000000B', 'juno_records', 0)
+
+    const home = await homeOverview()
+
+    expect(home.dig?.matches).toBe(15)
+    expect(home.finds).toHaveLength(12)
+  })
+
   it('puts the shops that actually deliver at the front', async () => {
     const db = await openFidelityDb()
     for (const [username, affinity] of [

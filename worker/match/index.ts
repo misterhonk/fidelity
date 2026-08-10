@@ -46,6 +46,13 @@ export interface Listing {
   shipsFrom: string | null
   comments: string | null
   thumbUrl: string | null
+  /**
+   * When the dealer listed it, ISO 8601, or null where Discogs omitted it.
+   *
+   * Not a matching signal — the scan carries it so a later visit can stop at
+   * the first listing it has already seen.
+   */
+  postedAt: string | null
 }
 
 export interface MatchFilters {

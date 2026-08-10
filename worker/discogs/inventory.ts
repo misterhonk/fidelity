@@ -29,6 +29,16 @@ export const inventoryPageSchema = z.object({
       sleeve_condition: z.string().optional(),
       comments: z.string().optional(),
       ships_from: z.string().optional(),
+      /*
+       * When the dealer put it up, as ISO 8601 with an offset.
+       *
+       * The anchor for "was ist neu seit dem letzten Mal": `sort=listed` orders
+       * by exactly this, so a descending walk can stop at the first listing
+       * that is not newer than the last visit. Optional because a schema that
+       * throws on a field Discogs might one day omit would break the scan for
+       * a field the scan can live without.
+       */
+      posted: z.string().optional(),
       price: z.object({ value: z.number(), currency: z.string() }).partial().optional(),
       release: z.object({
         id: z.number().int(),
@@ -64,5 +74,6 @@ export function toListing(row: InventoryPage['listings'][number]): Listing {
     shipsFrom: row.ships_from ?? null,
     comments: row.comments ?? null,
     thumbUrl: row.release.thumbnail || null,
+    postedAt: row.posted ?? null,
   }
 }

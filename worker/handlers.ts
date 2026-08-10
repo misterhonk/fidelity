@@ -124,7 +124,8 @@ export const handlers: HandlerMap = {
 
   'dig.preflight': async ({ dealer }, { signal }) => {
     const { dealerSchema } = await inventory()
-    const { REACHABLE, SCAN_PASSES, MAX_PAGES, PER_PAGE } = await scan()
+    const { REACHABLE, SCAN_PASSES, MAX_PAGES, PER_PAGE, anchorFor } = await scan()
+    const known = await (await openFidelityDb()).get('dealers', dealer)
     const profile = await discogs().get(`/users/${encodeURIComponent(dealer)}`, dealerSchema, {
       signal,
     })
@@ -149,6 +150,7 @@ export const handlers: HandlerMap = {
       deepReachable: truncated
         ? Math.min(numForSale, SCAN_PASSES.length * MAX_PAGES * PER_PAGE)
         : null,
+      since: anchorFor(known),
       sellerRating: profile.seller_rating ?? null,
       location: profile.location ?? null,
     }

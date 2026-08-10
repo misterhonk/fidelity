@@ -545,8 +545,12 @@ export interface Dig {
    * works through every sort key Discogs accepts, which is the only way past
    * that number — and costs up to 1.400 requests, so it is always asked for
    * by hand. Absent means 'normal'.
+   *
+   * 'neu' is the opposite end: newest first, stopping at the first listing the
+   * shop had on the last visit. Usually one or two requests, and the only kind
+   * of dig worth running on a shop you check every week.
    */
-  depth?: 'normal' | 'deep'
+  depth?: 'normal' | 'deep' | 'neu'
   /** Did the scan hit the 10k pagination wall? */
   truncated: boolean
   matchCount: number
@@ -647,6 +651,18 @@ export interface Dealer {
   /** Free text from seller.shipping. */
   shippingNote: string
   lastScannedAt: number | null
+  /**
+   * Das neueste Angebot, das ein Dig hier gesehen hat — ISO 8601.
+   *
+   * The anchor for "nur das Neue". `sort=listed&sort_order=desc` hands the
+   * shop back newest first, so a later visit walks until it reaches something
+   * not newer than this and stops — usually after one page instead of two
+   * hundred.
+   *
+   * Absent on dealers scanned before this existed; the app then offers a full
+   * dig, which is what it always did.
+   */
+  newestListedAt?: string | null
   /** Overlap with this collection as a factor over chance. */
   affinity: number | null
   /** Derived, not marketplace content — so it outlives the six-hour window. */

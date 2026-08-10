@@ -218,7 +218,7 @@ async function resume() {
   }
 }
 
-async function start(depth: 'normal' | 'deep' = 'normal') {
+async function start(depth: 'normal' | 'deep' | 'neu' = 'normal') {
   if (!preflight.value || busy.value) return
   busy.value = true
   error.value = null
@@ -408,23 +408,56 @@ const expired = computed(() => {
         Sekunden.
       </p>
       <!--
+        Nur das Neue, wo es das gibt.
+
+        A shop already dug once carries the date of its newest listing, so a
+        visit can walk newest-first and stop at the first record it has seen
+        before — one page instead of two hundred. That makes it the right
+        default for a shop somebody checks every week, which is why it takes
+        the accent and the full dig steps back to an outline.
+      -->
+      <div v-if="preflight.since" class="flex flex-col gap-2">
+        <p class="max-w-prose text-fid-sm text-fid-text-muted">
+          Diesen Laden kennst du schon. Fidelity kann nur die Angebote holen, die seit dem
+          letzten Mal dazugekommen sind — meist ein bis zwei Abfragen statt
+          <span class="fid-num">{{ Math.ceil(preflight.reachable / 100) }}</span
+          >.
+        </p>
+        <button
+          type="button"
+          :disabled="busy"
+          class="self-start rounded-fid-sm px-4 py-2 font-medium disabled:opacity-50"
+          :class="
+            resumable
+              ? 'border border-fid-border text-fid-text'
+              : 'bg-fid-accent text-fid-n-990'
+          "
+          @click="start('neu')"
+        >
+          Nur das Neue holen
+        </button>
+      </div>
+
+      <!--
         Filled only when it is *the* thing to do.
 
         An interrupted dig outranks a new one — those pages are already paid
-        for in requests. When one is on offer above, this button steps back to
-        an outline, so the screen has one accent and it points at the right
-        button.
+        for in requests — and so does "nur das Neue" on a shop that has one.
+        The full dig steps back to an outline in both cases, so the screen has
+        one accent and it points at the right button.
       -->
       <button
         type="button"
         :disabled="busy"
         class="self-start rounded-fid-sm px-4 py-2 font-medium disabled:opacity-50"
         :class="
-          resumable ? 'border border-fid-border text-fid-text' : 'bg-fid-accent text-fid-n-990'
+          resumable || preflight.since
+            ? 'border border-fid-border text-fid-text'
+            : 'bg-fid-accent text-fid-n-990'
         "
         @click="start('normal')"
       >
-        Dig starten
+        {{ preflight.since ? 'Alles noch einmal durchgehen' : 'Dig starten' }}
       </button>
 
       <!--
