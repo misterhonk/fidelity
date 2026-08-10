@@ -79,6 +79,26 @@ function toItem(
   }
 }
 
+/**
+ * Was die Sammlung ohnehin mitbringt, in die gemeinsame Cover-Ablage.
+ *
+ * `basic_information` carries `thumb` and `cover_image`, so a synced library
+ * hands over a few thousand covers for no requests at all. They are worth
+ * copying out of the collection row because a dig hits a release the shelf
+ * already knows more often than it looks — another pressing of something you
+ * own is a signal, and now it arrives with a picture instead of a grey square.
+ */
+async function mirrorCovers(
+  items: { releaseId: number; thumbUrl: string; coverUrl: string }[],
+) {
+  const { writeCovers } = await import('~~/db/covers')
+  await writeCovers(
+    items
+      .filter((item) => item.thumbUrl || item.coverUrl)
+      .map(({ releaseId, thumbUrl, coverUrl }) => ({ releaseId, thumbUrl, coverUrl })),
+  )
+}
+
 export interface SyncContext {
   client: DiscogsClient
   username: string
@@ -168,6 +188,7 @@ export async function syncCollection(context: SyncContext): Promise<SyncSummary>
       const tx = db.transaction('collection', 'readwrite')
       for (const item of items) await tx.store.put(item)
       await tx.done
+      await mirrorCovers(items)
     },
     knownSince: syncState?.lastCollectionAdd ?? null,
   })
@@ -203,6 +224,7 @@ export async function syncWantlist(context: SyncContext): Promise<SyncSummary> {
       const tx = db.transaction('wantlist', 'readwrite')
       for (const item of items) await tx.store.put(item)
       await tx.done
+      await mirrorCovers(items)
     },
     // No delta here. A wantlist is small and changes in both directions —
     // stopping early would save one request and cost correctness.

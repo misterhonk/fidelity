@@ -694,6 +694,15 @@ export interface Dealer {
   watchCheckedAt?: number | null
   /** Last touched, which is what a merge between two devices compares. */
   updatedAt?: number
+  /**
+   * Das Ladenschild, wenn der Laden eins gesetzt hat.
+   *
+   * Comes from `/users/{name}`, which a full dig already fetches to find out
+   * how big the shop is — so it costs nothing. Absent on shops scanned before
+   * this existed and on the ones who never uploaded a picture; both cases draw
+   * initials instead, because Discogs' grey default says less than a letter.
+   */
+  avatarUrl?: string
 }
 
 /**
@@ -806,6 +815,8 @@ export interface BasketSummary {
   /** What else this shop has that would ride along for less postage. */
   candidates: BasketCandidate[]
   displayName: string
+  /** The shop's own picture, where a dig has met it. See `Dealer.avatarUrl`. */
+  avatarUrl?: string
   lines: BasketLine[]
   /** null when a price has aged out or two currencies are in play. */
   subtotal: number | null

@@ -9,6 +9,12 @@ const verdict = computed(() => verdicts.value[props.match.listingId])
 
 const { show } = useReleaseSheet()
 
+const { coverFor, watchCover } = useCovers()
+const cover = computed(() => coverFor(props.match.releaseId, props.match.thumbUrl))
+
+const root = useTemplateRef<HTMLElement>('root')
+onMounted(() => watchCover(root.value, props.match.releaseId))
+
 /**
  * Ein Kürzel, nicht das ganze Format.
  *
@@ -39,8 +45,36 @@ const price = computed(() => {
     away in the detail sheet.
   -->
   <div
-    class="group grid h-[34px] scroll-mt-28 grid-cols-[2.5rem_1fr_auto] items-center gap-3 rounded-fid-sm px-2 hover:bg-fid-surface"
+    ref="root"
+    class="group grid h-[34px] scroll-mt-28 grid-cols-[1.75rem_2.25rem_1fr_auto] items-center gap-x-2 rounded-fid-sm px-2 hover:bg-fid-surface"
   >
+    <!--
+      Sechsundzwanzig Pixel Cover in einer 34-Pixel-Zeile.
+
+      This mode is a table and stays one — but a table of records with no
+      records in it is a spreadsheet. At this size the sleeve is not something
+      you read, it is something you recognise: the colour alone tells you you
+      have seen this pressing before, three hundred rows into a scan, faster
+      than the title does.
+    -->
+    <img
+      v-if="cover"
+      :src="cover.thumbUrl"
+      alt=""
+      loading="lazy"
+      decoding="async"
+      width="26"
+      height="26"
+      class="size-[26px] shrink-0 rounded-[3px] bg-fid-inset object-cover"
+    />
+    <span
+      v-else
+      class="flex size-[26px] shrink-0 items-center justify-center rounded-[3px] bg-fid-inset text-fid-text-muted"
+      aria-hidden="true"
+    >
+      <FidIcon name="platte" :size="14" />
+    </span>
+
     <span
       class="fid-num text-fid-sm font-medium text-fid-text"
       :aria-label="`Barry Score ${match.score} von 100`"

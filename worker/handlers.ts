@@ -35,7 +35,19 @@ const STORES = [
   'matches',
   'basket',
   'feedback',
+  'covers',
 ] as const
+
+/** The wire shape: a plain object, because a Map does not survive postMessage. */
+function toCoverMap(
+  entries: Map<number, { thumbUrl: string; coverUrl: string }>,
+): Record<number, { thumbUrl: string; coverUrl: string }> {
+  const map: Record<number, { thumbUrl: string; coverUrl: string }> = {}
+  for (const [releaseId, { thumbUrl, coverUrl }] of entries) {
+    map[releaseId] = { thumbUrl, coverUrl }
+  }
+  return map
+}
 
 async function dbStats(): Promise<DbStats> {
   const db = await openFidelityDb()
@@ -654,6 +666,34 @@ export const handlers: HandlerMap = {
       report: (progress) => report(progress),
       signal,
     })
+  },
+
+  /*
+   * Cover. Zwei Wege, weil sie zwei verschiedene Dinge kosten.
+   *
+   * `known` reads the store and answers offline; `fetch` spends requests. A
+   * screen calls the first on every render and the second only for what is
+   * actually on it — see worker/covers.ts for why the marketplace leaves this
+   * to us at all.
+   */
+  'covers.known': async ({ releaseIds }) => {
+    const { readCovers } = await import('~~/db/covers')
+    return toCoverMap(await readCovers(releaseIds))
+  },
+
+  'covers.fetch': async ({ releaseIds, limit }, { report, signal }) => {
+    const { fetchCovers } = await import('./covers')
+    const { readCovers } = await import('~~/db/covers')
+
+    await fetchCovers({
+      client: discogs(),
+      releaseIds,
+      limit,
+      report: (progress) => report(progress),
+      signal,
+    })
+
+    return toCoverMap(await readCovers(releaseIds))
   },
 
   'library.summary': async () => {

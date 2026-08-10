@@ -31,7 +31,24 @@ test.describe('smoke', () => {
      * proves main thread, worker and IndexedDB are wired together.
      */
     await expect(page.getByRole('button', { name: /Einrichten/ })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Erst ausprobieren' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Erst ansehen' })).toBeVisible()
+
+    /*
+     * Vier Cover, keine vier Textzeilen.
+     *
+     * The address and the alt text, not whether the picture decoded. Waiting
+     * for `naturalWidth` was the first version of this and it made the smoke
+     * test depend on i.discogs.com answering — an external host this suite
+     * deliberately never touches, so that CI fails for our reasons and not for
+     * Discogs'. What can be checked without the network is that each starting
+     * point is a sleeve pointing at a real cover, which is the part that breaks
+     * when somebody edits the seed list.
+     */
+    // Matched on the dash, which separates artist from title — the shop logo
+    // in the same tile is alt="Laden …" and must not be counted as a sleeve.
+    const covers = page.locator('ul li button img[alt*=" – "]')
+    await expect(covers).toHaveCount(4) // SEEDS_SHOWN
+    await expect(covers.first()).toHaveAttribute('src', /^https:\/\/i\.discogs\.com\//)
 
     // And the setup is behind it, intact.
     await page.getByRole('button', { name: /Einrichten/ }).click()
@@ -106,7 +123,7 @@ test.describe('smoke', () => {
 
   test('the entry screen has no axe violations', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: 'Erst ausprobieren' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Erst ansehen' })).toBeVisible()
 
     const { violations } = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])

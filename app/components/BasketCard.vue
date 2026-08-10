@@ -26,6 +26,20 @@ const props = defineProps<{ summary: DeepReadonly<BasketSummary> }>()
 const { call } = useFidelityWorker()
 const { refresh } = useBasket()
 
+/*
+ * Alle Zeilen auf einmal — ein Korb ist kurz.
+ *
+ * No observer here, unlike the dig list: a basket holds a handful of records
+ * and every one of them is on screen. Watching them into view would be
+ * machinery for nothing.
+ */
+const { coverFor, request: requestCovers } = useCovers()
+watch(
+  () => props.summary.lines.map((line) => line.releaseId),
+  (releaseIds) => void requestCovers([...releaseIds]),
+  { immediate: true },
+)
+
 const error = ref<unknown>(null)
 
 /** Where the postage table came from — said out loud, never implied. */
@@ -176,7 +190,10 @@ const peak = computed(() =>
     <ErrorNote v-if="error" :cause="error" />
     <section class="flex flex-col gap-3">
       <div class="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 class="text-fid-xl font-bold text-fid-text">{{ summary.displayName }}</h2>
+        <h2 class="flex items-center gap-3 text-fid-xl font-bold text-fid-text">
+          <ShopLogo :dealer="summary.dealer" :avatar-url="summary.avatarUrl" :size="32" />
+          {{ summary.displayName }}
+        </h2>
         <div class="flex items-baseline gap-4">
           <button
             type="button"
@@ -221,10 +238,39 @@ const peak = computed(() =>
         <li
           v-for="line in summary.lines"
           :key="line.listingId"
-          class="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-fid-sm border px-3 py-2"
+          class="flex items-center gap-3 rounded-fid-sm border px-3 py-2"
           :class="line.sold ? 'border-fid-border/50' : 'border-fid-border'"
         >
           <!--
+            Das Cover, auch hier.
+
+            A basket is the one list where somebody checks that what they are
+            about to spend money on is what they meant — and a row of titles is
+            the slowest possible way to do that. Five records, five covers
+            already in the store or five requests: cheap, and the only place in
+            the app where a wrong record costs real money.
+          -->
+          <img
+            v-if="coverFor(line.releaseId)"
+            :src="coverFor(line.releaseId)!.thumbUrl"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            width="40"
+            height="40"
+            class="size-10 shrink-0 rounded-[4px] bg-fid-inset object-cover"
+            :class="line.sold ? 'opacity-50' : ''"
+          />
+          <span
+            v-else
+            class="flex size-10 shrink-0 items-center justify-center rounded-[4px] bg-fid-inset text-fid-text-muted"
+            aria-hidden="true"
+          >
+            <FidIcon name="platte" :size="18" />
+          </span>
+
+          <div class="flex min-w-0 grow flex-wrap items-baseline gap-x-3 gap-y-1">
+            <!--
             Every line goes to its own listing, because that is the only
             place the record can actually be bought.
 
@@ -239,45 +285,48 @@ const peak = computed(() =>
             to protect, and "Wighnomy Brothers & Robag Wruhme – Polytikk…" is a
             record nobody can check against what they meant to buy.
           -->
-          <a
-            v-if="!line.sold"
-            class="min-w-0 grow basis-full text-fid-sm text-fid-text underline-offset-4 hover:underline @sm:basis-auto"
-            :href="`https://www.discogs.com/sell/item/${line.listingId}`"
-            target="_blank"
-            rel="noopener noreferrer"
-            >{{ line.title }}</a
-          >
-          <span
-            v-else
-            class="min-w-0 grow basis-full text-fid-sm text-fid-text-muted line-through @sm:basis-auto"
-          >
-            {{ line.title }}
-          </span>
-          <!--
+            <a
+              v-if="!line.sold"
+              class="min-w-0 grow basis-full text-fid-sm text-fid-text underline-offset-4 hover:underline @sm:basis-auto"
+              :href="`https://www.discogs.com/sell/item/${line.listingId}`"
+              target="_blank"
+              rel="noopener noreferrer"
+              >{{ line.title }}</a
+            >
+            <span
+              v-else
+              class="min-w-0 grow basis-full text-fid-sm text-fid-text-muted line-through @sm:basis-auto"
+            >
+              {{ line.title }}
+            </span>
+            <!--
             Sold. Shown rather than deleted — that removal is the collector's
             call — but no price: it is not an offer any more, and it no
             longer counts towards the total or the postage tier.
           -->
-          <span v-if="line.sold" class="shrink-0 text-fid-xs text-fid-sig-gap"> verkauft </span>
-          <!--
+            <span v-if="line.sold" class="shrink-0 text-fid-xs text-fid-sig-gap">
+              verkauft
+            </span>
+            <!--
             Six hours on the price may not be shown any more — the same rule
             a dig lives under (CLAUDE.md rule 4). The record stays in the
             basket; only the number goes.
           -->
-          <span v-else-if="line.priceExpired" class="shrink-0 text-fid-xs text-fid-sig-gap">
-            Preis abgelaufen
-          </span>
-          <span v-else class="fid-num shrink-0 text-fid-sm text-fid-text">
-            {{ money(line.price, line.currency) }}
-          </span>
-          <button
-            type="button"
-            class="fid-action shrink-0 text-fid-xs text-fid-text-muted underline underline-offset-4"
-            :aria-label="`${line.title} entfernen`"
-            @click="remove(line.listingId)"
-          >
-            raus
-          </button>
+            <span v-else-if="line.priceExpired" class="shrink-0 text-fid-xs text-fid-sig-gap">
+              Preis abgelaufen
+            </span>
+            <span v-else class="fid-num shrink-0 text-fid-sm text-fid-text">
+              {{ money(line.price, line.currency) }}
+            </span>
+            <button
+              type="button"
+              class="fid-action shrink-0 text-fid-xs text-fid-text-muted underline underline-offset-4"
+              :aria-label="`${line.title} entfernen`"
+              @click="remove(line.listingId)"
+            >
+              raus
+            </button>
+          </div>
         </li>
       </ul>
     </section>

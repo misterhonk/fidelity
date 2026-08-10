@@ -1,20 +1,25 @@
 <script setup lang="ts">
+import { describeFormat } from '#shared/format'
+
 import type { DemoProgress, DemoResult } from '~~/worker/demo'
 
 /**
  * Fidelity vorführen, bevor jemand einen Schlüssel hergibt.
  *
- * One or two records go in, and what that shop has beside them comes out —
- * scored and reasoned by the same engine a real dig uses. Nothing here is a
- * mock-up; the worker runs `evaluate` and `buildReason` over a collection of
- * one (worker/demo.ts).
+ * One record goes in, and what that shop has beside it comes out — scored and
+ * reasoned by the same engine a real dig uses. Nothing here is a mock-up; the
+ * worker runs `evaluate` and `buildReason` over a collection of one
+ * (worker/demo.ts).
  *
- * Costs about nine requests and twenty seconds, and says so before spending
- * them. Nothing runs on load: opening a page must not spend somebody's rate
- * limit, and a first screen that can fail while it is being read is worse than
- * one that waits to be asked.
+ * **Es sind Platten, also führt es Platten vor.** This screen was a paragraph,
+ * a form and three lines of text, on an app whose subject is sleeves — so the
+ * covers now carry it and the words fit underneath. The pictures are frozen
+ * into `demo-seeds.ts` rather than fetched, because nothing may run on load:
+ * opening a page must not spend somebody's rate limit, and a first screen that
+ * can fail while it is being read is worse than one that waits to be asked.
  */
 const { call } = useFidelityWorker()
+const { coverFor, request: requestCovers } = useCovers()
 
 const seeds = seedsForToday()
 const url = ref('')
@@ -43,6 +48,18 @@ async function run(listingId: number) {
       { listingIds: [listingId] },
       { onProgress: (step) => (progress.value = step) },
     )
+
+    /*
+     * Die Cover kommen nach der Liste, nicht vor ihr.
+     *
+     * The marketplace hands back listings without images (worker/covers.ts has
+     * the measurement), so each of these is a request of its own — five more
+     * on top of seven, at the token-less pace of one every 2,4 s. Awaited
+     * before the results appeared, that would be twelve seconds of nothing
+     * after the work was already done. Started after, the list is on screen
+     * while the sleeves fill in behind it.
+     */
+    void requestCovers(shown.value.map((find) => find.releaseId))
   } catch (cause) {
     error.value = cause
   } finally {
@@ -61,31 +78,128 @@ const status = computed(() => {
   return 'Vergleiche …'
 })
 
+/**
+ * Wie weit der Lauf ist, als Anteil von 0 bis 1.
+ *
+ * Weighted rather than counted, because the three phases are not the same
+ * size: fetching the seed is two requests, reading the shop is five, and the
+ * comparison itself is instant. A bar that gave each a third would sit at 33 %
+ * through the whole long part and then jump — which is worse than no bar,
+ * because it teaches you not to trust it.
+ */
+const share = computed(() => {
+  const step = progress.value
+  if (!step) return 0
+  if (step.step === 'seeds') return 0.25 * (step.total ? step.done / step.total : 0)
+  if (step.step === 'shop') return 0.25 + 0.7 * (step.total ? step.done / step.total : 0)
+  return 1
+})
+
 /** The five worth showing. A demo is an argument, not a result list. */
 const shown = computed(() => result.value?.finds.slice(0, 5) ?? [])
+
+/** `12" Single`, `CD Album` — what it physically is, in two words. */
+function shapeOf(format: string | null) {
+  const { medium, kind, size } = describeFormat(format)
+  return [size ?? medium, kind].filter(Boolean).join(' ')
+}
 </script>
 
 <template>
-  <section class="flex flex-col gap-5">
-    <div class="flex flex-col gap-2">
-      <h2 class="text-fid-xl font-bold text-fid-text">Erst ausprobieren</h2>
+  <section class="@container flex flex-col gap-5">
+    <div class="flex flex-col gap-1">
+      <h2 class="fid-display text-fid-xl font-bold text-fid-text">Erst ansehen</h2>
       <p class="max-w-prose text-fid-base text-fid-text-muted">
-        Nenn eine Platte aus einem Discogs-Laden, und Fidelity sagt dir, was derselbe Laden
-        sonst noch hat, das dazu passt. Ohne Anmeldung, ohne Token.
+        Eine Platte aussuchen – Fidelity zeigt, was im selben Laden dazu passt. Ohne Anmeldung.
       </p>
     </div>
 
     <ErrorNote v-if="error" :cause="error" :signed-in="false" />
 
     <!--
-      Der eigene Link zuerst — wer eine Platte im Sinn hat, soll nicht erst
-      durch eine fremde Auswahl scrollen.
+      Drei Cover, und sonst nichts.
+
+      This was a list of text buttons on a page about records. The picture is
+      the invitation; the artist, the title and one measured line are what fits
+      under it without turning the tile back into a paragraph.
     -->
-    <form class="flex flex-col gap-2" @submit.prevent="pastedId && run(pastedId)">
-      <label class="text-fid-sm font-medium text-fid-text" for="demo-url">
-        Ein Angebot von Discogs
-      </label>
-      <div class="flex flex-wrap gap-2">
+    <ul class="grid grid-cols-2 gap-x-3 gap-y-5 @xl:grid-cols-4">
+      <!--
+        Kein Aufblenden hier, anders als in den Cover-Reihen.
+
+        `fid-tile` staggers a rail into place, which is right where covers are
+        decoration. These are the four things this page asks somebody to do, and
+        the fade made the axe run fail one time in four: mid-animation the text
+        sits at partial opacity, which is a real contrast of 1.09 against the
+        page and not a measurement error. A screen you land on should be
+        readable the instant it is there.
+      -->
+      <li v-for="seed in seeds" :key="seed.listingId" class="min-w-0">
+        <button
+          type="button"
+          :disabled="running"
+          class="group flex w-full flex-col gap-2 text-left disabled:opacity-50"
+          @click="run(seed.listingId)"
+        >
+          <span class="relative block">
+            <img
+              :src="seed.thumbUrl"
+              :srcset="`${seed.thumbUrl} 150w, ${seed.coverUrl} 600w`"
+              sizes="(min-width: 640px) 240px, 45vw"
+              :alt="`${seed.artist} – ${seed.title}`"
+              loading="lazy"
+              decoding="async"
+              class="aspect-square w-full rounded-fid-cover bg-fid-inset object-cover shadow-sm transition-transform duration-200 group-hover:-translate-y-1"
+            />
+
+            <!--
+              Das Ladenschild auf dem Cover.
+
+              Every one of these shops has set a real avatar rather than the
+              grey default (checked 2026-08-10), so the shop is recognisable
+              the way the record is — and a name in small grey type never was.
+
+              Inside the sleeve rather than hanging off its corner: sitting
+              outside, the first tile's logo disappeared behind the next tile's
+              cover, because a grid item that paints later wins regardless of
+              what the one before it wanted. A stamp on the sleeve cannot
+              collide with anything.
+            -->
+            <img
+              v-if="DEALER_LOGOS[seed.dealer]"
+              :src="DEALER_LOGOS[seed.dealer]"
+              :alt="`Laden ${seed.dealer}`"
+              loading="lazy"
+              decoding="async"
+              class="absolute right-1.5 bottom-1.5 size-8 rounded-full ring-2 ring-fid-bg/80 bg-fid-inset object-cover"
+            />
+          </span>
+
+          <span class="flex min-w-0 flex-col">
+            <span class="truncate text-fid-sm font-medium text-fid-text">{{
+              seed.artist
+            }}</span>
+            <span class="truncate text-fid-sm text-fid-text-muted">{{ seed.title }}</span>
+            <span class="mt-1 text-fid-xs text-fid-text-muted">{{ seed.promise }}</span>
+          </span>
+        </button>
+      </li>
+    </ul>
+
+    <!--
+      Der eigene Link, für die Minderheit, die schon eine Platte im Sinn hat.
+
+      It used to sit above the covers, on the theory that somebody arriving
+      with a URL should not scroll past a stranger's choices. On a landing page
+      that theory costs everyone else a form field before they have seen
+      anything — so it stays one click away instead of first.
+    -->
+    <details class="text-fid-sm">
+      <summary class="fid-action cursor-pointer text-fid-text-muted">
+        Oder einen eigenen Discogs-Link einfügen
+      </summary>
+      <form class="mt-3 flex flex-wrap gap-2" @submit.prevent="pastedId && run(pastedId)">
+        <label class="sr-only" for="demo-url">Ein Angebot von Discogs</label>
         <input
           id="demo-url"
           v-model="url"
@@ -103,65 +217,50 @@ const shown = computed(() => result.value?.finds.slice(0, 5) ?? [])
         >
           Ansehen
         </button>
-      </div>
-    </form>
+      </form>
+    </details>
 
     <!--
-      Und für alle anderen: drei Platten, die sich täglich weiterdrehen. Jede
-      ist geprüft — der Laden führt nachweislich Nachbarn, sonst wäre die
-      Vorführung leer.
+      Der Preis wird genannt, bevor er ausgegeben wird — und währenddessen ein
+      Balken, der zeigt, wie weit es ist.
+
+      "Seite 3 von 5" is a fact somebody has to read and convert; a bar is the
+      same fact at a glance. Half a minute of nothing moving is the difference
+      between a screen that is working and one that is broken, and only one of
+      those gets waited out.
     -->
-    <div class="flex flex-col gap-2">
-      <p class="text-fid-sm text-fid-text-muted">Oder fang mit einer von diesen an:</p>
-      <ul class="flex flex-col gap-2">
-        <li v-for="seed in seeds" :key="seed.listingId">
-          <button
-            type="button"
-            :disabled="running"
-            class="flex w-full flex-col gap-1 rounded-fid-md border border-fid-border p-3 text-left transition-colors hover:border-fid-text-muted disabled:opacity-50"
-            @click="run(seed.listingId)"
-          >
-            <span class="flex flex-wrap items-baseline gap-x-2">
-              <span class="text-fid-base text-fid-text">
-                {{ seed.artist }} – {{ seed.title }}
-              </span>
-              <span class="fid-num text-fid-xs text-fid-text-muted">
-                {{ seed.label }} · {{ seed.year }}
-              </span>
-            </span>
-            <span class="text-fid-xs text-fid-text-muted">
-              {{ seed.promise }} · bei {{ seed.dealer }}
-            </span>
-          </button>
-        </li>
-      </ul>
+    <div v-if="running" class="flex flex-col gap-2">
+      <p class="text-fid-sm text-fid-text-muted" aria-live="polite">{{ status }}</p>
+      <div
+        class="h-1 w-full overflow-hidden rounded-full bg-fid-inset"
+        role="progressbar"
+        aria-label="Fortschritt"
+        :aria-valuenow="Math.round(share * 100)"
+        aria-valuemin="0"
+        aria-valuemax="100"
+      >
+        <div
+          class="h-full rounded-full bg-fid-accent transition-[width] duration-500 ease-out"
+          :style="{ width: `${Math.max(share * 100, 4)}%` }"
+        />
+      </div>
     </div>
-
-    <!--
-      Der Preis wird genannt, bevor er ausgegeben wird — wie überall sonst in
-      dieser App, wo ein Knopf das Anfragebudget kostet.
-    -->
-    <p v-if="running" class="text-fid-sm text-fid-text-muted" aria-live="polite">
-      {{ status }}
-    </p>
     <p v-else class="text-fid-xs text-fid-text-muted">
-      Kostet rund neun Anfragen und zwanzig Sekunden. Ohne Token erlaubt Discogs 25 Anfragen pro
-      Minute, deshalb geht es gemächlich zu.
+      Dauert eine knappe Minute. Ohne Token erlaubt Discogs 25 Anfragen pro Minute.
     </p>
 
-    <!-- Das Ergebnis. -->
+    <!-- Das Ergebnis, wieder als Cover. -->
     <section v-if="result" class="flex flex-col gap-3" aria-live="polite">
-      <div class="flex flex-col gap-1">
-        <h3 class="text-fid-base font-medium text-fid-text">
-          Bei {{ result.dealer }} passt dazu:
-        </h3>
-        <p class="text-fid-sm text-fid-text-muted">
-          Gelesen wurden
-          <span class="fid-num">{{ number.format(result.scanned) }}</span> der
-          <span class="fid-num">{{ number.format(result.listingsTotal) }}</span> Angebote – die
-          neuesten. Ein richtiger Dig liest den ganzen Laden.
-        </p>
-      </div>
+      <h3 class="flex items-center gap-2 text-fid-base font-medium text-fid-text">
+        <img
+          v-if="DEALER_LOGOS[result.dealer]"
+          :src="DEALER_LOGOS[result.dealer]"
+          alt=""
+          loading="lazy"
+          class="size-7 shrink-0 rounded-full bg-fid-inset object-cover"
+        />
+        Bei {{ result.dealer }} passt dazu
+      </h3>
 
       <p v-if="shown.length === 0" class="max-w-prose text-fid-base text-fid-text-muted">
         In diesem Ausschnitt lag nichts, das dazu passt. Das kommt vor: eine Platte allein ist
@@ -169,25 +268,58 @@ const shown = computed(() => result.value?.finds.slice(0, 5) ?? [])
         sieht das anders aus.
       </p>
 
-      <ul v-else class="flex flex-col gap-2">
-        <li
-          v-for="find in shown"
-          :key="find.listingId"
-          class="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-fid-md border border-fid-border p-3"
-        >
-          <span class="fid-num text-fid-base font-medium text-fid-text">{{ find.score }}</span>
-          <span class="min-w-0 grow text-fid-sm text-fid-text">
-            {{ find.artist }} – {{ find.title }}
-          </span>
+      <ul v-else class="grid grid-cols-2 gap-x-3 gap-y-5 @lg:grid-cols-3 @3xl:grid-cols-5">
+        <li v-for="find in shown" :key="find.listingId" class="flex min-w-0 flex-col gap-2">
           <a
-            class="fid-num text-fid-sm text-fid-text-muted underline underline-offset-4"
             :href="`https://www.discogs.com/sell/item/${find.listingId}`"
             target="_blank"
             rel="noopener noreferrer"
+            class="group relative block"
           >
-            {{ money(find.price, find.currency) ?? 'ansehen' }}
+            <img
+              v-if="coverFor(find.releaseId, find.thumbUrl)"
+              :src="coverFor(find.releaseId, find.thumbUrl)!.thumbUrl"
+              :srcset="
+                coverFor(find.releaseId)?.coverUrl
+                  ? `${coverFor(find.releaseId)!.thumbUrl} 150w, ${coverFor(find.releaseId)!.coverUrl} 600w`
+                  : undefined
+              "
+              sizes="(min-width: 640px) 200px, 45vw"
+              :alt="`${find.artist} – ${find.title}`"
+              loading="lazy"
+              decoding="async"
+              class="aspect-square w-full rounded-fid-cover bg-fid-inset object-cover transition-transform duration-200 group-hover:-translate-y-1"
+            />
+            <!-- Kein Bild ist der Normalfall, kein Fehler. -->
+            <span
+              v-else
+              class="flex aspect-square w-full items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted"
+              aria-hidden="true"
+            >
+              <FidIcon name="platte" :size="32" />
+            </span>
+
+            <span
+              class="fid-num absolute top-1.5 right-1.5 rounded-fid-sm bg-fid-n-990/80 px-2 py-1 text-fid-xs font-medium text-fid-n-50"
+              :aria-label="`Barry Score ${find.score} von 100`"
+            >
+              {{ find.score }}
+            </span>
           </a>
-          <span class="w-full text-fid-sm text-fid-text-muted">{{ find.reason }}</span>
+
+          <div class="flex min-w-0 flex-col">
+            <span class="truncate text-fid-sm font-medium text-fid-text">{{
+              find.artist
+            }}</span>
+            <span class="truncate text-fid-sm text-fid-text-muted">{{ find.title }}</span>
+            <span class="fid-num mt-1 flex flex-wrap gap-x-2 text-fid-xs text-fid-text-muted">
+              <span v-if="shapeOf(find.format)">{{ shapeOf(find.format) }}</span>
+              <span v-if="money(find.price, find.currency)">
+                {{ money(find.price, find.currency) }}
+              </span>
+            </span>
+            <span class="mt-1 text-fid-xs text-fid-text-muted">{{ find.reason }}</span>
+          </div>
         </li>
       </ul>
 
@@ -196,8 +328,9 @@ const shown = computed(() => result.value?.finds.slice(0, 5) ?? [])
         Fidelity dünner aus, als es ist.
       -->
       <p class="max-w-prose text-fid-xs text-fid-text-muted">
-        Das war eine Platte als Anhaltspunkt. Wantlist-Treffer, Produzenten und andere
-        Pressungen braucht es deine Sammlung dafür – die stärksten Signale fehlen hier also.
+        Gelesen wurden <span class="fid-num">{{ number.format(result.scanned) }}</span> der
+        <span class="fid-num">{{ number.format(result.listingsTotal) }}</span> Angebote, mit
+        einer Platte als Anhaltspunkt. Ein Dig liest den ganzen Laden und kennt deine Sammlung.
       </p>
     </section>
   </section>

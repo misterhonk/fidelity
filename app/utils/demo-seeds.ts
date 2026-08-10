@@ -11,12 +11,25 @@
  * be shown once they are six hours old (CLAUDE.md rule 4) — a price frozen
  * into the source would be stale the same afternoon and wrong by the week.
  * What is stored is what does not change: who made it, what it is called, on
- * which label, in which year, in whose shop. The demo fetches the rest live.
+ * which label, in which year, in whose shop, and what the sleeve looks like.
+ * The demo fetches the rest live.
  *
- * Each of these was verified against the live inventory on 2026-08-10, and
- * chosen because the shop demonstrably holds neighbours — records by the same
- * artist, on the same label, in the same catalogue series. A seed with nothing
- * around it produces an empty demo, which is worse than no demo.
+ * **Every promise below is a count, and every count was counted.** The shop's
+ * newest five hundred listings were read on 2026-08-10 and the neighbours
+ * tallied by hand; the numbers in `promise` are those tallies.
+ *
+ * That measurement replaced three seeds. Trio, Hubert Kah and Rheingold were
+ * here for their *label* and their *era* — a box of German new wave, seventeen
+ * singles of the same years — and with one seed neither can fire: the label
+ * signal needs two records on that label before it counts as a preference
+ * (`worker/match/index.ts`, `label.n >= 2`), and the inventory carries no
+ * genre at all. All three would have produced an empty demo. What replaced
+ * them are artists the shop stocks in depth, because a run of one artist is
+ * the one thing a single record can prove.
+ *
+ * The cost of that: this list no longer speaks for a shop's *sections*, only
+ * for its runs. Two seeds would buy the sections back, which is what
+ * `MAX_SEEDS` in worker/demo.ts is for and what nothing yet uses.
  *
  * A shop sells records, so one of these will eventually be gone. That is not a
  * failure to prevent but one to survive: the demo says so and offers the
@@ -24,7 +37,7 @@
  *
  * **The order is the interleaving, not a ranking.** Three are shown at a time
  * and they are taken consecutively, so a list grouped by genre would offer
- * three German new-wave singles from one shop on a Tuesday and three techno
+ * three German rock records from one shop on a Tuesday and three techno
  * twelve-inches on a Wednesday. Sorted the way it is, every window of three
  * spans different decades, different music and different shops — which is the
  * whole point of a list that is meant to look welcoming rather than niche.
@@ -36,8 +49,52 @@ export interface DemoSeedOption {
   label: string
   year: number
   dealer: string
+  /**
+   * Das Cover, in klein und in groß.
+   *
+   * Frozen into the source, and that is deliberate. The addresses come from
+   * the release, not the offer, so they are database facts rather than
+   * marketplace data and rule 4 does not touch them — a cover does not go
+   * stale in six hours. Fetching them live would mean thirteen requests on
+   * page load against a 25-a-minute budget, to draw a screen that has not
+   * been asked to do anything yet.
+   *
+   * Both sizes because both are used: 150 px is the whole picture on a phone
+   * and a waste of nothing, 600 px is what a two-column tile needs on a
+   * desktop and on every retina screen. `srcset` picks; neither is fetched
+   * unless it is on screen.
+   */
+  thumbUrl: string
+  coverUrl: string
   /** What this one is meant to show — the honest reason it is in the list. */
   promise: string
+}
+
+/**
+ * Die Ladenschilder.
+ *
+ * `/users/{name}` carries an `avatar_url`, and all four shops here have set a
+ * real one rather than the grey default (checked 2026-08-10) — so a shop can
+ * be recognised by its picture the way a record is. Frozen for the same reason
+ * as the covers: a logo is not worth a request on a page that has not been
+ * asked to do anything.
+ */
+const IMG = 'https://i.discogs.com'
+const AVATAR = 'rs:fill/g:sm/q:40/h:500/w:500'
+
+export const DEALER_LOGOS: Record<string, string> = {
+  schoenwettermusik: `${IMG}/lQmsMJ91RK2Pj7oSIVWLD-3yTDH0nRCwa_HqaNml95Q/${AVATAR}/czM6Ly9kaXNjb2dz/LXVzZXItYXZhdGFy/cy9VLTEwNTAxMDMt/MTQ0ODYzNzI0MC5q/cGVn.jpeg`,
+  '430AM_Studio': `${IMG}/DT0JilrZ83BjLYbMnQYLmbmbYOJ0Ico1mJ6K9o64ETk/${AVATAR}/czM6Ly9kaXNjb2dz/LXVzZXItYXZhdGFy/cy9VLTI1OTAyMi0x/NTczMDQyNzMyLmpw/ZWc.jpeg`,
+  'spirax.records': `${IMG}/AkdbORjtMFw8oz5F3LRS0cbAdseemcRpcMnW7lODVbw/${AVATAR}/czM6Ly9kaXNjb2dz/LXVzZXItYXZhdGFy/cy9VLTI3MzYwNzM3/LTE3NzQ1MzA1MjQu/cG5n.jpeg`,
+  fatplastics: `${IMG}/Yh2vNtZWtkW4wVdpH0425DgUxSqdz0qDDQfZwLVDCQk/${AVATAR}/czM6Ly9kaXNjb2dz/LXVzZXItYXZhdGFy/cy9VLTcxMjU5NS0x/NDEzMjcwMDY2Lmpw/ZWc.jpeg`,
+}
+
+/** Both sizes of one cover, from the part of the address that differs. */
+function cover(thumbHash: string, coverHash: string, size: string, path: string) {
+  return {
+    thumbUrl: `${IMG}/${thumbHash}/rs:fit/g:sm/q:40/h:150/w:150/${path}.jpeg`,
+    coverUrl: `${IMG}/${coverHash}/rs:fit/g:sm/q:90/${size}/${path}.jpeg`,
+  }
 }
 
 export const DEMO_SEEDS: DemoSeedOption[] = [
@@ -48,7 +105,13 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'Kling Klang',
     year: 1978,
     dealer: 'schoenwettermusik',
-    promise: 'Der Laden hat noch eine zweite Kraftwerk-Single von 1978.',
+    promise: 'Noch eine Kraftwerk-Single von 1978.',
+    ...cover(
+      'zbmCQ3oQX7MDzH86obw83VMZurH6H-iuVgLLi-HEYxA',
+      '3owBPyalmlALOmsZAhko6JXvKjCU6CQ4SnkkxbUdHOw',
+      'h:594/w:600',
+      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTYzNjE1/OS0xMTQxNTUxMTA2/LmpwZWc',
+    ),
   },
   {
     listingId: 3921870991,
@@ -57,7 +120,13 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'R & S Records',
     year: 2014,
     dealer: '430AM_Studio',
-    promise: 'Zwei weitere Beltram, dazu vier auf R & S.',
+    promise: 'Noch ein Beltram im selben Laden.',
+    ...cover(
+      'v33DzOvDLL31wLhJNIhH9nX7mRjQV_msHqAOkXgLAuI',
+      'p0w54Y-lMjsd33l5NFvO9lpq-JBTVcZ1Ef-LVxhOVd0',
+      'h:592/w:600',
+      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTYwODkx/OTAtMTU5MzQ2NDUw/Mi00Nzg3LmpwZWc',
+    ),
   },
   {
     listingId: 4308995931,
@@ -66,7 +135,13 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'Columbia',
     year: 1999,
     dealer: 'schoenwettermusik',
-    promise: 'Sieben weitere Clash-Platten stehen dort im Regal.',
+    promise: 'Sieben weitere Clash-Platten im Regal.',
+    ...cover(
+      'R2k8XMELB8QRy7vkkLHq1di6iJ4YnHJGFt-h1bNuYTc',
+      'Wthl0F7gLYCvuFtZpQSYfhco_3hfArxGdgczoADJrp4',
+      'h:597/w:594',
+      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMxNjYw/MjEtMTM0ODM0MjY3/MS05NDgyLmpwZWc',
+    ),
   },
   {
     listingId: 3721514041,
@@ -76,24 +151,50 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     year: 2023,
     dealer: '430AM_Studio',
     promise: 'Talkie Walkie steht im selben Laden.',
+    ...cover(
+      'XrLzzdMAIL5QaHVghvH0DZQwjQZybt8gFQIA_pDOIW0',
+      'QxsMavZoWkfRNKhrkblNR8HwHXZXysy8hFhOCR6_tac',
+      'h:594/w:600',
+      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMxNDE5/MzY4LTE3MzQ1Mjcx/ODMtNTEwNi5qcGVn',
+    ),
   },
   {
-    listingId: 4309361919,
-    artist: 'Trio',
-    title: 'Herz Ist Trumpf',
-    label: 'Mercury',
-    year: 1983,
+    listingId: 4309125996,
+    artist: 'Die Toten Hosen',
+    title: 'Reich & Sexy',
+    label: 'Totenkopf',
+    year: 1993,
     dealer: 'schoenwettermusik',
-    promise: 'Mitten in einer Kiste Neuer Deutscher Welle von 1982/83.',
+    promise: 'Sechs weitere von den Toten Hosen.',
+    ...cover(
+      'MEQzsnWMz7dZb67FuSiPQ4e-yzxYhDml2DPe8Plzwig',
+      'RiglYEbPKn47qsmWrM3fUomHKlzfqqsk9nVLzLYuFpE',
+      'h:593/w:600',
+      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ1MjQx/Ni0xNzA2MjYwMzc1/LTEyNTMuanBlZw',
+    ),
   },
   {
-    listingId: 4261867251,
+    /*
+     * Audion – Sky/Motormouth Remixes, nicht Suckfish.
+     *
+     * Suckfish sat here and made the same point about the SPC catalogue run,
+     * but Discogs holds no image for that pressing — one grey square in a row
+     * of three covers, on the one screen whose whole job is to look like a
+     * record shop. Same artist, same label, same series, and a sleeve.
+     */
+    listingId: 4224333861,
     artist: 'Audion',
-    title: 'Suckfish',
+    title: 'Sky / Motormouth Remixes',
     label: 'Spectral Sound',
-    year: 2005,
+    year: 2014,
     dealer: 'spirax.records',
-    promise: 'Die Serie SPC-28 bis SPC-52 liegt dort fast lückenlos.',
+    promise: 'Noch ein Audion auf Spectral Sound.',
+    ...cover(
+      'mENrQPhtGSDdoaQL5V8qkZMXeVRgmqWeF3MEyHPkmM8',
+      'k9nPQmhkjtvRwZlV4iamWl6zH7-eNRjJgW1hf2KQYaI',
+      'h:600/w:600',
+      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTU4NjYw/MDYtMTQxMDA0Mzcw/NS02NTcxLmpwZWc',
+    ),
   },
   {
     listingId: 4309286094,
@@ -102,7 +203,13 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'MCA Records',
     year: 2002,
     dealer: 'schoenwettermusik',
-    promise: 'Vierzehn weitere von The Who — der dichteste Fund im Laden.',
+    promise: 'Vierzehn weitere von The Who.',
+    ...cover(
+      's4kc87yQLO4Kz3w6Yo2HrYM0gcbMQNnJPkzbYAugwxM',
+      '31vKgRzBBOtonidx6mCfCK9ViSi82lkxCwr-M3iDSyM',
+      'h:544/w:600',
+      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI5OTIz/MzYtMTU0MTM5NjM0/Ni03NzAzLmpwZWc',
+    ),
   },
   {
     listingId: 3446612022,
@@ -111,16 +218,28 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'Parlophone',
     year: 1986,
     dealer: '430AM_Studio',
-    promise: 'Noch eine Pet-Shop-Boys-Platte und sechs auf Parlophone.',
+    promise: 'Noch eine Pet-Shop-Boys-Platte.',
+    ...cover(
+      'tIK3PB3VkvqYdcRztjk7DfLd8_wCqnCQFU1UeX73p7M',
+      'R7jVaCtzU0-D29eBIIkkFYXy_dW-KVs6ErdRmNFOL6I',
+      'h:592/w:600',
+      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE1MTI2/MC0xNzEzNzk5NDIy/LTEwODQuanBlZw',
+    ),
   },
   {
-    listingId: 4309363227,
-    artist: 'Hubert Kah',
-    title: 'Rosemarie',
-    label: 'Polydor',
-    year: 1982,
+    listingId: 4309359201,
+    artist: 'Deep Purple',
+    title: 'Machine Head',
+    label: 'Purple Records',
+    year: 2012,
     dealer: 'schoenwettermusik',
-    promise: 'Siebzehn Singles derselben Jahre stehen daneben.',
+    promise: 'Neun weitere Deep-Purple-Platten liegen dort.',
+    ...cover(
+      'f35uGihhfUzFRw8rbyrwPJBaaqdSmlVqJIujfU_7JZk',
+      'wDAri2X3oMTcU1Mi0vPdGus7L94bXcqiWnNfjlcHi_w',
+      'h:600/w:566',
+      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM5NjA1/MDAtMTY4MjgzODg5/OS03NDE4LmpwZWc',
+    ),
   },
   {
     listingId: 4274557002,
@@ -129,7 +248,13 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'eudemonia',
     year: 2024,
     dealer: 'spirax.records',
-    promise: 'Zehn weitere Platten desselben Künstlers im selben Laden.',
+    promise: 'Zehn weitere desselben Künstlers.',
+    ...cover(
+      'TptviHATua_z2bAdfigEHjyR7ZPwf-VYAds_uKalA-U',
+      'Q-p3Agll867rhvRC_nvOXsNYdzdUcLSU_9jmoOJ4Nb8',
+      'h:600/w:600',
+      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMyMDQ0/MzYyLTE3MjkzMjI0/NDEtMTIzMS5qcGVn',
+    ),
   },
   {
     listingId: 4309120548,
@@ -139,6 +264,12 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     year: 2003,
     dealer: 'schoenwettermusik',
     promise: 'Zwölf weitere Dylan-Platten liegen dort.',
+    ...cover(
+      'OPx_NImYs-Elj4yLSbhPJOxUAaCiH65zEkXuDxrjYKQ',
+      'TzLVG4AyfZO8Y9cTcLVdScO-7e7UwkwNBsIhmvlIp5g',
+      'h:600/w:600',
+      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM5NjIz/NS0xNjQ4NTQ4Nzk1/LTMzMzkuanBlZw',
+    ),
   },
   {
     listingId: 4218677304,
@@ -147,21 +278,39 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'Freude Am Tanzen',
     year: 2009,
     dealer: 'fatplastics',
-    promise: 'Zwei weitere Hemmann, sechzehn auf Freude Am Tanzen, dazu die Katalogserie.',
+    promise: 'Zwei weitere Hemmann im Laden.',
+    ...cover(
+      'PTGyNjQoisUYJsn1DThMEXbcIWRVVYpu6mVrDn9K-Sw',
+      '3ayQvChu2PrjH073K9jfbGSm7K-hPUrjnNbd6-r2EXM',
+      'h:600/w:592',
+      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE3ODY0/MzUtMTM1ODY3MjI0/NS05NDQzLmpwZWc',
+    ),
   },
   {
-    listingId: 4309358271,
-    artist: 'Rheingold',
-    title: 'Dreiklangs-Dimensionen',
-    label: 'Welt-Rekord',
-    year: 1981,
+    listingId: 4309372362,
+    artist: 'Puhdys',
+    title: "Hey, Wir Woll'n Die Eisbär'n Sehn!",
+    label: 'BuschFunk',
+    year: 2009,
     dealer: 'schoenwettermusik',
-    promise: 'Deutsche Elektronik von 1981, mit Nachbarn.',
+    promise: 'Sechsundzwanzig weitere Puhdys stehen dort.',
+    ...cover(
+      'HBjabLWOMPAd3VnhRNq773OC3oe-WPZ1GFmlx0ph22c',
+      'id7dMpDjcD2lMW166mqfrr_INiITe9ksBXF1HjvG3aE',
+      'h:446/w:500',
+      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTgwODY4/ODktMTQ1NDg3MzI0/My0zMTE1LmpwZWc',
+    ),
   },
 ]
 
-/** How many are offered at once. Three is a choice; ten is a catalogue. */
-export const SEEDS_SHOWN = 3
+/**
+ * How many are offered at once. Four is a choice; ten is a catalogue.
+ *
+ * Four rather than three because the grid is two columns on a phone, and three
+ * tiles in a two-column grid leave a hole where the fourth should be. Four
+ * fills it, and on a wide screen it is one row of four instead of three.
+ */
+export const SEEDS_SHOWN = 4
 
 /**
  * Drei aus dem Vorrat, die sich täglich weiterdrehen.

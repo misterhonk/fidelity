@@ -13,6 +13,7 @@
  * The Personal Access Token crosses it exactly once, on sign-in. It never
  * comes back the other way (CLAUDE.md rule 6).
  */
+import type { CoverProgress } from '~~/worker/covers'
 import type { DemoProgress, DemoResult } from '~~/worker/demo'
 import type {
   BasketPlan,
@@ -109,6 +110,30 @@ export interface WorkerContract {
    * mock-up, which is the only reason it is worth showing.
    */
   'demo.run': { params: { listingIds: number[] }; progress: DemoProgress; result: DemoResult }
+  /**
+   * Cover, die schon da sind. Kostet keinen Request.
+   *
+   * Split from the fetch on purpose: every screen asks this first and gets an
+   * answer offline, immediately, for the covers the collection sync already
+   * paid for. Only what is still missing turns into requests, and only then.
+   */
+  'covers.known': {
+    params: { releaseIds: number[] }
+    progress: never
+    result: Record<number, { thumbUrl: string; coverUrl: string }>
+  }
+  /**
+   * Die fehlenden nachholen — ein Bildschirm voll, nicht ein Laden voll.
+   *
+   * The marketplace returns listings without images (worker/covers.ts has the
+   * measurement), so this is the only way a find ever gets a sleeve. Bounded
+   * per call and never asked twice for the same release.
+   */
+  'covers.fetch': {
+    params: { releaseIds: number[]; limit?: number }
+    progress: CoverProgress
+    result: Record<number, { thumbUrl: string; coverUrl: string }>
+  }
   /**
    * Where the shelf has holes, and which labels you really collect. Costs no
    * requests: it is a reading of the horizon that already exists.

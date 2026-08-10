@@ -528,6 +528,23 @@ export async function runDig(
       })
 
     total = profile.num_for_sale ?? 0
+
+    /*
+     * Das Ladenschild, sobald es vorbeikommt.
+     *
+     * Written here rather than threaded through to the end of the dig, because
+     * this is the one moment the profile is in hand — and a scan that is
+     * cancelled four minutes later should still have learned what the shop
+     * looks like. Merged onto whatever row exists so a postage table and the
+     * watch state survive, same rule as `finishDealer`.
+     */
+    if (profile.avatar_url) {
+      const row = await ctx.db.get('dealers', options.dealer)
+      await ctx.db.put('dealers', {
+        ...(row ?? blankDealer(options.dealer)),
+        avatarUrl: profile.avatar_url,
+      })
+    }
   }
 
   ctx.since = anchor

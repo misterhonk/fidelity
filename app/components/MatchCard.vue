@@ -10,6 +10,18 @@ const verdict = computed(() => verdicts.value[props.match.listingId])
 const { show } = useReleaseSheet()
 const { contains, toggle } = useBasket()
 
+/**
+ * Das Cover, und die Bitte darum, sobald die Karte ins Bild kommt.
+ *
+ * Asked for here rather than by the list, because only the card knows when it
+ * is actually on screen — and each one costs a request (worker/covers.ts).
+ */
+const { coverFor, watchCover } = useCovers()
+const cover = computed(() => coverFor(props.match.releaseId, props.match.thumbUrl))
+
+const root = useTemplateRef<HTMLElement>('root')
+onMounted(() => watchCover(root.value, props.match.releaseId))
+
 const band = computed(() => {
   if (props.match.score >= 85) return { key: 'S', label: 'Side One, Track One' }
   if (props.match.score >= 70) return { key: 'A', label: 'Top Five' }
@@ -42,6 +54,7 @@ const meta = computed(() => {
 
 <template>
   <article
+    ref="root"
     class="@container flex scroll-mt-28 flex-col gap-3 rounded-fid-md border border-fid-border bg-fid-surface p-4"
   >
     <div class="flex items-start gap-4">
@@ -49,10 +62,19 @@ const meta = computed(() => {
         The cover is fetched by the browser, lazily and only in the viewport.
         i.discogs.com has its own Cloudflare limit that has nothing to do with
         the API budget, so it is never fetched actively.
+
+        Where the address comes from is the interesting part: not from the
+        match. `/users/{u}/inventory` returns `release.thumbnail` as an empty
+        string — 1.200 of 1.200 rows across four shops, measured 2026-08-10 —
+        so `match.thumbUrl` has been null for every find this app ever made and
+        this card has been drawing the placeholder since it was written. The
+        picture comes from the shared store instead (app/composables/useCovers).
       -->
       <img
-        v-if="match.thumbUrl"
-        :src="match.thumbUrl"
+        v-if="cover"
+        :src="cover.thumbUrl"
+        :srcset="cover.coverUrl ? `${cover.thumbUrl} 150w, ${cover.coverUrl} 600w` : undefined"
+        sizes="72px"
         alt=""
         loading="lazy"
         decoding="async"

@@ -128,6 +128,9 @@ test.describe('on a phone', () => {
      * is the first one a stranger touches.
      */
     const demoField = page.locator('#demo-url')
+    // Behind a summary now: the covers are the invitation and the paste field
+    // is for the minority who arrive with a URL already in hand.
+    await page.getByText('Oder einen eigenen Discogs-Link einfügen').click()
     await expect(demoField).toBeVisible()
     expect(
       await demoField.evaluate((el) => parseFloat(getComputedStyle(el).fontSize)),

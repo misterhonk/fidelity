@@ -70,6 +70,7 @@ describe('database schema', () => {
     expect([...db.objectStoreNames].sort()).toEqual([
       'basket',
       'collection',
+      'covers',
       'dealers',
       'digs',
       'feedback',

@@ -60,6 +60,12 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
         tx.objectStore('meta').delete('tasteProfile')
       }
 
+      if (oldVersion < 4) {
+        // v4 adds the cover store. Purely additive — no existing row changes
+        // shape, so nothing is cleared and nobody has to resync to get it.
+        db.createObjectStore('covers', { keyPath: 'releaseId' })
+      }
+
       // Future versions go here. The rule: never migrate destructively unless
       // the state can be rebuilt from the API — which, so far, all of it can.
     },

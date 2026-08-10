@@ -12,6 +12,15 @@ export const dealerSchema = z.object({
   seller_rating: z.number().optional(),
   seller_num_ratings: z.number().int().optional(),
   location: z.string().optional(),
+  /**
+   * Das Ladenschild.
+   *
+   * Free — this endpoint is fetched anyway, once per dig, to find out how big
+   * the shop is. Most sellers have set one; the ones who have not get Discogs'
+   * grey default, which is why the screens fall back to initials rather than
+   * drawing somebody else's placeholder.
+   */
+  avatar_url: z.string().optional(),
 })
 
 /**

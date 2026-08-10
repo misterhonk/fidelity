@@ -131,7 +131,7 @@ const scanned = computed(() => {
           v-for="dealer in dealers"
           :key="dealer.username"
           type="button"
-          class="rounded-fid-sm border px-3 py-2 text-fid-sm transition-colors"
+          class="flex items-center gap-2 rounded-fid-sm border py-2 pr-3 pl-2 text-fid-sm transition-colors"
           :class="
             dealer.username === selected
               ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
@@ -139,6 +139,8 @@ const scanned = computed(() => {
           "
           @click="select(dealer.username)"
         >
+          <!-- Ein Laden ist ein Ort, kein String. -->
+          <ShopLogo :dealer="dealer.username" :avatar-url="dealer.avatarUrl" :size="24" />
           {{ dealer.displayName || dealer.username }}
         </button>
       </nav>

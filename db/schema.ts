@@ -21,8 +21,10 @@ export const DB_NAME = 'fidelity'
 /**
  * 2 — added artistNames/labelNames to the mirrored rows. See db/open.ts for
  * why the upgrade drops and refetches rather than backfilling.
+ *
+ * 4 — added the `covers` store. Additive: nothing existing is touched.
  */
-export const DB_VERSION = 3
+export const DB_VERSION = 4
 
 /**
  * `meta` is a small key-value store rather than nine one-row stores. The union
@@ -94,4 +96,37 @@ export interface FidelityDB extends DBSchema {
   }
   basket: { key: number; value: BasketItem }
   feedback: { key: number; value: Feedback }
+  /**
+   * Cover, nach Release-Id — die einzige Ablage, die alle Bildschirme teilen.
+   *
+   * It exists because the marketplace will not hand them over. Every one of
+   * 1.200 inventory rows measured on 2026-08-10 came back with an empty
+   * `release.thumbnail`, across four shops, while the releases behind them held
+   * 1 to 29 images each. So `Match.thumbUrl` was null for every find the app
+   * has ever produced, and every result card drew the grey placeholder.
+   *
+   * Keyed by release rather than by listing on purpose: a release is bought
+   * once and seen many times — in a dig, in the basket, on the watchlist, in
+   * the shelf — and the same picture serves all of them. The collection sync
+   * fills most of it for nothing (`basic_information` *does* carry a cover),
+   * and the rest is fetched only for records somebody actually looks at.
+   */
+  covers: { key: number; value: CoverEntry }
+}
+
+export interface CoverEntry {
+  releaseId: number
+  /** 150 px, for rows and small tiles. */
+  thumbUrl: string
+  /** ~600 px, for anything larger than a thumbnail. Empty when there is none. */
+  coverUrl: string
+  /**
+   * When this was written, epoch ms.
+   *
+   * Not an expiry — a sleeve does not change, and re-fetching it would spend
+   * the request budget on a picture that is already correct. It is here so a
+   * negative result (a release Discogs holds no image for) can be told apart
+   * from one never asked about, without storing a third state.
+   */
+  fetchedAt: number
 }

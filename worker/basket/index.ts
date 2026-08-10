@@ -169,6 +169,7 @@ export function summarise(
   return {
     dealer: lines[0]?.dealer ?? '',
     displayName: dealer?.displayName || (lines[0]?.dealer ?? ''),
+    avatarUrl: dealer?.avatarUrl,
     // Both filled by the caller, which is the only place that can see the digs.
     candidates: [],
     dig: null,
