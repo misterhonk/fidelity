@@ -150,6 +150,58 @@ Besteht seit spätestens 2018. Discogs: *„this is not a limitation we can lift
 - Über 20.000: vollständige Abdeckung ist **unmöglich**. Nur der Händler selbst kann
   per `/inventory/export` vollständig exportieren
 
+#### Was die Sortierschlüssel wirklich hergeben
+
+Am 2026-08-10 an `juno_records` (42.873 Angebote) nachgemessen. Sieben Schlüssel liefern
+sieben verschiedene erste Seiten, also sieben verschiedene Fenster:
+
+| `sort` | erstes Item asc | | `sort` | erstes Item asc |
+|---|---|---|---|---|
+| `listed` | 4073868451 | | `label` | 4074033010 |
+| `price` | 4073875114 | | `catno` | 4249307469 |
+| `item` | 4073919160 | | `audio` | 4115872920 |
+| `artist` | 4074134563 | | `status` | (bei fremden ignoriert) |
+
+Jeder Schlüssel × `asc`/`desc` = 20.000 aus 42.873, also 46,6 %. Der Rest ist Kombinatorik:
+wären die Reihenfolgen unabhängig, bliebe nach *k* Schlüsseln ein Anteil von 0,534^k übrig.
+
+| Schlüssel | Requests | Zeit bei 1,2 s | ungesehen (idealisiert) |
+|---|---|---|---|
+| 1 | 200 | 4 min | 53 % |
+| 3 | 600 | 12 min | 15 % |
+| 5 | 1.000 | 20 min | 4,3 % |
+| 7 | 1.400 | 28 min | 1,2 % |
+
+**Die Zahlen sind eine Obergrenze, keine Zusage.** `artist`, `label` und `catno` korrelieren
+stark – dieselben Platten stehen in allen dreien nebeneinander. Wirklich unabhängig sind nur
+`price`, `listed` und `audio`. Realistisch also eher „sehr hoch" als „98,8 %", und **nie
+beweisbar**: Ein Angebot, das in jeder Reihenfolge in der Mitte liegt, ist von außen nicht
+sichtbar. Coverage deshalb immer als Zahl anzeigen, nie als Häkchen.
+
+#### Der Weg, der wirklich zur Vollständigkeit führt: Zeit
+
+`sort=listed&sort_order=desc` liefert die **neuesten 10.000**. Wer einen Laden regelmäßig
+scannt, sammelt lückenlos alles ein, was seit dem ersten Scan dazugekommen ist – 100 Requests
+je Durchgang, zwei Minuten. Nach einigen Monaten ist der lokale Bestand für diesen Händler
+vollständiger als jeder Einzelscan es je sein könnte, und der Altbestand füllt sich nebenbei
+über die Tiefenscans auf.
+
+Das ist der Grund, warum die Watchlist (M6) und die lokale Ablage keine Bequemlichkeit sind,
+sondern die eigentliche Antwort auf die 10.000er-Wand.
+
+#### Was **nicht** geht
+
+- **`per_page` hochdrehen.** 250 und 500 werden beide auf 100 geklemmt, gemessen.
+- **Kleinere Seiten.** `page=110&per_page=50` ist Offset 5.450 und trotzdem 403 – die Grenze
+  ist die Seitenzahl, nicht die Position.
+- **Scrapen.** `discogs.com/sell/…` liefert alles, ist aber CLAUDE.md Regel 5.
+- **`/marketplace/search`.** Undokumentiert, ebenfalls Regel 5.
+- **Undokumentierte Filterparameter.** Falls es welche gibt: eine zweite Ausnahme braucht eine
+  zweite ADR, so wie ADR-009 für die Freundesliste.
+- **Fremde Inventare exportieren.** `/inventory/export` gilt nur für das eigene. Ein Händler
+  kann seine CSV aber herausgeben – für einen Stammladen die einzige Methode mit einer echten
+  Vollständigkeitsgarantie.
+
 ### Antwortstruktur (real, reicher als die Doku)
 
 ```jsonc
