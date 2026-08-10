@@ -112,7 +112,7 @@ function money(value: number | null, currency: string | null) {
       are basements.
     -->
     <div class="flex items-baseline justify-between gap-3">
-      <h1 class="text-fid-xl font-bold text-fid-text">Im Laden</h1>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Im Laden</h1>
       <NuxtLink
         class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
         to="/"

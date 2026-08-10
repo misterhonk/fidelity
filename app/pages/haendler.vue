@@ -97,7 +97,7 @@ const scanned = computed(() => {
 <template>
   <main class="@container mx-auto flex w-full max-w-[80rem] flex-col gap-8 px-6 py-16">
     <div class="flex flex-col gap-3">
-      <h1 class="text-fid-2xl font-bold text-fid-text">The Clerk's Take</h1>
+      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">The Clerk's Take</h1>
       <p class="text-fid-base text-fid-text-muted">
         Was ein Laden eigentlich führt – und wie gut er zu dir passt.
       </p>

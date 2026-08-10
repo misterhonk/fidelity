@@ -30,6 +30,35 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  /*
+   * Three type sets, all self-hosted.
+   *
+   * @nuxt/fonts downloads at build time and serves from /_fonts/, so nothing
+   * is fetched from a third party while somebody uses the app — which is the
+   * same promise docs/09 makes about everything else here.
+   *
+   * All three are declared rather than only the chosen one: the point is to
+   * look at them on real data before deciding, and a preview that needs a
+   * rebuild per candidate is not a preview.
+   */
+  fonts: {
+    /*
+     * The three sets live in `--fid-font-*` custom properties, because that is
+     * where the tokens put typography and no component should name a face.
+     * The scanner looks at `font-family` declarations by default and would see
+     * nothing but `var(...)` — so it is told to read the variables too.
+     */
+    processCSSVariables: true,
+    families: [
+      { name: 'General Sans', provider: 'fontshare', weights: [400, 500, 600, 700] },
+      { name: 'Switzer', provider: 'fontshare', weights: [400, 500, 600, 700] },
+      { name: 'Clash Display', provider: 'fontshare', weights: [500, 600, 700] },
+      { name: 'Array', provider: 'fontshare', weights: [400, 700] },
+      { name: 'Chivo Mono', provider: 'google', weights: [400, 500, 600] },
+      { name: 'JetBrains Mono', provider: 'google', weights: [400, 500, 600] },
+    ],
+  },
+
   app: {
     head: {
       // Nothing here is meant for a search index (docs/00 §9). robots.txt asks

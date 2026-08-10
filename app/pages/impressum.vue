@@ -11,7 +11,7 @@ useSeoMeta({ title: 'Impressum', description: 'Anbieterkennzeichnung.' })
       ← Championship
     </NuxtLink>
 
-    <h1 class="text-fid-2xl font-bold text-fid-text">Impressum</h1>
+    <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Impressum</h1>
 
     <!--
       Deliberately left for the operator to fill in. A placeholder address

@@ -48,7 +48,7 @@ const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
       is unreadable however much room there is.
     -->
     <div class="flex flex-col gap-3">
-      <h1 class="text-fid-2xl font-bold text-fid-text">Deine Landkarte</h1>
+      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Deine Landkarte</h1>
       <CollectionTabs />
       <p v-if="profile" class="max-w-prose text-fid-base text-fid-text-muted">
         <span class="fid-num">{{ profile.releaseCount }}</span> Platten. Was daraus über deinen

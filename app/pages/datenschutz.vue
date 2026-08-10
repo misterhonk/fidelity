@@ -14,7 +14,7 @@ useSeoMeta({
       ← Championship
     </NuxtLink>
 
-    <h1 class="text-fid-2xl font-bold text-fid-text">Datenschutz</h1>
+    <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Datenschutz</h1>
 
     <!--
       docs/09 §3: there is no server, so there is almost nothing to declare.

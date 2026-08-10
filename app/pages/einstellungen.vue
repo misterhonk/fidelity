@@ -33,7 +33,7 @@ const usage = computed(() => {
 <template>
   <main class="@container mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
     <header class="flex flex-col gap-1">
-      <h1 class="text-fid-2xl font-bold text-fid-text">Einstellungen</h1>
+      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Einstellungen</h1>
       <p class="text-fid-base text-fid-text-muted">
         Alles, was man einmal einrichtet und danach in Ruhe lässt.
       </p>
@@ -105,6 +105,14 @@ const usage = computed(() => {
         description="Deine Sammlung einmal ausgeklappt. Danach kostet jeder Dig keine zusätzlichen Abfragen."
       >
         <HorizonBuild />
+      </SettingsCard>
+
+      <SettingsCard
+        anchor="schrift"
+        title="Schrift"
+        description="Drei Sätze, umschaltbar. Sieh sie dir an echten Listen an, nicht hier."
+      >
+        <TypesetPicker />
       </SettingsCard>
 
       <SettingsCard

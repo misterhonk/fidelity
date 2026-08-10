@@ -28,15 +28,67 @@
   color-scheme: dark;
 }
 
+/*
+ * Three type sets, switchable while looking at real data.
+ *
+ * Choosing a typeface from a specimen is choosing it in the wrong place. What
+ * matters is a hit list at 13px, a shelf of catalogue numbers and a headline
+ * over a dark screen — so all three ship, `data-type` on <html> picks one, and
+ * the decision gets made in front of the thing it affects.
+ *
+ * Everything below resolves through --fid-font-*, which is where the tokens
+ * put it. No component names a typeface.
+ */
+:root,
+:root[data-type='kontor'] {
+  /* Warm, modern, closest to the reference: myplastic.app pairs a neutral
+     sans with Chivo Mono for values. */
+  --fid-font-sans: 'General Sans', ui-sans-serif, system-ui, sans-serif;
+  --fid-font-mono: 'Chivo Mono', ui-monospace, monospace;
+  --fid-font-display: 'Clash Display', var(--fid-font-sans);
+}
+
+:root[data-type='schweiz'] {
+  /* The orthodox one. No display face at all — hierarchy through weight and
+     space, which is the Rams answer to "we need something with character". */
+  --fid-font-sans: 'Switzer', ui-sans-serif, system-ui, sans-serif;
+  --fid-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --fid-font-display: 'Switzer', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root[data-type='presswerk'] {
+  /* Technical. Array is condensed like the type on a record spine, which is
+     where this app's headlines actually live. */
+  --fid-font-sans: 'Switzer', ui-sans-serif, system-ui, sans-serif;
+  --fid-font-mono: 'Chivo Mono', ui-monospace, monospace;
+  --fid-font-display: 'Array', var(--fid-font-sans);
+}
+
 body {
   background-color: var(--fid-bg);
   color: var(--fid-text);
   font-family: var(--fid-font-sans);
 }
 
-/* Mandatory on prices, years, catalogue numbers and scores. */
+/*
+ * Headlines and the wordmark. Everything else stays in the text face — a
+ * display type used twice is a display type; used everywhere it is noise.
+ */
+.fid-display {
+  font-family: var(--fid-font-display);
+  letter-spacing: -0.015em;
+}
+
+/*
+ * Prices, years, catalogue numbers, scores.
+ *
+ * Tabular figures so columns line up, and the mono face because these are
+ * codes rather than prose — the distinction the tokens have made since M0.
+ */
 .fid-num {
+  font-family: var(--fid-font-mono);
   font-variant-numeric: tabular-nums;
+  font-feature-settings: 'zero' 1;
 }
 
 /*

@@ -55,7 +55,7 @@ function waiting(addedAt: string): string | null {
 <template>
   <main class="@container mx-auto flex w-full max-w-[80rem] flex-col gap-6 px-6 py-10">
     <header class="flex flex-col gap-3">
-      <h1 class="text-fid-2xl font-bold text-fid-text">Wantlist</h1>
+      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Wantlist</h1>
       <CollectionTabs />
     </header>
 
