@@ -7,7 +7,7 @@ import type {
   WantlistItem,
 } from '#shared/types'
 
-import { matchesFormat } from './format'
+import { matchesFormat } from '#shared/format'
 import {
   artistGap,
   catalogueRun,

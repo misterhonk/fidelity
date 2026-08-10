@@ -2,7 +2,7 @@ import { hitsFor, type HorizonLookup } from '../horizon/lookup'
 import { parseCatno } from '../horizon/pack'
 import type { Signal } from '#shared/types'
 
-import { matchesFormat, sameMedium } from './format'
+import { matchesFormat, sameMedium } from '#shared/format'
 
 /**
  * The five signals the horizon unlocks (docs/04 §3, S2/S4/S6/S8/S9).

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { MEDIUMS } from '#shared/format'
 import { CONDITIONS, type Condition, type Preferences } from '#shared/types'
 
 const { call } = useFidelityWorker()
@@ -37,8 +38,14 @@ async function save(patch: Partial<Preferences>) {
 
 onBeforeUnmount(() => clearTimeout(timer))
 
-/** The mediums the matcher understands (worker/match/format.ts). */
-const FORMATS = ['Vinyl', 'CD', 'Cassette', 'File', 'DVD'] as const
+/**
+ * Die Medien, die der Matcher versteht — aus seiner eigenen Tabelle.
+ *
+ * This used to be a copy: five names typed out again next to the five in the
+ * token table. Two lists of the same thing is how one grows a sixth entry and
+ * the other does not — which is exactly what happened when reels arrived.
+ */
+const FORMATS = MEDIUMS
 
 function toggleFormat(name: string) {
   const current = prefs.value?.formatsAllow ?? []

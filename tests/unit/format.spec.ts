@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { matchesFormat } from '~~/worker/match/format'
+import { matchesFormat } from '#shared/format'
 
 /**
  * The strings here are real, taken from the RushHour inventory during the

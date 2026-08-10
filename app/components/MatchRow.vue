@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { describeFormat } from '#shared/format'
 import type { Match } from '#shared/types'
 
 const props = defineProps<{ match: Match }>()
@@ -7,6 +8,19 @@ const { verdicts, judge } = useFeedback()
 const verdict = computed(() => verdicts.value[props.match.listingId])
 
 const { show } = useReleaseSheet()
+
+/**
+ * Ein Kürzel, nicht das ganze Format.
+ *
+ * At 34 px this row already carries a score, a title, a reason and a price.
+ * The one format token worth that space is what it physically is — `12"`,
+ * `7"`, `CD` — because that is what somebody scanning four hundred rows is
+ * sorting by in their head. Album or EP is a click away in the sheet.
+ */
+const shape = computed(() => {
+  const { medium, size } = describeFormat(props.match.format)
+  return size ?? medium
+})
 
 const price = computed(() => {
   const { price: value, currency } = props.match
@@ -48,6 +62,9 @@ const price = computed(() => {
     </p>
 
     <span class="flex shrink-0 items-center gap-2">
+      <span v-if="shape" class="fid-num shrink-0 text-fid-xs text-fid-text-muted">
+        {{ shape }}
+      </span>
       <span v-if="price" class="fid-num text-fid-sm text-fid-text-muted">{{ price }}</span>
 
       <!--

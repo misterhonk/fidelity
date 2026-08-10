@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { describeFormat } from '#shared/format'
 import type { Match } from '#shared/types'
 
 const props = defineProps<{ match: Match }>()
@@ -21,9 +22,22 @@ const price = computed(() => {
   return money(value, currency)
 })
 
-const meta = computed(() =>
-  [props.match.label, props.match.catno, props.match.year].filter(Boolean).join(' · '),
-)
+/**
+ * Label, Nummer, Format, Jahr.
+ *
+ * The format was missing and it is most of the decision: `7", Single` and
+ * `CD, Album` are not the same purchase at any price. Shown as the two facts
+ * worth a glance — what it is made of and what kind of release it is — while
+ * mono, deluxe, reissue and remastered stay in the pressing profile, where
+ * somebody who wants them goes looking.
+ */
+const meta = computed(() => {
+  const { medium, kind, size } = describeFormat(props.match.format)
+  const format = [size ?? medium, kind].filter(Boolean).join(' ')
+  return [props.match.label, props.match.catno, format || null, props.match.year]
+    .filter(Boolean)
+    .join(' · ')
+})
 </script>
 
 <template>
