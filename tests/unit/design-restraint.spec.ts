@@ -139,3 +139,35 @@ describe('the accent', () => {
     expect(busy).toEqual([])
   })
 })
+
+/**
+ * Ein Abzeichen zählt, es baut nicht mit.
+ *
+ * The basket count sat in the nav link as an ordinary third child. On a phone
+ * that link is a column, so the badge became a third *row*: the basket tab
+ * grew taller than its four neighbours and shoved its own icon and label out
+ * of the line they share. On a desktop it did the same sideways.
+ *
+ * A count is an annotation on a thing. The moment it takes part in the layout,
+ * the bar it lives in reshapes itself around a number that changes.
+ */
+describe('the basket badge', () => {
+  const NAV = readFileSync('app/components/AppNav.vue', 'utf8')
+  const code = NAV.replace(/<!--[\s\S]*?-->/g, '')
+
+  it('is positioned rather than laid out', () => {
+    const badge = code.slice(code.indexOf('basketCount > 0'))
+    expect(badge).toMatch(/absolute/)
+  })
+
+  it('hangs on the icon, not on the whole tab', () => {
+    // Pinned to the link, it would drift to the corner of a wide desktop tab
+    // and stop being a mark on the basket at all.
+    expect(code).toMatch(/<span class="relative flex shrink-0">\s*<FidIcon/)
+  })
+
+  it('never intercepts the tap meant for the tab', () => {
+    const badge = code.slice(code.indexOf('basketCount > 0'))
+    expect(badge).toMatch(/pointer-events-none/)
+  })
+})

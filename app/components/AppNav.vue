@@ -105,20 +105,33 @@ const basketCount = computed(() => basketIds.value.size)
           Neither is dropped at any width: a bare glyph is a guess, and on a
           phone a row of five words in 11px is a row nobody aims at.
         -->
-        <FidIcon :name="section.icon" :size="20" />
-        {{ section.label }}
         <!--
-          The badge is on the basket because it is the only number that means
-          "you left something unfinished". Everything else is either zero or
-          not urgent.
+          Das Abzeichen sitzt auf dem Korb, nicht daneben.
+
+          It used to be a third child of the link — which on a phone, where the
+          link is a column, made it a third *row*: the basket tab grew taller
+          than its four neighbours and pushed its own icon and label up out of
+          the line they share. On a desktop it did the same sideways.
+
+          Pinned to the icon rather than to the link, so it stays on the basket
+          in both directions instead of drifting to the corner of a wide tab.
         -->
-        <span
-          v-if="section.to === '/korb' && basketCount > 0"
-          class="fid-num rounded-full bg-fid-accent px-2 text-fid-xs font-medium text-fid-n-990"
-          :aria-label="`${basketCount} im Korb`"
-        >
-          {{ basketCount }}
+        <span class="relative flex shrink-0">
+          <FidIcon :name="section.icon" :size="20" />
+          <!--
+            The badge is on the basket because it is the only number that means
+            "you left something unfinished". Everything else is either zero or
+            not urgent.
+          -->
+          <span
+            v-if="section.to === '/korb' && basketCount > 0"
+            class="fid-num pointer-events-none absolute -top-1.5 -right-2 min-w-4 rounded-full bg-fid-accent px-1 text-center text-[0.625rem] leading-4 font-medium text-fid-n-990"
+            :aria-label="`${basketCount} im Korb`"
+          >
+            {{ basketCount }}
+          </span>
         </span>
+        {{ section.label }}
       </NuxtLink>
 
       <NuxtLink
