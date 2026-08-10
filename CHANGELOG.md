@@ -9,6 +9,24 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.6.0](https://github.com/misterhonk/fidelity/compare/v0.5.0...v0.6.0) (2026-08-10)
+
+
+### Added
+
+* **basket:** make the dealer's minimum order a number you can act on ([8ee2d16](https://github.com/misterhonk/fidelity/commit/8ee2d16622fb632a04c222a9cc70f454fd82bdb8))
+* **basket:** say why there is nothing to suggest, and offer the way out ([4c8c765](https://github.com/misterhonk/fidelity/commit/4c8c7655ff73574a98d64359670c23f6aa2019d3))
+
+
+### Fixed
+
+* **basket:** read the shipping table for the destination country ([7e72e3d](https://github.com/misterhonk/fidelity/commit/7e72e3d7ceea5110a2b8967777330bf855398ab5))
+* **dig:** stop an incremental visit from passing judgement on a whole shop ([ae0fd2a](https://github.com/misterhonk/fidelity/commit/ae0fd2a5e65307433004e73d444372baa0590348))
+* **discogs:** pace the whole browser, and stop mistaking a 429 for a cable ([7895acf](https://github.com/misterhonk/fidelity/commit/7895acf3460c57c06eaee00500ad36da469145fb))
+* **ui:** hang the basket count on the basket, not beside it ([a1d710b](https://github.com/misterhonk/fidelity/commit/a1d710bd9b01ee9c575e1c6c4f921b027843faab))
+* **ui:** put the settings gear on the line the other icons stand on ([b4c0571](https://github.com/misterhonk/fidelity/commit/b4c0571846684dffb421e249abcf571ba2c54006))
+* **ui:** the twelve things a walk through the app turned up ([291dea0](https://github.com/misterhonk/fidelity/commit/291dea063ca52f8bc69964b378709e1ca3c8637e))
+
 ## [0.5.0](https://github.com/misterhonk/fidelity/compare/v0.4.2...v0.5.0) (2026-08-10)
 
 
