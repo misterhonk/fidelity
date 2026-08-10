@@ -26,6 +26,63 @@ Das kann jeder Webserver. Es gibt keinen Grund, dafür Geld auszugeben.
 
 ---
 
+## 1a. Alles per Docker
+
+Zwei Dienste, die nichts voneinander wissen. Das ist keine Ordnungsliebe, das ist ADR-008:
+die App muss mit abgeschaltetem Hub funktionieren, also werden beide **getrennt
+konfiguriert und getrennt gestartet**, und keiner wartet auf den anderen.
+
+```bash
+cp .env.example .env
+
+docker compose up -d app          # nur die App
+docker compose up -d app hub      # Heimnetz-Aufbau
+```
+
+| Datei | Was drin steht |
+|---|---|
+| `deploy/app.Dockerfile` | Zweistufig: Node baut, **nginx liefert aus**. Zur Laufzeit läuft kein Node – es gibt nichts, was laufen müsste. 62 MB. |
+| `deploy/nginx.conf` | SPA-Fallback, Cache-Header, Security-Header |
+| `deploy/hub.Dockerfile` | Node 24 Alpine, läuft als `node`, `/data` als Volume, Healthcheck auf `/v1/health` |
+| `compose.yml` | Beide Dienste plus zwei Tunnel-Profile |
+| `.env.example` | Ports, Bind-Adressen, Hub-Secret, Tunnel-Token |
+
+**`APP_BIND` ist die eine Entscheidung, die man bewusst trifft.** Voreingestellt ist
+`127.0.0.1` – nur dieser Rechner. `0.0.0.0` macht die App im ganzen Heimnetz erreichbar,
+also auch auf dem Telefon auf dem Sofa.
+
+**Cache-Header, die zählen.** Gehashte Assets unter `/_nuxt/` ein Jahr `immutable`; der
+Service Worker und die Shell `no-cache`. Ein zwischengespeicherter `sw.js` ist eine App,
+die sich nie wieder reparieren lässt.
+
+**Routen ohne Umleitung.** Nuxt legt jede Route als eigenes Verzeichnis ab, `/gemerkt` ist
+in Wahrheit `gemerkt/index.html`. `try_files … $uri/index.html` liefert sie direkt aus;
+mit `$uri/` würde nginx auf `/gemerkt/` umleiten, und ein Schrägstrich am Ende ist für den
+Router, den Precache und das Lesezeichen eine andere URL.
+
+### Von unterwegs
+
+```bash
+docker compose --profile tunnel-quick up -d   # Wegwerf-Adresse, steht im Log
+docker compose --profile tunnel up -d         # feste Adresse, TUNNEL_TOKEN nötig
+```
+
+> ⚠️ **Ein Tunnel liefert die App, nicht deine Daten.** Sammlung, Wantlist, Digs und der
+> Token liegen in IndexedDB – pro Gerät **und pro Origin**. Ein Schnelltunnel bekommt bei
+> jedem Neustart einen neuen Hostnamen, und ein neuer Hostname ist ein neuer Origin: das
+> Telefon fängt bei null an und würde seine eigene Kopie von Discogs synchronisieren.
+>
+> Für etwas, das man öfter als einmal benutzt, also **benannter Tunnel mit fester
+> Adresse**. Dann bleibt auf dem Telefon stehen, was einmal synchronisiert wurde.
+>
+> Was tatsächlich *geteilt* wird, ist der Hub – und der hält bewusst nichts Persönliches
+> (ADR-008): Horizont-Chunks und Versandstaffeln, sonst nichts.
+
+**Der Hub gehört nur hinter einen Tunnel, wenn `HUB_SECRET` gesetzt ist.** Leer heißt
+offen; im Heimnetz in Ordnung, im Internet nicht.
+
+---
+
 ## 2. Optionen
 
 | Option | Kosten | Aufwand | Anmerkung |

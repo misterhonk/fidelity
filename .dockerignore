@@ -1,0 +1,17 @@
+# Everything the build makes for itself, and everything it must not see.
+node_modules
+**/node_modules
+.output
+.nuxt
+dist
+coverage
+test-results
+playwright-report
+.git
+.env
+*.log
+
+# The scratch space and the docs are not part of an image.
+docs
+*.html
+!public/**/*.html

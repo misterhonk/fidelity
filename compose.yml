@@ -1,0 +1,77 @@
+# Fidelity, ready to run.
+#
+# Two services that know nothing about each other. That is not tidiness, it is
+# ADR-008: the app must work with the hub switched off, so they are configured
+# separately, started separately, and neither waits for the other.
+#
+#   docker compose up -d app                 nur die App
+#   docker compose up -d app hub             Heimnetz-Aufbau
+#   docker compose --profile tunnel up -d    dazu von unterwegs erreichbar
+#
+# Settings live in .env — cp .env.example .env.
+
+name: fidelity
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: deploy/app.Dockerfile
+    image: fidelity-app:local
+    ports:
+      # 127.0.0.1 by default: reachable from this machine, not from the network
+      # until somebody says so. Set APP_BIND=0.0.0.0 for the home network.
+      - '${APP_BIND:-127.0.0.1}:${APP_PORT:-3000}:80'
+    restart: unless-stopped
+
+  hub:
+    build:
+      context: .
+      dockerfile: deploy/hub.Dockerfile
+    image: fidelity-hub:local
+    environment:
+      HUB_PORT: 8787
+      HUB_DB: /data/hub.sqlite
+      # Empty means open. Fine inside a home network, wrong anywhere a tunnel
+      # can reach — and the tunnel profile below is exactly that.
+      HUB_SECRET: ${HUB_SECRET:-}
+    ports:
+      - '${HUB_BIND:-127.0.0.1}:${HUB_PORT:-8787}:8787'
+    volumes:
+      - hub-data:/data
+    restart: unless-stopped
+
+  # Reaching the app from outside without opening a port in the router.
+  #
+  # Two of them, because the difference is not a detail:
+  #
+  #   docker compose --profile tunnel-quick up -d
+  #     A throwaway hostname, printed in the log, gone on the next restart.
+  #     Good for showing somebody the app, wrong for using it — a new hostname
+  #     is a new origin, and a new origin is an empty IndexedDB. Your
+  #     collection does not travel with the link; the phone would sync its own
+  #     copy from Discogs, token and all.
+  #
+  #   docker compose --profile tunnel up -d
+  #     A named tunnel under a fixed address (TUNNEL_TOKEN from the Cloudflare
+  #     dashboard). Same origin every time, so what the phone synced once is
+  #     still there next Saturday.
+  tunnel-quick:
+    profiles: ['tunnel-quick']
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate --url http://app:80
+    depends_on: [app]
+    restart: unless-stopped
+
+  tunnel:
+    profiles: ['tunnel']
+    image: cloudflare/cloudflared:latest
+    # Not ${TUNNEL_TOKEN:?…}: that fails while compose is still *parsing* the
+    # file, which would break `up app` for everybody who never wanted a tunnel.
+    # An optional service must not be able to break the ones that are not.
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN:-}
+    depends_on: [app]
+    restart: unless-stopped
+
+volumes:
+  hub-data:
