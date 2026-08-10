@@ -6,22 +6,45 @@
 
 ---
 
+## Wo wir stehen
+
+**M0 bis M9 sind umgesetzt.** Die Meilenstein-Versionen oben sind Planungsnamen aus der
+Entwurfszeit und nicht die tatsächliche Zählung — die steht in `CHANGELOG.md`.
+
+Offen sind drei Punkte, alle in M9 und alle am **optionalen** Hub:
+
+| offen | wo |
+|---|---|
+| Wächter mit Web Push | M9 |
+| Dig teilen per Link | M9 |
+| Dockerfile für den Hub | M9 |
+
+Zwei Zeilen dieser Datei sind **überholt statt offen** und als solche gekennzeichnet: der
+429-Backoff am Status (im Browser nicht baubar, `docs/02`) und die Uberspace-Backend-
+Anleitung (die App ist seit ADR-007 rein statisch).
+
+> Diese Liste war lange unabgehakt, während die App längst lief — wer sie las, schloss
+> daraus, dass nichts fertig sei. Jeder Haken hier ist am Code geprüft worden, nicht aus
+> der Erinnerung gesetzt.
+
+---
+
 ## M0 · Fundament → `v0.1.0`
 
 **Ziel:** `pnpm dev` startet eine leere, aber vollständig verdrahtete PWA.
 
-- [ ] `git init`, erster Conventional Commit
-- [ ] Nuxt 4.5 Skeleton, **`ssr: false`**, TypeScript, pnpm
-- [ ] IndexedDB-Setup mit `idb`, Stores aus `docs/03-DATENMODELL.md`
-- [ ] Web-Worker-Grundgerüst inkl. typisiertem `postMessage`-Protokoll
-- [ ] Tailwind 4 via `@tailwindcss/vite` + Nuxt UI 4, Design Tokens (DTCG → `@theme`)
-- [ ] `@vite-pwa/nuxt`, Manifest, Icons, `registerType: 'prompt'`
-- [ ] ESLint 10 + `@nuxt/eslint` + Prettier + lefthook + commitlint
-- [ ] Vitest + Playwright (**inkl. WebKit**), ein echter Smoke-Test
-- [ ] **Bundle-Budget im CI** (`size-limit`), Überschreitung bricht den Build
-- [ ] GitHub Actions: lint ∥ typecheck ∥ test → build
-- [ ] release-please mit Keep-a-Changelog-Mapping
-- [ ] `CLAUDE.md`, ADR-Ordner
+- [x] `git init`, erster Conventional Commit
+- [x] Nuxt 4.5 Skeleton, **`ssr: false`**, TypeScript, pnpm
+- [x] IndexedDB-Setup mit `idb`, Stores aus `docs/03-DATENMODELL.md`
+- [x] Web-Worker-Grundgerüst inkl. typisiertem `postMessage`-Protokoll
+- [x] Tailwind 4 via `@tailwindcss/vite` + Nuxt UI 4, Design Tokens (DTCG → `@theme`)
+- [x] `@vite-pwa/nuxt`, Manifest, Icons, `registerType: 'prompt'`
+- [x] ESLint 10 + `@nuxt/eslint` + Prettier + lefthook + commitlint
+- [x] Vitest + Playwright (**inkl. WebKit**), ein echter Smoke-Test
+- [x] **Bundle-Budget im CI** (`size-limit`), Überschreitung bricht den Build
+- [x] GitHub Actions: lint ∥ typecheck ∥ test → build
+- [x] release-please mit Keep-a-Changelog-Mapping
+- [x] `CLAUDE.md`, ADR-Ordner
 
 **Kein Docker, keine Datenbank, kein Compose-Stack.**
 
@@ -40,16 +63,19 @@ ein Conventional Commit erzeugt einen Release-PR.
 > `fetch()` kann den UA nicht setzen. **Bricht das, bricht die gesamte Architektur** –
 > dann zurück auf den Serverentwurf (ADR-007, Abschnitt „Ausstiegspfad").
 
-- [ ] Token-Eingabe mit Anleitung („discogs.com/settings/developers → Generate token")
-- [ ] Validierung gegen `GET /oauth/identity`
-- [ ] Token in IndexedDB, Redaction-Liste im Logger, `beforeSend`-Hook falls Sentry
-- [ ] **DiscogsClient im Worker**: 1 Request/1,2 s, 429-Backoff, beide Fehlerformate,
-      resumierbarer Cursor
-- [ ] Sammlung + Wantlist synchronisieren, **Delta-Strategie** (`sort=added&desc`)
-- [ ] Namen beim Sync normalisieren und mitspeichern
-- [ ] Geschmacksprofil berechnen (Lift-basiert)
-- [ ] Screen „Deine Landkarte": Labels, Stile, Dekaden, Künstler
-- [ ] „Abmelden" löscht die gesamte Datenbank
+- [x] Token-Eingabe mit Anleitung („discogs.com/settings/developers → Generate token")
+- [x] Validierung gegen `GET /oauth/identity`
+- [x] Token in IndexedDB, Redaction-Liste im Logger, `beforeSend`-Hook falls Sentry
+- [x] **DiscogsClient im Worker**: 1 Request/1,2 s, beide Fehlerformate, resumierbarer
+      Cursor. ⚠️ Der ursprünglich geplante **429-Backoff am Status** ist im Browser nicht
+      baubar: die 429 kommt ohne CORS-Header, `fetch()` lehnt ab, und JS sieht nie einen
+      Status (gemessen 2026-08-10, siehe `docs/02` §Rate-Limit). Stattdessen: zwei kurze
+      Wiederholungen, danach das Rate-Limit-Fenster aussitzen
+- [x] Sammlung + Wantlist synchronisieren, **Delta-Strategie** (`sort=added&desc`)
+- [x] Namen beim Sync normalisieren und mitspeichern
+- [x] Geschmacksprofil berechnen (Lift-basiert)
+- [x] Screen „Deine Landkarte": Labels, Stile, Dekaden, Künstler
+- [x] „Abmelden" löscht die gesamte Datenbank
 
 ---
 
@@ -57,17 +83,17 @@ ein Conventional Commit erzeugt einen Release-PR.
 
 **Ziel:** Händlername eingeben → in 2 Minuten eine bewertete Trefferliste.
 
-- [ ] Vorabprüfung `GET /users/{dealer}` → `num_for_sale`, ehrliche Ansage bei > 10.000
-- [ ] Inventar paginieren, `per_page=100`, zweiter Durchlauf mit `sort_order=desc`
-- [ ] **Inkrementell pro Seite** verarbeiten, Rohlistings sofort verwerfen
-- [ ] Harte Filter (Format, Budget, Versandherkunft, bereits besessen)
-- [ ] Signale **S1** (Wantlist exakt), **S3** (Künstler), **S5** (Label) — alle gratis
-- [ ] Fuzzy-Kaskade in JS: Map-Lookup → Token-Containment → Trigram
-- [ ] Barry Score v1 mit Begründungssatz-Templates
-- [ ] Fortschritt per `postMessage`, erste Treffer nach ~5 s
-- [ ] Screens: Neuer Dig, Dig läuft, Dig-Ergebnis, `MatchCard`
-- [ ] `expiresAt = now + 6h` inkl. Verfalls-Job und UI-Sperre
-- [ ] Dig bei Tab-Schließen resumierbar
+- [x] Vorabprüfung `GET /users/{dealer}` → `num_for_sale`, ehrliche Ansage bei > 10.000
+- [x] Inventar paginieren, `per_page=100`, zweiter Durchlauf mit `sort_order=desc`
+- [x] **Inkrementell pro Seite** verarbeiten, Rohlistings sofort verwerfen
+- [x] Harte Filter (Format, Budget, Versandherkunft, bereits besessen)
+- [x] Signale **S1** (Wantlist exakt), **S3** (Künstler), **S5** (Label) — alle gratis
+- [x] Fuzzy-Kaskade in JS: Map-Lookup → Token-Containment → Trigram
+- [x] Barry Score v1 mit Begründungssatz-Templates
+- [x] Fortschritt per `postMessage`, erste Treffer nach ~5 s
+- [x] Screens: Neuer Dig, Dig läuft, Dig-Ergebnis, `MatchCard`
+- [x] `expiresAt = now + 6h` inkl. Verfalls-Job und UI-Sperre
+- [x] Dig bei Tab-Schließen resumierbar
 
 **Definition of Done:** Martin scannt seinen Stammhändler und findet mindestens eine
 Platte, die er ohne die App nicht gefunden hätte. **Das ist der eigentliche Projektmeilenstein.**
@@ -298,15 +324,21 @@ irgendein Feature ihn voraussetzt. Vollständiges Konzept: `docs/13-HUB-ADDON.md
 - [x] Versandstaffeln als Community-Speicher statt Pull Request
 - [ ] Wächter: pollt stündlich `num_for_sale` je Händler – **1 Request statt 100**,
       **ohne Token** – und schickt bei Veränderung Web Push
-- [ ] Geräte-Sync für Korb, Feedback und Wantlist-Notizen
+- [x] Geräte-Sync für Korb und Merkliste — **über den Vault, nicht über den Hub**
+      (M8/ADR-007): verschlüsselt, Ziel frei wählbar, funktioniert auch ohne Hub
 - [ ] Dig teilen per Link (TTL 6 h, ToS-konform)
-- [ ] Docker-Image + Uberspace-Anleitung (supervisord + `uberspace web backend`)
+- [ ] Dockerfile für den Hub — `hub/compose.yml` gibt es, ein Image noch nicht.
+      ⚠️ Der Zusatz „supervisord + `uberspace web backend`" ist überholt: die App ist seit
+      ADR-007 rein statisch und läuft in einem Docroot, ein Backend gibt es nicht mehr
+      (siehe `docs/08-DEPLOYMENT.md`). Betroffen ist nur noch der optionale Hub
 - [x] **CI-Test: Die App muss mit leerer `hubUrl` vollständig durchlaufen**
 
 **Umgesetzt ist der unstrittige Kern** — Horizont-Cache und Versandstaffeln.
 Beide brauchen keinen Token, keine Marktplatzdaten und keinen Dauerbetrieb; der
-Hub darf jederzeit aus sein. Wächter, Web Push, Geräte-Sync und „Dig teilen"
-stehen noch offen.
+Hub darf jederzeit aus sein. Geräte-Sync kam dazu, aber über den Vault statt über
+den Hub — was die Regel „kein Feature setzt den Hub voraus" eher bestätigt als
+verletzt. Offen bleiben **Wächter mit Web Push**, **„Dig teilen"** und ein
+**Dockerfile für den Hub**.
 
 **Anmerkungen:**
 
