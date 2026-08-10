@@ -26,15 +26,37 @@ const { identity, ready, load, set } = useIdentity()
  *
  * `start` is not a step in the setup and is deliberately not in `STEPS`: it is
  * the page somebody lands on, and the setup is what they choose from it. The
- * progress rail belongs to the three steps that follow, so showing a fourth
- * dot for the page you are standing on would say the demo is something to get
- * through.
+ * progress rail belongs to the steps that follow, so an extra dot for the page
+ * you are standing on would say the demo is something to get through.
+ *
+ * Horizon and credits are steps as of today. They were left out because they
+ * cost minutes and the app runs without them — both still true, and both beside
+ * the point: without them the matcher only knows the artists somebody already
+ * owns, by name. No other pressings, no catalogue series, no producers. That is
+ * half the app, hidden behind a settings page nobody has a reason to open on
+ * day one. Each says what it buys before it starts and each is one click to
+ * walk past.
  */
-type Step = 'start' | 'token' | 'sync' | 'fertig'
+type Step = 'start' | 'token' | 'sync' | 'horizont' | 'credits' | 'fertig'
 
 const step = ref<Step>('start')
-const STEPS: Step[] = ['token', 'sync', 'fertig']
+const STEPS: Step[] = ['token', 'sync', 'horizont', 'credits', 'fertig']
 const stepIndex = computed(() => STEPS.indexOf(step.value))
+
+/**
+ * Kurz genug, dass fünf davon auf ein Telefon passen.
+ *
+ * Typed by `Step` rather than `Exclude<Step, 'start'>` so the lookup in the
+ * template needs no cast — a `<` inside a template expression reads as an
+ * opening tag to the formatter, which is a strange way to lose a build.
+ */
+const STEP_LABEL: Partial<Record<Step, string>> = {
+  token: 'Token',
+  sync: 'Sammlung',
+  horizont: 'Horizont',
+  credits: 'Credits',
+  fertig: 'Fertig',
+}
 
 const syncing = ref(false)
 const progress = ref<SyncProgress | null>(null)
@@ -70,7 +92,7 @@ async function sync() {
   try {
     await call('library.sync', undefined, { onProgress: (p) => (progress.value = p) })
     library.value = await call('library.summary', undefined)
-    step.value = 'fertig'
+    step.value = 'horizont'
   } catch (cause) {
     error.value = cause
   } finally {
@@ -135,7 +157,7 @@ const CAN_DO = [
     </header>
 
     <!--
-      Three segments rather than "Schritt 2 von 3". The filled part is the same
+      Segments rather than "Schritt 2 von 5". The filled part is the same
       information and takes no words, and the labels underneath say what the
       steps are, which a number never does.
     -->
@@ -154,7 +176,7 @@ const CAN_DO = [
           class="text-fid-xs transition-colors"
           :class="index <= stepIndex ? 'text-fid-text' : 'text-fid-text-muted'"
         >
-          {{ name === 'token' ? 'Token' : name === 'sync' ? 'Sammlung' : 'Los geht’s' }}
+          {{ STEP_LABEL[name] }}
         </span>
       </li>
     </ol>
@@ -186,8 +208,9 @@ const CAN_DO = [
               Einrichten – mit deiner Sammlung
             </button>
             <p class="max-w-prose text-fid-sm text-fid-text-muted">
-              Drei Schritte: ein Token von Discogs, einmal Sammlung und Wantlist holen, fertig.
-              Fidelity liest nur und läuft ohne Server – alles bleibt auf diesem Gerät.
+              Ein Schlüssel von Discogs, einmal Sammlung und Wantlist holen – danach kann es
+              losgehen. Fidelity liest nur und ändert nichts an deinem Konto; alles bleibt auf
+              diesem Gerät.
             </p>
           </div>
 
@@ -242,7 +265,81 @@ const CAN_DO = [
           </button>
         </section>
 
-        <!-- 3 · Los geht's -------------------------------------------------- -->
+        <!-- 3 · Horizont ---------------------------------------------------- -->
+        <!--
+          Der Horizont stand absichtlich nicht in der Einrichtung — jetzt schon.
+
+          The argument for leaving it out was that it takes minutes and the app
+          works without it. Both are still true. What that argument missed is
+          that half of what makes Fidelity interesting is invisible without it:
+          another pressing of a record you own, a catalogue series with a hole
+          in it, a producer whose name you never see on a sleeve. Somebody who
+          finishes the setup and never opens the settings gets a matcher that
+          only knows the artists they already own by name.
+
+          So it is a step, and it says how long it takes before it starts, and
+          it can be walked past in one click.
+        -->
+        <section v-else-if="step === 'horizont'" key="horizont" class="flex flex-col gap-5">
+          <div class="flex flex-col gap-2">
+            <h2 class="text-fid-base font-medium text-fid-text">
+              Was deine Künstler sonst noch
+            </h2>
+            <p class="max-w-prose text-fid-base text-fid-text-muted">
+              Fidelity sieht einmal nach, was deine Künstler und Labels veröffentlicht haben –
+              nicht nur, was davon bei dir steht. Damit erkennt es später andere Pressungen
+              derselben Platte, Lücken in Katalogserien und Alben, die du noch nicht kennst.
+            </p>
+          </div>
+
+          <HorizonBuild />
+
+          <div class="flex flex-col gap-2">
+            <button
+              type="button"
+              class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent"
+              @click="step = 'credits'"
+            >
+              Weiter
+            </button>
+            <p class="text-fid-xs text-fid-text-muted">
+              Läuft in Häppchen und übersteht ein Neuladen. Du kannst jederzeit weitergehen und
+              es später in den Einstellungen zu Ende bringen.
+            </p>
+          </div>
+        </section>
+
+        <!-- 4 · Credits ----------------------------------------------------- -->
+        <section v-else-if="step === 'credits'" key="credits" class="flex flex-col gap-5">
+          <div class="flex flex-col gap-2">
+            <h2 class="text-fid-base font-medium text-fid-text">
+              Wer hinter deinen Platten steckt
+            </h2>
+            <p class="max-w-prose text-fid-base text-fid-text-muted">
+              Aus deinen Lieblingsplatten – vier oder fünf Sterne bei Discogs – liest Fidelity
+              heraus, wer sie gemacht hat: Produzenten, Remixer, Studioleute. Wenn dieselbe
+              Person oft auftaucht, findet die App später auch Platten, auf denen sie nicht
+              vorne draufsteht.
+            </p>
+          </div>
+
+          <CreditHarvest />
+
+          <div class="flex flex-col gap-2">
+            <button
+              type="button"
+              class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent"
+              @click="step = 'fertig'"
+            >
+              Weiter
+            </button>
+            <p class="text-fid-xs text-fid-text-muted">
+              Auch das kannst du überspringen und später in den Einstellungen nachholen.
+            </p>
+          </div>
+        </section>
+
+        <!-- 5 · Fertig ------------------------------------------------------ -->
         <section v-else key="fertig" class="flex flex-col gap-5">
           <div class="flex flex-col gap-2">
             <h2 class="text-fid-base font-medium text-fid-text">Fertig.</h2>
@@ -275,12 +372,6 @@ const CAN_DO = [
             </li>
           </ul>
 
-          <!--
-            The horizon is not a step here. It costs minutes of somebody's rate
-            limit and the app works without it — so it is offered on the start
-            screen, where the "Nächster Schritt" card can say what it buys, and
-            not smuggled into a setup somebody is trying to finish.
-          -->
           <NuxtLink
             to="/"
             class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent"

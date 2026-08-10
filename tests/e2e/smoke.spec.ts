@@ -59,19 +59,28 @@ test.describe('smoke', () => {
     await expect(page.getByRole('button', { name: 'Anmelden' })).toBeDisabled()
   })
 
-  test('the setup shows which of the three steps is running', async ({ page }) => {
+  test('the setup shows which step is running', async ({ page }) => {
     await page.goto('/willkommen')
 
-    // The rail belongs to the setup, not to the page somebody lands on: a
-    // fourth dot for the demo would say it is something to get through.
+    // The rail belongs to the setup, not to the page somebody lands on: an
+    // extra dot for the demo would say it is something to get through.
     await expect(page.getByRole('list', { name: 'Einrichtung' })).toHaveCount(0)
     await page.getByRole('button', { name: /Einrichten/ }).click()
 
+    /*
+     * Fünf: Token, Sammlung, Horizont, Credits, Fertig.
+     *
+     * The horizon and the credits used to sit only in the settings, on the
+     * argument that they cost minutes and the app runs without them. Both
+     * still true — but somebody who never opens the settings ended up with a
+     * matcher that knows only the artists they already own by name. They are
+     * steps now, and both can be walked past in one click.
+     */
     const steps = page.getByRole('list', { name: 'Einrichtung' }).getByRole('listitem')
-    await expect(steps).toHaveCount(3)
+    await expect(steps).toHaveCount(5)
 
     // The first is current before anything has been entered, and the ones
-    // after it are not — a rail that lights all three says nothing.
+    // after it are not — a rail that lights every step says nothing.
     await expect(steps.nth(0)).toHaveAttribute('aria-current', 'step')
     await expect(steps.nth(1)).not.toHaveAttribute('aria-current', 'step')
   })

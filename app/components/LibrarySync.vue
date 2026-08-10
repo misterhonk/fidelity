@@ -31,10 +31,10 @@ async function sync() {
 }
 
 const label = computed(() => {
-  if (!progress.value) return 'Sync läuft …'
-  const { kind, stored, total, requests } = progress.value
+  if (!progress.value) return 'Wird geholt …'
+  const { kind, stored, total } = progress.value
   const what = kind === 'collection' ? 'Sammlung' : 'Wantlist'
-  return `${what}: ${stored} von ${total} · ${requests} Requests`
+  return `${what}: ${stored} von ${total}`
 })
 
 const formatDate = (at: number | null) =>

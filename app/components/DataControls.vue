@@ -96,7 +96,7 @@ async function deleteAll() {
     -->
     <p class="text-fid-xs text-fid-text-muted">
       Beide Dateien enthalten weder deinen Token noch Preise oder Zustände – Marktplatzdaten
-      dürfen laut Discogs' API-Bedingungen nicht weitergegeben werden. Was drinsteht: welche
+      dürfen laut Discogs' Nutzungsbedingungen nicht weitergegeben werden. Was drinsteht: welche
       Platten wie gut passen und warum, mit Link zum jeweiligen Angebot.
     </p>
 

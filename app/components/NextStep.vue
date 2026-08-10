@@ -51,8 +51,7 @@ const step = computed(() => {
       title: 'Dann: den Horizont bauen',
       body:
         `Einmalig rund ${counted(minutes, 'Minute', 'Minuten')}. Danach erkennt jeder Dig ` +
-        'auch Produzenten, ' +
-        'Katalogserien und andere Pressungen – und kostet dafür keinen einzigen Request extra.',
+        'auch Produzenten, Katalogserien und andere Pressungen deiner Platten.',
       to: '/einstellungen/sammlung#horizon',
     }
   }

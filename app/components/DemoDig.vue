@@ -245,9 +245,7 @@ function shapeOf(format: string | null) {
         />
       </div>
     </div>
-    <p v-else class="text-fid-xs text-fid-text-muted">
-      Dauert eine knappe Minute. Ohne Token erlaubt Discogs 25 Anfragen pro Minute.
-    </p>
+    <p v-else class="text-fid-xs text-fid-text-muted">Dauert eine knappe Minute.</p>
 
     <!-- Das Ergebnis, wieder als Cover. -->
     <section v-if="result" class="flex flex-col gap-3" aria-live="polite">

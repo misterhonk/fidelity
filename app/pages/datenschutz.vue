@@ -50,8 +50,8 @@ useSeoMeta({
     <section class="flex flex-col gap-2">
       <h2 class="text-fid-base font-medium text-fid-text">Marktplatzdaten</h2>
       <p class="text-fid-base text-fid-text-muted">
-        Preise und Zustände werden sechs Stunden nach einem Dig gelöscht – das schreiben die
-        API-Bedingungen von Discogs so vor. Was bleibt, sind Scores und Begründungen, die auf
+        Preise und Zustände werden sechs Stunden nach einem Dig gelöscht – so schreiben es die
+        Nutzungsbedingungen von Discogs vor. Was bleibt, sind Scores und Begründungen, die auf
         diesem Gerät entstanden sind.
       </p>
     </section>

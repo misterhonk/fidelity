@@ -406,9 +406,8 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
         sind {{ Math.round((preflight.reachable / preflight.numForSale) * 100) }} %.
       </p>
       <p class="text-fid-sm text-fid-text-muted">
-        Dauer etwa
-        {{ Math.ceil((preflight.reachable / 100) * 1.2) }} Sekunden bei einem Request pro 1,2
-        Sekunden.
+        Dauert etwa
+        {{ counted(Math.ceil(((preflight.reachable / 100) * 1.2) / 60), 'Minute', 'Minuten') }}.
       </p>
       <!--
         Nur das Neue, wo es das gibt.
@@ -481,9 +480,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
         <p class="max-w-prose text-fid-sm text-fid-text-muted">
           Ein Tiefenscan geht denselben Laden in dreizehn Sortierungen durch – Datum, Preis,
           Hörprobe, Titel, Künstler, Label, Katalognummer, jeweils in beide Richtungen. Jede
-          zeigt andere Platten in ihren ersten 10.000. Bis zu
-          <span class="fid-num">{{ number.format(preflight.deepRequests) }}</span> Abfragen,
-          rund
+          zeigt andere Platten in ihren ersten 10.000. Dauert bis zu
           <span class="fid-num">{{ Math.ceil((preflight.deepRequests * 1.2) / 60) }}</span>
           Minuten – er hört auf, sobald eine Sortierung nichts Neues mehr bringt.
         </p>

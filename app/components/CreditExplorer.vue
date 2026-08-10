@@ -55,8 +55,8 @@ function line(group: CreditGroup): string {
     </div>
 
     <p v-if="groups.length === 0" class="text-fid-sm text-fid-text-muted">
-      Discogs' größter ungenutzter Schatz: wer produziert, gemischt oder gemastert hat. Kostet
-      keinen einzigen Request – der Horizont weiß es schon.
+      Discogs' größter ungenutzter Schatz: wer produziert, gemischt oder gemastert hat. Steht
+      schon im Horizont – die Antwort kommt sofort.
     </p>
 
     <ul v-else class="flex flex-col gap-2">

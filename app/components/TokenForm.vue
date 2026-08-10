@@ -113,8 +113,8 @@ async function submit() {
           und schreibt nichts zurück. Gekauft wird bei Discogs, von dir.
         </span>
         <span>
-          Der Token bleibt in der IndexedDB dieses Geräts. Er wird nie geloggt, nie in eine URL
-          geschrieben und an niemanden weitergegeben.
+          Der Token bleibt auf diesem Gerät gespeichert und wird an niemanden weitergegeben –
+          auch nicht an uns. Es gibt keinen Server, der ihn empfangen könnte.
         </span>
       </p>
       <div v-if="error" id="token-error">

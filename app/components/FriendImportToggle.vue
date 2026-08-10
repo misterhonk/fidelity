@@ -49,7 +49,7 @@ async function set(importFriends: boolean) {
       happens the day it stops working — which is nothing (ADR-009).
     -->
     <WhyNote label="Warum das eine Ausnahme ist">
-      Diese App benutzt sonst ausschließlich dokumentierte Discogs-Endpunkte.
+      Diese App benutzt sonst ausschließlich offiziell dokumentierte Discogs-Schnittstellen.
       <span class="font-fid-mono">/users/…/friends</span> ist keiner – er funktioniert, steht
       aber in keiner Dokumentation und kann ohne Ankündigung verschwinden. Passiert das,
       verliert der Import eine Quelle und sonst nichts. Deshalb: aus, bis du zustimmst.

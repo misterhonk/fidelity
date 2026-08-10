@@ -81,19 +81,31 @@ const complete = computed(
 
 <template>
   <section class="flex flex-col gap-4">
+    <!--
+      „Entitäten" und „Release-IDs" sind Wörter von innen.
+
+      A collector has artists and labels, and records — not entities and ids.
+      The numbers are the same numbers; only the labels changed.
+    -->
     <dl v-if="status" class="grid grid-cols-2 gap-x-6 gap-y-2 text-fid-sm">
-      <dt class="text-fid-text-muted">Entitäten</dt>
+      <dt class="text-fid-text-muted">Künstler und Labels</dt>
       <dd class="fid-num text-fid-text">{{ status.expanded }} von {{ status.entities }}</dd>
-      <dt class="text-fid-text-muted">Bekannte Release-IDs</dt>
+      <dt class="text-fid-text-muted">Bekannte Platten</dt>
       <dd class="fid-num text-fid-text">{{ number.format(status.releaseIds) }}</dd>
     </dl>
 
-    <!-- Minutes, not seconds. The only honest thing to show is what it costs. -->
+    <!--
+      Zeit, nicht Anfragen.
+
+      This said "noch etwa 240 Requests, also rund 5 Minuten" — the number
+      somebody actually plans around is the second one, and the first is a unit
+      from inside the machine. What is left is what it costs and that stopping
+      is safe.
+    -->
     <p v-if="!complete && status && !running" class="text-fid-sm text-fid-text-muted">
-      Noch etwa <span class="fid-num">{{ status.estimatedRequests }}</span>
-      {{ plural(status.estimatedRequests, 'Request', 'Requests') }}, also rund
+      Dauert noch rund
       {{ counted(Math.ceil((status.estimatedRequests * 1.2) / 60), 'Minute', 'Minuten') }}.
-      Läuft in Häppchen und übersteht ein Neuladen – abgeschlossene Entitäten werden nicht noch
+      Läuft in Häppchen und übersteht ein Neuladen – was schon fertig ist, wird nicht noch
       einmal geholt.
     </p>
 
@@ -112,7 +124,7 @@ const complete = computed(
         <span class="fid-num">{{ progress.done }}</span> von
         <span class="fid-num">{{ progress.total }}</span>
         <template v-if="progress.current"> · {{ progress.current }}</template>
-        · <span class="fid-num">{{ number.format(progress.releaseIds) }}</span> IDs
+        · <span class="fid-num">{{ number.format(progress.releaseIds) }}</span> Platten
         <template v-if="eta"> · noch ca. {{ eta }}</template>
       </p>
     </div>

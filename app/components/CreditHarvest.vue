@@ -82,12 +82,14 @@ const eta = computed(() => {
         >.
       </p>
 
-      <!-- The cost is stated before it is spent, never after. -->
+      <!--
+        The cost is stated before it is spent, never after — but in minutes.
+        "240 Platten, also 240 Requests" said the same thing twice, and the
+        second half in a unit nobody outside this repository thinks in.
+      -->
       <p v-if="remaining > 0 && !running" class="text-fid-sm text-fid-text-muted">
         Noch <span class="fid-num">{{ number.format(remaining) }}</span>
-        {{ plural(remaining, 'Platte', 'Platten') }}, also
-        <span class="fid-num">{{ number.format(remaining) }}</span>
-        {{ plural(remaining, 'Request', 'Requests') }} – rund
+        {{ plural(remaining, 'Platte', 'Platten') }} – rund
         {{ counted(minutes, 'Minute', 'Minuten') }}. Läuft in Häppchen und übersteht ein
         Neuladen.
       </p>
