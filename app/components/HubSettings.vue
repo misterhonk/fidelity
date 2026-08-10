@@ -102,16 +102,23 @@ async function save() {
 <template>
   <section class="flex flex-col gap-3">
     <!--
-      The rule ADR-008 exists to protect, said plainly on the one screen where
-      somebody might think otherwise.
+      Was es bringt, nicht was es nicht bringt.
+
+      This said "beschleunigen kann er, tragen nichts (ADR-008)". That is the
+      rule this design is built on and it is written for us, not for anybody
+      using the app: read cold, "trägt nichts" says "it is useless", and an ADR
+      number in a sentence somebody is trying to make a decision from is noise.
     -->
-    <p class="text-fid-sm text-fid-text-muted">
-      Optional. Leer lassen heißt: alles läuft lokal, kein Feature fehlt.
-    </p>
     <WhyNote label="Was ein Hub bringt">
-      Der Horizont wird geteilt — wer Conny Plank schon ausgeklappt hat, erspart allen anderen
-      elf Abfragen. Beschleunigen kann er, tragen nichts (ADR-008).
+      Den Horizont – also alles, was Fidelity über deine Künstler und Labels herausgefunden hat
+      – muss dann nicht jedes Gerät für sich aufbauen. Was einmal drinsteht, ist auf dem
+      nächsten Gerät sofort da statt nach Minuten. Dasselbe gilt für Versandkosten pro Händler.
+      Und wenn Freunde denselben Hub benutzen, arbeitet ihr euch gegenseitig zu.
     </WhyNote>
+
+    <p class="text-fid-sm text-fid-text-muted">
+      Ohne Hub funktioniert alles genauso – er nimmt nur Wartezeit weg.
+    </p>
 
     <ErrorNote v-if="error" :cause="error" />
 

@@ -5,7 +5,7 @@ useSeoMeta({ title: 'Hub' })
 <template>
   <SettingsPage
     title="Hub"
-    lead="Optional. Beschleunigt, trägt nichts – leer lassen ist völlig in Ordnung."
+    lead="Ein kleiner Dienst auf einem Rechner, den du selbst betreibst. Er merkt sich, was Fidelity schon herausgefunden hat – dann geht es beim nächsten Mal sofort."
   >
     <HubSettings />
   </SettingsPage>

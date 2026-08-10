@@ -677,10 +677,29 @@ export const handlers: HandlerMap = {
 
     // Deliberately a plain fetch rather than the hub client: this is the one
     // place a failure has to be *reported* instead of swallowed.
-    const response = await fetch(`${base}/v1/health`, {
-      headers: secret ? { 'x-hub-secret': secret } : {},
-      signal: AbortSignal.timeout(5000),
-    })
+    let response: Response
+    try {
+      response = await fetch(`${base}/v1/health`, {
+        headers: secret ? { 'x-hub-secret': secret } : {},
+        signal: AbortSignal.timeout(5000),
+      })
+    } catch {
+      /*
+       * „Failed to fetch" ist keine Antwort.
+       *
+       * That string is what the browser says and it reached the screen
+       * untouched. It covers four different situations and names none of them,
+       * so the sentence below names the ones somebody can actually act on —
+       * including the mixed-content case, which is not a fault in the hub at
+       * all and which every iPhone hits (measured 2026-08-10).
+       */
+      const mixed = self.location?.protocol === 'https:' && base.startsWith('http://')
+      throw new Error(
+        mixed
+          ? 'Nicht erreichbar: diese Seite läuft über HTTPS und darf deshalb keine unverschlüsselte Adresse aufrufen. Der Hub muss selbst über HTTPS erreichbar sein.'
+          : 'Unter dieser Adresse antwortet nichts. Läuft der Hub, und stimmen Adresse und Port?',
+      )
+    }
     if (!response.ok) throw new Error(`Der Hub antwortete mit HTTP ${response.status}.`)
 
     const body = (await response.json()) as {
