@@ -161,12 +161,13 @@ const CAN_DO = [
     <div class="relative">
       <Transition name="fid-step" mode="out-in">
         <!-- 1 · Token ------------------------------------------------------ -->
-        <section v-if="step === 'token'" key="token" class="flex flex-col gap-5">
-          <p class="max-w-prose text-fid-base text-fid-text-muted">
-            Fidelity spricht direkt mit Discogs – ohne Server dazwischen. Dafür braucht es einen
-            persönlichen Token, den du dir selbst erzeugst. Er bleibt auf diesem Gerät.
-          </p>
-
+        <!--
+          No lead of its own. The first draft had one, and on a phone it read
+          as the same sentence twice: TokenForm already opens with "Fidelity
+          spricht direkt mit Discogs – ohne Server dazwischen", and repeating
+          it above is the kind of padding this app is supposed to be free of.
+        -->
+        <section v-if="step === 'token'" key="token">
           <TokenForm @signed-in="signedIn($event)" />
         </section>
 
