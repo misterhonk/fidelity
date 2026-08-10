@@ -59,6 +59,40 @@ describe('the spacing grid', () => {
   })
 })
 
+describe('boxes that cannot do what they are told', () => {
+  /**
+   * `shrink-0` mit `truncate` oder `flex-wrap` — zwei Anweisungen, die sich
+   * gegenseitig aufheben.
+   *
+   * `truncate` only ever fires when the box is narrower than its text, and
+   * `shrink-0` promises it never will be. `flex-wrap` needs the container to be
+   * squeezed before it breaks a line, and `shrink-0` refuses the squeeze. Both
+   * pairs look reasonable in a diff and both mean "run off the right edge".
+   *
+   * Found the hard way on a phone: the credits list pushed the page 94 pixels
+   * wide because one role read "Coordinator [Production Coordinator],
+   * Management". The layout tests missed it because they visit two routes, and
+   * signed out neither of them renders a credit.
+   *
+   * The fix in every case is `min-w-0`: let the box shrink, then let truncate
+   * or wrap do what it was asked to do.
+   */
+  it('never pairs shrink-0 with truncate or flex-wrap', () => {
+    const offenders = screens.flatMap(({ file, source }) =>
+      [...source.matchAll(/class="([^"]*)"/gs)]
+        .map((match) => match[1]!)
+        .filter(
+          (attribute) =>
+            /(^|\s)shrink-0(\s|$)/.test(attribute) &&
+            /(^|\s)(truncate|flex-wrap)(\s|$)/.test(attribute),
+        )
+        .map((attribute) => `${file}: ${attribute.trim().slice(0, 70)}`),
+    )
+
+    expect(offenders).toEqual([])
+  })
+})
+
 describe('the accent', () => {
   /**
    * One filled accent per screen — it means "this is the thing to do", and two

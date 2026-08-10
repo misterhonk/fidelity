@@ -38,7 +38,7 @@ const price = computed(() => {
     <p class="flex min-w-0 items-baseline gap-2">
       <button
         type="button"
-        class="shrink-0 truncate text-left text-fid-sm text-fid-text underline-offset-4 hover:underline"
+        class="min-w-0 shrink truncate text-left text-fid-sm text-fid-text underline-offset-4 hover:underline"
         @click="show(match.digId, match.listingId)"
       >
         {{ match.artist }} – {{ match.title }}

@@ -21,6 +21,59 @@ async function columns(page: Page, selector: string) {
   })
 }
 
+/**
+ * Jede Seite, jede Breite, kein waagerechter Überlauf.
+ *
+ * This used to check two routes, which is how a credits list pushed a phone 94
+ * pixels wide and nobody noticed: the two it checked did not have one. A sweep
+ * is cheap — the pages are static files and the assertion is one number — and
+ * horizontal scroll is the one layout failure that makes an app feel broken
+ * rather than merely ugly.
+ *
+ * Signed out these screens are mostly chrome, so this catches structure and
+ * not content. The content half is a static check on the class pairs that
+ * cause it (tests/unit/design-restraint.spec.ts).
+ */
+const ROUTES = [
+  '/',
+  '/willkommen',
+  '/dig',
+  '/korb',
+  '/gemerkt',
+  '/regal',
+  '/landkarte',
+  '/wantlist',
+  '/haendler',
+  '/im-laden',
+  '/einstellungen',
+  '/einstellungen/konto',
+  '/einstellungen/sammlung',
+  '/einstellungen/suche',
+  '/einstellungen/darstellung',
+  '/einstellungen/abgleich',
+  '/einstellungen/hub',
+  '/einstellungen/daten',
+  '/datenschutz',
+  '/impressum',
+]
+
+test.describe('nothing scrolls sideways', () => {
+  for (const route of ROUTES) {
+    test(`${route} fits every width`, async ({ page }) => {
+      await page.goto(route)
+      await expect(page.locator('main')).toBeVisible()
+
+      for (const size of [PHONE, TABLET, WIDE]) {
+        await page.setViewportSize(size)
+        const overflow = await page.evaluate(
+          () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        )
+        expect(overflow, `${route} bei ${size.width}px`).toBeLessThanOrEqual(0)
+      }
+    })
+  }
+})
+
 test.describe('room to breathe', () => {
   test('the shelf grid follows the width it is given', async ({ page }) => {
     await page.setViewportSize(PHONE)
@@ -50,28 +103,6 @@ test.describe('room to breathe', () => {
       .locator('main')
       .evaluate((el) => getComputedStyle(el).containerType !== 'normal')
     expect(hasContainer).toBe(true)
-  })
-
-  test('no screen scrolls sideways on a phone', async ({ page }) => {
-    await page.setViewportSize(PHONE)
-
-    for (const path of [
-      '/',
-      '/dig',
-      '/regal',
-      '/landkarte',
-      '/wantlist',
-      '/korb',
-      '/gemerkt',
-    ]) {
-      await page.goto(path)
-      await expect(page.locator('main')).toBeVisible()
-
-      const overflow = await page.evaluate(
-        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-      )
-      expect(overflow, `${path} läuft seitlich über`).toBeLessThanOrEqual(0)
-    }
   })
 })
 

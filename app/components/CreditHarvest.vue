@@ -123,7 +123,13 @@ const eta = computed(() => {
             {{ person.appearances }}
           </span>
           <span class="min-w-0 grow truncate text-fid-text">{{ person.name }}</span>
-          <span class="shrink-0 truncate text-fid-xs text-fid-text-muted">
+          <!--
+            `min-w-0`, not `shrink-0`. The two were together here and they
+            contradict: `truncate` needs the box to be narrower than its text,
+            and `shrink-0` guarantees it never is — so "Coordinator [Production
+            Coordinator], Management" simply ran off the right edge of a phone.
+          -->
+          <span class="min-w-0 shrink truncate text-fid-xs text-fid-text-muted">
             {{ person.roles.slice(0, 2).join(', ') }}
           </span>
         </li>

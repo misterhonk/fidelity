@@ -116,7 +116,13 @@ const number = new Intl.NumberFormat('de-DE')
             </span>
           </label>
 
-          <span class="flex shrink-0 flex-wrap gap-x-3 text-fid-xs text-fid-text-muted">
+          <!--
+            `min-w-0` rather than `shrink-0`: a shop's address is longer than a
+            phone is wide ("Schillergäßchen 5, 07745 Jena, Thuringia, Germany"),
+            and a block that refuses to shrink cannot wrap either — it just
+            leaves the card.
+          -->
+          <span class="flex min-w-0 flex-wrap gap-x-3 gap-y-1 text-fid-xs text-fid-text-muted">
             <span class="fid-num">{{ number.format(candidate.numForSale) }} Listings</span>
             <span v-if="candidate.location">{{ candidate.location }}</span>
             <!--
