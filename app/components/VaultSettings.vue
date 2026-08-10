@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import type { VaultStatus, VaultTarget } from '#shared/types'
+import { CLOUD_PROVIDERS } from '~/utils/cloud-vault'
 
 const { call } = useFidelityWorker()
 const vaultFile = useVaultFile()
+const cloud = useVaultCloud()
 
 const fileName = ref<string | null>(null)
+const clientIds = ref<Record<string, string>>({})
+const linked = ref<Record<string, boolean>>({})
 
 const status = ref<VaultStatus | null>(null)
 const passphrase = ref('')
@@ -15,7 +19,32 @@ const error = ref<unknown>(null)
 onMounted(async () => {
   status.value = await call('vault.status', undefined)
   if (vaultFile.available()) fileName.value = await vaultFile.chosenName()
+
+  const prefs = await call('preferences.get', undefined)
+  clientIds.value = { ...prefs.cloudClientIds }
+
+  /*
+   * Coming back from a provider. Runs on every mount because it costs a
+   * URLSearchParams lookup and returns null on an ordinary visit — asking
+   * "was this a redirect?" first would just be the same check written twice.
+   */
+  try {
+    const returned = await cloud.finish(clientIds.value[currentCloud.value ?? ''] ?? '')
+    if (returned) result.value = `Mit ${CLOUD_PROVIDERS[returned].label} verbunden.`
+  } catch (cause) {
+    error.value = cause
+  }
+
+  for (const key of ['dropbox', 'drive'] as const)
+    linked.value[key] = await cloud.connected(key)
 })
+
+/** Which of the two, when one of them is the chosen target. */
+const currentCloud = computed(() =>
+  status.value?.target === 'dropbox' || status.value?.target === 'drive'
+    ? status.value.target
+    : null,
+)
 
 /*
  * Only what this device can actually do.
@@ -54,8 +83,43 @@ const TARGETS = computed(() => {
     })
   }
 
+  for (const provider of Object.values(CLOUD_PROVIDERS)) {
+    list.push({
+      key: provider.key,
+      label: provider.label,
+      hint: 'Verschlüsselt, mit deiner eigenen App-Registrierung.',
+      usable: true,
+    })
+  }
+
   return list
 })
+
+async function saveClientId(key: 'dropbox' | 'drive', value: string) {
+  error.value = null
+  try {
+    const prefs = await call('preferences.set', {
+      cloudClientIds: { ...clientIds.value, [key]: value.trim() },
+    })
+    clientIds.value = { ...prefs.cloudClientIds }
+  } catch (cause) {
+    error.value = cause
+  }
+}
+
+async function link(key: 'dropbox' | 'drive') {
+  error.value = null
+  try {
+    await cloud.connect(key, clientIds.value[key] ?? '')
+  } catch (cause) {
+    error.value = cause
+  }
+}
+
+async function unlink(key: 'dropbox' | 'drive') {
+  await cloud.disconnect(key)
+  linked.value = { ...linked.value, [key]: false }
+}
 
 async function choose(target: VaultTarget) {
   error.value = null
@@ -85,10 +149,13 @@ async function sync() {
   result.value = null
 
   try {
+    const target = status.value?.target
     const report =
-      status.value?.target === 'file'
+      target === 'file'
         ? await vaultFile.sync(passphrase.value)
-        : await call('vault.sync', { passphrase: passphrase.value })
+        : target === 'dropbox' || target === 'drive'
+          ? await cloud.sync(target, clientIds.value[target] ?? '', passphrase.value)
+          : await call('vault.sync', { passphrase: passphrase.value })
     const total = Object.values(report.counts).reduce((sum, n) => sum + n, 0)
     result.value = report.hadRemote
       ? `Zusammengeführt: ${total} Einträge.`
@@ -108,8 +175,14 @@ async function sync() {
 const canSync = computed(() => {
   if (!status.value || status.value.target === 'none') return false
   if (status.value.target === 'file') return fileName.value !== null
+  if (currentCloud.value) return linked.value[currentCloud.value] === true
   return status.value.ready
 })
+
+/** Shown so it can be copied into the provider's form without a typo. */
+const redirectUri = computed(() =>
+  typeof window === 'undefined' ? '' : redirectUriFor(window.location.origin),
+)
 
 const date = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' })
 </script>
@@ -142,6 +215,53 @@ const date = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 
     </div>
 
     <p v-if="status.blocked" class="text-fid-sm text-fid-sig-gap">{{ status.blocked }}</p>
+
+    <!--
+      Your own registration, not the app's. PKCE needs no secret, so a client
+      id is public by design — and there is no Fidelity server to register one
+      against (ADR-007), which is why this field exists at all.
+    -->
+    <div v-if="currentCloud" class="flex flex-col gap-3">
+      <label class="flex flex-col gap-2">
+        <span class="text-fid-sm font-medium text-fid-text">
+          Client-ID von {{ CLOUD_PROVIDERS[currentCloud].label }}
+        </span>
+        <input
+          :value="clientIds[currentCloud] ?? ''"
+          type="text"
+          autocomplete="off"
+          spellcheck="false"
+          class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+          @change="saveClientId(currentCloud, ($event.target as HTMLInputElement).value)"
+        />
+        <span class="text-fid-xs text-fid-text-muted">
+          {{ CLOUD_PROVIDERS[currentCloud].hint }} Als Redirect-URL trägst du
+          <span class="font-fid-mono">{{ redirectUri }}</span> ein.
+        </span>
+      </label>
+
+      <div class="flex flex-wrap items-baseline gap-3">
+        <button
+          v-if="!linked[currentCloud]"
+          type="button"
+          :disabled="!clientIds[currentCloud]"
+          class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+          @click="link(currentCloud)"
+        >
+          Mit {{ CLOUD_PROVIDERS[currentCloud].label }} verbinden
+        </button>
+        <template v-else>
+          <span class="text-fid-sm text-fid-text-muted">Verbunden.</span>
+          <button
+            type="button"
+            class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
+            @click="unlink(currentCloud)"
+          >
+            Trennen
+          </button>
+        </template>
+      </div>
+    </div>
 
     <!-- Picked once, then remembered — a handle survives in IndexedDB. -->
     <div v-if="status.target === 'file'" class="flex flex-wrap items-baseline gap-3">

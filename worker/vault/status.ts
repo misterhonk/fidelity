@@ -40,11 +40,12 @@ export async function vaultStatus(): Promise<VaultStatus> {
     }
   }
 
-  if (target === 'file') {
+  if (target === 'file' || target === 'dropbox' || target === 'drive') {
     /*
-     * The worker cannot answer this one. A file lives behind a picker whose
-     * handle and permission belong to the main thread, so "ready" is decided
-     * there — this only says the target is a legitimate choice.
+     * The worker cannot answer these. A file lives behind a picker, and a
+     * cloud behind a consent screen — handles, permissions and OAuth tokens
+     * all belong to the main thread, so "ready" is decided there. This only
+     * says the target is a legitimate choice.
      */
     return { target, ready: true, lastSyncedAt: prefs.vaultSyncedAt ?? null, blocked: null }
   }

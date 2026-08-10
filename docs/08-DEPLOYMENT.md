@@ -83,6 +83,43 @@ offen; im Heimnetz in Ordnung, im Internet nicht.
 
 ---
 
+## 1b. Geräte abgleichen
+
+Vier Ziele, eins davon leer. Alles, was das Gerät verlässt, ist AES-GCM-Chiffrat mit einem
+Schlüssel aus deiner Passphrase — der Speicherort spielt deshalb keine Rolle.
+
+| Ziel | Läuft auf | Dritter beteiligt | Was du brauchst |
+|---|---|---|---|
+| Nur dieses Gerät | überall | – | nichts |
+| Dein Hub | überall, auch iPhone | – | Hub-Adresse |
+| Datei im Sync-Ordner | **nur Chromium** | dein Cloud-Client, nicht die App | eine Datei |
+| Dropbox / Google Drive | überall, auch iPhone | ja | eigene Client-ID |
+
+**Nicht dabei:** der Discogs-Token (Regel 6 — jedes Gerät meldet sich einmal selbst an)
+und Digs (Regel 4 — Preise sind nach sechs Stunden gelöscht).
+
+### Dropbox und Drive: deine eigene Registrierung
+
+Es gibt keinen Fidelity-Server und deshalb auch keine Fidelity-App bei Dropbox oder
+Google. Du legst deine eigene an und trägst die **Client-ID** ein — öffentlich by design,
+denn PKCE braucht kein Secret.
+
+**Dropbox** → `dropbox.com/developers/apps` → *Scoped access*, *App folder*.
+Berechtigungen `files.content.read` und `files.content.write`. Der *App key* ist die
+Client-ID.
+
+**Google Drive** → `console.cloud.google.com/apis/credentials` → OAuth-Client-ID, Typ
+*Web application*, Drive API aktivieren. Fidelity fragt nur `drive.appdata` an: ein
+verstecktes Verzeichnis, das nur diese App sieht — an deine eigenen Dateien kommt sie
+nicht.
+
+> ⚠️ **Die Redirect-URL muss exakt stimmen.** Der Einstellungen-Screen zeigt sie zum
+> Kopieren an. Damit scheidet ein Schnelltunnel aus: jeder Neustart ist eine neue Adresse
+> und eine neue Registrierung. Für Dropbox und Drive brauchst du den **benannten** Tunnel
+> oder ein festes Deployment.
+
+---
+
 ## 2. Optionen
 
 | Option | Kosten | Aufwand | Anmerkung |

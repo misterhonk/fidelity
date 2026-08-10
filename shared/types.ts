@@ -89,6 +89,15 @@ export interface Preferences {
    */
   vaultTarget: VaultTarget
   vaultSyncedAt: number | null
+  /**
+   * Your own OAuth client id, per provider.
+   *
+   * Public by design — PKCE needs no secret — and yours rather than the app's,
+   * because there is no Fidelity server to register one against (ADR-007). You
+   * create an app in your own Dropbox or Google console and paste the id, the
+   * same arrangement as the Discogs token and the hub secret.
+   */
+  cloudClientIds: Partial<Record<'dropbox' | 'drive', string>>
 
   /**
    * Optional, self-hosted hub (ADR-008). Empty by default and empty forever
@@ -401,6 +410,19 @@ export interface VaultSnapshot {
   savedAt: number
   preferences: Preferences | null
   stores: Partial<Record<string, unknown[]>>
+}
+
+/**
+ * OAuth tokens for a cloud destination.
+ *
+ * Credentials, and handled like the Discogs token (rule 6): IndexedDB only,
+ * never logged, never in a URL.
+ */
+export interface CloudTokens {
+  accessToken: string
+  refreshToken: string | null
+  /** Epoch ms. Renewed a minute early, because clocks disagree. */
+  expiresAt: number
 }
 
 /** Where a device keeps its snapshot. Chosen once, during setup. */

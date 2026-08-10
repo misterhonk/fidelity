@@ -2,6 +2,7 @@ import type { DBSchema } from 'idb'
 
 import type {
   BasketItem,
+  CloudTokens,
   CollectionItem,
   CreditHarvest,
   Dealer,
@@ -43,6 +44,15 @@ export type MetaValue =
    * from the main thread, because only a click can grant it.
    */
   | { key: 'vaultFile'; value: FileSystemFileHandle }
+  /**
+   * OAuth tokens for the cloud destinations, one entry per provider.
+   *
+   * Credentials, and treated like the Discogs token (rule 6): IndexedDB only,
+   * never logged, never in a URL. The authorization *code* arrives in one by
+   * necessity — OAuth has no other way — and is stripped from the address bar
+   * the moment it is read.
+   */
+  | { key: 'cloudTokens'; value: Record<string, CloudTokens> }
 
 export type MetaKey = MetaValue['key']
 
