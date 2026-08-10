@@ -108,10 +108,12 @@ const usage = computed(() => {
       </SettingsCard>
 
       <SettingsCard
-        anchor="schrift"
-        title="Schrift"
-        description="Drei Sätze. Umschalten und einmal durch die Listen gehen."
+        anchor="darstellung"
+        title="Darstellung"
+        description="Hell oder dunkel, und in welcher Schrift."
       >
+        <ThemePicker />
+        <hr class="border-fid-border" />
         <TypesetPicker />
       </SettingsCard>
 

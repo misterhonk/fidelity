@@ -413,7 +413,7 @@ const expired = computed(() => {
     </section>
 
     <section v-if="progress" class="flex flex-col gap-2" aria-live="polite">
-      <div class="h-2 w-full overflow-hidden rounded-full bg-fid-n-800">
+      <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
         <div
           class="h-full rounded-full bg-fid-accent transition-[width] duration-300"
           :style="{ width: `${percent}%` }"
@@ -437,7 +437,7 @@ const expired = computed(() => {
       class="flex items-center gap-3 rounded-fid-sm border border-fid-border px-3 py-2"
       aria-live="polite"
     >
-      <div class="h-1 w-24 overflow-hidden rounded-full bg-fid-n-800">
+      <div class="h-1 w-24 overflow-hidden rounded-full bg-fid-inset">
         <div
           class="h-full rounded-full bg-fid-accent transition-[width] duration-300"
           :style="{
@@ -539,7 +539,7 @@ const expired = computed(() => {
       </section>
 
       <div v-if="refreshing" class="flex flex-col gap-1" aria-live="polite">
-        <div class="h-1.5 w-full overflow-hidden rounded-full bg-fid-n-800">
+        <div class="h-1.5 w-full overflow-hidden rounded-full bg-fid-inset">
           <div
             class="h-full rounded-full bg-fid-accent transition-[width] duration-300"
             :style="{

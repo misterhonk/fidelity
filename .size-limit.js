@@ -54,7 +54,12 @@ const chunkFiles = readdirSync(WORKER_DIR)
   .map((file) => `${WORKER_DIR}/${file}`)
 
 const workerEntry = chunkFiles
-  .map((file) => /new Worker\(new URL\([^)]*?["'`]([\w.-]+\.js)["'`]/.exec(readFileSync(file, 'utf8'))?.[1])
+  .map(
+    (file) =>
+      /new Worker\(new URL\([^)]*?["'`]([\w.-]+\.js)["'`]/.exec(
+        readFileSync(file, 'utf8'),
+      )?.[1],
+  )
   .find((name) => name !== undefined)
 
 if (!workerEntry) {

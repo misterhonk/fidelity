@@ -95,22 +95,49 @@ ohne pro Farbe eine Vordergrundfarbe zu pflegen.
   --fid-surface:       light-dark(#fff,             var(--fid-n-950));
   --fid-surface-raised:light-dark(var(--fid-n-50),  var(--fid-n-900));
   --fid-border:        light-dark(var(--fid-n-200), var(--fid-n-800));
+  --fid-inset:         light-dark(var(--fid-n-200), var(--fid-n-800));
   --fid-text:          light-dark(var(--fid-n-900), var(--fid-n-100));
   --fid-text-muted:    light-dark(var(--fid-n-600), var(--fid-n-400));
-  --fid-accent:        light-dark(var(--fid-accent-600), var(--fid-accent-500));
+  --fid-accent:        light-dark(var(--fid-accent-700), var(--fid-accent-500));
 }
 ```
 
 Eine Deklaration pro Token statt eines doppelten `.dark`-Blocks. Nutzer-Override in
 `localStorage`, **vor dem ersten Paint angewendet** (Inline-Script im `<head>`), sonst blitzt es.
 
+**`--fid-inset`** ist der zurückgesetzte Grund: Fortschrittsbalken, leere Cover-Flächen,
+ungefüllte Rasterzellen. Er kam spät dazu, weil im Markup überall `--fid-n-800` fest
+stand – im Dunkelmodus richtig, im Hellmodus schwarze Kacheln auf weißem Grund.
+Er trägt **keine Akzentschrift**: 3,62:1 im Hellmodus, das reicht nicht. Ein Unit-Test
+liest die Templates und lässt die Kombination nicht durch.
+
+**Der Schalter** steht unter Einstellungen › Darstellung und kennt System, Hell, Dunkel.
+`system` ist keine dritte Palette, sondern der Verzicht auf ein Override: dann entscheidet
+`color-scheme: light dark` allein. `<meta name="theme-color">` folgt dem Ergebnis zur
+Laufzeit – das Manifest kann nur einen Wert nennen, und der wäre für die Hälfte falsch.
+
+**Mobile Felder sind 16 px.** Darunter zoomt iOS Safari beim Fokus die ganze Seite und
+zoomt nicht zurück. Die Alternative wäre `maximum-scale=1` – das nimmt Pinch-Zoom
+mit und verstößt gegen WCAG 2.2 SC 1.4.4. Der Doppeltipp-Zoom ist über
+`touch-action: manipulation` aus, der Pinch-Zoom bleibt.
+
 ### 2.5 Typografie
 
-| Rolle | Schrift | Warum |
+Drei Sätze, umschaltbar unter Einstellungen › Darstellung, alle selbst gehostet über
+`@nuxt/fonts`. Voreinstellung ist **Presswerk**. Kein Bauteil nennt eine Schrift –
+alles läuft über `--fid-font-sans`, `--fid-font-mono`, `--fid-font-display`.
+
+| Satz | Fließtext | Zahlen | Überschriften |
+|---|---|---|---|
+| **Presswerk** (Standard) | Switzer | Chivo Mono | Array – schmal wie der Aufdruck auf einem Plattenrücken |
+| Kontor | General Sans | Chivo Mono | Clash Display |
+| Schweiz | Switzer | JetBrains Mono | keine – Hierarchie nur über Größe und Gewicht |
+
+| Rolle | Klasse | Warum |
 |---|---|---|
-| UI + Fließtext | **Inter Variable** (oder Geist Sans) | Neutral, exzellente Lesbarkeit in kleinen Größen |
-| Katalognummern, Matrix/Runout, Preise | **Geist Mono** / JetBrains Mono | Katalognummern sind Codes, keine Prosa |
-| Score-Zahl, Hero | Inter Variable, `wght 700`, `opsz` groß | |
+| UI + Fließtext | (Standard) | Neutral, exzellente Lesbarkeit in kleinen Größen |
+| Katalognummern, Matrix/Runout, Preise, Scores | `.fid-num` | Codes, keine Prosa – dazu `tabular-nums`, damit Spalten fluchten |
+| Überschriften, Wortmarke | `.fid-display` | Zweimal pro Bildschirm, sonst ist es keine Auszeichnung mehr |
 
 ```css
 /* Fluide Skala – clamp() mit rem-Anteil, damit Browser-Zoom funktioniert (WCAG 1.4.4) */

@@ -1,7 +1,20 @@
 <script setup lang="ts">
+/**
+ * The browser's own chrome has to move with the theme.
+ *
+ * The manifest names one `theme_color` and cannot name two, so an installed
+ * app kept a black status bar over a white screen. This overrides it at
+ * runtime with whichever end of the neutral ramp is actually on screen —
+ * including when somebody picks light while the OS is dark, which a
+ * `prefers-color-scheme` media attribute on the tag could not follow.
+ */
+const { resolved } = useTheme()
+const themeColor = computed(() => THEME_COLORS[resolved.value])
+
 useHead({
   titleTemplate: (title?: string) => (title ? `${title} · Fidelity` : 'Fidelity'),
   htmlAttrs: { lang: 'de' },
+  meta: [{ name: 'theme-color', content: themeColor }],
   link: [
     { rel: 'icon', type: 'image/svg+xml', href: '/icon.svg' },
     { rel: 'apple-touch-icon', href: '/icons/apple-touch-icon.png' },

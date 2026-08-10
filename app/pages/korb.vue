@@ -345,7 +345,7 @@ const peak = computed(() =>
             <dd class="min-w-0">
               <span
                 class="block h-1.5 rounded-full"
-                :class="point.items === summary.lines.length ? 'bg-fid-accent' : 'bg-fid-n-800'"
+                :class="point.items === summary.lines.length ? 'bg-fid-accent' : 'bg-fid-inset'"
                 :style="{ width: `${Math.max(2, ((point.perItem ?? 0) / peak) * 100)}%` }"
               />
             </dd>

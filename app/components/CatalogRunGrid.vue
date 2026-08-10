@@ -26,7 +26,7 @@ defineProps<{ run: CatalogueContext; heading?: string }>()
           entry.isThis
             ? 'border-fid-accent bg-fid-accent/20 text-fid-text'
             : entry.owned
-              ? 'border-fid-border bg-fid-n-800 text-fid-text'
+              ? 'border-fid-border bg-fid-inset text-fid-text'
               : 'border-transparent text-fid-text-muted',
         ]"
         :aria-label="

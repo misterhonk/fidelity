@@ -18,6 +18,11 @@
       "$value": "{color.n.200}",
       "$extensions": { "de.fidelity.dark": "{color.n.800}" }
     },
+    "inset": {
+      "$value": "{color.n.200}",
+      "$description": "Was hinter etwas liegt, das noch nicht da ist: Fortschrittsbalken, leere Cover-Flächen, ungefüllte Rasterzellen. Vorher stand dafür überall {color.n.800} im Markup – im Hellmodus wären das schwarze Kacheln auf weißem Grund gewesen.",
+      "$extensions": { "de.fidelity.dark": "{color.n.800}" }
+    },
     "text": {
       "$value": "{color.n.900}",
       "$extensions": { "de.fidelity.dark": "{color.n.100}" }

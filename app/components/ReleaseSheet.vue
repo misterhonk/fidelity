@@ -157,7 +157,7 @@ function onKeydown(event: KeyboardEvent) {
             decoding="async"
             width="96"
             height="96"
-            class="size-24 shrink-0 rounded-fid-cover bg-fid-n-800 object-cover"
+            class="size-24 shrink-0 rounded-fid-cover bg-fid-inset object-cover"
           />
           <div class="flex min-w-0 grow flex-col gap-1">
             <p v-if="meta" class="font-fid-mono text-fid-xs text-fid-text-muted">{{ meta }}</p>

@@ -45,9 +45,9 @@ const meta = computed(() =>
         decoding="async"
         width="72"
         height="72"
-        class="size-18 shrink-0 rounded-fid-cover bg-fid-n-800 object-cover"
+        class="size-18 shrink-0 rounded-fid-cover bg-fid-inset object-cover"
       />
-      <div v-else class="size-18 shrink-0 rounded-fid-cover bg-fid-n-800" aria-hidden="true" />
+      <div v-else class="size-18 shrink-0 rounded-fid-cover bg-fid-inset" aria-hidden="true" />
 
       <div class="flex min-w-0 grow flex-col gap-1">
         <!--

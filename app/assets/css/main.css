@@ -69,6 +69,39 @@ body {
   background-color: var(--fid-bg);
   color: var(--fid-text);
   font-family: var(--fid-font-sans);
+
+  /*
+   * Kills double-tap-to-zoom, keeps pinch-to-zoom.
+   *
+   * The accidental zoom in this app is the double tap: the hit list is a column
+   * of tappable rows and a second tap lands inside the 300 ms window far more
+   * often than anybody means it to. `manipulation` removes exactly that gesture
+   * and nothing else — pinch still works, which WCAG 2.2 SC 1.4.4 requires and
+   * which somebody reading a catalogue number off a 150 px cover needs.
+   */
+  touch-action: manipulation;
+}
+
+/*
+ * iOS Safari zooms the whole page when a field under 16px takes focus, and
+ * never zooms back out. Every field here was --fid-text-sm, which is 14px on a
+ * phone, so entering the token left somebody stranded at 1.2× on a layout that
+ * had been fitted to the viewport.
+ *
+ * Raising the fields is the fix Apple leaves open; the alternative is
+ * `maximum-scale=1` in the viewport tag, which turns off pinch-to-zoom for the
+ * entire app and fails SC 1.4.4. Coarse pointers only — on a desktop the
+ * smaller field is the better-looking one and there is no zoom to trigger.
+ *
+ * Unlayered on purpose: Tailwind's utilities live in @layer utilities, and an
+ * unlayered rule outranks them without an !important anywhere.
+ */
+@media (pointer: coarse) {
+  input:not([type='checkbox'], [type='radio'], [type='range']),
+  select,
+  textarea {
+    font-size: 1rem;
+  }
 }
 
 /*

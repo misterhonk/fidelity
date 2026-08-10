@@ -190,7 +190,7 @@ function onKeydown(event: KeyboardEvent) {
               <button
                 type="button"
                 class="flex w-full items-baseline gap-3 px-4 py-2 text-left transition-colors"
-                :class="index === cursor ? 'bg-fid-accent/15' : 'hover:bg-fid-n-800/50'"
+                :class="index === cursor ? 'bg-fid-accent/15' : 'hover:bg-fid-inset/50'"
                 @click="entry.run()"
                 @mouseenter="cursor = index"
               >

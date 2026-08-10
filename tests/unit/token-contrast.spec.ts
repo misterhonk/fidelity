@@ -1,6 +1,8 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
+
+import { THEME_COLORS } from '~/composables/useTheme'
 
 // @ts-expect-error — plain ESM tooling module, no type declarations by design.
 import { contrastRatio, oklchToRgb } from '../../scripts/tokens/color.mjs'
@@ -45,6 +47,62 @@ describe.each(['light', 'dark'] as const)('semantic roles in %s mode', (scheme) 
   )('$foreground on $background clears AA', ({ foreground, background }) => {
     const ratio = contrastRatio(role(foreground, scheme), role(background, scheme))
     expect(ratio).toBeGreaterThanOrEqual(AA_BODY_TEXT)
+  })
+
+  /**
+   * `inset` is the odd one out and gets its own case.
+   *
+   * It is a *recessed* ground — progress track, empty cover, unfilled grid
+   * cell — so it sits closer to the text than the raised surfaces do, and
+   * accent on it reaches only 3.62:1 in light mode. That is fine as long as
+   * nothing writes an accent-coloured label on it, which the next test is
+   * there to keep true.
+   */
+  it.each(['text', 'text-muted'])('%s on inset clears AA', (foreground) => {
+    const ratio = contrastRatio(role(foreground, scheme), role('inset', scheme))
+    expect(ratio).toBeGreaterThanOrEqual(AA_BODY_TEXT)
+  })
+})
+
+describe('the one thing inset may not carry', () => {
+  /**
+   * The measurement above is only worth something if no screen contradicts it.
+   * A comment cannot enforce that; reading the markup can.
+   */
+  it('never puts accent text on an inset ground', () => {
+    const screens = readdirSync('app', { recursive: true, encoding: 'utf8' }).filter((file) =>
+      file.endsWith('.vue'),
+    )
+
+    const offenders = screens.filter((file) => {
+      const source = readFileSync(`app/${file}`, 'utf8')
+      // Every class attribute, static or bound, as one string each.
+      const attributes = source.match(/:?class="[^"]*"/gs) ?? []
+      return attributes.some(
+        (attribute) =>
+          attribute.includes('bg-fid-inset') && attribute.includes('text-fid-accent'),
+      )
+    })
+
+    expect(offenders).toEqual([])
+  })
+})
+
+describe('the colour the browser chrome is painted', () => {
+  /**
+   * `<meta name="theme-color">` is read before any stylesheet, so those two
+   * values are hex literals rather than tokens — the one place in the app that
+   * repeats a colour instead of referencing it. This is the check that keeps
+   * the copy in step with the original.
+   */
+  it('matches both ends of the neutral ramp', () => {
+    const hex = (reference: string) =>
+      `#${oklchToRgb(resolve(reference))
+        .map((channel: number) => Math.round(channel).toString(16).padStart(2, '0'))
+        .join('')}`
+
+    expect(THEME_COLORS.light).toBe(hex('{color.n.50}'))
+    expect(THEME_COLORS.dark).toBe(hex('{color.n.990}'))
   })
 })
 

@@ -102,7 +102,7 @@ const complete = computed(
     </p>
 
     <div v-if="progress" class="flex flex-col gap-2" aria-live="polite">
-      <div class="h-2 w-full overflow-hidden rounded-full bg-fid-n-800">
+      <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
         <div
           class="h-full rounded-full bg-fid-accent transition-[width] duration-300"
           :style="{ width: `${percent}%` }"
