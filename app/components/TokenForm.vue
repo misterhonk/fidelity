@@ -36,6 +36,35 @@ async function submit() {
       </p>
     </div>
 
+    <!--
+      Erst das Ergebnis, dann die Frage nach dem Schlüssel.
+
+      This screen asked for the key to somebody's Discogs account and showed
+      nothing of what the app does with it — the first result came after a
+      token, a sync and a two-minute scan. That is a lot of trust on credit.
+
+      Not a screenshot and not prose about the app: these are its own
+      sentences, recomputed from their signals by the real `buildReason` in a
+      test, so an example can never quietly become a promise the app no longer
+      keeps.
+    -->
+    <section class="flex flex-col gap-3 rounded-fid-md bg-fid-inset p-4">
+      <h3 class="text-fid-sm font-medium text-fid-text">Was dabei herauskommt</h3>
+      <ul class="flex flex-col gap-3">
+        <li v-for="find in SAMPLE_FINDS" :key="find.reason" class="flex items-baseline gap-3">
+          <span class="fid-num shrink-0 text-fid-base font-medium text-fid-text">
+            {{ find.score }}
+          </span>
+          <span class="fid-num shrink-0 text-fid-xs text-fid-text-muted">{{ find.grade }}</span>
+          <span class="min-w-0 text-fid-sm text-fid-text-muted">{{ find.reason }}</span>
+        </li>
+      </ul>
+      <p class="text-fid-xs text-fid-text-muted">
+        Beispiele. Eine Punktzahl, ein Satz, warum – für jede Platte im Sortiment eines
+        Händlers. Mit deiner Sammlung stehen dort deine Künstler und deine Labels.
+      </p>
+    </section>
+
     <ol class="flex list-decimal flex-col gap-1 pl-5 text-fid-sm text-fid-text-muted">
       <li>
         <a
