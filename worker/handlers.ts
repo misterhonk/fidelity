@@ -425,6 +425,9 @@ export const handlers: HandlerMap = {
 
   'vault.sync': async ({ passphrase }) => (await vault()).runVaultSync(passphrase),
 
+  'vault.merge': async ({ passphrase, remote }) =>
+    (await vault()).mergeIntoVault(passphrase, remote),
+
   'dealer.discover': async (_params, { report, signal }) => {
     const { discoverDealers } = await import('./dealers/discover')
     const identity = await currentIdentity()

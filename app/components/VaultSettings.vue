@@ -2,6 +2,9 @@
 import type { VaultStatus, VaultTarget } from '#shared/types'
 
 const { call } = useFidelityWorker()
+const vaultFile = useVaultFile()
+
+const fileName = ref<string | null>(null)
 
 const status = ref<VaultStatus | null>(null)
 const passphrase = ref('')
@@ -11,6 +14,7 @@ const error = ref<unknown>(null)
 
 onMounted(async () => {
   status.value = await call('vault.status', undefined)
+  if (vaultFile.available()) fileName.value = await vaultFile.chosenName()
 })
 
 /*
@@ -36,12 +40,17 @@ const TARGETS = computed(() => {
     },
   ]
 
-  if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+  /*
+   * Only where it can work. WebKit has no File System Access API, so on an
+   * iPhone this is not a greyed-out choice — it is not a choice, because
+   * offering it would be a setup screen that lies.
+   */
+  if (vaultFile.available()) {
     list.push({
       key: 'file',
       label: 'Datei im Sync-Ordner',
-      hint: 'Noch nicht gebaut.',
-      usable: false,
+      hint: 'In iCloud, Dropbox oder Drive. Deren Client synchronisiert, Fidelity nicht.',
+      usable: true,
     })
   }
 
@@ -58,6 +67,16 @@ async function choose(target: VaultTarget) {
   }
 }
 
+async function pickFile() {
+  error.value = null
+  try {
+    fileName.value = await vaultFile.choose()
+  } catch (cause) {
+    // An abandoned picker is not a failure worth a red box.
+    if ((cause as { name?: string })?.name !== 'AbortError') error.value = cause
+  }
+}
+
 async function sync() {
   if (busy.value) return
 
@@ -66,7 +85,10 @@ async function sync() {
   result.value = null
 
   try {
-    const report = await call('vault.sync', { passphrase: passphrase.value })
+    const report =
+      status.value?.target === 'file'
+        ? await vaultFile.sync(passphrase.value)
+        : await call('vault.sync', { passphrase: passphrase.value })
     const total = Object.values(report.counts).reduce((sum, n) => sum + n, 0)
     result.value = report.hadRemote
       ? `Zusammengeführt: ${total} Einträge.`
@@ -81,6 +103,13 @@ async function sync() {
     busy.value = false
   }
 }
+
+/** A file target is ready once a file has been chosen; the hub once it exists. */
+const canSync = computed(() => {
+  if (!status.value || status.value.target === 'none') return false
+  if (status.value.target === 'file') return fileName.value !== null
+  return status.value.ready
+})
 
 const date = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' })
 </script>
@@ -114,7 +143,21 @@ const date = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 
 
     <p v-if="status.blocked" class="text-fid-sm text-fid-sig-gap">{{ status.blocked }}</p>
 
-    <template v-if="status.target !== 'none' && status.ready">
+    <!-- Picked once, then remembered — a handle survives in IndexedDB. -->
+    <div v-if="status.target === 'file'" class="flex flex-wrap items-baseline gap-3">
+      <button
+        type="button"
+        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+        @click="pickFile()"
+      >
+        {{ fileName ? 'Andere Datei' : 'Datei wählen' }}
+      </button>
+      <span v-if="fileName" class="font-fid-mono text-fid-sm text-fid-text-muted">
+        {{ fileName }}
+      </span>
+    </div>
+
+    <template v-if="canSync">
       <label class="flex flex-col gap-2">
         <span class="text-fid-sm font-medium text-fid-text">Passphrase</span>
         <input

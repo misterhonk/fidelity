@@ -34,6 +34,15 @@ export type MetaValue =
   | { key: 'tasteProfile'; value: TasteProfile }
   | { key: 'syncState'; value: SyncState }
   | { key: 'credits'; value: CreditHarvest }
+  /**
+   * The file the vault is written to, when that is the chosen destination.
+   *
+   * A `FileSystemFileHandle` survives structured clone, so IndexedDB can hold
+   * it — which is the whole reason the file only has to be picked once. The
+   * permission attached to it does not survive as reliably and is re-requested
+   * from the main thread, because only a click can grant it.
+   */
+  | { key: 'vaultFile'; value: FileSystemFileHandle }
 
 export type MetaKey = MetaValue['key']
 

@@ -229,6 +229,23 @@ export interface WorkerContract {
     result: { counts: Record<string, number>; hadRemote: boolean; syncedAt: number }
   }
   'vault.setTarget': { params: { target: VaultTarget }; progress: never; result: VaultStatus }
+  /**
+   * The middle of a round, for destinations the worker cannot reach itself.
+   *
+   * A file lives behind a picker, and a picker needs a click — so the main
+   * thread does the reading and writing while the passphrase, the decryption
+   * and the merge stay in here. What crosses is ciphertext in both directions.
+   */
+  'vault.merge': {
+    params: { passphrase: string; remote: unknown | null }
+    progress: never
+    result: {
+      sealed: unknown
+      counts: Record<string, number>
+      hadRemote: boolean
+      syncedAt: number
+    }
+  }
 
   'dealer.discover': {
     params: undefined

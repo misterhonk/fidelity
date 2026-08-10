@@ -1,9 +1,10 @@
 import { getPreferences, updatePreferences } from '~~/db/meta'
-import type { VaultStatus } from '#shared/types'
+import type { VaultSnapshot, VaultStatus } from '#shared/types'
 
 import { currentIdentity } from '../auth'
 import { createHubClient } from '../hub/client'
 
+import type { SealedVault } from './crypto'
 import { syncVault, type SyncReport } from './sync'
 import { hubTarget, vaultId } from './targets/hub'
 
@@ -39,6 +40,15 @@ export async function vaultStatus(): Promise<VaultStatus> {
     }
   }
 
+  if (target === 'file') {
+    /*
+     * The worker cannot answer this one. A file lives behind a picker whose
+     * handle and permission belong to the main thread, so "ready" is decided
+     * there — this only says the target is a legitimate choice.
+     */
+    return { target, ready: true, lastSyncedAt: prefs.vaultSyncedAt ?? null, blocked: null }
+  }
+
   return {
     target,
     ready: false,
@@ -47,12 +57,61 @@ export async function vaultStatus(): Promise<VaultStatus> {
   }
 }
 
-export async function runVaultSync(passphrase: string): Promise<SyncReport> {
+/**
+ * The half a worker can do for a destination it cannot reach.
+ *
+ * Same middle as `syncVault`: open what came in, merge it with what is here,
+ * write the result back to IndexedDB, hand back a fresh sealed block. The
+ * caller does the two ends — reading the file and writing it — because that
+ * is where the picker and its permission live.
+ */
+export async function mergeIntoVault(
+  passphrase: string,
+  remote: unknown | null,
+  now = Date.now(),
+): Promise<{
+  sealed: SealedVault
+  counts: Record<string, number>
+  hadRemote: boolean
+  syncedAt: number
+}> {
+  requirePassphrase(passphrase)
+
+  const { snapshotLocal, applySnapshot } = await import('./sync')
+  const { mergeSnapshots, describeSnapshot } = await import('./merge')
+  const { open, seal } = await import('./crypto')
+
+  const mine = await snapshotLocal(now)
+  let merged = mine
+  let hadRemote = false
+
+  if (remote) {
+    const theirs = await open<VaultSnapshot>(remote as SealedVault, passphrase)
+    merged = mergeSnapshots(mine, theirs)
+    hadRemote = true
+    await applySnapshot(merged)
+  }
+
+  await updatePreferences({ vaultSyncedAt: now })
+
+  return {
+    sealed: await seal(merged, passphrase),
+    counts: describeSnapshot(merged),
+    hadRemote,
+    syncedAt: now,
+  }
+}
+
+function requirePassphrase(passphrase: string): void {
   if (passphrase.trim().length < 8) {
     // Short enough to brute-force is short enough to refuse. The block it
     // protects is somebody's whole collection and every judgement they made.
     throw new Error('Die Passphrase muss mindestens acht Zeichen haben.')
   }
+}
+
+export async function runVaultSync(passphrase: string): Promise<SyncReport> {
+  requirePassphrase(passphrase)
 
   const status = await vaultStatus()
   if (!status.ready || status.target === 'none') {
