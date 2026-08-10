@@ -21,7 +21,7 @@ export const DB_NAME = 'fidelity'
  * 2 — added artistNames/labelNames to the mirrored rows. See db/open.ts for
  * why the upgrade drops and refetches rather than backfilling.
  */
-export const DB_VERSION = 2
+export const DB_VERSION = 3
 
 /**
  * `meta` is a small key-value store rather than nine one-row stores. The union

@@ -31,7 +31,7 @@ const usage = computed(() => {
 </script>
 
 <template>
-  <main class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
+  <main class="@container mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
     <header class="flex flex-col gap-1">
       <h1 class="text-fid-2xl font-bold text-fid-text">Einstellungen</h1>
       <p class="text-fid-base text-fid-text-muted">

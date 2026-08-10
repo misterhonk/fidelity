@@ -51,6 +51,7 @@ const dateFormat = new Intl.DateTimeFormat('de-DE', { dateStyle: 'short' })
 
 const entries = computed<Entry[]>(() => [
   { id: 'nav-dig', group: 'Gehe zu', label: 'Neuer Dig', run: go('/dig') },
+  { id: 'nav-shelf', group: 'Gehe zu', label: 'Dein Regal', run: go('/regal') },
   { id: 'nav-map', group: 'Gehe zu', label: 'Deine Landkarte', run: go('/landkarte') },
   { id: 'nav-want', group: 'Gehe zu', label: 'Wantlist', run: go('/wantlist') },
   { id: 'nav-clerk', group: 'Gehe zu', label: "The Clerk's Take", run: go('/haendler') },

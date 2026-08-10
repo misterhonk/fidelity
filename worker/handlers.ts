@@ -389,6 +389,11 @@ export const handlers: HandlerMap = {
     return { view: await basketView(), added, sold }
   },
 
+  'collection.records': async (params) => {
+    const { shelfView } = await import('./collection/records')
+    return shelfView(params)
+  },
+
   'collection.shelf': async ({ query }) => {
     const { searchShelf } = await import('./collection/shelf')
     return searchShelf(query, Date.now())

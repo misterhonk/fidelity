@@ -31,10 +31,10 @@ const SECTIONS = [
   { to: '/dig', label: 'Graben', hint: 'Einen Händler scannen' },
   { to: '/korb', label: 'Korb', hint: 'Was du kaufen willst', also: ['/gemerkt'] },
   {
-    to: '/landkarte',
+    to: '/regal',
     label: 'Sammlung',
     hint: 'Was du hast und was du suchst',
-    also: ['/wantlist'],
+    also: ['/landkarte', '/wantlist'],
   },
   { to: '/haendler', label: 'Läden', hint: 'Bei wem du kaufst' },
 ] as const

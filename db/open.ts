@@ -50,6 +50,16 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
         tx.objectStore('meta').delete('tasteProfile')
       }
 
+      if (oldVersion > 0 && oldVersion < 3) {
+        // v3 added the cover to the mirrored rows. Same reasoning as v2, and
+        // the same price: every row comes back from the API, so this costs a
+        // resync and nothing else.
+        tx.objectStore('collection').clear()
+        tx.objectStore('wantlist').clear()
+        tx.objectStore('meta').delete('syncState')
+        tx.objectStore('meta').delete('tasteProfile')
+      }
+
       // Future versions go here. The rule: never migrate destructively unless
       // the state can be rebuilt from the API — which, so far, all of it can.
     },

@@ -296,6 +296,10 @@ export interface CollectionItem {
   styles: string[]
   formats: string[]
   year: number
+  /** The 150px cover from Discogs, '' when there is none. */
+  thumbUrl: string
+  /** The 600px one, for a grid with room. Same response, no extra request. */
+  coverUrl: string
   rating: number
   addedAt: string
 }
@@ -321,6 +325,30 @@ export interface ShelfHit {
   pressings: number | null
   /** Wantlist only: how long it has been on the list. */
   waitingDays: number | null
+}
+
+/** One record on the shelf, as the grid needs it. */
+export interface ShelfRecord {
+  releaseId: number
+  title: string
+  artist: string
+  label: string
+  year: number
+  formats: string[]
+  rating: number
+  thumbUrl: string
+  coverUrl: string
+  addedAt: string
+}
+
+export type ShelfSort = 'added' | 'artist' | 'year' | 'rating'
+
+export interface ShelfView {
+  records: ShelfRecord[]
+  /** How many the current filter leaves. */
+  total: number
+  /** How many there are altogether — the denominator. */
+  collection: number
 }
 
 export interface ShelfResult {

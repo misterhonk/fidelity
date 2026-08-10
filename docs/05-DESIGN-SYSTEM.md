@@ -306,6 +306,12 @@ vom März 2026 „an incomplete draft" und noch Jahre entfernt.
 > nicht; `inline-flex` würde dort die Grundlinie verschieben. Ein Ankreuzfeld in seinem
 > eigenen `<label>` ist so groß wie das Label – das Label *ist* das Ziel.
 
+> **Container-Queries brauchen einen Container.** `@sm:`, `@md:` und Verwandte messen
+> gegen den nächsten Vorfahren mit `@container` – gibt es keinen, greift die Regel **nie**,
+> ohne Fehler und ohne Warnung. Genau das war der Fall: außer in `MatchCard` hatte keine
+> einzige dieser Regeln einen Container, also blieb der große Schirm ungenutzt. Jede Seite,
+> die responsiv sein soll, setzt `@container` auf ihr `<main>`.
+
 ### WCAG-2.2-Kriterien, die genau diese App treffen
 
 | SC | Kriterium | Wo es beißt |
@@ -368,6 +374,7 @@ Background Sync, kein NFC auf iOS. Nichts davon ist für Fidelity blockierend.
 | 6 | **Der Korb** | Versandstaffel, Grenzkosten, Kandidatenvorschläge, Deeplinks zu Discogs |
 | 7 | **The Clerk's Take** | Händler-Steckbrief: Fingerprint, Affinity, Preispositionierung |
 | 8 | **Deine Landkarte** | Sammlungsprofil: Labels, Dekaden, Stile, Lücken |
+| 9a | **Dein Regal** | Cover-Grid, 3 Spalten am Telefon bis 8 am Monitor, Suche und Sortierung im Worker |
 | 9 | **In-Store** (nur mobil) | Große Touch-Targets, offline, Dig-Liste nach Score, **Sammlung + Wantlist durchsuchbar** („Habe ich die schon?“) |
 | 10 | **Einstellungen** | Konto, Sammlung, Horizont, Credits, Hub, Datenexport – alles, was man einmal einrichtet |
 

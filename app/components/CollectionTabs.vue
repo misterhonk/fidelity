@@ -2,14 +2,12 @@
 const route = useRoute()
 
 /**
- * Two halves of one question.
- *
- * "Sammlung" in the main navigation covers both what you have and what you are
- * hunting — they are the same subject seen from either side, and giving the
- * wantlist its own top-level tab would have made six where five already fill a
- * phone. A segmented control inside the section is the standard answer.
+ * Three views of one subject: the records, what they say about you, and the
+ * ones still missing. Giving each its own top-level entry would have made
+ * seven where five already fill a phone.
  */
 const TABS = [
+  { to: '/regal', label: 'Regal' },
   { to: '/landkarte', label: 'Landkarte' },
   { to: '/wantlist', label: 'Wantlist' },
 ] as const

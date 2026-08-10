@@ -67,7 +67,7 @@ const tiles = computed(() => {
   if (!summary) return []
 
   return [
-    { label: 'Sammlung', count: summary.collection, to: '/landkarte' },
+    { label: 'Sammlung', count: summary.collection, to: '/regal' },
     { label: 'Wantlist', count: summary.wantlist, to: '/wantlist' },
     { label: 'Gemerkt', count: summary.marked, to: '/gemerkt' },
     { label: 'Läden', count: summary.dealers, to: '/haendler' },
@@ -77,7 +77,7 @@ const tiles = computed(() => {
 </script>
 
 <template>
-  <main class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
+  <main class="@container mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
     <!-- Signed out: nothing but the pitch and the one thing to do. -->
     <template v-if="ready && !identity">
       <header class="flex flex-col gap-3">

@@ -29,6 +29,8 @@ import type {
   MatchDetail,
   Preferences,
   ShelfResult,
+  ShelfSort,
+  ShelfView,
   ShippingTier,
   TasteProfile,
   Verdict,
@@ -84,6 +86,12 @@ export interface WorkerContract {
    * it answers in a shop basement with no signal.
    */
   'collection.shelf': { params: { query: string }; progress: never; result: ShelfResult }
+  /** The collection itself, filtered and sorted in the worker, a page at a time. */
+  'collection.records': {
+    params: { query?: string; sort?: ShelfSort; offset?: number; limit?: number }
+    progress: never
+    result: ShelfView
+  }
   /** Recomputed after every sync; null until there has been one. */
   'taste.profile': { params: undefined; progress: never; result: TasteProfile | null }
 

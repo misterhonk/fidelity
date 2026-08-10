@@ -70,6 +70,10 @@ function toItem(
       ...(format.descriptions ?? []),
     ]),
     year: info.year ?? 0,
+    // Empty rather than null when Discogs has no cover, so the shelf can ask
+    // one question instead of two.
+    thumbUrl: info.thumb ?? '',
+    coverUrl: info.cover_image ?? '',
     rating,
     addedAt: dateAdded,
   }

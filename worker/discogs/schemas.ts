@@ -40,6 +40,17 @@ const basicInformationSchema = z.object({
   /** 0 or null both mean "no master". */
   master_id: z.number().int().nullable().optional(),
   title: z.string(),
+  /**
+   * The 150px cover, already in this response — we were throwing it away.
+   *
+   * Worth roughly 90 bytes a record and no request at all, which is what makes
+   * a shelf of covers possible without breaking the image rate limit: the
+   * browser fetches them lazily as they scroll into view, and the service
+   * worker keeps them (docs/02, i.discogs.com has its own ~30–40/min budget).
+   */
+  thumb: z.string().optional(),
+  /** The 600px version, for a grid on a screen with room. Same response. */
+  cover_image: z.string().optional(),
   year: z.number().int().optional(),
   artists: z.array(z.object({ id: z.number().int(), name: z.string() })).optional(),
   labels: z
