@@ -53,7 +53,15 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     fixed on phones and the footer sits outside <main>, so padding the pages
     left the attribution — which is a licence condition — hidden behind it.
   -->
-  <div class="flex min-h-dvh flex-col max-md:pb-28">
+  <!--
+    Room for the fixed nav bar, measured rather than guessed.
+
+    A flat `pb-20` was enough in a browser tab and not enough installed: in
+    standalone mode the home indicator claims another 34px at the bottom, and
+    the attribution — a licence condition — ended up underneath the bar. The
+    padding has to carry the same safe-area term the bar's own does.
+  -->
+  <div class="flex min-h-dvh flex-col max-md:pb-[calc(env(safe-area-inset-bottom)+5rem)]">
     <AppNav />
     <NuxtPage />
     <SiteFooter />

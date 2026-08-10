@@ -29,10 +29,13 @@ test.describe('settings', () => {
       // controls, but the heading and the way back are chrome and belong to
       // the page either way.
       await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible()
-      await expect(page.getByRole('link', { name: '← Einstellungen' })).toHaveAttribute(
-        'href',
-        '/einstellungen',
-      )
+
+      // "Einstellungen", not "← Einstellungen": the arrow used to be a
+      // character in the label and is now an icon, hidden from assistive
+      // technology because the word already says where the link goes.
+      await expect(
+        page.getByRole('link', { name: 'Einstellungen', exact: true }),
+      ).toHaveAttribute('href', '/einstellungen')
     })
   }
 

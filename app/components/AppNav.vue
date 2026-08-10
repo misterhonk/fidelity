@@ -70,14 +70,19 @@ const basketCount = computed(() => basketIds.value.size)
   <nav
     v-if="identity"
     aria-label="Hauptbereiche"
-    class="z-30 md:sticky md:top-0 md:border-b md:border-fid-border md:bg-fid-bg/90 md:backdrop-blur max-md:fixed max-md:inset-x-3 max-md:bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] max-md:rounded-fid-md max-md:border max-md:border-fid-border max-md:bg-fid-surface/95 max-md:shadow-fid-elev-2 max-md:backdrop-blur"
+    class="z-30 md:sticky md:top-0 md:border-b md:border-fid-border md:bg-fid-bg/90 md:backdrop-blur max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:border-t max-md:border-fid-border max-md:bg-fid-surface/95 max-md:pb-[env(safe-area-inset-bottom)] max-md:backdrop-blur"
   >
     <!--
       Stretched to equal widths on a phone, where a tab bar is a row of
       thumb-sized targets. Naturally sized on a desktop, where stretching them
       across the window pulls the labels away from the column they belong to.
     -->
-    <div class="mx-auto flex max-w-3xl items-stretch gap-1 px-6 max-md:gap-0 max-md:px-1">
+    <!--
+      The side padding is not cosmetic on a phone. The screen corners are
+      rounded, and a row stretched edge to edge puts the outermost tab — Start
+      on one side, the gear on the other — into the curve.
+    -->
+    <div class="mx-auto flex max-w-3xl items-stretch gap-1 px-6 max-md:gap-0 max-md:px-3">
       <NuxtLink
         v-for="section in SECTIONS"
         :key="section.to"
