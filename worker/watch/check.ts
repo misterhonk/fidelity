@@ -130,6 +130,7 @@ export async function setWatching(username: string, watching: boolean): Promise<
     // null instead, which routes it through "the first check stays quiet".
     watchNumForSale: watching ? (dealer.watchNumForSale ?? baselineOf(dealer)) : null,
     watchCheckedAt: watching ? (dealer.watchCheckedAt ?? null) : null,
+    updatedAt: Date.now(),
   }
   await db.put('dealers', updated)
   return updated

@@ -47,6 +47,7 @@ export async function recordFeedback(
     signals: match.signals.map((signal: Signal) => ({ ...signal })),
     score: match.score,
     createdAt: now,
+    updatedAt: now,
   }
 
   await db.put('feedback', entry)
@@ -65,7 +66,7 @@ export async function setVerdict(listingId: number, verdict: Verdict): Promise<v
   const db = await openFidelityDb()
   const entry = await db.get('feedback', listingId)
   if (!entry) return
-  await db.put('feedback', { ...entry, verdict })
+  await db.put('feedback', { ...entry, verdict, updatedAt: Date.now() })
 }
 
 export async function clearFeedback(listingId: number): Promise<void> {

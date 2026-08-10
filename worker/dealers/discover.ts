@@ -193,6 +193,7 @@ export async function rememberDealers(candidates: DealerCandidate[]): Promise<nu
       sellerRating: candidate.sellerRating ?? existing?.sellerRating ?? 0,
       ratingCount: candidate.ratingCount || (existing?.ratingCount ?? 0),
       shipsFrom: candidate.location || (existing?.shipsFrom ?? ''),
+      updatedAt: Date.now(),
     })
     if (!existing) added += 1
   }

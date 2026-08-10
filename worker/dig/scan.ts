@@ -428,5 +428,6 @@ async function saveDealer(
     // changes as soon as another shop is scanned.
     affinity: rate,
     fingerprint: fingerprint.build(dig.listingsTotal),
+    updatedAt: dig.finishedAt ?? Date.now(),
   })
 }

@@ -141,6 +141,7 @@ export async function saveUserShipping(
   const updated: Dealer = {
     ...(existing ?? blankDealer(username)),
     shippingTiers: sortTiers(tiers.map((tier) => ({ ...tier, source: 'user' as const }))),
+    updatedAt: Date.now(),
   }
   await db.put('dealers', updated)
 

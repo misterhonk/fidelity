@@ -381,6 +381,31 @@ export interface DiscoveryResult {
   friendsUsed: boolean
 }
 
+/**
+ * Everything worth carrying between devices.
+ *
+ * Not the token (rule 6) and not digs — marketplace data expires after six
+ * hours by rule, and syncing prices through a server is the one thing this
+ * app promised not to do.
+ */
+export interface VaultSnapshot {
+  savedAt: number
+  preferences: Preferences | null
+  stores: Partial<Record<string, unknown[]>>
+}
+
+/** Where a device keeps its snapshot. Chosen once, during setup. */
+export type VaultTarget = 'none' | 'hub' | 'file' | 'dropbox' | 'drive'
+
+export interface VaultStatus {
+  target: VaultTarget
+  /** Whether this device can actually use the chosen target right now. */
+  ready: boolean
+  lastSyncedAt: number | null
+  /** Why it cannot, in the app's voice, when it cannot. */
+  blocked: string | null
+}
+
 export interface ShelfResult {
   hits: ShelfHit[]
   collection: number
@@ -580,6 +605,8 @@ export interface Dealer {
   /** `num_for_sale` at the last check — the whole change detector. */
   watchNumForSale?: number | null
   watchCheckedAt?: number | null
+  /** Last touched, which is what a merge between two devices compares. */
+  updatedAt?: number
 }
 
 /**
@@ -775,4 +802,9 @@ export interface Feedback {
   signals: Signal[]
   score: number
   createdAt: number
+  /**
+   * Last touched, which is what a merge between two devices compares.
+   * `createdAt` cannot answer it: changing a verdict keeps the original.
+   */
+  updatedAt?: number
 }

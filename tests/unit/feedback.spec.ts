@@ -113,6 +113,10 @@ describe('feedback', () => {
      * offer. They are how a shortlist is still readable a year later, once the
      * dig it came from was pruned at five. The basket has kept the title for
      * exactly this reason since M4.
+     *
+     * `updatedAt` is not marketplace data either — it is when *you* last
+     * touched this row, and it is what decides which of two devices is right
+     * when they disagree.
      */
     expect(Object.keys(entry!).sort()).toEqual([
       'artist',
@@ -123,6 +127,7 @@ describe('feedback', () => {
       'score',
       'signals',
       'title',
+      'updatedAt',
       'verdict',
     ])
   })
