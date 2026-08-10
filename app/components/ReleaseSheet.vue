@@ -24,15 +24,13 @@ const verdict = computed(() => verdicts.value[props.listingId])
 const price = computed(() => {
   const value = match.value?.price
   const currency = match.value?.currency
-  if (value === null || value === undefined || !currency) return null
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(value)
+  return money(value, currency)
 })
 
 const marketLowest = computed(() => {
   const value = match.value?.marketLowestPrice
   const currency = match.value?.currency
-  if (value === null || value === undefined || !currency) return null
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(value)
+  return money(value, currency)
 })
 
 const meta = computed(() =>

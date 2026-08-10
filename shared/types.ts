@@ -638,6 +638,18 @@ export interface DealerFingerprint {
   styleDist: Record<string, number>
   decadeDist: Record<string, number>
   medianPrice: number
+  /**
+   * The currency `medianPrice` is in, or `null` when the shop does not price
+   * in one currency.
+   *
+   * A median is a plain number and carries no unit. The dealer screen printed
+   * it with a hard-coded euro sign, so a shop listing in pounds showed its
+   * median as euros — a real number under a wrong symbol, which is worse than
+   * no number. Inventory prices always come back in the *seller's* currency;
+   * `curr_abbr` has no effect on that endpoint (measured 2026-08-10), so this
+   * is the only place the unit can come from.
+   */
+  priceCurrency?: string | null
 }
 
 export interface Dealer {

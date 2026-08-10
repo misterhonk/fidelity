@@ -10,8 +10,7 @@ const { show } = useReleaseSheet()
 
 const price = computed(() => {
   const { price: value, currency } = props.match
-  if (value === null || !currency) return null
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(value)
+  return money(value, currency)
 })
 </script>
 

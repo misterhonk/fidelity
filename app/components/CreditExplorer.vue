@@ -21,13 +21,6 @@ async function load() {
   groups.value = await call('dig.credits', { digId: props.digId })
 }
 
-const number = new Intl.NumberFormat('de-DE')
-
-function money(value: number | null, currency: string | null) {
-  if (value === null || !currency) return null
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(value)
-}
-
 /**
  * The sentence docs/00 §5 uses to describe the whole feature. Written from the
  * numbers rather than templated over them, so it stays true when they are odd.

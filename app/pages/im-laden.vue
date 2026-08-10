@@ -94,11 +94,6 @@ const expired = computed(() => {
   const dig = result.value?.dig
   return dig ? Date.now() > dig.expiresAt : false
 })
-
-function money(value: number | null, currency: string | null) {
-  if (value === null || !currency) return null
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(value)
-}
 </script>
 
 <template>

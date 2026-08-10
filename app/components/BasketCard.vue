@@ -28,13 +28,6 @@ const { refresh } = useBasket()
 
 const error = ref<unknown>(null)
 
-function money(value: number | null | undefined, currency: string | null | undefined) {
-  if (value === null || value === undefined || !currency) return null
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(value)
-}
-
-const number = new Intl.NumberFormat('de-DE')
-
 /** Where the postage table came from — said out loud, never implied. */
 const SOURCE_LABEL: Record<ShippingTier['source'], string> = {
   user: 'von dir eingetragen',
@@ -351,6 +344,36 @@ const peak = computed(() =>
           – erkannt: {{ summary.shippingMatched.join(' · ') }}</template
         >. Stimmt das nicht, trag die Staffel ein.
       </p>
+
+      <!--
+        Woran der Parser gescheitert ist — und woran er es nicht wäre.
+        Where he gives up, the screen used to say "trag die Staffel ein" and
+        leave somebody to guess what he had been hoping for. He has carried a
+        list of the shapes he reads since he was written, exported and captioned
+        "for the interface to show when it fails". No interface ever showed it.
+      -->
+      <details v-if="summary.shippingSource === null" class="group">
+        <summary
+          class="fid-action cursor-pointer list-none text-fid-sm text-fid-text-muted hover:text-fid-text"
+        >
+          Versand unbekannt – was hätte ich lesen können?
+        </summary>
+        <div class="mt-2 flex flex-col gap-2">
+          <p class="max-w-prose text-fid-sm text-fid-text-muted">
+            Der Händlertext gibt keine Staffel her, die ich sicher lesen kann. Diese Formen
+            erkenne ich – steht so etwas auf der Händlerseite, hilft es, sie hier einzutragen:
+          </p>
+          <ul class="flex flex-col gap-1">
+            <li
+              v-for="shape in UNDERSTOOD_SHAPES"
+              :key="shape"
+              class="font-fid-mono text-fid-xs text-fid-text-muted"
+            >
+              {{ shape }}
+            </li>
+          </ul>
+        </div>
+      </details>
 
       <button
         type="button"

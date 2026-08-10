@@ -63,8 +63,6 @@ async function keep() {
     error.value = cause
   }
 }
-
-const number = new Intl.NumberFormat('de-DE')
 </script>
 
 <template>

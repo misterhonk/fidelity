@@ -126,13 +126,7 @@ onMounted(async () => {
   }
 })
 
-const number = new Intl.NumberFormat('de-DE')
 const date = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' })
-
-function money(value: number | null, currency: string | null) {
-  if (value === null || !currency) return null
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(value)
-}
 
 async function check() {
   if (checking.value) return

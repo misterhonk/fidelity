@@ -1,7 +1,5 @@
 <script setup lang="ts">
 const { alerts, dismiss } = useWatchlist()
-
-const number = new Intl.NumberFormat('de-DE')
 </script>
 
 <template>

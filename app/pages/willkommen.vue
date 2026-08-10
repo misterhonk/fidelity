@@ -84,8 +84,6 @@ const syncLabel = computed(() => {
   return `${what}: ${number.format(p.stored)} von ${number.format(p.total)}`
 })
 
-const number = new Intl.NumberFormat('de-DE')
-
 /**
  * What the app does, in three lines, at the moment it can finally do it.
  *

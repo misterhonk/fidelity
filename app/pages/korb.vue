@@ -8,8 +8,6 @@ const { view, load, clear } = useBasket()
 
 onMounted(load)
 
-const number = new Intl.NumberFormat('de-DE')
-
 const baskets = computed(() => view.value.baskets)
 const records = computed(() =>
   baskets.value.reduce((sum, basket) => sum + basket.lines.length, 0),

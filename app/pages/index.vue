@@ -43,13 +43,6 @@ onMounted(async () => {
   home.value = await call('home.overview', undefined)
 })
 
-const number = new Intl.NumberFormat('de-DE')
-
-function money(value: number | null, currency: string | null) {
-  if (value === null || !currency) return null
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(value)
-}
-
 const digAge = computed(() => {
   const dig = home.value?.dig
   return dig ? since(dig.startedAt) : null

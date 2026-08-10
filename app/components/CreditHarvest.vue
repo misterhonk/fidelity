@@ -32,8 +32,6 @@ async function harvest() {
   }
 }
 
-const number = new Intl.NumberFormat('de-DE')
-
 const remaining = computed(() =>
   status.value ? Math.max(0, status.value.favourites - status.value.harvested) : 0,
 )

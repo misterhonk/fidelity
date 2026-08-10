@@ -50,6 +50,19 @@ function toggleFormat(name: string) {
   void save({ formatsAllow: next })
 }
 
+/**
+ * Das Zielland, endlich einstellbar.
+ *
+ * Written through the same debounced `save` as everything else here. Empty
+ * falls back to the default rather than being stored as an empty string: a
+ * blank destination would make the postage parser refuse every dealer whose
+ * text is sorted by country, which is a worse answer than "Germany".
+ */
+const shipsTo = computed({
+  get: () => prefs.value?.shipsToCountry ?? '',
+  set: (value: string) => void save({ shipsToCountry: value.trim() || 'Germany' }),
+})
+
 const blockedText = computed({
   get: () => (prefs.value?.shipsFromBlock ?? []).join(', '),
   set: (value: string) =>
@@ -144,6 +157,30 @@ const number = (value: string) => {
           </span>
         </label>
       </div>
+
+      <!--
+        Wohin die Platte geht.
+
+        This was a field in the data model with no control anywhere: it decided
+        the postage — which block of a dealer's shipping text gets read, and
+        therefore the number the basket puts under "Versand" — and it was fixed
+        at "Germany" for everybody who ever installed this.
+      -->
+      <label class="flex flex-col gap-1">
+        <span class="text-fid-sm text-fid-text-muted">Wohin geliefert wird</span>
+        <input
+          v-model="shipsTo"
+          type="text"
+          autocomplete="country-name"
+          placeholder="Germany"
+          class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+        />
+        <span class="text-fid-xs text-fid-text-muted">
+          Entscheidet den Versand: Händler schreiben ihre Preise nach Zielland gestaffelt
+          („Germany:", „Europe:", „Non-Europe:"), und gelesen wird nur der Block, der zu dir
+          gehört. Auf Englisch, wie Discogs es schreibt — „Deutschland" versteht Fidelity auch.
+        </span>
+      </label>
 
       <label class="flex flex-col gap-1">
         <span class="text-fid-sm text-fid-text-muted">Versand aus diesen Ländern nicht</span>

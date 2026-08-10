@@ -50,7 +50,6 @@ watch([query, sort], () => {
 })
 watch(shown, load)
 
-const number = new Intl.NumberFormat('de-DE')
 const rest = computed(() => (view.value ? view.value.total - view.value.records.length : 0))
 </script>
 

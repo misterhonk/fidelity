@@ -55,8 +55,6 @@ async function build() {
   }
 }
 
-const number = new Intl.NumberFormat('de-DE')
-
 const percent = computed(() => {
   const p = progress.value
   if (!p || p.total === 0) return 0

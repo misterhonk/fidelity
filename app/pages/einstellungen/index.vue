@@ -13,8 +13,6 @@ const { call } = useFidelityWorker()
 const { preference: theme, themes } = useTheme()
 const { current: typeset, sets } = useTypeset()
 
-const number = new Intl.NumberFormat('de-DE')
-
 const stats = ref<Awaited<ReturnType<typeof call<'db.stats'>>> | null>(null)
 const vault = ref<VaultStatus | null>(null)
 const preferences = ref<Preferences | null>(null)

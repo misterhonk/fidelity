@@ -49,10 +49,6 @@ const number = new Intl.NumberFormat('de-DE')
 const rateFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
 const factorFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 })
 
-function money(value: number, currency = 'EUR') {
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(value)
-}
-
 /** Distributions come back as name → count; the bars want facets. */
 function facets(dist: Record<string, number>, limit: number): TasteFacet[] {
   return (
@@ -228,9 +224,27 @@ const scanned = computed(() => {
           class="flex flex-col gap-1"
         >
           <h2 class="text-fid-sm font-medium text-fid-text">Preislage</h2>
+          <!--
+            Ein Median ist eine blanke Zahl und trägt keine Einheit.
+            This printed it with a hard-coded euro sign, so a shop pricing in
+            pounds showed its median as euros — a real number under the wrong
+            symbol, which is worse than no number. Inventory prices always come
+            back in the seller's currency, so the scan records which one it saw
+            and says nothing where a shop mixes them.
+          -->
           <p class="text-fid-base text-fid-text">
             Median
-            <span class="fid-num">{{ money(profile.dealer.fingerprint.medianPrice) }}</span>
+            <span class="fid-num">{{
+              money(
+                profile.dealer.fingerprint.medianPrice,
+                profile.dealer.fingerprint.priceCurrency,
+              ) ?? number.format(profile.dealer.fingerprint.medianPrice)
+            }}</span>
+            <template v-if="!profile.dealer.fingerprint.priceCurrency">
+              <span class="text-fid-sm text-fid-text-muted">
+                (der Laden preist in mehreren Währungen aus)</span
+              >
+            </template>
             <template v-if="pricePosition"> – {{ pricePosition }}</template>
           </p>
           <WhyNote label="Womit verglichen wird">

@@ -17,6 +17,8 @@ export class FingerprintAccumulator {
   readonly #labels = new Map<string, number>()
   readonly #decades = new Map<string, number>()
   readonly #prices: number[] = []
+  /** Every currency seen, so a shop that mixes them can say so. */
+  readonly #currencies = new Set<string>()
   #sampled = 0
 
   add(listing: Listing): void {
@@ -33,7 +35,10 @@ export class FingerprintAccumulator {
       this.#decades.set(decade, (this.#decades.get(decade) ?? 0) + 1)
     }
 
-    if (listing.price !== null && listing.price > 0) this.#prices.push(listing.price)
+    if (listing.price !== null && listing.price > 0) {
+      this.#prices.push(listing.price)
+      if (listing.currency) this.#currencies.add(listing.currency)
+    }
   }
 
   /** How much of the dealer's stock is on labels the collection already has. */
@@ -59,6 +64,9 @@ export class FingerprintAccumulator {
       styleDist: {},
       decadeDist: top(this.#decades, 12),
       medianPrice: median(this.#prices),
+      // One currency or none. Two shops in one shop is a median of apples and
+      // pears, and the screen has to be told rather than left to guess.
+      priceCurrency: this.#currencies.size === 1 ? [...this.#currencies][0]! : null,
     }
   }
 }

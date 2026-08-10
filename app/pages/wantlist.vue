@@ -21,7 +21,6 @@ onMounted(async () => {
   }
 })
 
-const number = new Intl.NumberFormat('de-DE')
 const date = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' })
 
 const records = computed(() => {
