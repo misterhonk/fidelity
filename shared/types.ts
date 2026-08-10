@@ -717,9 +717,20 @@ export interface CreditGroup {
 }
 
 export interface BasketView {
-  summary: BasketSummary | null
+  /**
+   * Einer je Händler.
+   *
+   * Porto fällt pro Sendung an, also rechnet jeder Korb für sich — das war
+   * schon immer so. Was neu ist: es darf mehr als einen geben. Vorher löschte
+   * eine Platte von einem zweiten Verkäufer den ersten Korb kommentarlos, und
+   * beim Einkaufen bei mehreren Läden gleichzeitig — dem Normalfall einer
+   * Shopping-Session — war das schlicht Datenverlust.
+   *
+   * Neuester zuerst: der Laden, an dem gerade gearbeitet wird, steht oben.
+   */
+  baskets: BasketSummary[]
+  /** Every listing in every basket, so a button knows its own state. */
   listingIds: number[]
-  candidates: BasketCandidate[]
 }
 
 export interface BasketCandidate {
@@ -765,6 +776,8 @@ export interface BasketLine {
 
 export interface BasketSummary {
   dealer: string
+  /** What else this shop has that would ride along for less postage. */
+  candidates: BasketCandidate[]
   displayName: string
   lines: BasketLine[]
   /** null when a price has aged out or two currencies are in play. */

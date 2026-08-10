@@ -523,10 +523,9 @@ export const handlers: HandlerMap = {
     return basketView()
   },
 
-  'basket.plan': async ({ budget }) => {
+  'basket.plan': async ({ dealer, budget }) => {
     const view = await basketView()
-    const dealer = view.summary?.dealer
-    if (!dealer) return null
+    if (!view.baskets.some((basket) => basket.dealer === dealer)) return null
 
     const { planBasket } = await import('./basket/optimise')
     const db = await openFidelityDb()
@@ -635,24 +634,33 @@ export const handlers: HandlerMap = {
  * which candidates are still worth suggesting.
  */
 async function basketView(): Promise<BasketView> {
-  const [{ basketListingIds, basketSummary }, { suggestCandidates }] = await Promise.all([
+  const [{ basketListingIds, basketSummaries }, { suggestCandidates }] = await Promise.all([
     import('./basket'),
     import('./basket/optimise'),
   ])
 
   const preferences = await getPreferences()
-  const summary = await basketSummary(Date.now(), preferences.shipsToCountry)
+  const summaries = await basketSummaries(Date.now(), preferences.shipsToCountry)
   const listingIds = await basketListingIds()
+  const inBasket = new Set(listingIds)
 
-  const candidates = summary
-    ? suggestCandidates(
+  /*
+   * Candidates are per shop, because postage is. Filling up at one seller says
+   * nothing about what would ride along at another — and suggesting a record
+   * from the wrong shop is the one mistake that would cost real money.
+   */
+  const baskets = await Promise.all(
+    summaries.map(async (summary) => ({
+      ...summary,
+      candidates: suggestCandidates(
         await candidatesFor(summary.dealer),
-        new Set(listingIds),
+        inBasket,
         preferences.targetPrice,
-      )
-    : []
+      ),
+    })),
+  )
 
-  return { summary, listingIds, candidates }
+  return { baskets, listingIds }
 }
 
 /** The scored records this dealer still has, newest dig first. */

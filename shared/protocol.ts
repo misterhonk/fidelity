@@ -356,7 +356,12 @@ export interface WorkerContract {
     result: BasketView
   }
   /** Greedy plus swap improvement over what this dealer has that you want. */
-  'basket.plan': { params: { budget: number }; progress: never; result: BasketPlan | null }
+  /** Per shop, because postage is: filling up at one says nothing about another. */
+  'basket.plan': {
+    params: { dealer: string; budget: number }
+    progress: never
+    result: BasketPlan | null
+  }
   /**
    * Everything the detail sheet shows. Costs no request: it is all horizon and
    * stored match, which is the whole reason the collection was expanded.

@@ -40,19 +40,26 @@ test.describe('the theme is decided before anything is drawn', () => {
     })
   }
 
-  test('no stored choice follows the operating system', async ({ page }) => {
-    /*
-     * Both schemes are set *before* their visit. Flipping the media query on a
-     * live page tests a race between the OS listener and hydration rather than
-     * the behaviour — it passed alone and failed in a full run, which is the
-     * signature of exactly that.
-     */
-    for (const scheme of ['light', 'dark'] as const) {
-      await page.emulateMedia({ colorScheme: scheme })
-      await page.goto('/')
-      await expect(page.locator('html')).toHaveClass(new RegExp(`\\b${scheme}\\b`))
-    }
-  })
+  /*
+   * One context per scheme, rather than one page emulating both.
+   *
+   * The first attempt flipped the media query on a live page, which tested a
+   * race with hydration. The second set it before each `goto` — better, and
+   * still flaky about one run in four: `emulateMedia` lands on a page that is
+   * already navigating, and the inline script in <head> reads matchMedia
+   * before the emulation has taken. `test.use` puts it in the context options,
+   * where there is nothing left to race with.
+   */
+  for (const scheme of ['light', 'dark'] as const) {
+    test.describe(`with the system set to ${scheme}`, () => {
+      test.use({ colorScheme: scheme })
+
+      test('no stored choice follows the operating system', async ({ page }) => {
+        await page.goto('/')
+        await expect(page.locator('html')).toHaveClass(new RegExp(`\\b${scheme}\\b`))
+      })
+    })
+  }
 })
 
 test.describe('a theme commits in both directions', () => {

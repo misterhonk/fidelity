@@ -8,7 +8,7 @@ import type { BasketView } from '#shared/types'
  * list, and two buttons disagreeing about whether a record is in the basket is
  * a bug somebody sees immediately.
  */
-const view = shallowRef<BasketView>({ summary: null, listingIds: [], candidates: [] })
+const view = shallowRef<BasketView>({ baskets: [], listingIds: [] })
 const ids = shallowRef(new Set<number>())
 /** The last add or remove that did not survive the trip to the worker. */
 const failure = shallowRef<unknown>(null)

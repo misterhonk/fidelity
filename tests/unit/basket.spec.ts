@@ -5,7 +5,7 @@ import type { Dealer, Match, ShippingTier } from '#shared/types'
 import {
   addToBasket,
   basketListingIds,
-  basketSummary,
+  basketSummaries,
   clearBasket,
   PRICE_TTL_MS,
   removeFromBasket,
@@ -112,13 +112,32 @@ describe('holding a basket', () => {
     })
   })
 
-  it('holds one dealer at a time', async () => {
-    // Postage is per shipment and a shipment is per dealer. Two dealers in one
-    // total is a number nobody can pay.
+  it('keeps a basket per dealer instead of replacing one with the next', async () => {
+    /*
+     * This used to assert the opposite, and the opposite was a bug: adding a
+     * record from a second shop wiped the first basket without a word. Postage
+     * really is per shipment — which is why the *arithmetic* stays separate —
+     * but a shopping session is several shipments at once, and losing one of
+     * them to a click is not a simplification.
+     */
     await addToBasket(match({ listingId: 1 }), 'shop-a', 1000)
-    await addToBasket(match({ listingId: 2 }), 'shop-b', 1000)
+    await addToBasket(match({ listingId: 2 }), 'shop-b', 2000)
 
-    expect(await basketListingIds()).toEqual([2])
+    expect((await basketListingIds()).sort()).toEqual([1, 2])
+
+    const baskets = await basketSummaries(3000, 'Germany')
+    expect(baskets.map((basket) => basket.dealer)).toEqual(['shop-b', 'shop-a'])
+    expect(baskets.every((basket) => basket.lines.length === 1)).toBe(true)
+  })
+
+  it('sums each shipment on its own', async () => {
+    // The one thing that must never merge: two shops in one total is a number
+    // nobody can pay.
+    await addToBasket(match({ listingId: 1, price: 10 }), 'shop-a', 1000)
+    await addToBasket(match({ listingId: 2, price: 25 }), 'shop-b', 2000)
+
+    const baskets = await basketSummaries(3000, 'Germany')
+    expect(baskets.map((basket) => basket.subtotal).sort()).toEqual([10, 25])
   })
 
   it('keeps adding within the same dealer', async () => {
@@ -138,8 +157,8 @@ describe('holding a basket', () => {
     expect(await basketListingIds()).toEqual([])
   })
 
-  it('has no summary while it is empty', async () => {
-    expect(await basketSummary(1000, 'Germany')).toBeNull()
+  it('has no baskets while it is empty', async () => {
+    expect(await basketSummaries(1000, 'Germany')).toEqual([])
   })
 
   it('stores the title rather than pointing at the dig', async () => {
@@ -178,7 +197,7 @@ describe('what a basket costs', () => {
 
   it('marks a line expired once it is older than the ToS window', async () => {
     await addToBasket(match({ listingId: 1 }), 'shop', 0)
-    const summary = await basketSummary(PRICE_TTL_MS + 1, 'Germany')
+    const [summary] = await basketSummaries(PRICE_TTL_MS + 1, 'Germany')
     expect(summary?.lines[0]?.priceExpired).toBe(true)
     expect(PRICE_TTL_MS).toBe(6 * 60 * 60 * 1000)
   })

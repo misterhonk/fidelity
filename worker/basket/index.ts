@@ -24,16 +24,20 @@ export type { BasketLine, BasketSummary }
 export async function addToBasket(match: Match, dealer: string, now: number): Promise<void> {
   const db = await openFidelityDb()
 
-  // A basket holds one dealer at a time. Adding from a different one replaces
-  // rather than merges, because postage is per shipment and two dealers in one
-  // total is a number nobody can pay.
-  const existing = await db.getAll('basket')
-  if (existing.some((item) => item.dealer !== dealer)) {
-    const tx = db.transaction('basket', 'readwrite')
-    await Promise.all(existing.map((item) => tx.store.delete(item.listingId)))
-    await tx.done
-  }
-
+  /*
+   * Nothing is thrown away here.
+   *
+   * This used to wipe the basket whenever a record came from a different shop
+   * — postage is per shipment, so one total across two dealers is a number
+   * nobody can pay, and merging them would have been worse. But a shopping
+   * session *is* several shops at once: you find three records at one seller,
+   * two at another, and want to fill both up to the next postage tier. Losing
+   * the first basket to a click on the second is not a simplification, it is
+   * silent data loss.
+   *
+   * The arithmetic stays per shipment. There is simply more than one of them
+   * now — see `basketSummaries`.
+   */
   await db.put('basket', {
     listingId: match.listingId,
     dealer,
@@ -64,26 +68,46 @@ export async function basketListingIds(): Promise<number[]> {
   return (await db.getAll('basket')).map((item) => item.listingId)
 }
 
-export async function basketSummary(
-  now: number,
-  country: string,
-): Promise<BasketSummary | null> {
+/**
+ * Ein Korb je Händler, neuester zuerst.
+ *
+ * Postage is per shipment, so every basket is its own sum, its own tier table
+ * and its own advice — that has always been true and has not changed. What
+ * changed is that a session can hold several, which is what a session actually
+ * looks like.
+ *
+ * Ordered by the most recent addition, so the shop somebody is working on sits
+ * at the top rather than wherever the map happened to put it.
+ */
+export async function basketSummaries(now: number, country: string): Promise<BasketSummary[]> {
   const db = await openFidelityDb()
   const items = await db.getAll('basket')
-  if (items.length === 0) return null
+  if (items.length === 0) return []
 
-  const dealerName = items[0]!.dealer
-  const dealer = await db.get('dealers', dealerName)
-
-  const lines: BasketLine[] = items
-    .map((item) => ({
+  const byDealer = new Map<string, BasketLine[]>()
+  for (const item of items) {
+    const line: BasketLine = {
       ...item,
       priceExpired: now - item.addedAt > PRICE_TTL_MS,
       sold: Boolean(item.soldAt),
-    }))
-    .sort((a, b) => a.addedAt - b.addedAt)
+    }
+    const lines = byDealer.get(item.dealer)
+    if (lines) lines.push(line)
+    else byDealer.set(item.dealer, [line])
+  }
 
-  return summarise(lines, dealer ?? null, await tiersFor(dealer, country))
+  const summaries = await Promise.all(
+    [...byDealer].map(async ([dealerName, lines]) => {
+      const dealer = await db.get('dealers', dealerName)
+      lines.sort((a, b) => a.addedAt - b.addedAt)
+      return summarise(lines, dealer ?? null, await tiersFor(dealer, country))
+    }),
+  )
+
+  const newest = (summary: BasketSummary) =>
+    Math.max(...summary.lines.map((line) => line.addedAt))
+
+  return summaries.sort((a, b) => newest(b) - newest(a))
 }
 
 async function tiersFor(
@@ -136,6 +160,8 @@ export function summarise(
   return {
     dealer: lines[0]?.dealer ?? '',
     displayName: dealer?.displayName || (lines[0]?.dealer ?? ''),
+    // Filled by the caller, which is the only place that can see the digs.
+    candidates: [],
     lines,
     subtotal,
     currency,
