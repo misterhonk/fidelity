@@ -77,7 +77,18 @@ access-control-expose-headers: Location
 kommt zwar ueber die Leitung, aber `fetch()` gibt den Header nicht heraus. Ein adaptiver
 Token-Bucket ist damit **nicht baubar**.
 Konsequenz: blind und konservativ drosseln - **1 Request/1.200 ms** (= 50/min, 10 unter
-dem Limit). Der **429-Status** ist lesbar, darauf reagieren wir mit exponentiellem Backoff.
+dem Limit).
+
+⚠️ **Und der 429-Status ist ebenfalls unsichtbar.** Gemessen am 2026-08-10: die 200er
+traegt `access-control-allow-origin: *`, die **429er nicht** - sie kommt von Cloudflare
+(`server: cloudflare`, `cf-ray`), und dort fehlt der Header. Im Browser wird daraus kein
+`Response`, sondern ein abgelehnter `fetch()`. **JavaScript sieht nie einen Status 429**,
+sondern denselben `TypeError: Failed to fetch` wie bei gezogenem Kabel.
+
+Damit ist jedes `if (response.status === 429)` im Browser toter Code. Was bleibt: eine
+undurchsichtige Fehlschlag-Klasse, zwei kurze Wiederholungen fuer echte Aussetzer, und
+danach - wenn der Browser sagt, er sei online - der lange Rate-Limit-Backoff. Siehe
+`worker/discogs/client.ts`.
 
 **2. OAuth 1.0a ist unmoeglich.**
 `POST /oauth/access_token` ist per CORS gesperrt. Deshalb: **Personal Access Token**,
@@ -101,6 +112,11 @@ X-Discogs-Ratelimit-Remaining:  57
 
 - **60/min authentifiziert, 25/min ohne**, gleitendes 60-Sekunden-Fenster
 - **Pro Quell-IP.** Zusätzliche Tokens erhöhen den Durchsatz **nicht**
+- ⚠️ **Ein Tab ist keine IP.** Zwei offene Tabs sind zwei Worker mit je eigenem Pacer,
+  die sich einzeln perfekt an 1.200 ms halten und zusammen 100/min senden. Deshalb wird
+  der Slot unter einem **Web Lock** (`fidelity:discogs`) gegen einen Zeitstempel in
+  IndexedDB (`meta.lastRequestAt`) beansprucht - eine Luecke fuer den ganzen Browser,
+  nicht eine pro Tab. Siehe `worker/discogs/pacer.ts`
 - Bei Überschreitung: **429**, Body `{"message":"You are making requests too quickly."}`
 - ⚠️ **Kein `Retry-After`-Header** – verifiziert. Eigener Backoff nötig
 - ⚠️ `-Used` verhält sich **nicht monoton** (0→1→2→0→3 in einem Burst beobachtet).

@@ -28,6 +28,14 @@ export interface DiscogsClientOptions {
   sleep?: (ms: number) => Promise<void>
   /** Injected in tests; production jitter comes from Math.random. */
   jitter?: () => number
+  /**
+   * Whether the browser believes it has a connection. Only ever used to tell
+   * two indistinguishable failures apart — see the opaque-failure branch in
+   * `#request`. `navigator.onLine` is a weak signal (it says "a network
+   * exists", not "Discogs is reachable"), which is exactly the weight it
+   * carries here: it decides how long to wait, never whether to give up.
+   */
+  isOnline?: () => boolean
   baseUrl?: string
 }
 
@@ -50,6 +58,7 @@ export class DiscogsClient {
       pacer: options.pacer ?? createPacer(),
       sleep: defaultSleep,
       jitter: Math.random,
+      isOnline: () => globalThis.navigator?.onLine ?? true,
       baseUrl: DISCOGS_API,
       ...options,
     }
@@ -77,17 +86,36 @@ export class DiscogsClient {
       try {
         response = await this.#options.pacer.run(() => this.#send(url, signal), signal)
       } catch (error) {
-        const transient =
-          error instanceof DiscogsError &&
-          error.status === 0 &&
-          networkAttempt < NETWORK_RETRY_MS.length &&
-          !signal?.aborted
-        if (!transient) throw error
+        const opaque = error instanceof DiscogsError && error.status === 0 && !signal?.aborted
+        if (!opaque) throw error
 
-        await this.#options.sleep(NETWORK_RETRY_MS[networkAttempt]!)
-        networkAttempt += 1
-        attempt -= 1
-        continue
+        // A blip deserves a quick second try.
+        if (networkAttempt < NETWORK_RETRY_MS.length) {
+          await this.#options.sleep(NETWORK_RETRY_MS[networkAttempt]!)
+          networkAttempt += 1
+          attempt -= 1
+          continue
+        }
+
+        /*
+         * Still failing while the browser says it is online. In a browser the
+         * likeliest cause by far is a 429: Cloudflare serves the rate-limit
+         * response without `access-control-allow-origin`, so it never becomes
+         * a Response at all — `fetch()` rejects and the status below is
+         * unreachable (measured 2026-08-10, docs/02 §Rate-Limit).
+         *
+         * So this waits out the window rather than ending the run. A horizon
+         * expansion is hundreds of requests over many minutes; giving up on
+         * the one that happened to land on the limit would throw all of it
+         * away for something that clears in under a minute.
+         */
+        if (this.#options.isOnline() && attempt < BACKOFF_MS.length) {
+          const base = BACKOFF_MS[attempt]!
+          await this.#options.sleep(base + this.#options.jitter() * 0.25 * base)
+          continue
+        }
+
+        throw error
       }
 
       if (response.status === 429 && attempt < BACKOFF_MS.length) {
@@ -122,11 +150,18 @@ export class DiscogsClient {
       })
     } catch (error) {
       if (signal?.aborted) throw error
-      // A failed fetch is indistinguishable from being offline, and for the
-      // user it amounts to the same thing.
-      throw new DiscogsError(0, 'Keine Verbindung zu Discogs.', [
-        error instanceof Error ? error.message : String(error),
-      ])
+      /*
+       * An opaque failure. It is not only "offline": Discogs' 429 comes back
+       * through Cloudflare without a CORS header, so a rate limit reaches the
+       * browser as exactly this — a rejected fetch with no status to read.
+       * Being reached and being throttled are indistinguishable here, and the
+       * message says both rather than picking the wrong one.
+       */
+      throw new DiscogsError(
+        0,
+        'Discogs antwortet nicht – keine Verbindung oder Limit erreicht.',
+        [error instanceof Error ? error.message : String(error)],
+      )
     }
   }
 }

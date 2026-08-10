@@ -36,6 +36,16 @@ export type MetaValue =
   | { key: 'syncState'; value: SyncState }
   | { key: 'credits'; value: CreditHarvest }
   /**
+   * When the last Discogs request went out, in epoch milliseconds.
+   *
+   * Here rather than in a worker variable because the rate limit is per IP and
+   * a tab is not. Two tabs each pacing themselves perfectly still hit Discogs
+   * twice as often as either believes; a row every tab can read is what makes
+   * the gap one gap. Written under a Web Lock, so no two tabs claim the same
+   * slot (worker/discogs/pacer.ts).
+   */
+  | { key: 'lastRequestAt'; value: number }
+  /**
    * The file the vault is written to, when that is the chosen destination.
    *
    * A `FileSystemFileHandle` survives structured clone, so IndexedDB can hold

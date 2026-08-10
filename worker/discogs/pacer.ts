@@ -14,10 +14,44 @@
  */
 export const MIN_REQUEST_INTERVAL_MS = 1200
 
+/**
+ * The name of the lock that makes the gap hold across tabs.
+ *
+ * The chain below serialises one worker. The limit is per **IP**, so two open
+ * tabs are two chains pacing themselves perfectly and hitting Discogs twice as
+ * often as either believes — 100 requests a minute against a limit of 60. That
+ * is not a hypothesis: it is what the 429s in the console were.
+ *
+ * A Web Lock is the smallest thing that fixes it. Held from the moment a slot
+ * is claimed until the gap has passed, so at most one tab holds the floor at a
+ * time and the *next* tab starts its wait when this one is finished. Available
+ * in workers everywhere the app runs, iOS Safari included.
+ */
+export const PACER_LOCK = 'fidelity:discogs'
+
 export interface PacerOptions {
   minIntervalMs?: number
   now?: () => number
   sleep?: (ms: number) => Promise<void>
+  /**
+   * Runs a slot exclusively across every tab of this origin. Defaults to the
+   * Web Locks API, and to running the slot directly where there is none —
+   * a single tab paces itself correctly either way.
+   */
+  exclusively?: <T>(run: () => Promise<T>) => Promise<T>
+  /**
+   * When the last request went out, shared with the other tabs.
+   *
+   * In memory by default, which is one tab's view and exactly what this used
+   * to be. Production passes a store every tab can see, so the gap is one gap
+   * rather than one per tab.
+   */
+  slotClock?: SlotClock
+}
+
+export interface SlotClock {
+  read(): Promise<number> | number
+  write(startedAt: number): Promise<void> | void
 }
 
 export interface Pacer {
@@ -29,27 +63,60 @@ export interface Pacer {
 
 const defaultSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
+/**
+ * The slot, held against every other tab of this origin.
+ *
+ * Falls through to running it directly where the API is missing — an old
+ * browser then paces itself exactly as before, which is the behaviour this
+ * replaces rather than a degraded one.
+ */
+function webLock<T>(run: () => Promise<T>): Promise<T> {
+  const locks = globalThis.navigator?.locks
+  if (!locks) return run()
+  return locks.request(PACER_LOCK, run) as Promise<T>
+}
+
+/** One tab's view of when it last sent something. */
+function memoryClock(): SlotClock {
+  let startedAt = Number.NEGATIVE_INFINITY
+  return {
+    read: () => startedAt,
+    write: (value) => {
+      startedAt = value
+    },
+  }
+}
+
 export function createPacer({
   minIntervalMs = MIN_REQUEST_INTERVAL_MS,
   now = Date.now,
   sleep = defaultSleep,
+  exclusively = webLock,
+  slotClock = memoryClock(),
 }: PacerOptions = {}): Pacer {
   // Serialisation is the promise chain itself: every task links onto the
   // previous one, so a second caller physically cannot overtake the first.
   let chain: Promise<unknown> = Promise.resolve()
-  let lastStartedAt = Number.NEGATIVE_INFINITY
   let queued = 0
 
   async function execute<T>(task: () => Promise<T>, signal?: AbortSignal): Promise<T> {
-    const waitFor = lastStartedAt + minIntervalMs - now()
-    if (waitFor > 0) await sleep(waitFor)
+    /*
+     * Claiming the slot and sending it happen under the same lock, so at any
+     * moment exactly one tab is doing either. Waiting stays lazy — a caller
+     * who was already slow pays nothing — because the last start is read from
+     * a clock every tab shares rather than from this one's memory.
+     */
+    return exclusively(async () => {
+      const waitFor = (await slotClock.read()) + minIntervalMs - now()
+      if (waitFor > 0) await sleep(waitFor)
 
-    // Checked after the wait, not before: a dig cancelled while this request
-    // sat in the queue must not still hit the network.
-    signal?.throwIfAborted()
+      // Checked after the wait, not before: a dig cancelled while this request
+      // sat in the queue must not still hit the network.
+      signal?.throwIfAborted()
 
-    lastStartedAt = now()
-    return task()
+      await slotClock.write(now())
+      return task()
+    })
   }
 
   return {

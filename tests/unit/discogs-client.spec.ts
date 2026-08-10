@@ -92,6 +92,79 @@ describe('the pacer', () => {
 
     expect(clock.time).toBe(5_000)
   })
+
+  /*
+   * Zwei Tabs, ein Limit.
+   *
+   * The limit is per IP and a tab is not. Two workers pacing themselves
+   * perfectly still send twice as often as either believes — 100 requests a
+   * minute against a limit of 60 — and the 429s that produced were invisible
+   * (they arrive without a CORS header, so JavaScript sees a network error).
+   *
+   * The fix is a slot claimed under a Web Lock against a clock every tab
+   * shares. Modelled here as two pacers over one clock and one lock, which is
+   * exactly what two tabs of one browser are.
+   */
+  describe('across tabs', () => {
+    function twoTabs() {
+      const clock = fakeClock()
+
+      let startedAt = Number.NEGATIVE_INFINITY
+      const slotClock = {
+        read: () => startedAt,
+        write: (value: number) => {
+          startedAt = value
+        },
+      }
+
+      // One lock, held by whoever asked first — the promise chain is the
+      // queue, which is what `navigator.locks` provides across real tabs.
+      let held: Promise<unknown> = Promise.resolve()
+      const exclusively = <T>(run: () => Promise<T>): Promise<T> => {
+        const turn = held.then(run, run)
+        held = turn.then(
+          () => undefined,
+          () => undefined,
+        )
+        return turn
+      }
+
+      const tab = () =>
+        createPacer({ now: clock.now, sleep: clock.sleep, slotClock, exclusively })
+
+      return { clock, first: tab(), second: tab() }
+    }
+
+    it('keeps the gap between requests from different tabs', async () => {
+      const { clock, first, second } = twoTabs()
+      const sentAt: number[] = []
+
+      await Promise.all([
+        first.run(async () => sentAt.push(clock.now())),
+        second.run(async () => sentAt.push(clock.now())),
+        first.run(async () => sentAt.push(clock.now())),
+        second.run(async () => sentAt.push(clock.now())),
+      ])
+
+      expect(sentAt).toHaveLength(4)
+      for (let i = 1; i < sentAt.length; i++) {
+        expect(sentAt[i]! - sentAt[i - 1]!).toBeGreaterThanOrEqual(MIN_REQUEST_INTERVAL_MS)
+      }
+    })
+
+    it('stays under the limit that a single tab stays under', async () => {
+      const { clock, first, second } = twoTabs()
+
+      await Promise.all(
+        Array.from({ length: 20 }, (_, i) =>
+          (i % 2 === 0 ? first : second).run(async () => undefined),
+        ),
+      )
+
+      // Twenty requests can take no less than nineteen gaps, whoever sent them.
+      expect(clock.time).toBeGreaterThanOrEqual(19 * MIN_REQUEST_INTERVAL_MS)
+    })
+  })
 })
 
 describe('the two Discogs error shapes', () => {
@@ -265,7 +338,7 @@ describe('the Discogs client', () => {
 describe('a dropped connection', () => {
   const identitySchema = z.object({ id: z.number(), username: z.string() })
 
-  function flaky(failures: number) {
+  function flaky(failures: number, isOnline = () => false) {
     const clock = fakeClock()
     let calls = 0
     const fetchImpl = vi.fn(async () => {
@@ -282,6 +355,7 @@ describe('a dropped connection', () => {
       pacer: createPacer({ now: clock.now, sleep: clock.sleep }),
       sleep: clock.sleep,
       jitter: () => 0,
+      isOnline,
     })
     return { client, fetchImpl, clock }
   }
@@ -303,12 +377,44 @@ describe('a dropped connection', () => {
     expect(clock.time).toBeLessThan(BACKOFF_MS[0]!)
   })
 
-  it('gives up once it is clearly not a blip', async () => {
+  it('gives up once it is clearly not a blip and there is no network', async () => {
     const { client, fetchImpl } = flaky(99)
 
     const error = await client.get('/oauth/identity', identitySchema).catch((e: unknown) => e)
     expect((error as DiscogsError).code).toBe('offline')
     expect(fetchImpl).toHaveBeenCalledTimes(NETWORK_RETRY_MS.length + 1)
+  })
+
+  /*
+   * The failure that is invisible from JavaScript.
+   *
+   * Discogs answers a 429 through Cloudflare *without*
+   * `access-control-allow-origin`, so the browser never turns it into a
+   * Response — `fetch()` rejects and the status cannot be read (measured
+   * 2026-08-10). A rate limit and a dropped cable arrive here as the same
+   * thing, and the only evidence available is whether the browser thinks it
+   * has a network at all.
+   */
+  it('waits out the window when it keeps failing while online', async () => {
+    const { client, fetchImpl, clock } = flaky(99, () => true)
+
+    await client.get('/oauth/identity', identitySchema).catch(() => undefined)
+
+    // Two quick tries for a blip, then the rate-limit schedule.
+    expect(fetchImpl).toHaveBeenCalledTimes(NETWORK_RETRY_MS.length + BACKOFF_MS.length + 1)
+    expect(clock.time).toBeGreaterThanOrEqual(BACKOFF_MS[0]!)
+  })
+
+  it('recovers on the far side of the window instead of ending the run', async () => {
+    // A horizon expansion is hundreds of requests over many minutes. Throwing
+    // all of it away for something that clears in under a minute would be the
+    // wrong trade, which is the whole reason the wait is long.
+    const { client, fetchImpl } = flaky(NETWORK_RETRY_MS.length + 1, () => true)
+
+    await expect(client.get('/oauth/identity', identitySchema)).resolves.toMatchObject({
+      username: 'martin',
+    })
+    expect(fetchImpl).toHaveBeenCalledTimes(NETWORK_RETRY_MS.length + 2)
   })
 })
 

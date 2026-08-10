@@ -3,6 +3,7 @@ import { deleteFidelityDb } from '~~/db/open'
 import type { Identity } from '#shared/types'
 
 import { DiscogsClient } from './discogs/client'
+import { createPacer } from './discogs/pacer'
 import { identitySchema, userProfileSchema } from './discogs/schemas'
 import { forgetSecrets, registerSecret } from './log'
 
@@ -20,6 +21,18 @@ export function discogs(): DiscogsClient {
       registerSecret(token)
       return token ?? null
     },
+    /*
+     * The gap between requests belongs to the whole browser, not to this tab.
+     * Discogs counts per IP, so two open tabs pacing themselves perfectly
+     * still send twice as often as either believes — which is what the 429s
+     * were. Backed by IndexedDB so every tab reads the same last slot.
+     */
+    pacer: createPacer({
+      slotClock: {
+        read: async () => (await getMeta('lastRequestAt')) ?? Number.NEGATIVE_INFINITY,
+        write: (startedAt) => setMeta('lastRequestAt', startedAt),
+      },
+    }),
   })
   return shared
 }

@@ -30,6 +30,10 @@ direkter Zugriff auf `api.discogs.com` aus dem Browser. Siehe `docs/adr/007-clie
    Genau ein In-Flight-Request, feste 1.200 ms Abstand. Alles läuft durch den einen
    `DiscogsClient` im Worker.
 
+   **Und zwar über alle Tabs hinweg.** Das Limit gilt pro IP, ein Tab ist keine IP.
+   Der Slot wird unter dem Web Lock `fidelity:discogs` gegen `meta.lastRequestAt`
+   beansprucht. Wer den Pacer anfasst, behält das bei.
+
 4. **Niemals Marktplatzdaten älter als 6 Stunden anzeigen.**
    ToS. `dig.expiresAt` erzwingt das. Nicht umgehen, auch nicht „nur für die Entwicklung".
 
@@ -61,7 +65,8 @@ Alle am 2026-08-09 live verifiziert.
 | Fakt | Konsequenz |
 |---|---|
 | **CORS ist offen** (`allow-origin: *`, `authorization` erlaubt) | Der Browser darf direkt zugreifen – Grundlage der ganzen Architektur |
-| **`x-discogs-ratelimit-*` steht NICHT in `expose-headers`** | JS kann die Rate-Limit-Header **nicht lesen**. Blind mit 1.200 ms fahren, auf 429-**Status** reagieren |
+| **`x-discogs-ratelimit-*` steht NICHT in `expose-headers`** | JS kann die Rate-Limit-Header **nicht lesen**. Blind mit 1.200 ms fahren |
+| **Die 429 kommt ohne `access-control-allow-origin`** (Cloudflare, gemessen 2026-08-10) | JS sieht **auch den Status 429 nie** – nur einen abgelehnten `fetch()`. `if (status === 429)` ist im Browser toter Code |
 | **`POST /oauth/access_token` per CORS gesperrt** | OAuth ist unmöglich → Personal Access Token |
 | **`fetch()` kann keinen User-Agent setzen** | Verifiziert unkritisch – Discogs akzeptiert Browser-UAs. Trotzdem: erster Test in M1 |
 | **Max. 10.000 Listings** pro fremdem Händler (Seite 101 → 403) | `sort_order` asc+desc für 20.000; Coverage ehrlich anzeigen |
