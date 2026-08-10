@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
+import { FATPLASTICS, PROSE_WALL } from '../fixtures/shipping-notes'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import type { Dealer, ShippingTier } from '#shared/types'
 import { ADDITIONAL_UP_TO, parseShippingText } from '~~/worker/basket/parse-shipping'
@@ -182,6 +183,122 @@ describe('reading a shipping table out of free text', () => {
     const { matched } = parseShippingText('1 LP: 6,00 €, 2-3 LP: 9,00 €')
     expect(matched).toHaveLength(2)
     expect(matched[0]).toContain('1 LP')
+  })
+
+  it('reads a ceiling with no floor', () => {
+    expect(parseShippingText('Up to 15 records: 6 EUR').tiers[0]).toMatchObject({
+      minItems: 1,
+      maxItems: 15,
+      price: 6,
+    })
+    expect(parseShippingText('bis 5 LPs 8 €').tiers[0]).toMatchObject({
+      minItems: 1,
+      maxItems: 5,
+      price: 8,
+    })
+  })
+
+  it('does not read a delivery time as a count', () => {
+    // "up to 14 days" is the shape a ceiling rule has, and it is not one.
+    expect(parseShippingText('Delivery up to 14 days, 1 LP: 6 €').tiers).toEqual([
+      { minItems: 1, maxItems: 1, price: 6, currency: 'EUR', source: 'parsed' },
+    ])
+  })
+})
+
+/**
+ * Ein Händlertext, der nach Zielländern sortiert ist.
+ *
+ * The failure that produced this block: a basket of two records at fatplastics
+ * was quoted 13,00 € where the real Discogs checkout charged 6,00 €. The text
+ * carries three rate tables under `Germany:`, `Europe:` and `Non-Europe:`, the
+ * parser flattened all three into one, and the European two-to-eight rule won
+ * for a buyer in Germany.
+ *
+ * Postage is the number the whole basket screen exists to produce. Reading it
+ * off the wrong continent is worse than not reading it at all.
+ */
+describe('a shipping text sorted by destination', () => {
+  it('reads the domestic rate for a domestic buyer', () => {
+    const { tiers, section } = parseShippingText(FATPLASTICS, 'Germany')
+
+    expect(section).toBe('Germany')
+    expect(tiers).toEqual([
+      { minItems: 1, maxItems: 15, price: 6, currency: 'EUR', source: 'parsed' },
+    ])
+  })
+
+  it('never quotes the European rate to a German buyer', () => {
+    // The exact regression: 13 EUR is the `2-8 Records` rule under `Europe:`.
+    const { tiers } = parseShippingText(FATPLASTICS, 'Germany')
+    expect(tiers.map((t) => t.price)).not.toContain(13)
+    expect(shippingFor(tiers, 2)?.price).toBe(6)
+  })
+
+  it('reads the European block for a European buyer', () => {
+    const { tiers, section } = parseShippingText(FATPLASTICS, 'Austria')
+
+    expect(section).toBe('Europe')
+    expect(shippingFor(tiers, 2)?.price).toBe(13)
+  })
+
+  it('reads the overseas block for an overseas buyer', () => {
+    const { tiers, section } = parseShippingText(FATPLASTICS, 'Japan')
+
+    expect(section).toBe('Non-Europe')
+    expect(shippingFor(tiers, 2)?.price).toBe(23)
+  })
+
+  it('understands the German name of the destination', () => {
+    expect(parseShippingText(FATPLASTICS, 'Deutschland').tiers[0]?.price).toBe(6)
+  })
+
+  it('refuses when no block covers the destination', () => {
+    // A dealer who names Germany and Austria has said nothing about Japan.
+    const text = 'Germany:\n1 LP: 6 €\n\nAustria:\n1 LP: 9 €'
+    expect(parseShippingText(text, 'Japan')).toEqual({ tiers: [], matched: [], section: null })
+  })
+
+  it('refuses a sorted text when it is not told where the parcel goes', () => {
+    // Reading every block would mix rates from three continents.
+    expect(parseShippingText(FATPLASTICS).tiers).toEqual([])
+  })
+
+  it('falls back to a catch-all block', () => {
+    const text = 'Germany:\n1 LP: 6 €\n\nRest of World:\n1 LP: 25 €'
+    expect(parseShippingText(text, 'Brazil')).toMatchObject({
+      section: 'Rest of World',
+      tiers: [{ minItems: 1, maxItems: 1, price: 25, currency: 'EUR', source: 'parsed' }],
+    })
+  })
+
+  it('reads an unsorted text as one table, as before', () => {
+    // `Porto:` and `Shipping:` are headings in shape and not destinations.
+    // Treating them as ones would cut a readable table into unreadable pieces.
+    const { tiers, section } = parseShippingText('Porto:\n1 LP: 6 €\n2-3 LP: 9 €', 'Germany')
+
+    expect(section).toBeNull()
+    expect(tiers.map((t) => t.price)).toEqual([6, 9])
+  })
+
+  it('ignores an aside about the courier', () => {
+    // `(DHL-Paket,1-2 days)` carries a comma, and a comma separates rules.
+    const { tiers } = parseShippingText(
+      'Up to 15 records (DHL-Paket,1-2 days): 6 EUR',
+      'Germany',
+    )
+    expect(tiers).toHaveLength(1)
+  })
+
+  it('keeps a parenthesis that holds the price', () => {
+    expect(parseShippingText('1 LP (6 EUR)', 'Germany').tiers[0]?.price).toBe(6)
+  })
+
+  it('finds nothing in a wall of terms and conditions', () => {
+    const { tiers, section } = parseShippingText(PROSE_WALL, 'Germany')
+    expect(tiers).toEqual([])
+    // Bold headings are not destinations, so the text stays one block.
+    expect(section).toBeNull()
   })
 })
 

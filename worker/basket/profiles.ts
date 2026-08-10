@@ -65,6 +65,11 @@ export interface ShippingResolution {
   source: ShippingTier['source'] | null
   /** What the parser thought it recognised, when that is where this came from. */
   matched: string[]
+  /**
+   * The destination heading the rates were read under — `Germany`, `Europe`.
+   * Only set when the text was sorted by destination and one block was picked.
+   */
+  section?: string | null
 }
 
 /**
@@ -111,9 +116,14 @@ export async function resolveShipping(
   }
 
   // 4. What the dealer's own free text can be made to say. Always labelled.
-  const parsed = parseShippingText(dealer.shippingNote)
+  const parsed = parseShippingText(dealer.shippingNote, country)
   if (parsed.tiers.length > 0) {
-    return { tiers: parsed.tiers, source: 'parsed', matched: parsed.matched }
+    return {
+      tiers: parsed.tiers,
+      source: 'parsed',
+      matched: parsed.matched,
+      section: parsed.section,
+    }
   }
 
   // 5. Nothing. "Versand unbekannt – trag ihn ein und ich rechne" (docs/00 §7).

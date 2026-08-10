@@ -245,6 +245,21 @@ berechnet Versand erst im Cart. Lösung:
 
 Das wird als Limitation dokumentiert, nicht versteckt.
 
+**Der Parser liest nach Zielland.** Ein realer Versandkasten ist selten eine Tabelle,
+meistens sind es drei, gestapelt unter Überschriften: `Germany:`, `Europe:`, `Non-Europe:`.
+Als eine Tabelle gelesen mischen sich die Sätze, und die billigste Zeile vom falschen
+Kontinent gewinnt – genau so kam bei fatplastics ein Korb von zwei Platten auf 13 € statt
+der echten 6 €.
+
+Also: Überschriften, die einen Ort nennen, zerlegen den Text. Gelesen wird **nur der Block
+für das eingestellte Zielland** – exakter Ländername, sonst Region (`Europe:` für ein
+europäisches Ziel), sonst ein Sammelblock (`Rest of World:`). Nennt kein Block das Ziel,
+gibt es **keine Staffel** statt einer aus der Nachbarschaft. Die Karte schreibt dazu, aus
+welchem Abschnitt sie gelesen hat.
+
+Überschriften, die keinen Ort nennen (`Porto:`, `Shipping address Terms:`), zerlegen nichts
+– sonst zerfiele eine gut lesbare Tabelle in Stücke, die auf nichts passen.
+
 ---
 
 ## 8. Weitere Features (priorisiert)

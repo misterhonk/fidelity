@@ -786,6 +786,8 @@ export interface BasketSummary {
   shipping: number | null
   shippingSource: ShippingTier['source'] | null
   shippingMatched: string[]
+  /** The destination heading the rates were read under, when the text had one. */
+  shippingSection: string | null
   total: number | null
   perItem: number | null
   advice: ShippingAdvice | null
