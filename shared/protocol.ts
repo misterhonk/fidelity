@@ -13,6 +13,7 @@
  * The Personal Access Token crosses it exactly once, on sign-in. It never
  * comes back the other way (CLAUDE.md rule 6).
  */
+import type { DemoProgress, DemoResult } from '~~/worker/demo'
 import type {
   BasketPlan,
   BasketView,
@@ -99,6 +100,15 @@ export interface WorkerContract {
 
   /** Everything the start screen shows, from this device only. */
   'home.overview': { params: undefined; progress: never; result: HomeOverview }
+  /**
+   * Fidelity an ein, zwei Platten — ohne Token.
+   *
+   * Everything it reads answers unauthenticated (docs/02), so this is the one
+   * request kind that works before anybody has signed in. It runs the real
+   * matcher over a collection of one or two seeds; nothing about it is a
+   * mock-up, which is the only reason it is worth showing.
+   */
+  'demo.run': { params: { listingIds: number[] }; progress: DemoProgress; result: DemoResult }
   /**
    * Where the shelf has holes, and which labels you really collect. Costs no
    * requests: it is a reading of the horizon that already exists.

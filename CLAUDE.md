@@ -27,8 +27,9 @@ direkter Zugriff auf `api.discogs.com` aus dem Browser. Siehe `docs/adr/007-clie
    10.000 Releases ≈ 3 Stunden. Release-Metadaten kommen aus dem Horizont oder gar nicht.
 
 3. **Niemals nebenläufige Discogs-Requests.**
-   Genau ein In-Flight-Request, feste 1.200 ms Abstand. Alles läuft durch den einen
-   `DiscogsClient` im Worker.
+   Genau ein In-Flight-Request, **1.200 ms mit Token, 2.400 ms ohne** – ohne Token
+   erlaubt Discogs nur 25 statt 60 Anfragen pro Minute (gemessen 2026-08-10). Alles läuft
+   durch den einen `DiscogsClient` im Worker.
 
    **Und zwar über alle Tabs hinweg.** Das Limit gilt pro IP, ein Tab ist keine IP.
    Der Slot wird unter dem Web Lock `fidelity:discogs` gegen `meta.lastRequestAt`
@@ -125,7 +126,8 @@ perf(horizon): pack release ids as Int32Array
 docs(api): document the 10k pagination wall
 ```
 
-Scopes: `dig` `match` `discogs` `horizon` `auth` `basket` `watch` `dealers` `hub` `ui` `db` `pwa` `deploy`
+Scopes: `dig` `match` `discogs` `horizon` `auth` `basket` `watch` `dealers` `hub` `demo`
+`ui` `db` `pwa` `deploy` `deps`
 
 Releases macht `release-please`. **Version niemals von Hand hochsetzen**,
 **CHANGELOG.md niemals direkt für ein Release editieren** – nur im Release-PR nachschärfen.

@@ -3,7 +3,11 @@ import { deleteFidelityDb } from '~~/db/open'
 import type { Identity } from '#shared/types'
 
 import { DiscogsClient } from './discogs/client'
-import { createPacer } from './discogs/pacer'
+import {
+  ANONYMOUS_REQUEST_INTERVAL_MS,
+  createPacer,
+  MIN_REQUEST_INTERVAL_MS,
+} from './discogs/pacer'
 import { identitySchema, userProfileSchema } from './discogs/schemas'
 import { forgetSecrets, registerSecret } from './log'
 
@@ -14,11 +18,22 @@ import { forgetSecrets, registerSecret } from './log'
  */
 let shared: DiscogsClient | undefined
 
+/**
+ * Whether the last request went out with a token.
+ *
+ * The pacer needs the answer synchronously and the token lives in IndexedDB,
+ * so it is remembered as each request reads it. It starts false: before the
+ * first read the honest assumption is the stricter budget, and the demo runs
+ * without a token by design.
+ */
+let authenticated = false
+
 export function discogs(): DiscogsClient {
   shared ??= new DiscogsClient({
     getToken: async () => {
       const token = await getMeta('token')
       registerSecret(token)
+      authenticated = Boolean(token)
       return token ?? null
     },
     /*
@@ -28,6 +43,13 @@ export function discogs(): DiscogsClient {
      * were. Backed by IndexedDB so every tab reads the same last slot.
      */
     pacer: createPacer({
+      /*
+       * 60 requests a minute with a token, 25 without — measured, not assumed
+       * (docs/02). The token-less demo at the signed-in pace would trip the
+       * limit on its own.
+       */
+      minIntervalMs: () =>
+        authenticated ? MIN_REQUEST_INTERVAL_MS : ANONYMOUS_REQUEST_INTERVAL_MS,
       slotClock: {
         read: async () => (await getMeta('lastRequestAt')) ?? Number.NEGATIVE_INFINITY,
         write: (startedAt) => setMeta('lastRequestAt', startedAt),

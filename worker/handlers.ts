@@ -640,6 +640,22 @@ export const handlers: HandlerMap = {
    */
   'home.overview': async () => (await import('./home')).homeOverview(),
 
+  /*
+   * The one handler that works without a token, and the only one that may:
+   * everything it reads is public (docs/02, measured). Its own module and a
+   * dynamic import, because somebody who is signed in never runs it and it has
+   * no business in the worker's entry chunk.
+   */
+  'demo.run': async ({ listingIds }, { report, signal }) => {
+    const { runDemo } = await import('./demo')
+    return runDemo({
+      client: discogs(),
+      listingIds,
+      report: (progress) => report(progress),
+      signal,
+    })
+  },
+
   'library.summary': async () => {
     const db = await openFidelityDb()
     const syncState = await getSyncState()

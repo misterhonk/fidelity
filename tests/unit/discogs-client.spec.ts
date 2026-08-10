@@ -3,7 +3,11 @@ import { z } from 'zod'
 
 import { BACKOFF_MS, DiscogsClient, NETWORK_RETRY_MS } from '~~/worker/discogs/client'
 import { DiscogsError, toDiscogsError } from '~~/worker/discogs/errors'
-import { createPacer, MIN_REQUEST_INTERVAL_MS } from '~~/worker/discogs/pacer'
+import {
+  ANONYMOUS_REQUEST_INTERVAL_MS,
+  createPacer,
+  MIN_REQUEST_INTERVAL_MS,
+} from '~~/worker/discogs/pacer'
 
 /** A clock that only moves when something sleeps, so tests run instantly. */
 function fakeClock() {
@@ -91,6 +95,34 @@ describe('the pacer', () => {
     await pacer.run(async () => undefined)
 
     expect(clock.time).toBe(5_000)
+  })
+
+  it('fährt langsamer, wenn kein Token dabei ist', async () => {
+    /*
+     * Unauthenticated the budget is 25 a minute, not 60 — measured against the
+     * live API. The demo runs without a token by design, so the pace that is
+     * comfortable signed in would put it over the limit on its own.
+     */
+    const clock = fakeClock()
+    let authed = false
+    const pacer = createPacer({
+      now: clock.now,
+      sleep: clock.sleep,
+      minIntervalMs: () => (authed ? MIN_REQUEST_INTERVAL_MS : ANONYMOUS_REQUEST_INTERVAL_MS),
+    })
+
+    await pacer.run(async () => undefined)
+    await pacer.run(async () => undefined)
+    expect(clock.time).toBe(ANONYMOUS_REQUEST_INTERVAL_MS)
+
+    authed = true
+    await pacer.run(async () => undefined)
+    expect(clock.time - ANONYMOUS_REQUEST_INTERVAL_MS).toBe(MIN_REQUEST_INTERVAL_MS)
+  })
+
+  it('bleibt unter dem Limit, das ohne Token gilt', () => {
+    // 25 a minute is one every 2.400 ms. Anything shorter is over.
+    expect(60_000 / ANONYMOUS_REQUEST_INTERVAL_MS).toBeLessThanOrEqual(25)
   })
 
   /*

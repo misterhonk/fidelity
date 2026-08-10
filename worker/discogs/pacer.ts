@@ -15,6 +15,17 @@
 export const MIN_REQUEST_INTERVAL_MS = 1200
 
 /**
+ * Und ohne Token: 25 statt 60 pro Minute.
+ *
+ * Measured 2026-08-10 — every endpoint the app reads answers unauthenticated
+ * with `x-discogs-ratelimit: 25`. The demo runs without a token by design, so
+ * the pacing that is comfortable with one (50/min) would put it over the limit
+ * on its own. 2.400 ms is 25/min exactly; the gap to the limit is the same
+ * proportion as the authenticated case.
+ */
+export const ANONYMOUS_REQUEST_INTERVAL_MS = 2400
+
+/**
  * The name of the lock that makes the gap hold across tabs.
  *
  * The chain below serialises one worker. The limit is per **IP**, so two open
@@ -30,7 +41,14 @@ export const MIN_REQUEST_INTERVAL_MS = 1200
 export const PACER_LOCK = 'fidelity:discogs'
 
 export interface PacerOptions {
-  minIntervalMs?: number
+  /**
+   * The gap, or a function returning it.
+   *
+   * A function because the answer changes with the request: a signed-in dig
+   * may go at 1.200 ms and the token-less demo may not. Read per slot rather
+   * than fixed at construction, so one client serves both.
+   */
+  minIntervalMs?: number | (() => number)
   now?: () => number
   sleep?: (ms: number) => Promise<void>
   /**
@@ -94,6 +112,7 @@ export function createPacer({
   exclusively = webLock,
   slotClock = memoryClock(),
 }: PacerOptions = {}): Pacer {
+  const interval = () => (typeof minIntervalMs === 'function' ? minIntervalMs() : minIntervalMs)
   // Serialisation is the promise chain itself: every task links onto the
   // previous one, so a second caller physically cannot overtake the first.
   let chain: Promise<unknown> = Promise.resolve()
@@ -107,7 +126,7 @@ export function createPacer({
      * a clock every tab shares rather than from this one's memory.
      */
     return exclusively(async () => {
-      const waitFor = (await slotClock.read()) + minIntervalMs - now()
+      const waitFor = (await slotClock.read()) + interval() - now()
       if (waitFor > 0) await sleep(waitFor)
 
       // Checked after the wait, not before: a dig cancelled while this request

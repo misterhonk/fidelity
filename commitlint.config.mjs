@@ -41,6 +41,8 @@ export default {
         // Der Händler-Import und alles, was die Ladenliste pflegt.
         'dealers',
         'hub',
+        // Fidelity ohne Token: die Vorführung an ein, zwei Platten.
+        'demo',
         'ui',
         'db',
         'pwa',
