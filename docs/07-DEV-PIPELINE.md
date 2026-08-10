@@ -201,9 +201,19 @@ Budget und Begründung: `12-RESSOURCEN-BUDGET.md` §2. Läuft auch im CI.
 | Component | Vitest Browser Mode (Provider: Playwright) | `MatchCard`, `ScanProgress`, `CatalogRunGrid` |
 | Integration | Vitest + fake-indexeddb | Stores, Migrationen, Horizont-Packung |
 | Performance | Vitest Benchmark | 20.000 Listings scoren < 250 ms |
-| E2E | Playwright | Login-Flow (gemockt), Dig-Ablauf, Korb |
+| E2E | Playwright | Login-Flow (gemockt), Dig-Ablauf, Korb, **Start ohne Netz** |
 | A11y | `@axe-core/playwright` | Jeder E2E-Screen |
 | Contract | Fixtures aus echten API-Antworten | Discogs-Antwortformen, **beide Fehlerformate** |
+
+⚠️ **Der Offline-Test läuft nur in Chromium.** Playwrights WebKit hat zwar einen
+Service Worker, bricht aber beim Neuladen mit gekappter Verbindung browser-intern ab
+(„WebKit encountered an internal error") – vor dem ersten Byte App-Code. Der Test
+überspringt sich dort mit dieser Begründung, statt auf iOS Safaris Rechnung grün zu sein.
+**iOS Safari bleibt also von Hand zu prüfen**, und es ist das Ziel, auf das es ankommt.
+
+Gegengeprüft mit einer Negativkontrolle: Worker abgemeldet und Caches geleert, und die
+App startet offline nicht mehr. Der Test misst damit den Service Worker und nicht den
+HTTP-Cache des Browsers.
 
 **Der wichtigste Test des Projekts:**
 
