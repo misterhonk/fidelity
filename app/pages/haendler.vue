@@ -159,6 +159,18 @@ const scanned = computed(() => {
             >
               {{ isWatched(profile.dealer.username) ? 'Wird beobachtet' : 'Händler merken' }}
             </button>
+            <!--
+              The shop with the best hit rate sits at the top of this list, and
+              until now there was nothing to do about it from here. Ranking
+              shops and then making somebody retype the name is the ranking
+              doing half its job.
+            -->
+            <NuxtLink
+              :to="`/dig?dealer=${encodeURIComponent(profile.dealer.username)}`"
+              class="fid-action rounded-fid-sm border border-fid-border px-3 py-1.5 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+            >
+              {{ profile.dealer.lastScannedAt === null ? 'Jetzt graben' : 'Nochmal graben' }}
+            </NuxtLink>
             <span class="text-fid-xs text-fid-text-muted">
               Beim Öffnen der App wird nachgesehen, ob sich das Sortiment bewegt hat – eine
               einzige Abfrage, kein neuer Scan.
