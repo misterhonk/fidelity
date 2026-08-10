@@ -325,10 +325,38 @@ export const handlers: HandlerMap = {
 
   'feedback.export': () => allFeedback(),
 
-  'dealer.profile': async ({ dealer: username }) => {
+  'dealer.profile': async ({ dealer: username }, { signal }) => {
     const db = await openFidelityDb()
-    const dealer = await db.get('dealers', username)
+    let dealer = await db.get('dealers', username)
     if (!dealer) return null
+
+    /*
+     * Das Schild einmal nachholen, für Läden von vorher.
+     *
+     * A dig picks the avatar up for free on its way past `/users/{name}`, but
+     * every shop scanned before that existed has none — and waiting for the
+     * next full dig means a wall of initials for people who already did the
+     * work. One request, once per shop, the first time its profile is opened.
+     *
+     * `undefined` means never asked; `''` means asked and there was nothing.
+     * Without that distinction a shop with no picture would cost a request
+     * every single time somebody clicked it.
+     */
+    if (dealer.avatarUrl === undefined) {
+      try {
+        const { dealerSchema } = await inventory()
+        const profile = await discogs().get(
+          `/users/${encodeURIComponent(username)}`,
+          dealerSchema,
+          { signal },
+        )
+        dealer = { ...dealer, avatarUrl: profile.avatar_url ?? '' }
+        await db.put('dealers', dealer)
+      } catch {
+        // A logo is decoration. Offline, rate-limited or gone — the screen
+        // draws initials and nothing is written, so the next visit tries again.
+      }
+    }
 
     const all = await db.getAll('dealers')
     const others = all.filter((other) => other.username !== username)

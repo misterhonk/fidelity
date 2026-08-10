@@ -43,6 +43,20 @@ onMounted(async () => {
 async function select(username: string) {
   selected.value = username
   profile.value = await call('dealer.profile', { dealer: username })
+
+  /*
+   * Die Liste oben erfährt vom Schild, das gerade geholt wurde.
+   *
+   * Opening a shop backfills its logo the first time (worker/handlers.ts), and
+   * without this the row in the nav above would keep its initials until the
+   * next page load — the one place where the picture is actually worth having,
+   * because that is the list somebody scans.
+   */
+  const fetched = profile.value?.dealer
+  if (!fetched) return
+  dealers.value = dealers.value.map((dealer) =>
+    dealer.username === username ? { ...dealer, avatarUrl: fetched.avatarUrl } : dealer,
+  )
 }
 
 const number = new Intl.NumberFormat('de-DE')
