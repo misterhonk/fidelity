@@ -119,6 +119,26 @@ export interface WorkerContract {
    * running, and nothing that costs minutes ever. See worker/keeper.ts for
    * what it deliberately leaves alone.
    */
+  /**
+   * Nach einem Hub auf demselben Rechner suchen.
+   *
+   * `http://localhost:8787` is where `hub/compose.yml` puts it, so it is worth
+   * one probe before making somebody type an address. Measured 2026-08-10: a
+   * page served over https may reach it in Chromium and may **not** in WebKit
+   * — "Not allowed to request resource" — which is every iPhone. That case is
+   * predictable rather than detectable, so the result names it instead of
+   * reporting "nothing found" for something that is simply forbidden.
+   */
+  'hub.discover': {
+    params: undefined
+    progress: never
+    result: {
+      url: string | null
+      /** True when this page is https and the candidates are http. */
+      blockedByMixedContent: boolean
+      tried: string[]
+    }
+  }
   'keeper.tick': { params: { force?: boolean }; progress: never; result: KeeperResult }
   /**
    * Cover, die schon da sind. Kostet keinen Request.

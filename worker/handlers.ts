@@ -632,6 +632,45 @@ export const handlers: HandlerMap = {
 
   'preferences.set': ({ ...patch }) => updatePreferences(patch),
 
+  'hub.discover': async () => {
+    /*
+     * Genau die Adresse, an der `hub/compose.yml` ihn aufstellt.
+     *
+     * Both spellings, because a hub bound to 127.0.0.1 does not answer to
+     * `localhost` on a machine where that resolves to ::1 first — and the
+     * failure looks identical to "there is no hub".
+     */
+    const tried = ['http://localhost:8787', 'http://127.0.0.1:8787']
+
+    /*
+     * Vorhergesagt, nicht erkannt.
+     *
+     * A blocked request and a refused connection are the same TypeError to
+     * JavaScript. But the block is knowable in advance: an https page asking
+     * for http is mixed content, which WebKit refuses outright (measured
+     * 2026-08-10). Saying so is the difference between "run the hub over
+     * https" and a fruitless hunt for a service that is running fine.
+     */
+    const blockedByMixedContent = self.location?.protocol === 'https:'
+
+    for (const base of tried) {
+      try {
+        const response = await fetch(`${base}/v1/health`, {
+          // Short: a machine that is not listening refuses instantly, and the
+          // only thing a longer wait buys is a longer wait.
+          signal: AbortSignal.timeout(1500),
+        })
+        if (!response.ok) continue
+        const body = (await response.json()) as { ok?: boolean }
+        if (body.ok === true) return { url: base, blockedByMixedContent: false, tried }
+      } catch {
+        // Refused, blocked or too slow — all three mean "not this one".
+      }
+    }
+
+    return { url: null, blockedByMixedContent, tried }
+  },
+
   'hub.check': async ({ url, secret }) => {
     const base = url.trim().replace(/\/+$/, '')
     if (!base) throw new Error('Keine Hub-URL angegeben.')

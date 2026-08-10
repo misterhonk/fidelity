@@ -9,12 +9,56 @@ const status = ref<{ ok: boolean; horizon: number; shipping: number; secured: bo
   null,
 )
 
+const hint = ref<string | null>(null)
+
 onMounted(async () => {
   const preferences = await call('preferences.get', undefined)
   url.value = preferences.hubUrl ?? ''
   secret.value = preferences.hubSecret ?? ''
   if (url.value) void test()
+  else void discover()
 })
+
+/**
+ * Nachsehen, ob auf diesem Rechner schon einer läuft.
+ *
+ * Only from this screen and only while the field is empty — somebody who opened
+ * the hub settings is asking exactly this question, and anywhere else it would
+ * be an app poking at the local network unasked.
+ *
+ * Not a stored default. A prefilled `http://localhost:8787` that nobody checked
+ * would make every hub call wait two seconds for a machine that was never
+ * there, on every device that copied the settings across.
+ */
+async function discover() {
+  hint.value = null
+  busy.value = true
+
+  try {
+    const found = await call('hub.discover', undefined)
+    if (found.url) {
+      url.value = found.url
+      hint.value = 'Auf diesem Rechner läuft einer – Adresse eingetragen. Jetzt speichern.'
+      return
+    }
+
+    /*
+     * Der Unterschied, der zählt.
+     *
+     * Measured 2026-08-10: from an https page, Chromium reaches
+     * http://localhost and WebKit refuses it outright. On an iPhone a hub that
+     * is running perfectly well is simply unreachable this way — and "nichts
+     * gefunden" would send somebody debugging a service that has no fault.
+     */
+    hint.value = found.blockedByMixedContent
+      ? 'Hier nicht erreichbar: diese Seite läuft über HTTPS, und Safari verweigert von dort jede Verbindung zu einem unverschlüsselten localhost. In Chrome geht es. Dauerhaft hilft nur, den Hub selbst über HTTPS erreichbar zu machen.'
+      : 'Auf diesem Rechner läuft keiner. Adresse von Hand eintragen, falls er woanders steht.'
+  } catch {
+    hint.value = 'Suche nicht möglich.'
+  } finally {
+    busy.value = false
+  }
+}
 
 /**
  * Tested before it is saved, and the result is shown rather than assumed.
@@ -71,6 +115,10 @@ async function save() {
 
     <ErrorNote v-if="error" :cause="error" />
 
+    <p v-if="hint" class="max-w-prose text-fid-sm text-fid-text-muted" aria-live="polite">
+      {{ hint }}
+    </p>
+
     <div class="flex flex-col gap-2">
       <label class="text-fid-sm font-medium text-fid-text" for="hub-url">Hub-URL</label>
       <input
@@ -80,7 +128,7 @@ async function save() {
         inputmode="url"
         autocomplete="off"
         spellcheck="false"
-        placeholder="https://hub.example.de"
+        placeholder="http://localhost:8787"
         class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
       />
 
@@ -117,6 +165,14 @@ async function save() {
         @click="test"
       >
         Verbindung testen
+      </button>
+      <button
+        type="button"
+        :disabled="busy"
+        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+        @click="discover"
+      >
+        Hier suchen
       </button>
     </div>
 
