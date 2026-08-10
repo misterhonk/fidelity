@@ -9,6 +9,30 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.7.0](https://github.com/misterhonk/fidelity/compare/v0.6.0...v0.7.0) (2026-08-10)
+
+
+### Added
+
+* **auth:** show what the app produces before asking for the key ([b32fe59](https://github.com/misterhonk/fidelity/commit/b32fe59ed652803c678440b970745f7edc2fcafc))
+* **dealers:** fetch a shop's logo once for shops scanned before it existed ([7c6f3fb](https://github.com/misterhonk/fidelity/commit/7c6f3fbe29c83fd62037d8af5b5897ba344088bc))
+* **demo:** a landing page that shows before it asks ([e8f692b](https://github.com/misterhonk/fidelity/commit/e8f692be589f921ca4be8353d1f640b38a4b5511))
+* **demo:** Fidelity without a token, from one or two records ([fc26955](https://github.com/misterhonk/fidelity/commit/fc2695595349c904a94d4d3855ee922704d09454))
+* **ui:** put the sleeve first, and fetch the ones the marketplace withholds ([623eb7e](https://github.com/misterhonk/fidelity/commit/623eb7e07930be9a68e56579000d36003dbbf77f))
+* **ui:** say what a record physically is ([63deffb](https://github.com/misterhonk/fidelity/commit/63deffbbf76535b9e482f0f609ceba6d16eb2e6d))
+
+
+### Fixed
+
+* **auth:** answer the first question somebody has about a token ([895d065](https://github.com/misterhonk/fidelity/commit/895d065a36bf5fea997b69204c23302ed6ba1555))
+* **ui:** the two screens the cover sweep missed ([8c44437](https://github.com/misterhonk/fidelity/commit/8c444373dd8eea0c451206c3710d1d723c8c676d))
+* **ui:** white on the accent in light mode, which is what is readable ([964a7bb](https://github.com/misterhonk/fidelity/commit/964a7bb0680b4438d5da475d641515f5e0c6fdc1))
+
+
+### Changed
+
+* **ui:** one place to write a price, and a country you can set ([260efd1](https://github.com/misterhonk/fidelity/commit/260efd1814a172386a921ebfecece08abd112850))
+
 ## [0.6.0](https://github.com/misterhonk/fidelity/compare/v0.5.0...v0.6.0) (2026-08-10)
 
 
