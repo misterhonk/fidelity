@@ -2,7 +2,7 @@
 import type { BasketPlan, ShippingTier } from '#shared/types'
 
 useSeoMeta({
-  title: 'Der Korb',
+  title: 'Korb',
   description: 'Was der Versand kostet – bevor Discogs es dir sagt.',
 })
 
@@ -166,7 +166,7 @@ const peak = computed(() =>
 <template>
   <main class="@container mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 py-16">
     <div class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Der Korb</h1>
+      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Korb</h1>
       <BasketTabs />
       <p class="text-fid-base text-fid-text-muted">
         Discogs zeigt den kombinierten Versand erst im eigenen Warenkorb. Hier steht er vorher.

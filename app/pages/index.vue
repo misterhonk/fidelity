@@ -4,7 +4,7 @@ import type { DigWithMatches, LibrarySummary } from '#shared/protocol'
 import { since } from '~/utils/when'
 
 useSeoMeta({
-  title: 'Championship',
+  title: 'Start',
   description: 'Fidelity – der Verkäufer hinter der Theke für dein Discogs-Sortiment.',
 })
 
@@ -81,7 +81,6 @@ const tiles = computed(() => {
     <!-- Signed out: nothing but the pitch and the one thing to do. -->
     <template v-if="ready && !identity">
       <header class="flex flex-col gap-3">
-        <p class="text-fid-xs uppercase tracking-[0.2em] text-fid-text-muted">Championship</p>
         <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Fidelity</h1>
         <p class="text-fid-base text-fid-text-muted">
           Ein Händler rein, eine bewertete Fundliste raus – mit Begründung pro Treffer.
@@ -93,7 +92,7 @@ const tiles = computed(() => {
 
     <template v-else-if="ready && identity">
       <header class="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Championship</h1>
+        <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Start</h1>
         <p class="text-fid-sm text-fid-text-muted">{{ identity.username }}</p>
       </header>
 

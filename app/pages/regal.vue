@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ShelfSort, ShelfView } from '#shared/types'
 
-useSeoMeta({ title: 'Dein Regal', description: 'Deine Platten, als Regal.' })
+useSeoMeta({ title: 'Regal', description: 'Deine Platten, als Regal.' })
 
 const { call } = useFidelityWorker()
 
@@ -62,7 +62,7 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
       three across on a phone and eight on a monitor.
     -->
     <header class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Dein Regal</h1>
+      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Sammlung</h1>
       <CollectionTabs />
     </header>
 

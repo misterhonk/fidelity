@@ -58,7 +58,7 @@ const step = computed(() => {
 
   if (digs.value === 0) {
     return {
-      cta: 'Neuer Dig',
+      cta: 'Dig starten',
       title: 'Jetzt: den ersten Händler scannen',
       body:
         'Nimm einen, bei dem du ohnehin kaufst. Zwei bis vier Minuten für zwanzigtausend ' +

@@ -10,7 +10,7 @@ const route = useRoute()
  * so the same segmented control the collection already uses (docs/05 §3).
  */
 const TABS = [
-  { to: '/korb', label: 'Der Korb' },
+  { to: '/korb', label: 'Korb' },
   { to: '/gemerkt', label: 'Gemerkt' },
 ] as const
 </script>

@@ -13,7 +13,7 @@ test.describe('smoke', () => {
   test('a signed-out visitor lands on the token form', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page).toHaveTitle('Championship · Fidelity')
+    await expect(page).toHaveTitle('Start · Fidelity')
     await expect(page.getByRole('heading', { level: 1, name: 'Fidelity' })).toBeVisible()
 
     // Rendered only after the worker answered auth.identity — so this also
@@ -43,7 +43,7 @@ test.describe('smoke', () => {
   test('the map says what to do instead of showing empty bars', async ({ page }) => {
     await page.goto('/landkarte')
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Deine Landkarte' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Sammlung' })).toBeVisible()
     await expect(page.getByText('Noch kein Profil')).toBeVisible()
 
     const { violations } = await new AxeBuilder({ page })
@@ -55,7 +55,7 @@ test.describe('smoke', () => {
   test('the dig screen asks for a dealer and stays accessible', async ({ page }) => {
     await page.goto('/dig')
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Neuer Dig' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Graben' })).toBeVisible()
     await expect(page.getByLabel('Händlername')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Prüfen' })).toBeDisabled()
 

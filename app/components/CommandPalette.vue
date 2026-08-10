@@ -50,15 +50,15 @@ function go(path: string, query?: Record<string, string>) {
 const dateFormat = new Intl.DateTimeFormat('de-DE', { dateStyle: 'short' })
 
 const entries = computed<Entry[]>(() => [
-  { id: 'nav-dig', group: 'Gehe zu', label: 'Neuer Dig', run: go('/dig') },
-  { id: 'nav-shelf', group: 'Gehe zu', label: 'Dein Regal', run: go('/regal') },
-  { id: 'nav-map', group: 'Gehe zu', label: 'Deine Landkarte', run: go('/landkarte') },
+  { id: 'nav-dig', group: 'Gehe zu', label: 'Graben', run: go('/dig') },
+  { id: 'nav-shelf', group: 'Gehe zu', label: 'Regal', run: go('/regal') },
+  { id: 'nav-map', group: 'Gehe zu', label: 'Landkarte', run: go('/landkarte') },
   { id: 'nav-want', group: 'Gehe zu', label: 'Wantlist', run: go('/wantlist') },
-  { id: 'nav-clerk', group: 'Gehe zu', label: "The Clerk's Take", run: go('/haendler') },
-  { id: 'nav-basket', group: 'Gehe zu', label: 'Der Korb', run: go('/korb') },
+  { id: 'nav-clerk', group: 'Gehe zu', label: 'Läden', run: go('/haendler') },
+  { id: 'nav-basket', group: 'Gehe zu', label: 'Korb', run: go('/korb') },
   { id: 'nav-store', group: 'Gehe zu', label: 'Im Laden', run: go('/im-laden') },
   { id: 'nav-settings', group: 'Gehe zu', label: 'Einstellungen', run: go('/einstellungen') },
-  { id: 'nav-home', group: 'Gehe zu', label: 'Championship', run: go('/') },
+  { id: 'nav-home', group: 'Gehe zu', label: 'Start', run: go('/') },
 
   ...dealers.value.map((dealer) => ({
     id: `dealer-${dealer.username}`,

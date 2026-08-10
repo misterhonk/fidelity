@@ -9,7 +9,7 @@ import type {
 import type { Dealer, Dig } from '#shared/types'
 
 useSeoMeta({
-  title: 'Neuer Dig',
+  title: 'Graben',
   description: 'Einen Discogs-Händler scannen und eine bewertete Fundliste bekommen.',
 })
 
@@ -285,7 +285,7 @@ const expired = computed(() => {
       a desk for this. The prose blocks inside keep their own width.
     -->
     <div class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Neuer Dig</h1>
+      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Graben</h1>
     </div>
 
     <form class="flex flex-wrap items-end gap-3" @submit.prevent="check">

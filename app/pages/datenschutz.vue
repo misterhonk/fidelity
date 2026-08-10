@@ -11,7 +11,7 @@ useSeoMeta({
       class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
       to="/"
     >
-      ← Championship
+      ← Start
     </NuxtLink>
 
     <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Datenschutz</h1>
