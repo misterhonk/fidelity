@@ -67,12 +67,29 @@ async function submit() {
         :aria-describedby="error ? 'token-error' : 'token-hint'"
         class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
       />
-      <p id="token-hint" class="text-fid-xs text-fid-text-muted">
-        Der Token bleibt in der IndexedDB dieses Geräts. Er wird nie geloggt, nie in eine URL
-        geschrieben und an niemanden weitergegeben.
+      <!--
+        Wo er liegt — und was damit passiert.
+
+        This said only where the token is kept, which answers the second
+        question somebody has. The first one is "what can this thing do to my
+        account?", and a Discogs personal token can do a great deal: it is the
+        same key that edits a collection and places an order. Fidelity reads.
+        Saying so is the difference between a stranger's app and one somebody
+        pastes a key into.
+      -->
+      <p id="token-hint" class="flex flex-col gap-1 text-fid-xs text-fid-text-muted">
+        <span>
+          <span class="text-fid-text">Fidelity liest nur.</span> Sammlung, Wantlist und
+          Händlersortimente – mehr nicht. Es ändert nichts an deinem Discogs-Konto, kauft nichts
+          und schreibt nichts zurück. Gekauft wird bei Discogs, von dir.
+        </span>
+        <span>
+          Der Token bleibt in der IndexedDB dieses Geräts. Er wird nie geloggt, nie in eine URL
+          geschrieben und an niemanden weitergegeben.
+        </span>
       </p>
       <div v-if="error" id="token-error">
-        <ErrorNote :cause="error" />
+        <ErrorNote :cause="error" :signed-in="false" />
       </div>
     </div>
 

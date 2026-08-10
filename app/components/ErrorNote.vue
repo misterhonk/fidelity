@@ -1,7 +1,18 @@
 <script setup lang="ts">
-const props = defineProps<{ cause: unknown }>()
+const props = withDefaults(
+  defineProps<{
+    cause: unknown
+    /**
+     * False on the setup screen, where nobody has a session yet. It changes
+     * exactly one message — the 401 — from "your token was withdrawn" to
+     * "that is not a token", which are different pieces of news.
+     */
+    signedIn?: boolean
+  }>(),
+  { signedIn: true },
+)
 
-const explained = computed(() => explain(props.cause))
+const explained = computed(() => explain(props.cause, { signedIn: props.signedIn }))
 const showDetail = ref(false)
 </script>
 

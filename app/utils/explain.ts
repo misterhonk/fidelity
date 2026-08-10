@@ -24,19 +24,44 @@ export interface Explained {
 
 const STORAGE_NAMES = /quota|storage|QuotaExceeded|NS_ERROR_DOM_QUOTA/i
 
-export function explain(cause: unknown): Explained {
+export interface ExplainContext {
+  /**
+   * Whether there was a working session before this failure.
+   *
+   * Only the 401 needs it, and it needs it badly: the same status means "your
+   * token was revoked" to somebody who has been using the app for weeks and
+   * "that is not a token" to somebody pasting one for the first time. The
+   * original wording guessed the first, so a newcomer's typo was answered with
+   * a theory about a withdrawal that never happened.
+   *
+   * Defaults to true because everywhere except the setup screen, there was.
+   */
+  signedIn?: boolean
+}
+
+export function explain(cause: unknown, context: ExplainContext = {}): Explained {
   const message = cause instanceof Error ? cause.message : String(cause ?? '')
   const code = (cause as { code?: WorkerError['code'] } | null)?.code
+  const signedIn = context.signedIn ?? true
 
   // 1. The token is gone or was revoked. The only failure that logs you out.
   if (code === 'unauthorized') {
-    return {
-      title: 'Discogs nimmt den Token nicht mehr an.',
-      action:
-        'Er wurde vermutlich bei Discogs zurückgezogen. Ein neuer aus den ' +
-        'Entwickler-Einstellungen reicht – deine Daten hier bleiben, wo sie sind.',
-      detail: message,
-    }
+    return signedIn
+      ? {
+          title: 'Discogs nimmt den Token nicht mehr an.',
+          action:
+            'Er wurde vermutlich bei Discogs zurückgezogen. Ein neuer aus den ' +
+            'Entwickler-Einstellungen reicht – deine Daten hier bleiben, wo sie sind.',
+          detail: message,
+        }
+      : {
+          title: 'Discogs kennt diesen Token nicht.',
+          action:
+            'Meistens ist beim Kopieren etwas verrutscht – ein Leerzeichen, ein fehlendes ' +
+            'Zeichen am Ende. Hol ihn dir noch einmal aus den Entwickler-Einstellungen und ' +
+            'füg ihn vollständig ein.',
+          detail: message,
+        }
   }
 
   // 2. Rate limited. Waiting is the whole fix, and the number matters.

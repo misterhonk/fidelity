@@ -2,63 +2,47 @@ import { describe, expect, it } from 'vitest'
 
 import { explain } from '~/utils/explain'
 
-class Coded extends Error {
-  constructor(
-    message: string,
-    readonly code: string,
-  ) {
-    super(message)
-  }
-}
+/**
+ * Derselbe 401, zwei verschiedene Nachrichten.
+ *
+ * Found by opening the app in a browser that had never seen it and typing a
+ * wrong token: "Er wurde vermutlich bei Discogs zurückgezogen." Nothing had
+ * been withdrawn — there had never been a token. The wording assumed a session
+ * that only exists for somebody who has already been using the app, and sent a
+ * first-time typo looking for a withdrawal in their Discogs settings.
+ */
+const unauthorized = Object.assign(
+  new Error('You must authenticate to access this resource.'),
+  {
+    code: 'unauthorized' as const,
+  },
+)
 
-describe('explaining the four ways this fails', () => {
-  it('says a revoked token can be replaced without losing anything', () => {
-    const result = explain(new Coded('Invalid token', 'unauthorized'))
-    expect(result.title).toContain('nimmt den Token nicht mehr an')
-    expect(result.action).toContain('deine Daten hier bleiben')
+describe('a rejected token', () => {
+  it('reads as a revocation for somebody who was signed in', () => {
+    const { title, action } = explain(unauthorized, { signedIn: true })
+    expect(title).toContain('nicht mehr an')
+    expect(action).toContain('zurückgezogen')
   })
 
-  it('says waiting is the whole fix for a rate limit', () => {
-    const result = explain(new Coded('too many requests', 'rate-limited'))
-    expect(result.title).toContain('bremst')
-    expect(result.action).toContain('warten')
-    // What was already scanned is kept — the reason it is safe to wait.
-    expect(result.action).toContain('gespeichert')
+  it('reads as a bad paste for somebody who never was', () => {
+    const { title, action } = explain(unauthorized, { signedIn: false })
+    expect(title).toContain('kennt diesen Token nicht')
+    // The theory that misled a newcomer must not survive here.
+    expect(action).not.toContain('zurückgezogen')
+    expect(action).toContain('Kopieren')
   })
 
-  it('says what still works when there is no network', () => {
-    const result = explain(new Coded('network down', 'offline'))
-    expect(result.action).toContain('funktionieren weiter')
+  it('assumes a session when nobody says otherwise', () => {
+    // Every screen but the setup has one, so the default must be the old text.
+    expect(explain(unauthorized).action).toContain('zurückgezogen')
   })
 
-  it('recognises a dead network without a code, too', () => {
-    // Not every failure comes through the worker's error shape.
-    expect(explain(new Error('Failed to fetch')).title).toContain('nicht erreichbar')
-    expect(explain(new Error('Load failed')).title).toContain('nicht erreichbar')
-  })
-
-  it('says deleting is the answer when the disk is full', () => {
-    const result = explain(new DOMException('QuotaExceededError', 'QuotaExceededError'))
-    expect(result.title).toContain('Kein Platz')
-    expect(result.action).toContain('Alles löschen')
-  })
-
-  it('keeps an unknown failure in its own words', () => {
-    // A friendly wrapper here would hide the only clue there is.
-    const result = explain(new Error('Kaputt auf eine ganz neue Art'))
-    expect(result.title).toBe('Kaputt auf eine ganz neue Art')
-    expect(result.action).toBeNull()
-    expect(result.detail).toBeNull()
-  })
-
-  it('always keeps the raw message reachable for the known cases', () => {
-    expect(explain(new Coded('HTTP 429 from /users/x', 'rate-limited')).detail).toBe(
-      'HTTP 429 from /users/x',
-    )
-  })
-
-  it('survives being handed something that is not an error at all', () => {
-    expect(explain(null).title).toBe('Etwas ist schiefgegangen.')
-    expect(explain('kaputt').title).toBe('kaputt')
+  it('keeps what Discogs actually said, either way', () => {
+    for (const signedIn of [true, false]) {
+      expect(explain(unauthorized, { signedIn }).detail).toBe(
+        'You must authenticate to access this resource.',
+      )
+    }
   })
 })

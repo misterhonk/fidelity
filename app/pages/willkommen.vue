@@ -150,7 +150,7 @@ const CAN_DO = [
       </li>
     </ol>
 
-    <ErrorNote v-if="error" :cause="error" />
+    <ErrorNote v-if="error" :cause="error" :signed-in="Boolean(identity)" />
 
     <!--
       `mode="out-in"` so the leaving panel is gone before the next arrives —
