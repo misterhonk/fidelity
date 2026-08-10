@@ -1,9 +1,9 @@
 /**
- * Choosing a typeface in front of the thing it affects.
+ * Which of the three type sets is in use.
  *
- * A specimen answers the wrong question. What decides this is a hit list at
- * 13px, a shelf of catalogue numbers, and a headline over a dark screen — so
- * all three sets ship and the switch is reachable while browsing.
+ * All three stayed in after the choice was made, deliberately: a collection
+ * looks different on a Tuesday than it did the afternoon somebody picked, and
+ * there is no cost to keeping the switch beyond the CSS that is already there.
  *
  * Kept in localStorage rather than IndexedDB: it is a display preference, it
  * has to be readable before the first paint, and it has no business travelling
@@ -11,29 +11,29 @@
  */
 export const TYPESETS = [
   {
+    key: 'presswerk',
+    label: 'Presswerk',
+    hint: 'Switzer · Chivo Mono · Array',
+    about: 'Schmal und technisch, wie die Schrift auf einem Plattenrücken.',
+  },
+  {
     key: 'kontor',
     label: 'Kontor',
     hint: 'General Sans · Chivo Mono · Clash Display',
-    about: 'Warm und modern. Am nächsten an myplastic.app.',
+    about: 'Runder und wärmer. Überschriften bekommen mehr Gewicht.',
   },
   {
     key: 'schweiz',
     label: 'Schweiz',
     hint: 'Switzer · JetBrains Mono',
-    about: 'Ohne Display-Schrift. Hierarchie über Gewicht und Weißraum – die Rams-Antwort.',
-  },
-  {
-    key: 'presswerk',
-    label: 'Presswerk',
-    hint: 'Switzer · Chivo Mono · Array',
-    about: 'Technisch. Array ist schmal wie die Schrift auf einem Plattenrücken.',
+    about: 'Ohne eigene Schrift für Überschriften – Hierarchie nur über Größe und Gewicht.',
   },
 ] as const
 
 export type TypesetKey = (typeof TYPESETS)[number]['key']
 
 const STORAGE_KEY = 'fidelity:typeset'
-const DEFAULT: TypesetKey = 'kontor'
+const DEFAULT: TypesetKey = 'presswerk'
 
 export function useTypeset() {
   const current = useState<TypesetKey>('typeset', () => DEFAULT)

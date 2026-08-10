@@ -110,7 +110,7 @@ const usage = computed(() => {
       <SettingsCard
         anchor="schrift"
         title="Schrift"
-        description="Drei Sätze, umschaltbar. Sieh sie dir an echten Listen an, nicht hier."
+        description="Drei Sätze. Umschalten und einmal durch die Listen gehen."
       >
         <TypesetPicker />
       </SettingsCard>

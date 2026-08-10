@@ -29,20 +29,29 @@
 }
 
 /*
- * Three type sets, switchable while looking at real data.
+ * Three type sets, switchable at any time.
  *
  * Choosing a typeface from a specimen is choosing it in the wrong place. What
  * matters is a hit list at 13px, a shelf of catalogue numbers and a headline
- * over a dark screen — so all three ship, `data-type` on <html> picks one, and
- * the decision gets made in front of the thing it affects.
+ * over a dark screen — so all three ship and `data-type` on <html> picks one.
+ * They stayed in after the decision because a collection looks different on a
+ * Tuesday than it did when the choice was made.
  *
  * Everything below resolves through --fid-font-*, which is where the tokens
  * put it. No component names a typeface.
  */
 :root,
+:root[data-type='presswerk'] {
+  /* The default. Array is condensed like the type printed on a record spine,
+     which is the kind of headline this app actually sets. */
+  --fid-font-sans: 'Switzer', ui-sans-serif, system-ui, sans-serif;
+  --fid-font-mono: 'Chivo Mono', ui-monospace, monospace;
+  --fid-font-display: 'Array', var(--fid-font-sans);
+}
+
 :root[data-type='kontor'] {
-  /* Warm, modern, closest to the reference: myplastic.app pairs a neutral
-     sans with Chivo Mono for values. */
+  /* Rounder and warmer. Clash Display gives headlines weight where Array
+     gives them narrowness. */
   --fid-font-sans: 'General Sans', ui-sans-serif, system-ui, sans-serif;
   --fid-font-mono: 'Chivo Mono', ui-monospace, monospace;
   --fid-font-display: 'Clash Display', var(--fid-font-sans);
@@ -54,14 +63,6 @@
   --fid-font-sans: 'Switzer', ui-sans-serif, system-ui, sans-serif;
   --fid-font-mono: 'JetBrains Mono', ui-monospace, monospace;
   --fid-font-display: 'Switzer', ui-sans-serif, system-ui, sans-serif;
-}
-
-:root[data-type='presswerk'] {
-  /* Technical. Array is condensed like the type on a record spine, which is
-     where this app's headlines actually live. */
-  --fid-font-sans: 'Switzer', ui-sans-serif, system-ui, sans-serif;
-  --fid-font-mono: 'Chivo Mono', ui-monospace, monospace;
-  --fid-font-display: 'Array', var(--fid-font-sans);
 }
 
 body {
