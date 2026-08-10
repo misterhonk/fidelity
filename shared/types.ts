@@ -82,6 +82,15 @@ export interface Preferences {
   importFriends: boolean
 
   /**
+   * Where this device keeps the block that carries it to the others.
+   *
+   * 'none' is the default and a complete configuration: a single device needs
+   * no vault, and nothing in the app depends on one.
+   */
+  vaultTarget: VaultTarget
+  vaultSyncedAt: number | null
+
+  /**
    * Optional, self-hosted hub (ADR-008). Empty by default and empty forever
    * for most users — no feature may depend on it.
    */

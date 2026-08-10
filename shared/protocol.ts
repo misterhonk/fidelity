@@ -35,6 +35,8 @@ import type {
   ShelfView,
   ShippingTier,
   TasteProfile,
+  VaultStatus,
+  VaultTarget,
   Verdict,
   WantlistOverview,
   WatchAlert,
@@ -215,6 +217,19 @@ export interface WorkerContract {
    * The shops Discogs already knows you deal with. Orders always (documented),
    * friends only when the device asked for it (ADR-009).
    */
+  /** Where this device syncs, and whether it can right now. */
+  'vault.status': { params: undefined; progress: never; result: VaultStatus }
+  /**
+   * One round: read what is out there, merge, write back. The passphrase never
+   * leaves the worker and is never stored beside the data it protects.
+   */
+  'vault.sync': {
+    params: { passphrase: string }
+    progress: never
+    result: { counts: Record<string, number>; hadRemote: boolean; syncedAt: number }
+  }
+  'vault.setTarget': { params: { target: VaultTarget }; progress: never; result: VaultStatus }
+
   'dealer.discover': {
     params: undefined
     progress: { done: number; total: number; requests: number }

@@ -168,6 +168,74 @@ describe('the shipping ladders', () => {
   })
 })
 
+describe('the vault', () => {
+  const sealed = (over = {}) => ({
+    version: 1,
+    iv: 'AAAAAAAAAAAAAAAA',
+    salt: 'AAAAAAAAAAAAAAAAAAAAAA==',
+    cipher: 'Zm9vYmFy',
+    ...over,
+  })
+
+  const ID = 'a'.repeat(32)
+
+  test('stores a block and hands the same one back', async () => {
+    const { app } = hub()
+    assert.equal((await put(app, `/v1/vault/${ID}`, sealed())).status, 200)
+
+    const answer = await app.request(`/v1/vault/${ID}`)
+    assert.equal(answer.status, 200)
+    const body = await answer.json()
+    assert.deepEqual(body.sealed, sealed())
+    assert.equal(body.updatedAt, 42)
+  })
+
+  test('an empty vault is a 404, not an error', async () => {
+    // The normal first answer on a new device, and nothing worth logging.
+    const { app } = hub()
+    assert.equal((await app.request(`/v1/vault/${ID}`)).status, 404)
+  })
+
+  test('refuses anything that is not a sealed block', async () => {
+    /*
+     * The hub cannot read what it stores and must not try. What it *can* check
+     * is the envelope — which is what stops this table becoming a pastebin for
+     * whoever can reach the hub.
+     */
+    const { app } = hub()
+    assert.equal((await put(app, `/v1/vault/${ID}`, { hallo: 'welt' })).status, 400)
+    assert.equal((await put(app, `/v1/vault/${ID}`, sealed({ cipher: '' }))).status, 400)
+    assert.equal((await put(app, `/v1/vault/${ID}`, 'kein json')).status, 400)
+  })
+
+  test('refuses an id that is not one of ours', async () => {
+    const { app } = hub()
+    assert.equal((await put(app, '/v1/vault/../etc/passwd', sealed())).status, 404)
+    assert.equal((await put(app, '/v1/vault/kurz', sealed())).status, 400)
+    assert.equal((await app.request('/v1/vault/NICHTHEX0000000000')).status, 400)
+  })
+
+  test('replaces rather than accumulating', async () => {
+    const { app, db } = hub()
+    await put(app, `/v1/vault/${ID}`, sealed({ cipher: 'YWx0' }))
+    await put(app, `/v1/vault/${ID}`, sealed({ cipher: 'bmV1' }))
+
+    const rows = db.prepare('SELECT COUNT(*) AS n FROM vault').get()
+    assert.equal(rows.n, 1)
+    assert.equal((await (await app.request(`/v1/vault/${ID}`)).json()).sealed.cipher, 'bmV1')
+  })
+
+  test('is behind the secret like everything else', async () => {
+    const { app } = hub('geheim')
+    assert.equal((await app.request(`/v1/vault/${ID}`)).status, 401)
+    assert.equal((await put(app, `/v1/vault/${ID}`, sealed())).status, 401)
+    assert.equal(
+      (await put(app, `/v1/vault/${ID}`, sealed(), { 'x-hub-secret': 'geheim' })).status,
+      200,
+    )
+  })
+})
+
 describe('what the hub refuses to be', () => {
   test('has no route that takes a Discogs token', async () => {
     const { app } = hub()
@@ -185,5 +253,30 @@ describe('what the hub refuses to be', () => {
     const got = await (await app.request('/v1/horizon/artist/55')).json()
     assert.equal('price' in got, false)
     assert.equal('condition' in got, false)
+  })
+
+  test('cannot read a vault it is storing', async () => {
+    /*
+     * The condition ADR-008 attaches to the vault existing at all. The hub has
+     * no key, no route that takes one, and nothing that turns a block back
+     * into a collection. What it holds is bytes without meaning.
+     */
+    const { app, db } = hub()
+    const ID = 'b'.repeat(32)
+    await put(app, `/v1/vault/${ID}`, {
+      version: 1,
+      iv: 'AAAAAAAAAAAAAAAA',
+      salt: 'AAAAAAAAAAAAAAAAAAAAAA==',
+      cipher: 'Zm9vYmFy',
+    })
+
+    const stored = db.prepare('SELECT body FROM vault WHERE id = ?').get(ID)
+    const body = JSON.parse(stored.body)
+    // Four fields, all of them envelope. Nothing that names a record.
+    assert.deepEqual(Object.keys(body).sort(), ['cipher', 'iv', 'salt', 'version'])
+
+    for (const path of ['/v1/vault', '/v1/vault/key', '/v1/decrypt']) {
+      assert.notEqual((await app.request(path)).status, 200, path)
+    }
   })
 })

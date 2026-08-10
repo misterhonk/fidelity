@@ -241,3 +241,32 @@ dem `hubUrl`-Feld in den Preferences. Mehr nicht.
 - Du willst Digs zwischen Desktop und Handy synchron haben
 
 Vorher: nicht bauen.
+
+
+---
+
+## Der Tresor – `PUT`/`GET /v1/vault/{id}`
+
+Ein Block verschlüsselter Bytes pro Person, damit ihre eigenen Geräte einander finden.
+Kein Cache und nichts Geteiltes: die anderen Routen beschleunigen alle, diese gehört
+einem.
+
+```
+PUT /v1/vault/{id}   { version, iv, salt, cipher }   → { stored: true }
+GET /v1/vault/{id}                                    → { sealed, updatedAt } | 404
+```
+
+**Die Kennung** wird aus der Discogs-User-ID abgeleitet (SHA-256, 16 Byte hex). Jedes
+angemeldete Gerät kommt ohne Eingabe auf dieselbe, und der Betreiber eines geteilten Hubs
+sieht undurchsichtige Kennungen statt einer Liste, wer ihn benutzt. Bewusst **nicht** aus
+der Passphrase: eine geänderte Passphrase würde sonst alles Bisherige verwaisen lassen.
+
+**Der Hub prüft die Hülle und sonst nichts** — vier Felder, sonst 400. Das hält die
+Tabelle davon ab, ein Pastebin für jeden zu werden, der den Hub erreicht. Den Inhalt kann
+er nicht prüfen und soll es nicht: er hat keinen Schlüssel.
+
+**Grenze:** 32 MB je Block. Ein ganzer Horizont samt Merkliste passt mehrfach hinein, und
+ein durchdrehender Client kann die Karte eines Raspberry Pi nicht über Nacht füllen.
+
+**404 ist die normale erste Antwort.** Ein Gerät, das noch nie geschrieben hat, fragt ins
+Leere — das ist kein Fehler und nichts, was einen Logeintrag verdient.

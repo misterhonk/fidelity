@@ -54,6 +54,13 @@ const tiersSchema = z.array(tierSchema).min(1).max(30)
  */
 export const MAX_CHUNK_BYTES = 4 * 1024 * 1024
 
+/**
+ * A whole horizon plus a shortlist, sealed and base64'd, with room to grow.
+ * Larger than a chunk because this is everything at once, and still small
+ * enough that a runaway client cannot fill a Raspberry Pi's card overnight.
+ */
+export const MAX_VAULT_BYTES = 32 * 1024 * 1024
+
 export interface HubOptions {
   db: DatabaseSync
   /** Shared secret. Absent means open — the server says so at startup. */
@@ -201,8 +208,71 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     return c.json({ stored: true })
   })
 
+  // --- Vault ---------------------------------------------------------------
+  //
+  // One block of ciphertext per person, so their own devices can find each
+  // other. The hub stores it and can do nothing else with it: the key is
+  // derived on the device from a passphrase that never leaves it, so what sits
+  // in this table is bytes without meaning.
+  //
+  // That is the condition ADR-008 attaches to it being here at all. A hub that
+  // could read this would be a hub holding somebody's collection, their
+  // judgements and their shopping — and then every sentence in ADR-007 about
+  // there being no server would be untrue.
+
+  /** Ids are opaque and fixed-length; anything else is not one of ours. */
+  const VAULT_ID = /^[a-f0-9]{16,64}$/
+
+  app.get('/v1/vault/:id', (c) => {
+    const id = c.req.param('id')
+    if (!VAULT_ID.test(id)) return c.json({ error: 'not a vault id' }, 400)
+
+    const row = db.prepare('SELECT body, updated_at FROM vault WHERE id = ?').get(id) as
+      { body: string; updated_at: number } | undefined
+
+    // Nothing there yet is the normal first answer, not an error worth a log.
+    if (!row) return c.json({ error: 'empty' }, 404)
+    return c.json({ sealed: JSON.parse(row.body), updatedAt: row.updated_at })
+  })
+
+  app.put('/v1/vault/:id', async (c) => {
+    const id = c.req.param('id')
+    if (!VAULT_ID.test(id)) return c.json({ error: 'not a vault id' }, 400)
+
+    const raw = await c.req.text()
+    if (raw.length > MAX_VAULT_BYTES) return c.json({ error: 'too large' }, 413)
+
+    const parsed = sealedSchema.safeParse(safeJson(raw))
+    if (!parsed.success) return c.json({ error: 'not a sealed vault' }, 400)
+
+    db.prepare(
+      `INSERT INTO vault (id, body, updated_at)
+       VALUES (?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         body = excluded.body,
+         updated_at = excluded.updated_at`,
+    ).run(id, JSON.stringify(parsed.data), now())
+
+    return c.json({ stored: true })
+  })
+
   return app
 }
+
+/**
+ * The envelope, and only the envelope.
+ *
+ * The hub checks that this looks like something Fidelity sealed — a version,
+ * an iv, a salt, a body — and refuses anything else, which keeps the table
+ * from becoming a free pastebin. It cannot check the contents and must not
+ * try: it has no key and is not supposed to have one.
+ */
+const sealedSchema = z.object({
+  version: z.number().int().positive(),
+  iv: z.string().min(1),
+  salt: z.string().min(1),
+  cipher: z.string().min(1),
+})
 
 /** Never throws. An unparseable body is a 400, not a 500. */
 function safeJson(raw: string): unknown {

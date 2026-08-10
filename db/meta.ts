@@ -36,6 +36,9 @@ export const DEFAULT_PREFERENCES: Preferences = {
   shipsToCountry: 'Germany',
   // Off: rule 5 stays the normal case, the exception is switched on by hand.
   importFriends: false,
+  // One device needs no vault, so the default configuration is no vault.
+  vaultTarget: 'none' as const,
+  vaultSyncedAt: null,
   // Empty, and empty is the supported configuration. No feature may require it.
   hubUrl: null,
   hubSecret: null,

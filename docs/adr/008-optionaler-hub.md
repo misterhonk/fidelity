@@ -54,3 +54,35 @@ Disziplin und ein CI-Test, der die App mit leerer `hubUrl` durchspielt.
 quer durch den gesamten Worker.
 
 **Ausstiegspfad:** Hub-URL löschen. Die App läuft weiter, als hätte es ihn nie gegeben.
+
+
+---
+
+## Nachtrag 2026-08-10 – der Tresor
+
+Diese ADR sagt an mehreren Stellen, der Hub halte **nichts Persönliches**. Der Tresor
+scheint das zu brechen: er legt Sammlung, Merkliste, Korb, Händler und Horizont eines
+Nutzers auf den Hub, damit dessen Geräte einander finden.
+
+**Er bricht es nicht, weil der Hub nichts davon lesen kann.** Verschlüsselt wird auf dem
+Gerät — AES-GCM, Schlüssel aus einer Passphrase über 600.000 PBKDF2-Runden. Was in der
+Tabelle `vault` steht, sind vier Felder: `version`, `iv`, `salt`, `cipher`. Der Hub hat
+keinen Schlüssel, keine Route die einen entgegennimmt, und nichts, was aus einem Block
+wieder eine Sammlung macht. Ein Test hält das fest.
+
+Damit bleibt die Aussage der ADR wahr, nur genauer formuliert: **der Hub hält nichts
+Lesbares.** Für den Betreiber — meistens der Nutzer selbst, manchmal ein Freund mit
+Server — ändert sich dadurch nichts an seinen Pflichten, weil er nichts hat, womit er
+etwas anfangen könnte.
+
+Was weiterhin **nicht** hineingeht, und das sind Tests, keine Absichtserklärungen:
+
+- **Der Discogs-Token.** Ein Zugangsschlüssel auf drei Geräten ist dreimal so viel
+  Angriffsfläche. Jedes Gerät meldet sich einmal selbst an (Regel 6).
+- **Digs und Treffer.** Marktplatzdaten sind nach sechs Stunden zu löschen (Regel 4).
+  Preise auf einen Server zu legen, um sie zurückzusynchronisieren, wäre genau das, was
+  diese App zugesagt hat nicht zu tun.
+
+**Ausstiegspfad, unverändert:** Ziel auf „Nur dieses Gerät" stellen. Nichts verlässt den
+Browser, und der Block auf dem Hub wird nie wieder gelesen. Wer ihn loswerden will,
+löscht die Zeile — mehr ist es nicht.

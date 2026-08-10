@@ -33,3 +33,26 @@ export interface WatchService {
 }
 
 export type { WatchAlert }
+
+/**
+ * Where a device keeps the block that carries it between devices.
+ *
+ * Three destinations are planned and they differ in exactly one way that
+ * matters — where the bytes end up. Everything above this line is the same for
+ * all of them: what is written is already ciphertext, and what is read has to
+ * be merged rather than trusted.
+ *
+ * `available()` exists because one of them cannot work everywhere. The File
+ * System Access API is absent from WebKit, so the file target is unavailable
+ * on every browser on an iPhone — and a setup screen that offers it there
+ * would be lying.
+ */
+export interface VaultTargetPort {
+  /** Whether this device can use it at all, right now. */
+  available(): boolean | Promise<boolean>
+  /** The block as last written, or null when there is none yet. */
+  read(): Promise<unknown | null>
+  write(sealed: unknown): Promise<void>
+  /** One line for the screen: which destination, and where exactly. */
+  describe(): string
+}

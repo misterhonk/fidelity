@@ -108,6 +108,14 @@ const usage = computed(() => {
       </SettingsCard>
 
       <SettingsCard
+        anchor="vault"
+        title="Geräte abgleichen"
+        description="Verschlüsselt, damit der Speicherort keine Rolle spielt."
+      >
+        <VaultSettings />
+      </SettingsCard>
+
+      <SettingsCard
         anchor="dealers"
         title="Läden finden"
         description="Woher der Import die Läden nimmt."

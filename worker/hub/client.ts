@@ -62,7 +62,32 @@ export interface HubClient {
   contributeHorizon(chunk: HorizonChunk): Promise<void>
   shipping(dealer: string, country: string): Promise<ShippingTier[] | null>
   contributeShipping(dealer: string, country: string, tiers: ShippingTier[]): Promise<void>
+
+  /**
+   * The vault: one block of ciphertext per person.
+   *
+   * Unlike everything else here it is not a cache and not shared — it is one
+   * person's own devices finding each other. The hub stores it and cannot read
+   * it, which is the condition ADR-008 attaches to it being there at all.
+   */
+  vaultRead(id: string): Promise<SealedVault | null>
+  vaultWrite(id: string, sealed: SealedVault): Promise<void>
 }
+
+/** The envelope, as it travels. The hub validates this shape and no more. */
+export interface SealedVault {
+  version: number
+  iv: string
+  salt: string
+  cipher: string
+}
+
+const sealedSchema = z.object({
+  version: z.number().int().positive(),
+  iv: z.string().min(1),
+  salt: z.string().min(1),
+  cipher: z.string().min(1),
+})
 
 /** Returns null when no hub is configured — the caller then never asks. */
 export function createHubClient({
@@ -104,6 +129,31 @@ export function createHubClient({
       }
 
       return chunk
+    },
+
+    async vaultRead(id) {
+      const response = await fetchImpl(url(`/v1/vault/${id}`), { headers })
+      // 404 is the first answer on a device that has never written one.
+      if (!response.ok) return null
+
+      const body = (await response.json()) as { sealed?: unknown }
+      const parsed = sealedSchema.safeParse(body?.sealed)
+      if (!parsed.success) {
+        log.warn('[hub] Tresor-Antwort passt nicht zum Schema')
+        return null
+      }
+      return parsed.data
+    },
+
+    async vaultWrite(id, sealed) {
+      const response = await fetchImpl(url(`/v1/vault/${id}`), {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(sealed),
+      })
+      // Unlike a contribution, this one is not fire-and-forget: somebody is
+      // waiting to hear that their shortlist is safe on the other device.
+      if (!response.ok) throw new Error(`Hub hat den Tresor abgelehnt (${response.status}).`)
     },
 
     async contributeHorizon(chunk) {

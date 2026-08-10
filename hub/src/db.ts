@@ -14,6 +14,12 @@ import { DatabaseSync } from 'node:sqlite'
  *
  * What is deliberately *not* here: Discogs tokens, marketplace prices, user
  * accounts. See the README for why each one would undo the architecture.
+ *
+ * The third table is the exception that proves it. `vault` holds a block of
+ * ciphertext per person so their own devices can find each other — and the hub
+ * cannot read a byte of it. It never sees the key, so what it stores is not
+ * personal data in any sense it could act on, which is the condition ADR-008
+ * sets for it being here at all.
  */
 export function openHubDb(path: string): DatabaseSync {
   const db = new DatabaseSync(path)
@@ -40,6 +46,14 @@ export function openHubDb(path: string): DatabaseSync {
       key        TEXT PRIMARY KEY,
       dealer     TEXT NOT NULL,
       country    TEXT NOT NULL,
+      body       TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    )
+  `)
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS vault (
+      id         TEXT PRIMARY KEY,
       body       TEXT NOT NULL,
       updated_at INTEGER NOT NULL
     )

@@ -3,15 +3,14 @@ import { openFidelityDb } from '~~/db/open'
 import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
 import type { BasketCandidate, BasketView } from '#shared/types'
 
-import { currentIdentity, discogs, requestPersistence, signIn, signOut } from './auth'
-import { findResumable, REACHABLE, resumeDig, runDig, takeNearMisses } from './dig/scan'
+import { currentIdentity, discogs, requestPersistence, signOut } from './auth'
+
 import { forgetLookup } from './dig/detail'
 import { affinityFactor } from './dig/fingerprint'
 import { allFeedback, clearFeedback, feedbackVerdicts, recordFeedback } from './feedback'
-import { dealerSchema } from './discogs/inventory'
+
 import { bestPerRelease, topFive } from './match/select'
 import { computeTasteProfile } from './match/taste'
-import { syncLibrary } from './sync/library'
 
 /**
  * A handler gets its params and a way to report progress, and returns the
@@ -61,11 +60,22 @@ async function dbStats(): Promise<DbStats> {
   return { counts, usageBytes, quotaBytes, persisted }
 }
 
+/**
+ * One import site per deferred module: each `await import(...)` costs its own
+ * preload stub in the entry chunk, and the entry chunk is what the budget is
+ * about.
+ */
+const vault = () => import('./vault/status')
+const scan = () => import('./dig/scan')
+const auth = () => import('./auth')
+const library = () => import('./sync/library')
+const inventory = () => import('./discogs/inventory')
+
 export const handlers: HandlerMap = {
   ping: async ({ echo }) => ({ pong: true, echo }),
   'db.stats': dbStats,
 
-  'auth.signIn': ({ token }) => signIn(token),
+  'auth.signIn': async ({ token }) => (await auth()).signIn(token),
   'auth.identity': () => currentIdentity(),
   'auth.signOut': async () => {
     await signOut()
@@ -77,6 +87,7 @@ export const handlers: HandlerMap = {
     if (!identity) throw new Error('Nicht angemeldet.')
 
     await requestPersistence()
+    const { syncLibrary } = await library()
     const result = await syncLibrary({
       client: discogs(),
       username: identity.username,
@@ -112,6 +123,8 @@ export const handlers: HandlerMap = {
   },
 
   'dig.preflight': async ({ dealer }, { signal }) => {
+    const { dealerSchema } = await inventory()
+    const { REACHABLE } = await scan()
     const profile = await discogs().get(`/users/${encodeURIComponent(dealer)}`, dealerSchema, {
       signal,
     })
@@ -128,7 +141,7 @@ export const handlers: HandlerMap = {
   },
 
   'dig.run': async ({ dealer }, { report, signal }) =>
-    runDig({
+    (await scan()).runDig({
       client: discogs(),
       dealer,
       // ULID-shaped enough for our purposes: time-sortable, collision-free
@@ -138,10 +151,15 @@ export const handlers: HandlerMap = {
       signal,
     }),
 
-  'dig.resumable': () => findResumable(),
+  'dig.resumable': async () => (await scan()).findResumable(),
 
-  'dig.resume': ({ digId }, { report, signal }) =>
-    resumeDig({ client: discogs(), digId, report: (progress) => report(progress), signal }),
+  'dig.resume': async ({ digId }, { report, signal }) =>
+    (await scan()).resumeDig({
+      client: discogs(),
+      digId,
+      report: (progress) => report(progress),
+      signal,
+    }),
 
   /*
    * Building, revalidating and gap-filling all load on demand.
@@ -208,7 +226,7 @@ export const handlers: HandlerMap = {
   },
 
   'horizon.fillGaps': async (_params, { report, signal }) => {
-    const misses = takeNearMisses()
+    const misses = (await scan()).takeNearMisses()
     if (misses.length === 0) return { expanded: 0, requests: 0, titles: [] }
 
     const { buildHorizon } = await import('./horizon/build')
@@ -388,6 +406,24 @@ export const handlers: HandlerMap = {
     })
     return { view: await basketView(), added, sold }
   },
+
+  /*
+   * The vault. Loaded on demand like everything that is not a dig: crypto,
+   * merge and targets are kilobytes nobody scanning a shop needs.
+   *
+   * One import site rather than three. Each `await import(...)` costs its own
+   * preload stub in the entry chunk, and the entry chunk is the thing the
+   * budget is about — three stubs for one module is three times the price of
+   * the same deferral.
+   */
+  'vault.status': async () => (await vault()).vaultStatus(),
+
+  'vault.setTarget': async ({ target }) => {
+    await updatePreferences({ vaultTarget: target })
+    return (await vault()).vaultStatus()
+  },
+
+  'vault.sync': async ({ passphrase }) => (await vault()).runVaultSync(passphrase),
 
   'dealer.discover': async (_params, { report, signal }) => {
     const { discoverDealers } = await import('./dealers/discover')
