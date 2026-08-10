@@ -27,16 +27,23 @@ onMounted(() => {
  * result and from the overview where that decision is actually being made.
  */
 const SECTIONS = [
-  { to: '/', label: 'Start', hint: 'Was ist neu, was steht an' },
-  { to: '/dig', label: 'Graben', hint: 'Einen Händler scannen' },
-  { to: '/korb', label: 'Korb', hint: 'Was du kaufen willst', also: ['/gemerkt'] },
+  { to: '/', label: 'Start', icon: 'house', hint: 'Was ist neu, was steht an' },
+  { to: '/dig', label: 'Graben', icon: 'kiste', hint: 'Einen Händler scannen' },
+  {
+    to: '/korb',
+    label: 'Korb',
+    icon: 'shopping-basket',
+    hint: 'Was du kaufen willst',
+    also: ['/gemerkt'],
+  },
   {
     to: '/regal',
     label: 'Sammlung',
+    icon: 'regal',
     hint: 'Was du hast und was du suchst',
     also: ['/landkarte', '/wantlist'],
   },
-  { to: '/haendler', label: 'Läden', hint: 'Bei wem du kaufst' },
+  { to: '/haendler', label: 'Läden', icon: 'store', hint: 'Bei wem du kaufst' },
 ] as const
 
 const route = useRoute()
@@ -63,7 +70,7 @@ const basketCount = computed(() => basketIds.value.size)
   <nav
     v-if="identity"
     aria-label="Hauptbereiche"
-    class="sticky top-0 z-30 border-b border-fid-border bg-fid-bg/90 backdrop-blur max-md:fixed max-md:inset-x-0 max-md:top-auto max-md:bottom-0 max-md:border-t max-md:border-b-0 max-md:pb-[env(safe-area-inset-bottom)]"
+    class="z-30 md:sticky md:top-0 md:border-b md:border-fid-border md:bg-fid-bg/90 md:backdrop-blur max-md:fixed max-md:inset-x-3 max-md:bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] max-md:rounded-fid-md max-md:border max-md:border-fid-border max-md:bg-fid-surface/95 max-md:shadow-fid-elev-2 max-md:backdrop-blur"
   >
     <!--
       Stretched to equal widths on a phone, where a tab bar is a row of
@@ -77,13 +84,19 @@ const basketCount = computed(() => basketIds.value.size)
         :to="section.to"
         :aria-current="isCurrent(section) ? 'page' : undefined"
         :title="section.hint"
-        class="relative flex min-h-11 items-center justify-center gap-2 border-b-2 px-3 text-fid-sm transition-colors max-md:flex-1 max-md:flex-col max-md:gap-0.5 max-md:border-b-0 max-md:border-t-2 max-md:px-1 max-md:py-2 max-md:text-fid-xs"
+        class="relative flex min-h-11 items-center justify-center gap-2 border-b-2 px-3 text-fid-sm transition-colors max-md:min-h-14 max-md:flex-1 max-md:flex-col max-md:gap-1 max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0 max-md:px-1 max-md:py-2 max-md:text-fid-xs"
         :class="
           isCurrent(section)
-            ? 'border-fid-accent text-fid-text'
+            ? 'border-fid-accent text-fid-text max-md:bg-fid-accent/15'
             : 'border-transparent text-fid-text-muted hover:text-fid-text'
         "
       >
+        <!--
+          The icon carries the recognition, the word carries the meaning.
+          Neither is dropped at any width: a bare glyph is a guess, and on a
+          phone a row of five words in 11px is a row nobody aims at.
+        -->
+        <FidIcon :name="section.icon" :size="20" />
         {{ section.label }}
         <!--
           The badge is on the basket because it is the only number that means
@@ -104,14 +117,14 @@ const basketCount = computed(() => basketIds.value.size)
         :aria-current="isCurrent({ to: '/einstellungen' }) ? 'page' : undefined"
         aria-label="Einstellungen"
         title="Einstellungen"
-        class="flex min-h-11 min-w-11 items-center justify-center border-b-2 text-fid-base transition-colors md:ml-auto max-md:border-b-0 max-md:border-t-2"
+        class="flex min-h-11 min-w-11 items-center justify-center border-b-2 text-fid-base transition-colors md:ml-auto max-md:min-h-14 max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0"
         :class="
           isCurrent({ to: '/einstellungen' })
-            ? 'border-fid-accent text-fid-text'
+            ? 'border-fid-accent text-fid-text max-md:bg-fid-accent/15'
             : 'border-transparent text-fid-text-muted hover:text-fid-text'
         "
       >
-        <span aria-hidden="true">⚙</span>
+        <FidIcon name="settings" :size="20" />
       </NuxtLink>
     </div>
   </nav>

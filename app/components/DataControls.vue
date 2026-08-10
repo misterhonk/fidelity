@@ -72,18 +72,20 @@ async function deleteAll() {
       <button
         type="button"
         :disabled="busy"
-        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+        class="flex items-center gap-2 rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
         @click="run('all')"
       >
+        <FidIcon name="download" :size="16" />
         Alles exportieren
       </button>
 
       <button
         type="button"
         :disabled="busy"
-        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+        class="flex items-center gap-2 rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
         @click="run('dig')"
       >
+        <FidIcon name="download" :size="16" />
         Letzten Dig als Datei
       </button>
     </div>
@@ -103,9 +105,10 @@ async function deleteAll() {
         v-if="!confirming"
         type="button"
         :disabled="busy"
-        class="fid-action self-start text-fid-sm text-fid-sig-scarcity underline underline-offset-4 disabled:opacity-50"
+        class="fid-action gap-1.5 self-start text-fid-sm text-fid-sig-scarcity underline underline-offset-4 disabled:opacity-50"
         @click="confirming = true"
       >
+        <FidIcon name="trash-2" :size="16" />
         Alles löschen
       </button>
 

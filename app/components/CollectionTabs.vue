@@ -11,9 +11,9 @@ const route = useRoute()
  * — it stops reading as a switch and starts reading as a header.
  */
 const TABS = [
-  { to: '/regal', label: 'Regal' },
-  { to: '/landkarte', label: 'Landkarte' },
-  { to: '/wantlist', label: 'Wantlist' },
+  { to: '/regal', label: 'Regal', icon: 'regal' },
+  { to: '/landkarte', label: 'Landkarte', icon: 'map' },
+  { to: '/wantlist', label: 'Wantlist', icon: 'wantlist' },
 ] as const
 </script>
 
@@ -27,13 +27,14 @@ const TABS = [
       :key="tab.to"
       :to="tab.to"
       :aria-current="route.path === tab.to ? 'page' : undefined"
-      class="min-h-9 flex-1 rounded-fid-sm px-3 py-1.5 text-center text-fid-sm transition-colors @xl:flex-none @xl:px-6"
+      class="flex min-h-9 flex-1 items-center justify-center gap-2 rounded-fid-sm px-3 py-1.5 text-center text-fid-sm transition-colors @xl:flex-none @xl:px-6"
       :class="
         route.path === tab.to
           ? 'bg-fid-accent/15 text-fid-text'
           : 'text-fid-text-muted hover:text-fid-text'
       "
     >
+      <FidIcon :name="tab.icon" :size="16" />
       {{ tab.label }}
     </NuxtLink>
   </nav>

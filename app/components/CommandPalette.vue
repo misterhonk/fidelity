@@ -164,17 +164,20 @@ function onKeydown(event: KeyboardEvent) {
       aria-label="Befehle und Suche"
       class="flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-fid-md border border-fid-border bg-fid-surface shadow-2xl"
     >
-      <input
-        ref="input"
-        v-model="query"
-        type="text"
-        autocomplete="off"
-        spellcheck="false"
-        placeholder="Künstler, Händler, Dig …"
-        aria-label="Suchen"
-        class="border-b border-fid-border bg-transparent px-4 py-3 text-fid-base text-fid-text outline-none"
-        @keydown="onKeydown"
-      />
+      <div class="flex items-center gap-3 border-b border-fid-border px-4">
+        <FidIcon name="search" class="text-fid-text-muted" />
+        <input
+          ref="input"
+          v-model="query"
+          type="text"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="Künstler, Händler, Dig …"
+          aria-label="Suchen"
+          class="grow bg-transparent py-3 text-fid-base text-fid-text outline-none"
+          @keydown="onKeydown"
+        />
+      </div>
 
       <p v-if="results.length === 0" class="px-4 py-6 text-fid-sm text-fid-text-muted">
         Nichts gefunden. Digs und Händler tauchen hier auf, sobald es welche gibt.

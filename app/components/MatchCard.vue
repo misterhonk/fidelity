@@ -47,7 +47,20 @@ const meta = computed(() =>
         height="72"
         class="size-18 shrink-0 rounded-fid-cover bg-fid-inset object-cover"
       />
-      <div v-else class="size-18 shrink-0 rounded-fid-cover bg-fid-inset" aria-hidden="true" />
+      <!--
+        No cover is the normal case, not a failure: Discogs has no image for
+        plenty of small pressings, and images are never fetched actively
+        (docs/02, the separate Cloudflare limit). A record standing in for one
+        says "nothing to show here" where an empty grey square said "still
+        loading" for as long as somebody was willing to wait.
+      -->
+      <div
+        v-else
+        class="flex size-18 shrink-0 items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted"
+        aria-hidden="true"
+      >
+        <FidIcon name="platte" :size="28" />
+      </div>
 
       <div class="flex min-w-0 grow flex-col gap-1">
         <!--

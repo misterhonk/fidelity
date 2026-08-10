@@ -53,7 +53,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     fixed on phones and the footer sits outside <main>, so padding the pages
     left the attribution — which is a licence condition — hidden behind it.
   -->
-  <div class="flex min-h-dvh flex-col max-md:pb-20">
+  <div class="flex min-h-dvh flex-col max-md:pb-28">
     <AppNav />
     <NuxtPage />
     <SiteFooter />

@@ -153,8 +153,9 @@ const tiles = computed(() => {
           -->
           <NuxtLink
             to="/im-laden"
-            class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+            class="flex items-center gap-2 rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
           >
+            <FidIcon name="nadel" :size="16" />
             Im Laden öffnen
           </NuxtLink>
         </div>

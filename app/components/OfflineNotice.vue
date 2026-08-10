@@ -46,7 +46,10 @@ function dismissCoach() {
       role="status"
       class="flex flex-col gap-1 rounded-fid-md border border-fid-border bg-fid-surface p-4"
     >
-      <p class="text-fid-base text-fid-text">Kein Netz.</p>
+      <p class="flex items-center gap-2 text-fid-base text-fid-text">
+        <FidIcon name="wifi-off" />
+        Kein Netz.
+      </p>
       <p class="text-fid-sm text-fid-text-muted">
         Deine Sammlung, die Landkarte und die letzten Digs liegen auf diesem Gerät und
         funktionieren weiter. Was nicht geht: neue Digs, Synchronisieren, Marktpreise.

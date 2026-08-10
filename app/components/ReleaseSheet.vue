@@ -162,8 +162,19 @@ function onKeydown(event: KeyboardEvent) {
           <div class="flex min-w-0 grow flex-col gap-1">
             <p v-if="meta" class="font-fid-mono text-fid-xs text-fid-text-muted">{{ meta }}</p>
             <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">
-              <span v-if="match.condition">{{ match.condition }}</span>
-              <span v-if="match.sleeve">Cover {{ match.sleeve }}</span>
+              <span v-if="match.condition" class="flex items-center gap-1.5">
+                <FidIcon name="platte" :size="14" />
+                {{ match.condition }}
+              </span>
+              <!--
+                Two gradings side by side, and which is which decides whether a
+                record is worth buying. "Cover VG" and "VG" read as the same
+                word twice; the disc and the sleeve do not.
+              -->
+              <span v-if="match.sleeve" class="flex items-center gap-1.5">
+                <FidIcon name="huelle" :size="14" />
+                {{ match.sleeve }}
+              </span>
               <span v-if="price" class="fid-num text-fid-base text-fid-text">{{ price }}</span>
             </p>
           </div>
