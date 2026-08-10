@@ -53,6 +53,21 @@ export async function recordFeedback(
   return entry
 }
 
+/**
+ * Changing your mind about a record whose dig is long gone.
+ *
+ * Not `recordFeedback` again: that wants a `Match`, and the whole point of the
+ * shortlist is that there is no longer one. This keeps everything the row
+ * already holds — above all the signal snapshot, which is the only reason any
+ * of this is stored (docs/03 §7) and would be lost by writing a fresh row.
+ */
+export async function setVerdict(listingId: number, verdict: Verdict): Promise<void> {
+  const db = await openFidelityDb()
+  const entry = await db.get('feedback', listingId)
+  if (!entry) return
+  await db.put('feedback', { ...entry, verdict })
+}
+
 export async function clearFeedback(listingId: number): Promise<void> {
   const db = await openFidelityDb()
   await db.delete('feedback', listingId)

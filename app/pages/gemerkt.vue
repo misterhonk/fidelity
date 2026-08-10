@@ -41,6 +41,36 @@ const moving = ref<string | null>(null)
 /** Whose result this is — otherwise one message appears under every shop. */
 const moveResult = ref<{ dealer: string; text: string } | null>(null)
 
+/** For the screen-reader labels — the row's own text, or its id when it has none. */
+function label(record: MarkedRecord): string {
+  const written = [record.artist, record.title].filter(Boolean).join(' – ')
+  return written || `Release ${record.releaseId}`
+}
+
+/*
+ * Both of these change a stored verdict rather than writing a new one. The
+ * signal snapshot is the reason the store exists at all (docs/03 §7), and a
+ * fresh row would throw it away — the record was judged with the reasons it
+ * had at the time, and that is what makes the whole store analysable later.
+ */
+async function mark(record: MarkedRecord, verdict: 'bought') {
+  error.value = null
+  try {
+    overview.value = await call('feedback.verdict', { listingId: record.listingId, verdict })
+  } catch (cause) {
+    error.value = cause
+  }
+}
+
+async function forget(record: MarkedRecord) {
+  error.value = null
+  try {
+    overview.value = await call('feedback.forget', { listingId: record.listingId })
+  } catch (cause) {
+    error.value = cause
+  }
+}
+
 async function intoBasket(group: { dealer: string | null; records: MarkedRecord[] }) {
   if (moving.value) return
 
@@ -299,6 +329,32 @@ async function check() {
 
             <span class="shrink-0 text-fid-xs text-fid-text-muted">
               <span class="fid-num">{{ record.score }}</span> · {{ since(record.createdAt) }}
+            </span>
+
+            <!--
+              Changing your mind, which until now could only be done inside the
+              dig — and the dig is the one thing here guaranteed to be gone.
+              A shortlist you cannot take anything off is a list that only
+              grows, and a list that only grows stops being read.
+            -->
+            <span class="flex shrink-0 basis-full gap-4 text-fid-xs @sm:basis-auto">
+              <button
+                v-if="!record.soldAt"
+                type="button"
+                class="fid-action text-fid-text-muted underline underline-offset-4"
+                :aria-label="`${label(record)} als gekauft eintragen`"
+                @click="mark(record, 'bought')"
+              >
+                gekauft
+              </button>
+              <button
+                type="button"
+                class="fid-action text-fid-text-muted underline underline-offset-4"
+                :aria-label="`${label(record)} von der Merkliste nehmen`"
+                @click="forget(record)"
+              >
+                vergessen
+              </button>
             </span>
           </li>
         </ul>

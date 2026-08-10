@@ -8,6 +8,7 @@ import {
   feedbackVerdicts,
   markedOverview,
   recordFeedback,
+  setVerdict,
 } from '~~/worker/feedback'
 
 afterEach(async () => {
@@ -190,6 +191,40 @@ describe('the shortlist', () => {
     // A listing id does not come back on the market, so asking again is waste.
     expect(overview.stillOpen).toBe(1)
     expect(overview.groups[0]?.open).toBe(1)
+  })
+
+  it('changes its mind without losing why', async () => {
+    await dig('D1', 'plattenkiste')
+    const signals: Signal[] = [
+      { type: 'ARTIST_KNOWN', confidence: 1, evidence: { artist: 'Robag', owned: 5 } },
+    ]
+    await recordFeedback(
+      { ...subject(1, signals), digId: 'D1', artist: 'Robag', title: 'Wuzzelbud KK' },
+      'interesting',
+      1000,
+    )
+
+    await setVerdict(1, 'bought')
+
+    const [entry] = await allFeedback()
+    expect(entry?.verdict).toBe('bought')
+    /*
+     * The snapshot is the whole reason this store exists (docs/03 §7). Writing
+     * a fresh row from the shortlist would throw it away — and there is no
+     * `Match` left to rebuild it from, because the dig was pruned long ago.
+     */
+    expect(entry?.signals).toEqual(signals)
+    expect(entry?.title).toBe('Wuzzelbud KK')
+    expect(entry?.dealer).toBe('plattenkiste')
+
+    const overview = await markedOverview()
+    expect(overview.total).toBe(0)
+    expect(overview.bought.map((record) => record.listingId)).toEqual([1])
+  })
+
+  it('does nothing to a listing it has never judged', async () => {
+    await setVerdict(999, 'bought')
+    expect(await allFeedback()).toEqual([])
   })
 
   it('survives rows written before titles were kept', async () => {

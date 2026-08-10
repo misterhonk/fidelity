@@ -394,6 +394,18 @@ export const handlers: HandlerMap = {
     return markedOverview()
   },
 
+  'feedback.verdict': async ({ listingId, verdict }) => {
+    const { markedOverview, setVerdict } = await import('./feedback')
+    await setVerdict(listingId, verdict)
+    return markedOverview()
+  },
+
+  'feedback.forget': async ({ listingId }) => {
+    const { clearFeedback, markedOverview } = await import('./feedback')
+    await clearFeedback(listingId)
+    return markedOverview()
+  },
+
   'feedback.check': async (_params, { report, signal }) => {
     const { refreshMarked } = await import('./dig/refresh')
     const { currency } = await getPreferences()

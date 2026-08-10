@@ -164,6 +164,17 @@ export interface WorkerContract {
   /** The shortlist, grouped by shop — what outlives a pruned dig. */
   'feedback.marked': { params: undefined; progress: never; result: MarkedOverview }
   /**
+   * Changing your mind from the shortlist, where no `Match` exists any more.
+   * Keeps the signal snapshot, which is the reason the store exists at all.
+   */
+  'feedback.verdict': {
+    params: { listingId: number; verdict: Verdict }
+    progress: never
+    result: MarkedOverview
+  }
+  /** Taking a record off the shortlist entirely. */
+  'feedback.forget': { params: { listingId: number }; progress: never; result: MarkedOverview }
+  /**
    * Are the shortlisted records still there? One request per record still open
    * (docs/02). Fresh prices come back in the result and are never stored — a
    * price on disk past six hours is exactly what CLAUDE.md rule 4 forbids.
