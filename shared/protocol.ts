@@ -78,6 +78,9 @@ export interface WorkerContract {
    */
   'library.sync': { params: undefined; progress: SyncProgress; result: SyncResult }
   'library.summary': { params: undefined; progress: never; result: LibrarySummary }
+
+  /** Everything the start screen shows, from this device only. */
+  'home.overview': { params: undefined; progress: never; result: HomeOverview }
   /**
    * Where the shelf has holes, and which labels you really collect. Costs no
    * requests: it is a reading of the horizon that already exists.
@@ -501,6 +504,65 @@ export interface SyncSummary {
 export interface SyncResult {
   collection: SyncSummary
   wantlist: SyncSummary
+}
+
+/** One cover on the start screen, from the collection or the wantlist. */
+export interface HomeCover {
+  releaseId: number
+  title: string
+  artist: string
+  year: number
+  thumbUrl: string
+  coverUrl: string
+  /** ISO 8601 from Discogs. */
+  addedAt: string
+}
+
+/** One find from the last dig, trimmed to what a cover rail shows. */
+export interface HomeFind {
+  digId: string
+  listingId: number
+  releaseId: number
+  score: number
+  reason: string
+  title: string | null
+  artist: string | null
+  thumbUrl: string | null
+  price: number | null
+  currency: string | null
+  /** Past the six-hour window, so the price above is null (rule 4). */
+  expired: boolean
+}
+
+export interface HomeShop {
+  username: string
+  displayName: string
+  affinity: number | null
+  numForSale: number
+  lastScannedAt: number | null
+}
+
+/**
+ * The whole start screen, in one message.
+ *
+ * Assembled in the worker so the page makes one round trip rather than five,
+ * and arrives at once rather than in five flickers. Nothing in it costs a
+ * Discogs request — opening the app must not spend from a budget that belongs
+ * to the dig somebody is about to start.
+ */
+export interface HomeOverview {
+  library: LibrarySummary
+  dig: {
+    id: string
+    dealer: string
+    startedAt: number
+    expiresAt: number
+    matches: number
+  } | null
+  finds: HomeFind[]
+  shelf: HomeCover[]
+  wanted: HomeCover[]
+  shops: HomeShop[]
 }
 
 export interface LibrarySummary {

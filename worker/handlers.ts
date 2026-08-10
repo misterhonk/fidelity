@@ -585,6 +585,13 @@ export const handlers: HandlerMap = {
     return newest ? loadDig(newest.id) : null
   },
 
+  /*
+   * Its own module and a dynamic import: the start screen is the first thing
+   * anybody sees, and the code that assembles it has no business sitting in
+   * the worker's entry chunk beside the scanner.
+   */
+  'home.overview': async () => (await import('./home')).homeOverview(),
+
   'library.summary': async () => {
     const db = await openFidelityDb()
     const syncState = await getSyncState()

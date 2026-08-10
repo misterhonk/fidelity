@@ -143,6 +143,29 @@ body {
 }
 
 /*
+ * Ein Regal, das sich aufbaut statt zu erscheinen.
+ *
+ * Eight covers appearing at once is a flash; the same eight arriving 40ms
+ * apart reads as a hand laying them out. The stagger is capped, because after
+ * about a dozen the last tile is waiting on an animation nobody is watching
+ * any more — and the whole rail is only twelve wide.
+ *
+ * `backwards` matters: without it a tile is visible at its final position for
+ * one frame before the delay starts, which is the flash this exists to avoid.
+ */
+@keyframes fid-lay-out {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+.fid-tile {
+  animation: fid-lay-out 0.35s ease-out backwards;
+  animation-delay: calc(min(var(--fid-stagger, 0), 11) * 40ms);
+}
+
+/*
  * Reduce, do not remove. Opacity crossfades and instant state changes stay;
  * parallax, large translations, scale and scroll-driven effects go.
  */

@@ -174,9 +174,26 @@ wären die Reihenfolgen unabhängig, bliebe nach *k* Schlüsseln ein Anteil von 
 
 **Die Zahlen sind eine Obergrenze, keine Zusage.** `artist`, `label` und `catno` korrelieren
 stark – dieselben Platten stehen in allen dreien nebeneinander. Wirklich unabhängig sind nur
-`price`, `listed` und `audio`. Realistisch also eher „sehr hoch" als „98,8 %", und **nie
-beweisbar**: Ein Angebot, das in jeder Reihenfolge in der Mitte liegt, ist von außen nicht
-sichtbar. Coverage deshalb immer als Zahl anzeigen, nie als Häkchen.
+`price`, `listed` und `audio`. Realistisch also eher „sehr hoch" als „98,8 %".
+
+**Aber: die Abdeckung ist exakt messbar.** Listing-IDs sind eindeutig, und `pagination.items`
+nennt die Gesamtzahl. Wer die gesehenen IDs in einer Menge sammelt, weiß nach jedem Durchgang
+auf die Platte genau, wo er steht:
+
+```
+|gesehene Listing-IDs| / pagination.items   →   „38.412 von 42.873 (89,6 %)"
+```
+
+Das ist der Unterschied zwischen Schätzen und Wissen. Nicht garantierbar ist nur, jemals bei
+100 % **anzukommen** – ein Angebot, das in jeder Reihenfolge in der Mitte liegt, taucht in
+keinem Fenster auf. Deshalb: Abbruchkriterium ist nicht „fertig", sondern „ein Durchgang hat
+nichts Neues mehr gebracht", und angezeigt wird immer die Zahl, nie ein Häkchen.
+
+**Authentifizierung ändert daran nichts.** Die 403-Meldung sagt „besides your own" – es geht um
+Besitz, nicht um Rechte. Am 2026-08-10 **unauthentifiziert** gemessen: dieselbe Wand bei
+`page=101` wie mit Token. Ein registrierter Consumer Key bringt für die Paginierung nichts; er
+schaltet OAuth frei, und OAuth ist per CORS ohnehin gesperrt (siehe oben). Der einzige Weg, der
+etwas ändern könnte, ist Discogs selbst zu fragen – und die Antwort dazu steht schon oben.
 
 #### Der Weg, der wirklich zur Vollständigkeit führt: Zeit
 
