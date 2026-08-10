@@ -167,7 +167,7 @@ async function check() {
 <template>
   <main class="@container mx-auto flex w-full max-w-[80rem] flex-col gap-6 px-6 py-10">
     <header class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Korb</h1>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Korb</h1>
       <BasketTabs />
     </header>
 
@@ -237,7 +237,7 @@ async function check() {
         class="flex flex-col gap-2"
       >
         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h2 class="text-fid-lg font-bold text-fid-text">
+          <h2 class="text-fid-base font-bold text-fid-text">
             <template v-if="group.dealer">{{ group.dealer }}</template>
             <template v-else>Ohne Laden</template>
             <span class="fid-num ml-2 text-fid-sm font-normal text-fid-text-muted">
@@ -360,7 +360,7 @@ async function check() {
         v-if="overview.bought.length > 0"
         class="flex flex-col gap-2 border-t border-fid-border pt-6"
       >
-        <h2 class="text-fid-lg font-bold text-fid-text">Gekauft</h2>
+        <h2 class="text-fid-base font-bold text-fid-text">Gekauft</h2>
         <ul class="flex flex-col gap-1">
           <li
             v-for="record in overview.bought"

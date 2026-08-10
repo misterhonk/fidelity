@@ -68,7 +68,7 @@ defineEmits<{ open: [] }>()
       -->
       <span
         v-if="score !== null && score !== undefined"
-        class="fid-num absolute top-1.5 right-1.5 rounded-fid-sm bg-fid-n-990/80 px-1.5 py-0.5 text-fid-xs font-medium text-fid-n-50"
+        class="fid-num absolute top-1.5 right-1.5 rounded-fid-sm bg-fid-n-990/80 px-2 py-1 text-fid-xs font-medium text-fid-n-50"
       >
         {{ score }}
       </span>

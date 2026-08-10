@@ -144,10 +144,18 @@ alles läuft über `--fid-font-sans`, `--fid-font-mono`, `--fid-font-display`.
 --fid-text-xs:   clamp(0.75rem,  0.72rem + 0.15vw, 0.8125rem);
 --fid-text-sm:   clamp(0.875rem, 0.84rem + 0.18vw, 0.9375rem);
 --fid-text-base: clamp(1rem,     0.96rem + 0.20vw, 1.0625rem);
---fid-text-lg:   clamp(1.125rem, 1.06rem + 0.32vw, 1.25rem);
 --fid-text-xl:   clamp(1.375rem, 1.24rem + 0.65vw, 1.75rem);
---fid-text-2xl:  clamp(1.75rem,  1.50rem + 1.25vw, 2.5rem);
 ```
+
+**Vier Stufen, seit 2026-08-10 statt sechs.** `lg` saß mit sechzehn Verwendungen zwischen
+`base` und `xl`, ohne dass eine davon die Stufe gebraucht hätte – Abschnittsüberschriften
+tragen ihre Hierarchie jetzt über `font-medium` und Abstand. `2xl` machte Seitentitel bei
+40 px lauter als alles darunter; sie stehen jetzt auf `xl`, und den Charakter liefert
+`.fid-display`. Was groß bleiben muss, weil die Größe die Aussage ist – der Barry Score, die
+Zahlen auf der Startseite, die Ziele im Laden – steht ebenfalls auf `xl`.
+
+Eine Stufe wieder aufzunehmen ist möglich, aber begründungspflichtig: sechs Stufen bedeuten
+sechs Entscheidungen pro Bildschirm, und die vorige Skala hatte zwei, die niemand traf.
 
 > ⚠️ **Nie `vw` allein für `font-size`.** Bricht Browser-Zoom, verletzt WCAG 1.4.4.
 > Immer ein `rem`-Term im `clamp()`.

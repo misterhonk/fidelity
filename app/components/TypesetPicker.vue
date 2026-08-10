@@ -13,7 +13,7 @@ const { current, apply, sets } = useTypeset()
           :checked="current === set.key"
           @change="apply(set.key)"
         />
-        <span class="flex flex-col gap-0.5">
+        <span class="flex flex-col gap-1">
           <span class="text-fid-sm text-fid-text">{{ set.label }}</span>
           <span class="fid-num text-fid-xs text-fid-text-muted">{{ set.hint }}</span>
           <span class="text-fid-xs text-fid-text-muted">{{ set.about }}</span>
@@ -26,7 +26,7 @@ const { current, apply, sets } = useTypeset()
       of prose, and the numbers that carry most of its meaning.
     -->
     <div class="flex flex-col gap-2 rounded-fid-md border border-fid-border p-4">
-      <p class="fid-display text-fid-2xl font-bold text-fid-text">Fidelity</p>
+      <p class="fid-display text-fid-xl font-bold text-fid-text">Fidelity</p>
       <p class="max-w-prose text-fid-sm text-fid-text-muted">
         Du hast 5 Platten von Robag Wruhme – diese nicht. Außerdem: Stil passt (Minimal), nur 3
         im Angebot.

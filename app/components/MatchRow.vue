@@ -58,7 +58,7 @@ const price = computed(() => {
         which is what focus-within is here for.
       -->
       <span
-        class="flex gap-0.5 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
+        class="flex gap-1 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
         :class="verdict ? 'opacity-100' : 'opacity-0'"
         role="group"
         aria-label="Wie war der Treffer?"

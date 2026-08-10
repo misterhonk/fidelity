@@ -291,7 +291,7 @@ const expired = computed(() => {
       a desk for this. The prose blocks inside keep their own width.
     -->
     <div class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Graben</h1>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Graben</h1>
     </div>
 
     <form class="flex flex-wrap items-end gap-3" @submit.prevent="check">
@@ -330,7 +330,7 @@ const expired = computed(() => {
         v-for="known in knownDealers"
         :key="known.username"
         type="button"
-        class="fid-action rounded-fid-sm border px-3 py-1.5 text-fid-sm transition-colors"
+        class="fid-action rounded-fid-sm border px-3 py-2 text-fid-sm transition-colors"
         :class="
           known.watching
             ? 'border-fid-accent/40 text-fid-text'
@@ -407,10 +407,21 @@ const expired = computed(() => {
         {{ Math.ceil((preflight.reachable / 100) * 1.2) }} Sekunden bei einem Request pro 1,2
         Sekunden.
       </p>
+      <!--
+        Filled only when it is *the* thing to do.
+
+        An interrupted dig outranks a new one — those pages are already paid
+        for in requests. When one is on offer above, this button steps back to
+        an outline, so the screen has one accent and it points at the right
+        button.
+      -->
       <button
         type="button"
         :disabled="busy"
-        class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-n-990 disabled:opacity-50"
+        class="self-start rounded-fid-sm px-4 py-2 font-medium disabled:opacity-50"
+        :class="
+          resumable ? 'border border-fid-border text-fid-text' : 'bg-fid-accent text-fid-n-990'
+        "
         @click="start('normal')"
       >
         Dig starten
@@ -571,10 +582,16 @@ const expired = computed(() => {
           The way out that is not a four-minute rescan: each match's own
           listing, one request apiece.
         -->
+        <!--
+          Outlined, though it was filled. Refreshing prices is a repair on
+          data that is already there, and it sits below a start button that is
+          the actual purpose of the screen — two filled accents at once and
+          neither of them means "do this".
+        -->
         <button
           type="button"
           :disabled="busy || !online"
-          class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 text-fid-sm font-medium text-fid-n-990 disabled:opacity-50"
+          class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
           @click="refresh"
         >
           Preise auffrischen

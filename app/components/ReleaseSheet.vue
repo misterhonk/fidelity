@@ -133,7 +133,7 @@ function onKeydown(event: KeyboardEvent) {
       @keydown.esc="emit('close')"
     >
       <div class="flex items-start justify-between gap-4">
-        <h2 class="text-fid-lg font-bold text-fid-text">
+        <h2 class="text-fid-base font-bold text-fid-text">
           <template v-if="match">{{ match.artist }} – {{ match.title }}</template>
           <template v-else>Wird geladen …</template>
         </h2>
@@ -162,7 +162,7 @@ function onKeydown(event: KeyboardEvent) {
           <div class="flex min-w-0 grow flex-col gap-1">
             <p v-if="meta" class="font-fid-mono text-fid-xs text-fid-text-muted">{{ meta }}</p>
             <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">
-              <span v-if="match.condition" class="flex items-center gap-1.5">
+              <span v-if="match.condition" class="flex items-center gap-2">
                 <FidIcon name="platte" :size="14" />
                 {{ match.condition }}
               </span>
@@ -171,7 +171,7 @@ function onKeydown(event: KeyboardEvent) {
                 record is worth buying. "Cover VG" and "VG" read as the same
                 word twice; the disc and the sleeve do not.
               -->
-              <span v-if="match.sleeve" class="flex items-center gap-1.5">
+              <span v-if="match.sleeve" class="flex items-center gap-2">
                 <FidIcon name="huelle" :size="14" />
                 {{ match.sleeve }}
               </span>
@@ -179,7 +179,7 @@ function onKeydown(event: KeyboardEvent) {
             </p>
           </div>
           <span
-            class="fid-num shrink-0 text-fid-2xl font-bold text-fid-text"
+            class="fid-num shrink-0 text-fid-xl font-bold text-fid-text"
             :aria-label="`Barry Score ${match.score} von 100`"
           >
             {{ match.score }}
@@ -282,7 +282,7 @@ function onKeydown(event: KeyboardEvent) {
           </ul>
 
           <!-- Printed verbatim: this is what you compare against the record. -->
-          <ul v-if="match.pressing.runouts.length" class="flex flex-col gap-0.5">
+          <ul v-if="match.pressing.runouts.length" class="flex flex-col gap-1">
             <li
               v-for="runout in match.pressing.runouts"
               :key="runout"

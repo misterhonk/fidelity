@@ -235,7 +235,7 @@ const date = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 
           :disabled="!option.usable"
           @change="choose(option.key)"
         />
-        <label :for="`vault-${option.key}`" class="flex flex-col gap-0.5">
+        <label :for="`vault-${option.key}`" class="flex flex-col gap-1">
           <span class="text-fid-sm text-fid-text">{{ option.label }}</span>
           <span class="text-fid-xs text-fid-text-muted">{{ option.hint }}</span>
         </label>
@@ -330,7 +330,7 @@ const date = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 
           class="mt-1 size-4"
           @change="setRemember(($event.target as HTMLInputElement).checked)"
         />
-        <span class="flex flex-col gap-0.5">
+        <span class="flex flex-col gap-1">
           <span class="text-fid-sm text-fid-text">Auf diesem Gerät merken</span>
           <span class="text-fid-xs text-fid-text-muted">
             Dann gleicht sich Fidelity beim Öffnen von selbst ab.

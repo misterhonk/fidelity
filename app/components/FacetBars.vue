@@ -27,7 +27,7 @@ const peak = computed(() => Math.max(1, ...props.facets.map((facet) => facet.n))
 
     <!-- A description list, not a table: this is name → count, and a screen
          reader should read it as such. -->
-    <dl v-else class="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1.5">
+    <dl v-else class="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2">
       <template v-for="facet in facets" :key="facet.name">
         <dt class="min-w-0">
           <span class="block truncate text-fid-sm text-fid-text">{{ facet.name }}</span>

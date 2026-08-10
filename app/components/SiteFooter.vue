@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const version = useRuntimeConfig().public.version
+const { version, commit } = useRuntimeConfig().public
 </script>
 
 <template>
@@ -33,7 +33,15 @@ const version = useRuntimeConfig().public.version
       <p class="flex flex-wrap gap-x-4 gap-y-1 text-fid-xs text-fid-text-muted">
         <NuxtLink class="underline underline-offset-4" to="/datenschutz">Datenschutz</NuxtLink>
         <NuxtLink class="underline underline-offset-4" to="/impressum">Impressum</NuxtLink>
-        <span class="fid-num">v{{ version }}</span>
+        <!--
+          The commit next to the version, because the version alone cannot
+          answer "is this the build I just deployed". It only moves when a
+          release is cut, and a service worker can serve an older shell for as
+          long as somebody keeps tapping "Später".
+        -->
+        <span class="fid-num">
+          v{{ version }}<template v-if="commit"> · {{ commit }}</template>
+        </span>
       </p>
     </div>
   </footer>

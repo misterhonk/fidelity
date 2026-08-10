@@ -62,7 +62,7 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
       three across on a phone and eight on a monitor.
     -->
     <header class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Sammlung</h1>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Sammlung</h1>
       <CollectionTabs />
     </header>
 
@@ -124,16 +124,12 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
         v-else
         class="grid grid-cols-3 gap-x-4 gap-y-6 @md:grid-cols-4 @2xl:grid-cols-6 @5xl:grid-cols-8"
       >
-        <li
-          v-for="record in view.records"
-          :key="record.releaseId"
-          class="flex flex-col gap-1.5"
-        >
+        <li v-for="record in view.records" :key="record.releaseId" class="flex flex-col gap-2">
           <a
             :href="`https://www.discogs.com/release/${record.releaseId}`"
             target="_blank"
             rel="noopener noreferrer"
-            class="group flex flex-col gap-1.5 rounded-fid-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fid-accent"
+            class="group flex flex-col gap-2 rounded-fid-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fid-accent"
           >
             <!--
               Lazy, never fetched by hand. i.discogs.com has its own budget of

@@ -48,13 +48,13 @@ const DENSITIES = [
       spellcheck="false"
       placeholder="Künstler, Titel, Label, Katalognummer …"
       aria-label="Treffer durchsuchen"
-      class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-1.5 text-fid-sm text-fid-text"
+      class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
       @input="emit('setQuery', ($event.target as HTMLInputElement).value)"
     />
 
-    <div v-if="available.length > 0" class="flex flex-wrap items-center gap-1.5">
+    <div v-if="available.length > 0" class="flex flex-wrap items-center gap-2">
       <!--
-        24x24 minimum target size (WCAG 2.5.8) — the reason these are py-1.5
+        24x24 minimum target size (WCAG 2.5.8) — the reason these are py-2
         and not the tighter thing they want to be.
       -->
       <button

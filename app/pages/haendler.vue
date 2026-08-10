@@ -97,7 +97,7 @@ const scanned = computed(() => {
 <template>
   <main class="@container mx-auto flex w-full max-w-[80rem] flex-col gap-8 px-6 py-16">
     <div class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Läden</h1>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Läden</h1>
       <p class="text-fid-base text-fid-text-muted">
         Was ein Laden eigentlich führt – und wie gut er zu dir passt.
       </p>
@@ -120,7 +120,7 @@ const scanned = computed(() => {
           v-for="dealer in dealers"
           :key="dealer.username"
           type="button"
-          class="rounded-fid-sm border px-3 py-1.5 text-fid-sm transition-colors"
+          class="rounded-fid-sm border px-3 py-2 text-fid-sm transition-colors"
           :class="
             dealer.username === selected
               ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
@@ -134,10 +134,10 @@ const scanned = computed(() => {
 
       <section v-if="profile" class="flex flex-col gap-8">
         <div class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4">
-          <p v-if="profile.dealer.lastScannedAt === null" class="text-fid-lg text-fid-text">
+          <p v-if="profile.dealer.lastScannedAt === null" class="text-fid-base text-fid-text">
             Diesen Laden kenne ich nur vom Namen – gescannt wurde er noch nicht.
           </p>
-          <p v-else class="text-fid-lg text-fid-text">{{ verdict }}</p>
+          <p v-else class="text-fid-base text-fid-text">{{ verdict }}</p>
           <p class="text-fid-sm text-fid-text-muted">
             <span class="fid-num">{{ number.format(profile.dealer.numForSale) }}</span> Listings
             <template v-if="profile.dealer.shipsFrom">
@@ -159,7 +159,7 @@ const scanned = computed(() => {
             <button
               type="button"
               :aria-pressed="isWatched(profile.dealer.username)"
-              class="rounded-fid-sm border px-3 py-1.5 text-fid-sm transition-colors"
+              class="rounded-fid-sm border px-3 py-2 text-fid-sm transition-colors"
               :class="
                 isWatched(profile.dealer.username)
                   ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
@@ -177,7 +177,7 @@ const scanned = computed(() => {
             -->
             <NuxtLink
               :to="`/dig?dealer=${encodeURIComponent(profile.dealer.username)}`"
-              class="fid-action rounded-fid-sm border border-fid-border px-3 py-1.5 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+              class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
             >
               {{ profile.dealer.lastScannedAt === null ? 'Jetzt graben' : 'Nochmal graben' }}
             </NuxtLink>

@@ -106,7 +106,7 @@
   },
 
   "text": {
-    "$description": "Fluid type scale. $value is the upper bound; the fluid extension carries the clamp() terms. A rem term in the middle is mandatory — a bare vw font-size breaks browser zoom and violates WCAG 1.4.4, so the build refuses to emit one.",
+    "$description": "Vier Stufen, nicht sechs. `lg` und `2xl` sind 2026-08-10 entfallen: `lg` saß mit sechzehn Verwendungen zwischen `base` und `xl`, ohne dass eine davon die Stufe brauchte, und `2xl` machte Seitentitel bei 40px lauter als alles, was darunter stand. Überschriften tragen ihre Hierarchie jetzt über Gewicht und Fläche, was auch billiger ist als eine eigene Größe. $value ist die Obergrenze; die fluid-Erweiterung trägt die clamp()-Terme. Ein rem-Term in der Mitte ist Pflicht — eine reine vw-Schriftgröße bricht den Browser-Zoom und verstößt gegen WCAG 1.4.4, deshalb weigert sich der Build, eine auszugeben.",
     "$type": "dimension",
     "xs": {
       "$value": { "value": 0.8125, "unit": "rem" },
@@ -126,22 +126,10 @@
         "de.fidelity.fluid": { "min": 1, "grow": 0.96, "slope": 0.2 }
       }
     },
-    "lg": {
-      "$value": { "value": 1.25, "unit": "rem" },
-      "$extensions": {
-        "de.fidelity.fluid": { "min": 1.125, "grow": 1.06, "slope": 0.32 }
-      }
-    },
     "xl": {
       "$value": { "value": 1.75, "unit": "rem" },
       "$extensions": {
         "de.fidelity.fluid": { "min": 1.375, "grow": 1.24, "slope": 0.65 }
-      }
-    },
-    "2xl": {
-      "$value": { "value": 2.5, "unit": "rem" },
-      "$extensions": {
-        "de.fidelity.fluid": { "min": 1.75, "grow": 1.5, "slope": 1.25 }
       }
     }
   },

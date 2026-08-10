@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { execSync } from 'node:child_process'
+
 import pkg from './package.json'
 
 // Fidelity has no backend (ADR-007). Directory layout per CLAUDE.md:
@@ -177,8 +179,32 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      // Bumped by release-please, shown in the about screen.
+      // Bumped by release-please, shown in the footer.
       version: pkg.version,
+      /*
+       * Which build exactly, next to the version.
+       *
+       * The version alone cannot answer "is this the code I just deployed" —
+       * it only moves when a release is cut, and a service worker can serve a
+       * shell from before that for as long as somebody taps "Später". Seven
+       * characters settle it.
+       *
+       * Falls back to empty rather than failing: `git` is not there in every
+       * build environment, and a missing commit hash is not worth a broken
+       * build.
+       */
+      commit: buildCommit(),
     },
   },
 })
+
+function buildCommit(): string {
+  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA.slice(0, 7)
+  try {
+    return execSync('git rev-parse --short=7 HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+      .toString()
+      .trim()
+  } catch {
+    return ''
+  }
+}

@@ -48,7 +48,7 @@ const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
       is unreadable however much room there is.
     -->
     <div class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Sammlung</h1>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Sammlung</h1>
       <CollectionTabs />
       <p v-if="profile" class="max-w-prose text-fid-base text-fid-text-muted">
         <span class="fid-num">{{ profile.releaseCount }}</span> Platten. Was daraus über deinen
@@ -102,7 +102,7 @@ const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
         aria-labelledby="shelf-gaps"
       >
         <div class="flex flex-col gap-1">
-          <h2 id="shelf-gaps" class="text-fid-lg font-medium text-fid-text">
+          <h2 id="shelf-gaps" class="text-fid-base font-medium text-fid-text">
             Wie viel es noch gibt
           </h2>
           <!--
@@ -151,7 +151,7 @@ const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
         aria-labelledby="label-standing"
       >
         <div class="flex flex-col gap-1">
-          <h2 id="label-standing" class="text-fid-lg font-medium text-fid-text">
+          <h2 id="label-standing" class="text-fid-base font-medium text-fid-text">
             Welche Labels du wirklich sammelst
           </h2>
           <WhyNote label="Wie der Lift gerechnet wird">
@@ -161,7 +161,7 @@ const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
           </WhyNote>
         </div>
 
-        <dl class="grid grid-cols-[1fr_auto_auto] items-baseline gap-x-4 gap-y-1.5">
+        <dl class="grid grid-cols-[1fr_auto_auto] items-baseline gap-x-4 gap-y-2">
           <template v-for="label in gaps.labels" :key="label.entityId">
             <dt class="min-w-0 truncate text-fid-sm text-fid-text">{{ label.name }}</dt>
             <dd class="fid-num text-right text-fid-sm text-fid-text-muted">

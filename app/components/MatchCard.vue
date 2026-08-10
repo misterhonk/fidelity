@@ -89,11 +89,11 @@ const meta = computed(() =>
       </div>
     </div>
 
-    <ul class="flex flex-wrap gap-1.5">
+    <ul class="flex flex-wrap gap-2">
       <li
         v-for="signal in match.signals"
         :key="signal.type"
-        class="rounded-fid-sm border px-2 py-0.5 text-fid-xs text-fid-text"
+        class="rounded-fid-sm border px-2 py-1 text-fid-xs text-fid-text"
         :style="signalChipStyle(signal.type)"
       >
         {{ signalLabel(signal.type) }}

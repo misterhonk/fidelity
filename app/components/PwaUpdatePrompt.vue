@@ -19,14 +19,14 @@ const { $pwa } = useNuxtApp()
     <p class="grow">Eine neue Version steht bereit.</p>
     <button
       type="button"
-      class="rounded-fid-sm border border-fid-border px-3 py-1.5"
+      class="rounded-fid-sm border border-fid-border px-3 py-2"
       @click="$pwa.cancelPrompt()"
     >
       Später
     </button>
     <button
       type="button"
-      class="rounded-fid-sm bg-fid-accent px-3 py-1.5 font-medium text-fid-n-990"
+      class="rounded-fid-sm bg-fid-accent px-3 py-2 font-medium text-fid-n-990"
       @click="$pwa.updateServiceWorker()"
     >
       Neu laden

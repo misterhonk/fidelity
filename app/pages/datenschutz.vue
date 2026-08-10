@@ -14,7 +14,7 @@ useSeoMeta({
       ← Start
     </NuxtLink>
 
-    <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Datenschutz</h1>
+    <h1 class="fid-display text-fid-xl font-bold text-fid-text">Datenschutz</h1>
 
     <!--
       docs/09 §3: there is no server, so there is almost nothing to declare.
@@ -27,7 +27,7 @@ useSeoMeta({
     </p>
 
     <section class="flex flex-col gap-2">
-      <h2 class="text-fid-lg font-medium text-fid-text">Was auf deinem Gerät liegt</h2>
+      <h2 class="text-fid-base font-medium text-fid-text">Was auf deinem Gerät liegt</h2>
       <ul class="flex list-disc flex-col gap-1 pl-5 text-fid-base text-fid-text-muted">
         <li>Dein Discogs Personal Access Token</li>
         <li>Deine Sammlung und Wantlist, so wie Discogs sie herausgibt</li>
@@ -38,7 +38,7 @@ useSeoMeta({
     </section>
 
     <section class="flex flex-col gap-2">
-      <h2 class="text-fid-lg font-medium text-fid-text">Wohin Verbindungen gehen</h2>
+      <h2 class="text-fid-base font-medium text-fid-text">Wohin Verbindungen gehen</h2>
       <p class="text-fid-base text-fid-text-muted">
         Ausschließlich zu <span class="font-fid-mono">api.discogs.com</span> und zu
         <span class="font-fid-mono">i.discogs.com</span> für die Cover. Dein Token geht dabei an
@@ -48,7 +48,7 @@ useSeoMeta({
     </section>
 
     <section class="flex flex-col gap-2">
-      <h2 class="text-fid-lg font-medium text-fid-text">Marktplatzdaten</h2>
+      <h2 class="text-fid-base font-medium text-fid-text">Marktplatzdaten</h2>
       <p class="text-fid-base text-fid-text-muted">
         Preise und Zustände werden sechs Stunden nach einem Dig gelöscht – das schreiben die
         API-Bedingungen von Discogs so vor. Was bleibt, sind Scores und Begründungen, die auf
@@ -57,7 +57,7 @@ useSeoMeta({
     </section>
 
     <section class="flex flex-col gap-2">
-      <h2 class="text-fid-lg font-medium text-fid-text">Löschen</h2>
+      <h2 class="text-fid-base font-medium text-fid-text">Löschen</h2>
       <p class="text-fid-base text-fid-text-muted">
         „Alles löschen" auf der Startseite entfernt die Datenbank vollständig, Token
         eingeschlossen. Es gibt keine Kopie irgendwo anders, die danach noch übrig wäre.
@@ -65,7 +65,7 @@ useSeoMeta({
     </section>
 
     <section class="flex flex-col gap-2">
-      <h2 class="text-fid-lg font-medium text-fid-text">Verantwortlich</h2>
+      <h2 class="text-fid-base font-medium text-fid-text">Verantwortlich</h2>
       <p class="text-fid-base text-fid-text-muted">
         Siehe
         <NuxtLink class="underline underline-offset-4" to="/impressum">Impressum</NuxtLink>.

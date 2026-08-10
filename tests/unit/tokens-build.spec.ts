@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+
 import { describe, expect, it } from 'vitest'
 
 // @ts-expect-error — plain ESM build script, no type declarations by design.
@@ -25,7 +27,19 @@ describe('design token build', () => {
 
   it('keeps a rem term in every fluid font size (WCAG 1.4.4)', () => {
     const sizes = [...css.matchAll(/--text-fid-[\w-]+: (clamp\([^;]+\));/g)].map((m) => m[1]!)
-    expect(sizes).toHaveLength(6)
+
+    /*
+     * Counted against the tokens rather than against a literal. This asserted
+     * `6` and failed the day the scale went to four steps — which is the test
+     * doing its job for the wrong reason: what it exists to protect is the rem
+     * term, not the number of steps. How many there are is
+     * design-restraint.spec.ts's business.
+     */
+    const declared = Object.keys(
+      JSON.parse(readFileSync('tokens/core.json', 'utf8')).text,
+    ).filter((key) => !key.startsWith('$'))
+
+    expect(sizes).toHaveLength(declared.length)
     for (const size of sizes) {
       expect(size).toMatch(/clamp\([\d.]+rem, [\d.]+rem \+ [\d.]+vw, [\d.]+rem\)/)
     }

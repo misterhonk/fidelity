@@ -84,7 +84,7 @@ const tiles = computed(() => {
     <template v-if="ready && !identity">
       <div class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6">
         <header class="flex flex-col gap-3">
-          <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Fidelity</h1>
+          <h1 class="fid-display text-fid-xl font-bold text-fid-text">Fidelity</h1>
           <p class="text-fid-base text-fid-text-muted">
             Ein Händler rein, eine bewertete Fundliste raus – mit Begründung pro Treffer.
           </p>
@@ -97,7 +97,7 @@ const tiles = computed(() => {
     <template v-else-if="ready && identity">
       <div class="flex flex-col gap-6 px-6">
         <header class="flex flex-wrap items-baseline justify-between gap-2">
-          <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Start</h1>
+          <h1 class="fid-display text-fid-xl font-bold text-fid-text">Start</h1>
           <p class="text-fid-sm text-fid-text-muted">{{ identity.username }}</p>
         </header>
 
@@ -147,11 +147,11 @@ const tiles = computed(() => {
           -->
           <details class="group">
             <summary
-              class="fid-action cursor-pointer list-none gap-1.5 text-fid-sm text-fid-text-muted hover:text-fid-text"
+              class="fid-action cursor-pointer list-none gap-2 text-fid-sm text-fid-text-muted hover:text-fid-text"
             >
               Warum diese?
             </summary>
-            <ul class="mt-2 flex max-w-prose flex-col gap-1.5">
+            <ul class="mt-2 flex max-w-prose flex-col gap-2">
               <li
                 v-for="find in home.finds.slice(0, 5)"
                 :key="find.listingId"
@@ -255,7 +255,7 @@ const tiles = computed(() => {
                 :aria-label="`${tile.label}: ${number.format(tile.count)}`"
               >
                 <span class="text-fid-text-muted">{{ tile.label }}</span>
-                <span class="fid-num text-fid-lg text-fid-text" aria-hidden="true">
+                <span class="fid-num text-fid-xl text-fid-text" aria-hidden="true">
                   {{ number.format(tile.count) }}
                 </span>
               </NuxtLink>

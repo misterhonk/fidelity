@@ -179,7 +179,7 @@ function money(value: number | null, currency: string | null) {
         <li
           v-for="hit in shelf.hits"
           :key="`${hit.source}-${hit.releaseId}`"
-          class="flex min-h-14 flex-col justify-center gap-0.5 rounded-fid-md border px-3 py-2"
+          class="flex min-h-14 flex-col justify-center gap-1 rounded-fid-md border px-3 py-2"
           :class="
             hit.source === 'wantlist'
               ? 'border-fid-sig-wantlist/50 bg-fid-sig-wantlist/5'
@@ -241,7 +241,7 @@ function money(value: number | null, currency: string | null) {
           class="flex min-h-14 items-center gap-3 rounded-fid-md border border-fid-border px-3 py-2"
         >
           <span
-            class="fid-num w-10 shrink-0 text-center text-fid-lg font-bold text-fid-text"
+            class="fid-num w-10 shrink-0 text-center text-fid-xl font-bold text-fid-text"
             :aria-label="`Barry Score ${match.score} von 100`"
           >
             {{ match.score }}
@@ -275,7 +275,7 @@ function money(value: number | null, currency: string | null) {
             type="button"
             :aria-pressed="contains(match.listingId)"
             :aria-label="contains(match.listingId) ? 'Aus dem Korb nehmen' : 'In den Korb'"
-            class="size-11 shrink-0 rounded-fid-sm border text-fid-lg"
+            class="size-11 shrink-0 rounded-fid-sm border text-fid-xl"
             :class="
               contains(match.listingId)
                 ? 'border-fid-accent bg-fid-accent/15'
@@ -290,7 +290,7 @@ function money(value: number | null, currency: string | null) {
             type="button"
             :aria-pressed="verdicts[match.listingId] === 'wrong'"
             aria-label="Danebengegriffen"
-            class="size-11 shrink-0 rounded-fid-sm border text-fid-lg"
+            class="size-11 shrink-0 rounded-fid-sm border text-fid-xl"
             :class="
               verdicts[match.listingId] === 'wrong'
                 ? 'border-fid-accent bg-fid-accent/15'

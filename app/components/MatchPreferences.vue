@@ -212,7 +212,7 @@ const number = (value: string) => {
           class="mt-1 size-4"
           @change="save({ excludeReissues: ($event.target as HTMLInputElement).checked })"
         />
-        <span class="flex flex-col gap-0.5">
+        <span class="flex flex-col gap-1">
           <span class="text-fid-sm text-fid-text">Originalpressungen bevorzugen</span>
           <!--
             Deliberately soft, though docs/03 lists it as hard. Whether a

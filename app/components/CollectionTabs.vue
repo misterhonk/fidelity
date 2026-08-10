@@ -27,7 +27,7 @@ const TABS = [
       :key="tab.to"
       :to="tab.to"
       :aria-current="route.path === tab.to ? 'page' : undefined"
-      class="flex min-h-9 flex-1 items-center justify-center gap-2 rounded-fid-sm px-3 py-1.5 text-center text-fid-sm transition-colors @xl:flex-none @xl:px-6"
+      class="flex min-h-9 flex-1 items-center justify-center gap-2 rounded-fid-sm px-3 py-2 text-center text-fid-sm transition-colors @xl:flex-none @xl:px-6"
       :class="
         route.path === tab.to
           ? 'bg-fid-accent/15 text-fid-text'

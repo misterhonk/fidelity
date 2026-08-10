@@ -166,7 +166,7 @@ const peak = computed(() =>
 <template>
   <main class="@container mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 py-16">
     <div class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-2xl font-bold text-fid-text">Korb</h1>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Korb</h1>
       <BasketTabs />
       <p class="text-fid-base text-fid-text-muted">
         Discogs zeigt den kombinierten Versand erst im eigenen Warenkorb. Hier steht er vorher.
@@ -323,7 +323,7 @@ const peak = computed(() =>
 
         <button
           type="button"
-          class="self-start rounded-fid-sm border border-fid-border px-3 py-1.5 text-fid-sm text-fid-text"
+          class="self-start rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
           @click="editing = !editing"
         >
           {{
@@ -409,14 +409,14 @@ const peak = computed(() =>
         <div class="flex gap-2">
           <button
             type="button"
-            class="rounded-fid-sm border border-fid-border px-3 py-1.5 text-fid-sm text-fid-text"
+            class="rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
             @click="addRow"
           >
             Stufe hinzufügen
           </button>
           <button
             type="button"
-            class="rounded-fid-sm bg-fid-accent px-3 py-1.5 text-fid-sm font-medium text-fid-n-990"
+            class="rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
             @click="saveShipping"
           >
             Speichern
@@ -447,7 +447,7 @@ const peak = computed(() =>
           <button
             type="submit"
             :disabled="planning || !budget"
-            class="rounded-fid-sm border border-fid-border px-3 py-1.5 text-fid-sm text-fid-text disabled:opacity-50"
+            class="rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text disabled:opacity-50"
           >
             Vorschlag rechnen
           </button>
