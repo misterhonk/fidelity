@@ -26,8 +26,15 @@ const records = computed(() =>
       </p>
     </div>
 
+    <!--
+      Offered first when the basket is empty, because that is the state
+      somebody arrives in mid-shopping-session: records already picked out on
+      Discogs, and nothing here yet to reason about.
+    -->
+    <BasketPaste />
+
     <p v-if="baskets.length === 0" class="text-fid-base text-fid-text-muted">
-      Noch nichts drin. Leg im Dig etwas hinein – der Korb rechnet dann mit.
+      Sonst noch leer. Im Dig etwas hineinlegen geht auch – der Korb rechnet dann mit.
     </p>
 
     <template v-else>

@@ -168,6 +168,22 @@ export const handlers: HandlerMap = {
       signal,
     }),
 
+  'basket.paste': async ({ input }, { report, signal }) => {
+    const { addPastedListings, parseListingIds } = await import('./basket/listings')
+    const preferences = await getPreferences()
+
+    const result = await addPastedListings({
+      client: discogs(),
+      ids: parseListingIds(input),
+      currency: preferences.currency,
+      now: Date.now(),
+      report: (progress) => report(progress),
+      signal,
+    })
+
+    return { ...result, view: await basketView() }
+  },
+
   'dig.resumable': async () => (await scan()).findResumable(),
 
   'dig.resume': async ({ digId }, { report, signal }) =>

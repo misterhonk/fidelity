@@ -48,6 +48,24 @@ export interface PingResult {
   echo: string
 }
 
+export interface PasteProgress {
+  done: number
+  total: number
+  requests: number
+  added: number
+}
+
+export interface PasteResult {
+  added: number
+  /** Pasted but already gone — a shipment has to be payable. */
+  sold: number
+  /** Ids Discogs would not answer for: taken down, or never a listing. */
+  unknown: number
+  requests: number
+  /** Which shops it landed in, so the screen can say where to look. */
+  dealers: string[]
+}
+
 export interface DbStats {
   counts: Record<string, number>
   /** From navigator.storage.estimate(); null where the browser withholds it. */
@@ -333,6 +351,20 @@ export interface WorkerContract {
   }
   'basket.remove': { params: { listingId: number }; progress: never; result: BasketView }
   'basket.clear': { params: undefined; progress: never; result: BasketView }
+  /**
+   * Angebote aus dem Discogs-Warenkorb übernehmen, per Link.
+   *
+   * Discogs' API has no cart endpoint — `/marketplace/cart` answers 404 where
+   * one that merely needs a token answers 401 — so the records somebody has
+   * already put aside over there cannot be read. Pasting their links is the
+   * other end of the same job: one request each, and every one lands in the
+   * basket of the shop that sells it.
+   */
+  'basket.paste': {
+    params: { input: string }
+    progress: PasteProgress
+    result: PasteResult & { view: BasketView }
+  }
   'basket.get': { params: undefined; progress: never; result: BasketView }
   /**
    * Ask the marketplace whether the basket is still buyable — one request per
