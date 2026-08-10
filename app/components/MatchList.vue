@@ -19,6 +19,43 @@ const virtual = computed(() => props.matches.length >= VIRTUALIZE_FROM)
 const viewport = useTemplateRef<HTMLElement>('viewport')
 
 /**
+ * How many cards fit beside each other.
+ *
+ * The virtualiser windows *rows*, so a multi-column list is a list of rows
+ * holding several matches each — that is the only shape it can measure, and
+ * it is why this number has to exist rather than being left to CSS.
+ *
+ * Compact stays one across on purpose. That mode is a table: one line per
+ * record, and the whole point is running your eye down the score column.
+ * Two of those side by side is two tables, which is harder to read than one.
+ */
+const MIN_CARD = 384
+
+const width = ref(0)
+const perRow = computed(() =>
+  props.density === 'compact' ? 1 : Math.max(1, Math.floor(width.value / MIN_CARD)),
+)
+
+/**
+ * Measured rather than guessed from the viewport: this list sits inside a page
+ * whose width is a container query away from anything the window knows.
+ */
+let observer: ResizeObserver | undefined
+onMounted(() => {
+  const el = viewport.value
+  width.value = el?.clientWidth ?? 0
+  if (!el || typeof ResizeObserver === 'undefined') return
+
+  observer = new ResizeObserver(([entry]) => {
+    width.value = entry?.contentRect.width ?? 0
+  })
+  observer.observe(el)
+})
+onBeforeUnmount(() => observer?.disconnect())
+
+const rowCount = computed(() => Math.ceil(props.matches.length / perRow.value))
+
+/**
  * Estimates, not measurements — the virtualiser measures each row once it is
  * mounted and corrects itself. These only have to be close enough that the
  * initial scrollbar is not absurd: 34 px is the compact row from docs/05 §3,
@@ -28,17 +65,32 @@ const estimate = computed(() => (props.density === 'compact' ? 34 : 208))
 
 const rows = useVirtualizer(
   computed(() => ({
-    count: props.matches.length,
+    count: rowCount.value,
     getScrollElement: () => viewport.value ?? null,
     estimateSize: () => estimate.value,
     // Enough rows above and below that a fast flick does not show white.
     overscan: 8,
     gap: props.density === 'compact' ? 0 : 12,
-    getItemKey: (index: number) => props.matches[index]?.listingId ?? index,
+    // Keyed by the first match in the row, so re-flowing on a resize does not
+    // recycle a node into a row it has nothing to do with.
+    getItemKey: (index: number) =>
+      props.matches[index * perRow.value]?.listingId ?? `row-${index}`,
   })),
 )
 
 const items = computed(() => rows.value.getVirtualItems())
+
+/** The matches belonging to one virtual row. */
+function rowMatches(index: number): Match[] {
+  const from = index * perRow.value
+  return props.matches.slice(from, from + perRow.value)
+}
+
+const gridStyle = computed(() => ({
+  display: 'grid',
+  gridTemplateColumns: `repeat(${perRow.value}, minmax(0, 1fr))`,
+  gap: props.density === 'compact' ? '0' : '0.75rem',
+}))
 </script>
 
 <template>
@@ -47,8 +99,11 @@ const items = computed(() => rows.value.getVirtualItems())
   -->
   <ul
     v-if="!virtual"
-    class="flex flex-col"
-    :class="density === 'compact' ? 'gap-0' : 'gap-3'"
+    :class="
+      density === 'compact'
+        ? 'flex flex-col gap-0'
+        : 'grid gap-3 @3xl:grid-cols-2 @6xl:grid-cols-3'
+    "
     style="scrollbar-gutter: stable"
   >
     <li v-for="match in matches" :key="match.listingId">
@@ -80,10 +135,12 @@ const items = computed(() => rows.value.getVirtualItems())
         :ref="(el) => rows.measureElement(el as Element)"
         :data-index="item.index"
         class="absolute top-0 left-0 w-full"
-        :style="{ transform: `translateY(${item.start}px)` }"
+        :style="{ transform: `translateY(${item.start}px)`, ...gridStyle }"
       >
-        <MatchRow v-if="density === 'compact'" :match="matches[item.index]!" />
-        <MatchCard v-else :match="matches[item.index]!" />
+        <template v-for="match in rowMatches(item.index)" :key="match.listingId">
+          <MatchRow v-if="density === 'compact'" :match="match" />
+          <MatchCard v-else :match="match" />
+        </template>
       </li>
     </ul>
   </div>

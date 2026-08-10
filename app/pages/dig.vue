@@ -6,7 +6,7 @@ import type {
   RefreshProgress,
   ScanProgress,
 } from '#shared/protocol'
-import type { Dig } from '#shared/types'
+import type { Dealer, Dig } from '#shared/types'
 
 useSeoMeta({
   title: 'Neuer Dig',
@@ -84,6 +84,29 @@ async function showDig(digId: string) {
  */
 const result = shallowRef<DigWithMatches | null>(null)
 const busy = ref(false)
+
+/**
+ * The shops already known, so a dig starts with a click.
+ *
+ * Watched first, then by hit rate — the ordering that answers "wo als
+ * Nächstes?" rather than listing them alphabetically, which answers nothing.
+ */
+const knownDealers = shallowRef<Dealer[]>([])
+
+async function loadDealers() {
+  const all = await call('dealer.list', undefined)
+  knownDealers.value = [...all].sort(
+    (a, b) =>
+      Number(Boolean(b.watching)) - Number(Boolean(a.watching)) ||
+      (b.affinity ?? -1) - (a.affinity ?? -1),
+  )
+}
+
+/** Clicking a shop fills the field and checks it — one action, not two. */
+function pick(username: string) {
+  dealer.value = username
+  void check()
+}
 const error = ref<unknown>(null)
 const resumable = ref<Dig | null>(null)
 
@@ -92,7 +115,7 @@ onMounted(async () => {
   // paid for in requests, and throwing it away to start over would spend the
   // rate limit twice.
   resumable.value = await call('dig.resumable', undefined)
-  await Promise.all([loadFeedback(), loadBasket(), loadHistory()])
+  await Promise.all([loadFeedback(), loadBasket(), loadHistory(), loadDealers()])
 
   /*
    * ?id= opens a particular dig.
@@ -286,6 +309,35 @@ const expired = computed(() => {
         Prüfen
       </button>
     </form>
+
+    <!--
+      The shops you already know, to click instead of type.
+      
+      Every dig writes its dealer down, and until now that list only existed to
+      be read on another screen. Nobody remembers whether it was 430AM_Studio
+      or 430am-studio, and getting it wrong costs a request and a wrong answer.
+      Watched shops first: those are the ones somebody said out loud they care
+      about.
+    -->
+    <nav v-if="knownDealers.length > 0" aria-label="Deine Läden" class="flex flex-wrap gap-2">
+      <button
+        v-for="known in knownDealers"
+        :key="known.username"
+        type="button"
+        class="fid-action rounded-fid-sm border px-3 py-1.5 text-fid-sm transition-colors"
+        :class="
+          known.watching
+            ? 'border-fid-accent/40 text-fid-text'
+            : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+        "
+        @click="pick(known.username)"
+      >
+        {{ known.displayName || known.username }}
+        <span v-if="known.affinity !== null" class="fid-num ml-1.5 text-fid-xs opacity-70">
+          {{ known.affinity.toFixed(1) }}
+        </span>
+      </button>
+    </nav>
 
     <ErrorNote v-if="error" :cause="error" />
     <!--
