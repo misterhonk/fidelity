@@ -41,7 +41,7 @@ describe('health', () => {
   test('reports counts and whether it is secured', async () => {
     const { app } = hub('geheim')
     const body = await (await app.request('/v1/health')).json()
-    assert.deepEqual(body, { ok: true, horizon: 0, shipping: 0, secured: true })
+    assert.deepEqual(body, { ok: true, horizon: 0, shipping: 0, covers: 0, secured: true })
   })
 
   test('stays open even on a secured hub, so a monitor needs no secret', async () => {
@@ -278,5 +278,81 @@ describe('what the hub refuses to be', () => {
     for (const path of ['/v1/vault', '/v1/vault/key', '/v1/decrypt']) {
       assert.notEqual((await app.request(path)).status, 200, path)
     }
+  })
+})
+
+/**
+ * Der Cover-Cache.
+ *
+ * The marketplace hands back listings without images, so every cover a client
+ * shows costs it one request to Discogs — the same request, for the same
+ * answer, on every device. That is what a shared cache is for.
+ *
+ * The tests that matter here are the ones about what is *refused*: these
+ * strings become `<img src>` on every device sharing this hub.
+ */
+describe('covers', () => {
+  const cover = (releaseId: number, thumbUrl: string, coverUrl = thumbUrl) => ({
+    releaseId,
+    thumbUrl,
+    coverUrl,
+  })
+  const REAL = 'https://i.discogs.com/abc/rs:fit/x.jpeg'
+
+  test('gives back what was contributed, in one request', async () => {
+    const { app } = hub()
+    await put(app, '/v1/covers', { covers: [cover(1, REAL), cover(2, REAL)] })
+
+    const body = await (await app.request('/v1/covers?ids=1,2,3')).json()
+    assert.deepEqual(Object.keys(body.covers).sort(), ['1', '2'])
+    assert.equal(body.covers['1'].thumbUrl, REAL)
+  })
+
+  test('stores "there is no picture" as an empty pair', async () => {
+    // Worth sharing: it saves the next person the same wasted request.
+    const { app } = hub()
+    await put(app, '/v1/covers', { covers: [cover(7, '', '')] })
+
+    const body = await (await app.request('/v1/covers?ids=7')).json()
+    assert.deepEqual(body.covers['7'], { thumbUrl: '', coverUrl: '' })
+  })
+
+  test('refuses any host that is not Discogs', async () => {
+    const { app } = hub()
+    const res = await put(app, '/v1/covers', {
+      covers: [
+        cover(10, 'https://evil.test/pixel.gif'),
+        // Passes a naive `includes('i.discogs.com')` and is not Discogs.
+        cover(11, 'https://i.discogs.com.evil.test/x.jpeg'),
+        cover(12, 'https://evil.test/?a=https://i.discogs.com'),
+        cover(13, 'http://i.discogs.com/x.jpeg'),
+        cover(14, 'javascript:alert(1)'),
+      ],
+    })
+
+    assert.deepEqual(await res.json(), { stored: 0, rejected: 5 })
+    const body = await (await app.request('/v1/covers?ids=10,11,12,13,14')).json()
+    assert.deepEqual(body.covers, {})
+  })
+
+  test('keeps the good ones out of a mixed contribution', async () => {
+    const { app } = hub()
+    await put(app, '/v1/covers', {
+      covers: [cover(20, REAL), cover(21, 'https://evil.test/x.gif')],
+    })
+
+    const body = await (await app.request('/v1/covers?ids=20,21')).json()
+    assert.deepEqual(Object.keys(body.covers), ['20'])
+  })
+
+  test('ignores ids that are not ids', async () => {
+    const { app } = hub()
+    const body = await (await app.request('/v1/covers?ids=a,-1,0,,%20')).json()
+    assert.deepEqual(body.covers, {})
+  })
+
+  test('needs the secret like everything else', async () => {
+    const { app } = hub('geheim')
+    assert.equal((await app.request('/v1/covers?ids=1')).status, 401)
   })
 })

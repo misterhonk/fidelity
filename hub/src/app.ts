@@ -103,6 +103,7 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
       // Counts, not contents. Enough to see the cache is doing something.
       horizon: (db.prepare('SELECT COUNT(*) AS n FROM horizon').get() as { n: number }).n,
       shipping: (db.prepare('SELECT COUNT(*) AS n FROM shipping').get() as { n: number }).n,
+      covers: (db.prepare('SELECT COUNT(*) AS n FROM covers').get() as { n: number }).n,
       secured: Boolean(secret),
     }),
   )
@@ -164,6 +165,77 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     )
 
     return c.json({ stored: true })
+  })
+
+  // --- Covers ---------------------------------------------------------------
+
+  /*
+   * Gebündelt, nicht einzeln.
+   *
+   * A screen asks for about a dozen covers at once, and a dozen round trips to
+   * a Raspberry Pi — each with its own two-second ceiling — would cost more
+   * than the requests they are meant to save.
+   */
+  app.get('/v1/covers', (c) => {
+    const ids = parseIds(c.req.query('ids') ?? '')
+    if (ids.length === 0) return c.json({ covers: {} })
+
+    const rows = db
+      .prepare(
+        `SELECT release_id, thumb_url, cover_url FROM covers
+         WHERE release_id IN (${ids.map(() => '?').join(',')})`,
+      )
+      .all(...ids) as { release_id: number; thumb_url: string; cover_url: string }[]
+
+    const covers: Record<number, { thumbUrl: string; coverUrl: string }> = {}
+    for (const row of rows) {
+      covers[row.release_id] = { thumbUrl: row.thumb_url, coverUrl: row.cover_url }
+    }
+    // Misses are simply absent. The client fetches those itself and may offer
+    // the answers back.
+    return c.json({ covers })
+  })
+
+  app.put('/v1/covers', async (c) => {
+    const raw = await c.req.text()
+    if (raw.length > MAX_COVERS_BYTES) return c.json({ error: 'too large' }, 413)
+
+    const parsed = coversSchema.safeParse(safeJson(raw))
+    if (!parsed.success) return c.json({ error: 'not a cover list' }, 400)
+
+    const statement = db.prepare(
+      `INSERT INTO covers (release_id, thumb_url, cover_url, updated_at)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(release_id) DO UPDATE SET
+         thumb_url = excluded.thumb_url,
+         cover_url = excluded.cover_url,
+         updated_at = excluded.updated_at`,
+    )
+
+    let stored = 0
+    let rejected = 0
+    for (const cover of parsed.data.covers) {
+      /*
+       * Die eigentliche Prüfung, und sie ist keine Formalie.
+       *
+       * These addresses end up in an `<img src>` on every device that shares
+       * this hub. A contributor who could put an arbitrary URL in here could
+       * make every one of them fetch anything — a tracking pixel at minimum.
+       * So only Discogs' own image host is accepted, and an empty pair, which
+       * is how "there is no picture" is recorded.
+       *
+       * The client checks again on the way in. Neither end trusts the other,
+       * which is the only arrangement that survives one of them being wrong.
+       */
+      if (!isDiscogsImage(cover.thumbUrl) || !isDiscogsImage(cover.coverUrl)) {
+        rejected += 1
+        continue
+      }
+      statement.run(cover.releaseId, cover.thumbUrl, cover.coverUrl, now())
+      stored += 1
+    }
+
+    return c.json({ stored, rejected })
   })
 
   // --- Shipping -----------------------------------------------------------
@@ -281,4 +353,55 @@ function safeJson(raw: string): unknown {
   } catch {
     return null
   }
+}
+
+/** A dozen ids is the normal ask; the cap is against a runaway query. */
+const MAX_COVER_IDS = 200
+
+/** Enough for two hundred pairs of URLs and nothing like enough for abuse. */
+export const MAX_COVERS_BYTES = 256 * 1024
+
+const coversSchema = z.object({
+  covers: z
+    .array(
+      z.object({
+        releaseId: z.number().int().positive(),
+        thumbUrl: z.string(),
+        coverUrl: z.string(),
+      }),
+    )
+    .max(MAX_COVER_IDS),
+})
+
+/**
+ * Nur Discogs' eigener Bildhost — oder gar nichts.
+ *
+ * Empty is a real answer: it records that Discogs holds no picture for that
+ * release, which is worth sharing and saves the next person a request. Anything
+ * else is refused, because these strings become `<img src>` on every device
+ * that shares this hub.
+ *
+ * Parsed rather than pattern-matched: `https://i.discogs.com.evil.test/x` and
+ * `https://evil.test/?a=https://i.discogs.com` both pass a naive `includes`,
+ * and neither is Discogs.
+ */
+function isDiscogsImage(url: string): boolean {
+  if (url === '') return true
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'https:' && parsed.hostname === 'i.discogs.com'
+  } catch {
+    return false
+  }
+}
+
+/** Ids out of `?ids=1,2,3`. Anything that is not a positive integer is dropped. */
+function parseIds(raw: string): number[] {
+  const seen = new Set<number>()
+  for (const part of raw.split(',')) {
+    const id = Number(part.trim())
+    if (Number.isSafeInteger(id) && id > 0) seen.add(id)
+    if (seen.size >= MAX_COVER_IDS) break
+  }
+  return [...seen]
 }

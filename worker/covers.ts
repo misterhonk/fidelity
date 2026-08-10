@@ -1,8 +1,11 @@
 import { z } from 'zod'
 
 import { unknownCovers, writeCovers } from '~~/db/covers'
+import { getPreferences } from '~~/db/meta'
 
 import type { DiscogsClient } from './discogs/client'
+import { createHubClient } from './hub/client'
+import { HUB_TIMEOUT_MS, withTimeout } from './hub/fallback'
 
 /**
  * Cover nachholen, die der Marktplatz nicht mitliefert.
@@ -63,13 +66,45 @@ export async function fetchCovers(options: {
   signal?: AbortSignal
 }): Promise<number> {
   const { client, report, signal } = options
-  const missing = (await unknownCovers(options.releaseIds)).slice(
-    0,
-    options.limit ?? COVER_BATCH,
-  )
+  let missing = (await unknownCovers(options.releaseIds)).slice(0, options.limit ?? COVER_BATCH)
   if (missing.length === 0) return 0
 
   const learned: { releaseId: number; thumbUrl: string; coverUrl: string }[] = []
+
+  /*
+   * Erst den Hub fragen — ein Aufruf für alle auf einmal.
+   *
+   * This is the cheapest thing a hub can do and the most valuable: a cover
+   * costs one request to Discogs, the answer is identical for everybody, and a
+   * sleeve does not change. A dozen of them are one round trip here.
+   *
+   * All the usual rules (ADR-008, rule 8): two seconds, no retry, and any
+   * failure falls through to the ordinary path without a word. The addresses
+   * are re-checked inside the client — a hub is the component that code is
+   * written not to trust.
+   */
+  const preferences = await getPreferences()
+  const hub = createHubClient({ baseUrl: preferences.hubUrl, secret: preferences.hubSecret })
+  let fromHub = 0
+
+  if (hub) {
+    try {
+      const shared = await withTimeout(hub.covers(missing), HUB_TIMEOUT_MS)
+      const hits = Object.entries(shared).map(([id, cover]) => ({
+        releaseId: Number(id),
+        ...cover,
+      }))
+      if (hits.length > 0) {
+        await writeCovers(hits)
+        fromHub = hits.length
+        const known = new Set(hits.map((hit) => hit.releaseId))
+        missing = missing.filter((releaseId) => !known.has(releaseId))
+      }
+    } catch {
+      // A hub that is slow, off or broken is not an event. The requests below
+      // are what would have happened anyway.
+    }
+  }
 
   for (const [index, releaseId] of missing.entries()) {
     signal?.throwIfAborted()
@@ -102,5 +137,19 @@ export async function fetchCovers(options: {
   await writeCovers(learned)
   report?.({ done: missing.length, total: missing.length })
 
-  return learned.length
+  /*
+   * Und zurückgeben, was wir gelernt haben.
+   *
+   * Fire-and-forget, and a courtesy rather than part of the request: whoever
+   * shares this hub does not pay for these again. The negatives go too — "no
+   * picture for this release" is worth exactly as much as a picture, and costs
+   * the same request to find out.
+   */
+  if (hub && learned.length > 0) {
+    void hub.contributeCovers(learned).catch(() => {
+      // A hub that refuses a contribution changes nothing here.
+    })
+  }
+
+  return learned.length + fromHub
 }

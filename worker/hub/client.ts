@@ -64,6 +64,20 @@ export interface HubClient {
   contributeShipping(dealer: string, country: string, tiers: ShippingTier[]): Promise<void>
 
   /**
+   * Cover, gebündelt.
+   *
+   * The one thing in this app that costs a request per record and returns the
+   * same answer for everybody: the marketplace hands back listings without
+   * images (worker/covers.ts), so each cover is a `/releases/{id}`. Batched
+   * because a screen wants a dozen at once and a dozen round trips would cost
+   * more than the requests they save.
+   *
+   * Misses are simply absent from the map.
+   */
+  covers(releaseIds: number[]): Promise<Record<number, HubCover>>
+  contributeCovers(covers: (HubCover & { releaseId: number })[]): Promise<void>
+
+  /**
    * The vault: one block of ciphertext per person.
    *
    * Unlike everything else here it is not a cache and not shared — it is one
@@ -73,6 +87,37 @@ export interface HubClient {
   vaultRead(id: string): Promise<SealedVault | null>
   vaultWrite(id: string, sealed: SealedVault): Promise<void>
 }
+
+export interface HubCover {
+  thumbUrl: string
+  coverUrl: string
+}
+
+/**
+ * Auch auf dem Rückweg geprüft, nicht nur beim Einliefern.
+ *
+ * These strings become `<img src>`. The hub already refuses anything that is
+ * not Discogs' image host — and the hub is exactly the component this client is
+ * written not to trust (see the file header). An old hub, a patched one, or
+ * somebody else's entirely would otherwise be able to point every screen here
+ * at a URL of their choosing.
+ *
+ * Parsed rather than pattern-matched: `https://i.discogs.com.evil.test/x` and
+ * `https://evil.test/?a=https://i.discogs.com` both survive a naive `includes`.
+ */
+export function isDiscogsImage(url: string): boolean {
+  if (url === '') return true
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'https:' && parsed.hostname === 'i.discogs.com'
+  } catch {
+    return false
+  }
+}
+
+const coversSchema = z.object({
+  covers: z.record(z.string(), z.object({ thumbUrl: z.string(), coverUrl: z.string() })),
+})
 
 /** The envelope, as it travels. The hub validates this shape and no more. */
 export interface SealedVault {
@@ -129,6 +174,42 @@ export function createHubClient({
       }
 
       return chunk
+    },
+
+    async covers(releaseIds) {
+      if (releaseIds.length === 0) return {}
+
+      const response = await fetchImpl(url(`/v1/covers?ids=${releaseIds.join(',')}`), {
+        headers,
+      })
+      if (!response.ok) return {}
+
+      const parsed = coversSchema.safeParse(await response.json())
+      if (!parsed.success) {
+        log.warn('[hub] Cover-Antwort passt nicht zum Schema')
+        return {}
+      }
+
+      const covers: Record<number, HubCover> = {}
+      for (const [key, value] of Object.entries(parsed.data.covers)) {
+        const releaseId = Number(key)
+        if (!Number.isSafeInteger(releaseId) || releaseId <= 0) continue
+        if (!isDiscogsImage(value.thumbUrl) || !isDiscogsImage(value.coverUrl)) {
+          log.warn('[hub] Cover-Adresse ist nicht von Discogs, verworfen', releaseId)
+          continue
+        }
+        covers[releaseId] = value
+      }
+      return covers
+    },
+
+    async contributeCovers(covers) {
+      if (covers.length === 0) return
+      await fetchImpl(url('/v1/covers'), {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ covers }),
+      })
     },
 
     async vaultRead(id) {

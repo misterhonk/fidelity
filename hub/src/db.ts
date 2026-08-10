@@ -59,6 +59,28 @@ export function openHubDb(path: string): DatabaseSync {
     )
   `)
 
+  /*
+   * Cover, nach Release-Id.
+   *
+   * The marketplace returns listings without images — 1.200 of 1.200 rows
+   * across four shops, measured 2026-08-10 — so every cover a client shows
+   * costs it one `/releases/{id}`. That is the most expensive per-user cost in
+   * the app and it is the same answer for everybody, which is exactly what
+   * this hub is for.
+   *
+   * An empty pair is stored on purpose: "Discogs has no picture for this
+   * release" is worth sharing too, and saves the next person the same wasted
+   * request.
+   */
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS covers (
+      release_id INTEGER PRIMARY KEY,
+      thumb_url  TEXT NOT NULL,
+      cover_url  TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    )
+  `)
+
   // What the hub is asked most: "is this entity already expanded?"
   db.exec('CREATE INDEX IF NOT EXISTS horizon_fetched ON horizon (fetched_at)')
 
