@@ -19,6 +19,19 @@ onMounted(async () => {
 })
 
 const match = computed(() => detail.value?.match ?? null)
+
+/*
+ * Ein Cover, für die eine Platte, die gerade offen ist.
+ *
+ * Asked for the moment the sheet has its match — one request at most, and only
+ * for a record somebody deliberately tapped. Usually none: whatever list they
+ * tapped it from asked for it already, and the store answers offline.
+ */
+const { coverFor, request: requestCovers } = useCovers()
+const cover = computed(() =>
+  match.value ? coverFor(match.value.releaseId, match.value.thumbUrl) : null,
+)
+watch(match, (open) => open && void requestCovers([open.releaseId]))
 const verdict = computed(() => verdicts.value[props.listingId])
 
 const price = computed(() => {
@@ -147,9 +160,23 @@ function onKeydown(event: KeyboardEvent) {
 
       <template v-if="match">
         <div class="flex items-start gap-4">
+          <!--
+            Das größte Cover, das die App zeigt — also das, wo die 600er
+            Fassung sich lohnt.
+
+            The address comes from the shared store, not from the match: the
+            marketplace returns listings without images, so `match.thumbUrl`
+            has always been null here (worker/covers.ts). At 96 px on a retina
+            screen the 150er is already soft, and this is the one screen
+            somebody opens *because* they want a closer look.
+          -->
           <img
-            v-if="match.thumbUrl"
-            :src="match.thumbUrl"
+            v-if="cover"
+            :src="cover.thumbUrl"
+            :srcset="
+              cover.coverUrl ? `${cover.thumbUrl} 150w, ${cover.coverUrl} 600w` : undefined
+            "
+            sizes="96px"
             alt=""
             loading="lazy"
             decoding="async"

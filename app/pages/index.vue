@@ -13,6 +13,7 @@ const { checkOnce } = useWatchlist()
 const { syncOnStart } = useVaultSync()
 const { identity, ready, load } = useIdentity()
 const { show } = useReleaseSheet()
+const { coverFor, request: requestCovers } = useCovers()
 
 /*
  * One message for the whole screen, and `shallowRef` for what comes back:
@@ -41,6 +42,22 @@ onMounted(async () => {
   void syncOnStart()
 
   home.value = await call('home.overview', undefined)
+
+  /*
+   * Die Trefferreihe hat ihre Cover nicht dabei.
+   *
+   * The two rails beside it draw from the collection and the wantlist, whose
+   * rows carry a cover from the sync — this one draws from matches, and a
+   * match has none: `/users/{u}/inventory` returns `release.thumbnail` empty
+   * in every row (worker/covers.ts has the measurement). So the one rail on
+   * this screen that is about *finding* something was the one row of grey
+   * squares.
+   *
+   * Not awaited and not observed: twelve records is one screen, they are all
+   * on it, and the rail must not wait for pictures before it appears.
+   */
+  const finds = home.value?.finds ?? []
+  if (finds.length > 0) void requestCovers(finds.map((find) => find.releaseId))
 })
 
 const digAge = computed(() => {
@@ -118,7 +135,8 @@ const tiles = computed(() => {
             v-for="(find, index) in home.finds"
             :key="find.listingId"
             :index="index"
-            :thumb-url="find.thumbUrl"
+            :thumb-url="coverFor(find.releaseId, find.thumbUrl)?.thumbUrl"
+            :cover-url="coverFor(find.releaseId)?.coverUrl"
             :title="find.title ?? `Release ${find.releaseId}`"
             :subtitle="find.artist"
             :score="find.score"
