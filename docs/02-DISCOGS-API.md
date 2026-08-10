@@ -400,3 +400,44 @@ kein Bulk-Release-Lookup, keine OAuth-Scopes.
 - [API Terms of Use](https://support.discogs.com/hc/en-us/articles/360009334593-API-Terms-of-Use)
 - [data.discogs.com (CC0)](https://data.discogs.com/)
 - Forum: [Paginierungsgrenze #778418](https://www.discogs.com/forum/thread/778418) · [Rate Limits #1104957](https://www.discogs.com/forum/thread/1104957) · [Bild-429er #1080144](https://www.discogs.com/forum/thread/1080144) · [Listings-by-Release #1017522](https://www.discogs.com/forum/thread/1017522) · [lowest_price-Bug #1153606](https://www.discogs.com/forum/thread/1153606)
+
+
+---
+
+## `GET /marketplace/orders` – die Läden, bei denen du wirklich gekauft hast
+
+Dokumentiert (Marketplace → Order → List Orders). Braucht einen Token mit
+Marketplace-Zugriff; ohne einen antwortet er 401, was der Import schluckt.
+
+```
+GET /marketplace/orders?status=All&per_page=100
+→ { pagination, orders: [ { id, status, seller: { id, username, … }, … } ] }
+```
+
+**Kosten:** eine Abfrage. **Am 2026-08-10 geprüft:** 200 mit Personal Access Token, bei
+einem Konto ohne Bestellungen `items: 0`. Die Feldnamen stammen aus der Dokumentation,
+nicht aus echten Daten – das Schema ist deshalb bewusst nachsichtig (`seller` optional).
+
+---
+
+## `GET /users/{username}/friends` – **undokumentiert**
+
+> ⚠️ **Steht nicht in der Discogs-Dokumentation.** Die vollständige Endpunktliste auf
+> `discogs.com/developers` enthält das Wort „friends" nicht. Verstößt gegen Regel 5 und
+> ist nur unter den Bedingungen von **ADR-009** erlaubt: standardmäßig aus, pro Gerät
+> einschaltbar, kein Feature hängt daran.
+
+```
+GET /users/{username}/friends?per_page=100
+→ { pagination: { items, pages, … }, friends: [ { user: { id, username, … } } ] }
+```
+
+**Am 2026-08-10 live geprüft:** 200 mit Token, paginiert, CORS offen (aus
+`http://127.0.0.1` erreichbar). Vier Einträge im Testkonto, darunter ein Händler.
+
+**Kosten:** eine Abfrage für die Liste, danach **eine Profilabfrage je Kandidat**
+(`GET /users/{username}` → `num_for_sale`), um Verkäufer von Bekannten zu trennen. Ein
+Freund ist kein Laden; erst der Bestand macht einen daraus.
+
+**Wenn er verschwindet:** nichts zu tun. Der Aufruf schlägt fehl, der Import verliert
+seine zweite Quelle, alles andere bleibt.

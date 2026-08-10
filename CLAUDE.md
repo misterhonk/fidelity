@@ -36,6 +36,11 @@ direkter Zugriff auf `api.discogs.com` aus dem Browser. Siehe `docs/adr/007-clie
 5. **Niemals scrapen.** Kein `discogs.com/sell/…`-HTML, kein undokumentiertes
    `/marketplace/search`. Nur dokumentierte API-Endpunkte.
 
+   **Eine benannte Ausnahme:** `GET /users/{username}/friends` für den Händler-Import –
+   standardmäßig aus, pro Gerät einschaltbar, kein Feature hängt daran, Herkunft steht an
+   jeder Zeile. Bedingungen und Begründung in ADR-009. Eine zweite Ausnahme braucht eine
+   zweite ADR.
+
 6. **Der Personal Access Token verlässt IndexedDB nicht.**
    Nie loggen, nie in eine URL, nie in einen Fehler-Report, nie an Dritte.
 
@@ -115,7 +120,7 @@ perf(horizon): pack release ids as Int32Array
 docs(api): document the 10k pagination wall
 ```
 
-Scopes: `dig` `match` `discogs` `horizon` `auth` `basket` `watch` `hub` `ui` `db` `pwa` `deploy`
+Scopes: `dig` `match` `discogs` `horizon` `auth` `basket` `watch` `dealers` `hub` `ui` `db` `pwa` `deploy`
 
 Releases macht `release-please`. **Version niemals von Hand hochsetzen**,
 **CHANGELOG.md niemals direkt für ein Release editieren** – nur im Release-PR nachschärfen.

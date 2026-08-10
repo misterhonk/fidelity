@@ -14,11 +14,15 @@ const dealers = shallowRef<Dealer[]>([])
 const selected = ref<string | null>(null)
 const profile = ref<DealerProfile | null>(null)
 
-onMounted(async () => {
+async function load() {
   dealers.value = await call('dealer.list', undefined)
-  await loadWatchlist()
   const first = dealers.value[0]
-  if (first) await select(first.username)
+  if (first && !selected.value) await select(first.username)
+}
+
+onMounted(async () => {
+  await load()
+  await loadWatchlist()
 })
 
 async function select(username: string) {
@@ -98,6 +102,12 @@ const scanned = computed(() => {
         Was ein Laden eigentlich führt – und wie gut er zu dir passt.
       </p>
     </div>
+
+    <!--
+      The shops Discogs already knows you deal with — which beats typing a
+      username from memory and getting the underscore wrong.
+    -->
+    <DealerDiscovery @imported="load()" />
 
     <p v-if="dealers.length === 0" class="text-fid-base text-fid-text-muted">
       Noch keinen Händler gescannt. Das hier füllt sich mit dem ersten Dig.

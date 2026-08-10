@@ -389,6 +389,28 @@ export const handlers: HandlerMap = {
     return { view: await basketView(), added, sold }
   },
 
+  'dealer.discover': async (_params, { report, signal }) => {
+    const { discoverDealers } = await import('./dealers/discover')
+    const identity = await currentIdentity()
+    if (!identity) throw new Error('Nicht angemeldet.')
+
+    const { importFriends } = await getPreferences()
+    return discoverDealers({
+      client: discogs(),
+      username: identity.username,
+      includeFriends: importFriends,
+      report: (progress) => report(progress),
+      signal,
+    })
+  },
+
+  'dealer.remember': async ({ candidates }) => {
+    const { rememberDealers } = await import('./dealers/discover')
+    const added = await rememberDealers(candidates)
+    const db = await openFidelityDb()
+    return { added, dealers: await db.getAll('dealers') }
+  },
+
   'collection.records': async (params) => {
     const { shelfView } = await import('./collection/records')
     return shelfView(params)

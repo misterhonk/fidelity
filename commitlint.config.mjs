@@ -38,6 +38,8 @@ export default {
         'auth',
         'basket',
         'watch',
+        // Der Händler-Import und alles, was die Ladenliste pflegt.
+        'dealers',
         'hub',
         'ui',
         'db',

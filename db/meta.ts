@@ -34,6 +34,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   signalWeights: {},
   currency: 'EUR',
   shipsToCountry: 'Germany',
+  // Off: rule 5 stays the normal case, the exception is switched on by hand.
+  importFriends: false,
   // Empty, and empty is the supported configuration. No feature may require it.
   hubUrl: null,
   hubSecret: null,

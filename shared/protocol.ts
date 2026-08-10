@@ -21,7 +21,9 @@ import type {
   CreditHarvest,
   CreditPerson,
   Dealer,
+  DealerCandidate,
   Dig,
+  DiscoveryResult,
   Feedback,
   Identity,
   MarkedOverview,
@@ -209,6 +211,22 @@ export interface WorkerContract {
   'feedback.export': { params: undefined; progress: never; result: Feedback[] }
 
   /** The Clerk's Take: what a shop is, and how it ranks against your others. */
+  /**
+   * The shops Discogs already knows you deal with. Orders always (documented),
+   * friends only when the device asked for it (ADR-009).
+   */
+  'dealer.discover': {
+    params: undefined
+    progress: { done: number; total: number; requests: number }
+    result: DiscoveryResult
+  }
+  /** Writes the chosen shops down; returns how many were new. */
+  'dealer.remember': {
+    params: { candidates: DealerCandidate[] }
+    progress: never
+    result: { added: number; dealers: Dealer[] }
+  }
+
   'dealer.profile': {
     params: { dealer: string }
     progress: never

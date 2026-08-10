@@ -108,6 +108,14 @@ const usage = computed(() => {
       </SettingsCard>
 
       <SettingsCard
+        anchor="dealers"
+        title="Läden finden"
+        description="Woher der Import die Läden nimmt."
+      >
+        <FriendImportToggle />
+      </SettingsCard>
+
+      <SettingsCard
         title="Credits"
         description="Wer deine Lieblingsplatten gemacht hat – Produzenten, Engineers, Remixer."
       >

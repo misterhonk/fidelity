@@ -72,6 +72,16 @@ export interface Preferences {
   shipsToCountry: string
 
   /**
+   * Whether the dealer import may also read the Discogs friends list.
+   *
+   * Off by default and per device. `/users/{username}/friends` is not in the
+   * Discogs API documentation, which CLAUDE.md rule 5 forbids relying on —
+   * ADR-009 allows this one exception on the condition that it stays a
+   * deliberate choice and that nothing breaks when it disappears.
+   */
+  importFriends: boolean
+
+  /**
    * Optional, self-hosted hub (ADR-008). Empty by default and empty forever
    * for most users — no feature may depend on it.
    */
@@ -349,6 +359,26 @@ export interface ShelfView {
   total: number
   /** How many there are altogether — the denominator. */
   collection: number
+}
+
+/** A shop Discogs says you already deal with. */
+export interface DealerCandidate {
+  username: string
+  /** Where it came from — 'order' is documented, 'friend' is not (ADR-009). */
+  source: 'order' | 'friend'
+  numForSale: number
+  sellerRating: number | null
+  ratingCount: number
+  location: string
+  /** Already in your list, so importing changes nothing. */
+  known: boolean
+}
+
+export interface DiscoveryResult {
+  candidates: DealerCandidate[]
+  requests: number
+  /** Whether the undocumented source was consulted at all. */
+  friendsUsed: boolean
 }
 
 export interface ShelfResult {
