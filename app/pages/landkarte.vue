@@ -102,11 +102,11 @@ const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
             What the number honestly says: how likely a dig is to turn up
             something of theirs you do not have.
           -->
-          <p class="text-fid-sm text-fid-text-muted">
+          <WhyNote label="Was die Zahl rechts bedeutet">
             Discogs führt unter einem Namen alles: Alben, Singles, Remixe, Beiträge zu Samplern.
-            Die Zahl rechts ist deshalb kein Sammelziel, sondern eine Auskunft darüber, wie
+            Die Zahl ist deshalb kein Sammelziel, sondern eine Auskunft darüber, wie
             wahrscheinlich ein Dig noch etwas von ihnen zutage fördert.
-          </p>
+          </WhyNote>
         </div>
 
         <ul class="flex flex-col gap-2">
@@ -141,11 +141,11 @@ const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
           <h2 id="label-standing" class="text-fid-lg font-medium text-fid-text">
             Welche Labels du wirklich sammelst
           </h2>
-          <p class="text-fid-sm text-fid-text-muted">
-            Der Lift vergleicht deinen Anteil an einem Label mit dem, was bei zufälliger Auswahl
-            aus deinen Labels zu erwarten wäre. Verglichen wird gegen deine eigenen Labels – was
-            der Gesamtkatalog von Discogs hergibt, kann ein Browser nicht sehen.
-          </p>
+          <WhyNote label="Wie der Lift gerechnet wird">
+            Er vergleicht deinen Anteil an einem Label mit dem, was bei zufälliger Auswahl aus
+            deinen Labels zu erwarten wäre. Verglichen wird gegen deine eigenen Labels – was der
+            Gesamtkatalog von Discogs hergibt, kann ein Browser nicht sehen.
+          </WhyNote>
         </div>
 
         <dl class="grid grid-cols-[1fr_auto_auto] items-baseline gap-x-4 gap-y-1.5">

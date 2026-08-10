@@ -208,10 +208,10 @@ const scanned = computed(() => {
             <span class="fid-num">{{ money(profile.dealer.fingerprint.medianPrice) }}</span>
             <template v-if="pricePosition"> – {{ pricePosition }}</template>
           </p>
-          <p class="text-fid-xs text-fid-text-muted">
-            Verglichen wird nur gegen deine eigenen Händler. Was der Markt insgesamt aufruft,
-            kann diese App nicht sehen, und sie behauptet es deshalb auch nicht.
-          </p>
+          <WhyNote label="Womit verglichen wird">
+            Nur gegen deine eigenen Händler. Was der Markt insgesamt aufruft, kann diese App
+            nicht sehen, und sie behauptet es deshalb auch nicht.
+          </WhyNote>
         </div>
 
         <div class="grid gap-8 @md:grid-cols-2">

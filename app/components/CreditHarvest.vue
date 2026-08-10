@@ -57,17 +57,19 @@ const eta = computed(() => {
 <template>
   <section v-if="status" class="flex flex-col gap-4">
     <p class="text-fid-base text-fid-text-muted">
-      Discogs' größter ungenutzter Schatz sind die Credits – wer produziert, gemischt, gemastert
-      hat. Sie stehen nur in der Einzelabfrage pro Platte, und deine ganze Sammlung durchzugehen
-      wäre stundenlang. Deshalb nur die Platten, die dir am meisten bedeuten:
+      Wer produziert, gemischt und gemastert hat – gelesen aus deinen Lieblingsplatten,
       <span class="fid-num">4</span> und <span class="fid-num">5</span> Sterne.
     </p>
+    <WhyNote label="Warum nur die Lieblingsplatten">
+      Credits stehen nur in der Einzelabfrage pro Platte. Die ganze Sammlung durchzugehen wäre
+      stundenlang – die bewerteten sind ein Bruchteil davon und sagen am meisten über dich.
+    </WhyNote>
 
     <ErrorNote v-if="error" :cause="error" />
 
     <p v-if="status.favourites === 0" class="text-fid-sm text-fid-text-muted">
-      Du hast noch keine Platte mit vier oder fünf Sternen bewertet. Bewerte deine
-      Lieblingsplatten bei Discogs, dann weiß ich, wo ich nachsehen soll.
+      Noch keine Platte mit vier oder fünf Sternen bewertet. Vergib die bei Discogs, dann weiß
+      ich, wo ich nachsehen soll.
     </p>
 
     <template v-else>

@@ -184,8 +184,8 @@ async function check() {
     <p v-if="loading" class="text-fid-base text-fid-text-muted">Wird geladen …</p>
 
     <p v-else-if="!overview || overview.total === 0" class="text-fid-base text-fid-text-muted">
-      Noch nichts gemerkt. Im Dig sagt der Daumen nach oben, dass dich eine Platte interessiert
-      – und die bleibt dann hier stehen, auch wenn der Dig längst weggeräumt ist.
+      Noch nichts gemerkt. Der Daumen nach oben im Dig legt eine Platte hier ab – und hier
+      bleibt sie, auch wenn der Dig längst weg ist.
     </p>
 
     <template v-else>

@@ -42,10 +42,9 @@ const number = new Intl.NumberFormat('de-DE')
       </li>
     </ul>
 
-    <p class="text-fid-xs text-fid-text-muted">
-      Gezählt wird die Gesamtzahl des Ladens, nicht wie viele Platten neu sind – wer fünf
-      verkauft und fünf einstellt, bewegt sich um null. Ein Dig sagt, was davon für dich dabei
-      ist.
-    </p>
+    <WhyNote label="Wie gezählt wird">
+      Die Gesamtzahl des Ladens, nicht wie viele Platten neu sind – wer fünf verkauft und fünf
+      einstellt, bewegt sich um null. Ein Dig sagt, was davon für dich dabei ist.
+    </WhyNote>
   </section>
 </template>

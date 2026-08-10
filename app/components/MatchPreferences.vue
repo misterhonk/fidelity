@@ -221,11 +221,11 @@ const number = (value: string) => {
             anything during one. Dampening what turns out to be a reissue is
             the honest version of the same wish.
           -->
-          <span class="text-fid-xs text-fid-text-muted">
-            Neuauflagen zählen dann weniger. Ob eine Platte eine ist, weiß Discogs erst in der
-            Einzelabfrage – die läuft nach dem Scan über die besten 50, deshalb wird gedämpft
-            statt verworfen.
-          </span>
+          <span class="text-fid-xs text-fid-text-muted">Neuauflagen zählen dann weniger.</span>
+          <WhyNote label="Gedämpft statt verworfen">
+            Ob eine Platte eine Neuauflage ist, weiß Discogs erst in der Einzelabfrage – und die
+            läuft erst nach dem Scan über die besten 50. Verwerfen könnte sie also nichts.
+          </WhyNote>
         </span>
       </label>
     </fieldset>

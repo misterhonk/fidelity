@@ -62,10 +62,12 @@ async function save() {
       somebody might think otherwise.
     -->
     <p class="text-fid-sm text-fid-text-muted">
-      Ein Hub beschleunigt, er trägt nichts. Leer lassen heißt: alles läuft lokal, und kein
-      Feature fehlt. Gesetzt heißt: der Horizont wird geteilt — wer Conny Plank schon
-      ausgeklappt hat, erspart allen anderen elf Abfragen.
+      Optional. Leer lassen heißt: alles läuft lokal, kein Feature fehlt.
     </p>
+    <WhyNote label="Was ein Hub bringt">
+      Der Horizont wird geteilt — wer Conny Plank schon ausgeklappt hat, erspart allen anderen
+      elf Abfragen. Beschleunigen kann er, tragen nichts (ADR-008).
+    </WhyNote>
 
     <ErrorNote v-if="error" :cause="error" />
 

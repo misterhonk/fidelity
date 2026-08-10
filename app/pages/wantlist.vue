@@ -62,8 +62,8 @@ function waiting(addedAt: string): string | null {
     <p v-if="loading" class="text-fid-base text-fid-text-muted">Wird geladen …</p>
 
     <p v-else-if="!overview || overview.total === 0" class="text-fid-base text-fid-text-muted">
-      Deine Wantlist ist leer – oder noch nicht synchronisiert. Sie ist die Grundlage für die
-      zwei stärksten Signale: die exakte Pressung und jede andere desselben Albums.
+      Deine Wantlist ist leer – oder noch nicht synchronisiert. Sie trägt die zwei stärksten
+      Signale überhaupt.
     </p>
 
     <template v-else>

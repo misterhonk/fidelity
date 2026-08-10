@@ -136,8 +136,8 @@ const tiles = computed(() => {
           screen — two buttons for one thing is a choice nobody needs.
         -->
         <p v-if="pricesGone" class="text-fid-sm text-fid-sig-gap">
-          Die Preise sind älter als sechs Stunden und dürfen nicht mehr angezeigt werden. Die
-          Treffer und ihre Begründungen stehen weiter – auffrischen kostet
+          Preise älter als sechs Stunden, dürfen nicht mehr gezeigt werden. Treffer und
+          Begründungen bleiben; auffrischen kostet
           <span class="fid-num">{{ latest.matches.length }}</span> Abfragen.
         </p>
 

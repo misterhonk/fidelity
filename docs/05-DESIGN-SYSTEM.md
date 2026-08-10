@@ -257,6 +257,35 @@ Versand zu dir (DE)              aktuell 2 Platten · 9,00 € gesamt · 4,50 �
 
 ---
 
+## 4a. Text
+
+**Die Zahl zuerst, die Begründung einen Klick entfernt.**
+
+Diese App erklärt sich – das ist Absicht, denn eine Zahl ohne ihren Nenner ist eine
+Behauptung, und docs/00 ist darauf gebaut, keine aufzustellen. Nur war die Erklärung
+*vor* der Zahl gelandet: vier Zeilen darüber, wie der Lift gerechnet wird, und dann der
+Lift.
+
+`<WhyNote>` ist die Antwort. Der Absatz bleibt und rückt hinter einen Aufklapper: wer den
+Screen zum dritten Mal liest, überspringt ihn; wer sich fragt, wo eine Zahl herkommt, ist
+einen Klick von der Antwort entfernt. Technisch `<details>`/`<summary>` – tastaturbedienbar,
+von Screenreadern angesagt, funktioniert ohne JavaScript.
+
+**Was inline bleibt, und warum:**
+
+| Bleibt stehen | Grund |
+|---|---|
+| Warnungen vor destruktiven Aktionen | Eine Warnung gehört vor den Knopf, nicht hinter einen Aufklapper |
+| Die Datenschutzseite | Eine Rechtsseite *ist* Fließtext |
+| Erklärungen für **fehlende** Daten („Preise älter als sechs Stunden") | Erklärt die Lücke genau dann, wenn sie da ist |
+| Leerzustände | Es steht ohnehin nichts anderes auf dem Schirm – aber ein Satz, kein Absatz |
+
+**Maß:** Fließtext ≥ 70 Zeichen, der beim ersten Blick sichtbar ist, wird gezählt. Beim
+Aufräumen im August 2026: 61 Blöcke / 8.276 Zeichen → 55 / 6.916. Was verschwand, war
+nicht der Gedanke, sondern seine Position.
+
+---
+
 ## 5. Motion
 
 - 150–250 ms für UI-Feedback, 300–400 ms für Layout-/Seitenwechsel
