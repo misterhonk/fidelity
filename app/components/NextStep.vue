@@ -40,7 +40,7 @@ const step = computed(() => {
       body:
         'Ohne sie weiß Fidelity nicht, was du magst. Ein paar Sekunden pro tausend ' +
         'Platten, danach ist sie auf diesem Gerät.',
-      to: '/einstellungen#library',
+      to: '/einstellungen/sammlung#library',
     }
   }
 
@@ -52,7 +52,7 @@ const step = computed(() => {
       body:
         `Einmalig rund ${minutes} Minuten. Danach erkennt jeder Dig auch Produzenten, ` +
         'Katalogserien und andere Pressungen – und kostet dafür keinen einzigen Request extra.',
-      to: '/einstellungen#horizon',
+      to: '/einstellungen/sammlung#horizon',
     }
   }
 

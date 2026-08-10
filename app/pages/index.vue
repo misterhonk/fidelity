@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { DigWithMatches, LibrarySummary } from '#shared/protocol'
 
+import { since } from '~/utils/when'
+
 useSeoMeta({
   title: 'Championship',
   description: 'Fidelity – der Verkäufer hinter der Theke für dein Discogs-Sortiment.',
@@ -36,12 +38,7 @@ const number = new Intl.NumberFormat('de-DE')
 
 const digAge = computed(() => {
   const dig = latest.value?.dig
-  if (!dig) return null
-  const hours = Math.floor((Date.now() - dig.startedAt) / 3_600_000)
-  if (hours < 1) return 'gerade eben'
-  if (hours < 24) return `vor ${hours} ${hours === 1 ? 'Stunde' : 'Stunden'}`
-  const days = Math.floor(hours / 24)
-  return `vor ${days} ${days === 1 ? 'Tag' : 'Tagen'}`
+  return dig ? since(dig.startedAt) : null
 })
 
 /** The one number worth putting first: what is waiting for you right now. */

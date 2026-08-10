@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { MarkedOverview, MarkedRecord } from '#shared/types'
 
+// How long ago you said yes. A shortlist is also a record of hesitation.
+import { since } from '~/utils/when'
+
 useSeoMeta({
   title: 'Gemerkt',
   description: 'Die Platten, zu denen du ja gesagt hast – auch wenn der Dig längst weg ist.',
@@ -129,17 +132,6 @@ const date = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' })
 function money(value: number | null, currency: string | null) {
   if (value === null || !currency) return null
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(value)
-}
-
-/** How long ago you said yes. A shortlist is also a record of hesitation. */
-function since(at: number): string {
-  const days = Math.floor((Date.now() - at) / 86_400_000)
-  if (days === 0) return 'heute'
-  if (days === 1) return 'gestern'
-  if (days < 31) return `vor ${days} Tagen`
-  const months = Math.floor(days / 30)
-  if (months < 24) return `vor ${months} Monaten`
-  return `vor ${Math.floor(months / 12)} Jahren`
 }
 
 async function check() {

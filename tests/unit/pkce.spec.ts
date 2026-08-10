@@ -39,7 +39,7 @@ describe('where the user is sent', () => {
       authorizeUrl({
         authorizeUrl: 'https://provider.example/authorize',
         clientId: 'abc123',
-        redirectUri: 'https://fidelity.example/einstellungen',
+        redirectUri: 'https://fidelity.example/einstellungen/abgleich',
         scope: 'files.read',
         challenge: 'CHALLENGE',
         state: 'STATE',
@@ -66,10 +66,10 @@ describe('where the user is sent', () => {
   it('keeps the redirect free of query and fragment', () => {
     // Providers compare the string. Anything extra is a mismatch.
     expect(redirectUriFor('https://fidelity.example')).toBe(
-      'https://fidelity.example/einstellungen',
+      'https://fidelity.example/einstellungen/abgleich',
     )
     expect(redirectUriFor('https://fidelity.example/')).toBe(
-      'https://fidelity.example/einstellungen',
+      'https://fidelity.example/einstellungen/abgleich',
     )
   })
 
