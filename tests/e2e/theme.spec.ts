@@ -121,6 +121,19 @@ test.describe('on a phone', () => {
   test('no field is small enough to make iOS zoom in', async ({ page }) => {
     await page.goto('/')
 
+    /*
+     * Two fields now, and both matter: the demo's on the landing page, and the
+     * token behind the setup button. The token one is the reason this test
+     * exists — Safari zoomed on it and never zoomed back — but the demo field
+     * is the first one a stranger touches.
+     */
+    const demoField = page.locator('#demo-url')
+    await expect(demoField).toBeVisible()
+    expect(
+      await demoField.evaluate((el) => parseFloat(getComputedStyle(el).fontSize)),
+    ).toBeGreaterThanOrEqual(16)
+
+    await page.getByRole('button', { name: /Einrichten/ }).click()
     const field = page.locator('#discogs-token')
     await expect(field).toBeVisible()
 

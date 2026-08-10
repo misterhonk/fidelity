@@ -105,7 +105,7 @@ async function save() {
       <button
         type="button"
         :disabled="busy"
-        class="rounded-fid-sm bg-fid-accent px-4 py-2 text-fid-sm font-medium text-fid-n-990 disabled:opacity-50"
+        class="rounded-fid-sm bg-fid-accent px-4 py-2 text-fid-sm font-medium text-fid-on-accent disabled:opacity-50"
         @click="save"
       >
         Speichern

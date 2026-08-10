@@ -87,7 +87,7 @@ const step = computed(() => {
     -->
     <NuxtLink
       :to="step.to"
-      class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 text-fid-sm font-medium text-fid-n-990"
+      class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 text-fid-sm font-medium text-fid-on-accent"
     >
       {{ step.cta }}
     </NuxtLink>

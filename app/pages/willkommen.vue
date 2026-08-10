@@ -180,7 +180,7 @@ const CAN_DO = [
           <div class="flex flex-col gap-3">
             <button
               type="button"
-              class="fid-action self-start rounded-fid-md bg-fid-accent px-6 py-3 text-fid-base font-medium text-fid-n-990"
+              class="fid-action self-start rounded-fid-md bg-fid-accent px-6 py-3 text-fid-base font-medium text-fid-on-accent"
               @click="step = 'token'"
             >
               Einrichten – mit deiner Sammlung
@@ -235,7 +235,7 @@ const CAN_DO = [
           <button
             v-else
             type="button"
-            class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-n-990"
+            class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent"
             @click="sync"
           >
             Sammlung holen
@@ -283,7 +283,7 @@ const CAN_DO = [
           -->
           <NuxtLink
             to="/"
-            class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-n-990"
+            class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent"
           >
             Zur Startseite
           </NuxtLink>

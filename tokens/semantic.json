@@ -4,37 +4,60 @@
     "$type": "color",
     "bg": {
       "$value": "{color.n.50}",
-      "$extensions": { "de.fidelity.dark": "{color.n.990}" }
+      "$extensions": {
+        "de.fidelity.dark": "{color.n.990}"
+      }
     },
     "surface": {
       "$value": "{color.white}",
-      "$extensions": { "de.fidelity.dark": "{color.n.950}" }
+      "$extensions": {
+        "de.fidelity.dark": "{color.n.950}"
+      }
     },
     "surface-raised": {
       "$value": "{color.n.50}",
-      "$extensions": { "de.fidelity.dark": "{color.n.900}" }
+      "$extensions": {
+        "de.fidelity.dark": "{color.n.900}"
+      }
     },
     "border": {
       "$value": "{color.n.200}",
-      "$extensions": { "de.fidelity.dark": "{color.n.800}" }
+      "$extensions": {
+        "de.fidelity.dark": "{color.n.800}"
+      }
     },
     "inset": {
       "$value": "{color.n.200}",
       "$description": "Was hinter etwas liegt, das noch nicht da ist: Fortschrittsbalken, leere Cover-Flächen, ungefüllte Rasterzellen. Vorher stand dafür überall {color.n.800} im Markup – im Hellmodus wären das schwarze Kacheln auf weißem Grund gewesen.",
-      "$extensions": { "de.fidelity.dark": "{color.n.800}" }
+      "$extensions": {
+        "de.fidelity.dark": "{color.n.800}"
+      }
     },
     "text": {
       "$value": "{color.n.900}",
-      "$extensions": { "de.fidelity.dark": "{color.n.100}" }
+      "$extensions": {
+        "de.fidelity.dark": "{color.n.100}"
+      }
     },
     "text-muted": {
       "$value": "{color.n.600}",
-      "$extensions": { "de.fidelity.dark": "{color.n.400}" }
+      "$extensions": {
+        "de.fidelity.dark": "{color.n.400}"
+      }
     },
     "accent": {
       "$value": "{color.accent.700}",
       "$description": "Light mode uses 700, not 600: 600 reaches only 3.10:1 against --fid-bg and misses WCAG 2.2 AA for body text. 700 gives 4.63:1. Dark mode keeps 500 at 8.51:1.",
-      "$extensions": { "de.fidelity.dark": "{color.accent.500}" }
+      "$extensions": {
+        "de.fidelity.dark": "{color.accent.500}"
+      }
+    },
+    "on-accent": {
+      "$value": "{color.n.50}",
+      "$description": "Was auf dem gefüllten Akzent steht. Jeder gefüllte Knopf schrieb ein festes {color.n.990} auf das Orange, das das Thema gerade auflöst. Im Dunkelmodus ist das accent-500 und das Paar liegt bei 8,49:1. Im Hellmodus ist es das dunklere accent-700, und dasselbe Fast-Schwarz ergibt 4,17:1 – unter den 4,5, die WCAG für normalen Text verlangt, auf der wichtigsten Aktion der App. Weiß auf accent-700 sind 4,91:1, Fast-Schwarz auf accent-500 sind 8,49:1: die Vordergrundfarbe muss dem Thema folgen wie jede andere Rolle hier. Gemessen, nicht geschätzt.",
+      "$extensions": {
+        "de.fidelity.dark": "{color.n.990}"
+      }
     }
   }
 }

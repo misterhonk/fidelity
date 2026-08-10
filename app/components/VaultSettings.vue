@@ -349,7 +349,7 @@ const date = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 
       <button
         type="button"
         :disabled="busy || passphrase.length < 8"
-        class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 text-fid-sm font-medium text-fid-n-990 disabled:opacity-50"
+        class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 text-fid-sm font-medium text-fid-on-accent disabled:opacity-50"
         @click="sync()"
       >
         {{ busy ? 'Gleiche ab …' : status.lastSyncedAt ? 'Jetzt abgleichen' : 'Einrichten' }}

@@ -22,8 +22,19 @@ test.describe('smoke', () => {
     await expect(page).toHaveTitle('Willkommen · Fidelity')
     await expect(page.getByRole('heading', { level: 1, name: 'Fidelity' })).toBeVisible()
 
-    // Rendered only after the worker answered auth.identity — so this also
-    // proves main thread, worker and IndexedDB are wired together.
+    /*
+     * The landing page, not the token form. Asking for the key to somebody's
+     * Discogs account used to be the first thing a stranger met; now the first
+     * thing is what the app does, and the setup is one button away.
+     *
+     * Rendered only after the worker answered auth.identity — so this also
+     * proves main thread, worker and IndexedDB are wired together.
+     */
+    await expect(page.getByRole('button', { name: /Einrichten/ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Erst ausprobieren' })).toBeVisible()
+
+    // And the setup is behind it, intact.
+    await page.getByRole('button', { name: /Einrichten/ }).click()
     await expect(page.getByRole('heading', { name: 'Token eintragen' })).toBeVisible()
     await expect(page.getByLabel('Personal Access Token')).toHaveAttribute('type', 'password')
 
@@ -33,6 +44,11 @@ test.describe('smoke', () => {
 
   test('the setup shows which of the three steps is running', async ({ page }) => {
     await page.goto('/willkommen')
+
+    // The rail belongs to the setup, not to the page somebody lands on: a
+    // fourth dot for the demo would say it is something to get through.
+    await expect(page.getByRole('list', { name: 'Einrichtung' })).toHaveCount(0)
+    await page.getByRole('button', { name: /Einrichten/ }).click()
 
     const steps = page.getByRole('list', { name: 'Einrichtung' }).getByRole('listitem')
     await expect(steps).toHaveCount(3)
@@ -90,7 +106,7 @@ test.describe('smoke', () => {
 
   test('the entry screen has no axe violations', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: 'Token eintragen' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Erst ausprobieren' })).toBeVisible()
 
     const { violations } = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])

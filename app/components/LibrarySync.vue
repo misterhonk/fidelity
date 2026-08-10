@@ -68,7 +68,7 @@ const formatDate = (at: number | null) =>
       <button
         type="button"
         :disabled="running"
-        class="rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-n-990 disabled:opacity-50"
+        class="rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
         @click="sync"
       >
         {{ summary?.collectionSyncedAt ? 'Neu synchronisieren' : 'Sammlung synchronisieren' }}

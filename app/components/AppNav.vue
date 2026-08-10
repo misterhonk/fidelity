@@ -125,7 +125,7 @@ const basketCount = computed(() => basketIds.value.size)
           -->
           <span
             v-if="section.to === '/korb' && basketCount > 0"
-            class="fid-num pointer-events-none absolute -top-1.5 -right-2 min-w-4 rounded-full bg-fid-accent px-1 text-center text-[0.625rem] leading-4 font-medium text-fid-n-990"
+            class="fid-num pointer-events-none absolute -top-1.5 -right-2 min-w-4 rounded-full bg-fid-accent px-1 text-center text-[0.625rem] leading-4 font-medium text-fid-on-accent"
             :aria-label="`${basketCount} im Korb`"
           >
             {{ basketCount }}

@@ -139,7 +139,7 @@ const eta = computed(() => {
         v-if="remaining > 0"
         type="button"
         :disabled="running"
-        class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-n-990 disabled:opacity-50"
+        class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
         @click="harvest"
       >
         {{ status.harvested > 0 ? 'Weiterlesen' : 'Credits lesen' }}
