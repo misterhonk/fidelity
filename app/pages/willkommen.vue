@@ -21,9 +21,18 @@ useSeoMeta({
 const { call } = useFidelityWorker()
 const { identity, ready, load, set } = useIdentity()
 
-type Step = 'token' | 'sync' | 'fertig'
+/**
+ * „Schau es dir an" kommt vor „gib mir deinen Schlüssel".
+ *
+ * `start` is not a step in the setup and is deliberately not in `STEPS`: it is
+ * the page somebody lands on, and the setup is what they choose from it. The
+ * progress rail belongs to the three steps that follow, so showing a fourth
+ * dot for the page you are standing on would say the demo is something to get
+ * through.
+ */
+type Step = 'start' | 'token' | 'sync' | 'fertig'
 
-const step = ref<Step>('token')
+const step = ref<Step>('start')
 const STEPS: Step[] = ['token', 'sync', 'fertig']
 const stepIndex = computed(() => STEPS.indexOf(step.value))
 
@@ -130,7 +139,7 @@ const CAN_DO = [
       information and takes no words, and the labels underneath say what the
       steps are, which a number never does.
     -->
-    <ol class="flex gap-2" aria-label="Einrichtung">
+    <ol v-if="step !== 'start'" class="flex gap-2" aria-label="Einrichtung">
       <li
         v-for="(name, index) in STEPS"
         :key="name"
@@ -158,6 +167,35 @@ const CAN_DO = [
     -->
     <div class="relative">
       <Transition name="fid-step" mode="out-in">
+        <!-- 0 · Ankommen ---------------------------------------------------- -->
+        <!--
+          Der Knopf steht über der Vorführung, nicht darunter.
+
+          Somebody who already knows what this is should not have to scroll
+          past a demo to get started, and somebody who does not know finds the
+          demo immediately below. The order costs the first group nothing and
+          gives the second everything.
+        -->
+        <section v-if="step === 'start'" key="start" class="flex flex-col gap-8">
+          <div class="flex flex-col gap-3">
+            <button
+              type="button"
+              class="fid-action self-start rounded-fid-md bg-fid-accent px-6 py-3 text-fid-base font-medium text-fid-n-990"
+              @click="step = 'token'"
+            >
+              Einrichten – mit deiner Sammlung
+            </button>
+            <p class="max-w-prose text-fid-sm text-fid-text-muted">
+              Drei Schritte: ein Token von Discogs, einmal Sammlung und Wantlist holen, fertig.
+              Fidelity liest nur und läuft ohne Server – alles bleibt auf diesem Gerät.
+            </p>
+          </div>
+
+          <hr class="border-fid-border" />
+
+          <DemoDig />
+        </section>
+
         <!-- 1 · Token ------------------------------------------------------ -->
         <!--
           No lead of its own. The first draft had one, and on a phone it read
@@ -253,7 +291,10 @@ const CAN_DO = [
       </Transition>
     </div>
 
-    <p v-if="ready && step === 'token'" class="text-fid-xs text-fid-text-muted">
+    <p
+      v-if="ready && (step === 'start' || step === 'token')"
+      class="text-fid-xs text-fid-text-muted"
+    >
       Schon eingerichtet?
       <NuxtLink class="underline underline-offset-4" to="/">Zur Startseite</NuxtLink>
     </p>
