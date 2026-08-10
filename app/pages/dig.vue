@@ -281,6 +281,9 @@ const expired = computed(() => {
   const dig = result.value?.dig
   return dig ? Date.now() > dig.expiresAt : false
 })
+
+/** What this dig is entitled to say — see `digKind`. */
+const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
 </script>
 
 <template>
@@ -592,9 +595,17 @@ const expired = computed(() => {
           {{ result.matches.length }} Treffer bei {{ result.dig.dealer }}
         </h2>
         <p class="text-fid-sm text-fid-text-muted">
-          <span class="fid-num">{{ number.format(result.dig.listingsScanned) }}</span> von
-          <span class="fid-num">{{ number.format(result.dig.listingsTotal) }}</span> gescannt
-          ({{ Math.round(result.dig.coverage * 100) }} %)<template v-if="result.folded > 0">
+          <template v-if="kind !== 'full'">
+            <span class="fid-num">{{ number.format(result.dig.listingsTotal) }}</span>
+            {{ result.dig.listingsTotal === 1 ? 'neues Listing' : 'neue Listings' }} seit dem
+            letzten Besuch
+          </template>
+          <template v-else>
+            <span class="fid-num">{{ number.format(result.dig.listingsScanned) }}</span> von
+            <span class="fid-num">{{ number.format(result.dig.listingsTotal) }}</span> gescannt
+            ({{ Math.round(result.dig.coverage * 100) }} %)
+          </template>
+          <template v-if="result.folded > 0">
             · <span class="fid-num">{{ result.folded }}</span> weitere Exemplare
             zusammengefasst</template
           >
@@ -664,8 +675,25 @@ const expired = computed(() => {
         >.
       </p>
 
+      <!--
+        Nichts gefunden heißt dreierlei, je nachdem wonach gesucht wurde.
+        A full dig that found nothing has read the whole shop and may say so
+        about the shop. An incremental one has read what arrived since the last
+        visit — saying "nichts für dich" about 35.900 records because none of
+        the four new ones fit is a claim it never checked.
+      -->
       <p v-if="result.matches.length === 0" class="text-fid-base text-fid-text-muted">
-        Bei diesem Händler nichts für dich. Das ist ein Ergebnis, kein Fehler.
+        <template v-if="kind === 'incremental-empty'">
+          Seit deinem letzten Besuch hat {{ result.dig.dealer }} nichts Neues eingestellt. Der
+          Rest des Sortiments stand hier schon.
+        </template>
+        <template v-else-if="kind === 'incremental'">
+          Unter dem Neuen war nichts für dich. Was vorher da war, hat dieser Dig nicht noch
+          einmal angesehen.
+        </template>
+        <template v-else>
+          Bei diesem Händler nichts für dich. Das ist ein Ergebnis, kein Fehler.
+        </template>
       </p>
 
       <template v-else>
