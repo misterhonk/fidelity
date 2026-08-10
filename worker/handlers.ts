@@ -124,26 +124,41 @@ export const handlers: HandlerMap = {
 
   'dig.preflight': async ({ dealer }, { signal }) => {
     const { dealerSchema } = await inventory()
-    const { REACHABLE } = await scan()
+    const { REACHABLE, SCAN_PASSES, MAX_PAGES, PER_PAGE } = await scan()
     const profile = await discogs().get(`/users/${encodeURIComponent(dealer)}`, dealerSchema, {
       signal,
     })
     const numForSale = profile.num_for_sale ?? 0
+    const truncated = numForSale > REACHABLE
+
     return {
       dealer: profile.username,
       displayName: profile.username,
       numForSale,
       reachable: Math.min(numForSale, REACHABLE),
-      truncated: numForSale > REACHABLE,
+      truncated,
+      /*
+       * Only offered where it can help. Below 20.000 the ordinary two passes
+       * already return everything, and thirteen more orderings would be
+       * 1.100 requests spent to re-read the same shop.
+       *
+       * The number is a ceiling: the run stops as soon as an ordering turns up
+       * nothing new, which on most shops happens long before the last pass.
+       */
+      deepRequests: truncated ? SCAN_PASSES.length * MAX_PAGES : null,
+      deepReachable: truncated
+        ? Math.min(numForSale, SCAN_PASSES.length * MAX_PAGES * PER_PAGE)
+        : null,
       sellerRating: profile.seller_rating ?? null,
       location: profile.location ?? null,
     }
   },
 
-  'dig.run': async ({ dealer }, { report, signal }) =>
+  'dig.run': async ({ dealer, depth }, { report, signal }) =>
     (await scan()).runDig({
       client: discogs(),
       dealer,
+      depth,
       // ULID-shaped enough for our purposes: time-sortable, collision-free
       // within one browser.
       digId: `${Date.now().toString(36).padStart(9, '0')}-${crypto.randomUUID().slice(0, 8)}`,

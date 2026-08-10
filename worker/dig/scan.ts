@@ -2,6 +2,7 @@ import { DIG_TTL_MS, pruneDigs } from '~~/db/expire'
 import { getPreferences } from '~~/db/meta'
 import { openFidelityDb, type FidelityDatabase } from '~~/db/open'
 import type { Dig, Match } from '#shared/types'
+import type { ScanProgress } from '#shared/protocol'
 
 import type { DiscogsClient } from '../discogs/client'
 import { dealerSchema, inventoryPageSchema, toListing } from '../discogs/inventory'
@@ -24,6 +25,51 @@ export const MAX_PAGES = 100
 /** asc and desc give two disjoint windows, so up to 20.000 listings. */
 export const REACHABLE = PER_PAGE * MAX_PAGES * 2
 
+/**
+ * Wie man an einem Laden vorbeikommt, der mehr als 20.000 Platten hat.
+ *
+ * The wall is on the page number, not on the offset — `page=101` is 403 no
+ * matter how small `per_page` is, and `per_page` itself is clamped to 100
+ * (measured 2026-08-10, docs/02). So one ordering can never yield more than
+ * 10.000, and the only lever left is to ask for a *different* ordering.
+ *
+ * Discogs accepts eight sort keys; seven of them work on a foreign inventory
+ * (`status` is ignored there). Each one puts different records in the first
+ * 10.000, so each pass is a different window onto the same shop.
+ *
+ * The order here is the order they run in, and it is by usefulness, not by
+ * coverage: `listed` first because the newest stock is what somebody wants,
+ * `price` next because the cheap end is where finds hide. The alphabetical
+ * ones come last — `artist`, `label` and `catno` sort the same records almost
+ * the same way, so each adds less than the one before.
+ */
+export const SCAN_PASSES = [
+  { sort: 'listed', order: 'asc' },
+  { sort: 'listed', order: 'desc' },
+  { sort: 'price', order: 'asc' },
+  { sort: 'price', order: 'desc' },
+  { sort: 'audio', order: 'desc' },
+  { sort: 'item', order: 'asc' },
+  { sort: 'item', order: 'desc' },
+  { sort: 'artist', order: 'asc' },
+  { sort: 'artist', order: 'desc' },
+  { sort: 'label', order: 'asc' },
+  { sort: 'label', order: 'desc' },
+  { sort: 'catno', order: 'asc' },
+  { sort: 'catno', order: 'desc' },
+] as const
+
+export type ScanPass = (typeof SCAN_PASSES)[number]
+
+/**
+ * What an ordinary dig walks: one ordering, both ends.
+ *
+ * These two must stay first and stay in this order — `dig.cursor` records
+ * `order` rather than a pass index, so a dig interrupted before the deep scan
+ * existed still resumes into the right half.
+ */
+export const NORMAL_PASSES = SCAN_PASSES.slice(0, 2)
+
 /** Roughly one request every 1.2 s, which is what the pacer enforces. */
 const MS_PER_REQUEST = 1200
 
@@ -39,17 +85,15 @@ const MS_PER_REQUEST = 1200
  */
 let running: string | null = null
 
-export interface ScanProgress {
-  status: Dig['status']
-  scanned: number
-  /** What the dealer has; scanned will not reach it above 20.000. */
-  total: number
-  reachable: number
-  matches: number
-  requests: number
-  order: 'asc' | 'desc'
-  etaMs: number | null
-}
+/*
+ * Re-exported rather than declared twice.
+ *
+ * There were two of these — one here, one in the protocol — and they agreed
+ * only because nobody had changed either. Adding `unique` to this one left the
+ * page compiling against a shape without it, which is the whole reason the
+ * protocol exists in `shared/`.
+ */
+export type { ScanProgress }
 
 export interface ScanOptions {
   client: DiscogsClient
@@ -146,9 +190,27 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   const fingerprint = new FingerprintAccumulator()
   const { nearMisses } = ctx
 
-  const emit = (order: 'asc' | 'desc') => {
-    const reachable = Math.min(dig.listingsTotal, REACHABLE)
-    const remaining = Math.max(0, reachable - scanned) / PER_PAGE
+  /*
+   * Which listings this run has actually laid eyes on.
+   *
+   * A shop between 10.000 and 20.000 is walked from both ends and the two
+   * windows overlap in the middle; a deep scan walks the same record in up to
+   * thirteen orderings. `scanned` counts rows and cannot answer "how much of
+   * this shop have I seen" — this can, exactly, because listing ids are unique
+   * and the dealer profile said how many there are.
+   *
+   * Seeded from the record on a resume rather than rebuilt: the ids from
+   * before the interruption are gone, and re-walking half an hour of pages to
+   * recover them would cost more than the small overcount it prevents.
+   */
+  const seen = new Set<number>()
+  let unique = dig.uniqueSeen ?? 0
+
+  const passes = dig.depth === 'deep' ? SCAN_PASSES : NORMAL_PASSES
+
+  const emit = (passIndex: number, order: 'asc' | 'desc') => {
+    const reachable = Math.min(dig.listingsTotal, PER_PAGE * MAX_PAGES * passes.length)
+    const remaining = Math.max(0, reachable - unique) / PER_PAGE
     report?.({
       status: dig.status,
       scanned,
@@ -157,6 +219,10 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
       matches,
       requests,
       order,
+      unique,
+      pass: passLabel(passes[passIndex] ?? passes[0]!),
+      passIndex,
+      passCount: passes.length,
       etaMs: Math.round(remaining * MS_PER_REQUEST),
     })
   }
@@ -164,15 +230,24 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   const startOrder = dig.cursor?.order ?? 'asc'
   const startPage = dig.cursor ? dig.cursor.page + 1 : 1
 
-  emit(startOrder)
+  emit(0, startOrder)
 
-  // Two passes over disjoint windows. The second only runs when the first hit
-  // the wall — below 10.000 listings it would return the same records again.
-  for (const order of ['asc', 'desc'] as const) {
-    if (order === 'asc' && startOrder === 'desc') continue
-    if (order === 'desc' && dig.listingsTotal <= PER_PAGE * MAX_PAGES) break
+  for (const [passIndex, pass] of passes.entries()) {
+    // A resumed dig skips whatever it already finished. The cursor records the
+    // *order*, not a pass number, because it predates the deep scan — which is
+    // also why the two ordinary passes have to stay first in the list.
+    if (passIndex === 0 && startOrder === 'desc') continue
 
-    const from = order === startOrder ? startPage : 1
+    /*
+     * Every pass after the first is a second look at the same shop through a
+     * different ordering. Below the wall there is nothing for it to find: one
+     * pass already returned every record, so the rest would be 100 requests
+     * each for a set that cannot grow.
+     */
+    if (passIndex > 0 && dig.listingsTotal <= PER_PAGE * MAX_PAGES) break
+
+    const from = passIndex < NORMAL_PASSES.length && pass.order === startOrder ? startPage : 1
+    let freshThisPass = 0
 
     for (let page = from; page <= MAX_PAGES; page++) {
       signal?.throwIfAborted()
@@ -180,13 +255,23 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
       const response = await client.get(
         `/users/${encodeURIComponent(dig.dealer)}/inventory`,
         inventoryPageSchema,
-        { query: { page, per_page: PER_PAGE, sort: 'listed', sort_order: order }, signal },
+        {
+          query: { page, per_page: PER_PAGE, sort: pass.sort, sort_order: pass.order },
+          signal,
+        },
       )
       requests += 1
 
       const fresh: Match[] = []
       for (const row of response.listings) {
         scanned += 1
+
+        if (!seen.has(row.id)) {
+          seen.add(row.id)
+          unique += 1
+          freshThisPass += 1
+        }
+
         // The status filter is ignored for foreign inventories, so it is
         // applied here (docs/02).
         if (row.status && row.status !== 'For Sale') continue
@@ -236,15 +321,30 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
       dig.listingsScanned = scanned
       dig.matchCount = matches
       dig.apiRequests = requests
-      dig.coverage = dig.listingsTotal > 0 ? Math.min(1, scanned / dig.listingsTotal) : 0
-      dig.cursor = { page, order }
+      dig.uniqueSeen = unique
+      dig.coverage = dig.listingsTotal > 0 ? Math.min(1, unique / dig.listingsTotal) : 0
+      // A deep scan is not resumed — see `resumeDig`. Leaving the cursor null
+      // is what says so, rather than a second field that could disagree.
+      dig.cursor = dig.depth === 'deep' ? null : { page, order: pass.order }
       await db.put('digs', dig)
 
-      emit(order)
+      emit(passIndex, pass.order)
 
       if (response.listings.length < PER_PAGE) break
       if (page >= response.pagination.pages) break
     }
+
+    /*
+     * Loop until dry, rather than to a fixed number of passes.
+     *
+     * A pass that walked its hundred pages and turned up nothing this run has
+     * shown that this ordering is exhausted, and the alphabetical ones that
+     * follow are the most correlated of the set — they would spend another
+     * twelve minutes on the same records. The two ordinary passes are exempt:
+     * asc finding nothing new is normal on a small shop, where desc never runs
+     * anyway.
+     */
+    if (passIndex >= NORMAL_PASSES.length && freshThisPass === 0) break
   }
 
   dig.status = 'done'
@@ -259,8 +359,23 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   // (and reports on) as its own phase.
   pendingNearMisses = nearMisses.build()
 
-  emit('desc')
+  emit(passes.length - 1, 'desc')
   return dig
+}
+
+/** German, and short enough for a progress line. */
+const SORT_LABELS: Record<ScanPass['sort'], string> = {
+  listed: 'Eingestellt',
+  price: 'Preis',
+  audio: 'Hörprobe',
+  item: 'Titel',
+  artist: 'Künstler',
+  label: 'Label',
+  catno: 'Katalognummer',
+}
+
+function passLabel(pass: ScanPass): string {
+  return `${SORT_LABELS[pass.sort]} ${pass.order === 'asc' ? '↑' : '↓'}`
 }
 
 /**
@@ -286,7 +401,7 @@ async function walkExclusively(dig: Dig, ctx: ScanContext): Promise<Dig> {
 }
 
 export async function runDig(
-  options: ScanOptions & { dealer: string; digId: string },
+  options: ScanOptions & { dealer: string; digId: string; depth?: 'normal' | 'deep' },
 ): Promise<Dig> {
   // Claimed before the pre-check, so a second start cannot slip in during it.
   acquire(options.digId)
@@ -322,7 +437,9 @@ export async function runDig(
     expiresAt: startedAt + DIG_TTL_MS,
     listingsTotal: total,
     listingsScanned: 0,
+    uniqueSeen: 0,
     coverage: 0,
+    depth: options.depth ?? 'normal',
     truncated: total > REACHABLE,
     matchCount: 0,
     apiRequests: 1,
@@ -355,6 +472,19 @@ export async function resumeDig(options: ScanOptions & { digId: string }): Promi
 
     if (!dig) throw new DigNotResumable('Dieser Dig existiert nicht mehr.')
     if (dig.status !== 'scanning') throw new DigNotResumable('Dieser Dig läuft nicht.')
+
+    /*
+     * A deep scan is not picked up again, and that is a choice rather than an
+     * omission. Its whole point is an exact coverage number, and that number
+     * lives in a set of listing ids that dies with the tab — resuming would
+     * either count records twice or throw away half an hour of pages to avoid
+     * it. What was already found stays; starting again starts again.
+     */
+    if (dig.depth === 'deep') {
+      dig.status = 'done'
+      await ctx.db.put('digs', dig)
+      throw new DigNotResumable('Ein Tiefenscan wird nicht fortgesetzt – die Funde sind da.')
+    }
 
     if (ctx.now() > dig.expiresAt) {
       dig.status = 'expired'

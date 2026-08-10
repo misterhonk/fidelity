@@ -526,8 +526,27 @@ export interface Dig {
   /** What the dealer has according to the API. */
   listingsTotal: number
   listingsScanned: number
-  /** scanned / total — the honesty metric the UI shows. */
+  /** uniqueSeen / listingsTotal — the honesty metric the UI shows. */
   coverage: number
+  /**
+   * Distinct listings actually seen.
+   *
+   * The numerator behind `coverage`, and not the same as `listingsScanned`:
+   * that counts rows, and a shop walked from both ends — or in thirteen
+   * orderings by a deep scan — returns plenty of them twice.
+   *
+   * Absent on digs written before the deep scan existed.
+   */
+  uniqueSeen?: number
+  /**
+   * How hard the shop was walked.
+   *
+   * 'normal' is one ordering from both ends, up to 20.000 listings. 'deep'
+   * works through every sort key Discogs accepts, which is the only way past
+   * that number — and costs up to 1.400 requests, so it is always asked for
+   * by hand. Absent means 'normal'.
+   */
+  depth?: 'normal' | 'deep'
   /** Did the scan hit the 10k pagination wall? */
   truncated: boolean
   matchCount: number

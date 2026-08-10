@@ -218,7 +218,7 @@ async function resume() {
   }
 }
 
-async function start() {
+async function start(depth: 'normal' | 'deep' = 'normal') {
   if (!preflight.value || busy.value) return
   busy.value = true
   error.value = null
@@ -229,7 +229,7 @@ async function start() {
   try {
     const done = await call(
       'dig.run',
-      { dealer: preflight.value.dealer },
+      { dealer: preflight.value.dealer, depth },
       { onProgress: (p) => (progress.value = p) },
     )
     resumable.value = null
@@ -245,11 +245,17 @@ async function start() {
   }
 }
 
-/** Determinate progress with real numbers — never a bare spinner. */
+/**
+ * Determinate progress with real numbers — never a bare spinner.
+ *
+ * Against distinct listings, not rows. A shop walked from both ends returns
+ * its middle twice, and a deep scan walks the same record in up to thirteen
+ * orderings — a bar built on rows would sail past 100 % and mean nothing.
+ */
 const percent = computed(() => {
   const p = progress.value
   if (!p || p.reachable === 0) return 0
-  return Math.min(100, Math.round((p.scanned / p.reachable) * 100))
+  return Math.min(100, Math.round((p.unique / p.reachable) * 100))
 })
 
 const eta = computed(() => {
@@ -392,10 +398,9 @@ const expired = computed(() => {
         <span class="fid-num">{{ number.format(preflight.numForSale) }}</span> Listings.
       </p>
       <p v-if="preflight.truncated" class="text-fid-sm text-fid-sig-gap">
-        Die API gibt davon höchstens
-        <span class="fid-num">{{ number.format(preflight.reachable) }}</span> heraus – das sind
-        {{ Math.round((preflight.reachable / preflight.numForSale) * 100) }} %. Vollständig geht
-        nicht, und das sagen wir lieber vorher.
+        Ein normaler Dig kommt an höchstens
+        <span class="fid-num">{{ number.format(preflight.reachable) }}</span> davon heran – das
+        sind {{ Math.round((preflight.reachable / preflight.numForSale) * 100) }} %.
       </p>
       <p class="text-fid-sm text-fid-text-muted">
         Dauer etwa
@@ -406,10 +411,44 @@ const expired = computed(() => {
         type="button"
         :disabled="busy"
         class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-n-990 disabled:opacity-50"
-        @click="start"
+        @click="start('normal')"
       >
         Dig starten
       </button>
+
+      <!--
+        The deep scan, offered only where it can do something.
+
+        Below 20.000 the ordinary two passes already return the whole shop, and
+        thirteen more orderings would spend a thousand requests re-reading it.
+        Above that they are the only way past the wall — each sort key puts
+        different records in the first 10.000.
+
+        The accent stays on the ordinary button: this is the deliberate,
+        expensive choice, and it should look like one.
+      -->
+      <div
+        v-if="preflight.deepRequests !== null"
+        class="flex flex-col gap-2 border-t border-fid-border pt-3"
+      >
+        <p class="max-w-prose text-fid-sm text-fid-text-muted">
+          Ein Tiefenscan geht denselben Laden in dreizehn Sortierungen durch – Datum, Preis,
+          Hörprobe, Titel, Künstler, Label, Katalognummer, jeweils in beide Richtungen. Jede
+          zeigt andere Platten in ihren ersten 10.000. Bis zu
+          <span class="fid-num">{{ number.format(preflight.deepRequests) }}</span> Abfragen,
+          rund
+          <span class="fid-num">{{ Math.ceil((preflight.deepRequests * 1.2) / 60) }}</span>
+          Minuten – er hört auf, sobald eine Sortierung nichts Neues mehr bringt.
+        </p>
+        <button
+          type="button"
+          :disabled="busy"
+          class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+          @click="start('deep')"
+        >
+          Tiefenscan starten
+        </button>
+      </div>
     </section>
 
     <section v-if="progress" class="flex flex-col gap-2" aria-live="polite">
@@ -419,10 +458,20 @@ const expired = computed(() => {
           :style="{ width: `${percent}%` }"
         />
       </div>
+      <!--
+        Distinct listings, because that is the number that means something.
+        The pass is named too: on a deep scan somebody watching a bar crawl for
+        twenty minutes deserves to know it is on the fourth of thirteen
+        orderings and not stuck.
+      -->
       <p class="text-fid-sm text-fid-text-muted">
-        <span class="fid-num">{{ number.format(progress.scanned) }}</span> von
+        <span class="fid-num">{{ number.format(progress.unique) }}</span> von
         <span class="fid-num">{{ number.format(progress.reachable) }}</span> ·
         <span class="fid-num">{{ progress.matches }}</span> Treffer
+        <template v-if="progress.passCount > 1">
+          · {{ progress.pass }}
+          <span class="fid-num">({{ progress.passIndex + 1 }}/{{ progress.passCount }})</span>
+        </template>
         <template v-if="eta"> · noch ca. {{ eta }}</template>
       </p>
     </section>

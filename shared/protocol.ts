@@ -105,7 +105,16 @@ export interface WorkerContract {
   /** One request, so the UI can be honest about coverage before committing. */
   'dig.preflight': { params: { dealer: string }; progress: never; result: DigPreflight }
   /** The scan. Reports per page — first matches appear after a few seconds. */
-  'dig.run': { params: { dealer: string }; progress: ScanProgress; result: Dig }
+  /**
+   * `depth: 'deep'` walks every sort key Discogs accepts rather than one.
+   * The only way past 20.000 listings, and up to 1.400 requests — so it is
+   * always something somebody asked for, never a default.
+   */
+  'dig.run': {
+    params: { dealer: string; depth?: 'normal' | 'deep' }
+    progress: ScanProgress
+    result: Dig
+  }
   'dig.get': { params: { digId: string }; progress: never; result: DigWithMatches | null }
   /**
    * Re-reads each match's own listing. One request per match instead of a
@@ -461,14 +470,24 @@ export interface DigPreflight {
   numForSale: number
   /** At most 20.000 — asc and desc give two disjoint windows. */
   reachable: number
-  /** True when full coverage is impossible and the UI has to say so. */
+  /** True when one ordering is not enough and the UI has to say so. */
   truncated: boolean
+  /**
+   * What a deep scan would cost at most, or null when it would buy nothing.
+   *
+   * A ceiling rather than an estimate: the run stops as soon as an ordering
+   * turns up nothing new, which on most shops is well before the last pass.
+   */
+  deepRequests: number | null
+  /** How far a deep scan could reach, against `numForSale`. */
+  deepReachable: number | null
   sellerRating: number | null
   location: string | null
 }
 
 export interface ScanProgress {
   status: Dig['status']
+  /** Rows read. Not the same as `unique` — see below. */
   scanned: number
   total: number
   reachable: number
@@ -476,6 +495,18 @@ export interface ScanProgress {
   requests: number
   order: 'asc' | 'desc'
   etaMs: number | null
+  /**
+   * Distinct listings actually seen, and the only honest numerator.
+   *
+   * `scanned` counts rows: a shop between 10.000 and 20.000 is walked from
+   * both ends and the windows overlap, and a deep scan reads the same record
+   * in up to thirteen orderings. A bar built on rows sails past 100 %.
+   */
+  unique: number
+  /** Which ordering is running, in words, for a run that takes minutes. */
+  pass: string
+  passIndex: number
+  passCount: number
 }
 
 export interface DigWithMatches {
