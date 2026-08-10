@@ -10,10 +10,16 @@ import { expect, test } from '@playwright/test'
  * rate limit on CI instead of on digs.
  */
 test.describe('smoke', () => {
-  test('a signed-out visitor lands on the token form', async ({ page }) => {
+  test('a signed-out visitor is taken to the setup', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page).toHaveTitle('Start · Fidelity')
+    /*
+     * The redirect, not the title. This asserted `Start · Fidelity` and kept
+     * passing after the start page began sending signed-out visitors to
+     * /willkommen — it was reading the title of a page on its way out.
+     */
+    await expect(page).toHaveURL(/\/willkommen$/)
+    await expect(page).toHaveTitle('Willkommen · Fidelity')
     await expect(page.getByRole('heading', { level: 1, name: 'Fidelity' })).toBeVisible()
 
     // Rendered only after the worker answered auth.identity — so this also
@@ -23,6 +29,23 @@ test.describe('smoke', () => {
 
     // Sending is blocked until something has been entered.
     await expect(page.getByRole('button', { name: 'Anmelden' })).toBeDisabled()
+  })
+
+  test('the setup shows which of the three steps is running', async ({ page }) => {
+    await page.goto('/willkommen')
+
+    const steps = page.getByRole('list', { name: 'Einrichtung' }).getByRole('listitem')
+    await expect(steps).toHaveCount(3)
+
+    // The first is current before anything has been entered, and the ones
+    // after it are not — a rail that lights all three says nothing.
+    await expect(steps.nth(0)).toHaveAttribute('aria-current', 'step')
+    await expect(steps.nth(1)).not.toHaveAttribute('aria-current', 'step')
+  })
+
+  test('the nav bar stays out of the setup', async ({ page }) => {
+    await page.goto('/willkommen')
+    await expect(page.getByRole('navigation', { name: 'Hauptbereiche' })).toHaveCount(0)
   })
 
   test('the design tokens reach the browser', async ({ page }) => {

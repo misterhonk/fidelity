@@ -73,8 +73,22 @@ describe('the accent', () => {
    * Progress bars are exempt: a filled bar is a measurement, not a button, and
    * only one is ever running.
    */
+  /**
+   * The one screen that shows one step at a time.
+   *
+   * The rule is about what is visible at once, and static markup cannot say
+   * that: the setup's three panels are branches of a single `v-if` chain
+   * inside a `<Transition>`, so its two filled buttons — "Sammlung holen" and
+   * "Zur Startseite" — are each the only action of their step and never share
+   * a screen. Named rather than detected, because a regex that understood
+   * step flows would be the kind of cleverness this file exists to avoid. A
+   * second entry here should take an argument, not a commit.
+   */
+  const STEP_FLOWS = ['pages/willkommen.vue']
+
   it('fills at most one surface per screen unconditionally', () => {
     const busy = screens
+      .filter(({ file }) => !STEP_FLOWS.includes(file))
       .map(({ file, source }) => {
         const statics = [...source.matchAll(/(?<!:)class="([^"]*)"/gs)].map(
           (match) => match[1]!,

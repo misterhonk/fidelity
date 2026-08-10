@@ -160,9 +160,38 @@ body {
   }
 }
 
-.fid-tile {
+.fid-tile,
+.fid-rise {
   animation: fid-lay-out 0.35s ease-out backwards;
   animation-delay: calc(min(var(--fid-stagger, 0), 11) * 40ms);
+}
+
+/*
+ * Ein Schritt löst den nächsten ab.
+ *
+ * The onboarding replaces its whole panel at each step, and a swap with no
+ * movement reads as a page that broke rather than a page that advanced. Out to
+ * the left, in from the right — the direction says "forward" without a word.
+ *
+ * `position: absolute` on the leaving panel so the two never stack and push
+ * the page height around mid-transition.
+ */
+.fid-step-enter-active,
+.fid-step-leave-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
+.fid-step-enter-from {
+  opacity: 0;
+  transform: translateX(1.5rem);
+}
+
+.fid-step-leave-to {
+  position: absolute;
+  opacity: 0;
+  transform: translateX(-1.5rem);
 }
 
 /*

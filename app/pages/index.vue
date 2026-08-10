@@ -11,7 +11,7 @@ useSeoMeta({
 const { call } = useFidelityWorker()
 const { checkOnce } = useWatchlist()
 const { syncOnStart } = useVaultSync()
-const { identity, ready, load, set } = useIdentity()
+const { identity, ready, load } = useIdentity()
 const { show } = useReleaseSheet()
 
 /*
@@ -23,7 +23,16 @@ const home = shallowRef<HomeOverview | null>(null)
 
 onMounted(async () => {
   await load()
-  if (!identity.value) return
+
+  /*
+   * Nobody signed in lands here. The setup is three steps — token, collection,
+   * and what to do with it — and a bare token field on a dashboard full of
+   * empty sections was the first of them with the other two left implied.
+   */
+  if (!identity.value) {
+    await navigateTo('/willkommen')
+    return
+  }
 
   // Neither of these is awaited: a shop that is slow to answer and a vault
   // that is unreachable must not hold up the screen. Both report where
@@ -80,21 +89,12 @@ const tiles = computed(() => {
 
 <template>
   <main class="@container mx-auto flex w-full max-w-[72rem] flex-col gap-8 py-10">
-    <!-- Signed out: nothing but the pitch and the one thing to do. -->
-    <template v-if="ready && !identity">
-      <div class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6">
-        <header class="flex flex-col gap-3">
-          <h1 class="fid-display text-fid-xl font-bold text-fid-text">Fidelity</h1>
-          <p class="text-fid-base text-fid-text-muted">
-            Ein Händler rein, eine bewertete Fundliste raus – mit Begründung pro Treffer.
-          </p>
-        </header>
-
-        <TokenForm @signed-in="set($event)" />
-      </div>
-    </template>
-
-    <template v-else-if="ready && identity">
+    <!--
+      Signed out there is nothing to draw: the mount redirects to the setup,
+      and a dashboard flashing its empty sections on the way there is worse
+      than a blank half-second.
+    -->
+    <template v-if="ready && identity">
       <div class="flex flex-col gap-6 px-6">
         <header class="flex flex-wrap items-baseline justify-between gap-2">
           <h1 class="fid-display text-fid-xl font-bold text-fid-text">Start</h1>

@@ -66,9 +66,13 @@ const basketCount = computed(() => basketIds.value.size)
   <!--
     Nothing before there is somebody to navigate. Showing five sections to a
     visitor who has not entered a token yet promises screens that cannot work.
+
+    And nothing during the setup either: the token step signs somebody in, so
+    the bar would pop into existence halfway through a flow that is supposed to
+    be the only thing on screen.
   -->
   <nav
-    v-if="identity"
+    v-if="identity && route.path !== '/willkommen'"
     aria-label="Hauptbereiche"
     class="z-30 md:sticky md:top-0 md:border-b md:border-fid-border md:bg-fid-bg/90 md:backdrop-blur max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:border-t max-md:border-fid-border max-md:bg-fid-surface/95 max-md:pb-[env(safe-area-inset-bottom)] max-md:backdrop-blur"
   >
