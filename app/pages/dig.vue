@@ -178,14 +178,35 @@ async function finish(dig: Dig) {
   }
 }
 
+/**
+ * Der Händler, egal ob als Name oder als Adresse eingegeben.
+ *
+ * Nobody carries a Discogs username around; what they have is the page they
+ * are standing on. `null` when the field holds something that is neither —
+ * which is also what disables the button, so a release link cannot be sent off
+ * as if it were a shop (app/utils/dealer-input.ts).
+ */
+const dealerName = computed(() => dealerFromInput(dealer.value))
+
 async function check() {
-  if (!dealer.value.trim() || busy.value) return
+  const name = dealerName.value
+  if (!name || busy.value) return
+
+  /*
+   * Das Feld zeigt danach, was verstanden wurde.
+   *
+   * Somebody who pasted a forty-character address gets the shop's name back in
+   * its place — which is the only way to tell "it read the link" from "it is
+   * about to ask Discogs for something absurd".
+   */
+  dealer.value = name
+
   busy.value = true
   error.value = null
   preflight.value = null
 
   try {
-    preflight.value = await call('dig.preflight', { dealer: dealer.value.trim() })
+    preflight.value = await call('dig.preflight', { dealer: name })
   } catch (cause) {
     noteFailure()
     error.value = cause
@@ -299,20 +320,22 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
 
     <form class="flex flex-wrap items-end gap-3" @submit.prevent="check">
       <div class="flex min-w-64 grow flex-col gap-2">
-        <label class="text-fid-sm font-medium text-fid-text" for="dealer">Händlername</label>
+        <label class="text-fid-sm font-medium text-fid-text" for="dealer">
+          Händler – Name oder Link
+        </label>
         <input
           id="dealer"
           v-model="dealer"
           type="text"
           autocomplete="off"
           spellcheck="false"
-          placeholder="z. B. juno_records"
+          placeholder="juno_records – oder die Adresse der Händlerseite"
           class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
         />
       </div>
       <button
         type="submit"
-        :disabled="busy || !online || dealer.trim().length === 0"
+        :disabled="busy || !online || dealerName === null"
         class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
       >
         Prüfen
