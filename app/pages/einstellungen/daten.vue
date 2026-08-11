@@ -1,12 +1,11 @@
 <script setup lang="ts">
-useSeoMeta({ title: 'Deine Daten' })
+const m = useMessages()
+
+useSeoMeta({ title: () => m.value.settings.data.title })
 </script>
 
 <template>
-  <SettingsPage
-    title="Deine Daten"
-    lead="Mitnehmen oder loswerden. Beides vollständig, beides ohne Umweg über einen Server."
-  >
+  <SettingsPage :title="m.settings.data.title" :lead="m.settings.data.lead">
     <DataControls />
   </SettingsPage>
 </template>

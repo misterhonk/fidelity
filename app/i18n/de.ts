@@ -26,6 +26,71 @@ const de: Messages = {
     yesterday: 'gestern',
   },
 
+  common: {
+    signIn: { lead: 'Erst anmelden –', link: 'zur Startseite' },
+    nothingYet: 'Noch nichts geholt',
+    off: 'Aus',
+    never: 'noch nie',
+  },
+
+  settings: {
+    title: 'Einstellungen',
+    lead: 'Alles, was man einmal einrichtet und danach in Ruhe lässt.',
+    back: 'Einstellungen',
+
+    account: {
+      lead: 'Es gibt kein Konto bei uns – nur deinen Token auf diesem Gerät.',
+      title: 'Konto',
+      hint: 'Dein Discogs-Token und was auf diesem Gerät liegt',
+    },
+    library: {
+      lead: 'Was Fidelity von Discogs weiß. Grundlage für alles Weitere.',
+      title: 'Sammlung',
+      hint: 'Sammlung, Wantlist, Horizont und Credits',
+      summary: (records, wants) => `${records} Platten · ${wants} Wünsche`,
+    },
+    search: {
+      lead: 'Gilt für jeden Dig.',
+      title: 'Suche',
+      hint: 'Wonach gesucht wird und woher die Läden kommen',
+      unrestricted: 'Ohne Einschränkung',
+      upTo: (price) => `bis ${price}`,
+      originalsOnly: 'nur Originale',
+      countriesBlocked: (blocked) =>
+        blocked === 1 ? '1 Land gesperrt' : `${blocked} Länder gesperrt`,
+    },
+    appearance: { hint: 'Hell oder dunkel, und in welcher Schrift' },
+    sync: {
+      lead: 'Verschlüsselt, damit der Speicherort keine Rolle spielt.',
+      title: 'Geräte abgleichen',
+      hint: 'Verschlüsselter Tresor für Handy und Rechner',
+      targets: {
+        none: 'Aus',
+        hub: 'Dein Hub',
+        file: 'Datei im Sync-Ordner',
+        dropbox: 'Dropbox',
+        drive: 'Google Drive',
+      },
+    },
+    hub: {
+      lead: 'Ein kleiner Dienst auf einem Rechner, den du selbst betreibst. Er merkt sich, was Fidelity schon herausgefunden hat – dann geht es beim nächsten Mal sofort.',
+      title: 'Hub',
+      hint: 'Optionaler Helfer im eigenen Netz',
+      notSetUp: 'Nicht eingerichtet',
+      unreadable: 'Adresse unlesbar',
+    },
+    data: {
+      lead: 'Mitnehmen oder loswerden. Beides vollständig, beides ohne Umweg über einen Server.',
+      title: 'Deine Daten',
+      hint: 'Exportieren oder alles löschen',
+    },
+    help: {
+      lead: 'Wie Fidelity arbeitet, was die Punktzahlen bedeuten und wo deine Daten liegen.',
+      title: 'Hilfe',
+      hint: 'Wie das hier arbeitet und was die Punktzahlen bedeuten',
+    },
+  },
+
   nav: {
     label: 'Hauptbereiche',
     start: { label: 'Start', hint: 'Was ist neu, was steht an' },

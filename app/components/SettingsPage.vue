@@ -16,6 +16,7 @@ defineProps<{
  * screens configures something that needs a token, and seven copies of the
  * same guard is seven chances to forget one.
  */
+const m = useMessages()
 const { identity, load } = useIdentity()
 
 onMounted(load)
@@ -29,7 +30,7 @@ onMounted(load)
         class="fid-action gap-2 self-start text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
       >
         <FidIcon name="arrow-left" :size="16" />
-        Einstellungen
+        {{ m.settings.back }}
       </NuxtLink>
 
       <header class="flex flex-col gap-1">
@@ -41,8 +42,9 @@ onMounted(load)
     <slot v-if="identity" />
 
     <p v-else class="text-fid-base text-fid-text-muted">
-      Erst anmelden –
-      <NuxtLink class="underline underline-offset-4" to="/">zur Startseite</NuxtLink>.
+      {{ m.common.signIn.lead }}
+      <NuxtLink class="underline underline-offset-4" to="/">{{ m.common.signIn.link }}</NuxtLink
+      >.
     </p>
   </main>
 </template>

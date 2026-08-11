@@ -1,11 +1,10 @@
 <script setup lang="ts">
-useSeoMeta({
-  title: 'Hilfe',
-  description: 'Wie Fidelity funktioniert, was die Punktzahlen bedeuten und was wo liegt.',
-})
+const m = useMessages()
+
+useSeoMeta({ title: () => m.value.settings.help.title })
 
 /**
- * Das Handbuch, in der App statt auf einer Webseite.
+ * The manual, in the app rather than on a website.
  *
  * Everything here was already true and already written down — in the code, in
  * `docs/`, in a comment somebody had to be reading the source to find. None of
@@ -101,10 +100,7 @@ const CHAPTERS = [
 </script>
 
 <template>
-  <SettingsPage
-    title="Hilfe"
-    lead="Wie Fidelity arbeitet, was die Punktzahlen bedeuten und wo deine Daten liegen."
-  >
+  <SettingsPage :title="m.settings.help.title" :lead="m.settings.help.lead">
     <!--
       Offen, nicht zugeklappt.
 

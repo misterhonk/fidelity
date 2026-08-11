@@ -1,12 +1,11 @@
 <script setup lang="ts">
-useSeoMeta({ title: 'Sammlung' })
+const m = useMessages()
+
+useSeoMeta({ title: () => m.value.settings.library.title })
 </script>
 
 <template>
-  <SettingsPage
-    title="Sammlung"
-    lead="Was Fidelity von Discogs weiß. Grundlage für alles Weitere."
-  >
+  <SettingsPage :title="m.settings.library.title" :lead="m.settings.library.lead">
     <!--
       Three steps of the same thing, in the order they happen: hole die Sammlung,
       klappe sie auf, hole die Namen dahinter. Each is useful alone and each one

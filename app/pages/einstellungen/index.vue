@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import type { Preferences, VaultStatus, VaultTarget } from '#shared/types'
+import type { Preferences, VaultStatus } from '#shared/types'
 
 import { since } from '~/utils/when'
 
-useSeoMeta({
-  title: 'Einstellungen',
-  description: 'Konto, Sammlung, Suche, Abgleich und der optionale Hub.',
-})
-
 const m = useMessages()
+
+useSeoMeta({ title: () => m.value.settings.title })
 const { identity, load } = useIdentity()
 const { call } = useFidelityWorker()
 const { preference: theme } = useTheme()
@@ -36,14 +33,6 @@ onMounted(async () => {
   preferences.value = prefs
 })
 
-const VAULT_LABELS: Record<VaultTarget, string> = {
-  none: 'Aus',
-  hub: 'Dein Hub',
-  file: 'Datei im Sync-Ordner',
-  dropbox: 'Dropbox',
-  drive: 'Google Drive',
-}
-
 /**
  * What the search is currently narrowed to, in at most three fragments.
  *
@@ -55,23 +44,23 @@ const searchSummary = computed(() => {
   const prefs = preferences.value
   if (!prefs) return null
 
+  const search = m.value.settings.search
   const parts: string[] = []
-  if (prefs.maxPrice !== null) parts.push(`bis ${count(prefs.maxPrice)} €`)
-  if (prefs.excludeReissues) parts.push('nur Originale')
+  if (prefs.maxPrice !== null) parts.push(search.upTo(money(prefs.maxPrice, 'EUR') ?? ''))
+  if (prefs.excludeReissues) parts.push(search.originalsOnly)
   if (prefs.formatsAllow.length > 0) parts.push(prefs.formatsAllow.join(', '))
   if (prefs.shipsFromBlock.length > 0) {
-    const blocked = prefs.shipsFromBlock.length
-    parts.push(`${blocked} ${blocked === 1 ? 'Land' : 'Länder'} gesperrt`)
+    parts.push(search.countriesBlocked(prefs.shipsFromBlock.length))
   }
 
-  return parts.length > 0 ? parts.slice(0, 3).join(' · ') : 'Ohne Einschränkung'
+  return parts.length > 0 ? parts.slice(0, 3).join(' · ') : search.unrestricted
 })
 
 const library = computed(() => {
   const counts = stats.value?.counts
   if (!counts) return null
-  if (!counts.collection) return 'Noch nichts geholt'
-  return `${count(counts.collection)} Platten · ${count(counts.wantlist ?? 0)} Wünsche`
+  if (!counts.collection) return m.value.common.nothingYet
+  return m.value.settings.library.summary(count(counts.collection), count(counts.wantlist ?? 0))
 })
 
 const usage = computed(() => {
@@ -83,22 +72,20 @@ const usage = computed(() => {
 
 const sync = computed(() => {
   const status = vault.value
-  if (!status || status.target === 'none') return 'Aus'
-  const label = VAULT_LABELS[status.target]
+  if (!status || status.target === 'none') return m.value.common.off
+  const label = m.value.settings.sync.targets[status.target]
   return status.lastSyncedAt
     ? `${label} · ${since(status.lastSyncedAt)}`
-    : `${label} · noch nie`
+    : `${label} · ${m.value.common.never}`
 })
 
 const hub = computed(() => {
   const url = preferences.value?.hubUrl
-  if (!url) return 'Nicht eingerichtet'
+  if (!url) return m.value.settings.hub.notSetUp
   try {
     return new URL(url).host
   } catch {
-    // A hub URL that will not parse is worth showing as such rather than
-    // hiding behind "nicht eingerichtet" — the setting is set, it is wrong.
-    return 'Adresse unlesbar'
+    return m.value.settings.hub.unreadable
   }
 })
 
@@ -116,77 +103,44 @@ const appearance = computed(() => {
 const SECTIONS = computed(() => [
   {
     to: '/einstellungen/konto',
-    title: 'Konto',
-    hint: 'Dein Discogs-Token und was auf diesem Gerät liegt',
+    ...m.value.settings.account,
     status: identity.value?.username ?? null,
   },
-  {
-    to: '/einstellungen/sammlung',
-    title: 'Sammlung',
-    hint: 'Sammlung, Wantlist, Horizont und Credits',
-    status: library.value,
-  },
-  {
-    to: '/einstellungen/suche',
-    title: 'Suche',
-    hint: 'Wonach gesucht wird und woher die Läden kommen',
-    status: searchSummary.value,
-  },
+  { to: '/einstellungen/sammlung', ...m.value.settings.library, status: library.value },
+  { to: '/einstellungen/suche', ...m.value.settings.search, status: searchSummary.value },
   {
     to: '/einstellungen/darstellung',
-    title: 'Darstellung',
-    hint: 'Hell oder dunkel, und in welcher Schrift',
+    title: m.value.appearance.title,
+    hint: m.value.settings.appearance.hint,
     status: appearance.value,
   },
-  {
-    to: '/einstellungen/abgleich',
-    title: 'Geräte abgleichen',
-    hint: 'Verschlüsselter Tresor für Handy und Rechner',
-    status: sync.value,
-  },
-  {
-    to: '/einstellungen/hub',
-    title: 'Hub',
-    hint: 'Optionaler Helfer im eigenen Netz',
-    status: hub.value,
-  },
-  {
-    to: '/einstellungen/daten',
-    title: 'Deine Daten',
-    hint: 'Exportieren oder alles löschen',
-    status: usage.value,
-  },
+  { to: '/einstellungen/abgleich', ...m.value.settings.sync, status: sync.value },
+  { to: '/einstellungen/hub', ...m.value.settings.hub, status: hub.value },
+  { to: '/einstellungen/daten', ...m.value.settings.data, status: usage.value },
   /*
-   * Ganz unten, weil man es sucht statt darüber zu stolpern.
+   * Right at the bottom, because it is looked for rather than stumbled over.
    *
    * Everything on this page above is something you change. This is the one
    * thing you *read*, and somebody only comes looking for it once a question
    * has already formed — so it does not compete with the settings, it waits
    * where a manual waits.
    */
-  {
-    to: '/einstellungen/hilfe',
-    title: 'Hilfe',
-    hint: 'Wie das hier arbeitet und was die Punktzahlen bedeuten',
-    status: null,
-  },
+  { to: '/einstellungen/hilfe', ...m.value.settings.help, status: null },
 ])
 </script>
 
 <template>
   <main class="@container mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
     <header class="flex flex-col gap-1">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Einstellungen</h1>
-      <p class="text-fid-base text-fid-text-muted">
-        Alles, was man einmal einrichtet und danach in Ruhe lässt.
-      </p>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ m.settings.title }}</h1>
+      <p class="text-fid-base text-fid-text-muted">{{ m.settings.lead }}</p>
     </header>
 
     <!--
       An index rather than a stack of ten open panels.
 
       Each entry says what it currently is, not only what it is for: "Dropbox ·
-      vor 2 Stunden" answers the question somebody opened the settings to ask,
+      2 hours ago" answers the question somebody opened the settings to ask,
       and saves the trip inside.
     -->
     <nav v-if="identity" class="grid gap-3 @2xl:grid-cols-2">
@@ -205,8 +159,9 @@ const SECTIONS = computed(() => [
     </nav>
 
     <p v-else class="text-fid-base text-fid-text-muted">
-      Erst anmelden –
-      <NuxtLink class="underline underline-offset-4" to="/">zur Startseite</NuxtLink>.
+      {{ m.common.signIn.lead }}
+      <NuxtLink class="underline underline-offset-4" to="/">{{ m.common.signIn.link }}</NuxtLink
+      >.
     </p>
   </main>
 </template>

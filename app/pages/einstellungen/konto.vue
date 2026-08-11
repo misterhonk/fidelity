@@ -1,5 +1,7 @@
 <script setup lang="ts">
-useSeoMeta({ title: 'Konto' })
+const m = useMessages()
+
+useSeoMeta({ title: () => m.value.settings.account.title })
 
 const { identity, signOut } = useIdentity()
 const { call } = useFidelityWorker()
@@ -25,10 +27,7 @@ const usage = computed(() => {
 </script>
 
 <template>
-  <SettingsPage
-    title="Konto"
-    lead="Es gibt kein Konto bei uns – nur deinen Token auf diesem Gerät."
-  >
+  <SettingsPage :title="m.settings.account.title" :lead="m.settings.account.lead">
     <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-fid-sm">
       <dt class="text-fid-text-muted">Discogs-Konto</dt>
       <dd class="text-fid-text">{{ identity?.username }}</dd>

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 /**
- * Die Einstellungen als Index statt als Stapel.
+ * Settings as an index rather than a stack.
  *
  * Ten cards on one page is a list, not a structure — you scrolled past the
  * hub to reach the delete button. What is worth a browser test is not the
@@ -11,13 +11,13 @@ import { expect, test } from '@playwright/test'
  */
 
 const SUBPAGES = [
-  ['/einstellungen/konto', 'Konto'],
-  ['/einstellungen/sammlung', 'Sammlung'],
-  ['/einstellungen/suche', 'Suche'],
+  ['/einstellungen/konto', 'Account'],
+  ['/einstellungen/sammlung', 'Collection'],
+  ['/einstellungen/suche', 'Search'],
   ['/einstellungen/darstellung', 'Appearance'],
-  ['/einstellungen/abgleich', 'Geräte abgleichen'],
+  ['/einstellungen/abgleich', 'Sync devices'],
   ['/einstellungen/hub', 'Hub'],
-  ['/einstellungen/daten', 'Deine Daten'],
+  ['/einstellungen/daten', 'Your data'],
 ] as const
 
 test.describe('settings', () => {
@@ -30,17 +30,18 @@ test.describe('settings', () => {
       // the page either way.
       await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible()
 
-      // "Einstellungen", not "← Einstellungen": the arrow used to be a
-      // character in the label and is now an icon, hidden from assistive
-      // technology because the word already says where the link goes.
-      await expect(
-        page.getByRole('link', { name: 'Einstellungen', exact: true }),
-      ).toHaveAttribute('href', '/einstellungen')
+      // "Settings", not "← Settings": the arrow used to be a character in the
+      // label and is now an icon, hidden from assistive technology because the
+      // word already says where the link goes.
+      await expect(page.getByRole('link', { name: 'Settings', exact: true })).toHaveAttribute(
+        'href',
+        '/einstellungen',
+      )
     })
   }
 
   test('the index is reachable and names itself', async ({ page }) => {
     await page.goto('/einstellungen')
-    await expect(page.getByRole('heading', { level: 1, name: 'Einstellungen' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Settings' })).toBeVisible()
   })
 })

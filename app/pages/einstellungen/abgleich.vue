@@ -1,12 +1,11 @@
 <script setup lang="ts">
-useSeoMeta({ title: 'Geräte abgleichen' })
+const m = useMessages()
+
+useSeoMeta({ title: () => m.value.settings.sync.title })
 </script>
 
 <template>
-  <SettingsPage
-    title="Geräte abgleichen"
-    lead="Verschlüsselt, damit der Speicherort keine Rolle spielt."
-  >
+  <SettingsPage :title="m.settings.sync.title" :lead="m.settings.sync.lead">
     <VaultSettings />
   </SettingsPage>
 </template>

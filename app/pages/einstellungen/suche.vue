@@ -1,9 +1,11 @@
 <script setup lang="ts">
-useSeoMeta({ title: 'Suche' })
+const m = useMessages()
+
+useSeoMeta({ title: () => m.value.settings.search.title })
 </script>
 
 <template>
-  <SettingsPage title="Suche" lead="Gilt für jeden Dig.">
+  <SettingsPage :title="m.settings.search.title" :lead="m.settings.search.lead">
     <!--
       Both halves of "what a dig looks at": which listings survive, and which
       shops get scanned in the first place. They were on opposite ends of a long

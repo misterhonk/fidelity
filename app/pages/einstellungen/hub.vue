@@ -1,12 +1,11 @@
 <script setup lang="ts">
-useSeoMeta({ title: 'Hub' })
+const m = useMessages()
+
+useSeoMeta({ title: () => m.value.settings.hub.title })
 </script>
 
 <template>
-  <SettingsPage
-    title="Hub"
-    lead="Ein kleiner Dienst auf einem Rechner, den du selbst betreibst. Er merkt sich, was Fidelity schon herausgefunden hat – dann geht es beim nächsten Mal sofort."
-  >
+  <SettingsPage :title="m.settings.hub.title" :lead="m.settings.hub.lead">
     <HubSettings />
   </SettingsPage>
 </template>

@@ -28,6 +28,8 @@
  *    the words the hobby already uses.
  */
 
+import type { VaultTarget } from '#shared/types'
+
 const en = {
   /** What the language calls itself, and the tag `Intl` formats dates with. */
   meta: {
@@ -51,6 +53,93 @@ const en = {
   when: {
     justNow: 'just now',
     yesterday: 'yesterday',
+  },
+
+  common: {
+    /**
+     * Split around the link rather than written as one string with a
+     * placeholder: a link is markup, and a translator who has to place `%s`
+     * inside an anchor will sooner or later place it outside one.
+     */
+    signIn: { lead: 'Sign in first —', link: 'go to the start page' },
+    nothingYet: 'Nothing fetched yet',
+    off: 'Off',
+    never: 'never',
+  },
+
+  settings: {
+    title: 'Settings',
+    lead: 'Everything you set up once and then leave alone.',
+    /** The way back, on every subpage. */
+    back: 'Settings',
+
+    account: {
+      lead: 'There is no account with us — only your token, on this device.',
+      title: 'Account',
+      hint: 'Your Discogs token, and what is kept on this device',
+    },
+    library: {
+      lead: 'What Fidelity knows from Discogs. The ground everything else stands on.',
+      title: 'Collection',
+      hint: 'Collection, wantlist, horizon and credits',
+      /**
+       * Given already-formatted numbers, not raw ones.
+       *
+       * The packs deliberately do not reach for `count()`: `money.ts` reads the
+       * active locale from the language module, so a pack that formatted its
+       * own numbers would close a circle between the two. Formatting is the
+       * caller's job; wording is this file's.
+       */
+      summary: (records: string, wants: string) => `${records} records · ${wants} wanted`,
+    },
+    search: {
+      lead: 'Applies to every dig.',
+      title: 'Search',
+      hint: 'What is looked for, and where the shops come from',
+      unrestricted: 'No restrictions',
+      upTo: (price: string) => `up to ${price}`,
+      originalsOnly: 'originals only',
+      countriesBlocked: (blocked: number) =>
+        blocked === 1 ? '1 country blocked' : `${blocked} countries blocked`,
+    },
+    appearance: { hint: 'Light or dark, and in which type' },
+    sync: {
+      lead: 'Encrypted, so where it is kept does not matter.',
+      title: 'Sync devices',
+      hint: 'An encrypted vault for phone and desktop',
+      /**
+       * `satisfies`, so a new vault target cannot be added without a name for
+       * it. The settings index used to hold this table and a local
+       * `Record<VaultTarget, string>` annotation; moving the words here would
+       * otherwise have quietly dropped that check.
+       */
+      targets: {
+        none: 'Off',
+        hub: 'Your hub',
+        file: 'A file in a sync folder',
+        dropbox: 'Dropbox',
+        drive: 'Google Drive',
+      } satisfies Record<VaultTarget, string>,
+    },
+    hub: {
+      lead: 'A small service on a machine you run yourself. It remembers what Fidelity has already worked out, so the next time is immediate.',
+      title: 'Hub',
+      hint: 'An optional helper on your own network',
+      notSetUp: 'Not set up',
+      // A hub address that will not parse is worth showing as such rather than
+      // hiding behind "not set up" — the setting is set, it is wrong.
+      unreadable: 'Address unreadable',
+    },
+    data: {
+      lead: 'Take it with you, or be rid of it. Both complete, both without a detour through a server.',
+      title: 'Your data',
+      hint: 'Export it, or delete all of it',
+    },
+    help: {
+      lead: 'How Fidelity works, what the scores mean, and where your data lives.',
+      title: 'Help',
+      hint: 'How this works, and what the scores mean',
+    },
   },
 
   nav: {
