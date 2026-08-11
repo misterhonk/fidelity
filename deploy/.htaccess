@@ -1,3 +1,15 @@
+# --- 0. Wurzel oder Unterverzeichnis ------------------------------------------
+#
+# Jede Umschreibung hier steht **ohne führenden Schrägstrich**, und das ist der
+# einzige Grund, warum diese Datei an beiden Orten funktioniert: mod_rewrite
+# löst eine relative Ersetzung gegen das Verzeichnis auf, in dem die .htaccess
+# liegt. Mit "/basket" landete jemand unter martinmelcher.de/fidelity/ auf
+# martinmelcher.de/basket — also auf einer fremden Seite.
+#
+# Der zweite Teil derselben Sache steht in nuxt.config.ts: die App muss mit
+# NUXT_APP_BASE_URL gebaut werden, sonst sucht sie ihre eigenen Dateien unter
+# /_nuxt/ statt unter /fidelity/_nuxt/.
+
 # Fidelity auf einem Apache-Webspace.
 #
 # Diese Datei gehört neben die entpackte Seite in den Docroot. Sie ist das
@@ -21,24 +33,24 @@
 # ganze Austausch.
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteRule "^korb/?$" "/basket" [R=301,L,QSA]
-  RewriteRule "^regal/?$" "/shelf" [R=301,L,QSA]
-  RewriteRule "^haendler/?$" "/dealers" [R=301,L,QSA]
-  RewriteRule "^landkarte/?$" "/map" [R=301,L,QSA]
-  RewriteRule "^gemerkt/?$" "/saved" [R=301,L,QSA]
-  RewriteRule "^im-laden/?$" "/in-store" [R=301,L,QSA]
-  RewriteRule "^willkommen/?$" "/welcome" [R=301,L,QSA]
-  RewriteRule "^datenschutz/?$" "/privacy" [R=301,L,QSA]
-  RewriteRule "^impressum/?$" "/legal" [R=301,L,QSA]
-  RewriteRule "^einstellungen/abgleich/?$" "/settings/sync" [R=301,L,QSA]
-  RewriteRule "^einstellungen/darstellung/?$" "/settings/appearance" [R=301,L,QSA]
-  RewriteRule "^einstellungen/daten/?$" "/settings/data" [R=301,L,QSA]
-  RewriteRule "^einstellungen/hilfe/?$" "/settings/help" [R=301,L,QSA]
-  RewriteRule "^einstellungen/hub/?$" "/settings/hub" [R=301,L,QSA]
-  RewriteRule "^einstellungen/konto/?$" "/settings/account" [R=301,L,QSA]
-  RewriteRule "^einstellungen/sammlung/?$" "/settings/collection" [R=301,L,QSA]
-  RewriteRule "^einstellungen/suche/?$" "/settings/search" [R=301,L,QSA]
-  RewriteRule "^einstellungen/?$" "/settings" [R=301,L,QSA]
+  RewriteRule "^korb/?$" "basket" [R=301,L,QSA]
+  RewriteRule "^regal/?$" "shelf" [R=301,L,QSA]
+  RewriteRule "^haendler/?$" "dealers" [R=301,L,QSA]
+  RewriteRule "^landkarte/?$" "map" [R=301,L,QSA]
+  RewriteRule "^gemerkt/?$" "saved" [R=301,L,QSA]
+  RewriteRule "^im-laden/?$" "in-store" [R=301,L,QSA]
+  RewriteRule "^willkommen/?$" "welcome" [R=301,L,QSA]
+  RewriteRule "^datenschutz/?$" "privacy" [R=301,L,QSA]
+  RewriteRule "^impressum/?$" "legal" [R=301,L,QSA]
+  RewriteRule "^einstellungen/abgleich/?$" "settings/sync" [R=301,L,QSA]
+  RewriteRule "^einstellungen/darstellung/?$" "settings/appearance" [R=301,L,QSA]
+  RewriteRule "^einstellungen/daten/?$" "settings/data" [R=301,L,QSA]
+  RewriteRule "^einstellungen/hilfe/?$" "settings/help" [R=301,L,QSA]
+  RewriteRule "^einstellungen/hub/?$" "settings/hub" [R=301,L,QSA]
+  RewriteRule "^einstellungen/konto/?$" "settings/account" [R=301,L,QSA]
+  RewriteRule "^einstellungen/sammlung/?$" "settings/collection" [R=301,L,QSA]
+  RewriteRule "^einstellungen/suche/?$" "settings/search" [R=301,L,QSA]
+  RewriteRule "^einstellungen/?$" "settings" [R=301,L,QSA]
 </IfModule>
 
 # --- 2. Jede Adresse fällt auf 200.html ---------------------------------------
@@ -54,7 +66,7 @@
   RewriteEngine On
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /200.html [L]
+  RewriteRule . 200.html [L]
 </IfModule>
 
 # --- 3. Was wie lange liegen bleiben darf -------------------------------------

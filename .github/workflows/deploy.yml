@@ -28,7 +28,24 @@ on:
       version:
         required: false
         type: string
+      dry_run:
+        required: false
+        type: boolean
+        default: false
+
+  # Von Hand gestartet ist ein Trockenlauf die **Vorgabe**.
+  #
+  # Der Knopf heißt "Run workflow" und sieht harmlos aus, aber der echte Weg
+  # löscht ein Verzeichnis auf einem fremden Rechner und legt einen Symlink um.
+  # Wer das will, hakt es ab; wer nur wissen will, ob die Zugangsdaten stimmen,
+  # drückt einfach.
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Nur prüfen, nichts hochladen'
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -70,8 +87,22 @@ jobs:
 
       - if: steps.check.outputs.ready == 'true'
         run: pnpm install --frozen-lockfile
+      # Unter welchem Pfad die App später liegt, muss sie beim **Bauen** wissen:
+      # jede Referenz auf /_nuxt/ und /_fonts/ wird hier festgeschrieben. Als
+      # Repository-Variable, nicht als Geheimnis — ein Pfad ist keins, und im
+      # Protokoll zu sehen, wohin gebaut wurde, ist die halbe Fehlersuche.
+      #
+      #   Settings → Secrets and variables → Actions → Variables
+      #   DEPLOY_BASE_URL   /fidelity/     ← mit Schrägstrich hinten
+      #
+      # Leer heißt Wurzel, also genau das, was Docker und das Zip erwarten.
       - if: steps.check.outputs.ready == 'true'
-        run: pnpm build
+        name: Bauen, für den Pfad, unter dem es liegen wird
+        env:
+          NUXT_APP_BASE_URL: ${{ vars.DEPLOY_BASE_URL || '/' }}
+        run: |
+          echo "Basispfad: $NUXT_APP_BASE_URL"
+          pnpm build
 
       # Die .htaccess gehört zur ausgelieferten Seite, genau wie im Release-Zip.
       # Ohne sie verhalten sich Unterseiten auf Apache falsch.
@@ -92,7 +123,58 @@ jobs:
           # unter dieser Adresse antwortet.
           ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
-      - if: steps.check.outputs.ready == 'true'
+      # Der Trockenlauf: alles, was Auskunft gibt, und nichts, was schreibt.
+      #
+      # Es gibt genau vier Arten, wie ein Deployment beim ersten Mal scheitert,
+      # und jede sieht im echten Lauf gleich aus — eine abgebrochene Verbindung.
+      # Hier bekommt jede ihre eigene Zeile: kommt der Schlüssel durch, gibt es
+      # das Verzeichnis, darf der Benutzer dort schreiben, und zeigt `current`
+      # schon irgendwohin. `rsync --dry-run` sagt zum Schluss, was der echte
+      # Lauf anfassen würde, ohne ein Byte zu übertragen.
+      - if: steps.check.outputs.ready == 'true' && inputs.dry_run
+        name: Trockenlauf — kommen wir überhaupt hin?
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+          PATH_ON_SERVER: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          set -eu
+          SSH="ssh -i ~/.ssh/id_deploy -o BatchMode=yes -o ConnectTimeout=15"
+
+          echo "── 1. Anmeldung ──"
+          who=$($SSH "$USER@$HOST" 'id -un; uname -n')
+          echo "$who" | sed 's/^/   /'
+
+          echo "── 2. Zielverzeichnis ──"
+          # Der Pfad wird in der Ausgabe nicht wiederholt: er ist ein Geheimnis,
+          # und ein Ablauf-Protokoll ist öffentlich, sobald das Repo es ist.
+          $SSH "$USER@$HOST" "test -d '$PATH_ON_SERVER'" \
+            && echo "   existiert" \
+            || { echo "   FEHLT — DEPLOY_PATH zeigt auf nichts"; exit 1; }
+
+          echo "── 3. Schreibrecht ──"
+          $SSH "$USER@$HOST" "test -w '$PATH_ON_SERVER'" \
+            && echo "   vorhanden" \
+            || { echo "   KEINS — der Benutzer darf dort nicht schreiben"; exit 1; }
+
+          echo "── 4. Symlink current ──"
+          $SSH "$USER@$HOST" "
+            if [ -L '$PATH_ON_SERVER/current' ]; then
+              echo \"   zeigt auf \$(basename \"\$(readlink '$PATH_ON_SERVER/current')\")\"
+            else
+              echo '   noch keiner — der erste echte Lauf legt ihn an'
+            fi"
+
+          echo "── 5. Was der echte Lauf übertragen würde ──"
+          rsync -az --delete --dry-run --stats -e "$SSH" \
+            .output/public/ "$USER@$HOST:$PATH_ON_SERVER/.incoming/" \
+            | grep -E "Number of files|regular files transferred|Total file size" \
+            | sed 's/^/   /'
+
+          echo
+          echo "Nichts geschrieben, nichts gelöscht, nichts umgeschaltet."
+
+      - if: steps.check.outputs.ready == 'true' && !inputs.dry_run
         name: Hochladen und umschalten
         env:
           HOST: ${{ secrets.DEPLOY_HOST }}

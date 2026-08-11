@@ -16,6 +16,23 @@ import pkg from './package.json'
  * It says what the app does rather than what it is called — "Fidelity" alone
  * tells a person nothing about why the link is worth opening.
  */
+/**
+ * Wurzel oder Unterverzeichnis — eine Zahl, fünf Wirkungen.
+ *
+ * Nuxt liest `NUXT_APP_BASE_URL` von sich aus für `app.baseURL`. Was es *nicht*
+ * von sich aus tut, ist das Manifest und den Service Worker mitzuziehen: deren
+ * `start_url`, `scope` und `navigateFallback` blieben bei "/" stehen, und eine
+ * PWA mit falschem Scope installiert sich auf die falsche Adresse.
+ *
+ * Gemessen am 2026-08-11 gegen einen Build für martinmelcher.de/fidelity: ohne
+ * das hier sucht die fertige Seite ihre eigenen Dateien unter /_nuxt/ — also im
+ * Wurzelverzeichnis einer fremden Website — und bleibt weiß.
+ *
+ * Leer gelassen ist "/", also genau das, was Docker und das Release-Zip
+ * erwarten. Der Unterpfad ist die Ausnahme, nicht die Regel.
+ */
+const base = process.env.NUXT_APP_BASE_URL ?? '/'
+
 const SHARE = {
   title: 'Fidelity — the clerk behind the counter, for Discogs',
   description:
@@ -76,6 +93,8 @@ export default defineNuxtConfig({
   },
 
   app: {
+    baseURL: base,
+
     head: {
       meta: [
         // Nothing here is meant for a search index (docs/00 §9). robots.txt
@@ -123,8 +142,8 @@ export default defineNuxtConfig({
        */
       description: 'The clerk behind the counter — for Discogs.',
       lang: 'en',
-      start_url: '/',
-      scope: '/',
+      start_url: base,
+      scope: base,
       display: 'standalone',
       // The neutral ramp's darkest step: the shell must not flash white while
       // the app boots on a phone.
@@ -143,7 +162,7 @@ export default defineNuxtConfig({
     },
     workbox: {
       globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-      navigateFallback: '/200.html',
+      navigateFallback: `${base}200.html`,
 
       runtimeCaching: [
         {
