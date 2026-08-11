@@ -100,11 +100,19 @@ describe('the records somebody can start from', () => {
     }
   })
 
-  it('says what each one is meant to show', () => {
+  it('says what each one is meant to show, in every language', () => {
     // The promise is the reason it is in the list: the shop demonstrably holds
     // neighbours. A seed with nothing around it produces an empty demo.
+    //
+    // Both languages, because a promise is per record — "seven more Clash
+    // records on the rack" — and a translation that quietly dropped one would
+    // leave a blank line under a cover rather than a missing key anywhere.
     for (const seed of DEMO_SEEDS) {
-      expect(seed.promise.length).toBeGreaterThan(20)
+      for (const language of ['en', 'de'] as const) {
+        expect(seed.promise[language].length, `${seed.title} in ${language}`).toBeGreaterThan(
+          20,
+        )
+      }
     }
   })
 })

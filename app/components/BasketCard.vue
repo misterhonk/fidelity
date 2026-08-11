@@ -155,7 +155,7 @@ const plan = ref<BasketPlan | null>(null)
 const planning = ref(false)
 
 /**
- * "Was würdest du bei diesem Händler für X € kaufen?"
+ * "What would you buy at this dealer for X?"
  *
  * A suggestion, not an order. It never touches the basket by itself — being
  * shown a plan and having one applied to your shopping list are different

@@ -2,7 +2,7 @@
  * Ein Wort, zur Zahl davor passend.
  *
  * There were five of these, each written where it was needed and three of them
- * wrong: "Einmalig rund 1 Minuten", "1 Versandstaffeln", "1 Entitäten". Nobody
+ * wrong: "about 1 minutes", "1 postage tiers", "1 entries". Nobody
  * writes that on purpose — it happens because a template interpolates a number
  * in front of a word somebody typed in the plural, and the singular case only
  * shows up on the one screen where the number happens to be one.

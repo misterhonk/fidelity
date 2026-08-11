@@ -1,5 +1,5 @@
 /**
- * Ein Händler, aus dem was jemand gerade in der Zwischenablage hat.
+ * A dealer, out of whatever is in somebody's clipboard.
  *
  * The field asked for a username, which is the one form of a shop's identity
  * nobody is holding. You get to a shop by *being on its page* — so what is in
@@ -19,7 +19,7 @@
  * The rest are the marketplace pages somebody is more likely to be standing on
  * when they copy an address; those are read from the site, not from the API,
  * so a new shape is possible and costs nothing but a fallthrough to "das ist
- * kein Händler".
+ * not a dealer".
  *
  * A listing address (`/sell/item/12345`) is deliberately *not* handled. The
  * seller is not in it — resolving one costs a request, and a field that
@@ -27,7 +27,7 @@
  */
 
 /**
- * Was Discogs als Benutzernamen zulässt.
+ * What Discogs allows as a username.
  *
  * Letters, digits, dot, underscore, hyphen — `spirax.records` and
  * `430AM_Studio` are both real shops. Deliberately not anchored to a length:
@@ -37,7 +37,7 @@
 const USERNAME = /^[A-Za-z0-9._-]+$/
 
 /**
- * Die Adresse einer Händler- oder Nutzerseite.
+ * The address of a dealer or user page.
  *
  * The optional segment before `seller` is Discogs' locale prefix (`/de/`,
  * `/es/`, `/pt_BR/`) — a link copied from a translated page carries it, and
@@ -52,10 +52,10 @@ const SELL_LIST_URL =
   /discogs\.com\/(?:[a-z]{2}(?:[-_][A-Za-z]{2})?\/)?sell\/list\?[^#]*\buser=([^&#]+)/i
 
 /**
- * Der Händlername, oder null wenn daraus keiner zu machen ist.
+ * The dealer name, or null when none can be made of it.
  *
  * Returning null rather than the raw input, so the caller can say "das ist
- * kein Händler" instead of sending a URL to Discogs as if it were a name and
+ * not a dealer" instead of sending a URL to Discogs as if it were a name and
  * reporting whatever comes back.
  */
 export function dealerFromInput(input: string): string | null {

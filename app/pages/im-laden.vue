@@ -2,9 +2,10 @@
 import type { DigWithMatches } from '#shared/protocol'
 import type { ShelfHit, ShelfResult } from '#shared/types'
 
+const m = useMessages()
 useSeoMeta({
-  title: 'Im Laden',
-  description: 'Die Fundliste für die Hand am Plattenfach – offline, große Ziele.',
+  title: () => m.value.inStore.title,
+  description: () => m.value.inStore.description,
 })
 
 const { call } = useFidelityWorker()
@@ -109,13 +110,13 @@ const expired = computed(() => {
     <div class="flex items-baseline justify-between gap-3">
       <h1 class="fid-display flex items-center gap-2 text-fid-xl font-bold text-fid-text">
         <FidIcon name="nadel" :size="22" />
-        Im Laden
+        {{ m.inStore.title }}
       </h1>
       <NuxtLink
         class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
         to="/"
       >
-        Zurück
+        {{ m.inStore.back }}
       </NuxtLink>
     </div>
 
@@ -126,11 +127,11 @@ const expired = computed(() => {
         {{ result.dig.dealer }} ·
         <span class="fid-num">{{ result.matches.length }}</span>
         {{ plural(result.matches.length, 'Treffer', 'Treffer')
-        }}<template v-if="!online"> · offline, alles aus dem Gerät</template>
+        }}<template v-if="!online"> · {{ m.inStore.offline }}</template>
       </p>
 
       <!--
-        Ein abgebrochener Dig ist kein Ergebnis.
+        A dig that was cut short is not a result.
         Standing in a shop is the worst place to be told three records are all
         there is, when the scan behind that number stopped halfway. The dig
         screen says so and offers to finish; this one showed the same matches
@@ -141,24 +142,24 @@ const expired = computed(() => {
         role="status"
         class="text-fid-sm text-fid-sig-gap"
       >
-        Dieser Dig wurde unterbrochen –
-        <span class="fid-num">{{ result.dig.listingsScanned }}</span> von
-        <span class="fid-num">{{ result.dig.listingsTotal }}</span> waren durch. Was hier steht,
-        ist also nicht alles.
+        {{
+          m.inStore.interrupted(
+            count(result.dig.listingsScanned),
+            count(result.dig.listingsTotal),
+          )
+        }}
       </p>
       <!--
-        No dig is not an empty screen any more. The Fundliste needs one; "habe
-        ich die schon?" does not, and that is the question somebody actually
-        has standing in a shop.
+        No dig is not an empty screen any more. The list of finds needs one;
+        "do I have this already?" does not, and that is the question somebody
+        actually has standing in a shop.
       -->
       <p v-else class="text-fid-sm text-fid-text-muted">
-        Noch kein Dig – die Fundliste bleibt also leer. Deine Sammlung und deine Wantlist kannst
-        du trotzdem durchsuchen, auch ohne Empfang.
+        {{ m.inStore.noDig }}
       </p>
 
       <p v-if="expired" role="status" class="text-fid-sm text-fid-sig-gap">
-        Älter als sechs Stunden – Preise und Zustände dürfen nicht mehr angezeigt werden. Die
-        Treffer und ihre Begründungen stehen weiter.
+        {{ m.inStore.expired }}
       </p>
 
       <!--
@@ -176,8 +177,8 @@ const expired = computed(() => {
         type="search"
         autocomplete="off"
         spellcheck="false"
-        placeholder="Künstler oder Titel"
-        aria-label="Sammlung, Wantlist und die Fundliste durchsuchen"
+        :placeholder="m.inStore.search"
+        :aria-label="m.inStore.searchLabel"
         class="rounded-fid-md border border-fid-border bg-fid-surface px-4 py-3 text-fid-base text-fid-text"
       />
 

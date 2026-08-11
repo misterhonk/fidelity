@@ -2,7 +2,7 @@ import { GLYPHS } from './glyphs'
 import { LUCIDE } from './lucide.generated'
 
 /**
- * Ein Satz, zwei Herkünfte.
+ * One set, two origins.
  *
  * Lucide for the verbs every app shares — go back, search, download, throw
  * away — and hand-drawn glyphs for the nouns only this one has. Merging them

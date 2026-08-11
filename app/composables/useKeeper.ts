@@ -49,7 +49,7 @@ export function useKeeper() {
   }
 
   /**
-   * Läuft ab dem ersten Bildschirm, nicht ab der Startseite.
+   * Runs from the first screen on, not from the start page.
    *
    * Mounted from the layout, so it also covers somebody who opens a bookmark
    * straight to /korb — which is exactly the person whose collection is a week

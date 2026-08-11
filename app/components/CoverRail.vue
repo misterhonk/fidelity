@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * Eine Reihe Cover, die man seitwärts schiebt.
+ * A row of covers you push sideways.
  *
  * A collection is pictures. Everything else on this screen is a number or a
  * sentence, and a wall of those is the opposite of what somebody opens a

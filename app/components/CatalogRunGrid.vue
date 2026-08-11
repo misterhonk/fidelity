@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CatalogueContext } from '#shared/types'
 
+const m = useMessages()
 defineProps<{ run: CatalogueContext; heading?: string }>()
 </script>
 
@@ -42,7 +43,7 @@ defineProps<{ run: CatalogueContext; heading?: string }>()
     </ul>
 
     <p class="text-fid-xs text-fid-text-muted">
-      Ausgefüllt = im Regal. Umrandet = diese Platte.
+      {{ m.catalogRun }}
     </p>
   </section>
 </template>

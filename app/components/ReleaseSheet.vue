@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { MatchDetail } from '#shared/types'
 
+const m = useMessages()
 const props = defineProps<{ digId: string; listingId: number }>()
 const emit = defineEmits<{ close: [] }>()
 
@@ -21,7 +22,7 @@ onMounted(async () => {
 const match = computed(() => detail.value?.match ?? null)
 
 /*
- * Ein Cover, für die eine Platte, die gerade offen ist.
+ * One cover, for the one record that is open.
  *
  * Asked for the moment the sheet has its match — one request at most, and only
  * for a record somebody deliberately tapped. Usually none: whatever list they
@@ -65,7 +66,7 @@ function evidenceOf(evidence: Record<string, unknown>): string {
     // Only labelled keys are shown. Evidence also carries internal handles —
     // releaseId, masterId — and printing "releaseId: 10.147.986" at somebody
     // is worse than printing nothing: it looks like an answer and is not one.
-    const label = EVIDENCE_LABEL[key]
+    const label = EVIDENCE_LABEL.value[key]
     if (!label || value === null || value === undefined || value === '') continue
 
     const shown = Array.isArray(value)
@@ -79,33 +80,13 @@ function evidenceOf(evidence: Record<string, unknown>): string {
 }
 
 /**
- * Every evidence key the engine emits, and what it is called in German.
+ * The evidence keys the sheet is allowed to print, and what each is called.
  *
- * The list is the allowlist: anything not in here is an internal handle
- * (releaseId, role) and stays out of the sheet.
+ * The table is the allowlist: anything not in it is an internal handle
+ * (releaseId, role) and stays out of the sheet. It lives in the packs, so the
+ * words travel with the language and the allowlist stays one list.
  */
-const EVIDENCE_LABEL: Record<string, string> = {
-  artist: 'Künstler',
-  album: 'Album',
-  label: 'Label',
-  person: 'Person',
-  owned: 'im Regal',
-  total: 'Diskografie',
-  ownedAs: 'du hast',
-  styles: 'Stile',
-  similarity: 'Nähe',
-  lift: 'Lift',
-  share: 'Anteil',
-  prefix: 'Serie',
-  number: 'Nummer',
-  inRun: 'in der Serie',
-  wantedYear: 'gewünscht',
-  pressingYear: 'diese Pressung',
-  price: 'Preis',
-  marketLowest: 'Markt-Tiefstpreis',
-  ratio: 'Verhältnis',
-  numForSale: 'im Angebot',
-}
+const EVIDENCE_LABEL = computed<Record<string, string>>(() => m.value.evidence)
 
 /**
  * "(deine von 2004 bis 2004)" is a sentence nobody would write. One year is
@@ -150,7 +131,7 @@ function onKeydown(event: KeyboardEvent) {
         </h2>
         <button
           type="button"
-          aria-label="Schließen"
+          :aria-label="m.close"
           class="min-h-6 min-w-6 rounded-fid-sm border border-fid-border px-2 text-fid-sm text-fid-text-muted"
           @click="emit('close')"
         >
@@ -161,7 +142,7 @@ function onKeydown(event: KeyboardEvent) {
       <template v-if="match">
         <div class="flex items-start gap-4">
           <!--
-            Das größte Cover, das die App zeigt — also das, wo die 600er
+            The largest cover the app shows — so the one where the 600px
             Fassung sich lohnt.
 
             The address comes from the shared store, not from the match: the
@@ -334,7 +315,7 @@ function onKeydown(event: KeyboardEvent) {
             >
               <span class="text-fid-text">{{ entry.artist }}</span> –
               <span class="fid-num">{{ entry.owned }}</span> von
-              <span class="fid-num">{{ entry.total }}</span> Hauptveröffentlichungen
+              {{ m.mainReleases(count(entry.total)) }}
               <template v-if="entry.from > 0">{{ years(entry) }}</template>
             </li>
           </ul>

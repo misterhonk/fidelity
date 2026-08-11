@@ -1,4 +1,5 @@
 import type { CloudTokens, VaultTarget } from '#shared/types'
+import { useMessages } from '~/composables/useMessages'
 
 /**
  * The two providers, described rather than special-cased.
@@ -70,7 +71,7 @@ export function readTokenResponse(
   previous?: CloudTokens | null,
 ): CloudTokens {
   const accessToken = typeof body.access_token === 'string' ? body.access_token : ''
-  if (!accessToken) throw new Error('Der Anbieter hat keinen Zugriffsschlüssel geschickt.')
+  if (!accessToken) throw new Error(useMessages().value.error.oauthNoToken)
 
   return {
     accessToken,

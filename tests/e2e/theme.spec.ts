@@ -135,7 +135,7 @@ test.describe('on a phone', () => {
       await demoField.evaluate((el) => parseFloat(getComputedStyle(el).fontSize)),
     ).toBeGreaterThanOrEqual(16)
 
-    await page.getByRole('button', { name: /Einrichten/ }).click()
+    await page.getByRole('button', { name: /Set it up/ }).click()
     const field = page.locator('#discogs-token')
     await expect(field).toBeVisible()
 

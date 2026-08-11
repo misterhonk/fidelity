@@ -1,5 +1,7 @@
+import type { Language } from '~/composables/useMessages'
+
 /**
- * Platten, mit denen sich anfangen lässt.
+ * Records to start from.
  *
  * The demo works from any Discogs listing URL, which is fine for somebody who
  * already has one in mind and useless for somebody who does not: "go to
@@ -50,7 +52,7 @@ export interface DemoSeedOption {
   year: number
   dealer: string
   /**
-   * Das Cover, in klein und in groß.
+   * The cover, small and large.
    *
    * Frozen into the source, and that is deliberate. The addresses come from
    * the release, not the offer, so they are database facts rather than
@@ -66,12 +68,19 @@ export interface DemoSeedOption {
    */
   thumbUrl: string
   coverUrl: string
-  /** What this one is meant to show — the honest reason it is in the list. */
-  promise: string
+  /**
+   * What this one is meant to show — the honest reason it is in the list.
+   *
+   * Per language, and here rather than in a pack: the sentence is about *this*
+   * record in *that* shop ("seven more Clash records on the rack"), so it
+   * belongs next to the listing id it was counted from. A pack keyed by
+   * listing id would be the same data one file further away.
+   */
+  promise: Record<Language, string>
 }
 
 /**
- * Die Ladenschilder.
+ * The shop signs.
  *
  * `/users/{name}` carries an `avatar_url`, and all four shops here have set a
  * real one rather than the grey default (checked 2026-08-10) — so a shop can
@@ -105,7 +114,10 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'Kling Klang',
     year: 1978,
     dealer: 'schoenwettermusik',
-    promise: 'Noch eine Kraftwerk-Single von 1978.',
+    promise: {
+      en: 'Another Kraftwerk single from 1978.',
+      de: 'Noch eine Kraftwerk-Single von 1978.',
+    },
     ...cover(
       'zbmCQ3oQX7MDzH86obw83VMZurH6H-iuVgLLi-HEYxA',
       '3owBPyalmlALOmsZAhko6JXvKjCU6CQ4SnkkxbUdHOw',
@@ -120,7 +132,10 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'R & S Records',
     year: 2014,
     dealer: '430AM_Studio',
-    promise: 'Noch ein Beltram im selben Laden.',
+    promise: {
+      en: 'Another Beltram in the same shop.',
+      de: 'Noch ein Beltram im selben Laden.',
+    },
     ...cover(
       'v33DzOvDLL31wLhJNIhH9nX7mRjQV_msHqAOkXgLAuI',
       'p0w54Y-lMjsd33l5NFvO9lpq-JBTVcZ1Ef-LVxhOVd0',
@@ -135,7 +150,10 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'Columbia',
     year: 1999,
     dealer: 'schoenwettermusik',
-    promise: 'Sieben weitere Clash-Platten im Regal.',
+    promise: {
+      en: 'Seven more Clash records on the rack.',
+      de: 'Sieben weitere Clash-Platten im Regal.',
+    },
     ...cover(
       'R2k8XMELB8QRy7vkkLHq1di6iJ4YnHJGFt-h1bNuYTc',
       'Wthl0F7gLYCvuFtZpQSYfhco_3hfArxGdgczoADJrp4',
@@ -150,7 +168,10 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'Parlophone',
     year: 2023,
     dealer: '430AM_Studio',
-    promise: 'Talkie Walkie steht im selben Laden.',
+    promise: {
+      en: 'Talkie Walkie is in the same shop.',
+      de: 'Talkie Walkie steht im selben Laden.',
+    },
     ...cover(
       'XrLzzdMAIL5QaHVghvH0DZQwjQZybt8gFQIA_pDOIW0',
       'QxsMavZoWkfRNKhrkblNR8HwHXZXysy8hFhOCR6_tac',
@@ -165,7 +186,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'Totenkopf',
     year: 1993,
     dealer: 'schoenwettermusik',
-    promise: 'Sechs weitere von den Toten Hosen.',
+    promise: { en: 'Six more by Die Toten Hosen.', de: 'Sechs weitere von den Toten Hosen.' },
     ...cover(
       'MEQzsnWMz7dZb67FuSiPQ4e-yzxYhDml2DPe8Plzwig',
       'RiglYEbPKn47qsmWrM3fUomHKlzfqqsk9nVLzLYuFpE',
@@ -188,7 +209,10 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'Spectral Sound',
     year: 2014,
     dealer: 'spirax.records',
-    promise: 'Noch ein Audion auf Spectral Sound.',
+    promise: {
+      en: 'Another Audion on Spectral Sound.',
+      de: 'Noch ein Audion auf Spectral Sound.',
+    },
     ...cover(
       'mENrQPhtGSDdoaQL5V8qkZMXeVRgmqWeF3MEyHPkmM8',
       'k9nPQmhkjtvRwZlV4iamWl6zH7-eNRjJgW1hf2KQYaI',
@@ -203,7 +227,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'MCA Records',
     year: 2002,
     dealer: 'schoenwettermusik',
-    promise: 'Vierzehn weitere von The Who.',
+    promise: { en: 'Fourteen more by The Who.', de: 'Vierzehn weitere von The Who.' },
     ...cover(
       's4kc87yQLO4Kz3w6Yo2HrYM0gcbMQNnJPkzbYAugwxM',
       '31vKgRzBBOtonidx6mCfCK9ViSi82lkxCwr-M3iDSyM',
@@ -218,7 +242,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'Parlophone',
     year: 1986,
     dealer: '430AM_Studio',
-    promise: 'Noch eine Pet-Shop-Boys-Platte.',
+    promise: { en: 'Another Pet Shop Boys record.', de: 'Noch eine Pet-Shop-Boys-Platte.' },
     ...cover(
       'tIK3PB3VkvqYdcRztjk7DfLd8_wCqnCQFU1UeX73p7M',
       'R7jVaCtzU0-D29eBIIkkFYXy_dW-KVs6ErdRmNFOL6I',
@@ -233,7 +257,10 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'Purple Records',
     year: 2012,
     dealer: 'schoenwettermusik',
-    promise: 'Neun weitere Deep-Purple-Platten liegen dort.',
+    promise: {
+      en: 'Nine more Deep Purple records are there.',
+      de: 'Neun weitere Deep-Purple-Platten liegen dort.',
+    },
     ...cover(
       'f35uGihhfUzFRw8rbyrwPJBaaqdSmlVqJIujfU_7JZk',
       'wDAri2X3oMTcU1Mi0vPdGus7L94bXcqiWnNfjlcHi_w',
@@ -248,7 +275,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'eudemonia',
     year: 2024,
     dealer: 'spirax.records',
-    promise: 'Zehn weitere desselben Künstlers.',
+    promise: { en: 'Ten more by the same artist.', de: 'Zehn weitere desselben Künstlers.' },
     ...cover(
       'TptviHATua_z2bAdfigEHjyR7ZPwf-VYAds_uKalA-U',
       'Q-p3Agll867rhvRC_nvOXsNYdzdUcLSU_9jmoOJ4Nb8',
@@ -263,7 +290,10 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'Columbia',
     year: 2003,
     dealer: 'schoenwettermusik',
-    promise: 'Zwölf weitere Dylan-Platten liegen dort.',
+    promise: {
+      en: 'Twelve more Dylan records are there.',
+      de: 'Zwölf weitere Dylan-Platten liegen dort.',
+    },
     ...cover(
       'OPx_NImYs-Elj4yLSbhPJOxUAaCiH65zEkXuDxrjYKQ',
       'TzLVG4AyfZO8Y9cTcLVdScO-7e7UwkwNBsIhmvlIp5g',
@@ -278,7 +308,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'Freude Am Tanzen',
     year: 2009,
     dealer: 'fatplastics',
-    promise: 'Zwei weitere Hemmann im Laden.',
+    promise: { en: 'Two more Hemmann in the shop.', de: 'Zwei weitere Hemmann im Laden.' },
     ...cover(
       'PTGyNjQoisUYJsn1DThMEXbcIWRVVYpu6mVrDn9K-Sw',
       '3ayQvChu2PrjH073K9jfbGSm7K-hPUrjnNbd6-r2EXM',
@@ -293,7 +323,10 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'BuschFunk',
     year: 2009,
     dealer: 'schoenwettermusik',
-    promise: 'Sechsundzwanzig weitere Puhdys stehen dort.',
+    promise: {
+      en: 'Twenty-six more Puhdys are there.',
+      de: 'Sechsundzwanzig weitere Puhdys stehen dort.',
+    },
     ...cover(
       'HBjabLWOMPAd3VnhRNq773OC3oe-WPZ1GFmlx0ph22c',
       'id7dMpDjcD2lMW166mqfrr_INiITe9ksBXF1HjvG3aE',
@@ -313,7 +346,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
 export const SEEDS_SHOWN = 4
 
 /**
- * Drei aus dem Vorrat, die sich täglich weiterdrehen.
+ * Three from the pile, rotating daily.
  *
  * Rotated by the date rather than at random: within a day the page is the same
  * page, which matters when somebody reloads it or sends the link to a friend,

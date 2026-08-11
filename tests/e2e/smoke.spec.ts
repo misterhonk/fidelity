@@ -19,7 +19,7 @@ test.describe('smoke', () => {
      * /willkommen — it was reading the title of a page on its way out.
      */
     await expect(page).toHaveURL(/\/willkommen$/)
-    await expect(page).toHaveTitle('Willkommen · Fidelity')
+    await expect(page).toHaveTitle('Welcome · Fidelity')
     await expect(page.getByRole('heading', { level: 1, name: 'Fidelity' })).toBeVisible()
 
     /*
@@ -30,8 +30,8 @@ test.describe('smoke', () => {
      * Rendered only after the worker answered auth.identity — so this also
      * proves main thread, worker and IndexedDB are wired together.
      */
-    await expect(page.getByRole('button', { name: /Einrichten/ })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Erst ansehen' })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Set it up/ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Have a look first' })).toBeVisible()
 
     /*
      * Vier Cover, keine vier Textzeilen.
@@ -51,7 +51,7 @@ test.describe('smoke', () => {
     await expect(covers.first()).toHaveAttribute('src', /^https:\/\/i\.discogs\.com\//)
 
     // And the setup is behind it, intact.
-    await page.getByRole('button', { name: /Einrichten/ }).click()
+    await page.getByRole('button', { name: /Set it up/ }).click()
     await expect(page.getByRole('heading', { name: 'Enter a token' })).toBeVisible()
     await expect(page.getByLabel('Personal Access Token')).toHaveAttribute('type', 'password')
 
@@ -65,7 +65,7 @@ test.describe('smoke', () => {
     // The rail belongs to the setup, not to the page somebody lands on: an
     // extra dot for the demo would say it is something to get through.
     await expect(page.getByRole('list', { name: 'Einrichtung' })).toHaveCount(0)
-    await page.getByRole('button', { name: /Einrichten/ }).click()
+    await page.getByRole('button', { name: /Set it up/ }).click()
 
     /*
      * Five: token, collection, horizon, credits, done.
@@ -134,7 +134,7 @@ test.describe('smoke', () => {
 
   test('the entry screen has no axe violations', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: 'Erst ansehen' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Have a look first' })).toBeVisible()
 
     const { violations } = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])

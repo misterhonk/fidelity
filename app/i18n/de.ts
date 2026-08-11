@@ -61,6 +61,12 @@ const de: Messages = {
     detail: 'Was Discogs genau gesagt hat',
     unknown: 'Etwas ist schiefgegangen.',
 
+    oauthMismatch: 'Die Antwort des Anbieters gehört nicht zu dieser Anfrage.',
+    oauthNoToken: 'Der Anbieter hat keinen Zugriffsschlüssel geschickt.',
+    noFilePicker: 'Dieser Browser kann keine Datei auswählen.',
+    noFileChosen: 'Noch keine Datei gewählt.',
+    fileUnreadable: 'Die Datei enthält keinen lesbaren Tresor.',
+
     tokenRevoked: {
       title: 'Discogs nimmt den Token nicht mehr an.',
       action:
@@ -153,6 +159,121 @@ const de: Messages = {
     lastNoted: 'Zuletzt notiert',
     wanted: (n) => `${n} Wünsche`,
     yourShops: 'Deine Läden',
+  },
+
+  nextStep: {
+    library: {
+      cta: 'Sammlung holen',
+      title: 'Als Erstes: deine Sammlung holen',
+      body: 'Ohne sie weiß Fidelity nicht, was du magst. Ein paar Sekunden pro tausend Platten, danach ist sie auf diesem Gerät.',
+    },
+    horizon: {
+      cta: 'Horizont bauen',
+      title: 'Dann: den Horizont bauen',
+      body: (minutes) =>
+        `Einmalig rund ${counted(minutes, 'Minute', 'Minuten')}. Danach erkennt jeder Dig auch Produzenten, Katalogserien und andere Pressungen deiner Platten.`,
+    },
+    dig: {
+      cta: 'Dig starten',
+      title: 'Jetzt: den ersten Händler scannen',
+      body: 'Nimm einen, bei dem du ohnehin kaufst. Zwei bis vier Minuten für zwanzigtausend Listings, und am Ende steht eine Liste mit einem Satz pro Treffer.',
+    },
+  },
+
+  palette: {
+    placeholder: 'Künstler, Händler, Dig …',
+    nothing: 'Nichts gefunden. Digs und Händler tauchen hier auf, sobald es welche gibt.',
+    goTo: 'Gehe zu',
+    dealers: 'Händler',
+    digs: 'Digs',
+    lastDig: 'Im letzten Dig',
+    inStore: 'Im Laden',
+    affinity: (rate) => `${rate} Treffer je tausend`,
+    digHint: (matches, when) => `${matches} Treffer · ${when}`,
+  },
+
+  watch: {
+    whyLabel: 'Wie gezählt wird',
+    why: 'Die Gesamtzahl des Ladens, nicht wie viele Platten neu sind – wer fünf verkauft und fünf einstellt, bewegt sich um null. Ein Dig sagt, was davon für dich dabei ist.',
+  },
+
+  catalogRun: 'Ausgefüllt = im Regal. Umrandet = diese Platte.',
+
+  credits: {
+    title: 'Wer hier mitgewirkt hat',
+    look: 'Nachsehen',
+    about:
+      "Discogs' größter ungenutzter Schatz: wer produziert, gemischt oder gemastert hat. Steht schon im Horizont – die Antwort kommt sofort.",
+    hereOnly: (here) => `${here} hier, von denen du noch nichts hast.`,
+    youHave: (owned, here) => `Du hast ${owned} — dieser Händler hat ${here} mehr.`,
+    records: (n) => counted(n, 'Platte', 'Platten'),
+  },
+
+  inStore: {
+    title: 'Im Laden',
+    description: 'Die Fundliste für die Hand am Plattenfach – offline, große Ziele.',
+    back: 'Zurück',
+    offline: 'offline, alles aus dem Gerät',
+    interrupted: (scanned, total) =>
+      `Dieser Dig wurde unterbrochen – ${scanned} von ${total} waren durch. Was hier steht, ist also nicht alles.`,
+    noDig:
+      'Noch kein Dig – die Fundliste bleibt also leer. Deine Sammlung und deine Wantlist kannst du trotzdem durchsuchen, auch ohne Empfang.',
+    expired:
+      'Älter als sechs Stunden – Preise und Zustände dürfen nicht mehr angezeigt werden. Die Treffer und ihre Begründungen stehen weiter.',
+    search: 'Künstler oder Titel',
+    searchLabel: 'Sammlung, Wantlist und die Fundliste durchsuchen',
+  },
+
+  discovery: {
+    search: 'Läden bei Discogs suchen',
+    searching: 'Suche …',
+    about:
+      'In deinen Bestellungen – das sind die Läden, bei denen du wirklich gekauft hast. Wenn du es in den Einstellungen erlaubst, zusätzlich in deiner Discogs-Freundesliste. Eine Abfrage je Quelle, dann eine pro Kandidat, um zu sehen wer überhaupt verkauft.',
+    added: (n) => (n === 1 ? 'Ein Laden dazu.' : `${n} Läden dazu.`),
+    take: (n) => `${n} übernehmen`,
+  },
+
+  evidence: {
+    artist: 'Künstler',
+    album: 'Album',
+    label: 'Label',
+    person: 'Person',
+    owned: 'im Regal',
+    total: 'Diskografie',
+    ownedAs: 'du hast',
+    styles: 'Stile',
+    similarity: 'Nähe',
+    lift: 'Lift',
+    share: 'Anteil',
+    prefix: 'Serie',
+    number: 'Nummer',
+    inRun: 'in der Serie',
+    wantedYear: 'gewünscht',
+    pressingYear: 'diese Pressung',
+    price: 'Preis',
+    marketLowest: 'Markt-Tiefstpreis',
+    ratio: 'Verhältnis',
+    numForSale: 'im Angebot',
+  },
+  close: 'Schließen',
+  mainReleases: (n) => `${n} Hauptveröffentlichungen`,
+
+  demo: {
+    title: 'Erst ansehen',
+    lead: 'Eine Platte aussuchen – Fidelity zeigt, was im selben Laden dazu passt. Ohne Anmeldung.',
+    listing: 'Ein Angebot von Discogs',
+    look: 'Ansehen',
+    orOne: 'Oder eine von diesen:',
+    moment: 'Einen Moment …',
+    fetching: 'Hole die Platte …',
+    comparing: 'Vergleiche …',
+    progress: 'Fortschritt',
+    fitsAt: (dealer) => `Bei ${dealer} passt dazu`,
+    score: (score) => `Barry Score ${score} von 100`,
+    nothing:
+      'In diesem Ausschnitt lag nichts, das dazu passt. Das kommt vor: eine Platte allein ist ein dünner Anhaltspunkt, und gelesen wurde nur ein Teil des Ladens. Mit deiner Sammlung sieht das anders aus.',
+    coverage: (scanned, total) =>
+      `Gelesen wurden ${scanned} der ${total} Angebote, mit einer Platte als Anhaltspunkt. Ein Dig liest den ganzen Laden und kennt deine Sammlung.`,
   },
 
   nav: {

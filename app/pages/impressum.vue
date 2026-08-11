@@ -1,5 +1,9 @@
 <script setup lang="ts">
-useSeoMeta({ title: 'Impressum', description: 'Anbieterkennzeichnung.' })
+import { useLegalMessages } from '~/i18n/legal'
+
+const l = useLegalMessages()
+
+useSeoMeta({ title: () => l.value.legal.title, description: () => l.value.legal.description })
 </script>
 
 <template>
@@ -8,12 +12,12 @@ useSeoMeta({ title: 'Impressum', description: 'Anbieterkennzeichnung.' })
       class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
       to="/"
     >
-      ← Start
+      {{ l.back }}
     </NuxtLink>
 
-    <h1 class="fid-display text-fid-xl font-bold text-fid-text">Impressum</h1>
+    <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ l.legal.title }}</h1>
 
-    <p class="text-fid-base text-fid-text-muted">Angaben gemäß § 5 DDG.</p>
+    <p class="text-fid-base text-fid-text-muted">{{ l.legal.perStatute }}</p>
 
     <address class="flex flex-col gap-1 text-fid-base text-fid-text not-italic">
       <span>Martin Melcher</span>
@@ -27,17 +31,9 @@ useSeoMeta({ title: 'Impressum', description: 'Anbieterkennzeichnung.' })
       </a>
     </address>
 
-    <!--
-      Warum hier keine Anschrift steht.
-      Fidelity ist ein privates Projekt ohne Gewinnerzielungsabsicht: es verkauft
-      nichts, vermittelt nichts und wickelt keine Zahlungen ab. Erreichbar ist der
-      Urheber über GitHub — das ist die Stelle, an der ohnehin jede Frage zu
-      diesem Projekt landet.
-    -->
+    <!-- Why no postal address is here: `app/i18n/legal.ts` says it. -->
     <p class="text-fid-sm text-fid-text-muted">
-      Fidelity ist ein privates Werkzeug ohne Gewinnerzielungsabsicht. Es verkauft nichts,
-      vermittelt nichts und wickelt keine Zahlungen ab. Kontakt und Fehlermeldungen laufen über
-      das Projekt auf GitHub.
+      {{ l.legal.about }}
     </p>
 
     <p class="text-fid-sm text-fid-text-muted">

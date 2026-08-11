@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { Dealer, Dig, Match } from '#shared/types'
+import { useCollectionMessages } from '~/i18n/collection'
 
+const messages = useMessages()
+const collection = useCollectionMessages()
 const emit = defineEmits<{ close: [] }>()
 
 /**
@@ -47,45 +50,51 @@ function go(path: string, query?: Record<string, string>) {
   }
 }
 
-const entries = computed<Entry[]>(() => [
-  { id: 'nav-dig', group: 'Gehe zu', label: 'Graben', run: go('/dig') },
-  { id: 'nav-shelf', group: 'Gehe zu', label: 'Regal', run: go('/regal') },
-  { id: 'nav-map', group: 'Gehe zu', label: 'Landkarte', run: go('/landkarte') },
-  { id: 'nav-want', group: 'Gehe zu', label: 'Wantlist', run: go('/wantlist') },
-  { id: 'nav-clerk', group: 'Gehe zu', label: 'Läden', run: go('/haendler') },
-  { id: 'nav-basket', group: 'Gehe zu', label: 'Korb', run: go('/korb') },
-  { id: 'nav-store', group: 'Gehe zu', label: 'Im Laden', run: go('/im-laden') },
-  { id: 'nav-settings', group: 'Gehe zu', label: 'Einstellungen', run: go('/einstellungen') },
-  { id: 'nav-home', group: 'Gehe zu', label: 'Start', run: go('/') },
+const entries = computed<Entry[]>(() => {
+  const m = messages.value
+  const c = collection.value
+  const goTo = m.palette.goTo
 
-  ...dealers.value.map((dealer) => ({
-    id: `dealer-${dealer.username}`,
-    group: 'Händler',
-    label: dealer.displayName || dealer.username,
-    hint: dealer.affinity ? `${dealer.affinity.toFixed(1)} Treffer je tausend` : undefined,
-    run: go('/haendler'),
-  })),
+  return [
+    { id: 'nav-dig', group: goTo, label: m.nav.dig.label, run: go('/dig') },
+    { id: 'nav-shelf', group: goTo, label: c.tabs.shelf, run: go('/regal') },
+    { id: 'nav-map', group: goTo, label: c.tabs.map, run: go('/landkarte') },
+    { id: 'nav-want', group: goTo, label: c.tabs.wantlist, run: go('/wantlist') },
+    { id: 'nav-clerk', group: goTo, label: m.nav.dealers.label, run: go('/haendler') },
+    { id: 'nav-basket', group: goTo, label: m.nav.basket.label, run: go('/korb') },
+    { id: 'nav-store', group: goTo, label: m.palette.inStore, run: go('/im-laden') },
+    { id: 'nav-settings', group: goTo, label: m.nav.settings, run: go('/einstellungen') },
+    { id: 'nav-home', group: goTo, label: m.nav.start.label, run: go('/') },
 
-  ...digs.value.map((dig) => ({
-    id: `dig-${dig.id}`,
-    group: 'Digs',
-    label: dig.dealer,
-    hint: `${dig.matchCount} Treffer · ${shortDay(dig.startedAt)}`,
-    // Every dig entry used to land on the newest one. Five are kept; four
-    // were unreachable.
-    run: go('/dig', { id: dig.id }),
-  })),
+    ...dealers.value.map((dealer) => ({
+      id: `dealer-${dealer.username}`,
+      group: m.palette.dealers,
+      label: dealer.displayName || dealer.username,
+      hint: dealer.affinity ? m.palette.affinity(decimal(dealer.affinity)) : undefined,
+      run: go('/haendler'),
+    })),
 
-  // Matches jump into the dig with the text filter already set, which is the
-  // one action that works today for every record in the list.
-  ...matches.value.map((match) => ({
-    id: `match-${match.listingId}`,
-    group: 'Im letzten Dig',
-    label: `${match.artist ?? '—'} – ${match.title ?? '—'}`,
-    hint: `${match.score}`,
-    run: go('/dig', { q: `${match.artist ?? ''} ${match.title ?? ''}`.trim() }),
-  })),
-])
+    ...digs.value.map((dig) => ({
+      id: `dig-${dig.id}`,
+      group: m.palette.digs,
+      label: dig.dealer,
+      hint: m.palette.digHint(dig.matchCount, shortDay(dig.startedAt)),
+      // Every dig entry used to land on the newest one. Five are kept; four
+      // were unreachable.
+      run: go('/dig', { id: dig.id }),
+    })),
+
+    // Matches jump into the dig with the text filter already set, which is the
+    // one action that works today for every record in the list.
+    ...matches.value.map((match) => ({
+      id: `match-${match.listingId}`,
+      group: m.palette.lastDig,
+      label: `${match.artist ?? '—'} – ${match.title ?? '—'}`,
+      hint: `${match.score}`,
+      run: go('/dig', { q: `${match.artist ?? ''} ${match.title ?? ''}`.trim() }),
+    })),
+  ]
+})
 
 const results = computed(() => {
   const needle = query.value.trim().toLowerCase()
@@ -170,7 +179,7 @@ function onKeydown(event: KeyboardEvent) {
           type="text"
           autocomplete="off"
           spellcheck="false"
-          placeholder="Künstler, Händler, Dig …"
+          :placeholder="messages.palette.placeholder"
           aria-label="Suchen"
           class="grow bg-transparent py-3 text-fid-base text-fid-text outline-none"
           @keydown="onKeydown"
@@ -178,7 +187,7 @@ function onKeydown(event: KeyboardEvent) {
       </div>
 
       <p v-if="results.length === 0" class="px-4 py-6 text-fid-sm text-fid-text-muted">
-        Nichts gefunden. Digs und Händler tauchen hier auf, sobald es welche gibt.
+        {{ messages.palette.nothing }}
       </p>
 
       <div v-else class="overflow-y-auto py-2" style="scrollbar-gutter: stable">

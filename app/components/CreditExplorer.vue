@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CreditGroup } from '#shared/types'
 
+const m = useMessages()
 const props = defineProps<{ digId: string }>()
 
 const { call } = useFidelityWorker()
@@ -26,12 +27,10 @@ async function load() {
  * numbers rather than templated over them, so it stays true when they are odd.
  */
 function line(group: CreditGroup): string {
-  const here = `${count(group.matches.length)} ${group.matches.length === 1 ? 'Platte' : 'Platten'}`
-  if (group.owned === 0) {
-    return `${here} hier, von denen du noch nichts hast.`
-  }
-  const owned = `${count(group.owned)} ${group.owned === 1 ? 'Platte' : 'Platten'}`
-  return `Du hast ${owned} — dieser Händler hat ${here} mehr.`
+  const words = m.value.credits
+  const here = words.records(group.matches.length)
+  if (group.owned === 0) return words.hereOnly(here)
+  return words.youHave(words.records(group.owned), here)
 }
 </script>
 
@@ -42,7 +41,7 @@ function line(group: CreditGroup): string {
         id="credits-heading"
         class="text-fid-sm uppercase tracking-[0.2em] text-fid-text-muted"
       >
-        Wer hier mitgewirkt hat
+        {{ m.credits.title }}
       </h3>
       <button
         v-if="groups.length === 0"
@@ -50,13 +49,12 @@ function line(group: CreditGroup): string {
         class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
         @click="load"
       >
-        Nachsehen
+        {{ m.credits.look }}
       </button>
     </div>
 
     <p v-if="groups.length === 0" class="text-fid-sm text-fid-text-muted">
-      Discogs' größter ungenutzter Schatz: wer produziert, gemischt oder gemastert hat. Steht
-      schon im Horizont – die Antwort kommt sofort.
+      {{ m.credits.about }}
     </p>
 
     <ul v-else class="flex flex-col gap-2">

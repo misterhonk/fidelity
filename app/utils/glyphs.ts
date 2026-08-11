@@ -46,7 +46,7 @@ export const GLYPHS = {
   ],
 
   /**
-   * Hülle: die Platte in ihrem Karton.
+   * Sleeve: the record in its cardboard.
    *
    * The first version put the disc half out of the sleeve, which at 20px is a
    * coffee mug with a handle. A disc squarely inside a square is unmistakable,
@@ -59,7 +59,7 @@ export const GLYPHS = {
   ],
 
   /**
-   * Kiste: Platten stehend, Finger oben drüber.
+   * Crate: records upright, fingers over the top.
    *
    * The verb the whole app is named after. The records stick out above the rim
    * because that is what you see looking down into one.
@@ -70,7 +70,7 @@ export const GLYPHS = {
   ],
 
   /**
-   * Nadel: Tonarm über dem Plattenrand.
+   * Stylus: tonearm over the edge of the record.
    *
    * A circle with a stick on it is a magnifying glass, and this set already
    * has one of those. What makes it an arm is the bend at the far end — the

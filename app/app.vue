@@ -52,7 +52,7 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 /**
- * Der Kurator läuft ab dem ersten Bildschirm.
+ * The keeper runs from the first screen on.
  *
  * Here rather than on the start page, because the person whose collection is a
  * week out of date is exactly the one who opens a bookmark straight to /korb.
@@ -89,7 +89,7 @@ onBeforeUnmount(() => {
   <div class="flex min-h-dvh flex-col max-md:pb-[calc(env(safe-area-inset-bottom)+5rem)]">
     <AppNav />
     <!--
-      In der Spalte, nicht darüber.
+      In the column, not above it.
       It used to float — `fixed bottom-4` — which put it on top of whatever was
       underneath: a match card, the attribution in the footer, and on a phone
       the nav bar itself. "Later" is a valid answer to this notice, so it has

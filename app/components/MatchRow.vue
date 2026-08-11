@@ -16,7 +16,7 @@ const root = useTemplateRef<HTMLElement>('root')
 onMounted(() => watchCover(root.value, props.match.releaseId))
 
 /**
- * Ein Kürzel, nicht das ganze Format.
+ * A shorthand, not the whole format.
  *
  * At 34 px this row already carries a score, a title, a reason and a price.
  * The one format token worth that space is what it physically is — `12"`,

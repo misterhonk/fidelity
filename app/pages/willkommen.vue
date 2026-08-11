@@ -2,13 +2,15 @@
 import type { SyncProgress } from '#shared/protocol'
 import type { Identity } from '#shared/types'
 
-useSeoMeta({
-  title: 'Willkommen',
-  description: 'Fidelity einrichten: Token, Sammlung, und was die App damit macht.',
-})
+import { useCollectionMessages } from '~/i18n/collection'
+import { useWelcomeMessages } from '~/i18n/welcome'
+
+const c = useCollectionMessages()
+const w = useWelcomeMessages()
+useSeoMeta({ title: () => w.value.title, description: () => w.value.description })
 
 /**
- * Die Einrichtung, einmal von vorne bis hinten.
+ * The setup, once, from front to back.
  *
  * Everything here existed already — the token form, the sync, the horizon —
  * but scattered across three screens with nothing saying which came first.
@@ -22,7 +24,7 @@ const { call } = useFidelityWorker()
 const { identity, ready, load, set } = useIdentity()
 
 /**
- * „Schau es dir an" kommt vor „gib mir deinen Schlüssel".
+ * "Have a look" comes before "give me your key".
  *
  * `start` is not a step in the setup and is deliberately not in `STEPS`: it is
  * the page somebody lands on, and the setup is what they choose from it. The
@@ -44,7 +46,7 @@ const STEPS: Step[] = ['token', 'sync', 'horizont', 'credits', 'fertig']
 const stepIndex = computed(() => STEPS.indexOf(step.value))
 
 /**
- * Kurz genug, dass fünf davon auf ein Telefon passen.
+ * Short enough that five of them fit on a phone.
  *
  * Typed by `Step` rather than `Exclude<Step, 'start'>` so the lookup in the
  * template needs no cast — a `<` inside a template expression reads as an
@@ -111,8 +113,8 @@ const percent = computed(() => {
 const syncLabel = computed(() => {
   const p = progress.value
   if (!p) return null
-  const what = p.kind === 'collection' ? 'Sammlung' : 'Wantlist'
-  return `${what}: ${count(p.stored)} von ${count(p.total)}`
+  const what = p.kind === 'collection' ? c.value.tabs.shelf : c.value.tabs.wantlist
+  return w.value.syncing(what, count(p.stored), count(p.total))
 })
 
 /**
@@ -122,29 +124,14 @@ const syncLabel = computed(() => {
  * is any data is a promise, and the same three sentences after the collection
  * has landed are instructions.
  */
-const CAN_DO = [
-  {
-    icon: 'kiste',
-    title: 'Einen Laden durchgraben',
-    body: 'Händlernamen eingeben, Fidelity liest sein Sortiment und sagt dir, was davon zu dir passt – mit einem Satz Begründung pro Treffer.',
-    to: '/dig',
-    cta: 'Zum Graben',
-  },
-  {
-    icon: 'platte',
-    title: 'Im Laden nachschauen',
-    body: 'Mit der Platte in der Hand: „Habe ich die schon?" Beantwortet aus dem Gerät, ohne Empfang – Plattenläden sind Keller.',
-    to: '/im-laden',
-    cta: 'Im Laden',
-  },
-  {
-    icon: 'regal',
-    title: 'Deine Sammlung ansehen',
-    body: 'Regal, Landkarte und Wantlist. Die Landkarte zeigt, wo deine Sammlung dicht ist und wo Lücken sind.',
-    to: '/regal',
-    cta: 'Zur Sammlung',
-  },
-] as const
+const CAN_DO = computed(
+  () =>
+    [
+      { icon: 'kiste', to: '/dig', ...w.value.canDo.dig },
+      { icon: 'platte', to: '/im-laden', ...w.value.canDo.inStore },
+      { icon: 'regal', to: '/regal', ...w.value.canDo.collection },
+    ] as const,
+)
 </script>
 
 <template>
@@ -152,7 +139,7 @@ const CAN_DO = [
     <header class="flex flex-col gap-3">
       <h1 class="fid-display text-fid-xl font-bold text-fid-text">Fidelity</h1>
       <p class="text-fid-base text-fid-text-muted">
-        Ein Händler rein, eine bewertete Fundliste raus – mit Begründung pro Treffer.
+        {{ w.lead }}
       </p>
     </header>
 
@@ -191,7 +178,7 @@ const CAN_DO = [
       <Transition name="fid-step" mode="out-in">
         <!-- 0 · Ankommen ---------------------------------------------------- -->
         <!--
-          Der Knopf steht über der Vorführung, nicht darunter.
+          The button goes above the demonstration, not below it.
 
           Somebody who already knows what this is should not have to scroll
           past a demo to get started, and somebody who does not know finds the
@@ -205,12 +192,10 @@ const CAN_DO = [
               class="fid-action self-start rounded-fid-md bg-fid-accent px-6 py-3 text-fid-base font-medium text-fid-on-accent"
               @click="step = 'token'"
             >
-              Einrichten – mit deiner Sammlung
+              {{ w.setUp }}
             </button>
             <p class="max-w-prose text-fid-sm text-fid-text-muted">
-              Ein Schlüssel von Discogs, einmal Sammlung und Wantlist holen – danach kann es
-              losgehen. Fidelity liest nur und ändert nichts an deinem Konto; alles bleibt auf
-              diesem Gerät.
+              {{ w.setUpAbout }}
             </p>
           </div>
 
@@ -234,12 +219,10 @@ const CAN_DO = [
         <section v-else-if="step === 'sync'" key="sync" class="flex flex-col gap-5">
           <div class="flex flex-col gap-2">
             <h2 class="text-fid-base font-medium text-fid-text">
-              Angemeldet als {{ identity?.username }}
+              {{ w.signedInAs(identity?.username ?? '') }}
             </h2>
             <p class="max-w-prose text-fid-base text-fid-text-muted">
-              Jetzt holt Fidelity deine Sammlung und deine Wantlist. Das ist die Grundlage für
-              alles Weitere – ohne sie weiß die App nicht, was du magst. Ein paar Sekunden pro
-              tausend Platten, danach liegt alles auf diesem Gerät.
+              {{ w.syncAbout }}
             </p>
           </div>
 
@@ -251,7 +234,7 @@ const CAN_DO = [
               />
             </div>
             <p class="fid-num text-fid-sm text-fid-text-muted">
-              {{ syncLabel ?? 'Frage Discogs …' }}
+              {{ syncLabel ?? w.asking }}
             </p>
           </div>
 
@@ -261,13 +244,14 @@ const CAN_DO = [
             class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent"
             @click="sync"
           >
-            Sammlung holen
+            {{ w.fetchCollection }}
           </button>
         </section>
 
         <!-- 3 · Horizont ---------------------------------------------------- -->
         <!--
-          Der Horizont stand absichtlich nicht in der Einrichtung — jetzt schon.
+          The horizon was deliberately not in the setup — now it is. Why, in
+          `app/i18n/welcome.ts`.
 
           The argument for leaving it out was that it takes minutes and the app
           works without it. Both are still true. What that argument missed is
@@ -283,12 +267,10 @@ const CAN_DO = [
         <section v-else-if="step === 'horizont'" key="horizont" class="flex flex-col gap-5">
           <div class="flex flex-col gap-2">
             <h2 class="text-fid-base font-medium text-fid-text">
-              Was deine Künstler sonst noch
+              {{ w.horizon.title }}
             </h2>
             <p class="max-w-prose text-fid-base text-fid-text-muted">
-              Fidelity sieht einmal nach, was deine Künstler und Labels veröffentlicht haben –
-              nicht nur, was davon bei dir steht. Damit erkennt es später andere Pressungen
-              derselben Platte, Lücken in Katalogserien und Alben, die du noch nicht kennst.
+              {{ w.horizon.about }}
             </p>
           </div>
 
@@ -300,11 +282,10 @@ const CAN_DO = [
               class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent"
               @click="step = 'credits'"
             >
-              Weiter
+              {{ w.horizon.skip }}
             </button>
             <p class="text-fid-xs text-fid-text-muted">
-              Läuft in Häppchen und übersteht ein Neuladen. Du kannst jederzeit weitergehen und
-              es später in den Einstellungen zu Ende bringen.
+              {{ w.horizon.resumable }}
             </p>
           </div>
         </section>
@@ -313,13 +294,10 @@ const CAN_DO = [
         <section v-else-if="step === 'credits'" key="credits" class="flex flex-col gap-5">
           <div class="flex flex-col gap-2">
             <h2 class="text-fid-base font-medium text-fid-text">
-              Wer hinter deinen Platten steckt
+              {{ w.credits.title }}
             </h2>
             <p class="max-w-prose text-fid-base text-fid-text-muted">
-              Aus deinen Lieblingsplatten – vier oder fünf Sterne bei Discogs – liest Fidelity
-              heraus, wer sie gemacht hat: Produzenten, Remixer, Studioleute. Wenn dieselbe
-              Person oft auftaucht, findet die App später auch Platten, auf denen sie nicht
-              vorne draufsteht.
+              {{ w.credits.about }}
             </p>
           </div>
 
@@ -331,10 +309,10 @@ const CAN_DO = [
               class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent"
               @click="step = 'fertig'"
             >
-              Weiter
+              {{ w.credits.skip }}
             </button>
             <p class="text-fid-xs text-fid-text-muted">
-              Auch das kannst du überspringen und später in den Einstellungen nachholen.
+              {{ w.credits.later }}
             </p>
           </div>
         </section>
@@ -342,12 +320,9 @@ const CAN_DO = [
         <!-- 5 · Fertig ------------------------------------------------------ -->
         <section v-else key="fertig" class="flex flex-col gap-5">
           <div class="flex flex-col gap-2">
-            <h2 class="text-fid-base font-medium text-fid-text">Fertig.</h2>
+            <h2 class="text-fid-base font-medium text-fid-text">{{ w.done.title }}</h2>
             <p v-if="library" class="max-w-prose text-fid-base text-fid-text-muted">
-              <span class="fid-num text-fid-text">{{ count(library.collection) }}</span>
-              Platten und
-              <span class="fid-num text-fid-text">{{ count(library.wantlist) }}</span>
-              Wünsche liegen jetzt auf diesem Gerät. Drei Dinge kannst du damit tun:
+              {{ w.done.summary(count(library.collection), count(library.wantlist)) }}
             </p>
           </div>
 
@@ -376,7 +351,7 @@ const CAN_DO = [
             to="/"
             class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent"
           >
-            Zur Startseite
+            {{ w.done.toStart }}
           </NuxtLink>
         </section>
       </Transition>
@@ -386,8 +361,8 @@ const CAN_DO = [
       v-if="ready && (step === 'start' || step === 'token')"
       class="text-fid-xs text-fid-text-muted"
     >
-      Schon eingerichtet?
-      <NuxtLink class="underline underline-offset-4" to="/">Zur Startseite</NuxtLink>
+      {{ w.alreadySetUp }}
+      <NuxtLink class="underline underline-offset-4" to="/">{{ w.startPage }}</NuxtLink>
     </p>
   </main>
 </template>

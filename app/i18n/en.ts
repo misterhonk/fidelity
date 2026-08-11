@@ -103,6 +103,13 @@ const en = {
     detail: 'What Discogs actually said',
     unknown: 'Something went wrong.',
 
+    /** Four failures with no code from Discogs — they get their own words. */
+    oauthMismatch: 'The provider’s answer does not belong to this request.',
+    oauthNoToken: 'The provider sent no access key.',
+    noFilePicker: 'This browser cannot pick a file.',
+    noFileChosen: 'No file chosen yet.',
+    fileUnreadable: 'The file holds no readable vault.',
+
     tokenRevoked: {
       title: 'Discogs no longer accepts the token.',
       action:
@@ -206,6 +213,138 @@ const en = {
     lastNoted: 'Noted last',
     wanted: (n: string) => `${n} wanted`,
     yourShops: 'Your shops',
+  },
+
+  /** The one next thing, on the start screen. */
+  nextStep: {
+    library: {
+      cta: 'Fetch the collection',
+      title: 'First: fetch your collection',
+      body: 'Without it Fidelity does not know what you like. A few seconds per thousand records, and afterwards it is on this device.',
+    },
+    horizon: {
+      cta: 'Build the horizon',
+      title: 'Then: build the horizon',
+      body: (minutes: number) =>
+        `Once, about ${counted(minutes, 'minute', 'minutes')}. After that every dig also recognises producers, catalogue runs and other pressings of your records.`,
+    },
+    dig: {
+      cta: 'Start a dig',
+      title: 'Now: scan the first dealer',
+      body: 'Take one you buy from anyway. Two to four minutes for twenty thousand listings, and at the end there is a list with a sentence per find.',
+    },
+  },
+
+  /** ⌘K. */
+  palette: {
+    placeholder: 'Artist, dealer, dig …',
+    nothing: 'Nothing found. Digs and dealers turn up here as soon as there are some.',
+    goTo: 'Go to',
+    dealers: 'Dealers',
+    digs: 'Digs',
+    lastDig: 'In the last dig',
+    inStore: 'In the shop',
+    affinity: (rate: string) => `${rate} finds per thousand`,
+    digHint: (matches: number, when: string) => `${matches} finds · ${when}`,
+  },
+
+  watch: {
+    whyLabel: 'How it is counted',
+    why: "The shop's total, not how many records are new — somebody who sells five and lists five has moved by zero. A dig says what of it is for you.",
+  },
+
+  catalogRun: 'Filled = on your shelf. Outlined = this record.',
+
+  credits: {
+    title: 'Who worked on this',
+    look: 'Have a look',
+    about:
+      "Discogs' greatest unused treasure: who produced, mixed or mastered. It is already in the horizon — the answer comes at once.",
+    hereOnly: (here: string) => `${here} here that you have none of yet.`,
+    youHave: (owned: string, here: string) =>
+      `You have ${owned} — this dealer has ${here} more.`,
+    records: (n: number) => counted(n, 'record', 'records'),
+  },
+
+  /** The in-store screen: one hand on a record, no signal. */
+  inStore: {
+    title: 'In the shop',
+    description: 'The list of finds for a hand in the racks — offline, big targets.',
+    back: 'Back',
+    offline: 'offline, all of it from the device',
+    /* A dig that was cut short is not a result. Standing in a shop is the worst
+     * place to be told three records are all there is, when the scan behind
+     * that number stopped halfway. */
+    interrupted: (scanned: string, total: string) =>
+      `This dig was interrupted — ${scanned} of ${total} were through. So what is here is not all of it.`,
+    noDig:
+      'No dig yet, so the list of finds stays empty. You can still search your collection and your wantlist, signal or not.',
+    expired:
+      'Older than six hours — prices and conditions may no longer be shown. The finds and their reasons stay.',
+    search: 'Artist or title',
+    searchLabel: 'Search the collection, the wantlist and the finds',
+  },
+
+  /** Where the shop list comes from. */
+  discovery: {
+    search: 'Find shops at Discogs',
+    searching: 'Looking …',
+    about:
+      'In your orders — those are the shops you have actually bought from. If you allow it in the settings, in your Discogs friends list as well. One lookup per source, then one per candidate, to see who sells at all.',
+    added: (n: number) => (n === 1 ? 'One shop added.' : `${n} shops added.`),
+    take: (n: string) => `Take ${n} over`,
+  },
+
+  /**
+   * Every evidence key the engine emits, and what it is called.
+   *
+   * The list is the allowlist: anything not in here is an internal handle
+   * (releaseId, role) and stays out of the sheet.
+   */
+  evidence: {
+    artist: 'Artist',
+    album: 'Album',
+    label: 'Label',
+    person: 'Person',
+    owned: 'on the shelf',
+    total: 'discography',
+    ownedAs: 'you have',
+    styles: 'Styles',
+    similarity: 'Closeness',
+    lift: 'Lift',
+    share: 'Share',
+    prefix: 'Series',
+    number: 'Number',
+    inRun: 'in the series',
+    wantedYear: 'wanted',
+    pressingYear: 'this pressing',
+    price: 'Price',
+    marketLowest: 'market low',
+    ratio: 'Ratio',
+    numForSale: 'for sale',
+  },
+  close: 'Close',
+  mainReleases: (n: string) => `${n} main releases`,
+
+  /** The demonstration, before anybody hands over a key. */
+  demo: {
+    title: 'Have a look first',
+    lead: 'Pick a record — Fidelity shows what fits it in the same shop. No sign-in.',
+    listing: 'A listing from Discogs',
+    look: 'Have a look',
+    orOne: 'Or one of these:',
+    moment: 'One moment …',
+    fetching: 'Fetching the record …',
+    comparing: 'Comparing …',
+    progress: 'Progress',
+    fitsAt: (dealer: string) => `At ${dealer} this fits`,
+    score: (score: number) => `Barry score ${score} out of 100`,
+    nothing:
+      'Nothing in this slice fitted. That happens: one record alone is a thin clue, and only part of the shop was read. With your collection it looks different.',
+    /* What the demonstration cannot do, and why. Without this sentence Fidelity
+     * looks thinner than it is. */
+    coverage: (scanned: string, total: string) =>
+      `${scanned} of ${total} listings were read, with one record as the clue. A dig reads the whole shop and knows your collection.`,
   },
 
   nav: {

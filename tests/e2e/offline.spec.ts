@@ -83,7 +83,7 @@ test.describe('without a connection', () => {
   /**
    * Und der Bildschirm, für den es überhaupt gebaut wurde.
    *
-   * "Im Laden" exists for a record shop in a basement: a record in your hand
+   * "In the shop" exists for a record shop in a basement: a record in your hand
    * and the question whether you already own it. Every answer it gives comes
    * out of IndexedDB, so the only thing that can stop it is the shell not
    * loading — which is precisely what this checks.
@@ -101,7 +101,7 @@ test.describe('without a connection', () => {
     try {
       await page.reload()
       await expect(page.locator('main')).toBeVisible()
-      await expect(page.getByRole('heading', { name: 'Im Laden' })).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'In the shop' })).toBeVisible()
     } finally {
       await context.setOffline(false)
     }

@@ -3,7 +3,7 @@
  *
  * `navigator.onLine` is famously optimistic — it says true for a laptop
  * connected to a router with no uplink, which is exactly the basement case
- * (docs/00 §8 Phase 4: "viele Plattenläden sind Keller ohne Empfang"). It is
+ * (docs/00 §8 phase 4: many record shops are basements with no signal). It is
  * still worth reading, because `false` is always right: no interface, no
  * network. The optimistic direction is corrected by the worker, which finds
  * out for real the moment somebody asks it for something.

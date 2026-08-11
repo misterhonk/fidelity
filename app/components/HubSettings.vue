@@ -24,7 +24,7 @@ onMounted(async () => {
 })
 
 /**
- * Nachsehen, ob auf diesem Rechner schon einer läuft.
+ * Look whether one is already running on this machine.
  *
  * Only from this screen and only while the field is empty — somebody who opened
  * the hub settings is asking exactly this question, and anywhere else it would

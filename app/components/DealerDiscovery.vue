@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DealerCandidate } from '#shared/types'
 
+const m = useMessages()
 const emit = defineEmits<{ imported: [] }>()
 
 const { call } = useFidelityWorker()
@@ -56,7 +57,7 @@ async function keep() {
   error.value = null
   try {
     const answer = await call('dealer.remember', { candidates })
-    result.value = answer.added === 1 ? 'Ein Laden dazu.' : `${answer.added} Läden dazu.`
+    result.value = m.value.discovery.added(answer.added)
     found.value = null
     emit('imported')
   } catch (cause) {
@@ -83,15 +84,13 @@ async function keep() {
           <span class="fid-num">{{ progress.total }}</span>
         </template>
       </template>
-      <template v-else>Läden bei Discogs suchen</template>
+      <template v-else>{{ m.discovery.search }}</template>
     </button>
 
     <p v-if="result" class="text-fid-sm text-fid-text-muted" aria-live="polite">{{ result }}</p>
 
     <WhyNote v-if="!found" label="Wo gesucht wird">
-      In deinen Bestellungen – das sind die Läden, bei denen du wirklich gekauft hast. Wenn du
-      es in den Einstellungen erlaubst, zusätzlich in deiner Discogs-Freundesliste. Eine Abfrage
-      je Quelle, dann eine pro Kandidat, um zu sehen wer überhaupt verkauft.
+      {{ m.discovery.about }}
     </WhyNote>
 
     <template v-if="found && found.length > 0">
@@ -116,7 +115,7 @@ async function keep() {
 
           <!--
             `min-w-0` rather than `shrink-0`: a shop's address is longer than a
-            phone is wide ("Schillergäßchen 5, 07745 Jena, Thuringia, Germany"),
+            phone is wide (a full street address with postcode and country),
             and a block that refuses to shrink cannot wrap either — it just
             leaves the card.
           -->
@@ -142,7 +141,7 @@ async function keep() {
         class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 text-fid-sm font-medium text-fid-on-accent disabled:opacity-50"
         @click="keep()"
       >
-        <span class="fid-num">{{ chosen.size }}</span> übernehmen
+        {{ m.discovery.take(count(chosen.size)) }}
       </button>
     </template>
   </section>

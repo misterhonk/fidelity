@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * Das Schild über dem Laden.
+ * The sign above the shop.
  *
  * `/users/{name}` carries an `avatar_url` and a full dig fetches that endpoint
  * anyway, so this costs nothing (`worker/dig/scan.ts`). Most shops have set a

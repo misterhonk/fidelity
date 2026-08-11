@@ -1,4 +1,5 @@
 import { openFidelityDb } from '~~/db/open'
+import { useMessages } from '~/composables/useMessages'
 
 /**
  * The vault as a file somebody else's client synchronises.
@@ -26,7 +27,7 @@ export function fileVaultAvailable(): boolean {
 /** Narrowed once, so the rest reads as if the API were simply there. */
 function picker(): NonNullable<Window['showSaveFilePicker']> {
   const fn = window.showSaveFilePicker
-  if (!fn) throw new Error('Dieser Browser kann keine Datei auswählen.')
+  if (!fn) throw new Error(useMessages().value.error.noFilePicker)
   return fn.bind(window)
 }
 
@@ -80,7 +81,7 @@ export function useVaultFile() {
    */
   async function sync(passphrase: string) {
     const handle = await storedHandle()
-    if (!handle) throw new Error('Noch keine Datei gewählt.')
+    if (!handle) throw new Error(useMessages().value.error.noFileChosen)
 
     if (!(await ensurePermission(handle))) {
       throw new Error('Der Browser hat den Zugriff auf die Datei nicht erlaubt.')

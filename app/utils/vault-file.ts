@@ -1,3 +1,4 @@
+import { useMessages } from '~/composables/useMessages'
 /**
  * What a file has to say before anything is written over it.
  *
@@ -16,7 +17,7 @@ export function readVaultFile(text: string): unknown | null {
   try {
     parsed = JSON.parse(text)
   } catch {
-    throw new Error('Die Datei enthält keinen lesbaren Tresor.')
+    throw new Error(useMessages().value.error.fileUnreadable)
   }
 
   // The envelope, checked before the passphrase is even asked for. Somebody

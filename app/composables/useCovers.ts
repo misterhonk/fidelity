@@ -1,5 +1,5 @@
 /**
- * Cover für alles, was gerade auf dem Schirm ist.
+ * Covers for whatever is on screen.
  *
  * The marketplace does not hand them over — every one of 1.200 inventory rows
  * measured on 2026-08-10 came back with an empty `release.thumbnail`, so a dig
@@ -27,7 +27,7 @@ const asked = new Set<number>()
 let inFlight: Promise<void> | null = null
 
 /**
- * Wie viele Cover ein Besuch höchstens kosten darf.
+ * How many covers a visit is allowed to cost, at most.
  *
  * Each one is a request, and a dig of four hundred matches scrolled to the end
  * would be four hundred of them — eight minutes of somebody's rate limit spent

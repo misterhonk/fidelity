@@ -8,6 +8,7 @@ import {
   tokenForm,
 } from '~/utils/cloud-vault'
 import type { CloudProvider } from '~/utils/cloud-vault'
+import { useMessages } from '~/composables/useMessages'
 
 /**
  * Dropbox and Google Drive, from a page with no server behind it.
@@ -100,7 +101,7 @@ export function useVaultCloud() {
 
     if (!verifier || !key) return null
     if (params.get('state') !== expected) {
-      throw new Error('Die Antwort des Anbieters gehört nicht zu dieser Anfrage.')
+      throw new Error(useMessages().value.error.oauthMismatch)
     }
 
     sessionStorage.removeItem(VERIFIER_KEY)

@@ -99,7 +99,7 @@ describe('the tokens that come back', () => {
   })
 
   it('refuses an answer with no access token', () => {
-    expect(() => readTokenResponse({ error: 'invalid_grant' })).toThrow('Zugriffsschlüssel')
+    expect(() => readTokenResponse({ error: 'invalid_grant' })).toThrow('no access key')
   })
 
   it('renews a minute early, because clocks disagree', () => {

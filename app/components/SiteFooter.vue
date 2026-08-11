@@ -37,7 +37,7 @@ const { version, commit } = useRuntimeConfig().public
           The commit next to the version, because the version alone cannot
           answer "is this the build I just deployed". It only moves when a
           release is cut, and a service worker can serve an older shell for as
-          long as somebody keeps tapping "Später".
+          long as somebody keeps tapping "Later".
         -->
         <span class="fid-num">
           v{{ version }}<template v-if="commit"> · {{ commit }}</template>

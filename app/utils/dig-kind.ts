@@ -1,7 +1,7 @@
 import type { Dig } from '#shared/types'
 
 /**
- * Worüber ein Dig überhaupt etwas sagen darf.
+ * What a dig is entitled to say anything about.
  *
  * A full dig read the shop, so it may speak about the shop: how much of it it
  * saw, and whether there was anything in it. A "nur das Neue" visit read what
@@ -10,7 +10,7 @@ import type { Dig } from '#shared/types'
  * stopped exactly where the known stock begins (worker/dig/scan.ts).
  *
  * Rendered with the same sentences, that came out as "0 von 0 gescannt
- * (100 %)" above "Bei diesem Händler nichts für dich" — a coverage claim and a
+ * (100 %)" above "nothing here for you at this dealer" — a coverage claim and a
  * verdict about 35.900 records, from a visit that looked at none of them.
  *
  * Named here rather than left as two conditions in a template because it is

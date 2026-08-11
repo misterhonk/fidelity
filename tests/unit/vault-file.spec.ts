@@ -29,8 +29,8 @@ describe('reading a vault file', () => {
      * step writes over the file — turning "I cannot read this" into "this is
      * gone", and the file is the only copy another device has.
      */
-    expect(() => readVaultFile('{kaputt')).toThrow('lesbaren Tresor')
-    expect(() => readVaultFile('nicht mal json')).toThrow('lesbaren Tresor')
+    expect(() => readVaultFile('{kaputt')).toThrow('no readable vault')
+    expect(() => readVaultFile('nicht mal json')).toThrow('no readable vault')
   })
 
   it('refuses a perfectly good file that is not ours', () => {

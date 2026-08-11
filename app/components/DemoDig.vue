@@ -3,15 +3,18 @@ import { describeFormat } from '#shared/format'
 
 import type { DemoProgress, DemoResult } from '~~/worker/demo'
 
+const m = useMessages()
+const { current: language } = useLanguage()
+
 /**
- * Fidelity vorführen, bevor jemand einen Schlüssel hergibt.
+ * Showing Fidelity before anybody hands over a key.
  *
  * One record goes in, and what that shop has beside it comes out — scored and
  * reasoned by the same engine a real dig uses. Nothing here is a mock-up; the
  * worker runs `evaluate` and `buildReason` over a collection of one
  * (worker/demo.ts).
  *
- * **Es sind Platten, also führt es Platten vor.** This screen was a paragraph,
+ * **They are records, so it demonstrates records.** This screen was a paragraph,
  * a form and three lines of text, on an app whose subject is sleeves — so the
  * covers now carry it and the words fit underneath. The pictures are frozen
  * into `demo-seeds.ts` rather than fetched, because nothing may run on load:
@@ -71,11 +74,11 @@ async function run(listingId: number) {
 /** What the progress means, in words rather than a bar with no scale. */
 const status = computed(() => {
   const step = progress.value
-  if (!step) return 'Einen Moment …'
-  if (step.step === 'seeds') return 'Hole die Platte …'
+  if (!step) return m.value.demo.moment
+  if (step.step === 'seeds') return m.value.demo.fetching
   if (step.step === 'shop')
     return `Lese das Sortiment – Seite ${step.done + 1} von ${step.total}`
-  return 'Vergleiche …'
+  return m.value.demo.comparing
 })
 
 /**
@@ -108,31 +111,29 @@ function shapeOf(format: string | null) {
 <template>
   <section class="@container flex flex-col gap-5">
     <div class="flex flex-col gap-1">
-      <h2 class="fid-display text-fid-xl font-bold text-fid-text">Erst ansehen</h2>
-      <p class="max-w-prose text-fid-base text-fid-text-muted">
-        Eine Platte aussuchen – Fidelity zeigt, was im selben Laden dazu passt. Ohne Anmeldung.
-      </p>
+      <h2 class="fid-display text-fid-xl font-bold text-fid-text">{{ m.demo.title }}</h2>
+      <p class="max-w-prose text-fid-base text-fid-text-muted">{{ m.demo.lead }}</p>
     </div>
 
     <ErrorNote v-if="error" :cause="error" :signed-in="false" />
 
     <!--
-      Das Feld steht oben und offen.
+      The field is at the top, and open.
 
       Es lag eine Weile zugeklappt unter den Covern — meine Entscheidung, mit
       dem Argument, dass ein Formular vor der ersten Platte alle bremst, die gar
       keinen Link dabeihaben. Zwei Dinge stimmten daran nicht. Ein `summary`
       sieht nicht nach etwas aus, das man anklicken kann, also fand es niemand;
       und wer *mit* einer Platte im Sinn kommt, ist genau der, den diese
-      Vorführung überzeugen soll — dessen Weg darf nicht hinter einer Klappe
+      demonstration is supposed to convince — their path must not sit behind a
       liegen.
 
-      Offen kostet es zwei Zeilen. Das ist billiger als eine Möglichkeit, die
+      fold. Open it costs two lines. That is cheaper than a way in that
       niemand sieht.
     -->
     <form class="flex flex-col gap-2" @submit.prevent="pastedId && run(pastedId)">
       <label class="text-fid-sm font-medium text-fid-text" for="demo-url">
-        Ein Angebot von Discogs
+        {{ m.demo.listing }}
       </label>
       <div class="flex flex-wrap gap-2">
         <input
@@ -150,15 +151,15 @@ function shapeOf(format: string | null) {
           :disabled="running || pastedId === null"
           class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
         >
-          Ansehen
+          {{ m.demo.look }}
         </button>
       </div>
     </form>
 
-    <p class="text-fid-sm text-fid-text-muted">Oder eine von diesen:</p>
+    <p class="text-fid-sm text-fid-text-muted">{{ m.demo.orOne }}</p>
 
     <!--
-      Vier Cover, und sonst nichts.
+      Four covers, and nothing else.
 
       This was a list of text buttons on a page about records. The picture is
       the invitation; the artist, the title and one measured line are what fits
@@ -166,7 +167,7 @@ function shapeOf(format: string | null) {
     -->
     <ul class="grid grid-cols-2 gap-x-3 gap-y-5 @xl:grid-cols-4">
       <!--
-        Kein Aufblenden hier, anders als in den Cover-Reihen.
+        No fade-in here, unlike in the cover rails.
 
         `fid-tile` staggers a rail into place, which is right where covers are
         decoration. These are the four things this page asks somebody to do, and
@@ -194,7 +195,7 @@ function shapeOf(format: string | null) {
             />
 
             <!--
-              Das Ladenschild auf dem Cover.
+              The shop sign, on the cover.
 
               Every one of these shops has set a real avatar rather than the
               grey default (checked 2026-08-10), so the shop is recognisable
@@ -221,15 +222,17 @@ function shapeOf(format: string | null) {
               seed.artist
             }}</span>
             <span class="truncate text-fid-sm text-fid-text-muted">{{ seed.title }}</span>
-            <span class="mt-1 text-fid-xs text-fid-text-muted">{{ seed.promise }}</span>
+            <span class="mt-1 text-fid-xs text-fid-text-muted">{{
+              seed.promise[language]
+            }}</span>
           </span>
         </button>
       </li>
     </ul>
 
     <!--
-      Der Preis wird genannt, bevor er ausgegeben wird — und währenddessen ein
-      Balken, der zeigt, wie weit es ist.
+      The cost is stated before it is spent — and while it is, a bar that shows
+      how far along it is.
 
       "Seite 3 von 5" is a fact somebody has to read and convert; a bar is the
       same fact at a glance. Half a minute of nothing moving is the difference
@@ -241,7 +244,7 @@ function shapeOf(format: string | null) {
       <div
         class="h-1 w-full overflow-hidden rounded-full bg-fid-inset"
         role="progressbar"
-        aria-label="Fortschritt"
+        :aria-label="m.demo.progress"
         :aria-valuenow="Math.round(share * 100)"
         aria-valuemin="0"
         aria-valuemax="100"
@@ -264,13 +267,11 @@ function shapeOf(format: string | null) {
           loading="lazy"
           class="size-7 shrink-0 rounded-full bg-fid-inset object-cover"
         />
-        Bei {{ result.dealer }} passt dazu
+        {{ m.demo.fitsAt(result.dealer) }}
       </h3>
 
       <p v-if="shown.length === 0" class="max-w-prose text-fid-base text-fid-text-muted">
-        In diesem Ausschnitt lag nichts, das dazu passt. Das kommt vor: eine Platte allein ist
-        ein dünner Anhaltspunkt, und gelesen wurde nur ein Teil des Ladens. Mit deiner Sammlung
-        sieht das anders aus.
+        {{ m.demo.nothing }}
       </p>
 
       <ul v-else class="grid grid-cols-2 gap-x-3 gap-y-5 @lg:grid-cols-3 @3xl:grid-cols-5">
@@ -306,7 +307,7 @@ function shapeOf(format: string | null) {
 
             <span
               class="fid-num absolute top-1.5 right-1.5 rounded-fid-sm bg-fid-n-990/80 px-2 py-1 text-fid-xs font-medium text-fid-n-50"
-              :aria-label="`Barry Score ${find.score} von 100`"
+              :aria-label="m.demo.score(find.score)"
             >
               {{ find.score }}
             </span>
@@ -328,14 +329,8 @@ function shapeOf(format: string | null) {
         </li>
       </ul>
 
-      <!--
-        Was die Vorführung nicht kann, und warum. Ohne diesen Satz sieht
-        Fidelity dünner aus, als es ist.
-      -->
-      <p class="max-w-prose text-fid-xs text-fid-text-muted">
-        Gelesen wurden <span class="fid-num">{{ count(result.scanned) }}</span> der
-        <span class="fid-num">{{ count(result.listingsTotal) }}</span> Angebote, mit einer
-        Platte als Anhaltspunkt. Ein Dig liest den ganzen Laden und kennt deine Sammlung.
+      <p class="fid-num max-w-prose text-fid-xs text-fid-text-muted">
+        {{ m.demo.coverage(count(result.scanned), count(result.listingsTotal)) }}
       </p>
     </section>
   </section>

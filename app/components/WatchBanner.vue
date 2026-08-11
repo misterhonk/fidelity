@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const m = useMessages()
+
 const { alerts, dismiss } = useWatchlist()
 </script>
 
@@ -40,9 +42,6 @@ const { alerts, dismiss } = useWatchlist()
       </li>
     </ul>
 
-    <WhyNote label="Wie gezählt wird">
-      Die Gesamtzahl des Ladens, nicht wie viele Platten neu sind – wer fünf verkauft und fünf
-      einstellt, bewegt sich um null. Ein Dig sagt, was davon für dich dabei ist.
-    </WhyNote>
+    <WhyNote :label="m.watch.whyLabel">{{ m.watch.why }}</WhyNote>
   </section>
 </template>
