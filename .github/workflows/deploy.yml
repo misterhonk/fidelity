@@ -74,6 +74,23 @@ jobs:
     # der Schlüssel, die deshalb Geheimnisse bleiben.
     environment: ${{ vars.DEPLOY_ENVIRONMENT || 'martinmelcher.de' }}
 
+    # Zwei Werte, die keine Geheimnisse sind — aber als solche angelegt werden
+    # können, weil die Oberfläche „Secrets" zuerst zeigt und „Variables" im
+    # Reiter daneben versteckt. Beides wird akzeptiert, damit niemand wegen
+    # eines Reiters eine halbe Stunde sucht.
+    #
+    # Als *Variable* sind sie trotzdem besser aufgehoben: ein Geheimnis wird von
+    # GitHub im ganzen Protokoll maskiert, und dann steht dort „Basispfad: ***"
+    # und in jeder rsync-Zeile ein Sternchen statt eines Pfades. Ein Basispfad
+    # und eine öffentliche Adresse verraten nichts — der Server-Pfad und der
+    # Schlüssel schon, und die bleiben deshalb Geheimnisse.
+    #
+    # Über `env` statt direkt an Ort und Stelle, weil `secrets` in einer
+    # `if:`-Bedingung nicht zur Verfügung steht, `env` aber schon.
+    env:
+      BASE_URL: ${{ vars.DEPLOY_BASE_URL || secrets.DEPLOY_BASE_URL || '/' }}
+      SITE_URL: ${{ vars.DEPLOY_URL || secrets.DEPLOY_URL }}
+
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
 
@@ -139,7 +156,7 @@ jobs:
       - if: steps.check.outputs.ready == 'true'
         name: Bauen, für den Pfad, unter dem es liegen wird
         env:
-          NUXT_APP_BASE_URL: ${{ vars.DEPLOY_BASE_URL || '/' }}
+          NUXT_APP_BASE_URL: ${{ env.BASE_URL }}
         run: |
           echo "Basispfad: $NUXT_APP_BASE_URL"
           pnpm build
@@ -242,9 +259,9 @@ jobs:
 
       # Nachsehen, ob die Seite danach wirklich antwortet. Ein Deployment, das
       # niemand prüft, ist eine Hoffnung.
-      - if: steps.check.outputs.ready == 'true' && vars.DEPLOY_URL != ''
+      - if: steps.check.outputs.ready == 'true' && !inputs.dry_run && env.SITE_URL != ''
         name: Antwortet sie?
         run: |
-          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "${{ vars.DEPLOY_URL }}")
-          echo "GET ${{ vars.DEPLOY_URL }} → $code"
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$SITE_URL")
+          echo "GET $SITE_URL → $code"
           [ "$code" = "200" ] || exit 1
