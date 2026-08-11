@@ -9,6 +9,22 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.8.0](https://github.com/misterhonk/fidelity/compare/v0.7.0...v0.8.0) (2026-08-11)
+
+
+### Added
+
+* **dig:** take a Discogs link where the field asked for a username ([f9f732b](https://github.com/misterhonk/fidelity/commit/f9f732b05c836c3919241600f81f52fc8a5761a8))
+* **hub:** look for one on this machine, and say when the browser forbids it ([afa4ad9](https://github.com/misterhonk/fidelity/commit/afa4ad9085466ddf31f74cd13f9996c49202487f))
+* **hub:** share the covers, since the marketplace will not hand them over ([10ae0f7](https://github.com/misterhonk/fidelity/commit/10ae0f73ebb206ad8589cfbe5dca273fb67d8014))
+* **sync:** keep the data current instead of hiding the buttons that do it ([b9b5e60](https://github.com/misterhonk/fidelity/commit/b9b5e60eee0754926e7264bdfce3739e39bb4b6c))
+* **ui:** the horizon and the credits belong in the setup, in plain words ([970e286](https://github.com/misterhonk/fidelity/commit/970e286d2e4391b8a1ba937223bdd3ce14ebf527))
+
+
+### Fixed
+
+* **hub:** say what a hub gives you, not what it does not ([eb5df94](https://github.com/misterhonk/fidelity/commit/eb5df94fb2a060dc7210564ab59b402682cf2107))
+
 ## [0.7.0](https://github.com/misterhonk/fidelity/compare/v0.6.0...v0.7.0) (2026-08-10)
 
 
