@@ -389,6 +389,70 @@ zur Sammlung – ein Parser reicht für beides.
 
 ---
 
+### Schreibzugriffe — gemessen am 2026-08-11, aus dem Browser
+
+Bis dahin hat Fidelity nur gelesen, und ob die API aus einer reinen Client-App
+überhaupt **beschreibbar** ist, war nie geprüft. Sie ist es. Alle Werte unten
+stammen aus echten Aufrufen von `http://localhost:3000` gegen
+`api.discogs.com` mit einem Personal Access Token.
+
+| Aufruf | Ergebnis | `Response.type` |
+|---|---|---|
+| `POST …/collection/folders/{f}/releases/{r}/instances/{i}` (Bewertung) | **204** | `cors` |
+| `DELETE …/collection/folders/{f}/releases/{r}/instances/{i}` | **404** bei unbekannter Instanz, mit lesbarem Fehlertext | `cors` |
+| `PUT /users/{u}/wants/{r}` | **201**, Antwortkörper mit dem Eintrag | `cors` |
+| `GET /users/{u}/collection/fields` | **200** | `cors` |
+| `GET /users/{u}/collection/value` | **200**, drei formatierte Strings | `cors` |
+
+**Der Preflight läuft durch.** `POST`, `PUT` und `DELETE` mit
+`content-type: application/json` und `authorization` lösen einen `OPTIONS`
+aus, und Discogs beantwortet ihn. Das ist die Grundlage dafür, dass die App
+schreiben kann, ohne Regel 1 (kein Backend) zu brechen.
+
+⚠️ **Eine 404 kann trotzdem ohne CORS-Header kommen.** Ein `PUT` auf
+`/wants/999999999999` scheiterte mit
+`No 'Access-Control-Allow-Origin' header is present` — dieselbe Signatur wie
+die 429 (§2). Derselbe Aufruf gegen eine **existierende** Release-ID lieferte
+sauber 201. Für den Code heißt das: ein abgelehntes `fetch()` bei einem
+Schreibvorgang bedeutet **nicht** zwingend „Rate Limit", es kann auch „gibt es
+nicht" heißen. Beides ist von außen ununterscheidbar.
+
+⚠️⚠️ **Und deshalb darf nicht jeder Schreibvorgang blind wiederholt werden.**
+Bei einem undurchsichtigen Fehler ist „hat geklappt, die Antwort kam nur nicht
+durch" von „ist nie angekommen" nicht zu trennen. Idempotente Aufrufe
+(Bewertung setzen, Feldwert setzen, `DELETE`) dürfen wiederholt werden.
+`POST …/folders/{f}/releases/{r}` — Platte aufnehmen — ist **nicht** idempotent
+und legt bei jeder Wiederholung eine weitere Instanz an. Dort wird mit
+`GET /users/{u}/collection/releases/{r}` nachgesehen statt wiederholt.
+
+### `GET /users/{u}/collection/fields`
+
+Drei Felder, bei jedem Konto dieselben IDs:
+
+| id | Name | Typ | Optionen |
+|---|---|---|---|
+| 1 | Media Condition | `dropdown` | 8 |
+| 2 | Sleeve Condition | `dropdown` | 10 |
+| 3 | Notes | `textarea` | – |
+
+Die Optionen kommen mit der Antwort. **Nicht selbst nachbilden** – Discogs
+nennt sie, und die Liste ist die einzige, die der Server akzeptiert.
+
+⚠️ **Die Feldwerte stehen in keiner Liste.** Weder
+`…/folders/0/releases`, noch `…/folders/1/releases`, noch
+`…/collection/releases/{r}` gaben ein `notes`-Feld zurück (gemessen an einem
+Konto, in dem noch kein Feldwert gesetzt ist). Vermutlich lässt Discogs das
+Feld weg, solange es leer ist — **unbestätigt**. Zu klären, sobald der erste
+Wert geschrieben wird: schreiben, zurücklesen, hier eintragen.
+
+### `GET /users/{u}/collection/value`
+
+`{"maximum":"€1,458.87","median":"€668.62","minimum":"€240.16"}` — formatierte
+Strings, keine Zahlen, Währung nach Kontoeinstellung. Zum Anzeigen gedacht,
+nicht zum Rechnen.
+
+---
+
 ## 5. Weitere Endpunkte
 
 | Endpunkt | Auth | Kosten | Nutzen für uns |
