@@ -106,6 +106,10 @@ Fertige Images, auch für **arm64** — ein Heimserver ist oft ein Raspberry Pi.
 die App auf `http://127.0.0.1:3000`, absichtlich nur lokal; `APP_BIND=0.0.0.0` gibt sie ins
 Heimnetz frei, damit auch das Telefon drankommt.
 
+> Bricht `pull` mit `unauthorized` ab, sind die Images noch privat — GHCR stellt neue
+> Pakete standardmäßig so ein. Dann geht es über den Quelltext: Repository klonen und
+> `docker compose up -d`, das baut lokal.
+
 Aktualisieren ist `pull` und `up`:
 
 ```bash

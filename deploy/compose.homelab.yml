@@ -13,6 +13,13 @@
 #   docker compose -f compose.homelab.yml up -d    und übernehmen
 #
 # Läuft ohne jede Konfiguration. Alles unten ist optional.
+#
+# ⚠️ Sollte `pull` mit "unauthorized" abbrechen, sind die Images auf GHCR noch
+#    privat — das ist dort die Voreinstellung beim ersten Veröffentlichen, und
+#    kein Fehler in dieser Datei. Der Betreiber des Repositories muss sie
+#    einmalig öffentlich schalten (GitHub → Packages → Package settings →
+#    Change visibility). Bis dahin bleibt der Weg über den Quelltext:
+#    `docker compose up -d` im geklonten Repository.
 
 name: fidelity
 
