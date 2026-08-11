@@ -28,6 +28,8 @@
  *    the words the hobby already uses.
  */
 
+import { counted } from '~/utils/plural'
+
 const en = {
   /** What the language calls itself, and the tag `Intl` formats dates with. */
   meta: {
@@ -63,6 +65,102 @@ const en = {
     nothingYet: 'Nothing fetched yet',
     off: 'Off',
     never: 'never',
+  },
+
+  /** The notices that can appear on any screen. */
+  notice: {
+    offline: {
+      title: 'No network.',
+      body: 'Your collection, the map and the last digs are on this device and keep working. What does not: new digs, syncing, market prices.',
+    },
+    install: {
+      title: 'Put it on your phone',
+      got_it: 'Got it',
+      // Safari has no `beforeinstallprompt` and never will, so this is not a
+      // prompt but a description of where the button is.
+      body_before: 'In Safari, tap',
+      share: 'Share',
+      body_middle: 'at the bottom, then',
+      addToHome: 'Add to Home Screen',
+      body_after:
+        '. After that Fidelity starts without a browser bar and works in a basement with no signal.',
+    },
+    update: {
+      title: 'A new version is ready.',
+      later: 'Later',
+      reload: 'Reload',
+    },
+  },
+
+  /**
+   * What went wrong, and what to do about it.
+   *
+   * There are exactly four ways this app fails in practice and every one of
+   * them has an answer somebody can act on. Anything else keeps its own words:
+   * a friendly wrapper around an unknown failure hides the only clue there is.
+   */
+  error: {
+    detail: 'What Discogs actually said',
+    unknown: 'Something went wrong.',
+
+    tokenRevoked: {
+      title: 'Discogs no longer accepts the token.',
+      action:
+        'It was probably withdrawn at Discogs. A new one from the developer settings is enough — your data here stays where it is.',
+    },
+    tokenUnknown: {
+      title: 'Discogs does not know this token.',
+      action:
+        'Usually something slipped while copying — a space, a missing character at the end. Fetch it again from the developer settings and paste all of it.',
+    },
+    rateLimited: {
+      title: 'Discogs is throttling.',
+      action:
+        'Sixty lookups a minute, and you share them with nobody — one or two minutes of waiting is enough. Whatever was scanned is saved.',
+    },
+    offline: {
+      title: 'Discogs cannot be reached.',
+      action:
+        'Collection, map and the last digs are on this device and keep working. New digs need a network.',
+    },
+    storageFull: {
+      title: 'No room left on this device.',
+      action:
+        'The browser will not give Fidelity more space. Old digs expire after six hours anyway; "Delete everything" on the start page clears the rest.',
+    },
+  },
+
+  /** The label on a disclosure that holds the reasoning. */
+  why: 'Why?',
+
+  /** How current everything is, and the one button that refreshes it. */
+  freshness: {
+    looking: 'Looking …',
+    nothingNew: 'Nothing new.',
+    added: (records: number) => `${counted(records, 'record', 'records')} added`,
+    alerts: (shops: number) => `${counted(shops, 'shop has', 'shops have')} something new`,
+    asOf: (when: string) => `As of ${when}`,
+    refreshAll: 'Refresh everything',
+  },
+
+  /** The one form that is on the welcome screen and in the settings. */
+  token: {
+    title: 'Enter a token',
+    lead: 'Fidelity talks to Discogs directly — with no server in between. For that it needs a personal token, which you make yourself.',
+    sampleTitle: 'What comes out of it',
+    sampleNote:
+      "Examples. A score and a sentence saying why — for every record in a dealer's stock. With your collection in place, those are your artists and your labels.",
+    step1: 'open',
+    step2: 'Click "Generate token"',
+    step3: 'Paste the token here',
+    field: 'Personal access token',
+    readsOnly: 'Fidelity only reads.',
+    readsOnlyRest:
+      'Collection, wantlist and dealer stock — nothing more. It changes nothing about your Discogs account, buys nothing and writes nothing back. Buying happens at Discogs, by you.',
+    staysHere:
+      'The token stays stored on this device and is passed to nobody — not to us either. There is no server that could receive it.',
+    checking: 'Checking …',
+    signIn: 'Sign in',
   },
 
   nav: {

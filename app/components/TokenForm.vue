@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Identity } from '#shared/types'
 
+const m = useMessages()
+
 const emit = defineEmits<{ signedIn: [Identity] }>()
 
 const { call } = useFidelityWorker()
@@ -29,15 +31,12 @@ async function submit() {
 <template>
   <form class="flex max-w-xl flex-col gap-5" @submit.prevent="submit">
     <div class="flex flex-col gap-2">
-      <h2 class="text-fid-xl font-bold text-fid-text">Token eintragen</h2>
-      <p class="text-fid-base text-fid-text-muted">
-        Fidelity spricht direkt mit Discogs – ohne Server dazwischen. Dafür braucht es einen
-        persönlichen Token, den du dir selbst erzeugst.
-      </p>
+      <h2 class="text-fid-xl font-bold text-fid-text">{{ m.token.title }}</h2>
+      <p class="text-fid-base text-fid-text-muted">{{ m.token.lead }}</p>
     </div>
 
     <!--
-      Erst das Ergebnis, dann die Frage nach dem Schlüssel.
+      The result first, then the question about the key.
 
       This screen asked for the key to somebody's Discogs account and showed
       nothing of what the app does with it — the first result came after a
@@ -49,7 +48,7 @@ async function submit() {
       keeps.
     -->
     <section class="flex flex-col gap-3 rounded-fid-md bg-fid-inset p-4">
-      <h3 class="text-fid-sm font-medium text-fid-text">Was dabei herauskommt</h3>
+      <h3 class="text-fid-sm font-medium text-fid-text">{{ m.token.sampleTitle }}</h3>
       <ul class="flex flex-col gap-3">
         <li v-for="find in SAMPLE_FINDS" :key="find.reason" class="flex items-baseline gap-3">
           <span class="fid-num shrink-0 text-fid-base font-medium text-fid-text">
@@ -59,10 +58,7 @@ async function submit() {
           <span class="min-w-0 text-fid-sm text-fid-text-muted">{{ find.reason }}</span>
         </li>
       </ul>
-      <p class="text-fid-xs text-fid-text-muted">
-        Beispiele. Eine Punktzahl, ein Satz, warum – für jede Platte im Sortiment eines
-        Händlers. Mit deiner Sammlung stehen dort deine Künstler und deine Labels.
-      </p>
+      <p class="text-fid-xs text-fid-text-muted">{{ m.token.sampleNote }}</p>
     </section>
 
     <ol class="flex list-decimal flex-col gap-1 pl-5 text-fid-sm text-fid-text-muted">
@@ -75,15 +71,15 @@ async function submit() {
         >
           discogs.com/settings/developers
         </a>
-        öffnen
+        {{ m.token.step1 }}
       </li>
-      <li>„Generate token“ klicken</li>
-      <li>Den Token hier einfügen</li>
+      <li>{{ m.token.step2 }}</li>
+      <li>{{ m.token.step3 }}</li>
     </ol>
 
     <div class="flex flex-col gap-2">
       <label class="text-fid-sm font-medium text-fid-text" for="discogs-token">
-        Personal Access Token
+        {{ m.token.field }}
       </label>
       <input
         id="discogs-token"
@@ -97,7 +93,7 @@ async function submit() {
         class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
       />
       <!--
-        Wo er liegt — und was damit passiert.
+        Where it is kept — and what is done with it.
 
         This said only where the token is kept, which answers the second
         question somebody has. The first one is "what can this thing do to my
@@ -108,14 +104,9 @@ async function submit() {
       -->
       <p id="token-hint" class="flex flex-col gap-1 text-fid-xs text-fid-text-muted">
         <span>
-          <span class="text-fid-text">Fidelity liest nur.</span> Sammlung, Wantlist und
-          Händlersortimente – mehr nicht. Es ändert nichts an deinem Discogs-Konto, kauft nichts
-          und schreibt nichts zurück. Gekauft wird bei Discogs, von dir.
+          <span class="text-fid-text">{{ m.token.readsOnly }}</span> {{ m.token.readsOnlyRest }}
         </span>
-        <span>
-          Der Token bleibt auf diesem Gerät gespeichert und wird an niemanden weitergegeben –
-          auch nicht an uns. Es gibt keinen Server, der ihn empfangen könnte.
-        </span>
+        <span>{{ m.token.staysHere }}</span>
       </p>
       <div v-if="error" id="token-error">
         <ErrorNote :cause="error" :signed-in="false" />
@@ -127,7 +118,7 @@ async function submit() {
       :disabled="busy || token.length === 0"
       class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
     >
-      {{ busy ? 'Prüfe …' : 'Anmelden' }}
+      {{ busy ? m.token.checking : m.token.signIn }}
     </button>
   </form>
 </template>

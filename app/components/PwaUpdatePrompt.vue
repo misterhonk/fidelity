@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const m = useMessages()
+
 /**
  * The other half of `registerType: 'prompt'`.
  *
@@ -16,20 +18,20 @@ const { $pwa } = useNuxtApp()
     role="status"
     class="mx-auto flex w-full max-w-[80rem] flex-wrap items-center gap-3 border-b border-fid-border bg-fid-surface-raised px-6 py-3 text-fid-sm text-fid-text"
   >
-    <p class="grow">Eine neue Version steht bereit.</p>
+    <p class="grow">{{ m.notice.update.title }}</p>
     <button
       type="button"
       class="rounded-fid-sm border border-fid-border px-3 py-2"
       @click="$pwa.cancelPrompt()"
     >
-      Später
+      {{ m.notice.update.later }}
     </button>
     <button
       type="button"
       class="rounded-fid-sm bg-fid-accent px-3 py-2 font-medium text-fid-on-accent"
       @click="$pwa.updateServiceWorker()"
     >
-      Neu laden
+      {{ m.notice.update.reload }}
     </button>
   </div>
 </template>

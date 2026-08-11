@@ -1,6 +1,8 @@
 <script setup lang="ts">
+const m = useMessages()
+
 defineProps<{
-  /** The one word on the closed state. "Warum?" unless something fits better. */
+  /** The one word on the closed state. "Why?" unless something fits better. */
   label?: string
 }>()
 
@@ -26,7 +28,7 @@ defineProps<{
     <summary
       class="fid-action w-fit cursor-pointer list-none text-fid-xs text-fid-text-muted underline decoration-dotted underline-offset-4 hover:text-fid-text"
     >
-      {{ label ?? 'Warum?' }}
+      {{ label ?? m.why }}
     </summary>
     <p class="mt-2 max-w-prose text-fid-sm text-fid-text-muted">
       <slot />

@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useSettingsMessages } from '~/i18n/settings'
+
+const st = useSettingsMessages()
+
 const emit = defineEmits<{ deleted: [] }>()
 
 const { call } = useFidelityWorker()
@@ -37,7 +41,7 @@ async function run(what: 'all' | 'dig') {
     } else {
       const latest = await call('dig.latest', undefined)
       if (!latest) {
-        error.value = 'Noch kein Dig da, den man exportieren könnte.'
+        error.value = st.value.dataPanel.noDigYet
         return
       }
       const file = await call('data.exportDig', { digId: latest.dig.id })
@@ -76,7 +80,7 @@ async function deleteAll() {
         @click="run('all')"
       >
         <FidIcon name="download" :size="16" />
-        Alles exportieren
+        {{ st.dataPanel.exportAll }}
       </button>
 
       <button
@@ -86,19 +90,11 @@ async function deleteAll() {
         @click="run('dig')"
       >
         <FidIcon name="download" :size="16" />
-        Letzten Dig als Datei
+        {{ st.dataPanel.exportDig }}
       </button>
     </div>
 
-    <!--
-      Said before the file exists, not after. Somebody who exports a dig to
-      send to a friend needs to know what is in it *while deciding to send it*.
-    -->
-    <p class="text-fid-xs text-fid-text-muted">
-      Beide Dateien enthalten weder deinen Token noch Preise oder Zustände – Marktplatzdaten
-      dürfen laut Discogs' Nutzungsbedingungen nicht weitergegeben werden. Was drinsteht: welche
-      Platten wie gut passen und warum, mit Link zum jeweiligen Angebot.
-    </p>
+    <p class="text-fid-xs text-fid-text-muted">{{ st.dataPanel.contents }}</p>
 
     <div class="flex flex-col gap-2 border-t border-fid-border pt-3">
       <button
@@ -109,14 +105,11 @@ async function deleteAll() {
         @click="confirming = true"
       >
         <FidIcon name="trash-2" :size="16" />
-        Alles löschen
+        {{ st.dataPanel.deleteAll }}
       </button>
 
       <template v-else>
-        <p class="text-fid-sm text-fid-text">
-          Löscht die ganze Datenbank auf diesem Gerät: Token, Sammlung, Horizont, Digs, Korb und
-          Bewertungen. Es gibt keine Kopie woanders und kein Zurück.
-        </p>
+        <p class="text-fid-sm text-fid-text">{{ st.dataPanel.deleteWarning }}</p>
         <div class="flex flex-wrap gap-2">
           <button
             type="button"
@@ -124,14 +117,14 @@ async function deleteAll() {
             class="rounded-fid-sm bg-fid-sig-scarcity px-4 py-2 text-fid-sm font-medium text-fid-on-accent disabled:opacity-50"
             @click="deleteAll"
           >
-            Ja, alles löschen
+            {{ st.dataPanel.deleteConfirm }}
           </button>
           <button
             type="button"
             class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
             @click="confirming = false"
           >
-            Abbrechen
+            {{ st.dataPanel.cancel }}
           </button>
         </div>
       </template>

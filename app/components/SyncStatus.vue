@@ -1,19 +1,20 @@
 <script setup lang="ts">
 import { since } from '~/utils/when'
 
+const m = useMessages()
+
 /**
- * Wie aktuell der Bestand ist — an einer Stelle, mit einem Knopf.
+ * How current everything is — in one place, with one button.
  *
  * Fidelity refreshes four different things and each button lived somewhere
- * else: the library sync in Einstellungen → Abgleich, the horizon under
- * Einstellungen → Sammlung, the watchlist nowhere at all, the market data in
- * each basket. Nothing was wrong with any of them individually; together they
- * added up to an app whose data quietly aged and never said so.
+ * else: the library sync under Settings → Sync, the horizon under Settings →
+ * Collection, the watchlist nowhere at all, the market data in each basket.
+ * Nothing was wrong with any of them individually; together they added up to an
+ * app whose data quietly aged and never said so.
  *
- * The keeper handles all three cheap ones on its own now
- * (worker/keeper.ts). This says when that last happened and gives it a handle
- * — because "es passiert von selbst" is only trustworthy when you can see it
- * having happened.
+ * The keeper handles all three cheap ones on its own now (worker/keeper.ts).
+ * This says when that last happened and gives it a handle — because "it happens
+ * by itself" is only trustworthy when you can watch it having happened.
  */
 const props = defineProps<{ collectionSyncedAt: number | null }>()
 const emit = defineEmits<{ refreshed: [] }>()
@@ -33,27 +34,27 @@ async function refreshAll() {
 }
 
 /**
- * Was gerade passiert ist, in einem Satz — oder wie alt der Stand ist.
+ * What just happened, in one sentence — or how old the state is.
  *
- * A run that changed nothing says so rather than staying silent: "nichts Neues"
+ * A run that changed nothing says so rather than staying silent: "nothing new"
  * is an answer, and a button that appears to do nothing is worse than one that
  * reports a boring result.
  */
 const note = computed(() => {
-  if (busy.value) return 'Sieht nach …'
+  const words = m.value.freshness
+  if (busy.value) return words.looking
 
   const result = last.value
   if (result?.did.length) {
     const parts: string[] = []
-    if (result.stored > 0) parts.push(counted(result.stored, 'Platte', 'Platten') + ' dazu')
-    if (result.alerts > 0)
-      parts.push(counted(result.alerts, 'Laden hat', 'Läden haben') + ' Neues')
+    if (result.stored > 0) parts.push(words.added(result.stored))
+    if (result.alerts > 0) parts.push(words.alerts(result.alerts))
     if (parts.length > 0) return parts.join(' · ')
-    return 'Nichts Neues.'
+    return words.nothingNew
   }
 
   const at = props.collectionSyncedAt
-  return at ? `Stand von ${since(at)}` : 'Noch nichts geholt'
+  return at ? words.asOf(since(at)) : m.value.common.nothingYet
 })
 </script>
 
@@ -66,7 +67,7 @@ const note = computed(() => {
       class="fid-action underline underline-offset-4 disabled:opacity-50"
       @click="refreshAll"
     >
-      Alles auffrischen
+      {{ m.freshness.refreshAll }}
     </button>
   </p>
 </template>

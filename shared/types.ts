@@ -437,13 +437,23 @@ export interface CloudTokens {
 /** Where a device keeps its snapshot. Chosen once, during setup. */
 export type VaultTarget = 'none' | 'hub' | 'file' | 'dropbox' | 'drive'
 
+/**
+ * Why a vault target cannot be used right now.
+ *
+ * A reason rather than a sentence. The worker used to return the German text
+ * straight out, which put user-facing prose in a thread that has no idea what
+ * language the interface is in — and made the message untranslatable without
+ * touching the scanner.
+ */
+export type VaultBlocked = 'no-hub' | 'signed-out' | 'not-built'
+
 export interface VaultStatus {
   target: VaultTarget
   /** Whether this device can actually use the chosen target right now. */
   ready: boolean
   lastSyncedAt: number | null
-  /** Why it cannot, in the app's voice, when it cannot. */
-  blocked: string | null
+  /** Why it cannot, when it cannot. The interface turns this into a sentence. */
+  blocked: VaultBlocked | null
 }
 
 export interface ShelfResult {

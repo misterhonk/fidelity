@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useSettingsMessages } from '~/i18n/settings'
+
+const st = useSettingsMessages()
+
 const { call } = useFidelityWorker()
 
 const url = ref('')
@@ -38,23 +42,17 @@ async function discover() {
     const found = await call('hub.discover', undefined)
     if (found.url) {
       url.value = found.url
-      hint.value = 'Auf diesem Rechner läuft einer – Adresse eingetragen. Jetzt speichern.'
+      hint.value = st.value.hubPanel.found
       return
     }
 
-    /*
-     * Der Unterschied, der zählt.
-     *
-     * Measured 2026-08-10: from an https page, Chromium reaches
-     * http://localhost and WebKit refuses it outright. On an iPhone a hub that
-     * is running perfectly well is simply unreachable this way — and "nichts
-     * gefunden" would send somebody debugging a service that has no fault.
-     */
+    // The difference that matters — the two cases are told apart in the pack,
+    // and why they must be is written there.
     hint.value = found.blockedByMixedContent
-      ? 'Hier nicht erreichbar: diese Seite läuft über HTTPS, und Safari verweigert von dort jede Verbindung zu einem unverschlüsselten localhost. In Chrome geht es. Dauerhaft hilft nur, den Hub selbst über HTTPS erreichbar zu machen.'
-      : 'Auf diesem Rechner läuft keiner. Adresse von Hand eintragen, falls er woanders steht.'
+      ? st.value.hubPanel.blockedByMixedContent
+      : st.value.hubPanel.notFound
   } catch {
-    hint.value = 'Suche nicht möglich.'
+    hint.value = st.value.hubPanel.searchFailed
   } finally {
     busy.value = false
   }
@@ -102,23 +100,16 @@ async function save() {
 <template>
   <section class="flex flex-col gap-3">
     <!--
-      Was es bringt, nicht was es nicht bringt.
+      What it gives you, not what it does not.
 
-      This said "beschleunigen kann er, tragen nichts (ADR-008)". That is the
-      rule this design is built on and it is written for us, not for anybody
-      using the app: read cold, "trägt nichts" says "it is useless", and an ADR
-      number in a sentence somebody is trying to make a decision from is noise.
+      This said "it can speed things up, it carries nothing (ADR-008)". That is
+      the rule this design is built on and it is written for us, not for anybody
+      using the app: read cold, "carries nothing" says "it is useless", and an
+      ADR number in a sentence somebody is making a decision from is noise.
     -->
-    <WhyNote label="Was ein Hub bringt">
-      Den Horizont – also alles, was Fidelity über deine Künstler und Labels herausgefunden hat
-      – muss dann nicht jedes Gerät für sich aufbauen. Was einmal drinsteht, ist auf dem
-      nächsten Gerät sofort da statt nach Minuten. Dasselbe gilt für Versandkosten pro Händler.
-      Und wenn Freunde denselben Hub benutzen, arbeitet ihr euch gegenseitig zu.
-    </WhyNote>
+    <WhyNote :label="st.hubPanel.whyLabel">{{ st.hubPanel.why }}</WhyNote>
 
-    <p class="text-fid-sm text-fid-text-muted">
-      Ohne Hub funktioniert alles genauso – er nimmt nur Wartezeit weg.
-    </p>
+    <p class="text-fid-sm text-fid-text-muted">{{ st.hubPanel.optional }}</p>
 
     <ErrorNote v-if="error" :cause="error" />
 
@@ -127,7 +118,9 @@ async function save() {
     </p>
 
     <div class="flex flex-col gap-2">
-      <label class="text-fid-sm font-medium text-fid-text" for="hub-url">Hub-URL</label>
+      <label class="text-fid-sm font-medium text-fid-text" for="hub-url">
+        {{ st.hubPanel.url }}
+      </label>
       <input
         id="hub-url"
         v-model="url"
@@ -140,7 +133,7 @@ async function save() {
       />
 
       <label class="text-fid-sm font-medium text-fid-text" for="hub-secret">
-        Geteiltes Geheimnis (falls der Hub eins verlangt)
+        {{ st.hubPanel.secret }}
       </label>
       <input
         id="hub-secret"
@@ -150,10 +143,7 @@ async function save() {
         spellcheck="false"
         class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
       />
-      <p class="text-fid-xs text-fid-text-muted">
-        Das ist <span class="text-fid-text">nicht</span> dein Discogs-Token. Der verlässt dieses
-        Gerät nie und der Hub hat keine Stelle, an der er ihn annehmen könnte.
-      </p>
+      <p class="text-fid-xs text-fid-text-muted">{{ st.hubPanel.notYourToken }}</p>
     </div>
 
     <div class="flex flex-wrap gap-2">
@@ -163,7 +153,7 @@ async function save() {
         class="rounded-fid-sm bg-fid-accent px-4 py-2 text-fid-sm font-medium text-fid-on-accent disabled:opacity-50"
         @click="save"
       >
-        Speichern
+        {{ st.hubPanel.save }}
       </button>
       <button
         type="button"
@@ -171,7 +161,7 @@ async function save() {
         class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
         @click="test"
       >
-        Verbindung testen
+        {{ st.hubPanel.test }}
       </button>
       <button
         type="button"
@@ -179,16 +169,14 @@ async function save() {
         class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
         @click="discover"
       >
-        Hier suchen
+        {{ st.hubPanel.discover }}
       </button>
     </div>
 
     <p v-if="status" class="text-fid-sm text-fid-text-muted" aria-live="polite">
-      Erreichbar · <span class="fid-num">{{ status.horizon }}</span>
-      {{ plural(status.horizon, 'Entität', 'Entitäten') }} im geteilten Horizont ·
-      <span class="fid-num">{{ status.shipping }}</span>
-      {{ plural(status.shipping, 'Versandstaffel', 'Versandstaffeln') }} ·
-      {{ status.secured ? 'mit Geheimnis gesichert' : 'offen' }}
+      {{ st.hubPanel.reachable }} · {{ st.hubPanel.horizonEntries(status.horizon) }} ·
+      {{ st.hubPanel.shippingTiers(status.shipping) }} ·
+      {{ status.secured ? st.hubPanel.secured : st.hubPanel.open }}
     </p>
   </section>
 </template>

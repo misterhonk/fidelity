@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { VaultStatus, VaultTarget } from '#shared/types'
 import { CLOUD_PROVIDERS } from '~/utils/cloud-vault'
+import { useSettingsMessages } from '~/i18n/settings'
+
+const st = useSettingsMessages()
 
 const { call } = useFidelityWorker()
 const vaultFile = useVaultFile()
@@ -40,7 +43,7 @@ onMounted(async () => {
    */
   try {
     const returned = await cloud.finish(clientIds.value[currentCloud.value ?? ''] ?? '')
-    if (returned) result.value = `Mit ${CLOUD_PROVIDERS[returned].label} verbunden.`
+    if (returned) result.value = st.value.vault.connectedTo(CLOUD_PROVIDERS[returned].label)
   } catch (cause) {
     error.value = cause
   }
@@ -79,19 +82,10 @@ const currentCloud = computed(() =>
  * it would be a setup screen that lies.
  */
 const TARGETS = computed(() => {
+  const words = st.value.vault.targets
   const list: { key: VaultTarget; label: string; hint: string; usable: boolean }[] = [
-    {
-      key: 'none',
-      label: 'Nur dieses Gerät',
-      hint: 'Nichts verlässt den Browser.',
-      usable: true,
-    },
-    {
-      key: 'hub',
-      label: 'Dein Hub',
-      hint: 'Verschlüsselt auf deinem eigenen Server. Funktioniert auf jedem Gerät.',
-      usable: true,
-    },
+    { key: 'none', ...words.none, usable: true },
+    { key: 'hub', ...words.hub, usable: true },
   ]
 
   /*
@@ -100,21 +94,11 @@ const TARGETS = computed(() => {
    * offering it would be a setup screen that lies.
    */
   if (vaultFile.available()) {
-    list.push({
-      key: 'file',
-      label: 'Datei im Sync-Ordner',
-      hint: 'In iCloud, Dropbox oder Drive. Deren Client synchronisiert, Fidelity nicht.',
-      usable: true,
-    })
+    list.push({ key: 'file', ...words.file, usable: true })
   }
 
   for (const provider of Object.values(CLOUD_PROVIDERS)) {
-    list.push({
-      key: provider.key,
-      label: provider.label,
-      hint: 'Verschlüsselt, mit deiner eigenen App-Registrierung.',
-      usable: true,
-    })
+    list.push({ key: provider.key, label: provider.label, ...words.cloud, usable: true })
   }
 
   return list
@@ -183,8 +167,8 @@ async function sync() {
           : await call('vault.sync', { passphrase: passphrase.value })
     const total = Object.values(report.counts).reduce((sum, n) => sum + n, 0)
     result.value = report.hadRemote
-      ? `Zusammengeführt: ${total} Einträge.`
-      : `Erstmals gesichert: ${total} Einträge.`
+      ? st.value.vault.merged(total)
+      : st.value.vault.firstBackup(total)
     // Out of memory the moment it is no longer needed. It is the key to
     // everything in the block and has no business sitting in a form.
     // Kept or dropped as asked, and only after a round that worked — there is
@@ -240,7 +224,9 @@ const redirectUri = computed(() =>
       </div>
     </div>
 
-    <p v-if="status.blocked" class="text-fid-sm text-fid-sig-gap">{{ status.blocked }}</p>
+    <p v-if="status.blocked" class="text-fid-sm text-fid-sig-gap">
+      {{ st.vault.blocked[status.blocked] }}
+    </p>
 
     <!--
       Your own registration, not the app's. PKCE needs no secret, so a client
@@ -250,7 +236,7 @@ const redirectUri = computed(() =>
     <div v-if="currentCloud" class="flex flex-col gap-3">
       <label class="flex flex-col gap-2">
         <span class="text-fid-sm font-medium text-fid-text">
-          Client-ID von {{ CLOUD_PROVIDERS[currentCloud].label }}
+          {{ st.vault.clientId(CLOUD_PROVIDERS[currentCloud].label) }}
         </span>
         <input
           :value="clientIds[currentCloud] ?? ''"
@@ -261,8 +247,7 @@ const redirectUri = computed(() =>
           @change="saveClientId(currentCloud, ($event.target as HTMLInputElement).value)"
         />
         <span class="text-fid-xs text-fid-text-muted">
-          {{ CLOUD_PROVIDERS[currentCloud].hint }} Als Redirect-URL trägst du
-          <span class="font-fid-mono">{{ redirectUri }}</span> ein.
+          {{ CLOUD_PROVIDERS[currentCloud].hint }} {{ st.vault.redirect(redirectUri) }}
         </span>
       </label>
 
@@ -274,16 +259,16 @@ const redirectUri = computed(() =>
           class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
           @click="link(currentCloud)"
         >
-          Mit {{ CLOUD_PROVIDERS[currentCloud].label }} verbinden
+          {{ st.vault.connect(CLOUD_PROVIDERS[currentCloud].label) }}
         </button>
         <template v-else>
-          <span class="text-fid-sm text-fid-text-muted">Verbunden.</span>
+          <span class="text-fid-sm text-fid-text-muted">{{ st.vault.connected }}</span>
           <button
             type="button"
             class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
             @click="unlink(currentCloud)"
           >
-            Trennen
+            {{ st.vault.disconnect }}
           </button>
         </template>
       </div>
@@ -296,7 +281,7 @@ const redirectUri = computed(() =>
         class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
         @click="pickFile()"
       >
-        {{ fileName ? 'Andere Datei' : 'Datei wählen' }}
+        {{ fileName ? st.vault.otherFile : st.vault.pickFile }}
       </button>
       <span v-if="fileName" class="font-fid-mono text-fid-sm text-fid-text-muted">
         {{ fileName }}
@@ -305,20 +290,14 @@ const redirectUri = computed(() =>
 
     <template v-if="canSync">
       <label class="flex flex-col gap-2">
-        <span class="text-fid-sm font-medium text-fid-text">Passphrase</span>
+        <span class="text-fid-sm font-medium text-fid-text">{{ st.vault.passphrase }}</span>
         <input
           v-model="passphrase"
           type="password"
           autocomplete="new-password"
           class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
         />
-        <!--
-          The one thing nobody can recover for you, said before it matters
-          rather than after.
-        -->
-        <span class="text-fid-xs text-fid-text-muted">
-          Auf jedem Gerät dieselbe. Sie wird nirgends gespeichert – vergessen heißt weg.
-        </span>
+        <span class="text-fid-xs text-fid-text-muted">{{ st.vault.passphraseHint }}</span>
       </label>
 
       <label class="flex items-start gap-3">
@@ -329,20 +308,12 @@ const redirectUri = computed(() =>
           @change="setRemember(($event.target as HTMLInputElement).checked)"
         />
         <span class="flex flex-col gap-1">
-          <span class="text-fid-sm text-fid-text">Auf diesem Gerät merken</span>
-          <span class="text-fid-xs text-fid-text-muted">
-            Dann gleicht sich Fidelity beim Öffnen von selbst ab.
-          </span>
+          <span class="text-fid-sm text-fid-text">{{ st.vault.remember }}</span>
+          <span class="text-fid-xs text-fid-text-muted">{{ st.vault.rememberHint }}</span>
         </span>
       </label>
 
-      <WhyNote label="Ist das nicht der Schlüssel neben dem Schloss">
-        Nein – das Schloss sitzt auf der Kopie in der Ferne. Diese Datenbank hier ist
-        unverschlüsselt und war es immer: Sammlung, Merkliste und der Discogs-Token liegen
-        längst darin. Die Passphrase daneben zu legen gibt niemandem etwas, das der Besitz des
-        Geräts nicht ohnehin gibt. Auf einem geteilten Rechner ist das eine andere Frage – dann
-        Haken weg und jedes Mal tippen.
-      </WhyNote>
+      <WhyNote :label="st.vault.rememberWhyLabel">{{ st.vault.rememberWhy }}</WhyNote>
 
       <button
         type="button"
@@ -350,22 +321,17 @@ const redirectUri = computed(() =>
         class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 text-fid-sm font-medium text-fid-on-accent disabled:opacity-50"
         @click="sync()"
       >
-        {{ busy ? 'Gleiche ab …' : status.lastSyncedAt ? 'Jetzt abgleichen' : 'Einrichten' }}
+        {{ busy ? st.vault.syncing : status.lastSyncedAt ? st.vault.syncNow : st.vault.setUp }}
       </button>
 
       <p v-if="result" class="text-fid-sm text-fid-text-muted" aria-live="polite">
         {{ result }}
       </p>
       <p v-else-if="status.lastSyncedAt" class="text-fid-sm text-fid-text-muted">
-        Zuletzt abgeglichen am {{ dayTime(status.lastSyncedAt) }}.
+        {{ st.vault.lastSynced(dayTime(status.lastSyncedAt)) }}
       </p>
     </template>
 
-    <WhyNote label="Was mitgeht und was nicht">
-      Mit: Horizont, Merkliste, Korb, Läden mit Versandstaffeln, Einstellungen. Nicht mit: dein
-      Discogs-Token – ein Zugangsschlüssel auf drei Geräten ist dreimal so viel Angriffsfläche,
-      jedes Gerät meldet sich einmal selbst an. Und keine Digs: Preise sind nach sechs Stunden
-      ohnehin gelöscht und gehören nicht auf einen Server.
-    </WhyNote>
+    <WhyNote :label="st.vault.scopeWhyLabel">{{ st.vault.scopeWhy }}</WhyNote>
   </section>
 </template>

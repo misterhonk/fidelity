@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const m = useMessages()
+
 const props = withDefaults(
   defineProps<{
     cause: unknown
@@ -35,7 +37,7 @@ const showDetail = ref(false)
         class="fid-action self-start text-fid-xs text-fid-text-muted underline underline-offset-4"
         @click="showDetail = true"
       >
-        Was Discogs genau gesagt hat
+        {{ m.error.detail }}
       </button>
       <p v-else class="font-fid-mono text-fid-xs break-all text-fid-text-muted">
         {{ explained.detail }}

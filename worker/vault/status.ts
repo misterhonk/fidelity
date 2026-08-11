@@ -1,5 +1,5 @@
 import { getPreferences, updatePreferences } from '~~/db/meta'
-import type { VaultSnapshot, VaultStatus } from '#shared/types'
+import type { VaultBlocked, VaultSnapshot, VaultStatus } from '#shared/types'
 
 import { currentIdentity } from '../auth'
 import { createHubClient } from '../hub/client'
@@ -26,10 +26,10 @@ export async function vaultStatus(): Promise<VaultStatus> {
 
   if (target === 'hub') {
     const identity = await currentIdentity()
-    const blocked = !prefs.hubUrl?.trim()
-      ? 'Kein Hub eingetragen – die Adresse steht in den Einstellungen unter Hub.'
+    const blocked: VaultBlocked | null = !prefs.hubUrl?.trim()
+      ? 'no-hub'
       : !identity
-        ? 'Erst anmelden: der Tresor gehört zu deinem Discogs-Konto.'
+        ? 'signed-out'
         : null
 
     return {
@@ -54,7 +54,7 @@ export async function vaultStatus(): Promise<VaultStatus> {
     target,
     ready: false,
     lastSyncedAt: prefs.vaultSyncedAt ?? null,
-    blocked: 'Dieses Ziel ist noch nicht gebaut.',
+    blocked: 'not-built',
   }
 }
 
@@ -116,12 +116,14 @@ export async function runVaultSync(passphrase: string): Promise<SyncReport> {
 
   const status = await vaultStatus()
   if (!status.ready || status.target === 'none') {
-    throw new Error(status.blocked ?? 'Kein Ziel eingerichtet.')
+    // Not user-facing: the sync button is disabled unless `ready`. If this
+    // ever surfaces it is a bug, and a bug report is better in one language.
+    throw new Error(`vault target not usable: ${status.blocked ?? 'none set'}`)
   }
 
   const prefs = await getPreferences()
   const identity = await currentIdentity()
-  if (!identity) throw new Error('Nicht angemeldet.')
+  if (!identity) throw new Error('not signed in')
 
   const client = createHubClient({ baseUrl: prefs.hubUrl, secret: prefs.hubSecret })
   if (!client) throw new Error('Kein Hub eingetragen.')

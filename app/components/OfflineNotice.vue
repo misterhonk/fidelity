@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const m = useMessages()
+
 const { online } = useOnline()
 
 /**
@@ -48,12 +50,9 @@ function dismissCoach() {
     >
       <p class="flex items-center gap-2 text-fid-base text-fid-text">
         <FidIcon name="wifi-off" />
-        Kein Netz.
+        {{ m.notice.offline.title }}
       </p>
-      <p class="text-fid-sm text-fid-text-muted">
-        Deine Sammlung, die Landkarte und die letzten Digs liegen auf diesem Gerät und
-        funktionieren weiter. Was nicht geht: neue Digs, Synchronisieren, Marktpreise.
-      </p>
+      <p class="text-fid-sm text-fid-text-muted">{{ m.notice.offline.body }}</p>
     </section>
 
     <section
@@ -61,19 +60,21 @@ function dismissCoach() {
       class="flex flex-col gap-2 rounded-fid-md border border-fid-border p-4"
     >
       <div class="flex flex-wrap items-baseline justify-between gap-2">
-        <p class="text-fid-base text-fid-text">Aufs Handy legen</p>
+        <p class="text-fid-base text-fid-text">{{ m.notice.install.title }}</p>
         <button
           type="button"
           class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
           @click="dismissCoach"
         >
-          Verstanden
+          {{ m.notice.install.got_it }}
         </button>
       </div>
       <p class="text-fid-sm text-fid-text-muted">
-        In Safari unten auf <span class="text-fid-text">Teilen</span> tippen, dann
-        <span class="text-fid-text">Zum Home-Bildschirm</span>. Danach startet Fidelity ohne
-        Browserleiste und läuft auch im Keller ohne Empfang.
+        {{ m.notice.install.body_before }}
+        <span class="text-fid-text">{{ m.notice.install.share }}</span>
+        {{ m.notice.install.body_middle }}
+        <span class="text-fid-text">{{ m.notice.install.addToHome }}</span
+        >{{ m.notice.install.body_after }}
       </p>
     </section>
   </div>

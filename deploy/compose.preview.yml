@@ -1,0 +1,81 @@
+# Fidelity, kurz öffentlich sichtbar — zum Draufschauen, nicht zum Betreiben.
+#
+# Zwei Betriebsarten, und der Unterschied ist der, den man beim Zuschauen
+# tatsächlich merkt:
+#
+#   Profil `built` (Vorgabe)  Der gebaute Stand aus .output/public, hinter
+#                             nginx — also genau das, was ausgeliefert würde.
+#                             Ändert sich nicht von selbst; für einen neuen
+#                             Stand `pnpm build` und `up -d --build`.
+#
+#   Profil `live`             Der Dev-Server auf dem Host. Jede Änderung an
+#                             einer Datei ist sofort im Browser, ohne Neuladen.
+#                             Zum Mitlesen, während gearbeitet wird.
+#
+#   pnpm build
+#   docker compose -f deploy/compose.preview.yml --profile built up -d --build
+#
+#   pnpm dev &                       # oder in einem eigenen Terminal
+#   docker compose -f deploy/compose.preview.yml --profile live up -d
+#
+# Die Adresse steht in den Logs des Tunnels und ändert sich bei jedem Start:
+#
+#   docker compose -f deploy/compose.preview.yml logs tunnel | grep trycloudflare
+#
+# ⚠️ **Diese Adresse ist öffentlich und ungeschützt.** Jeder, der sie hat, sieht
+#    die App. Das ist hier vertretbar und der Grund steht in ADR-007: Fidelity
+#    hat keinen Server. Was ausgeliefert wird, sind statische Dateien —
+#    dieselben, die auch im Release-Zip liegen. Sammlung, Token und Digs liegen
+#    in der IndexedDB des jeweiligen Browsers, also bei dem, der die Seite
+#    aufruft, und nicht hier. Ein Fremder auf dieser Adresse sieht die
+#    Willkommensseite und sonst nichts.
+#
+#    Trotzdem: `down`, wenn du fertig bist. Eine Adresse, die man vergisst,
+#    bleibt sonst offen.
+#
+# Warum eine eigene Datei und nicht compose.yml: die baut aus dem Quelltext für
+# die Entwicklung und hat kein Interesse an einem Tunnel. Und warum nicht
+# compose.homelab.yml: die holt fertige Images vom letzten Release — hier soll
+# genau der Stand zu sehen sein, der gerade im Arbeitsverzeichnis liegt.
+
+name: fidelity-preview
+
+services:
+  app:
+    profiles: [built]
+    build:
+      # Die Wurzel, weil das Dockerfile .output/public von dort kopiert.
+      context: ..
+      dockerfile: deploy/app.prebuilt.Dockerfile
+    restart: unless-stopped
+
+  # Der Quick Tunnel braucht kein Cloudflare-Konto und keine eigene Domain.
+  # Er meldet sich raus, bekommt eine trycloudflare.com-Adresse und hält die
+  # Verbindung von innen nach außen — es muss also nichts am Router geöffnet
+  # werden.
+  tunnel:
+    profiles: [built]
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate --url http://app:80
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  # Dasselbe, nur auf den Dev-Server auf dem Host gerichtet.
+  #
+  # `host.docker.internal` ist der Weg aus dem Container zurück auf den
+  # Rechner, auf dem er läuft. Unter Linux gibt es den Namen nicht von selbst,
+  # deshalb steht er unten ausdrücklich drin.
+  #
+  # HMR läuft mit: Vite schickt sein Update über eine WebSocket-Verbindung zur
+  # selben Adresse, die die Seite geladen hat, und Cloudflare reicht WebSockets
+  # durch. Deshalb muss der Dev-Server auf 0.0.0.0 hören — `pnpm dev --host`,
+  # sonst nimmt er nur Verbindungen von localhost an und der Container ist von
+  # außen.
+  tunnel-live:
+    profiles: [live]
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate --url http://host.docker.internal:${DEV_PORT:-3000}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    restart: unless-stopped
