@@ -9,6 +9,23 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.9.0](https://github.com/misterhonk/fidelity/compare/v0.8.0...v0.9.0) (2026-08-11)
+
+
+### Added
+
+* **deploy:** a release anybody can use without a toolchain ([6e731c3](https://github.com/misterhonk/fidelity/commit/6e731c30cb49837865ed4f0727258b2aa2976e22))
+* **deploy:** switch releases with a symlink, so nobody sees half a build ([40a2bd4](https://github.com/misterhonk/fidelity/commit/40a2bd43f17d3a4307df3c1dfc9f96123f1a462a))
+* **deploy:** three ways in, one for each kind of person ([b2c6ecb](https://github.com/misterhonk/fidelity/commit/b2c6ecb760cdb24453ecd99830f4cbb50256544d))
+* **watch:** the one job that justifies running a hub at all ([bf82b12](https://github.com/misterhonk/fidelity/commit/bf82b12cc150058043ae71c394fff6b2dd5def3e))
+
+
+### Fixed
+
+* **demo:** the paste field is visible, and above the records ([db42141](https://github.com/misterhonk/fidelity/commit/db4214162997a7f4bec2a383a61274b6ebf05e2f))
+* **deploy:** build the site once, not once per architecture ([2552268](https://github.com/misterhonk/fidelity/commit/2552268f7c270c7982cbbe5a84cee8539b3d1e2a))
+* **deploy:** the manual image run could never have pushed anything ([918de50](https://github.com/misterhonk/fidelity/commit/918de508f6ef9e828ef4d450d676a95109ecc843))
+
 ## [0.8.0](https://github.com/misterhonk/fidelity/compare/v0.7.0...v0.8.0) (2026-08-11)
 
 
