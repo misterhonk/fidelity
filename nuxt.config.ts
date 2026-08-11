@@ -83,11 +83,19 @@ export default defineNuxtConfig({
      */
     processCSSVariables: true,
     families: [
-      { name: 'General Sans', provider: 'fontshare', weights: [400, 500, 600, 700] },
+      // Presswerk — der Satz, der bleibt.
       { name: 'Switzer', provider: 'fontshare', weights: [400, 500, 600, 700] },
-      { name: 'Clash Display', provider: 'fontshare', weights: [500, 600, 700] },
-      { name: 'Array', provider: 'fontshare', weights: [400, 700] },
       { name: 'Chivo Mono', provider: 'google', weights: [400, 500, 600] },
+      { name: 'Array', provider: 'fontshare', weights: [400, 700] },
+
+      /*
+       * Kontor und Schweiz. Sie gehen mit dem Umschalter (siehe unten), und bis
+       * dahin stehen sie hier, statt still über `processCSSVariables` aus
+       * main.css aufgelesen zu werden — eine Schrift, die geladen wird, ohne
+       * dass sie jemand deklariert hat, findet niemand wieder.
+       */
+      { name: 'General Sans', provider: 'fontshare', weights: [400, 500, 600, 700] },
+      { name: 'Clash Display', provider: 'fontshare', weights: [500, 600, 700] },
       { name: 'JetBrains Mono', provider: 'google', weights: [400, 500, 600] },
     ],
   },

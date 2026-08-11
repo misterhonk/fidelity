@@ -3,156 +3,344 @@
   "color": {
     "$type": "color",
     "white": {
-      "$value": { "colorSpace": "oklch", "components": [1, 0, 0] },
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [1, 0, 0]
+      },
       "$description": "Pure white. The one surface that is not part of the warm ramp."
     },
     "n": {
       "$description": "Neutral ramp 'Karton' — warm neutral at hue 70 with minimal chroma. Paper, cardboard, inner sleeves.",
-      "50": { "$value": { "colorSpace": "oklch", "components": [0.98, 0.004, 70] } },
-      "100": { "$value": { "colorSpace": "oklch", "components": [0.955, 0.006, 70] } },
-      "200": { "$value": { "colorSpace": "oklch", "components": [0.9, 0.008, 70] } },
-      "300": { "$value": { "colorSpace": "oklch", "components": [0.82, 0.009, 70] } },
-      "400": { "$value": { "colorSpace": "oklch", "components": [0.68, 0.01, 70] } },
-      "500": { "$value": { "colorSpace": "oklch", "components": [0.56, 0.011, 70] } },
-      "600": { "$value": { "colorSpace": "oklch", "components": [0.45, 0.012, 70] } },
-      "700": { "$value": { "colorSpace": "oklch", "components": [0.34, 0.012, 70] } },
-      "800": { "$value": { "colorSpace": "oklch", "components": [0.245, 0.011, 70] } },
-      "900": { "$value": { "colorSpace": "oklch", "components": [0.18, 0.01, 70] } },
-      "950": { "$value": { "colorSpace": "oklch", "components": [0.135, 0.009, 70] } },
+      "50": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.98, 0.004, 70]
+        }
+      },
+      "100": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.955, 0.006, 70]
+        }
+      },
+      "200": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.9, 0.008, 70]
+        }
+      },
+      "300": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.82, 0.009, 70]
+        }
+      },
+      "400": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.68, 0.01, 70]
+        }
+      },
+      "500": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.56, 0.011, 70]
+        }
+      },
+      "600": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.45, 0.012, 70]
+        }
+      },
+      "700": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.34, 0.012, 70]
+        }
+      },
+      "800": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.245, 0.011, 70]
+        }
+      },
+      "900": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.18, 0.01, 70]
+        }
+      },
+      "950": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.135, 0.009, 70]
+        }
+      },
       "990": {
-        "$value": { "colorSpace": "oklch", "components": [0.105, 0.008, 70] },
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.105, 0.008, 70]
+        },
         "$description": "App background in dark mode."
       }
     },
     "accent": {
       "$description": "'Shellac' — warm amber. Label ink, valve amplifier glow, neon sign in the shop window.",
-      "400": { "$value": { "colorSpace": "oklch", "components": [0.8, 0.14, 62] } },
-      "500": { "$value": { "colorSpace": "oklch", "components": [0.74, 0.165, 58] } },
-      "600": { "$value": { "colorSpace": "oklch", "components": [0.66, 0.17, 54] } },
-      "700": { "$value": { "colorSpace": "oklch", "components": [0.56, 0.15, 52] } }
+      "400": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.8, 0.14, 62]
+        }
+      },
+      "500": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.74, 0.165, 58]
+        }
+      },
+      "600": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.66, 0.17, 54]
+        }
+      },
+      "700": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.56, 0.15, 52]
+        }
+      }
     },
     "sig": {
       "$description": "One colour per match signal. Ten colours for eleven signals — S1 and S2 (wantlist exact / other pressing) share one. All inside L 0.70–0.78 and C 0.11–0.18 so none of them outweighs the others.",
       "wantlist": {
-        "$value": { "colorSpace": "oklch", "components": [0.72, 0.17, 350] },
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.72, 0.17, 350]
+        },
         "$description": "Magenta — S1 wantlist exact, S2 other pressing."
       },
       "gap": {
-        "$value": { "colorSpace": "oklch", "components": [0.78, 0.15, 85] },
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.78, 0.15, 85]
+        },
         "$description": "Gold — S4 discography gap."
       },
       "credit": {
-        "$value": { "colorSpace": "oklch", "components": [0.75, 0.12, 190] },
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.75, 0.12, 190]
+        },
         "$description": "Teal — S8 credit graph."
       },
       "artist": {
-        "$value": { "colorSpace": "oklch", "components": [0.7, 0.14, 250] },
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.7, 0.14, 250]
+        },
         "$description": "Blue — S3 artist known."
       },
       "label": {
-        "$value": { "colorSpace": "oklch", "components": [0.7, 0.16, 300] },
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.7, 0.16, 300]
+        },
         "$description": "Violet — S5 label affinity."
       },
       "catalog": {
-        "$value": { "colorSpace": "oklch", "components": [0.74, 0.15, 150] },
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.74, 0.15, 150]
+        },
         "$description": "Green — S6 catalogue run."
       },
       "style": {
-        "$value": { "colorSpace": "oklch", "components": [0.76, 0.11, 210] },
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.76, 0.11, 210]
+        },
         "$description": "Cyan — S7 style adjacency."
       },
       "price": {
-        "$value": { "colorSpace": "oklch", "components": [0.78, 0.16, 130] },
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.78, 0.16, 130]
+        },
         "$description": "Lime — S10 price signal."
       },
       "scarcity": {
-        "$value": { "colorSpace": "oklch", "components": [0.7, 0.18, 28] },
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.7, 0.18, 28]
+        },
         "$description": "Red-orange — S11 scarcity."
       },
       "upgrade": {
-        "$value": { "colorSpace": "oklch", "components": [0.74, 0.13, 170] },
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.74, 0.13, 170]
+        },
         "$description": "Mint — S9 format upgrade."
       }
     }
   },
-
   "space": {
     "$type": "dimension",
-    "$value": { "value": 4, "unit": "px" },
+    "$value": {
+      "value": 4,
+      "unit": "px"
+    },
     "$description": "Everything is a multiple of this. Identical to Tailwind's own --spacing default, so p-4 and friends already sit on this grid."
   },
-
   "radius": {
     "$type": "dimension",
-    "sm": { "$value": { "value": 6, "unit": "px" } },
-    "md": { "$value": { "value": 10, "unit": "px" } },
-    "lg": { "$value": { "value": 16, "unit": "px" } },
+    "sm": {
+      "$value": {
+        "value": 6,
+        "unit": "px"
+      }
+    },
+    "md": {
+      "$value": {
+        "value": 10,
+        "unit": "px"
+      }
+    },
+    "lg": {
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      }
+    },
     "cover": {
-      "$value": { "value": 2, "unit": "px" },
+      "$value": {
+        "value": 2,
+        "unit": "px"
+      },
       "$description": "Covers are almost square, like real sleeves."
     }
   },
-
   "font": {
     "$type": "fontFamily",
     "sans": {
-      "$value": ["Inter Variable", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+      "$value": ["Switzer", "ui-sans-serif", "system-ui", "sans-serif"],
       "$description": "UI and body copy."
     },
     "mono": {
-      "$value": ["Geist Mono", "JetBrains Mono", "ui-monospace", "monospace"],
+      "$value": ["Chivo Mono", "ui-monospace", "monospace"],
       "$description": "Catalogue numbers, matrix/runout, prices. These are codes, not prose."
-    }
+    },
+    "$description": "Die Schriften des Satzes Presswerk. Bis zum 2026-08-11 standen hier andere als in app/assets/css/main.css — 'Geist Mono' gegen 'Chivo Mono' —, und beide waren gleichzeitig in Gebrauch: die Tailwind-Klasse font-fid-mono aus diesen Token an 21 Stellen, var(--fid-font-mono) aus main.css an einer. Die App setzte ihre Zahlen also in zwei verschiedenen Monospace-Schriften, und der Schriftsatz-Umschalter steuerte nur eine davon. Geist Mono und Inter kostete das 40 heruntergeladene Dateien für Schriften, die niemand ausgewählt hatte."
   },
-
   "text": {
     "$description": "Vier Stufen, nicht sechs. `lg` und `2xl` sind 2026-08-10 entfallen: `lg` saß mit sechzehn Verwendungen zwischen `base` und `xl`, ohne dass eine davon die Stufe brauchte, und `2xl` machte Seitentitel bei 40px lauter als alles, was darunter stand. Überschriften tragen ihre Hierarchie jetzt über Gewicht und Fläche, was auch billiger ist als eine eigene Größe. $value ist die Obergrenze; die fluid-Erweiterung trägt die clamp()-Terme. Ein rem-Term in der Mitte ist Pflicht — eine reine vw-Schriftgröße bricht den Browser-Zoom und verstößt gegen WCAG 1.4.4, deshalb weigert sich der Build, eine auszugeben.",
     "$type": "dimension",
     "xs": {
-      "$value": { "value": 0.8125, "unit": "rem" },
+      "$value": {
+        "value": 0.8125,
+        "unit": "rem"
+      },
       "$extensions": {
-        "de.fidelity.fluid": { "min": 0.75, "grow": 0.72, "slope": 0.15 }
+        "de.fidelity.fluid": {
+          "min": 0.75,
+          "grow": 0.72,
+          "slope": 0.15
+        }
       }
     },
     "sm": {
-      "$value": { "value": 0.9375, "unit": "rem" },
+      "$value": {
+        "value": 0.9375,
+        "unit": "rem"
+      },
       "$extensions": {
-        "de.fidelity.fluid": { "min": 0.875, "grow": 0.84, "slope": 0.18 }
+        "de.fidelity.fluid": {
+          "min": 0.875,
+          "grow": 0.84,
+          "slope": 0.18
+        }
       }
     },
     "base": {
-      "$value": { "value": 1.0625, "unit": "rem" },
+      "$value": {
+        "value": 1.0625,
+        "unit": "rem"
+      },
       "$extensions": {
-        "de.fidelity.fluid": { "min": 1, "grow": 0.96, "slope": 0.2 }
+        "de.fidelity.fluid": {
+          "min": 1,
+          "grow": 0.96,
+          "slope": 0.2
+        }
       }
     },
     "xl": {
-      "$value": { "value": 1.75, "unit": "rem" },
+      "$value": {
+        "value": 1.75,
+        "unit": "rem"
+      },
       "$extensions": {
-        "de.fidelity.fluid": { "min": 1.375, "grow": 1.24, "slope": 0.65 }
+        "de.fidelity.fluid": {
+          "min": 1.375,
+          "grow": 1.24,
+          "slope": 0.65
+        }
       }
     }
   },
-
   "elev": {
     "$description": "Elevation in dark mode comes from lightness, not from drop shadows. These two are the only shadows in the system.",
     "$type": "shadow",
     "1": {
       "$value": {
-        "offsetX": { "value": 0, "unit": "px" },
-        "offsetY": { "value": 1, "unit": "px" },
-        "blur": { "value": 2, "unit": "px" },
-        "spread": { "value": 0, "unit": "px" },
-        "color": { "colorSpace": "oklch", "components": [0, 0, 0], "alpha": 0.28 }
+        "offsetX": {
+          "value": 0,
+          "unit": "px"
+        },
+        "offsetY": {
+          "value": 1,
+          "unit": "px"
+        },
+        "blur": {
+          "value": 2,
+          "unit": "px"
+        },
+        "spread": {
+          "value": 0,
+          "unit": "px"
+        },
+        "color": {
+          "colorSpace": "oklch",
+          "components": [0, 0, 0],
+          "alpha": 0.28
+        }
       }
     },
     "2": {
       "$value": {
-        "offsetX": { "value": 0, "unit": "px" },
-        "offsetY": { "value": 4, "unit": "px" },
-        "blur": { "value": 14, "unit": "px" },
-        "spread": { "value": 0, "unit": "px" },
-        "color": { "colorSpace": "oklch", "components": [0, 0, 0], "alpha": 0.34 }
+        "offsetX": {
+          "value": 0,
+          "unit": "px"
+        },
+        "offsetY": {
+          "value": 4,
+          "unit": "px"
+        },
+        "blur": {
+          "value": 14,
+          "unit": "px"
+        },
+        "spread": {
+          "value": 0,
+          "unit": "px"
+        },
+        "color": {
+          "colorSpace": "oklch",
+          "components": [0, 0, 0],
+          "alpha": 0.34
+        }
       }
     }
   }
