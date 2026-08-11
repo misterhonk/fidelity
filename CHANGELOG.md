@@ -9,6 +9,25 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.11.0](https://github.com/misterhonk/fidelity/compare/v0.10.0...v0.11.0) (2026-08-11)
+
+
+### Added
+
+* **deploy:** a dry run that writes nothing, and a base path that is not the root ([e125ae2](https://github.com/misterhonk/fidelity/commit/e125ae2a48a386d9b398b8ae8a466ae0c204ce35))
+* **ui:** sort the shelf in both directions ([f691833](https://github.com/misterhonk/fidelity/commit/f6918331740691fc48524f9e1b0454c751dc0cba))
+
+
+### Fixed
+
+* **deploy:** keep the last three releases, not three arbitrary ones ([1d83d5d](https://github.com/misterhonk/fidelity/commit/1d83d5d45c5fc8fcfe3323b8d1383812d222548c))
+* **deploy:** name the environment, or the secrets stay invisible ([fd5f152](https://github.com/misterhonk/fidelity/commit/fd5f1521253a19afd85f2e5dfb9f5474b253a2d7))
+* **deploy:** RewriteBase, or Apache puts the filesystem in the address bar ([d07e7fb](https://github.com/misterhonk/fidelity/commit/d07e7fbd8b2324f39ab4cfbed17ef8f0a5019d90))
+* **deploy:** say 'delivered but unreachable' instead of just failing ([4dea143](https://github.com/misterhonk/fidelity/commit/4dea1439eac9a89ca4a7b8ca0d66e31c917d99ca))
+* **deploy:** take the base path from a variable or a secret ([0c584ce](https://github.com/misterhonk/fidelity/commit/0c584ce837fe171d57230a50960589db2addf801))
+* **pwa:** the built page had no title element at all ([498a0e8](https://github.com/misterhonk/fidelity/commit/498a0e801cdc6315eb1ec8fc7c191fe17d307576))
+* **pwa:** the install sheet never saw the manifest, so it drew a W ([54f50e3](https://github.com/misterhonk/fidelity/commit/54f50e39c1405adc4d481c199ffc5b402d611aaa))
+
 ## [0.10.0](https://github.com/misterhonk/fidelity/compare/v0.9.0...v0.10.0) (2026-08-11)
 
 
