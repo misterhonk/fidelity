@@ -89,8 +89,19 @@ Vollständig: `docs/02-DISCOGS-API.md`.
 
 ## Codekonventionen
 
-**Sprache:** Code, Kommentare, Commits, Variablennamen: **Englisch**.
-Nutzersichtbare Texte und Projektdokumentation: **Deutsch**.
+**Sprache: Englisch — überall.** Code, Kommentare, Commits, Variablennamen,
+**nutzersichtbare Texte und Adressen**. Deutsch ist eine Übersetzung, keine Grundlage.
+
+Das war bis zum 2026-08-11 anders und ist mit [ADR-010](docs/adr/010-englisch-als-grundsprache.md)
+umgestellt: seit das Repository öffentlich ist, schließt eine deutsche Oberfläche mit
+deutschen Adressen jeden aus, der kein Deutsch spricht — er kann den Code lesen und trotzdem
+nicht herausfinden, was ein Bildschirm verspricht.
+
+- Oberfläche: Englisch ist die Vorgabe, Deutsch wird angeboten und bei passendem
+  `navigator.language` automatisch gewählt.
+- Adressen: englisch, ohne Sprach-Präfix. Die Sprache ist eine Einstellung, keine Route.
+- `docs/` ist noch deutsch und wird es zuletzt. Neue Dokumente dort dürfen deutsch sein,
+  neue Kommentare im Code **nicht**.
 
 ```
 worker/discogs/    Der einzige Ort, an dem fetch() gegen Discogs stattfindet.
@@ -128,7 +139,7 @@ docs(api): document the 10k pagination wall
 ```
 
 Scopes: `dig` `match` `discogs` `horizon` `auth` `basket` `watch` `dealers` `hub` `demo`
-`sync` `ui` `db` `pwa` `deploy` `deps`
+`sync` `ui` `i18n` `db` `pwa` `deploy` `deps`
 
 Releases macht `release-please`. **Version niemals von Hand hochsetzen**,
 **CHANGELOG.md niemals direkt für ein Release editieren** – nur im Release-PR nachschärfen.

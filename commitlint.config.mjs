@@ -38,13 +38,15 @@ export default {
         'auth',
         'basket',
         'watch',
-        // Der Händler-Import und alles, was die Ladenliste pflegt.
+        // The dealer import and everything that keeps the shop list.
         'dealers',
         'hub',
-        // Fidelity ohne Token: die Vorführung an ein, zwei Platten.
+        // Fidelity without a token: the demonstration on one or two records.
         'demo',
         'sync',
         'ui',
+        // Languages: message packs, the switch, translated routes (ADR-010).
+        'i18n',
         'db',
         'pwa',
         'deploy',
