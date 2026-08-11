@@ -45,21 +45,6 @@ const en = {
         `On this device that is ${resolved === 'dark' ? 'dark' : 'light'} right now.`,
     },
 
-    type: {
-      title: 'Type',
-      about: 'Three sets. Switch, then walk through one list.',
-      // The set names are names. They do not translate.
-      presswerk: 'Narrow and technical, like the lettering on a record spine.',
-      kontor: 'Rounder and warmer. Headings carry more weight.',
-      schweiz: 'No display face — hierarchy from size and weight alone.',
-      /**
-       * The specimen under the three options: a heading, a line of prose and
-       * the numerals, which are what this app mostly sets.
-       */
-      specimen:
-        'You own 5 records by Robag Wruhme — not this one. Style fits (Minimal), and only 3 are for sale.',
-    },
-
     language: {
       title: 'Language',
       about: 'Picked from your device the first time. Change it here and it stays changed.',
@@ -505,16 +490,6 @@ const de: typeof en = {
       dark: { label: 'Dunkel', about: 'Die Voreinstellung. Cover leuchten auf dunklem Grund.' },
       following: (resolved) =>
         `Auf diesem Gerät gerade ${resolved === 'dark' ? 'dunkel' : 'hell'}.`,
-    },
-
-    type: {
-      title: 'Schrift',
-      about: 'Drei Sätze. Umschalten und einmal durch die Listen gehen.',
-      presswerk: 'Schmal und technisch, wie die Schrift auf einem Plattenrücken.',
-      kontor: 'Runder und wärmer. Überschriften bekommen mehr Gewicht.',
-      schweiz: 'Ohne eigene Schrift für Überschriften – Hierarchie nur über Größe und Gewicht.',
-      specimen:
-        'Du hast 5 Platten von Robag Wruhme – diese nicht. Außerdem: Stil passt (Minimal), nur 3 im Angebot.',
     },
 
     language: {

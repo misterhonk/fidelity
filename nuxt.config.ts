@@ -83,20 +83,18 @@ export default defineNuxtConfig({
      */
     processCSSVariables: true,
     families: [
-      // Presswerk — der Satz, der bleibt.
+      /*
+       * Drei Schnitte, und das ist die vollständige Liste.
+       *
+       * Es waren sechs, für drei umschaltbare Sätze. Der Umschalter ist am
+       * 2026-08-11 gefallen — die Wahl war getroffen —, und mit ihm General
+       * Sans, Clash Display und JetBrains Mono. Jede Familie hier ist eine
+       * Stelle, an der ein Build von einem Dritten abhängt: an einem Tag ist
+       * genau daran dreimal ein Lauf gescheitert.
+       */
       { name: 'Switzer', provider: 'fontshare', weights: [400, 500, 600, 700] },
       { name: 'Chivo Mono', provider: 'google', weights: [400, 500, 600] },
       { name: 'Array', provider: 'fontshare', weights: [400, 700] },
-
-      /*
-       * Kontor und Schweiz. Sie gehen mit dem Umschalter (siehe unten), und bis
-       * dahin stehen sie hier, statt still über `processCSSVariables` aus
-       * main.css aufgelesen zu werden — eine Schrift, die geladen wird, ohne
-       * dass sie jemand deklariert hat, findet niemand wieder.
-       */
-      { name: 'General Sans', provider: 'fontshare', weights: [400, 500, 600, 700] },
-      { name: 'Clash Display', provider: 'fontshare', weights: [500, 600, 700] },
-      { name: 'JetBrains Mono', provider: 'google', weights: [400, 500, 600] },
     ],
   },
 

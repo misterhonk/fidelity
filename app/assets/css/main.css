@@ -29,40 +29,29 @@
 }
 
 /*
- * Three type sets, switchable at any time.
+ * Eine Schrift, und zwar diese.
  *
- * Choosing a typeface from a specimen is choosing it in the wrong place. What
- * matters is a hit list at 13px, a shelf of catalogue numbers and a headline
- * over a dark screen — so all three ship and `data-type` on <html> picks one.
- * They stayed in after the decision because a collection looks different on a
- * Tuesday than it did when the choice was made.
+ * Bis zum 2026-08-11 waren es drei umschaltbare Sätze — Presswerk, Kontor,
+ * Schweiz —, damit man sie an echten Daten vergleichen konnte, statt an einem
+ * Schriftmuster zu entscheiden. Der Vergleich hat stattgefunden und ist
+ * ausgegangen: Presswerk bleibt. Array ist schmal wie die Prägung auf einem
+ * Plattenrücken, und das ist die Art Überschrift, die diese App tatsächlich
+ * setzt.
  *
- * Everything below resolves through --fid-font-*, which is where the tokens
- * put it. No component names a typeface.
+ * Die anderen beiden kosteten drei Schriftfamilien, die niemand mehr auswählen
+ * kann — und weil sie zur Bauzeit von Google und Fontshare geholt werden, war
+ * jede davon eine Stelle, an der ein Release scheitern konnte. Genau das ist an
+ * einem Tag dreimal passiert.
+ *
+ * Alles unten resolviert über --fid-font-*, wo die Token die Typografie
+ * ablegen. Keine Komponente nennt eine Schrift beim Namen; das bleibt so, damit
+ * ein späterer Wechsel wieder eine Datei ist und nicht dreißig.
  */
-:root,
-:root[data-type='presswerk'] {
-  /* The default. Array is condensed like the type printed on a record spine,
-     which is the kind of headline this app actually sets. */
+:root {
+  /* Array ist schmal wie die Prägung auf einem Plattenrücken. */
   --fid-font-sans: 'Switzer', ui-sans-serif, system-ui, sans-serif;
   --fid-font-mono: 'Chivo Mono', ui-monospace, monospace;
   --fid-font-display: 'Array', var(--fid-font-sans);
-}
-
-:root[data-type='kontor'] {
-  /* Rounder and warmer. Clash Display gives headlines weight where Array
-     gives them narrowness. */
-  --fid-font-sans: 'General Sans', ui-sans-serif, system-ui, sans-serif;
-  --fid-font-mono: 'Chivo Mono', ui-monospace, monospace;
-  --fid-font-display: 'Clash Display', var(--fid-font-sans);
-}
-
-:root[data-type='schweiz'] {
-  /* The orthodox one. No display face at all — hierarchy through weight and
-     space, which is the Rams answer to "we need something with character". */
-  --fid-font-sans: 'Switzer', ui-sans-serif, system-ui, sans-serif;
-  --fid-font-mono: 'JetBrains Mono', ui-monospace, monospace;
-  --fid-font-display: 'Switzer', ui-sans-serif, system-ui, sans-serif;
 }
 
 body {

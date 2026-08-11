@@ -11,7 +11,6 @@ useSeoMeta({ title: () => st.value.title })
 const { identity, load } = useIdentity()
 const { call } = useFidelityWorker()
 const { preference: theme } = useTheme()
-const { current: typeset, sets } = useTypeset()
 
 const stats = ref<Awaited<ReturnType<typeof call<'db.stats'>>> | null>(null)
 const vault = ref<VaultStatus | null>(null)
@@ -92,9 +91,11 @@ const hub = computed(() => {
 })
 
 const appearance = computed(() => {
+  // Sprache und Thema. Die Schrift stand hier auch einmal — sie war das
+  // dritte, das man einstellen konnte, und ist es seit dem 2026-08-11 nicht
+  // mehr.
   const themeLabel = st.value.appearance.theme[theme.value].label
-  const typeLabel = sets.find((entry) => entry.key === typeset.value)?.label ?? ''
-  return `${m.value.meta.name} · ${themeLabel} · ${typeLabel}`
+  return `${m.value.meta.name} · ${themeLabel}`
 })
 
 /**

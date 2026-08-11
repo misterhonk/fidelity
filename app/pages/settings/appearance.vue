@@ -30,13 +30,5 @@ useSeoMeta({ title: () => st.value.appearance.title })
       <h2 class="text-fid-base font-medium text-fid-text">{{ st.appearance.theme.title }}</h2>
       <ThemePicker />
     </section>
-
-    <hr class="border-fid-border" />
-
-    <section class="flex flex-col gap-3">
-      <h2 class="text-fid-base font-medium text-fid-text">{{ st.appearance.type.title }}</h2>
-      <p class="text-fid-sm text-fid-text-muted">{{ st.appearance.type.about }}</p>
-      <TypesetPicker />
-    </section>
   </SettingsPage>
 </template>
