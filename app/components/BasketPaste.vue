@@ -4,6 +4,7 @@ import type { PasteProgress } from '#shared/protocol'
 import { useBasketMessages } from '~/i18n/basket'
 
 const b = useBasketMessages()
+const m = useMessages()
 /**
  * Der Weg aus dem Discogs-Warenkorb hierher.
  *
@@ -25,7 +26,14 @@ const progress = ref<PasteProgress | null>(null)
 const outcome = ref<string | null>(null)
 const error = ref<unknown>(null)
 
-/** What the button will cost, counted before it is pressed as everywhere else. */
+/**
+ * What the button will cost, counted before it is pressed as everywhere else.
+ *
+ * Named `count`, which shadows the shared number formatter of the same name for
+ * the whole file. Harmless until somebody reaches for the formatter here and
+ * gets a ComputedRef instead — which is exactly what happened on 2026-08-11,
+ * and what `pnpm typecheck` caught in the same minute.
+ */
 const count = computed(
   () => (input.value.match(/\/sell\/item\/\d+|^\s*\d{7,}\s*$/gm) ?? []).length,
 )
@@ -84,8 +92,7 @@ async function paste() {
     <p v-if="busy" class="text-fid-sm text-fid-text-muted" aria-live="polite">
       {{ b.paste.fetching }}
       <template v-if="progress">
-        <span class="fid-num">{{ progress.done }}</span> von
-        <span class="fid-num">{{ progress.total }}</span>
+        {{ m.common.ofTotal(progress.done, progress.total) }}
       </template>
     </p>
     <p v-else-if="outcome" class="text-fid-sm text-fid-text-muted" aria-live="polite">

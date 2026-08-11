@@ -33,6 +33,13 @@ const de: Messages = {
     nothingYet: 'Noch nichts geholt',
     off: 'Aus',
     never: 'noch nie',
+    ofTotal: (done: string | number, total: string | number) => `${done} von ${total}`,
+    loading: 'Wird geladen …',
+    asking: 'Frage nach …',
+    searching: 'Suche …',
+    save: 'Speichern',
+    to: 'bis',
+    etaLeft: (clock: string) => `· noch ca. ${clock}`,
   },
 
   notice: {
@@ -173,6 +180,8 @@ const de: Messages = {
     lastNoted: 'Zuletzt notiert',
     wanted: (n) => `${n} Wünsche`,
     yourShops: 'Deine Läden',
+    forSale: (n: string) => `${n} im Angebot`,
+    whatIsHere: 'Was hier liegt',
   },
 
   nextStep: {
@@ -211,6 +220,12 @@ const de: Messages = {
   watch: {
     whyLabel: 'Wie gezählt wird',
     why: 'Die Gesamtzahl des Ladens, nicht wie viele Platten neu sind – wer fünf verkauft und fünf einstellt, bewegt sich um null. Ein Dig sagt, was davon für dich dabei ist.',
+    sinceLastVisit: 'Seit deinem letzten Besuch',
+    moreListings: (n: number, one: boolean) =>
+      `${one ? 'Listing' : 'Listings'} mehr im Angebot als beim letzten Mal.`,
+    read: 'Gelesen',
+    moved: (n: string, one: boolean) =>
+      `hat ${n} ${one ? 'Listing' : 'Listings'} mehr im Angebot als beim letzten Mal.`,
   },
 
   catalogRun: 'Ausgefüllt = im Regal. Umrandet = diese Platte.',
@@ -240,6 +255,10 @@ const de: Messages = {
     searchLabel: 'Sammlung, Wantlist und die Fundliste durchsuchen',
     finds: (n: number) => `${n} Treffer`,
     wrong: 'Danebengegriffen',
+    notInLibrary: 'Weder in deiner Sammlung noch auf der Wantlist',
+    norLastDig: '– und der letzte Dig kennt sie auch nicht',
+    nothingByName: 'Nichts dabei mit diesem Namen.',
+    pressings: (n: number) => `${n} Pressungen`,
   },
 
   discovery: {
@@ -249,6 +268,8 @@ const de: Messages = {
       'In deinen Bestellungen – das sind die Läden, bei denen du wirklich gekauft hast. Wenn du es in den Einstellungen erlaubst, zusätzlich in deiner Discogs-Freundesliste. Eine Abfrage je Quelle, dann eine pro Kandidat, um zu sehen wer überhaupt verkauft.',
     added: (n) => (n === 1 ? 'Ein Laden dazu.' : `${n} Läden dazu.`),
     take: (n) => `${n} übernehmen`,
+    listings: (n: string) => `${n} Listings`,
+    alreadyThere: 'schon dabei',
   },
 
   evidence: {
@@ -293,6 +314,7 @@ const de: Messages = {
     coverage: (scanned, total) =>
       `Gelesen wurden ${scanned} der ${total} Angebote, mit einer Platte als Anhaltspunkt. Ein Dig liest den ganzen Laden und kennt deine Sammlung.`,
     shopLogo: (dealer: string) => `${dealer}, Ladenschild`,
+    takesAMinute: 'Dauert eine knappe Minute.',
   },
 
   nav: {
@@ -304,6 +326,11 @@ const de: Messages = {
     dealers: { label: 'Läden', hint: 'Bei wem du kaufst' },
     settings: { label: 'Einstellungen', hint: 'Token, Abgleich, Darstellung' },
     inBasket: (count) => `${count} im Korb`,
+    attribution: 'Daten von Discogs',
+    disclaimer:
+      'Diese Anwendung nutzt die Discogs-API, steht aber in keiner Verbindung zu Discogs, wird von Discogs weder unterstützt noch empfohlen. „Discogs" ist eine Marke von Zink Media, LLC.',
+    privacy: 'Datenschutz',
+    legal: 'Impressum',
   },
 }
 

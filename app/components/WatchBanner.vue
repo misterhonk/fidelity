@@ -20,14 +20,14 @@ const { alerts, dismiss } = useWatchlist()
   >
     <div class="flex flex-wrap items-baseline justify-between gap-2">
       <h2 id="watch-banner" class="text-fid-base font-medium text-fid-text">
-        Seit deinem letzten Besuch
+        {{ m.watch.sinceLastVisit }}
       </h2>
       <button
         type="button"
         class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
         @click="dismiss()"
       >
-        Gelesen
+        {{ m.watch.read }}
       </button>
     </div>
 
@@ -36,9 +36,7 @@ const { alerts, dismiss } = useWatchlist()
         <NuxtLink class="underline underline-offset-4" :to="`/dig?dealer=${alert.dealer}`">
           {{ alert.dealer }}
         </NuxtLink>
-        hat <span class="fid-num">{{ count(alert.newListings) }}</span>
-        {{ alert.newListings === 1 ? 'Listing' : 'Listings' }} mehr im Angebot als beim letzten
-        Mal.
+        {{ m.watch.moved(count(alert.newListings), alert.newListings === 1) }}
       </li>
     </ul>
 

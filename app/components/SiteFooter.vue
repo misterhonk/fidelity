@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const m = useMessages()
 const { version, commit } = useRuntimeConfig().public
 </script>
 
@@ -21,18 +22,19 @@ const { version, commit } = useRuntimeConfig().public
           target="_blank"
           rel="noopener"
         >
-          Data provided by Discogs
+          {{ m.nav.attribution }}
         </a>
       </p>
 
       <p class="text-fid-xs text-fid-text-muted">
-        This application uses Discogs' API but is not affiliated with, sponsored or endorsed by
-        Discogs. "Discogs" is a trademark of Zink Media, LLC.
+        {{ m.nav.disclaimer }}
       </p>
 
       <p class="flex flex-wrap gap-x-4 gap-y-1 text-fid-xs text-fid-text-muted">
-        <NuxtLink class="underline underline-offset-4" to="/privacy">Datenschutz</NuxtLink>
-        <NuxtLink class="underline underline-offset-4" to="/legal">Impressum</NuxtLink>
+        <NuxtLink class="underline underline-offset-4" to="/privacy">{{
+          m.nav.privacy
+        }}</NuxtLink>
+        <NuxtLink class="underline underline-offset-4" to="/legal">{{ m.nav.legal }}</NuxtLink>
         <!--
           The commit next to the version, because the version alone cannot
           answer "is this the build I just deployed". It only moves when a

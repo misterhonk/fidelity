@@ -22,6 +22,10 @@ const en = {
     'No network — a new dig is not possible right now. The last one is below and is complete.',
 
   resume: 'Carry on with the dig',
+  interrupted: (dealer: string, scanned: string, total: string) =>
+    `A dig at ${dealer} was interrupted — ${scanned} of ${total} were through.`,
+  matchCount: (n: string) => `${n} finds`,
+  allFindsHeading: 'All finds',
   listings: (n: string) => `has ${n} listings`,
   truncated: (reachable: string, percent: number) =>
     `An ordinary dig reaches at most ${reachable} of them — that is ${percent} %.`,
@@ -113,6 +117,7 @@ const en = {
       year: { label: 'Year ↓', about: 'Newest first' },
       artist: { label: 'Artist', about: 'Alphabetical' },
     },
+    nothingMatches: 'Nothing matches this selection.',
   },
 
   /**
@@ -158,6 +163,7 @@ const en = {
      */
     basketAdd: 'To basket',
     basketIn: 'In basket',
+    inRunOut: 'in the run-out',
   },
 
   /**
@@ -196,6 +202,10 @@ const de: typeof en = {
     'Kein Netz – ein neuer Dig geht gerade nicht. Der letzte steht unten und ist vollständig.',
 
   resume: 'Dig fortsetzen',
+  interrupted: (dealer: string, scanned: string, total: string) =>
+    `Ein Dig bei ${dealer} wurde unterbrochen – ${scanned} von ${total} waren durch.`,
+  matchCount: (n: string) => `${n} Treffer`,
+  allFindsHeading: 'Alle Treffer',
   listings: (n) => `hat ${n} Listings`,
   truncated: (reachable, percent) =>
     `Ein normaler Dig kommt an höchstens ${reachable} davon heran – das sind ${percent} %.`,
@@ -270,6 +280,7 @@ const de: typeof en = {
       year: { label: 'Jahr ↓', about: 'Neueste zuerst' },
       artist: { label: 'Künstler', about: 'Alphabetisch' },
     },
+    nothingMatches: 'Nichts passt zu dieser Auswahl.',
   },
 
   match: {
@@ -288,6 +299,7 @@ const de: typeof en = {
     outOfBasket: 'Aus dem Korb nehmen',
     basketAdd: 'In den Korb',
     basketIn: 'Im Korb',
+    inRunOut: 'im Auslauf',
   },
 
   sheet: {

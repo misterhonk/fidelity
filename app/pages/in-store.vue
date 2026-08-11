@@ -124,7 +124,7 @@ const expired = computed(() => {
       </NuxtLink>
     </div>
 
-    <p v-if="loading" class="text-fid-base text-fid-text-muted">Wird geladen …</p>
+    <p v-if="loading" class="text-fid-base text-fid-text-muted">{{ m.common.loading }}</p>
 
     <template v-else>
       <p v-if="result" class="text-fid-sm text-fid-text-muted">
@@ -232,22 +232,22 @@ const expired = computed(() => {
               the only one there is.
             -->
             <span v-if="hit.pressings !== null" class="fid-num">
-              {{ hit.pressings }} Pressungen
+              {{ m.inStore.pressings(hit.pressings) }}
             </span>
           </span>
         </li>
       </ul>
 
       <p v-if="nothingAnywhere" class="text-fid-base text-fid-text-muted">
-        Weder in deiner Sammlung noch auf der Wantlist<template v-if="result">
-          – und der letzte Dig kennt sie auch nicht</template
+        {{ m.inStore.notInLibrary
+        }}<template v-if="result"> {{ m.inStore.norLastDig }}</template
         >.
       </p>
       <p
         v-else-if="matches.length === 0 && (!shelf || shelf.hits.length === 0)"
         class="text-fid-base text-fid-text-muted"
       >
-        Nichts dabei mit diesem Namen.
+        {{ m.inStore.nothingByName }}
       </p>
 
       <ul v-else class="flex flex-col gap-2">

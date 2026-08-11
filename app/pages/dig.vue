@@ -23,6 +23,7 @@ const { failure: judgeFailure, load: loadFeedback } = useFeedback()
 const { failure: basketFailure, load: loadBasket } = useBasket()
 const route = useRoute()
 const router = useRouter()
+const m = useMessages()
 
 const dealer = ref('')
 const preflight = ref<DigPreflight | null>(null)
@@ -399,9 +400,13 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
       class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
     >
       <p class="text-fid-base text-fid-text">
-        Ein Dig bei <span class="font-medium">{{ resumable.dealer }}</span> wurde unterbrochen –
-        <span class="fid-num">{{ count(resumable.listingsScanned) }}</span> von
-        <span class="fid-num">{{ count(resumable.listingsTotal) }}</span> waren durch.
+        {{
+          d.interrupted(
+            resumable.dealer,
+            count(resumable.listingsScanned),
+            count(resumable.listingsTotal),
+          )
+        }}
       </p>
       <button
         type="button"
@@ -529,14 +534,13 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
         orderings and not stuck.
       -->
       <p class="text-fid-sm text-fid-text-muted">
-        <span class="fid-num">{{ count(progress.unique) }}</span> von
-        <span class="fid-num">{{ count(progress.reachable) }}</span> ·
-        <span class="fid-num">{{ progress.matches }}</span> Treffer
+        {{ m.common.ofTotal(count(progress.unique), count(progress.reachable)) }} ·
+        {{ d.matchCount(count(progress.matches)) }}
         <template v-if="progress.passCount > 1">
           · {{ progress.pass }}
           <span class="fid-num">({{ progress.passIndex + 1 }}/{{ progress.passCount }})</span>
         </template>
-        <template v-if="eta"> · noch ca. {{ eta }}</template>
+        <template v-if="eta"> {{ m.common.etaLeft(eta) }}</template>
       </p>
     </section>
 
@@ -730,7 +734,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
             id="all-matches"
             class="text-fid-sm uppercase tracking-[0.2em] text-fid-text-muted"
           >
-            Alle Treffer
+            {{ d.allFindsHeading }}
           </h3>
 
           <DigFilters
@@ -749,7 +753,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
           />
 
           <p v-if="view.visible.value.length === 0" class="text-fid-sm text-fid-text-muted">
-            Nichts passt zu dieser Auswahl.
+            {{ d.filters.nothingMatches }}
           </p>
 
           <MatchList v-else :matches="view.visible.value" :density="view.density.value" />

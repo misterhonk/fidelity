@@ -107,11 +107,13 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
         </nav>
 
         <p class="fid-num shrink-0 text-fid-sm text-fid-text-muted">
-          {{ count(view.total) }}
-          <template v-if="view.total !== view.collection">
-            von {{ count(view.collection) }}
-          </template>
-          Platten
+          {{
+            c.shelfCount(
+              count(view.total),
+              view.total !== view.collection ? count(view.collection) : null,
+              c.records,
+            )
+          }}
         </p>
       </div>
 
@@ -170,7 +172,7 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
               v-else
               class="flex aspect-square w-full items-center justify-center rounded-fid-sm bg-fid-surface text-fid-xs text-fid-text-muted"
             >
-              kein Cover
+              {{ c.noCover }}
             </span>
 
             <span class="line-clamp-2 text-fid-sm text-fid-text group-hover:underline">
@@ -195,7 +197,7 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
         class="fid-action self-center text-fid-sm text-fid-accent underline underline-offset-4"
         @click="shown += 240"
       >
-        Weitere <span class="fid-num">{{ count(Math.min(rest, 240)) }}</span> zeigen
+        {{ c.showMore(count(Math.min(rest, 240))) }}
       </button>
     </template>
   </main>

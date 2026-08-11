@@ -58,6 +58,9 @@ const en = {
       'It compares your share of a label with what would be expected if you picked at random from your labels. The comparison is against your own labels — what the rest of the world presses is not something this app can see.',
     needsHorizon:
       'Gaps and label lift need the horizon. Once it is built, this says how much you are still missing from which artist.',
+    howMuchLeft: 'How much is still out there',
+    yoursFrom: '· yours from',
+    nothingByName: 'Nothing by that name on the list.',
   },
 
   wantlist: {
@@ -89,6 +92,21 @@ const en = {
     markBought: (label: string) => `Mark ${label} as bought`,
     remove: (label: string) => `Take ${label} off the shortlist`,
   },
+
+  /*
+   * The shelf, the map and the wantlist — three screens, one vocabulary.
+   * Enumerated by tests/unit/template-text.spec.ts rather than by reading:
+   * a hand-written list of German words had already missed "von" three times.
+   */
+  shelfCount: (shown: string, of: string | null, records: string) =>
+    of === null ? `${shown} ${records}` : `${shown} of ${of} ${records}`,
+  records: 'records',
+  noCover: 'no cover',
+  showMore: (n: string) => `Show ${n} more`,
+  howMuchLeft: 'How much is still out there',
+  whichLabels: 'Which labels you actually collect',
+  lastSeenAt: 'last seen at',
+  onDay: (day: string) => `on ${day}`,
 }
 
 const de: typeof en = {
@@ -135,6 +153,9 @@ const de: typeof en = {
       'Er vergleicht deinen Anteil an einem Label mit dem, was bei zufälliger Auswahl aus deinen Labels zu erwarten wäre. Verglichen wird gegen deine eigenen Labels – was der Rest der Welt presst, sieht diese App nicht.',
     needsHorizon:
       'Lücken und Label-Lift brauchen den Horizont. Sobald der gebaut ist, steht hier, wie viel dir bei welchem Künstler noch fehlt.',
+    howMuchLeft: 'Wie viel es noch gibt',
+    yoursFrom: '· deine von',
+    nothingByName: 'Nichts mit diesem Namen auf der Liste.',
   },
 
   wantlist: {
@@ -162,6 +183,16 @@ const de: typeof en = {
     markBought: (label) => `${label} als gekauft eintragen`,
     remove: (label) => `${label} von der Merkliste nehmen`,
   },
+
+  shelfCount: (shown: string, of: string | null, records: string) =>
+    of === null ? `${shown} ${records}` : `${shown} von ${of} ${records}`,
+  records: 'Platten',
+  noCover: 'kein Cover',
+  showMore: (n: string) => `Weitere ${n} zeigen`,
+  howMuchLeft: 'Wie viel es noch gibt',
+  whichLabels: 'Welche Labels du wirklich sammelst',
+  lastSeenAt: 'zuletzt bei',
+  onDay: (day: string) => `am ${day}`,
 }
 
 export const packs = { en, de }

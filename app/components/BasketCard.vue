@@ -7,6 +7,7 @@ import type { BasketPlan, BasketSummary } from '#shared/types'
 import { useBasketMessages } from '~/i18n/basket'
 
 const b = useBasketMessages()
+const m = useMessages()
 
 /**
  * One basket, which is one parcel.
@@ -225,10 +226,9 @@ const peak = computed(() =>
         moves — a rate-limited loop with no visible progress reads as broken.
       -->
       <p v-if="checking" class="text-fid-sm text-fid-text-muted" aria-live="polite">
-        Frage nach …
+        {{ m.common.asking }}
         <template v-if="checkProgress">
-          <span class="fid-num">{{ checkProgress.done }}</span> von
-          <span class="fid-num">{{ checkProgress.total }}</span>
+          {{ m.common.ofTotal(count(checkProgress.done), count(checkProgress.total)) }}
         </template>
       </p>
       <p v-else-if="checkResult" class="text-fid-sm text-fid-text-muted" aria-live="polite">
@@ -472,7 +472,7 @@ const peak = computed(() =>
           min="1"
           class="w-16 rounded-fid-sm border border-fid-field bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
         />
-        <span class="text-fid-sm text-fid-text-muted">bis</span>
+        <span class="text-fid-sm text-fid-text-muted">{{ m.common.to }}</span>
         <label class="sr-only" :for="`to-${index}`">{{ b.tiersTo }}</label>
         <input
           :id="`to-${index}`"
@@ -488,7 +488,7 @@ const peak = computed(() =>
                 : Number(($event.target as HTMLInputElement).value)
           "
         />
-        <label class="sr-only" :for="`price-${index}`">Preis</label>
+        <label class="sr-only" :for="`price-${index}`">{{ b.tiersPrice }}</label>
         <input
           :id="`price-${index}`"
           v-model.number="row.price"
@@ -513,7 +513,7 @@ const peak = computed(() =>
           class="rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
           @click="saveShipping"
         >
-          Speichern
+          {{ m.common.save }}
         </button>
       </div>
     </section>

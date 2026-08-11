@@ -84,7 +84,7 @@ function waiting(addedAt: string): string | null {
       />
 
       <p v-if="records.length === 0" class="text-fid-sm text-fid-text-muted">
-        Nichts mit diesem Namen auf der Liste.
+        {{ c.map.nothingByName }}
       </p>
 
       <!--
@@ -142,9 +142,9 @@ function waiting(addedAt: string): string | null {
               :to="`/dig?dealer=${encodeURIComponent(record.lastSeen.dealer)}`"
               class="fid-action text-fid-sig-wantlist underline-offset-4 hover:underline"
             >
-              zuletzt bei
+              {{ c.lastSeenAt }}
               <span class="text-fid-text">{{ record.lastSeen.dealer }}</span>
-              am {{ day(record.lastSeen.at) }}
+              {{ c.onDay(day(record.lastSeen.at)) }}
             </NuxtLink>
           </p>
         </li>

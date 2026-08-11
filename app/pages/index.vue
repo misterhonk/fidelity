@@ -288,7 +288,8 @@ const tiles = computed(() => {
                   </span>
                 </div>
                 <p class="fid-num text-fid-xs text-fid-text-muted">
-                  {{ count(shop.numForSale) }} im Angebot<template v-if="shop.lastScannedAt">
+                  {{ m.home.forSale(count(shop.numForSale))
+                  }}<template v-if="shop.lastScannedAt">
                     · {{ since(shop.lastScannedAt) }}</template
                   >
                 </p>
@@ -299,7 +300,7 @@ const tiles = computed(() => {
 
         <section class="flex flex-col gap-3 px-6" aria-labelledby="whats-here">
           <h2 id="whats-here" class="text-fid-base font-medium text-fid-text">
-            Was hier liegt
+            {{ m.home.whatIsHere }}
           </h2>
           <!--
             Every one of these numbers names a place, so every one of them goes

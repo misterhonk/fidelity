@@ -197,7 +197,7 @@ const meta = computed(() => {
         class="text-fid-text-muted"
         :title="stamp.note"
       >
-        <span class="text-fid-text">{{ stamp.label }}</span> im Auslauf
+        <span class="text-fid-text">{{ stamp.label }}</span> {{ d.match.inRunOut }}
       </span>
     </p>
 

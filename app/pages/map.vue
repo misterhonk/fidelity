@@ -4,6 +4,7 @@ import type { CollectionGaps, TasteFacet, TasteProfile } from '#shared/types'
 import { useCollectionMessages } from '~/i18n/collection'
 
 const c = useCollectionMessages()
+const m = useMessages()
 useSeoMeta({
   title: 'Landkarte',
   description: () => c.value.map.description,
@@ -99,7 +100,7 @@ const decades = computed(() =>
       >
         <div class="flex flex-col gap-1">
           <h2 id="shelf-gaps" class="text-fid-base font-medium text-fid-text">
-            Wie viel es noch gibt
+            {{ c.howMuchLeft }}
           </h2>
           <!--
             Deliberately not "wie weit du durch bist".
@@ -123,12 +124,11 @@ const decades = computed(() =>
             <div class="flex flex-wrap items-baseline justify-between gap-x-3">
               <span class="text-fid-base text-fid-text">{{ artist.name }}</span>
               <span class="text-fid-sm text-fid-text-muted">
-                <span class="fid-num text-fid-text">{{ artist.owned }}</span> von
-                {{ c.map.entries(count(artist.total)) }}
+                {{ m.common.ofTotal(count(artist.owned), c.map.entries(count(artist.total))) }}
                 <template v-if="artist.from > 0">
-                  · deine von <span class="fid-num">{{ artist.from }}</span
+                  {{ c.map.yoursFrom }} <span class="fid-num">{{ artist.from }}</span
                   ><template v-if="artist.to !== artist.from">
-                    bis <span class="fid-num">{{ artist.to }}</span></template
+                    {{ m.common.to }} <span class="fid-num">{{ artist.to }}</span></template
                   >
                 </template>
               </span>
@@ -144,7 +144,7 @@ const decades = computed(() =>
       >
         <div class="flex flex-col gap-1">
           <h2 id="label-standing" class="text-fid-base font-medium text-fid-text">
-            Welche Labels du wirklich sammelst
+            {{ c.whichLabels }}
           </h2>
           <WhyNote :label="c.map.labelsWhyLabel">{{ c.map.labelsWhy }}</WhyNote>
         </div>

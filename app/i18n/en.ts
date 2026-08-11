@@ -65,6 +65,19 @@ const en = {
     nothingYet: 'Nothing fetched yet',
     off: 'Off',
     never: 'never',
+    /*
+     * The shapes that turned up in eight different templates, each written out
+     * by hand and each still in German after the interface was translated.
+     * A phrase used on eight screens belongs in one place — that is the whole
+     * argument for a pack, and it had been made eight times over.
+     */
+    ofTotal: (done: string | number, total: string | number) => `${done} of ${total}`,
+    loading: 'Loading …',
+    asking: 'Asking …',
+    searching: 'Searching …',
+    save: 'Save',
+    to: 'to',
+    etaLeft: (clock: string) => `· about ${clock} left`,
   },
 
   /** The notices that can appear on any screen. */
@@ -235,6 +248,8 @@ const en = {
     lastNoted: 'Noted last',
     wanted: (n: string) => `${n} wanted`,
     yourShops: 'Your shops',
+    forSale: (n: string) => `${n} for sale`,
+    whatIsHere: 'What is here',
   },
 
   /** The one next thing, on the start screen. */
@@ -275,6 +290,18 @@ const en = {
   watch: {
     whyLabel: 'How it is counted',
     why: "The shop's total, not how many records are new — somebody who sells five and lists five has moved by zero. A dig says what of it is for you.",
+    sinceLastVisit: 'Since your last visit',
+    moreListings: (n: number, one: boolean) =>
+      `${one ? 'listing' : 'listings'} more on offer than last time.`,
+    read: 'Read',
+    /*
+     * Written to follow the shop's name, because the name is a link and a
+     * link is markup: a translator handed `%s` to put inside an anchor will
+     * sooner or later put it outside one. Both languages happen to allow the
+     * name first, which is what makes the split clean rather than a compromise.
+     */
+    moved: (n: string, one: boolean) =>
+      `has ${n} ${one ? 'listing' : 'listings'} more on offer than last time.`,
   },
 
   catalogRun: 'Filled = on your shelf. Outlined = this record.',
@@ -309,6 +336,10 @@ const en = {
     searchLabel: 'Search the collection, the wantlist and the finds',
     finds: (n: number) => `${n} ${n === 1 ? 'find' : 'finds'}`,
     wrong: 'Wrong pick',
+    notInLibrary: 'Not in your collection and not on your wantlist',
+    norLastDig: '— and the last dig does not know it either',
+    nothingByName: 'Nothing by that name.',
+    pressings: (n: number) => `${n} pressings`,
   },
 
   /** Where the shop list comes from. */
@@ -319,6 +350,8 @@ const en = {
       'In your orders — those are the shops you have actually bought from. If you allow it in the settings, in your Discogs friends list as well. One lookup per source, then one per candidate, to see who sells at all.',
     added: (n: number) => (n === 1 ? 'One shop added.' : `${n} shops added.`),
     take: (n: string) => `Take ${n} over`,
+    listings: (n: string) => `${n} listings`,
+    alreadyThere: 'already there',
   },
 
   /**
@@ -372,6 +405,7 @@ const en = {
     coverage: (scanned: string, total: string) =>
       `${scanned} of ${total} listings were read, with one record as the clue. A dig reads the whole shop and knows your collection.`,
     shopLogo: (dealer: string) => `${dealer}, shop sign`,
+    takesAMinute: 'Takes about a minute.',
   },
 
   nav: {
@@ -383,6 +417,11 @@ const en = {
     dealers: { label: 'Shops', hint: 'Who you buy from' },
     settings: { label: 'Settings', hint: 'Token, sync, appearance' },
     inBasket: (count: number) => `${count} in the basket`,
+    attribution: 'Data provided by Discogs',
+    disclaimer:
+      'This application uses Discogs\' API but is not affiliated with, sponsored or endorsed by Discogs. "Discogs" is a trademark of Zink Media, LLC.',
+    privacy: 'Privacy',
+    legal: 'Imprint',
   },
 }
 

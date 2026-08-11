@@ -143,12 +143,34 @@ const en = {
   clearThis: 'Empty this basket',
   tiersTo: 'to how many records',
   tiersOpen: 'open',
+  tiersPrice: 'Price',
   allStillThere: (records: string) => `All still there – ${records}, prices current again.`,
   someSold: (sold: string) => `${sold} sold in the meantime. The rest is current again.`,
   noDealer: 'No shop',
   forget: (record: string) => `Take ${record} off the saved list`,
   /** For a line whose record has no title left — see worker/basket. */
   unknownRecord: 'Unknown record',
+
+  /*
+   * The saved list — the tab beside the basket.
+   *
+   * Every one of these was still German after the interface was translated,
+   * and `tests/unit/template-text.spec.ts` is what finally enumerated them:
+   * eleven strings on one screen, none of which any test had ever rendered.
+   */
+  saved: {
+    title: 'Saved',
+    stillThere: 'Still there?',
+    fetching: 'Fetching …',
+    toBasket: 'To basket',
+    workOutPostage: 'Work out the postage',
+    release: (id: number) => `Release ${id}`,
+    gone: 'gone',
+    bought: 'bought',
+    markBought: (record: string) => `Mark ${record} as bought`,
+    forget: 'forget',
+    boughtTitle: 'Bought',
+  },
 }
 
 const de: typeof en = {
@@ -259,11 +281,26 @@ const de: typeof en = {
   clearThis: 'Diesen Korb leeren',
   tiersTo: 'bis wie vielen Platten',
   tiersOpen: 'offen',
+  tiersPrice: 'Preis',
   allStillThere: (records) => `Alles noch da – ${records}, Preise wieder aktuell.`,
   someSold: (sold) => `${sold} inzwischen verkauft. Der Rest ist wieder aktuell.`,
   noDealer: 'Ohne Laden',
   forget: (record) => `${record} von der Merkliste nehmen`,
   unknownRecord: 'Unbekannte Platte',
+
+  saved: {
+    title: 'Gemerkt',
+    stillThere: 'Noch da?',
+    fetching: 'Hole …',
+    toBasket: 'In den Korb',
+    workOutPostage: 'Versand rechnen',
+    release: (id: number) => `Release ${id}`,
+    gone: 'weg',
+    bought: 'gekauft',
+    markBought: (record: string) => `${record} als gekauft eintragen`,
+    forget: 'vergessen',
+    boughtTitle: 'Gekauft',
+  },
 }
 
 export const packs = { en, de }

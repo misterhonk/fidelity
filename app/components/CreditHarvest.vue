@@ -3,6 +3,7 @@ import type { CreditStatus, HarvestProgress } from '#shared/protocol'
 import { useSettingsMessages } from '~/i18n/settings'
 
 const st = useSettingsMessages()
+const m = useMessages()
 
 const { call } = useFidelityWorker()
 
@@ -99,7 +100,7 @@ const eta = computed(() => {
           <span class="fid-num">{{ count(progress.people) }}</span>
           {{ st.library.credits.people }}
           <template v-if="progress.current"> · {{ progress.current }}</template>
-          <template v-if="eta"> · noch ca. {{ eta }}</template>
+          <template v-if="eta"> {{ m.common.etaLeft(eta) }}</template>
         </p>
       </div>
 

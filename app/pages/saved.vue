@@ -8,6 +8,7 @@ import { useBasketMessages } from '~/i18n/basket'
 import { useCollectionMessages } from '~/i18n/collection'
 
 const b = useBasketMessages()
+const m = useMessages()
 const c = useCollectionMessages()
 
 useSeoMeta({
@@ -53,7 +54,7 @@ const moveResult = ref<{ dealer: string; text: string } | null>(null)
 /** For the screen-reader labels — the row's own text, or its id when it has none. */
 function label(record: MarkedRecord): string {
   const written = [record.artist, record.title].filter(Boolean).join(' – ')
-  return written || `Release ${record.releaseId}`
+  return written || b.value.saved.release(record.releaseId)
 }
 
 /*
@@ -165,13 +166,13 @@ async function check() {
 <template>
   <main class="@container mx-auto flex w-full max-w-[80rem] flex-col gap-6 px-6 py-10">
     <header class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Gemerkt</h1>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ b.saved.title }}</h1>
       <BasketTabs />
     </header>
 
     <ErrorNote v-if="error" :cause="error" />
 
-    <p v-if="loading" class="text-fid-base text-fid-text-muted">Wird geladen …</p>
+    <p v-if="loading" class="text-fid-base text-fid-text-muted">{{ m.common.loading }}</p>
 
     <p v-else-if="!overview || overview.total === 0" class="text-fid-base text-fid-text-muted">
       {{ c.saved.empty }}
@@ -195,15 +196,14 @@ async function check() {
           :disabled="checking"
           @click="check()"
         >
-          Noch da?<span class="fid-num"> ({{ overview.stillOpen }})</span>
+          {{ b.saved.stillThere }}<span class="fid-num"> ({{ overview.stillOpen }})</span>
         </button>
       </div>
 
       <p v-if="checking" class="text-fid-sm text-fid-text-muted" aria-live="polite">
-        Frage nach …
+        {{ m.common.asking }}
         <template v-if="progress">
-          <span class="fid-num">{{ progress.done }}</span> von
-          <span class="fid-num">{{ progress.total }}</span>
+          {{ m.common.ofTotal(count(progress.done), count(progress.total)) }}
         </template>
       </p>
       <p v-else-if="checkResult" class="text-fid-sm text-fid-text-muted" aria-live="polite">
@@ -242,14 +242,14 @@ async function check() {
             @click="intoBasket(group)"
           >
             <template v-if="moving === group.dealer">
-              Hole …
+              {{ b.saved.fetching }}
               <template v-if="progress">
                 <span class="fid-num">{{ progress.done }}</span
                 >/<span class="fid-num">{{ progress.total }}</span>
               </template>
             </template>
             <template v-else>
-              In den Korb<span class="fid-num"> ({{ group.open }})</span>
+              {{ b.saved.toBasket }}<span class="fid-num"> ({{ group.open }})</span>
             </template>
           </button>
         </div>
@@ -261,7 +261,7 @@ async function check() {
         >
           {{ moveResult.text }}
           <NuxtLink to="/basket" class="text-fid-accent underline underline-offset-4">
-            Versand rechnen
+            {{ b.saved.workOutPostage }}
           </NuxtLink>
         </p>
 
@@ -285,10 +285,12 @@ async function check() {
               </template>
               <!-- Written before this store kept titles. Says so instead of
                    inventing one; the release id still gets you there. -->
-              <template v-else>Release {{ record.releaseId }}</template>
+              <template v-else>{{ b.saved.release(record.releaseId) }}</template>
             </a>
 
-            <span v-if="record.soldAt" class="shrink-0 text-fid-xs text-fid-sig-gap">weg</span>
+            <span v-if="record.soldAt" class="shrink-0 text-fid-xs text-fid-sig-gap">{{
+              b.saved.gone
+            }}</span>
             <!-- Fresh, this second, from the check. Never stored. -->
             <span
               v-else-if="prices[record.listingId]"
@@ -318,10 +320,10 @@ async function check() {
                 v-if="!record.soldAt"
                 type="button"
                 class="fid-action text-fid-text-muted underline underline-offset-4"
-                :aria-label="`${label(record)} als gekauft eintragen`"
+                :aria-label="b.saved.markBought(label(record))"
                 @click="mark(record, 'bought')"
               >
-                gekauft
+                {{ b.saved.bought }}
               </button>
               <button
                 type="button"
@@ -329,7 +331,7 @@ async function check() {
                 :aria-label="b.forget(label(record))"
                 @click="forget(record)"
               >
-                vergessen
+                {{ b.saved.forget }}
               </button>
             </span>
           </li>
@@ -344,7 +346,7 @@ async function check() {
         v-if="overview.bought.length > 0"
         class="flex flex-col gap-2 border-t border-fid-border pt-6"
       >
-        <h2 class="text-fid-base font-bold text-fid-text">Gekauft</h2>
+        <h2 class="text-fid-base font-bold text-fid-text">{{ b.saved.boughtTitle }}</h2>
         <ul class="flex flex-col gap-1">
           <li
             v-for="record in overview.bought"
@@ -356,7 +358,7 @@ async function check() {
                 {{ record.artist }}<template v-if="record.artist && record.title"> – </template
                 >{{ record.title }}
               </template>
-              <template v-else>Release {{ record.releaseId }}</template>
+              <template v-else>{{ b.saved.release(record.releaseId) }}</template>
             </span>
             <span class="shrink-0 text-fid-xs text-fid-text-muted">
               <template v-if="record.dealer">{{ record.dealer }} · </template>

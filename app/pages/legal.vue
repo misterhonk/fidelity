@@ -2,6 +2,7 @@
 import { useLegalMessages } from '~/i18n/legal'
 
 const l = useLegalMessages()
+const m = useMessages()
 
 useSeoMeta({ title: () => l.value.legal.title, description: () => l.value.legal.description })
 </script>
@@ -37,8 +38,7 @@ useSeoMeta({ title: () => l.value.legal.title, description: () => l.value.legal.
     </p>
 
     <p class="text-fid-sm text-fid-text-muted">
-      This application uses Discogs' API but is not affiliated with, sponsored or endorsed by
-      Discogs. "Discogs" is a trademark of Zink Media, LLC.
+      {{ m.nav.disclaimer }}
     </p>
   </main>
 </template>

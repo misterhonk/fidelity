@@ -78,10 +78,9 @@ async function keep() {
       @click="discover()"
     >
       <template v-if="running">
-        Suche …
+        {{ m.common.searching }}
         <template v-if="progress && progress.total > 0">
-          <span class="fid-num">{{ progress.done }}</span> von
-          <span class="fid-num">{{ progress.total }}</span>
+          {{ m.common.ofTotal(count(progress.done), count(progress.total)) }}
         </template>
       </template>
       <template v-else>{{ m.discovery.search }}</template>
@@ -120,7 +119,7 @@ async function keep() {
             leaves the card.
           -->
           <span class="flex min-w-0 flex-wrap gap-x-3 gap-y-1 text-fid-xs text-fid-text-muted">
-            <span class="fid-num">{{ count(candidate.numForSale) }} Listings</span>
+            <span class="fid-num">{{ m.discovery.listings(count(candidate.numForSale)) }}</span>
             <span v-if="candidate.location">{{ candidate.location }}</span>
             <!--
               Where it came from, named. One source is documented and one is
@@ -130,7 +129,7 @@ async function keep() {
             <span :class="candidate.source === 'order' ? 'text-fid-sig-wantlist' : ''">
               {{ candidate.source === 'order' ? 'bestellt' : 'befreundet' }}
             </span>
-            <span v-if="candidate.known">schon dabei</span>
+            <span v-if="candidate.known">{{ m.discovery.alreadyThere }}</span>
           </span>
         </li>
       </ul>
