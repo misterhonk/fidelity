@@ -55,9 +55,9 @@ also auch auf dem Telefon auf dem Sofa.
 Service Worker und die Shell `no-cache`. Ein zwischengespeicherter `sw.js` ist eine App,
 die sich nie wieder reparieren lässt.
 
-**Routen ohne Umleitung.** Nuxt legt jede Route als eigenes Verzeichnis ab, `/gemerkt` ist
+**Routen ohne Umleitung.** Nuxt legt jede Route als eigenes Verzeichnis ab, `/saved` ist
 in Wahrheit `gemerkt/index.html`. `try_files … $uri/index.html` liefert sie direkt aus;
-mit `$uri/` würde nginx auf `/gemerkt/` umleiten, und ein Schrägstrich am Ende ist für den
+mit `$uri/` würde nginx auf `/saved/` umleiten, und ein Schrägstrich am Ende ist für den
 Router, den Precache und das Lesezeichen eine andere URL.
 
 ### Von unterwegs

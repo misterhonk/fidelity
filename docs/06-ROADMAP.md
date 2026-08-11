@@ -348,7 +348,7 @@ irgendein Feature ihn voraussetzt. Vollständiges Konzept: `docs/13-HUB-ADDON.md
          Vermutlich `clientsClaim`, das `generateSW` selbst setzt. Das ist der nächste
          Punkt, an dem eine Untersuchung ansetzt.
 
-      Abnahmekriterium bleibt: `/`, `/im-laden` und eine Einstellungs-Unterseite laden
+      Abnahmekriterium bleibt: `/`, `/in-store` und eine Einstellungs-Unterseite laden
       **ohne Netz**. Genau dort ist der Offline-Betrieb in M6 schon einmal gebrochen.
 - [x] Geräte-Sync für Korb und Merkliste — **über den Vault, nicht über den Hub**
       (M8/ADR-007): verschlüsselt, Ziel frei wählbar, funktioniert auch ohne Hub
@@ -405,6 +405,45 @@ ohne sie wäre M9 ein Refactoring quer durch den Worker.
 
 ---
 
+## M10 · Zwei Sprachen → `v0.10.0`
+
+Ausgelöst davon, dass das Repository am 2026-08-11 öffentlich wurde. Eine deutsche
+Oberfläche mit deutschen Adressen schließt jeden aus, der kein Deutsch spricht — er kann
+den Code lesen und trotzdem nicht herausfinden, was ein Bildschirm verspricht.
+Entscheidung und Begründung: [ADR-010](adr/010-englisch-als-grundsprache.md).
+
+**Definition of Done**
+
+- [x] Englisch ist die Vorgabe, Deutsch wird bei passendem `navigator.language` gewählt
+      und ist unter Einstellungen → Darstellung umschaltbar.
+- [x] Kein i18n-Paket. Nachrichtenpakete als getippte Objekte; `de` ist als Form von `en`
+      typisiert, ein fehlender Schlüssel ist ein Build-Fehler.
+- [x] Geteilt nach Bereichen: die Schale im Eintritt, jeder Bildschirm im eigenen Chunk.
+      Erster Paint 117,8 kB von 120 — die Umstellung hat das Budget nicht gekostet.
+- [x] Die Sprache steht **vor** dem ersten Strich. Belegt durch einen Test, der die
+      Überschrift ab einem MutationObserver vor dem Mounten aufzeichnet.
+- [x] Adressen englisch, ohne Sprach-Präfix. Achtzehn alte Pfade leiten dauerhaft weiter —
+      Middleware plus echte 301 in nginx und Apache, Abfrage inklusive.
+- [x] Die Begründungssätze der Engine entstehen beim Lesen statt beim Scannen.
+      `worker/match/reason.ts` behält nur noch die Reihenfolge.
+- [x] Jeder nutzersichtbare Text wird in **beiden** Sprachen getestet.
+- [ ] `docs/` ist noch deutsch. Der größte Brocken, der am wenigsten dringende — der
+      README sagt es offen.
+
+**Was dabei nebenbei herauskam**
+
+- Jeder `Intl`-Formatierer der App war einmal beim Import gebaut und in `de-DE`
+  eingefroren. `14,00 €` und `€14.00` sind für zwei Leser derselbe Betrag und füreinander
+  Faktor hundert.
+- `vaultStatus()` und die Hub-Prüfung gaben deutsche Sätze aus einem Thread zurück, der
+  keine Sprache kennt. Beide geben jetzt Gründe zurück, die die Oberfläche wortet.
+- Ein Fixture in `db.spec` behauptete ein Signal, das seinen Satz nie hätte erzeugen
+  können — verdeckt vom handgeschriebenen Satz daneben.
+- `/welcome` hatte zwei `v-if`-Wurzeln in einer `<Transition>` und ließ sich in der
+  Entwicklung überhaupt nicht öffnen. Älter als diese Umstellung.
+
+---
+
 ## Nicht auf der Roadmap
 
 | Idee | Warum nicht |
@@ -416,6 +455,7 @@ ohne sie wäre M9 ein Refactoring quer durch den Worker.
 | Bezahlmodell | ToS verbietet Gebühren für API-integrierte Apps ohne Genehmigung |
 | Multi-Händler-Suche | Es gibt **keinen** Listings-by-Release-Endpunkt. Nur über Scraping – kommt nicht in Frage. |
 | Nutzerkonten mit Passwort | Braucht niemand. Der optionale Hub (M9) nutzt ein geteiltes Secret. |
+| Signalgewichte pro Nutzer | Stand als `signalWeights` im Datenmodell und wurde nie gelesen; am 2026-08-11 entfernt. Punktzahlen müssen über die Zeit **und zwischen Menschen** vergleichbar bleiben — deshalb sind `SCALE` und `SECONDARY` Konstanten, und deshalb wäre eine Verstellung pro Nutzer derselbe Fehler eine Ebene höher. |
 
 ---
 

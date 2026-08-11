@@ -54,7 +54,6 @@ export type Condition = (typeof CONDITIONS)[number]
 export interface Preferences {
   // SOFT — below this we dampen the score, we do not discard the listing
   prefMediaCondition: Condition
-  prefSleeveCondition: Condition
   /** The price you are comfortable with, not the one you refuse to exceed. */
   targetPrice: number | null
 
@@ -66,7 +65,6 @@ export interface Preferences {
   excludeReissues: boolean
 
   /** Per-user tuning of the Barry score. Multiplied onto the signal weight. */
-  signalWeights: Partial<Record<SignalType, number>>
 
   currency: string
   shipsToCountry: string

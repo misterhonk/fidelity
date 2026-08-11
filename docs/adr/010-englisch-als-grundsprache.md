@@ -92,9 +92,22 @@ Matching-Engine. Sie werden auf Englisch neu geschrieben, nicht übersetzt. Das 
 Grund, warum diese Umstellung Sitzungen und nicht Stunden dauert.
 
 **Die Begründungssätze der Engine sind der heikelste Teil.** Sie entstehen zur Laufzeit aus
-Signalen (`worker/match/reason.ts`) und sind durch den Golden-File-Test festgenagelt. Eine
-zweite Sprache dort heißt: der Satzbau wird zu Daten, und der Snapshot ändert sich
-vollständig. Dieser Schritt bekommt einen eigenen PR und eine eigene Erklärung des Diffs.
+Signalen und bekommen einen eigenen PR.
+
+> **Nachtrag vom 2026-08-11, weil die Vorhersage daneben lag.** Hier stand, der
+> Golden-File-Test nagle die Sätze fest und der Snapshot ändere sich vollständig. Das ist
+> falsch: der Snapshot pinnt Punktzahlen und Signale, nie die Prosa — er hat sich um keine
+> Zeile bewegt. Das Risiko lag woanders, nämlich in den Fixtures, und einer davon war
+> falsch: `db.spec` baute ein `CREDIT_GRAPH`-Signal mit `evidence: { artist: … }`, wo die
+> Phrase `person` liest. Der Satz hätte also nie etwas anderes als den Auffangsatz ergeben
+> können. Verdeckt hatte das ausgerechnet der handgeschriebene String, der daneben lag.
+>
+> Und die Sätze sind nicht zweisprachig *im Worker* geworden, sondern aus ihm heraus.
+> `worker/match/reason.ts` behält nur noch `byStrength` — welches Signal führt, ist eine
+> Bewertungsentscheidung und liest dieselbe `WEIGHTS`-Tabelle wie der Score. Wie es klingt,
+> steht in `app/i18n/reason.ts` und entsteht beim Lesen. Das löst nebenbei ein zweites
+> Problem, das hier niemand vorhergesehen hatte: der Satz war auf den Moment des Digs
+> eingefroren, ein Sprachwechsel hätte ihn also ohnehin nicht erreicht.
 
 **`docs/` bleibt vorerst deutsch.** Die Unterlagen sind der größte Brocken und der am
 wenigsten dringende: wer beitragen will, braucht zuerst eine englische Oberfläche und

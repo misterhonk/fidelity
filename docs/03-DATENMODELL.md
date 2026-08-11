@@ -50,7 +50,6 @@ type MetaValue =
 interface Preferences {
   // WEICH — darunter wird gedämpft, nicht verworfen
   prefMediaCondition:  Condition        // Default 'Very Good Plus (VG+)'
-  prefSleeveCondition: Condition
   targetPrice:         number | null    // Wohlfühlpreis
   // HART — darüber/darunter wird verworfen bzw. der Dig gar nicht gestartet
   maxPrice:            number | null    // absolutes Budget
@@ -59,7 +58,6 @@ interface Preferences {
   shipsFromBlock:      string[]
   excludeReissues:     boolean
   // Barry-Score-Feinjustierung pro Nutzer
-  signalWeights:       Partial<Record<SignalType, number>>
   currency:            string           // 'EUR'
   shipsToCountry:      string           // 'Germany'
 }
@@ -204,7 +202,10 @@ interface Match {
   // ── unsere Ableitungen (dürfen bleiben) ──
   score:        number
   signals:      Signal[]       // [{ type, confidence, evidence }]
-  reason:       string         // der Barry-Satz
+  // Der Barry-Satz stand hier bis zum 2026-08-11 als `reason`. Er entsteht
+  // jetzt beim Lesen aus den Signalen (`app/i18n/reason.ts`) statt beim
+  // Scannen — gespeichert war er in der Sprache eingefroren, in der der Dig
+  // lief, und ein Wechsel hätte ihn nie erreicht.
   // ── Marktplatzdaten (werden nach 6 h genullt) ──
   title:        string | null
   artist:       string | null
@@ -340,7 +341,7 @@ aus demselben Grund seit M4.
 verhindert, dass derselbe Request zweimal ausgegeben wird: eine Listing-ID kommt nicht
 zurück auf den Markt, eine Neueinstellung bekommt eine neue.
 
-**Der Screen dazu** ist `/gemerkt`: gruppiert nach Laden (Porto ist pro Sendung, also ist
+**Der Screen dazu** ist `/saved`: gruppiert nach Laden (Porto ist pro Sendung, also ist
 vier Platten bei einem Laden etwas anderes als vier bei vieren), voller Laden zuerst.
 Frische Preise holt „Noch da?" über `GET /marketplace/listings/{id}` – sie stehen im
 Ergebnis und landen **nie** auf der Platte.

@@ -288,6 +288,18 @@ welchem Abschnitt sie gelesen hat.
   Handy, offline-fähig (viele Plattenläden sind Keller ohne Empfang)
 - Plattenbörsen-Modus: mehrere Händler nacheinander
 
+### Vorgemerkt
+
+- **Hüllenzustand als Dämpfer.** Die Daten liegen schon da: `sleeve_condition` kommt aus
+  dem Inventar, wird gespeichert und dem Matcher übergeben. Was fehlt, ist der Dämpfer —
+  eine VG+-Platte in einer G-Hülle ist ein anderer Kauf, und Sammler wissen das.
+
+  Stand bis zum 2026-08-11 als `prefSleeveCondition` in den Einstellungen, ohne dass es
+  irgendetwas gelesen hätte, und ist dort entfernt worden. Ein Feld, das ein Feature
+  verspricht, das es nicht gibt, ist schlechter als kein Feld. Wenn es kommt, dann auf dem
+  vorgesehenen Weg: erst `docs/04-MATCHING-ENGINE.md`, dann gebaut — und mit einem
+  erklärten Snapshot-Diff, denn es bewegt jede Punktzahl.
+
 ### Bewusst **nicht** gebaut
 
 | Nicht bauen | Warum |
