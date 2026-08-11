@@ -11,9 +11,18 @@
 const { resolved } = useTheme()
 const themeColor = computed(() => THEME_COLORS[resolved.value])
 
+/*
+ * `lang` is not decoration. It tells a screen reader which voice to read the
+ * page in, and a German sentence read by an English voice is not a slight
+ * accent — it is unintelligible. The language plugin sets the attribute on
+ * <html> directly before the first paint; this keeps the two from fighting when
+ * the switch is used later.
+ */
+const { current: language } = useLanguage()
+
 useHead({
   titleTemplate: (title?: string) => (title ? `${title} · Fidelity` : 'Fidelity'),
-  htmlAttrs: { lang: 'de' },
+  htmlAttrs: { lang: language },
   meta: [{ name: 'theme-color', content: themeColor }],
   link: [
     { rel: 'icon', type: 'image/svg+xml', href: '/icon.svg' },

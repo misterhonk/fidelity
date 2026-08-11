@@ -1,5 +1,5 @@
 /**
- * Hell, dunkel, oder was das Gerät sagt.
+ * Light, dark, or whatever the device says.
  *
  * The whole mechanism is already in the tokens: every semantic role is a
  * `light-dark()` pair and `:root` carries `color-scheme: light dark`, so the
@@ -12,21 +12,16 @@
  * in a standalone PWA — from staying dark when the app is not.
  */
 
-export const THEMES = [
-  {
-    key: 'system',
-    label: 'System',
-    about: 'Folgt dem Gerät, samt automatischem Wechsel am Abend.',
-  },
-  { key: 'light', label: 'Hell', about: 'Für Tageslicht und für Papierlisten daneben.' },
-  {
-    key: 'dark',
-    label: 'Dunkel',
-    about: 'Die Voreinstellung. Cover leuchten auf dunklem Grund.',
-  },
-] as const
+/**
+ * The three choices, in the order they are offered.
+ *
+ * Keys only. What each one is called and what it is for lives in the message
+ * packs (`m.appearance.theme`) — a label sitting in a composable is a label no
+ * translator can reach.
+ */
+export const THEMES = ['system', 'light', 'dark'] as const
 
-export type ThemeKey = (typeof THEMES)[number]['key']
+export type ThemeKey = (typeof THEMES)[number]
 
 /**
  * The two ends of the neutral ramp, as hex.
@@ -43,7 +38,7 @@ export function useTheme() {
 
   const preference = computed<ThemeKey>({
     get: () =>
-      THEMES.some((t) => t.key === mode.preference) ? (mode.preference as ThemeKey) : 'system',
+      THEMES.some((key) => key === mode.preference) ? (mode.preference as ThemeKey) : 'system',
     set: (key) => {
       mode.preference = key
     },

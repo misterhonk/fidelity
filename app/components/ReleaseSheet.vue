@@ -71,7 +71,7 @@ function evidenceOf(evidence: Record<string, unknown>): string {
     const shown = Array.isArray(value)
       ? value.slice(0, 3).join(', ')
       : typeof value === 'number'
-        ? new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 }).format(value)
+        ? decimal(value, 2)
         : String(value)
     parts.push(`${label}: ${shown}`)
   }

@@ -178,9 +178,8 @@ const tiles = computed(() => {
           -->
           <p v-if="home.dig && !home.dig.complete" class="text-fid-sm text-fid-sig-gap">
             Dieser Dig wurde unterbrochen –
-            <span class="fid-num">{{ number.format(home.dig.scanned) }}</span> von
-            <span class="fid-num">{{ number.format(home.dig.listingsTotal) }}</span> waren
-            durch.
+            <span class="fid-num">{{ count(home.dig.scanned) }}</span> von
+            <span class="fid-num">{{ count(home.dig.listingsTotal) }}</span> waren durch.
             <NuxtLink to="/dig" class="underline underline-offset-4">Dort fortsetzen</NuxtLink>
           </p>
 
@@ -217,7 +216,7 @@ const tiles = computed(() => {
           v-if="home.shelf.length > 0"
           title="Neu im Regal"
           to="/regal"
-          :note="`${number.format(home.library.collection)} Platten`"
+          :note="`${count(home.library.collection)} Platten`"
         >
           <CoverTile
             v-for="(record, index) in home.shelf"
@@ -236,7 +235,7 @@ const tiles = computed(() => {
           v-if="home.wanted.length > 0"
           title="Zuletzt notiert"
           to="/wantlist"
-          :note="`${number.format(home.library.wantlist)} Wünsche`"
+          :note="`${count(home.library.wantlist)} Wünsche`"
         >
           <CoverTile
             v-for="(record, index) in home.wanted"
@@ -286,9 +285,7 @@ const tiles = computed(() => {
                   </span>
                 </div>
                 <p class="fid-num text-fid-xs text-fid-text-muted">
-                  {{ number.format(shop.numForSale) }} im Angebot<template
-                    v-if="shop.lastScannedAt"
-                  >
+                  {{ count(shop.numForSale) }} im Angebot<template v-if="shop.lastScannedAt">
                     · {{ since(shop.lastScannedAt) }}</template
                   >
                 </p>
@@ -312,11 +309,11 @@ const tiles = computed(() => {
               <NuxtLink
                 :to="tile.to"
                 class="flex min-h-16 flex-col justify-center rounded-fid-sm px-3 py-2 transition-colors hover:bg-fid-surface"
-                :aria-label="`${tile.label}: ${number.format(tile.count)}`"
+                :aria-label="`${tile.label}: ${count(tile.count)}`"
               >
                 <span class="text-fid-text-muted">{{ tile.label }}</span>
                 <span class="fid-num text-fid-xl text-fid-text" aria-hidden="true">
-                  {{ number.format(tile.count) }}
+                  {{ count(tile.count) }}
                 </span>
               </NuxtLink>
             </li>

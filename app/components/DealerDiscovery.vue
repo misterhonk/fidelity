@@ -121,7 +121,7 @@ async function keep() {
             leaves the card.
           -->
           <span class="flex min-w-0 flex-wrap gap-x-3 gap-y-1 text-fid-xs text-fid-text-muted">
-            <span class="fid-num">{{ number.format(candidate.numForSale) }} Listings</span>
+            <span class="fid-num">{{ count(candidate.numForSale) }} Listings</span>
             <span v-if="candidate.location">{{ candidate.location }}</span>
             <!--
               Where it came from, named. One source is documented and one is

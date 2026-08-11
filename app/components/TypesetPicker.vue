@@ -1,16 +1,25 @@
 <script setup lang="ts">
+const m = useMessages()
 const { current, apply, sets } = useTypeset()
+
+/*
+ * The specimen's price follows the interface language, because half of what it
+ * is showing off is how the typeface sets a decimal separator — and that mark
+ * is a comma in one language and a full stop in the other.
+ */
+const price = computed(() => money(14.99, 'EUR'))
 </script>
 
 <template>
   <section class="flex flex-col gap-3">
     <div class="flex flex-col gap-2">
       <!--
-        Der Name ist der Name, der Rest ist Beschreibung.
+        The name is the name, the rest is description.
+
         A `<label>` wrapping all three lines makes the option's accessible name
-        the whole block: "Presswerk Switzer · Chivo Mono · Array Schmal und
-        technisch, wie die Schrift auf einem Plattenrücken". Spoken aloud that
-        is one option read as a paragraph, three times over, with the word that
+        the whole block: "Presswerk Switzer · Chivo Mono · Array Narrow and
+        technical, like the lettering on a record spine". Spoken aloud that is
+        one option read as a paragraph, three times over, with the word that
         tells them apart buried at the front of each. `aria-labelledby` names
         it and `aria-describedby` carries the rest.
       -->
@@ -30,7 +39,9 @@ const { current, apply, sets } = useTypeset()
           </span>
           <span :id="`typeset-${set.key}-about`" class="flex flex-col gap-1">
             <span class="fid-num text-fid-xs text-fid-text-muted">{{ set.hint }}</span>
-            <span class="text-fid-xs text-fid-text-muted">{{ set.about }}</span>
+            <span class="text-fid-xs text-fid-text-muted">
+              {{ m.appearance.type[set.key] }}
+            </span>
           </span>
         </span>
       </label>
@@ -43,12 +54,11 @@ const { current, apply, sets } = useTypeset()
     <div class="flex flex-col gap-2 rounded-fid-md border border-fid-border p-4">
       <p class="fid-display text-fid-xl font-bold text-fid-text">Fidelity</p>
       <p class="max-w-prose text-fid-sm text-fid-text-muted">
-        Du hast 5 Platten von Robag Wruhme – diese nicht. Außerdem: Stil passt (Minimal), nur 3
-        im Angebot.
+        {{ m.appearance.type.specimen }}
       </p>
       <p class="fid-num flex flex-wrap gap-x-4 text-fid-sm text-fid-text">
-        <span>87</span><span>14,99 €</span><span>PFR 81</span><span>2018</span
-        ><span>0123456789</span>
+        <span>87</span><span>{{ price }}</span
+        ><span>PFR 81</span><span>2018</span><span>0123456789</span>
       </p>
     </div>
   </section>

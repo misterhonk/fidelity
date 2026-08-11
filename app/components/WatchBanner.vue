@@ -34,7 +34,7 @@ const { alerts, dismiss } = useWatchlist()
         <NuxtLink class="underline underline-offset-4" :to="`/dig?dealer=${alert.dealer}`">
           {{ alert.dealer }}
         </NuxtLink>
-        hat <span class="fid-num">{{ number.format(alert.newListings) }}</span>
+        hat <span class="fid-num">{{ count(alert.newListings) }}</span>
         {{ alert.newListings === 1 ? 'Listing' : 'Listings' }} mehr im Angebot als beim letzten
         Mal.
       </li>

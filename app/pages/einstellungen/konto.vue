@@ -4,7 +4,6 @@ useSeoMeta({ title: 'Konto' })
 const { identity, signOut } = useIdentity()
 const { call } = useFidelityWorker()
 
-const number = new Intl.NumberFormat('de-DE')
 const stats = ref<Awaited<ReturnType<typeof call<'db.stats'>>> | null>(null)
 
 onMounted(async () => {
@@ -20,8 +19,8 @@ onMounted(async () => {
 const usage = computed(() => {
   const bytes = stats.value?.usageBytes
   if (bytes === null || bytes === undefined) return null
-  if (bytes < 1024 * 1024) return `${number.format(Math.round(bytes / 1024))} KB`
-  return `${new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 }).format(bytes / 1024 / 1024)} MB`
+  if (bytes < 1024 * 1024) return `${count(Math.round(bytes / 1024))} KB`
+  return `${decimal(bytes / 1024 / 1024)} MB`
 })
 </script>
 

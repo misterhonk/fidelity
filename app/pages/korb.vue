@@ -49,9 +49,9 @@ const records = computed(() =>
         class="flex flex-wrap items-baseline justify-between gap-2"
       >
         <p class="text-fid-sm text-fid-text-muted">
-          <span class="fid-num text-fid-text">{{ number.format(baskets.length) }}</span> Läden ·
-          <span class="fid-num text-fid-text">{{ number.format(records) }}</span> Platten. Jeder
-          Laden ist eine eigene Sendung mit eigenem Porto.
+          <span class="fid-num text-fid-text">{{ count(baskets.length) }}</span> Läden ·
+          <span class="fid-num text-fid-text">{{ count(records) }}</span> Platten. Jeder Laden
+          ist eine eigene Sendung mit eigenem Porto.
         </p>
         <button
           type="button"

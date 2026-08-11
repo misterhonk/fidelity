@@ -47,8 +47,6 @@ function go(path: string, query?: Record<string, string>) {
   }
 }
 
-const dateFormat = new Intl.DateTimeFormat('de-DE', { dateStyle: 'short' })
-
 const entries = computed<Entry[]>(() => [
   { id: 'nav-dig', group: 'Gehe zu', label: 'Graben', run: go('/dig') },
   { id: 'nav-shelf', group: 'Gehe zu', label: 'Regal', run: go('/regal') },
@@ -72,7 +70,7 @@ const entries = computed<Entry[]>(() => [
     id: `dig-${dig.id}`,
     group: 'Digs',
     label: dig.dealer,
-    hint: `${dig.matchCount} Treffer · ${dateFormat.format(dig.startedAt)}`,
+    hint: `${dig.matchCount} Treffer · ${shortDay(dig.startedAt)}`,
     // Every dig entry used to land on the newest one. Five are kept; four
     // were unreachable.
     run: go('/dig', { id: dig.id }),

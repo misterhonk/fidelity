@@ -14,7 +14,7 @@ const SUBPAGES = [
   ['/einstellungen/konto', 'Konto'],
   ['/einstellungen/sammlung', 'Sammlung'],
   ['/einstellungen/suche', 'Suche'],
-  ['/einstellungen/darstellung', 'Darstellung'],
+  ['/einstellungen/darstellung', 'Appearance'],
   ['/einstellungen/abgleich', 'Geräte abgleichen'],
   ['/einstellungen/hub', 'Hub'],
   ['/einstellungen/daten', 'Deine Daten'],

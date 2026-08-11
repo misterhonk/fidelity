@@ -109,9 +109,9 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
         </nav>
 
         <p class="fid-num shrink-0 text-fid-sm text-fid-text-muted">
-          {{ number.format(view.total) }}
+          {{ count(view.total) }}
           <template v-if="view.total !== view.collection">
-            von {{ number.format(view.collection) }}
+            von {{ count(view.collection) }}
           </template>
           Platten
         </p>
@@ -197,7 +197,7 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
         class="fid-action self-center text-fid-sm text-fid-accent underline underline-offset-4"
         @click="shown += 240"
       >
-        Weitere <span class="fid-num">{{ number.format(Math.min(rest, 240)) }}</span> zeigen
+        Weitere <span class="fid-num">{{ count(Math.min(rest, 240)) }}</span> zeigen
       </button>
     </template>
   </main>

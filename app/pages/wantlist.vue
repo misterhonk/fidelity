@@ -21,8 +21,6 @@ onMounted(async () => {
   }
 })
 
-const date = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' })
-
 const records = computed(() => {
   const all = overview.value?.records ?? []
   const needle = query.value.trim().toLowerCase()
@@ -67,9 +65,9 @@ function waiting(addedAt: string): string | null {
 
     <template v-else>
       <p class="text-fid-base text-fid-text-muted">
-        <span class="fid-num text-fid-text">{{ number.format(overview.total) }}</span> Platten
-        gesucht. Von
-        <span class="fid-num text-fid-text">{{ number.format(overview.withPressings) }}</span>
+        <span class="fid-num text-fid-text">{{ count(overview.total) }}</span> Platten gesucht.
+        Von
+        <span class="fid-num text-fid-text">{{ count(overview.withPressings) }}</span>
         kennt der Horizont alle Pressungen – bei denen erkennt ein Dig auch eine andere Ausgabe
         als die eingetragene.
         <template v-if="overview.seenRecently > 0">
@@ -125,7 +123,7 @@ function waiting(addedAt: string): string | null {
               of 160 turns up far more often than the only pressing there is.
             -->
             <span v-if="record.pressings !== null">
-              <span class="fid-num text-fid-text">{{ number.format(record.pressings) }}</span>
+              <span class="fid-num text-fid-text">{{ count(record.pressings) }}</span>
               {{ record.pressings === 1 ? 'Pressung' : 'Pressungen' }} bekannt
             </span>
             <span v-else-if="record.masterId > 0" class="text-fid-sig-gap">
@@ -150,7 +148,7 @@ function waiting(addedAt: string): string | null {
             >
               zuletzt bei
               <span class="text-fid-text">{{ record.lastSeen.dealer }}</span>
-              am {{ date.format(record.lastSeen.at) }}
+              am {{ day(record.lastSeen.at) }}
             </NuxtLink>
           </p>
         </li>

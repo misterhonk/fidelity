@@ -333,9 +333,9 @@ function shapeOf(format: string | null) {
         Fidelity dünner aus, als es ist.
       -->
       <p class="max-w-prose text-fid-xs text-fid-text-muted">
-        Gelesen wurden <span class="fid-num">{{ number.format(result.scanned) }}</span> der
-        <span class="fid-num">{{ number.format(result.listingsTotal) }}</span> Angebote, mit
-        einer Platte als Anhaltspunkt. Ein Dig liest den ganzen Laden und kennt deine Sammlung.
+        Gelesen wurden <span class="fid-num">{{ count(result.scanned) }}</span> der
+        <span class="fid-num">{{ count(result.listingsTotal) }}</span> Angebote, mit einer
+        Platte als Anhaltspunkt. Ein Dig liest den ganzen Laden und kennt deine Sammlung.
       </p>
     </section>
   </section>

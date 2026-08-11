@@ -112,7 +112,7 @@ const syncLabel = computed(() => {
   const p = progress.value
   if (!p) return null
   const what = p.kind === 'collection' ? 'Sammlung' : 'Wantlist'
-  return `${what}: ${number.format(p.stored)} von ${number.format(p.total)}`
+  return `${what}: ${count(p.stored)} von ${count(p.total)}`
 })
 
 /**
@@ -344,9 +344,9 @@ const CAN_DO = [
           <div class="flex flex-col gap-2">
             <h2 class="text-fid-base font-medium text-fid-text">Fertig.</h2>
             <p v-if="library" class="max-w-prose text-fid-base text-fid-text-muted">
-              <span class="fid-num text-fid-text">{{ number.format(library.collection) }}</span>
+              <span class="fid-num text-fid-text">{{ count(library.collection) }}</span>
               Platten und
-              <span class="fid-num text-fid-text">{{ number.format(library.wantlist) }}</span>
+              <span class="fid-num text-fid-text">{{ count(library.wantlist) }}</span>
               Wünsche liegen jetzt auf diesem Gerät. Drei Dinge kannst du damit tun:
             </p>
           </div>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const m = useMessages()
 const { identity, load } = useIdentity()
 const { ids: basketIds, load: loadBasket } = useBasket()
 
@@ -22,28 +23,20 @@ onMounted(() => {
  * a piece of data and made "where am I" unanswerable. A persistent bar is the
  * plainest fix and the one every phone user already knows.
  *
- * "Im Laden" is deliberately not here: it is a *mode* you enter with a record
- * in your hand, not a section you browse, and it is reached from the dig
+ * "In the shop" is deliberately not here: it is a *mode* you enter with a
+ * record in your hand, not a section you browse, and it is reached from the dig
  * result and from the overview where that decision is actually being made.
+ *
+ * The `key` names the entry in the message pack. What is left here is only what
+ * does not change with the language: where it goes, what it looks like, and
+ * which other screens count as part of it.
  */
 const SECTIONS = [
-  { to: '/', label: 'Start', icon: 'house', hint: 'Was ist neu, was steht an' },
-  { to: '/dig', label: 'Graben', icon: 'kiste', hint: 'Einen Händler scannen' },
-  {
-    to: '/korb',
-    label: 'Korb',
-    icon: 'shopping-basket',
-    hint: 'Was du kaufen willst',
-    also: ['/gemerkt'],
-  },
-  {
-    to: '/regal',
-    label: 'Sammlung',
-    icon: 'regal',
-    hint: 'Was du hast und was du suchst',
-    also: ['/landkarte', '/wantlist'],
-  },
-  { to: '/haendler', label: 'Läden', icon: 'store', hint: 'Bei wem du kaufst' },
+  { to: '/', key: 'start', icon: 'house' },
+  { to: '/dig', key: 'dig', icon: 'kiste' },
+  { to: '/korb', key: 'basket', icon: 'shopping-basket', also: ['/gemerkt'] },
+  { to: '/regal', key: 'shelf', icon: 'regal', also: ['/landkarte', '/wantlist'] },
+  { to: '/haendler', key: 'dealers', icon: 'store' },
 ] as const
 
 const route = useRoute()
@@ -73,7 +66,7 @@ const basketCount = computed(() => basketIds.value.size)
   -->
   <nav
     v-if="identity && route.path !== '/willkommen'"
-    aria-label="Hauptbereiche"
+    :aria-label="m.nav.label"
     class="z-30 md:sticky md:top-0 md:border-b md:border-fid-border md:bg-fid-bg/90 md:backdrop-blur max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:border-t max-md:border-fid-border max-md:bg-fid-surface/95 max-md:pb-[env(safe-area-inset-bottom)] max-md:backdrop-blur"
   >
     <!--
@@ -92,7 +85,7 @@ const basketCount = computed(() => basketIds.value.size)
         :key="section.to"
         :to="section.to"
         :aria-current="isCurrent(section) ? 'page' : undefined"
-        :title="section.hint"
+        :title="m.nav[section.key].hint"
         class="relative flex min-h-11 items-center justify-center gap-2 border-b-2 px-3 text-fid-sm transition-colors max-md:min-h-14 max-md:flex-1 max-md:flex-col max-md:gap-1 max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0 max-md:px-1 max-md:py-2 max-md:text-fid-xs"
         :class="
           isCurrent(section)
@@ -106,7 +99,7 @@ const basketCount = computed(() => basketIds.value.size)
           phone a row of five words in 11px is a row nobody aims at.
         -->
         <!--
-          Das Abzeichen sitzt auf dem Korb, nicht daneben.
+          The badge sits on the basket, not beside it.
 
           It used to be a third child of the link — which on a phone, where the
           link is a column, made it a third *row*: the basket tab grew taller
@@ -126,16 +119,16 @@ const basketCount = computed(() => basketIds.value.size)
           <span
             v-if="section.to === '/korb' && basketCount > 0"
             class="fid-num pointer-events-none absolute -top-1.5 -right-2 min-w-4 rounded-full bg-fid-accent px-1 text-center text-[0.625rem] leading-4 font-medium text-fid-on-accent"
-            :aria-label="`${basketCount} im Korb`"
+            :aria-label="m.nav.inBasket(basketCount)"
           >
             {{ basketCount }}
           </span>
         </span>
-        {{ section.label }}
+        {{ m.nav[section.key].label }}
       </NuxtLink>
 
       <!--
-        Auf dieselbe Linie wie die fünf anderen.
+        On the same line as the other five.
 
         The gear carries no label, so centring it in a bar sized for
         icon-plus-word put its glyph eleven pixels below the rest. Centred is
@@ -150,8 +143,8 @@ const basketCount = computed(() => basketIds.value.size)
       <NuxtLink
         to="/einstellungen"
         :aria-current="isCurrent({ to: '/einstellungen' }) ? 'page' : undefined"
-        aria-label="Einstellungen"
-        title="Einstellungen"
+        :aria-label="m.nav.settings"
+        :title="m.nav.settings"
         class="flex min-h-11 min-w-11 items-center justify-center border-b-2 text-fid-base transition-colors md:ml-auto max-md:min-h-14 max-md:flex-col max-md:justify-start max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0 max-md:py-2"
         :class="
           isCurrent({ to: '/einstellungen' })

@@ -93,8 +93,8 @@ async function checkStock() {
     const sold = props.summary.lines.filter((line) => line.sold).length
     checkResult.value =
       sold === 0
-        ? `Alles noch da – ${number.format(before)} ${before === 1 ? 'Platte' : 'Platten'}, Preise wieder aktuell.`
-        : `${number.format(sold)} inzwischen verkauft. Der Rest ist wieder aktuell.`
+        ? `Alles noch da – ${count(before)} ${before === 1 ? 'Platte' : 'Platten'}, Preise wieder aktuell.`
+        : `${count(sold)} inzwischen verkauft. Der Rest ist wieder aktuell.`
   } catch (cause) {
     error.value = cause
   } finally {
@@ -688,7 +688,7 @@ const peak = computed(() =>
       <p class="max-w-prose text-fid-sm text-fid-text-muted">
         Zum Kaufen: jede Zeile oben führt zu ihrem Angebot bei Discogs, dort sitzt der „Add to
         Cart"-Knopf.
-        <span class="fid-num">{{ number.format(summary.lines.length) }}</span>
+        <span class="fid-num">{{ count(summary.lines.length) }}</span>
         {{ summary.lines.length === 1 ? 'Platte' : 'Platten' }} liegen bereit.
       </p>
       <a

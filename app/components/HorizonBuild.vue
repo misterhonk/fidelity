@@ -70,7 +70,7 @@ const eta = computed(() => {
 
 const staleNote = computed(() =>
   stale.value > 0
-    ? `${number.format(stale.value)} ${stale.value === 1 ? 'Eintrag ist' : 'Einträge sind'} älter als 30 Tage. Die werden nach und nach aufgefrischt, ein kleines Kontingent pro Tag.`
+    ? `${count(stale.value)} ${stale.value === 1 ? 'Eintrag ist' : 'Einträge sind'} älter als 30 Tage. Die werden nach und nach aufgefrischt, ein kleines Kontingent pro Tag.`
     : null,
 )
 
@@ -91,7 +91,7 @@ const complete = computed(
       <dt class="text-fid-text-muted">Künstler und Labels</dt>
       <dd class="fid-num text-fid-text">{{ status.expanded }} von {{ status.entities }}</dd>
       <dt class="text-fid-text-muted">Bekannte Platten</dt>
-      <dd class="fid-num text-fid-text">{{ number.format(status.releaseIds) }}</dd>
+      <dd class="fid-num text-fid-text">{{ count(status.releaseIds) }}</dd>
     </dl>
 
     <!--
@@ -124,7 +124,7 @@ const complete = computed(
         <span class="fid-num">{{ progress.done }}</span> von
         <span class="fid-num">{{ progress.total }}</span>
         <template v-if="progress.current"> · {{ progress.current }}</template>
-        · <span class="fid-num">{{ number.format(progress.releaseIds) }}</span> Platten
+        · <span class="fid-num">{{ count(progress.releaseIds) }}</span> Platten
         <template v-if="eta"> · noch ca. {{ eta }}</template>
       </p>
     </div>

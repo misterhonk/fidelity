@@ -211,8 +211,6 @@ const canSync = computed(() => {
 const redirectUri = computed(() =>
   typeof window === 'undefined' ? '' : redirectUriFor(window.location.origin),
 )
-
-const date = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' })
 </script>
 
 <template>
@@ -359,7 +357,7 @@ const date = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 
         {{ result }}
       </p>
       <p v-else-if="status.lastSyncedAt" class="text-fid-sm text-fid-text-muted">
-        Zuletzt abgeglichen am {{ date.format(status.lastSyncedAt) }}.
+        Zuletzt abgeglichen am {{ dayTime(status.lastSyncedAt) }}.
       </p>
     </template>
 

@@ -103,8 +103,8 @@ async function intoBasket(group: { dealer: string | null; records: MarkedRecord[
       dealer: group.dealer ?? '',
       text:
         result.sold === 0
-          ? `${number.format(result.added)} im Korb.`
-          : `${number.format(result.added)} im Korb, ${number.format(result.sold)} war schon weg.`,
+          ? `${count(result.added)} im Korb.`
+          : `${count(result.added)} im Korb, ${count(result.sold)} war schon weg.`,
     }
   } catch (cause) {
     error.value = cause
@@ -126,8 +126,6 @@ onMounted(async () => {
   }
 })
 
-const date = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' })
-
 async function check() {
   if (checking.value) return
 
@@ -147,8 +145,8 @@ async function check() {
     const left = Object.keys(result.prices).length
     checkResult.value =
       result.sold === 0
-        ? `Alle ${number.format(left)} noch zu haben.`
-        : `${number.format(result.sold)} inzwischen weg, ${number.format(left)} noch da.`
+        ? `Alle ${count(left)} noch zu haben.`
+        : `${count(result.sold)} inzwischen weg, ${count(left)} noch da.`
   } catch (cause) {
     error.value = cause
   } finally {
@@ -182,7 +180,7 @@ async function check() {
         <p class="text-fid-base text-fid-text-muted">
           <template v-if="overview.total === 1">Eine Platte</template>
           <template v-else>
-            <span class="fid-num text-fid-text">{{ number.format(overview.total) }}</span>
+            <span class="fid-num text-fid-text">{{ count(overview.total) }}</span>
             Platten
           </template>
           vorgemerkt bei
@@ -370,7 +368,7 @@ async function check() {
             </span>
             <span class="shrink-0 text-fid-xs text-fid-text-muted">
               <template v-if="record.dealer">{{ record.dealer }} · </template>
-              {{ date.format(record.createdAt) }}
+              {{ day(record.createdAt) }}
             </span>
           </li>
         </ul>

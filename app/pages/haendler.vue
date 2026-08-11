@@ -59,10 +59,6 @@ async function select(username: string) {
   )
 }
 
-const number = new Intl.NumberFormat('de-DE')
-const rateFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
-const factorFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 })
-
 /** Distributions come back as name → count; the bars want facets. */
 function facets(dist: Record<string, number>, limit: number): TasteFacet[] {
   return (
@@ -92,12 +88,12 @@ const verdict = computed(() => {
   const p = profile.value
   if (!p) return null
 
-  const rate = rateFormat.format(p.rate)
+  const rate = decimal(p.rate)
   if (p.factor === null) {
     return `${rate} Treffer je tausend Listings. Sobald du einen zweiten Händler gescannt hast, steht hier, wie sich das vergleicht.`
   }
 
-  const factor = factorFormat.format(p.factor)
+  const factor = decimal(p.factor, 2)
   if (p.factor >= 1.5)
     return `${rate} Treffer je tausend – das ${factor}-Fache deiner übrigen Läden.`
   if (p.factor >= 0.8)
@@ -115,7 +111,7 @@ const pricePosition = computed(() => {
 
 const scanned = computed(() => {
   const at = profile.value?.dealer.lastScannedAt
-  return at ? new Date(at).toLocaleDateString('de-DE', { dateStyle: 'medium' }) : null
+  return at ? day(new Date(at)) : null
 })
 </script>
 
@@ -166,13 +162,13 @@ const scanned = computed(() => {
           </p>
           <p v-else class="text-fid-base text-fid-text">{{ verdict }}</p>
           <p class="text-fid-sm text-fid-text-muted">
-            <span class="fid-num">{{ number.format(profile.dealer.numForSale) }}</span> Listings
+            <span class="fid-num">{{ count(profile.dealer.numForSale) }}</span> Listings
             <template v-if="profile.dealer.shipsFrom">
               · aus {{ profile.dealer.shipsFrom }}</template
             >
             <template v-if="profile.dealer.ratingCount > 0">
               · <span class="fid-num">{{ profile.dealer.sellerRating }} %</span> bei
-              <span class="fid-num">{{ number.format(profile.dealer.ratingCount) }}</span>
+              <span class="fid-num">{{ count(profile.dealer.ratingCount) }}</span>
               Bewertungen
             </template>
             <template v-if="scanned"> · zuletzt gescannt am {{ scanned }}</template>
@@ -225,13 +221,9 @@ const scanned = computed(() => {
           class="text-fid-sm text-fid-sig-gap"
         >
           Aus
-          <span class="fid-num">{{
-            number.format(profile.dealer.fingerprint.sampledItems)
-          }}</span>
+          <span class="fid-num">{{ count(profile.dealer.fingerprint.sampledItems) }}</span>
           von
-          <span class="fid-num">{{
-            number.format(profile.dealer.fingerprint.totalItems)
-          }}</span>
+          <span class="fid-num">{{ count(profile.dealer.fingerprint.totalItems) }}</span>
           Listings – {{ Math.round(profile.dealer.fingerprint.coverage * 100) }} % des Ladens.
         </p>
 
@@ -254,7 +246,7 @@ const scanned = computed(() => {
               money(
                 profile.dealer.fingerprint.medianPrice,
                 profile.dealer.fingerprint.priceCurrency,
-              ) ?? number.format(profile.dealer.fingerprint.medianPrice)
+              ) ?? count(profile.dealer.fingerprint.medianPrice)
             }}</span>
             <template v-if="!profile.dealer.fingerprint.priceCurrency">
               <span class="text-fid-sm text-fid-text-muted">

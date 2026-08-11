@@ -37,10 +37,7 @@ const label = computed(() => {
   return `${what}: ${stored} von ${total}`
 })
 
-const formatDate = (at: number | null) =>
-  at === null
-    ? 'noch nie'
-    : new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(at)
+const formatDate = (at: number | null) => (at === null ? 'noch nie' : dayTime(at))
 </script>
 
 <template>

@@ -8,9 +8,10 @@ useSeoMeta({
   description: 'Konto, Sammlung, Suche, Abgleich und der optionale Hub.',
 })
 
+const m = useMessages()
 const { identity, load } = useIdentity()
 const { call } = useFidelityWorker()
-const { preference: theme, themes } = useTheme()
+const { preference: theme } = useTheme()
 const { current: typeset, sets } = useTypeset()
 
 const stats = ref<Awaited<ReturnType<typeof call<'db.stats'>>> | null>(null)
@@ -55,7 +56,7 @@ const searchSummary = computed(() => {
   if (!prefs) return null
 
   const parts: string[] = []
-  if (prefs.maxPrice !== null) parts.push(`bis ${number.format(prefs.maxPrice)} €`)
+  if (prefs.maxPrice !== null) parts.push(`bis ${count(prefs.maxPrice)} €`)
   if (prefs.excludeReissues) parts.push('nur Originale')
   if (prefs.formatsAllow.length > 0) parts.push(prefs.formatsAllow.join(', '))
   if (prefs.shipsFromBlock.length > 0) {
@@ -70,14 +71,14 @@ const library = computed(() => {
   const counts = stats.value?.counts
   if (!counts) return null
   if (!counts.collection) return 'Noch nichts geholt'
-  return `${number.format(counts.collection)} Platten · ${number.format(counts.wantlist ?? 0)} Wünsche`
+  return `${count(counts.collection)} Platten · ${count(counts.wantlist ?? 0)} Wünsche`
 })
 
 const usage = computed(() => {
   const bytes = stats.value?.usageBytes
   if (bytes === null || bytes === undefined) return null
-  if (bytes < 1024 * 1024) return `${number.format(Math.round(bytes / 1024))} KB`
-  return `${new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 }).format(bytes / 1024 / 1024)} MB`
+  if (bytes < 1024 * 1024) return `${count(Math.round(bytes / 1024))} KB`
+  return `${decimal(bytes / 1024 / 1024)} MB`
 })
 
 const sync = computed(() => {
@@ -102,9 +103,9 @@ const hub = computed(() => {
 })
 
 const appearance = computed(() => {
-  const themeLabel = themes.find((entry) => entry.key === theme.value)?.label ?? 'System'
+  const themeLabel = m.value.appearance.theme[theme.value].label
   const typeLabel = sets.find((entry) => entry.key === typeset.value)?.label ?? ''
-  return `${themeLabel} · ${typeLabel}`
+  return `${m.value.meta.name} · ${themeLabel} · ${typeLabel}`
 })
 
 /**

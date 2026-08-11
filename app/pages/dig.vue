@@ -140,8 +140,6 @@ onMounted(async () => {
   }
 })
 
-const number = new Intl.NumberFormat('de-DE')
-
 /**
  * The enrichment pass, after the scan.
  *
@@ -398,8 +396,8 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
     >
       <p class="text-fid-base text-fid-text">
         Ein Dig bei <span class="font-medium">{{ resumable.dealer }}</span> wurde unterbrochen –
-        <span class="fid-num">{{ number.format(resumable.listingsScanned) }}</span> von
-        <span class="fid-num">{{ number.format(resumable.listingsTotal) }}</span> waren durch.
+        <span class="fid-num">{{ count(resumable.listingsScanned) }}</span> von
+        <span class="fid-num">{{ count(resumable.listingsTotal) }}</span> waren durch.
       </p>
       <button
         type="button"
@@ -421,12 +419,12 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
     >
       <p class="text-fid-base text-fid-text">
         <span class="font-medium">{{ preflight.displayName }}</span> hat
-        <span class="fid-num">{{ number.format(preflight.numForSale) }}</span> Listings.
+        <span class="fid-num">{{ count(preflight.numForSale) }}</span> Listings.
       </p>
       <p v-if="preflight.truncated" class="text-fid-sm text-fid-sig-gap">
         Ein normaler Dig kommt an höchstens
-        <span class="fid-num">{{ number.format(preflight.reachable) }}</span> davon heran – das
-        sind {{ Math.round((preflight.reachable / preflight.numForSale) * 100) }} %.
+        <span class="fid-num">{{ count(preflight.reachable) }}</span> davon heran – das sind
+        {{ Math.round((preflight.reachable / preflight.numForSale) * 100) }} %.
       </p>
       <p class="text-fid-sm text-fid-text-muted">
         Dauert etwa
@@ -532,8 +530,8 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
         orderings and not stuck.
       -->
       <p class="text-fid-sm text-fid-text-muted">
-        <span class="fid-num">{{ number.format(progress.unique) }}</span> von
-        <span class="fid-num">{{ number.format(progress.reachable) }}</span> ·
+        <span class="fid-num">{{ count(progress.unique) }}</span> von
+        <span class="fid-num">{{ count(progress.reachable) }}</span> ·
         <span class="fid-num">{{ progress.matches }}</span> Treffer
         <template v-if="progress.passCount > 1">
           · {{ progress.pass }}
@@ -616,14 +614,16 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
         </h2>
         <p class="text-fid-sm text-fid-text-muted">
           <template v-if="kind !== 'full'">
-            <span class="fid-num">{{ number.format(result.dig.listingsTotal) }}</span>
+            <span class="fid-num">{{ count(result.dig.listingsTotal) }}</span>
             {{ result.dig.listingsTotal === 1 ? 'neues Listing' : 'neue Listings' }} seit dem
             letzten Besuch
           </template>
           <template v-else>
-            <span class="fid-num">{{ number.format(result.dig.listingsScanned) }}</span> von
-            <span class="fid-num">{{ number.format(result.dig.listingsTotal) }}</span> gescannt
-            ({{ Math.round(result.dig.coverage * 100) }} %)
+            <span class="fid-num">{{ count(result.dig.listingsScanned) }}</span> von
+            <span class="fid-num">{{ count(result.dig.listingsTotal) }}</span> gescannt ({{
+              Math.round(result.dig.coverage * 100)
+            }}
+            %)
           </template>
           <template v-if="result.folded > 0">
             · <span class="fid-num">{{ result.folded }}</span> weitere Exemplare

@@ -72,8 +72,8 @@ const eta = computed(() => {
 
     <template v-else>
       <p class="text-fid-sm text-fid-text-muted">
-        <span class="fid-num">{{ number.format(status.harvested) }}</span> von
-        <span class="fid-num">{{ number.format(status.favourites) }}</span> Lieblingsplatten
+        <span class="fid-num">{{ count(status.harvested) }}</span> von
+        <span class="fid-num">{{ count(status.favourites) }}</span> Lieblingsplatten
         gelesen<template v-if="status.worthExpanding > 0">
           · <span class="fid-num">{{ status.worthExpanding }}</span>
           <!-- "1 Person tauchen" — the verb has to agree with the number too. -->
@@ -88,7 +88,7 @@ const eta = computed(() => {
         second half in a unit nobody outside this repository thinks in.
       -->
       <p v-if="remaining > 0 && !running" class="text-fid-sm text-fid-text-muted">
-        Noch <span class="fid-num">{{ number.format(remaining) }}</span>
+        Noch <span class="fid-num">{{ count(remaining) }}</span>
         {{ plural(remaining, 'Platte', 'Platten') }} – rund
         {{ counted(minutes, 'Minute', 'Minuten') }}. Läuft in Häppchen und übersteht ein
         Neuladen.
@@ -102,9 +102,9 @@ const eta = computed(() => {
           />
         </div>
         <p class="text-fid-sm text-fid-text-muted">
-          <span class="fid-num">{{ number.format(progress.done) }}</span> von
-          <span class="fid-num">{{ number.format(progress.total) }}</span> ·
-          <span class="fid-num">{{ number.format(progress.people) }}</span> Personen
+          <span class="fid-num">{{ count(progress.done) }}</span> von
+          <span class="fid-num">{{ count(progress.total) }}</span> ·
+          <span class="fid-num">{{ count(progress.people) }}</span> Personen
           <template v-if="progress.current"> · {{ progress.current }}</template>
           <template v-if="eta"> · noch ca. {{ eta }}</template>
         </p>

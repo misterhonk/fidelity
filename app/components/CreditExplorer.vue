@@ -26,11 +26,11 @@ async function load() {
  * numbers rather than templated over them, so it stays true when they are odd.
  */
 function line(group: CreditGroup): string {
-  const here = `${number.format(group.matches.length)} ${group.matches.length === 1 ? 'Platte' : 'Platten'}`
+  const here = `${count(group.matches.length)} ${group.matches.length === 1 ? 'Platte' : 'Platten'}`
   if (group.owned === 0) {
     return `${here} hier, von denen du noch nichts hast.`
   }
-  const owned = `${number.format(group.owned)} ${group.owned === 1 ? 'Platte' : 'Platten'}`
+  const owned = `${count(group.owned)} ${group.owned === 1 ? 'Platte' : 'Platten'}`
   return `Du hast ${owned} — dieser Händler hat ${here} mehr.`
 }
 </script>

@@ -9,25 +9,15 @@
  * has to be readable before the first paint, and it has no business travelling
  * to another device in the vault.
  */
+/*
+ * The name and the faces stay here; the sentence describing each set lives in
+ * the message packs (`m.appearance.type`). "Presswerk" is a name, not a word to
+ * be translated, and a list of typefaces reads the same in every language.
+ */
 export const TYPESETS = [
-  {
-    key: 'presswerk',
-    label: 'Presswerk',
-    hint: 'Switzer · Chivo Mono · Array',
-    about: 'Schmal und technisch, wie die Schrift auf einem Plattenrücken.',
-  },
-  {
-    key: 'kontor',
-    label: 'Kontor',
-    hint: 'General Sans · Chivo Mono · Clash Display',
-    about: 'Runder und wärmer. Überschriften bekommen mehr Gewicht.',
-  },
-  {
-    key: 'schweiz',
-    label: 'Schweiz',
-    hint: 'Switzer · JetBrains Mono',
-    about: 'Ohne eigene Schrift für Überschriften – Hierarchie nur über Größe und Gewicht.',
-  },
+  { key: 'presswerk', label: 'Presswerk', hint: 'Switzer · Chivo Mono · Array' },
+  { key: 'kontor', label: 'Kontor', hint: 'General Sans · Chivo Mono · Clash Display' },
+  { key: 'schweiz', label: 'Schweiz', hint: 'Switzer · JetBrains Mono' },
 ] as const
 
 export type TypesetKey = (typeof TYPESETS)[number]['key']

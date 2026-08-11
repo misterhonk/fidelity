@@ -77,8 +77,14 @@ export default defineNuxtConfig({
     manifest: {
       name: 'Fidelity',
       short_name: 'Fidelity',
-      description: 'Der Verkäufer hinter der Theke – für Discogs.',
-      lang: 'de',
+      /*
+       * The manifest is read once at install time, by the operating system,
+       * before any of the app's own code runs. It cannot follow the language
+       * switch, so it says English — the base language (ADR-010) — and stays
+       * one string in one language on purpose.
+       */
+      description: 'The clerk behind the counter — for Discogs.',
+      lang: 'en',
       start_url: '/',
       scope: '/',
       display: 'standalone',

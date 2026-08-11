@@ -35,9 +35,6 @@ const decades = computed(() =>
     .sort(([a], [b]) => Number(a) - Number(b))
     .map(([, facet]) => facet),
 )
-
-const number = new Intl.NumberFormat('de-DE')
-const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
 </script>
 
 <template>
@@ -132,7 +129,7 @@ const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
               <span class="text-fid-base text-fid-text">{{ artist.name }}</span>
               <span class="text-fid-sm text-fid-text-muted">
                 <span class="fid-num text-fid-text">{{ artist.owned }}</span> von
-                <span class="fid-num">{{ number.format(artist.total) }}</span> Einträgen
+                <span class="fid-num">{{ count(artist.total) }}</span> Einträgen
                 <template v-if="artist.from > 0">
                   · deine von <span class="fid-num">{{ artist.from }}</span
                   ><template v-if="artist.to !== artist.from">
@@ -165,13 +162,13 @@ const lift = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 })
           <template v-for="label in gaps.labels" :key="label.entityId">
             <dt class="min-w-0 truncate text-fid-sm text-fid-text">{{ label.name }}</dt>
             <dd class="fid-num text-right text-fid-sm text-fid-text-muted">
-              {{ label.owned }} / {{ number.format(label.catalogueSize) }}
+              {{ label.owned }} / {{ count(label.catalogueSize) }}
             </dd>
             <dd
               class="fid-num text-right text-fid-sm"
               :class="(label.lift ?? 0) >= 2 ? 'text-fid-sig-label' : 'text-fid-text-muted'"
             >
-              <template v-if="label.lift">{{ lift.format(label.lift) }}×</template>
+              <template v-if="label.lift">{{ decimal(label.lift) }}×</template>
               <template v-else>–</template>
             </dd>
           </template>
