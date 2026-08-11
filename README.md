@@ -218,6 +218,21 @@ Regeln, die nicht verhandelbar sind.
 
 ---
 
+## Lizenz
+
+[**GNU AGPL-3.0**](LICENSE). Nimm es, betreib es, bau es um. Die eine Bedingung: wenn du
+eine veränderte Fassung weitergibst **oder für andere hostest**, muss dein Quelltext unter
+derselben Lizenz offen sein.
+
+Das ist Absicht und keine Schikane. Fidelity ist ein Projekt ohne Gewinnabsicht, und die
+AGPL ist die Lizenz, die dafür sorgt, dass es das bleibt — auch in der Fassung, die jemand
+anderes ins Netz stellt. Wer es gut meint, erfüllt sie mit einem Link auf seine Quelle.
+
+Ohne Gewährleistung, und das ist hier nicht bloß Formel: die App arbeitet mit dem
+Discogs-Konto ihrer Nutzer.
+
+---
+
 Diese Anwendung nutzt die Discogs-API, steht aber in keiner Verbindung zu Discogs und wird
 von Discogs weder unterstützt noch empfohlen.
 

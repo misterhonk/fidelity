@@ -165,6 +165,8 @@ GET  /v1/horizon/:kind/:id           → HorizonChunk | 404
 PUT  /v1/horizon/:kind/:id           ← Chunk beisteuern
 GET  /v1/shipping/:dealer/:country   → ShippingTier[] | 404
 PUT  /v1/shipping/:dealer/:country   ← Staffel beisteuern
+GET  /v1/covers?ids=1,2,3            → { covers: { releaseId: {thumbUrl, coverUrl} } }
+PUT  /v1/covers                      ← { covers: [...] } beisteuern
 POST /v1/watch/subscribe             ← Push-Subscription + Händlerliste
 GET  /v1/watch/pending               → Änderungen seit dem letzten Abruf
 POST /v1/digs                        ← Dig zum Teilen ablegen (TTL 6 h)
@@ -175,6 +177,36 @@ GET  /v1/health                      → { ok, version, entities, users }
 **Auth:** ein geteiltes Secret im `Authorization`-Header, beim Aufsetzen einmal erzeugt.
 Für einen Freundeskreis völlig ausreichend. Keine Nutzerkonten, keine Passwörter,
 keine Sessions.
+
+### Cover — der billigste Gewinn im ganzen Addon
+
+Der Inventar-Endpunkt liefert **überhaupt keine Bilder**: `release.thumbnail` ist leer, in
+1.200 von 1.200 Zeilen über vier Läden (gemessen 2026-08-10, siehe `02-DISCOGS-API.md`).
+Jedes Cover, das ein Client zeigt, kostet ihn also eine eigene Abfrage von
+`/releases/{id}` — und die liefert für alle dieselbe Antwort, dauerhaft, weil ein Cover
+sich nicht ändert. Genau der Fall, für den es diesen Hub gibt.
+
+**Gebündelt, nicht einzeln.** Ein Bildschirm will rund ein Dutzend Cover auf einmal. Ein
+Dutzend Rundreisen zu einem Raspberry Pi, jede mit eigenem Zwei-Sekunden-Limit, kostet
+mehr als die Anfragen, die sie sparen sollen.
+
+**Leere Paare werden absichtlich gespeichert.** „Discogs hat für dieses Release kein Bild"
+ist genauso viel wert wie ein Bild und kostet dieselbe Anfrage, um es herauszufinden.
+
+**Die Adressen werden an beiden Enden geprüft, und das ist keine Formalie.** Sie landen in
+einem `<img src>` auf jedem Gerät, das denselben Hub benutzt — wer hier frei schreiben
+dürfte, könnte alle diese Geräte beliebige Adressen laden lassen. Akzeptiert wird nur
+`i.discogs.com` über HTTPS, und zwar **geparst statt gemustert**:
+
+```
+https://i.discogs.com.evil.test/x.jpeg      ← überlebt ein naives includes()
+https://evil.test/?a=https://i.discogs.com  ← ebenso
+```
+
+Der Hub lehnt sie beim Einliefern ab, der Client lehnt sie beim Lesen noch einmal ab. Der
+Hub ist genau die Komponente, gegen die `worker/hub/client.ts` geschrieben ist — eine alte
+Version, eine falsch konfigurierte, oder jemand anderes' Hub. Keine der beiden Seiten
+verlässt sich auf die andere.
 
 ### Der Wächter
 

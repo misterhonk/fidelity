@@ -154,11 +154,15 @@ Ein neuer Discogs-Endpunkt kommt erst in [`docs/02-DISCOGS-API.md`](docs/02-DISC
 
 ---
 
-## Noch offen: die Lizenz
+## Lizenz
 
-Dieses Repository trägt **noch keine Lizenz**, und `package.json` steht auf `private`.
-Ohne Lizenz behält der Urheber alle Rechte — Forken, Weiterverwenden und Weitergeben sind
-damit nicht erlaubt, auch wenn der Quelltext sichtbar ist.
+[**GNU AGPL-3.0**](LICENSE). Wer hier etwas beiträgt, stellt es unter dieselbe Lizenz.
+Einen Contributor License Agreement gibt es nicht — du behältst dein Urheberrecht, und der
+Beitrag steht unter der Lizenz des Projekts.
 
-Wer etwas beitragen möchte, sollte das wissen. Und wer das Projekt öffnen will, muss diese
-Entscheidung zuerst treffen; sie gehört dem Urheber und niemandem sonst.
+Praktisch heißt das: Fork, Umbau und eigener Betrieb sind ausdrücklich erwünscht. Wenn du
+deine Fassung weitergibst oder für andere hostest, gehört dein Quelltext ebenfalls offen.
+
+`"private": true` in der `package.json` bleibt stehen. Das verhindert nur versehentliches
+Veröffentlichen auf npm und hat mit der Lizenz nichts zu tun — dies ist eine App, kein
+Paket.

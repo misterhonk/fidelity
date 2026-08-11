@@ -322,6 +322,11 @@ irgendein Feature ihn voraussetzt. Vollständiges Konzept: `docs/13-HUB-ADDON.md
 - [x] Horizont-Cache (`GET/PUT /v1/horizon/:kind/:id`) – erspart jedem weiteren Nutzer
       die 13-minütige Ersteinrichtung
 - [x] Versandstaffeln als Community-Speicher statt Pull Request
+- [x] Cover-Cache (`GET/PUT /v1/covers`) – der Inventar-Endpunkt liefert gar keine Bilder
+      (gemessen 2026-08-10), also kostet jedes Cover eine eigene Abfrage, und die Antwort
+      ist für alle dieselbe. Gebündelt, mit Herkunftsprüfung an beiden Enden
+- [x] Hub-Erkennung im Client: sucht `http://localhost:8787`, und sagt, wenn der Browser
+      die Verbindung verweigert statt „nicht gefunden" zu behaupten
 - [ ] Wächter: pollt stündlich `num_for_sale` je Händler – **1 Request statt 100**,
       **ohne Token** – und schickt bei Veränderung Web Push
 - [x] Geräte-Sync für Korb und Merkliste — **über den Vault, nicht über den Hub**
@@ -333,12 +338,23 @@ irgendein Feature ihn voraussetzt. Vollständiges Konzept: `docs/13-HUB-ADDON.md
       (siehe `docs/08-DEPLOYMENT.md`). Betroffen ist nur noch der optionale Hub
 - [x] **CI-Test: Die App muss mit leerer `hubUrl` vollständig durchlaufen**
 
-**Umgesetzt ist der unstrittige Kern** — Horizont-Cache und Versandstaffeln.
-Beide brauchen keinen Token, keine Marktplatzdaten und keinen Dauerbetrieb; der
-Hub darf jederzeit aus sein. Geräte-Sync kam dazu, aber über den Vault statt über
-den Hub — was die Regel „kein Feature setzt den Hub voraus" eher bestätigt als
-verletzt. Offen bleiben **Wächter mit Web Push**, **„Dig teilen"** und ein
-**Dockerfile für den Hub**.
+**Umgesetzt ist der unstrittige Kern** — Horizont-Cache, Versandstaffeln und
+Cover. Alle drei brauchen keinen Token, keine Marktplatzdaten und keinen
+Dauerbetrieb; der Hub darf jederzeit aus sein. Geräte-Sync kam dazu, aber über den
+Vault statt über den Hub — was die Regel „kein Feature setzt den Hub voraus" eher
+bestätigt als verletzt.
+
+Offen bleiben **Wächter mit Web Push**, **„Dig teilen"** und ein **Dockerfile für
+den Hub**. Der Wächter ist von den dreien der einzige, der den Hub wirklich
+rechtfertigt: eine Abfrage je Händler für alle statt einer je Händler und Nutzer.
+Er ist auch der einzige, der VAPID-Schlüssel, Subscriptions und einen laufenden
+Prozess braucht — bisher ist der Hub ein Cache, den man jederzeit abschalten kann,
+und ein Wächter macht ihn zu etwas, das läuft.
+
+**Was ein Hub bewusst nicht wird:** Konten, eine eigene Weboberfläche, irgendein
+serverseitiges Rechnen an der Matching-Engine (die ist rein und lokal, und das ist
+ihr Wert), Statistik über Nutzer. Der Hub ist ein gemeinsames Gedächtnis für
+Fakten, die für alle gleich sind — mehr nicht.
 
 **Anmerkungen:**
 
