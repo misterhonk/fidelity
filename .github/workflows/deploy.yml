@@ -1,0 +1,122 @@
+name: Deploy
+
+# Eine neue Fassung auf den eigenen Server bringen.
+#
+# Optional, und zwar wirklich: ohne eingerichtete Zugangsdaten überspringt sich
+# dieser Ablauf selbst, statt bei jedem Release rot zu werden. Wer Fidelity über
+# das Zip oder über Docker betreibt, braucht ihn nie.
+#
+# Einzurichten sind vier Geheimnisse im Repository
+# (Settings → Secrets and variables → Actions):
+#
+#   DEPLOY_HOST     server.example.de
+#   DEPLOY_USER     benutzername
+#   DEPLOY_KEY      ein privater SSH-Schlüssel (nur für dieses Deployment!)
+#   DEPLOY_PATH     /pfad/zur/wurzel   ← nicht der Docroot, siehe unten
+#
+# **DEPLOY_PATH ist nicht der Docroot.** Der Docroot des Webservers zeigt auf
+# <DEPLOY_PATH>/current — einen Symlink, den deploy/publish.sh umlegt. Das ist
+# der Grund, warum ein Besucher nie eine halb ausgetauschte Seite sieht.
+# Einmalig einzurichten, danach ändert sich daran nie wieder etwas.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # Nie zwei Auslieferungen gleichzeitig auf denselben Server.
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
+
+      # Zuerst nachsehen, ob überhaupt ein Ziel eingerichtet ist. Ein Ablauf,
+      # der ohne Konfiguration scheitert, macht jedes Release rot und wird nach
+      # der dritten Mail ignoriert — dann fällt ein echter Fehler auch nicht
+      # mehr auf.
+      - name: Ist ein Ziel eingerichtet?
+        id: check
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          if [ -z "$HOST" ]; then
+            echo "Kein DEPLOY_HOST gesetzt — nichts auszuliefern."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.check.outputs.ready == 'true'
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v4.1.0
+      - if: steps.check.outputs.ready == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - if: steps.check.outputs.ready == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.check.outputs.ready == 'true'
+        run: pnpm build
+
+      # Die .htaccess gehört zur ausgelieferten Seite, genau wie im Release-Zip.
+      # Ohne sie verhalten sich Unterseiten auf Apache falsch.
+      - if: steps.check.outputs.ready == 'true'
+        run: cp deploy/.htaccess .output/public/.htaccess
+
+      - if: steps.check.outputs.ready == 'true'
+        name: Schlüssel bereitlegen
+        env:
+          KEY: ${{ secrets.DEPLOY_KEY }}
+          HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          # Den Hostschlüssel einmal holen, statt die Prüfung abzuschalten.
+          # StrictHostKeyChecking=no würde jeden Server akzeptieren, der gerade
+          # unter dieser Adresse antwortet.
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - if: steps.check.outputs.ready == 'true'
+        name: Hochladen und umschalten
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+          PATH_ON_SERVER: ${{ secrets.DEPLOY_PATH }}
+          VERSION: ${{ github.event.release.tag_name || github.sha }}
+        run: |
+          set -eu
+          SSH="ssh -i ~/.ssh/id_deploy -o BatchMode=yes"
+
+          # In ein Zwischenverzeichnis, nicht direkt in die neue Fassung: erst
+          # wenn alles oben ist, macht publish.sh daraus eine Auslieferung.
+          STAGING="$PATH_ON_SERVER/.incoming"
+          $SSH "$USER@$HOST" "rm -rf '$STAGING' && mkdir -p '$STAGING'"
+
+          rsync -az --delete -e "$SSH" \
+            .output/public/ "$USER@$HOST:$STAGING/"
+          rsync -az -e "$SSH" \
+            deploy/publish.sh "$USER@$HOST:$PATH_ON_SERVER/publish.sh"
+
+          $SSH "$USER@$HOST" \
+            "chmod +x '$PATH_ON_SERVER/publish.sh' && \
+             '$PATH_ON_SERVER/publish.sh' '$STAGING' '$PATH_ON_SERVER' '$VERSION' && \
+             rm -rf '$STAGING'"
+
+      # Nachsehen, ob die Seite danach wirklich antwortet. Ein Deployment, das
+      # niemand prüft, ist eine Hoffnung.
+      - if: steps.check.outputs.ready == 'true' && vars.DEPLOY_URL != ''
+        name: Antwortet sie?
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "${{ vars.DEPLOY_URL }}")
+          echo "GET ${{ vars.DEPLOY_URL }} → $code"
+          [ "$code" = "200" ] || exit 1
