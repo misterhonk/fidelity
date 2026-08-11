@@ -2,6 +2,16 @@
 import { MEDIUMS } from '#shared/format'
 import { CONDITIONS, type Condition, type Preferences } from '#shared/types'
 
+/*
+ * A computed, not `useMessages().value.settings.search.filter`.
+ *
+ * Reading `.value` once at setup captures whichever language was active when
+ * the component mounted, and this panel then keeps its old words through a
+ * switch while everything around it changes. Same trap as a frozen
+ * `Intl` formatter, one layer up.
+ */
+const f = computed(() => useMessages().value.settings.search.filter)
+
 const { call } = useFidelityWorker()
 
 const prefs = ref<Preferences | null>(null)
@@ -39,7 +49,7 @@ async function save(patch: Partial<Preferences>) {
 onBeforeUnmount(() => clearTimeout(timer))
 
 /**
- * Die Medien, die der Matcher versteht — aus seiner eigenen Tabelle.
+ * The media the matcher understands — from its own table.
  *
  * This used to be a copy: five names typed out again next to the five in the
  * token table. Two lists of the same thing is how one grows a sixth entry and
@@ -58,7 +68,7 @@ function toggleFormat(name: string) {
 }
 
 /**
- * Das Zielland, endlich einstellbar.
+ * The destination country, finally adjustable.
  *
  * Written through the same debounced `save` as everything else here. Empty
  * falls back to the default rather than being stored as an empty string: a
@@ -91,20 +101,11 @@ const number = (value: string) => {
   <section v-if="prefs" class="flex flex-col gap-5">
     <ErrorNote v-if="error" :cause="error" />
 
-    <!--
-      docs/04 §2 is emphatic that a criterion is either a filter or a dampener,
-      never both — otherwise the dampener is dead code. The interface says
-      which is which, because "wird verworfen" and "zählt weniger" are very
-      different promises and somebody setting a maximum price deserves to know
-      which one they just made.
-    -->
     <fieldset class="flex flex-col gap-3">
-      <legend class="text-fid-sm font-medium text-fid-text">
-        Hart — was gar nicht erst auftaucht
-      </legend>
+      <legend class="text-fid-sm font-medium text-fid-text">{{ f.hard }}</legend>
 
       <div class="flex flex-col gap-2">
-        <span class="text-fid-sm text-fid-text-muted">Formate</span>
+        <span class="text-fid-sm text-fid-text-muted">{{ f.formats }}</span>
         <div class="flex flex-wrap gap-2">
           <button
             v-for="format in FORMATS"
@@ -122,31 +123,27 @@ const number = (value: string) => {
             {{ format }}
           </button>
         </div>
-        <p class="text-fid-xs text-fid-text-muted">
-          Nichts ausgewählt heißt: alles zählt. Discogs schreibt Vinyl als
-          <span class="font-fid-mono">12"</span>, <span class="font-fid-mono">2xLP</span> oder
-          <span class="font-fid-mono">7"</span> – das wird mitgelesen.
-        </p>
+        <p class="text-fid-xs text-fid-text-muted">{{ f.formatsHint }}</p>
       </div>
 
       <div class="grid gap-3 @sm:grid-cols-2">
         <label class="flex flex-col gap-1">
-          <span class="text-fid-sm text-fid-text-muted">Höchstpreis</span>
+          <span class="text-fid-sm text-fid-text-muted">{{ f.maxPrice }}</span>
           <input
             :value="prefs.maxPrice ?? ''"
             type="number"
             min="1"
             step="1"
             inputmode="decimal"
-            placeholder="kein Limit"
+            :placeholder="f.noLimit"
             class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
             @change="save({ maxPrice: number(($event.target as HTMLInputElement).value) })"
           />
-          <span class="text-fid-xs text-fid-text-muted">Darüber wird verworfen.</span>
+          <span class="text-fid-xs text-fid-text-muted">{{ f.maxPriceHint }}</span>
         </label>
 
         <label class="flex flex-col gap-1">
-          <span class="text-fid-sm text-fid-text-muted">Händlerbewertung mindestens</span>
+          <span class="text-fid-sm text-fid-text-muted">{{ f.minRating }}</span>
           <input
             :value="prefs.minSellerRating"
             type="number"
@@ -159,22 +156,20 @@ const number = (value: string) => {
               save({ minSellerRating: Number(($event.target as HTMLInputElement).value) || 0 })
             "
           />
-          <span class="text-fid-xs text-fid-text-muted">
-            Darunter wird der Dig gar nicht erst gestartet.
-          </span>
+          <span class="text-fid-xs text-fid-text-muted">{{ f.minRatingHint }}</span>
         </label>
       </div>
 
       <!--
-        Wohin die Platte geht.
+        Where the record goes.
 
         This was a field in the data model with no control anywhere: it decided
         the postage — which block of a dealer's shipping text gets read, and
-        therefore the number the basket puts under "Versand" — and it was fixed
+        therefore the number the basket puts under "Shipping" — and it was fixed
         at "Germany" for everybody who ever installed this.
       -->
       <label class="flex flex-col gap-1">
-        <span class="text-fid-sm text-fid-text-muted">Wohin geliefert wird</span>
+        <span class="text-fid-sm text-fid-text-muted">{{ f.shipsTo }}</span>
         <input
           v-model="shipsTo"
           type="text"
@@ -182,36 +177,28 @@ const number = (value: string) => {
           placeholder="Germany"
           class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
         />
-        <span class="text-fid-xs text-fid-text-muted">
-          Entscheidet den Versand: Händler schreiben ihre Preise nach Zielland gestaffelt
-          („Germany:", „Europe:", „Non-Europe:"), und gelesen wird nur der Block, der zu dir
-          gehört. Auf Englisch, wie Discogs es schreibt — „Deutschland" versteht Fidelity auch.
-        </span>
+        <span class="text-fid-xs text-fid-text-muted">{{ f.shipsToHint }}</span>
       </label>
 
       <label class="flex flex-col gap-1">
-        <span class="text-fid-sm text-fid-text-muted">Versand aus diesen Ländern nicht</span>
+        <span class="text-fid-sm text-fid-text-muted">{{ f.blocked }}</span>
         <input
           v-model="blockedText"
           type="text"
           autocomplete="off"
-          placeholder="z. B. USA, Japan"
+          :placeholder="f.blockedPlaceholder"
           class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
         />
-        <span class="text-fid-xs text-fid-text-muted">
-          Mit Komma trennen. Nützlich gegen Zoll und drei Wochen Wartezeit.
-        </span>
+        <span class="text-fid-xs text-fid-text-muted">{{ f.blockedHint }}</span>
       </label>
     </fieldset>
 
     <fieldset class="flex flex-col gap-3 border-t border-fid-border pt-4">
-      <legend class="text-fid-sm font-medium text-fid-text">
-        Weich — was noch auftaucht, aber weiter unten
-      </legend>
+      <legend class="text-fid-sm font-medium text-fid-text">{{ f.soft }}</legend>
 
       <div class="grid gap-3 @sm:grid-cols-2">
         <label class="flex flex-col gap-1">
-          <span class="text-fid-sm text-fid-text-muted">Zustand ab</span>
+          <span class="text-fid-sm text-fid-text-muted">{{ f.condition }}</span>
           <select
             :value="prefs.prefMediaCondition"
             class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
@@ -225,27 +212,22 @@ const number = (value: string) => {
               {{ condition }}
             </option>
           </select>
-          <span class="text-fid-xs text-fid-text-muted">
-            Schlechter zählt nur noch 40 %, verschwindet aber nicht.
-          </span>
+          <span class="text-fid-xs text-fid-text-muted">{{ f.conditionHint }}</span>
         </label>
 
         <label class="flex flex-col gap-1">
-          <span class="text-fid-sm text-fid-text-muted">Wohlfühlpreis</span>
+          <span class="text-fid-sm text-fid-text-muted">{{ f.targetPrice }}</span>
           <input
             :value="prefs.targetPrice ?? ''"
             type="number"
             min="1"
             step="1"
             inputmode="decimal"
-            placeholder="egal"
+            :placeholder="f.targetPriceAny"
             class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
             @change="save({ targetPrice: number(($event.target as HTMLInputElement).value) })"
           />
-          <span class="text-fid-xs text-fid-text-muted">
-            Darüber zählt ein Treffer 55 % – und das ist auch die Grenze, bis zu der der Korb
-            Vorschläge macht.
-          </span>
+          <span class="text-fid-xs text-fid-text-muted">{{ f.targetPriceHint }}</span>
         </label>
       </div>
 
@@ -257,7 +239,7 @@ const number = (value: string) => {
           @change="save({ excludeReissues: ($event.target as HTMLInputElement).checked })"
         />
         <span class="flex flex-col gap-1">
-          <span class="text-fid-sm text-fid-text">Originalpressungen bevorzugen</span>
+          <span class="text-fid-sm text-fid-text">{{ f.preferOriginals }}</span>
           <!--
             Deliberately soft, though docs/03 lists it as hard. Whether a
             record is a reissue comes from /releases/{id}, which is only
@@ -265,17 +247,14 @@ const number = (value: string) => {
             anything during one. Dampening what turns out to be a reissue is
             the honest version of the same wish.
           -->
-          <span class="text-fid-xs text-fid-text-muted">Neuauflagen zählen dann weniger.</span>
-          <WhyNote label="Gedämpft statt verworfen">
-            Ob eine Platte eine Neuauflage ist, weiß Discogs erst in der Einzelabfrage – und die
-            läuft erst nach dem Scan über die besten 50. Verwerfen könnte sie also nichts.
-          </WhyNote>
+          <span class="text-fid-xs text-fid-text-muted">{{ f.preferOriginalsHint }}</span>
+          <WhyNote :label="f.preferOriginalsWhyLabel">{{ f.preferOriginalsWhy }}</WhyNote>
         </span>
       </label>
     </fieldset>
 
     <p class="h-4 text-fid-xs text-fid-text-muted" aria-live="polite">
-      {{ saved ? 'Gespeichert. Gilt ab dem nächsten Dig.' : '' }}
+      {{ saved ? f.saved : '' }}
     </p>
   </section>
 </template>

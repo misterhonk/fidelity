@@ -15,6 +15,8 @@
 
 import type { Messages } from './en'
 
+import { counted } from '~/utils/plural'
+
 const de: Messages = {
   meta: {
     name: 'Deutsch',
@@ -42,12 +44,66 @@ const de: Messages = {
       lead: 'Es gibt kein Konto bei uns – nur deinen Token auf diesem Gerät.',
       title: 'Konto',
       hint: 'Dein Discogs-Token und was auf diesem Gerät liegt',
+      discogsAccount: 'Discogs-Konto',
+      dataLives: 'Daten liegen',
+      inThisBrowser: 'in diesem Browser, auf diesem Gerät',
+      used: 'Belegt',
+      protected: 'vor Aufräumen geschützt',
+      signOut: 'Abmelden',
+      signOutWarning:
+        'Abmelden löscht die Datenbank mit — Token, Sammlung, Horizont und Digs. Es gibt keine Kopie woanders. Vorher exportieren, wenn du sie behalten willst.',
     },
     library: {
       lead: 'Was Fidelity von Discogs weiß. Grundlage für alles Weitere.',
       title: 'Sammlung',
       hint: 'Sammlung, Wantlist, Horizont und Credits',
       summary: (records, wants) => `${records} Platten · ${wants} Wünsche`,
+
+      fetch: {
+        title: 'Sammlung und Wantlist',
+        collection: 'Sammlung',
+        wantlist: 'Wantlist',
+        lastSynced: 'Zuletzt synchronisiert',
+        fetching: 'Wird geholt …',
+        progress: (what, stored, total) => `${what}: ${stored} von ${total}`,
+        start: 'Sammlung synchronisieren',
+        again: 'Neu synchronisieren',
+      },
+
+      horizon: {
+        title: 'Horizont',
+        about:
+          'Deine Sammlung einmal ausgeklappt. Danach kostet jeder Dig keine zusätzlichen Abfragen.',
+        entities: 'Künstler und Labels',
+        ofTotal: (done, total) => `${done} von ${total}`,
+        knownRecords: 'Bekannte Platten',
+        remaining: (minutes) =>
+          `Dauert noch rund ${counted(minutes, 'Minute', 'Minuten')}. Läuft in Häppchen und übersteht ein Neuladen – was schon fertig ist, wird nicht noch einmal geholt.`,
+        stale: (entries) =>
+          `${counted(entries, 'Eintrag ist', 'Einträge sind')} älter als 30 Tage. Die werden nach und nach aufgefrischt, ein kleines Kontingent pro Tag.`,
+        records: 'Platten',
+        eta: (clock) => `noch ca. ${clock}`,
+        build: 'Horizont bauen',
+        refresh: 'Horizont auffrischen',
+      },
+
+      credits: {
+        title: 'Credits',
+        about: 'Wer deine Lieblingsplatten gemacht hat – Produzenten, Engineers, Remixer.',
+        lead: 'Wer produziert, gemischt und gemastert hat – gelesen aus deinen Lieblingsplatten, vier und fünf Sterne.',
+        whyLabel: 'Warum nur die Lieblingsplatten',
+        why: 'Credits stehen nur in der Einzelabfrage pro Platte. Die ganze Sammlung durchzugehen wäre stundenlang – die bewerteten sind ein Bruchteil davon und sagen am meisten über dich.',
+        noFavourites:
+          'Noch keine Platte mit vier oder fünf Sternen bewertet. Vergib die bei Discogs, dann weiß ich, wo ich nachsehen soll.',
+        read: (read, total) => `${read} von ${total} Lieblingsplatten gelesen`,
+        worthExpanding: (people) =>
+          `${people === 1 ? 'Person taucht' : 'Personen tauchen'} oft genug auf, um in den Horizont zu wandern`,
+        remaining: (records, minutes) =>
+          `Noch ${counted(records, 'Platte', 'Platten')} – rund ${counted(minutes, 'Minute', 'Minuten')}. Läuft in Häppchen und übersteht ein Neuladen.`,
+        people: 'Personen',
+        harvest: 'Credits lesen',
+        continue: 'Weiterlesen',
+      },
     },
     search: {
       lead: 'Gilt für jeden Dig.',
@@ -58,6 +114,62 @@ const de: Messages = {
       originalsOnly: 'nur Originale',
       countriesBlocked: (blocked) =>
         blocked === 1 ? '1 Land gesperrt' : `${blocked} Länder gesperrt`,
+
+      filter: {
+        title: 'Wonach gesucht wird',
+        about: 'Was gar nicht erst auftaucht, und was nur weiter unten landet.',
+
+        hard: 'Hart — was gar nicht erst auftaucht',
+        soft: 'Weich — was noch auftaucht, aber weiter unten',
+
+        formats: 'Formate',
+        formatsHint:
+          'Nichts ausgewählt heißt: alles zählt. Discogs schreibt Vinyl als 12", 2xLP oder 7" – das wird mitgelesen.',
+
+        maxPrice: 'Höchstpreis',
+        noLimit: 'kein Limit',
+        maxPriceHint: 'Darüber wird verworfen.',
+
+        minRating: 'Händlerbewertung mindestens',
+        minRatingHint: 'Darunter wird der Dig gar nicht erst gestartet.',
+
+        shipsTo: 'Wohin geliefert wird',
+        shipsToHint:
+          'Entscheidet den Versand: Händler schreiben ihre Preise nach Zielland gestaffelt („Germany:", „Europe:", „Non-Europe:"), und gelesen wird nur der Block, der zu dir gehört. Auf Englisch, wie Discogs es schreibt — „Deutschland" versteht Fidelity auch.',
+
+        blocked: 'Versand aus diesen Ländern nicht',
+        blockedPlaceholder: 'z. B. USA, Japan',
+        blockedHint: 'Mit Komma trennen. Nützlich gegen Zoll und drei Wochen Wartezeit.',
+
+        condition: 'Zustand ab',
+        conditionHint: 'Schlechter zählt nur noch 40 %, verschwindet aber nicht.',
+
+        targetPrice: 'Wohlfühlpreis',
+        targetPriceAny: 'egal',
+        targetPriceHint:
+          'Darüber zählt ein Treffer 55 % – und das ist auch die Grenze, bis zu der der Korb Vorschläge macht.',
+
+        preferOriginals: 'Originalpressungen bevorzugen',
+        preferOriginalsHint: 'Neuauflagen zählen dann weniger.',
+        preferOriginalsWhyLabel: 'Gedämpft statt verworfen',
+        preferOriginalsWhy:
+          'Ob eine Platte eine Neuauflage ist, weiß Discogs erst in der Einzelabfrage – und die läuft erst nach dem Scan über die besten 50. Verwerfen könnte sie also nichts.',
+
+        saved: 'Gespeichert. Gilt ab dem nächsten Dig.',
+      },
+
+      dealers: {
+        title: 'Woher die Läden kommen',
+        about: 'Welche Quellen der Import lesen darf.',
+        ordersAlways:
+          'Bestellungen werden immer gelesen – das sind die Läden, bei denen du gekauft hast.',
+        friends: 'Auch die Discogs-Freundesliste lesen',
+        friendsOff: 'Aus, solange du es nicht einschaltest.',
+        whyLabel: 'Warum das eine Ausnahme ist',
+        why: 'Diese App benutzt sonst ausschließlich offiziell dokumentierte Discogs-Schnittstellen.',
+        whyAfter:
+          'ist keiner – er funktioniert, steht aber in keiner Dokumentation und kann ohne Ankündigung verschwinden. Passiert das, verliert der Import eine Quelle und sonst nichts. Deshalb: aus, bis du zustimmst.',
+      },
     },
     appearance: { hint: 'Hell oder dunkel, und in welcher Schrift' },
     sync: {

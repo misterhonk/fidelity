@@ -29,6 +29,7 @@
  */
 
 import type { VaultTarget } from '#shared/types'
+import { counted } from '~/utils/plural'
 
 const en = {
   /** What the language calls itself, and the tag `Intl` formats dates with. */
@@ -77,6 +78,14 @@ const en = {
       lead: 'There is no account with us — only your token, on this device.',
       title: 'Account',
       hint: 'Your Discogs token, and what is kept on this device',
+      discogsAccount: 'Discogs account',
+      dataLives: 'Data lives',
+      inThisBrowser: 'in this browser, on this device',
+      used: 'Used',
+      protected: 'protected from being cleared',
+      signOut: 'Sign out',
+      signOutWarning:
+        'Signing out deletes the database with it — token, collection, horizon and digs. There is no copy anywhere else. Export first if you want to keep it.',
     },
     library: {
       lead: 'What Fidelity knows from Discogs. The ground everything else stands on.',
@@ -91,6 +100,63 @@ const en = {
        * caller's job; wording is this file's.
        */
       summary: (records: string, wants: string) => `${records} records · ${wants} wanted`,
+
+      /** Collection and wantlist: the first thing that has to be there. */
+      fetch: {
+        title: 'Collection and wantlist',
+        collection: 'Collection',
+        wantlist: 'Wantlist',
+        lastSynced: 'Last synced',
+        fetching: 'Fetching …',
+        progress: (what: string, stored: number, total: number) =>
+          `${what}: ${stored} of ${total}`,
+        start: 'Sync collection',
+        again: 'Sync again',
+      },
+
+      horizon: {
+        title: 'Horizon',
+        about: 'Your collection, unfolded once. After that no dig costs any extra lookups.',
+        /*
+         * "Entities" and "release ids" are words from the inside. A collector
+         * has artists and labels, and records. The numbers are the same
+         * numbers; only the words changed.
+         */
+        entities: 'Artists and labels',
+        ofTotal: (done: number, total: number) => `${done} of ${total}`,
+        knownRecords: 'Records known',
+        /*
+         * Time, not requests. This said "another 240 requests, so about 5
+         * minutes" — the number somebody plans around is the second one, and
+         * the first is a unit from inside the machine.
+         */
+        remaining: (minutes: number) =>
+          `About ${counted(minutes, 'minute', 'minutes')} to go. It runs in small bites and survives a reload — nothing already done is fetched twice.`,
+        stale: (entries: number) =>
+          `${counted(entries, 'entry is', 'entries are')} older than 30 days. Those get refreshed bit by bit, a small helping each day.`,
+        records: 'records',
+        eta: (clock: string) => `about ${clock} left`,
+        build: 'Build the horizon',
+        refresh: 'Refresh the horizon',
+      },
+
+      credits: {
+        title: 'Credits',
+        about: 'Who made your favourite records — producers, engineers, remixers.',
+        lead: 'Who produced, mixed and mastered — read from your favourite records, the four- and five-star ones.',
+        whyLabel: 'Why only the favourites',
+        why: 'Credits only appear in the per-record lookup. Going through the whole collection would take hours — the rated ones are a fraction of that and say the most about you.',
+        noFavourites:
+          'No record rated four or five stars yet. Give some ratings on Discogs and I will know where to look.',
+        read: (read: string, total: string) => `${read} of ${total} favourites read`,
+        worthExpanding: (people: number) =>
+          `${people === 1 ? 'person turns' : 'people turn'} up often enough to join the horizon`,
+        remaining: (records: number, minutes: number) =>
+          `${counted(records, 'record', 'records')} to go — about ${counted(minutes, 'minute', 'minutes')}. It runs in small bites and survives a reload.`,
+        people: 'people',
+        harvest: 'Read the credits',
+        continue: 'Keep reading',
+      },
     },
     search: {
       lead: 'Applies to every dig.',
@@ -101,6 +167,68 @@ const en = {
       originalsOnly: 'originals only',
       countriesBlocked: (blocked: number) =>
         blocked === 1 ? '1 country blocked' : `${blocked} countries blocked`,
+
+      filter: {
+        title: 'What is looked for',
+        about: 'What never shows up at all, and what only lands further down.',
+
+        /**
+         * docs/04 §2 is emphatic that a criterion is either a filter or a
+         * dampener, never both — otherwise the dampener is dead code. These two
+         * legends are the interface saying which is which, because "is discarded"
+         * and "counts for less" are very different promises and somebody setting
+         * a maximum price deserves to know which one they just made.
+         */
+        hard: 'Hard — what never shows up at all',
+        soft: 'Soft — what still shows up, but further down',
+
+        formats: 'Formats',
+        formatsHint:
+          'Nothing selected means everything counts. Discogs writes vinyl as 12", 2xLP or 7" — all of those are read.',
+
+        maxPrice: 'Maximum price',
+        noLimit: 'no limit',
+        maxPriceHint: 'Anything above is discarded.',
+
+        minRating: 'Seller rating at least',
+        minRatingHint: 'Below that, the dig does not start at all.',
+
+        shipsTo: 'Where it ships to',
+        shipsToHint:
+          'Decides the postage: dealers write their prices by destination ("Germany:", "Europe:", "Non-Europe:"), and only the block that belongs to you is read. In English, the way Discogs writes it.',
+
+        blocked: 'No shipping from these countries',
+        blockedPlaceholder: 'e.g. USA, Japan',
+        blockedHint: 'Separate with commas. Useful against customs and three weeks of waiting.',
+
+        condition: 'Condition from',
+        conditionHint: 'Anything worse counts for 40 %, but does not disappear.',
+
+        targetPrice: 'Comfortable price',
+        targetPriceAny: 'no preference',
+        targetPriceHint:
+          'Above that a find counts for 55 % — and that is also the ceiling up to which the basket makes suggestions.',
+
+        preferOriginals: 'Prefer original pressings',
+        preferOriginalsHint: 'Reissues then count for less.',
+        preferOriginalsWhyLabel: 'Dampened rather than discarded',
+        preferOriginalsWhy:
+          'Whether a record is a reissue is something Discogs only says in the per-record lookup — and that runs after the scan, over the best fifty. So discarding could not discard anything.',
+
+        saved: 'Saved. Applies from the next dig.',
+      },
+
+      dealers: {
+        title: 'Where the shops come from',
+        about: 'Which sources the import may read.',
+        ordersAlways: 'Orders are always read — those are the shops you have bought from.',
+        friends: 'Read the Discogs friends list as well',
+        friendsOff: 'Off until you switch it on.',
+        whyLabel: 'Why this one is an exception',
+        why: 'Otherwise this app uses only officially documented Discogs interfaces.',
+        whyAfter:
+          'is not one — it works, but appears in no documentation and can disappear without notice. If it does, the import loses one source and nothing else. Hence: off until you agree.',
+      },
     },
     appearance: { hint: 'Light or dark, and in which type' },
     sync: {

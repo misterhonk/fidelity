@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Preferences } from '#shared/types'
 
+const m = useMessages()
+
 const { call } = useFidelityWorker()
 
 const prefs = ref<Preferences | null>(null)
@@ -24,9 +26,7 @@ async function set(importFriends: boolean) {
   <section v-if="prefs" class="flex flex-col gap-3">
     <ErrorNote v-if="error" :cause="error" />
 
-    <p class="text-fid-sm text-fid-text-muted">
-      Bestellungen werden immer gelesen – das sind die Läden, bei denen du gekauft hast.
-    </p>
+    <p class="text-fid-sm text-fid-text-muted">{{ m.settings.search.dealers.ordersAlways }}</p>
 
     <label class="flex items-start gap-3">
       <input
@@ -36,9 +36,9 @@ async function set(importFriends: boolean) {
         @change="set(($event.target as HTMLInputElement).checked)"
       />
       <span class="flex flex-col gap-1">
-        <span class="text-fid-sm text-fid-text">Auch die Discogs-Freundesliste lesen</span>
+        <span class="text-fid-sm text-fid-text">{{ m.settings.search.dealers.friends }}</span>
         <span class="text-fid-xs text-fid-text-muted">
-          Aus, solange du es nicht einschaltest.
+          {{ m.settings.search.dealers.friendsOff }}
         </span>
       </span>
     </label>
@@ -48,11 +48,10 @@ async function set(importFriends: boolean) {
       Somebody switching it on is entitled to know that, and to know what
       happens the day it stops working — which is nothing (ADR-009).
     -->
-    <WhyNote label="Warum das eine Ausnahme ist">
-      Diese App benutzt sonst ausschließlich offiziell dokumentierte Discogs-Schnittstellen.
-      <span class="font-fid-mono">/users/…/friends</span> ist keiner – er funktioniert, steht
-      aber in keiner Dokumentation und kann ohne Ankündigung verschwinden. Passiert das,
-      verliert der Import eine Quelle und sonst nichts. Deshalb: aus, bis du zustimmst.
+    <WhyNote :label="m.settings.search.dealers.whyLabel">
+      {{ m.settings.search.dealers.why }}
+      <span class="font-fid-mono">/users/…/friends</span>
+      {{ m.settings.search.dealers.whyAfter }}
     </WhyNote>
   </section>
 </template>

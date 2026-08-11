@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { HorizonProgress, HorizonStatus } from '#shared/protocol'
 
+const m = useMessages()
+
 const { call } = useFidelityWorker()
 
 const status = ref<HorizonStatus | null>(null)
@@ -69,9 +71,7 @@ const eta = computed(() => {
 })
 
 const staleNote = computed(() =>
-  stale.value > 0
-    ? `${count(stale.value)} ${stale.value === 1 ? 'Eintrag ist' : 'Einträge sind'} älter als 30 Tage. Die werden nach und nach aufgefrischt, ein kleines Kontingent pro Tag.`
-    : null,
+  stale.value > 0 ? m.value.settings.library.horizon.stale(stale.value) : null,
 )
 
 const complete = computed(
@@ -82,31 +82,32 @@ const complete = computed(
 <template>
   <section class="flex flex-col gap-4">
     <!--
-      „Entitäten" und „Release-IDs" sind Wörter von innen.
+      "Entities" and "release ids" are words from the inside.
 
       A collector has artists and labels, and records — not entities and ids.
       The numbers are the same numbers; only the labels changed.
     -->
     <dl v-if="status" class="grid grid-cols-2 gap-x-6 gap-y-2 text-fid-sm">
-      <dt class="text-fid-text-muted">Künstler und Labels</dt>
-      <dd class="fid-num text-fid-text">{{ status.expanded }} von {{ status.entities }}</dd>
-      <dt class="text-fid-text-muted">Bekannte Platten</dt>
+      <dt class="text-fid-text-muted">{{ m.settings.library.horizon.entities }}</dt>
+      <dd class="fid-num text-fid-text">
+        {{ m.settings.library.horizon.ofTotal(status.expanded, status.entities) }}
+      </dd>
+      <dt class="text-fid-text-muted">{{ m.settings.library.horizon.knownRecords }}</dt>
       <dd class="fid-num text-fid-text">{{ count(status.releaseIds) }}</dd>
     </dl>
 
     <!--
-      Zeit, nicht Anfragen.
+      Time, not requests.
 
-      This said "noch etwa 240 Requests, also rund 5 Minuten" — the number
-      somebody actually plans around is the second one, and the first is a unit
-      from inside the machine. What is left is what it costs and that stopping
-      is safe.
+      This said "another 240 requests, so about 5 minutes" — the number somebody
+      actually plans around is the second one, and the first is a unit from
+      inside the machine. What is left is what it costs, and that stopping is
+      safe.
     -->
     <p v-if="!complete && status && !running" class="text-fid-sm text-fid-text-muted">
-      Dauert noch rund
-      {{ counted(Math.ceil((status.estimatedRequests * 1.2) / 60), 'Minute', 'Minuten') }}.
-      Läuft in Häppchen und übersteht ein Neuladen – was schon fertig ist, wird nicht noch
-      einmal geholt.
+      {{
+        m.settings.library.horizon.remaining(Math.ceil((status.estimatedRequests * 1.2) / 60))
+      }}
     </p>
 
     <p v-if="staleNote && !running" class="text-fid-sm text-fid-text-muted">
@@ -121,11 +122,11 @@ const complete = computed(
         />
       </div>
       <p class="text-fid-sm text-fid-text-muted">
-        <span class="fid-num">{{ progress.done }}</span> von
-        <span class="fid-num">{{ progress.total }}</span>
+        {{ m.settings.library.horizon.ofTotal(progress.done, progress.total) }}
         <template v-if="progress.current"> · {{ progress.current }}</template>
-        · <span class="fid-num">{{ count(progress.releaseIds) }}</span> Platten
-        <template v-if="eta"> · noch ca. {{ eta }}</template>
+        · <span class="fid-num">{{ count(progress.releaseIds) }}</span>
+        {{ m.settings.library.horizon.records }}
+        <template v-if="eta"> · {{ m.settings.library.horizon.eta(eta) }}</template>
       </p>
     </div>
 
@@ -137,7 +138,7 @@ const complete = computed(
       class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
       @click="build"
     >
-      {{ complete ? 'Horizont auffrischen' : 'Horizont bauen' }}
+      {{ complete ? m.settings.library.horizon.refresh : m.settings.library.horizon.build }}
     </button>
   </section>
 </template>

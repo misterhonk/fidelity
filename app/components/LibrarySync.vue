@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { LibrarySummary, SyncProgress } from '#shared/protocol'
 
+const m = useMessages()
+
 const { call } = useFidelityWorker()
 
 const summary = ref<LibrarySummary | null>(null)
@@ -31,23 +33,27 @@ async function sync() {
 }
 
 const label = computed(() => {
-  if (!progress.value) return 'Wird geholt …'
+  const fetch = m.value.settings.library.fetch
+  if (!progress.value) return fetch.fetching
   const { kind, stored, total } = progress.value
-  const what = kind === 'collection' ? 'Sammlung' : 'Wantlist'
-  return `${what}: ${stored} von ${total}`
+  return fetch.progress(
+    kind === 'collection' ? fetch.collection : fetch.wantlist,
+    stored,
+    total,
+  )
 })
 
-const formatDate = (at: number | null) => (at === null ? 'noch nie' : dayTime(at))
+const formatDate = (at: number | null) => (at === null ? m.value.common.never : dayTime(at))
 </script>
 
 <template>
   <section id="library" class="flex flex-col gap-4" aria-labelledby="sync-heading">
     <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-fid-sm">
-      <dt class="text-fid-text-muted">Sammlung</dt>
+      <dt class="text-fid-text-muted">{{ m.settings.library.fetch.collection }}</dt>
       <dd class="fid-num text-fid-text">{{ summary?.collection ?? '–' }}</dd>
-      <dt class="text-fid-text-muted">Wantlist</dt>
+      <dt class="text-fid-text-muted">{{ m.settings.library.fetch.wantlist }}</dt>
       <dd class="fid-num text-fid-text">{{ summary?.wantlist ?? '–' }}</dd>
-      <dt class="text-fid-text-muted">Zuletzt synchronisiert</dt>
+      <dt class="text-fid-text-muted">{{ m.settings.library.fetch.lastSynced }}</dt>
       <dd class="text-fid-text">{{ formatDate(summary?.collectionSyncedAt ?? null) }}</dd>
     </dl>
 
@@ -68,7 +74,11 @@ const formatDate = (at: number | null) => (at === null ? 'noch nie' : dayTime(at
         class="rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
         @click="sync"
       >
-        {{ summary?.collectionSyncedAt ? 'Neu synchronisieren' : 'Sammlung synchronisieren' }}
+        {{
+          summary?.collectionSyncedAt
+            ? m.settings.library.fetch.again
+            : m.settings.library.fetch.start
+        }}
       </button>
     </div>
   </section>

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { CreditStatus, HarvestProgress } from '#shared/protocol'
 
+const m = useMessages()
+
 const { call } = useFidelityWorker()
 
 const status = ref<CreditStatus | null>(null)
@@ -54,31 +56,24 @@ const eta = computed(() => {
 
 <template>
   <section v-if="status" class="flex flex-col gap-4">
-    <p class="text-fid-base text-fid-text-muted">
-      Wer produziert, gemischt und gemastert hat – gelesen aus deinen Lieblingsplatten,
-      <span class="fid-num">4</span> und <span class="fid-num">5</span> Sterne.
-    </p>
-    <WhyNote label="Warum nur die Lieblingsplatten">
-      Credits stehen nur in der Einzelabfrage pro Platte. Die ganze Sammlung durchzugehen wäre
-      stundenlang – die bewerteten sind ein Bruchteil davon und sagen am meisten über dich.
+    <p class="text-fid-base text-fid-text-muted">{{ m.settings.library.credits.lead }}</p>
+    <WhyNote :label="m.settings.library.credits.whyLabel">
+      {{ m.settings.library.credits.why }}
     </WhyNote>
 
     <ErrorNote v-if="error" :cause="error" />
 
     <p v-if="status.favourites === 0" class="text-fid-sm text-fid-text-muted">
-      Noch keine Platte mit vier oder fünf Sternen bewertet. Vergib die bei Discogs, dann weiß
-      ich, wo ich nachsehen soll.
+      {{ m.settings.library.credits.noFavourites }}
     </p>
 
     <template v-else>
       <p class="text-fid-sm text-fid-text-muted">
-        <span class="fid-num">{{ count(status.harvested) }}</span> von
-        <span class="fid-num">{{ count(status.favourites) }}</span> Lieblingsplatten
-        gelesen<template v-if="status.worthExpanding > 0">
+        {{ m.settings.library.credits.read(count(status.harvested), count(status.favourites))
+        }}<template v-if="status.worthExpanding > 0">
           · <span class="fid-num">{{ status.worthExpanding }}</span>
-          <!-- "1 Person tauchen" — the verb has to agree with the number too. -->
-          {{ status.worthExpanding === 1 ? 'Person taucht' : 'Personen tauchen' }} oft genug
-          auf, um in den Horizont zu wandern</template
+          <!-- "1 person turn up" — the verb has to agree with the number too. -->
+          {{ m.settings.library.credits.worthExpanding(status.worthExpanding) }}</template
         >.
       </p>
 
@@ -88,10 +83,7 @@ const eta = computed(() => {
         second half in a unit nobody outside this repository thinks in.
       -->
       <p v-if="remaining > 0 && !running" class="text-fid-sm text-fid-text-muted">
-        Noch <span class="fid-num">{{ count(remaining) }}</span>
-        {{ plural(remaining, 'Platte', 'Platten') }} – rund
-        {{ counted(minutes, 'Minute', 'Minuten') }}. Läuft in Häppchen und übersteht ein
-        Neuladen.
+        {{ m.settings.library.credits.remaining(remaining, minutes) }}
       </p>
 
       <div v-if="progress" class="flex flex-col gap-2" aria-live="polite">
@@ -102,9 +94,9 @@ const eta = computed(() => {
           />
         </div>
         <p class="text-fid-sm text-fid-text-muted">
-          <span class="fid-num">{{ count(progress.done) }}</span> von
-          <span class="fid-num">{{ count(progress.total) }}</span> ·
-          <span class="fid-num">{{ count(progress.people) }}</span> Personen
+          {{ m.settings.library.horizon.ofTotal(progress.done, progress.total) }} ·
+          <span class="fid-num">{{ count(progress.people) }}</span>
+          {{ m.settings.library.credits.people }}
           <template v-if="progress.current"> · {{ progress.current }}</template>
           <template v-if="eta"> · noch ca. {{ eta }}</template>
         </p>
@@ -112,7 +104,7 @@ const eta = computed(() => {
 
       <!--
         Who turned up. Worth showing even below the expansion threshold: it is
-        the answer to "wer steckt eigentlich hinter meiner Sammlung", which is
+        the answer to "who is actually behind my collection", which is
         interesting on its own.
       -->
       <ul v-if="status.people.length > 0 && !running" class="flex flex-col gap-1">
@@ -144,7 +136,11 @@ const eta = computed(() => {
         class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
         @click="harvest"
       >
-        {{ status.harvested > 0 ? 'Weiterlesen' : 'Credits lesen' }}
+        {{
+          status.harvested > 0
+            ? m.settings.library.credits.continue
+            : m.settings.library.credits.harvest
+        }}
       </button>
     </template>
   </section>

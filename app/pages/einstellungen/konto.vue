@@ -29,16 +29,17 @@ const usage = computed(() => {
 <template>
   <SettingsPage :title="m.settings.account.title" :lead="m.settings.account.lead">
     <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-fid-sm">
-      <dt class="text-fid-text-muted">Discogs-Konto</dt>
+      <dt class="text-fid-text-muted">{{ m.settings.account.discogsAccount }}</dt>
       <dd class="text-fid-text">{{ identity?.username }}</dd>
 
-      <dt class="text-fid-text-muted">Daten liegen</dt>
-      <dd class="text-fid-text">in diesem Browser, auf diesem Gerät</dd>
+      <dt class="text-fid-text-muted">{{ m.settings.account.dataLives }}</dt>
+      <dd class="text-fid-text">{{ m.settings.account.inThisBrowser }}</dd>
 
       <template v-if="usage">
-        <dt class="text-fid-text-muted">Belegt</dt>
+        <dt class="text-fid-text-muted">{{ m.settings.account.used }}</dt>
         <dd class="fid-num text-fid-text">
-          {{ usage }}<template v-if="stats?.persisted"> · vor Aufräumen geschützt</template>
+          {{ usage
+          }}<template v-if="stats?.persisted"> · {{ m.settings.account.protected }}</template>
         </dd>
       </template>
     </dl>
@@ -49,11 +50,10 @@ const usage = computed(() => {
         class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
         @click="signOut"
       >
-        Abmelden
+        {{ m.settings.account.signOut }}
       </button>
       <p class="max-w-prose text-fid-xs text-fid-text-muted">
-        Abmelden löscht die Datenbank mit — Token, Sammlung, Horizont und Digs. Es gibt keine
-        Kopie woanders. Vorher exportieren, wenn du sie behalten willst.
+        {{ m.settings.account.signOutWarning }}
       </p>
     </div>
   </SettingsPage>

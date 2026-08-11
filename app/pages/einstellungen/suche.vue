@@ -13,16 +13,16 @@ useSeoMeta({ title: () => m.value.settings.search.title })
     -->
     <SettingsCard
       anchor="filter"
-      title="Wonach gesucht wird"
-      description="Was gar nicht erst auftaucht, und was nur weiter unten landet."
+      :title="m.settings.search.filter.title"
+      :description="m.settings.search.filter.about"
     >
       <MatchPreferences />
     </SettingsCard>
 
     <SettingsCard
       anchor="dealers"
-      title="Woher die Läden kommen"
-      description="Welche Quellen der Import lesen darf."
+      :title="m.settings.search.dealers.title"
+      :description="m.settings.search.dealers.about"
     >
       <FriendImportToggle />
     </SettingsCard>
