@@ -1,11 +1,13 @@
 <script setup lang="ts">
-const m = useMessages()
+import { useSettingsMessages } from '~/i18n/settings'
 
-useSeoMeta({ title: () => m.value.settings.data.title })
+const st = useSettingsMessages()
+
+useSeoMeta({ title: () => st.value.data.title })
 </script>
 
 <template>
-  <SettingsPage :title="m.settings.data.title" :lead="m.settings.data.lead">
+  <SettingsPage :title="st.data.title" :lead="st.data.lead">
     <DataControls />
   </SettingsPage>
 </template>

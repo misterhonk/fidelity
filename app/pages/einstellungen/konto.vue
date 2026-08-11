@@ -1,7 +1,9 @@
 <script setup lang="ts">
-const m = useMessages()
+import { useSettingsMessages } from '~/i18n/settings'
 
-useSeoMeta({ title: () => m.value.settings.account.title })
+const st = useSettingsMessages()
+
+useSeoMeta({ title: () => st.value.account.title })
 
 const { identity, signOut } = useIdentity()
 const { call } = useFidelityWorker()
@@ -27,19 +29,18 @@ const usage = computed(() => {
 </script>
 
 <template>
-  <SettingsPage :title="m.settings.account.title" :lead="m.settings.account.lead">
+  <SettingsPage :title="st.account.title" :lead="st.account.lead">
     <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-fid-sm">
-      <dt class="text-fid-text-muted">{{ m.settings.account.discogsAccount }}</dt>
+      <dt class="text-fid-text-muted">{{ st.account.discogsAccount }}</dt>
       <dd class="text-fid-text">{{ identity?.username }}</dd>
 
-      <dt class="text-fid-text-muted">{{ m.settings.account.dataLives }}</dt>
-      <dd class="text-fid-text">{{ m.settings.account.inThisBrowser }}</dd>
+      <dt class="text-fid-text-muted">{{ st.account.dataLives }}</dt>
+      <dd class="text-fid-text">{{ st.account.inThisBrowser }}</dd>
 
       <template v-if="usage">
-        <dt class="text-fid-text-muted">{{ m.settings.account.used }}</dt>
+        <dt class="text-fid-text-muted">{{ st.account.used }}</dt>
         <dd class="fid-num text-fid-text">
-          {{ usage
-          }}<template v-if="stats?.persisted"> · {{ m.settings.account.protected }}</template>
+          {{ usage }}<template v-if="stats?.persisted"> · {{ st.account.protected }}</template>
         </dd>
       </template>
     </dl>
@@ -50,10 +51,10 @@ const usage = computed(() => {
         class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
         @click="signOut"
       >
-        {{ m.settings.account.signOut }}
+        {{ st.account.signOut }}
       </button>
       <p class="max-w-prose text-fid-xs text-fid-text-muted">
-        {{ m.settings.account.signOutWarning }}
+        {{ st.account.signOutWarning }}
       </p>
     </div>
   </SettingsPage>

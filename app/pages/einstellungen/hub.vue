@@ -1,11 +1,13 @@
 <script setup lang="ts">
-const m = useMessages()
+import { useSettingsMessages } from '~/i18n/settings'
 
-useSeoMeta({ title: () => m.value.settings.hub.title })
+const st = useSettingsMessages()
+
+useSeoMeta({ title: () => st.value.hub.title })
 </script>
 
 <template>
-  <SettingsPage :title="m.settings.hub.title" :lead="m.settings.hub.lead">
+  <SettingsPage :title="st.hub.title" :lead="st.hub.lead">
     <HubSettings />
   </SettingsPage>
 </template>

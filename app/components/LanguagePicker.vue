@@ -1,5 +1,7 @@
 <script setup lang="ts">
-const m = useMessages()
+import { useSettingsMessages } from '~/i18n/settings'
+
+const st = useSettingsMessages()
 const { current, apply, languages } = useLanguage()
 
 /*
@@ -17,7 +19,7 @@ const entries = Object.entries(languages) as [keyof typeof languages, string][]
 
 <template>
   <fieldset class="flex flex-col gap-2">
-    <legend class="sr-only">{{ m.appearance.language.legend }}</legend>
+    <legend class="sr-only">{{ st.appearance.language.legend }}</legend>
 
     <div class="flex gap-1 self-start rounded-fid-md border border-fid-border p-1">
       <label
@@ -47,6 +49,6 @@ const entries = Object.entries(languages) as [keyof typeof languages, string][]
       </label>
     </div>
 
-    <p class="text-fid-xs text-fid-text-muted">{{ m.appearance.language.about }}</p>
+    <p class="text-fid-xs text-fid-text-muted">{{ st.appearance.language.about }}</p>
   </fieldset>
 </template>

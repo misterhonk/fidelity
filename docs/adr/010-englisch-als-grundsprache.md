@@ -42,8 +42,27 @@ Einstellung des Nutzers, keine Eigenschaft der Adresse. Präfixe würden jede be
 Adresse brechen, den Precache des Service Workers verdoppeln und aus jedem Lesezeichen eine
 Sprachfestlegung machen.
 
-**Kein i18n-Paket.** Zwei Nachrichtendateien als einfache Objekte, ein Composable, und die
+**Kein i18n-Paket.** Nachrichtendateien als einfache Objekte, ein Composable, und die
 aktive Sprache wird nachgeladen. Begründung unten.
+
+**Nachtrag vom 2026-08-11: die Texte werden nach Bereichen geteilt.** Es gibt eine
+Schale (`app/i18n/en.ts`, `de.ts`) mit dem, was auf jedem Bildschirm steht — Navigation,
+Zeitangaben, wiederkehrende Sätze — und je einen Bereich (`app/i18n/settings.ts` und
+weitere) mit dem Rest.
+
+Der Grund ist gemessen: nachdem Navigation und Einstellungen umgestellt waren, lag der
+erste Paint bei 116,9 von 120 kB, und davon waren 4,9 kB Text — bei geschätzt einem Viertel
+der Oberfläche. Das Ganze in einer Datei wäre am Budget zerbrochen, und zwar zu Recht: die
+Formulierung der Tresor-Auswahl gehört nicht in den ersten Bildschirm.
+
+**In den Bereichsdateien stehen beide Sprachen zusammen**, anders als in der Schale. Für die
+Schale lohnt der getrennte Chunk, weil sie auf jedem Bildschirm liegt. Für einen Bereich
+nicht: die Datei wird einmal geholt, wenn jemand den Bereich zum ersten Mal öffnet, und
+zwei Kilobyte zu verdoppeln ist billiger als die Maschinerie, die ein zweiter dynamischer
+Import je Bereich bräuchte — ein `await` in jeder Seite, ein zweiter Ladeweg und ein Flackern,
+das man falsch machen kann.
+
+Ergebnis: erster Paint 113,8 kB — unter dem Stand vor der Umstellung.
 
 ## Begründung
 

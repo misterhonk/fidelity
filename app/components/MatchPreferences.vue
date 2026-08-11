@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { MEDIUMS } from '#shared/format'
 import { CONDITIONS, type Condition, type Preferences } from '#shared/types'
+import { useSettingsMessages } from '~/i18n/settings'
 
 /*
  * A computed, not `useMessages().value.settings.search.filter`.
@@ -10,7 +11,7 @@ import { CONDITIONS, type Condition, type Preferences } from '#shared/types'
  * switch while everything around it changes. Same trap as a frozen
  * `Intl` formatter, one layer up.
  */
-const f = computed(() => useMessages().value.settings.search.filter)
+const f = computed(() => useSettingsMessages().value.search.filter)
 
 const { call } = useFidelityWorker()
 

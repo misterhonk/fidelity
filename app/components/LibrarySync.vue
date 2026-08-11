@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { LibrarySummary, SyncProgress } from '#shared/protocol'
+import { useSettingsMessages } from '~/i18n/settings'
 
 const m = useMessages()
+const st = useSettingsMessages()
 
 const { call } = useFidelityWorker()
 
@@ -33,7 +35,7 @@ async function sync() {
 }
 
 const label = computed(() => {
-  const fetch = m.value.settings.library.fetch
+  const fetch = st.value.library.fetch
   if (!progress.value) return fetch.fetching
   const { kind, stored, total } = progress.value
   return fetch.progress(
@@ -49,11 +51,11 @@ const formatDate = (at: number | null) => (at === null ? m.value.common.never : 
 <template>
   <section id="library" class="flex flex-col gap-4" aria-labelledby="sync-heading">
     <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-fid-sm">
-      <dt class="text-fid-text-muted">{{ m.settings.library.fetch.collection }}</dt>
+      <dt class="text-fid-text-muted">{{ st.library.fetch.collection }}</dt>
       <dd class="fid-num text-fid-text">{{ summary?.collection ?? '–' }}</dd>
-      <dt class="text-fid-text-muted">{{ m.settings.library.fetch.wantlist }}</dt>
+      <dt class="text-fid-text-muted">{{ st.library.fetch.wantlist }}</dt>
       <dd class="fid-num text-fid-text">{{ summary?.wantlist ?? '–' }}</dd>
-      <dt class="text-fid-text-muted">{{ m.settings.library.fetch.lastSynced }}</dt>
+      <dt class="text-fid-text-muted">{{ st.library.fetch.lastSynced }}</dt>
       <dd class="text-fid-text">{{ formatDate(summary?.collectionSyncedAt ?? null) }}</dd>
     </dl>
 
@@ -74,11 +76,7 @@ const formatDate = (at: number | null) => (at === null ? m.value.common.never : 
         class="rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
         @click="sync"
       >
-        {{
-          summary?.collectionSyncedAt
-            ? m.settings.library.fetch.again
-            : m.settings.library.fetch.start
-        }}
+        {{ summary?.collectionSyncedAt ? st.library.fetch.again : st.library.fetch.start }}
       </button>
     </div>
   </section>

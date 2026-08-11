@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { Preferences, VaultStatus } from '#shared/types'
+import { useSettingsMessages } from '~/i18n/settings'
 
 import { since } from '~/utils/when'
 
 const m = useMessages()
+const st = useSettingsMessages()
 
-useSeoMeta({ title: () => m.value.settings.title })
+useSeoMeta({ title: () => st.value.title })
 const { identity, load } = useIdentity()
 const { call } = useFidelityWorker()
 const { preference: theme } = useTheme()
@@ -44,7 +46,7 @@ const searchSummary = computed(() => {
   const prefs = preferences.value
   if (!prefs) return null
 
-  const search = m.value.settings.search
+  const search = st.value.search
   const parts: string[] = []
   if (prefs.maxPrice !== null) parts.push(search.upTo(money(prefs.maxPrice, 'EUR') ?? ''))
   if (prefs.excludeReissues) parts.push(search.originalsOnly)
@@ -60,7 +62,7 @@ const library = computed(() => {
   const counts = stats.value?.counts
   if (!counts) return null
   if (!counts.collection) return m.value.common.nothingYet
-  return m.value.settings.library.summary(count(counts.collection), count(counts.wantlist ?? 0))
+  return st.value.library.summary(count(counts.collection), count(counts.wantlist ?? 0))
 })
 
 const usage = computed(() => {
@@ -73,7 +75,7 @@ const usage = computed(() => {
 const sync = computed(() => {
   const status = vault.value
   if (!status || status.target === 'none') return m.value.common.off
-  const label = m.value.settings.sync.targets[status.target]
+  const label = st.value.sync.targets[status.target]
   return status.lastSyncedAt
     ? `${label} · ${since(status.lastSyncedAt)}`
     : `${label} · ${m.value.common.never}`
@@ -81,16 +83,16 @@ const sync = computed(() => {
 
 const hub = computed(() => {
   const url = preferences.value?.hubUrl
-  if (!url) return m.value.settings.hub.notSetUp
+  if (!url) return st.value.hub.notSetUp
   try {
     return new URL(url).host
   } catch {
-    return m.value.settings.hub.unreadable
+    return st.value.hub.unreadable
   }
 })
 
 const appearance = computed(() => {
-  const themeLabel = m.value.appearance.theme[theme.value].label
+  const themeLabel = st.value.appearance.theme[theme.value].label
   const typeLabel = sets.find((entry) => entry.key === typeset.value)?.label ?? ''
   return `${m.value.meta.name} · ${themeLabel} · ${typeLabel}`
 })
@@ -103,20 +105,20 @@ const appearance = computed(() => {
 const SECTIONS = computed(() => [
   {
     to: '/einstellungen/konto',
-    ...m.value.settings.account,
+    ...st.value.account,
     status: identity.value?.username ?? null,
   },
-  { to: '/einstellungen/sammlung', ...m.value.settings.library, status: library.value },
-  { to: '/einstellungen/suche', ...m.value.settings.search, status: searchSummary.value },
+  { to: '/einstellungen/sammlung', ...st.value.library, status: library.value },
+  { to: '/einstellungen/suche', ...st.value.search, status: searchSummary.value },
   {
     to: '/einstellungen/darstellung',
-    title: m.value.appearance.title,
-    hint: m.value.settings.appearance.hint,
+    title: st.value.appearance.title,
+    hint: st.value.appearance.hint,
     status: appearance.value,
   },
-  { to: '/einstellungen/abgleich', ...m.value.settings.sync, status: sync.value },
-  { to: '/einstellungen/hub', ...m.value.settings.hub, status: hub.value },
-  { to: '/einstellungen/daten', ...m.value.settings.data, status: usage.value },
+  { to: '/einstellungen/abgleich', ...st.value.sync, status: sync.value },
+  { to: '/einstellungen/hub', ...st.value.hub, status: hub.value },
+  { to: '/einstellungen/daten', ...st.value.data, status: usage.value },
   /*
    * Right at the bottom, because it is looked for rather than stumbled over.
    *
@@ -125,15 +127,15 @@ const SECTIONS = computed(() => [
    * has already formed — so it does not compete with the settings, it waits
    * where a manual waits.
    */
-  { to: '/einstellungen/hilfe', ...m.value.settings.help, status: null },
+  { to: '/einstellungen/hilfe', ...st.value.help, status: null },
 ])
 </script>
 
 <template>
   <main class="@container mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
     <header class="flex flex-col gap-1">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ m.settings.title }}</h1>
-      <p class="text-fid-base text-fid-text-muted">{{ m.settings.lead }}</p>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ st.title }}</h1>
+      <p class="text-fid-base text-fid-text-muted">{{ st.lead }}</p>
     </header>
 
     <!--

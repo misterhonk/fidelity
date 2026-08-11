@@ -76,6 +76,17 @@ export function useMessages() {
 }
 
 /**
+ * Which language is active, for the area packs.
+ *
+ * A plain read rather than the ref, so an area pack can call it inside its own
+ * `computed()` without importing Vue's reactivity twice over. It is still a ref
+ * underneath, so the dependency is tracked.
+ */
+export function activeLanguage(): Language {
+  return language.value
+}
+
+/**
  * The tag to hand `Intl`.
  *
  * Not the language code: `de` and `de-DE` differ on nothing this app shows, but

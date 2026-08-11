@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { HorizonProgress, HorizonStatus } from '#shared/protocol'
+import { useSettingsMessages } from '~/i18n/settings'
 
-const m = useMessages()
+const st = useSettingsMessages()
 
 const { call } = useFidelityWorker()
 
@@ -71,7 +72,7 @@ const eta = computed(() => {
 })
 
 const staleNote = computed(() =>
-  stale.value > 0 ? m.value.settings.library.horizon.stale(stale.value) : null,
+  stale.value > 0 ? st.value.library.horizon.stale(stale.value) : null,
 )
 
 const complete = computed(
@@ -88,11 +89,11 @@ const complete = computed(
       The numbers are the same numbers; only the labels changed.
     -->
     <dl v-if="status" class="grid grid-cols-2 gap-x-6 gap-y-2 text-fid-sm">
-      <dt class="text-fid-text-muted">{{ m.settings.library.horizon.entities }}</dt>
+      <dt class="text-fid-text-muted">{{ st.library.horizon.entities }}</dt>
       <dd class="fid-num text-fid-text">
-        {{ m.settings.library.horizon.ofTotal(status.expanded, status.entities) }}
+        {{ st.library.horizon.ofTotal(status.expanded, status.entities) }}
       </dd>
-      <dt class="text-fid-text-muted">{{ m.settings.library.horizon.knownRecords }}</dt>
+      <dt class="text-fid-text-muted">{{ st.library.horizon.knownRecords }}</dt>
       <dd class="fid-num text-fid-text">{{ count(status.releaseIds) }}</dd>
     </dl>
 
@@ -105,9 +106,7 @@ const complete = computed(
       safe.
     -->
     <p v-if="!complete && status && !running" class="text-fid-sm text-fid-text-muted">
-      {{
-        m.settings.library.horizon.remaining(Math.ceil((status.estimatedRequests * 1.2) / 60))
-      }}
+      {{ st.library.horizon.remaining(Math.ceil((status.estimatedRequests * 1.2) / 60)) }}
     </p>
 
     <p v-if="staleNote && !running" class="text-fid-sm text-fid-text-muted">
@@ -122,11 +121,11 @@ const complete = computed(
         />
       </div>
       <p class="text-fid-sm text-fid-text-muted">
-        {{ m.settings.library.horizon.ofTotal(progress.done, progress.total) }}
+        {{ st.library.horizon.ofTotal(progress.done, progress.total) }}
         <template v-if="progress.current"> · {{ progress.current }}</template>
         · <span class="fid-num">{{ count(progress.releaseIds) }}</span>
-        {{ m.settings.library.horizon.records }}
-        <template v-if="eta"> · {{ m.settings.library.horizon.eta(eta) }}</template>
+        {{ st.library.horizon.records }}
+        <template v-if="eta"> · {{ st.library.horizon.eta(eta) }}</template>
       </p>
     </div>
 
@@ -138,7 +137,7 @@ const complete = computed(
       class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
       @click="build"
     >
-      {{ complete ? m.settings.library.horizon.refresh : m.settings.library.horizon.build }}
+      {{ complete ? st.library.horizon.refresh : st.library.horizon.build }}
     </button>
   </section>
 </template>

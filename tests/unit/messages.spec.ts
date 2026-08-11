@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import de from '~/i18n/de'
 import en, { type Messages } from '~/i18n/en'
+import { packs as settings } from '~/i18n/settings'
 import { LANGUAGES } from '~/composables/useMessages'
 
 /**
@@ -18,6 +19,19 @@ import { LANGUAGES } from '~/composables/useMessages'
  * no number in it. That is the hole these tests fill.
  */
 
+/**
+ * Every pack pair in the app, not only the shell.
+ *
+ * The words are split by area so each screen's text travels in that screen's
+ * chunk rather than in the first paint. That split would otherwise cost this
+ * file its reach: a new area pack would arrive with no test behind it, and the
+ * German half could go missing a key without anything saying so.
+ */
+const AREAS = {
+  shell: { en, de },
+  settings,
+}
+
 type Node = Record<string, unknown>
 
 /** Every leaf, as a dotted path, so a failure names the key it is about. */
@@ -26,10 +40,10 @@ function walk(value: unknown, path: string[] = []): [string, unknown][] {
   return Object.entries(value as Node).flatMap(([key, next]) => walk(next, [...path, key]))
 }
 
-const english = new Map(walk(en))
-const german = new Map(walk(de))
+describe.each(Object.entries(AREAS))('the German %s pack', (_area, pack) => {
+  const english = new Map(walk(pack.en))
+  const german = new Map(walk(pack.de))
 
-describe('the German pack', () => {
   it('has the same keys as English, and no others', () => {
     expect([...german.keys()].sort()).toEqual([...english.keys()].sort())
   })
@@ -76,8 +90,10 @@ describe('the German pack', () => {
       expect(call(translated), `${key} drops its number`).toContain(String(PROBE))
     }
   })
+})
 
-  it('names a locale that Intl actually knows', () => {
+describe('the locale each language formats with', () => {
+  it('is one Intl actually knows', () => {
     for (const pack of [en, de] as Messages[]) {
       expect(Intl.NumberFormat.supportedLocalesOf(pack.meta.locale)).toEqual([pack.meta.locale])
     }

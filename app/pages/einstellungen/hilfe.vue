@@ -1,7 +1,9 @@
 <script setup lang="ts">
-const m = useMessages()
+import { useSettingsMessages } from '~/i18n/settings'
 
-useSeoMeta({ title: () => m.value.settings.help.title })
+const st = useSettingsMessages()
+
+useSeoMeta({ title: () => st.value.help.title })
 
 /**
  * The manual, in the app rather than on a website.
@@ -100,7 +102,7 @@ const CHAPTERS = [
 </script>
 
 <template>
-  <SettingsPage :title="m.settings.help.title" :lead="m.settings.help.lead">
+  <SettingsPage :title="st.help.title" :lead="st.help.lead">
     <!--
       Offen, nicht zugeklappt.
 

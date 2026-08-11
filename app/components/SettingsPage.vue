@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useSettingsMessages } from '~/i18n/settings'
+
 defineProps<{
   title: string
   /** One line, only where the title alone would leave somebody guessing. */
@@ -17,6 +19,7 @@ defineProps<{
  * same guard is seven chances to forget one.
  */
 const m = useMessages()
+const st = useSettingsMessages()
 const { identity, load } = useIdentity()
 
 onMounted(load)
@@ -30,7 +33,7 @@ onMounted(load)
         class="fid-action gap-2 self-start text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
       >
         <FidIcon name="arrow-left" :size="16" />
-        {{ m.settings.back }}
+        {{ st.back }}
       </NuxtLink>
 
       <header class="flex flex-col gap-1">

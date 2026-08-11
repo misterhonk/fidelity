@@ -1,11 +1,13 @@
 <script setup lang="ts">
-const m = useMessages()
+import { useSettingsMessages } from '~/i18n/settings'
 
-useSeoMeta({ title: () => m.value.settings.sync.title })
+const st = useSettingsMessages()
+
+useSeoMeta({ title: () => st.value.sync.title })
 </script>
 
 <template>
-  <SettingsPage :title="m.settings.sync.title" :lead="m.settings.sync.lead">
+  <SettingsPage :title="st.sync.title" :lead="st.sync.lead">
     <VaultSettings />
   </SettingsPage>
 </template>

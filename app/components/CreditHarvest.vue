@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { CreditStatus, HarvestProgress } from '#shared/protocol'
+import { useSettingsMessages } from '~/i18n/settings'
 
-const m = useMessages()
+const st = useSettingsMessages()
 
 const { call } = useFidelityWorker()
 
@@ -56,24 +57,24 @@ const eta = computed(() => {
 
 <template>
   <section v-if="status" class="flex flex-col gap-4">
-    <p class="text-fid-base text-fid-text-muted">{{ m.settings.library.credits.lead }}</p>
-    <WhyNote :label="m.settings.library.credits.whyLabel">
-      {{ m.settings.library.credits.why }}
+    <p class="text-fid-base text-fid-text-muted">{{ st.library.credits.lead }}</p>
+    <WhyNote :label="st.library.credits.whyLabel">
+      {{ st.library.credits.why }}
     </WhyNote>
 
     <ErrorNote v-if="error" :cause="error" />
 
     <p v-if="status.favourites === 0" class="text-fid-sm text-fid-text-muted">
-      {{ m.settings.library.credits.noFavourites }}
+      {{ st.library.credits.noFavourites }}
     </p>
 
     <template v-else>
       <p class="text-fid-sm text-fid-text-muted">
-        {{ m.settings.library.credits.read(count(status.harvested), count(status.favourites))
+        {{ st.library.credits.read(count(status.harvested), count(status.favourites))
         }}<template v-if="status.worthExpanding > 0">
           · <span class="fid-num">{{ status.worthExpanding }}</span>
           <!-- "1 person turn up" — the verb has to agree with the number too. -->
-          {{ m.settings.library.credits.worthExpanding(status.worthExpanding) }}</template
+          {{ st.library.credits.worthExpanding(status.worthExpanding) }}</template
         >.
       </p>
 
@@ -83,7 +84,7 @@ const eta = computed(() => {
         second half in a unit nobody outside this repository thinks in.
       -->
       <p v-if="remaining > 0 && !running" class="text-fid-sm text-fid-text-muted">
-        {{ m.settings.library.credits.remaining(remaining, minutes) }}
+        {{ st.library.credits.remaining(remaining, minutes) }}
       </p>
 
       <div v-if="progress" class="flex flex-col gap-2" aria-live="polite">
@@ -94,9 +95,9 @@ const eta = computed(() => {
           />
         </div>
         <p class="text-fid-sm text-fid-text-muted">
-          {{ m.settings.library.horizon.ofTotal(progress.done, progress.total) }} ·
+          {{ st.library.horizon.ofTotal(progress.done, progress.total) }} ·
           <span class="fid-num">{{ count(progress.people) }}</span>
-          {{ m.settings.library.credits.people }}
+          {{ st.library.credits.people }}
           <template v-if="progress.current"> · {{ progress.current }}</template>
           <template v-if="eta"> · noch ca. {{ eta }}</template>
         </p>
@@ -136,11 +137,7 @@ const eta = computed(() => {
         class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
         @click="harvest"
       >
-        {{
-          status.harvested > 0
-            ? m.settings.library.credits.continue
-            : m.settings.library.credits.harvest
-        }}
+        {{ status.harvested > 0 ? st.library.credits.continue : st.library.credits.harvest }}
       </button>
     </template>
   </section>
