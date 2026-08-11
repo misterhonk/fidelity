@@ -1,0 +1,56 @@
+# Fidelity im Heimnetz — ohne Quelltext, ohne Bauen.
+#
+# Diese Datei ist für sich allein lauffähig. Herunterladen, starten:
+#
+#   curl -O https://raw.githubusercontent.com/misterhonk/fidelity/main/deploy/compose.homelab.yml
+#   docker compose -f compose.homelab.yml up -d
+#
+# Der Unterschied zur compose.yml im Wurzelverzeichnis: die baut aus dem
+# Quelltext und ist für Leute gedacht, die am Projekt arbeiten. Diese hier holt
+# fertige Images — auch für arm64, ein Heimserver ist oft ein Raspberry Pi.
+#
+#   docker compose -f compose.homelab.yml pull     Aktualisieren
+#   docker compose -f compose.homelab.yml up -d    und übernehmen
+#
+# Läuft ohne jede Konfiguration. Alles unten ist optional.
+
+name: fidelity
+
+services:
+  app:
+    image: ghcr.io/misterhonk/fidelity-app:latest
+    ports:
+      # Standardmäßig nur von diesem Rechner erreichbar. Für das Heimnetz:
+      # APP_BIND=0.0.0.0 setzen — dann kommt auch das Telefon dran.
+      - '${APP_BIND:-127.0.0.1}:${APP_PORT:-3000}:80'
+    restart: unless-stopped
+
+  # Optional, und das ist keine Floskel: ohne Hub funktioniert alles genauso,
+  # es dauert nur beim ersten Mal länger (ADR-008). Nicht gewünscht? Diesen
+  # Block löschen — die App merkt nichts davon.
+  #
+  # Was er bringt: was Fidelity über Künstler und Labels herausgefunden hat,
+  # Versandkosten je Händler und Plattencover muss dann nicht jedes Gerät für
+  # sich holen. Wer denselben Hub benutzt, arbeitet den anderen zu.
+  hub:
+    image: ghcr.io/misterhonk/fidelity-hub:latest
+    environment:
+      HUB_PORT: 8787
+      HUB_DB: /data/hub.sqlite
+      # Leer heißt offen. Im Heimnetz in Ordnung, überall sonst falsch.
+      HUB_SECRET: ${HUB_SECRET:-}
+      # Der Wächter sieht stündlich nach, ob ein beobachteter Laden Neues hat,
+      # und schickt eine Benachrichtigung. Er ist das Einzige hier, das von
+      # sich aus nach draußen geht — deshalb aus, bis du ihn einschaltest.
+      HUB_WATCH: ${HUB_WATCH:-0}
+      HUB_VAPID_SUBJECT: ${HUB_VAPID_SUBJECT:-mailto:hub@fidelity.invalid}
+    ports:
+      - '${HUB_BIND:-127.0.0.1}:${HUB_PORT_PUBLIC:-8787}:8787'
+    volumes:
+      # Der Inhalt ist ein Cache: geht er verloren, kostet das Anfragen, keine
+      # Richtigkeit. Jeder Eintrag lässt sich von Discogs neu holen.
+      - hub-data:/data
+    restart: unless-stopped
+
+volumes:
+  hub-data:

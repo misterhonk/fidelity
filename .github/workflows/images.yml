@@ -1,0 +1,78 @@
+name: Images
+
+# Fertige Images, damit ein Heimserver nichts bauen muss.
+#
+# Der Unterschied zur Zip-Datei aus dem Release ist die Zielgruppe: wer die
+# Seite auf einen Webspace legt, braucht Dateien; wer sie im Heimnetz betreibt,
+# braucht `docker compose pull` — und zwar ohne den Quelltext zu klonen und ohne
+# zwölf Minuten Nuxt-Build auf einem Raspberry Pi.
+#
+# Deshalb auch arm64: ein Homelab ist oft genau dieser Raspberry Pi, und ein
+# Image nur für amd64 wäre für die halbe Zielgruppe wertlos.
+
+on:
+  push:
+    tags: ['v*']
+  # Von Hand, um vor einem Release einmal zu prüfen, dass beide Images bauen.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: images-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    strategy:
+      # Kein fail-fast: läuft der Hub durch und die App nicht, will man das
+      # Hub-Image trotzdem haben — die beiden hängen nicht voneinander ab
+      # (ADR-008).
+      fail-fast: false
+      matrix:
+        include:
+          - name: app
+            dockerfile: deploy/app.Dockerfile
+          - name: hub
+            dockerfile: deploy/hub.Dockerfile
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
+
+      # QEMU nur wegen arm64. Ohne das baut der Runner ausschließlich für die
+      # Architektur, auf der er selbst läuft.
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # `latest` nur auf einem echten Versions-Tag, nie aus einem Handlauf:
+      # sonst zeigt `latest` irgendwann auf etwas, das nie ein Release war.
+      - uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository }}-${{ matrix.name }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Der Nuxt-Build dauert; ohne Cache zahlt jedes Release das doppelt,
+          # einmal je Architektur.
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,scope=${{ matrix.name }},mode=max

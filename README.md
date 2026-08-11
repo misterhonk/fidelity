@@ -60,6 +60,17 @@ Ein **Personal Access Token** von
 [discogs.com/settings/developers](https://www.discogs.com/settings/developers) ist alles,
 was du brauchst. Er bleibt auf deinem Gerät.
 
+Drei Wege, je nachdem, wie viel du selbst betreiben willst:
+
+| | für wen | was du brauchst |
+|---|---|---|
+| **[Hochladen](#auf-den-eigenen-webspace--ohne-irgendetwas-zu-installieren)** | Webspace vorhanden, mehr soll es nicht sein | einen FTP-Zugang |
+| **[Im Heimnetz](#im-heimnetz-mit-docker)** | NAS, Raspberry Pi, Homelab | Docker |
+| **[Selbst bauen](#selbst-bauen-und-mitentwickeln)** | eigener Server, oder Lust am Code | Node |
+
+Keiner der drei Wege ist eine abgespeckte Version. Der erste ist die
+vollständige App — alles Weitere macht sie nur schneller.
+
 ### Auf den eigenen Webspace — ohne irgendetwas zu installieren
 
 Bei jedem [Release](https://github.com/misterhonk/fidelity/releases) hängt die fertige
@@ -82,19 +93,30 @@ enthalten einen Hash.
 Beides ist fertig: [`deploy/.htaccess`](deploy/.htaccess) für Apache — einfach mit in den
 Docroot legen — und [`deploy/nginx.conf`](deploy/nginx.conf) für nginx.
 
-### Mit Docker — auch ohne Node auf dem Rechner
+### Im Heimnetz, mit Docker
+
+Eine Datei, kein Quelltext, nichts zu bauen:
 
 ```bash
-docker compose up -d app
+curl -O https://raw.githubusercontent.com/misterhonk/fidelity/main/deploy/compose.homelab.yml
+docker compose -f compose.homelab.yml up -d
 ```
 
-Gebaut wird im Container. Die App liegt danach auf `http://127.0.0.1:3000`, nur lokal
-erreichbar; `APP_BIND=0.0.0.0` gibt sie ins Heimnetz frei. Für Zugriff von unterwegs ohne
-Portfreigabe im Router gibt es ein Tunnel-Profil — siehe [`compose.yml`](compose.yml).
+Fertige Images, auch für **arm64** — ein Heimserver ist oft ein Raspberry Pi. Danach liegt
+die App auf `http://127.0.0.1:3000`, absichtlich nur lokal; `APP_BIND=0.0.0.0` gibt sie ins
+Heimnetz frei, damit auch das Telefon drankommt.
 
-### Selbst bauen
+Aktualisieren ist `pull` und `up`:
 
-Falls du am Code arbeitest oder lieber selbst baust:
+```bash
+docker compose -f compose.homelab.yml pull && docker compose -f compose.homelab.yml up -d
+```
+
+Der Hub ist in dieser Datei dabei und **optional** — den Block löschen, und alles
+funktioniert genauso, nur beim ersten Mal langsamer. Für Zugriff von unterwegs ohne
+Portfreigabe im Router gibt es ein Tunnel-Profil in [`compose.yml`](compose.yml).
+
+### Selbst bauen und mitentwickeln
 
 ```bash
 corepack enable     # bringt genau die pnpm-Version mit, die das Projekt erwartet
@@ -102,8 +124,14 @@ pnpm install
 pnpm dev            # http://localhost:3000
 ```
 
-`corepack` liegt jedem Node ab 16.9 bei, du musst pnpm also nicht installieren. Für ein
-eigenes Deployment:
+`corepack` liegt jedem Node ab 16.9 bei — pnpm musst du nicht installieren.
+
+Ohne Node auf dem eigenen Rechner geht es auch: das Projekt bringt einen
+[Devcontainer](.devcontainer/devcontainer.json) mit. In VS Code „Reopen in Container", oder
+direkt in GitHub Codespaces. Node, pnpm und alle Abhängigkeiten sind dann fertig
+eingerichtet.
+
+Für ein eigenes Deployment:
 
 ```bash
 pnpm build
@@ -111,7 +139,8 @@ rsync -av --delete .output/public/ dein-server:/pfad/zum/docroot/
 ```
 
 Details und Alternativen: [`docs/08-DEPLOYMENT.md`](docs/08-DEPLOYMENT.md) und
-[`docs/10-DEPLOYMENT-ALTERNATIVEN.md`](docs/10-DEPLOYMENT-ALTERNATIVEN.md).
+[`docs/10-DEPLOYMENT-ALTERNATIVEN.md`](docs/10-DEPLOYMENT-ALTERNATIVEN.md). Wie hier
+gearbeitet wird: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 > **Ein Hinweis zu HTTPS:** Wenn du die App über `https://` ausspielst, kann sie einen
 > Hub auf `http://localhost` nur in Chrome erreichen — Safari verweigert das (gemessen

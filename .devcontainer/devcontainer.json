@@ -1,0 +1,80 @@
+{
+  // Fidelity zum Mitentwickeln — ohne irgendetwas auf dem eigenen Rechner.
+  //
+  // Öffnen in VS Code ("Reopen in Container") oder in GitHub Codespaces. Was
+  // danach da ist: Node in der Version, die auch die CI benutzt, pnpm in der
+  // Version aus package.json, alle Abhängigkeiten installiert.
+  //
+  // **Warum ein Devcontainer und kein `dev`-Dienst im Compose.** Ein Container,
+  // der `pnpm dev` ausführt und den Quelltext hineinreicht, klingt naheliegend
+  // und ist es nicht: auf macOS und Windows geht jeder Dateizugriff durch eine
+  // Übersetzungsschicht, und `node_modules` sind zehntausende kleiner Dateien.
+  // Der Entwicklungsserver wird dadurch spürbar langsam, ohne dass man etwas
+  // gewinnt — es gibt keine Datenbank und keinen Dienst, dessen Version man
+  // treffen müsste. Ein Devcontainer dagegen hängt den Editor *in* den
+  // Container: alles läuft drinnen, nichts wird ständig hin und her gereicht.
+  //
+  // Wer Node ohnehin hat, braucht das alles nicht:
+  //
+  //     corepack enable && pnpm install && pnpm dev
+  "name": "Fidelity",
+
+  // Dieselbe Hauptversion wie in der CI (.github/workflows/ci.yml). Eine
+  // andere hier wäre eine Fehlerquelle, die nur bei einem selbst auftritt.
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:22",
+
+  "features": {
+    // Für `docker compose up -d hub`, wenn jemand gegen einen echten Hub
+    // entwickeln will, statt ihn zu erraten.
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+
+  "forwardPorts": [3000, 8787],
+  "portsAttributes": {
+    "3000": { "label": "Fidelity", "onAutoForward": "notify" },
+    "8787": { "label": "Hub", "onAutoForward": "silent" }
+  },
+
+  /*
+   * `node_modules` in ein eigenes Volume.
+   *
+   * Der Rest des Projekts darf gemountet bleiben — Vue-Dateien werden selten
+   * gelesen und oft geschrieben, das verträgt die Übersetzungsschicht. Bei
+   * `node_modules` ist es umgekehrt: zehntausende Dateien, bei jedem Start
+   * gelesen. Im Volume liegen sie im Dateisystem des Containers und sind
+   * dadurch um ein Vielfaches schneller.
+   */
+  "mounts": [
+    "source=fidelity-node-modules,target=${containerWorkspaceFolder}/node_modules,type=volume"
+  ],
+
+  // Das Volume gehört dem root-Benutzer, sobald Docker es anlegt; ohne das
+  // scheitert die Installation an den Rechten.
+  "postCreateCommand": "sudo chown -R node:node node_modules && corepack enable && pnpm install",
+
+  // Playwright wird bewusst *nicht* hier installiert: die Browser sind
+  // mehrere hundert Megabyte und die meisten Änderungen brauchen sie nie.
+  // Wer sie braucht:  pnpm exec playwright install --with-deps
+  "postAttachCommand": {
+    "hinweis": "echo 'Bereit. pnpm dev startet die App. Für e2e-Tests einmalig: pnpm exec playwright install --with-deps'"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Vue.volar",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-playwright.playwright"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "eslint.useFlatConfig": true
+      }
+    }
+  },
+
+  "remoteUser": "node"
+}
