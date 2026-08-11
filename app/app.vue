@@ -35,10 +35,13 @@ useHead({
   titleTemplate: (title?: string) => (title ? `${title} · Fidelity` : SHARE_TITLE),
   htmlAttrs: { lang: language },
   meta: [{ name: 'theme-color', content: themeColor }],
-  link: [
-    { rel: 'icon', type: 'image/svg+xml', href: '/icon.svg' },
-    { rel: 'apple-touch-icon', href: '/icons/apple-touch-icon.png' },
-  ],
+  /*
+   * Icons und Manifest stehen in nuxt.config, nicht hier.
+   *
+   * `useHead` läuft beim Hydrieren; „Zum Home-Bildschirm" liest das statische
+   * HTML und war deshalb blind dafür. Was ein Installationsvorgang braucht,
+   * gehört in `app.head` — was sich zur Laufzeit ändert, hierher.
+   */
 })
 
 /**

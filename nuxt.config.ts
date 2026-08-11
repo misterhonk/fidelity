@@ -122,6 +122,46 @@ export default defineNuxtConfig({
         { name: 'twitter:card', content: 'summary' },
         { name: 'twitter:title', content: SHARE.title },
         { name: 'twitter:description', content: SHARE.description },
+
+        /*
+         * Ohne diese zwei bleibt die Adressleiste stehen.
+         *
+         * Gemessen am 2026-08-11 gegen die ausgelieferte Seite: das HTML trug
+         * *keinen* Verweis auf das Manifest — @vite-pwa erzeugt die Datei, aber
+         * der `<link>` landet bei `ssr: false` nicht im vorgerenderten HTML.
+         * Damit findet iOS das Manifest nie, fällt auf sein altes Verhalten
+         * zurück, und `display: standalone` wird nie gelesen.
+         *
+         * `apple-mobile-web-app-capable` ist der alte Name und der, auf den
+         * iOS bis heute hört; `mobile-web-app-capable` ist der heutige.
+         * Beide, weil der eine ohne den anderen auf je einer Plattform nichts
+         * tut.
+         */
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'mobile-web-app-capable', content: 'yes' },
+
+        // Die Statusleiste über der App: durchscheinend, damit der dunkle
+        // Hintergrund der App bis unter die Uhr läuft statt an einem weißen
+        // Balken zu enden.
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+      ],
+
+      /*
+       * Alles, was „Zum Home-Bildschirm" liest, muss **hier** stehen.
+       *
+       * Diese Verweise standen in app.vue, also in einem `useHead` — das läuft
+       * beim Hydrieren und landet nie im vorgerenderten HTML. Safari liest für
+       * das Hinzufügen aber genau dieses statische HTML: es fand kein Manifest
+       * und kein Icon, nahm den Seitentitel („Willkommen · Fidelity") und malte
+       * ein W in ein schwarzes Quadrat.
+       *
+       * Und alle drei mit Basispfad. Ohne ihn zeigt `/icons/…` unter
+       * /fidelity/ auf die Domainwurzel — gemessen: 404 dort, 200 mit Pfad.
+       */
+      link: [
+        { rel: 'manifest', href: `${base}manifest.webmanifest` },
+        { rel: 'icon', type: 'image/svg+xml', href: `${base}icon.svg` },
+        { rel: 'apple-touch-icon', href: `${base}icons/apple-touch-icon.png` },
       ],
     },
   },

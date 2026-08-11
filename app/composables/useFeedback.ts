@@ -32,11 +32,38 @@ const failure = shallowRef<unknown>(null)
  * weight and no stroke, so they cannot line up with anything around them.
  */
 export const VERDICTS = [
-  { key: 'interesting', icon: 'thumbs-up', label: 'Interessant' },
-  { key: 'meh', icon: 'meh', label: 'Naja' },
-  { key: 'wrong', icon: 'thumbs-down', label: 'Danebengegriffen' },
-  { key: 'bought', icon: 'shopping-cart', label: 'Gekauft' },
-] as const satisfies readonly { key: Verdict; icon: string; label: string }[]
+  { key: 'interesting', icon: 'bookmark', shown: true },
+  { key: 'bought', icon: 'check', shown: true },
+
+  /*
+   * Abgeschaltet, nicht gelöscht.
+   *
+   * Diese beiden werden gespeichert und von nichts gelesen: `worker/match/`
+   * fasst den feedback-Store nicht an, er landet nur im Export. Das Lernen,
+   * für das sie gedacht waren, ist nie gebaut worden — vier gleich aussehende
+   * Symbole, von denen zwei etwas tun und zwei ins Leere laufen, sind aber
+   * genau die Art Oberfläche, bei der niemand mehr weiß, was ein Klick
+   * bedeutet.
+   *
+   * `shown: true` hier, und sie sind zurück. Der Speicher, der Worker, das
+   * Protokoll und die Tests bleiben unangetastet, damit das auch wirklich ein
+   * Schalter ist und kein Wiederaufbau.
+   */
+  { key: 'meh', icon: 'meh', shown: false },
+  { key: 'wrong', icon: 'thumbs-down', shown: false },
+] as const satisfies readonly { key: Verdict; icon: string; shown: boolean }[]
+
+/**
+ * Was die Oberfläche zeigt.
+ *
+ * Die beiden übrigen sind keine Bewertungen, sondern Aktionen mit sichtbarer
+ * Folge: „Merken" trägt in die Merkliste ein, „Gekauft" in die Gekauft-Liste
+ * (worker/feedback.ts filtert genau auf diese zwei Werte). Deshalb tragen sie
+ * jetzt ein Lesezeichen und ein Häkchen statt eines Daumens und eines zweiten
+ * Einkaufswagens — der stand direkt neben „In den Korb" und meinte etwas
+ * völlig anderes.
+ */
+export const SHOWN_VERDICTS = VERDICTS.filter((v) => v.shown)
 
 export function useFeedback() {
   const { call } = useFidelityWorker()

@@ -149,6 +149,14 @@ const en = {
     },
     score: (score: number) => `Barry Score ${score} out of 100`,
     scoreBand: (score: number, band: string) => `Barry Score ${score} out of 100 – ${band}`,
+    /*
+     * Zwei Aktionen, keine Bewertungen — und bis heute standen sie auf
+     * Deutsch in `app/composables/useFeedback.ts`. Beide Wächter von heute
+     * sehen dort nicht hin: der eine prüft Attribute in Vorlagen, der andere
+     * Textknoten. Ein Text, der in einer .ts-Datei definiert und dann
+     * gebunden wird, fällt durch beide.
+     */
+    verdicts: { interesting: 'Save', bought: 'Bought', meh: 'So-so', wrong: 'Wrong pick' },
     feedback: 'How was this find?',
     open: (record: string) => `Open ${record}`,
     allFinds: 'All finds',
@@ -292,6 +300,12 @@ const de: typeof en = {
     },
     score: (score: number) => `Barry Score ${score} von 100`,
     scoreBand: (score: number, band: string) => `Barry Score ${score} von 100 – ${band}`,
+    verdicts: {
+      interesting: 'Merken',
+      bought: 'Gekauft',
+      meh: 'Naja',
+      wrong: 'Danebengegriffen',
+    },
     feedback: 'Wie war der Treffer?',
     open: (record) => `${record} öffnen`,
     allFinds: 'Alle Treffer',

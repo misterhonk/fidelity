@@ -41,10 +41,35 @@ const NEEDED = {
   download: 'Export',
   'trash-2': 'Delete everything',
   'wifi-off': 'Offline-Hinweis',
-  'thumbs-up': 'Bewertung: interessant',
-  'thumbs-down': 'Bewertung: danebengegriffen',
-  meh: 'Bewertung: naja',
-  'shopping-cart': 'Bewertung: gekauft',
+  /*
+   * Merken und Gekauft sind Aktionen, keine Bewertungen.
+   *
+   * Sie waren einmal zwei von vier Daumen-und-Smiley-Symbolen in einer Reihe,
+   * und der vierte trug ausgerechnet einen Einkaufswagen — direkt neben dem
+   * Knopf „In den Korb", der etwas ganz anderes tut. Ein Lesezeichen merkt
+   * vor, ein Häkchen sagt „habe ich", und beides ist ohne Beschriftung
+   * erkennbar.
+   */
+  /*
+   * Der Einkaufswagen bleibt — aber nur noch für den Korb, im Laden-Screen.
+   * Er war zusätzlich das Symbol der Bewertung „gekauft" und stand damit
+   * zweimal nebeneinander für zwei verschiedene Dinge.
+   */
+  'shopping-cart': 'In den Korb (Laden-Screen)',
+
+  bookmark: 'Merken — trägt in die Merkliste ein',
+  check: 'Gekauft — trägt in die Gekauft-Liste ein',
+
+  /*
+   * Die zwei folgenlosen Bewertungen. Sie werden gespeichert und von nichts
+   * gelesen — das Lernen, für das sie gedacht waren, ist nie gebaut worden
+   * (worker/match/ fasst den feedback-Store nicht an). Sie sind deshalb in der
+   * Oberfläche abgeschaltet, aber nicht gelöscht: kommt das Lernen, kommen sie
+   * mit einem Schalter zurück. Ihre Symbole bleiben hier, damit dieser
+   * Schalter genau das ist — ein Schalter, kein Wiederaufbau.
+   */
+  'thumbs-down': 'Bewertung: danebengegriffen (abgeschaltet)',
+  meh: 'Bewertung: naja (abgeschaltet)',
 }
 
 /**

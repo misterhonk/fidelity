@@ -237,11 +237,11 @@ const meta = computed(() => {
 
         <div class="flex gap-1" role="group" :aria-label="d.match.feedback">
           <button
-            v-for="option in VERDICTS"
+            v-for="option in SHOWN_VERDICTS"
             :key="option.key"
             type="button"
-            :title="option.label"
-            :aria-label="option.label"
+            :title="d.match.verdicts[option.key]"
+            :aria-label="d.match.verdicts[option.key]"
             :aria-pressed="verdict === option.key"
             class="rounded-fid-sm border px-2 py-1 text-fid-sm transition-colors"
             :class="

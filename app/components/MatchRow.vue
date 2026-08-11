@@ -118,11 +118,11 @@ const price = computed(() => {
         :aria-label="d.match.feedback"
       >
         <button
-          v-for="option in VERDICTS"
+          v-for="option in SHOWN_VERDICTS"
           :key="option.key"
           type="button"
-          :title="option.label"
-          :aria-label="option.label"
+          :title="d.match.verdicts[option.key]"
+          :aria-label="d.match.verdicts[option.key]"
           :aria-pressed="verdict === option.key"
           class="min-h-6 min-w-6 rounded-fid-sm border text-fid-xs"
           :class="

@@ -348,11 +348,11 @@ function onKeydown(event: KeyboardEvent) {
         <div class="mt-auto flex flex-wrap items-center justify-between gap-3 pt-4">
           <div class="flex gap-1" role="group" :aria-label="d.match.feedback">
             <button
-              v-for="option in VERDICTS"
+              v-for="option in SHOWN_VERDICTS"
               :key="option.key"
               type="button"
-              :title="option.label"
-              :aria-label="option.label"
+              :title="d.match.verdicts[option.key]"
+              :aria-label="d.match.verdicts[option.key]"
               :aria-pressed="verdict === option.key"
               class="min-h-6 min-w-6 rounded-fid-sm border px-2 py-1 text-fid-sm"
               :class="
