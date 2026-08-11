@@ -8,6 +8,20 @@ import pkg from './package.json'
 //   worker/  discogs, match, horizon. All the actual work.
 //   db/      IndexedDB schema and access via idb.
 //   shared/  types and the main ↔ worker postMessage protocol.
+/**
+ * The one description that reaches a link preview.
+ *
+ * English and one string, for the same reason the manifest is: this is read
+ * before any of the app's code runs, so it cannot follow the language switch.
+ * It says what the app does rather than what it is called — "Fidelity" alone
+ * tells a person nothing about why the link is worth opening.
+ */
+const SHARE = {
+  title: 'Fidelity — the clerk behind the counter, for Discogs',
+  description:
+    'Scan a Discogs shop and get back a scored list of the records in it that fit your collection — each one with a sentence saying why. Runs entirely in your browser.',
+} as const
+
 export default defineNuxtConfig({
   compatibilityDate: '2026-08-09',
 
@@ -63,9 +77,33 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      // Nothing here is meant for a search index (docs/00 §9). robots.txt asks
-      // politely; this is the part crawlers actually honour.
-      meta: [{ name: 'robots', content: 'noindex, nofollow' }],
+      meta: [
+        // Nothing here is meant for a search index (docs/00 §9). robots.txt
+        // asks politely; this is the part crawlers actually honour.
+        { name: 'robots', content: 'noindex, nofollow' },
+
+        /*
+         * The card a link turns into when somebody pastes it.
+         *
+         * On the shell rather than per page, and that is not laziness: with
+         * `ssr: false` every address serves this one index.html. Whatever a
+         * chat client, a messenger or a link preview fetches, it gets exactly
+         * these tags — the per-page titles below are written by the app after
+         * the page has already been fetched, which no unfurler waits for.
+         *
+         * So this describes the app, and the document title describes the
+         * screen. Two different jobs that look like one.
+         */
+        { name: 'description', content: SHARE.description },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:site_name', content: 'Fidelity' },
+        { property: 'og:title', content: SHARE.title },
+        { property: 'og:description', content: SHARE.description },
+        { property: 'og:image', content: '/icons/icon-512.png' },
+        { name: 'twitter:card', content: 'summary' },
+        { name: 'twitter:title', content: SHARE.title },
+        { name: 'twitter:description', content: SHARE.description },
+      ],
     },
   },
 

@@ -7,8 +7,7 @@ import { counted } from '~/utils/plural'
  * The words for the settings, in every language, in the settings chunk.
  *
  * **Why this is not in `en.ts`.** That file is imported by the shell, so
- * everything in it lands in the first paint — and the first paint has a 120 kB
- * budget it was already at 116.9 of. Nobody needs the wording of the vault
+ * everything in it lands in the first paint, which has a budget of its own. Nobody needs the wording of the vault
  * picker to see the start screen. Splitting by area puts each screen's words in
  * the chunk that screen already loads, which is where they were always going to
  * belong.

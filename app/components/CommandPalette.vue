@@ -63,7 +63,7 @@ const entries = computed<Entry[]>(() => {
     { id: 'nav-clerk', group: goTo, label: m.nav.dealers.label, run: go('/dealers') },
     { id: 'nav-basket', group: goTo, label: m.nav.basket.label, run: go('/basket') },
     { id: 'nav-store', group: goTo, label: m.palette.inStore, run: go('/in-store') },
-    { id: 'nav-settings', group: goTo, label: m.nav.settings, run: go('/settings') },
+    { id: 'nav-settings', group: goTo, label: m.nav.settings.label, run: go('/settings') },
     { id: 'nav-home', group: goTo, label: m.nav.start.label, run: go('/') },
 
     ...dealers.value.map((dealer) => ({

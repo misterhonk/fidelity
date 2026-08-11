@@ -80,7 +80,7 @@ function waiting(addedAt: string): string | null {
         spellcheck="false"
         :placeholder="c.wantlist.search"
         :aria-label="c.wantlist.searchLabel"
-        class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+        class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
       />
 
       <p v-if="records.length === 0" class="text-fid-sm text-fid-text-muted">

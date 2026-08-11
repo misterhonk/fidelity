@@ -381,7 +381,7 @@ const en = {
     basket: { label: 'Basket', hint: 'What you mean to buy' },
     shelf: { label: 'Collection', hint: 'What you own and what you are after' },
     dealers: { label: 'Shops', hint: 'Who you buy from' },
-    settings: 'Settings',
+    settings: { label: 'Settings', hint: 'Token, sync, appearance' },
     inBasket: (count: number) => `${count} in the basket`,
   },
 }

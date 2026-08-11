@@ -137,7 +137,7 @@ const number = (value: string) => {
             step="1"
             inputmode="decimal"
             :placeholder="f.noLimit"
-            class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+            class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
             @change="save({ maxPrice: number(($event.target as HTMLInputElement).value) })"
           />
           <span class="text-fid-xs text-fid-text-muted">{{ f.maxPriceHint }}</span>
@@ -152,7 +152,7 @@ const number = (value: string) => {
             max="100"
             step="1"
             inputmode="numeric"
-            class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+            class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
             @change="
               save({ minSellerRating: Number(($event.target as HTMLInputElement).value) || 0 })
             "
@@ -176,7 +176,7 @@ const number = (value: string) => {
           type="text"
           autocomplete="country-name"
           :placeholder="f.countryPlaceholder"
-          class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+          class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
         />
         <span class="text-fid-xs text-fid-text-muted">{{ f.shipsToHint }}</span>
       </label>
@@ -188,7 +188,7 @@ const number = (value: string) => {
           type="text"
           autocomplete="off"
           :placeholder="f.blockedPlaceholder"
-          class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+          class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
         />
         <span class="text-fid-xs text-fid-text-muted">{{ f.blockedHint }}</span>
       </label>
@@ -202,7 +202,7 @@ const number = (value: string) => {
           <span class="text-fid-sm text-fid-text-muted">{{ f.condition }}</span>
           <select
             :value="prefs.prefMediaCondition"
-            class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+            class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
             @change="
               save({
                 prefMediaCondition: ($event.target as HTMLSelectElement).value as Condition,
@@ -225,7 +225,7 @@ const number = (value: string) => {
             step="1"
             inputmode="decimal"
             :placeholder="f.targetPriceAny"
-            class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+            class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
             @change="save({ targetPrice: number(($event.target as HTMLInputElement).value) })"
           />
           <span class="text-fid-xs text-fid-text-muted">{{ f.targetPriceHint }}</span>

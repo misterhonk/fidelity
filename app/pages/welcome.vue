@@ -183,7 +183,7 @@ const CAN_DO = computed(
           <div class="flex flex-col gap-3">
             <button
               type="button"
-              class="fid-action self-start rounded-fid-md bg-fid-accent px-6 py-3 text-fid-base font-medium text-fid-on-accent"
+              class="fid-fill fid-action self-start rounded-fid-md bg-fid-accent-fill px-6 py-3 text-fid-base font-medium text-fid-on-accent"
               @click="step = 'token'"
             >
               {{ w.setUp }}
@@ -235,7 +235,7 @@ const CAN_DO = computed(
           <button
             v-else
             type="button"
-            class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent"
+            class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
             @click="sync"
           >
             {{ w.fetchCollection }}
@@ -273,7 +273,7 @@ const CAN_DO = computed(
           <div class="flex flex-col gap-2">
             <button
               type="button"
-              class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent"
+              class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
               @click="step = 'credits'"
             >
               {{ w.horizon.skip }}
@@ -300,7 +300,7 @@ const CAN_DO = computed(
           <div class="flex flex-col gap-2">
             <button
               type="button"
-              class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent"
+              class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
               @click="step = 'fertig'"
             >
               {{ w.credits.skip }}
@@ -343,7 +343,7 @@ const CAN_DO = computed(
 
           <NuxtLink
             to="/"
-            class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent"
+            class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
           >
             {{ w.done.toStart }}
           </NuxtLink>

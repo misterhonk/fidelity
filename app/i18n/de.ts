@@ -302,7 +302,7 @@ const de: Messages = {
     basket: { label: 'Korb', hint: 'Was du kaufen willst' },
     shelf: { label: 'Sammlung', hint: 'Was du hast und was du suchst' },
     dealers: { label: 'Läden', hint: 'Bei wem du kaufst' },
-    settings: 'Einstellungen',
+    settings: { label: 'Einstellungen', hint: 'Token, Abgleich, Darstellung' },
     inBasket: (count) => `${count} im Korb`,
   },
 }

@@ -6,7 +6,7 @@ import { ICONS, type IconName } from '~/utils/icons'
  *
  * No icon library, no sprite sheet, no font: the shapes are a constant this
  * component reads, so an icon costs its own path data and nothing else. That
- * matters at 120 kB for the first paint (CLAUDE.md rule 7) — @iconify/vue
+ * matters against the first-paint budget (CLAUDE.md rule 7) — @iconify/vue
  * alone would have been most of the remaining headroom.
  *
  * Every element is spelled out rather than rendered through `<component :is>`

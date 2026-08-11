@@ -186,7 +186,7 @@ const peak = computed(() =>
 </script>
 
 <template>
-  <article class="flex flex-col gap-6 rounded-fid-md border border-fid-border p-5">
+  <article class="fid-lift flex flex-col gap-6 rounded-fid-md border border-fid-border p-5">
     <ErrorNote v-if="error" :cause="error" />
     <section class="flex flex-col gap-3">
       <div class="flex flex-wrap items-baseline justify-between gap-2">
@@ -470,7 +470,7 @@ const peak = computed(() =>
           v-model.number="row.minItems"
           type="number"
           min="1"
-          class="w-16 rounded-fid-sm border border-fid-border bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
+          class="w-16 rounded-fid-sm border border-fid-field bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
         />
         <span class="text-fid-sm text-fid-text-muted">bis</span>
         <label class="sr-only" :for="`to-${index}`">{{ b.tiersTo }}</label>
@@ -480,7 +480,7 @@ const peak = computed(() =>
           type="number"
           min="1"
           :placeholder="b.tiersOpen"
-          class="w-16 rounded-fid-sm border border-fid-border bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
+          class="w-16 rounded-fid-sm border border-fid-field bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
           @input="
             row.maxItems =
               ($event.target as HTMLInputElement).value === ''
@@ -495,7 +495,7 @@ const peak = computed(() =>
           type="number"
           min="0"
           step="0.01"
-          class="w-24 rounded-fid-sm border border-fid-border bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
+          class="w-24 rounded-fid-sm border border-fid-field bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
         />
         <span class="text-fid-sm text-fid-text-muted">{{ summary.currency }}</span>
       </div>
@@ -533,7 +533,7 @@ const peak = computed(() =>
           min="1"
           step="1"
           placeholder="60"
-          class="w-24 rounded-fid-sm border border-fid-border bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
+          class="w-24 rounded-fid-sm border border-fid-field bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
         />
         <span class="text-fid-sm text-fid-text-muted">
           {{ b.budget.including(summary.currency ?? '') }}

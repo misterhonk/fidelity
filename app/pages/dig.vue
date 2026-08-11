@@ -332,7 +332,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
           autocomplete="off"
           spellcheck="false"
           :placeholder="d.dealerPlaceholder"
-          class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+          class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
         />
       </div>
       <button
@@ -406,7 +406,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
       <button
         type="button"
         :disabled="busy"
-        class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
+        class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
         @click="resume"
       >
         {{ d.resume }}
@@ -456,7 +456,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
           :class="
             resumable
               ? 'border border-fid-border text-fid-text'
-              : 'bg-fid-accent text-fid-on-accent'
+              : 'fid-fill bg-fid-accent-fill text-fid-on-accent'
           "
           @click="start('neu')"
         >
@@ -479,7 +479,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
         :class="
           resumable || preflight.since
             ? 'border border-fid-border text-fid-text'
-            : 'bg-fid-accent text-fid-on-accent'
+            : 'fid-fill bg-fid-accent-fill text-fid-on-accent'
         "
         @click="start('normal')"
       >

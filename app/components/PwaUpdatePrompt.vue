@@ -28,7 +28,7 @@ const { $pwa } = useNuxtApp()
     </button>
     <button
       type="button"
-      class="rounded-fid-sm bg-fid-accent px-3 py-2 font-medium text-fid-on-accent"
+      class="fid-fill rounded-fid-sm bg-fid-accent-fill px-3 py-2 font-medium text-fid-on-accent"
       @click="$pwa.updateServiceWorker()"
     >
       {{ m.notice.update.reload }}

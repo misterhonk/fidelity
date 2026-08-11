@@ -26,6 +26,13 @@
         "de.fidelity.dark": "{color.n.800}"
       }
     },
+    "field": {
+      "$value": "{color.n.500}",
+      "$description": "Der Rand von etwas, das man anfassen kann: Eingabefelder, Auswahlen, Umriss-Knöpfe. Getrennt von 'border', weil ein Bedienelement nach WCAG 1.4.11 3:1 gegen seine Fläche braucht und eine dekorative Trennlinie nicht. Gemessen 2026-08-11: 'border' kam auf 1,23 (dunkel) und 1,35 (hell) — beide Themes durchgefallen, und axe prüft Rahmenkontraste gar nicht. n.500 schafft 4,66 gegen Weiß und 4,30 gegen die dunkle Fläche, also derselbe Wert für beide Schemata.",
+      "$extensions": {
+        "de.fidelity.dark": "{color.n.500}"
+      }
+    },
     "inset": {
       "$value": "{color.n.200}",
       "$description": "Was hinter etwas liegt, das noch nicht da ist: Fortschrittsbalken, leere Cover-Flächen, ungefüllte Rasterzellen. Vorher stand dafür überall {color.n.800} im Markup – im Hellmodus wären das schwarze Kacheln auf weißem Grund gewesen.",
@@ -52,11 +59,18 @@
         "de.fidelity.dark": "{color.accent.500}"
       }
     },
+    "accent-fill": {
+      "$value": "{color.accent.700}",
+      "$description": "Die Fläche eines gefüllten Knopfes — getrennt von 'accent', weil ein Token beide Rollen nicht erfüllen kann: als Linktext auf dunklem Grund muss der Akzent hell sein, als Fläche hinter heller Schrift dunkel. Vorher war beides accent.500, also stand im Dunkelmodus fast schwarze Schrift auf hellem Orange. Kontrast war einwandfrei (8,51), aber es sah aus wie eine Warnung. Jetzt in beiden Schemata dasselbe tiefe Orange mit heller Schrift: 4,63.",
+      "$extensions": {
+        "de.fidelity.dark": "{color.accent.700}"
+      }
+    },
     "on-accent": {
       "$value": "{color.n.50}",
       "$description": "Was auf dem gefüllten Akzent steht. Jeder gefüllte Knopf schrieb ein festes {color.n.990} auf das Orange, das das Thema gerade auflöst. Im Dunkelmodus ist das accent-500 und das Paar liegt bei 8,49:1. Im Hellmodus ist es das dunklere accent-700, und dasselbe Fast-Schwarz ergibt 4,17:1 – unter den 4,5, die WCAG für normalen Text verlangt, auf der wichtigsten Aktion der App. Weiß auf accent-700 sind 4,91:1, Fast-Schwarz auf accent-500 sind 8,49:1: die Vordergrundfarbe muss dem Thema folgen wie jede andere Rolle hier. Gemessen, nicht geschätzt.",
       "$extensions": {
-        "de.fidelity.dark": "{color.n.990}"
+        "de.fidelity.dark": "{color.n.50}"
       }
     }
   }

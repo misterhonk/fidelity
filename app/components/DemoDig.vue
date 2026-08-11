@@ -145,7 +145,7 @@ function shapeOf(format: string | null) {
           autocomplete="off"
           spellcheck="false"
           placeholder="https://www.discogs.com/sell/item/…"
-          class="min-w-0 grow rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+          class="min-w-0 grow rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
         />
         <button
           type="submit"

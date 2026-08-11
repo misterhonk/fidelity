@@ -118,7 +118,7 @@ const basketCount = computed(() => basketIds.value.size)
           -->
           <span
             v-if="section.to === '/basket' && basketCount > 0"
-            class="fid-num pointer-events-none absolute -top-1.5 -right-2 min-w-4 rounded-full bg-fid-accent px-1 text-center text-[0.625rem] leading-4 font-medium text-fid-on-accent"
+            class="fid-num pointer-events-none absolute -top-1.5 -right-2 min-w-4 rounded-full bg-fid-accent-fill px-1 text-center text-[0.625rem] leading-4 font-medium text-fid-on-accent"
             :aria-label="m.nav.inBasket(basketCount)"
           >
             {{ basketCount }}
@@ -128,31 +128,32 @@ const basketCount = computed(() => basketIds.value.size)
       </NuxtLink>
 
       <!--
-        On the same line as the other five.
+        The sixth tab, and now built exactly like the other five.
 
-        The gear carries no label, so centring it in a bar sized for
-        icon-plus-word put its glyph eleven pixels below the rest. Centred is
-        right for a box on its own and wrong for the sixth thing in a row: the
-        eye reads the line of icons, and one sitting low reads as a mistake
-        rather than as a different kind of control.
+        It used to be a bare gear. Which contradicted the rule three comments
+        above it — "a bare glyph is a guess" — and cost a workaround: with no
+        label to fill the second row, centring the icon in a bar sized for
+        icon-plus-word dropped it eleven pixels below its neighbours, so it
+        carried `justify-start` and its own padding to fake the height a word
+        would have given it. Giving it the word deletes the compensation and
+        the guess in one go.
 
-        Same column and the same top padding as the labelled tabs, minus the
-        label. On a desktop the bar is a row of centred items and this changes
-        nothing.
+        `md:ml-auto` stays: on a desktop the settings belong at the far end,
+        away from the five things somebody actually came to do.
       -->
       <NuxtLink
         to="/settings"
         :aria-current="isCurrent({ to: '/settings' }) ? 'page' : undefined"
-        :aria-label="m.nav.settings"
-        :title="m.nav.settings"
-        class="flex min-h-11 min-w-11 items-center justify-center border-b-2 text-fid-base transition-colors md:ml-auto max-md:min-h-14 max-md:flex-col max-md:justify-start max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0 max-md:py-2"
+        :title="m.nav.settings.hint"
+        class="relative flex min-h-11 items-center justify-center gap-2 border-b-2 px-3 text-fid-sm transition-colors md:ml-auto max-md:min-h-14 max-md:flex-1 max-md:flex-col max-md:gap-1 max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0 max-md:px-1 max-md:py-2 max-md:text-fid-xs"
         :class="
           isCurrent({ to: '/settings' })
             ? 'border-fid-accent text-fid-text max-md:bg-fid-accent/15'
             : 'border-transparent text-fid-text-muted hover:text-fid-text'
         "
       >
-        <FidIcon name="settings" :size="20" />
+        <span class="relative flex shrink-0"><FidIcon name="settings" :size="20" /></span>
+        {{ m.nav.settings.label }}
       </NuxtLink>
     </div>
   </nav>

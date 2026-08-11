@@ -72,7 +72,7 @@ ADR.
 **The token does not leave IndexedDB.** Never into a log, never into a URL, never into an
 error report, never to a hub.
 
-**Every new dependency has to justify its bytes.** The budget is 120 kB gzip for the first
+**Every new dependency has to justify its bytes.** The budget is 180 kB gzip for the first
 meaningful paint, and `pnpm size` breaks the build when it is exceeded.
 
 **No feature may require the hub.** It makes things faster. Hub calls run with a two-second

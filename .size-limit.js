@@ -3,8 +3,15 @@ import { readdirSync, readFileSync } from 'node:fs'
 /**
  * Bundle budget (docs/12-RESSOURCEN-BUDGET.md §2).
  *
- * The thing has to load in the basement of a record shop over 3G, so the
- * budget is on the *first meaningful paint*, not on the whole build.
+ * It should still load where reception is bad — a shop's basement, behind
+ * concrete — so the budget is on the *first meaningful paint*, not on the whole
+ * build.
+ *
+ * Raised from 120 kB on 2026-08-11. That number modelled 3G, which has been
+ * switched off in Germany since 2021, and on any connection a person actually
+ * has the difference between 120 and 180 kB is forty milliseconds. It is still
+ * a hard limit and still breaks the build: a budget that gets raised whenever
+ * it is inconvenient is not a budget. See docs/12 for the arithmetic.
  *
  * The file list is read out of the generated index.html rather than globbed
  * from `_nuxt/`: only the entry stylesheet and the module graph the browser
@@ -101,7 +108,7 @@ export default [
   {
     name: 'Erster sinnvoller Paint',
     path: entryAssets,
-    limit: '120 kB',
+    limit: '180 kB',
     gzip: true,
   },
   {

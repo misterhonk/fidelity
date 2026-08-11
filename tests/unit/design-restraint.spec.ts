@@ -127,9 +127,19 @@ describe('the accent', () => {
         const statics = [...source.matchAll(/(?<!:)class="([^"]*)"/gs)].map(
           (match) => match[1]!,
         )
+        /*
+         * `bg-fid-accent-fill` as well as `bg-fid-accent`, since the accent
+         * was split in two on 2026-08-11: a filled button and a link cannot
+         * share a colour, because one needs to be dark enough for light text
+         * on it and the other light enough to be read on a dark page.
+         *
+         * Worth spelling out, because the old pattern ended in `(?![/\w-])`
+         * and would have quietly stopped matching the moment the fill token
+         * gained its suffix — leaving a green test that counted nothing.
+         */
         const actions = statics.filter(
           (attribute) =>
-            /bg-fid-accent(?![/\w-])/.test(attribute) &&
+            /bg-fid-accent(-fill)?(?![/\w-])/.test(attribute) &&
             !attribute.includes('transition-[width]'),
         )
         return { file, actions: actions.length }
@@ -172,17 +182,28 @@ describe('the basket badge', () => {
   })
 
   /**
-   * Die Icons stehen auf einer Linie.
+   * Every tab is built the same way.
    *
-   * The gear has no label, so centring it in a bar sized for icon-plus-word
-   * dropped its glyph eleven pixels below the other five. Measured rather than
-   * guessed at the time; kept here as the shape that produced it, because a
-   * unit test cannot read a bounding box.
+   * This used to check that the settings gear carried `justify-start` and its
+   * own padding — a compensation for having no label, which left its glyph
+   * eleven pixels below the other five. The label arrived on 2026-08-11 and
+   * the compensation went with it, so the test now asks the question that
+   * caused it: does the sixth tab share the shape of the first five?
+   *
+   * Written as "same rules as its neighbours" rather than as a list of
+   * classes, because a list is a thing to update twice and disagree with
+   * once.
    */
-  it('starts the unlabelled tab at the same height as the labelled ones', () => {
+  it('builds the settings tab like the five before it', () => {
+    const first = code.slice(code.indexOf('v-for'), code.indexOf('to="/settings"'))
     const gear = code.slice(code.indexOf('to="/settings"'))
-    for (const rule of ['max-md:flex-col', 'max-md:justify-start', 'max-md:py-2']) {
-      expect(gear.slice(0, 600)).toContain(rule)
+
+    const layout = [...first.matchAll(/\b(max-md:[\w-]+|min-h-11|gap-2|px-3)\b/g)].map(
+      (match) => match[1],
+    )
+
+    for (const rule of new Set(layout)) {
+      expect(gear.slice(0, 900), `settings tab is missing ${rule}`).toContain(rule)
     }
   })
 })

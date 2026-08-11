@@ -48,7 +48,7 @@ const DENSITIES = ['comfortable', 'compact'] as const satisfies readonly Density
       spellcheck="false"
       :placeholder="f.searchPlaceholder"
       :aria-label="f.search"
-      class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+      class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
       @input="emit('setQuery', ($event.target as HTMLInputElement).value)"
     />
 

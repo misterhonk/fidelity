@@ -60,7 +60,7 @@ const meta = computed(() => {
 <template>
   <article
     ref="root"
-    class="@container flex scroll-mt-28 flex-col gap-3 rounded-fid-md border border-fid-border bg-fid-surface p-4"
+    class="fid-lift @container flex scroll-mt-28 flex-col gap-3 rounded-fid-md border border-fid-border bg-fid-surface p-4"
   >
     <div class="flex items-start gap-4">
       <!--
@@ -75,18 +75,42 @@ const meta = computed(() => {
         this card has been drawing the placeholder since it was written. The
         picture comes from the shared store instead (app/composables/useCovers).
       -->
-      <img
+      <!--
+        The cover opens the record, because the cover is what a person reaches
+        for.
+
+        For a long time the only way in was the title, on the argument that a
+        whole-card click would swallow the Discogs link and the four verdict
+        buttons — which is still true, and is why this is not a whole-card
+        click. But it left the sleeve, the score and the metadata line inert
+        while the most eye-catching control on the card led *away* to Discogs.
+        The result reads as "the overview is gone": somebody taps the picture,
+        nothing happens, taps the obvious link instead, and lands on a website.
+
+        A cover and a title, both opening the same thing, and the buttons
+        beside them keeping their own jobs.
+      -->
+      <button
         v-if="cover"
-        :src="cover.thumbUrl"
-        :srcset="cover.coverUrl ? `${cover.thumbUrl} 150w, ${cover.coverUrl} 600w` : undefined"
-        sizes="72px"
-        alt=""
-        loading="lazy"
-        decoding="async"
-        width="72"
-        height="72"
-        class="size-18 shrink-0 rounded-fid-cover bg-fid-inset object-cover"
-      />
+        type="button"
+        class="fid-cover-button size-18 shrink-0 overflow-hidden rounded-fid-cover bg-fid-inset"
+        :aria-label="d.match.open(`${match.artist} – ${match.title}`)"
+        @click="show(match.digId, match.listingId)"
+      >
+        <img
+          :src="cover.thumbUrl"
+          :srcset="
+            cover.coverUrl ? `${cover.thumbUrl} 150w, ${cover.coverUrl} 600w` : undefined
+          "
+          sizes="72px"
+          alt=""
+          loading="lazy"
+          decoding="async"
+          width="72"
+          height="72"
+          class="size-full object-cover"
+        />
+      </button>
       <!--
         No cover is the normal case, not a failure: Discogs has no image for
         plenty of small pressings, and images are never fetched actively
@@ -107,9 +131,15 @@ const meta = computed(() => {
           The title is the way in. A whole-card click would swallow the
           Discogs link and the four verdict buttons that sit inside it.
         -->
+        <!--
+          Underlined always, not only on hover. A hover underline is invisible
+          on a phone, which is where this list is mostly read — so on the
+          device that matters the title looked like a heading and the only
+          visible control on the card was the one leading to Discogs.
+        -->
         <button
           type="button"
-          class="truncate text-left text-fid-base font-medium text-fid-text underline-offset-4 hover:underline"
+          class="truncate text-left text-fid-base font-medium text-fid-text underline decoration-fid-border decoration-1 underline-offset-4 transition-colors hover:decoration-fid-accent"
           @click="show(match.digId, match.listingId)"
         >
           {{ match.artist }} – {{ match.title }}

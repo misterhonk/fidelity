@@ -73,7 +73,7 @@ const formatDate = (at: number | null) => (at === null ? m.value.common.never : 
       <button
         type="button"
         :disabled="running"
-        class="rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
+        class="fid-fill rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
         @click="sync"
       >
         {{ summary?.collectionSyncedAt ? st.library.fetch.again : st.library.fetch.start }}

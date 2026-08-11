@@ -24,15 +24,16 @@ Cloudflare Pages oder GitHub Pages – überall kostenlos, überall austauschbar
 
 ## 2. Bundle-Budget
 
-Das Ding muss im Keller eines Plattenladens über 3G laden.
+Das Ding soll auch dort laden, wo der Empfang schlecht ist — im Untergeschoss eines
+Plattenladens, hinter Regalen aus Beton.
 
 | Teil | Budget (gzip) | Stand M3 |
 |---|---:|---:|
 | HTML + kritisches CSS | ≤ 8 KB | |
-| App-Shell JS (Vue + Router + UI-Kern) | ≤ 90 KB | |
+| App-Shell JS (Vue + Router + UI-Kern) | ≤ 140 KB | |
 | Matching-Engine (Worker, lazy) | ≤ 35 KB | 31,5 KB |
 | Restliche Routen (lazy) | je ≤ 30 KB | 13,9 KB |
-| **Erster sinnvoller Paint** | **≤ 120 KB** | **118 KB** |
+| **Erster sinnvoller Paint** | **≤ 180 KB** | **118 KB** |
 
 > **Warum der Worker von 25 auf 35 KB gegangen ist (M3).** Die 25 KB waren
 > geschätzt, bevor es Code gab. Gemessen sind es 31,5 KB, davon rund 16 KB Zod.
@@ -46,6 +47,32 @@ Das Ding muss im Keller eines Plattenladens über 3G laden.
 >
 > Falls der Worker doch einmal deutlich über 35 KB steigt, ist die Reihenfolge:
 > erst Horizont- und Matching-Code erst beim Dig nachladen, dann `zod/mini`.
+
+> **Warum aus 120 KB 180 KB geworden sind (2026-08-11).** Die 120 waren an ein
+> Netz gebunden, das es nicht mehr gibt: „im Keller eines Plattenladens über 3G".
+> 3G ist in Deutschland seit 2021 abgeschaltet. Eine Grenze, die eine tote
+> Netzgeneration modelliert, schützt niemanden mehr — sie kostet nur Gestaltung.
+>
+> Nachgerechnet, was die Erhöhung wirklich kostet:
+>
+> | Verbindung | 120 KB | 180 KB | Aufschlag |
+> |---|---:|---:|---:|
+> | 5G, mittel | 0,00 s | 0,01 s | 0,00 s |
+> | LTE gut | 0,02 s | 0,03 s | 0,01 s |
+> | LTE normal | 0,08 s | 0,12 s | **0,04 s** |
+> | LTE schwach | 0,32 s | 0,48 s | 0,16 s |
+> | Ein Balken im Keller | 1,20 s | 1,80 s | 0,60 s |
+>
+> Vierzig Millisekunden im Normalfall. Dafür lohnt es nicht, auf Verläufe,
+> Schatten und Bewegung zu verzichten.
+>
+> **Was gleich bleibt:** der Leitsatz oben. Ein höheres Dach ist keine
+> Aufforderung, bis unter die Decke zu stapeln — 180 ist der Punkt, an dem der
+> Build bricht, nicht das Ziel. Und die Grenze bleibt eine *echte* Grenze: sie
+> bricht den Build weiterhin, weil ein Budget, das man bei jedem Anlauf
+> hochsetzt, kein Budget ist. Der Keller ist übrigens nie ein Problem der
+> Netzgeneration gewesen, sondern der Abdeckung — LTE bei −110 dBm verhält sich
+> wie 3G. Das macht den Extremfall seltener, nicht besser.
 
 **Maßnahmen**
 

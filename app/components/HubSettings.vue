@@ -129,7 +129,7 @@ async function save() {
         autocomplete="off"
         spellcheck="false"
         placeholder="http://localhost:8787"
-        class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+        class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
       />
 
       <label class="text-fid-sm font-medium text-fid-text" for="hub-secret">
@@ -141,7 +141,7 @@ async function save() {
         type="password"
         autocomplete="off"
         spellcheck="false"
-        class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+        class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
       />
       <p class="text-fid-xs text-fid-text-muted">{{ st.hubPanel.notYourToken }}</p>
     </div>
@@ -150,7 +150,7 @@ async function save() {
       <button
         type="button"
         :disabled="busy"
-        class="rounded-fid-sm bg-fid-accent px-4 py-2 text-fid-sm font-medium text-fid-on-accent disabled:opacity-50"
+        class="fid-fill rounded-fid-sm bg-fid-accent-fill px-4 py-2 text-fid-sm font-medium text-fid-on-accent disabled:opacity-50"
         @click="save"
       >
         {{ st.hubPanel.save }}

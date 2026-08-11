@@ -93,7 +93,7 @@ async function submit() {
         required
         :aria-invalid="error !== null"
         :aria-describedby="error ? 'token-error' : 'token-hint'"
-        class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+        class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
       />
       <!--
         Where it is kept — and what is done with it.
@@ -119,7 +119,7 @@ async function submit() {
     <button
       type="submit"
       :disabled="busy || token.length === 0"
-      class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
+      class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
     >
       {{ busy ? m.token.checking : m.token.signIn }}
     </button>

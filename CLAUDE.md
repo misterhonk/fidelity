@@ -50,7 +50,10 @@ direkter Zugriff auf `api.discogs.com` aus dem Browser. Siehe `docs/adr/007-clie
    Nie loggen, nie in eine URL, nie in einen Fehler-Report, nie an Dritte.
 
 7. **Jede neue Abhängigkeit muss ihren Platz im Bundle-Budget rechtfertigen.**
-   Budget: ≤ 120 KB gzip für den ersten sinnvollen Paint. Siehe `docs/12-RESSOURCEN-BUDGET.md`.
+   Budget: ≤ 180 KB gzip für den ersten sinnvollen Paint. Siehe `docs/12-RESSOURCEN-BUDGET.md`.
+   Waren bis zum 2026-08-11 120 KB — die Zahl modellierte 3G, das es seit 2021 nicht
+   mehr gibt, und kostete im Normalfall vierzig Millisekunden. Das höhere Dach ist
+   keine Einladung: die Grenze bricht den Build weiterhin.
 
 8. **Kein Feature darf den optionalen Hub voraussetzen.**
    Ab M2 gibt es die Ports `HorizonSource`, `ShippingProfileSource` und `WatchService`

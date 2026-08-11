@@ -77,26 +77,92 @@ function encodePng(width, height, rgba) {
 
 const SUPERSAMPLE = 4
 
+/** Linear blend between two RGB triples. */
+function mix(from, to, t) {
+  const k = Math.max(0, Math.min(1, t))
+  return [
+    from[0] + (to[0] - from[0]) * k,
+    from[1] + (to[1] - from[1]) * k,
+    from[2] + (to[2] - from[2]) * k,
+  ]
+}
+
+/** `over` laid on `under` at the given alpha. */
+function over(under, colour, alpha) {
+  return mix(under, colour, alpha)
+}
+
+const WHITE = [255, 255, 255]
+
 /**
- * Renders the concentric circles at 4× and averages down. Anti-aliasing by
- * supersampling is the cheapest correct answer at these sizes.
+ * Renders at 4× and averages down. Anti-aliasing by supersampling is still the
+ * cheapest correct answer at these sizes, and still needs no dependency.
+ *
+ * What changed on 2026-08-11 is what gets drawn. The icon used to be a black
+ * record on a black tile, which measured 1.09 contrast between the disc and
+ * its background — on a phone's home screen, usually a photograph, all that
+ * survived was an orange dot in the void. Near-black on near-black cannot be
+ * rescued by nudging greys, so figure and ground swapped: the tile carries the
+ * accent, the record is the dark shape on it, and the label is a window back
+ * to the tile.
+ *
+ * The colours still come from tokens/core.json. That was always the point of
+ * generating this rather than drawing it once in an editor.
  */
-function render(size, discs, background) {
+function render(size, scale) {
   const big = size * SUPERSAMPLE
   const centre = big / 2
   const sample = Buffer.alloc(big * big * 3)
 
+  const discR = 0.367 * scale * big
+  const labelR = 0.148 * scale * big
+  const holeR = 0.039 * scale * big
+  // Four grooves, evenly spaced across the playing surface.
+  const grooves = [0.328, 0.293, 0.258, 0.223].map((r) => r * scale * big)
+
   for (let y = 0; y < big; y++) {
     for (let x = 0; x < big; x++) {
-      const distance = Math.hypot(x - centre + 0.5, y - centre + 0.5)
-      let colour = background
-      for (const disc of discs) {
-        if (distance <= disc.radius * big) {
-          colour = disc.colour
-          break
+      const dx = x - centre + 0.5
+      const dy = y - centre + 0.5
+      const distance = Math.hypot(dx, dy)
+
+      // 1 — the tile: a diagonal fall across the accent, so it has a direction.
+      let colour = mix(tileFrom, tileTo, (x / big) * 0.45 + (y / big) * 0.55)
+
+      if (distance <= discR) {
+        // 2 — the record, and the rings cut into it.
+        colour = discColour
+        for (const groove of grooves) {
+          const off = Math.abs(distance - groove)
+          if (off < 1.6 * SUPERSAMPLE) {
+            colour = over(colour, WHITE, 0.07 * (1 - off / (1.6 * SUPERSAMPLE)))
+          }
         }
+
+        // 3 — the rim, where the edge of the disc turns to the light.
+        const fromEdge = discR - distance
+        if (fromEdge < 2.5 * SUPERSAMPLE) {
+          colour = over(colour, WHITE, 0.14 * (1 - fromEdge / (2.5 * SUPERSAMPLE)))
+        }
+
+        // 4 — the sheen. Off-centre and very quiet: it is what makes vinyl
+        // look like vinyl rather than like a black circle.
+        const sx = x - big * 0.34
+        const sy = y - big * 0.28
+        const sheen = Math.max(0, 1 - Math.hypot(sx, sy) / (big * 0.62))
+        colour = over(colour, WHITE, 0.16 * sheen * sheen)
+
+        // 5 — the label, and the spindle hole through it.
+        if (distance <= labelR) {
+          colour = mix(labelFrom, labelTo, distance / labelR)
+        }
+        if (distance <= holeR) colour = discColour
       }
-      sample.set(colour, (y * big + x) * 3)
+
+      sample.set(
+        colour.map((c) => Math.round(c)),
+        (y * big + x) * 3,
+      )
     }
   }
 
@@ -129,51 +195,70 @@ function render(size, discs, background) {
 const core = JSON.parse(await readFile(resolve(root, 'tokens/core.json'), 'utf8'))
 const token = (group, step) => oklchToRgb(core.color[group][step].$value.components)
 
-const sleeve = token('n', '990')
-const disc = token('n', '900')
-const groove = token('n', '800')
-const label = token('accent', '500')
-
-/**
- * Radii as a fraction of the icon. `scale` shrinks the artwork into the safe
- * zone a maskable icon needs — Android crops up to 20% off every edge.
+/*
+ * The tile runs from the light end of the accent to the dark one, so the icon
+ * has a direction rather than a flat fill. The record is the neutral ramp's
+ * darkest step — warm black, hue 70, the same black the app's own surfaces
+ * are made of.
  */
-const artwork = (scale) => [
-  { radius: 0.055 * scale, colour: sleeve }, // spindle hole
-  { radius: 0.155 * scale, colour: label },
-  { radius: 0.26 * scale, colour: disc },
-  { radius: 0.275 * scale, colour: groove },
-  { radius: 0.4 * scale, colour: disc },
-]
+const tileFrom = token('accent', '400')
+const tileTo = token('accent', '700')
+const discColour = token('n', '950')
+const labelFrom = token('accent', '400')
+const labelTo = token('accent', '600')
 
 const outputs = [
   { file: 'icon-192.png', size: 192, scale: 1 },
   { file: 'icon-512.png', size: 512, scale: 1 },
-  { file: 'icon-maskable-512.png', size: 512, scale: 0.75 },
-  { file: 'apple-touch-icon.png', size: 180, scale: 0.85 },
+  // Android crops up to 20% off every edge of a maskable icon, and the crop
+  // shape is the launcher's choice. The tile survives it; the record must not
+  // have to.
+  { file: 'icon-maskable-512.png', size: 512, scale: 0.78 },
+  { file: 'apple-touch-icon.png', size: 180, scale: 0.92 },
 ]
 
 await mkdir(outDir, { recursive: true })
 
 for (const { file, size, scale } of outputs) {
-  const png = encodePng(size, size, render(size, artwork(scale), sleeve))
-  await writeFile(resolve(outDir, file), png)
+  await writeFile(resolve(outDir, file), encodePng(size, size, render(size, scale)))
 }
 
-const circles = artwork(1)
-  .slice()
-  .reverse()
-  .map(
-    (d) =>
-      `  <circle cx="256" cy="256" r="${(d.radius * 512).toFixed(1)}" fill="${toHex(d.colour)}"/>`,
-  )
-  .join('\n')
+/*
+ * The SVG is the same drawing said declaratively — it is what the favicon and
+ * the in-app wordmark use, where a gradient costs nothing and a 512×512 PNG
+ * would be absurd.
+ */
+const hex = (c) => toHex(c.map((v) => Math.round(v)))
 
 await writeFile(
   resolve(root, 'public/icon.svg'),
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Fidelity">
-  <rect width="512" height="512" fill="${toHex(sleeve)}"/>
-${circles}
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${hex(tileFrom)}"/>
+      <stop offset="1" stop-color="${hex(tileTo)}"/>
+    </linearGradient>
+    <radialGradient id="sheen" cx="0.34" cy="0.28" r="0.75">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="label" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="${hex(labelFrom)}"/>
+      <stop offset="1" stop-color="${hex(labelTo)}"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#tile)"/>
+  <circle cx="256" cy="256" r="188" fill="${hex(discColour)}"/>
+  <g fill="none" stroke="#fff" stroke-opacity="0.07" stroke-width="2">
+    <circle cx="256" cy="256" r="168"/>
+    <circle cx="256" cy="256" r="150"/>
+    <circle cx="256" cy="256" r="132"/>
+    <circle cx="256" cy="256" r="114"/>
+  </g>
+  <circle cx="256" cy="256" r="187" fill="none" stroke="#fff" stroke-opacity="0.14" stroke-width="2"/>
+  <circle cx="256" cy="256" r="188" fill="url(#sheen)"/>
+  <circle cx="256" cy="256" r="76" fill="url(#label)"/>
+  <circle cx="256" cy="256" r="20" fill="${hex(discColour)}"/>
 </svg>
 `,
   'utf8',

@@ -183,7 +183,7 @@ const expired = computed(() => {
         spellcheck="false"
         :placeholder="m.inStore.search"
         :aria-label="m.inStore.searchLabel"
-        class="rounded-fid-md border border-fid-border bg-fid-surface px-4 py-3 text-fid-base text-fid-text"
+        class="rounded-fid-md border border-fid-field bg-fid-surface px-4 py-3 text-fid-base text-fid-text"
       />
 
       <!--

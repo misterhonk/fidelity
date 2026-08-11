@@ -20,8 +20,19 @@ const themeColor = computed(() => THEME_COLORS[resolved.value])
  */
 const { current: language } = useLanguage()
 
+/** What a bare tab says before any page has claimed it. */
+const SHARE_TITLE = 'Fidelity — a buying advisor for Discogs'
+
 useHead({
-  titleTemplate: (title?: string) => (title ? `${title} · Fidelity` : 'Fidelity'),
+  /*
+   * "Dig · Fidelity" says which app; it does not say what the screen is for.
+   * A tab strip of six of those is six identical suffixes and one word each —
+   * and a browser truncates from the right, so the suffix is what survives.
+   *
+   * So the page hands over a sentence and this puts the name behind it. Where
+   * a screen has nothing more to say than its name, it stays as it was.
+   */
+  titleTemplate: (title?: string) => (title ? `${title} · Fidelity` : SHARE_TITLE),
   htmlAttrs: { lang: language },
   meta: [{ name: 'theme-color', content: themeColor }],
   link: [
@@ -35,7 +46,7 @@ useHead({
  *
  * The palette itself is a Lazy component behind `v-if`, so its code and the
  * three worker queries it makes land in their own chunk and cost nothing until
- * somebody actually presses the shortcut. The first paint budget is 120 kB and
+ * somebody actually presses the shortcut. The first paint has a budget and
  * a search box nobody has opened yet does not belong in it.
  */
 const paletteOpen = ref(false)
