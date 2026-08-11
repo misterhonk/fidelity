@@ -9,6 +9,38 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.10.0](https://github.com/misterhonk/fidelity/compare/v0.9.0...v0.10.0) (2026-08-11)
+
+
+### Added
+
+* **i18n:** account, collection and search speak English ([5081b71](https://github.com/misterhonk/fidelity/commit/5081b714fef47bfe9f457ea099012eaf10fd8a06))
+* **i18n:** all five sections speak English — dig, basket, collection, shops, start ([fda311f](https://github.com/misterhonk/fidelity/commit/fda311fd862bc931d0c3ee8ba503bd6ec02019b2))
+* **i18n:** English addresses, and the old ones keep working ([63aec42](https://github.com/misterhonk/fidelity/commit/63aec4264209d8d31c27c4ee23a7f49564b02e3b))
+* **i18n:** the app speaks English, and picks German when the device asks ([00c6175](https://github.com/misterhonk/fidelity/commit/00c6175ef5cd4888219c5ce340be4ea848f5cae5))
+* **i18n:** the Barry sentence is written where it is read, in both languages ([a5a33ca](https://github.com/misterhonk/fidelity/commit/a5a33cad176fde681bfcb367cf65ba24614e98d1))
+* **i18n:** the last screens — onboarding, demo, in-store, privacy, legal ([46ceb8d](https://github.com/misterhonk/fidelity/commit/46ceb8d1a3451f59c95f4e287dfb5c2a472c7e68))
+* **i18n:** the pressing warnings, the hub failures, and the last German comment ([109bd0e](https://github.com/misterhonk/fidelity/commit/109bd0ee1223a89ff76f9d166e5605a8ff60e058))
+* **i18n:** the rest of the settings, the shared notices and the manual ([186aa37](https://github.com/misterhonk/fidelity/commit/186aa37f3783374d0eba36f02b8aa31cfb30eb59))
+* **i18n:** the settings speak English, index and chrome first ([af329af](https://github.com/misterhonk/fidelity/commit/af329af7111526d1fa74be895e121408db3daac6))
+* **ui:** make the dark side legible, and give the app a surface ([d025877](https://github.com/misterhonk/fidelity/commit/d025877a0b03869d559f9468f02dcb7babe7760f))
+
+
+### Fixed
+
+* **deploy:** a release-please tag triggers nothing, so call the workflows ([d497d2f](https://github.com/misterhonk/fidelity/commit/d497d2fd4ccffcaab0e89111f476ad5677589028))
+* **i18n:** finish the translation, and stop trusting word lists ([63fee5f](https://github.com/misterhonk/fidelity/commit/63fee5fb623272ee6601c0e3b5e8c212ae4984b2))
+* **i18n:** the record's own page was never translated ([f31f2c8](https://github.com/misterhonk/fidelity/commit/f31f2c80780ba8a5aec92ce4fc7d17ac2e2de185))
+* **i18n:** translate what only a screen reader could hear ([7f415af](https://github.com/misterhonk/fidelity/commit/7f415afd3b0eae66fcc2cc82552cc28e09c73df6))
+* **pwa:** one key in the config silently disabled the service worker plugin ([7d668ca](https://github.com/misterhonk/fidelity/commit/7d668ca77ca0e59aa06386cbe55192a67566f529))
+* **ui:** the setup had two roots in one transition, so it would not load in dev ([e819941](https://github.com/misterhonk/fidelity/commit/e819941d884df8333e54c2d31b0343b58d91aea6))
+
+
+### Changed
+
+* drop two settings nothing ever read, and correct the record ([bace338](https://github.com/misterhonk/fidelity/commit/bace338bd2f230af68159c3dbdaeb1e971fae1e5))
+* **i18n:** split the words by area, so a screen's text rides in its own chunk ([c157b75](https://github.com/misterhonk/fidelity/commit/c157b75d59a5cf44ef3f061ca107312c442e7f7e))
+
 ## [0.9.0](https://github.com/misterhonk/fidelity/compare/v0.8.0...v0.9.0) (2026-08-11)
 
 
