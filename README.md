@@ -1,298 +1,299 @@
 # Fidelity
 
-> Der Verkäufer hinter der Theke — für Discogs.
+> The clerk behind the counter — for Discogs.
 
-Discogs ist eine Suchmaschine, kein Plattenladen. Es beantwortet *„Habt ihr Platte X?"*
-perfekt und *„Was hättet ihr für mich?"* überhaupt nicht.
+Discogs is a search engine, not a record shop. It answers *"do you have record X?"*
+perfectly and *"what would you have for me?"* not at all.
 
-**Fidelity** liest das Sortiment eines Discogs-Händlers, gleicht es gegen deine Sammlung
-und deine Wantlist ab und liefert eine bewertete Fundliste — **mit einem Satz Begründung
-pro Treffer.**
+**Fidelity** reads a Discogs dealer's stock, matches it against your collection and your
+wantlist, and hands back a scored list of finds — **with a sentence of reasoning for
+every one.**
 
 ```
-Du: "fatplastics"
-Fidelity, zwei Minuten später:
+You: "fatplastics"
+Fidelity, two minutes later:
 
   74 · Top Five
-  Hemmann + Kaden – Guten Tag EP · Freude Am Tanzen FAT 016 · 12", EP · 2003 · 5,00 €
-  Wighnomy Brothers hat hier mitgewirkt – du hast 3 Platten von ihm.
-  Außerdem: Label Freude Am Tanzen, Katalogserie FAT.
+  Hemmann + Kaden – Guten Tag EP · Freude Am Tanzen FAT 016 · 12", EP · 2003 · €5.00
+  Wighnomy Brothers worked on this — you have 3 records of theirs.
+  Also: label Freude Am Tanzen, catalogue run FAT.
 ```
 
-**Eine reine Browser-App. Kein Backend, keine Datenbank, keine Betriebskosten.**
-Alles liegt auf deinem Gerät.
+**A browser app and nothing else. No backend, no database, no running costs.**
+All of it stays on your device.
 
 ---
 
-## Was es kann
+## What it does
 
-**Graben.** Händlernamen oder den Link seiner Discogs-Seite eingeben. Fidelity liest sein
-Sortiment und bewertet jede Platte gegen deinen Geschmack. Elf Signale, ein Punktwert von
-0 bis 100, ein Begründungssatz. Für sehr große Läden gibt es einen Tiefenscan über
-dreizehn Sortierungen, und für Läden, die du schon kennst, „nur das Neue" seit dem letzten
-Besuch.
+**Dig.** Enter a dealer's name, or the link to their Discogs page. Fidelity reads their
+stock and scores every record against your taste. Eleven signals, a score from 0 to 100, a
+sentence saying why. Very large shops get a deep scan across thirteen orderings, and shops
+you already know get "only what is new" since your last visit.
 
-**Verstehen, warum.** Jeder Treffer sagt, welche Signale gefeuert haben und woran das lag:
-Künstler in deiner Sammlung, Wunsch auf deiner Wantlist, ein Label, dem du folgst, eine
-Lücke in einer Katalogserie, jemand, der auf deinen Lieblingsplatten im Kleingedruckten
-steht. Nichts davon ist eine Blackbox.
+**Understand why.** Every find says which signals fired and what they were based on: an
+artist in your collection, a wish on your wantlist, a label you follow, a gap in a
+catalogue run, somebody who appears in the small print of your favourite records. None of
+it is a black box.
 
-**Der Korb.** Einer je Händler, denn Porto fällt pro Sendung an. Versandstaffel, Grenzkosten
-je weiterer Platte, und die Frage „was ginge für 50 €?" mit einer Antwort.
+**The basket.** One per dealer, because postage is charged per parcel. Postage tiers, the
+marginal cost of each further record, and the question "what would fit €50?" with an
+answer.
 
-**Deine Sammlung.** Regal, Landkarte und Wantlist. Die Landkarte zeigt, wo deine Sammlung
-dicht ist und wo Lücken sind — nach Label, Jahrzehnt, Stil.
+**Your collection.** Shelf, map and wantlist. The map shows where your collection is dense
+and where the gaps are — by label, decade and style.
 
-**Im Laden.** Mit der Platte in der Hand: „Habe ich die schon?" Beantwortet aus dem Gerät,
-ohne Empfang. Plattenläden sind Keller.
+**In the shop.** With the record in your hand: "do I have this already?" Answered from the
+device, with no signal. Record shops are basements.
 
-**Läden.** Was ein Händler wirklich führt, wie gut er zu dir passt, und ob sein Sortiment
-sich seit deinem letzten Besuch bewegt hat.
+**Shops.** What a dealer actually stocks, how well they fit you, and whether their stock
+has moved since your last visit.
 
-**Ohne Anmeldung ausprobieren.** Die Startseite führt es an einer Platte vor, ohne Token,
-ohne Konto. Echte Maschinerie, keine Attrappe.
+**Try it without signing in.** The start page demonstrates it on one record, with no token
+and no account. Real machinery, not a mock-up.
+
+**In English or German.** Picked from your device the first time, changed under
+Settings → Appearance whenever you like.
 
 ---
 
-## Loslegen
+## Getting started
 
-Ein **Personal Access Token** von
-[discogs.com/settings/developers](https://www.discogs.com/settings/developers) ist alles,
-was du brauchst. Er bleibt auf deinem Gerät.
+A **personal access token** from
+[discogs.com/settings/developers](https://www.discogs.com/settings/developers) is all you
+need. It stays on your device.
 
-Drei Wege, je nachdem, wie viel du selbst betreiben willst:
+Three ways in, depending on how much you want to run yourself:
 
-| | für wen | was du brauchst |
+| | for whom | what you need |
 |---|---|---|
-| **[Hochladen](#auf-den-eigenen-webspace--ohne-irgendetwas-zu-installieren)** | Webspace vorhanden, mehr soll es nicht sein | einen FTP-Zugang |
-| **[Im Heimnetz](#im-heimnetz-mit-docker)** | NAS, Raspberry Pi, Homelab | Docker |
-| **[Selbst bauen](#selbst-bauen-und-mitentwickeln)** | eigener Server, oder Lust am Code | Node |
+| **[Upload it](#on-your-own-webspace--without-installing-anything)** | you have webspace and want no more than that | FTP access |
+| **[On your network](#on-your-own-network-with-docker)** | NAS, Raspberry Pi, homelab | Docker |
+| **[Build it](#building-it-and-working-on-it)** | your own server, or an interest in the code | Node |
 
-Keiner der drei Wege ist eine abgespeckte Version. Der erste ist die
-vollständige App — alles Weitere macht sie nur schneller.
+None of the three is a cut-down version. The first *is* the whole app — everything else
+only makes it faster.
 
-### Auf den eigenen Webspace — ohne irgendetwas zu installieren
+### On your own webspace — without installing anything
 
-Bei jedem [Release](https://github.com/misterhonk/fidelity/releases) hängt die fertige
-Seite als Zip. Herunterladen, entpacken, den Inhalt in den Docroot legen. Fertig — kein
-Node, kein pnpm, kein Docker.
+Every [release](https://github.com/misterhonk/fidelity/releases) has the finished site
+attached as a zip. Download it, unpack it, put the contents in your docroot. That is all —
+no Node, no pnpm, no Docker.
 
-Zwei Dinge muss der Webspace tun, sonst bricht es an unauffälliger Stelle:
+Two things the webspace has to do, or it breaks somewhere inconspicuous:
 
-**Adressen brauchen die richtige Behandlung.** Jede bekannte Seite ist beim Bauen in ein
-eigenes Verzeichnis gelegt worden, `/basket` gibt es also wirklich — ein roher Webserver
-antwortet darauf aber mit einer Umleitung auf `/basket/`, und der Schrägstrich am Ende ist
-für die App eine andere Adresse als die ohne. Alles, was gar nicht vorgesehen ist, muss
-zusätzlich auf `200.html` fallen, damit die App selbst antworten kann statt eines 404.
+**Addresses need handling.** Every known page is written into its own directory at build
+time, so `/basket` really exists — but a bare web server answers it with a redirect to
+`/basket/`, and a trailing slash is a different address to the app than one without.
+Anything not foreseen at all has to fall back to `200.html`, so the app can answer instead
+of a 404.
 
-**`sw.js` darf nicht lange zwischengespeichert werden.** Der Service Worker entscheidet,
-wann alles andere aktualisiert wird — ist er selbst veraltet, lässt sich die App nie mehr
-reparieren. Alles unter `/_nuxt/` darf dagegen ewig liegen bleiben, die Dateinamen
-enthalten einen Hash.
+**`sw.js` must not be cached for long.** The service worker decides when everything else
+updates — if it is stale itself, the app can never be repaired again. Everything under
+`/_nuxt/` may be kept forever, on the other hand; those filenames carry a hash.
 
-Beides ist fertig: [`deploy/.htaccess`](deploy/.htaccess) für Apache — einfach mit in den
-Docroot legen — und [`deploy/nginx.conf`](deploy/nginx.conf) für nginx.
+Both are ready to use: [`deploy/.htaccess`](deploy/.htaccess) for Apache — just put it in
+the docroot too — and [`deploy/nginx.conf`](deploy/nginx.conf) for nginx.
 
-### Im Heimnetz, mit Docker
+### On your own network, with Docker
 
-Eine Datei, kein Quelltext, nichts zu bauen:
+One file, no source, nothing to build:
 
 ```bash
 curl -O https://raw.githubusercontent.com/misterhonk/fidelity/main/deploy/compose.homelab.yml
 docker compose -f compose.homelab.yml up -d
 ```
 
-Fertige Images, auch für **arm64** — ein Heimserver ist oft ein Raspberry Pi. Danach liegt
-die App auf `http://127.0.0.1:3000`, absichtlich nur lokal; `APP_BIND=0.0.0.0` gibt sie ins
-Heimnetz frei, damit auch das Telefon drankommt.
+Prebuilt images, **arm64 included** — a home server is often a Raspberry Pi. Afterwards the
+app is at `http://127.0.0.1:3000`, local only on purpose; `APP_BIND=0.0.0.0` opens it to
+your network so the phone can reach it too.
 
-> Bricht `pull` mit `unauthorized` ab, sind die Images noch privat — GHCR stellt neue
-> Pakete standardmäßig so ein. Dann geht es über den Quelltext: Repository klonen und
-> `docker compose up -d`, das baut lokal.
+> If `pull` stops with `unauthorized`, the images are still private — GHCR sets new
+> packages that way by default. Then go via the source: clone the repository and run
+> `docker compose up -d`, which builds locally.
 
-Aktualisieren ist `pull` und `up`:
+Updating is `pull` and `up`:
 
 ```bash
 docker compose -f compose.homelab.yml pull && docker compose -f compose.homelab.yml up -d
 ```
 
-Der Hub ist in dieser Datei dabei und **optional** — den Block löschen, und alles
-funktioniert genauso, nur beim ersten Mal langsamer. Für Zugriff von unterwegs ohne
-Portfreigabe im Router gibt es ein Tunnel-Profil in [`compose.yml`](compose.yml).
+The hub is in that file and **optional** — delete the block and everything works the same,
+only slower the first time. For access from outside without opening a port on your router,
+there is a tunnel profile in [`compose.yml`](compose.yml).
 
-### Selbst bauen und mitentwickeln
+### Building it, and working on it
 
 ```bash
-corepack enable     # bringt genau die pnpm-Version mit, die das Projekt erwartet
+corepack enable     # brings exactly the pnpm version this project expects
 pnpm install
 pnpm dev            # http://localhost:3000
 ```
 
-`corepack` liegt jedem Node ab 16.9 bei — pnpm musst du nicht installieren.
+`corepack` ships with every Node from 16.9 on — you do not have to install pnpm.
 
-Ohne Node auf dem eigenen Rechner geht es auch: das Projekt bringt einen
-[Devcontainer](.devcontainer/devcontainer.json) mit. In VS Code „Reopen in Container", oder
-direkt in GitHub Codespaces. Node, pnpm und alle Abhängigkeiten sind dann fertig
-eingerichtet.
+It also works without Node on your own machine: the project brings a
+[devcontainer](.devcontainer/devcontainer.json). In VS Code, "Reopen in Container", or
+straight into GitHub Codespaces. Node, pnpm and every dependency are set up for you.
 
-Für ein eigenes Deployment:
+For your own deployment:
 
 ```bash
 pnpm build
-rsync -av --delete .output/public/ dein-server:/pfad/zum/docroot/
+rsync -av --delete .output/public/ your-server:/path/to/docroot/
 ```
 
-Details und Alternativen: [`docs/08-DEPLOYMENT.md`](docs/08-DEPLOYMENT.md) und
-[`docs/10-DEPLOYMENT-ALTERNATIVEN.md`](docs/10-DEPLOYMENT-ALTERNATIVEN.md). Wie hier
-gearbeitet wird: [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Details and alternatives: [`docs/08-DEPLOYMENT.md`](docs/08-DEPLOYMENT.md) and
+[`docs/10-DEPLOYMENT-ALTERNATIVEN.md`](docs/10-DEPLOYMENT-ALTERNATIVEN.md). How work is
+done here: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-> **Ein Hinweis zu HTTPS:** Wenn du die App über `https://` ausspielst, kann sie einen
-> Hub auf `http://localhost` nur in Chrome erreichen — Safari verweigert das (gemessen
-> 2026-08-10, siehe unten). Wer den Hub benutzt, gibt ihm besser eine eigene
-> HTTPS-Adresse.
+> **A note on HTTPS:** if you serve the app over `https://`, it can only reach a hub on
+> `http://localhost` in Chrome — Safari refuses it (measured 2026-08-10, see below).
+> Anybody using the hub is better off giving it an HTTPS address of its own.
 
-### Der Hub — optional
+### The hub — optional
 
-Ein kleiner Dienst, den du selbst betreiben kannst. Er merkt sich, was für alle gleich
-ist: was Fidelity über Künstler und Labels herausgefunden hat, Versandkosten pro Händler,
-Plattencover. Dann muss das nicht jedes Gerät für sich holen, und wer denselben Hub
-benutzt, arbeitet den anderen zu.
+A small service you can run yourself. It remembers what is the same for everybody: what
+Fidelity has worked out about artists and labels, postage per dealer, record covers. Then
+not every device has to fetch it for itself, and people sharing a hub work for each other.
 
 ```bash
 cd hub && docker compose up -d
 ```
 
-**Kein Feature hängt daran.** Ohne Hub funktioniert alles genauso, es dauert nur beim
-ersten Mal länger. Er sieht deinen Discogs-Token nie — es gibt keine Stelle, an der er ihn
-annehmen könnte. [`docs/13-HUB-ADDON.md`](docs/13-HUB-ADDON.md),
+**No feature depends on it.** Without a hub everything works the same, it only takes
+longer the first time. It never sees your Discogs token — there is nowhere it could accept
+one. [`docs/13-HUB-ADDON.md`](docs/13-HUB-ADDON.md),
 [ADR-008](docs/adr/008-optionaler-hub.md).
 
 ---
 
-## Auch brauchbar als …
+## Also useful as …
 
-**Offline-Nachschlagewerk.** Einmal synchronisieren, dann liegt deine Sammlung im Gerät.
-Der Bildschirm „Im Laden" beantwortet „habe ich die schon?" ohne Netz — dafür braucht es
-nie einen Dig.
+**An offline reference.** Sync once and your collection is on the device. The "in the shop"
+screen answers "do I have this already?" with no network — that never needs a dig.
 
-**Landkarte deiner Sammlung.** Wo sie dicht ist, wo Lücken sind, welche Labels du
-tatsächlich kaufst statt nur zu glauben, dass du sie kaufst. Kostet keine einzige Anfrage,
-sobald die Sammlung einmal da ist.
+**A map of your collection.** Where it is dense, where the gaps are, which labels you
+actually buy rather than believe you buy. Costs not a single request once the collection is
+there.
 
-**Vorführung ohne Konto.** Die Startseite läuft ohne Token. Wer wissen will, was die App
-tut, braucht dafür nichts herzugeben.
+**A demonstration with no account.** The start page runs without a token. Anybody who wants
+to know what the app does need not hand anything over.
 
-**Gemeinsamer Hub für eine Gruppe.** Plattenclub, WG, Freundeskreis: ein Hub auf einem
-Rechner, und die Arbeit, die einer investiert, kommt allen zugute. Persönliches liegt
-nicht darin — außer dem verschlüsselten Block, mit dem deine eigenen Geräte sich finden,
-und den der Hub nicht lesen kann.
+**A shared hub for a group.** A record club, a shared flat, a circle of friends: one hub on
+one machine, and the work one person puts in benefits everybody. Nothing personal is in it
+— apart from the encrypted block your own devices use to find each other, which the hub
+cannot read.
 
-**Datenausgang.** Jeder Dig lässt sich als Datei ausgeben, die Sammlung ebenso. Preise und
-Zustände bleiben draußen; die dürfen nicht weitergegeben werden.
-
----
-
-## Wie es funktioniert
-
-Der ganze Entwurf hängt an fünf gemessenen Tatsachen — nicht an Vermutungen. Alle live
-gegen `api.discogs.com` geprüft, mit Datum.
-
-1. **Discogs erlaubt CORS** (`access-control-allow-origin: *`, `authorization` erlaubt).
-   Deshalb braucht diese App kein Backend. *(2026-08-09)*
-
-2. **Das Limit von 60 Anfragen pro Minute gilt pro IP** — und im Browser ist das die IP
-   des Nutzers. Dreißig Nutzer sind dreißig Budgets statt einem. Die härteste
-   Skalierungsgrenze eines Serverentwurfs fällt damit weg. *(2026-08-09)*
-
-3. **Die Rate-Limit-Header stehen nicht in `expose-headers`, und die 429 kommt ohne
-   CORS-Header.** JavaScript sieht also weder, wie viel Budget übrig ist, noch dass es
-   überschritten wurde — nur ein abgelehntes `fetch()`. Also blind fahren: 1.200 ms mit
-   Token, 2.400 ms ohne, genau eine Anfrage gleichzeitig, über alle Tabs hinweg.
-   *(2026-08-10)*
-
-4. **`/artists/{id}/releases` liefert ein `role`-Feld** (`Producer`, `Remix`, `Engineer`).
-   Conny Planks komplettes Werk sind 1.095 Einträge in 11 Anfragen. Deshalb braucht diese
-   App den 10,4-GB-Katalogdump nicht. *(2026-08-09)*
-
-5. **Der Inventar-Endpunkt liefert überhaupt keine Bilder.** `release.thumbnail` ist leer,
-   in 1.200 von 1.200 Zeilen über vier Läden — während dieselben Releases einzeln
-   abgefragt 1 bis 29 Bilder haben. Cover kommen deshalb aus einer eigenen Ablage: gratis
-   aus der Sammlung, sonst einzeln und nur für das, was auf dem Schirm ist. *(2026-08-10)*
-
-Die Regeln, die daraus folgen, stehen in [`CLAUDE.md`](CLAUDE.md) — kurz genug, um sie zu
-lesen, bevor man etwas ändert.
-
-### Aufbau
-
-```
-app/       Nuxt: Seiten, Komponenten, Composables. Nur Darstellung.
-worker/    Web Worker: Scannen, Matching, Scoring, Horizont. Hier wird gerechnet.
-db/        IndexedDB-Schema und Zugriff.
-shared/    Typen und das Protokoll zwischen Main-Thread und Worker.
-hub/       Der optionale Dienst. Eigenes Paket, eigene Tests.
-docs/      Konzept, Architektur, gemessene API-Fakten, ADRs.
-```
-
-Der Main-Thread rechnet nicht. Alles, was Zeit kostet, läuft im Worker — sonst ruckelt
-eine Liste mit zwanzigtausend Einträgen beim Scrollen.
-
-```
-Framework  Nuxt 4.5 (ssr: false, statisch) · Vue 3.5 · TypeScript strict
-Speicher   IndexedDB via idb · Horizont als Int32Array
-Auth       Discogs Personal Access Token, nur lokal
-UI         Tailwind CSS 4 · OKLCH-Tokens (DTCG) · eigene Glyphen
-PWA        Offline, installierbar
-Test       Vitest · Playwright inkl. WebKit · axe-core · size-limit
-Hub        Node ≥ 22.5 · Hono · node:sqlite — keine nativen Abhängigkeiten
-Backend    keins
-```
+**A way out.** Every dig can be written to a file, and so can the collection. Prices and
+conditions stay out; those may not be passed on.
 
 ---
 
-## Mitarbeiten
+## How it works
 
-[`CONTRIBUTING.md`](CONTRIBUTING.md) erklärt die Werkzeuge, die Testpflichten und die
-Regeln, die nicht verhandelbar sind.
+The whole design rests on five measured facts — not on assumptions. All of them checked
+live against `api.discogs.com`, with a date.
 
-## Dokumentation
+1. **Discogs allows CORS** (`access-control-allow-origin: *`, `authorization` permitted).
+   That is why this app needs no backend. *(2026-08-09)*
 
-| Dokument | Inhalt |
+2. **The limit of 60 requests a minute is per IP** — and in a browser that is the *user's*
+   IP. Thirty users are thirty budgets rather than one. The hardest scaling limit of a
+   server design disappears. *(2026-08-09)*
+
+3. **The rate-limit headers are not in `expose-headers`, and the 429 arrives without CORS
+   headers.** So JavaScript sees neither how much budget is left nor that it was
+   exceeded — only a rejected `fetch()`. Which means driving blind: 1,200 ms with a token,
+   2,400 ms without, exactly one request at a time, across every tab. *(2026-08-10)*
+
+4. **`/artists/{id}/releases` carries a `role` field** (`Producer`, `Remix`, `Engineer`).
+   Conny Plank's complete work is 1,095 entries in 11 requests. That is why this app does
+   not need the 10.4 GB catalogue dump. *(2026-08-09)*
+
+5. **The inventory endpoint returns no images at all.** `release.thumbnail` is empty in
+   1,200 of 1,200 rows across four shops — while the same releases fetched individually
+   have between 1 and 29 images. So covers come from a store of their own: free from the
+   collection, otherwise one at a time and only for what is on screen. *(2026-08-10)*
+
+The rules that follow from those are in [`CLAUDE.md`](CLAUDE.md) — short enough to read
+before changing anything.
+
+### Layout
+
+```
+app/       Nuxt: pages, components, composables. Presentation only.
+worker/    Web Worker: scanning, matching, scoring, horizon. This is where work happens.
+db/        IndexedDB schema and access.
+shared/    Types, and the protocol between the main thread and the worker.
+hub/       The optional service. Its own package, its own tests.
+docs/      Concept, architecture, measured API facts, ADRs.
+```
+
+The main thread does not compute. Everything that costs time runs in the worker —
+otherwise a list of twenty thousand entries stutters when you scroll it.
+
+```
+Framework  Nuxt 4.5 (ssr: false, static) · Vue 3.5 · TypeScript strict
+Storage    IndexedDB via idb · horizon packed as Int32Array
+Auth       Discogs personal access token, local only
+UI         Tailwind CSS 4 · OKLCH tokens (DTCG) · glyphs of its own
+Language   English and German, no i18n package (ADR-010)
+PWA        Offline, installable
+Tests      Vitest · Playwright including WebKit · axe-core · size-limit
+Hub        Node ≥ 22.5 · Hono · node:sqlite — no native dependencies
+Backend    none
+```
+
+---
+
+## Contributing
+
+[`CONTRIBUTING.md`](CONTRIBUTING.md) explains the tools, the testing obligations and the
+rules that are not up for negotiation.
+
+> **`docs/` is still German.** The interface, the code and this file are English since
+> [ADR-010](docs/adr/010-englisch-als-grundsprache.md); the documents underneath are the
+> largest and least urgent part of that move, and they are being translated last. Nothing
+> in them is required reading to contribute — `CLAUDE.md` and this README carry the rules
+> — but if a document you need is in the way, say so in an issue and it moves up the list.
+
+## Documentation
+
+| Document | Contents |
 |---|---|
-| [`docs/00-KONZEPT.md`](docs/00-KONZEPT.md) | Vision, Namensgebung, Wettbewerb, Backlog |
-| [`docs/01-ARCHITEKTUR.md`](docs/01-ARCHITEKTUR.md) | Systemdesign, Discogs-Client, Horizont |
-| [`docs/02-DISCOGS-API.md`](docs/02-DISCOGS-API.md) | API-Referenz, gemessene Limits, CORS, Fallen |
-| [`docs/03-DATENMODELL.md`](docs/03-DATENMODELL.md) | IndexedDB-Stores, TypedArray-Packung |
-| [`docs/04-MATCHING-ENGINE.md`](docs/04-MATCHING-ENGINE.md) | Die elf Signale, Barry Score, Begründungen |
-| [`docs/05-DESIGN-SYSTEM.md`](docs/05-DESIGN-SYSTEM.md) | Tokens, Komponenten, Barrierefreiheit, PWA |
-| [`docs/06-ROADMAP.md`](docs/06-ROADMAP.md) | M0–M9 mit Definition of Done |
-| [`docs/07-DEV-PIPELINE.md`](docs/07-DEV-PIPELINE.md) | CI, Conventional Commits, release-please |
-| [`docs/08-DEPLOYMENT.md`](docs/08-DEPLOYMENT.md) | Statisches Hosting — ein rsync |
-| [`docs/09-LEGAL.md`](docs/09-LEGAL.md) | Discogs-Bedingungen, DSGVO, BFSG |
-| [`docs/10-DEPLOYMENT-ALTERNATIVEN.md`](docs/10-DEPLOYMENT-ALTERNATIVEN.md) | Wo es sonst laufen kann |
-| [`docs/11-KATALOG-STRATEGIE.md`](docs/11-KATALOG-STRATEGIE.md) | Warum kein 10,4-GB-Dump nötig ist |
-| [`docs/12-RESSOURCEN-BUDGET.md`](docs/12-RESSOURCEN-BUDGET.md) | Bundle, Speicher, Rechenzeit, Anfragen |
-| [`docs/13-HUB-ADDON.md`](docs/13-HUB-ADDON.md) | Das optionale Server-Addon |
-| [`docs/adr/`](docs/adr/) | Architecture Decision Records, auch die verworfenen |
+| [`docs/00-KONZEPT.md`](docs/00-KONZEPT.md) | Vision, naming, competition, backlog |
+| [`docs/01-ARCHITEKTUR.md`](docs/01-ARCHITEKTUR.md) | System design, Discogs client, horizon |
+| [`docs/02-DISCOGS-API.md`](docs/02-DISCOGS-API.md) | API reference, measured limits, CORS, traps |
+| [`docs/03-DATENMODELL.md`](docs/03-DATENMODELL.md) | IndexedDB stores, TypedArray packing |
+| [`docs/04-MATCHING-ENGINE.md`](docs/04-MATCHING-ENGINE.md) | The eleven signals, Barry score, reasoning |
+| [`docs/05-DESIGN-SYSTEM.md`](docs/05-DESIGN-SYSTEM.md) | Tokens, components, accessibility, PWA |
+| [`docs/06-ROADMAP.md`](docs/06-ROADMAP.md) | M0–M10 with a definition of done |
+| [`docs/07-DEV-PIPELINE.md`](docs/07-DEV-PIPELINE.md) | CI, conventional commits, release-please |
+| [`docs/08-DEPLOYMENT.md`](docs/08-DEPLOYMENT.md) | Static hosting — one rsync |
+| [`docs/09-LEGAL.md`](docs/09-LEGAL.md) | Discogs terms, GDPR, accessibility law |
+| [`docs/10-DEPLOYMENT-ALTERNATIVEN.md`](docs/10-DEPLOYMENT-ALTERNATIVEN.md) | Where else it can run |
+| [`docs/11-KATALOG-STRATEGIE.md`](docs/11-KATALOG-STRATEGIE.md) | Why no 10.4 GB dump is needed |
+| [`docs/12-RESSOURCEN-BUDGET.md`](docs/12-RESSOURCEN-BUDGET.md) | Bundle, storage, compute, requests |
+| [`docs/13-HUB-ADDON.md`](docs/13-HUB-ADDON.md) | The optional server add-on |
+| [`docs/adr/`](docs/adr/) | Architecture decision records, including the rejected ones |
 
 ---
 
-## Lizenz
+## Licence
 
-[**GNU AGPL-3.0**](LICENSE). Nimm es, betreib es, bau es um. Die eine Bedingung: wenn du
-eine veränderte Fassung weitergibst **oder für andere hostest**, muss dein Quelltext unter
-derselben Lizenz offen sein.
+[**GNU AGPL-3.0**](LICENSE). Take it, run it, rebuild it. The one condition: if you pass on
+a modified version **or host one for other people**, your source has to be open under the
+same licence.
 
-Das ist Absicht und keine Schikane. Fidelity ist ein Projekt ohne Gewinnabsicht, und die
-AGPL ist die Lizenz, die dafür sorgt, dass es das bleibt — auch in der Fassung, die jemand
-anderes ins Netz stellt. Wer es gut meint, erfüllt sie mit einem Link auf seine Quelle.
+That is deliberate and not an obstruction. Fidelity is a project with no intent to profit,
+and the AGPL is the licence that keeps it that way — including in the version somebody else
+puts on the internet. Anybody meaning well satisfies it with a link to their source.
 
-Ohne Gewährleistung, und das ist hier nicht bloß Formel: die App arbeitet mit dem
-Discogs-Konto ihrer Nutzer.
+Without warranty, and here that is not merely a formula: this app works with its users'
+Discogs accounts.
 
 ---
-
-Diese Anwendung nutzt die Discogs-API, steht aber in keiner Verbindung zu Discogs und wird
-von Discogs weder unterstützt noch empfohlen.
 
 This application uses Discogs' API but is not affiliated with, sponsored or endorsed by
 Discogs. "Discogs" is a trademark of Zink Media, LLC.

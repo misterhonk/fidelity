@@ -1,103 +1,123 @@
-# Mitarbeiten
+# Contributing
 
-Danke fürs Hinsehen. Dieses Dokument ist kurz, weil das Wichtigste woanders steht:
-[`CLAUDE.md`](CLAUDE.md) hält die Regeln fest, die dieses Projekt zusammenhalten, und
-[`docs/`](docs/) begründet sie.
+Thanks for looking. This document is short because the important part is elsewhere:
+[`CLAUDE.md`](CLAUDE.md) holds the rules that keep this project together, and
+[`docs/`](docs/) explains why they exist.
 
 ---
 
-## Womit es läuft
+## What it runs on
 
-**Node ≥ 22.5.** Sonst nichts — keine Datenbank, kein Docker, kein Seed.
+**Node ≥ 22.5.** Nothing else — no database, no Docker, no seed.
 
 ```bash
-corepack enable     # holt genau die pnpm-Version aus package.json
+corepack enable     # fetches exactly the pnpm version from package.json
 pnpm install
 pnpm dev            # http://localhost:3000
 ```
 
-pnpm muss nicht installiert werden: `corepack` liegt jedem Node ab 16.9 bei und pinnt die
-Version über das Feld `packageManager`. Eine global installierte, andere pnpm-Version ist
-die häufigste Ursache für ein Lockfile, das sich unerwartet ändert.
+pnpm does not have to be installed: `corepack` ships with every Node from 16.9 on and pins
+the version through the `packageManager` field. A globally installed, different pnpm is the
+most common cause of a lockfile that changes unexpectedly.
 
-Der Hub ist ein eigenes Paket mit eigenen Tests und ohne Abhängigkeit zur App:
+The hub is a package of its own, with its own tests and no dependency on the app:
 
 ```bash
 cd hub
 node --test test/*.test.ts
 ```
 
-## Bevor du etwas einreichst
+## Before you submit anything
 
 ```bash
 pnpm lint && pnpm typecheck && pnpm test:unit && pnpm size
 ```
 
-Dazu **`pnpm test:e2e`**, wenn du an Bildschirmen etwas geändert hast. Der Pre-Commit-Hook
-prüft nur Format, Lint, Typen und die Unit-Tests — Playwright läuft dort nicht, weil er
-Minuten braucht. Wer sich auf den Hook verlässt, pusht irgendwann eine rote Suite. (Das
-ist keine Vermutung. Genau so ist es passiert.)
+Plus **`pnpm test:e2e`** if you changed anything on a screen. The pre-commit hook only
+checks formatting, lint, types and the unit tests — Playwright does not run there because
+it takes minutes. Anybody relying on the hook eventually pushes a red suite. (That is not a
+hypothesis. That is exactly how it happened.)
 
-Und: **lies die Zusammenfassung eines Testlaufs, nicht die letzte Zeile.** `| tail -3`
-zeigt bei Playwright den letzten grünen Test, nicht das Ergebnis.
+And: **read the summary of a test run, not the last line.** With Playwright, `| tail -3`
+shows you the last green test rather than the result.
 
----
-
-## Die Regeln, die nicht verhandelbar sind
-
-Vollständig und begründet in [`CLAUDE.md`](CLAUDE.md). Die Kurzfassung, weil jede einzelne
-schon einmal jemanden gekostet hat:
-
-**Kein Backend.** Keine Datenbank, kein Serverprozess. Wenn eine Aufgabe nach einem Server
-verlangt, ist die Aufgabe falsch gestellt — frag nach.
-([ADR-007](docs/adr/007-client-only-pwa.md))
-
-**Nie `/releases/{id}` in einer Schleife über alles.** Zehntausend Releases sind drei
-Stunden. Einzelne, bedarfsgesteuert, für das, was jemand ansieht: in Ordnung. Alle: nie.
-
-**Nie nebenläufige Discogs-Anfragen.** Genau eine gleichzeitig, 1.200 ms mit Token,
-2.400 ms ohne — und zwar **über alle Tabs hinweg**, denn das Limit gilt pro IP und ein Tab
-ist keine IP. Alles läuft durch den einen Client im Worker.
-
-**Nie Marktplatzdaten älter als sechs Stunden anzeigen.** Das sind die Bedingungen, unter
-denen wir die API benutzen dürfen. Nicht umgehen, auch nicht „nur zum Entwickeln".
-
-**Nie scrapen.** Nur dokumentierte Endpunkte. Es gibt genau eine benannte Ausnahme mit
-eigener ADR ([ADR-009](docs/adr/009-haendler-import.md)); eine zweite braucht eine zweite.
-
-**Der Token verlässt IndexedDB nicht.** Nie in ein Log, nie in eine URL, nie in einen
-Fehlerbericht, nie an einen Hub.
-
-**Jede neue Abhängigkeit muss ihre Bytes rechtfertigen.** Das Budget ist 120 kB gzip für
-den ersten sinnvollen Paint, und `pnpm size` bricht den Build, wenn es reißt.
-
-**Kein Feature darf den Hub voraussetzen.** Er beschleunigt. Hub-Abfragen laufen mit zwei
-Sekunden Zeitlimit, ohne Wiederholung, und fallen lautlos auf den lokalen Weg zurück.
+> Playwright reuses a server already listening on its port. If you have `pnpm dev` running,
+> the browser suite silently tests _that_ instead of the production build — which fails in
+> ways that have nothing to do with your change. `E2E_PORT=4173 pnpm test:e2e` avoids it.
 
 ---
 
-## Wie hier geschrieben wird
+## The rules that are not up for negotiation
 
-**Sprache:** Code, Kommentare, Commits und Variablennamen auf **Englisch**. Alles, was ein
-Nutzer liest, und die Projektdokumentation auf **Deutsch**.
+In full, with reasons, in [`CLAUDE.md`](CLAUDE.md). The short version, because every one of
+them has cost somebody something already:
 
-**Nutzersichtbarer Text spricht nicht über die Maschine.** Keine „Requests", keine
-„Entitäten", kein „IndexedDB", keine ADR-Nummern. Kosten werden in Minuten genannt, nicht
-in Anfragen — das ist die Einheit, in der jemand plant. Und sag, was etwas bringt, nicht,
-was es nicht bringt.
+**No backend.** No database, no server process. If a task calls for a server, the task is
+wrongly framed — ask. ([ADR-007](docs/adr/007-client-only-pwa.md))
 
-**Kommentare erklären das Warum.** Was der Code tut, steht im Code. Warum er es so tut —
-und was die Alternative gekostet hat — steht darüber. Besonders bei allem, was aus einer
-Messung folgt: dann gehört die Messung mit Datum dazu.
+**Never `/releases/{id}` in a loop over everything.** Ten thousand releases is three hours.
+Individually, on demand, for what somebody is looking at: fine. All of them: never.
 
-**Miss, statt zu behaupten.** Die meisten harten Entscheidungen in diesem Projekt kommen
-aus einem Versuch gegen die echte API oder einen echten Browser. Wenn du etwas über
-Discogs, einen Browser oder eine Grenze schreibst: prüf es, notier das Datum, und wenn du
-es nicht prüfen konntest, schreib das hin.
+**Never concurrent Discogs requests.** Exactly one at a time, 1,200 ms with a token,
+2,400 ms without — and that is **across every tab**, because the limit is per IP and a tab
+is not an IP. Everything goes through the one client in the worker.
+
+**Never show marketplace data older than six hours.** Those are the terms under which we
+are allowed to use the API. Not to be worked around, not even "just for development".
+
+**Never scrape.** Documented endpoints only. There is exactly one named exception with an
+ADR of its own ([ADR-009](docs/adr/009-haendler-import.md)); a second one needs a second
+ADR.
+
+**The token does not leave IndexedDB.** Never into a log, never into a URL, never into an
+error report, never to a hub.
+
+**Every new dependency has to justify its bytes.** The budget is 120 kB gzip for the first
+meaningful paint, and `pnpm size` breaks the build when it is exceeded.
+
+**No feature may require the hub.** It makes things faster. Hub calls run with a two-second
+timeout, no retry, and fall back silently to the local path.
+
+---
+
+## How things are written here
+
+**Language: English, everywhere.** Code, comments, commits, variable names, user-facing
+text and addresses. German is a translation, not a foundation
+([ADR-010](docs/adr/010-englisch-als-grundsprache.md)).
+
+Anything a user reads lives in a message pack under `app/i18n/`, never in a template. The
+shell (`en.ts`, `de.ts`) holds what appears on every screen; each area has a file of its
+own so a screen's words travel in that screen's chunk rather than in the first paint. Two
+things follow from that and are worth knowing before you add a string:
+
+- **`de.ts` is typed as the shape of `en.ts`.** A missing key is a build error, not a blank
+  spot somebody finds later. Anything taking a number is a function, so plurals and
+  interpolation are ordinary TypeScript.
+- **Never read the pack into a top-level constant.** `const m = useMessages().value.nav` at
+  the top of a `<script setup>` captures whichever language was active at mount, and that
+  panel then keeps its old words through a switch. Inside a `computed()`, inside a function
+  or in a template it is a read per evaluation and correct. There is a test that refuses
+  the first form.
+
+`docs/` is still German and is being translated last. New documents there may be German;
+new comments in the code may not.
+
+**User-facing text does not talk about the machine.** No "requests", no "entities", no
+"IndexedDB", no ADR numbers. Costs are named in minutes rather than in requests — that is
+the unit somebody plans in. And say what something gives you, not what it does not.
+
+**Comments explain the why.** What the code does is in the code. Why it does it that way —
+and what the alternative cost — goes above it. Especially for anything that follows from a
+measurement: then the measurement belongs there, with its date.
+
+**Measure rather than assert.** Most of the hard decisions in this project come out of an
+experiment against the real API or a real browser. If you write something about Discogs, a
+browser or a limit: check it, note the date, and if you could not check it, write that down.
 
 ## Commits
 
-[Conventional Commits](https://www.conventionalcommits.org/), erzwungen durch commitlint.
+[Conventional Commits](https://www.conventionalcommits.org/), enforced by commitlint.
 
 ```
 feat(dig): add incremental matching during inventory scan
@@ -107,67 +127,70 @@ docs(api): document the 10k pagination wall
 ```
 
 Scopes: `dig` `match` `discogs` `horizon` `auth` `basket` `watch` `dealers` `hub` `demo`
-`sync` `ui` `db` `pwa` `deploy` `deps`. Ein neuer Scope gehört in
-`commitlint.config.mjs` **und** in `CLAUDE.md` — sonst driften die beiden Listen
-auseinander.
+`sync` `ui` `i18n` `db` `pwa` `deploy` `deps`. A new scope belongs in
+`commitlint.config.mjs` **and** in `CLAUDE.md` — otherwise the two lists drift apart.
 
-Der Text darunter darf lang sein. Er ist oft die einzige Stelle, an der steht, warum eine
-Änderung nötig war.
+The body underneath may be long. It is often the only place that says why a change was
+necessary.
 
 ## Releases
 
-Macht `release-please` aus den Commits. **Die Version niemals von Hand hochsetzen**, und
-`CHANGELOG.md` nie direkt für ein Release bearbeiten — nur im Release-PR nachschärfen.
+`release-please` makes them from the commits. **Never raise the version by hand**, and
+never edit `CHANGELOG.md` directly for a release — only sharpen it in the release PR.
 
 ---
 
 ## Tests
 
-**Der wichtigste Test des Projekts** ist der Golden-File-Test der Scoring-Engine
-(`tests/unit/scoring.spec.ts`) gegen eingefrorene echte Inventare und Sammlungen. Jede
-Änderung an Signalgewichten muss den Snapshot aktualisieren — **und der Diff muss im PR
-erklärt werden.** Ein stillschweigend neu aufgenommener Snapshot ist kein Test.
+**The most important test in the project** is the golden-file test of the scoring engine
+(`tests/unit/scoring.spec.ts`) against frozen real inventories and collections. Every
+change to a signal weight has to update the snapshot — **and the diff has to be explained
+in the PR.** A snapshot silently re-recorded is not a test.
 
-`SCALE` und `SECONDARY` in der Score-Formel sind Konstanten und bleiben es. Wer sie pro
-Meilenstein nachjustiert, macht Punktzahlen über die Zeit unvergleichbar.
+`SCALE` and `SECONDARY` in the score formula are constants and stay constants. Adjusting
+them per milestone makes scores incomparable over time.
 
-**Außerdem Pflicht:**
+**Also required:**
 
-- Discogs wird im Test **immer** gemockt. Fixtures unter `tests/fixtures/`. Die Suite darf
-  keine echte API brauchen — sonst scheitert CI aus Gründen, die nichts mit dem Code zu
-  tun haben.
-- Playwright **inklusive WebKit**. Das schwächste Ziel ist iOS Safari, und es verhält sich
-  regelmäßig anders als Chrome.
-- 20.000 synthetische Listings müssen in unter 250 ms bewertet werden.
-- `pnpm size` hält das Bundle-Budget.
+- Discogs is **always** mocked in tests. Fixtures under `tests/fixtures/`. The suite must
+  not need a real API — otherwise CI fails for reasons that have nothing to do with the
+  code.
+- Playwright **including WebKit**. The weakest target is iOS Safari, and it regularly
+  behaves differently from Chrome.
+- 20,000 synthetic listings have to be scored in under 250 ms.
+- `pnpm size` holds the bundle budget.
 
-**Prüf deine Wachen, indem du sie brichst.** Wenn ein Test eine Bedingung absichern soll,
-dreh die Bedingung einmal um und sieh nach, ob der Test wirklich umfällt. Ein Test, der
-grün bleibt, wenn man das Geprüfte kaputtmacht, prüft nichts.
+**Anything a user reads is tested in both languages.** Not for thoroughness: a phrase that
+exists in one pack and not the other is invisible in whichever language you happen to be
+testing in. The reason sentences, the pressing warnings and the demo examples all run
+twice for that reason.
 
-## Entscheidungen
+**Check your guards by breaking them.** If a test is meant to secure a condition, invert
+the condition once and see whether the test really falls over. A test that stays green when
+you break the thing it checks is checking nothing.
 
-Alles, was schwer rückgängig zu machen ist, kommt als ADR nach `docs/adr/` — Vorlage ist
-[ADR-001](docs/adr/001-nuxt-statt-laravel.md). Auch die verworfenen bleiben stehen: die
-Geschichte einer Entscheidung ist die Hälfte ihres Werts.
+## Decisions
 
-Ein neues Signal für die Matching-Engine wird erst in
-[`docs/04-MATCHING-ENGINE.md`](docs/04-MATCHING-ENGINE.md) beschrieben und dann gebaut.
+Anything hard to undo goes into `docs/adr/` as an ADR — the template is
+[ADR-001](docs/adr/001-nuxt-statt-laravel.md). The rejected ones stay too: the history of a
+decision is half its value.
 
-Ein neuer Discogs-Endpunkt kommt erst in [`docs/02-DISCOGS-API.md`](docs/02-DISCOGS-API.md)
-— mit Kosten, Auth-Anforderung und CORS-Verhalten, gemessen.
+A new signal for the matching engine is described in
+[`docs/04-MATCHING-ENGINE.md`](docs/04-MATCHING-ENGINE.md) first and built second.
+
+A new Discogs endpoint goes into [`docs/02-DISCOGS-API.md`](docs/02-DISCOGS-API.md) first —
+with its cost, its auth requirement and its CORS behaviour, measured.
 
 ---
 
-## Lizenz
+## Licence
 
-[**GNU AGPL-3.0**](LICENSE). Wer hier etwas beiträgt, stellt es unter dieselbe Lizenz.
-Einen Contributor License Agreement gibt es nicht — du behältst dein Urheberrecht, und der
-Beitrag steht unter der Lizenz des Projekts.
+[**GNU AGPL-3.0**](LICENSE). Anybody contributing here puts it under the same licence.
+There is no contributor licence agreement — you keep your copyright, and the contribution
+stands under the project's licence.
 
-Praktisch heißt das: Fork, Umbau und eigener Betrieb sind ausdrücklich erwünscht. Wenn du
-deine Fassung weitergibst oder für andere hostest, gehört dein Quelltext ebenfalls offen.
+In practice: forking, rebuilding and running your own is expressly welcome. If you pass on
+your version or host it for other people, your source belongs open as well.
 
-`"private": true` in der `package.json` bleibt stehen. Das verhindert nur versehentliches
-Veröffentlichen auf npm und hat mit der Lizenz nichts zu tun — dies ist eine App, kein
-Paket.
+`"private": true` in `package.json` stays. It only prevents accidental publishing to npm
+and has nothing to do with the licence — this is an app, not a package.
