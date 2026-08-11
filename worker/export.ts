@@ -25,13 +25,18 @@ import type { Match } from '#shared/types'
 
 export const EXPORT_VERSION = 1
 
-/** What survives into a file: our own reasoning, never the marketplace. */
+/**
+ * What survives into a file: our own reasoning, never the marketplace.
+ *
+ * The signals, not the sentence. The sentence is written in whatever language
+ * the interface is in, and this thread does not know it — `DataControls` adds
+ * it on the way to the download.
+ */
 interface ExportedMatch {
   listingId: number
   releaseId: number
   score: number
   signals: Match['signals']
-  reason: string
   discogsUrl: string
 }
 
@@ -49,9 +54,9 @@ export interface DigExport {
 }
 
 const NOTE =
-  'Enthält bewusst keine Preise, Zustände oder anderen Marktplatzdaten – die dürfen ' +
-  'laut Discogs-API-Bedingungen nicht weitergegeben werden. Die Links führen zum ' +
-  'jeweiligen Angebot, wo der aktuelle Preis steht.'
+  'Deliberately contains no prices, conditions or other marketplace data — the ' +
+  'Discogs API terms do not allow those to be passed on. The links lead to each ' +
+  'listing, where the current price is.'
 
 function strip(match: Match): ExportedMatch {
   return {
@@ -59,7 +64,6 @@ function strip(match: Match): ExportedMatch {
     releaseId: match.releaseId,
     score: match.score,
     signals: match.signals,
-    reason: match.reason,
     // The deep link is the point: it carries the price without us copying it.
     discogsUrl: `https://www.discogs.com/sell/item/${match.listingId}`,
   }

@@ -11,7 +11,6 @@ const match = (): Match =>
     releaseId: 10,
     score: 71,
     signals: [{ type: 'ARTIST_KNOWN', confidence: 1, evidence: { artist: 'Robag', owned: 5 } }],
-    reason: 'Weil.',
     title: 'Wuzzelbud KK',
     artist: 'Robag Wruhme',
     price: 19.99,

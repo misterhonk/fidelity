@@ -111,7 +111,7 @@ export async function homeOverview(): Promise<HomeOverview> {
         listingId: match.listingId,
         releaseId: match.releaseId,
         score: match.score,
-        reason: match.reason,
+        signals: match.signals,
         title: match.title,
         artist: match.artist,
         thumbUrl: match.thumbUrl,

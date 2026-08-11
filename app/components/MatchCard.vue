@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { describeFormat } from '#shared/format'
 import type { Match } from '#shared/types'
+import { reasonFor } from '~/i18n/reason'
 
 const props = defineProps<{ match: Match }>()
 
@@ -137,7 +138,7 @@ const meta = computed(() => {
 
     <!-- Never truncated. The sentence is the product. -->
     <!-- A sentence, so it keeps a sentence's width however wide the card gets. -->
-    <p class="max-w-prose text-fid-sm text-fid-text">{{ match.reason }}</p>
+    <p class="max-w-prose text-fid-sm text-fid-text">{{ reasonFor(match.signals) }}</p>
 
     <!--
       What this pressing is (M7). Never says a reissue is bad — plenty of

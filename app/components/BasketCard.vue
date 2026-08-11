@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DeepReadonly } from 'vue'
+import { reasonFor } from '~/i18n/reason'
 
 import type { BasketPlan, BasketSummary } from '#shared/types'
 
@@ -628,7 +629,10 @@ const peak = computed(() =>
           <span class="fid-num text-fid-sm font-medium text-fid-text">
             {{ candidate.score }}
           </span>
-          <span class="min-w-0 grow text-fid-sm text-fid-text" :title="candidate.reason">
+          <span
+            class="min-w-0 grow text-fid-sm text-fid-text"
+            :title="reasonFor(candidate.signals)"
+          >
             {{ candidate.title }}
           </span>
           <span v-if="candidate.closesGap" class="text-fid-xs text-fid-text-muted">

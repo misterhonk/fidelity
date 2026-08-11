@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { reasonFor } from '~/i18n/reason'
+
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import type { Match, TasteProfile } from '#shared/types'
 import type { DiscogsClient } from '~~/worker/discogs/client'
@@ -42,7 +44,6 @@ function match(listingId: number, score: number): Match {
     signals: [
       { type: 'ARTIST_KNOWN', confidence: 1, evidence: { artist: 'Robag Wruhme', owned: 5 } },
     ],
-    reason: '',
     title: 'Platte',
     artist: 'Wer',
     label: null,
@@ -167,8 +168,8 @@ describe('the style pass', () => {
     // The artist is still the stronger reason and keeps the lead; the style
     // joins as context. A signal weighing 24 does not get to open a sentence
     // ahead of one weighing 55.
-    expect(updated?.reason).toMatch(/^Du hast 5 Platten von Robag Wruhme/)
-    expect(updated?.reason).toContain('Stil passt (Minimal)')
+    expect(reasonFor(updated!.signals)).toMatch(/^You have 5 records by Robag Wruhme/)
+    expect(reasonFor(updated!.signals)).toContain('style fits (Minimal)')
   })
 
   it('lets the style lead when nothing stronger is there', async () => {
@@ -183,7 +184,9 @@ describe('the style pass', () => {
     const { client: api } = client({ 2: ['Minimal'] })
     await enrichTopMatches({ client: api, digId: '01A', taste })
 
-    expect((await db.get('matches', ['01A', 2]))?.reason).toMatch(/^Minimal – dein Kernrevier/)
+    expect(reasonFor((await db.get('matches', ['01A', 2]))!.signals)).toMatch(
+      /^Minimal — your home ground/,
+    )
   })
 
   it('leaves a release below the threshold untouched', async () => {
@@ -253,7 +256,7 @@ describe('the market pass', () => {
     expect(updated?.signals.map((s) => s.type)).toContain('PRICE_SIGNAL')
     // The artist is the stronger reason and keeps the lead; the price joins
     // as context. A signal weighing 35 does not open a sentence ahead of 55.
-    expect(plain(updated?.reason)).toContain('unter Markt (20,00 €)')
+    expect(plain(reasonFor(updated!.signals))).toContain('under market (€20.00)')
     expect(updated?.marketLowestPrice).toBe(20)
   })
 
@@ -274,8 +277,8 @@ describe('the market pass', () => {
     })
 
     // "0,5×" is arithmetic; two prices side by side is an argument.
-    expect(plain((await db.get('matches', ['01A', 1]))?.reason)).toMatch(
-      /^10,00 € bei einem Markt-Tiefstpreis von 20,00 €\./,
+    expect(plain(reasonFor((await db.get('matches', ['01A', 1]))!.signals))).toMatch(
+      /^€10\.00 against a market low of €20\.00\./,
     )
   })
 
@@ -341,7 +344,7 @@ describe('the market pass', () => {
 
     const updated = await db.get('matches', ['01A', 1])
     expect(updated?.signals.map((s) => s.type)).toContain('SCARCITY')
-    expect(updated?.reason).toContain('nur 2 im Angebot')
+    expect(reasonFor(updated!.signals)).toContain('only 2 for sale')
     expect(updated?.marketNumForSale).toBe(2)
   })
 
@@ -361,12 +364,12 @@ describe('the market pass', () => {
       taste: { ...taste, styleCentroid: {} },
     })
 
-    expect((await db.get('matches', ['01A', 1]))?.reason).toMatch(
-      /^Nur 2 Exemplare weltweit im Angebot\./,
+    expect(reasonFor((await db.get('matches', ['01A', 1]))!.signals)).toMatch(
+      /^Only 2 copies for sale worldwide\./,
     )
   })
 
-  it('counts one copy as one, not as "1 Exemplare"', async () => {
+  it('counts one copy as one, not as "1 copies"', async () => {
     const db = await openFidelityDb()
     await db.put('matches', {
       ...match(1, 30),
@@ -382,8 +385,8 @@ describe('the market pass', () => {
       taste: { ...taste, styleCentroid: {} },
     })
 
-    expect((await db.get('matches', ['01A', 1]))?.reason).toMatch(
-      /^Weltweit genau ein Exemplar im Angebot\./,
+    expect(reasonFor((await db.get('matches', ['01A', 1]))!.signals)).toMatch(
+      /^Exactly one copy for sale worldwide\./,
     )
   })
 

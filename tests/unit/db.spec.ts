@@ -11,6 +11,7 @@ import {
 } from '~~/db/meta'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import type { Dig, Match } from '#shared/types'
+import { reasonFor } from '~/i18n/reason'
 
 afterEach(async () => {
   await deleteFidelityDb()
@@ -42,8 +43,14 @@ function match(digId: string, listingId: number, overrides: Partial<Match> = {})
     listingId,
     releaseId: 2598,
     score: 91,
-    signals: [{ type: 'CREDIT_GRAPH', confidence: 1, evidence: { artist: 'Conny Plank' } }],
-    reason: 'Conny Plank am Pult – du hast 9 seiner Produktionen, diese nicht.',
+    /*
+     * `person`, not `artist`. CREDIT_GRAPH names the person who worked on the
+     * record, and this fixture said `artist` — which no phrase reads, so the
+     * sentence would have fallen through to "fits your collection". Nobody
+     * noticed while the sentence was a hand-written string stored beside the
+     * signals; building it from them is what surfaced it.
+     */
+    signals: [{ type: 'CREDIT_GRAPH', confidence: 1, evidence: { person: 'Conny Plank' } }],
     title: 'Neu! 2',
     artist: 'Neu!',
     label: 'Brain',
@@ -128,7 +135,7 @@ describe('the six-hour rule', () => {
     expect(after?.marketLowestPrice).toBeNull()
     // Ours — a user still sees that there were 47 matches and why.
     expect(after?.score).toBe(91)
-    expect(after?.reason).toContain('Conny Plank')
+    expect(reasonFor(after!.signals)).toContain('Conny Plank')
     expect(after?.signals).toHaveLength(1)
 
     expect((await db.get('digs', '01AAA'))?.status).toBe('expired')

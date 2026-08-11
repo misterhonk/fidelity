@@ -52,7 +52,6 @@ function match(listingId: number, releaseId: number, score = 60): Match {
     releaseId,
     score,
     signals: [],
-    reason: 'Weil.',
     title: `Platte ${releaseId}`,
     artist: 'Irgendwer',
     label: null,

@@ -576,9 +576,14 @@ export interface Match {
 
   // Ours, derived — survives expiry
   score: number
+  /**
+   * What the score was made of — and what the Barry sentence is written from.
+   *
+   * The sentence itself is no longer stored beside them. It used to be, built
+   * in the worker at scan time, which froze its language at the moment the dig
+   * ran. `app/i18n/reason.ts` builds it where it is read.
+   */
   signals: Signal[]
-  /** The Barry sentence. */
-  reason: string
 
   // Marketplace data — nulled after six hours
   title: string | null
@@ -784,7 +789,7 @@ export interface BasketCandidate {
   price: number
   currency: string
   title: string
-  reason: string
+  signals: Signal[]
   /** Whether this one alone lifts the basket over the dealer's minimum. */
   closesGap?: boolean
 }

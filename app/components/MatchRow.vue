@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { describeFormat } from '#shared/format'
 import type { Match } from '#shared/types'
+import { reasonFor } from '~/i18n/reason'
 
 const props = defineProps<{ match: Match }>()
 
@@ -90,8 +91,8 @@ const price = computed(() => {
       >
         {{ match.artist }} – {{ match.title }}
       </button>
-      <span class="truncate text-fid-xs text-fid-text-muted" :title="match.reason">
-        {{ match.reason }}
+      <span class="truncate text-fid-xs text-fid-text-muted" :title="reasonFor(match.signals)">
+        {{ reasonFor(match.signals) }}
       </span>
     </p>
 

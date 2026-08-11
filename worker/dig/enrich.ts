@@ -7,7 +7,6 @@ import type { Match, Signal, TasteProfile } from '#shared/types'
 import type { DiscogsClient } from '../discogs/client'
 import { priceSignal, scarcitySignal, type MarketStats } from '../match/market'
 import { pressingContradictions, pressingWarnings, readPressing } from '../match/pressing'
-import { buildReason } from '../match/reason'
 import { barryScore, type ScoreContext } from '../match/score'
 
 /**
@@ -250,7 +249,6 @@ export async function enrichTopMatches({
       pressing,
       pressingWarnings: warnings,
       score: barryScore(signals, context),
-      reason: buildReason(signals),
     }
     await db.put('matches', updated)
     if (added || price.negative) fired += 1

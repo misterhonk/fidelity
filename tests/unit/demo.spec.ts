@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { DiscogsClient } from '~~/worker/discogs/client'
 import { DEMO_PAGES, MAX_SEEDS, runDemo } from '~~/worker/demo'
+import { reasonFor } from '~/i18n/reason'
 
 /**
  * Fidelity ohne Token, an einer Platte.
@@ -98,8 +99,8 @@ describe('the demo', () => {
 
     expect(roboter, 'die zweite Kraftwerk-Platte').toBeDefined()
     expect(roboter!.signals.map((signal) => signal.type)).toContain('ARTIST_KNOWN')
-    // The sentence is `buildReason`'s, not one written for the demo.
-    expect(roboter!.reason).toContain('Kraftwerk')
+    // The sentence is the engine's own, not one written for the demo.
+    expect(reasonFor(roboter!.signals)).toContain('Kraftwerk')
   })
 
   it('does not offer the record somebody started from', async () => {

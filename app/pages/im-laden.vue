@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DigWithMatches } from '#shared/protocol'
 import type { ShelfHit, ShelfResult } from '#shared/types'
+import { reasonFor } from '~/i18n/reason'
 
 const m = useMessages()
 useSeoMeta({
@@ -275,7 +276,9 @@ const expired = computed(() => {
               >
                 {{ money(match.price, match.currency) }}
               </span>
-              <span class="truncate text-fid-xs text-fid-text-muted">{{ match.reason }}</span>
+              <span class="truncate text-fid-xs text-fid-text-muted">{{
+                reasonFor(match.signals)
+              }}</span>
             </span>
           </span>
 

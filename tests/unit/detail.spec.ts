@@ -53,7 +53,6 @@ function match(over: Partial<Match> = {}): Match {
     releaseId: 500,
     score: 60,
     signals: [],
-    reason: 'Weil.',
     title: 'Platte',
     artist: 'Wer',
     label: 'Brain',

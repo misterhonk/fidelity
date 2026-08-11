@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { useSettingsMessages } from '~/i18n/settings'
+import type { Signal } from '#shared/types'
+
+import { reasonFor } from '~/i18n/reason'
 
 const st = useSettingsMessages()
 
@@ -37,7 +40,10 @@ async function run(what: 'all' | 'dig') {
 
   try {
     if (what === 'all') {
-      download(`fidelity-backup-${stamp()}.json`, await call('data.exportAll', undefined))
+      download(
+        `fidelity-backup-${stamp()}.json`,
+        withReasons(await call('data.exportAll', undefined)),
+      )
     } else {
       const latest = await call('dig.latest', undefined)
       if (!latest) {
@@ -45,13 +51,38 @@ async function run(what: 'all' | 'dig') {
         return
       }
       const file = await call('data.exportDig', { digId: latest.dig.id })
-      download(`fidelity-dig-${latest.dig.dealer}-${stamp()}.json`, file)
+      download(`fidelity-dig-${latest.dig.dealer}-${stamp()}.json`, withReasons(file))
     }
   } catch (cause) {
     error.value = cause
   } finally {
     busy.value = false
   }
+}
+
+/**
+ * The sentence is added here, not in the worker.
+ *
+ * An export is a file somebody opens outside the app, and the readable line
+ * under each find is the point of it. The worker assembles the data and has no
+ * idea what language the interface is in — so it ships the signals and this
+ * writes the sentence, in whatever language the person doing the exporting is
+ * reading.
+ */
+function withReasons<T>(file: T): T {
+  const walk = (node: unknown): void => {
+    if (Array.isArray(node)) return node.forEach(walk)
+    if (!node || typeof node !== 'object') return
+
+    const record = node as Record<string, unknown>
+    if (Array.isArray(record.signals) && record.listingId !== undefined) {
+      record.reason = reasonFor(record.signals as Signal[])
+    }
+    Object.values(record).forEach(walk)
+  }
+
+  walk(file)
+  return file
 }
 
 async function deleteAll() {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { HomeOverview } from '#shared/protocol'
+import { reasonFor } from '~/i18n/reason'
 
 import { since } from '~/utils/when'
 
@@ -208,7 +209,7 @@ const tiles = computed(() => {
                 class="text-fid-sm text-fid-text-muted"
               >
                 <span class="fid-num text-fid-text">{{ find.score }}</span>
-                · {{ find.reason }}
+                · {{ reasonFor(find.signals) }}
               </li>
             </ul>
           </details>

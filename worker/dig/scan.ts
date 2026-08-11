@@ -7,7 +7,6 @@ import type { ScanProgress } from '#shared/protocol'
 import type { DiscogsClient } from '../discogs/client'
 import { dealerSchema, inventoryPageSchema, toListing } from '../discogs/inventory'
 import { buildIndex, evaluate, type MatchFilters, type MatchIndex } from '../match'
-import { buildReason } from '../match/reason'
 
 import { NearMissAccumulator, type NearMiss } from '../horizon/nearmiss'
 import { blankDealer } from '~~/db/dealer'
@@ -359,7 +358,6 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
           releaseId: listing.releaseId,
           score: result.score,
           signals: result.signals,
-          reason: buildReason(result.signals),
           title: listing.title,
           artist: listing.artist,
           label: listing.label,

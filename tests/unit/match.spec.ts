@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { CollectionItem, TasteProfile, WantlistItem } from '#shared/types'
 import { buildIndex, evaluate, type Listing, type MatchFilters } from '~~/worker/match'
-import { buildReason } from '~~/worker/match/reason'
+import { reasonFor } from '~/i18n/reason'
 import { computeTasteProfile } from '~~/worker/match/taste'
 
 /**
@@ -91,22 +91,22 @@ describe('the signals that M2 can actually fire', () => {
 
     expect(result?.signals.map((s) => s.type)).toContain('WANTLIST_EXACT')
     expect(result?.score).toBeGreaterThanOrEqual(85)
-    expect(buildReason(result!.signals)).toContain('Wantlist')
+    expect(reasonFor(result!.signals)).toContain('wantlist')
   })
 
   it('S3 — an artist already in the collection, this record not', () => {
     const result = evaluate(listing(), index, filters)
 
     expect(result?.signals.map((s) => s.type)).toContain('ARTIST_KNOWN')
-    expect(buildReason(result!.signals)).toContain('Robag Wruhme')
-    expect(buildReason(result!.signals)).toContain('3 Platten')
+    expect(reasonFor(result!.signals)).toContain('Robag Wruhme')
+    expect(reasonFor(result!.signals)).toContain('3 records')
   })
 
   it('S5 — a label the collection leans on', () => {
     const result = evaluate(listing({ label: 'Border Community' }), index, filters)
 
     expect(result?.signals.map((s) => s.type)).toContain('LABEL_AFFINITY')
-    expect(buildReason(result!.signals)).toContain('Border Community')
+    expect(reasonFor(result!.signals)).toContain('Border Community')
   })
 
   it('stacks signals, and the strongest one leads the sentence', () => {
@@ -117,8 +117,8 @@ describe('the signals that M2 can actually fire', () => {
     )
 
     expect(result?.signals).toHaveLength(3)
-    expect(buildReason(result!.signals)).toMatch(/^Steht genau so auf deiner Wantlist\./)
-    expect(buildReason(result!.signals)).toContain('Außerdem')
+    expect(reasonFor(result!.signals)).toMatch(/^Exactly this is on your wantlist\./)
+    expect(reasonFor(result!.signals)).toContain('Also:')
   })
 })
 

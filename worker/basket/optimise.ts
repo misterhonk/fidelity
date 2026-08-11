@@ -20,7 +20,7 @@ export function toCandidate(match: Match): BasketCandidate | null {
     price: match.price,
     currency: match.currency,
     title: [match.artist, match.title].filter(Boolean).join(' – ') || 'Unbekannt',
-    reason: match.reason,
+    signals: match.signals,
   }
 }
 

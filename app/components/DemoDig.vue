@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { describeFormat } from '#shared/format'
+import { reasonFor } from '~/i18n/reason'
 
 import type { DemoProgress, DemoResult } from '~~/worker/demo'
 
@@ -324,7 +325,9 @@ function shapeOf(format: string | null) {
                 {{ money(find.price, find.currency) }}
               </span>
             </span>
-            <span class="mt-1 text-fid-xs text-fid-text-muted">{{ find.reason }}</span>
+            <span class="mt-1 text-fid-xs text-fid-text-muted">{{
+              reasonFor(find.signals)
+            }}</span>
           </div>
         </li>
       </ul>

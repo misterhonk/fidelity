@@ -31,7 +31,6 @@ function match(over: Partial<Match> = {}): Match {
     releaseId: 70,
     score: 87,
     signals: [{ type: 'WANTLIST_EXACT', confidence: 1, evidence: {} }],
-    reason: 'Steht genau so auf deiner Wantlist.',
     title: 'Dummy',
     artist: 'Portishead',
     label: 'Go! Beat',
@@ -79,7 +78,6 @@ describe('exporting a dig to share', () => {
     expect(file.matches[0]).toMatchObject({
       listingId: 7,
       score: 87,
-      reason: 'Steht genau so auf deiner Wantlist.',
     })
   })
 
@@ -106,7 +104,7 @@ describe('exporting a dig to share', () => {
 
   it('says in the file itself why the prices are missing', async () => {
     await seed()
-    expect((await exportDig('01A', 5000))!.note).toContain('Marktplatzdaten')
+    expect((await exportDig('01A', 5000))!.note).toContain('marketplace data')
   })
 
   it('sorts strongest first', async () => {

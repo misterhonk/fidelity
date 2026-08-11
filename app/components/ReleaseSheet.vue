@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MatchDetail } from '#shared/types'
+import { reasonFor } from '~/i18n/reason'
 
 const m = useMessages()
 const props = defineProps<{ digId: string; listingId: number }>()
@@ -192,7 +193,7 @@ function onKeydown(event: KeyboardEvent) {
           </span>
         </div>
 
-        <p class="text-fid-base text-fid-text">{{ match.reason }}</p>
+        <p class="text-fid-base text-fid-text">{{ reasonFor(match.signals) }}</p>
 
         <!--
           The market numbers, whenever the enrichment pass paid for them. Shown

@@ -6,7 +6,6 @@ import type { DiscogsClient } from './discogs/client'
 import { inventoryPageSchema, toListing } from './discogs/inventory'
 import { buildIndex, evaluate } from './match'
 import { norm } from './match/normalize'
-import { buildReason } from './match/reason'
 import { computeTasteProfile } from './match/taste'
 
 /**
@@ -234,7 +233,6 @@ export async function runDemo(options: {
         releaseId: listing.releaseId,
         score: result.score,
         signals: result.signals,
-        reason: buildReason(result.signals),
         title: listing.title,
         artist: listing.artist,
         label: listing.label,

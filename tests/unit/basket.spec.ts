@@ -42,7 +42,6 @@ function match(over: Partial<Match> = {}): Match {
     releaseId: 10,
     score: 60,
     signals: [],
-    reason: 'Weil.',
     title: 'Platte',
     artist: 'Wer',
     label: null,
@@ -325,7 +324,6 @@ describe('planning a shipment', () => {
     price: 10,
     currency: 'EUR',
     title: 'Platte',
-    reason: '',
     ...over,
   })
 
@@ -471,7 +469,6 @@ describe('what else to put in', () => {
     price: 10,
     currency: 'EUR',
     title: 'Platte',
-    reason: '',
     ...over,
   })
 

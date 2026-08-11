@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Identity } from '#shared/types'
+import { reasonFor } from '~/i18n/reason'
 
 const m = useMessages()
 
@@ -50,12 +51,14 @@ async function submit() {
     <section class="flex flex-col gap-3 rounded-fid-md bg-fid-inset p-4">
       <h3 class="text-fid-sm font-medium text-fid-text">{{ m.token.sampleTitle }}</h3>
       <ul class="flex flex-col gap-3">
-        <li v-for="find in SAMPLE_FINDS" :key="find.reason" class="flex items-baseline gap-3">
+        <li v-for="(find, i) in SAMPLE_FINDS" :key="i" class="flex items-baseline gap-3">
           <span class="fid-num shrink-0 text-fid-base font-medium text-fid-text">
             {{ find.score }}
           </span>
           <span class="fid-num shrink-0 text-fid-xs text-fid-text-muted">{{ find.grade }}</span>
-          <span class="min-w-0 text-fid-sm text-fid-text-muted">{{ find.reason }}</span>
+          <span class="min-w-0 text-fid-sm text-fid-text-muted">
+            {{ reasonFor(find.signals) }}
+          </span>
         </li>
       </ul>
       <p class="text-fid-xs text-fid-text-muted">{{ m.token.sampleNote }}</p>

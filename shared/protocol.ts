@@ -37,6 +37,7 @@ import type {
   ShelfSort,
   ShelfView,
   ShippingTier,
+  Signal,
   TasteProfile,
   VaultStatus,
   VaultTarget,
@@ -664,7 +665,7 @@ export interface HomeFind {
   listingId: number
   releaseId: number
   score: number
-  reason: string
+  signals: Signal[]
   title: string | null
   artist: string | null
   thumbUrl: string | null

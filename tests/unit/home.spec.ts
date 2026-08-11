@@ -68,7 +68,6 @@ async function dig(id: string, dealer: string, matches: number) {
       // the index gives back last and the rail has to show first.
       score: index,
       signals: [],
-      reason: `Grund ${index}`,
       title: `Treffer ${index}`,
       artist: 'Someone',
       thumbUrl: null,

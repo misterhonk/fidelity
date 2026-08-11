@@ -16,7 +16,6 @@ function match(over: Partial<Match> = {}): Match {
     releaseId: 1,
     score: 50,
     signals: [{ type: 'ARTIST_KNOWN', confidence: 1, evidence: {} }],
-    reason: 'Weil.',
     title: 'Platte',
     artist: 'Beta',
     label: null,

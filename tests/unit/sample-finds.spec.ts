@@ -1,25 +1,39 @@
 import { describe, expect, it } from 'vitest'
 
+import { useLanguage, type Language } from '~/composables/useMessages'
+import { packs, reasonFor } from '~/i18n/reason'
 import { SAMPLE_FINDS } from '~/utils/sample-finds'
-import { buildReason } from '~~/worker/match/reason'
 
 /**
- * Die Beispiele sind Ergebnisse, keine Prosa.
+ * The examples are results, not prose.
  *
  * The setup screen shows what the app produces before asking for a Discogs
  * token — which only helps if what it shows is what the app would actually
- * say. A hand-written example is marketing copy the moment the reason
- * templates change, and nothing would notice.
+ * say. A hand-written example is marketing copy the moment the reason phrases
+ * change, and nothing would notice.
  *
- * So the sentences are not compared to a fixture: they are recomputed from the
- * signals behind them by the same function the dig uses.
+ * There is no fixture to compare against any more: the screen calls the same
+ * `reasonFor` every dig result does, so the sentence cannot drift by
+ * construction. What is left to check is that each example *has* something to
+ * say — in every language, since the phrase tables are written by hand and a
+ * signal with no phrase falls through to a sentence that says nothing.
  */
+const LANGUAGES = Object.keys(packs) as Language[]
+
 describe('the examples on the setup screen', () => {
-  for (const find of SAMPLE_FINDS) {
-    it(`says what the app says: "${find.reason.slice(0, 45)}…"`, () => {
-      expect(buildReason(find.signals)).toBe(find.reason)
-    })
-  }
+  it.each(LANGUAGES)('says something specific in %s', async (language) => {
+    await useLanguage().apply(language)
+
+    for (const find of SAMPLE_FINDS) {
+      const sentence = reasonFor(find.signals)
+      expect(sentence, `score ${find.score}`).not.toBe('')
+      expect(sentence, `score ${find.score}`).not.toBe(packs[language].fallback)
+      // Every one of these was picked because it has runners-up worth naming.
+      expect(sentence, `score ${find.score}`).toContain(
+        packs[language].also('').trim().replace(/\.$/, ''),
+      )
+    }
+  })
 
   it('shows more than one kind of reason', () => {
     // Three identical-looking finds would teach a newcomer that Fidelity only
