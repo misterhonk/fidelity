@@ -2,6 +2,10 @@
 node_modules
 **/node_modules
 .output
+# Ausnahme für deploy/app.prebuilt.Dockerfile: das erwartet die fertige Seite
+# von außen, statt sie selbst zu bauen. Der Rest von .output — der Server-Teil,
+# den diese App gar nicht hat — bleibt draußen.
+!.output/public
 .nuxt
 dist
 coverage

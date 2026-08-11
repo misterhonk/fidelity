@@ -34,13 +34,34 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Nicht app.Dockerfile: das baut alles selbst und ist für lokal
+          # gedacht. Hier wird die Seite einmal nativ gebaut (siehe unten) und
+          # nur noch hineinkopiert — siehe app.prebuilt.Dockerfile für das
+          # Warum, kurz: das Ergebnis ist auf beiden Architekturen dasselbe,
+          # und der emulierte Lauf scheiterte an Schriften, die zur Bauzeit von
+          # Google geholt werden.
           - name: app
-            dockerfile: deploy/app.Dockerfile
+            dockerfile: deploy/app.prebuilt.Dockerfile
+            needs-site: true
           - name: hub
             dockerfile: deploy/hub.Dockerfile
+            needs-site: false
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
+
+      # Nur für die App, und nur einmal — nativ auf dem Runner, mit Netz.
+      - if: matrix.needs-site
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v4.1.0
+      - if: matrix.needs-site
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+      - if: matrix.needs-site
+        run: pnpm install --frozen-lockfile
+      - if: matrix.needs-site
+        run: pnpm build
 
       # QEMU nur wegen arm64. Ohne das baut der Runner ausschließlich für die
       # Architektur, auf der er selbst läuft.
