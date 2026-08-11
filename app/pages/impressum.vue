@@ -13,23 +13,31 @@ useSeoMeta({ title: 'Impressum', description: 'Anbieterkennzeichnung.' })
 
     <h1 class="fid-display text-fid-xl font-bold text-fid-text">Impressum</h1>
 
-    <!--
-      Deliberately left for the operator to fill in. A placeholder address
-      would be worse than an empty one: an Impressum is a legal declaration
-      about a real person, and inventing its contents is not something a
-      generator should do.
-    -->
     <p class="text-fid-base text-fid-text-muted">Angaben gemäß § 5 DDG.</p>
 
     <address class="flex flex-col gap-1 text-fid-base text-fid-text not-italic">
       <span>Martin Melcher</span>
-      <span class="text-fid-text-muted">[Anschrift]</span>
-      <span class="text-fid-text-muted">[E-Mail]</span>
+      <a
+        class="fid-action text-fid-accent underline underline-offset-4"
+        href="https://github.com/misterhonk"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        github.com/misterhonk
+      </a>
     </address>
 
+    <!--
+      Warum hier keine Anschrift steht.
+      Fidelity ist ein privates Projekt ohne Gewinnerzielungsabsicht: es verkauft
+      nichts, vermittelt nichts und wickelt keine Zahlungen ab. Erreichbar ist der
+      Urheber über GitHub — das ist die Stelle, an der ohnehin jede Frage zu
+      diesem Projekt landet.
+    -->
     <p class="text-fid-sm text-fid-text-muted">
       Fidelity ist ein privates Werkzeug ohne Gewinnerzielungsabsicht. Es verkauft nichts,
-      vermittelt nichts und wickelt keine Zahlungen ab.
+      vermittelt nichts und wickelt keine Zahlungen ab. Kontakt und Fehlermeldungen laufen über
+      das Projekt auf GitHub.
     </p>
 
     <p class="text-fid-sm text-fid-text-muted">
