@@ -259,9 +259,32 @@ jobs:
 
       # Nachsehen, ob die Seite danach wirklich antwortet. Ein Deployment, das
       # niemand prüft, ist eine Hoffnung.
+      # Nachsehen, ob die Seite danach wirklich antwortet. Ein Deployment, das
+      # niemand prüft, ist eine Hoffnung.
+      #
+      # Wichtig ist, *wie* ein Fehlschlag hier gemeldet wird: an dieser Stelle
+      # ist bereits alles hochgeladen und umgeschaltet. Ein nacktes "exit 1"
+      # sieht dann aus, als sei die Auslieferung gescheitert, und man sucht
+      # eine Stunde am falschen Ende — genau das ist am 2026-08-11 passiert,
+      # als ein 403 nach einem einwandfreien Deployment kam.
       - if: steps.check.outputs.ready == 'true' && !inputs.dry_run && env.SITE_URL != ''
         name: Antwortet sie?
         run: |
           code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$SITE_URL")
           echo "GET $SITE_URL → $code"
-          [ "$code" = "200" ] || exit 1
+          [ "$code" = "200" ] && exit 0
+
+          echo "::error::Ausgeliefert, aber nicht erreichbar (HTTP $code)."
+          echo
+          echo "Die Dateien liegen auf dem Server und der Symlink ist umgelegt —"
+          echo "das ist oben passiert und hat funktioniert. Was fehlt, ist der"
+          echo "Weg vom Webserver dorthin. Die drei üblichen Gründe:"
+          echo
+          echo "  403  Der ausgelieferte Pfad zeigt aus dem Bereich heraus, den"
+          echo "       der Webserver bedienen darf. Auf Uberspace ist das"
+          echo "       /var/www/virtual/<user>/ — ein Symlink nach ~/irgendwas"
+          echo "       wird abgewiesen. DEPLOY_PATH muss in denselben Baum."
+          echo "  404  Der Docroot zeigt auf DEPLOY_PATH statt auf dessen"
+          echo "       Unterverzeichnis 'current'."
+          echo "  500  Die .htaccess darf dort nicht gelten (AllowOverride)."
+          exit 1
