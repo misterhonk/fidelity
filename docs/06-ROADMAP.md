@@ -333,8 +333,23 @@ irgendein Feature ihn voraussetzt. Vollständiges Konzept: `docs/13-HUB-ADDON.md
       gemeldet; tote Empfänger (404/410) fliegen raus. Aus, bis `HUB_WATCH=1`
 - [ ] Wächter, Client-Seite: Push-Subscription und Benachrichtigung. **Braucht die
       Umstellung der PWA von `generateSW` auf `injectManifest`** — ein eigener Service
-      Worker ist die Voraussetzung für einen `push`-Handler, und genau an dieser Stelle
-      ist der Offline-Betrieb schon einmal gebrochen (siehe den Punkt in M6)
+      Worker ist die Voraussetzung für einen `push`-Handler.
+
+      Zweimal versucht, zweimal zurückgenommen, und der Weg ist jetzt bekannt:
+
+      1. **Die Registrierung blieb aus.** Ursache gefunden und behoben: `client:
+         { installPrompt: false }` in `nuxt.config.ts` ließ `registerPlugin`
+         `undefined`, weil das Modul sein Vorgabe-Objekt nur einsetzt, wenn `client`
+         **ganz** fehlt. Unter `generateSW` fiel es nie auf, weil dort zusätzlich ins
+         HTML gespritzt wird. `registerPlugin: true` steht jetzt fest drin.
+      2. **Offen:** mit dem eigenen Worker registriert und aktiviert er, aber
+         `navigator.serviceWorker.controller` blieb nach einem Neuladen `null` — die
+         Seite wird also nicht gesteuert und damit gäbe es keinen Offline-Betrieb.
+         Vermutlich `clientsClaim`, das `generateSW` selbst setzt. Das ist der nächste
+         Punkt, an dem eine Untersuchung ansetzt.
+
+      Abnahmekriterium bleibt: `/`, `/im-laden` und eine Einstellungs-Unterseite laden
+      **ohne Netz**. Genau dort ist der Offline-Betrieb in M6 schon einmal gebrochen.
 - [x] Geräte-Sync für Korb und Merkliste — **über den Vault, nicht über den Hub**
       (M8/ADR-007): verschlüsselt, Ziel frei wählbar, funktioniert auch ohne Hub
 - [ ] Dig teilen per Link (TTL 6 h, ToS-konform)

@@ -139,6 +139,26 @@ export default defineNuxtConfig({
       ],
     },
     client: {
+      /*
+       * Ausdrücklich `true`, und das ist kein Zierrat.
+       *
+       * Das Modul setzt seine Vorgaben so:
+       *
+       *     const client = options.client ?? { registerPlugin: true, … }
+       *     if (client.registerPlugin) addPlugin(…)
+       *
+       * Das Vorgabe-Objekt greift also nur, wenn `client` **ganz** fehlt. Steht
+       * hier auch nur ein einziger anderer Schlüssel — wie `installPrompt` —,
+       * ist `registerPlugin` `undefined`, und das Plugin, das den Service
+       * Worker registriert, wird nie hinzugefügt.
+       *
+       * Mit `generateSW` fällt das nicht auf: dort spritzt vite-plugin-pwa die
+       * Registrierung zusätzlich ins HTML, und die greift. Beim Versuch, auf
+       * `injectManifest` zu wechseln, blieb nur dieser Weg übrig — und die App
+       * war ohne Service Worker: gebaut, ausgeliefert, von niemandem
+       * registriert. Gemessen: vorher eine Registrierung, nachher null.
+       */
+      registerPlugin: true,
       // The install prompt is handled in the UI, not by the module: iOS has no
       // beforeinstallprompt at all and needs a coach mark instead (M6).
       installPrompt: false,
