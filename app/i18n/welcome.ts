@@ -83,6 +83,18 @@ const en = {
 
   alreadySetUp: 'Already set up?',
   startPage: 'To the start page',
+
+  /** The progress list itself needs a name, not just its items. */
+  setupProgress: 'Setup',
+
+  /** The names of the five setup steps, as the progress line shows them. */
+  steps: {
+    token: 'Token',
+    sync: 'Collection',
+    horizont: 'Horizon',
+    credits: 'Credits',
+    fertig: 'Done',
+  },
 }
 
 const de: typeof en = {
@@ -145,6 +157,16 @@ const de: typeof en = {
 
   alreadySetUp: 'Schon eingerichtet?',
   startPage: 'Zur Startseite',
+
+  setupProgress: 'Einrichtung',
+
+  steps: {
+    token: 'Token',
+    sync: 'Sammlung',
+    horizont: 'Horizont',
+    credits: 'Credits',
+    fertig: 'Fertig',
+  },
 }
 
 export const packs = { en, de }

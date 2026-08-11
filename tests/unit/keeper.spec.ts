@@ -21,7 +21,10 @@ const checkWatched = vi.fn()
 const revalidateHorizon = vi.fn()
 const syncState = { value: null as { collectionSyncedAt: number } | null }
 
+const expireDigs = vi.fn()
+
 vi.mock('~~/db/meta', () => ({ getSyncState: () => Promise.resolve(syncState.value) }))
+vi.mock('~~/db/expire', () => ({ expireDigs }))
 vi.mock('~~/worker/sync/library', () => ({ syncLibrary }))
 vi.mock('~~/worker/watch/check', () => ({ checkWatched }))
 vi.mock('~~/worker/horizon/build', () => ({ revalidateHorizon }))
@@ -40,6 +43,45 @@ beforeEach(() => {
   })
   checkWatched.mockReset().mockResolvedValue({ checked: 1, alerts: [{ dealer: 'x' }] })
   revalidateHorizon.mockReset().mockResolvedValue({ expanded: 3 })
+  expireDigs.mockReset().mockResolvedValue(0)
+})
+
+/**
+ * The six-hour deadline, and the two excuses it does not accept.
+ *
+ * `expireDigs` was fully written and fully tested for months and called by
+ * nothing outside its own test file, which is the failure mode these three
+ * guard against: not "does the function work" — it always did — but "does
+ * anything run it".
+ *
+ * Both cases below are the ones a plausible implementation gets wrong, because
+ * both are checks the keeper already had and it would be natural to put the
+ * new step after them. Signed out is the sharper of the two: somebody who
+ * removed their token is exactly the person who thinks their data is gone.
+ */
+describe('the six-hour deadline', () => {
+  it('runs for somebody who is signed out', async () => {
+    expireDigs.mockResolvedValue(12)
+    const result = await runKeeper({ client, username: null, now: NOW })
+
+    expect(expireDigs).toHaveBeenCalledWith(undefined, NOW)
+    expect(result.expired).toBe(12)
+  })
+
+  it('runs while a dig is in progress, because a deadline cannot be deferred', async () => {
+    busy.value = true
+    expireDigs.mockResolvedValue(7)
+    const result = await runKeeper({ client, username: 'mrtnmlchr', now: NOW })
+
+    expect(result.deferred).toBe(true)
+    expect(result.expired).toBe(7)
+  })
+
+  it('reports nothing when nothing was old enough', async () => {
+    const result = await runKeeper({ client, username: 'mrtnmlchr', now: NOW })
+
+    expect(result.expired).toBe(0)
+  })
 })
 
 describe('der Kurator', () => {
@@ -94,7 +136,10 @@ describe('der Kurator', () => {
     expect(result.did).toContain('library')
   })
 
-  it('tut nichts ohne Anmeldung', async () => {
+  // Renamed from "does nothing without a sign-in", which stopped being true
+  // when expiry moved in front of this check. It never spends a *request*
+  // without one, which is what the test was actually about.
+  it('spends no request without a sign-in', async () => {
     const result = await runKeeper({ client, username: null, now: NOW })
 
     expect(result.did).toEqual([])

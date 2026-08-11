@@ -2,6 +2,9 @@
 import { describeFormat } from '#shared/format'
 import type { Match } from '#shared/types'
 import { reasonFor } from '~/i18n/reason'
+import { useDigMessages } from '~/i18n/dig'
+
+const d = useDigMessages()
 
 const props = defineProps<{ match: Match }>()
 
@@ -78,7 +81,7 @@ const price = computed(() => {
 
     <span
       class="fid-num text-fid-sm font-medium text-fid-text"
-      :aria-label="`Barry Score ${match.score} von 100`"
+      :aria-label="d.match.score(match.score)"
     >
       {{ match.score }}
     </span>
@@ -112,7 +115,7 @@ const price = computed(() => {
         class="flex gap-1 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
         :class="verdict ? 'opacity-100' : 'opacity-0'"
         role="group"
-        aria-label="Wie war der Treffer?"
+        :aria-label="d.match.feedback"
       >
         <button
           v-for="option in VERDICTS"

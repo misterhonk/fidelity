@@ -268,6 +268,8 @@ const en = {
     inStore: 'In the shop',
     affinity: (rate: string) => `${rate} finds per thousand`,
     digHint: (matches: number, when: string) => `${matches} finds · ${when}`,
+    label: 'Commands and search',
+    search: 'Search',
   },
 
   watch: {
@@ -305,6 +307,8 @@ const en = {
       'Older than six hours — prices and conditions may no longer be shown. The finds and their reasons stay.',
     search: 'Artist or title',
     searchLabel: 'Search the collection, the wantlist and the finds',
+    finds: (n: number) => `${n} ${n === 1 ? 'find' : 'finds'}`,
+    wrong: 'Wrong pick',
   },
 
   /** Where the shop list comes from. */
@@ -367,6 +371,7 @@ const en = {
      * looks thinner than it is. */
     coverage: (scanned: string, total: string) =>
       `${scanned} of ${total} listings were read, with one record as the clue. A dig reads the whole shop and knows your collection.`,
+    shopLogo: (dealer: string) => `${dealer}, shop sign`,
   },
 
   nav: {

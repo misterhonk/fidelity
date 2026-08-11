@@ -19,23 +19,25 @@ import type { DiscogsClient } from './discogs/client'
  * of the horizon panel — a settings subpage — so the "runs on opening" it was
  * designed around almost never happened.
  *
- * **Was der Kurator nicht anfasst:**
+ * **What the keeper does not touch:**
  *
- * - Marktplatzdaten. Preise verfallen nach sechs Stunden, und zwar absichtlich
- *   (rule 4). Einen Korb nachzufragen kostet eine Anfrage pro Zeile und ist
- *   eine Entscheidung — „will ich das kaufen?" — keine Hausarbeit.
- * - Den Horizont *aufbauen*. Das sind Minuten. Auffrischen ja, bauen nein: was
- *   minutes, nobody starts unasked.
- * - Harvesting credits. One request per favourite record, and for somebody with
- *   dreihundert Favoriten ist das eine Viertelstunde.
+ * - Re-fetching marketplace data. Prices expire after six hours on purpose
+ *   (rule 4), and asking after a basket costs one request per line. That is a
+ *   decision — "do I want to buy this?" — not housekeeping. Enforcing the
+ *   deadline is a different thing from refreshing it, and the keeper does the
+ *   first: see step 0, which spends nothing and only ever removes.
+ * - *Building* the horizon. That is minutes of requests. Refreshing yes,
+ *   building no — nobody starts a quarter of an hour unasked.
+ * - Harvesting credits. One request per favourite record, which for somebody
+ *   with three hundred favourites is another quarter of an hour.
  *
  * And above all: it starts nothing while something else is running. The pacer
- * ist eine Spur (rule 3), und ein Kurator, der vierzig Anfragen davor legt,
+ * is a single lane (rule 3), and a keeper that puts forty requests into it
  * turns the next dig into an unexplained wait.
  */
 
 /**
- * Wie alt die Sammlung sein darf, bevor nachgesehen wird.
+ * How old the collection may get before the keeper looks.
  *
  * Half an hour, because the delta is one request when nothing changed and the
  * whole point is that adding a record on Discogs shows up here without anybody
@@ -55,13 +57,15 @@ export interface KeeperResult {
   stored: number
   /** Watched shops whose stock moved. */
   alerts: number
+  /** Matches whose marketplace fields were stripped for being past six hours. */
+  expired: number
 }
 
 export async function runKeeper(options: {
   client: DiscogsClient
   username: string | null
   /**
-   * „Jetzt, egal wie alt es ist."
+   * "Now, however old it is."
    *
    * The one button that reaches all of this at once. It skips the staleness
    * clocks — not the busy check: a refresh somebody pressed still has no
@@ -73,14 +77,46 @@ export async function runKeeper(options: {
 }): Promise<KeeperResult> {
   const { client, username, force = false, signal } = options
   const now = options.now ?? Date.now()
-  const result: KeeperResult = { did: [], deferred: false, stored: 0, alerts: 0 }
+  const result: KeeperResult = { did: [], deferred: false, stored: 0, alerts: 0, expired: 0 }
+
+  /*
+   * 0 — the six-hour deadline (rule 4).
+   *
+   * Above every other consideration in this function, and deliberately above
+   * all three of the early returns below it, because none of them applies to a
+   * deadline. It costs no request, so the pacer does not care. It touches only
+   * digs already past `expiresAt`, so a running dig — six hours in the future
+   * by construction — cannot be caught by it, and there is nothing to defer to.
+   * And it must run for somebody signed *out*: whoever removed their token
+   * still has yesterday's prices sitting on the device, and "I am not signed
+   * in" was never an exemption from the terms we display them under.
+   *
+   * Until now this was the one rule enforced only at render time. Every screen
+   * checks the age before showing a price — dig, in-store, the home summary,
+   * the basket line by line, and the optimiser skips what has expired — so
+   * nothing stale was ever displayed. But the data stayed on disk indefinitely,
+   * while `expireDigs` sat next to it fully tested, described in its own
+   * comment as running "at app start and hourly", and called by nothing except
+   * its tests. A green test for code that never runs is worse than no test: it
+   * reads like a guarantee.
+   *
+   * Now the comment is true. Hiding a price is the obligation; removing it is
+   * the point.
+   */
+  try {
+    const { expireDigs } = await import('~~/db/expire')
+    result.expired = await expireDigs(undefined, now)
+  } catch {
+    // Storage that will not open is its own error elsewhere, and loudly. It is
+    // not this function's job to be the second place that says so.
+  }
 
   if (!username) return result
   if (isForegroundBusy()) return { ...result, deferred: true }
 
   /*
-   * 1 — die Sammlung. Zuerst, weil sie am billigsten ist und am meisten sagt:
-   * alles andere in der App wird daran gemessen, was im Regal steht.
+   * 1 — the collection. First, because it is the cheapest and says the most:
+   * everything else in the app is measured against what is on the shelf.
    */
   const syncState = await getSyncState()
   if (force || (syncState?.collectionSyncedAt ?? 0) < now - LIBRARY_STALE_MS) {
@@ -97,7 +133,7 @@ export async function runKeeper(options: {
 
   /*
    * 2 — the watched shops. One request per shop, hourly at most, and
-   * das entscheidet `watch.check` selbst.
+   * `watch.check` decides that for itself.
    */
   if (!isForegroundBusy()) {
     try {
@@ -116,9 +152,8 @@ export async function runKeeper(options: {
   }
 
   /*
-   * 3 — der Horizont, in Tagesrationen. Zuletzt, weil er von den dreien am
-   * meisten kostet und am wenigsten dringend ist: ein Eintrag, der einen Tag
-   * older is still correct.
+   * 3 — the horizon, in daily rations. Last, because it costs the most of the
+   * three and is the least urgent: an entry a day older is still correct.
    */
   if (!isForegroundBusy()) {
     try {

@@ -175,7 +175,7 @@ const number = (value: string) => {
           v-model="shipsTo"
           type="text"
           autocomplete="country-name"
-          placeholder="Germany"
+          :placeholder="f.countryPlaceholder"
           class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
         />
         <span class="text-fid-xs text-fid-text-muted">{{ f.shipsToHint }}</span>

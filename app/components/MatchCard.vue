@@ -3,6 +3,9 @@ import { describeFormat } from '#shared/format'
 import type { Match } from '#shared/types'
 import { reasonFor } from '~/i18n/reason'
 import { pressingText } from '~/i18n/pressing'
+import { useDigMessages } from '~/i18n/dig'
+
+const d = useDigMessages()
 
 const props = defineProps<{ match: Match }>()
 
@@ -25,10 +28,10 @@ const root = useTemplateRef<HTMLElement>('root')
 onMounted(() => watchCover(root.value, props.match.releaseId))
 
 const band = computed(() => {
-  if (props.match.score >= 85) return { key: 'S', label: 'Side One, Track One' }
-  if (props.match.score >= 70) return { key: 'A', label: 'Top Five' }
-  if (props.match.score >= 50) return { key: 'B', label: 'Solide' }
-  return { key: 'C', label: 'Randnotiz' }
+  if (props.match.score >= 85) return { key: 'S', label: d.value.match.band.S }
+  if (props.match.score >= 70) return { key: 'A', label: d.value.match.band.A }
+  if (props.match.score >= 50) return { key: 'B', label: d.value.match.band.B }
+  return { key: 'C', label: d.value.match.band.C }
 })
 
 const price = computed(() => {
@@ -119,7 +122,7 @@ const meta = computed(() => {
       <div
         class="flex shrink-0 flex-col items-center"
         role="img"
-        :aria-label="`Barry Score ${match.score} von 100 – ${band.label}`"
+        :aria-label="d.match.scoreBand(match.score, band.label)"
       >
         <span class="fid-num text-fid-xl font-bold text-fid-text">{{ match.score }}</span>
         <span class="text-fid-xs text-fid-text-muted">{{ band.key }}</span>
@@ -202,7 +205,7 @@ const meta = computed(() => {
           {{ contains(match.listingId) ? 'Im Korb' : 'In den Korb' }}
         </button>
 
-        <div class="flex gap-1" role="group" aria-label="Wie war der Treffer?">
+        <div class="flex gap-1" role="group" :aria-label="d.match.feedback">
           <button
             v-for="option in VERDICTS"
             :key="option.key"

@@ -223,7 +223,7 @@ async function check() {
         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h2 class="text-fid-base font-bold text-fid-text">
             <template v-if="group.dealer">{{ group.dealer }}</template>
-            <template v-else>Ohne Laden</template>
+            <template v-else>{{ b.noDealer }}</template>
             <span class="fid-num ml-2 text-fid-sm font-normal text-fid-text-muted">
               {{ group.records.length }}
             </span>
@@ -326,7 +326,7 @@ async function check() {
               <button
                 type="button"
                 class="fid-action text-fid-text-muted underline underline-offset-4"
-                :aria-label="`${label(record)} von der Merkliste nehmen`"
+                :aria-label="b.forget(label(record))"
                 @click="forget(record)"
               >
                 vergessen

@@ -44,7 +44,16 @@ export async function addToBasket(match: Match, dealer: string, now: number): Pr
     releaseId: match.releaseId,
     // Stored, not referenced: a dig ages out after five newer ones and the
     // basket has to survive that.
-    title: [match.artist, match.title].filter(Boolean).join(' – ') || 'Unbekannt',
+    /*
+     * Empty rather than a word, because the worker has no language.
+     *
+     * This used to store the literal 'Unbekannt', which then sat in the
+     * database and was rendered as-is to an English reader — a German word
+     * that no language switch could reach, because by then it was data. The
+     * interface says what an empty title means (`basket.unknownRecord`), the
+     * same way it now writes the reason sentence rather than the worker.
+     */
+    title: [match.artist, match.title].filter(Boolean).join(' – '),
     price: match.price ?? 0,
     currency: match.currency ?? '',
     addedAt: now,

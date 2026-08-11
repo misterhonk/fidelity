@@ -211,7 +211,7 @@ function shapeOf(format: string | null) {
             <img
               v-if="DEALER_LOGOS[seed.dealer]"
               :src="DEALER_LOGOS[seed.dealer]"
-              :alt="`Laden ${seed.dealer}`"
+              :alt="m.demo.shopLogo(seed.dealer)"
               loading="lazy"
               decoding="async"
               class="absolute right-1.5 bottom-1.5 size-8 rounded-full ring-2 ring-fid-bg/80 bg-fid-inset object-cover"

@@ -168,7 +168,7 @@ function onKeydown(event: KeyboardEvent) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Befehle und Suche"
+      :aria-label="messages.palette.label"
       class="flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-fid-md border border-fid-border bg-fid-surface shadow-2xl"
     >
       <div class="flex items-center gap-3 border-b border-fid-border px-4">
@@ -180,7 +180,7 @@ function onKeydown(event: KeyboardEvent) {
           autocomplete="off"
           spellcheck="false"
           :placeholder="messages.palette.placeholder"
-          aria-label="Suchen"
+          :aria-label="messages.palette.search"
           class="grow bg-transparent py-3 text-fid-base text-fid-text outline-none"
           @keydown="onKeydown"
         />

@@ -2,6 +2,9 @@
 import type { MatchDetail } from '#shared/types'
 import { reasonFor } from '~/i18n/reason'
 import { pressingText } from '~/i18n/pressing'
+import { useDigMessages } from '~/i18n/dig'
+
+const d = useDigMessages()
 
 const m = useMessages()
 const props = defineProps<{ digId: string; listingId: number }>()
@@ -188,7 +191,7 @@ function onKeydown(event: KeyboardEvent) {
           </div>
           <span
             class="fid-num shrink-0 text-fid-xl font-bold text-fid-text"
-            :aria-label="`Barry Score ${match.score} von 100`"
+            :aria-label="d.match.score(match.score)"
           >
             {{ match.score }}
           </span>
@@ -337,7 +340,7 @@ function onKeydown(event: KeyboardEvent) {
         </section>
 
         <div class="mt-auto flex flex-wrap items-center justify-between gap-3 pt-4">
-          <div class="flex gap-1" role="group" aria-label="Wie war der Treffer?">
+          <div class="flex gap-1" role="group" :aria-label="d.match.feedback">
             <button
               v-for="option in VERDICTS"
               :key="option.key"

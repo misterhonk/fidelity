@@ -204,6 +204,8 @@ const de: Messages = {
     inStore: 'Im Laden',
     affinity: (rate) => `${rate} Treffer je tausend`,
     digHint: (matches, when) => `${matches} Treffer · ${when}`,
+    label: 'Befehle und Suche',
+    search: 'Suchen',
   },
 
   watch: {
@@ -236,6 +238,8 @@ const de: Messages = {
       'Älter als sechs Stunden – Preise und Zustände dürfen nicht mehr angezeigt werden. Die Treffer und ihre Begründungen stehen weiter.',
     search: 'Künstler oder Titel',
     searchLabel: 'Sammlung, Wantlist und die Fundliste durchsuchen',
+    finds: (n: number) => `${n} Treffer`,
+    wrong: 'Danebengegriffen',
   },
 
   discovery: {
@@ -288,6 +292,7 @@ const de: Messages = {
       'In diesem Ausschnitt lag nichts, das dazu passt. Das kommt vor: eine Platte allein ist ein dünner Anhaltspunkt, und gelesen wurde nur ein Teil des Ladens. Mit deiner Sammlung sieht das anders aus.',
     coverage: (scanned, total) =>
       `Gelesen wurden ${scanned} der ${total} Angebote, mit einer Platte als Anhaltspunkt. Ein Dig liest den ganzen Laden und kennt deine Sammlung.`,
+    shopLogo: (dealer: string) => `${dealer}, Ladenschild`,
   },
 
   nav: {

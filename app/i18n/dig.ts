@@ -114,6 +114,41 @@ const en = {
       artist: { label: 'Artist', about: 'Alphabetical' },
     },
   },
+
+  /**
+   * What a match says out loud.
+   *
+   * Almost none of this is visible: it is the accessible names on the score
+   * badge, the feedback buttons and the list itself. Which is exactly why it
+   * was still in German after the whole interface had been translated — a
+   * screen reader was the only thing reading it, and nothing that reads a
+   * screen reader was in the test suite. `tests/e2e/populated.spec.ts` is.
+   *
+   * In the dig pack rather than the shell, because a match card only ever
+   * appears on a screen that has already loaded this chunk, and the first
+   * paint has 2 kB of headroom, not 20.
+   */
+  match: {
+    /*
+     * The bands are named, not numbered, and two of the four names are
+     * quotations — a record shop's own vocabulary for how much it matters, as
+     * a nod to the novel this app is named after. They stay English in both
+     * packs on purpose: "Side One, Track One" translated is just a sentence
+     * about a groove. The lower two were never quotations, so they translate.
+     */
+    band: {
+      S: 'Side One, Track One',
+      A: 'Top Five',
+      B: 'Solid',
+      C: 'Footnote',
+    },
+    score: (score: number) => `Barry Score ${score} out of 100`,
+    scoreBand: (score: number, band: string) => `Barry Score ${score} out of 100 – ${band}`,
+    feedback: 'How was this find?',
+    allFinds: 'All finds',
+    inBasket: 'Add to basket',
+    outOfBasket: 'Take out of the basket',
+  },
 }
 
 const de: typeof en = {
@@ -202,6 +237,21 @@ const de: typeof en = {
       year: { label: 'Jahr ↓', about: 'Neueste zuerst' },
       artist: { label: 'Künstler', about: 'Alphabetisch' },
     },
+  },
+
+  match: {
+    band: {
+      S: 'Side One, Track One',
+      A: 'Top Five',
+      B: 'Solide',
+      C: 'Randnotiz',
+    },
+    score: (score: number) => `Barry Score ${score} von 100`,
+    scoreBand: (score: number, band: string) => `Barry Score ${score} von 100 – ${band}`,
+    feedback: 'Wie war der Treffer?',
+    allFinds: 'Alle Treffer',
+    inBasket: 'In den Korb',
+    outOfBasket: 'Aus dem Korb nehmen',
   },
 }
 

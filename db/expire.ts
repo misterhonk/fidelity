@@ -21,9 +21,17 @@ export function stripMarketplaceData(match: Match): Match {
 }
 
 /**
- * Enforces the six-hour rule. Runs at app start and hourly while the app is
- * open — the only place the ToS deadline is actually applied, so it has to be
- * boring and total: it processes every expired dig, not a sample.
+ * Removes marketplace data that is past six hours (rule 4).
+ *
+ * Called by the keeper, on arrival and every twenty minutes after — before its
+ * own sign-in and busy checks, because a deadline does not wait for either.
+ *
+ * It is not what *keeps* stale prices off the screen; every surface that shows
+ * one checks the age itself, which is the part that has to be right even if
+ * this never ran. This is the second line: hiding a price satisfies the terms,
+ * deleting it is what we would want done with ours. Which is why it is total
+ * rather than sampled — a function that skips some of them would leave exactly
+ * the impression it is meant to remove.
  */
 export async function expireDigs(
   db?: FidelityDatabase,

@@ -160,6 +160,20 @@ them per milestone makes scores incomparable over time.
 - 20,000 synthetic listings have to be scored in under 250 ms.
 - `pnpm size` holds the bundle budget.
 
+**Screens with something on them are tested too.** `tests/e2e/seed.ts` writes a used
+device straight into IndexedDB — an identity, a collection, a dig with matches, a basket
+with two lines — so a browser test can render the find list, the basket and the shelf
+without a token and without a single request. Before it existed the whole browser suite
+ran signed out, on empty screens, and the first thing it found when it stopped doing that
+was twenty-odd `aria-label`s still in German.
+
+Which is the other rule: **an accessible name comes from a message pack, never from a
+literal in a template.** `tests/unit/accessible-names.spec.ts` refuses the literal. Not
+because a literal is always wrong — because "is this still German?" is a question a person
+has to remember to ask about a string they cannot see, and "is this bound?" is one a
+machine asks every time. URLs and things with no letters in them are allowed through; they
+are examples of input, not prose.
+
 **Anything a user reads is tested in both languages.** Not for thoroughness: a phrase that
 exists in one pack and not the other is invisible in whichever language you happen to be
 testing in. The reason sentences, the pressing warnings and the demo examples all run

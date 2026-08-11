@@ -26,7 +26,15 @@ import { counted } from '~/utils/plural'
 const en = {
   appearance: {
     title: 'Appearance',
-    hint: 'Light or dark, and in which type',
+    /*
+     * The language is named first, and it is named at all, because the person
+     * who commissioned the switch could not find it. The picker is the top
+     * section of this page — but this line used to read "light or dark, and in
+     * which type", which sounds like a complete list, so nobody looking for a
+     * language had any reason to open it. A row that enumerates what is behind
+     * it has to enumerate all of it.
+     */
+    hint: 'Language, light or dark, and in which type',
 
     theme: {
       title: 'Theme',
@@ -208,6 +216,7 @@ const en = {
         'Whether a record is a reissue is something Discogs only says in the per-record lookup — and that runs after the scan, over the best fifty. So discarding could not discard anything.',
 
       saved: 'Saved. Applies from the next dig.',
+      countryPlaceholder: 'Germany',
     },
 
     dealers: {
@@ -465,13 +474,27 @@ const en = {
       ],
     },
   ],
+
+  /**
+   * The end of the manual.
+   *
+   * Was hardcoded German in the page itself, and one of its sentences had been
+   * half-translated into "wie eine Punktzahl comes about" — a clause that is a
+   * sentence in neither language. Prose belongs in a pack for exactly this
+   * reason: a string nobody can see from here is a string nobody proofreads.
+   */
+  closing: {
+    title: 'Still a question open?',
+    body: 'Fidelity is open to read — how it calculates is in the code, and why it calculates that way is in the documents beside it. Anyone who wants to know exactly how a score comes about will find it written down there in full.',
+    disclaimer: 'This application uses the Discogs API but is not connected with Discogs.',
+  },
 }
 
 /** Same shape, enforced. A missing key here is a build error, as everywhere. */
 const de: typeof en = {
   appearance: {
     title: 'Darstellung',
-    hint: 'Hell oder dunkel, und in welcher Schrift',
+    hint: 'Sprache, hell oder dunkel, und in welcher Schrift',
 
     theme: {
       title: 'Thema',
@@ -622,6 +645,7 @@ const de: typeof en = {
         'Ob eine Platte eine Neuauflage ist, weiß Discogs erst in der Einzelabfrage – und die läuft erst nach dem Scan über die besten 50. Verwerfen könnte sie also nichts.',
 
       saved: 'Gespeichert. Gilt ab dem nächsten Dig.',
+      countryPlaceholder: 'Deutschland',
     },
 
     dealers: {
@@ -844,6 +868,13 @@ const de: typeof en = {
       ],
     },
   ],
+
+  closing: {
+    title: 'Noch eine Frage offen?',
+    body: 'Fidelity ist quelloffen einsehbar – wie es rechnet, steht im Code, und warum es so rechnet, in den Unterlagen daneben. Wer genauer wissen will, wie eine Punktzahl zustande kommt, findet es dort vollständig aufgeschrieben.',
+    disclaimer:
+      'Diese Anwendung nutzt die Discogs-API, steht aber in keiner Verbindung zu Discogs.',
+  },
 }
 
 export const packs = { en, de }

@@ -3,6 +3,9 @@ import { useVirtualizer } from '@tanstack/vue-virtual'
 
 import type { Match } from '#shared/types'
 import type { Density } from '~/utils/digview'
+import { useDigMessages } from '~/i18n/dig'
+
+const d = useDigMessages()
 
 const props = defineProps<{ matches: Match[]; density: Density }>()
 
@@ -126,7 +129,7 @@ const gridStyle = computed(() => ({
     style="scrollbar-gutter: stable"
     tabindex="0"
     role="region"
-    aria-label="Alle Treffer"
+    :aria-label="d.match.allFinds"
   >
     <ul class="relative w-full" :style="{ height: `${rows.getTotalSize()}px` }">
       <li

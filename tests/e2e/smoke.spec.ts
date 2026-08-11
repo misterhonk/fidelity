@@ -59,12 +59,22 @@ test.describe('smoke', () => {
     await expect(page.getByRole('button', { name: 'Sign in' })).toBeDisabled()
   })
 
+  /*
+   * The English names are written out here rather than read from the pack.
+   *
+   * Not an oversight and not laziness: importing `app/i18n` into a Playwright
+   * spec drags Nuxt's auto-imports into a TypeScript project that has none, so
+   * the choice is a literal or an untypechecked test file. A literal is the
+   * better half of that trade — this suite is about what somebody sees in the
+   * default language, and `tests/unit/naming.spec.ts` already holds the two
+   * packs and the screens to each other in both languages.
+   */
   test('the setup shows which step is running', async ({ page }) => {
     await page.goto('/welcome')
 
     // The rail belongs to the setup, not to the page somebody lands on: an
     // extra dot for the demo would say it is something to get through.
-    await expect(page.getByRole('list', { name: 'Einrichtung' })).toHaveCount(0)
+    await expect(page.getByRole('list', { name: 'Setup' })).toHaveCount(0)
     await page.getByRole('button', { name: /Set it up/ }).click()
 
     /*
@@ -76,7 +86,7 @@ test.describe('smoke', () => {
      * matcher that knows only the artists they already own by name. They are
      * steps now, and both can be walked past in one click.
      */
-    const steps = page.getByRole('list', { name: 'Einrichtung' }).getByRole('listitem')
+    const steps = page.getByRole('list', { name: 'Setup' }).getByRole('listitem')
     await expect(steps).toHaveCount(5)
 
     // The first is current before anything has been entered, and the ones
@@ -205,10 +215,10 @@ test.describe('accessibility', () => {
     await expect(page.locator('main')).toBeVisible()
 
     await page.keyboard.press('ControlOrMeta+k')
-    const dialog = page.getByRole('dialog', { name: 'Befehle und Suche' })
+    const dialog = page.getByRole('dialog', { name: 'Commands and search' })
     await expect(dialog).toBeVisible()
     // The input owns every key, so focus has to land there by itself.
-    await expect(page.locator(':focus')).toHaveAttribute('aria-label', 'Suchen')
+    await expect(page.locator(':focus')).toHaveAttribute('aria-label', 'Search')
 
     await page.keyboard.press('Escape')
     await expect(dialog).toBeHidden()

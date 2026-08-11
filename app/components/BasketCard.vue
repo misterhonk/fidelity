@@ -91,8 +91,10 @@ async function checkStock() {
     const sold = props.summary.lines.filter((line) => line.sold).length
     checkResult.value =
       sold === 0
-        ? `Alles noch da – ${count(before)} ${before === 1 ? 'Platte' : 'Platten'}, Preise wieder aktuell.`
-        : `${count(sold)} inzwischen verkauft. Der Rest ist wieder aktuell.`
+        ? b.value.allStillThere(
+            plural(before, count(before) + ' Platte', count(before) + ' Platten'),
+          )
+        : b.value.someSold(count(sold))
   } catch (cause) {
     error.value = cause
   } finally {
@@ -199,7 +201,8 @@ const peak = computed(() =>
             :disabled="checking"
             @click="checkStock()"
           >
-            Noch da?<template v-if="stillToCheck > 0">
+            {{ b.stillThere
+            }}<template v-if="stillToCheck > 0">
               <span class="fid-num"> ({{ stillToCheck }})</span></template
             >
           </button>
@@ -212,7 +215,7 @@ const peak = computed(() =>
             class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
             @click="clearThisOne()"
           >
-            Diesen Korb leeren
+            {{ b.clearThis }}
           </button>
         </div>
       </div>
@@ -289,13 +292,13 @@ const peak = computed(() =>
               :href="`https://www.discogs.com/sell/item/${line.listingId}`"
               target="_blank"
               rel="noopener noreferrer"
-              >{{ line.title }}</a
+              >{{ line.title || b.unknownRecord }}</a
             >
             <span
               v-else
               class="min-w-0 grow basis-full text-fid-sm text-fid-text-muted line-through @sm:basis-auto"
             >
-              {{ line.title }}
+              {{ line.title || b.unknownRecord }}
             </span>
             <!--
             Sold. Shown rather than deleted — that removal is the collector's
@@ -319,7 +322,7 @@ const peak = computed(() =>
             <button
               type="button"
               class="fid-action shrink-0 text-fid-xs text-fid-text-muted underline underline-offset-4"
-              :aria-label="b.line.remove(line.title)"
+              :aria-label="b.line.remove(line.title || b.unknownRecord)"
               @click="remove(line.listingId)"
             >
               {{ b.line.removeShort }}
@@ -470,13 +473,13 @@ const peak = computed(() =>
           class="w-16 rounded-fid-sm border border-fid-border bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
         />
         <span class="text-fid-sm text-fid-text-muted">bis</span>
-        <label class="sr-only" :for="`to-${index}`">bis wie vielen Platten</label>
+        <label class="sr-only" :for="`to-${index}`">{{ b.tiersTo }}</label>
         <input
           :id="`to-${index}`"
           :value="row.maxItems ?? ''"
           type="number"
           min="1"
-          placeholder="offen"
+          :placeholder="b.tiersOpen"
           class="w-16 rounded-fid-sm border border-fid-border bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
           @input="
             row.maxItems =

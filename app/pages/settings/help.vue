@@ -28,15 +28,9 @@ useSeoMeta({ title: () => st.value.help.title })
       </section>
 
       <section class="flex flex-col gap-2 border-t border-fid-border pt-6">
-        <h2 class="text-fid-base font-medium text-fid-text">Noch eine Frage offen?</h2>
-        <p class="max-w-prose text-fid-sm text-fid-text-muted">
-          Fidelity ist quelloffen einsehbar – wie es rechnet, steht im Code, und warum es so
-          rechnet, in den Unterlagen daneben. Wer genauer wissen will, wie eine Punktzahl comes
-          about will find it written down there in full.
-        </p>
-        <p class="text-fid-xs text-fid-text-muted">
-          Diese Anwendung nutzt die Discogs-API, steht aber in keiner Verbindung zu Discogs.
-        </p>
+        <h2 class="text-fid-base font-medium text-fid-text">{{ st.closing.title }}</h2>
+        <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ st.closing.body }}</p>
+        <p class="text-fid-xs text-fid-text-muted">{{ st.closing.disclaimer }}</p>
       </section>
     </div>
   </SettingsPage>

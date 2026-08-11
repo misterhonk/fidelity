@@ -52,13 +52,7 @@ const stepIndex = computed(() => STEPS.indexOf(step.value))
  * template needs no cast — a `<` inside a template expression reads as an
  * opening tag to the formatter, which is a strange way to lose a build.
  */
-const STEP_LABEL: Partial<Record<Step, string>> = {
-  token: 'Token',
-  sync: 'Sammlung',
-  horizont: 'Horizont',
-  credits: 'Credits',
-  fertig: 'Fertig',
-}
+const STEP_LABEL = computed<Partial<Record<Step, string>>>(() => w.value.steps)
 
 const syncing = ref(false)
 const progress = ref<SyncProgress | null>(null)
@@ -148,7 +142,7 @@ const CAN_DO = computed(
       information and takes no words, and the labels underneath say what the
       steps are, which a number never does.
     -->
-    <ol v-if="step !== 'start'" class="flex gap-2" aria-label="Einrichtung">
+    <ol v-if="step !== 'start'" class="flex gap-2" :aria-label="w.setupProgress">
       <li
         v-for="(name, index) in STEPS"
         :key="name"

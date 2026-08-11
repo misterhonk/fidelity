@@ -2,6 +2,9 @@
 import type { DigWithMatches } from '#shared/protocol'
 import type { ShelfHit, ShelfResult } from '#shared/types'
 import { reasonFor } from '~/i18n/reason'
+import { useDigMessages } from '~/i18n/dig'
+
+const d = useDigMessages()
 
 const m = useMessages()
 useSeoMeta({
@@ -127,7 +130,7 @@ const expired = computed(() => {
       <p v-if="result" class="text-fid-sm text-fid-text-muted">
         {{ result.dig.dealer }} ·
         <span class="fid-num">{{ result.matches.length }}</span>
-        {{ plural(result.matches.length, 'Treffer', 'Treffer')
+        {{ m.inStore.finds(result.matches.length)
         }}<template v-if="!online"> · {{ m.inStore.offline }}</template>
       </p>
 
@@ -255,7 +258,7 @@ const expired = computed(() => {
         >
           <span
             class="fid-num w-10 shrink-0 text-center text-fid-xl font-bold text-fid-text"
-            :aria-label="`Barry Score ${match.score} von 100`"
+            :aria-label="d.match.score(match.score)"
           >
             {{ match.score }}
           </span>
@@ -289,7 +292,7 @@ const expired = computed(() => {
           <button
             type="button"
             :aria-pressed="contains(match.listingId)"
-            :aria-label="contains(match.listingId) ? 'Aus dem Korb nehmen' : 'In den Korb'"
+            :aria-label="contains(match.listingId) ? d.match.outOfBasket : d.match.inBasket"
             class="size-11 shrink-0 rounded-fid-sm border text-fid-xl"
             :class="
               contains(match.listingId)
@@ -304,7 +307,7 @@ const expired = computed(() => {
           <button
             type="button"
             :aria-pressed="verdicts[match.listingId] === 'wrong'"
-            aria-label="Danebengegriffen"
+            :aria-label="m.inStore.wrong"
             class="size-11 shrink-0 rounded-fid-sm border text-fid-xl"
             :class="
               verdicts[match.listingId] === 'wrong'

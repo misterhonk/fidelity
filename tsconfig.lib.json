@@ -5,6 +5,14 @@
   //
   // WebWorker is in `lib` alongside DOM because db/ is imported from both the
   // main thread and the worker.
+  //
+  // `tests/e2e` is here for a reason worth stating: until 2026-08-11 it was in
+  // no project at all, so nothing typechecked the browser suite. That was
+  // harmless while those tests only clicked and read text — and stopped being
+  // harmless the moment one of them started building `Dig` and `Match` objects
+  // to seed the database with. A fixture whose shape is not checked drifts away
+  // from the type it imitates, silently, and then tests a screen against data
+  // the app can no longer produce. Adding it cost one line and zero errors.
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
@@ -23,5 +31,5 @@
       "~~/*": ["./*"]
     }
   },
-  "include": ["db/**/*", "worker/**/*", "shared/**/*"]
+  "include": ["db/**/*", "worker/**/*", "shared/**/*", "tests/e2e/**/*"]
 }

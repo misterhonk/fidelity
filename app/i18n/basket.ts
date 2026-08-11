@@ -132,6 +132,23 @@ const en = {
   toBuy: (records: number) =>
     `To buy: every line above leads to its listing at Discogs, where the "Add to Cart" button is. ${counted(records, 'record is', 'records are')} ready.`,
   viewAtDiscogs: (dealer: string) => `View ${dealer} at Discogs`,
+
+  /*
+   * Written after `tests/e2e/populated.spec.ts` rendered a basket with two
+   * lines in it for the first time and found all of this still in German. It
+   * only ever appears once something is in the basket, which is why an
+   * interface-wide translation walked straight past it.
+   */
+  stillThere: 'Still there?',
+  clearThis: 'Empty this basket',
+  tiersTo: 'to how many records',
+  tiersOpen: 'open',
+  allStillThere: (records: string) => `All still there – ${records}, prices current again.`,
+  someSold: (sold: string) => `${sold} sold in the meantime. The rest is current again.`,
+  noDealer: 'No shop',
+  forget: (record: string) => `Take ${record} off the saved list`,
+  /** For a line whose record has no title left — see worker/basket. */
+  unknownRecord: 'Unknown record',
 }
 
 const de: typeof en = {
@@ -237,6 +254,16 @@ const de: typeof en = {
   toBuy: (records) =>
     `Zum Kaufen: jede Zeile oben führt zu ihrem Angebot bei Discogs, dort sitzt der „Add to Cart"-Knopf. ${counted(records, 'Platte liegt', 'Platten liegen')} bereit.`,
   viewAtDiscogs: (dealer) => `${dealer} bei Discogs ansehen`,
+
+  stillThere: 'Noch da?',
+  clearThis: 'Diesen Korb leeren',
+  tiersTo: 'bis wie vielen Platten',
+  tiersOpen: 'offen',
+  allStillThere: (records) => `Alles noch da – ${records}, Preise wieder aktuell.`,
+  someSold: (sold) => `${sold} inzwischen verkauft. Der Rest ist wieder aktuell.`,
+  noDealer: 'Ohne Laden',
+  forget: (record) => `${record} von der Merkliste nehmen`,
+  unknownRecord: 'Unbekannte Platte',
 }
 
 export const packs = { en, de }
