@@ -96,6 +96,23 @@ export default defineNuxtConfig({
     baseURL: base,
 
     head: {
+      /*
+       * Ein Titel, der schon im ausgelieferten HTML steht.
+       *
+       * Es gab keinen: der Titel wurde ausschließlich zur Laufzeit gesetzt, und
+       * das vorgerenderte HTML trug kein `<title>`-Element — gemessen am
+       * 2026-08-11 gegen den lokalen Build *und* gegen die ausgelieferte Seite.
+       *
+       * Zwei Dinge lesen aber genau dieses statische HTML: „Zum
+       * Home-Bildschirm" und jeder Link-Vorschau-Dienst. Safari nahm deshalb
+       * den Titel, den die App im Moment des Hinzufügens gerade trug —
+       * „Willkommen · Fidelity", weil die Willkommensseite offen war.
+       *
+       * Die Seiten überschreiben ihn zur Laufzeit weiterhin; dies ist der
+       * Stand, bevor eine davon dazu kommt.
+       */
+      title: SHARE.title,
+
       meta: [
         // Nothing here is meant for a search index (docs/00 §9). robots.txt
         // asks politely; this is the part crawlers actually honour.
