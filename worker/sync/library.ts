@@ -48,7 +48,7 @@ function toItem(
   info: BasicInformation,
   dateAdded: string,
   rating: number,
-): CollectionItem {
+): Omit<CollectionItem, 'instanceId' | 'folderId'> {
   const artists = info.artists ?? []
   const labels = info.labels ?? []
 
@@ -182,7 +182,14 @@ export async function syncCollection(context: SyncContext): Promise<SyncSummary>
     rows: (page) =>
       page.releases.map((row) => ({
         dateAdded: row.date_added,
-        item: toItem(row.id, row.basic_information, row.date_added, row.rating ?? 0),
+        item: {
+          ...toItem(row.id, row.basic_information, row.date_added, row.rating ?? 0),
+          // Missing on an older sync, and on a shared folder Discogs does not
+          // name. Zero is "cannot be written to", not "folder zero" — folder 0
+          // is the virtual "All" and is not a valid target for a write.
+          instanceId: row.instance_id ?? 0,
+          folderId: row.folder_id ?? 0,
+        },
       })),
     write: async (items) => {
       const tx = db.transaction('collection', 'readwrite')

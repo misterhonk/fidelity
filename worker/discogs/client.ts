@@ -44,6 +44,30 @@ export interface RequestOptions {
   signal?: AbortSignal
 }
 
+export type WriteMethod = 'POST' | 'PUT' | 'DELETE'
+
+export interface WriteOptions extends RequestOptions {
+  /** Sent as JSON. Left out entirely when absent — not as `null`. */
+  body?: unknown
+  /**
+   * Whether sending this twice is the same as sending it once.
+   *
+   * The single most consequential flag in this file, because of how a failure
+   * looks from a browser. Discogs' 429 arrives through Cloudflare without a
+   * CORS header, and so does a 404 on some paths (both measured, docs/02) —
+   * either way `fetch()` rejects with nothing to read. "It worked and the
+   * answer never came back" and "it never arrived" are the same event here.
+   *
+   * Setting a rating, writing a field value, deleting an entry: sending those
+   * again changes nothing, so they may be retried. Adding a record to the
+   * collection files a *new* entry every time — retrying that quietly puts
+   * the same record in the shelf twice, and nobody would connect the
+   * duplicate to a network blip weeks earlier. Those must be looked up
+   * instead: `GET /users/{u}/collection/releases/{r}` says whether it landed.
+   */
+  idempotent: boolean
+}
+
 const defaultSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
 export class DiscogsClient {
@@ -69,11 +93,27 @@ export class DiscogsClient {
    * schema here and nowhere else — past this point the data is ours and typed.
    */
   async get<T>(path: string, schema: z.ZodType<T>, options: RequestOptions = {}): Promise<T> {
-    const body = await this.#request(path, options)
+    const body = await this.#request(path, { ...options, idempotent: true })
     return schema.parse(body)
   }
 
-  async #request(path: string, { query, signal }: RequestOptions): Promise<unknown> {
+  /**
+   * One write, through the same single slot as every read.
+   *
+   * A write is not cheaper than a read and Discogs counts it the same way, so
+   * it queues behind the same pacer and the same cross-tab lock (rule 3).
+   * Answers are usually empty — a rating comes back 204 — so the body is
+   * `null` more often than not, and a schema is optional rather than assumed.
+   */
+  async write(method: WriteMethod, path: string, options: WriteOptions): Promise<unknown> {
+    return this.#request(path, options, method)
+  }
+
+  async #request(
+    path: string,
+    { query, signal, body: payload, idempotent }: WriteOptions,
+    method: WriteMethod | 'GET' = 'GET',
+  ): Promise<unknown> {
     const url = new URL(path, this.#options.baseUrl)
     for (const [key, value] of Object.entries(query ?? {})) {
       if (value !== undefined) url.searchParams.set(key, String(value))
@@ -84,10 +124,18 @@ export class DiscogsClient {
     for (let attempt = 0; ; attempt++) {
       let response: Response
       try {
-        response = await this.#options.pacer.run(() => this.#send(url, signal), signal)
+        response = await this.#options.pacer.run(
+          () => this.#send(url, { signal, method, payload }),
+          signal,
+        )
       } catch (error) {
         const opaque = error instanceof DiscogsError && error.status === 0 && !signal?.aborted
         if (!opaque) throw error
+
+        // See WriteOptions.idempotent: repeating this one could do the work
+        // twice, and from here there is no way to tell whether it already
+        // happened. The caller has to go and look.
+        if (!idempotent) throw error
 
         // A blip deserves a quick second try.
         if (networkAttempt < NETWORK_RETRY_MS.length) {
@@ -132,14 +180,23 @@ export class DiscogsClient {
     }
   }
 
-  async #send(url: URL, signal?: AbortSignal): Promise<Response> {
+  async #send(
+    url: URL,
+    { signal, method, payload }: { signal?: AbortSignal; method: string; payload?: unknown },
+  ): Promise<Response> {
     const token = await this.#options.getToken()
     const send = this.#options.fetchImpl
 
     try {
       return await send(url, {
         signal,
+        method,
+        // A JSON content type is what makes the browser ask permission first.
+        // Discogs answers that preflight (measured 2026-08-11, docs/02) —
+        // which is the only reason writing from a client app is possible.
+        ...(payload === undefined ? {} : { body: JSON.stringify(payload) }),
         headers: {
+          ...(payload === undefined ? {} : { 'Content-Type': 'application/json' }),
           Accept: 'application/json',
           // Header, never the query string. Passing credentials as query
           // parameters historically got you 25 requests a minute instead of 60.

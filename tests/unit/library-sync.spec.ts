@@ -14,12 +14,22 @@ interface Row {
   date_added: string
   title?: string
   artist?: string
+  /** Set in one test, to look like a row from before entry ids were kept. */
+  withoutEntry?: boolean
 }
 
-function release({ id, date_added, title = `Release ${id}`, artist = 'Neu!' }: Row) {
+function release({
+  id,
+  date_added,
+  title = `Release ${id}`,
+  artist = 'Neu!',
+  withoutEntry = false,
+}: Row) {
   return {
     id,
     date_added,
+    // Both are optional in the schema, because an older response had neither.
+    ...(withoutEntry ? {} : { instance_id: 500 + id, folder_id: 1 }),
     rating: 0,
     basic_information: {
       id,
@@ -151,6 +161,40 @@ describe('collection sync', () => {
     expect(seen).toHaveLength(3)
     expect(seen.map((p) => p.stored)).toEqual([1, 2, 3])
     expect(seen.at(-1)?.total).toBe(3)
+  })
+
+  /*
+   * The two numbers a write needs, and what happens without them.
+   *
+   * Discogs addresses a collection *entry*, not a release — the same record
+   * can stand in the shelf twice. Both ids come with every row and were
+   * dropped on the floor for as long as the app only read. A record synced
+   * before that gets zero, and zero has to stay distinguishable from a real
+   * folder: folder 0 is Discogs' virtual "All" and is not a valid target, so
+   * writing to it would fail in a way nobody could read.
+   */
+  it('keeps the entry a write has to address', async () => {
+    const { client } = fakeClient([[{ id: 1, date_added: '2026-08-01T10:00:00-07:00' }]])
+
+    await syncCollection(context(client))
+
+    const db = await openFidelityDb()
+    const stored = await db.get('collection', 1)
+    expect(stored?.instanceId).toBe(501)
+    expect(stored?.folderId).toBe(1)
+  })
+
+  it('leaves a record from an older sync at zero, which is "cannot be written"', async () => {
+    const { client } = fakeClient([
+      [{ id: 2, date_added: '2026-08-01T10:00:00-07:00', withoutEntry: true }],
+    ])
+
+    await syncCollection(context(client))
+
+    const db = await openFidelityDb()
+    const stored = await db.get('collection', 2)
+    expect(stored?.instanceId).toBe(0)
+    expect(stored?.folderId).toBe(0)
   })
 })
 

@@ -130,6 +130,16 @@ function toCollectionItem(release: z.infer<typeof releaseSchema>): CollectionIte
     // Covers belong to the shelf, and the demo has no shelf to draw.
     thumbUrl: '',
     coverUrl: '',
+    /*
+     * Zero, and that is the point.
+     *
+     * A demo record belongs to nobody's collection, so there is no entry to
+     * write to — and zero is exactly what the write path refuses. The rule
+     * that the demo never touches a real account is enforced here by the data
+     * rather than by a flag somebody has to remember to check.
+     */
+    instanceId: 0,
+    folderId: 0,
   }
 }
 

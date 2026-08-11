@@ -258,6 +258,93 @@ describe('the Discogs client', () => {
     return { client, fetchImpl, clock }
   }
 
+  /*
+   * Writing, and the one rule that makes it safe.
+   *
+   * From a browser a failed write is often unreadable: the 429 comes through
+   * Cloudflare without a CORS header, and so does a 404 on some paths (both
+   * measured, docs/02). `fetch()` simply rejects. So "it worked and the answer
+   * never came back" cannot be told apart from "it never arrived" — and a
+   * retry of the wrong call files the same record twice.
+   */
+  describe('writing', () => {
+    const opaque = () => {
+      throw new TypeError('Failed to fetch')
+    }
+
+    it('sends the method, the body and the content type that earns a preflight', async () => {
+      const { client, fetchImpl } = makeClient([new Response(null, { status: 204 })])
+
+      await client.write('POST', '/users/x/collection/folders/1/releases/2/instances/3', {
+        body: { rating: 4 },
+        idempotent: true,
+      })
+
+      const [, init] = fetchImpl.mock.calls[0] as unknown as [URL, RequestInit]
+      expect(init.method).toBe('POST')
+      expect(init.body).toBe('{"rating":4}')
+      expect((init.headers as Record<string, string>)['Content-Type']).toBe('application/json')
+    })
+
+    it('sends no body and no content type when there is nothing to send', async () => {
+      const { client, fetchImpl } = makeClient([new Response(null, { status: 204 })])
+
+      await client.write('DELETE', '/users/x/collection/folders/1/releases/2/instances/3', {
+        idempotent: true,
+      })
+
+      const [, init] = fetchImpl.mock.calls[0] as unknown as [URL, RequestInit]
+      expect(init.body).toBeUndefined()
+      expect(Object.keys(init.headers as Record<string, string>)).not.toContain('Content-Type')
+    })
+
+    it('answers null to a 204, because a rating has no body to read', async () => {
+      const { client } = makeClient([new Response(null, { status: 204 })])
+
+      const answer = await client.write('POST', '/whatever', { idempotent: true })
+
+      expect(answer).toBeNull()
+    })
+
+    it('retries an unreadable failure when repeating it changes nothing', async () => {
+      const { client, fetchImpl } = makeClient([new Response(null, { status: 204 })])
+      fetchImpl.mockImplementationOnce(opaque)
+
+      await client.write('POST', '/whatever', { body: { rating: 4 }, idempotent: true })
+
+      expect(fetchImpl).toHaveBeenCalledTimes(2)
+    })
+
+    /*
+     * The one that matters. Adding a record files a new entry every time, so
+     * a retry after an unreadable failure would put the same record in the
+     * shelf twice — weeks later, with nothing to connect it to a network blip.
+     * Better to fail loudly and let the caller go and look.
+     */
+    it('gives up at once when repeating it would do the work twice', async () => {
+      const { client, fetchImpl } = makeClient([])
+      fetchImpl.mockImplementation(opaque)
+
+      await expect(
+        client.write('POST', '/users/x/collection/folders/1/releases/2', { idempotent: false }),
+      ).rejects.toThrow(DiscogsError)
+
+      expect(fetchImpl).toHaveBeenCalledTimes(1)
+    })
+
+    it('reports a readable error as itself, whichever kind of call it was', async () => {
+      const { client } = makeClient([
+        jsonResponse({ message: 'The requested collection item does not exist.' }, 404),
+      ])
+
+      await expect(
+        client.write('DELETE', '/users/x/collection/folders/1/releases/2/instances/3', {
+          idempotent: true,
+        }),
+      ).rejects.toThrow('The requested collection item does not exist.')
+    })
+  })
+
   it('sends the token as a header, never in the query string', async () => {
     const { client, fetchImpl } = makeClient([jsonResponse({ id: 1, username: 'martin' })])
 

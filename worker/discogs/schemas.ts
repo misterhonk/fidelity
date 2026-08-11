@@ -68,7 +68,10 @@ export const collectionPageSchema = z.object({
   releases: z.array(
     z.object({
       id: z.number().int(),
+      // Beide zusammen adressieren einen Sammlungseintrag beim Schreiben:
+      // ein Release kann mehrfach im Regal stehen, eine Instanz nur einmal.
       instance_id: z.number().int().optional(),
+      folder_id: z.number().int().optional(),
       date_added: z.string(),
       rating: z.number().optional(),
       basic_information: basicInformationSchema,

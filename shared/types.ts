@@ -363,9 +363,24 @@ export interface CollectionItem {
   coverUrl: string
   rating: number
   addedAt: string
+  /**
+   * Which entry this is, and which folder it sits in.
+   *
+   * A release can stand in the shelf more than once — two pressings, one
+   * played and one sealed — so Discogs addresses a *collection entry*, not a
+   * release, whenever something is written back. Both arrive with every sync
+   * row and were thrown away until writes existed.
+   *
+   * 0 means "synced before this was kept". The record is fine to read and
+   * cannot be written to; whoever offers the button has to say so rather than
+   * quietly doing nothing.
+   */
+  instanceId: number
+  folderId: number
 }
 
-export type WantlistItem = Omit<CollectionItem, 'rating'>
+/** No rating, and nothing to write to — a want is addressed by release alone. */
+export type WantlistItem = Omit<CollectionItem, 'rating' | 'instanceId' | 'folderId'>
 
 /**
  * One answer to "habe ich die schon?", asked with a record in your hand.

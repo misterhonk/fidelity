@@ -73,6 +73,9 @@ export const seedCollection: CollectionItem[] = [
     coverUrl: '',
     rating: 5,
     addedAt: '2024-03-02T10:00:00-00:00',
+    // A record that came from a sync new enough to keep its entry: writable.
+    instanceId: 811_002_001,
+    folderId: 1,
   },
   {
     releaseId: 2_460_881,
@@ -93,6 +96,16 @@ export const seedCollection: CollectionItem[] = [
     coverUrl: '',
     rating: 4,
     addedAt: '2024-05-11T10:00:00-00:00',
+    /*
+     * And one that came from an older sync, on purpose.
+     *
+     * Zero is the state every record was in before entries were kept, and it
+     * will stay reachable for anyone who has not synced since. The screens
+     * have to say so instead of offering a button that silently does nothing —
+     * which is only testable if a record in this state exists.
+     */
+    instanceId: 0,
+    folderId: 0,
   },
 ]
 
