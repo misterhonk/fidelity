@@ -149,6 +149,38 @@ const en = {
     allFinds: 'All finds',
     inBasket: 'Add to basket',
     outOfBasket: 'Take out of the basket',
+    /*
+     * The card's button is narrow and shows a state, not an errand: "In
+     * basket" with `aria-pressed` says where the record is, which is what
+     * somebody scanning a list of forty wants to know. The long pair above is
+     * for the in-store screen, where the targets are thumb-sized and the label
+     * is the instruction.
+     */
+    basketAdd: 'To basket',
+    basketIn: 'In basket',
+  },
+
+  /**
+   * The record's own page — the sheet that opens from a find.
+   *
+   * The richest screen in the app and the last one still in German after the
+   * interface was translated, because nothing rendered it: it needs a match, a
+   * dig and a click, and no test had ever had all three. Found on 2026-08-11
+   * by looking at a screenshot of a seeded browser.
+   */
+  sheet: {
+    loading: 'Loading …',
+    market: 'On the market',
+    forSale: (copies: string, one: boolean) =>
+      `${copies} ${one ? 'copy' : 'copies'} for sale worldwide`,
+    lowest: 'lowest',
+    signals: 'Signals',
+    pressing: 'Pressing',
+    plant: 'pressed at',
+    discography: 'Discography',
+    owned: (owned: string, total: string) => `${owned} of ${total}`,
+    connections: 'Links to your collection',
+    atDiscogs: 'View at Discogs',
   },
 }
 
@@ -254,6 +286,22 @@ const de: typeof en = {
     allFinds: 'Alle Treffer',
     inBasket: 'In den Korb',
     outOfBasket: 'Aus dem Korb nehmen',
+    basketAdd: 'In den Korb',
+    basketIn: 'Im Korb',
+  },
+
+  sheet: {
+    loading: 'Wird geladen …',
+    market: 'Marktlage',
+    forSale: (copies, one) => `${copies} ${one ? 'Exemplar' : 'Exemplare'} weltweit im Angebot`,
+    lowest: 'Tiefstpreis',
+    signals: 'Signale',
+    pressing: 'Pressung',
+    plant: 'Presswerk',
+    discography: 'Diskografie',
+    owned: (owned, total) => `${owned} von ${total}`,
+    connections: 'Verbindungen zu deiner Sammlung',
+    atDiscogs: 'Bei Discogs ansehen',
   },
 }
 

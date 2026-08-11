@@ -132,7 +132,7 @@ function onKeydown(event: KeyboardEvent) {
       <div class="flex items-start justify-between gap-4">
         <h2 class="text-fid-base font-bold text-fid-text">
           <template v-if="match">{{ match.artist }} – {{ match.title }}</template>
-          <template v-else>Wird geladen …</template>
+          <template v-else>{{ d.sheet.loading }}</template>
         </h2>
         <button
           type="button"
@@ -210,12 +210,13 @@ function onKeydown(event: KeyboardEvent) {
           class="flex flex-col gap-1"
           aria-labelledby="sheet-market"
         >
-          <h3 id="sheet-market" class="text-fid-sm font-medium text-fid-text">Marktlage</h3>
+          <h3 id="sheet-market" class="text-fid-sm font-medium text-fid-text">
+            {{ d.sheet.market }}
+          </h3>
           <p class="text-fid-sm text-fid-text-muted">
-            <span class="fid-num">{{ match.marketNumForSale }}</span>
-            {{ match.marketNumForSale === 1 ? 'Exemplar' : 'Exemplare' }} weltweit im
-            Angebot<template v-if="marketLowest">
-              · Tiefstpreis
+            {{ d.sheet.forSale(count(match.marketNumForSale), match.marketNumForSale === 1) }}
+            <template v-if="marketLowest">
+              · {{ d.sheet.lowest }}
               <span class="fid-num text-fid-text">{{ marketLowest }}</span></template
             >
           </p>
@@ -223,7 +224,9 @@ function onKeydown(event: KeyboardEvent) {
 
         <!-- Every signal with its evidence — the follow-up to the sentence. -->
         <section class="flex flex-col gap-2" aria-labelledby="sheet-signals">
-          <h3 id="sheet-signals" class="text-fid-sm font-medium text-fid-text">Signale</h3>
+          <h3 id="sheet-signals" class="text-fid-sm font-medium text-fid-text">
+            {{ d.sheet.signals }}
+          </h3>
           <ul class="flex flex-col gap-2">
             <li
               v-for="signal in match.signals"
@@ -254,7 +257,9 @@ function onKeydown(event: KeyboardEvent) {
           class="flex flex-col gap-2"
           aria-labelledby="sheet-pressing"
         >
-          <h3 id="sheet-pressing" class="text-fid-sm font-medium text-fid-text">Pressung</h3>
+          <h3 id="sheet-pressing" class="text-fid-sm font-medium text-fid-text">
+            {{ d.sheet.pressing }}
+          </h3>
 
           <ul v-if="match.pressingWarnings?.length" class="flex flex-col gap-1">
             <li
@@ -275,7 +280,7 @@ function onKeydown(event: KeyboardEvent) {
               · <span class="fid-num">{{ match.pressing.year }}</span></template
             >
             <template v-if="match.pressing.plant">
-              · Presswerk {{ match.pressing.plant }}</template
+              · {{ d.sheet.plant }} {{ match.pressing.plant }}</template
             >
             <template v-if="match.pressing.freeText.length">
               · {{ match.pressing.freeText.join(', ') }}</template
@@ -311,7 +316,9 @@ function onKeydown(event: KeyboardEvent) {
           class="flex flex-col gap-2"
           aria-labelledby="sheet-disc"
         >
-          <h3 id="sheet-disc" class="text-fid-sm font-medium text-fid-text">Diskografie</h3>
+          <h3 id="sheet-disc" class="text-fid-sm font-medium text-fid-text">
+            {{ d.sheet.discography }}
+          </h3>
           <ul class="flex flex-col gap-1">
             <li
               v-for="entry in detail.discography"
@@ -319,8 +326,7 @@ function onKeydown(event: KeyboardEvent) {
               class="text-fid-sm text-fid-text-muted"
             >
               <span class="text-fid-text">{{ entry.artist }}</span> –
-              <span class="fid-num">{{ entry.owned }}</span> von
-              {{ m.mainReleases(count(entry.total)) }}
+              {{ d.sheet.owned(count(entry.owned), m.mainReleases(count(entry.total))) }}
               <template v-if="entry.from > 0">{{ years(entry) }}</template>
             </li>
           </ul>
@@ -332,7 +338,7 @@ function onKeydown(event: KeyboardEvent) {
           aria-labelledby="sheet-links"
         >
           <h3 id="sheet-links" class="text-fid-sm font-medium text-fid-text">
-            Verbindungen zu deiner Sammlung
+            {{ d.sheet.connections }}
           </h3>
           <p class="text-fid-sm text-fid-text-muted">
             {{ detail.connections.map((c) => c.name).join(' · ') }}
@@ -366,7 +372,7 @@ function onKeydown(event: KeyboardEvent) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Bei Discogs ansehen
+            {{ d.sheet.atDiscogs }}
           </a>
         </div>
       </template>

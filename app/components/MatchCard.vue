@@ -211,7 +211,7 @@ const meta = computed(() => {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Bei Discogs ansehen
+          {{ d.sheet.atDiscogs }}
         </a>
       </p>
 
@@ -232,7 +232,7 @@ const meta = computed(() => {
           "
           @click="toggle(match.digId, match.listingId)"
         >
-          {{ contains(match.listingId) ? 'Im Korb' : 'In den Korb' }}
+          {{ contains(match.listingId) ? d.match.basketIn : d.match.basketAdd }}
         </button>
 
         <div class="flex gap-1" role="group" :aria-label="d.match.feedback">
