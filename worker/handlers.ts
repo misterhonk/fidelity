@@ -528,6 +528,11 @@ export const handlers: HandlerMap = {
     return shelfView(params)
   },
 
+  'collection.rate': async ({ releaseId, rating }) => {
+    const { rateRecord } = await import('./collection/rate')
+    return rateRecord(releaseId, rating)
+  },
+
   'collection.record': async ({ releaseId }) => {
     const { shelfRecord } = await import('./collection/records')
     return shelfRecord(releaseId)

@@ -13,6 +13,36 @@ const { call } = useFidelityWorker()
 const record = ref<CollectionItem | null>(null)
 const panel = useTemplateRef<HTMLElement>('panel')
 
+/*
+ * Rating, and why it is written here rather than after Discogs answers.
+ *
+ * One paced request is 1.2 seconds. A star that lights up after that has
+ * stopped being a response to a tap. So the shelf is written at once and the
+ * queue catches up in the background — and if it never does, the old value
+ * comes back on its own (`worker/outbox.ts`).
+ *
+ * Zero is a state, not the absence of one: Discogs distinguishes "never rated"
+ * from "rated one star", and taking a rating back has to stay possible.
+ */
+const STARS = [1, 2, 3, 4, 5] as const
+
+/** False for a record synced before entry ids were kept — see rate.ts. */
+const canRate = computed(() => Boolean(record.value?.instanceId && record.value?.folderId))
+
+async function rate(stars: number) {
+  const item = record.value
+  if (!item) return
+
+  const next = item.rating === stars ? 0 : stars
+  record.value = { ...item, rating: next }
+
+  const written = await call('collection.rate', { releaseId: item.releaseId, rating: next })
+  // The worker refused: put the sheet back rather than show a rating that is
+  // nowhere. It only happens for a record with no entry, which is why the
+  // stars are not offered in that case at all — this is the second net.
+  if (!written) record.value = item
+}
+
 onMounted(async () => {
   panel.value?.focus()
   record.value = await call('collection.record', { releaseId: props.releaseId })
@@ -125,13 +155,40 @@ function onKeydown(event: KeyboardEvent) {
               means "never rated", not "rated nothing" — five hollow stars
               would invent an opinion the collector never had.
             -->
-            <template v-if="record.rating > 0">
+            <template v-if="canRate || record.rating > 0">
               <dt class="text-fid-text-muted">{{ c.shelf.sheet.facts.rating }}</dt>
-              <dd
-                class="fid-num min-w-0 text-fid-sig-wantlist"
-                :aria-label="c.shelf.sheet.rated(record.rating)"
-              >
-                {{ '★'.repeat(record.rating) }}
+              <dd class="min-w-0">
+                <div v-if="canRate" class="flex gap-1">
+                  <!--
+                    Five buttons, not a slider and not a select.
+                    A rating is one tap on the star you mean, and tapping the
+                    one already lit takes it back — which is the only way to
+                    reach "never rated" again once something has been given.
+                  -->
+                  <button
+                    v-for="star in STARS"
+                    :key="star"
+                    type="button"
+                    :aria-label="c.shelf.sheet.rate(star)"
+                    :aria-pressed="record.rating >= star"
+                    class="fid-lift flex min-h-11 min-w-11 items-center justify-center rounded-fid-sm text-fid-base transition-colors"
+                    :class="
+                      record.rating >= star
+                        ? 'text-fid-sig-wantlist'
+                        : 'text-fid-text-muted hover:text-fid-text'
+                    "
+                    @click="rate(star)"
+                  >
+                    {{ record.rating >= star ? '★' : '☆' }}
+                  </button>
+                </div>
+                <span
+                  v-else
+                  class="fid-num text-fid-sig-wantlist"
+                  :aria-label="c.shelf.sheet.rated(record.rating)"
+                >
+                  {{ '★'.repeat(record.rating) }}
+                </span>
               </dd>
             </template>
 

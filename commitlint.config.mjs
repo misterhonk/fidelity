@@ -44,6 +44,8 @@ export default {
         // Fidelity without a token: the demonstration on one or two records.
         'demo',
         'sync',
+        // Managing what is on your own shelf: ratings, condition, in and out.
+        'collection',
         'ui',
         // Languages: message packs, the switch, translated routes (ADR-010).
         'i18n',

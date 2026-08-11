@@ -142,7 +142,7 @@ docs(api): document the 10k pagination wall
 ```
 
 Scopes: `dig` `match` `discogs` `horizon` `auth` `basket` `watch` `dealers` `hub` `demo`
-`sync` `ui` `i18n` `db` `pwa` `deploy` `deps`
+`sync` `collection` `ui` `i18n` `db` `pwa` `deploy` `deps`
 
 Releases macht `release-please`. **Version niemals von Hand hochsetzen**,
 **CHANGELOG.md niemals direkt für ein Release editieren** – nur im Release-PR nachschärfen.

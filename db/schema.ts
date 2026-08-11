@@ -24,7 +24,7 @@ export const DB_NAME = 'fidelity'
  *
  * 4 — added the `covers` store. Additive: nothing existing is touched.
  */
-export const DB_VERSION = 4
+export const DB_VERSION = 5
 
 /**
  * `meta` is a small key-value store rather than nine one-row stores. The union
@@ -112,7 +112,45 @@ export interface FidelityDB extends DBSchema {
    * and the rest is fetched only for records somebody actually looks at.
    */
   covers: { key: number; value: CoverEntry }
+  /**
+   * Changes on their way to Discogs.
+   *
+   * Every write lands here first and in the shelf at the same moment, so a
+   * star lights up the instant it is tapped instead of 1.2 seconds later when
+   * the pacer gets round to it. The keeper drains the queue in the background,
+   * through the one slot every other request uses.
+   *
+   * Which also means a rating given in a shop basement with no signal is not
+   * lost — it waits. That is the same reason the collection is mirrored at all
+   * (ADR-007): the app has to work where record shops are.
+   *
+   * Keyed by what the job *targets*, not by when it was made, so three taps on
+   * the same row collapse into one request rather than three.
+   */
+  outbox: { key: string; value: OutboxJob }
 }
+
+/** What a queued change is, and what to put back if it never lands. */
+export interface OutboxJob {
+  /** `${kind}:${what it addresses}` — the same target overwrites itself. */
+  id: string
+  kind: OutboxKind
+  /** Everything the call needs. Shaped per kind, checked where it is sent. */
+  payload: Record<string, number | string>
+  /**
+   * The value the app showed before, to put back when the job is given up on.
+   *
+   * A change that is shown but never arrives is worse than one that was
+   * refused outright: the shelf and Discogs disagree, and nothing on screen
+   * says so. Whoever gives up on a job owes the user the old value back.
+   */
+  revert: Record<string, number | string>
+  attempts: number
+  queuedAt: number
+  lastError?: string
+}
+
+export type OutboxKind = 'collection.rating'
 
 export interface CoverEntry {
   releaseId: number

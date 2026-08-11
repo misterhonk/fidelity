@@ -46,7 +46,7 @@ import type { DiscogsClient } from './discogs/client'
  */
 const LIBRARY_STALE_MS = 30 * 60 * 1000
 
-export type KeeperJob = 'library' | 'watch' | 'horizon'
+export type KeeperJob = 'outbox' | 'library' | 'watch' | 'horizon'
 
 export interface KeeperResult {
   /** What actually ran. Empty when nothing was due. */
@@ -59,6 +59,10 @@ export interface KeeperResult {
   alerts: number
   /** Matches whose marketplace fields were stripped for being past six hours. */
   expired: number
+  /** Queued changes that reached Discogs this round. */
+  pushed: number
+  /** Queued changes given up on. Their old value is back on the shelf. */
+  givenUp: number
 }
 
 export async function runKeeper(options: {
@@ -77,7 +81,15 @@ export async function runKeeper(options: {
 }): Promise<KeeperResult> {
   const { client, username, force = false, signal } = options
   const now = options.now ?? Date.now()
-  const result: KeeperResult = { did: [], deferred: false, stored: 0, alerts: 0, expired: 0 }
+  const result: KeeperResult = {
+    did: [],
+    deferred: false,
+    stored: 0,
+    alerts: 0,
+    expired: 0,
+    pushed: 0,
+    givenUp: 0,
+  }
 
   /*
    * 0 — the six-hour deadline (rule 4).
@@ -115,8 +127,26 @@ export async function runKeeper(options: {
   if (isForegroundBusy()) return { ...result, deferred: true }
 
   /*
-   * 1 — the collection. First, because it is the cheapest and says the most:
-   * everything else in the app is measured against what is on the shelf.
+   * 1 — changes waiting to go out, and they go before the sync reads back.
+   *
+   * The order is the whole point, not a preference. `syncCollection` writes
+   * Discogs' answer over the mirrored row; a rating tapped in a shop and not
+   * yet sent would be replaced by the old one, and the collector would watch
+   * their own change disappear with nothing to blame. Out first, then in.
+   *
+   * It also runs regardless of the staleness clock below: half an hour is a
+   * fine wait for "did anything change over there", and a poor one for
+   * "the thing I just did".
+   */
+  const { drainOutbox } = await import('./outbox')
+  const drained = await drainOutbox(client, username)
+  if (drained.sent > 0 || drained.givenUp > 0) result.did.push('outbox')
+  result.pushed = drained.sent
+  result.givenUp = drained.givenUp
+
+  /*
+   * 2 — the collection. Cheap, and it says the most: everything else in the
+   * app is measured against what is on the shelf.
    */
   const syncState = await getSyncState()
   if (force || (syncState?.collectionSyncedAt ?? 0) < now - LIBRARY_STALE_MS) {

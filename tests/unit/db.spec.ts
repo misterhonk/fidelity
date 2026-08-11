@@ -71,6 +71,37 @@ function match(digId: string, listingId: number, overrides: Partial<Match> = {})
 }
 
 describe('database schema', () => {
+  /*
+   * Upgrading from v4, and why it costs a walk of the collection.
+   *
+   * v5 keeps the ids a write has to address — and the collection sync is a
+   * delta that stops at the first record it already knows. Leaving the old
+   * rows in place would not be the harmless "those cannot be rated yet" it
+   * looks like: no later sync would ever reach back that far, so they could
+   * never be rated at all, on a shelf that gives no hint why.
+   *
+   * Every row comes back from the API, so clearing is the cheap answer and
+   * the watermark is what makes the next sync a full walk rather than a delta
+   * over a hole.
+   */
+  it('clears a v4 collection so the next sync can fill in the entry ids', async () => {
+    const old = await openDB('fidelity', 4, {
+      upgrade(db) {
+        db.createObjectStore('meta', { keyPath: 'key' })
+        db.createObjectStore('collection', { keyPath: 'releaseId' })
+        db.createObjectStore('wantlist', { keyPath: 'releaseId' })
+      },
+    })
+    await old.put('collection', { releaseId: 1, title: 'From v4' })
+    await old.put('meta', { key: 'syncState', value: { lastCollectionAdd: 'yesterday' } })
+    old.close()
+
+    const db = await openFidelityDb()
+
+    expect(await db.count('collection')).toBe(0)
+    expect(await db.get('meta', 'syncState')).toBeUndefined()
+  })
+
   it('creates every store with its indexes', async () => {
     const db = await openFidelityDb()
 
@@ -84,6 +115,7 @@ describe('database schema', () => {
       'horizon',
       'matches',
       'meta',
+      'outbox',
       'wantlist',
     ])
 

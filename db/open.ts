@@ -66,6 +66,29 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
         db.createObjectStore('covers', { keyPath: 'releaseId' })
       }
 
+      if (oldVersion < 5) {
+        db.createObjectStore('outbox', { keyPath: 'id' })
+      }
+
+      if (oldVersion > 0 && oldVersion < 5) {
+        /*
+         * v5 keeps the entry ids a write has to address, and the collection
+         * sync is a delta — it stops at the first record it already knows.
+         *
+         * Which means leaving the old rows in place would not be the harmless
+         * "they simply cannot be rated" it looks like: they could *never* be
+         * rated, because no later sync would ever walk back far enough to fill
+         * them in. A shelf with no stars, permanently, and no hint why.
+         *
+         * So the same trade as v2 and v3: every row is reproducible from the
+         * API, so this costs one walk of the collection and nothing else.
+         * Clearing the watermark is what makes that walk a full one.
+         */
+        tx.objectStore('collection').clear()
+        tx.objectStore('meta').delete('syncState')
+        tx.objectStore('meta').delete('tasteProfile')
+      }
+
       // Future versions go here. The rule: never migrate destructively unless
       // the state can be rebuilt from the API — which, so far, all of it can.
     },

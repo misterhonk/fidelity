@@ -197,6 +197,19 @@ export interface WorkerContract {
     progress: never
     result: CollectionItem | null
   }
+  /**
+   * Sets a rating on a record of your own.
+   *
+   * Answers as soon as the shelf is written — the request to Discogs is the
+   * keeper's problem, not the caller's. `false` means the record has no entry
+   * to write to (synced before those were kept), which is a thing to say out
+   * loud rather than a failure to swallow.
+   */
+  'collection.rate': {
+    params: { releaseId: number; rating: number }
+    progress: never
+    result: boolean
+  }
   /** Recomputed after every sync; null until there has been one. */
   'taste.profile': { params: undefined; progress: never; result: TasteProfile | null }
 
