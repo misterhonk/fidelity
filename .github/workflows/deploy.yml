@@ -20,8 +20,14 @@ name: Deploy
 # Einmalig einzurichten, danach ändert sich daran nie wieder etwas.
 
 on:
-  release:
-    types: [published]
+  # Aufgerufen von release.yml. Ein `release: published` von release-please
+  # löst nichts aus — GitHub startet keine Abläufe aus Ereignissen, die mit
+  # GITHUB_TOKEN erzeugt wurden.
+  workflow_call:
+    inputs:
+      version:
+        required: false
+        type: string
   workflow_dispatch:
 
 permissions:
@@ -92,7 +98,7 @@ jobs:
           HOST: ${{ secrets.DEPLOY_HOST }}
           USER: ${{ secrets.DEPLOY_USER }}
           PATH_ON_SERVER: ${{ secrets.DEPLOY_PATH }}
-          VERSION: ${{ github.event.release.tag_name || github.sha }}
+          VERSION: ${{ inputs.version || github.sha }}
         run: |
           set -eu
           SSH="ssh -i ~/.ssh/id_deploy -o BatchMode=yes"

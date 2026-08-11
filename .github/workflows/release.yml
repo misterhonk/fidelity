@@ -71,3 +71,25 @@ jobs:
         run: |
           gh release upload "${{ needs.release-please.outputs.tag }}" \
             "fidelity-${{ needs.release-please.outputs.tag }}.zip" --clobber
+
+  # Die beiden Abläufe, die ein Tag *nicht* auslösen kann — siehe die
+  # Begründung in images.yml. Deshalb werden sie hier aufgerufen.
+  images:
+    needs: release-please
+    if: needs.release-please.outputs.released == 'true'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/images.yml
+    with:
+      version: ${{ needs.release-please.outputs.tag }}
+
+  deploy:
+    needs: release-please
+    if: needs.release-please.outputs.released == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/deploy.yml
+    with:
+      version: ${{ needs.release-please.outputs.tag }}
+    secrets: inherit

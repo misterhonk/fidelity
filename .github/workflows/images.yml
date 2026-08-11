@@ -11,9 +11,23 @@ name: Images
 # Image nur für amd64 wäre für die halbe Zielgruppe wertlos.
 
 on:
+  # Aufgerufen von release.yml, sobald release-please ein Release angelegt hat.
+  #
+  # Und zwar aufgerufen und nicht durch den Tag ausgelöst: GitHub startet
+  # bewusst keine Abläufe aus Ereignissen, die mit GITHUB_TOKEN erzeugt wurden
+  # — sonst könnte ein Ablauf sich selbst auslösen. release-please legt Tag und
+  # Release genau so an. Gemessen am 2026-08-11: v0.9.0 entstand, und dieser
+  # Ablauf rührte sich nicht.
+  workflow_call:
+    inputs:
+      version:
+        description: 'Versions-Tag, z. B. v0.9.0'
+        required: true
+        type: string
+  # Ein von Hand gepushter Tag löst dagegen sehr wohl aus.
   push:
     tags: ['v*']
-  # Von Hand, um vor einem Release einmal zu prüfen, dass beide Images bauen.
+  # Und von Hand, um vor einem Release zu prüfen, dass beide Images bauen.
   workflow_dispatch:
 
 permissions:
@@ -81,16 +95,21 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}-${{ matrix.name }}
           tags: |
+            # Aus einem Tag-Push: der Ref trägt die Version.
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            # Aus release.yml: dort steht der Ref auf main, der Tag existiert
+            # aber schon — also kommt die Version als Eingabe herein.
+            type=semver,pattern={{version}},value=${{ inputs.version }},enable=${{ inputs.version != '' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.version }},enable=${{ inputs.version != '' }}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') || inputs.version != '' }}
             # Ein Handlauf steht auf einem Branch, nicht auf einem Versions-Tag,
             # und erzeugt aus den drei Regeln darüber deshalb *keinen* Tag —
             # woraufhin der Push mit "tag is needed when pushing to registry"
             # abbricht. Genau so beim ersten Testlauf passiert. Ein
             # Commit-Tag hält den Probelauf funktionsfähig, ohne `latest` zu
             # berühren.
-            type=sha,enable=${{ !startsWith(github.ref, 'refs/tags/v') }}
+            type=sha,enable=${{ !startsWith(github.ref, 'refs/tags/v') && inputs.version == '' }}
 
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
