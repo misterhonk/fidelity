@@ -60,7 +60,12 @@ jobs:
       # Anleitung. Auf nginx stört sie niemanden, der ignoriert sie.
       - name: Seite verpacken
         run: |
-          cp deploy/.htaccess .output/public/.htaccess
+          # Das Zip ist für die Wurzel eines Docroots gedacht — wer es
+          # woanders auspackt, ändert die eine Zeile selbst. Der Platzhalter
+          # darf jedenfalls nicht mit ausgeliefert werden: eine .htaccess mit
+          # `RewriteBase __FIDELITY_BASE__` ist still unwirksam, und still ist
+          # die schlechteste Art, kaputt zu sein.
+          sed "s|__FIDELITY_BASE__|/|" deploy/.htaccess > .output/public/.htaccess
           cp deploy/LIESMICH.txt .output/public/LIESMICH.txt
           cd .output/public
           zip -qr "../../fidelity-${{ needs.release-please.outputs.tag }}.zip" . -x '.DS_Store'

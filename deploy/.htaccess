@@ -1,38 +1,27 @@
 # --- 0. Wurzel oder Unterverzeichnis ------------------------------------------
 #
-# Jede Umschreibung hier steht **ohne führenden Schrägstrich**, und das ist der
-# einzige Grund, warum diese Datei an beiden Orten funktioniert: mod_rewrite
-# löst eine relative Ersetzung gegen das Verzeichnis auf, in dem die .htaccess
-# liegt. Mit "/basket" landete jemand unter martinmelcher.de/fidelity/ auf
-# martinmelcher.de/basket — also auf einer fremden Seite.
+# `RewriteBase` ist hier keine Kosmetik, sondern der Unterschied zwischen einer
+# funktionierenden und einer absurden Weiterleitung.
 #
-# Der zweite Teil derselben Sache steht in nuxt.config.ts: die App muss mit
-# NUXT_APP_BASE_URL gebaut werden, sonst sucht sie ihre eigenen Dateien unter
-# /_nuxt/ statt unter /fidelity/_nuxt/.
+# Ohne sie setzt Apache bei einer *externen* Regel (`[R=301]`) mit relativer
+# Ersetzung den Dateisystempfad davor. Gemessen am 2026-08-11 unter
+# martinmelcher.de/fidelity/ ergab "^korb/?$" → "basket" tatsächlich
+#
+#   301 → https://martinmelcher.de/var/www/virtual/mmelcher/html/fidelity/basket
+#
+# Also die Serverfestplatte in der Adresszeile. Mit absolutem "/basket" wäre es
+# stattdessen die Domainwurzel gewesen — beides falsch, und zwar auf
+# unterschiedliche Weise. Nur `RewriteBase` sagt mod_rewrite, worauf sich eine
+# relative Ersetzung beziehen soll.
+#
+# Der Wert wird beim Ausliefern eingesetzt (.github/workflows/deploy.yml) und
+# ist dieselbe Zahl, mit der die App gebaut wurde: NUXT_APP_BASE_URL. Steht
+# hier noch der Platzhalter, ist die Datei von Hand kopiert worden — dann muss
+# er ersetzt werden, sonst ist die Datei still unwirksam.
 
-# Fidelity auf einem Apache-Webspace.
-#
-# Diese Datei gehört neben die entpackte Seite in den Docroot. Sie ist das
-# Apache-Gegenstück zu deploy/nginx.conf und regelt dieselben zwei Dinge — die
-# beiden, an denen ein statisch ausgeliefertes Frontend sonst lautlos bricht.
-#
-# Wenn dein Webspace .htaccess ignoriert (manche Anbieter schalten
-# AllowOverride ab), funktioniert die App beim ersten Aufruf trotzdem und
-# zeigt beim Neuladen einer Unterseite einen 404. Dann hilft nur der Anbieter.
-
-# --- 1. Die alten, deutschen Adressen -----------------------------------------
-#
-# Bis ADR-010 lag jeder Bildschirm unter einem deutschen Pfad. Eine echte 301
-# korrigiert das Lesezeichen in der Adresszeile; ohne Server macht die App
-# dasselbe selbst.
-#
-# `QSA` ist Pflicht, keine Feinheit: der Tresor kommt aus dem OAuth-Fenster von
-# Dropbox oder Google auf das zurück, was einmal /einstellungen/abgleich war —
-# mit `?code=…` daran. Diese Adresse haben Nutzer beim Anbieter registriert und
-# lässt sich von hier aus nicht ändern. Fällt die Abfrage weg, scheitert der
-# ganze Austausch.
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  RewriteBase __FIDELITY_BASE__
   RewriteRule "^korb/?$" "basket" [R=301,L,QSA]
   RewriteRule "^regal/?$" "shelf" [R=301,L,QSA]
   RewriteRule "^haendler/?$" "dealers" [R=301,L,QSA]
@@ -64,6 +53,7 @@
 # Bild und jedes Skript als 200.html ausgeliefert.
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  RewriteBase __FIDELITY_BASE__
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule . 200.html [L]

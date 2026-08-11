@@ -163,8 +163,15 @@ jobs:
 
       # Die .htaccess gehört zur ausgelieferten Seite, genau wie im Release-Zip.
       # Ohne sie verhalten sich Unterseiten auf Apache falsch.
+      # Die .htaccess gehört zur ausgelieferten Seite, genau wie im Release-Zip
+      # — und sie muss denselben Basispfad kennen wie der Build. Ohne ihn
+      # schreibt Apache bei einer externen Weiterleitung den Dateisystempfad in
+      # die Adresszeile; die Begründung steht oben in der Datei selbst.
       - if: steps.check.outputs.ready == 'true'
-        run: cp deploy/.htaccess .output/public/.htaccess
+        name: Regeln für Apache, mit demselben Basispfad
+        run: |
+          sed "s|__FIDELITY_BASE__|${BASE_URL}|" deploy/.htaccess > .output/public/.htaccess
+          grep RewriteBase .output/public/.htaccess
 
       - if: steps.check.outputs.ready == 'true'
         name: Schlüssel bereitlegen
