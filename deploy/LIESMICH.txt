@@ -1,0 +1,65 @@
+Fidelity
+========
+
+Ein Kaufberater für Discogs. Er liest das Sortiment eines Händlers, gleicht es
+gegen deine Sammlung ab und sagt dir, was davon zu dir passt — mit einer
+Begründung pro Treffer.
+
+
+So bekommst du es zum Laufen
+----------------------------
+
+1. Diesen Ordner komplett auf deinen Webspace hochladen — alles, was hier drin
+   liegt, in das Verzeichnis, das deine Domain ausliefert (oft "html",
+   "public_html" oder "www").
+
+   Die Datei .htaccess gehört mit dazu. Manche FTP-Programme blenden Dateien
+   aus, deren Name mit einem Punkt beginnt — wenn du sie nicht siehst, schalte
+   "versteckte Dateien anzeigen" ein.
+
+2. Die Adresse im Browser aufrufen. Fertig.
+
+Es gibt nichts zu installieren, keine Datenbank einzurichten und nichts zu
+konfigurieren. Die App besteht nur aus diesen Dateien.
+
+
+Was du brauchst
+---------------
+
+Einen kostenlosen Zugangsschlüssel von Discogs. Den erzeugst du dir selbst:
+
+    https://www.discogs.com/settings/developers
+
+Dort auf "Generate token" klicken und den Schlüssel in Fidelity einfügen. Er
+bleibt auf deinem Gerät gespeichert und wird an niemanden weitergegeben — es
+gibt auch niemanden, der ihn empfangen könnte, denn zu dieser App gehört kein
+Server.
+
+
+Wenn Unterseiten nicht laden
+----------------------------
+
+Rufst du die Startseite auf und alles geht, aber ein Neuladen von "/korb"
+zeigt einen Fehler? Dann wertet dein Webspace die .htaccess nicht aus. Das
+lässt sich nur beim Anbieter ändern (Stichwort "AllowOverride"). Frag dort
+nach — die Datei selbst ist in Ordnung.
+
+
+HTTPS
+-----
+
+Fidelity sollte über https:// laufen. Ohne Verschlüsselung funktionieren
+Offline-Betrieb und Installation als App nicht, weil Browser das nur über eine
+gesicherte Verbindung erlauben. Fast jeder Anbieter stellt HTTPS heute
+kostenlos zur Verfügung.
+
+
+Mehr
+----
+
+Quelltext, Dokumentation und die Docker-Variante für den eigenen Server:
+
+    https://github.com/misterhonk/fidelity
+
+Diese Anwendung nutzt die Discogs-API, steht aber in keiner Verbindung zu
+Discogs und wird von Discogs weder unterstützt noch empfohlen.

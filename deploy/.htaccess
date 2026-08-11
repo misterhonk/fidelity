@@ -1,0 +1,60 @@
+# Fidelity auf einem Apache-Webspace.
+#
+# Diese Datei gehört neben die entpackte Seite in den Docroot. Sie ist das
+# Apache-Gegenstück zu deploy/nginx.conf und regelt dieselben zwei Dinge — die
+# beiden, an denen ein statisch ausgeliefertes Frontend sonst lautlos bricht.
+#
+# Wenn dein Webspace .htaccess ignoriert (manche Anbieter schalten
+# AllowOverride ab), funktioniert die App beim ersten Aufruf trotzdem und
+# zeigt beim Neuladen einer Unterseite einen 404. Dann hilft nur der Anbieter.
+
+# --- 1. Jede Adresse fällt auf 200.html ---------------------------------------
+#
+# Die App erzeugt ihre Seiten im Browser: /korb existiert als Datei nicht.
+# Ohne diesen Rückfall ist jedes Neuladen einer Unterseite und jedes Lesezeichen
+# ein 404.
+#
+# Die beiden Bedingungen davor sind der ganze Trick: existiert die Datei oder
+# das Verzeichnis wirklich, wird nichts umgeschrieben — sonst würde auch jedes
+# Bild und jedes Skript als 200.html ausgeliefert.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /200.html [L]
+</IfModule>
+
+# --- 2. Was wie lange liegen bleiben darf -------------------------------------
+<IfModule mod_headers.c>
+  # Der Service Worker entscheidet, wann alles andere aktualisiert wird. Ist er
+  # selbst veraltet, lässt sich die App nie wieder reparieren — ein zwischen-
+  # gespeichertes sw.js ist der einzige wirklich teure Fehler auf dieser Seite.
+  <Files "sw.js">
+    Header set Cache-Control "no-cache"
+  </Files>
+
+  <FilesMatch "\.(html|webmanifest)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+
+  # Gehashte Dateinamen: ändert sich der Inhalt, ändert sich der Name. Der
+  # Browser muss also nie wieder nachfragen.
+  <FilesMatch "^.*\.(js|css|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # Nichts hiervon gehört in einen Suchindex (docs/00 §9).
+  Header set X-Robots-Tag "noindex, nofollow"
+
+  # Die App spricht mit api.discogs.com und mit einem Hub, den der Nutzer
+  # benennt. Sie bettet nichts ein und ist nicht dazu gedacht, eingebettet zu
+  # werden.
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "DENY"
+  Header set Referrer-Policy "no-referrer"
+</IfModule>
+
+# --- 3. Komprimierung ---------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+</IfModule>

@@ -8,12 +8,17 @@ Danke fürs Hinsehen. Dieses Dokument ist kurz, weil das Wichtigste woanders ste
 
 ## Womit es läuft
 
-**Node ≥ 22.5** und **pnpm**. Sonst nichts — keine Datenbank, kein Docker, kein Seed.
+**Node ≥ 22.5.** Sonst nichts — keine Datenbank, kein Docker, kein Seed.
 
 ```bash
+corepack enable     # holt genau die pnpm-Version aus package.json
 pnpm install
 pnpm dev            # http://localhost:3000
 ```
+
+pnpm muss nicht installiert werden: `corepack` liegt jedem Node ab 16.9 bei und pinnt die
+Version über das Feld `packageManager`. Eine global installierte, andere pnpm-Version ist
+die häufigste Ursache für ein Lockfile, das sich unerwartet ändert.
 
 Der Hub ist ein eigenes Paket mit eigenen Tests und ohne Abhängigkeit zur App:
 

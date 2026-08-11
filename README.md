@@ -60,32 +60,57 @@ Ein **Personal Access Token** von
 [discogs.com/settings/developers](https://www.discogs.com/settings/developers) ist alles,
 was du brauchst. Er bleibt auf deinem Gerät.
 
-### Lokal laufen lassen
+### Auf den eigenen Webspace — ohne irgendetwas zu installieren
+
+Bei jedem [Release](https://github.com/misterhonk/fidelity/releases) hängt die fertige
+Seite als Zip. Herunterladen, entpacken, den Inhalt in den Docroot legen. Fertig — kein
+Node, kein pnpm, kein Docker.
+
+Zwei Dinge muss der Webspace tun, sonst bricht es an unauffälliger Stelle:
+
+**Adressen brauchen die richtige Behandlung.** Jede bekannte Seite ist beim Bauen in ein
+eigenes Verzeichnis gelegt worden, `/korb` gibt es also wirklich — ein roher Webserver
+antwortet darauf aber mit einer Umleitung auf `/korb/`, und der Schrägstrich am Ende ist
+für die App eine andere Adresse als die ohne. Alles, was gar nicht vorgesehen ist, muss
+zusätzlich auf `200.html` fallen, damit die App selbst antworten kann statt eines 404.
+
+**`sw.js` darf nicht lange zwischengespeichert werden.** Der Service Worker entscheidet,
+wann alles andere aktualisiert wird — ist er selbst veraltet, lässt sich die App nie mehr
+reparieren. Alles unter `/_nuxt/` darf dagegen ewig liegen bleiben, die Dateinamen
+enthalten einen Hash.
+
+Beides ist fertig: [`deploy/.htaccess`](deploy/.htaccess) für Apache — einfach mit in den
+Docroot legen — und [`deploy/nginx.conf`](deploy/nginx.conf) für nginx.
+
+### Mit Docker — auch ohne Node auf dem Rechner
 
 ```bash
-pnpm install
-pnpm dev
+docker compose up -d app
 ```
 
-Öffnet `http://localhost:3000`. Kein Docker, keine Datenbank, kein Seed.
+Gebaut wird im Container. Die App liegt danach auf `http://127.0.0.1:3000`, nur lokal
+erreichbar; `APP_BIND=0.0.0.0` gibt sie ins Heimnetz frei. Für Zugriff von unterwegs ohne
+Portfreigabe im Router gibt es ein Tunnel-Profil — siehe [`compose.yml`](compose.yml).
 
-### Selbst hosten
+### Selbst bauen
 
-Der Build erzeugt statische Dateien. Es gibt nichts zu betreiben:
+Falls du am Code arbeitest oder lieber selbst baust:
+
+```bash
+corepack enable     # bringt genau die pnpm-Version mit, die das Projekt erwartet
+pnpm install
+pnpm dev            # http://localhost:3000
+```
+
+`corepack` liegt jedem Node ab 16.9 bei, du musst pnpm also nicht installieren. Für ein
+eigenes Deployment:
 
 ```bash
 pnpm build
-```
-
-Danach liegt alles unter `.output/public/` — kopieren, wohin es soll:
-
-```bash
 rsync -av --delete .output/public/ dein-server:/pfad/zum/docroot/
 ```
 
-Das läuft auf jedem Webspace, auf Cloudflare Pages, auf GitHub Pages, auf einem
-Raspberry Pi mit nginx. Details und Alternativen:
-[`docs/08-DEPLOYMENT.md`](docs/08-DEPLOYMENT.md) und
+Details und Alternativen: [`docs/08-DEPLOYMENT.md`](docs/08-DEPLOYMENT.md) und
 [`docs/10-DEPLOYMENT-ALTERNATIVEN.md`](docs/10-DEPLOYMENT-ALTERNATIVEN.md).
 
 > **Ein Hinweis zu HTTPS:** Wenn du die App über `https://` ausspielst, kann sie einen

@@ -18,8 +18,56 @@ concurrency:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.release.outputs.release_created }}
+      tag: ${{ steps.release.outputs.tag_name }}
     steps:
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        id: release
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  # Die fertige Seite an das Release hängen.
+  #
+  # Wer Fidelity nur *benutzen* will, soll dafür keine Werkzeugkette brauchen.
+  # Ohne diesen Schritt heißt „auf den eigenen Webspace legen": Node
+  # installieren, pnpm besorgen, tausend Pakete holen, bauen — für eine App,
+  # die am Ende aus Dateien besteht, die man hochlädt.
+  #
+  # Läuft nur, wenn release-please gerade wirklich ein Release angelegt hat.
+  site:
+    needs: release-please
+    if: needs.release-please.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v4.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      # Ein Zip, nicht ein Tar: das Ziel ist jemand, der es im Dateimanager
+      # aufmacht und den Inhalt per FTP in seinen Docroot zieht.
+      #
+      # Die .htaccess kommt mit hinein, und das ist der Punkt. Wer ein Zip
+      # herunterlädt, liest kein Repository — die Datei, ohne die Unterseiten
+      # auf Apache schieflaufen, muss im Paket liegen und nicht in einer
+      # Anleitung. Auf nginx stört sie niemanden, der ignoriert sie.
+      - name: Seite verpacken
+        run: |
+          cp deploy/.htaccess .output/public/.htaccess
+          cp deploy/LIESMICH.txt .output/public/LIESMICH.txt
+          cd .output/public
+          zip -qr "../../fidelity-${{ needs.release-please.outputs.tag }}.zip" . -x '.DS_Store'
+
+      - name: An das Release hängen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ needs.release-please.outputs.tag }}" \
+            "fidelity-${{ needs.release-please.outputs.tag }}.zip" --clobber
