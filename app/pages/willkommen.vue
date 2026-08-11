@@ -211,7 +211,7 @@ const CAN_DO = computed(
           spricht direkt mit Discogs – ohne Server dazwischen", and repeating
           it above is the kind of padding this app is supposed to be free of.
         -->
-        <section v-if="step === 'token'" key="token">
+        <section v-else-if="step === 'token'" key="token">
           <TokenForm @signed-in="signedIn($event)" />
         </section>
 
