@@ -75,6 +75,17 @@ watch([query, sort, direction], () => {
 watch(shown, load)
 
 const rest = computed(() => (view.value ? view.value.total - view.value.records.length : 0))
+
+/*
+ * A record of your own now opens here, not at Discogs.
+ *
+ * The tile used to be a link straight out of the app, on the grounds that a
+ * shelf entry has no market data and so nothing to show. It has plenty: the
+ * label, the catalogue number, the pressing, the styles, when it arrived and
+ * what it was rated — all of it already in IndexedDB, all of it readable in a
+ * basement with no signal. Discogs is one button away for the rest.
+ */
+const open = ref<number | null>(null)
 </script>
 
 <template>
@@ -160,20 +171,11 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
         class="grid grid-cols-3 gap-x-4 gap-y-6 @md:grid-cols-4 @2xl:grid-cols-6 @5xl:grid-cols-8"
       >
         <li v-for="record in view.records" :key="record.releaseId" class="flex flex-col gap-2">
-          <!--
-            Outward, and it says so.
-            A record in your own shelf has no richer page inside Fidelity — the
-            detail sheet is built on a dig match and its market data, which a
-            collection entry does not have. Discogs is where the record's page
-            is, so that is where this goes; the only thing missing was saying
-            so to anyone who cannot see the new tab open.
-          -->
-          <a
-            :href="`https://www.discogs.com/release/${record.releaseId}`"
-            target="_blank"
-            rel="noopener noreferrer"
-            :aria-label="c.shelf.atDiscogs(record.artist, record.title)"
-            class="group flex flex-col gap-2 rounded-fid-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fid-accent"
+          <button
+            type="button"
+            :aria-label="c.open(record.artist, record.title)"
+            class="fid-cover-button group flex flex-col gap-2 rounded-fid-sm text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fid-accent"
+            @click="open = record.releaseId"
           >
             <!--
               Lazy, never fetched by hand. i.discogs.com has its own budget of
@@ -212,7 +214,7 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
             <span class="line-clamp-2 text-fid-sm text-fid-text group-hover:underline">
               {{ record.title }}
             </span>
-          </a>
+          </button>
 
           <span class="line-clamp-1 text-fid-xs text-fid-text-muted">{{ record.artist }}</span>
           <span class="flex flex-wrap gap-x-2 text-fid-xs text-fid-text-muted">
@@ -234,5 +236,7 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
         {{ c.showMore(count(Math.min(rest, 240))) }}
       </button>
     </template>
+
+    <ShelfSheet v-if="open !== null" :release-id="open" @close="open = null" />
   </main>
 </template>

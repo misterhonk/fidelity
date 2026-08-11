@@ -1,6 +1,12 @@
 import { openFidelityDb } from '~~/db/open'
 import { DEFAULT_SHELF_DIRECTION } from '#shared/types'
-import type { ShelfRecord, ShelfSort, ShelfView, SortDirection } from '#shared/types'
+import type {
+  CollectionItem,
+  ShelfRecord,
+  ShelfSort,
+  ShelfView,
+  SortDirection,
+} from '#shared/types'
 
 import { norm, tokens } from '../match/normalize'
 
@@ -111,4 +117,17 @@ function sortRecords(records: ShelfRecord[], sort: ShelfSort, direction: SortDir
   // Der Vergleicher oben liefert die Vorgabe-Richtung dieses Schlüssels. Ist
   // die andere verlangt, wird dieselbe Reihenfolge von hinten gelesen.
   if (direction !== DEFAULT_SHELF_DIRECTION[sort]) records.reverse()
+}
+
+/**
+ * One record of your own, in full.
+ *
+ * The shelf grid carries a flattened row — enough for a tile, not enough for a
+ * page. This reads the stored item instead, so genres, styles, every label and
+ * every catalogue number are there. It costs no request: the sync wrote all of
+ * it, and Discogs never has to be asked again.
+ */
+export async function shelfRecord(releaseId: number): Promise<CollectionItem | null> {
+  const db = await openFidelityDb()
+  return (await db.get('collection', releaseId)) ?? null
 }

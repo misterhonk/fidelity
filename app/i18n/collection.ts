@@ -45,6 +45,20 @@ const en = {
       rating: { label: 'Rating', about: 'Best first, unrated last' },
     },
     atDiscogs: (artist: string, title: string) => `${artist} — ${title}, view at Discogs`,
+    sheet: {
+      loading: 'Opening the record…',
+      facts: {
+        rating: 'Rating',
+        label: 'Label',
+        catno: 'Cat. no.',
+        format: 'Format',
+        year: 'Year',
+        added: 'Added',
+      },
+      rated: (stars: number) => `Rated ${stars} of 5`,
+      sounds: 'Sounds like',
+      atDiscogs: 'View at Discogs',
+    },
   },
 
   map: {
@@ -114,6 +128,7 @@ const en = {
     of === null ? `${shown} ${records}` : `${shown} of ${of} ${records}`,
   records: 'records',
   noCover: 'no cover',
+  open: (artist: string, title: string) => `Open ${artist} — ${title}`,
   showMore: (n: string) => `Show ${n} more`,
   howMuchLeft: 'How much is still out there',
   whichLabels: 'Which labels you actually collect',
@@ -150,6 +165,20 @@ const de: typeof en = {
       rating: { label: 'Bewertung', about: 'Beste zuerst, unbewertete zuletzt' },
     },
     atDiscogs: (artist, title) => `${artist} – ${title}, bei Discogs ansehen`,
+    sheet: {
+      loading: 'Platte wird geöffnet…',
+      facts: {
+        rating: 'Bewertung',
+        label: 'Label',
+        catno: 'Katalognr.',
+        format: 'Format',
+        year: 'Jahr',
+        added: 'Zugegangen',
+      },
+      rated: (stars) => `Mit ${stars} von 5 bewertet`,
+      sounds: 'Klingt nach',
+      atDiscogs: 'Bei Discogs ansehen',
+    },
   },
 
   map: {
@@ -209,6 +238,7 @@ const de: typeof en = {
     of === null ? `${shown} ${records}` : `${shown} von ${of} ${records}`,
   records: 'Platten',
   noCover: 'kein Cover',
+  open: (artist, title) => `${artist} – ${title} öffnen`,
   showMore: (n: string) => `Weitere ${n} zeigen`,
   howMuchLeft: 'Wie viel es noch gibt',
   whichLabels: 'Welche Labels du wirklich sammelst',

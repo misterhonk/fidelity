@@ -54,6 +54,29 @@ test.describe('a device that has been used', () => {
     await expect(page.getByText('Speak No Evil')).toBeVisible()
     await expect(page.getByText('Maiden Voyage')).toBeVisible()
   })
+
+  /*
+   * A tile opens the record, not Discogs.
+   *
+   * Worth a test of its own because the failure is silent: if the sheet stops
+   * finding its record it renders an empty panel, which looks like a slow
+   * network rather than a bug. Asserting on a named row proves the worker
+   * answered and the layout put the value next to its name.
+   */
+  test('a record of your own opens with its details named', async ({ page }) => {
+    await seed(page, 'en')
+    await page.goto('/shelf')
+
+    await page.getByRole('button', { name: /Speak No Evil/ }).click()
+
+    const sheet = page.getByRole('dialog')
+    await expect(sheet.getByText('Label', { exact: true })).toBeVisible()
+    await expect(sheet.getByText('Blue Note')).toBeVisible()
+    await expect(sheet.getByRole('link', { name: /View at Discogs/ })).toHaveAttribute(
+      'href',
+      /discogs\.com\/release\//,
+    )
+  })
 })
 
 /**

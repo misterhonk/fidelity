@@ -20,6 +20,7 @@ import type {
   BasketPlan,
   BasketView,
   CollectionGaps,
+  CollectionItem,
   CreditGroup,
   CreditHarvest,
   CreditPerson,
@@ -189,6 +190,12 @@ export interface WorkerContract {
     }
     progress: never
     result: ShelfView
+  }
+  /** One stored record, for the sheet a shelf tile opens. Reads only. */
+  'collection.record': {
+    params: { releaseId: number }
+    progress: never
+    result: CollectionItem | null
   }
   /** Recomputed after every sync; null until there has been one. */
   'taste.profile': { params: undefined; progress: never; result: TasteProfile | null }

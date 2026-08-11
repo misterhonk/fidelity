@@ -528,6 +528,11 @@ export const handlers: HandlerMap = {
     return shelfView(params)
   },
 
+  'collection.record': async ({ releaseId }) => {
+    const { shelfRecord } = await import('./collection/records')
+    return shelfRecord(releaseId)
+  },
+
   'collection.shelf': async ({ query }) => {
     const { searchShelf } = await import('./collection/shelf')
     return searchShelf(query, Date.now())
