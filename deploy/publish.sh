@@ -31,18 +31,30 @@ set -eu
 
 SOURCE="${1:?Verzeichnis mit der neuen Fassung fehlt}"
 ROOT="${2:?Ziel-Wurzel fehlt}"
-VERSION="${3:-$(date +%Y%m%d%H%M%S)}"
+VERSION="${3:-unbenannt}"
 
 # Wie viele alte Fassungen liegen bleiben. Drei sind zwei Rückwege und der
-# Beweis, dass es einen gibt — und bei ~1,5 MB je Fassung kein Thema.
+# Beweis, dass es einen gibt — und bei ~2,5 MB je Fassung (davon 950 KB
+# Schriften) sind das 7,5 MB, egal wie oft ausgeliefert wird.
 KEEP="${KEEP:-3}"
+
+# Ein Zeitstempel vor dem Namen, damit `ls` chronologisch liest.
+#
+# Der Name allein taugt nicht zum Sortieren: ein Release heißt "v0.10.0", ein
+# Lauf von Hand heißt wie sein Commit, und alphabetisch steht "v0.9.0" über
+# "v0.10.0" — weil 9 größer ist als 1. Wer sich darauf verlässt, behält drei
+# beliebige Fassungen statt der drei letzten.
+#
+# UTC, weil ein Server, der im Oktober die Uhr zurückstellt, sonst eine Stunde
+# lang Namen erzeugt, die vor den vorherigen einsortieren.
+STAMP="$(date -u +%Y%m%d-%H%M%S)"
 
 [ -d "$SOURCE" ] || { echo "Es gibt kein Verzeichnis $SOURCE" >&2; exit 1; }
 [ -f "$SOURCE/index.html" ] || { echo "In $SOURCE liegt keine index.html — das sieht nicht nach einem Build aus" >&2; exit 1; }
 [ -f "$SOURCE/200.html" ] || { echo "In $SOURCE fehlt 200.html — ohne die scheitert jede Unterseite" >&2; exit 1; }
 
 RELEASES="$ROOT/releases"
-TARGET="$RELEASES/$VERSION"
+TARGET="$RELEASES/$STAMP-$VERSION"
 
 mkdir -p "$RELEASES"
 
@@ -68,6 +80,20 @@ cp -R "$SOURCE/." "$TARGET/"
 # auf einen bestehenden Symlink. Das folgt ihm und legt den neuen Link *in* das
 # Verzeichnis, auf das er zeigt. Der Befehl meldet Erfolg, und `current` zeigt
 # weiter auf die alte Fassung. Genau so ist es beim ersten Test passiert.
+# Was jetzt gerade live ist — **vor** dem Umschalten gelesen.
+#
+# Danach ist es zu spät: `current` zeigt dann auf die neue Fassung, und genau
+# das war der Fehler. Die Schutzklausel unten las den Namen erst nach dem
+# Wechsel und verschonte damit immer nur die soeben veröffentlichte Fassung,
+# die ohnehin nie zur Löschung ansteht. Ein Sicherheitsnetz, das aussah wie
+# eins und keines war: in einem Test mit KEEP=2, bei dem jemand von Hand auf
+# eine ältere Fassung zurückgesprungen war, hat das Aufräumen genau diese
+# gelöscht.
+PREVIOUS=""
+if [ -L "$ROOT/current" ]; then
+  PREVIOUS=$(basename "$(readlink "$ROOT/current")")
+fi
+
 if ln -sfn "$TARGET" "$ROOT/.current.neu" 2>/dev/null &&
    mv -Tf "$ROOT/.current.neu" "$ROOT/current" 2>/dev/null; then
   :
@@ -78,10 +104,23 @@ fi
 
 echo "Ausgeliefert: $VERSION"
 
-# Aufräumen, aber nie die Fassung, auf die gerade gezeigt wird.
-CURRENT_NAME=$(basename "$(readlink "$ROOT/current")")
-ls -1 "$RELEASES" | sort -r | tail -n +"$((KEEP + 1))" | while read -r old; do
+# Aufräumen — aber weder die neue Fassung noch die, die eben noch live war.
+#
+# Die zweite ist der eigentliche Punkt: wer von Hand zurückgesprungen ist, hat
+# einen Grund dafür, und der nächste Auslieferungslauf darf ihm den Rückweg
+# nicht unter den Füßen wegziehen.
+CURRENT_NAME=$(basename "$TARGET")
+# Nach Änderungszeit, nicht nach Namen.
+#
+# Der Zeitstempel oben macht die Namen zwar sortierbar — aber erst für das,
+# was ab jetzt entsteht. Auf einem Server, der schon Fassungen aus der Zeit
+# davor liegen hat, würde ein Namensvergleich weiter die falschen behalten:
+# "v0.10.0" beginnt mit einem Buchstaben und stünde damit über jedem
+# Zeitstempel. `ls -t` fragt das Dateisystem statt den Namen und ist gegen
+# beides immun.
+ls -1t "$RELEASES" | tail -n +"$((KEEP + 1))" | while read -r old; do
   [ "$old" = "$CURRENT_NAME" ] && continue
+  [ -n "$PREVIOUS" ] && [ "$old" = "$PREVIOUS" ] && continue
   rm -rf "$RELEASES/$old"
   echo "  entfernt: $old"
 done
