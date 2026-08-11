@@ -127,10 +127,9 @@ test.describe('on a phone', () => {
      * exists — Safari zoomed on it and never zoomed back — but the demo field
      * is the first one a stranger touches.
      */
+    // Sichtbar ohne Zutun: es lag eine Weile hinter einem `summary`, das nicht
+    // nach einem Bedienelement aussah — gefunden hat es dort niemand.
     const demoField = page.locator('#demo-url')
-    // Behind a summary now: the covers are the invitation and the paste field
-    // is for the minority who arrive with a URL already in hand.
-    await page.getByText('Oder einen eigenen Discogs-Link einfügen').click()
     await expect(demoField).toBeVisible()
     expect(
       await demoField.evaluate((el) => parseFloat(getComputedStyle(el).fontSize)),

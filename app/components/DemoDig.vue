@@ -117,7 +117,48 @@ function shapeOf(format: string | null) {
     <ErrorNote v-if="error" :cause="error" :signed-in="false" />
 
     <!--
-      Drei Cover, und sonst nichts.
+      Das Feld steht oben und offen.
+
+      Es lag eine Weile zugeklappt unter den Covern — meine Entscheidung, mit
+      dem Argument, dass ein Formular vor der ersten Platte alle bremst, die gar
+      keinen Link dabeihaben. Zwei Dinge stimmten daran nicht. Ein `summary`
+      sieht nicht nach etwas aus, das man anklicken kann, also fand es niemand;
+      und wer *mit* einer Platte im Sinn kommt, ist genau der, den diese
+      Vorführung überzeugen soll — dessen Weg darf nicht hinter einer Klappe
+      liegen.
+
+      Offen kostet es zwei Zeilen. Das ist billiger als eine Möglichkeit, die
+      niemand sieht.
+    -->
+    <form class="flex flex-col gap-2" @submit.prevent="pastedId && run(pastedId)">
+      <label class="text-fid-sm font-medium text-fid-text" for="demo-url">
+        Ein Angebot von Discogs
+      </label>
+      <div class="flex flex-wrap gap-2">
+        <input
+          id="demo-url"
+          v-model="url"
+          type="url"
+          inputmode="url"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="https://www.discogs.com/sell/item/…"
+          class="min-w-0 grow rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+        />
+        <button
+          type="submit"
+          :disabled="running || pastedId === null"
+          class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+        >
+          Ansehen
+        </button>
+      </div>
+    </form>
+
+    <p class="text-fid-sm text-fid-text-muted">Oder eine von diesen:</p>
+
+    <!--
+      Vier Cover, und sonst nichts.
 
       This was a list of text buttons on a page about records. The picture is
       the invitation; the artist, the title and one measured line are what fits
@@ -185,40 +226,6 @@ function shapeOf(format: string | null) {
         </button>
       </li>
     </ul>
-
-    <!--
-      Der eigene Link, für die Minderheit, die schon eine Platte im Sinn hat.
-
-      It used to sit above the covers, on the theory that somebody arriving
-      with a URL should not scroll past a stranger's choices. On a landing page
-      that theory costs everyone else a form field before they have seen
-      anything — so it stays one click away instead of first.
-    -->
-    <details class="text-fid-sm">
-      <summary class="fid-action cursor-pointer text-fid-text-muted">
-        Oder einen eigenen Discogs-Link einfügen
-      </summary>
-      <form class="mt-3 flex flex-wrap gap-2" @submit.prevent="pastedId && run(pastedId)">
-        <label class="sr-only" for="demo-url">Ein Angebot von Discogs</label>
-        <input
-          id="demo-url"
-          v-model="url"
-          type="url"
-          inputmode="url"
-          autocomplete="off"
-          spellcheck="false"
-          placeholder="https://www.discogs.com/sell/item/…"
-          class="min-w-0 grow rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
-        />
-        <button
-          type="submit"
-          :disabled="running || pastedId === null"
-          class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
-        >
-          Ansehen
-        </button>
-      </form>
-    </details>
 
     <!--
       Der Preis wird genannt, bevor er ausgegeben wird — und währenddessen ein
