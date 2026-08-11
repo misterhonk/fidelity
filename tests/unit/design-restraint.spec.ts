@@ -118,7 +118,7 @@ describe('the accent', () => {
    * step flows would be the kind of cleverness this file exists to avoid. A
    * second entry here should take an argument, not a commit.
    */
-  const STEP_FLOWS = ['pages/willkommen.vue']
+  const STEP_FLOWS = ['pages/welcome.vue']
 
   it('fills at most one surface per screen unconditionally', () => {
     const busy = screens
@@ -180,7 +180,7 @@ describe('the basket badge', () => {
    * unit test cannot read a bounding box.
    */
   it('starts the unlabelled tab at the same height as the labelled ones', () => {
-    const gear = code.slice(code.indexOf('to="/einstellungen"'))
+    const gear = code.slice(code.indexOf('to="/settings"'))
     for (const rule of ['max-md:flex-col', 'max-md:justify-start', 'max-md:py-2']) {
       expect(gear.slice(0, 600)).toContain(rule)
     }

@@ -57,13 +57,13 @@ const entries = computed<Entry[]>(() => {
 
   return [
     { id: 'nav-dig', group: goTo, label: m.nav.dig.label, run: go('/dig') },
-    { id: 'nav-shelf', group: goTo, label: c.tabs.shelf, run: go('/regal') },
-    { id: 'nav-map', group: goTo, label: c.tabs.map, run: go('/landkarte') },
+    { id: 'nav-shelf', group: goTo, label: c.tabs.shelf, run: go('/shelf') },
+    { id: 'nav-map', group: goTo, label: c.tabs.map, run: go('/map') },
     { id: 'nav-want', group: goTo, label: c.tabs.wantlist, run: go('/wantlist') },
-    { id: 'nav-clerk', group: goTo, label: m.nav.dealers.label, run: go('/haendler') },
-    { id: 'nav-basket', group: goTo, label: m.nav.basket.label, run: go('/korb') },
-    { id: 'nav-store', group: goTo, label: m.palette.inStore, run: go('/im-laden') },
-    { id: 'nav-settings', group: goTo, label: m.nav.settings, run: go('/einstellungen') },
+    { id: 'nav-clerk', group: goTo, label: m.nav.dealers.label, run: go('/dealers') },
+    { id: 'nav-basket', group: goTo, label: m.nav.basket.label, run: go('/basket') },
+    { id: 'nav-store', group: goTo, label: m.palette.inStore, run: go('/in-store') },
+    { id: 'nav-settings', group: goTo, label: m.nav.settings, run: go('/settings') },
     { id: 'nav-home', group: goTo, label: m.nav.start.label, run: go('/') },
 
     ...dealers.value.map((dealer) => ({
@@ -71,7 +71,7 @@ const entries = computed<Entry[]>(() => {
       group: m.palette.dealers,
       label: dealer.displayName || dealer.username,
       hint: dealer.affinity ? m.palette.affinity(decimal(dealer.affinity)) : undefined,
-      run: go('/haendler'),
+      run: go('/dealers'),
     })),
 
     ...digs.value.map((dig) => ({

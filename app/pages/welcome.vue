@@ -128,8 +128,8 @@ const CAN_DO = computed(
   () =>
     [
       { icon: 'kiste', to: '/dig', ...w.value.canDo.dig },
-      { icon: 'platte', to: '/im-laden', ...w.value.canDo.inStore },
-      { icon: 'regal', to: '/regal', ...w.value.canDo.collection },
+      { icon: 'platte', to: '/in-store', ...w.value.canDo.inStore },
+      { icon: 'regal', to: '/shelf', ...w.value.canDo.collection },
     ] as const,
 )
 </script>

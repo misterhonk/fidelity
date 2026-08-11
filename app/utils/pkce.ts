@@ -78,5 +78,5 @@ export function redirectUriFor(origin: string): string {
   // The page that finishes the exchange, which is the one holding the vault
   // settings. Coming back to the settings index would land on a screen that
   // never looks at `?code=`.
-  return `${origin.replace(/\/+$/, '')}/einstellungen/abgleich`
+  return `${origin.replace(/\/+$/, '')}/settings/sync`
 }

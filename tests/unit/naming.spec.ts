@@ -40,11 +40,11 @@ const NAV = 'app/components/AppNav.vue'
 const SECTIONS = [
   { to: '/', page: 'app/pages/index.vue', nav: 'start', packs: { en, de }, path: 'home.title' },
   { to: '/dig', page: 'app/pages/dig.vue', nav: 'dig', packs: dig, path: 'title' },
-  { to: '/korb', page: 'app/pages/korb.vue', nav: 'basket', packs: basket, path: 'title' },
-  { to: '/regal', page: 'app/pages/regal.vue', nav: 'shelf', packs: collection, path: 'title' },
+  { to: '/basket', page: 'app/pages/basket.vue', nav: 'basket', packs: basket, path: 'title' },
+  { to: '/shelf', page: 'app/pages/shelf.vue', nav: 'shelf', packs: collection, path: 'title' },
   {
-    to: '/haendler',
-    page: 'app/pages/haendler.vue',
+    to: '/dealers',
+    page: 'app/pages/dealers.vue',
     nav: 'dealers',
     packs: dealers,
     path: 'title',

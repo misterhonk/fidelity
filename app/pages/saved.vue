@@ -260,7 +260,7 @@ async function check() {
           aria-live="polite"
         >
           {{ moveResult.text }}
-          <NuxtLink to="/korb" class="text-fid-accent underline underline-offset-4">
+          <NuxtLink to="/basket" class="text-fid-accent underline underline-offset-4">
             Versand rechnen
           </NuxtLink>
         </p>

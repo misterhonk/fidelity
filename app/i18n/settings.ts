@@ -267,6 +267,14 @@ const en = {
 
     clientId: (provider: string) => `Client ID from ${provider}`,
     redirect: (uri: string) => `As the redirect URL, enter ${uri}.`,
+    /*
+     * Said because it is the one rename somebody cannot fix from here: the
+     * redirect URL lives in a registration at Dropbox or Google. The old one
+     * still works — the app and the server both send it on, query and all —
+     * so nobody has to touch a working setup.
+     */
+    redirectMoved:
+      'Set this up before August 2026? The address then ended in /einstellungen/abgleich. It still works — nothing to change.',
     connect: (provider: string) => `Connect to ${provider}`,
     connected: 'Connected.',
     connectedTo: (provider: string) => `Connected to ${provider}.`,
@@ -664,6 +672,8 @@ const de: typeof en = {
 
     clientId: (provider) => `Client-ID von ${provider}`,
     redirect: (uri) => `Als Redirect-URL trägst du ${uri} ein.`,
+    redirectMoved:
+      'Vor August 2026 eingerichtet? Die Adresse endete damals auf /einstellungen/abgleich. Sie funktioniert weiter – da ist nichts zu tun.',
     connect: (provider) => `Mit ${provider} verbinden`,
     connected: 'Verbunden.',
     connectedTo: (provider) => `Mit ${provider} verbunden.`,

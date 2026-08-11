@@ -8,9 +8,42 @@
 # AllowOverride ab), funktioniert die App beim ersten Aufruf trotzdem und
 # zeigt beim Neuladen einer Unterseite einen 404. Dann hilft nur der Anbieter.
 
-# --- 1. Jede Adresse fällt auf 200.html ---------------------------------------
+# --- 1. Die alten, deutschen Adressen -----------------------------------------
 #
-# Die App erzeugt ihre Seiten im Browser: /korb existiert als Datei nicht.
+# Bis ADR-010 lag jeder Bildschirm unter einem deutschen Pfad. Eine echte 301
+# korrigiert das Lesezeichen in der Adresszeile; ohne Server macht die App
+# dasselbe selbst.
+#
+# `QSA` ist Pflicht, keine Feinheit: der Tresor kommt aus dem OAuth-Fenster von
+# Dropbox oder Google auf das zurück, was einmal /einstellungen/abgleich war —
+# mit `?code=…` daran. Diese Adresse haben Nutzer beim Anbieter registriert und
+# lässt sich von hier aus nicht ändern. Fällt die Abfrage weg, scheitert der
+# ganze Austausch.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule "^korb/?$" "/basket" [R=301,L,QSA]
+  RewriteRule "^regal/?$" "/shelf" [R=301,L,QSA]
+  RewriteRule "^haendler/?$" "/dealers" [R=301,L,QSA]
+  RewriteRule "^landkarte/?$" "/map" [R=301,L,QSA]
+  RewriteRule "^gemerkt/?$" "/saved" [R=301,L,QSA]
+  RewriteRule "^im-laden/?$" "/in-store" [R=301,L,QSA]
+  RewriteRule "^willkommen/?$" "/welcome" [R=301,L,QSA]
+  RewriteRule "^datenschutz/?$" "/privacy" [R=301,L,QSA]
+  RewriteRule "^impressum/?$" "/legal" [R=301,L,QSA]
+  RewriteRule "^einstellungen/abgleich/?$" "/settings/sync" [R=301,L,QSA]
+  RewriteRule "^einstellungen/darstellung/?$" "/settings/appearance" [R=301,L,QSA]
+  RewriteRule "^einstellungen/daten/?$" "/settings/data" [R=301,L,QSA]
+  RewriteRule "^einstellungen/hilfe/?$" "/settings/help" [R=301,L,QSA]
+  RewriteRule "^einstellungen/hub/?$" "/settings/hub" [R=301,L,QSA]
+  RewriteRule "^einstellungen/konto/?$" "/settings/account" [R=301,L,QSA]
+  RewriteRule "^einstellungen/sammlung/?$" "/settings/collection" [R=301,L,QSA]
+  RewriteRule "^einstellungen/suche/?$" "/settings/search" [R=301,L,QSA]
+  RewriteRule "^einstellungen/?$" "/settings" [R=301,L,QSA]
+</IfModule>
+
+# --- 2. Jede Adresse fällt auf 200.html ---------------------------------------
+#
+# Die App erzeugt ihre Seiten im Browser: /basket existiert als Datei nicht.
 # Ohne diesen Rückfall ist jedes Neuladen einer Unterseite und jedes Lesezeichen
 # ein 404.
 #
@@ -24,7 +57,7 @@
   RewriteRule . /200.html [L]
 </IfModule>
 
-# --- 2. Was wie lange liegen bleiben darf -------------------------------------
+# --- 3. Was wie lange liegen bleiben darf -------------------------------------
 <IfModule mod_headers.c>
   # Der Service Worker entscheidet, wann alles andere aktualisiert wird. Ist er
   # selbst veraltet, lässt sich die App nie wieder reparieren — ein zwischen-

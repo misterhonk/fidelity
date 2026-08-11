@@ -15,8 +15,8 @@ const route = useRoute()
  * — it stops reading as a switch and starts reading as a header.
  */
 const TABS = [
-  { to: '/regal', key: 'shelf', icon: 'regal' },
-  { to: '/landkarte', key: 'map', icon: 'map' },
+  { to: '/shelf', key: 'shelf', icon: 'regal' },
+  { to: '/map', key: 'map', icon: 'map' },
   { to: '/wantlist', key: 'wantlist', icon: 'wantlist' },
 ] as const
 </script>

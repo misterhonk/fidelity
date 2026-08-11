@@ -31,8 +31,8 @@ const { version, commit } = useRuntimeConfig().public
       </p>
 
       <p class="flex flex-wrap gap-x-4 gap-y-1 text-fid-xs text-fid-text-muted">
-        <NuxtLink class="underline underline-offset-4" to="/datenschutz">Datenschutz</NuxtLink>
-        <NuxtLink class="underline underline-offset-4" to="/impressum">Impressum</NuxtLink>
+        <NuxtLink class="underline underline-offset-4" to="/privacy">Datenschutz</NuxtLink>
+        <NuxtLink class="underline underline-offset-4" to="/legal">Impressum</NuxtLink>
         <!--
           The commit next to the version, because the version alone cannot
           answer "is this the build I just deployed". It only moves when a

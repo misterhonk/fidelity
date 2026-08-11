@@ -55,7 +55,7 @@ function onKeydown(event: KeyboardEvent) {
  * The keeper runs from the first screen on.
  *
  * Here rather than on the start page, because the person whose collection is a
- * week out of date is exactly the one who opens a bookmark straight to /korb.
+ * week out of date is exactly the one who opens a bookmark straight to /basket.
  * It does nothing while a tab is hidden and nothing while something somebody
  * started is running (worker/keeper.ts).
  */

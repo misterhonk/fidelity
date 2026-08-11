@@ -34,7 +34,7 @@ onMounted(async () => {
    * empty sections was the first of them with the other two left implied.
    */
   if (!identity.value) {
-    await navigateTo('/willkommen')
+    await navigateTo('/welcome')
     return
   }
 
@@ -102,11 +102,11 @@ const tiles = computed(() => {
 
   const words = m.value.home.counts
   return [
-    { label: words.collection, count: summary.collection, to: '/regal' },
+    { label: words.collection, count: summary.collection, to: '/shelf' },
     { label: words.wantlist, count: summary.wantlist, to: '/wantlist' },
-    { label: words.marked, count: summary.marked, to: '/gemerkt' },
-    { label: words.dealers, count: summary.dealers, to: '/haendler' },
-    { label: words.basket, count: summary.basket, to: '/korb' },
+    { label: words.marked, count: summary.marked, to: '/saved' },
+    { label: words.dealers, count: summary.dealers, to: '/dealers' },
+    { label: words.basket, count: summary.basket, to: '/basket' },
   ]
 })
 </script>
@@ -218,7 +218,7 @@ const tiles = computed(() => {
         <CoverRail
           v-if="home.shelf.length > 0"
           :title="m.home.newOnShelf"
-          to="/regal"
+          to="/shelf"
           :note="`${count(home.library.collection)} Platten`"
         >
           <CoverTile
@@ -260,7 +260,7 @@ const tiles = computed(() => {
         -->
         <section v-if="home.shops.length > 0" class="flex flex-col gap-3 px-6">
           <h2 class="text-fid-base font-medium text-fid-text">
-            <NuxtLink to="/haendler" class="underline-offset-4 hover:underline">
+            <NuxtLink to="/dealers" class="underline-offset-4 hover:underline">
               {{ m.home.yourShops }}
             </NuxtLink>
           </h2>
@@ -276,7 +276,7 @@ const tiles = computed(() => {
             -->
             <li v-for="shop in home.shops" :key="shop.username">
               <NuxtLink
-                :to="{ path: '/haendler', query: { dealer: shop.username } }"
+                :to="{ path: '/dealers', query: { dealer: shop.username } }"
                 class="flex flex-col gap-1 rounded-fid-md border border-fid-border bg-fid-surface p-4 transition-colors hover:border-fid-text-muted"
               >
                 <div class="flex items-baseline justify-between gap-3">

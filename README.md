@@ -80,8 +80,8 @@ Node, kein pnpm, kein Docker.
 Zwei Dinge muss der Webspace tun, sonst bricht es an unauffälliger Stelle:
 
 **Adressen brauchen die richtige Behandlung.** Jede bekannte Seite ist beim Bauen in ein
-eigenes Verzeichnis gelegt worden, `/korb` gibt es also wirklich — ein roher Webserver
-antwortet darauf aber mit einer Umleitung auf `/korb/`, und der Schrägstrich am Ende ist
+eigenes Verzeichnis gelegt worden, `/basket` gibt es also wirklich — ein roher Webserver
+antwortet darauf aber mit einer Umleitung auf `/basket/`, und der Schrägstrich am Ende ist
 für die App eine andere Adresse als die ohne. Alles, was gar nicht vorgesehen ist, muss
 zusätzlich auf `200.html` fallen, damit die App selbst antworten kann statt eines 404.
 

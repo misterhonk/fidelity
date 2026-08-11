@@ -35,7 +35,7 @@ const step = computed(() => {
   if (!library.value || !horizon.value) return null
 
   if (library.value.collection === 0) {
-    return { ...m.value.nextStep.library, to: '/einstellungen/sammlung#library' }
+    return { ...m.value.nextStep.library, to: '/settings/collection#library' }
   }
 
   if (horizon.value.expanded < horizon.value.entities) {
@@ -45,7 +45,7 @@ const step = computed(() => {
       cta: words.cta,
       title: words.title,
       body: words.body(minutes),
-      to: '/einstellungen/sammlung#horizon',
+      to: '/settings/collection#horizon',
     }
   }
 

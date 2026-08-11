@@ -16,9 +16,9 @@ test.describe('smoke', () => {
     /*
      * The redirect, not the title. This asserted `Start · Fidelity` and kept
      * passing after the start page began sending signed-out visitors to
-     * /willkommen — it was reading the title of a page on its way out.
+     * /welcome — it was reading the title of a page on its way out.
      */
-    await expect(page).toHaveURL(/\/willkommen$/)
+    await expect(page).toHaveURL(/\/welcome$/)
     await expect(page).toHaveTitle('Welcome · Fidelity')
     await expect(page.getByRole('heading', { level: 1, name: 'Fidelity' })).toBeVisible()
 
@@ -60,7 +60,7 @@ test.describe('smoke', () => {
   })
 
   test('the setup shows which step is running', async ({ page }) => {
-    await page.goto('/willkommen')
+    await page.goto('/welcome')
 
     // The rail belongs to the setup, not to the page somebody lands on: an
     // extra dot for the demo would say it is something to get through.
@@ -86,7 +86,7 @@ test.describe('smoke', () => {
   })
 
   test('the nav bar stays out of the setup', async ({ page }) => {
-    await page.goto('/willkommen')
+    await page.goto('/welcome')
     await expect(page.getByRole('navigation', { name: 'Hauptbereiche' })).toHaveCount(0)
   })
 
@@ -106,7 +106,7 @@ test.describe('smoke', () => {
   })
 
   test('the map says what to do instead of showing empty bars', async ({ page }) => {
-    await page.goto('/landkarte')
+    await page.goto('/map')
 
     await expect(page.getByRole('heading', { level: 1, name: 'Collection' })).toBeVisible()
     await expect(page.getByText('No profile yet')).toBeVisible()
@@ -156,17 +156,17 @@ test.describe('smoke', () => {
 const SCREENS = [
   '/',
   '/dig',
-  '/landkarte',
+  '/map',
   '/wantlist',
-  '/haendler',
-  '/korb',
-  '/gemerkt',
-  '/im-laden',
-  '/datenschutz',
-  '/impressum',
+  '/dealers',
+  '/basket',
+  '/saved',
+  '/in-store',
+  '/privacy',
+  '/legal',
   // The manual. It is all prose, which is exactly where a wrong heading level
   // survives longest — nobody looks at a help page twice.
-  '/einstellungen/hilfe',
+  '/settings/help',
 ]
 
 test.describe('accessibility', () => {

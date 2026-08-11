@@ -93,7 +93,7 @@ test.describe('without a connection', () => {
     context,
   }) => {
     test.skip(
-      !(await underServiceWorker(page, '/im-laden')),
+      !(await underServiceWorker(page, '/in-store')),
       'Kein Service Worker in diesem Browser',
     )
 

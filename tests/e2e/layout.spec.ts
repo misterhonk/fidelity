@@ -36,25 +36,25 @@ async function columns(page: Page, selector: string) {
  */
 const ROUTES = [
   '/',
-  '/willkommen',
+  '/welcome',
   '/dig',
-  '/korb',
-  '/gemerkt',
-  '/regal',
-  '/landkarte',
+  '/basket',
+  '/saved',
+  '/shelf',
+  '/map',
   '/wantlist',
-  '/haendler',
-  '/im-laden',
-  '/einstellungen',
-  '/einstellungen/konto',
-  '/einstellungen/sammlung',
-  '/einstellungen/suche',
-  '/einstellungen/darstellung',
-  '/einstellungen/abgleich',
-  '/einstellungen/hub',
-  '/einstellungen/daten',
-  '/datenschutz',
-  '/impressum',
+  '/dealers',
+  '/in-store',
+  '/settings',
+  '/settings/account',
+  '/settings/collection',
+  '/settings/search',
+  '/settings/appearance',
+  '/settings/sync',
+  '/settings/hub',
+  '/settings/data',
+  '/privacy',
+  '/legal',
 ]
 
 test.describe('nothing scrolls sideways', () => {
@@ -77,7 +77,7 @@ test.describe('nothing scrolls sideways', () => {
 test.describe('room to breathe', () => {
   test('the shelf grid follows the width it is given', async ({ page }) => {
     await page.setViewportSize(PHONE)
-    await page.goto('/regal')
+    await page.goto('/shelf')
     await expect(page.locator('main')).toBeVisible()
 
     // Signed out there is no shelf to show, so the grid only proves itself
@@ -112,7 +112,7 @@ test.describe('the shelf grid itself', () => {
   // the column count, which is the part that was silently broken.
   test('the collection tabs lead to all three views', async ({ page }) => {
     await page.setViewportSize(WIDE)
-    await page.goto('/regal')
+    await page.goto('/shelf')
 
     const tabs = page.getByRole('navigation', { name: 'Collection' })
     await expect(tabs.getByRole('link', { name: 'Shelf' })).toBeVisible()
@@ -122,7 +122,7 @@ test.describe('the shelf grid itself', () => {
 
   test('a wide grid really is wider', async ({ page }) => {
     await page.setViewportSize(WIDE)
-    await page.goto('/regal')
+    await page.goto('/shelf')
     await expect(page.locator('main')).toBeVisible()
 
     // A container query on an element 110rem wide has to resolve differently

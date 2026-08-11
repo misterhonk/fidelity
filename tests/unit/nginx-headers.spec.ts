@@ -50,7 +50,7 @@ describe('the nginx config', () => {
   it('decides the cache by URI rather than by file extension', () => {
     /*
      * `location ~* \.html$` never matched a single route. Nuxt serves
-     * /einstellungen from einstellungen/index.html, and the *request* has no
+     * /settings from settings/index.html, and the *request* has no
      * extension — so the shell went out with no cache directive at all, free
      * for any browser to keep and then ask for asset hashes that were gone.
      */

@@ -11,13 +11,13 @@ import { expect, test } from '@playwright/test'
  */
 
 const SUBPAGES = [
-  ['/einstellungen/konto', 'Account'],
-  ['/einstellungen/sammlung', 'Collection'],
-  ['/einstellungen/suche', 'Search'],
-  ['/einstellungen/darstellung', 'Appearance'],
-  ['/einstellungen/abgleich', 'Sync devices'],
-  ['/einstellungen/hub', 'Hub'],
-  ['/einstellungen/daten', 'Your data'],
+  ['/settings/account', 'Account'],
+  ['/settings/collection', 'Collection'],
+  ['/settings/search', 'Search'],
+  ['/settings/appearance', 'Appearance'],
+  ['/settings/sync', 'Sync devices'],
+  ['/settings/hub', 'Hub'],
+  ['/settings/data', 'Your data'],
 ] as const
 
 test.describe('settings', () => {
@@ -35,13 +35,13 @@ test.describe('settings', () => {
       // word already says where the link goes.
       await expect(page.getByRole('link', { name: 'Settings', exact: true })).toHaveAttribute(
         'href',
-        '/einstellungen',
+        '/settings',
       )
     })
   }
 
   test('the index is reachable and names itself', async ({ page }) => {
-    await page.goto('/einstellungen')
+    await page.goto('/settings')
     await expect(page.getByRole('heading', { level: 1, name: 'Settings' })).toBeVisible()
   })
 })

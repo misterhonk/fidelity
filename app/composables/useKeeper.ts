@@ -52,7 +52,7 @@ export function useKeeper() {
    * Runs from the first screen on, not from the start page.
    *
    * Mounted from the layout, so it also covers somebody who opens a bookmark
-   * straight to /korb — which is exactly the person whose collection is a week
+   * straight to /basket — which is exactly the person whose collection is a week
    * out of date.
    */
   function start() {

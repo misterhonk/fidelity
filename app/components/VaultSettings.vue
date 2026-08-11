@@ -249,6 +249,7 @@ const redirectUri = computed(() =>
         <span class="text-fid-xs text-fid-text-muted">
           {{ CLOUD_PROVIDERS[currentCloud].hint }} {{ st.vault.redirect(redirectUri) }}
         </span>
+        <span class="text-fid-xs text-fid-text-muted">{{ st.vault.redirectMoved }}</span>
       </label>
 
       <div class="flex flex-wrap items-baseline gap-3">

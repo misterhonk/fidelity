@@ -51,7 +51,7 @@ test.describe('English is what somebody gets who has not said otherwise', () => 
 
   test('the interface, the title and the lang attribute all say English', async ({ page }) => {
     await page.addInitScript(watchHeadings)
-    await page.goto('/einstellungen/darstellung')
+    await page.goto('/settings/appearance')
 
     await expect(page.getByRole('heading', { level: 1, name: 'Appearance' })).toBeVisible()
     await expect(page).toHaveTitle('Appearance · Fidelity')
@@ -63,7 +63,7 @@ test.describe('German, when the device asks for it', () => {
   test.use({ locale: 'de-DE' })
 
   test('is picked without anybody choosing it', async ({ page }) => {
-    await page.goto('/einstellungen/darstellung')
+    await page.goto('/settings/appearance')
 
     await expect(page.getByRole('heading', { level: 1, name: 'Darstellung' })).toBeVisible()
     await expect(page.locator('html')).toHaveAttribute('lang', 'de')
@@ -71,7 +71,7 @@ test.describe('German, when the device asks for it', () => {
 
   test('is there from the first frame, not after one of English', async ({ page }) => {
     await page.addInitScript(watchHeadings)
-    await page.goto('/einstellungen/darstellung')
+    await page.goto('/settings/appearance')
 
     await expect(page.getByRole('heading', { level: 1, name: 'Darstellung' })).toBeVisible()
 
@@ -86,7 +86,7 @@ test.describe('a language somebody chose', () => {
 
   test('outranks the one the device asks for', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('fidelity:language', 'en'))
-    await page.goto('/einstellungen/darstellung')
+    await page.goto('/settings/appearance')
 
     await expect(page.getByRole('heading', { level: 1, name: 'Appearance' })).toBeVisible()
     await expect(page.locator('html')).toHaveAttribute('lang', 'en')
@@ -94,7 +94,7 @@ test.describe('a language somebody chose', () => {
 
   test('survives a reload', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('fidelity:language', 'en'))
-    await page.goto('/einstellungen/darstellung')
+    await page.goto('/settings/appearance')
     await page.reload()
 
     await expect(page.getByRole('heading', { level: 1, name: 'Appearance' })).toBeVisible()
@@ -105,7 +105,7 @@ test.describe('a language nothing here speaks', () => {
   test.use({ locale: 'fr-FR' })
 
   test('falls back to English rather than to nothing', async ({ page }) => {
-    await page.goto('/einstellungen/darstellung')
+    await page.goto('/settings/appearance')
     await expect(page.getByRole('heading', { level: 1, name: 'Appearance' })).toBeVisible()
   })
 })
@@ -122,7 +122,7 @@ test.describe('a preference list', () => {
         get: () => ['fr-FR', 'de-AT', 'en-GB'],
       })
     })
-    await page.goto('/einstellungen/darstellung')
+    await page.goto('/settings/appearance')
 
     // de-AT, not de: the region is dropped, so an Austrian reads the same pack.
     await expect(page.getByRole('heading', { level: 1, name: 'Darstellung' })).toBeVisible()

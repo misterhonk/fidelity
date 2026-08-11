@@ -53,7 +53,7 @@ useSeoMeta({
       <h2 class="text-fid-base font-medium text-fid-text">{{ l.privacy.responsible }}</h2>
       <p class="text-fid-base text-fid-text-muted">
         {{ l.privacy.seeLegal }}
-        <NuxtLink class="underline underline-offset-4" to="/impressum">{{
+        <NuxtLink class="underline underline-offset-4" to="/legal">{{
           l.privacy.legalNotice
         }}</NuxtLink
         >.

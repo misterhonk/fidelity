@@ -34,9 +34,9 @@ onMounted(() => {
 const SECTIONS = [
   { to: '/', key: 'start', icon: 'house' },
   { to: '/dig', key: 'dig', icon: 'kiste' },
-  { to: '/korb', key: 'basket', icon: 'shopping-basket', also: ['/gemerkt'] },
-  { to: '/regal', key: 'shelf', icon: 'regal', also: ['/landkarte', '/wantlist'] },
-  { to: '/haendler', key: 'dealers', icon: 'store' },
+  { to: '/basket', key: 'basket', icon: 'shopping-basket', also: ['/saved'] },
+  { to: '/shelf', key: 'shelf', icon: 'regal', also: ['/map', '/wantlist'] },
+  { to: '/dealers', key: 'dealers', icon: 'store' },
 ] as const
 
 const route = useRoute()
@@ -65,7 +65,7 @@ const basketCount = computed(() => basketIds.value.size)
     be the only thing on screen.
   -->
   <nav
-    v-if="identity && route.path !== '/willkommen'"
+    v-if="identity && route.path !== '/welcome'"
     :aria-label="m.nav.label"
     class="z-30 md:sticky md:top-0 md:border-b md:border-fid-border md:bg-fid-bg/90 md:backdrop-blur max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:border-t max-md:border-fid-border max-md:bg-fid-surface/95 max-md:pb-[env(safe-area-inset-bottom)] max-md:backdrop-blur"
   >
@@ -117,7 +117,7 @@ const basketCount = computed(() => basketIds.value.size)
             not urgent.
           -->
           <span
-            v-if="section.to === '/korb' && basketCount > 0"
+            v-if="section.to === '/basket' && basketCount > 0"
             class="fid-num pointer-events-none absolute -top-1.5 -right-2 min-w-4 rounded-full bg-fid-accent px-1 text-center text-[0.625rem] leading-4 font-medium text-fid-on-accent"
             :aria-label="m.nav.inBasket(basketCount)"
           >
@@ -141,13 +141,13 @@ const basketCount = computed(() => basketIds.value.size)
         nothing.
       -->
       <NuxtLink
-        to="/einstellungen"
-        :aria-current="isCurrent({ to: '/einstellungen' }) ? 'page' : undefined"
+        to="/settings"
+        :aria-current="isCurrent({ to: '/settings' }) ? 'page' : undefined"
         :aria-label="m.nav.settings"
         :title="m.nav.settings"
         class="flex min-h-11 min-w-11 items-center justify-center border-b-2 text-fid-base transition-colors md:ml-auto max-md:min-h-14 max-md:flex-col max-md:justify-start max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0 max-md:py-2"
         :class="
-          isCurrent({ to: '/einstellungen' })
+          isCurrent({ to: '/settings' })
             ? 'border-fid-accent text-fid-text max-md:bg-fid-accent/15'
             : 'border-transparent text-fid-text-muted hover:text-fid-text'
         "

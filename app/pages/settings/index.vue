@@ -104,21 +104,21 @@ const appearance = computed(() => {
  */
 const SECTIONS = computed(() => [
   {
-    to: '/einstellungen/konto',
+    to: '/settings/account',
     ...st.value.account,
     status: identity.value?.username ?? null,
   },
-  { to: '/einstellungen/sammlung', ...st.value.library, status: library.value },
-  { to: '/einstellungen/suche', ...st.value.search, status: searchSummary.value },
+  { to: '/settings/collection', ...st.value.library, status: library.value },
+  { to: '/settings/search', ...st.value.search, status: searchSummary.value },
   {
-    to: '/einstellungen/darstellung',
+    to: '/settings/appearance',
     title: st.value.appearance.title,
     hint: st.value.appearance.hint,
     status: appearance.value,
   },
-  { to: '/einstellungen/abgleich', ...st.value.sync, status: sync.value },
-  { to: '/einstellungen/hub', ...st.value.hub, status: hub.value },
-  { to: '/einstellungen/daten', ...st.value.data, status: usage.value },
+  { to: '/settings/sync', ...st.value.sync, status: sync.value },
+  { to: '/settings/hub', ...st.value.hub, status: hub.value },
+  { to: '/settings/data', ...st.value.data, status: usage.value },
   /*
    * Right at the bottom, because it is looked for rather than stumbled over.
    *
@@ -127,7 +127,7 @@ const SECTIONS = computed(() => [
    * has already formed — so it does not compete with the settings, it waits
    * where a manual waits.
    */
-  { to: '/einstellungen/hilfe', ...st.value.help, status: null },
+  { to: '/settings/help', ...st.value.help, status: null },
 ])
 </script>
 

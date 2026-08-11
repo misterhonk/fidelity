@@ -29,7 +29,7 @@ onMounted(load)
   <main class="@container mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
     <div class="flex flex-col gap-3">
       <NuxtLink
-        to="/einstellungen"
+        to="/settings"
         class="fid-action gap-2 self-start text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
       >
         <FidIcon name="arrow-left" :size="16" />

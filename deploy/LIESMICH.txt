@@ -39,7 +39,7 @@ Server.
 Wenn Unterseiten nicht laden
 ----------------------------
 
-Rufst du die Startseite auf und alles geht, aber ein Neuladen von "/korb"
+Rufst du die Startseite auf und alles geht, aber ein Neuladen von "/basket"
 zeigt einen Fehler? Dann wertet dein Webspace die .htaccess nicht aus. Das
 lässt sich nur beim Anbieter ändern (Stichwort "AllowOverride"). Frag dort
 nach — die Datei selbst ist in Ordnung.
