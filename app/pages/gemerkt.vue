@@ -4,9 +4,15 @@ import type { MarkedOverview, MarkedRecord } from '#shared/types'
 // How long ago you said yes. A shortlist is also a record of hesitation.
 import { since } from '~/utils/when'
 
+import { useBasketMessages } from '~/i18n/basket'
+import { useCollectionMessages } from '~/i18n/collection'
+
+const b = useBasketMessages()
+const c = useCollectionMessages()
+
 useSeoMeta({
-  title: 'Gemerkt',
-  description: 'Die Platten, zu denen du ja gesagt hast – auch wenn der Dig längst weg ist.',
+  title: () => b.value.tabs.saved,
+  description: () => c.value.saved.description,
 })
 
 const { call } = useFidelityWorker()
@@ -168,8 +174,7 @@ async function check() {
     <p v-if="loading" class="text-fid-base text-fid-text-muted">Wird geladen …</p>
 
     <p v-else-if="!overview || overview.total === 0" class="text-fid-base text-fid-text-muted">
-      Noch nichts gemerkt. Der Daumen nach oben im Dig legt eine Platte hier ab – und hier
-      bleibt sie, auch wenn der Dig längst weg ist.
+      {{ c.saved.empty }}
     </p>
 
     <template v-else>
@@ -177,22 +182,9 @@ async function check() {
         The point of the screen, said once: a dig is temporary, this is not.
       -->
       <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
-        <p class="text-fid-base text-fid-text-muted">
-          <template v-if="overview.total === 1">Eine Platte</template>
-          <template v-else>
-            <span class="fid-num text-fid-text">{{ count(overview.total) }}</span>
-            Platten
-          </template>
-          vorgemerkt bei
-          <!--
-            "bei 1 Laden" is arithmetic, not German. A number that reads out
-            loud as a word gets written as one.
-          -->
-          <template v-if="overview.groups.length === 1">einem Laden.</template>
-          <template v-else>
-            <span class="fid-num text-fid-text">{{ overview.groups.length }}</span> Läden.
-          </template>
-          Digs werden nach fünf weggeräumt – das hier bleibt.
+        <p class="fid-num text-fid-base text-fid-text-muted">
+          {{ c.saved.lead(overview.total, overview.groups.length) }}
+          {{ c.saved.digsGo }}
         </p>
 
         <!-- The cost named before it is spent, same as everywhere else. -->

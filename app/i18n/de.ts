@@ -118,6 +118,43 @@ const de: Messages = {
     signIn: 'Anmelden',
   },
 
+  signals: {
+    WANTLIST_EXACT: 'Wantlist',
+    WANTLIST_PRESSING: 'Anderes Pressing',
+    ARTIST_KNOWN: 'Künstler',
+    ARTIST_GAP: 'Lücke',
+    LABEL_AFFINITY: 'Label',
+    CATALOG_RUN: 'Katalogserie',
+    STYLE_ADJACENT: 'Stil',
+    CREDIT_GRAPH: 'Credits',
+    FORMAT_UPGRADE: 'Upgrade',
+    PRICE_SIGNAL: 'Preis',
+    SCARCITY: 'Seltenheit',
+  },
+
+  home: {
+    title: 'Start',
+    description: 'Fidelity – der Verkäufer hinter der Theke für dein Discogs-Sortiment.',
+    counts: {
+      collection: 'Sammlung',
+      wantlist: 'Wantlist',
+      marked: 'Gemerkt',
+      dealers: 'Läden',
+      basket: 'Im Korb',
+    },
+    lastFound: 'Zuletzt gefunden',
+    interrupted: (scanned, total) =>
+      `Dieser Dig wurde unterbrochen – ${scanned} von ${total} waren durch.`,
+    carryOn: 'Dort fortsetzen',
+    pricesGone:
+      'Preise älter als sechs Stunden, dürfen nicht mehr gezeigt werden. Treffer und Begründungen bleiben.',
+    whyThese: 'Warum diese?',
+    newOnShelf: 'Neu im Regal',
+    lastNoted: 'Zuletzt notiert',
+    wanted: (n) => `${n} Wünsche`,
+    yourShops: 'Deine Läden',
+  },
+
   nav: {
     label: 'Hauptbereiche',
     start: { label: 'Start', hint: 'Was ist neu, was steht an' },

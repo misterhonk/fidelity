@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import type { CollectionGaps, TasteFacet, TasteProfile } from '#shared/types'
 
+import { useCollectionMessages } from '~/i18n/collection'
+
+const c = useCollectionMessages()
 useSeoMeta({
   title: 'Landkarte',
-  description: 'Was deine Sammlung über deinen Geschmack verrät.',
+  description: () => c.value.map.description,
 })
 
 const { call } = useFidelityWorker()
@@ -45,17 +48,18 @@ const decades = computed(() =>
       is unreadable however much room there is.
     -->
     <div class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Sammlung</h1>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ c.title }}</h1>
       <CollectionTabs />
       <p v-if="profile" class="max-w-prose text-fid-base text-fid-text-muted">
-        <span class="fid-num">{{ profile.releaseCount }}</span> Platten. Was daraus über deinen
-        Geschmack ablesbar ist.
+        {{ c.map.lead(count(profile.releaseCount)) }}
       </p>
     </div>
 
     <p v-if="ready && !profile" class="text-fid-base text-fid-text-muted">
-      Noch kein Profil – synchronisiere zuerst deine Sammlung auf der
-      <NuxtLink class="text-fid-accent underline underline-offset-4" to="/">Startseite</NuxtLink
+      {{ c.map.noProfile }}
+      <NuxtLink class="text-fid-accent underline underline-offset-4" to="/">{{
+        c.map.startPage
+      }}</NuxtLink
       >.
     </p>
 
@@ -68,16 +72,11 @@ const decades = computed(() =>
       v-else-if="profile"
       class="grid gap-x-8 gap-y-10 @lg:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-5"
     >
-      <FacetBars title="Künstler" signal="artist" :facets="top(profile.artists, 12)" />
-      <FacetBars title="Labels" signal="label" :facets="top(profile.labels, 12)" />
-      <FacetBars title="Stile" signal="style" :facets="top(profile.styles, 12)" />
-      <FacetBars title="Genres" signal="catalog" :facets="top(profile.genres, 8)" />
-      <FacetBars
-        title="Dekaden"
-        signal="gap"
-        :facets="decades"
-        empty="Keine Jahresangaben in der Sammlung."
-      />
+      <FacetBars :title="c.map.artists" signal="artist" :facets="top(profile.artists, 12)" />
+      <FacetBars :title="c.map.labels" signal="label" :facets="top(profile.labels, 12)" />
+      <FacetBars :title="c.map.styles" signal="style" :facets="top(profile.styles, 12)" />
+      <FacetBars :title="c.map.genres" signal="catalog" :facets="top(profile.genres, 8)" />
+      <FacetBars :title="c.map.decades" signal="gap" :facets="decades" :empty="c.map.noYears" />
     </div>
 
     <!--
@@ -112,11 +111,7 @@ const decades = computed(() =>
             What the number honestly says: how likely a dig is to turn up
             something of theirs you do not have.
           -->
-          <WhyNote label="Was die Zahl rechts bedeutet">
-            Discogs führt unter einem Namen alles: Alben, Singles, Remixe, Beiträge zu Samplern.
-            Die Zahl ist deshalb kein Sammelziel, sondern eine Auskunft darüber, wie
-            wahrscheinlich ein Dig noch etwas von ihnen zutage fördert.
-          </WhyNote>
+          <WhyNote :label="c.map.artistsWhyLabel">{{ c.map.artistsWhy }} </WhyNote>
         </div>
 
         <ul class="flex flex-col gap-2">
@@ -129,7 +124,7 @@ const decades = computed(() =>
               <span class="text-fid-base text-fid-text">{{ artist.name }}</span>
               <span class="text-fid-sm text-fid-text-muted">
                 <span class="fid-num text-fid-text">{{ artist.owned }}</span> von
-                <span class="fid-num">{{ count(artist.total) }}</span> Einträgen
+                {{ c.map.entries(count(artist.total)) }}
                 <template v-if="artist.from > 0">
                   · deine von <span class="fid-num">{{ artist.from }}</span
                   ><template v-if="artist.to !== artist.from">
@@ -151,11 +146,7 @@ const decades = computed(() =>
           <h2 id="label-standing" class="text-fid-base font-medium text-fid-text">
             Welche Labels du wirklich sammelst
           </h2>
-          <WhyNote label="Wie der Lift gerechnet wird">
-            Er vergleicht deinen Anteil an einem Label mit dem, was bei zufälliger Auswahl aus
-            deinen Labels zu erwarten wäre. Verglichen wird gegen deine eigenen Labels – was der
-            Gesamtkatalog von Discogs hergibt, kann ein Browser nicht sehen.
-          </WhyNote>
+          <WhyNote :label="c.map.labelsWhyLabel">{{ c.map.labelsWhy }}</WhyNote>
         </div>
 
         <dl class="grid grid-cols-[1fr_auto_auto] items-baseline gap-x-4 gap-y-2">
@@ -177,8 +168,7 @@ const decades = computed(() =>
     </div>
 
     <p v-else-if="gaps" class="max-w-prose text-fid-xs text-fid-text-muted">
-      Lücken und Label-Lift brauchen den Horizont. Sobald der gebaut ist, steht hier, wie viel
-      dir bei welchem Künstler noch fehlt.
+      {{ c.map.needsHorizon }}
     </p>
   </main>
 </template>

@@ -1,11 +1,14 @@
 import type { SignalType } from '#shared/types'
 
+import { useMessages } from '~/composables/useMessages'
+
 /**
- * How the eleven signals are named and coloured in the interface.
+ * How the eleven signals are coloured, and where their names come from.
  *
- * One table, because the card, the filter bar and the detail sheet have to
- * agree: a chip that says "Label" in one place and "Labelnähe" in another
- * reads as two different things.
+ * The names are in the shell pack rather than here — they appear on a dig
+ * result, on a basket card and in the detail sheet, so they belong to
+ * everything rather than to one area. The colours stay: they are tokens, not
+ * words.
  */
 
 /** Which token colours a chip. S1 and S2 share one — ten colours for eleven signals. */
@@ -23,22 +26,14 @@ export const SIGNAL_TOKEN: Record<SignalType, string> = {
   SCARCITY: 'scarcity',
 }
 
-export const SIGNAL_LABEL: Record<SignalType, string> = {
-  WANTLIST_EXACT: 'Wantlist',
-  WANTLIST_PRESSING: 'Anderes Pressing',
-  ARTIST_KNOWN: 'Künstler',
-  ARTIST_GAP: 'Lücke',
-  LABEL_AFFINITY: 'Label',
-  CATALOG_RUN: 'Katalogserie',
-  STYLE_ADJACENT: 'Stil',
-  CREDIT_GRAPH: 'Credits',
-  FORMAT_UPGRADE: 'Upgrade',
-  PRICE_SIGNAL: 'Preis',
-  SCARCITY: 'Seltenheit',
-}
-
+/**
+ * Read per call, so a chip already on screen follows a language switch. The
+ * fallback to the raw type is not decoration: a signal added to the engine
+ * before it is added to the packs should show up as `NEW_SIGNAL` rather than
+ * as an empty chip.
+ */
 export function signalLabel(type: SignalType): string {
-  return SIGNAL_LABEL[type] ?? type
+  return useMessages().value.signals[type] ?? type
 }
 
 /** Chip colours, mixed from the signal token so both stay in one place. */

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { PasteProgress } from '#shared/protocol'
 
+import { useBasketMessages } from '~/i18n/basket'
+
+const b = useBasketMessages()
 /**
  * Der Weg aus dem Discogs-Warenkorb hierher.
  *
@@ -43,10 +46,11 @@ async function paste() {
     await refresh()
     input.value = ''
 
-    const parts = [`${result.added} übernommen`]
-    if (result.sold > 0) parts.push(`${result.sold} schon verkauft`)
-    if (result.unknown > 0) parts.push(`${result.unknown} nicht gefunden`)
-    if (result.dealers.length > 1) parts.push(`${result.dealers.length} Läden`)
+    const words = b.value.paste
+    const parts = [words.took(result.added)]
+    if (result.sold > 0) parts.push(words.sold(result.sold))
+    if (result.unknown > 0) parts.push(words.unknown(result.unknown))
+    if (result.dealers.length > 1) parts.push(words.acrossShops(result.dealers.length))
     outcome.value = `${parts.join(' · ')}.`
   } catch (cause) {
     error.value = cause
@@ -60,18 +64,14 @@ async function paste() {
 <template>
   <section class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-5">
     <div class="flex flex-col gap-1">
-      <h2 class="text-fid-base font-medium text-fid-text">Aus dem Discogs-Warenkorb</h2>
-      <p class="max-w-prose text-fid-sm text-fid-text-muted">
-        Discogs gibt seinen Warenkorb nicht über die Schnittstelle heraus. Kopier die Links der
-        Angebote hier herein – Fidelity holt sie und legt jedes in den Korb des Ladens, der es
-        verkauft. Danach rechnet der Versand mit.
-      </p>
+      <h2 class="text-fid-base font-medium text-fid-text">{{ b.paste.title }}</h2>
+      <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ b.paste.about }}</p>
     </div>
 
     <ErrorNote v-if="error" :cause="error" />
 
     <label class="flex flex-col gap-2">
-      <span class="sr-only">Angebotslinks</span>
+      <span class="sr-only">{{ b.paste.label }}</span>
       <textarea
         v-model="input"
         rows="3"
@@ -82,7 +82,7 @@ async function paste() {
     </label>
 
     <p v-if="busy" class="text-fid-sm text-fid-text-muted" aria-live="polite">
-      Hole …
+      {{ b.paste.fetching }}
       <template v-if="progress">
         <span class="fid-num">{{ progress.done }}</span> von
         <span class="fid-num">{{ progress.total }}</span>
@@ -98,7 +98,8 @@ async function paste() {
       class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
       @click="paste"
     >
-      Übernehmen<template v-if="count > 0">
+      {{ b.paste.take
+      }}<template v-if="count > 0">
         <span class="fid-num"> ({{ count }})</span></template
       >
     </button>

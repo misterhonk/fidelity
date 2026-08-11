@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import type { DeepReadonly } from 'vue'
 
-import type { BasketPlan, BasketSummary, ShippingTier } from '#shared/types'
+import type { BasketPlan, BasketSummary } from '#shared/types'
+
+import { useBasketMessages } from '~/i18n/basket'
+
+const b = useBasketMessages()
 
 /**
- * Ein Korb, also eine Sendung.
+ * One basket, which is one parcel.
  *
  * Extracted from the basket page the day baskets stopped being singular. Every
  * number in here — subtotal, postage tier, marginal cost, the fill-up plan —
@@ -41,13 +45,6 @@ watch(
 )
 
 const error = ref<unknown>(null)
-
-/** Where the postage table came from — said out loud, never implied. */
-const SOURCE_LABEL: Record<ShippingTier['source'], string> = {
-  user: 'von dir eingetragen',
-  bundled: 'aus den mitgelieferten Profilen',
-  parsed: 'geschätzt aus dem Händlertext',
-}
 
 async function remove(listingId: number) {
   await call('basket.remove', { listingId })
@@ -305,7 +302,7 @@ const peak = computed(() =>
             longer counts towards the total or the postage tier.
           -->
             <span v-if="line.sold" class="shrink-0 text-fid-xs text-fid-sig-gap">
-              verkauft
+              {{ b.line.sold }}
             </span>
             <!--
             Six hours on the price may not be shown any more — the same rule
@@ -313,7 +310,7 @@ const peak = computed(() =>
             basket; only the number goes.
           -->
             <span v-else-if="line.priceExpired" class="shrink-0 text-fid-xs text-fid-sig-gap">
-              Preis abgelaufen
+              {{ b.line.priceExpired }}
             </span>
             <span v-else class="fid-num shrink-0 text-fid-sm text-fid-text">
               {{ money(line.price, line.currency) }}
@@ -321,10 +318,10 @@ const peak = computed(() =>
             <button
               type="button"
               class="fid-action shrink-0 text-fid-xs text-fid-text-muted underline underline-offset-4"
-              :aria-label="`${line.title} entfernen`"
+              :aria-label="b.line.remove(line.title)"
               @click="remove(line.listingId)"
             >
-              raus
+              {{ b.line.removeShort }}
             </button>
           </div>
         </li>
@@ -333,69 +330,70 @@ const peak = computed(() =>
 
     <section class="flex flex-col gap-2 rounded-fid-md border border-fid-border p-4">
       <dl class="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 text-fid-sm">
-        <dt class="text-fid-text-muted">Platten</dt>
+        <dt class="text-fid-text-muted">{{ b.records }}</dt>
         <dd class="fid-num text-right text-fid-text">{{ summary.lines.length }}</dd>
 
-        <dt class="text-fid-text-muted">Summe</dt>
+        <dt class="text-fid-text-muted">{{ b.subtotal }}</dt>
         <dd class="fid-num text-right text-fid-text">
           {{ money(summary.subtotal, summary.currency) ?? '–' }}
         </dd>
 
         <dt class="text-fid-text-muted">
-          Versand
+          {{ b.shipping }}
           <span v-if="summary.shippingSource" class="text-fid-xs">
-            ({{ SOURCE_LABEL[summary.shippingSource] }})
+            ({{ b.source[summary.shippingSource] }})
           </span>
         </dt>
         <dd class="fid-num text-right text-fid-text">
-          {{ money(summary.shipping, summary.currency) ?? 'unbekannt' }}
+          {{ money(summary.shipping, summary.currency) ?? b.shippingUnknown }}
         </dd>
 
-        <dt class="font-medium text-fid-text">Gesamt</dt>
+        <dt class="font-medium text-fid-text">{{ b.total }}</dt>
         <dd class="fid-num text-right font-bold text-fid-text">
           {{ money(summary.total, summary.currency) ?? '–' }}
         </dd>
 
-        <dt class="text-fid-text-muted">pro Platte</dt>
+        <dt class="text-fid-text-muted">{{ b.perRecord }}</dt>
         <dd class="fid-num text-right text-fid-text-muted">
           {{ money(summary.perItem, summary.currency) ?? '–' }}
         </dd>
       </dl>
 
       <p v-if="summary.subtotal === null" class="text-fid-sm text-fid-sig-gap">
-        Mindestens ein Preis ist älter als sechs Stunden. Eine Teilsumme wäre eine kleinere Zahl
-        als die Wahrheit – scanne den Händler neu.
+        {{ b.subtotalExpired }}
       </p>
 
-      <p v-if="summary.missingToMinimum !== null" class="text-fid-sm text-fid-sig-gap">
-        Noch
-        <span class="fid-num">{{ money(summary.missingToMinimum, summary.currency) }}</span>
-        bis zum Mindestbestellwert von
-        <span class="fid-num">{{ money(summary.minOrderTotal, summary.currency) }}</span
-        >, sonst verschickt der Händler nicht.
+      <p v-if="summary.missingToMinimum !== null" class="fid-num text-fid-sm text-fid-sig-gap">
+        {{
+          b.missingToMinimum(
+            money(summary.missingToMinimum, summary.currency) ?? '',
+            money(summary.minOrderTotal, summary.currency) ?? '',
+          )
+        }}
       </p>
 
       <!-- The sentence the whole feature exists for (docs/00 §7). -->
-      <p v-if="summary.advice" class="text-fid-base text-fid-text">
-        Noch
-        <span class="fid-num">{{ summary.advice.addItems }}</span>
-        {{ summary.advice.addItems === 1 ? 'Platte' : 'Platten' }} und der Versand fällt von
-        <span class="fid-num">{{ money(summary.advice.perItemNow, summary.currency) }}</span>
-        auf
-        <span class="fid-num">{{ money(summary.advice.perItemThen, summary.currency) }}</span>
-        pro Stück.
+      <p v-if="summary.advice" class="fid-num text-fid-base text-fid-text">
+        {{
+          b.advice(
+            summary.advice.addItems,
+            money(summary.advice.perItemNow, summary.currency) ?? '',
+            money(summary.advice.perItemThen, summary.currency) ?? '',
+          )
+        }}
       </p>
 
       <p v-if="summary.shippingSource === 'parsed'" class="text-fid-xs text-fid-text-muted">
-        Aus dem Freitext des Händlers geraten<template v-if="summary.shippingSection">
-          (Abschnitt „{{ summary.shippingSection }}“)</template
+        {{ b.parsedFrom
+        }}<template v-if="summary.shippingSection">
+          {{ b.parsedSection(summary.shippingSection) }}</template
         ><template v-if="summary.shippingMatched.length">
-          – erkannt: {{ summary.shippingMatched.join(' · ') }}</template
-        >. Stimmt das nicht, trag die Staffel ein.
+          {{ b.parsedMatched(summary.shippingMatched.join(' · ')) }}</template
+        >. {{ b.parsedWrong }}
       </p>
 
       <!--
-        Woran der Parser gescheitert ist — und woran er es nicht wäre.
+        What the parser failed on — and what it would not have.
         Where he gives up, the screen used to say "trag die Staffel ein" and
         leave somebody to guess what he had been hoping for. He has carried a
         list of the shapes he reads since he was written, exported and captioned
@@ -405,13 +403,10 @@ const peak = computed(() =>
         <summary
           class="fid-action cursor-pointer list-none text-fid-sm text-fid-text-muted hover:text-fid-text"
         >
-          Versand unbekannt – was hätte ich lesen können?
+          {{ b.unknownLabel }}
         </summary>
         <div class="mt-2 flex flex-col gap-2">
-          <p class="max-w-prose text-fid-sm text-fid-text-muted">
-            Der Händlertext gibt keine Staffel her, die ich sicher lesen kann. Diese Formen
-            erkenne ich – steht so etwas auf der Händlerseite, hilft es, sie hier einzutragen:
-          </p>
+          <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ b.unknownAbout }}</p>
           <ul class="flex flex-col gap-1">
             <li
               v-for="shape in UNDERSTOOD_SHAPES"
@@ -429,7 +424,7 @@ const peak = computed(() =>
         class="self-start rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
         @click="editing = !editing"
       >
-        {{ summary.shippingSource === 'user' ? 'Staffel ändern' : 'Versandstaffel eintragen' }}
+        {{ summary.shippingSource === 'user' ? b.editTiers : b.enterTiers }}
       </button>
     </section>
 
@@ -439,7 +434,7 @@ const peak = computed(() =>
       class="flex flex-col gap-2"
       aria-labelledby="curve"
     >
-      <h3 id="curve" class="text-fid-sm font-medium text-fid-text">Versand pro Platte</h3>
+      <h3 id="curve" class="text-fid-sm font-medium text-fid-text">{{ b.curve }}</h3>
       <dl class="grid grid-cols-[2.5rem_1fr_auto] items-center gap-x-3 gap-y-1">
         <template v-for="point in summary.curve" :key="point.items">
           <dt class="fid-num text-fid-xs text-fid-text-muted">{{ point.items }}×</dt>
@@ -461,13 +456,11 @@ const peak = computed(() =>
       v-if="editing"
       class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
     >
-      <h3 class="text-fid-sm font-medium text-fid-text">Versandstaffel</h3>
-      <p class="text-fid-xs text-fid-text-muted">
-        Steht auf der Händlerseite bei Discogs. Einmal eingetragen, bleibt sie.
-      </p>
+      <h3 class="text-fid-sm font-medium text-fid-text">{{ b.tiersTitle }}</h3>
+      <p class="text-fid-xs text-fid-text-muted">{{ b.tiersAbout }}</p>
 
       <div v-for="(row, index) in rows" :key="index" class="flex flex-wrap items-center gap-2">
-        <label class="sr-only" :for="`from-${index}`">ab wie vielen Platten</label>
+        <label class="sr-only" :for="`from-${index}`">{{ b.tiersFrom }}</label>
         <input
           :id="`from-${index}`"
           v-model.number="row.minItems"
@@ -509,7 +502,7 @@ const peak = computed(() =>
           class="rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
           @click="addRow"
         >
-          Stufe hinzufügen
+          {{ b.addTier }}
         </button>
         <button
           type="button"
@@ -526,9 +519,9 @@ const peak = computed(() =>
       suggestion rather than a proof, and it says so.
     -->
     <section class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4">
-      <h3 class="text-fid-sm font-medium text-fid-text">Was ginge für ein Budget?</h3>
+      <h3 class="text-fid-sm font-medium text-fid-text">{{ b.budget.title }}</h3>
       <form class="flex flex-wrap items-center gap-2" @submit.prevent="makePlan">
-        <label class="sr-only" for="budget">Budget</label>
+        <label class="sr-only" for="budget">{{ b.budget.label }}</label>
         <input
           id="budget"
           v-model.number="budget"
@@ -538,21 +531,21 @@ const peak = computed(() =>
           placeholder="60"
           class="w-24 rounded-fid-sm border border-fid-border bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
         />
-        <span class="text-fid-sm text-fid-text-muted"
-          >{{ summary.currency }} inklusive Versand</span
-        >
+        <span class="text-fid-sm text-fid-text-muted">
+          {{ b.budget.including(summary.currency ?? '') }}
+        </span>
         <button
           type="submit"
           :disabled="planning || !budget"
           class="rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text disabled:opacity-50"
         >
-          Vorschlag rechnen
+          {{ b.budget.compute }}
         </button>
       </form>
 
       <template v-if="plan">
         <p v-if="plan.chosen.length === 0" class="text-fid-sm text-fid-text-muted">
-          Dafür reicht es hier nicht – der Versand allein frisst das Budget.
+          {{ b.budget.tooSmall }}
         </p>
         <template v-else>
           <ul class="flex flex-col gap-1">
@@ -568,25 +561,20 @@ const peak = computed(() =>
               </span>
             </li>
           </ul>
-          <p class="text-fid-sm text-fid-text-muted">
-            <span class="fid-num">{{ plan.chosen.length }}</span>
-            {{ plan.chosen.length === 1 ? 'Platte' : 'Platten' }} ·
-            <span class="fid-num">{{ money(plan.goods, summary.currency) }}</span> plus
-            <span class="fid-num">{{ money(plan.shipping, summary.currency) ?? '?' }}</span>
-            Versand =
-            <span class="fid-num text-fid-text">{{
-              money(plan.total, summary.currency) ?? '?'
-            }}</span>
+          <p class="fid-num text-fid-sm text-fid-text-muted">
+            {{
+              b.budget.result(
+                plan.chosen.length,
+                money(plan.goods, summary.currency) ?? '?',
+                money(plan.shipping, summary.currency) ?? '?',
+                money(plan.total, summary.currency) ?? '?',
+              )
+            }}
           </p>
-          <p v-if="plan.belowMinimum" class="text-fid-sm text-fid-sig-gap">
-            Das bleibt unter dem Mindestbestellwert von
-            <span class="fid-num">{{ money(summary.minOrderTotal, summary.currency) }}</span
-            >– der Händler verschickt es so nicht. Mehr Budget oder ein anderer Laden.
+          <p v-if="plan.belowMinimum" class="fid-num text-fid-sm text-fid-sig-gap">
+            {{ b.budget.belowMinimum(money(summary.minOrderTotal, summary.currency) ?? '') }}
           </p>
-          <p class="text-fid-xs text-fid-text-muted">
-            Ein Vorschlag, kein Beweis: gierig gefüllt und dann getauscht, nicht exakt
-            optimiert. Der Korb bleibt, wie er ist – das hier ändert nichts.
-          </p>
+          <p class="text-fid-xs text-fid-text-muted">{{ b.budget.caveat }}</p>
         </template>
       </template>
     </section>
@@ -597,52 +585,39 @@ const peak = computed(() =>
       nobody buys a record because it saves postage.
     -->
     <!--
-      Nichts vorzuschlagen ist kein Zustand, es sind drei.
-      A shop nobody has walked, a dig whose prices have aged past the six-hour
-      rule, and a shop that genuinely has nothing else. They look identical as
-      an empty list, and only the last one is an answer.
+      Having nothing to suggest is not one state, it is three — spelled out in
+      `app/i18n/basket.ts`.
     -->
     <section
       v-if="summary.candidates.length === 0"
       class="flex flex-col gap-2 rounded-fid-md border border-fid-border p-4"
     >
-      <h3 class="text-fid-sm font-medium text-fid-text">Käme auch noch infrage</h3>
+      <h3 class="text-fid-sm font-medium text-fid-text">{{ b.candidates.title }}</h3>
 
       <p class="max-w-prose text-fid-sm text-fid-text-muted">
-        <template v-if="!summary.dig">
-          Diesen Laden hast du noch nicht durchsucht. Ein Dig sagt dir, was hier sonst noch zu
-          dir passt – und was davon der Versand ohnehin mitnimmt.
-        </template>
-        <template v-else-if="summary.dig.expired">
-          Der letzte Dig war {{ since(summary.dig.at) }}. Marktpreise, die älter als sechs
-          Stunden sind, zeige ich nicht – ich weiß gerade nicht, was hier liegt.
-        </template>
-        <template v-else>
-          Beim Dig {{ since(summary.dig.at) }} war hier sonst nichts dabei, das zu dir passt.
-        </template>
+        {{
+          !summary.dig
+            ? b.candidates.neverDug
+            : summary.dig.expired
+              ? b.candidates.expired(since(summary.dig.at))
+              : b.candidates.nothing(since(summary.dig.at))
+        }}
       </p>
 
       <NuxtLink
         class="self-start text-fid-sm text-fid-text underline underline-offset-4"
         :to="{ path: '/dig', query: { dealer: summary.dealer } }"
       >
-        {{ summary.dig ? 'Neu durchsuchen' : `${summary.displayName} durchsuchen` }}
+        {{ summary.dig ? b.candidates.digAgain : b.candidates.digNow(summary.displayName) }}
       </NuxtLink>
     </section>
 
     <section v-else class="flex flex-col gap-3" aria-labelledby="candidates">
       <h3 id="candidates" class="text-fid-sm font-medium text-fid-text">
-        Käme auch noch infrage
+        {{ b.candidates.title }}
       </h3>
       <p v-if="summary.missingToMinimum !== null" class="text-fid-xs text-fid-text-muted">
-        <template v-if="closers > 0">
-          <span class="fid-num">{{ closers }}</span>
-          {{ closers === 1 ? 'davon hebt' : 'davon heben' }} den Korb allein über den
-          Mindestbestellwert.
-        </template>
-        <template v-else>
-          Keine davon reicht allein über den Mindestbestellwert – zwei zusammen schon.
-        </template>
+        {{ closers > 0 ? b.candidates.closers(closers) : b.candidates.noClosers }}
       </p>
       <ul class="flex flex-col gap-2">
         <li
@@ -657,7 +632,7 @@ const peak = computed(() =>
             {{ candidate.title }}
           </span>
           <span v-if="candidate.closesGap" class="text-fid-xs text-fid-text-muted">
-            schließt die Lücke
+            {{ b.candidates.closesGap }}
           </span>
           <span class="fid-num text-fid-sm text-fid-text-muted">
             {{ money(candidate.price, candidate.currency) }}
@@ -667,14 +642,8 @@ const peak = computed(() =>
     </section>
 
     <!--
-      Was dieser Knopf wirklich tut.
-
-      He said "Bei fatplastics weiter", which promises a continuation of a
-      purchase — and there is none: the link goes to the seller's Discogs
-      storefront, it does not carry this basket and there is no checkout at the
-      other end. A filled accent on a promise the app cannot keep is the worst
-      button on the screen, so it is now named after what it does and looks
-      like the secondary link it is.
+      What this button really does — the long version is in
+      `app/i18n/basket.ts`.
 
       The actual action is one line up: every record links to its own listing,
       where the "Add to Cart" button lives. Discogs has no cart in its API —
@@ -686,10 +655,7 @@ const peak = computed(() =>
     -->
     <div class="flex flex-col gap-2 border-t border-fid-border pt-3">
       <p class="max-w-prose text-fid-sm text-fid-text-muted">
-        Zum Kaufen: jede Zeile oben führt zu ihrem Angebot bei Discogs, dort sitzt der „Add to
-        Cart"-Knopf.
-        <span class="fid-num">{{ count(summary.lines.length) }}</span>
-        {{ summary.lines.length === 1 ? 'Platte' : 'Platten' }} liegen bereit.
+        {{ b.toBuy(summary.lines.length) }}
       </p>
       <a
         class="fid-action self-start gap-2 text-fid-sm text-fid-text underline underline-offset-4"
@@ -697,7 +663,7 @@ const peak = computed(() =>
         target="_blank"
         rel="noopener noreferrer"
       >
-        {{ summary.displayName }} bei Discogs ansehen
+        {{ b.viewAtDiscogs(summary.displayName) }}
       </a>
     </div>
   </article>

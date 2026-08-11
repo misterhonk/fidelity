@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SignalType } from '#shared/types'
 import { SORTS, type Density, type SortKey } from '~/utils/digview'
+import { useDigMessages } from '~/i18n/dig'
 
 defineProps<{
   available: { type: SignalType; n: number }[]
@@ -20,10 +21,9 @@ const emit = defineEmits<{
   clear: []
 }>()
 
-const DENSITIES = [
-  { key: 'comfortable', label: 'Ausführlich' },
-  { key: 'compact', label: 'Kompakt' },
-] as const satisfies readonly { key: Density; label: string }[]
+const f = computed(() => useDigMessages().value.filters)
+
+const DENSITIES = ['comfortable', 'compact'] as const satisfies readonly Density[]
 </script>
 
 <template>
@@ -46,8 +46,8 @@ const DENSITIES = [
       type="search"
       autocomplete="off"
       spellcheck="false"
-      placeholder="Künstler, Titel, Label, Katalognummer …"
-      aria-label="Treffer durchsuchen"
+      :placeholder="f.searchPlaceholder"
+      :aria-label="f.search"
       class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
       @input="emit('setQuery', ($event.target as HTMLInputElement).value)"
     />
@@ -79,56 +79,52 @@ const DENSITIES = [
         class="min-h-6 rounded-fid-sm px-2 py-1 text-fid-xs text-fid-text-muted underline underline-offset-4"
         @click="emit('clear')"
       >
-        Filter zurücksetzen
+        {{ f.clear }}
       </button>
     </div>
 
     <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-      <div class="flex items-center gap-1" role="group" aria-label="Sortierung">
-        <span class="text-fid-xs text-fid-text-muted">Sortieren</span>
+      <div class="flex items-center gap-1" role="group" :aria-label="f.sorting">
+        <span class="text-fid-xs text-fid-text-muted">{{ f.sortBy }}</span>
         <button
-          v-for="option in SORTS"
-          :key="option.key"
+          v-for="key in SORTS"
+          :key="key"
           type="button"
-          :aria-pressed="sort === option.key"
+          :aria-pressed="sort === key"
           class="min-h-6 rounded-fid-sm px-2 py-1 text-fid-xs transition-colors"
           :class="
-            sort === option.key
+            sort === key
               ? 'bg-fid-accent/15 text-fid-text'
               : 'text-fid-text-muted hover:text-fid-text'
           "
-          :title="option.about"
-          @click="emit('setSort', option.key)"
+          :title="f.sorts[key].about"
+          @click="emit('setSort', key)"
         >
-          {{ option.label }}
+          {{ f.sorts[key].label }}
         </button>
       </div>
 
-      <div class="flex items-center gap-1" role="group" aria-label="Dichte">
-        <span class="text-fid-xs text-fid-text-muted">Dichte</span>
+      <div class="flex items-center gap-1" role="group" :aria-label="f.density">
+        <span class="text-fid-xs text-fid-text-muted">{{ f.density }}</span>
         <button
-          v-for="option in DENSITIES"
-          :key="option.key"
+          v-for="key in DENSITIES"
+          :key="key"
           type="button"
-          :aria-pressed="density === option.key"
+          :aria-pressed="density === key"
           class="min-h-6 rounded-fid-sm px-2 py-1 text-fid-xs transition-colors"
           :class="
-            density === option.key
+            density === key
               ? 'bg-fid-accent/15 text-fid-text'
               : 'text-fid-text-muted hover:text-fid-text'
           "
-          @click="emit('setDensity', option.key)"
+          @click="emit('setDensity', key)"
         >
-          {{ option.label }}
+          {{ f[key] }}
         </button>
       </div>
 
-      <p class="ml-auto text-fid-xs text-fid-text-muted" aria-live="polite">
-        <span class="fid-num">{{ shown }}</span>
-        <template v-if="shown !== total">
-          von <span class="fid-num">{{ total }}</span>
-        </template>
-        Treffer
+      <p class="fid-num ml-auto text-fid-xs text-fid-text-muted" aria-live="polite">
+        {{ f.shown(count(shown), shown === total ? null : count(total)) }}
       </p>
     </div>
   </div>

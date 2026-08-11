@@ -2,9 +2,12 @@
 import type { DealerProfile } from '#shared/protocol'
 import type { Dealer, TasteFacet } from '#shared/types'
 
+import { useDealerMessages } from '~/i18n/dealers'
+
+const h = useDealerMessages()
 useSeoMeta({
-  title: 'Läden',
-  description: 'Was ein Händler eigentlich führt – und wie gut er zu dir passt.',
+  title: () => h.value.title,
+  description: () => h.value.description,
 })
 
 const { call } = useFidelityWorker()
@@ -45,7 +48,7 @@ async function select(username: string) {
   profile.value = await call('dealer.profile', { dealer: username })
 
   /*
-   * Die Liste oben erfährt vom Schild, das gerade geholt wurde.
+   * The list above learns about the sign that was just fetched.
    *
    * Opening a shop backfills its logo the first time (worker/handlers.ts), and
    * without this the row in the nav above would keep its initials until the
@@ -90,23 +93,21 @@ const verdict = computed(() => {
 
   const rate = decimal(p.rate)
   if (p.factor === null) {
-    return `${rate} Treffer je tausend Listings. Sobald du einen zweiten Händler gescannt hast, steht hier, wie sich das vergleicht.`
+    return h.value.rateAlone(rate)
   }
 
   const factor = decimal(p.factor, 2)
-  if (p.factor >= 1.5)
-    return `${rate} Treffer je tausend – das ${factor}-Fache deiner übrigen Läden.`
-  if (p.factor >= 0.8)
-    return `${rate} Treffer je tausend – etwa so viel wie deine übrigen Läden.`
-  return `${rate} Treffer je tausend – nur das ${factor}-Fache deiner übrigen Läden.`
+  if (p.factor >= 1.5) return h.value.rateAbove(rate, factor)
+  if (p.factor >= 0.8) return h.value.rateSame(rate)
+  return h.value.rateBelow(rate, factor)
 })
 
 const pricePosition = computed(() => {
   const factor = profile.value?.priceFactor
   if (factor === null || factor === undefined) return null
-  if (factor >= 1.25) return 'am oberen Ende deiner Händler'
-  if (factor <= 0.8) return 'am unteren Ende deiner Händler'
-  return 'im Mittelfeld deiner Händler'
+  if (factor >= 1.25) return h.value.priceHigh
+  if (factor <= 0.8) return h.value.priceLow
+  return h.value.priceMiddle
 })
 
 const scanned = computed(() => {
@@ -118,10 +119,8 @@ const scanned = computed(() => {
 <template>
   <main class="@container mx-auto flex w-full max-w-[80rem] flex-col gap-8 px-6 py-16">
     <div class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Läden</h1>
-      <p class="text-fid-base text-fid-text-muted">
-        Was ein Laden eigentlich führt – und wie gut er zu dir passt.
-      </p>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ h.title }}</h1>
+      <p class="text-fid-base text-fid-text-muted">{{ h.lead }}</p>
     </div>
 
     <!--
@@ -131,12 +130,12 @@ const scanned = computed(() => {
     <DealerDiscovery @imported="load()" />
 
     <p v-if="dealers.length === 0" class="text-fid-base text-fid-text-muted">
-      Noch keinen Händler gescannt. Das hier füllt sich mit dem ersten Dig.
+      {{ h.none }}
     </p>
 
     <template v-else>
       <!-- Ranked by hit rate: the only ordering that answers "wo zuerst?". -->
-      <nav class="flex flex-wrap gap-2" aria-label="Gescannte Händler">
+      <nav class="flex flex-wrap gap-2" :aria-label="h.scanned">
         <button
           v-for="dealer in dealers"
           :key="dealer.username"
@@ -158,20 +157,21 @@ const scanned = computed(() => {
       <section v-if="profile" class="flex flex-col gap-8">
         <div class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4">
           <p v-if="profile.dealer.lastScannedAt === null" class="text-fid-base text-fid-text">
-            Diesen Laden kenne ich nur vom Namen – gescannt wurde er noch nicht.
+            {{ h.neverScanned }}
           </p>
           <p v-else class="text-fid-base text-fid-text">{{ verdict }}</p>
           <p class="text-fid-sm text-fid-text-muted">
-            <span class="fid-num">{{ count(profile.dealer.numForSale) }}</span> Listings
+            {{ h.listings(count(profile.dealer.numForSale)) }}
             <template v-if="profile.dealer.shipsFrom">
-              · aus {{ profile.dealer.shipsFrom }}</template
+              · {{ h.shipsFrom(profile.dealer.shipsFrom) }}</template
             >
             <template v-if="profile.dealer.ratingCount > 0">
-              · <span class="fid-num">{{ profile.dealer.sellerRating }} %</span> bei
-              <span class="fid-num">{{ count(profile.dealer.ratingCount) }}</span>
-              Bewertungen
+              ·
+              {{
+                h.rating(`${profile.dealer.sellerRating} %`, count(profile.dealer.ratingCount))
+              }}
             </template>
-            <template v-if="scanned"> · zuletzt gescannt am {{ scanned }}</template>
+            <template v-if="scanned"> · {{ h.lastScanned(scanned) }}</template>
           </p>
 
           <!--
@@ -190,7 +190,7 @@ const scanned = computed(() => {
               "
               @click="toggle(profile.dealer.username)"
             >
-              {{ isWatched(profile.dealer.username) ? 'Wird beobachtet' : 'Händler merken' }}
+              {{ isWatched(profile.dealer.username) ? h.watching : h.watch }}
             </button>
             <!--
               The shop with the best hit rate sits at the top of this list, and
@@ -202,12 +202,9 @@ const scanned = computed(() => {
               :to="`/dig?dealer=${encodeURIComponent(profile.dealer.username)}`"
               class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
             >
-              {{ profile.dealer.lastScannedAt === null ? 'Jetzt graben' : 'Nochmal graben' }}
+              {{ profile.dealer.lastScannedAt === null ? h.digNow : h.digAgain }}
             </NuxtLink>
-            <span class="text-fid-xs text-fid-text-muted">
-              Beim Öffnen der App wird nachgesehen, ob sich das Sortiment bewegt hat – eine
-              einzige Abfrage, kein neuer Scan.
-            </span>
+            <span class="text-fid-xs text-fid-text-muted">{{ h.watchCost }}</span>
           </div>
         </div>
 
@@ -220,20 +217,22 @@ const scanned = computed(() => {
           v-if="profile.dealer.fingerprint && profile.dealer.fingerprint.coverage < 0.99"
           class="text-fid-sm text-fid-sig-gap"
         >
-          Aus
-          <span class="fid-num">{{ count(profile.dealer.fingerprint.sampledItems) }}</span>
-          von
-          <span class="fid-num">{{ count(profile.dealer.fingerprint.totalItems) }}</span>
-          Listings – {{ Math.round(profile.dealer.fingerprint.coverage * 100) }} % des Ladens.
+          {{
+            h.coverage(
+              count(profile.dealer.fingerprint.sampledItems),
+              count(profile.dealer.fingerprint.totalItems),
+              Math.round(profile.dealer.fingerprint.coverage * 100),
+            )
+          }}
         </p>
 
         <div
           v-if="profile.dealer.fingerprint && profile.dealer.fingerprint.medianPrice > 0"
           class="flex flex-col gap-1"
         >
-          <h2 class="text-fid-sm font-medium text-fid-text">Preislage</h2>
+          <h2 class="text-fid-sm font-medium text-fid-text">{{ h.priceTitle }}</h2>
           <!--
-            Ein Median ist eine blanke Zahl und trägt keine Einheit.
+            A median is a bare number and carries no unit.
             This printed it with a hard-coded euro sign, so a shop pricing in
             pounds showed its median as euros — a real number under the wrong
             symbol, which is worse than no number. Inventory prices always come
@@ -241,39 +240,30 @@ const scanned = computed(() => {
             and says nothing where a shop mixes them.
           -->
           <p class="text-fid-base text-fid-text">
-            Median
             <span class="fid-num">{{
-              money(
-                profile.dealer.fingerprint.medianPrice,
-                profile.dealer.fingerprint.priceCurrency,
-              ) ?? count(profile.dealer.fingerprint.medianPrice)
+              h.median(
+                money(
+                  profile.dealer.fingerprint.medianPrice,
+                  profile.dealer.fingerprint.priceCurrency,
+                ) ?? count(profile.dealer.fingerprint.medianPrice),
+              )
             }}</span>
             <template v-if="!profile.dealer.fingerprint.priceCurrency">
-              <span class="text-fid-sm text-fid-text-muted">
-                (der Laden preist in mehreren Währungen aus)</span
-              >
+              <span class="text-fid-sm text-fid-text-muted"> {{ h.mixedCurrencies }}</span>
             </template>
             <template v-if="pricePosition"> – {{ pricePosition }}</template>
           </p>
-          <WhyNote label="Womit verglichen wird">
-            Nur gegen deine eigenen Händler. Was der Markt insgesamt aufruft, kann diese App
-            nicht sehen, und sie behauptet es deshalb auch nicht.
-          </WhyNote>
+          <WhyNote :label="h.priceWhyLabel">{{ h.priceWhy }}</WhyNote>
         </div>
 
         <div class="grid gap-8 @md:grid-cols-2 @5xl:grid-cols-3">
           <FacetBars
-            title="Labels im Sortiment"
+            :title="h.labelsInStock"
             signal="label"
             :facets="labels"
-            empty="Keine Labelangaben im Sortiment."
+            :empty="h.noLabels"
           />
-          <FacetBars
-            title="Dekaden"
-            signal="gap"
-            :facets="decades"
-            empty="Keine Jahresangaben im Sortiment."
-          />
+          <FacetBars :title="h.decades" signal="gap" :facets="decades" :empty="h.noYears" />
         </div>
 
         <p v-if="profile.dealer.shippingNote" class="text-fid-sm text-fid-text-muted">

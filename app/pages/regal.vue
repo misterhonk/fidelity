@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { ShelfSort, ShelfView } from '#shared/types'
 
-useSeoMeta({ title: 'Regal', description: 'Deine Platten, als Regal.' })
+import { useCollectionMessages } from '~/i18n/collection'
+
+const c = useCollectionMessages()
+useSeoMeta({ title: () => c.value.title, description: () => c.value.shelf.description })
 
 const { call } = useFidelityWorker()
 
@@ -14,13 +17,8 @@ const query = ref('')
 const sort = ref<ShelfSort>('added')
 const shown = ref(120)
 
-/** Die Richtung steht am Etikett – siehe `SORTS` in app/utils/digview.ts. */
-const SORTS = [
-  { key: 'added', label: 'Zuletzt dazu', about: 'Neuester Zugang zuerst' },
-  { key: 'artist', label: 'Künstler', about: 'Alphabetisch' },
-  { key: 'year', label: 'Jahr ↑', about: 'Älteste zuerst' },
-  { key: 'rating', label: 'Bewertung ↓', about: 'Beste zuerst, unbewertete zuletzt' },
-] as const satisfies readonly { key: ShelfSort; label: string; about: string }[]
+/** Keys only; the labels carry a direction arrow and live in the pack. */
+const SORTS = ['added', 'artist', 'year', 'rating'] as const satisfies readonly ShelfSort[]
 
 let token = 0
 async function load() {
@@ -62,16 +60,16 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
       three across on a phone and eight on a monitor.
     -->
     <header class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Sammlung</h1>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ c.title }}</h1>
       <CollectionTabs />
     </header>
 
     <ErrorNote v-if="error" :cause="error" />
 
-    <p v-if="loading" class="text-fid-base text-fid-text-muted">Wird geladen …</p>
+    <p v-if="loading" class="text-fid-base text-fid-text-muted">{{ c.loading }}</p>
 
     <p v-else-if="!view || view.collection === 0" class="text-fid-base text-fid-text-muted">
-      Noch keine Platten hier. Sammlung in den Einstellungen holen.
+      {{ c.shelf.empty }}
     </p>
 
     <template v-else>
@@ -81,30 +79,30 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
           type="search"
           autocomplete="off"
           spellcheck="false"
-          placeholder="Künstler, Titel oder Label"
-          aria-label="Regal durchsuchen"
+          :placeholder="c.shelf.search"
+          :aria-label="c.shelf.searchLabel"
           class="min-w-56 grow rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
         />
 
         <nav
-          aria-label="Sortierung"
+          :aria-label="c.shelf.sorting"
           class="flex gap-1 rounded-fid-sm border border-fid-border p-1"
         >
           <button
-            v-for="option in SORTS"
-            :key="option.key"
+            v-for="key in SORTS"
+            :key="key"
             type="button"
-            :aria-pressed="sort === option.key"
+            :aria-pressed="sort === key"
             class="min-h-9 rounded-fid-sm px-3 text-fid-sm transition-colors"
             :class="
-              sort === option.key
+              sort === key
                 ? 'bg-fid-accent/15 text-fid-text'
                 : 'text-fid-text-muted hover:text-fid-text'
             "
-            :title="option.about"
-            @click="sort = option.key"
+            :title="c.shelf.sorts[key].about"
+            @click="sort = key"
           >
-            {{ option.label }}
+            {{ c.shelf.sorts[key].label }}
           </button>
         </nav>
 
@@ -118,7 +116,7 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
       </div>
 
       <p v-if="view.records.length === 0" class="text-fid-base text-fid-text-muted">
-        Nichts mit diesem Namen im Regal.
+        {{ c.shelf.noMatch }}
       </p>
 
       <ul
@@ -127,7 +125,7 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
       >
         <li v-for="record in view.records" :key="record.releaseId" class="flex flex-col gap-2">
           <!--
-            Nach außen, und es sagt das auch.
+            Outward, and it says so.
             A record in your own shelf has no richer page inside Fidelity — the
             detail sheet is built on a dig match and its market data, which a
             collection entry does not have. Discogs is where the record's page
@@ -138,7 +136,7 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
             :href="`https://www.discogs.com/release/${record.releaseId}`"
             target="_blank"
             rel="noopener noreferrer"
-            :aria-label="`${record.artist} – ${record.title}, bei Discogs ansehen`"
+            :aria-label="c.shelf.atDiscogs(record.artist, record.title)"
             class="group flex flex-col gap-2 rounded-fid-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fid-accent"
           >
             <!--

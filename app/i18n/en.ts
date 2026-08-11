@@ -163,6 +163,51 @@ const en = {
     signIn: 'Sign in',
   },
 
+  /**
+   * How the eleven signals are named.
+   *
+   * One table, because the card, the filter bar and the detail sheet have to
+   * agree: a chip that says "Label" in one place and "Label affinity" in
+   * another reads as two different things.
+   */
+  signals: {
+    WANTLIST_EXACT: 'Wantlist',
+    WANTLIST_PRESSING: 'Other pressing',
+    ARTIST_KNOWN: 'Artist',
+    ARTIST_GAP: 'Gap',
+    LABEL_AFFINITY: 'Label',
+    CATALOG_RUN: 'Catalogue run',
+    STYLE_ADJACENT: 'Style',
+    CREDIT_GRAPH: 'Credits',
+    FORMAT_UPGRADE: 'Upgrade',
+    PRICE_SIGNAL: 'Price',
+    SCARCITY: 'Scarcity',
+  },
+
+  /** The start screen: what is new, and what is waiting. */
+  home: {
+    title: 'Start',
+    description: 'Fidelity — the clerk behind the counter for your Discogs digging.',
+    counts: {
+      collection: 'Collection',
+      wantlist: 'Wantlist',
+      marked: 'Saved',
+      dealers: 'Shops',
+      basket: 'In the basket',
+    },
+    lastFound: 'Found last time',
+    interrupted: (scanned: string, total: string) =>
+      `This dig was interrupted — ${scanned} of ${total} were through.`,
+    carryOn: 'Carry on there',
+    pricesGone:
+      'Prices older than six hours may no longer be shown. The finds and their reasons stay.',
+    whyThese: 'Why these?',
+    newOnShelf: 'New on the shelf',
+    lastNoted: 'Noted last',
+    wanted: (n: string) => `${n} wanted`,
+    yourShops: 'Your shops',
+  },
+
   nav: {
     label: 'Main sections',
     start: { label: 'Start', hint: "What's new, what's waiting" },

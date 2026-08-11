@@ -1,8 +1,9 @@
 <script setup lang="ts">
-useSeoMeta({
-  title: 'Korb',
-  description: 'Was der Versand kostet – bevor Discogs es dir sagt.',
-})
+import { useBasketMessages } from '~/i18n/basket'
+
+const b = useBasketMessages()
+
+useSeoMeta({ title: () => b.value.title, description: () => b.value.description })
 
 const { view, load, clear } = useBasket()
 
@@ -17,11 +18,9 @@ const records = computed(() =>
 <template>
   <main class="@container mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 py-16">
     <div class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Korb</h1>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ b.title }}</h1>
       <BasketTabs />
-      <p class="text-fid-base text-fid-text-muted">
-        Discogs zeigt den kombinierten Versand erst im eigenen Warenkorb. Hier steht er vorher.
-      </p>
+      <p class="text-fid-base text-fid-text-muted">{{ b.lead }}</p>
     </div>
 
     <!--
@@ -32,12 +31,12 @@ const records = computed(() =>
     <BasketPaste />
 
     <p v-if="baskets.length === 0" class="text-fid-base text-fid-text-muted">
-      Sonst noch leer. Im Dig etwas hineinlegen geht auch – der Korb rechnet dann mit.
+      {{ b.empty }}
     </p>
 
     <template v-else>
       <!--
-        Eine Sendung je Laden.
+        One parcel per shop.
 
         Postage is per shipment, so every basket sums, tiers and advises for
         itself. What is new is that there can be several: a shopping session is
@@ -48,17 +47,15 @@ const records = computed(() =>
         v-if="baskets.length > 1"
         class="flex flex-wrap items-baseline justify-between gap-2"
       >
-        <p class="text-fid-sm text-fid-text-muted">
-          <span class="fid-num text-fid-text">{{ count(baskets.length) }}</span> Läden ·
-          <span class="fid-num text-fid-text">{{ count(records) }}</span> Platten. Jeder Laden
-          ist eine eigene Sendung mit eigenem Porto.
+        <p class="fid-num text-fid-sm text-fid-text-muted">
+          {{ b.shops(count(baskets.length), count(records)) }}
         </p>
         <button
           type="button"
           class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
           @click="clear()"
         >
-          Alle leeren
+          {{ b.clearAll }}
         </button>
       </div>
 

@@ -52,11 +52,11 @@ test.describe('smoke', () => {
 
     // And the setup is behind it, intact.
     await page.getByRole('button', { name: /Einrichten/ }).click()
-    await expect(page.getByRole('heading', { name: 'Token eintragen' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Enter a token' })).toBeVisible()
     await expect(page.getByLabel('Personal Access Token')).toHaveAttribute('type', 'password')
 
     // Sending is blocked until something has been entered.
-    await expect(page.getByRole('button', { name: 'Anmelden' })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Sign in' })).toBeDisabled()
   })
 
   test('the setup shows which step is running', async ({ page }) => {
@@ -68,7 +68,7 @@ test.describe('smoke', () => {
     await page.getByRole('button', { name: /Einrichten/ }).click()
 
     /*
-     * Fünf: Token, Sammlung, Horizont, Credits, Fertig.
+     * Five: token, collection, horizon, credits, done.
      *
      * The horizon and the credits used to sit only in the settings, on the
      * argument that they cost minutes and the app runs without them. Both
@@ -108,8 +108,8 @@ test.describe('smoke', () => {
   test('the map says what to do instead of showing empty bars', async ({ page }) => {
     await page.goto('/landkarte')
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Sammlung' })).toBeVisible()
-    await expect(page.getByText('Noch kein Profil')).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Collection' })).toBeVisible()
+    await expect(page.getByText('No profile yet')).toBeVisible()
 
     const { violations } = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
@@ -120,11 +120,11 @@ test.describe('smoke', () => {
   test('the dig screen asks for a dealer and stays accessible', async ({ page }) => {
     await page.goto('/dig')
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Graben' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Dig' })).toBeVisible()
     // Name *oder* Link: nobody carries a Discogs username around, they carry
     // the address of the page they are standing on.
-    await expect(page.getByLabel('Händler – Name oder Link')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Prüfen' })).toBeDisabled()
+    await expect(page.getByLabel('Dealer — name or link')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Check' })).toBeDisabled()
 
     const { violations } = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])

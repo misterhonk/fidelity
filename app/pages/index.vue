@@ -3,9 +3,11 @@ import type { HomeOverview } from '#shared/protocol'
 
 import { since } from '~/utils/when'
 
+const m = useMessages()
+
 useSeoMeta({
-  title: 'Start',
-  description: 'Fidelity – der Verkäufer hinter der Theke für dein Discogs-Sortiment.',
+  title: () => m.value.home.title,
+  description: () => m.value.home.description,
 })
 
 const { call } = useFidelityWorker()
@@ -97,12 +99,13 @@ const tiles = computed(() => {
   const summary = home.value?.library
   if (!summary) return []
 
+  const words = m.value.home.counts
   return [
-    { label: 'Sammlung', count: summary.collection, to: '/regal' },
-    { label: 'Wantlist', count: summary.wantlist, to: '/wantlist' },
-    { label: 'Gemerkt', count: summary.marked, to: '/gemerkt' },
-    { label: 'Läden', count: summary.dealers, to: '/haendler' },
-    { label: 'Im Korb', count: summary.basket, to: '/korb' },
+    { label: words.collection, count: summary.collection, to: '/regal' },
+    { label: words.wantlist, count: summary.wantlist, to: '/wantlist' },
+    { label: words.marked, count: summary.marked, to: '/gemerkt' },
+    { label: words.dealers, count: summary.dealers, to: '/haendler' },
+    { label: words.basket, count: summary.basket, to: '/korb' },
   ]
 })
 </script>
@@ -117,12 +120,12 @@ const tiles = computed(() => {
     <template v-if="ready && identity">
       <div class="flex flex-col gap-6 px-6">
         <header class="flex flex-wrap items-baseline justify-between gap-2">
-          <h1 class="fid-display text-fid-xl font-bold text-fid-text">Start</h1>
+          <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ m.home.title }}</h1>
           <p class="text-fid-sm text-fid-text-muted">{{ identity.username }}</p>
         </header>
 
         <!--
-          Wie aktuell das hier ist, direkt unter der Überschrift.
+          How current this is, right under the heading.
 
           The refresh buttons were spread over three settings pages and the app
           never said how old anything was — so the honest state of the data was
@@ -149,7 +152,7 @@ const tiles = computed(() => {
       <template v-if="home">
         <CoverRail
           v-if="home.finds.length > 0 && home.dig"
-          title="Zuletzt gefunden"
+          :title="m.home.lastFound"
           to="/dig"
           :note="`${home.dig.dealer} · ${digAge}`"
         >
@@ -177,15 +180,14 @@ const tiles = computed(() => {
             its results and none of its honesty.
           -->
           <p v-if="home.dig && !home.dig.complete" class="text-fid-sm text-fid-sig-gap">
-            Dieser Dig wurde unterbrochen –
-            <span class="fid-num">{{ count(home.dig.scanned) }}</span> von
-            <span class="fid-num">{{ count(home.dig.listingsTotal) }}</span> waren durch.
-            <NuxtLink to="/dig" class="underline underline-offset-4">Dort fortsetzen</NuxtLink>
+            {{ m.home.interrupted(count(home.dig.scanned), count(home.dig.listingsTotal)) }}
+            <NuxtLink to="/dig" class="underline underline-offset-4">{{
+              m.home.carryOn
+            }}</NuxtLink>
           </p>
 
           <p v-if="pricesGone" class="text-fid-sm text-fid-sig-gap">
-            Preise älter als sechs Stunden, dürfen nicht mehr gezeigt werden. Treffer und
-            Begründungen bleiben.
+            {{ m.home.pricesGone }}
           </p>
 
           <!--
@@ -197,7 +199,7 @@ const tiles = computed(() => {
             <summary
               class="fid-action cursor-pointer list-none gap-2 text-fid-sm text-fid-text-muted hover:text-fid-text"
             >
-              Warum diese?
+              {{ m.home.whyThese }}
             </summary>
             <ul class="mt-2 flex max-w-prose flex-col gap-2">
               <li
@@ -214,7 +216,7 @@ const tiles = computed(() => {
 
         <CoverRail
           v-if="home.shelf.length > 0"
-          title="Neu im Regal"
+          :title="m.home.newOnShelf"
           to="/regal"
           :note="`${count(home.library.collection)} Platten`"
         >
@@ -233,9 +235,9 @@ const tiles = computed(() => {
 
         <CoverRail
           v-if="home.wanted.length > 0"
-          title="Zuletzt notiert"
+          :title="m.home.lastNoted"
           to="/wantlist"
-          :note="`${count(home.library.wantlist)} Wünsche`"
+          :note="m.home.wanted(count(home.library.wantlist))"
         >
           <CoverTile
             v-for="(record, index) in home.wanted"
@@ -258,13 +260,13 @@ const tiles = computed(() => {
         <section v-if="home.shops.length > 0" class="flex flex-col gap-3 px-6">
           <h2 class="text-fid-base font-medium text-fid-text">
             <NuxtLink to="/haendler" class="underline-offset-4 hover:underline">
-              Deine Läden
+              {{ m.home.yourShops }}
             </NuxtLink>
           </h2>
 
           <ul class="grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3">
             <!--
-              Jede Kachel führt zu ihrem Laden.
+              Every tile leads to its own shop.
               The name, the hit rate and the size of the stock were all here
               and none of it was reachable. A shop has a profile page — its
               fingerprint, its price band, the labels it actually stocks — and

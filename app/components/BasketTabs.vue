@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useBasketMessages } from '~/i18n/basket'
+
+const b = useBasketMessages()
+
 const route = useRoute()
 
 /**
@@ -10,14 +14,14 @@ const route = useRoute()
  * so the same segmented control the collection already uses (docs/05 §3).
  */
 const TABS = [
-  { to: '/korb', label: 'Korb' },
-  { to: '/gemerkt', label: 'Gemerkt' },
+  { to: '/korb', key: 'basket' },
+  { to: '/gemerkt', key: 'saved' },
 ] as const
 </script>
 
 <template>
   <nav
-    aria-label="Kaufen"
+    :aria-label="b.tabs.label"
     class="flex gap-1 self-stretch rounded-fid-sm border border-fid-border p-1 @xl:self-start"
   >
     <NuxtLink
@@ -32,7 +36,7 @@ const TABS = [
           : 'text-fid-text-muted hover:text-fid-text'
       "
     >
-      {{ tab.label }}
+      {{ b.tabs[tab.key] }}
     </NuxtLink>
   </nav>
 </template>

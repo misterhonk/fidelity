@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { TasteFacet } from '#shared/types'
 
+import { useDealerMessages } from '~/i18n/dealers'
+
+const h = useDealerMessages()
 const props = defineProps<{
   title: string
   facets: TasteFacet[]
@@ -22,7 +25,7 @@ const peak = computed(() => Math.max(1, ...props.facets.map((facet) => facet.n))
     <h3 :id="`facet-${signal}`" class="text-fid-sm font-medium text-fid-text">{{ title }}</h3>
 
     <p v-if="facets.length === 0" class="text-fid-sm text-fid-text-muted">
-      {{ empty ?? 'Noch nichts da.' }}
+      {{ empty ?? h.nothingYet }}
     </p>
 
     <!-- A description list, not a table: this is name → count, and a screen

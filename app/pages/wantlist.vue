@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { WantlistOverview } from '#shared/types'
 
+import { useCollectionMessages } from '~/i18n/collection'
+
+const c = useCollectionMessages()
 useSeoMeta({
   title: 'Wantlist',
   description: 'Was du suchst – und wo es zuletzt aufgetaucht ist.',
@@ -52,27 +55,21 @@ function waiting(addedAt: string): string | null {
 <template>
   <main class="@container mx-auto flex w-full max-w-[80rem] flex-col gap-6 px-6 py-10">
     <header class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Sammlung</h1>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ c.title }}</h1>
       <CollectionTabs />
     </header>
 
-    <p v-if="loading" class="text-fid-base text-fid-text-muted">Wird geladen …</p>
+    <p v-if="loading" class="text-fid-base text-fid-text-muted">{{ c.loading }}</p>
 
     <p v-else-if="!overview || overview.total === 0" class="text-fid-base text-fid-text-muted">
-      Deine Wantlist ist leer – oder noch nicht synchronisiert. Sie trägt die zwei stärksten
-      Signale überhaupt.
+      {{ c.wantlist.empty }}
     </p>
 
     <template v-else>
       <p class="text-fid-base text-fid-text-muted">
-        <span class="fid-num text-fid-text">{{ count(overview.total) }}</span> Platten gesucht.
-        Von
-        <span class="fid-num text-fid-text">{{ count(overview.withPressings) }}</span>
-        kennt der Horizont alle Pressungen – bei denen erkennt ein Dig auch eine andere Ausgabe
-        als die eingetragene.
+        {{ c.wantlist.lead(count(overview.total), count(overview.withPressings)) }}
         <template v-if="overview.seenRecently > 0">
-          <span class="fid-num text-fid-text">{{ overview.seenRecently }}</span> sind in den
-          letzten dreißig Tagen bei einem Händler aufgetaucht.
+          {{ c.wantlist.seenRecently(count(overview.seenRecently)) }}
         </template>
       </p>
 
@@ -81,8 +78,8 @@ function waiting(addedAt: string): string | null {
         type="search"
         autocomplete="off"
         spellcheck="false"
-        placeholder="Künstler oder Titel"
-        aria-label="Wantlist durchsuchen"
+        :placeholder="c.wantlist.search"
+        :aria-label="c.wantlist.searchLabel"
         class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
       />
 
@@ -123,14 +120,13 @@ function waiting(addedAt: string): string | null {
               of 160 turns up far more often than the only pressing there is.
             -->
             <span v-if="record.pressings !== null">
-              <span class="fid-num text-fid-text">{{ count(record.pressings) }}</span>
-              {{ record.pressings === 1 ? 'Pressung' : 'Pressungen' }} bekannt
+              {{ c.wantlist.pressings(count(record.pressings), record.pressings === 1) }}
             </span>
             <span v-else-if="record.masterId > 0" class="text-fid-sig-gap">
-              Pressungen noch nicht ausgeklappt
+              {{ c.wantlist.notExpanded }}
             </span>
             <span v-else>
-              Kein Master bei Discogs – nur genau diese Pressung ist erkennbar
+              {{ c.wantlist.noMaster }}
             </span>
 
             <!--

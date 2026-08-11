@@ -8,9 +8,13 @@ import type {
 } from '#shared/protocol'
 import type { Dealer, Dig } from '#shared/types'
 
+import { useDigMessages } from '~/i18n/dig'
+
+const d = useDigMessages()
+
 useSeoMeta({
-  title: 'Graben',
-  description: 'Einen Discogs-Händler scannen und eine bewertete Fundliste bekommen.',
+  title: () => d.value.title,
+  description: () => d.value.description,
 })
 
 const { call } = useFidelityWorker()
@@ -89,7 +93,7 @@ const busy = ref(false)
  * The shops already known, so a dig starts with a click.
  *
  * Watched first, then by hit rate — the ordering that answers "wo als
- * Nächstes?" rather than listing them alphabetically, which answers nothing.
+ * next?" rather than listing them alphabetically, which answers nothing.
  */
 const knownDealers = shallowRef<Dealer[]>([])
 
@@ -177,7 +181,7 @@ async function finish(dig: Dig) {
 }
 
 /**
- * Der Händler, egal ob als Name oder als Adresse eingegeben.
+ * The dealer, whether typed as a name or pasted as an address.
  *
  * Nobody carries a Discogs username around; what they have is the page they
  * are standing on. `null` when the field holds something that is neither —
@@ -313,13 +317,13 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
       a desk for this. The prose blocks inside keep their own width.
     -->
     <div class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Graben</h1>
+      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ d.title }}</h1>
     </div>
 
     <form class="flex flex-wrap items-end gap-3" @submit.prevent="check">
       <div class="flex min-w-64 grow flex-col gap-2">
         <label class="text-fid-sm font-medium text-fid-text" for="dealer">
-          Händler – Name oder Link
+          {{ d.dealer }}
         </label>
         <input
           id="dealer"
@@ -327,7 +331,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
           type="text"
           autocomplete="off"
           spellcheck="false"
-          placeholder="juno_records – oder die Adresse der Händlerseite"
+          :placeholder="d.dealerPlaceholder"
           class="rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
         />
       </div>
@@ -336,7 +340,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
         :disabled="busy || !online || dealerName === null"
         class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
       >
-        Prüfen
+        {{ d.check }}
       </button>
     </form>
 
@@ -349,7 +353,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
       Watched shops first: those are the ones somebody said out loud they care
       about.
     -->
-    <nav v-if="knownDealers.length > 0" aria-label="Deine Läden" class="flex flex-wrap gap-2">
+    <nav v-if="knownDealers.length > 0" :aria-label="d.yourShops" class="flex flex-wrap gap-2">
       <button
         v-for="known in knownDealers"
         :key="known.username"
@@ -383,7 +387,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
       the parts that need Discogs are gone, and the screen says which.
     -->
     <p v-if="!online" role="status" class="text-fid-sm text-fid-sig-gap">
-      Kein Netz – ein neuer Dig geht gerade nicht. Der letzte steht unten und ist vollständig.
+      {{ d.offline }}
     </p>
 
     <!--
@@ -405,7 +409,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
         class="self-start rounded-fid-sm bg-fid-accent px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
         @click="resume"
       >
-        Dig fortsetzen
+        {{ d.resume }}
       </button>
     </section>
 
@@ -418,20 +422,22 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
       class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
     >
       <p class="text-fid-base text-fid-text">
-        <span class="font-medium">{{ preflight.displayName }}</span> hat
-        <span class="fid-num">{{ count(preflight.numForSale) }}</span> Listings.
+        <span class="font-medium">{{ preflight.displayName }}</span>
+        {{ d.listings(count(preflight.numForSale)) }}
       </p>
       <p v-if="preflight.truncated" class="text-fid-sm text-fid-sig-gap">
-        Ein normaler Dig kommt an höchstens
-        <span class="fid-num">{{ count(preflight.reachable) }}</span> davon heran – das sind
-        {{ Math.round((preflight.reachable / preflight.numForSale) * 100) }} %.
+        {{
+          d.truncated(
+            count(preflight.reachable),
+            Math.round((preflight.reachable / preflight.numForSale) * 100),
+          )
+        }}
       </p>
       <p class="text-fid-sm text-fid-text-muted">
-        Dauert etwa
-        {{ counted(Math.ceil(((preflight.reachable / 100) * 1.2) / 60), 'Minute', 'Minuten') }}.
+        {{ d.takesAbout(Math.ceil(((preflight.reachable / 100) * 1.2) / 60)) }}
       </p>
       <!--
-        Nur das Neue, wo es das gibt.
+        Only what is new, where there is such a thing.
 
         A shop already dug once carries the date of its newest listing, so a
         visit can walk newest-first and stop at the first record it has seen
@@ -441,10 +447,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
       -->
       <div v-if="preflight.since" class="flex flex-col gap-2">
         <p class="max-w-prose text-fid-sm text-fid-text-muted">
-          Diesen Laden kennst du schon. Fidelity kann nur die Angebote holen, die seit dem
-          letzten Mal dazugekommen sind — meist ein bis zwei Abfragen statt
-          <span class="fid-num">{{ Math.ceil(preflight.reachable / 100) }}</span
-          >.
+          {{ d.incremental.known(Math.ceil(((preflight.reachable / 100) * 1.2) / 60)) }}
         </p>
         <button
           type="button"
@@ -457,7 +460,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
           "
           @click="start('neu')"
         >
-          Nur das Neue holen
+          {{ d.incremental.fetch }}
         </button>
       </div>
 
@@ -480,7 +483,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
         "
         @click="start('normal')"
       >
-        {{ preflight.since ? 'Alles noch einmal durchgehen' : 'Dig starten' }}
+        {{ preflight.since ? d.startAgain : d.start }}
       </button>
 
       <!--
@@ -499,11 +502,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
         class="flex flex-col gap-2 border-t border-fid-border pt-3"
       >
         <p class="max-w-prose text-fid-sm text-fid-text-muted">
-          Ein Tiefenscan geht denselben Laden in dreizehn Sortierungen durch – Datum, Preis,
-          Hörprobe, Titel, Künstler, Label, Katalognummer, jeweils in beide Richtungen. Jede
-          zeigt andere Platten in ihren ersten 10.000. Dauert bis zu
-          <span class="fid-num">{{ Math.ceil((preflight.deepRequests * 1.2) / 60) }}</span>
-          Minuten – er hört auf, sobald eine Sortierung nichts Neues mehr bringt.
+          {{ d.deep.about(Math.ceil((preflight.deepRequests * 1.2) / 60)) }}
         </p>
         <button
           type="button"
@@ -511,7 +510,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
           class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
           @click="start('deep')"
         >
-          Tiefenscan starten
+          {{ d.deep.start }}
         </button>
       </div>
     </section>
@@ -559,11 +558,10 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
           }"
         />
       </div>
-      <p class="text-fid-sm text-fid-text-muted">
-        Stile und Marktpreise werden nachgeschlagen –
-        <span class="fid-num">{{ enriching.done }}</span> von
-        <span class="fid-num">{{ enriching.total }}</span>
-        (<span class="fid-num">{{ enriching.requests }}</span> Abfragen)
+      <p class="fid-num text-fid-sm text-fid-text-muted">
+        {{
+          d.enriching(count(enriching.done), count(enriching.total), count(enriching.requests))
+        }}
       </p>
     </section>
 
@@ -576,19 +574,16 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
       role="status"
       class="rounded-fid-sm border border-fid-border p-3 text-fid-sm text-fid-text-muted"
     >
-      Der Horizont kennt jetzt
-      <span class="fid-num">{{ gaps.expanded }}</span>
-      {{ gaps.expanded === 1 ? 'Album' : 'Alben' }} mehr in allen Pressungen<template
-        v-if="gaps.titles.length"
-        >: {{ gaps.titles.join(', ') }}</template
-      >. Beim nächsten Dig zählt das mit.
+      {{ d.horizonLearned(gaps.expanded)
+      }}<template v-if="gaps.titles.length">: {{ gaps.titles.join(', ') }}</template
+      >. {{ d.horizonCounts }}
     </p>
 
     <!--
       Which dig is on screen, and the others. Five are kept (docs/03 §5) and
       until now only the newest could be opened.
     -->
-    <nav v-if="history.length > 1" aria-label="Frühere Digs" class="flex flex-wrap gap-2">
+    <nav v-if="history.length > 1" :aria-label="d.earlierDigs" class="flex flex-wrap gap-2">
       <button
         v-for="entry in history"
         :key="entry.id"
@@ -610,25 +605,22 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
     <section v-if="result" class="flex flex-col gap-4">
       <div class="flex flex-wrap items-baseline justify-between gap-2">
         <h2 class="text-fid-xl font-bold text-fid-text">
-          {{ result.matches.length }} Treffer bei {{ result.dig.dealer }}
+          {{ d.hits(result.matches.length, result.dig.dealer) }}
         </h2>
         <p class="text-fid-sm text-fid-text-muted">
           <template v-if="kind !== 'full'">
-            <span class="fid-num">{{ count(result.dig.listingsTotal) }}</span>
-            {{ result.dig.listingsTotal === 1 ? 'neues Listing' : 'neue Listings' }} seit dem
-            letzten Besuch
+            {{ d.newListings(count(result.dig.listingsTotal), result.dig.listingsTotal === 1) }}
           </template>
           <template v-else>
-            <span class="fid-num">{{ count(result.dig.listingsScanned) }}</span> von
-            <span class="fid-num">{{ count(result.dig.listingsTotal) }}</span> gescannt ({{
-              Math.round(result.dig.coverage * 100)
+            {{
+              d.scanned(
+                count(result.dig.listingsScanned),
+                count(result.dig.listingsTotal),
+                Math.round(result.dig.coverage * 100),
+              )
             }}
-            %)
           </template>
-          <template v-if="result.folded > 0">
-            · <span class="fid-num">{{ result.folded }}</span> weitere Exemplare
-            zusammengefasst</template
-          >
+          <template v-if="result.folded > 0"> · {{ d.folded(result.folded) }}</template>
         </p>
       </div>
 
@@ -638,10 +630,7 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
         role="status"
         class="flex flex-col gap-2 rounded-fid-sm border border-fid-border p-3"
       >
-        <p class="text-fid-sm text-fid-text-muted">
-          Älter als sechs Stunden – Preise und Zustände dürfen nicht mehr angezeigt werden. Die
-          Treffer und ihre Begründungen bleiben.
-        </p>
+        <p class="text-fid-sm text-fid-text-muted">{{ d.expired }}</p>
         <!--
           The way out that is not a four-minute rescan: each match's own
           listing, one request apiece.
@@ -658,13 +647,16 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
           class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
           @click="refresh"
         >
-          Preise auffrischen
+          {{ d.refreshPrices }}
           <span class="fid-num">({{ result.matches.length }})</span>
         </button>
         <p class="text-fid-xs text-fid-text-muted">
-          <span class="fid-num">{{ result.matches.length }}</span> Abfragen, also rund
-          {{ Math.ceil((result.matches.length * 1.2) / 60) || 1 }} Minute. Findet nichts Neues –
-          nur das wieder, was dieser Dig schon gefunden hat.
+          {{
+            d.refreshCost(
+              result.matches.length,
+              Math.ceil((result.matches.length * 1.2) / 60) || 1,
+            )
+          }}
         </p>
       </section>
 
@@ -677,43 +669,30 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
             }"
           />
         </div>
-        <p class="text-fid-sm text-fid-text-muted">
-          <span class="fid-num">{{ refreshing.done }}</span> von
-          <span class="fid-num">{{ refreshing.total }}</span> nachgesehen<template
-            v-if="refreshing.sold > 0"
-            >, <span class="fid-num">{{ refreshing.sold }}</span> schon verkauft</template
+        <p class="fid-num text-fid-sm text-fid-text-muted">
+          {{ d.checked(count(refreshing.done), count(refreshing.total))
+          }}<template v-if="refreshing.sold > 0"
+            >, {{ d.alreadySold(count(refreshing.sold)) }}</template
           >
         </p>
       </div>
 
-      <p v-if="refreshed" role="status" class="text-fid-sm text-fid-text-muted">
-        <span class="fid-num text-fid-text">{{ refreshed.refreshed }}</span> wieder
-        aktuell<template v-if="refreshed.sold > 0"
-          >, <span class="fid-num">{{ refreshed.sold }}</span> inzwischen verkauft</template
+      <p v-if="refreshed" role="status" class="fid-num text-fid-sm text-fid-text-muted">
+        {{ d.refreshed(count(refreshed.refreshed))
+        }}<template v-if="refreshed.sold > 0"
+          >, {{ d.refreshedSold(count(refreshed.sold)) }}</template
         ><template v-if="refreshed.gone > 0"
-          >, <span class="fid-num">{{ refreshed.gone }}</span> nicht mehr auffindbar</template
+          >, {{ d.refreshedGone(count(refreshed.gone)) }}</template
         >.
       </p>
 
-      <!--
-        Nichts gefunden heißt dreierlei, je nachdem wonach gesucht wurde.
-        A full dig that found nothing has read the whole shop and may say so
-        about the shop. An incremental one has read what arrived since the last
-        visit — saying "nichts für dich" about 35.900 records because none of
-        the four new ones fit is a claim it never checked.
-      -->
+      <!-- Three different sentences, and why, in `app/i18n/dig.ts`. -->
       <p v-if="result.matches.length === 0" class="text-fid-base text-fid-text-muted">
-        <template v-if="kind === 'incremental-empty'">
-          Seit deinem letzten Besuch hat {{ result.dig.dealer }} nichts Neues eingestellt. Der
-          Rest des Sortiments stand hier schon.
-        </template>
-        <template v-else-if="kind === 'incremental'">
-          Unter dem Neuen war nichts für dich. Was vorher da war, hat dieser Dig nicht noch
-          einmal angesehen.
-        </template>
-        <template v-else>
-          Bei diesem Händler nichts für dich. Das ist ein Ergebnis, kein Fehler.
-        </template>
+        {{
+          kind === 'incremental-empty'
+            ? d.empty['incremental-empty'](result.dig.dealer)
+            : d.empty[kind]
+        }}
       </p>
 
       <template v-else>
@@ -723,13 +702,13 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
         -->
         <section class="flex flex-col gap-3" aria-labelledby="top-five">
           <h3 id="top-five" class="text-fid-sm uppercase tracking-[0.2em] text-fid-text-muted">
-            Top Five
+            {{ d.topFive }}
           </h3>
           <p
             v-if="result.topFive[0] && result.topFive[0].score >= 85"
             class="text-fid-sm text-fid-text-muted"
           >
-            <span class="text-fid-text">Side One, Track One:</span>
+            <span class="text-fid-text">{{ d.sideOne }}</span>
             {{ result.topFive[0].artist }} – {{ result.topFive[0].title }}
           </p>
           <!-- Five cards, two abreast once there is room for two. -->

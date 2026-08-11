@@ -1,5 +1,7 @@
 import type { Match, SignalType } from '#shared/types'
 
+import { activeLocale } from '~/composables/useMessages'
+
 /**
  * Filtering, sorting and counting for a dig result — pure, so it can be tested
  * without a router or a DOM. `useDigView` is the thin part that binds these to
@@ -10,21 +12,12 @@ export type SortKey = 'score' | 'price' | 'year' | 'artist'
 export type Density = 'comfortable' | 'compact'
 
 /**
- * Die Richtung steht am Etikett.
- *
- * "Jahr" here means newest first — a shop's stock, where a 2026 pressing is
- * news. "Jahr" in the shelf means oldest first, because a shelf sorted by year
- * is a timeline and timelines run forwards. Both are right and neither is
- * guessable from the word alone, so both say which way they run.
+ * The orderings, in the order they are offered. Keys only — the labels carry a
+ * direction arrow and live in the pack with everything else somebody reads.
  */
-export const SORTS = [
-  { key: 'score', label: 'Score', about: 'Bester Treffer zuerst' },
-  { key: 'price', label: 'Preis ↑', about: 'Günstigste zuerst' },
-  { key: 'year', label: 'Jahr ↓', about: 'Neueste zuerst' },
-  { key: 'artist', label: 'Künstler', about: 'Alphabetisch' },
-] as const satisfies readonly { key: SortKey; label: string; about: string }[]
+export const SORTS = ['score', 'price', 'year', 'artist'] as const satisfies readonly SortKey[]
 
-const SORT_KEYS = new Set<string>(SORTS.map((sort) => sort.key))
+const SORT_KEYS = new Set<string>(SORTS)
 
 export function parseSort(value: string): SortKey {
   return SORT_KEYS.has(value) ? (value as SortKey) : 'score'
@@ -47,7 +40,9 @@ function compare(a: Match, b: Match, key: SortKey): number {
     case 'year':
       return missingLast(a.year, b.year) ?? b.year! - a.year!
     case 'artist':
-      return missingLast(a.artist, b.artist) ?? a.artist!.localeCompare(b.artist!, 'de')
+      return (
+        missingLast(a.artist, b.artist) ?? a.artist!.localeCompare(b.artist!, activeLocale())
+      )
     default:
       return b.score - a.score
   }

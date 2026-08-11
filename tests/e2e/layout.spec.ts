@@ -114,9 +114,9 @@ test.describe('the shelf grid itself', () => {
     await page.setViewportSize(WIDE)
     await page.goto('/regal')
 
-    const tabs = page.getByRole('navigation', { name: 'Sammlung' })
-    await expect(tabs.getByRole('link', { name: 'Regal' })).toBeVisible()
-    await expect(tabs.getByRole('link', { name: 'Landkarte' })).toBeVisible()
+    const tabs = page.getByRole('navigation', { name: 'Collection' })
+    await expect(tabs.getByRole('link', { name: 'Shelf' })).toBeVisible()
+    await expect(tabs.getByRole('link', { name: 'Map' })).toBeVisible()
     await expect(tabs.getByRole('link', { name: 'Wantlist' })).toBeVisible()
   })
 

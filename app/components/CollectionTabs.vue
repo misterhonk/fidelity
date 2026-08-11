@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useCollectionMessages } from '~/i18n/collection'
+
+const c = useCollectionMessages()
+
 const route = useRoute()
 
 /**
@@ -11,15 +15,15 @@ const route = useRoute()
  * — it stops reading as a switch and starts reading as a header.
  */
 const TABS = [
-  { to: '/regal', label: 'Regal', icon: 'regal' },
-  { to: '/landkarte', label: 'Landkarte', icon: 'map' },
-  { to: '/wantlist', label: 'Wantlist', icon: 'wantlist' },
+  { to: '/regal', key: 'shelf', icon: 'regal' },
+  { to: '/landkarte', key: 'map', icon: 'map' },
+  { to: '/wantlist', key: 'wantlist', icon: 'wantlist' },
 ] as const
 </script>
 
 <template>
   <nav
-    aria-label="Sammlung"
+    :aria-label="c.tabs.label"
     class="flex gap-1 self-stretch rounded-fid-sm border border-fid-border p-1 @xl:self-start"
   >
     <NuxtLink
@@ -35,7 +39,7 @@ const TABS = [
       "
     >
       <FidIcon :name="tab.icon" :size="16" />
-      {{ tab.label }}
+      {{ c.tabs[tab.key] }}
     </NuxtLink>
   </nav>
 </template>
