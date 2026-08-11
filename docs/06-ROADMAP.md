@@ -327,8 +327,14 @@ irgendein Feature ihn voraussetzt. Vollständiges Konzept: `docs/13-HUB-ADDON.md
       ist für alle dieselbe. Gebündelt, mit Herkunftsprüfung an beiden Enden
 - [x] Hub-Erkennung im Client: sucht `http://localhost:8787`, und sagt, wenn der Browser
       die Verbindung verweigert statt „nicht gefunden" zu behaupten
-- [ ] Wächter: pollt stündlich `num_for_sale` je Händler – **1 Request statt 100**,
-      **ohne Token** – und schickt bei Veränderung Web Push
+- [x] Wächter, Hub-Seite: fragt je Laden höchstens stündlich `num_for_sale` ab –
+      **eine Abfrage für alle statt einer je Nutzer**, ohne Token, im Takt von 2,4 s.
+      Der erste Blick ist eine Grundlinie und keine Meldung; nach unten wird nie
+      gemeldet; tote Empfänger (404/410) fliegen raus. Aus, bis `HUB_WATCH=1`
+- [ ] Wächter, Client-Seite: Push-Subscription und Benachrichtigung. **Braucht die
+      Umstellung der PWA von `generateSW` auf `injectManifest`** — ein eigener Service
+      Worker ist die Voraussetzung für einen `push`-Handler, und genau an dieser Stelle
+      ist der Offline-Betrieb schon einmal gebrochen (siehe den Punkt in M6)
 - [x] Geräte-Sync für Korb und Merkliste — **über den Vault, nicht über den Hub**
       (M8/ADR-007): verschlüsselt, Ziel frei wählbar, funktioniert auch ohne Hub
 - [ ] Dig teilen per Link (TTL 6 h, ToS-konform)

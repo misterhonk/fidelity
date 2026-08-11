@@ -81,8 +81,64 @@ export function openHubDb(path: string): DatabaseSync {
     )
   `)
 
+  /*
+   * Der Wächter — die eine Sache, die einen laufenden Prozess rechtfertigt.
+   *
+   * Ohne Hub fragt jedes Gerät jeden beobachteten Laden selbst ab: hundert
+   * Nutzer, die denselben Laden beobachten, sind hundert Abfragen für dieselbe
+   * Zahl. Mit Hub ist es **eine**, und alle bekommen dieselbe Antwort.
+   *
+   * `meta` hält die VAPID-Schlüssel. Die werden beim ersten Start einmal
+   * erzeugt und müssen danach bleiben: der öffentliche Teil steckt in jeder
+   * Push-Subscription, die je vergeben wurde, und ein neuer Schlüssel macht
+   * sie alle ungültig.
+   */
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS meta (
+      key   TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )
+  `)
+
+  /*
+   * Ein Empfänger. Der Endpunkt kommt vom Push-Dienst des Browsers und ist
+   * die Adresse — nicht die Person. Der Hub weiß nicht, wer dahintersteht,
+   * und hat auch keine Stelle, an der er es erfahren könnte.
+   */
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS watchers (
+      endpoint   TEXT PRIMARY KEY,
+      p256dh     TEXT NOT NULL,
+      auth       TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    )
+  `)
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS watches (
+      endpoint TEXT NOT NULL,
+      dealer   TEXT NOT NULL,
+      PRIMARY KEY (endpoint, dealer)
+    )
+  `)
+
+  /*
+   * Was der Hub zuletzt bei einem Laden gesehen hat. Eine Zeile je Laden, egal
+   * wie viele ihn beobachten — genau das ist der Gewinn.
+   */
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS watch_state (
+      dealer       TEXT PRIMARY KEY,
+      num_for_sale INTEGER NOT NULL,
+      checked_at   INTEGER NOT NULL
+    )
+  `)
+
   // What the hub is asked most: "is this entity already expanded?"
   db.exec('CREATE INDEX IF NOT EXISTS horizon_fetched ON horizon (fetched_at)')
+  // Und: "wer will von diesem Laden hören?"
+  db.exec('CREATE INDEX IF NOT EXISTS watches_dealer ON watches (dealer)')
 
   return db
 }

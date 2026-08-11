@@ -168,9 +168,11 @@ PUT  /v1/shipping/:dealer/:country   ← Staffel beisteuern
 GET  /v1/covers?ids=1,2,3            → { covers: { releaseId: {thumbUrl, coverUrl} } }
 PUT  /v1/covers                      ← { covers: [...] } beisteuern
 POST /v1/watch/subscribe             ← Push-Subscription + Händlerliste
+POST /v1/watch/unsubscribe           ← Endpunkt abmelden
 GET  /v1/watch/pending               → Änderungen seit dem letzten Abruf
 POST /v1/digs                        ← Dig zum Teilen ablegen (TTL 6 h)
 GET  /v1/digs/:id                    → geteilter Dig
+GET  /v1/watch/key                   → { publicKey }  (VAPID, einmal erzeugt)
 GET  /v1/health                      → { ok, version, entities, users }
 ```
 

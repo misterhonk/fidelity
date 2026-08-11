@@ -41,7 +41,14 @@ describe('health', () => {
   test('reports counts and whether it is secured', async () => {
     const { app } = hub('geheim')
     const body = await (await app.request('/v1/health')).json()
-    assert.deepEqual(body, { ok: true, horizon: 0, shipping: 0, covers: 0, secured: true })
+    assert.deepEqual(body, {
+      ok: true,
+      horizon: 0,
+      shipping: 0,
+      covers: 0,
+      watching: 0,
+      secured: true,
+    })
   })
 
   test('stays open even on a secured hub, so a monitor needs no secret', async () => {

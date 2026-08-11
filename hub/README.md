@@ -52,3 +52,30 @@ ohne. Kein Treiber, keine native Abhängigkeit, keine Kompilierung.
 Ein geteiltes Geheimnis, kein Nutzerkonto — für einen Freundeskreis reicht das
 (`docs/13` §2). Setze `HUB_SECRET`; Clients schicken es als `x-hub-secret`.
 Ohne gesetztes Secret startet der Hub im offenen Modus und sagt das beim Start.
+
+## Der Wächter
+
+Standardmäßig **aus**. Er ist das Einzige in diesem Dienst, das von sich aus nach draußen
+geht — alles andere antwortet nur, wenn es gefragt wird.
+
+```bash
+HUB_WATCH=1 HUB_VAPID_SUBJECT=mailto:du@example.de docker compose up -d
+```
+
+Er sieht bei jedem beobachteten Laden höchstens einmal pro Stunde nach, wie viele Platten
+dort im Angebot sind, und schickt eine Benachrichtigung, wenn es mehr geworden sind. **Eine
+Abfrage für alle**, statt einer je Laden und Nutzer — das ist der eigentliche Grund, warum
+es diesen Dienst gibt.
+
+Was er dabei nicht tut:
+
+- **Kein Token.** `GET /users/{name}` gibt die Zahl ohne Anmeldung heraus.
+- **Kein Scan.** Eine Zahl je Laden, keine zweihundert Seiten Inventar. Das Durchsuchen
+  eines Ladens gehört auf das Gerät des Nutzers, dessen IP ihr eigenes Budget hat.
+- **Keine Meldung beim ersten Blick.** Der erste Stand ist eine Grundlinie; sonst bekäme
+  jeder, der einen Laden neu aufnimmt, sofort eine Nachricht über zweitausend „neue"
+  Platten.
+- **Keine Meldung nach unten.** Ein Laden, der etwas verkauft, ist keine Nachricht.
+
+Die VAPID-Schlüssel werden beim ersten Start erzeugt und liegen in der Datenbank. Sie
+müssen bleiben: der öffentliche Teil steckt in jeder Push-Anmeldung, die je vergeben wurde.

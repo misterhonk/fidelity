@@ -1,5 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+
+import { vapidKeys } from './watch.ts'
 import type { DatabaseSync } from 'node:sqlite'
 import { z } from 'zod'
 
@@ -104,6 +106,9 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
       horizon: (db.prepare('SELECT COUNT(*) AS n FROM horizon').get() as { n: number }).n,
       shipping: (db.prepare('SELECT COUNT(*) AS n FROM shipping').get() as { n: number }).n,
       covers: (db.prepare('SELECT COUNT(*) AS n FROM covers').get() as { n: number }).n,
+      watching: (
+        db.prepare('SELECT COUNT(DISTINCT dealer) AS n FROM watches').get() as { n: number }
+      ).n,
       secured: Boolean(secret),
     }),
   )
@@ -165,6 +170,57 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     )
 
     return c.json({ stored: true })
+  })
+
+  // --- Der Wächter ------------------------------------------------------------
+
+  /*
+   * Der öffentliche VAPID-Schlüssel. Ohne ihn kann ein Browser gar nicht erst
+   * eine Subscription anlegen, also ist das der erste Aufruf des Clients.
+   */
+  app.get('/v1/watch/key', (c) => c.json({ publicKey: vapidKeys(db).publicKey }))
+
+  app.post('/v1/watch/subscribe', async (c) => {
+    const parsed = subscribeSchema.safeParse(safeJson(await c.req.text()))
+    if (!parsed.success) return c.json({ error: 'not a subscription' }, 400)
+
+    const { subscription, dealers } = parsed.data
+    const at = now()
+
+    db.prepare(
+      `INSERT INTO watchers (endpoint, p256dh, auth, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(endpoint) DO UPDATE SET
+         p256dh = excluded.p256dh, auth = excluded.auth, updated_at = excluded.updated_at`,
+    ).run(subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth, at, at)
+
+    /*
+     * Die Liste wird ersetzt, nicht ergänzt. Sie ist der vollständige Wunsch
+     * dieses Geräts — wer einen Laden nicht mehr beobachtet, schickt ihn
+     * einfach nicht mehr mit, und ohne dieses Löschen bliebe er für immer.
+     */
+    db.prepare('DELETE FROM watches WHERE endpoint = ?').run(subscription.endpoint)
+    const insert = db.prepare('INSERT INTO watches (endpoint, dealer) VALUES (?, ?)')
+    for (const dealer of new Set(dealers)) insert.run(subscription.endpoint, dealer)
+
+    /*
+     * Kein Grundwert für neue Läden.
+     *
+     * `watch_state` bleibt leer, bis der Wächter das erste Mal nachgesehen hat
+     * — und dieser erste Blick ist eine Grundlinie und keine Nachricht. Wer
+     * einen Laden neu aufnimmt, bekommt also nicht sofort eine Meldung über
+     * zweitausend „neue" Platten.
+     */
+    return c.json({ watching: [...new Set(dealers)].length })
+  })
+
+  app.post('/v1/watch/unsubscribe', async (c) => {
+    const parsed = unsubscribeSchema.safeParse(safeJson(await c.req.text()))
+    if (!parsed.success) return c.json({ error: 'no endpoint' }, 400)
+
+    db.prepare('DELETE FROM watchers WHERE endpoint = ?').run(parsed.data.endpoint)
+    db.prepare('DELETE FROM watches WHERE endpoint = ?').run(parsed.data.endpoint)
+    return c.json({ removed: true })
   })
 
   // --- Covers ---------------------------------------------------------------
@@ -405,3 +461,22 @@ function parseIds(raw: string): number[] {
   }
   return [...seen]
 }
+
+/**
+ * Was ein Browser als Push-Subscription herausgibt — und nur das.
+ *
+ * Der Hub prüft die Form und mehr nicht: Endpunkt und zwei Schlüssel. Es gibt
+ * kein Feld für einen Namen, kein Feld für eine Kennung und keines für einen
+ * Discogs-Token. Was nicht vorgesehen ist, kann auch nicht versehentlich
+ * gespeichert werden.
+ */
+const subscribeSchema = z.object({
+  subscription: z.object({
+    endpoint: z.string().url().max(2048),
+    keys: z.object({ p256dh: z.string().min(1).max(256), auth: z.string().min(1).max(256) }),
+  }),
+  /** Höchstens hundert Läden: eine Grenze gegen Unfug, keine Zielgröße. */
+  dealers: z.array(z.string().min(1).max(120)).max(100),
+})
+
+const unsubscribeSchema = z.object({ endpoint: z.string().url().max(2048) })
