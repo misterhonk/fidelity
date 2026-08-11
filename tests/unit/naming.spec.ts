@@ -12,7 +12,7 @@ import en from '~/i18n/en'
 /**
  * The tab and the heading say the same thing.
  *
- * Every one of the five sections used to disagree with its own tab: "Läden"
+ * Every one of the five sections used to disagree with its own tab: "Shops"
  * led to a page headed "The Clerk's Take", "Sammlung" to "Dein Regal", "Start"
  * to "Championship". Tapping a label and landing somewhere that calls itself
  * something else leaves you unable to tell whether you got there.

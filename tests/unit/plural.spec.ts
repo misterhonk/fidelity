@@ -5,10 +5,10 @@ import { describe, expect, it } from 'vitest'
 import { counted, plural } from '~/utils/plural'
 
 /**
- * Eine Zahl und ihr Wort werden zusammen entschieden.
+ * A number and its noun are decided together.
  *
- * Found by reading the app as a user: "Einmalig rund 1 Minuten", "1
- * Versandstaffeln", "1 Entitäten". Nobody types those on purpose — they happen
+ * Found by reading the app as a user: "about 1 minutes", "1 postage tiers",
+ * "1 entries". Nobody types those on purpose — they happen
  * because a template interpolates a count in front of a noun somebody wrote in
  * the plural, and the singular only ever appears on the one screen where the
  * number happens to be one.

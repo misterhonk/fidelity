@@ -145,7 +145,7 @@ describe('exporting everything', () => {
     // A few hundred thousand ids that JSON would inflate tenfold, all of it
     // fetchable again. A backup holds what cannot be refetched.
     expect(Object.keys(file)).not.toContain('horizon')
-    expect(file.note).toContain('Horizont')
+    expect(file.note).toContain('horizon')
   })
 
   it('carries the parts that cannot be fetched again', async () => {

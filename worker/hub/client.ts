@@ -64,7 +64,7 @@ export interface HubClient {
   contributeShipping(dealer: string, country: string, tiers: ShippingTier[]): Promise<void>
 
   /**
-   * Cover, gebündelt.
+   * Covers, in one bundle.
    *
    * The one thing in this app that costs a request per record and returns the
    * same answer for everybody: the marketplace hands back listings without
@@ -94,7 +94,7 @@ export interface HubCover {
 }
 
 /**
- * Auch auf dem Rückweg geprüft, nicht nur beim Einliefern.
+ * Checked on the way back too, not only on the way in.
  *
  * These strings become `<img src>`. The hub already refuses anything that is
  * not Discogs' image host — and the hub is exactly the component this client is
@@ -169,7 +169,7 @@ export function createHubClient({
        * and forever, which is worse than any amount of slowness.
        */
       if (!chunkIsSound(chunk)) {
-        log.warn('[hub] Chunk ist in sich widersprüchlich, verworfen', chunk.key)
+        log.warn('[hub] chunk contradicts itself, discarded', chunk.key)
         return null
       }
 

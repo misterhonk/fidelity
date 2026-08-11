@@ -69,7 +69,7 @@ export async function basketListingIds(): Promise<number[]> {
 }
 
 /**
- * Ein Korb je Händler, neuester zuerst.
+ * One basket per dealer, newest first.
  *
  * Postage is per shipment, so every basket is its own sum, its own tier table
  * and its own advice — that has always been true and has not changed. What

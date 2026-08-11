@@ -6,7 +6,7 @@ import type { HomeCover, HomeFind, HomeOverview, HomeShop } from '#shared/protoc
 import type { IDBPDatabase } from 'idb'
 
 /**
- * Alles für die Startseite, in einer Nachricht.
+ * Everything for the start page, in one message.
  *
  * The screen shows five things at once — the last dig, the newest records, the
  * newest wishes, the shops, the counts — and every one of them is a read on

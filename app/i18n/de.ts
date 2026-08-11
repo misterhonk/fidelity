@@ -61,6 +61,20 @@ const de: Messages = {
     detail: 'Was Discogs genau gesagt hat',
     unknown: 'Etwas ist schiefgegangen.',
 
+    hubUnreachable: {
+      title: 'Unter dieser Adresse antwortet nichts.',
+      action: 'Läuft der Hub, und stimmen Adresse und Port?',
+    },
+    hubMixedContent: {
+      title: 'Hier nicht erreichbar.',
+      action:
+        'Diese Seite läuft über HTTPS und darf deshalb keine unverschlüsselte Adresse aufrufen. In Chrome geht es; dauerhaft hilft nur, den Hub selbst über HTTPS erreichbar zu machen.',
+    },
+    hubHttpError: (status) => ({
+      title: `Der Hub antwortete mit HTTP ${status}.`,
+      action: 'Das sagt der Hub, nicht Discogs — sein eigenes Log weiß mehr.',
+    }),
+
     oauthMismatch: 'Die Antwort des Anbieters gehört nicht zu dieser Anfrage.',
     oauthNoToken: 'Der Anbieter hat keinen Zugriffsschlüssel geschickt.',
     noFilePicker: 'Dieser Browser kann keine Datei auswählen.',

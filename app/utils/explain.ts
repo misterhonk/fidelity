@@ -58,17 +58,25 @@ export function explain(cause: unknown, context: ExplainContext = {}): Explained
     return { ...(signedIn ? words.tokenRevoked : words.tokenUnknown), detail: message }
   }
 
-  // 2. Rate limited. Waiting is the whole fix, and the number matters.
+  // 2. The hub, which is somebody's own machine and fails in its own ways.
+  if (code === 'hub-mixed-content') return { ...words.hubMixedContent, detail: message }
+  if (code === 'hub-unreachable') return { ...words.hubUnreachable, detail: message }
+  if (code === 'hub-http-error') {
+    const status = (cause as { status?: number } | null)?.status ?? 0
+    return { ...words.hubHttpError(status), detail: message }
+  }
+
+  // 3. Rate limited. Waiting is the whole fix, and the number matters.
   if (code === 'rate-limited') {
     return { ...words.rateLimited, detail: message }
   }
 
-  // 3. No network. Everything already on the device still works.
+  // 4. No network. Everything already on the device still works.
   if (code === 'offline' || /failed to fetch|networkerror|load failed/i.test(message)) {
     return { ...words.offline, detail: message }
   }
 
-  // 4. The disk is full. The one failure where deleting is the answer.
+  // 5. The disk is full. The one failure where deleting is the answer.
   if (STORAGE_NAMES.test(message)) {
     return { ...words.storageFull, detail: message }
   }

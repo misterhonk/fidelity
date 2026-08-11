@@ -97,7 +97,7 @@ describe('the pacer', () => {
     expect(clock.time).toBe(5_000)
   })
 
-  it('fährt langsamer, wenn kein Token dabei ist', async () => {
+  it('paces slower when no token is present', async () => {
     /*
      * Unauthenticated the budget is 25 a minute, not 60 — measured against the
      * live API. The demo runs without a token by design, so the pace that is

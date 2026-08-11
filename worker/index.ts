@@ -54,7 +54,7 @@ async function dispatch(id: string, kind: RequestKind, params: unknown) {
       })
 
     /*
-     * Alles außer dem Kurator zählt als Vordergrund.
+     * Everything except the keeper counts as foreground.
      *
      * The keeper stands aside for anything somebody asked for (worker/busy.ts);
      * counting its own tick as foreground would make it stand aside for itself
@@ -70,6 +70,9 @@ async function dispatch(id: string, kind: RequestKind, params: unknown) {
       error: {
         message: error instanceof Error ? error.message : String(error),
         code: codeOf(error, controller.signal.aborted),
+        // The only number a failure carries. It is the hub's own status, and
+        // the sentence for it names it.
+        status: (error as { status?: number } | null)?.status,
       },
     })
   } finally {

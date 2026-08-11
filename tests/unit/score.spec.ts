@@ -38,16 +38,12 @@ describe('the Barry score, against the calibration table', () => {
       91,
     ],
     [
-      'Diskografie-Lücke 0.8 + Serie 0.9',
+      'discography gap 0.8 + catalogue run 0.9',
       [signal('ARTIST_GAP', 0.8), signal('CATALOG_RUN', 0.9)],
       63,
     ],
-    [
-      'Künstler bekannt + Label 0.8',
-      [signal('ARTIST_KNOWN'), signal('LABEL_AFFINITY', 0.8)],
-      57,
-    ],
-    ['Künstler bekannt allein', [signal('ARTIST_KNOWN')], 48],
+    ['artist known + label 0.8', [signal('ARTIST_KNOWN'), signal('LABEL_AFFINITY', 0.8)], 57],
+    ['artist known alone', [signal('ARTIST_KNOWN')], 48],
     ['Stil-Adjazenz allein', [signal('STYLE_ADJACENT')], 26],
   ])('%s → %i', (_label, signals, expected) => {
     expect(barryScore(signals)).toBe(expected)
@@ -172,7 +168,7 @@ describe('the soft dampeners, and why the reissue one is soft', () => {
     // be one: whether a record is a reissue comes from /releases/{id}, which
     // the scan never calls (CLAUDE.md rule 2). It is known only for the fifty
     // records the enrichment pass looks at, and only afterwards — so it
-    // dampens rather than discards, and the interface says "zählt weniger".
+    // dampens rather than discards, and the interface says "counts for less".
     expect(barryScore(one, { reissueAgainstPreference: true })).toBe(52)
   })
 

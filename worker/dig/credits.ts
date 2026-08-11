@@ -6,7 +6,7 @@ import { buildLookup, hitsFor } from '../horizon/lookup'
 /**
  * The credit-graph explorer (docs/06 M5).
  *
- * "Du besitzt 9 Produktionen von Conny Plank. Dieser Händler hat 4 weitere,
+ * "You own 9 productions by Conny Plank. This dealer has 4 more,
  * die du nicht hast" — docs/00 §5 calls the credit graph the actual killer
  * feature, and until now it only ever surfaced one record at a time, as a
  * sentence on a card. This is the view that answers the question the sentence

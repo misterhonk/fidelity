@@ -15,7 +15,7 @@ import { sortTiers } from './shipping'
  * purchase around it and finds out at the checkout.
  *
  * Every tier it produces carries `source: 'parsed'`, and the basket says
- * "geschätzt aus dem Händlertext" wherever it uses one.
+ * "estimated from the dealer text" wherever it uses one.
  */
 
 /** Shapes this understands, for the interface to show when it fails. */
@@ -80,7 +80,8 @@ const UNIT = String.raw`(?:x\s*)?(?:lps?|platten?|records?|items?|discs?|st(?:ü
 
 /**
  * `2-3 LP: 9,00 €` and `1 LP 6 €` and `ab 4 Platten 12 EUR`.
- * The range may be open at the top: "ab 4", "4+", "4 or more", "ab 4 Stück".
+ * The range may be open at the top: "ab 4", "4+", "4 or more", "ab 4 Stück"
+ * — the German forms are what dealers write, not what this file speaks.
  *
  * A colon counts as a separator so a labelled table — "Porto: 1-2 LPs 7,- €"
  * — finds its first rule. It cannot start a spurious one inside a rule,
@@ -230,7 +231,7 @@ export function parseShippingText(
 }
 
 // ---------------------------------------------------------------------------
-// Nach Zielland sortierte Händlertexte.
+// Dealer texts sorted by destination country.
 //
 // The common shape of a real shipping box is not one table but three, stacked
 // under headings: what it costs at home, what it costs in Europe, what it

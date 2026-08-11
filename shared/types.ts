@@ -173,10 +173,36 @@ export interface PressingProfile {
   freeText: string[]
 }
 
+/**
+ * What a buyer could get wrong about *this* pressing.
+ *
+ * Facts, not a sentence. The wording lives in `app/i18n/pressing.ts`, for the
+ * same reason the Barry sentence does: this is assembled in a thread that does
+ * not know what language the interface is in, and a warning frozen in the
+ * language of the scan is a warning that stops matching the screen around it.
+ *
+ * The two contradictions are separate kinds rather than one with a flag —
+ * "the dealer says original, Discogs says reissue" and "the dealer says
+ * original, the pressing is fifteen years younger" are different claims, and
+ * a shared kind would have made them share a sentence.
+ */
+export type PressingWarningKind =
+  | 'reissue'
+  | 'late-pressing'
+  | 'special'
+  | 'claims-original-but-reissue'
+  | 'claims-original-but-late'
+
 export interface PressingWarning {
-  kind: 'reissue' | 'late-pressing' | 'special' | 'contradiction'
+  kind: PressingWarningKind
   severity: 'high' | 'medium'
-  text: string
+  /** Whatever the sentence for this kind needs to name. */
+  facts: {
+    country?: string | null
+    year?: number | null
+    masterYear?: number | null
+    special?: string
+  }
 }
 
 export interface WatchAlert {
@@ -698,7 +724,7 @@ export interface Dealer {
 
   // --- Watchlist (M6) ------------------------------------------------------
   // Not in docs/03 §6. Deliberately fields on the dealer rather than a store
-  // of their own: "einen Händler merken" is a property of that dealer, and a
+  // of their own: watching a dealer is a property of that dealer, and a
   // second store keyed by the same username would be two rows to keep in step.
   // Absent on rows written before M6, which reads as "not watched".
 
@@ -754,15 +780,15 @@ export interface CreditGroup {
 
 export interface BasketView {
   /**
-   * Einer je Händler.
+   * One per dealer.
    *
-   * Porto fällt pro Sendung an, also rechnet jeder Korb für sich — das war
-   * schon immer so. Was neu ist: es darf mehr als einen geben. Vorher löschte
-   * eine Platte von einem zweiten Verkäufer den ersten Korb kommentarlos, und
-   * beim Einkaufen bei mehreren Läden gleichzeitig — dem Normalfall einer
-   * Shopping-Session — war das schlicht Datenverlust.
+   * Postage is charged per parcel, so every basket does its own arithmetic —
+   * that was always so. What is new is that there may be more than one. Before,
+   * a record from a second seller deleted the first basket without a word — and
+   * shopping at several shops at once, which is what a shopping session *is*,
+   * simply lost data.
    *
-   * Neuester zuerst: der Laden, an dem gerade gearbeitet wird, steht oben.
+   * Newest first: the shop being worked on is at the top.
    */
   baskets: BasketSummary[]
   /** Every listing in every basket, so a button knows its own state. */

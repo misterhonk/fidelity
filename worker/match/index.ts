@@ -234,7 +234,7 @@ export function evaluate(
       type: 'ARTIST_KNOWN',
       // Confidence is the cascade stage and nothing else. An earlier version
       // scaled it by how many records you own of that artist, which sounds
-      // reasonable and quietly broke the calibration table: "Künstler bekannt
+      // reasonable and quietly broke the calibration table: "artist known
       // allein" has to be 48, and that assumes confidence 1.0. How many you
       // own belongs in the evidence and the sentence, not in the score.
       confidence: artist.confidence,

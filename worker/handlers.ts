@@ -331,7 +331,7 @@ export const handlers: HandlerMap = {
     if (!dealer) return null
 
     /*
-     * Das Schild einmal nachholen, für Läden von vorher.
+     * Fetch the sign once, for shops from before.
      *
      * A dig picks the avatar up for free on its way past `/users/{name}`, but
      * every shop scanned before that existed has none — and waiting for the
@@ -673,7 +673,7 @@ export const handlers: HandlerMap = {
 
   'hub.check': async ({ url, secret }) => {
     const base = url.trim().replace(/\/+$/, '')
-    if (!base) throw new Error('Keine Hub-URL angegeben.')
+    if (!base) throw new Error('hub: no url given')
 
     // Deliberately a plain fetch rather than the hub client: this is the one
     // place a failure has to be *reported* instead of swallowed.
@@ -694,13 +694,18 @@ export const handlers: HandlerMap = {
        * all and which every iPhone hits (measured 2026-08-10).
        */
       const mixed = self.location?.protocol === 'https:' && base.startsWith('http://')
-      throw new Error(
-        mixed
-          ? 'Nicht erreichbar: diese Seite läuft über HTTPS und darf deshalb keine unverschlüsselte Adresse aufrufen. Der Hub muss selbst über HTTPS erreichbar sein.'
-          : 'Unter dieser Adresse antwortet nichts. Läuft der Hub, und stimmen Adresse und Port?',
-      )
+      // A code, not a sentence: `HubSettings` writes the words, in whatever
+      // language the person reading them has chosen.
+      throw Object.assign(new Error(mixed ? 'hub: mixed content' : 'hub: no answer'), {
+        code: mixed ? ('hub-mixed-content' as const) : ('hub-unreachable' as const),
+      })
     }
-    if (!response.ok) throw new Error(`Der Hub antwortete mit HTTP ${response.status}.`)
+    if (!response.ok) {
+      throw Object.assign(new Error(`hub: HTTP ${response.status}`), {
+        code: 'hub-http-error' as const,
+        status: response.status,
+      })
+    }
 
     const body = (await response.json()) as {
       ok?: boolean

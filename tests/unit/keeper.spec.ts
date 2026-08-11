@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 /**
- * Der Kurator tritt zurück, wenn jemand etwas angestoßen hat.
+ * The keeper steps back when somebody has started something.
  *
  * This is the property the whole design rests on. The pacer is one lane and
  * first-come-first-served (CLAUDE.md rule 3), so a keeper that starts a job
@@ -43,7 +43,7 @@ beforeEach(() => {
 })
 
 describe('der Kurator', () => {
-  it('erledigt alles Überfällige, wenn nichts anderes läuft', async () => {
+  it('does everything overdue when nothing else is running', async () => {
     const result = await runKeeper({ client, username: 'mrtnmlchr', now: NOW })
 
     expect(result.did).toEqual(['library', 'watch', 'horizon'])
@@ -52,7 +52,7 @@ describe('der Kurator', () => {
     expect(result.deferred).toBe(false)
   })
 
-  it('fängt gar nicht erst an, solange etwas anderes läuft', async () => {
+  it('does not start at all while something else is running', async () => {
     busy.value = true
     const result = await runKeeper({ client, username: 'mrtnmlchr', now: NOW })
 
@@ -78,7 +78,7 @@ describe('der Kurator', () => {
     expect(revalidateHorizon).not.toHaveBeenCalled()
   })
 
-  it('lässt die Sammlung in Ruhe, solange sie frisch ist', async () => {
+  it('leaves the collection alone while it is fresh', async () => {
     syncState.value = { collectionSyncedAt: NOW - 60_000 }
     const result = await runKeeper({ client, username: 'mrtnmlchr', now: NOW })
 
@@ -86,7 +86,7 @@ describe('der Kurator', () => {
     expect(result.did).not.toContain('library')
   })
 
-  it('holt sie trotzdem, wenn jemand „Alles auffrischen" drückt', async () => {
+  it('fetches it anyway when somebody presses "Refresh everything"', async () => {
     syncState.value = { collectionSyncedAt: NOW - 60_000 }
     const result = await runKeeper({ client, username: 'mrtnmlchr', now: NOW, force: true })
 
@@ -101,7 +101,7 @@ describe('der Kurator', () => {
     expect(syncLibrary).not.toHaveBeenCalled()
   })
 
-  it('lässt einen Fehler nicht den Rest verhindern', async () => {
+  it('does not let one failure stop the rest', async () => {
     // Silent by design: the keeper is the one thing nobody asked for, so it is
     // the one thing that must never take a screen down.
     syncLibrary.mockRejectedValue(new Error('offline'))

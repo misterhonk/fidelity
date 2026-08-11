@@ -1,4 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+
+import { useLanguage } from '~/composables/useMessages'
+import { pressingText } from '~/i18n/pressing'
 
 import {
   pressingContradictions,
@@ -116,13 +119,16 @@ describe('the trap warning', () => {
   it('names the trap docs/06 M7 asks for', () => {
     const [warning] = pressingWarnings(readPressing(REISSUE_2015, 1959))
     expect(warning).toMatchObject({ kind: 'reissue', severity: 'high' })
-    expect(warning?.text).toBe('US-Neuauflage von 2015, nicht das Original von 1959.')
+    expect(warning?.facts).toEqual({ country: 'US', year: 2015, masterYear: 1959 })
+    expect(pressingText(warning!)).toBe('US reissue from 2015, not the 1959 original.')
   })
 
   it('does not call "Worldwide" a country', () => {
-    expect(pressingWarnings(readPressing(REISSUE_2023, 1959))[0]?.text).toBe(
-      'Neuauflage von 2023, nicht das Original von 1959.',
-    )
+    // A missing country is the fact; a sentence that starts "Worldwide reissue"
+    // is what it used to produce.
+    const [warning] = pressingWarnings(readPressing(REISSUE_2023, 1959))
+    expect(warning?.facts.country).toBeNull()
+    expect(pressingText(warning!)).toBe('reissue from 2023, not the 1959 original.')
   })
 
   it('says nothing about the original', () => {
@@ -134,7 +140,7 @@ describe('the trap warning', () => {
     const [warning] = pressingWarnings(late)
     expect(warning?.kind).toBe('late-pressing')
     expect(warning?.severity).toBe('medium')
-    expect(warning?.text).toContain('vermutlich')
+    expect(pressingText(warning!)).toContain('probably not a first pressing')
   })
 
   it('lets a pressing run on a year or two without calling it a reissue', () => {
@@ -155,7 +161,7 @@ describe('where the dealer and the data disagree', () => {
 
   it('catches "Original" written under a stated reissue', () => {
     const [warning] = pressingContradictions('Original US pressing, great copy', reissue)
-    expect(warning).toMatchObject({ kind: 'contradiction', severity: 'high' })
+    expect(warning).toMatchObject({ kind: 'claims-original-but-reissue', severity: 'high' })
   })
 
   it('catches it in German too', () => {
@@ -205,8 +211,8 @@ describe('the top hit of a real dig', () => {
   const profile = readPressing(DUMMY_2017, 1994)
 
   it('says what the record actually is', () => {
-    expect(pressingWarnings(profile)[0]?.text).toBe(
-      'Europe-Neuauflage von 2017, nicht das Original von 1994.',
+    expect(pressingText(pressingWarnings(profile)[0]!)).toBe(
+      'Europe reissue from 2017, not the 1994 original.',
     )
   })
 
@@ -218,5 +224,27 @@ describe('the top hit of a real dig', () => {
   it('keeps quiet about the dealer, who claimed nothing', () => {
     // "SEALED NEW ITEM" is true of a sealed reissue. No contradiction.
     expect(pressingContradictions('SEALED NEW ITEM', profile)).toEqual([])
+  })
+})
+
+/**
+ * The same warnings in German.
+ *
+ * Every one of these interpolates a fact into a sentence, and the two phrase
+ * tables are written by hand — so a fact that lands in the English sentence and
+ * not in the German one is invisible unless both are read.
+ */
+describe('the same warnings, in German', () => {
+  beforeEach(() => useLanguage().apply('de'))
+  afterEach(() => useLanguage().apply('en'))
+
+  it('names the record without calling a reissue bad', () => {
+    const [warning] = pressingWarnings(readPressing(REISSUE_2015, 1959))
+    expect(pressingText(warning!)).toBe('US-Neuauflage von 2015, nicht das Original von 1959.')
+  })
+
+  it('stays a suspicion when nothing is stated', () => {
+    const late = readPressing({ year: 1975, formats: [{ descriptions: ['LP'] }] }, 1959)
+    expect(pressingText(pressingWarnings(late)[0]!)).toContain('vermutlich')
   })
 })

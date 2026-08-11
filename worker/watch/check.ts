@@ -35,7 +35,7 @@ export interface CheckOptions {
   client: DiscogsClient
   now?: number
   signal?: AbortSignal
-  /** Ignore the interval. What the "jetzt prüfen" button uses. */
+  /** Ignore the interval. What the "check now" button uses. */
   force?: boolean
 }
 

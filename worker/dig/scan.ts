@@ -70,7 +70,7 @@ export type ScanPass = (typeof SCAN_PASSES)[number]
 export const NORMAL_PASSES = SCAN_PASSES.slice(0, 2)
 
 /**
- * Was ein „nur das Neue"-Besuch läuft: das Neueste zuerst, und nur so weit.
+ * What an incremental visit runs: newest first, and only that far.
  *
  * `listed desc` is the one ordering where stopping early is sound — everything
  * after the first already-known listing is older still. Any other key would
@@ -79,7 +79,7 @@ export const NORMAL_PASSES = SCAN_PASSES.slice(0, 2)
 export const SINCE_PASSES = [SCAN_PASSES[1]!] as const
 
 /**
- * Ab wann ein „nur das Neue"-Besuch zählt, was er findet.
+ * When an incremental visit counts what it finds.
  *
  * Normally the newest listing the last dig actually saw. Shops scanned before
  * that was recorded fall back to when they were last walked, minus an hour:
@@ -446,15 +446,22 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   return dig
 }
 
-/** German, and short enough for a progress line. */
+/**
+ * Which ordering a deep scan is on, for the progress line.
+ *
+ * The Discogs sort keys themselves rather than translated words. That is not
+ * laziness: this is the only string the worker still puts on screen, it is a
+ * technical name for a technical thing, and giving it a language would mean
+ * carrying a language into the scanner for seven words nobody reads twice.
+ */
 const SORT_LABELS: Record<ScanPass['sort'], string> = {
-  listed: 'Eingestellt',
-  price: 'Preis',
-  audio: 'Hörprobe',
-  item: 'Titel',
-  artist: 'Künstler',
-  label: 'Label',
-  catno: 'Katalognummer',
+  listed: 'listed',
+  price: 'price',
+  audio: 'audio',
+  item: 'title',
+  artist: 'artist',
+  label: 'label',
+  catno: 'catalogue number',
 }
 
 function passLabel(pass: ScanPass): string {
@@ -469,7 +476,7 @@ function passLabel(pass: ScanPass): string {
 function acquire(digId: string): void {
   if (running !== null) {
     throw new DigNotResumable(
-      running === digId ? 'Dieser Dig läuft gerade.' : 'Es läuft bereits ein Dig.',
+      running === digId ? 'this dig is already running' : 'another dig is already running',
     )
   }
   running = digId
@@ -511,7 +518,7 @@ export async function runDig(
   const anchor = anchorFor(known)
   if (incremental && !anchor) {
     running = null
-    throw new NoAnchorYet('Für diesen Laden gibt es noch keinen Dig, an den sich das anhängt.')
+    throw new NoAnchorYet('no earlier dig for this shop to attach to')
   }
 
   let total = known?.numForSale ?? 0
@@ -592,7 +599,7 @@ export async function resumeDig(options: ScanOptions & { digId: string }): Promi
     const dig = await ctx.db.get('digs', options.digId)
 
     if (!dig) throw new DigNotResumable('Dieser Dig existiert nicht mehr.')
-    if (dig.status !== 'scanning') throw new DigNotResumable('Dieser Dig läuft nicht.')
+    if (dig.status !== 'scanning') throw new DigNotResumable('this dig is not running')
 
     /*
      * A deep scan is not picked up again, and that is a choice rather than an

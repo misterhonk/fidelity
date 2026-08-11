@@ -1,5 +1,5 @@
 /**
- * Ob gerade etwas läuft, das jemand angestoßen hat.
+ * Whether something somebody started is running right now.
  *
  * The pacer is one lane and it is first-come-first-served (CLAUDE.md rule 3):
  * exactly one Discogs request in flight, 1.200 ms apart, across every tab. So

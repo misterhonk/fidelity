@@ -3,13 +3,13 @@ import { describe, expect, it } from 'vitest'
 import { digKind } from '~/utils/dig-kind'
 
 /**
- * Worüber ein Dig etwas sagen darf.
+ * What a dig is entitled to say anything about.
  *
- * Found by looking at a real result screen: a "nur das Neue" visit to a shop
+ * Found by looking at a real result screen: an incremental visit to a shop
  * holding 35.900 records reported
  *
- *     0 von 0 gescannt (100 %)
- *     Bei diesem Händler nichts für dich. Das ist ein Ergebnis, kein Fehler.
+ *     0 of 0 scanned (100 %)
+ *     Nothing here for you at this dealer. That is a result, not a fault.
  *
  * Both numbers are what the record actually holds — an incremental dig's
  * denominator is what it found, and `coverage` is 1 by construction because it

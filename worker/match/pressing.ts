@@ -146,7 +146,7 @@ export function readPressing(facts: ReleaseFacts, masterYear: number | null): Pr
 export const REISSUE_YEAR_GAP = 3
 
 /**
- * What is worth warning about — the "Falle" from docs/06 M7.
+ * What is worth warning about — the trap from docs/06 M7.
  *
  * Only things a buyer could get wrong about *this* record. It never says a
  * reissue is bad: plenty of people want the 180 g remaster. It says what the
@@ -156,33 +156,28 @@ export function pressingWarnings(profile: PressingProfile): PressingWarning[] {
   const warnings: PressingWarning[] = []
 
   if (profile.statedReissue) {
-    const where =
-      profile.country && profile.country !== 'Worldwide' ? `${profile.country}-` : ''
-    const when = profile.year ? ` von ${profile.year}` : ''
-    const original =
-      profile.masterYear && profile.masterYear > 1880
-        ? `, nicht das Original von ${profile.masterYear}`
-        : ''
     warnings.push({
       kind: 'reissue',
       severity: 'high',
-      text: `${where}Neuauflage${when}${original}.`,
+      facts: {
+        // "Worldwide" is not a country and reads as one in a sentence.
+        country: profile.country && profile.country !== 'Worldwide' ? profile.country : null,
+        year: profile.year,
+        // Discogs uses years before 1880 as a placeholder; they are not a date.
+        masterYear: profile.masterYear && profile.masterYear > 1880 ? profile.masterYear : null,
+      },
     })
   } else if (profile.yearGap !== null && profile.yearGap >= REISSUE_YEAR_GAP) {
-    // Not stated, so this is a suspicion and is worded as one.
+    // Not stated, so this is a suspicion, and the wording says so.
     warnings.push({
       kind: 'late-pressing',
       severity: 'medium',
-      text: `Gepresst ${profile.year}, das Album ist von ${profile.masterYear} – vermutlich keine Erstpressung.`,
+      facts: { year: profile.year, masterYear: profile.masterYear },
     })
   }
 
   for (const special of profile.special) {
-    warnings.push({
-      kind: 'special',
-      severity: 'medium',
-      text: `Als „${special}" eingetragen – das ist keine normale Handelspressung.`,
-    })
+    warnings.push({ kind: 'special', severity: 'medium', facts: { special } })
   }
 
   return warnings
@@ -211,20 +206,16 @@ export function pressingContradictions(
   const claimsOriginal = ORIGINAL_CLAIM.test(comments) && !REISSUE_CLAIM.test(comments)
 
   if (claimsOriginal && profile.statedReissue) {
-    out.push({
-      kind: 'contradiction',
-      severity: 'high',
-      text: 'Der Händler schreibt „Original", Discogs führt diese Pressung als Neuauflage.',
-    })
+    out.push({ kind: 'claims-original-but-reissue', severity: 'high', facts: {} })
   } else if (
     claimsOriginal &&
     profile.yearGap !== null &&
     profile.yearGap >= REISSUE_YEAR_GAP
   ) {
     out.push({
-      kind: 'contradiction',
+      kind: 'claims-original-but-late',
       severity: 'medium',
-      text: `Der Händler schreibt „Original", gepresst wurde ${profile.year} – das Album ist von ${profile.masterYear}.`,
+      facts: { year: profile.year, masterYear: profile.masterYear },
     })
   }
 

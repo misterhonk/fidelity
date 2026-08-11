@@ -72,7 +72,7 @@ export async function fetchCovers(options: {
   const learned: { releaseId: number; thumbUrl: string; coverUrl: string }[] = []
 
   /*
-   * Erst den Hub fragen — ein Aufruf für alle auf einmal.
+   * Ask the hub first — one call for all of them at once.
    *
    * This is the cheapest thing a hub can do and the most valuable: a cover
    * costs one request to Discogs, the answer is identical for everybody, and a
@@ -138,7 +138,7 @@ export async function fetchCovers(options: {
   report?.({ done: missing.length, total: missing.length })
 
   /*
-   * Und zurückgeben, was wir gelernt haben.
+   * And hand back what we learned.
    *
    * Fire-and-forget, and a courtesy rather than part of the request: whoever
    * shares this hub does not pay for these again. The negatives go too — "no

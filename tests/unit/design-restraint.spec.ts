@@ -141,7 +141,7 @@ describe('the accent', () => {
 })
 
 /**
- * Ein Abzeichen zählt, es baut nicht mit.
+ * A badge counts; it does not help build the layout.
  *
  * The basket count sat in the nav link as an ordinary third child. On a phone
  * that link is a column, so the badge became a third *row*: the basket tab

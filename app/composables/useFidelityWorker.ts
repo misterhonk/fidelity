@@ -9,11 +9,14 @@ import {
 
 export class WorkerRequestError extends Error {
   readonly code: WorkerError['code']
+  /** Only `hub-http-error` carries one; `explain()` puts it in the sentence. */
+  readonly status: number | undefined
 
   constructor(error: WorkerError) {
     super(error.message)
     this.name = 'WorkerRequestError'
     this.code = error.code
+    this.status = error.status
   }
 }
 

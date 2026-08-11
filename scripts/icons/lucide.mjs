@@ -31,15 +31,15 @@ const out = resolve(root, 'app/utils/lucide.generated.ts')
  * supposed to be free of.
  */
 const NEEDED = {
-  house: 'Navigation: Start',
-  'shopping-basket': 'Navigation: Korb',
-  store: 'Navigation: Läden',
-  settings: 'Navigation: Einstellungen',
+  house: 'Navigation: start',
+  'shopping-basket': 'Navigation: basket',
+  store: 'Navigation: shops',
+  settings: 'Navigation: settings',
   map: 'Sammlungsreiter: Landkarte',
-  'arrow-left': 'Zurück, in den Einstellungen',
+  'arrow-left': 'Back, in the settings',
   search: 'Befehlspalette und Suchfelder',
   download: 'Export',
-  'trash-2': 'Alles löschen',
+  'trash-2': 'Delete everything',
   'wifi-off': 'Offline-Hinweis',
   'thumbs-up': 'Bewertung: interessant',
   'thumbs-down': 'Bewertung: danebengegriffen',

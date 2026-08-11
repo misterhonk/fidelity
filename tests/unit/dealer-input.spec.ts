@@ -3,14 +3,14 @@ import { describe, expect, it } from 'vitest'
 import { dealerFromInput } from '~/utils/dealer-input'
 
 /**
- * Was jemand in das Händlerfeld einfügt.
+ * Whatever somebody pastes into the dealer field.
  *
  * The field wanted a username; what people have is the address of the page
  * they are standing on. These are the shapes Discogs actually produces, plus
  * the ones that must be refused rather than sent to the API as if they were a
  * name.
  */
-describe('was im Händlerfeld stehen darf', () => {
+describe('what the dealer field accepts', () => {
   it('nimmt einen Namen, wie er ist', () => {
     expect(dealerFromInput('schoenwettermusik')).toBe('schoenwettermusik')
     expect(dealerFromInput('  fatplastics  ')).toBe('fatplastics')
@@ -23,7 +23,7 @@ describe('was im Händlerfeld stehen darf', () => {
     expect(dealerFromInput('juno-records')).toBe('juno-records')
   })
 
-  it('holt den Namen aus einer Händlerseite', () => {
+  it('takes the name out of a dealer page', () => {
     expect(dealerFromInput('https://www.discogs.com/seller/schoenwettermusik/profile')).toBe(
       'schoenwettermusik',
     )
@@ -39,7 +39,7 @@ describe('was im Händlerfeld stehen darf', () => {
     )
   })
 
-  it('übersteht das Sprachkürzel in der Adresse', () => {
+  it('survives the language prefix in the address', () => {
     // A link copied from a translated page carries /de/ or /pt_BR/. Without
     // this the whole address falls through as "not a username".
     expect(dealerFromInput('https://www.discogs.com/de/seller/spirax.records/profile')).toBe(
@@ -68,14 +68,14 @@ describe('was im Händlerfeld stehen darf', () => {
     )
   })
 
-  it('macht Prozentkodierung rückgängig', () => {
+  it('undoes percent encoding', () => {
     // Otherwise it reaches the API encoded twice — the call site encodes again.
     expect(dealerFromInput('https://www.discogs.com/seller/spirax%2Erecords/profile')).toBe(
       'spirax.records',
     )
   })
 
-  it('lehnt ab, was kein Händler ist', () => {
+  it('refuses what is not a dealer', () => {
     expect(dealerFromInput('')).toBeNull()
     expect(dealerFromInput('   ')).toBeNull()
     // A record, not a shop: the seller is not in this address, and finding out

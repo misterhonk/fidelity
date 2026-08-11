@@ -4,7 +4,7 @@ import { isForegroundBusy } from './busy'
 import type { DiscogsClient } from './discogs/client'
 
 /**
- * Der Kurator: hält den Bestand nach, solange die App offen ist.
+ * The keeper: keeps the collection current while the app is open.
  *
  * Every piece of this already existed and was individually budgeted — the
  * library sync is a delta that usually costs one request, the watchlist checks
@@ -25,13 +25,13 @@ import type { DiscogsClient } from './discogs/client'
  *   (rule 4). Einen Korb nachzufragen kostet eine Anfrage pro Zeile und ist
  *   eine Entscheidung — „will ich das kaufen?" — keine Hausarbeit.
  * - Den Horizont *aufbauen*. Das sind Minuten. Auffrischen ja, bauen nein: was
- *   Minuten dauert, fängt niemand ohne Zutun an.
- * - Credits ernten. Eine Anfrage pro Lieblingsplatte, und für jemanden mit
+ *   minutes, nobody starts unasked.
+ * - Harvesting credits. One request per favourite record, and for somebody with
  *   dreihundert Favoriten ist das eine Viertelstunde.
  *
- * Und über allem: es beginnt nichts, solange etwas anderes läuft. Der Pacer
+ * And above all: it starts nothing while something else is running. The pacer
  * ist eine Spur (rule 3), und ein Kurator, der vierzig Anfragen davor legt,
- * macht aus dem nächsten Dig eine unerklärliche Wartezeit.
+ * turns the next dig into an unexplained wait.
  */
 
 /**
@@ -96,7 +96,7 @@ export async function runKeeper(options: {
   }
 
   /*
-   * 2 — die beobachteten Läden. Eine Anfrage je Laden, höchstens stündlich, und
+   * 2 — the watched shops. One request per shop, hourly at most, and
    * das entscheidet `watch.check` selbst.
    */
   if (!isForegroundBusy()) {
@@ -118,7 +118,7 @@ export async function runKeeper(options: {
   /*
    * 3 — der Horizont, in Tagesrationen. Zuletzt, weil er von den dreien am
    * meisten kostet und am wenigsten dringend ist: ein Eintrag, der einen Tag
-   * älter ist, ist immer noch richtig.
+   * older is still correct.
    */
   if (!isForegroundBusy()) {
     try {

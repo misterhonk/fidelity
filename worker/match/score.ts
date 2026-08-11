@@ -49,7 +49,7 @@ export interface ScoreContext {
    *
    * So it dampens rather than discards. That keeps docs/04 §2's rule intact —
    * a criterion is one or the other, never both — and the interface says
-   * "zählt weniger" rather than promising something the data cannot deliver.
+   * "counts for less" rather than promising something the data cannot deliver.
    */
   reissueAgainstPreference?: boolean
   alreadyInBasket?: boolean

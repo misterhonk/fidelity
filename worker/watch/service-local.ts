@@ -21,7 +21,7 @@ export interface LocalWatchService extends WatchService {
  * second method the port does not have.
  *
  * Registration lives on the dealer rows rather than in memory or in a store of
- * its own: "einen Händler merken" is a property of that dealer, and a second
+ * its own: watching a dealer is a property of that dealer, and a second
  * store keyed by the same username would be two rows to keep in step.
  */
 export function createLocalWatchService(client: () => DiscogsClient): LocalWatchService {

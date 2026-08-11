@@ -2,6 +2,7 @@
 import { describeFormat } from '#shared/format'
 import type { Match } from '#shared/types'
 import { reasonFor } from '~/i18n/reason'
+import { pressingText } from '~/i18n/pressing'
 
 const props = defineProps<{ match: Match }>()
 
@@ -148,11 +149,11 @@ const meta = computed(() => {
     <ul v-if="match.pressingWarnings?.length" class="flex flex-col gap-1">
       <li
         v-for="warning in match.pressingWarnings"
-        :key="warning.text"
+        :key="warning.kind + (warning.facts.special ?? '')"
         class="text-fid-sm"
         :class="warning.severity === 'high' ? 'text-fid-sig-scarcity' : 'text-fid-sig-gap'"
       >
-        {{ warning.text }}
+        {{ pressingText(warning) }}
       </li>
     </ul>
 

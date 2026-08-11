@@ -418,7 +418,7 @@ export interface WorkerContract {
   'basket.remove': { params: { listingId: number }; progress: never; result: BasketView }
   'basket.clear': { params: undefined; progress: never; result: BasketView }
   /**
-   * Angebote aus dem Discogs-Warenkorb übernehmen, per Link.
+   * Take listings over from the Discogs cart, by link.
    *
    * Discogs' API has no cart endpoint — `/marketplace/cart` answers 404 where
    * one that merely needs a token answers 401 — so the records somebody has
@@ -753,7 +753,22 @@ export type WorkerInbound = WorkerRequest | CancelRequest
 export interface WorkerError {
   message: string
   /** Set when the failure is one the UI has to react to specifically. */
-  code?: 'rate-limited' | 'unauthorized' | 'offline' | 'cancelled'
+  code?:
+    | 'rate-limited'
+    | 'unauthorized'
+    | 'offline'
+    | 'cancelled'
+    /*
+     * The hub is somebody's own machine, so it fails in ways Discogs never
+     * does — and one of them, mixed content, is not a fault in the hub at all.
+     * Codes rather than sentences, because the worker composing them has no
+     * language.
+     */
+    | 'hub-mixed-content'
+    | 'hub-unreachable'
+    | 'hub-http-error'
+  /** The HTTP status, for `hub-http-error`. Nothing else carries one. */
+  status?: number
 }
 
 export type WorkerOutbound =

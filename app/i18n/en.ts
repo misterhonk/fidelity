@@ -103,6 +103,28 @@ const en = {
     detail: 'What Discogs actually said',
     unknown: 'Something went wrong.',
 
+    /**
+     * The three ways the hub probe fails.
+     *
+     * Here rather than beside the hub settings, because this is where every
+     * failure gets its words — and the mixed-content one is not a fault in the
+     * hub at all: an https page may not call an unencrypted localhost, which
+     * every iPhone hits (measured 2026-08-10).
+     */
+    hubUnreachable: {
+      title: 'Nothing answers at this address.',
+      action: 'Is the hub running, and are the address and port right?',
+    },
+    hubMixedContent: {
+      title: 'Not reachable from here.',
+      action:
+        'This page runs over HTTPS, so it may not call an unencrypted address. It works in Chrome; the lasting fix is to make the hub itself reachable over HTTPS.',
+    },
+    hubHttpError: (status: number) => ({
+      title: `The hub answered with HTTP ${status}.`,
+      action: 'That is the hub talking, not Discogs — its own log will say more.',
+    }),
+
     /** Four failures with no code from Discogs — they get their own words. */
     oauthMismatch: 'The provider’s answer does not belong to this request.',
     oauthNoToken: 'The provider sent no access key.',

@@ -20,7 +20,7 @@ import type { HorizonLookup } from './lookup'
  * case a missing versions list explains. One request, and the horizon is
  * permanently better.
  *
- * "Der Horizont wächst mit der Nutzung" — that is the design, not a workaround.
+ * The horizon grows with use — that is the design, not a workaround.
  */
 
 /**

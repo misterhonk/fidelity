@@ -180,7 +180,7 @@ export async function runDemo(options: {
     collection.push(toCollectionItem(release))
   }
 
-  if (!dealer) throw new Error('Zu diesem Angebot gibt es keinen Händler.')
+  if (!dealer) throw new Error('no dealer behind this listing')
 
   // 2 — the same index a dig builds, from a collection of one or two.
   const taste = computeTasteProfile(collection, Date.now())

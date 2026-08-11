@@ -151,7 +151,8 @@ export async function exportEverything(now: number): Promise<FullExport> {
     feedback,
     basket,
     note:
-      'Ohne Token und ohne Marktplatzdaten. Der Horizont fehlt bewusst – er ist ' +
-      'jederzeit neu aufbaubar und würde als JSON ein Vielfaches wiegen.',
+      'Without the token and without marketplace data. The horizon is left out ' +
+      'on purpose — it can be rebuilt at any time and would weigh several times ' +
+      'as much as JSON.',
   }
 }

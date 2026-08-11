@@ -13,7 +13,7 @@ import type { ShippingAdvice, ShippingPoint, ShippingTier } from '#shared/types'
  *
  * Everything here is a pure function on a tier list. Where the list came from
  * is the caller's problem, and the source travels with it so the interface can
- * say "geschätzt" where it is only a guess.
+ * say "estimated" where it is only a guess.
  */
 
 /** Cheapest first, so a malformed profile still behaves predictably. */
@@ -44,7 +44,7 @@ export function shippingFor(tiers: ShippingTier[], items: number): ShippingTier 
  *
  * The number that matters is not the total but the per-record cost, because
  * that is what makes "die dritte Platte senkt den Versand von 4,50 € auf
- * 3,00 € pro Stück" a sentence somebody can act on.
+ * €3.00 each" a sentence somebody can act on.
  */
 export function shippingCurve(tiers: ShippingTier[], upTo: number): ShippingPoint[] {
   const points: ShippingPoint[] = []
@@ -65,15 +65,15 @@ export function shippingCurve(tiers: ShippingTier[], upTo: number): ShippingPoin
 }
 
 /**
- * "Eine Platte mehr spart X € pro Stück."
+ * "One record more saves X each."
  *
  * Looks a few records ahead rather than only at the next one, because tiers
  * are steps: inside a 4–6 tier the next record changes nothing, and only
  * checking n+1 would report no saving where there plainly is one.
  *
  * The *nearest* saving wins, not the deepest. "Noch eine Platte und der
- * Versand fällt von 4,50 € auf 3,00 € pro Stück" is a decision somebody can
- * make; "noch vier Platten und er fällt auf 2,00 €" is a shopping trip. The
+ * postage drops from €4.50 to €3.00 each" is a decision somebody can
+ * make; "four more records and it drops to €2.00" is a shopping trip. The
  * full picture is one curve away for anyone who wants it.
  *
  * Returns null when nothing ahead is actually cheaper per record — which is

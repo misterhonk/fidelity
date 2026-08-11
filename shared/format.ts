@@ -1,5 +1,5 @@
 /**
- * Das Format-Vokabular, für beide Seiten dasselbe.
+ * The format vocabulary, the same on both sides.
  *
  * This lived in `worker/match/` while only the matcher needed it. Then the
  * screens needed it too — a dig that lists "Freude Am Tanzen · FAT 016 · 2003"
@@ -45,7 +45,7 @@ const MEDIUM_TOKENS: Record<string, RegExp> = {
   CD: medium(['cd', 'cdr', 'hdcd', 'sacd', 'vcd']),
   Cassette: medium(['cass', 'cassette', '8-track', 'dcc', 'minidisc']),
   /**
-   * Tonband, eigenständig neben der Kassette.
+   * Reel-to-reel, a medium of its own beside the cassette.
    *
    * Discogs writes "Reel-To-Reel" and it is a different thing from a cassette
    * — different machine, different money, different buyer. Folding it in with
@@ -59,7 +59,7 @@ const MEDIUM_TOKENS: Record<string, RegExp> = {
 }
 
 /**
- * Die Medien, die diese App kennt — für Filter *und* Anzeige dieselbe Liste.
+ * The media this app knows — one list for filtering *and* for display.
  *
  * The settings screen used to carry its own copy of these five names. Two
  * lists of the same thing is how one of them quietly grows a sixth entry and
@@ -68,7 +68,7 @@ const MEDIUM_TOKENS: Record<string, RegExp> = {
 export const MEDIUMS = Object.keys(MEDIUM_TOKENS)
 
 /**
- * Was für eine Veröffentlichung das ist — Album, EP, Single, Maxi.
+ * What kind of release it is — album, EP, single, maxi.
  *
  * A separate question from the medium, and the one a collector asks second:
  * `7", Single` and `12", Maxi-Single` are both vinyl and are not remotely the
