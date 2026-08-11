@@ -164,6 +164,9 @@ const SCREENS = [
   '/im-laden',
   '/datenschutz',
   '/impressum',
+  // The manual. It is all prose, which is exactly where a wrong heading level
+  // survives longest — nobody looks at a help page twice.
+  '/einstellungen/hilfe',
 ]
 
 test.describe('accessibility', () => {

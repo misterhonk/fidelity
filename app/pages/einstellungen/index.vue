@@ -155,6 +155,20 @@ const SECTIONS = computed(() => [
     hint: 'Exportieren oder alles löschen',
     status: usage.value,
   },
+  /*
+   * Ganz unten, weil man es sucht statt darüber zu stolpern.
+   *
+   * Everything on this page above is something you change. This is the one
+   * thing you *read*, and somebody only comes looking for it once a question
+   * has already formed — so it does not compete with the settings, it waits
+   * where a manual waits.
+   */
+  {
+    to: '/einstellungen/hilfe',
+    title: 'Hilfe',
+    hint: 'Wie das hier arbeitet und was die Punktzahlen bedeuten',
+    status: null,
+  },
 ])
 </script>
 
