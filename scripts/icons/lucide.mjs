@@ -57,6 +57,13 @@ const NEEDED = {
    */
   'shopping-cart': 'In den Korb (Laden-Screen)',
 
+  /*
+   * Der Pfeil, der aus dem Kasten zeigt. Ein Link, der die App verlässt, soll
+   * das vorher sagen — "View at Discogs" sah aus wie jeder andere Textlink,
+   * und der Sprung in einen neuen Tab kam unangekündigt.
+   */
+  'external-link': 'Führt aus der App heraus',
+
   bookmark: 'Merken — trägt in die Merkliste ein',
   check: 'Gekauft — trägt in die Gekauft-Liste ein',
 

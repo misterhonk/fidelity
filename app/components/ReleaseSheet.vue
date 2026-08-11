@@ -137,7 +137,7 @@ function onKeydown(event: KeyboardEvent) {
         <button
           type="button"
           :aria-label="m.close"
-          class="min-h-6 min-w-6 rounded-fid-sm border border-fid-border px-2 text-fid-sm text-fid-text-muted"
+          class="fid-lift flex min-h-11 min-w-11 items-center justify-center rounded-fid-sm border border-fid-field bg-fid-surface-raised text-fid-base text-fid-text"
           @click="emit('close')"
         >
           ✕
@@ -145,7 +145,15 @@ function onKeydown(event: KeyboardEvent) {
       </div>
 
       <template v-if="match">
-        <div class="flex items-start gap-4">
+        <!--
+          On a phone the cover goes on top, full width.
+          A 96px square beside three lines of text is a layout thought up at a
+          desk. On a phone there is no column left next to it for text to
+          breathe in, and the sleeve — the reason anyone opens this sheet — ends
+          up the smallest thing on the screen. From `sm` up the row comes back:
+          there the room is real.
+        -->
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
           <!--
             The largest cover the app shows — so the one where the 600px
             Fassung sich lohnt.
@@ -158,43 +166,49 @@ function onKeydown(event: KeyboardEvent) {
           -->
           <img
             v-if="cover"
-            :src="cover.thumbUrl"
+            :src="cover.coverUrl || cover.thumbUrl"
             :srcset="
               cover.coverUrl ? `${cover.thumbUrl} 150w, ${cover.coverUrl} 600w` : undefined
             "
-            sizes="96px"
+            sizes="(min-width: 40rem) 96px, 100vw"
             alt=""
             loading="lazy"
             decoding="async"
-            width="96"
-            height="96"
-            class="size-24 shrink-0 rounded-fid-cover bg-fid-inset object-cover"
+            width="600"
+            height="600"
+            class="aspect-square w-full rounded-fid-cover bg-fid-inset object-cover sm:size-24 sm:w-24 sm:shrink-0"
           />
-          <div class="flex min-w-0 grow flex-col gap-1">
-            <p v-if="meta" class="font-fid-mono text-fid-xs text-fid-text-muted">{{ meta }}</p>
-            <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">
-              <span v-if="match.condition" class="flex items-center gap-2">
-                <FidIcon name="platte" :size="14" />
-                {{ match.condition }}
-              </span>
-              <!--
+          <div class="flex min-w-0 grow items-start gap-4">
+            <div class="flex min-w-0 grow flex-col gap-1">
+              <p v-if="meta" class="font-fid-mono text-fid-xs text-fid-text-muted">
+                {{ meta }}
+              </p>
+              <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">
+                <span v-if="match.condition" class="flex items-center gap-2">
+                  <FidIcon name="platte" :size="14" />
+                  {{ match.condition }}
+                </span>
+                <!--
                 Two gradings side by side, and which is which decides whether a
                 record is worth buying. "Cover VG" and "VG" read as the same
                 word twice; the disc and the sleeve do not.
               -->
-              <span v-if="match.sleeve" class="flex items-center gap-2">
-                <FidIcon name="huelle" :size="14" />
-                {{ match.sleeve }}
-              </span>
-              <span v-if="price" class="fid-num text-fid-base text-fid-text">{{ price }}</span>
-            </p>
+                <span v-if="match.sleeve" class="flex items-center gap-2">
+                  <FidIcon name="huelle" :size="14" />
+                  {{ match.sleeve }}
+                </span>
+                <span v-if="price" class="fid-num text-fid-base text-fid-text">{{
+                  price
+                }}</span>
+              </p>
+            </div>
+            <span
+              class="fid-num shrink-0 text-fid-xl font-bold text-fid-text"
+              :aria-label="d.match.score(match.score)"
+            >
+              {{ match.score }}
+            </span>
           </div>
-          <span
-            class="fid-num shrink-0 text-fid-xl font-bold text-fid-text"
-            :aria-label="d.match.score(match.score)"
-          >
-            {{ match.score }}
-          </span>
         </div>
 
         <p class="text-fid-base text-fid-text">{{ reasonFor(match.signals) }}</p>
@@ -345,34 +359,46 @@ function onKeydown(event: KeyboardEvent) {
           </p>
         </section>
 
-        <div class="mt-auto flex flex-wrap items-center justify-between gap-3 pt-4">
+        <div
+          class="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-fid-border pt-4"
+        >
           <div class="flex gap-1" role="group" :aria-label="d.match.feedback">
+            <!-- Same pair of words as on the card, see MatchCard.vue. -->
             <button
               v-for="option in SHOWN_VERDICTS"
               :key="option.key"
               type="button"
-              :title="d.match.verdicts[option.key]"
-              :aria-label="d.match.verdicts[option.key]"
               :aria-pressed="verdict === option.key"
-              class="min-h-6 min-w-6 rounded-fid-sm border px-2 py-1 text-fid-sm"
+              class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border px-3 text-fid-sm transition-colors"
               :class="
                 verdict === option.key
-                  ? 'border-fid-accent bg-fid-accent/15'
-                  : 'border-transparent opacity-45 hover:opacity-100'
+                  ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
+                  : 'border-fid-field text-fid-text-muted hover:text-fid-text'
               "
               @click="judge(match, option.key)"
             >
               <FidIcon :name="option.icon" :size="16" />
+              {{
+                verdict === option.key
+                  ? d.match.verdictsDone[option.key]
+                  : d.match.verdicts[option.key]
+              }}
             </button>
           </div>
 
           <a
-            class="fid-action text-fid-sm text-fid-accent underline underline-offset-4"
+            class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border border-fid-field bg-fid-surface-raised px-4 text-fid-sm font-medium text-fid-text"
             :href="`https://www.discogs.com/sell/item/${match.listingId}`"
             target="_blank"
             rel="noopener noreferrer"
           >
             {{ d.sheet.atDiscogs }}
+            <!--
+              Der Pfeil aus dem Kasten. Ein Link, der die App verlässt und in
+              einem neuen Tab landet, soll das vorher sagen — vorher war das
+              ein Textlink wie jeder andere, und der Sprung kam unangekündigt.
+            -->
+            <FidIcon name="external-link" :size="14" />
           </a>
         </div>
       </template>

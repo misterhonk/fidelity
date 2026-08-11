@@ -156,7 +156,14 @@ const en = {
      * Textknoten. Ein Text, der in einer .ts-Datei definiert und dann
      * gebunden wird, fällt durch beide.
      */
-    verdicts: { interesting: 'Save', bought: 'Bought', meh: 'So-so', wrong: 'Wrong pick' },
+    verdicts: { interesting: 'Save', bought: 'Mark bought', meh: 'So-so', wrong: 'Wrong pick' },
+    /*
+     * What the same button says once it is set.
+     *
+     * A toggle wearing one word never tells you which way it is thrown, and
+     * the icon does not either. "Save" is the action, "Saved" is the state.
+     */
+    verdictsDone: { interesting: 'Saved', bought: 'Bought', meh: 'So-so', wrong: 'Wrong pick' },
     feedback: 'How was this find?',
     open: (record: string) => `Open ${record}`,
     allFinds: 'All finds',
@@ -302,6 +309,12 @@ const de: typeof en = {
     scoreBand: (score: number, band: string) => `Barry Score ${score} von 100 – ${band}`,
     verdicts: {
       interesting: 'Merken',
+      bought: 'Als gekauft',
+      meh: 'Naja',
+      wrong: 'Danebengegriffen',
+    },
+    verdictsDone: {
+      interesting: 'Gemerkt',
       bought: 'Gekauft',
       meh: 'Naja',
       wrong: 'Danebengegriffen',

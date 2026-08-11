@@ -205,13 +205,20 @@ const meta = computed(() => {
       <p class="flex flex-wrap items-center gap-x-3 text-fid-sm text-fid-text-muted">
         <span v-if="match.condition">{{ match.condition }}</span>
         <span v-if="price" class="fid-num text-fid-text">{{ price }}</span>
+        <!--
+          Ein Link bleibt es hier, kein Knopf: die Karte ist dicht, und ein
+          zweiter Knopf neben „In den Korb" würde mit ihm um denselben Blick
+          streiten. Das Zeichen ist trotzdem dasselbe wie im Sheet — dass es
+          aus der App hinausführt, soll überall gleich aussehen.
+        -->
         <a
-          class="fid-action text-fid-accent underline underline-offset-4"
+          class="fid-action inline-flex items-center gap-1 text-fid-accent underline underline-offset-4"
           :href="`https://www.discogs.com/sell/item/${match.listingId}`"
           target="_blank"
           rel="noopener noreferrer"
         >
           {{ d.sheet.atDiscogs }}
+          <FidIcon name="external-link" :size="13" />
         </a>
       </p>
 
@@ -236,22 +243,33 @@ const meta = computed(() => {
         </button>
 
         <div class="flex gap-1" role="group" :aria-label="d.match.feedback">
+          <!--
+            The word stands next to the icon, and it changes.
+            A bookmark glyph on its own says neither what the button does nor
+            whether it is already set — both were left to a border to imply.
+            "Save" is the action, "Saved" is the state, and now the accessible
+            name is the same text everyone else reads instead of a second one
+            running quietly alongside it.
+          -->
           <button
             v-for="option in SHOWN_VERDICTS"
             :key="option.key"
             type="button"
-            :title="d.match.verdicts[option.key]"
-            :aria-label="d.match.verdicts[option.key]"
             :aria-pressed="verdict === option.key"
-            class="rounded-fid-sm border px-2 py-1 text-fid-sm transition-colors"
+            class="fid-lift inline-flex items-center gap-2 rounded-fid-sm border px-2 py-1 text-fid-xs transition-colors"
             :class="
               verdict === option.key
-                ? 'border-fid-accent bg-fid-accent/15'
-                : 'border-transparent opacity-45 hover:opacity-100'
+                ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
+                : 'border-fid-field text-fid-text-muted hover:text-fid-text'
             "
             @click="judge(match, option.key)"
           >
-            <FidIcon :name="option.icon" :size="16" />
+            <FidIcon :name="option.icon" :size="14" />
+            {{
+              verdict === option.key
+                ? d.match.verdictsDone[option.key]
+                : d.match.verdicts[option.key]
+            }}
           </button>
         </div>
       </div>
