@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { ShelfSort, ShelfView } from '#shared/types'
+import { DEFAULT_SHELF_DIRECTION } from '#shared/types'
+import type { ShelfSort, ShelfView, SortDirection } from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
 
@@ -15,9 +16,33 @@ const error = ref<unknown>(null)
 
 const query = ref('')
 const sort = ref<ShelfSort>('added')
+
+/**
+ * Die Richtung, und wie man sie umlegt.
+ *
+ * Ein zweiter Klick auf denselben Schlüssel dreht — das ist die Geste, die
+ * jede Tabelle seit dreißig Jahren benutzt, und sie braucht keinen zweiten
+ * Knopf neben jedem Wort. Ein Wechsel auf einen *anderen* Schlüssel fängt bei
+ * dessen Vorgabe an, statt eine Richtung mitzuschleppen, die zu ihm nicht
+ * passt: Namen wollen A–Z, Bewertungen wollen die beste zuerst.
+ */
+const direction = ref<SortDirection>(DEFAULT_SHELF_DIRECTION.added)
+
+function chooseSort(key: ShelfSort) {
+  if (sort.value === key) {
+    direction.value = direction.value === 'asc' ? 'desc' : 'asc'
+    return
+  }
+  sort.value = key
+  direction.value = DEFAULT_SHELF_DIRECTION[key]
+}
 const shown = ref(120)
 
-/** Keys only; the labels carry a direction arrow and live in the pack. */
+/**
+ * Nur die Schlüssel. Die Beschriftung kommt aus dem Paket, der Pfeil aus der
+ * Richtung — früher steckte er in der Beschriftung, weil jeder Schlüssel nur
+ * eine Richtung hatte.
+ */
 const SORTS = ['added', 'artist', 'year', 'rating'] as const satisfies readonly ShelfSort[]
 
 let token = 0
@@ -28,6 +53,7 @@ async function load() {
     const next = await call('collection.records', {
       query: query.value,
       sort: sort.value,
+      direction: direction.value,
       limit: shown.value,
     })
     // A slower answer to an older query must not overwrite a newer one.
@@ -42,7 +68,7 @@ async function load() {
 onMounted(load)
 
 // A new filter or order starts from the top; loading more does not.
-watch([query, sort], () => {
+watch([query, sort, direction], () => {
   shown.value = 120
   void load()
 })
@@ -93,6 +119,11 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
             :key="key"
             type="button"
             :aria-pressed="sort === key"
+            :aria-label="
+              sort === key
+                ? (direction === 'asc' ? c.sortedAsc : c.sortedDesc)(c.shelf.sorts[key].label)
+                : undefined
+            "
             class="min-h-9 rounded-fid-sm px-3 text-fid-sm transition-colors"
             :class="
               sort === key
@@ -100,9 +131,12 @@ const rest = computed(() => (view.value ? view.value.total - view.value.records.
                 : 'text-fid-text-muted hover:text-fid-text'
             "
             :title="c.shelf.sorts[key].about"
-            @click="sort = key"
+            @click="chooseSort(key)"
           >
-            {{ c.shelf.sorts[key].label }}
+            {{ c.shelf.sorts[key].label
+            }}<span v-if="sort === key" aria-hidden="true" class="ml-1 text-fid-text-muted">{{
+              direction === 'asc' ? '↑' : '↓'
+            }}</span>
           </button>
         </nav>
 

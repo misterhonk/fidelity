@@ -26,11 +26,23 @@ const en = {
      * opposite of a dig result, where a 2026 pressing is news. Both are right
      * and neither is guessable from the word alone.
      */
+    /*
+     * Ohne Pfeil im Namen.
+     *
+     * Zwei dieser Beschriftungen trugen einen — „Year ↑", „Rating ↓" —, weil
+     * jeder Schlüssel genau eine Richtung hatte und die dazugesagt werden
+     * musste. Seit sich jede Sortierung umdrehen lässt, zeichnet die Oberfläche
+     * den Pfeil selbst, und der eingebackene stand daneben: zwei Pfeile hinter
+     * einem Wort, von denen einer log.
+     *
+     * `about` beschreibt weiterhin die *Vorgabe* — das ist der Stand vor dem
+     * ersten Klick und die Antwort auf „was passiert, wenn ich das wähle".
+     */
     sorts: {
       added: { label: 'Last added', about: 'Newest arrival first' },
       artist: { label: 'Artist', about: 'Alphabetical' },
-      year: { label: 'Year ↑', about: 'Oldest first' },
-      rating: { label: 'Rating ↓', about: 'Best first, unrated last' },
+      year: { label: 'Year', about: 'Oldest first — click again to turn it around' },
+      rating: { label: 'Rating', about: 'Best first, unrated last' },
     },
     atDiscogs: (artist: string, title: string) => `${artist} — ${title}, view at Discogs`,
   },
@@ -105,6 +117,15 @@ const en = {
   showMore: (n: string) => `Show ${n} more`,
   howMuchLeft: 'How much is still out there',
   whichLabels: 'Which labels you actually collect',
+  /*
+   * Die Richtung gehört in den vorgelesenen Namen des Knopfes.
+   *
+   * `aria-sort` wäre das naheliegende Attribut und ist hier falsch: es gilt
+   * für Tabellenspalten, nicht für Knöpfe. axe hat es sofort gemeldet — im
+   * Test von heute Morgen, der die Bildschirme *mit Daten* prüft.
+   */
+  sortedAsc: (label: string) => `${label}, ascending`,
+  sortedDesc: (label: string) => `${label}, descending`,
   lastSeenAt: 'last seen at',
   onDay: (day: string) => `on ${day}`,
 }
@@ -125,8 +146,8 @@ const de: typeof en = {
     sorts: {
       added: { label: 'Zuletzt dazu', about: 'Neuester Zugang zuerst' },
       artist: { label: 'Künstler', about: 'Alphabetisch' },
-      year: { label: 'Jahr ↑', about: 'Älteste zuerst' },
-      rating: { label: 'Bewertung ↓', about: 'Beste zuerst, unbewertete zuletzt' },
+      year: { label: 'Jahr', about: 'Älteste zuerst — nochmal klicken dreht um' },
+      rating: { label: 'Bewertung', about: 'Beste zuerst, unbewertete zuletzt' },
     },
     atDiscogs: (artist, title) => `${artist} – ${title}, bei Discogs ansehen`,
   },
@@ -191,6 +212,8 @@ const de: typeof en = {
   showMore: (n: string) => `Weitere ${n} zeigen`,
   howMuchLeft: 'Wie viel es noch gibt',
   whichLabels: 'Welche Labels du wirklich sammelst',
+  sortedAsc: (label: string) => `${label}, aufsteigend`,
+  sortedDesc: (label: string) => `${label}, absteigend`,
   lastSeenAt: 'zuletzt bei',
   onDay: (day: string) => `am ${day}`,
 }

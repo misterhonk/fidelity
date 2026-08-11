@@ -1,5 +1,6 @@
 import { openFidelityDb } from '~~/db/open'
-import type { ShelfRecord, ShelfSort, ShelfView } from '#shared/types'
+import { DEFAULT_SHELF_DIRECTION } from '#shared/types'
+import type { ShelfRecord, ShelfSort, ShelfView, SortDirection } from '#shared/types'
 
 import { norm, tokens } from '../match/normalize'
 
@@ -21,6 +22,7 @@ export const PAGE_SIZE = 120
 export interface ShelfQuery {
   query?: string
   sort?: ShelfSort
+  direction?: SortDirection
   offset?: number
   limit?: number
 }
@@ -28,6 +30,9 @@ export interface ShelfQuery {
 export async function shelfView({
   query = '',
   sort = 'added',
+  // Ohne Angabe die Vorgabe des Schlüssels — so verhält sich jeder Aufruf, der
+  // die Richtung nicht kennt, exakt wie vorher.
+  direction,
   offset = 0,
   limit = PAGE_SIZE,
 }: ShelfQuery): Promise<ShelfView> {
@@ -55,7 +60,7 @@ export async function shelfView({
     addedAt: item.addedAt,
   }))
 
-  sortRecords(records, sort)
+  sortRecords(records, sort, direction ?? DEFAULT_SHELF_DIRECTION[sort])
 
   return {
     records: records.slice(offset, offset + limit),
@@ -65,7 +70,18 @@ export async function shelfView({
   }
 }
 
-function sortRecords(records: ShelfRecord[], sort: ShelfSort): void {
+/**
+ * Sortiert, und dreht danach um, wenn es verlangt ist.
+ *
+ * Umdrehen statt zwei Vergleicher je Schlüssel: der Vergleicher entscheidet
+ * die *Reihenfolge*, die Richtung nur, von welchem Ende man sie liest. Zwei
+ * Vergleicher wären zwei Stellen, an denen die Nebensortierung — bei gleichem
+ * Jahr nach Künstler — auseinanderlaufen kann.
+ *
+ * Die Vorgabe je Schlüssel steht in `DEFAULT_SHELF_DIRECTION`; hier ist sie
+ * die eine Richtung, die *nicht* umdreht.
+ */
+function sortRecords(records: ShelfRecord[], sort: ShelfSort, direction: SortDirection): void {
   const byArtist = (a: ShelfRecord, b: ShelfRecord) =>
     a.artist.localeCompare(b.artist, 'de') ||
     a.year - b.year ||
@@ -76,18 +92,23 @@ function sortRecords(records: ShelfRecord[], sort: ShelfSort): void {
       records.sort(byArtist)
       break
     case 'year':
-      // Oldest first, because a shelf sorted by year is a timeline and
-      // timelines run forwards.
+      // Ältestes zuerst, weil eine nach Jahren sortierte Sammlung eine
+      // Zeitachse ist und Zeitachsen vorwärts laufen.
       records.sort((a, b) => a.year - b.year || byArtist(a, b))
       break
     case 'rating':
-      // Unrated last rather than first: a 0 here means "never said", not "bad".
+      // Unbewertet ans Ende statt an den Anfang: eine 0 heißt hier „nie etwas
+      // gesagt", nicht „schlecht".
       records.sort(
         (a, b) => (b.rating || -1) - (a.rating || -1) || a.artist.localeCompare(b.artist, 'de'),
       )
       break
     default:
-      // Newest addition first. What you just bought is what you want to see.
+      // Neueste Anschaffung zuerst. Was man gerade gekauft hat, will man sehen.
       records.sort((a, b) => b.addedAt.localeCompare(a.addedAt) || byArtist(a, b))
   }
+
+  // Der Vergleicher oben liefert die Vorgabe-Richtung dieses Schlüssels. Ist
+  // die andere verlangt, wird dieselbe Reihenfolge von hinten gelesen.
+  if (direction !== DEFAULT_SHELF_DIRECTION[sort]) records.reverse()
 }

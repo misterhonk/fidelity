@@ -35,6 +35,7 @@ import type {
   Preferences,
   ShelfResult,
   ShelfSort,
+  SortDirection,
   ShelfView,
   ShippingTier,
   Signal,
@@ -179,7 +180,13 @@ export interface WorkerContract {
   'collection.shelf': { params: { query: string }; progress: never; result: ShelfResult }
   /** The collection itself, filtered and sorted in the worker, a page at a time. */
   'collection.records': {
-    params: { query?: string; sort?: ShelfSort; offset?: number; limit?: number }
+    params: {
+      query?: string
+      sort?: ShelfSort
+      direction?: SortDirection
+      offset?: number
+      limit?: number
+    }
     progress: never
     result: ShelfView
   }

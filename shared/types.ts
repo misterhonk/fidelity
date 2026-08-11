@@ -404,6 +404,35 @@ export interface ShelfRecord {
 
 export type ShelfSort = 'added' | 'artist' | 'year' | 'rating'
 
+/**
+ * Auf- oder absteigend.
+ *
+ * Jeder der vier Schlüssel hatte bisher genau eine Richtung, und jede war für
+ * sich gut begründet — die neueste Platte zuerst, das älteste Jahr zuerst,
+ * weil eine nach Jahren sortierte Sammlung eine Zeitachse ist. Gut begründet
+ * heißt aber nicht: für jede Frage richtig. Wer wissen will, was am längsten
+ * ungehört im Regal steht, braucht dieselbe Liste andersherum.
+ *
+ * Die bisherige Richtung bleibt die Vorgabe je Schlüssel (siehe
+ * `DEFAULT_SHELF_DIRECTION`), damit sich nichts ändert, solange niemand dreht.
+ */
+export type SortDirection = 'asc' | 'desc'
+
+/**
+ * Womit ein Schlüssel anfängt, wenn man ihn zum ersten Mal wählt.
+ *
+ * Nicht überall dasselbe, und das ist der Punkt: bei Namen erwartet man A–Z,
+ * bei allem anderen „das Interessanteste zuerst" — die neueste Platte, die
+ * beste Bewertung. Nur das Jahr fängt vorne an, weil eine Zeitachse vorwärts
+ * läuft.
+ */
+export const DEFAULT_SHELF_DIRECTION = {
+  added: 'desc',
+  artist: 'asc',
+  year: 'asc',
+  rating: 'desc',
+} as const satisfies Record<ShelfSort, SortDirection>
+
 export interface ShelfView {
   records: ShelfRecord[]
   /** How many the current filter leaves. */
