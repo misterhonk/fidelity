@@ -81,16 +81,44 @@ const shipsTo = computed({
   set: (value: string) => void save({ shipsToCountry: value.trim() || 'Germany' }),
 })
 
-const blockedText = computed({
-  get: () => (prefs.value?.shipsFromBlock ?? []).join(', '),
-  set: (value: string) =>
-    void save({
-      shipsFromBlock: value
-        .split(',')
-        .map((entry) => entry.trim())
-        .filter(Boolean),
-    }),
-})
+/*
+ * A list of countries, typed as one line — and why it cannot normalise while
+ * somebody is still typing.
+ *
+ * This was a computed bound with v-model, splitting on every keystroke. Typing
+ * "USA," produced ['USA', ''], the empty entry was dropped, and the field was
+ * handed back "USA": the comma deleted itself under the cursor, every time,
+ * and a second country could never be entered at all.
+ *
+ * So the text is its own state while the field has focus, and only becomes a
+ * list when the field is done with — on change, which fires on blur and on
+ * Enter. Reading stays live: a preference saved elsewhere still shows up here.
+ */
+const blockedText = ref((prefs.value?.shipsFromBlock ?? []).join(', '))
+
+watch(
+  () => prefs.value?.shipsFromBlock,
+  (list) => {
+    const next = (list ?? []).join(', ')
+    // Not while somebody is mid-word: rewriting the field under the cursor is
+    // exactly the behaviour this replaced.
+    if (document.activeElement !== blockedField.value) blockedText.value = next
+  },
+)
+
+const blockedField = useTemplateRef<HTMLInputElement>('blockedField')
+
+function commitBlocked() {
+  const list = blockedText.value
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+
+  void save({ shipsFromBlock: list })
+  // Tidied to the stored form, so "usa,,  japan" comes back as "usa, japan"
+  // once the field is no longer being typed in.
+  blockedText.value = list.join(', ')
+}
 
 const number = (value: string) => {
   const parsed = Number(value)
@@ -184,11 +212,13 @@ const number = (value: string) => {
       <label class="flex flex-col gap-1">
         <span class="text-fid-sm text-fid-text-muted">{{ f.blocked }}</span>
         <input
+          ref="blockedField"
           v-model="blockedText"
           type="text"
           autocomplete="off"
           :placeholder="f.blockedPlaceholder"
           class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+          @change="commitBlocked()"
         />
         <span class="text-fid-xs text-fid-text-muted">{{ f.blockedHint }}</span>
       </label>
