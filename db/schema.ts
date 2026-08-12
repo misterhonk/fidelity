@@ -15,6 +15,7 @@ import type {
   Identity,
   Match,
   Preferences,
+  PushRegistration,
   SyncState,
   TasteProfile,
   WantlistItem,
@@ -89,6 +90,19 @@ export type MetaValue =
    * feature somebody uses rather than one they set up once and abandon.
    */
   | { key: 'vaultPassphrase'; value: string }
+  /**
+   * Where the hub should send this device a notification.
+   *
+   * Kept because the watchlist can change long after the permission was
+   * granted: adding a shop has to reach the hub, and the hub takes the whole
+   * list at once rather than a difference. Without this row the app would have
+   * to ask the browser for its subscription on every change — which works only
+   * while a page is open, and this is the one feature about the times it is not.
+   *
+   * Not a secret in the sense the token is, and not public either: whoever has
+   * the endpoint can make this device buzz. It stays where the token stays.
+   */
+  | { key: 'pushRegistration'; value: PushRegistration }
 
 export type MetaKey = MetaValue['key']
 

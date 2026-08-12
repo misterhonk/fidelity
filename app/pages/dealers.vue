@@ -12,6 +12,13 @@ useSeoMeta({
 
 const { call } = useFidelityWorker()
 const { isWatched, toggle, load: loadWatchlist } = useWatchlist()
+const {
+  state: push,
+  busy: pushBusy,
+  refresh: refreshPush,
+  enable: enablePush,
+  disable: disablePush,
+} = usePush()
 const route = useRoute()
 
 const dealers = shallowRef<Dealer[]>([])
@@ -41,6 +48,14 @@ async function load() {
 onMounted(async () => {
   await load()
   await loadWatchlist()
+
+  /*
+   * Deliberately last and deliberately not awaited: it asks the hub whether
+   * push is possible at all, and a hub that is slow must not hold up the list
+   * of shops. Asking, not prompting — the permission dialog only ever comes
+   * from the button.
+   */
+  void refreshPush()
 })
 
 async function select(username: string) {
@@ -205,6 +220,47 @@ const scanned = computed(() => {
               {{ profile.dealer.lastScannedAt === null ? h.digNow : h.digAgain }}
             </NuxtLink>
             <span class="text-fid-xs text-fid-text-muted">{{ h.watchCost }}</span>
+          </div>
+
+          <!--
+            And the part a browser cannot do alone.
+            Only shown for a shop that is actually watched, and only where it
+            can work: no hub, no support, or a refusal in the browser settings
+            and there is nothing here at all — rather than a switch that would
+            promise something nobody can keep (rule 8).
+          -->
+          <div
+            v-if="
+              isWatched(profile.dealer.username) &&
+              push !== 'no-hub' &&
+              push !== 'unsupported' &&
+              push !== 'denied'
+            "
+            class="flex flex-wrap items-center gap-3"
+          >
+            <button
+              v-if="push === 'off'"
+              type="button"
+              :disabled="pushBusy"
+              class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text disabled:opacity-60"
+              @click="enablePush()"
+            >
+              {{ h.pushOffer }}
+            </button>
+            <template v-else-if="push === 'on'">
+              <span class="text-fid-sm text-fid-text">{{ h.pushOn }}</span>
+              <button
+                type="button"
+                :disabled="pushBusy"
+                class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4 disabled:opacity-60"
+                @click="disablePush()"
+              >
+                {{ h.pushStop }}
+              </button>
+            </template>
+            <span class="text-fid-xs text-fid-text-muted">
+              {{ push === 'needs-install' ? h.pushInstall : h.pushWhy }}
+            </span>
           </div>
         </div>
 

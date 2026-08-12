@@ -86,6 +86,16 @@ function onKeydown(event: KeyboardEvent) {
  */
 const keeper = useKeeper()
 
+/*
+ * The service worker is told which language to write a notification in.
+ *
+ * It cannot find out by itself: the choice lives in `localStorage`, and a
+ * worker has none. Immediately and on every change, because a notification
+ * arrives at a moment when nothing can be asked any more.
+ */
+const { tellLanguage } = usePush()
+watch(language, (code) => void tellLanguage(code), { immediate: true })
+
 onMounted(() => {
   window.addEventListener('keydown', onKeydown)
   keeper.start()

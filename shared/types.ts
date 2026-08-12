@@ -219,6 +219,23 @@ export interface WatchAlert {
 }
 
 /**
+ * This device's address for a push notification.
+ *
+ * `PushSubscription.toJSON()` in the three fields anybody needs: where to
+ * deliver, and the two keys that let the push service encrypt for a browser
+ * nobody else can decrypt for. It crosses `postMessage`, so it is a plain
+ * object rather than the live subscription, which does not survive the trip.
+ *
+ * The endpoint **is** the identity of this device at the hub. There is no
+ * account and no name — which is the point: the hub knows an address and a
+ * list of shops, and nothing at all about whose they are.
+ */
+export interface PushRegistration {
+  endpoint: string
+  keys: { p256dh: string; auth: string }
+}
+
+/**
  * An artist whose discography the shelf has holes in.
  *
  * `total` counts main credits only — producing somebody else's record is not

@@ -80,6 +80,119 @@ cleanupOutdatedCaches()
 registerRoute(new NavigationRoute(createHandlerBoundToURL('200')))
 
 /*
+ * A shop got records while nobody was looking.
+ *
+ * This is the reason the file exists. The hub asks each watched shop once an
+ * hour — one request for everybody rather than one per person (hub/src/watch.ts)
+ * — and what it finds arrives here, in a worker that runs when no tab does.
+ *
+ * The payload carries data and no words: `{ dealer, newListings, seenAt }`.
+ * The sentence is built here, because the hub has no business knowing what
+ * language somebody reads.
+ */
+self.addEventListener('push', (event: PushEvent) => {
+  event.waitUntil(announce(event.data?.json() as unknown))
+})
+
+interface WatchPush {
+  dealer: string
+  newListings: number
+}
+
+function isWatchPush(data: unknown): data is WatchPush {
+  const push = data as Partial<WatchPush> | null
+  return typeof push?.dealer === 'string' && typeof push?.newListings === 'number'
+}
+
+async function announce(data: unknown): Promise<void> {
+  // A push this worker does not understand is not shown. Every platform
+  // requires *something* to be displayed, so an empty notification would be
+  // the alternative — and that is worse than a buzz with nothing behind it.
+  if (!isWatchPush(data)) return
+
+  const german = (await language()) === 'de'
+  const one = data.newListings === 1
+  const listings = german
+    ? `${one ? 'Listing' : 'Listings'} mehr im Angebot als beim letzten Mal`
+    : `${one ? 'listing' : 'listings'} more on offer than last time`
+
+  await self.registration.showNotification(data.dealer, {
+    body: `${data.newListings} ${listings}.`,
+    icon: new URL('icons/icon-192.png', self.registration.scope).href,
+    badge: new URL('icons/icon-192.png', self.registration.scope).href,
+    // One notification per shop: two rounds an hour apart should replace each
+    // other, not stack into a column of near-identical lines.
+    tag: `watch:${data.dealer}`,
+    data: { dealer: data.dealer },
+  })
+}
+
+/*
+ * Which language the notification speaks.
+ *
+ * The app keeps that choice in `localStorage`, which a worker cannot see, and
+ * reading it out of IndexedDB would mean the database schema in a second
+ * place. So the page tells this worker whenever the language is set, and the
+ * answer is kept in a cache of its own — the only store here that survives the
+ * worker being stopped and started, which happens between every notification.
+ */
+const LANGUAGE_CACHE = 'fidelity-notify'
+const LANGUAGE_URL = 'language'
+
+async function language(): Promise<string> {
+  try {
+    const stored = await (await caches.open(LANGUAGE_CACHE)).match(LANGUAGE_URL)
+    return stored ? await stored.text() : 'en'
+  } catch {
+    return 'en'
+  }
+}
+
+self.addEventListener('message', (event: ExtendableMessageEvent) => {
+  const data = event.data as { type?: string; language?: string } | undefined
+  if (data?.type !== 'LANGUAGE' || typeof data.language !== 'string') return
+
+  event.waitUntil(
+    caches
+      .open(LANGUAGE_CACHE)
+      .then((cache) => cache.put(LANGUAGE_URL, new Response(data.language)))
+      .catch(() => {}),
+  )
+})
+
+/*
+ * Tapping it lands on that shop's records, not on the front door.
+ *
+ * An already open tab is used rather than a second one: somebody who has the
+ * app open on their phone should not end up with two of it because a shop got
+ * a delivery.
+ */
+self.addEventListener('notificationclick', (event: NotificationEvent) => {
+  event.notification.close()
+
+  const dealer = (event.notification.data as { dealer?: string } | undefined)?.dealer
+  const target = new URL(
+    dealer ? `dig?dealer=${encodeURIComponent(dealer)}` : '',
+    self.registration.scope,
+  ).href
+
+  event.waitUntil(
+    (async () => {
+      const open = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      for (const client of open) {
+        if (!client.url.startsWith(self.registration.scope)) continue
+        await client.focus()
+        // `navigate` is refused in some browsers for a client that is not
+        // controlled; the focus above is the part that must not be lost.
+        await client.navigate(target).catch(() => {})
+        return
+      }
+      await self.clients.openWindow(target)
+    })(),
+  )
+})
+
+/*
  * Covers, kept for three months.
  *
  * i.discogs.com has a budget of its own — roughly thirty requests a minute,

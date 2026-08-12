@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import { chunkIsSound, decodeChunk, encodeChunk, type WireChunk } from '#shared/wire'
-import type { HorizonChunk, HorizonKind, ShippingTier } from '#shared/types'
+import type { HorizonChunk, HorizonKind, PushRegistration, ShippingTier } from '#shared/types'
 
 import { log } from '../log'
 
@@ -86,6 +86,19 @@ export interface HubClient {
    */
   vaultRead(id: string): Promise<SealedVault | null>
   vaultWrite(id: string, sealed: SealedVault): Promise<void>
+
+  /**
+   * The watcher — the one thing here that is not a cache.
+   *
+   * Everything else in this client makes the app faster. This makes it do
+   * something it cannot do alone: notice that a shop got records while nobody
+   * had the app open. A browser does not run when it is closed, so without a
+   * hub the answer is the check at app start (worker/watch/service-local.ts),
+   * and that stays true — rule 8 holds here as everywhere.
+   */
+  watchKey(): Promise<string | null>
+  watchSubscribe(registration: PushRegistration, dealers: string[]): Promise<boolean>
+  watchUnsubscribe(endpoint: string): Promise<void>
 }
 
 export interface HubCover {
@@ -126,6 +139,18 @@ export interface SealedVault {
   salt: string
   cipher: string
 }
+
+/*
+ * The VAPID public key, as it must be before a browser will take it.
+ *
+ * base64url, 87 or 88 characters — a P-256 point in 65 bytes. Checked rather
+ * than passed straight through because `pushManager.subscribe` throws on
+ * anything else, and a hub that answers with an error page would otherwise
+ * turn into an exception three call sites away from the thing that was wrong.
+ */
+const watchKeySchema = z.object({
+  publicKey: z.string().regex(/^[A-Za-z0-9_-]{80,100}$/, 'not a base64url VAPID key'),
+})
 
 const sealedSchema = z.object({
   version: z.number().int().positive(),
@@ -281,6 +306,40 @@ export function createHubClient({
           ),
         },
       )
+    },
+
+    async watchKey() {
+      const response = await fetchImpl(url('/v1/watch/key'), { headers })
+      if (!response.ok) return null
+
+      const parsed = watchKeySchema.safeParse(await response.json())
+      return parsed.success ? parsed.data.publicKey : null
+    },
+
+    async watchSubscribe(registration, dealers) {
+      /*
+       * The whole list, every time, because that is what the hub stores: it
+       * replaces this endpoint's shops with what arrives. Sending a difference
+       * would need the hub to remember what it already had, and two memories
+       * of the same list eventually disagree.
+       */
+      const response = await fetchImpl(url('/v1/watch/subscribe'), {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ subscription: registration, dealers }),
+      })
+      return response.ok
+    },
+
+    async watchUnsubscribe(endpoint) {
+      // No return value worth having. If it does not arrive, the hub keeps an
+      // address that no longer answers — and drops it itself on the first 410
+      // from the push service (hub/src/watch.ts).
+      await fetchImpl(url('/v1/watch/unsubscribe'), {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ endpoint }),
+      })
     },
   }
 }

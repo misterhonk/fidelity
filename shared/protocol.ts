@@ -38,6 +38,7 @@ import type {
   Match,
   MatchDetail,
   Preferences,
+  PushRegistration,
   ShelfResult,
   ShelfSort,
   SortDirection,
@@ -468,6 +469,22 @@ export interface WorkerContract {
   }
   'watch.list': { params: undefined; progress: never; result: Dealer[] }
   'watch.check': { params: { force?: boolean }; progress: never; result: WatchCheck }
+  /**
+   * Push, which needs a hub and works without one being embarrassing.
+   *
+   * `watch.pushKey` answers null when there is no hub, no answer, or nonsense
+   * — the screen turns that into "not available here" and offers nothing.
+   * Subscribing itself happens on the main thread, because `PushManager`
+   * hangs off the service worker registration and a web worker has none;
+   * everything after that is hub talk and therefore belongs in here.
+   */
+  'watch.pushKey': { params: undefined; progress: never; result: string | null }
+  'watch.pushOn': {
+    params: { registration: PushRegistration }
+    progress: never
+    result: boolean
+  }
+  'watch.pushOff': { params: undefined; progress: never; result: true }
   /**
    * The credit graph, regrouped by person. Costs nothing: every edge was paid
    * for when the horizon was built.

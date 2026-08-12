@@ -44,6 +44,20 @@ const en = {
   digNow: 'Dig now',
   digAgain: 'Dig again',
 
+  /*
+   * Push, worded as what it is: the app is closed, and somebody else is
+   * looking. It says "the shops you watch" because the permission is one per
+   * device — switching it on here covers all of them, and a line that implied
+   * otherwise would be a small lie discovered later.
+   */
+  pushOffer: 'Tell me while the app is closed',
+  pushOn: 'You will be told, even with the app closed.',
+  pushStop: 'Stop telling me',
+  pushWhy:
+    'The hub asks each watched shop once an hour — one lookup for everybody, not one each.',
+  pushInstall:
+    'On an iPhone this needs Fidelity on the home screen. Share → Add to Home Screen.',
+
   coverage: (sampled: string, total: string, percent: number) =>
     `From ${sampled} of ${total} listings — ${percent} % of the shop.`,
 
@@ -92,6 +106,14 @@ const de: typeof en = {
     'Beim Öffnen der App wird nachgesehen, ob sich das Sortiment bewegt hat – eine einzige Abfrage, kein neuer Scan.',
   digNow: 'Jetzt graben',
   digAgain: 'Nochmal graben',
+
+  pushOffer: 'Auch Bescheid geben, wenn die App zu ist',
+  pushOn: 'Du bekommst Bescheid, auch bei geschlossener App.',
+  pushStop: 'Nicht mehr Bescheid geben',
+  pushWhy:
+    'Der Hub fragt jeden beobachteten Laden einmal pro Stunde – eine Abfrage für alle, nicht eine pro Person.',
+  pushInstall:
+    'Auf dem iPhone braucht das Fidelity auf dem Home-Bildschirm. Teilen → Zum Home-Bildschirm.',
 
   coverage: (sampled, total, percent) =>
     `Aus ${sampled} von ${total} Listings – ${percent} % des Ladens.`,

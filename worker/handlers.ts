@@ -385,7 +385,36 @@ export const handlers: HandlerMap = {
   'watch.set': async ({ dealer, watching }) => {
     const { setWatching, watchedDealers } = await import('./watch/check')
     await setWatching(dealer, watching)
+
+    /*
+     * The hub is told the new list right away, and nobody waits for it.
+     *
+     * A shop added to the watchlist but not to the hub is a shop that will
+     * never send a notification, and the difference would show up weeks later
+     * as "it just doesn't work". Not awaited because the button that started
+     * this must not sit still for a hub that is slow — the call has its own
+     * two-second limit and swallows everything (rule 8).
+     */
+    const { syncPush } = await import('./watch/push')
+    void syncPush()
+
     return watchedDealers()
+  },
+
+  'watch.pushKey': async () => {
+    const { pushKey } = await import('./watch/push')
+    return pushKey()
+  },
+
+  'watch.pushOn': async ({ registration }) => {
+    const { enablePush } = await import('./watch/push')
+    return enablePush(registration)
+  },
+
+  'watch.pushOff': async () => {
+    const { disablePush } = await import('./watch/push')
+    await disablePush()
+    return true
   },
 
   'watch.list': async () => {
