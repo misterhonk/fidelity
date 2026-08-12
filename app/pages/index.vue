@@ -219,7 +219,7 @@ const tiles = computed(() => {
           v-if="home.shelf.length > 0"
           :title="m.home.newOnShelf"
           to="/shelf"
-          :note="`${count(home.library.collection)} Platten`"
+          :note="m.home.owned(count(home.library.collection))"
         >
           <CoverTile
             v-for="(record, index) in home.shelf"

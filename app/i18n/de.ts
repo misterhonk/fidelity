@@ -178,6 +178,7 @@ const de: Messages = {
     whyThese: 'Warum diese?',
     newOnShelf: 'Neu im Regal',
     lastNoted: 'Zuletzt notiert',
+    owned: (n) => `${n} Platten`,
     wanted: (n) => `${n} Wünsche`,
     yourShops: 'Deine Läden',
     forSale: (n: string) => `${n} im Angebot`,

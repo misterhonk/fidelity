@@ -206,3 +206,34 @@ test('says how long a record has been wanted in the chosen language', async ({ p
   expect(english).toMatch(/waiting|noted|yesterday/)
   expect(german).toMatch(/seit|heute/)
 })
+
+/*
+ * The home screen, in both languages, with records on it.
+ *
+ * "34 Platten" stood next to "23 wanted" in the English build — one written
+ * into the template, one read from the pack, side by side on the same row.
+ * That is the third leak this session found in the same place: a screen a
+ * test renders but never reads.
+ *
+ * Asserting the two rails differ between languages is what catches it. A
+ * string welded into the page cannot differ, however it is spelled.
+ */
+test('the home rails say how many, in the language of the app', async ({ page }) => {
+  await seed(page, 'en')
+  await page.goto('/')
+  const english = await page
+    .getByText(/records$/)
+    .first()
+    .innerText()
+
+  await seed(page, 'de')
+  await page.goto('/')
+  const german = await page
+    .getByText(/Platten$/)
+    .first()
+    .innerText()
+
+  expect(english).not.toBe(german)
+  expect(english).toMatch(/records$/)
+  expect(german).toMatch(/Platten$/)
+})

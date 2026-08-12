@@ -246,6 +246,15 @@ const en = {
     whyThese: 'Why these?',
     newOnShelf: 'New on the shelf',
     lastNoted: 'Noted last',
+    /*
+     * Beside `wanted`, and that is the point of it being here.
+     *
+     * This one was written into the page as `${n} Platten` — German, on the
+     * English screen, right next to a line that came from the pack properly.
+     * The two rails sit side by side, which is exactly how it was eventually
+     * noticed, and exactly why neither belongs in the template.
+     */
+    owned: (n: string) => `${n} records`,
     wanted: (n: string) => `${n} wanted`,
     yourShops: 'Your shops',
     forSale: (n: string) => `${n} for sale`,
