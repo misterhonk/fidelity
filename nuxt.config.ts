@@ -240,7 +240,26 @@ export default defineNuxtConfig({
     },
     workbox: {
       globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-      navigateFallback: `${base}200.html`,
+
+      /*
+       * `200`, without the `.html`. That is not a typo.
+       *
+       * @vite-pwa/nuxt puts a `manifestTransforms` in front of workbox that
+       * strips `.html` off every precached document — `200.html` is listed as
+       * `200`, `shelf/index.html` as `shelf`, `index.html` as the base path.
+       * The navigation fallback is looked up in exactly that list, by string,
+       * and `createHandlerBoundToURL` **throws** when the URL is not in it.
+       *
+       * It threw. In the built worker that call sits inside a promise, so the
+       * worker still installed and still precached — and everything written
+       * after it, which is the cover cache below, was never registered at all.
+       * Measured on 2026-08-12: an i.discogs.com image fetched through the
+       * worker, and no `fidelity-covers` cache afterwards. Nothing on screen
+       * said so; covers simply came from the network every single time,
+       * against a Cloudflare budget of ~30 a minute this app cannot even read
+       * (docs/02). `tests/e2e/service-worker.spec.ts` now watches both halves.
+       */
+      navigateFallback: `${base}200`,
 
       runtimeCaching: [
         {
