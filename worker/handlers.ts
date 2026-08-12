@@ -554,6 +554,11 @@ export const handlers: HandlerMap = {
     return addRecord(match)
   },
 
+  'collection.value': async () => {
+    const { getMeta } = await import('~~/db/meta')
+    return (await getMeta('collectionValue')) ?? null
+  },
+
   'collection.fields': async ({ releaseId }) => {
     const [{ collectionFields }, { fieldValuesFor }] = await Promise.all([
       import('./collection/fields'),

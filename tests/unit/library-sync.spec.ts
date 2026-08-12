@@ -196,6 +196,24 @@ describe('collection sync', () => {
     expect(stored?.instanceId).toBe(0)
     expect(stored?.folderId).toBe(0)
   })
+
+  /*
+   * The estimate is worth one request, and not one every half hour.
+   *
+   * A delta over an unchanged collection has to stay at exactly one request —
+   * that is what lets the keeper run all day without anybody noticing. So the
+   * value rides along with a walk that stored something, and otherwise waits.
+   */
+  it('does not spend a request on the estimate when nothing was added', async () => {
+    const { client, get } = fakeClient([[{ id: 1, date_added: '2026-08-01T10:00:00-07:00' }]])
+    await syncCollection(context(client))
+    const afterFirst = get.mock.calls.length
+
+    await syncCollection(context(client))
+
+    expect(get.mock.calls.length - afterFirst).toBe(1)
+    expect(get.mock.calls.some(([path]) => String(path).endsWith('/value'))).toBe(true)
+  })
 })
 
 describe('wantlist sync', () => {

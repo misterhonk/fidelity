@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { CollectionGaps, TasteFacet, TasteProfile } from '#shared/types'
+import type { CollectionGaps, CollectionValue, TasteFacet, TasteProfile } from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
 
 const c = useCollectionMessages()
 const m = useMessages()
 useSeoMeta({
-  title: 'Landkarte',
+  title: () => c.value.title,
   description: () => c.value.map.description,
 })
 
@@ -15,6 +15,7 @@ const { call } = useFidelityWorker()
 const gaps = ref<CollectionGaps | null>(null)
 
 const profile = ref<TasteProfile | null>(null)
+const value = ref<CollectionValue | null>(null)
 const ready = ref(false)
 
 onMounted(async () => {
@@ -24,6 +25,7 @@ onMounted(async () => {
     ready.value = true
   }
   gaps.value = await call('collection.gaps', undefined)
+  value.value = await call('collection.value', undefined)
 })
 
 /** Strongest first; ties alphabetically so the order never jitters. */
@@ -53,6 +55,19 @@ const decades = computed(() =>
       <CollectionTabs />
       <p v-if="profile" class="max-w-prose text-fid-base text-fid-text-muted">
         {{ c.map.lead(count(profile.releaseCount)) }}
+      </p>
+      <!--
+        Discogs' estimate, with the day it was fetched.
+
+        Built from what other people are asking, not from what anything sold
+        for, and the three numbers are usually a factor of six apart — which
+        is the useful part. A single figure would read as an appraisal; the
+        spread reads as what it is. The date is not decoration: a number like
+        this with nothing beside it gets remembered as a fact.
+      -->
+      <p v-if="value" class="text-fid-sm text-fid-text-muted">
+        <span class="fid-num text-fid-text">{{ value.median }}</span>
+        {{ c.map.worth(value.minimum, value.maximum, day(value.fetchedAt)) }}
       </p>
     </div>
 

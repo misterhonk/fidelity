@@ -26,6 +26,9 @@ Was wird dadurch leichter, was schwerer? Was ist der Ausstiegspfad?
 | ADR | Titel | Status |
 |---|---|---|
 | [007](007-client-only-pwa.md) | **Reine Client-PWA ohne Backend** | **Akzeptiert** |
+| [011](011-fidelity-schreibt-zurueck.md) | Schreibzugriffe auf die eigene Sammlung | Akzeptiert |
+| [010](010-englisch-als-grundsprache.md) | Englisch als Grundsprache | Akzeptiert |
+| [009](009-haendler-import.md) | Händler-Import über `/friends` | Akzeptiert, standardmäßig aus |
 | [008](008-optionaler-hub.md) | Optionaler, selbst hostbarer Hub | Vorgeschlagen (M9) |
 | [006](006-haendler-zuerst.md) | Händlerzentriert statt wantlistzentriert | Akzeptiert |
 | [005](005-katalog-aus-dumps.md) | Bedarfsgesteuerter Horizont statt Volldump | Akzeptiert |

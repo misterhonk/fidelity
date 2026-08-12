@@ -1047,3 +1047,22 @@ export interface CollectionField {
   type: 'dropdown' | 'text'
   options: string[]
 }
+
+/**
+ * What Discogs thinks the shelf is worth.
+ *
+ * Three formatted strings, not numbers — Discogs sends them with a currency
+ * symbol and thousands separators already applied, in whatever currency the
+ * account is set to. They are for reading, never for arithmetic: rule
+ * "no float for money" is not violated here because nothing is computed.
+ *
+ * And it is an estimate built from other people's asking prices, so it is
+ * always shown with the day it was fetched. A number of this kind with no
+ * date beside it gets read as a fact.
+ */
+export interface CollectionValue {
+  minimum: string
+  median: string
+  maximum: string
+  fetchedAt: number
+}

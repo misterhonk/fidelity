@@ -22,6 +22,7 @@ import type {
   CollectionGaps,
   CollectionField,
   CollectionItem,
+  CollectionValue,
   CreditGroup,
   CreditHarvest,
   CreditPerson,
@@ -243,6 +244,8 @@ export interface WorkerContract {
   }
   /** Takes a release off the wantlist. */
   'wantlist.remove': { params: { releaseId: number }; progress: never; result: boolean }
+  /** Discogs' estimate, as of the last sync. Null before the first one. */
+  'collection.value': { params: undefined; progress: never; result: CollectionValue | null }
   /** Recomputed after every sync; null until there has been one. */
   'taste.profile': { params: undefined; progress: never; result: TasteProfile | null }
 

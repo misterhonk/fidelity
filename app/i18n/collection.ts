@@ -68,6 +68,8 @@ const en = {
   },
 
   map: {
+    worth: (low: string, high: string, when: string) =>
+      `— Discogs' middle estimate, between ${low} and ${high}, as of ${when}`,
     description: 'What your collection gives away about your taste.',
     lead: (records: string) =>
       `${records} records. What can be read from that about your taste.`,
@@ -196,6 +198,8 @@ const de: typeof en = {
   },
 
   map: {
+    worth: (low, high, when) =>
+      `— Schätzung von Discogs, Mitte zwischen ${low} und ${high}, Stand ${when}`,
     description: 'Was deine Sammlung über deinen Geschmack verrät.',
     lead: (records) => `${records} Platten. Was daraus über deinen Geschmack ablesbar ist.`,
     noProfile: 'Noch kein Profil – synchronisiere zuerst deine Sammlung auf der',

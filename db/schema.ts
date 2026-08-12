@@ -4,6 +4,7 @@ import type {
   BasketItem,
   CloudTokens,
   CollectionField,
+  CollectionValue,
   CollectionItem,
   CreditHarvest,
   Dealer,
@@ -46,6 +47,8 @@ export type MetaValue =
    * changed is not worth a request.
    */
   | { key: 'collectionFields'; value: CollectionField[] }
+  /** Refreshed with the collection sync, never on its own. */
+  | { key: 'collectionValue'; value: CollectionValue }
   /**
    * When the last Discogs request went out, in epoch milliseconds.
    *

@@ -200,6 +200,23 @@ export async function syncCollection(context: SyncContext): Promise<SyncSummary>
     knownSince: syncState?.lastCollectionAdd ?? null,
   })
 
+  /*
+   * The estimate, but only when the shelf actually changed.
+   *
+   * A delta sync over an unchanged collection costs exactly one request, and
+   * that guarantee is worth more than a fresher estimate — it is what makes
+   * the keeper able to run every half hour without anybody noticing. So the
+   * value rides along with a walk that stored something and otherwise waits.
+   *
+   * Which means the number tracks the collection rather than the market: it
+   * moves when a record is added, not when somebody in Osaka reprices theirs.
+   * That is the honest reading of an estimate shown with a date on it.
+   */
+  if (result.stored > 0) {
+    const { refreshCollectionValue } = await import('../collection/value')
+    await refreshCollectionValue(context.client, context.username, Date.now())
+  }
+
   await updateSyncState({
     collectionSyncedAt: Date.now(),
     // Only ever moves forward, and only when something was actually seen.
