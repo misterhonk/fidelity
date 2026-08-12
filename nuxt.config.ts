@@ -238,65 +238,25 @@ export default defineNuxtConfig({
         },
       ],
     },
-    workbox: {
+    /*
+     * The worker is written, not generated — `app/sw/sw.ts`.
+     *
+     * `generateSW` can only build a worker out of the vocabulary this config
+     * has, and push is not in it: a notification arrives when no tab is open,
+     * and only code inside the worker can answer that. So the build injects
+     * the file list into a worker of ours instead of writing one.
+     *
+     * Everything that used to stand here — the navigation fallback and the
+     * cover cache — is now three `registerRoute` calls in that file, where the
+     * comments explaining them live too.
+     */
+    strategies: 'injectManifest',
+    // Relative to Nuxt's srcDir, which is `app/`. Spelling it `app/sw` here
+    // resolves to `app/app/sw` and the build stops without a hint as to why.
+    srcDir: 'sw',
+    filename: 'sw.ts',
+    injectManifest: {
       globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-
-      /*
-       * `200`, without the `.html`. That is not a typo.
-       *
-       * @vite-pwa/nuxt puts a `manifestTransforms` in front of workbox that
-       * strips `.html` off every precached document — `200.html` is listed as
-       * `200`, `shelf/index.html` as `shelf`, `index.html` as the base path.
-       * The navigation fallback is looked up in exactly that list, by string,
-       * and `createHandlerBoundToURL` **throws** when the URL is not in it.
-       *
-       * It threw. In the built worker that call sits inside a promise, so the
-       * worker still installed and still precached — and everything written
-       * after it, which is the cover cache below, was never registered at all.
-       * Measured on 2026-08-12: an i.discogs.com image fetched through the
-       * worker, and no `fidelity-covers` cache afterwards. Nothing on screen
-       * said so; covers simply came from the network every single time,
-       * against a Cloudflare budget of ~30 a minute this app cannot even read
-       * (docs/02). `tests/e2e/service-worker.spec.ts` now watches both halves.
-       */
-      navigateFallback: `${base}200`,
-
-      runtimeCaching: [
-        {
-          /*
-           * Covers.
-           *
-           * They come from i.discogs.com, which has its own Cloudflare limit
-           * of roughly 30–40 requests a minute that has nothing to do with the
-           * API budget (docs/02). Caching them is therefore not a nicety: a
-           * second look at a dig would otherwise re-fetch every thumbnail and
-           * run straight into a limit the app cannot even see.
-           *
-           * CacheFirst because a cover never changes — the URLs are signed and
-           * content-addressed, so a new image is a new URL.
-           *
-           * ⚠️ docs/06 M6 asks for a 150 MB LRU cap and Workbox has no
-           * byte-based one; ExpirationPlugin counts entries and age. 6.000
-           * entries is that budget expressed in the unit available, at the
-           * ~25 KB a 150px thumbnail actually weighs. purgeOnQuotaError is the
-           * real safety net: if the estimate is wrong and the browser runs out,
-           * the cache is dropped rather than writes failing silently.
-           */
-          urlPattern: ({ url }) => url.hostname === 'i.discogs.com',
-          handler: 'CacheFirst',
-          options: {
-            cacheName: 'fidelity-covers',
-            expiration: {
-              maxEntries: 6000,
-              maxAgeSeconds: 60 * 60 * 24 * 90,
-              purgeOnQuotaError: true,
-            },
-            // 0 keeps opaque responses, which is what a cross-origin image
-            // without CORS headers comes back as.
-            cacheableResponse: { statuses: [0, 200] },
-          },
-        },
-      ],
     },
     client: {
       /*

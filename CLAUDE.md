@@ -118,6 +118,11 @@ worker/horizon/    Expansion der Sammlung in Release-ID-Mengen.
 db/                IndexedDB-Schema und Zugriff via idb.
 shared/            Typen und das postMessage-Protokoll zwischen Main und Worker.
 app/               Nuxt: pages, components, composables. NUR Darstellung.
+app/sw/sw.ts       Der Service Worker – von Hand, nicht erzeugt (injectManifest).
+                   Precache, Navigations-Rückfall, Cover-Cache; später Push.
+                   Abnahme sind die vier Tests in tests/e2e/offline.spec.ts und
+                   tests/e2e/service-worker.spec.ts gegen den *gebauten* Stand –
+                   im Dev-Server gibt es diesen Worker nicht.
 ```
 
 **Der Main-Thread rechnet nicht.** Scannen, Matching, Scoring und Horizont-Expansion

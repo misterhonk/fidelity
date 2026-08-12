@@ -331,25 +331,31 @@ irgendein Feature ihn voraussetzt. Vollständiges Konzept: `docs/13-HUB-ADDON.md
       **eine Abfrage für alle statt einer je Nutzer**, ohne Token, im Takt von 2,4 s.
       Der erste Blick ist eine Grundlinie und keine Meldung; nach unten wird nie
       gemeldet; tote Empfänger (404/410) fliegen raus. Aus, bis `HUB_WATCH=1`
-- [ ] Wächter, Client-Seite: Push-Subscription und Benachrichtigung. **Braucht die
-      Umstellung der PWA von `generateSW` auf `injectManifest`** — ein eigener Service
-      Worker ist die Voraussetzung für einen `push`-Handler.
+- [x] **Der Service Worker gehört uns** (`app/sw/sw.ts`, `injectManifest`) — die
+      Voraussetzung für einen `push`-Handler, denn eine Meldung kommt an, wenn kein Tab
+      offen ist, und darauf kann nur Code im Worker antworten. Dreimal versucht,
+      zweimal zurückgenommen; die Ursachen sind gefunden und stehen im Code:
 
-      Zweimal versucht, zweimal zurückgenommen, und der Weg ist jetzt bekannt:
+      1. **Die Registrierung blieb aus.** `client: { installPrompt: false }` ließ
+         `registerPlugin` `undefined`, weil das Modul sein Vorgabe-Objekt nur einsetzt,
+         wenn `client` **ganz** fehlt. Unter `generateSW` fiel es nie auf, weil dort
+         zusätzlich ins HTML gespritzt wird. `registerPlugin: true` steht fest drin.
+      2. **`srcDir` zählt ab Nuxts `srcDir`**, also `sw` und nicht `app/sw`.
+      3. **Die eigentliche Ursache, und sie war auch schon im erzeugten Worker drin:**
+         @vite-pwa/nuxt schneidet per `manifestTransforms` das `.html` von jedem
+         vorgehaltenen Dokument ab — `200.html` steht als `200` in der Liste.
+         `createHandlerBoundToURL` schlägt genau dort nach und **wirft**, wenn die
+         Adresse fehlt. Im erzeugten Worker lag dieser Aufruf in einem Promise: der
+         Worker installierte, hielt vor, sah gesund aus — und alles darunter, nämlich
+         der Cover-Cache, war nie registriert. Gemessen am 2026-08-12, behoben, und
+         `tests/e2e/service-worker.spec.ts` sieht jetzt beide Hälften.
 
-      1. **Die Registrierung blieb aus.** Ursache gefunden und behoben: `client:
-         { installPrompt: false }` in `nuxt.config.ts` ließ `registerPlugin`
-         `undefined`, weil das Modul sein Vorgabe-Objekt nur einsetzt, wenn `client`
-         **ganz** fehlt. Unter `generateSW` fiel es nie auf, weil dort zusätzlich ins
-         HTML gespritzt wird. `registerPlugin: true` steht jetzt fest drin.
-      2. **Offen:** mit dem eigenen Worker registriert und aktiviert er, aber
-         `navigator.serviceWorker.controller` blieb nach einem Neuladen `null` — die
-         Seite wird also nicht gesteuert und damit gäbe es keinen Offline-Betrieb.
-         Vermutlich `clientsClaim`, das `generateSW` selbst setzt. Das ist der nächste
-         Punkt, an dem eine Untersuchung ansetzt.
-
-      Abnahmekriterium bleibt: `/`, `/in-store` und eine Einstellungs-Unterseite laden
-      **ohne Netz**. Genau dort ist der Offline-Betrieb in M6 schon einmal gebrochen.
+      Abnahme: die vier Tests in `tests/e2e/offline.spec.ts` und
+      `tests/e2e/service-worker.spec.ts` gegen den gebauten Ausgabestand.
+- [ ] Wächter, Client-Seite: Push-Subscription und Benachrichtigung — Erlaubnis fragen,
+      beim Hub anmelden (`/v1/watch/key`, `subscribe`, `unsubscribe`), `push` und
+      `notificationclick` im Worker beantworten. Der Worker steht bereit und hat noch
+      keinen `push`-Handler.
 - [x] Geräte-Sync für Korb und Merkliste — **über den Vault, nicht über den Hub**
       (M8/ADR-007): verschlüsselt, Ziel frei wählbar, funktioniert auch ohne Hub
 - [ ] Dig teilen per Link (TTL 6 h, ToS-konform)
