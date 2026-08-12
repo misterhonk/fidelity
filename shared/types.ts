@@ -257,6 +257,20 @@ export interface ReleaseDetail {
   /** Discogs' own video links, for hearing it before deciding. */
   videos: { title: string; uri: string }[]
   notes: string
+  /**
+   * What it goes for — and the one part of this that expires.
+   *
+   * Everything else here is a fact about a pressing and keeps for ever. This
+   * is marketplace data, so rule 4 applies to it and to nothing else in this
+   * record: never shown once it is six hours old. `releaseDetail()` nulls it
+   * on the way out rather than deleting it, exactly as `expireDigs` nulls the
+   * marketplace fields of a match — the tracklist beside it stays.
+   *
+   * Integer cents, because the rule about money has no exceptions, and in the
+   * currency that was asked for: Discogs prices in the caller's, so a bare
+   * number without one would be a figure nobody can act on.
+   */
+  market: { priceCents: number; currency: string; numForSale: number; at: number } | null
   /** When this was fetched, so a stale copy can be told from a fresh one. */
   fetchedAt: number
 }

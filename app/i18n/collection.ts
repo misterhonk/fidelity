@@ -81,6 +81,15 @@ const en = {
       listen: 'Hear it',
       everyone: 'Everyone else',
       communityRating: (average: string, votes: string) => `${average} of 5, from ${votes}`,
+      forSale: 'For sale',
+      /*
+       * Named as a range, not as a value. "Worth" is what an insurer says; the
+       * lowest asking price is what somebody actually wants for one right now,
+       * and the count is what turns that number into a market.
+       */
+      cheapest: (price: string, sellers: string) => `${price}, cheapest of ${sellers}`,
+      whatIsItWorth: 'What does it go for?',
+      aboutIt: 'About this release',
       someOf: (total: string) => `6 of ${total}`,
       looking: 'Fetching the tracklist …',
       /*
@@ -257,6 +266,10 @@ const de: typeof en = {
       listen: 'Reinhören',
       everyone: 'Alle anderen',
       communityRating: (average, votes) => `${average} von 5, aus ${votes}`,
+      forSale: 'Im Angebot',
+      cheapest: (price, sellers) => `${price}, günstigstes von ${sellers}`,
+      whatIsItWorth: 'Was ist sie wert?',
+      aboutIt: 'Über diese Veröffentlichung',
       someOf: (total) => `6 von ${total}`,
       looking: 'Hole die Titelliste …',
       ownedBy: (name) => `Was du von ${name} hast`,

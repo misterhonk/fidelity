@@ -109,6 +109,42 @@ async function setField(field: CollectionField, value: string) {
 const detail = ref<ReleaseDetail | null>(null)
 const looking = ref(false)
 
+async function look(refresh = false) {
+  const releaseId = record.value?.releaseId
+  if (!releaseId) return
+
+  looking.value = true
+  try {
+    detail.value = await call('release.detail', { releaseId, refresh })
+  } catch {
+    // A sheet with no tracklist, not a sheet with an error on it.
+  } finally {
+    looking.value = false
+  }
+}
+
+/**
+ * Asking what it is worth, which is the only second request on this sheet.
+ *
+ * Deliberately a button rather than something that happens on its own: the
+ * price is the one thing here that goes stale, and refetching it every time a
+ * record is opened would turn browsing a shelf back into a walk of
+ * `/releases/{id}` — the thing rule 2 exists to prevent.
+ */
+const lookAgain = () => look(true)
+
+/**
+ * The price, formatted — or nothing at all.
+ *
+ * `money()` answers null without a currency, and that is the right answer to
+ * pass on rather than paper over: a bare number could be euros, dollars or
+ * pounds, and a figure somebody cannot act on is worse than a missing line.
+ */
+const marketPrice = computed(() => {
+  const market = detail.value?.market
+  return market ? money(market.priceCents / 100, market.currency) : null
+})
+
 /** A run-out number is the one identifier you read off the record itself. */
 const runouts = computed(() =>
   (detail.value?.identifiers ?? []).filter((identifier) =>
@@ -120,14 +156,7 @@ onMounted(async () => {
   panel.value?.focus()
   record.value = await call('collection.record', { instanceId: props.instanceId })
 
-  const releaseId = record.value?.releaseId
-  if (releaseId) {
-    looking.value = true
-    void call('release.detail', { releaseId })
-      .then((answer) => (detail.value = answer))
-      .catch(() => {})
-      .finally(() => (looking.value = false))
-  }
+  if (record.value?.releaseId) void look()
 
   const noted = await call('collection.fields', { instanceId: props.instanceId })
   fields.value = noted.fields
@@ -553,7 +582,44 @@ function onKeydown(event: KeyboardEvent) {
                 }}
               </dd>
             </template>
+
+            <!--
+              What it goes for — the one line here allowed to go stale, and
+              therefore the one that disappears rather than ageing. Rule 4:
+              marketplace data is never shown once it is six hours old. The
+              worker drops it on the way out; this offers to ask again, which
+              is the only thing on this sheet that costs a second request.
+            -->
+            <template v-if="detail?.market && marketPrice">
+              <dt class="text-fid-text-muted">{{ c.shelf.sheet.forSale }}</dt>
+              <dd class="min-w-0 text-fid-text">
+                {{ c.shelf.sheet.cheapest(marketPrice, count(detail.market.numForSale)) }}
+              </dd>
+            </template>
+            <template v-else-if="detail">
+              <dt class="text-fid-text-muted">{{ c.shelf.sheet.forSale }}</dt>
+              <dd class="min-w-0">
+                <button
+                  type="button"
+                  class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4 disabled:opacity-60"
+                  :disabled="looking"
+                  @click="lookAgain()"
+                >
+                  {{ looking ? c.shelf.sheet.looking : c.shelf.sheet.whatIsItWorth }}
+                </button>
+              </dd>
+            </template>
           </dl>
+        </section>
+
+        <!--
+          What the people who catalogued it wrote down: which sleeve, which
+          plant, who licensed what. Late in the sheet, because it is prose in a
+          page of facts and reads like a footnote.
+        -->
+        <section v-if="detail?.notes" class="flex flex-col gap-2">
+          <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.aboutIt }}</h3>
+          <p class="text-fid-sm whitespace-pre-line text-fid-text-muted">{{ detail.notes }}</p>
         </section>
 
         <!--

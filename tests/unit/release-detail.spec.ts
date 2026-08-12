@@ -49,7 +49,7 @@ function fakeClient(answer: unknown = ANSWER) {
 describe('what only a release lookup knows', () => {
   it('reads the record and keeps it', async () => {
     const { client } = fakeClient()
-    const detail = await releaseDetail(client, 42, () => 1_700_000_000_000)
+    const detail = await releaseDetail(client, 42, { now: () => 1_700_000_000_000 })
 
     expect(detail?.country).toBe('Germany')
     expect(detail?.released).toBe('2005-01-27')
@@ -131,6 +131,72 @@ describe('what only a release lookup knows', () => {
     expect(detail).toBeNull()
     const db = await openFidelityDb()
     expect(await db.get('releaseDetail', 42)).toBeUndefined()
+  })
+
+  /*
+   * The price is the one part of this that expires.
+   *
+   * Rule 4: marketplace data is never shown once it is six hours old. The
+   * tracklist beside it is not marketplace data and does not expire — so the
+   * row keeps everything and the *answer* drops the price, exactly the way
+   * `expireDigs` nulls the marketplace fields of a match and leaves the rest.
+   */
+  it('turns a float into cents, in the currency that was asked for', async () => {
+    const { client, get } = fakeClient({ ...ANSWER, lowest_price: 13.21, num_for_sale: 26 })
+    const detail = await releaseDetail(client, 42, { now: () => 1_000 })
+
+    expect(detail?.market).toEqual({
+      priceCents: 1321,
+      currency: 'EUR',
+      numForSale: 26,
+      at: 1_000,
+    })
+    // Asked for explicitly: Discogs prices in the caller's currency and names
+    // it nowhere in the body.
+    expect(get.mock.calls[0]?.[2]).toMatchObject({ query: { curr_abbr: 'EUR' } })
+  })
+
+  it('stops showing the price after six hours, and keeps the record', async () => {
+    const { client } = fakeClient({ ...ANSWER, lowest_price: 13.21, num_for_sale: 26 })
+    await releaseDetail(client, 42, { now: () => 0 })
+
+    const later = await releaseDetail(client, 42, { now: () => 6 * 60 * 60 * 1000 + 1 })
+
+    expect(later?.market).toBeNull()
+    // The half that is not marketplace data is untouched.
+    expect(later?.tracks).toHaveLength(2)
+    expect(later?.identifiers).toHaveLength(2)
+  })
+
+  it('still shows it a minute before the six hours are up', async () => {
+    const { client } = fakeClient({ ...ANSWER, lowest_price: 13.21, num_for_sale: 26 })
+    await releaseDetail(client, 42, { now: () => 0 })
+
+    const later = await releaseDetail(client, 42, { now: () => 6 * 60 * 60 * 1000 - 60_000 })
+    expect(later?.market?.priceCents).toBe(1321)
+  })
+
+  it('asks again only when asked to', async () => {
+    const { client, get } = fakeClient({ ...ANSWER, lowest_price: 13.21 })
+    await releaseDetail(client, 42, { now: () => 0 })
+    await releaseDetail(client, 42, { now: () => 0 })
+    expect(get).toHaveBeenCalledTimes(1)
+
+    const fresh = await releaseDetail(client, 42, { refresh: true, now: () => 99_000 })
+    expect(get).toHaveBeenCalledTimes(2)
+    expect(fresh?.market?.at).toBe(99_000)
+  })
+
+  /*
+   * Nothing for sale is a fact, not a price of zero.
+   *
+   * Discogs sends `lowest_price: null` — and a "0.00" beside a record nobody
+   * is selling would be the same invented number the community rating already
+   * refuses to draw.
+   */
+  it('shows no price when nobody is selling one', async () => {
+    const { client } = fakeClient({ ...ANSWER, lowest_price: null, num_for_sale: 0 })
+    expect((await releaseDetail(client, 42))?.market).toBeNull()
   })
 
   it('tries again on the next open after a failure', async () => {

@@ -119,6 +119,13 @@ export const releaseDetailSchema = z.object({
     })
     .optional(),
   videos: z.array(z.object({ title: z.string().optional(), uri: z.string() })).optional(),
+  /*
+   * The only two marketplace numbers in this response, and the reason the
+   * request carries `curr_abbr`: Discogs prices in the caller's currency and
+   * names it nowhere in the body. A number without a currency is not a price.
+   */
+  lowest_price: z.number().nullable().optional(),
+  num_for_sale: z.number().int().optional(),
 })
 
 export const collectionPageSchema = z.object({

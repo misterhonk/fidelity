@@ -213,7 +213,14 @@ export interface WorkerContract {
    * needed to know what the record is.
    */
   'release.detail': {
-    params: { releaseId: number }
+    /**
+     * `refresh` asks again — the one thing that costs a second request.
+     *
+     * Needed because the price inside expires after six hours (rule 4) while
+     * the tracklist beside it does not. Somebody who wants a current number
+     * asks for it; nothing here refetches on its own.
+     */
+    params: { releaseId: number; refresh?: boolean }
     progress: never
     result: ReleaseDetail | null
   }
