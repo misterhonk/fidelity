@@ -182,8 +182,10 @@ const en = {
         'Decides the postage: dealers write their prices by destination ("Germany:", "Europe:", "Non-Europe:"), and only the block that belongs to you is read. In English, the way Discogs writes it.',
 
       blocked: 'No shipping from these countries',
-      blockedPlaceholder: 'e.g. USA, Japan',
-      blockedHint: 'Separate with commas. Useful against customs and three weeks of waiting.',
+      blockedPlaceholder: 'Search for a country',
+      blockedSearch: 'Search for a country to block',
+      unblock: (country: string) => `Stop blocking ${country}`,
+      blockedHint: 'Useful against customs and three weeks of waiting.',
 
       condition: 'Condition from',
       conditionHint: 'Anything worse counts for 40 %, but does not disappear.',
@@ -601,8 +603,10 @@ const de: typeof en = {
         'Entscheidet den Versand: Händler schreiben ihre Preise nach Zielland gestaffelt („Germany:", „Europe:", „Non-Europe:"), und gelesen wird nur der Block, der zu dir gehört. Auf Englisch, wie Discogs es schreibt — „Deutschland" versteht Fidelity auch.',
 
       blocked: 'Versand aus diesen Ländern nicht',
-      blockedPlaceholder: 'z. B. USA, Japan',
-      blockedHint: 'Mit Komma trennen. Nützlich gegen Zoll und drei Wochen Wartezeit.',
+      blockedPlaceholder: 'Land suchen',
+      blockedSearch: 'Land suchen, das übersprungen werden soll',
+      unblock: (country) => `${country} nicht mehr überspringen`,
+      blockedHint: 'Nützlich gegen Zoll und drei Wochen Wartezeit.',
 
       condition: 'Zustand ab',
       conditionHint: 'Schlechter zählt nur noch 40 %, verschwindet aber nicht.',

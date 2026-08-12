@@ -2,6 +2,7 @@
 import { MEDIUMS } from '#shared/format'
 import { CONDITIONS, type Condition, type Preferences } from '#shared/types'
 import { useSettingsMessages } from '~/i18n/settings'
+import { COUNTRIES, localName } from '~/utils/countries'
 
 /*
  * A computed, not `useMessages().value.settings.search.filter`.
@@ -82,42 +83,40 @@ const shipsTo = computed({
 })
 
 /*
- * A list of countries, typed as one line — and why it cannot normalise while
- * somebody is still typing.
+ * Which countries a dig should skip, chosen rather than spelled.
  *
- * This was a computed bound with v-model, splitting on every keystroke. Typing
- * "USA," produced ['USA', ''], the empty entry was dropped, and the field was
- * handed back "USA": the comma deleted itself under the cursor, every time,
- * and a second country could never be entered at all.
+ * This was a text field, and a text field is the wrong shape twice over: a
+ * comma could not be typed into it (it normalised on every keystroke), and
+ * "Grossbritannien" or "UK" would have been accepted and then matched
+ * nothing. Discogs sends `ships_from` as an English name — "Germany",
+ * "United Kingdom" — so the list offers exactly those and stores exactly
+ * those.
  *
- * So the text is its own state while the field has focus, and only becomes a
- * list when the field is done with — on change, which fires on blur and on
- * Enter. Reading stays live: a preference saved elsewhere still shows up here.
+ * The search is over both names: somebody looking for their own country types
+ * it in their own language, and what gets stored is still English.
  */
-const blockedText = ref((prefs.value?.shipsFromBlock ?? []).join(', '))
+const { current: language } = useLanguage()
 
-watch(
-  () => prefs.value?.shipsFromBlock,
-  (list) => {
-    const next = (list ?? []).join(', ')
-    // Not while somebody is mid-word: rewriting the field under the cursor is
-    // exactly the behaviour this replaced.
-    if (document.activeElement !== blockedField.value) blockedText.value = next
-  },
-)
+const search = ref('')
 
-const blockedField = useTemplateRef<HTMLInputElement>('blockedField')
+const blocked = computed(() => new Set(prefs.value?.shipsFromBlock ?? []))
 
-function commitBlocked() {
-  const list = blockedText.value
-    .split(',')
-    .map((entry) => entry.trim())
-    .filter(Boolean)
+const matches = computed(() => {
+  const needle = search.value.trim().toLowerCase()
+  if (!needle) return []
+  return COUNTRIES.filter(
+    (country) =>
+      country.name.toLowerCase().includes(needle) ||
+      localName(country.code, language.value).toLowerCase().includes(needle),
+  ).slice(0, 8)
+})
 
-  void save({ shipsFromBlock: list })
-  // Tidied to the stored form, so "usa,,  japan" comes back as "usa, japan"
-  // once the field is no longer being typed in.
-  blockedText.value = list.join(', ')
+function toggle(name: string) {
+  const next = new Set(blocked.value)
+  if (next.has(name)) next.delete(name)
+  else next.add(name)
+  void save({ shipsFromBlock: [...next].sort() })
+  search.value = ''
 }
 
 const number = (value: string) => {
@@ -209,19 +208,59 @@ const number = (value: string) => {
         <span class="text-fid-xs text-fid-text-muted">{{ f.shipsToHint }}</span>
       </label>
 
-      <label class="flex flex-col gap-1">
+      <div class="flex flex-col gap-2">
         <span class="text-fid-sm text-fid-text-muted">{{ f.blocked }}</span>
-        <input
-          ref="blockedField"
-          v-model="blockedText"
-          type="text"
-          autocomplete="off"
-          :placeholder="f.blockedPlaceholder"
-          class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
-          @change="commitBlocked()"
-        />
+
+        <!-- What is already blocked, and one tap to stop blocking it. -->
+        <ul v-if="blocked.size > 0" class="flex flex-wrap gap-2">
+          <li v-for="name in [...blocked].sort()" :key="name">
+            <button
+              type="button"
+              class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border border-fid-field px-3 text-fid-sm text-fid-text"
+              :aria-label="f.unblock(name)"
+              @click="toggle(name)"
+            >
+              {{ name }}
+              <span aria-hidden="true" class="text-fid-text-muted">✕</span>
+            </button>
+          </li>
+        </ul>
+
+        <label class="flex flex-col gap-1">
+          <span class="sr-only">{{ f.blockedSearch }}</span>
+          <input
+            v-model="search"
+            type="search"
+            autocomplete="off"
+            :placeholder="f.blockedPlaceholder"
+            class="min-h-11 rounded-fid-sm border border-fid-field bg-fid-surface px-3 text-fid-sm text-fid-text"
+          />
+        </label>
+
+        <!--
+          Only while somebody is typing. A permanent list of 200 countries is
+          a wall; eight matches to a few letters is an answer.
+        -->
+        <ul v-if="matches.length > 0" class="flex flex-col gap-1">
+          <li v-for="country in matches" :key="country.code">
+            <button
+              type="button"
+              class="fid-lift flex min-h-11 w-full items-center justify-between gap-3 rounded-fid-sm border border-fid-field px-3 text-left text-fid-sm text-fid-text"
+              @click="toggle(country.name)"
+            >
+              {{ localName(country.code, language) }}
+              <span
+                v-if="localName(country.code, language) !== country.name"
+                class="text-fid-xs text-fid-text-muted"
+              >
+                {{ country.name }}
+              </span>
+            </button>
+          </li>
+        </ul>
+
         <span class="text-fid-xs text-fid-text-muted">{{ f.blockedHint }}</span>
-      </label>
+      </div>
     </fieldset>
 
     <fieldset class="flex flex-col gap-3 border-t border-fid-border pt-4">
