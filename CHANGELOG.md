@@ -9,6 +9,26 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.12.0](https://github.com/misterhonk/fidelity/compare/v0.11.0...v0.12.0) (2026-08-12)
+
+
+### Added
+
+* **collection:** note the condition of your own copy, in Discogs' own words ([70e99fc](https://github.com/misterhonk/fidelity/commit/70e99fc9f1b9b9c29283a03b5bf4756d1b18c413))
+* **collection:** put a bought record on the shelf, and take one off it ([f178bdb](https://github.com/misterhonk/fidelity/commit/f178bdb88d76e881fa56481b18061f3da1a51d49))
+* **collection:** rate a record you own, and get it to Discogs afterwards ([3914f68](https://github.com/misterhonk/fidelity/commit/3914f688c4432f5283903399639a520f86ed0c9c))
+* **collection:** show what the shelf is worth, and write down why any of this writes ([f248b4d](https://github.com/misterhonk/fidelity/commit/f248b4de846645244b89e8cad19d807d23239ead))
+* **collection:** want a record without leaving, and stop wanting it ([1481a49](https://github.com/misterhonk/fidelity/commit/1481a498becfba366f0cdebb1e19e23d9c577c7c))
+* **discogs:** let the client write, and refuse to repeat what it must not ([b01029a](https://github.com/misterhonk/fidelity/commit/b01029af06c6d83eb3bc996df4758050e9231e1d))
+* **ui:** give a record of your own a page, instead of sending it to Discogs ([4ea81fc](https://github.com/misterhonk/fidelity/commit/4ea81fc833958945b280ae05857a6f98bef2adee))
+* **ui:** one typeface set, and three families instead of seven ([6c6139b](https://github.com/misterhonk/fidelity/commit/6c6139b083559b6f9c254d6f9ea31b8e5ad479ae))
+* **ui:** say what the sheet's buttons do, and give the cover the room it earns ([227a59b](https://github.com/misterhonk/fidelity/commit/227a59b4c7c091d918ab098bce8f5e05d3c88618))
+
+
+### Fixed
+
+* **ui:** the app set its numbers in two different monospace faces ([626eaa6](https://github.com/misterhonk/fidelity/commit/626eaa66310889269e4aae2a12920f4d308adf92))
+
 ## [0.11.0](https://github.com/misterhonk/fidelity/compare/v0.10.0...v0.11.0) (2026-08-11)
 
 
