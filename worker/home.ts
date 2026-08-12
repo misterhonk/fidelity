@@ -50,6 +50,18 @@ async function newest(
 
     const entry: HomeCover = {
       releaseId: item.releaseId,
+      /*
+       * The one field that makes a cover on the start screen openable.
+       *
+       * A record you own has a page of its own — rating, condition, folder —
+       * and that page is addressed by *entry*, not by release, because the
+       * same record can sit on the shelf twice. Without this the rail could
+       * only link out to Discogs, which is what it did: tapping your own
+       * record left the app to look it up somewhere else.
+       *
+       * Absent for the wantlist, which has no instances and no such page.
+       */
+      instanceId: 'instanceId' in item ? item.instanceId : null,
       title: item.title,
       artist: item.artistNames[0] ?? '',
       year: item.year,

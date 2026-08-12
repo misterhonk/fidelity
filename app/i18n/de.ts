@@ -30,6 +30,7 @@ const de: Messages = {
 
   common: {
     signIn: { lead: 'Erst anmelden –', link: 'zur Startseite' },
+    atDiscogs: (title) => `${title}, bei Discogs ansehen`,
     nothingYet: 'Noch nichts geholt',
     off: 'Aus',
     never: 'noch nie',

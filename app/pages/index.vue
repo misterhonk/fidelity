@@ -96,6 +96,17 @@ const pricesGone = computed(() => {
 })
 
 /** What is here, and where each of it lives. Ordered as the nav bar is. */
+/**
+ * Which record of your own is open, if any.
+ *
+ * The rail used to link every cover to Discogs — including the shelf, where
+ * the app has more to say about the record than Discogs does: the rating you
+ * gave it, the condition you noted, which folder it sits in. Tapping your own
+ * record and landing on a website was the app sending somebody away from the
+ * one screen that knew more.
+ */
+const openInstance = ref<number | null>(null)
+
 const tiles = computed(() => {
   const summary = home.value?.library
   if (!summary) return []
@@ -230,7 +241,7 @@ const tiles = computed(() => {
             :title="record.title"
             :subtitle="record.artist"
             :note="record.year ? String(record.year) : null"
-            :href="`https://www.discogs.com/release/${record.releaseId}`"
+            :open="() => (openInstance = record.instanceId)"
           />
         </CoverRail>
 
@@ -325,5 +336,11 @@ const tiles = computed(() => {
         </section>
       </template>
     </template>
+
+    <ShelfSheet
+      v-if="openInstance !== null"
+      :instance-id="openInstance"
+      @close="openInstance = null"
+    />
   </main>
 </template>

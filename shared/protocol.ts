@@ -192,6 +192,9 @@ export interface WorkerContract {
   'collection.records': {
     params: {
       query?: string
+      /** "Everything on this label", "everything by this artist" — exact, not a search. */
+      label?: string
+      artist?: string
       sort?: ShelfSort
       direction?: SortDirection
       offset?: number
@@ -761,6 +764,8 @@ export interface SyncResult {
 /** One cover on the start screen, from the collection or the wantlist. */
 export interface HomeCover {
   releaseId: number
+  /** The shelf entry, so a cover can open its own page. Null on the wantlist. */
+  instanceId: number | null
   title: string
   artist: string
   year: number

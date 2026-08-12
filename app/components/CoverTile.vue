@@ -7,6 +7,8 @@
  * has nothing to do with the API budget (docs/02), and a start screen that
  * eagerly pulls forty thumbnails would run into a limit it cannot even see.
  */
+const m = useMessages()
+
 withDefaults(
   defineProps<{
     thumbUrl?: string | null
@@ -66,7 +68,7 @@ withDefaults(
       :href="open ? undefined : (href ?? undefined)"
       :target="open ? undefined : href ? '_blank' : undefined"
       :rel="open ? undefined : href ? 'noopener noreferrer' : undefined"
-      :aria-label="!open && href ? `${title}, bei Discogs ansehen` : undefined"
+      :aria-label="!open && href ? m.common.atDiscogs(title) : undefined"
       class="group relative block w-full text-left"
       @click="open?.()"
     >

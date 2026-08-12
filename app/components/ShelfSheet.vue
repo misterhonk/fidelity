@@ -123,20 +123,48 @@ const added = computed(() => {
  * year. Empty ones are dropped rather than shown blank — a row that says
  * "Catalogue number: —" is a row that wasted a line.
  */
-const facts = computed(() => {
+/**
+ * The two facts that are also questions.
+ *
+ * "Who else is on this label" and "what do I own by them" are the things a
+ * collector asks with the record already in hand, and until now the answer
+ * meant typing the name into the search box on another screen and hoping it
+ * spelled the same. Each name is its own link, because a record on two labels
+ * belongs under both — and the list on the shelf only ever shows the first.
+ */
+function shelfLinks(names: string[], facet: 'label' | 'artist') {
+  return names
+    .filter((name) => name.trim().length > 0)
+    .map((name) => ({ name, to: `/shelf?${facet}=${encodeURIComponent(name)}` }))
+}
+
+interface Fact {
+  key: keyof typeof c.value.shelf.sheet.facts
+  /** A plain statement — a year, a catalogue number, a format. */
+  value?: string
+  /** Or names that lead somewhere: this label, this artist, on your shelf. */
+  links?: { name: string; to: string }[]
+  mono?: boolean
+}
+
+const facts = computed<Fact[]>(() => {
   const item = record.value
   if (!item) return []
-  return [
-    { key: 'label', value: item.labelNames.join(' · ') },
-    { key: 'catno', value: item.catnos.join(' · '), mono: true },
-    { key: 'format', value: item.formats.join(' · ') },
-    { key: 'year', value: item.year > 0 ? String(item.year) : '', mono: true },
-    { key: 'added', value: added.value, mono: true },
-  ].filter((fact) => fact.value.length > 0) as {
-    key: keyof typeof c.value.shelf.sheet.facts
-    value: string
-    mono?: boolean
-  }[]
+  return (
+    (
+      [
+        { key: 'artist', links: shelfLinks(item.artistNames, 'artist') },
+        { key: 'label', links: shelfLinks(item.labelNames, 'label') },
+        { key: 'catno', value: item.catnos.join(' · '), mono: true },
+        { key: 'format', value: item.formats.join(' · ') },
+        { key: 'year', value: item.year > 0 ? String(item.year) : '', mono: true },
+        { key: 'added', value: added.value, mono: true },
+      ] as Fact[]
+    )
+      // Empty ones are dropped rather than shown blank — a row that says
+      // "Catalogue number: —" is a row that wasted a line.
+      .filter((fact) => (fact.links?.length ?? 0) > 0 || (fact.value?.length ?? 0) > 0)
+  )
 })
 
 const tags = computed(() => {
@@ -238,13 +266,13 @@ function onKeydown(event: KeyboardEvent) {
                 ? `${record.thumbUrl} 150w, ${record.coverUrl} 600w`
                 : undefined
             "
-            sizes="(min-width: 64rem) 224px, (min-width: 40rem) 176px, 100vw"
+            sizes="(min-width: 64rem) 320px, (min-width: 40rem) 224px, 100vw"
             alt=""
             loading="lazy"
             decoding="async"
             width="600"
             height="600"
-            class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-44 sm:w-44 lg:size-56 lg:w-56"
+            class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-80 lg:w-80"
           />
           <dl class="grid min-w-0 grow grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-fid-sm">
             <!--
@@ -312,7 +340,24 @@ function onKeydown(event: KeyboardEvent) {
                 class="min-w-0 text-fid-text"
                 :class="fact.mono ? 'font-fid-mono text-fid-xs' : ''"
               >
-                {{ fact.value }}
+                <!--
+                  A name that leads back to your own shelf. The separator stays
+                  outside the link so that two labels read as two things, not
+                  as one long one somebody might click by accident.
+                -->
+                <template v-if="fact.links">
+                  <template v-for="(link, index) in fact.links" :key="link.to">
+                    <span v-if="index > 0" class="text-fid-text-muted"> · </span>
+                    <NuxtLink
+                      :to="link.to"
+                      class="underline underline-offset-4 hover:text-fid-accent"
+                      :title="c.shelf.sheet.ownedBy(link.name)"
+                    >
+                      {{ link.name }}
+                    </NuxtLink>
+                  </template>
+                </template>
+                <template v-else>{{ fact.value }}</template>
               </dd>
             </template>
           </dl>

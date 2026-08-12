@@ -18,6 +18,25 @@ const query = ref('')
 const sort = ref<ShelfSort>('added')
 
 /**
+ * "What do I own on this label" — asked from a record, answered here.
+ *
+ * In the address rather than in a variable, so the question survives a reload
+ * and can be sent to somebody. Read as a computed rather than copied into a
+ * ref: tapping a second label while this one is open has to replace the
+ * question, and a copy taken once on mount would quietly keep the first.
+ */
+const route = useRoute()
+const facet = computed(() => {
+  const one = (value: unknown) => (typeof value === 'string' && value.trim() ? value : '')
+  return { label: one(route.query.label), artist: one(route.query.artist) }
+})
+
+/** The way back to the whole shelf, keeping whatever was typed in the box. */
+function clearFacet() {
+  void navigateTo({ path: '/shelf' })
+}
+
+/**
  * Die Richtung, und wie man sie umlegt.
  *
  * Ein zweiter Klick auf denselben Schlüssel dreht — das ist die Geste, die
@@ -52,6 +71,8 @@ async function load() {
   try {
     const next = await call('collection.records', {
       query: query.value,
+      label: facet.value.label,
+      artist: facet.value.artist,
       sort: sort.value,
       direction: direction.value,
       limit: shown.value,
@@ -71,7 +92,7 @@ onMounted(async () => {
 })
 
 // A new filter or order starts from the top; loading more does not.
-watch([query, sort, direction], () => {
+watch([query, sort, direction, facet], () => {
   shown.value = 120
   void load()
 })
@@ -169,6 +190,28 @@ const open = ref<number | null>(null)
           </button>
         </p>
       </div>
+
+      <!--
+        What the shelf has been narrowed to, and the way out of it.
+
+        Without this the screen shows three records where there are thirty-four
+        and says nothing about why — which reads as a broken collection rather
+        than an answered question. It names the label or the artist, because
+        "Filter active" would be a word about the app instead of about music.
+      -->
+      <p
+        v-if="facet.label || facet.artist"
+        class="flex flex-wrap items-center gap-3 text-fid-sm text-fid-text"
+      >
+        <span>{{ c.shelf.onlyFrom(facet.label || facet.artist) }}</span>
+        <button
+          type="button"
+          class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
+          @click="clearFacet()"
+        >
+          {{ c.shelf.showAll }}
+        </button>
+      </p>
 
       <!--
         And this one is the controls: what to look for, and in which order.

@@ -51,7 +51,10 @@ describe('a cover tile', () => {
 
   it('never opens a new tab without saying where it goes', () => {
     expect(TILE).toMatch(/noopener noreferrer/)
-    expect(TILE).toMatch(/bei Discogs ansehen/)
+    // Said through the message pack, not as a literal. It used to be a German
+    // string sitting in the markup, which the English build read out too.
+    expect(TILE).toMatch(/m\.common\.atDiscogs\(title\)/)
+    expect(code(TILE)).not.toMatch(/bei Discogs/)
   })
 })
 
@@ -69,10 +72,21 @@ describe('the start screen', () => {
     expect(INDEX).not.toMatch(/@open="show\(/)
   })
 
-  it('gives the shelf and wantlist rails somewhere to lead', () => {
-    // Both were shown and neither was reachable.
-    const hrefs = INDEX.match(/:href="`https:\/\/www\.discogs\.com\/release\//g) ?? []
-    expect(hrefs).toHaveLength(2)
+  /**
+   * A record of your own opens here, not at Discogs.
+   *
+   * Both rails used to lead outward, and for the shelf that was the app
+   * sending somebody away from the one screen that knows more than Discogs
+   * does: the rating they gave it, the condition they noted, the folder it
+   * sits in. The wantlist keeps its outward link — a record you do not own has
+   * no page here, and Discogs is where you would go to buy it.
+   */
+  it('opens your own record in the app and only sends the wantlist outward', () => {
+    expect(INDEX).toMatch(/:open="\(\) => \(openInstance = record\.instanceId\)"/)
+    expect(INDEX).toMatch(/<ShelfSheet/)
+
+    const outward = INDEX.match(/:href="`https:\/\/www\.discogs\.com\/release\//g) ?? []
+    expect(outward).toHaveLength(1)
   })
 
   it('lets every shop lead to its own profile', () => {

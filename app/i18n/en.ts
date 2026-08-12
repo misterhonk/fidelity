@@ -62,6 +62,8 @@ const en = {
      * inside an anchor will sooner or later place it outside one.
      */
     signIn: { lead: 'Sign in first —', link: 'go to the start page' },
+    /** Read out for a cover that leads away from the app. */
+    atDiscogs: (title: string) => `${title}, view at Discogs`,
     nothingYet: 'Nothing fetched yet',
     off: 'Off',
     never: 'never',

@@ -46,12 +46,20 @@ const en = {
     },
     atDiscogs: (artist: string, title: string) => `${artist} — ${title}, view at Discogs`,
     readFully: (when: string) => `Last full sync ${when}`,
+    /*
+     * Named, not numbered. "3 of 34" already stands above it; what this line
+     * adds is *which* question the shelf is currently answering, in the words
+     * somebody clicked to ask it.
+     */
+    onlyFrom: (name: string) => `Only ${name}`,
+    showAll: 'Show everything again',
     reread: 'Sync now',
     rereading: 'Syncing…',
     sheet: {
       loading: 'Opening the record…',
       facts: {
         rating: 'Rating',
+        artist: 'Artist',
         label: 'Label',
         catno: 'Cat. no.',
         format: 'Format',
@@ -59,6 +67,12 @@ const en = {
         added: 'Added',
         folder: 'Folder',
       },
+      /*
+       * A name that is also a question: what else of theirs is here?
+       * Shown as a tooltip rather than in the row, because the row is a fact
+       * sheet and every extra word in it is one more thing to read past.
+       */
+      ownedBy: (name: string) => `What you own by ${name}`,
       rated: (stars: number) => `Rated ${stars} of 5`,
       rate: (stars: number) => (stars === 1 ? 'Rate 1 star' : `Rate ${stars} stars`),
       sounds: 'Sounds like',
@@ -204,12 +218,15 @@ const de: typeof en = {
     },
     atDiscogs: (artist, title) => `${artist} – ${title}, bei Discogs ansehen`,
     readFully: (when) => `Ganz abgeglichen ${when}`,
+    onlyFrom: (name) => `Nur ${name}`,
+    showAll: 'Wieder alles zeigen',
     reread: 'Jetzt abgleichen',
     rereading: 'Gleicht ab …',
     sheet: {
       loading: 'Platte wird geöffnet…',
       facts: {
         rating: 'Bewertung',
+        artist: 'Künstler',
         label: 'Label',
         catno: 'Katalognr.',
         format: 'Format',
@@ -217,6 +234,7 @@ const de: typeof en = {
         added: 'Zugegangen',
         folder: 'Ordner',
       },
+      ownedBy: (name) => `Was du von ${name} hast`,
       rated: (stars) => `Mit ${stars} von 5 bewertet`,
       rate: (stars) => (stars === 1 ? 'Mit 1 Stern bewerten' : `Mit ${stars} Sternen bewerten`),
       sounds: 'Klingt nach',

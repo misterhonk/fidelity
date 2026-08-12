@@ -27,6 +27,17 @@ export const PAGE_SIZE = 120
 
 export interface ShelfQuery {
   query?: string
+  /**
+   * One label, one artist — the two questions a record answers about itself.
+   *
+   * Separate from `query` rather than folded into it, because they promise
+   * something the search box cannot: "everything on Cocoon Recordings" must
+   * not also bring back a record *called* Cocoon. Matched against the whole
+   * normalised list, not the first entry — a record on two labels belongs
+   * under both, and the shelf only ever shows the first one.
+   */
+  label?: string
+  artist?: string
   sort?: ShelfSort
   direction?: SortDirection
   offset?: number
@@ -35,6 +46,8 @@ export interface ShelfQuery {
 
 export async function shelfView({
   query = '',
+  label = '',
+  artist = '',
   sort = 'added',
   // Ohne Angabe die Vorgabe des Schlüssels — so verhält sich jeder Aufruf, der
   // die Richtung nicht kennt, exakt wie vorher.
@@ -46,12 +59,17 @@ export async function shelfView({
   const all = await db.getAll('collection')
 
   const needles = tokens(norm(query)).filter((token) => token.length > 0)
-  const filtered = needles.length
-    ? all.filter((item) => {
-        const haystack = `${item.artistNorms.join(' ')} ${norm(item.title)} ${item.labelNorms.join(' ')}`
-        return needles.every((needle) => haystack.includes(needle))
-      })
-    : all
+  const wantedLabel = norm(label)
+  const wantedArtist = norm(artist)
+
+  const filtered = all.filter((item) => {
+    if (wantedLabel && !item.labelNorms.includes(wantedLabel)) return false
+    if (wantedArtist && !item.artistNorms.includes(wantedArtist)) return false
+    if (!needles.length) return true
+
+    const haystack = `${item.artistNorms.join(' ')} ${norm(item.title)} ${item.labelNorms.join(' ')}`
+    return needles.every((needle) => haystack.includes(needle))
+  })
 
   const records: ShelfRecord[] = filtered.map((item) => ({
     instanceId: item.instanceId,
