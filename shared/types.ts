@@ -1114,3 +1114,18 @@ export interface CollectionValue {
   maximum: string
   fetchedAt: number
 }
+
+/**
+ * One shelf inside the shelf.
+ *
+ * Discogs lets a collection be divided — "Sell", "Storage", "Play copies" —
+ * and every entry names the folder it sits in. Fidelity showed one heap.
+ *
+ * Folder 0 is not a folder: it is the virtual "All", it holds everything, and
+ * it is not a valid target for a write. It never reaches this list.
+ */
+export interface CollectionFolder {
+  id: number
+  name: string
+  count: number
+}

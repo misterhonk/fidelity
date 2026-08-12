@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CollectionField, CollectionItem } from '#shared/types'
+import type { CollectionField, CollectionFolder, CollectionItem } from '#shared/types'
 import { useCollectionMessages } from '~/i18n/collection'
 
 const c = useCollectionMessages()
@@ -53,6 +53,27 @@ async function rate(stars: number) {
  * The values, though, are ours alone. Discogs hands them back in no listing
  * (docs/02), so what is stored here is the only copy the app will ever have.
  */
+/*
+ * Which shelf inside the shelf, and only when there is more than one.
+ *
+ * A dropdown with a single option is a control that cannot do anything, and
+ * most collections have exactly one folder. It appears when somebody has
+ * actually divided their collection, and stays out of the way otherwise.
+ */
+const folders = ref<CollectionFolder[]>([])
+const canMove = computed(() => canRate.value && folders.value.length > 1)
+
+async function move(folderId: number) {
+  const item = record.value
+  if (!item) return
+
+  const before = item.folderId
+  record.value = { ...item, folderId }
+  if (!(await call('collection.move', { instanceId: item.instanceId, folderId }))) {
+    record.value = { ...item, folderId: before }
+  }
+}
+
 const fields = ref<CollectionField[]>([])
 const values = ref<Record<number, string>>({})
 
@@ -75,6 +96,8 @@ onMounted(async () => {
   const noted = await call('collection.fields', { instanceId: props.instanceId })
   fields.value = noted.fields
   values.value = noted.values
+
+  folders.value = await call('collection.folders', undefined)
 })
 
 const artist = computed(() => record.value?.artistNames.join(' · ') ?? '')
@@ -236,6 +259,22 @@ function onKeydown(event: KeyboardEvent) {
                 >
                   {{ '★'.repeat(record.rating) }}
                 </span>
+              </dd>
+            </template>
+
+            <template v-if="canMove">
+              <dt class="text-fid-text-muted">{{ c.shelf.sheet.facts.folder }}</dt>
+              <dd class="min-w-0">
+                <select
+                  :value="record.folderId"
+                  class="min-h-11 w-full rounded-fid-sm border border-fid-field bg-fid-surface px-2 text-fid-sm text-fid-text"
+                  :aria-label="c.shelf.sheet.facts.folder"
+                  @change="move(Number(($event.target as HTMLSelectElement).value))"
+                >
+                  <option v-for="folder in folders" :key="folder.id" :value="folder.id">
+                    {{ folder.name }}
+                  </option>
+                </select>
               </dd>
             </template>
 

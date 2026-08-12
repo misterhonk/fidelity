@@ -21,6 +21,7 @@ import type {
   BasketView,
   CollectionGaps,
   CollectionField,
+  CollectionFolder,
   CollectionItem,
   CollectionValue,
   CreditGroup,
@@ -221,6 +222,14 @@ export interface WorkerContract {
   /** Sets one field. False when the record has no entry to write to. */
   'collection.setField': {
     params: { instanceId: number; fieldId: number; value: string }
+    progress: never
+    result: boolean
+  }
+  /** The folders this collection is divided into. Empty before the first sync. */
+  'collection.folders': { params: undefined; progress: never; result: CollectionFolder[] }
+  /** Moves one copy into another folder. */
+  'collection.move': {
+    params: { instanceId: number; folderId: number }
     progress: never
     result: boolean
   }

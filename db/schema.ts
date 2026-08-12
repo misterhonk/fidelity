@@ -4,6 +4,7 @@ import type {
   BasketItem,
   CloudTokens,
   CollectionField,
+  CollectionFolder,
   CollectionValue,
   CollectionItem,
   CreditHarvest,
@@ -49,6 +50,8 @@ export type MetaValue =
   | { key: 'collectionFields'; value: CollectionField[] }
   /** Refreshed with the collection sync, never on its own. */
   | { key: 'collectionValue'; value: CollectionValue }
+  /** Folder names, refreshed on a sync that stored something. */
+  | { key: 'collectionFolders'; value: CollectionFolder[] }
   /**
    * When the last Discogs request went out, in epoch milliseconds.
    *
@@ -203,6 +206,7 @@ export type OutboxKind =
   | 'collection.field'
   | 'collection.remove'
   | 'collection.add'
+  | 'collection.folder'
   | 'wantlist.add'
   | 'wantlist.remove'
   | 'wantlist.note'

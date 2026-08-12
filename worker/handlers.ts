@@ -546,6 +546,16 @@ export const handlers: HandlerMap = {
     return unwantRecord(releaseId)
   },
 
+  'collection.folders': async () => {
+    const { knownFolders } = await import('./collection/folders')
+    return knownFolders()
+  },
+
+  'collection.move': async ({ instanceId, folderId }) => {
+    const { moveToFolder } = await import('./collection/folders')
+    return moveToFolder(instanceId, folderId)
+  },
+
   'collection.remove': async ({ instanceId }) => {
     const { removeRecord } = await import('./collection/remove')
     return removeRecord(instanceId)

@@ -234,8 +234,14 @@ export async function syncCollection(context: SyncContext): Promise<SyncSummary>
    * That is the honest reading of an estimate shown with a date on it.
    */
   if (result.stored > 0) {
-    const { refreshCollectionValue } = await import('../collection/value')
+    const [{ refreshCollectionValue }, { refreshFolders }] = await Promise.all([
+      import('../collection/value'),
+      import('../collection/folders'),
+    ])
     await refreshCollectionValue(context.client, context.username, Date.now())
+    // Folder names change about as often as somebody reorganises a shelf, so
+    // they ride the same rare walk rather than a clock of their own.
+    await refreshFolders(context.client, context.username)
   }
 
   await updateSyncState({

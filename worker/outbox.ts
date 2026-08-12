@@ -169,6 +169,31 @@ const KINDS: Record<OutboxKind, JobKind> = {
     },
   },
 
+  'collection.folder': {
+    send: async (client, job, username) => {
+      const { releaseId, folderId, instanceId, moveTo } = job.payload as {
+        releaseId: number
+        folderId: number
+        instanceId: number
+        moveTo: number
+      }
+      await client.write(
+        'POST',
+        `/users/${encodeURIComponent(username)}/collection/folders/${folderId}` +
+          `/releases/${releaseId}/instances/${instanceId}`,
+        // Moving a record where it already is leaves it where it is.
+        { body: { folder_id: moveTo }, idempotent: true },
+      )
+    },
+    revert: async (job) => {
+      const { instanceId } = job.payload as { instanceId: number }
+      const { folderId } = job.revert as { folderId: number }
+      const db = await openFidelityDb()
+      const record = await db.get('collection', instanceId)
+      if (record) await db.put('collection', { ...record, folderId })
+    },
+  },
+
   'wantlist.note': {
     send: async (client, job, username) => {
       const { releaseId, note, want } = job.payload as {
