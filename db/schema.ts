@@ -16,6 +16,7 @@ import type {
   Match,
   Preferences,
   PushRegistration,
+  ReleaseDetail,
   SyncState,
   TasteProfile,
   WantlistItem,
@@ -28,7 +29,7 @@ export const DB_NAME = 'fidelity'
  *
  * 4 — added the `covers` store. Additive: nothing existing is touched.
  */
-export const DB_VERSION = 6
+export const DB_VERSION = 7
 
 /**
  * `meta` is a small key-value store rather than nine one-row stores. The union
@@ -158,6 +159,20 @@ export interface FidelityDB extends DBSchema {
    * and the rest is fetched only for records somebody actually looks at.
    */
   covers: { key: number; value: CoverEntry }
+  /**
+   * What a record actually is, one request at a time.
+   *
+   * Tracklist, credits, the number in the run-out groove — none of it comes
+   * with the collection sync, all of it comes from `/releases/{id}`, and rule
+   * 2 forbids walking that endpoint. So this is filled only for records
+   * somebody opens, exactly like `covers` beside it, and kept: a release does
+   * not change, and a second look should cost nothing.
+   *
+   * Keyed by release rather than by entry, because two copies of the same
+   * record have the same tracklist — what differs between them is the
+   * condition, and that lives in `fieldValues`.
+   */
+  releaseDetail: { key: number; value: ReleaseDetail }
   /**
    * Changes on their way to Discogs.
    *

@@ -66,7 +66,23 @@ const en = {
         year: 'Year',
         added: 'Added',
         folder: 'Folder',
+        country: 'Pressed in',
       },
+      /*
+       * The blocks that cost the one lookup.
+       *
+       * Named for what somebody wants from them rather than for the field they
+       * came out of: "Pressing" is the question "is this the one I think it
+       * is", and the run-out number is how that gets answered in a shop.
+       */
+      tracklist: 'On the record',
+      credits: 'Who made it',
+      pressing: 'This pressing',
+      listen: 'Hear it',
+      everyone: 'Everyone else',
+      communityRating: (average: string, votes: string) => `${average} of 5, from ${votes}`,
+      someOf: (total: string) => `6 of ${total}`,
+      looking: 'Fetching the tracklist …',
       /*
        * A name that is also a question: what else of theirs is here?
        * Shown as a tooltip rather than in the row, because the row is a fact
@@ -233,7 +249,16 @@ const de: typeof en = {
         year: 'Jahr',
         added: 'Zugegangen',
         folder: 'Ordner',
+        country: 'Gepresst in',
       },
+      tracklist: 'Auf der Platte',
+      credits: 'Wer sie gemacht hat',
+      pressing: 'Diese Pressung',
+      listen: 'Reinhören',
+      everyone: 'Alle anderen',
+      communityRating: (average, votes) => `${average} von 5, aus ${votes}`,
+      someOf: (total) => `6 von ${total}`,
+      looking: 'Hole die Titelliste …',
       ownedBy: (name) => `Was du von ${name} hast`,
       rated: (stars) => `Mit ${stars} von 5 bewertet`,
       rate: (stars) => (stars === 1 ? 'Mit 1 Stern bewerten' : `Mit ${stars} Sternen bewerten`),

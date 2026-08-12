@@ -79,6 +79,48 @@ export const basicInformationSchema = z.object({
     .optional(),
 })
 
+/**
+ * GET /releases/{id} — everything the collection sync does not carry.
+ *
+ * Only the fields actually shown, per the rule at the top of this file: what
+ * is pinned here becomes an outage the day Discogs adds a sibling key.
+ * `duration` is very often an empty string and `position` can be anything from
+ * "A1" to "" on a CD, so neither is trusted to be useful, only to be a string.
+ */
+export const releaseDetailSchema = z.object({
+  id: z.number().int(),
+  country: z.string().optional(),
+  released: z.string().optional(),
+  notes: z.string().optional(),
+  tracklist: z
+    .array(
+      z.object({
+        position: z.string().optional(),
+        title: z.string().optional(),
+        duration: z.string().optional(),
+        /** "track", "heading", "index" — a heading is a section, not a song. */
+        type_: z.string().optional(),
+      }),
+    )
+    .optional(),
+  extraartists: z.array(z.object({ name: z.string(), role: z.string().optional() })).optional(),
+  identifiers: z
+    .array(
+      z.object({
+        type: z.string().optional(),
+        value: z.string().optional(),
+        description: z.string().optional(),
+      }),
+    )
+    .optional(),
+  community: z
+    .object({
+      rating: z.object({ average: z.number().optional(), count: z.number().optional() }),
+    })
+    .optional(),
+  videos: z.array(z.object({ title: z.string().optional(), uri: z.string() })).optional(),
+})
+
 export const collectionPageSchema = z.object({
   pagination: paginationSchema,
   releases: z.array(

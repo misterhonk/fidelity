@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import type { CollectionField, CollectionFolder, CollectionItem } from '#shared/types'
+import type {
+  CollectionField,
+  CollectionFolder,
+  CollectionItem,
+  ReleaseDetail,
+} from '#shared/types'
 import { useCollectionMessages } from '~/i18n/collection'
 
 const c = useCollectionMessages()
@@ -89,9 +94,40 @@ async function setField(field: CollectionField, value: string) {
   if (!written) values.value = { ...values.value, [field.id]: before }
 }
 
+/**
+ * What the sync could not tell us, one request later.
+ *
+ * Deliberately after everything else and deliberately not awaited with it: the
+ * cover, the rating and the condition are already in storage and must be on
+ * screen at once. This is a paced request — 1.2 seconds at best — and the
+ * tracklist arriving a moment after the sheet opens is right; a sheet that
+ * waits 1.2 seconds to show a cover it already has is not.
+ *
+ * Null when there is no answer. Then the sheet is simply shorter, because none
+ * of this is needed to know what the record is (worker/collection/detail.ts).
+ */
+const detail = ref<ReleaseDetail | null>(null)
+const looking = ref(false)
+
+/** A run-out number is the one identifier you read off the record itself. */
+const runouts = computed(() =>
+  (detail.value?.identifiers ?? []).filter((identifier) =>
+    /matrix|runout/i.test(identifier.type),
+  ),
+)
+
 onMounted(async () => {
   panel.value?.focus()
   record.value = await call('collection.record', { instanceId: props.instanceId })
+
+  const releaseId = record.value?.releaseId
+  if (releaseId) {
+    looking.value = true
+    void call('release.detail', { releaseId })
+      .then((answer) => (detail.value = answer))
+      .catch(() => {})
+      .finally(() => (looking.value = false))
+  }
 
   const noted = await call('collection.fields', { instanceId: props.instanceId })
   fields.value = noted.fields
@@ -433,10 +469,135 @@ function onKeydown(event: KeyboardEvent) {
         </section>
 
         <!--
+          And what the one lookup brought back.
+
+          Everything above came out of storage and was on screen immediately;
+          this arrives a paced request later. Each block appears only when
+          there is something in it — an empty "Tracklist" heading over nothing
+          is worse than no heading, and Discogs has no tracklist for plenty of
+          records.
+        -->
+        <section v-if="detail?.tracks.length" class="flex flex-col gap-2">
+          <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.tracklist }}</h3>
+          <ol class="flex flex-col">
+            <li
+              v-for="(track, index) in detail.tracks"
+              :key="`${track.position}-${index}`"
+              class="flex items-baseline gap-3 border-b border-fid-border/50 py-2 last:border-0"
+            >
+              <span
+                v-if="track.position"
+                class="fid-num w-8 shrink-0 text-fid-xs text-fid-text-muted"
+              >
+                {{ track.position }}
+              </span>
+              <span class="min-w-0 grow text-fid-sm text-fid-text">{{ track.title }}</span>
+              <!-- Very often missing, and an empty column is quieter than a dash. -->
+              <span
+                v-if="track.duration"
+                class="fid-num shrink-0 text-fid-xs text-fid-text-muted"
+              >
+                {{ track.duration }}
+              </span>
+            </li>
+          </ol>
+        </section>
+
+        <section v-if="detail?.credits.length" class="flex flex-col gap-2">
+          <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.credits }}</h3>
+          <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-fid-sm">
+            <template
+              v-for="(credit, index) in detail.credits"
+              :key="`${credit.name}-${index}`"
+            >
+              <dt class="text-fid-text-muted">{{ credit.role || '—' }}</dt>
+              <dd class="min-w-0 text-fid-text">{{ credit.name }}</dd>
+            </template>
+          </dl>
+        </section>
+
+        <!--
+          The number in the run-out groove, and what everybody else thinks.
+
+          The matrix is the one identifier you can read off the record itself
+          while standing in a shop — which is exactly the question "is this the
+          pressing I think it is". The barcode and the rest stay on Discogs.
+        -->
+        <section
+          v-if="runouts.length || detail?.community || detail?.country"
+          class="flex flex-col gap-2"
+        >
+          <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.pressing }}</h3>
+          <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-fid-sm">
+            <template v-if="detail?.country">
+              <dt class="text-fid-text-muted">{{ c.shelf.sheet.facts.country }}</dt>
+              <dd class="min-w-0 text-fid-text">
+                {{ detail.country }}
+                <template v-if="detail.released"> · {{ detail.released }}</template>
+              </dd>
+            </template>
+            <template v-for="(runout, index) in runouts" :key="index">
+              <dt class="text-fid-text-muted">{{ runout.description || runout.type }}</dt>
+              <dd class="fid-num min-w-0 text-fid-xs break-all text-fid-text">
+                {{ runout.value }}
+              </dd>
+            </template>
+            <template v-if="detail?.community">
+              <dt class="text-fid-text-muted">{{ c.shelf.sheet.everyone }}</dt>
+              <dd class="min-w-0 text-fid-text">
+                {{
+                  c.shelf.sheet.communityRating(
+                    detail.community.rating.toFixed(2),
+                    count(detail.community.votes),
+                  )
+                }}
+              </dd>
+            </template>
+          </dl>
+        </section>
+
+        <!--
+          Six, and it says so when there are more.
+
+          Discogs collects these from everybody, and a single 12" came back
+          with eighty-nine (measured 2026-08-12). A list that long buries the
+          rest of the sheet; a list silently cut to six claims to be all of
+          them. So it is cut, and the cut is named.
+        -->
+        <section v-if="detail?.videos.length" class="flex flex-col gap-2">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-4">
+            <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.listen }}</h3>
+            <p v-if="detail.videos.length > 6" class="fid-num text-fid-xs text-fid-text-muted">
+              {{ c.shelf.sheet.someOf(count(detail.videos.length)) }}
+            </p>
+          </div>
+          <ul class="flex flex-col gap-1">
+            <li v-for="video in detail.videos.slice(0, 6)" :key="video.uri">
+              <a
+                :href="video.uri"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-fid-sm underline underline-offset-4 hover:text-fid-accent"
+              >
+                {{ video.title || video.uri }}
+              </a>
+            </li>
+          </ul>
+        </section>
+
+        <!--
+          Said while the one request is out, and only until it answers.
+          Not `v-else` on the block above: a record with no videos is not a
+          record that is still loading.
+        -->
+        <p v-if="looking && !detail" class="text-fid-sm text-fid-text-muted" aria-live="polite">
+          {{ c.shelf.sheet.looking }}
+        </p>
+
+        <!--
           What Discogs still owns.
-          Tracklist, credits, every other pressing, and editing the entry
-          itself all live over there — this sheet says what the app knows
-          without asking, and hands over for the rest.
+          Every other pressing and editing the entry itself live over there —
+          this sheet says what the app knows, and hands over for the rest.
         -->
         <div class="mt-auto flex flex-wrap items-center gap-3 border-t border-fid-border pt-4">
           <a

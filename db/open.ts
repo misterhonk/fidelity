@@ -124,6 +124,22 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
         tx.objectStore('meta').delete('tasteProfile')
       }
 
+      if (oldVersion < 7) {
+        /*
+         * v7 adds a place for what only `/releases/{id}` knows.
+         *
+         * Purely additive — nothing is dropped and nothing has to be fetched
+         * again. The store starts empty and fills as records are opened, one
+         * request each, which is the only way rule 2 allows that endpoint to
+         * be used at all.
+         *
+         * No `oldVersion > 0` here, unlike the destructive blocks above: this
+         * one has to run on a brand new database too, or a first-time visitor
+         * gets an app with a store the code expects and the database lacks.
+         */
+        db.createObjectStore('releaseDetail', { keyPath: 'releaseId' })
+      }
+
       // Future versions go here. The rule: never migrate destructively unless
       // the state can be rebuilt from the API — which, so far, all of it can.
     },

@@ -401,6 +401,11 @@ export const handlers: HandlerMap = {
     return watchedDealers()
   },
 
+  'release.detail': async ({ releaseId }) => {
+    const { releaseDetail } = await import('./collection/detail')
+    return releaseDetail(discogs(), releaseId)
+  },
+
   'watch.pushKey': async () => {
     const { pushKey } = await import('./watch/push')
     return pushKey()

@@ -117,6 +117,7 @@ describe('database schema', () => {
       'matches',
       'meta',
       'outbox',
+      'releaseDetail',
       'wantlist',
     ])
 

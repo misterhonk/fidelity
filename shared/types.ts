@@ -212,6 +212,55 @@ export interface PressingWarning {
   }
 }
 
+/**
+ * What only `GET /releases/{id}` knows — one request, then kept.
+ *
+ * The sync gives a shelf its names, its cover and its format. Everything a
+ * record actually *is* — what is on it, who played on it, the number stamped
+ * in the run-out groove — lives one request away, and that request is the one
+ * rule 2 forbids in a loop. So it happens exactly when somebody opens a
+ * record and never again for that record: on demand, cached, one at a time
+ * through the same paced lane as everything else.
+ */
+export interface ReleaseTrack {
+  position: string
+  title: string
+  /** "4:32", or empty — Discogs has no duration for a great many tracks. */
+  duration: string
+}
+
+export interface ReleaseCredit {
+  name: string
+  /** "Producer", "Mastered By", "Remix" — Discogs' own wording. */
+  role: string
+}
+
+export interface ReleaseIdentifier {
+  /** "Matrix / Runout", "Barcode", "Mastering SID Code". */
+  type: string
+  value: string
+  /** Which side or disc it was read off, when the submitter said. */
+  description?: string
+}
+
+export interface ReleaseDetail {
+  releaseId: number
+  /** Where this pressing was made. Absent from the collection sync entirely. */
+  country: string
+  /** The full date where there is one — the sync only ever knows the year. */
+  released: string
+  tracks: ReleaseTrack[]
+  credits: ReleaseCredit[]
+  identifiers: ReleaseIdentifier[]
+  /** What everybody else thinks, beside what you gave it. */
+  community: { rating: number; votes: number } | null
+  /** Discogs' own video links, for hearing it before deciding. */
+  videos: { title: string; uri: string }[]
+  notes: string
+  /** When this was fetched, so a stale copy can be told from a fresh one. */
+  fetchedAt: number
+}
+
 export interface WatchAlert {
   dealer: string
   newListings: number

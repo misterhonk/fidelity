@@ -39,6 +39,7 @@ import type {
   MatchDetail,
   Preferences,
   PushRegistration,
+  ReleaseDetail,
   ShelfResult,
   ShelfSort,
   SortDirection,
@@ -202,6 +203,19 @@ export interface WorkerContract {
     }
     progress: never
     result: ShelfView
+  }
+  /**
+   * What only `/releases/{id}` knows: tracklist, credits, run-out numbers.
+   *
+   * One request, for a record somebody has opened, and kept afterwards — the
+   * same bargain the covers make. Null when there is no answer: the sheet then
+   * shows everything it already had and no error, because none of this is
+   * needed to know what the record is.
+   */
+  'release.detail': {
+    params: { releaseId: number }
+    progress: never
+    result: ReleaseDetail | null
   }
   /** One stored record, for the sheet a shelf tile opens. Reads only. */
   'collection.record': {
