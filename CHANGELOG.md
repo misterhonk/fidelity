@@ -9,6 +9,16 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.16.0](https://github.com/misterhonk/fidelity/compare/v0.15.0...v0.16.0) (2026-08-12)
+
+
+### Added
+
+* **collection:** fetch what a record actually is, once per record ([c28d561](https://github.com/misterhonk/fidelity/commit/c28d56160a45a0685fa9c5afd8fe6a0c617a67d4))
+* **collection:** open your own record from the start screen, and follow a name ([97c68dc](https://github.com/misterhonk/fidelity/commit/97c68dcd45009571e411652f89afb3268cf21425))
+* **collection:** show the pressing detail the sync already paid for ([5157a2a](https://github.com/misterhonk/fidelity/commit/5157a2a781d972a09f808dd27e188a30c230abc1))
+* **collection:** what it goes for, and what the cataloguers wrote down ([ef2dd6e](https://github.com/misterhonk/fidelity/commit/ef2dd6ef6f426f81277f99df2251f9e8fd8dc5e3))
+
 ## [0.15.0](https://github.com/misterhonk/fidelity/compare/v0.14.0...v0.15.0) (2026-08-12)
 
 
