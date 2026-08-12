@@ -46,6 +46,21 @@ import type { DiscogsClient } from './discogs/client'
  */
 const LIBRARY_STALE_MS = 30 * 60 * 1000
 
+/**
+ * And how old it may get when somebody has just come back to the tab.
+ *
+ * Returning to the app is the moment the gap between "what Discogs knows" and
+ * "what this device knows" is most likely to have opened — a record added on
+ * the phone, a rating given on the website. Two minutes rather than thirty,
+ * because the delta costs exactly one request when nothing changed, and one
+ * request against a budget of sixty a minute is not a cost worth protecting
+ * somebody from.
+ *
+ * The thirty minutes still govern the ticking clock: a tab left open all day
+ * should not ask twice a minute for an answer that changes twice a month.
+ */
+const LIBRARY_EAGER_MS = 2 * 60 * 1000
+
 export type KeeperJob = 'outbox' | 'library' | 'watch' | 'horizon'
 
 export interface KeeperResult {
@@ -76,10 +91,18 @@ export async function runKeeper(options: {
    * business queueing in front of a dig they started thirty seconds ago.
    */
   force?: boolean
+  /**
+   * "Somebody just looked at this."
+   *
+   * Softer than `force`: it shortens the collection's staleness window and
+   * nothing else. The watchlist and the horizon keep their own clocks, which
+   * are measured in hours and days for good reasons.
+   */
+  eager?: boolean
   now?: number
   signal?: AbortSignal
 }): Promise<KeeperResult> {
-  const { client, username, force = false, signal } = options
+  const { client, username, force = false, eager = false, signal } = options
   const now = options.now ?? Date.now()
   const result: KeeperResult = {
     did: [],
@@ -149,7 +172,8 @@ export async function runKeeper(options: {
    * app is measured against what is on the shelf.
    */
   const syncState = await getSyncState()
-  if (force || (syncState?.collectionSyncedAt ?? 0) < now - LIBRARY_STALE_MS) {
+  const staleAfter = eager ? LIBRARY_EAGER_MS : LIBRARY_STALE_MS
+  if (force || (syncState?.collectionSyncedAt ?? 0) < now - staleAfter) {
     try {
       const { syncLibrary } = await import('./sync/library')
       const summary = await syncLibrary({ client, username, signal })

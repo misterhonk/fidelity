@@ -848,12 +848,13 @@ export const handlers: HandlerMap = {
     })
   },
 
-  'keeper.tick': async ({ force }, { signal }) => {
+  'keeper.tick': async ({ force, eager }, { signal }) => {
     const { runKeeper } = await import('./keeper')
     return runKeeper({
       client: discogs(),
       username: (await currentIdentity())?.username ?? null,
       force,
+      eager,
       signal,
     })
   },

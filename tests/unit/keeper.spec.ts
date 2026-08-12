@@ -128,6 +128,27 @@ describe('der Kurator', () => {
     expect(result.did).not.toContain('library')
   })
 
+  /*
+   * Coming back to the tab is where the gap usually opened — a record added on
+   * the phone, a rating given on the website. Half an hour of "fresh" is the
+   * right answer for a ticking clock and the wrong one for somebody who just
+   * looked, and the delta costs one request when nothing changed.
+   */
+  it('looks again for somebody who has just come back', async () => {
+    syncState.value = { collectionSyncedAt: NOW - 5 * 60_000 }
+    const result = await runKeeper({ client, username: 'mrtnmlchr', now: NOW, eager: true })
+
+    expect(syncLibrary).toHaveBeenCalled()
+    expect(result.did).toContain('library')
+  })
+
+  it('still leaves it alone when it was read a minute ago', async () => {
+    syncState.value = { collectionSyncedAt: NOW - 60_000 }
+    await runKeeper({ client, username: 'mrtnmlchr', now: NOW, eager: true })
+
+    expect(syncLibrary).not.toHaveBeenCalled()
+  })
+
   it('fetches it anyway when somebody presses "Refresh everything"', async () => {
     syncState.value = { collectionSyncedAt: NOW - 60_000 }
     const result = await runKeeper({ client, username: 'mrtnmlchr', now: NOW, force: true })

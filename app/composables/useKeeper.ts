@@ -22,7 +22,7 @@ let started = false
 export function useKeeper() {
   const { call } = useFidelityWorker()
 
-  async function tick(options: { force?: boolean } = {}) {
+  async function tick(options: { force?: boolean; eager?: boolean } = {}) {
     /*
      * A hidden tab does nothing. Its requests would come out of the same
      * per-IP budget as the tab somebody is actually looking at (rule 3), and
@@ -37,7 +37,7 @@ export function useKeeper() {
     }
 
     try {
-      last.value = await call('keeper.tick', { force: options.force })
+      last.value = await call('keeper.tick', { force: options.force, eager: options.eager })
     } catch {
       /*
        * Silent by design. This is the one thing in the app nobody asked for,
@@ -59,13 +59,23 @@ export function useKeeper() {
     if (started) return
     started = true
 
-    void tick()
+    // Arriving counts as coming back: whatever this device last knew, it was
+    // at best from the previous visit.
+    void tick({ eager: true })
     timer = setInterval(() => void tick(), EVERY_MS)
 
-    // Coming back to the tab is the moment worth checking: it is usually where
-    // the gap between "what Discogs knows" and "what this device knows" opened.
+    /*
+     * Coming back to the tab is the moment worth checking: it is usually where
+     * the gap between "what Discogs knows" and "what this device knows"
+     * opened — a record added on the phone, a rating given on the website.
+     *
+     * `eager` shortens the collection's staleness window to two minutes for
+     * this one tick. The delta costs one request when nothing changed, and
+     * making somebody wait half an hour to see their own record is a poor
+     * trade for one request against a budget of sixty a minute.
+     */
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') void tick()
+      if (document.visibilityState === 'visible') void tick({ eager: true })
     })
   }
 

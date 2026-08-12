@@ -146,7 +146,11 @@ export interface WorkerContract {
       tried: string[]
     }
   }
-  'keeper.tick': { params: { force?: boolean }; progress: never; result: KeeperResult }
+  'keeper.tick': {
+    params: { force?: boolean; eager?: boolean }
+    progress: never
+    result: KeeperResult
+  }
   /**
    * Cover, die schon da sind. Kostet keinen Request.
    *
