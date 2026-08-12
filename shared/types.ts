@@ -1033,3 +1033,17 @@ export interface Feedback {
    */
   updatedAt?: number
 }
+
+/**
+ * One of the three fields Discogs keeps beside a record you own.
+ *
+ * The options are the server's, never ours: a hand-written list of conditions
+ * would drift from the one Discogs accepts, and the write would fail on a
+ * value the app itself offered.
+ */
+export interface CollectionField {
+  id: number
+  name: string
+  type: 'dropdown' | 'text'
+  options: string[]
+}

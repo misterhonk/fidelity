@@ -3,6 +3,7 @@ import type { DBSchema } from 'idb'
 import type {
   BasketItem,
   CloudTokens,
+  CollectionField,
   CollectionItem,
   CreditHarvest,
   Dealer,
@@ -37,6 +38,14 @@ export type MetaValue =
   | { key: 'tasteProfile'; value: TasteProfile }
   | { key: 'syncState'; value: SyncState }
   | { key: 'credits'; value: CreditHarvest }
+  /**
+   * The three collection fields and their options, as Discogs defines them.
+   *
+   * Fetched once and kept: same ids on every account, and the option lists are
+   * the only ones the server accepts. Never expires — a list that has not
+   * changed is not worth a request.
+   */
+  | { key: 'collectionFields'; value: CollectionField[] }
   /**
    * When the last Discogs request went out, in epoch milliseconds.
    *
@@ -128,6 +137,24 @@ export interface FidelityDB extends DBSchema {
    * the same row collapse into one request rather than three.
    */
   outbox: { key: string; value: OutboxJob }
+  /**
+   * Media condition, sleeve condition and notes, per record.
+   *
+   * Kept apart from the collection row for one hard reason: the sync writes
+   * that row wholesale from Discogs' answer, so anything of ours living inside
+   * it is destroyed on the next walk. And Discogs hands these values back in
+   * no listing — not folder 0, not a real folder, not the per-release endpoint
+   * (measured 2026-08-11, docs/02) — so this store is the only copy the app
+   * has. Losing it would mean losing them for good.
+   */
+  fieldValues: { key: number; value: FieldValues }
+}
+
+/** The three fields Discogs offers, as far as this device knows them. */
+export interface FieldValues {
+  releaseId: number
+  /** Field id → value. Ids are 1 Media, 2 Sleeve, 3 Notes on every account. */
+  values: Record<number, string>
 }
 
 /** What a queued change is, and what to put back if it never lands. */
@@ -150,7 +177,7 @@ export interface OutboxJob {
   lastError?: string
 }
 
-export type OutboxKind = 'collection.rating'
+export type OutboxKind = 'collection.rating' | 'collection.field'
 
 export interface CoverEntry {
   releaseId: number

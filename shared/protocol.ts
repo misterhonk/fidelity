@@ -20,6 +20,7 @@ import type {
   BasketPlan,
   BasketView,
   CollectionGaps,
+  CollectionField,
   CollectionItem,
   CreditGroup,
   CreditHarvest,
@@ -207,6 +208,18 @@ export interface WorkerContract {
    */
   'collection.rate': {
     params: { releaseId: number; rating: number }
+    progress: never
+    result: boolean
+  }
+  /** The field definitions, and this device's values for one record. */
+  'collection.fields': {
+    params: { releaseId: number }
+    progress: never
+    result: { fields: CollectionField[]; values: Record<number, string> }
+  }
+  /** Sets one field. False when the record has no entry to write to. */
+  'collection.setField': {
+    params: { releaseId: number; fieldId: number; value: string }
     progress: never
     result: boolean
   }

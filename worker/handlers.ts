@@ -528,6 +528,32 @@ export const handlers: HandlerMap = {
     return shelfView(params)
   },
 
+  'collection.fields': async ({ releaseId }) => {
+    const [{ collectionFields }, { fieldValuesFor }] = await Promise.all([
+      import('./collection/fields'),
+      import('~~/db/fields'),
+    ])
+    const values = await fieldValuesFor(releaseId)
+    /*
+     * The definitions need a signed-in client; the values do not.
+     * Somebody signed out still sees what they noted — losing sight of their
+     * own notes because a token expired would be the app punishing them for
+     * something that has nothing to do with the notes.
+     */
+    try {
+      const identity = await currentIdentity()
+      if (!identity) return { fields: [], values }
+      return { fields: await collectionFields(discogs(), identity.username), values }
+    } catch {
+      return { fields: [], values }
+    }
+  },
+
+  'collection.setField': async ({ releaseId, fieldId, value }) => {
+    const { setFieldValue } = await import('./collection/fields')
+    return setFieldValue(releaseId, fieldId, value)
+  },
+
   'collection.rate': async ({ releaseId, rating }) => {
     const { rateRecord } = await import('./collection/rate')
     return rateRecord(releaseId, rating)

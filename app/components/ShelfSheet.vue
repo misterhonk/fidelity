@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CollectionItem } from '#shared/types'
+import type { CollectionField, CollectionItem } from '#shared/types'
 import { useCollectionMessages } from '~/i18n/collection'
 
 const c = useCollectionMessages()
@@ -43,9 +43,38 @@ async function rate(stars: number) {
   if (!written) record.value = item
 }
 
+/*
+ * What you noted about this copy: media, sleeve, and a free line.
+ *
+ * The three fields are Discogs' own, and so are the options — a hand-written
+ * list of conditions would drift from the one the server accepts and the write
+ * would fail on a value this app itself offered.
+ *
+ * The values, though, are ours alone. Discogs hands them back in no listing
+ * (docs/02), so what is stored here is the only copy the app will ever have.
+ */
+const fields = ref<CollectionField[]>([])
+const values = ref<Record<number, string>>({})
+
+async function setField(field: CollectionField, value: string) {
+  const before = values.value[field.id] ?? ''
+  values.value = { ...values.value, [field.id]: value }
+
+  const written = await call('collection.setField', {
+    releaseId: props.releaseId,
+    fieldId: field.id,
+    value,
+  })
+  if (!written) values.value = { ...values.value, [field.id]: before }
+}
+
 onMounted(async () => {
   panel.value?.focus()
   record.value = await call('collection.record', { releaseId: props.releaseId })
+
+  const noted = await call('collection.fields', { releaseId: props.releaseId })
+  fields.value = noted.fields
+  values.value = noted.values
 })
 
 const artist = computed(() => record.value?.artistNames.join(' · ') ?? '')
@@ -203,6 +232,44 @@ function onKeydown(event: KeyboardEvent) {
             </template>
           </dl>
         </div>
+
+        <section v-if="canRate && fields.length > 0" class="flex flex-col gap-3">
+          <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.condition }}</h3>
+          <div class="grid gap-3 @sm:grid-cols-2">
+            <label
+              v-for="field in fields"
+              :key="field.id"
+              class="flex flex-col gap-1"
+              :class="field.type === 'text' ? '@sm:col-span-2' : ''"
+            >
+              <span class="text-fid-xs text-fid-text-muted">{{ field.name }}</span>
+              <!--
+                A select for what Discogs enumerates, a line for what it does
+                not. The empty option is not padding: a condition you have not
+                decided on yet has to stay sayable, and clearing one is the
+                only way back to it.
+              -->
+              <select
+                v-if="field.type === 'dropdown'"
+                :value="values[field.id] ?? ''"
+                class="min-h-11 rounded-fid-sm border border-fid-field bg-fid-surface px-3 text-fid-sm text-fid-text"
+                @change="setField(field, ($event.target as HTMLSelectElement).value)"
+              >
+                <option value="">{{ c.shelf.sheet.unset }}</option>
+                <option v-for="option in field.options" :key="option" :value="option">
+                  {{ option }}
+                </option>
+              </select>
+              <input
+                v-else
+                :value="values[field.id] ?? ''"
+                type="text"
+                class="min-h-11 rounded-fid-sm border border-fid-field bg-fid-surface px-3 text-fid-sm text-fid-text"
+                @change="setField(field, ($event.target as HTMLInputElement).value)"
+              />
+            </label>
+          </div>
+        </section>
 
         <section v-if="tags.length > 0" class="flex flex-col gap-2">
           <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.sounds }}</h3>

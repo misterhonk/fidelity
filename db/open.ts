@@ -68,6 +68,7 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
 
       if (oldVersion < 5) {
         db.createObjectStore('outbox', { keyPath: 'id' })
+        db.createObjectStore('fieldValues', { keyPath: 'releaseId' })
       }
 
       if (oldVersion > 0 && oldVersion < 5) {

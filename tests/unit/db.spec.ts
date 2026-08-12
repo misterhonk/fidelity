@@ -112,6 +112,7 @@ describe('database schema', () => {
       'dealers',
       'digs',
       'feedback',
+      'fieldValues',
       'horizon',
       'matches',
       'meta',

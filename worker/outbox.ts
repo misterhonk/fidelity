@@ -46,6 +46,32 @@ const KINDS: Record<OutboxKind, JobKind> = {
       if (record) await db.put('collection', { ...record, rating })
     },
   },
+
+  'collection.field': {
+    send: async (client, job, username) => {
+      const { releaseId, folderId, instanceId, fieldId, value } = job.payload as {
+        releaseId: number
+        folderId: number
+        instanceId: number
+        fieldId: number
+        value: string
+      }
+      await client.write(
+        'POST',
+        `/users/${encodeURIComponent(username)}/collection/folders/${folderId}` +
+          `/releases/${releaseId}/instances/${instanceId}/fields/${fieldId}`,
+        // Setting a field to a value it already has is the same field with the
+        // same value, so an unreadable failure may simply be tried again.
+        { query: { value }, idempotent: true },
+      )
+    },
+    revert: async (job) => {
+      const { releaseId, fieldId } = job.payload as { releaseId: number; fieldId: number }
+      const { value } = job.revert as { value: string }
+      const { writeFieldValue } = await import('~~/db/fields')
+      await writeFieldValue(releaseId, fieldId, value)
+    },
+  },
 }
 
 export interface DrainResult {
