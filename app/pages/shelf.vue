@@ -138,6 +138,43 @@ const open = ref<number | null>(null)
     </p>
 
     <template v-else>
+      <!--
+        Two rows, and they answer two different things.
+
+        This one is the state of the shelf: how many records there are, and
+        how long ago the app and Discogs last agreed. Nothing here changes
+        what is shown — the count is the answer somebody arrives with, and the
+        sync is housekeeping, so it sits where the eye stops.
+      -->
+      <div class="flex flex-wrap items-center gap-3">
+        <p class="fid-num shrink-0 text-fid-sm text-fid-text-muted">
+          {{
+            c.shelfCount(
+              count(view.total),
+              view.total !== view.collection ? count(view.collection) : null,
+              c.records,
+            )
+          }}
+        </p>
+
+        <p class="ml-auto flex shrink-0 items-center gap-3 text-fid-sm text-fid-text-muted">
+          <span v-if="readFullyAt">{{ c.shelf.readFully(since(readFullyAt)) }}</span>
+          <button
+            type="button"
+            class="fid-lift min-h-11 rounded-fid-sm border border-fid-field px-3 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+            :disabled="rereading"
+            @click="reread()"
+          >
+            {{ rereading ? c.shelf.rereading : c.shelf.reread }}
+          </button>
+        </p>
+      </div>
+
+      <!--
+        And this one is the controls: what to look for, and in which order.
+        Together on a line of their own, because they are used together and
+        nothing else on the screen is used with them.
+      -->
       <div class="flex flex-wrap items-center gap-3">
         <input
           v-model="query"
@@ -178,28 +215,6 @@ const open = ref<number | null>(null)
             }}</span>
           </button>
         </nav>
-
-        <p class="flex shrink-0 items-center gap-3 text-fid-sm text-fid-text-muted">
-          <span v-if="readFullyAt">{{ c.shelf.readFully(since(readFullyAt)) }}</span>
-          <button
-            type="button"
-            class="fid-lift min-h-11 rounded-fid-sm border border-fid-field px-3 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
-            :disabled="rereading"
-            @click="reread()"
-          >
-            {{ rereading ? c.shelf.rereading : c.shelf.reread }}
-          </button>
-        </p>
-
-        <p class="fid-num shrink-0 text-fid-sm text-fid-text-muted">
-          {{
-            c.shelfCount(
-              count(view.total),
-              view.total !== view.collection ? count(view.collection) : null,
-              c.records,
-            )
-          }}
-        </p>
       </div>
 
       <p v-if="view.records.length === 0" class="text-fid-base text-fid-text-muted">
