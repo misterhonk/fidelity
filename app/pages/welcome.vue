@@ -7,7 +7,15 @@ import { useWelcomeMessages } from '~/i18n/welcome'
 
 const c = useCollectionMessages()
 const w = useWelcomeMessages()
-useSeoMeta({ title: () => w.value.title, description: () => w.value.description })
+/*
+ * No title of its own, on purpose.
+ *
+ * This is the page somebody is on when they add the app to their home screen,
+ * and iOS reads the document title to name the icon. "Fidelity · Welcome"
+ * would be a two-word name for a one-word app. The description still says
+ * what the screen is for, to anything that reads descriptions.
+ */
+useSeoMeta({ description: () => w.value.description })
 
 /**
  * The setup, once, from front to back.

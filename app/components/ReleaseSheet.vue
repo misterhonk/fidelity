@@ -190,13 +190,13 @@ function onKeydown(event: KeyboardEvent) {
             :srcset="
               cover.coverUrl ? `${cover.thumbUrl} 150w, ${cover.coverUrl} 600w` : undefined
             "
-            sizes="(min-width: 40rem) 96px, 100vw"
+            sizes="(min-width: 64rem) 224px, (min-width: 40rem) 176px, 100vw"
             alt=""
             loading="lazy"
             decoding="async"
             width="600"
             height="600"
-            class="aspect-square w-full rounded-fid-cover bg-fid-inset object-cover sm:size-24 sm:w-24 sm:shrink-0"
+            class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-44 sm:w-44 lg:size-56 lg:w-56"
           />
           <div class="flex min-w-0 grow items-start gap-4">
             <div class="flex min-w-0 grow flex-col gap-1">

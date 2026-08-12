@@ -19,7 +19,14 @@ test.describe('smoke', () => {
      * /welcome — it was reading the title of a page on its way out.
      */
     await expect(page).toHaveURL(/\/welcome$/)
-    await expect(page).toHaveTitle('Welcome · Fidelity')
+    /*
+     * The bare name, and that is the point of it.
+     *
+     * This is the page somebody is on when they add the app to their home
+     * screen, and iOS names the icon from the document title. Anything after
+     * "Fidelity" here ends up on somebody's phone.
+     */
+    await expect(page).toHaveTitle('Fidelity')
     await expect(page.getByRole('heading', { level: 1, name: 'Fidelity' })).toBeVisible()
 
     /*
@@ -282,4 +289,28 @@ test.describe('target size', () => {
       expect(small).toEqual([])
     })
   }
+})
+
+/*
+ * What an installed icon ends up called.
+ *
+ * Somebody added the app to their home screen and got "Willkommen · Fidelity"
+ * — iOS reads `apple-mobile-web-app-title` and falls back to the document
+ * title, and neither said the plain name. The manifest was already right,
+ * which is exactly why this needs its own test: the thing that was wrong was
+ * the thing nobody had written down.
+ */
+test('says what the app is called, in the two places an install reads', async ({ page }) => {
+  await page.goto('/welcome')
+
+  await expect(page.locator('meta[name="apple-mobile-web-app-title"]')).toHaveAttribute(
+    'content',
+    'Fidelity',
+  )
+  await expect(page).toHaveTitle('Fidelity')
+
+  // Every other screen keeps the name in front, so a truncated title still
+  // says which app it belongs to.
+  await page.goto('/settings/appearance')
+  await expect(page).toHaveTitle(/^Fidelity · /)
 })

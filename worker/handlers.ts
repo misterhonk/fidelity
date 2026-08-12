@@ -546,6 +546,13 @@ export const handlers: HandlerMap = {
     return unwantRecord(releaseId)
   },
 
+  'outbox.flush': async () => {
+    const identity = await currentIdentity()
+    if (!identity) return { sent: 0, givenUp: 0, waiting: 0 }
+    const { drainOutbox } = await import('./outbox')
+    return drainOutbox(discogs(), identity.username)
+  },
+
   'collection.folders': async () => {
     const { knownFolders } = await import('./collection/folders')
     return knownFolders()

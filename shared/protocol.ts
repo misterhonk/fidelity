@@ -15,6 +15,7 @@
  */
 import type { CoverProgress } from '~~/worker/covers'
 import type { KeeperResult } from '~~/worker/keeper'
+import type { DrainResult } from '~~/worker/outbox'
 import type { DemoProgress, DemoResult } from '~~/worker/demo'
 import type {
   BasketPlan,
@@ -225,6 +226,15 @@ export interface WorkerContract {
     progress: never
     result: boolean
   }
+  /**
+   * Sends what is waiting, now.
+   *
+   * The keeper drains the outbox too, but on its own clock — twenty minutes,
+   * which is fine for "did anything change over there" and absurd for "the
+   * thing I just did". This is the nudge a change gives on its way out, and
+   * it touches nothing else: no sync, no watchlist, no horizon.
+   */
+  'outbox.flush': { params: undefined; progress: never; result: DrainResult }
   /** The folders this collection is divided into. Empty before the first sync. */
   'collection.folders': { params: undefined; progress: never; result: CollectionFolder[] }
   /** Moves one copy into another folder. */

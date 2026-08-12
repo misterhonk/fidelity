@@ -103,21 +103,22 @@ export default defineNuxtConfig({
 
     head: {
       /*
-       * Ein Titel, der schon im ausgelieferten HTML steht.
+       * A title that is already in the HTML as delivered.
        *
-       * Es gab keinen: der Titel wurde ausschließlich zur Laufzeit gesetzt, und
-       * das vorgerenderte HTML trug kein `<title>`-Element — gemessen am
-       * 2026-08-11 gegen den lokalen Build *und* gegen die ausgelieferte Seite.
+       * There was none: the title was set at runtime only, and the prerendered
+       * HTML carried no `<title>` at all — measured on 2026-08-11 against the
+       * local build *and* against the deployed page. Two things read exactly
+       * that static HTML: "Add to Home Screen", and every link preview.
        *
-       * Zwei Dinge lesen aber genau dieses statische HTML: „Zum
-       * Home-Bildschirm" und jeder Link-Vorschau-Dienst. Safari nahm deshalb
-       * den Titel, den die App im Moment des Hinzufügens gerade trug —
-       * „Willkommen · Fidelity", weil die Willkommensseite offen war.
+       * It says the bare name, and that is the whole point of it. Safari names
+       * an installed icon from this, and the tagline it used to say became an
+       * app called "Fidelity — the clerk behind the counter, for Discogs" on
+       * somebody's phone. The tagline still reaches link previews through
+       * og:title and twitter:title below, where a sentence belongs.
        *
-       * Die Seiten überschreiben ihn zur Laufzeit weiterhin; dies ist der
-       * Stand, bevor eine davon dazu kommt.
+       * Pages override it at runtime; this is the state before one does.
        */
-      title: SHARE.title,
+      title: 'Fidelity',
 
       meta: [
         // Nothing here is meant for a search index (docs/00 §9). robots.txt
@@ -160,6 +161,15 @@ export default defineNuxtConfig({
          * Beide, weil der eine ohne den anderen auf je einer Plattform nichts
          * tut.
          */
+        /*
+         * What the icon on a home screen is called.
+         *
+         * iOS asks this first and falls back to the document title, which is
+         * how somebody ended up with an app called "Willkommen · Fidelity".
+         * The manifest says the same thing for everyone else; this is the one
+         * Safari reads.
+         */
+        { name: 'apple-mobile-web-app-title', content: 'Fidelity' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'mobile-web-app-capable', content: 'yes' },
 

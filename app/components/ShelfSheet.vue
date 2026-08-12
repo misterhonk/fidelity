@@ -9,6 +9,7 @@ const props = defineProps<{ instanceId: number }>()
 const emit = defineEmits<{ close: [] }>()
 
 const { call } = useFidelityWorker()
+const { state: writeState, push } = useWriteBack()
 
 const record = ref<CollectionItem | null>(null)
 const panel = useTemplateRef<HTMLElement>('panel')
@@ -36,10 +37,11 @@ async function rate(stars: number) {
   const next = item.rating === stars ? 0 : stars
   record.value = { ...item, rating: next }
 
-  const written = await call('collection.rate', { instanceId: item.instanceId, rating: next })
-  // The worker refused: put the sheet back rather than show a rating that is
-  // nowhere. It only happens for a record with no entry, which is why the
-  // stars are not offered in that case at all — this is the second net.
+  // The worker refuses a copy with no entry behind it — which is why the stars
+  // are not offered in that case at all. This is the second net.
+  const written = await push(() =>
+    call('collection.rate', { instanceId: item.instanceId, rating: next }),
+  )
   if (!written) record.value = item
 }
 
@@ -69,7 +71,7 @@ async function move(folderId: number) {
 
   const before = item.folderId
   record.value = { ...item, folderId }
-  if (!(await call('collection.move', { instanceId: item.instanceId, folderId }))) {
+  if (!(await push(() => call('collection.move', { instanceId: item.instanceId, folderId })))) {
     record.value = { ...item, folderId: before }
   }
 }
@@ -81,11 +83,9 @@ async function setField(field: CollectionField, value: string) {
   const before = values.value[field.id] ?? ''
   values.value = { ...values.value, [field.id]: value }
 
-  const written = await call('collection.setField', {
-    instanceId: props.instanceId,
-    fieldId: field.id,
-    value,
-  })
+  const written = await push(() =>
+    call('collection.setField', { instanceId: props.instanceId, fieldId: field.id, value }),
+  )
   if (!written) values.value = { ...values.value, [field.id]: before }
 }
 
@@ -156,7 +156,7 @@ const tags = computed(() => {
 const confirming = ref(false)
 
 async function remove() {
-  if (!(await call('collection.remove', { instanceId: props.instanceId }))) {
+  if (!(await push(() => call('collection.remove', { instanceId: props.instanceId })))) {
     confirming.value = false
     return
   }
@@ -200,6 +200,34 @@ function onKeydown(event: KeyboardEvent) {
       </div>
 
       <template v-if="record">
+        <!--
+          What became of the last change, in one line.
+
+          A change lands here first and travels to Discogs afterwards, which is
+          what makes a star light up the moment it is tapped. The price of that
+          is two different moments — "it looks changed" and "Discogs knows" —
+          and until now the screen only ever showed the first. Somebody rated a
+          record, looked at discogs.com, and found nothing there.
+        -->
+        <p
+          v-if="writeState !== 'idle'"
+          role="status"
+          class="flex items-center gap-2 rounded-fid-sm px-3 py-2 text-fid-sm"
+          :class="
+            writeState === 'failed'
+              ? 'bg-fid-sig-scarcity/10 text-fid-sig-scarcity'
+              : 'bg-fid-surface-raised text-fid-text-muted'
+          "
+        >
+          <FidIcon
+            v-if="writeState === 'sent'"
+            name="check"
+            :size="14"
+            class="shrink-0 text-fid-sig-price"
+          />
+          {{ c.shelf.sheet.write[writeState] }}
+        </p>
+
         <!-- Same shape as the dig sheet: cover on top on a phone, beside from `sm` up. -->
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
           <img
@@ -210,13 +238,13 @@ function onKeydown(event: KeyboardEvent) {
                 ? `${record.thumbUrl} 150w, ${record.coverUrl} 600w`
                 : undefined
             "
-            sizes="(min-width: 40rem) 96px, 100vw"
+            sizes="(min-width: 64rem) 224px, (min-width: 40rem) 176px, 100vw"
             alt=""
             loading="lazy"
             decoding="async"
             width="600"
             height="600"
-            class="aspect-square w-full rounded-fid-cover bg-fid-inset object-cover sm:size-24 sm:w-24 sm:shrink-0"
+            class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-44 sm:w-44 lg:size-56 lg:w-56"
           />
           <dl class="grid min-w-0 grow grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-fid-sm">
             <!--
@@ -366,7 +394,17 @@ function onKeydown(event: KeyboardEvent) {
           >
             {{ c.shelf.sheet.remove }}
           </button>
-          <div v-else-if="confirming" class="ml-auto flex items-center gap-2">
+          <!--
+            Deleting is the one thing here that reaches into a real account and
+            cannot be undone from this app — Discogs does not hand back what it
+            never deleted. So it says what will happen, in a colour that is
+            used nowhere else on this screen, and the confirming button is not
+            where the first one was.
+          -->
+          <div
+            v-else-if="confirming"
+            class="flex w-full flex-wrap items-center gap-3 rounded-fid-sm border border-fid-sig-scarcity bg-fid-sig-scarcity/10 px-3 py-2"
+          >
             <span class="text-fid-sm text-fid-text">{{ c.shelf.sheet.removeSure }}</span>
             <button
               type="button"

@@ -20,19 +20,30 @@ const themeColor = computed(() => THEME_COLORS[resolved.value])
  */
 const { current: language } = useLanguage()
 
-/** What a bare tab says before any page has claimed it. */
-const SHARE_TITLE = 'Fidelity — a buying advisor for Discogs'
+/** What the app is called, wherever a name is what is being asked for. */
+const NAME = 'Fidelity'
 
 useHead({
   /*
-   * "Dig · Fidelity" says which app; it does not say what the screen is for.
-   * A tab strip of six of those is six identical suffixes and one word each —
-   * and a browser truncates from the right, so the suffix is what survives.
+   * The name first, and on the welcome screen the name alone.
    *
-   * So the page hands over a sentence and this puts the name behind it. Where
-   * a screen has nothing more to say than its name, it stays as it was.
+   * Not a typographic preference — it is what "Add to Home Screen" reads.
+   * iOS takes the document title of the page it is invited from, so a title
+   * ending in the app name gave people an icon labelled "Willkommen" and a
+   * suffix nobody would recognise. `apple-mobile-web-app-title` in
+   * nuxt.config now answers that question outright, and this makes the
+   * fallback answer the same thing.
+   *
+   * The cost is real and accepted: a tab strip of six screens now shares a
+   * prefix, and a browser truncating from the right cuts the part that says
+   * which screen it is. An app installed under the wrong name is worse than
+   * a crowded tab strip.
    */
-  titleTemplate: (title?: string) => (title ? `${title} · Fidelity` : SHARE_TITLE),
+  titleTemplate: (title?: string) =>
+    // The static title in nuxt.config is the bare name, so that an install
+    // reading the delivered HTML finds it. Without this it would arrive here
+    // like any page title and come back out as "Fidelity · Fidelity".
+    !title || title === NAME ? NAME : `${NAME} · ${title}`,
   htmlAttrs: { lang: language },
   meta: [{ name: 'theme-color', content: themeColor }],
   /*

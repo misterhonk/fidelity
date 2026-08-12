@@ -54,7 +54,7 @@ test.describe('English is what somebody gets who has not said otherwise', () => 
     await page.goto('/settings/appearance')
 
     await expect(page.getByRole('heading', { level: 1, name: 'Appearance' })).toBeVisible()
-    await expect(page).toHaveTitle('Appearance · Fidelity')
+    await expect(page).toHaveTitle('Fidelity · Appearance')
     await expect(page.locator('html')).toHaveAttribute('lang', 'en')
   })
 })
