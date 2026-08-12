@@ -389,6 +389,22 @@ zur Sammlung – ein Parser reicht für beides.
 
 ---
 
+### `ships_from` ist ein englischer Ländername, kein Code
+
+Gemessen am 2026-08-12 an zwei Läden: `fatplastics` → `"Germany"`,
+`juno_records` → `"United Kingdom"`. Keine ISO-Codes, keine Kürzel, und
+**„United Kingdom"**, nicht „UK" und nicht „Great Britain".
+
+Für einen Länderfilter heißt das: verglichen und gespeichert wird die
+**englische Schreibweise, wie Discogs sie schreibt**. Eine ISO-Liste taugt als
+Quelle für die Auswahl, aber ihre Codes dürfen nicht das sein, was am Ende
+gegen `ships_from` geprüft wird — sonst bietet die Oberfläche Länder an, die
+der Abgleich nie wiedererkennt.
+
+Stichprobe von zwei. Wer die Liste baut, prüft die Schreibweise der Länder,
+die er aufnimmt, gegen echte Inventarzeilen — vor allem die mit mehreren
+gängigen Namen (USA/United States, Südkorea, Tschechien).
+
 ### ⚠️⚠️ Es gibt kein Änderungsdatum — nirgends
 
 Eine Sammlungszeile trägt genau das:
