@@ -96,3 +96,63 @@ test.describe('the service worker', () => {
     expect(cached).toBe(true)
   })
 })
+
+/**
+ * A push, delivered the way a real one arrives.
+ *
+ * Chromium can hand a worker a push message over the debugging protocol, which
+ * is the same door the push service uses: no hub, no VAPID, and still the
+ * actual `push` listener in `app/sw/sw.ts`.
+ *
+ * It only runs in a **headed** browser, and that is not fussiness. Measured on
+ * 2026-08-12: headless Chromium reports `Notification.permission` as `denied`
+ * however the permission is granted, and `showNotification` throws. A headed
+ * one grants it and shows the notification. So CI skips this and says why —
+ * what it would have checked about the wording is checked without a browser at
+ * all, in `tests/unit/notify.spec.ts`.
+ *
+ *     pnpm exec playwright test --project=chromium --headed
+ */
+test.describe('a push arriving', () => {
+  test.skip(({ browserName }) => browserName !== 'chromium', 'No push delivery in WebKit')
+
+  test('becomes a notification naming the shop', async ({ page, context }) => {
+    test.skip(!(await underServiceWorker(page, '/')), 'No service worker in this browser')
+    await context.grantPermissions(['notifications'], { origin: new URL(page.url()).origin })
+    test.skip(
+      (await page.evaluate(() => Notification.permission)) !== 'granted',
+      'A headless browser will not show a notification — run with --headed',
+    )
+
+    const cdp = await context.newCDPSession(page)
+
+    // The registration id arrives on an event rather than from a call, so the
+    // listener has to be in place before the domain is switched on.
+    const registered = new Promise<string>((resolve) => {
+      cdp.on('ServiceWorker.workerRegistrationUpdated', (event) => {
+        const found = event.registrations.find((entry) => !entry.isDeleted)
+        if (found) resolve(found.registrationId)
+      })
+    })
+    await cdp.send('ServiceWorker.enable')
+
+    await cdp.send('ServiceWorker.deliverPushMessage', {
+      origin: new URL(page.url()).origin,
+      registrationId: await registered,
+      data: JSON.stringify({ dealer: 'plattenladen', newListings: 12, seenAt: 0 }),
+    })
+
+    const shown = await page.evaluate(async () => {
+      const registration = await navigator.serviceWorker.ready
+      for (let attempt = 0; attempt < 40; attempt++) {
+        const [first] = await registration.getNotifications()
+        if (first) return { title: first.title, body: first.body }
+        await new Promise((done) => setTimeout(done, 100))
+      }
+      return null
+    })
+
+    expect(shown?.title).toBe('plattenladen')
+    expect(shown?.body).toBe('12 listings more on offer than last time.')
+  })
+})

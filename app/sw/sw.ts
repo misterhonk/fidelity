@@ -9,6 +9,8 @@ import {
 import { NavigationRoute, registerRoute } from 'workbox-routing'
 import { CacheFirst } from 'workbox-strategies'
 
+import { watchNotice } from '../../shared/notify'
+
 /**
  * Fidelity's service worker.
  *
@@ -17,14 +19,17 @@ import { CacheFirst } from 'workbox-strategies'
  * something the config has no word for. Push is that moment — a notification
  * arrives when no tab is open, and only code inside the worker can answer it.
  *
- * So this is that generated worker, written out by hand and doing the same
- * three things it did. Nothing new happens here yet, and that is the point:
- * the file that later grows a `push` listener should first be one whose
- * behaviour is already known and already tested.
+ * It started as that generated worker written out by hand, doing exactly the
+ * three things it did, so that the file which then grew a `push` listener was
+ * one whose behaviour was already known and already tested. It has since grown
+ * that listener, and the notification the hub asks for.
  *
  * The acceptance is `tests/e2e/offline.spec.ts` and
- * `tests/e2e/service-worker.spec.ts` — four tests over the built output, which
- * is the only place a service worker exists at all.
+ * `tests/e2e/service-worker.spec.ts` — over the built output, which is the only
+ * place a service worker exists at all. The one thing those cannot reach is the
+ * notification itself: a headless browser refuses to show one (measured
+ * 2026-08-12), so the wording lives in `shared/notify.ts` with unit tests, and
+ * only the wiring is left here.
  */
 
 declare const self: ServiceWorkerGlobalScope & {
@@ -94,36 +99,22 @@ self.addEventListener('push', (event: PushEvent) => {
   event.waitUntil(announce(event.data?.json() as unknown))
 })
 
-interface WatchPush {
-  dealer: string
-  newListings: number
-}
-
-function isWatchPush(data: unknown): data is WatchPush {
-  const push = data as Partial<WatchPush> | null
-  return typeof push?.dealer === 'string' && typeof push?.newListings === 'number'
-}
-
 async function announce(data: unknown): Promise<void> {
-  // A push this worker does not understand is not shown. Every platform
-  // requires *something* to be displayed, so an empty notification would be
-  // the alternative — and that is worse than a buzz with nothing behind it.
-  if (!isWatchPush(data)) return
+  // The wording, and the decision not to show anything at all, live in
+  // `shared/notify.ts` — a notification is the one thing here a headless
+  // browser refuses to show, so the sentence is testable where a browser is
+  // not needed. Null means: not ours, and better silent than an empty buzz.
+  const notice = watchNotice(data, await language())
+  if (!notice) return
 
-  const german = (await language()) === 'de'
-  const one = data.newListings === 1
-  const listings = german
-    ? `${one ? 'Listing' : 'Listings'} mehr im Angebot als beim letzten Mal`
-    : `${one ? 'listing' : 'listings'} more on offer than last time`
-
-  await self.registration.showNotification(data.dealer, {
-    body: `${data.newListings} ${listings}.`,
+  await self.registration.showNotification(notice.title, {
+    body: notice.body,
     icon: new URL('icons/icon-192.png', self.registration.scope).href,
     badge: new URL('icons/icon-192.png', self.registration.scope).href,
     // One notification per shop: two rounds an hour apart should replace each
     // other, not stack into a column of near-identical lines.
-    tag: `watch:${data.dealer}`,
-    data: { dealer: data.dealer },
+    tag: `watch:${notice.title}`,
+    data: { dealer: notice.title },
   })
 }
 
