@@ -9,6 +9,21 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.14.0](https://github.com/misterhonk/fidelity/compare/v0.13.0...v0.14.0) (2026-08-12)
+
+
+### Added
+
+* **pwa:** write the service worker, instead of having it written ([10492f9](https://github.com/misterhonk/fidelity/commit/10492f931a4c0899d9b96b9c5b9bae131920c0cd))
+* **ui:** pick the countries a dig should skip, instead of spelling them ([b244329](https://github.com/misterhonk/fidelity/commit/b244329bcb6a5886ed8d5b461eef28182c681bb1))
+
+
+### Fixed
+
+* **deps:** serve the fonts from this repository, not from Google ([438d735](https://github.com/misterhonk/fidelity/commit/438d735c674da95ddd3cbf77ccc9a4f2206744b1))
+* **i18n:** the home screen counted records in German on the English build ([c73237e](https://github.com/misterhonk/fidelity/commit/c73237e73b70f8df90d7fcc84065debd3019ff10))
+* **pwa:** register the cover cache, which the worker never reached ([d55d6a1](https://github.com/misterhonk/fidelity/commit/d55d6a19bbcf56f95a45f14ffeab38338c6a4a40))
+
 ## [0.13.0](https://github.com/misterhonk/fidelity/compare/v0.12.0...v0.13.0) (2026-08-12)
 
 
