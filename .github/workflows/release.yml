@@ -16,17 +16,78 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Legt das Release an — und beantwortet danach getrennt davon die Frage,
+  # von der alles Weitere abhängt.
   release-please:
     runs-on: ubuntu-latest
     outputs:
-      released: ${{ steps.release.outputs.release_created }}
-      tag: ${{ steps.release.outputs.tag_name }}
+      ship: ${{ steps.pending.outputs.ship }}
+      tag: ${{ steps.pending.outputs.tag }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
+
+      # `continue-on-error`, und das ist der ganze Punkt dieser Datei.
+      #
+      # Am 2026-08-12 hat diese Action das Release 0.16.0 **angelegt** — Tag,
+      # GitHub-Release, Kommentar am PR — und ist danach beim Aufräumen der
+      # Labels ausgestiegen, mit leerer Meldung: `release-please failed:` und
+      # nichts dahinter. Ein gescheiterter Job hat keine Outputs, also wurden
+      # `site`, `images` und `deploy` alle übersprungen: Tag und Release
+      # standen, es gab kein Zip, keine Images, und die Seite lief weiter auf
+      # der Vorversion. Das einzige Signal war ein rotes Kreuz an einem
+      # Ablauf, der scheinbar nur beim Labeln gescheitert war.
+      #
+      # Ein zweiter Anlauf half nicht: die Action sieht das Release dann als
+      # vorhanden und meldet `release_created: false`.
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         id: release
+        continue-on-error: true
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+      # Laut, aber nicht tödlich. Der Schritt darunter sieht selbst nach.
+      - if: steps.release.outcome == 'failure'
+        run: |
+          echo "::warning title=release-please ist ausgestiegen::Der Ablauf prüft jetzt selbst, ob ein Release ausgeliefert werden muss."
+
+      # Die richtige Frage.
+      #
+      # Nicht „hat release-please gerade etwas angelegt" — das ist eine Frage
+      # über den Zustand einer Action — sondern „gibt es ein Release, das noch
+      # nicht ausgeliefert ist". Die Antwort steht in der Welt und nicht in
+      # einem Job-Output: die Version im Manifest, das Release dazu, und das
+      # Zip daran als Beleg, dass der Rest schon gelaufen ist.
+      #
+      # Damit ist der Ablauf auch wiederholbar. Ein halb durchgelaufener
+      # Release wird beim nächsten Push auf main fertig gemacht, und ein
+      # vollständiger löst nichts aus, egal wie oft dieser Ablauf noch läuft.
+      - name: Steht ein Release aus?
+        id: pending
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="$(jq -r '.["."]' .release-please-manifest.json)"
+          tag="v${version}"
+          zip="fidelity-${tag}.zip"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+          if ! gh release view "$tag" --json tagName >/dev/null 2>&1; then
+            echo "Kein Release für ${tag}. Nichts auszuliefern."
+            echo "ship=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Das Zip ist der Beleg: es entsteht im `site`-Job und in keinem
+          # anderen. Liegt es am Release, ist dieser Stand ausgeliefert.
+          if gh release view "$tag" --json assets --jq '.assets[].name' | grep -qxF "$zip"; then
+            echo "${tag} ist bereits ausgeliefert."
+            echo "ship=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "${tag} ist angelegt, aber ${zip} fehlt — ausliefern."
+            echo "ship=true" >> "$GITHUB_OUTPUT"
+          fi
 
   # Die fertige Seite an das Release hängen.
   #
@@ -35,10 +96,11 @@ jobs:
   # installieren, pnpm besorgen, tausend Pakete holen, bauen — für eine App,
   # die am Ende aus Dateien besteht, die man hochlädt.
   #
-  # Läuft nur, wenn release-please gerade wirklich ein Release angelegt hat.
+  # Läuft, solange ein Release existiert, an dem dieses Zip noch fehlt — und
+  # danach nie wieder, weil das Zip dann daran hängt.
   site:
     needs: release-please
-    if: needs.release-please.outputs.released == 'true'
+    if: needs.release-please.outputs.ship == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
@@ -81,7 +143,7 @@ jobs:
   # Begründung in images.yml. Deshalb werden sie hier aufgerufen.
   images:
     needs: release-please
-    if: needs.release-please.outputs.released == 'true'
+    if: needs.release-please.outputs.ship == 'true'
     permissions:
       contents: read
       packages: write
@@ -91,7 +153,7 @@ jobs:
 
   deploy:
     needs: release-please
-    if: needs.release-please.outputs.released == 'true'
+    if: needs.release-please.outputs.ship == 'true'
     permissions:
       contents: read
     uses: ./.github/workflows/deploy.yml

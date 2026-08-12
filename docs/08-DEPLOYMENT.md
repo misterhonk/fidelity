@@ -240,6 +240,35 @@ Kein Build-Secret nötig – die App hat kein Consumer Secret, weil sie kein OAu
 **Rollback:** vorherigen Tag auschecken, `pnpm build`, rsync. Oder direkt aus dem
 Actions-Artefakt des letzten grünen Builds.
 
+### Wenn ein Release nur halb durchläuft
+
+Passiert am 2026-08-12 mit 0.16.0: `release-please` hat das Release **angelegt** und ist
+danach beim Aufräumen der Labels ausgestiegen. Weil `site`, `images` und `deploy` an einem
+Output dieses Jobs hingen, wurden alle drei übersprungen — Tag und Release standen, es gab
+kein Zip, keine Images, und die Seite lief weiter auf der Vorversion.
+
+**Seitdem repariert sich das von selbst.** Der Ablauf fragt nicht mehr „hat release-please
+gerade etwas angelegt", sondern „gibt es ein Release, an dem das Zip fehlt" — und das Zip
+ist der Beleg, dass der Rest gelaufen ist. Ein halber Release wird also beim nächsten Push
+auf `main` fertig gemacht, und ein vollständiger löst nie wieder etwas aus.
+
+Wer trotzdem von Hand nachziehen muss:
+
+```bash
+# 1. Das Zip, so wie der site-Job es baut — vom Tag, nicht vom Arbeitsstand.
+git checkout v0.16.0 && pnpm install --frozen-lockfile && pnpm build
+sed "s|__FIDELITY_BASE__|/|" deploy/.htaccess > .output/public/.htaccess
+cp deploy/LIESMICH.txt .output/public/LIESMICH.txt
+(cd .output/public && zip -qr ../../fidelity-v0.16.0.zip . -x '.DS_Store')
+gh release upload v0.16.0 fidelity-v0.16.0.zip --clobber
+
+# 2. Images und Deploy. **Immer mit --ref auf dem Tag**: ohne den greift bei
+#    den Images nur ein SHA-Tag, also weder 0.16.0 noch latest.
+gh workflow run images.yml --ref v0.16.0
+gh workflow run deploy.yml --ref v0.16.0 -f dry_run=true   # erst prüfen
+gh workflow run deploy.yml --ref v0.16.0 -f dry_run=false  # dann wirklich
+```
+
 > ⚠️ **Service-Worker-Fallstrick:** Nach einem Deploy laufen alte Clients weiter, bis der
 > SW aktualisiert. `@vite-pwa/nuxt` mit `registerType: 'prompt'` konfigurieren und dem
 > Nutzer ein „Neue Version verfügbar – neu laden" anbieten. **Kein `skipWaiting` ohne

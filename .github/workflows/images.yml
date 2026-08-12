@@ -27,8 +27,21 @@ on:
   # Ein von Hand gepushter Tag löst dagegen sehr wohl aus.
   push:
     tags: ['v*']
-  # Und von Hand, um vor einem Release zu prüfen, dass beide Images bauen.
+  # Und von Hand: um vor einem Release zu prüfen, dass beide Images bauen —
+  # oder um nach einem halb durchgelaufenen Release nachzuziehen.
+  #
+  # Die Version ist dabei nicht optional-nett, sondern der Unterschied zwischen
+  # brauchbaren und nutzlosen Images. Ohne sie und auf einem Branch greift von
+  # den Regeln unten nur `type=sha`: kein `0.16.0`, kein `latest`. Am
+  # 2026-08-12 genau so passiert — von Hand gestartet, zwei Images gebaut, und
+  # kein Mensch hätte sie ziehen können. Wer nachzieht, gibt hier den Tag an
+  # (oder startet den Ablauf gleich auf dem Tag).
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versions-Tag, z. B. v0.16.0 — leer lassen heißt: nur ein Probelauf'
+        required: false
+        type: string
 
 permissions:
   contents: read
