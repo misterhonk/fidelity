@@ -1,5 +1,6 @@
 import { dropJob, noteFailure, pendingJobs } from '~~/db/outbox'
 import { openFidelityDb } from '~~/db/open'
+import { DiscogsError } from './discogs/errors'
 import type { OutboxJob, OutboxKind } from '~~/db/schema'
 import type { DiscogsClient } from './discogs/client'
 
@@ -18,6 +19,15 @@ interface JobKind {
   send: (client: DiscogsClient, job: OutboxJob, username: string) => Promise<void>
   /** Put the old value back locally, after the job has been given up on. */
   revert: (job: OutboxJob) => Promise<void>
+  /**
+   * Only for a job that must not be repeated: has it already happened?
+   *
+   * Asked before every attempt but the first. A write whose answer never got
+   * back through CORS looks exactly like one that never arrived, so a job that
+   * files something new has to go and look instead of guessing — otherwise the
+   * retry puts the same record in the shelf a second time.
+   */
+  alreadyDone?: (client: DiscogsClient, job: OutboxJob, username: string) => Promise<boolean>
 }
 
 const KINDS: Record<OutboxKind, JobKind> = {
@@ -72,6 +82,68 @@ const KINDS: Record<OutboxKind, JobKind> = {
       await writeFieldValue(releaseId, fieldId, value)
     },
   },
+
+  'collection.remove': {
+    send: async (client, job, username) => {
+      const { releaseId, folderId, instanceId } = job.payload as {
+        releaseId: number
+        folderId: number
+        instanceId: number
+      }
+      try {
+        await client.write(
+          'DELETE',
+          `/users/${encodeURIComponent(username)}/collection/folders/${folderId}` +
+            `/releases/${releaseId}/instances/${instanceId}`,
+          // Deleting what is already gone is the state we wanted either way.
+          { idempotent: true },
+        )
+      } catch (error) {
+        // 404 means somebody — this app on another device, or Discogs' own
+        // site — got there first. That is the outcome, not a failure.
+        if (error instanceof DiscogsError && error.status === 404) return
+        throw error
+      }
+    },
+    revert: async (job) => {
+      // Put the record back on the shelf exactly as it was taken off.
+      const { restoreRecord } = await import('./collection/remove')
+      await restoreRecord(job)
+    },
+  },
+
+  'collection.add': {
+    send: async (client, job, username) => {
+      const { releaseId } = job.payload as { releaseId: number }
+      await client.write(
+        'POST',
+        `/users/${encodeURIComponent(username)}/collection/folders/1/releases/${releaseId}`,
+        /*
+         * The one call in the app that files something new.
+         *
+         * Discogs creates another instance every time, so a blind retry after
+         * an unreadable failure puts the same record in the shelf twice —
+         * weeks later, with nothing to connect it to a network blip. Hence
+         * `alreadyDone` below, and hence this being false.
+         */
+        { idempotent: false },
+      )
+      // The record is over there now; let the same keeper round fetch it back
+      // properly rather than leaving a half-built row behind.
+      const { updateSyncState } = await import('~~/db/meta')
+      await updateSyncState({ collectionSyncedAt: 0 })
+    },
+    alreadyDone: async (client, job, username) => {
+      const { releaseId } = job.payload as { releaseId: number }
+      const { ownsRelease } = await import('./collection/add')
+      return ownsRelease(client, username, releaseId)
+    },
+    revert: async (job) => {
+      const { releaseId } = job.payload as { releaseId: number }
+      const db = await openFidelityDb()
+      await db.delete('collection', releaseId)
+    },
+  },
 }
 
 export interface DrainResult {
@@ -101,7 +173,15 @@ export async function drainOutbox(
 
   for (const [index, job] of jobs.entries()) {
     try {
-      await KINDS[job.kind].send(client, job, username)
+      const kind = KINDS[job.kind]
+      // Never on the first run: looking costs a paced request, and the first
+      // attempt has nothing to look for.
+      if (job.attempts > 0 && (await kind.alreadyDone?.(client, job, username))) {
+        await dropJob(job.id)
+        sent += 1
+        continue
+      }
+      await kind.send(client, job, username)
       await dropJob(job.id)
       sent += 1
     } catch (error) {

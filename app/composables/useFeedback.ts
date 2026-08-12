@@ -98,6 +98,22 @@ export function useFeedback() {
         current === verdict
           ? await call('feedback.clear', { listingId: match.listingId })
           : await call('feedback.set', { match: feedbackSubject(match), verdict })
+
+      /*
+       * "Bought" and "it is on my shelf now" are one thought.
+       *
+       * They used to be two: a note here, and a visit to Discogs that evening
+       * which half the time never happened — so the next dig went on offering
+       * a record already standing at home. The add is refused on its own when
+       * the record is already there, so this is safe to fire every time.
+       *
+       * Deliberately not awaited into the verdict: the note is saved either
+       * way, and a shelf that cannot be written to is not a reason to leave
+       * the button unlit.
+       */
+      if (verdict === 'bought' && current !== verdict) {
+        void call('collection.add', { digId: match.digId, listingId: match.listingId })
+      }
     } catch (cause) {
       // Back to what was actually saved. A button that stays lit after the
       // write failed is worse than one that never lit up.

@@ -177,7 +177,8 @@ export interface OutboxJob {
   lastError?: string
 }
 
-export type OutboxKind = 'collection.rating' | 'collection.field'
+export type OutboxKind =
+  'collection.rating' | 'collection.field' | 'collection.remove' | 'collection.add'
 
 export interface CoverEntry {
   releaseId: number

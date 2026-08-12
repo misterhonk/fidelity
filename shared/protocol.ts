@@ -223,6 +223,18 @@ export interface WorkerContract {
     progress: never
     result: boolean
   }
+  /** Takes a record off the shelf. Destructive — the screen asks first. */
+  'collection.remove': {
+    params: { releaseId: number }
+    progress: never
+    result: boolean
+  }
+  /** Puts a record you just bought on the shelf. False when it is already on it. */
+  'collection.add': {
+    params: { digId: string; listingId: number }
+    progress: never
+    result: boolean
+  }
   /** Recomputed after every sync; null until there has been one. */
   'taste.profile': { params: undefined; progress: never; result: TasteProfile | null }
 

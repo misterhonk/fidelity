@@ -122,6 +122,24 @@ const tags = computed(() => {
   return [...new Set([...item.genres, ...item.styles])]
 })
 
+/*
+ * Taking a record off the shelf — the one destructive thing here.
+ *
+ * Two taps, and the second one is a different button that has to be brought
+ * into being first. Not a browser confirm(): those get dismissed by reflex,
+ * and this one deletes something on somebody's real account. The record and
+ * its cover stay in front of you while you decide.
+ */
+const confirming = ref(false)
+
+async function remove() {
+  if (!(await call('collection.remove', { releaseId: props.releaseId }))) {
+    confirming.value = false
+    return
+  }
+  emit('close')
+}
+
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') emit('close')
 }
@@ -300,6 +318,32 @@ function onKeydown(event: KeyboardEvent) {
             {{ c.shelf.sheet.atDiscogs }}
             <FidIcon name="external-link" :size="14" />
           </a>
+
+          <button
+            v-if="canRate && !confirming"
+            type="button"
+            class="fid-lift ml-auto inline-flex min-h-11 items-center rounded-fid-sm px-3 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+            @click="confirming = true"
+          >
+            {{ c.shelf.sheet.remove }}
+          </button>
+          <div v-else-if="confirming" class="ml-auto flex items-center gap-2">
+            <span class="text-fid-sm text-fid-text">{{ c.shelf.sheet.removeSure }}</span>
+            <button
+              type="button"
+              class="fid-lift inline-flex min-h-11 items-center rounded-fid-sm border border-fid-field px-3 text-fid-sm text-fid-text"
+              @click="confirming = false"
+            >
+              {{ m.cancel }}
+            </button>
+            <button
+              type="button"
+              class="fid-lift inline-flex min-h-11 items-center rounded-fid-sm border border-fid-sig-scarcity px-3 text-fid-sm font-medium text-fid-sig-scarcity"
+              @click="remove()"
+            >
+              {{ c.shelf.sheet.removeYes }}
+            </button>
+          </div>
         </div>
       </template>
     </aside>

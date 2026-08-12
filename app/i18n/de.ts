@@ -295,6 +295,7 @@ const de: Messages = {
     numForSale: 'im Angebot',
   },
   close: 'Schließen',
+  cancel: 'Abbrechen',
   mainReleases: (n) => `${n} Hauptveröffentlichungen`,
 
   demo: {

@@ -528,6 +528,19 @@ export const handlers: HandlerMap = {
     return shelfView(params)
   },
 
+  'collection.remove': async ({ releaseId }) => {
+    const { removeRecord } = await import('./collection/remove')
+    return removeRecord(releaseId)
+  },
+
+  'collection.add': async ({ digId, listingId }) => {
+    const db = await openFidelityDb()
+    const match = await db.get('matches', [digId, listingId])
+    if (!match) return false
+    const { addRecord } = await import('./collection/add')
+    return addRecord(match)
+  },
+
   'collection.fields': async ({ releaseId }) => {
     const [{ collectionFields }, { fieldValuesFor }] = await Promise.all([
       import('./collection/fields'),

@@ -383,6 +383,7 @@ const en = {
     numForSale: 'for sale',
   },
   close: 'Close',
+  cancel: 'Cancel',
   mainReleases: (n: string) => `${n} main releases`,
 
   /** The demonstration, before anybody hands over a key. */
