@@ -30,7 +30,7 @@ import { underServiceWorker } from './support/service-worker'
 test.describe('the service worker', () => {
   test.skip(
     ({ browserName }) => browserName !== 'chromium',
-    'Playwright kann in WebKit weder offline navigieren noch Worker-Requests abfangen',
+    'Playwright can neither navigate offline nor intercept worker requests in WebKit',
   )
 
   /**
@@ -45,7 +45,7 @@ test.describe('the service worker', () => {
   test('opens an address the precache has never heard of', async ({ page, context }) => {
     test.skip(
       !(await underServiceWorker(page, '/in-store')),
-      'Kein Service Worker in diesem Browser',
+      'No service worker in this browser',
     )
 
     await context.setOffline(true)
@@ -77,7 +77,7 @@ test.describe('the service worker', () => {
       route.fulfill({ status: 200, contentType: 'image/png', body: 'cover' }),
     )
 
-    test.skip(!(await underServiceWorker(page, '/')), 'Kein Service Worker in diesem Browser')
+    test.skip(!(await underServiceWorker(page, '/')), 'No service worker in this browser')
 
     const cached = await page.evaluate(async () => {
       // `no-cors`, because that is how an <img> asks: the response comes back

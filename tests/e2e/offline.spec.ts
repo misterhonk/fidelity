@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 import { underServiceWorker } from './support/service-worker'
 
 /**
- * Die App startet ohne Netz.
+ * The app opens without a network.
  *
  * This is the promise the whole offline story rests on, and it has been broken
  * before: the service worker registered, cached nothing it was asked for, and
@@ -29,11 +29,11 @@ import { underServiceWorker } from './support/service-worker'
 test.describe('without a connection', () => {
   test.skip(
     ({ browserName }) => browserName !== 'chromium',
-    'Playwright kann in WebKit nicht offline neu laden',
+    'Playwright cannot reload offline in WebKit',
   )
 
   test('opens anyway, from what the service worker kept', async ({ page, context }) => {
-    test.skip(!(await underServiceWorker(page, '/')), 'Kein Service Worker in diesem Browser')
+    test.skip(!(await underServiceWorker(page, '/')), 'No service worker in this browser')
 
     await context.setOffline(true)
     try {
@@ -45,7 +45,7 @@ test.describe('without a connection', () => {
   })
 
   /**
-   * Und der Bildschirm, für den es überhaupt gebaut wurde.
+   * And the screen the whole thing was built for.
    *
    * "In the shop" exists for a record shop in a basement: a record in your hand
    * and the question whether you already own it. Every answer it gives comes
@@ -58,7 +58,7 @@ test.describe('without a connection', () => {
   }) => {
     test.skip(
       !(await underServiceWorker(page, '/in-store')),
-      'Kein Service Worker in diesem Browser',
+      'No service worker in this browser',
     )
 
     await context.setOffline(true)
