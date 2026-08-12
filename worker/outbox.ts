@@ -2,6 +2,7 @@ import { dropJob, noteFailure, pendingJobs } from '~~/db/outbox'
 import { openFidelityDb } from '~~/db/open'
 import { DiscogsError } from './discogs/errors'
 import type { OutboxJob, OutboxKind } from '~~/db/schema'
+import type { WantlistItem } from '#shared/types'
 import type { DiscogsClient } from './discogs/client'
 
 /**
@@ -142,6 +143,52 @@ const KINDS: Record<OutboxKind, JobKind> = {
       const { releaseId } = job.payload as { releaseId: number }
       const db = await openFidelityDb()
       await db.delete('collection', releaseId)
+    },
+  },
+
+  'wantlist.add': {
+    send: async (client, job, username) => {
+      const { releaseId } = job.payload as { releaseId: number }
+      await client.write(
+        'PUT',
+        `/users/${encodeURIComponent(username)}/wants/${releaseId}`,
+        /*
+         * Idempotent, and measured rather than assumed: a PUT on a release
+         * already in the wantlist came back 201 with `date_added` unchanged
+         * (2026-08-11, docs/02). Unlike the collection, a want is addressed by
+         * release alone — there is no second instance to create, so there is
+         * nothing a repeat can duplicate.
+         */
+        { idempotent: true },
+      )
+    },
+    revert: async (job) => {
+      const { releaseId } = job.payload as { releaseId: number }
+      const db = await openFidelityDb()
+      await db.delete('wantlist', releaseId)
+    },
+  },
+
+  'wantlist.remove': {
+    send: async (client, job, username) => {
+      const { releaseId } = job.payload as { releaseId: number }
+      try {
+        await client.write(
+          'DELETE',
+          `/users/${encodeURIComponent(username)}/wants/${releaseId}`,
+          {
+            idempotent: true,
+          },
+        )
+      } catch (error) {
+        if (error instanceof DiscogsError && error.status === 404) return
+        throw error
+      }
+    },
+    revert: async (job) => {
+      const { want } = job.revert as { want: string }
+      const db = await openFidelityDb()
+      await db.put('wantlist', JSON.parse(want) as WantlistItem)
     },
   },
 }

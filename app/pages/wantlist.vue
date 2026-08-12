@@ -24,6 +24,14 @@ onMounted(async () => {
   }
 })
 
+async function drop(releaseId: number) {
+  if (!(await call('wantlist.remove', { releaseId }))) return
+  // Re-read rather than splice: the overview carries counts that a removed
+  // row changes, and a list whose header disagrees with its body is worse
+  // than one that takes a moment.
+  overview.value = await call('collection.wantlist', undefined)
+}
+
 const records = computed(() => {
   const all = overview.value?.records ?? []
   const needle = query.value.trim().toLowerCase()
@@ -107,10 +115,27 @@ function waiting(addedAt: string): string | null {
             >
               {{ record.artist }} – {{ record.title }}
             </a>
-            <span class="text-fid-xs text-fid-text-muted">
-              <template v-if="record.year > 0"
-                ><span class="fid-num">{{ record.year }}</span> · </template
-              >{{ waiting(record.addedAt) }}
+            <span class="flex items-center gap-3 text-fid-xs text-fid-text-muted">
+              <span>
+                <template v-if="record.year > 0"
+                  ><span class="fid-num">{{ record.year }}</span> · </template
+                >{{ waiting(record.addedAt) }}
+              </span>
+              <!--
+                Wanting something is allowed to stop.
+                A wantlist that only ever grows stops being a list of what you
+                are looking for and becomes a record of everything you once
+                considered — and then nobody reads it. No confirmation here:
+                unlike the collection, a want costs nothing to add back.
+              -->
+              <button
+                type="button"
+                class="fid-lift min-h-11 rounded-fid-sm px-2 text-fid-xs text-fid-text-muted transition-colors hover:text-fid-text"
+                :aria-label="c.wantlist.drop(record.artist, record.title)"
+                @click="drop(record.releaseId)"
+              >
+                {{ c.wantlist.dropShort }}
+              </button>
             </span>
           </div>
 

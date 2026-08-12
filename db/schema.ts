@@ -178,7 +178,12 @@ export interface OutboxJob {
 }
 
 export type OutboxKind =
-  'collection.rating' | 'collection.field' | 'collection.remove' | 'collection.add'
+  | 'collection.rating'
+  | 'collection.field'
+  | 'collection.remove'
+  | 'collection.add'
+  | 'wantlist.add'
+  | 'wantlist.remove'
 
 export interface CoverEntry {
   releaseId: number

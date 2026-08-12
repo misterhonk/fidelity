@@ -202,6 +202,8 @@ const en = {
     owned: (owned: string, total: string) => `${owned} of ${total}`,
     connections: 'Links to your collection',
     atDiscogs: 'View at Discogs',
+    want: 'Want it',
+    wanted: 'On your wantlist',
   },
 }
 
@@ -341,6 +343,8 @@ const de: typeof en = {
     owned: (owned, total) => `${owned} von ${total}`,
     connections: 'Verbindungen zu deiner Sammlung',
     atDiscogs: 'Bei Discogs ansehen',
+    want: 'Auf die Wantlist',
+    wanted: 'Auf deiner Wantlist',
   },
 }
 

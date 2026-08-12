@@ -40,6 +40,26 @@ const cover = computed(() =>
 watch(match, (open) => open && void requestCovers([open.releaseId]))
 const verdict = computed(() => verdicts.value[props.listingId])
 
+/*
+ * Wanting it, from the screen where you decided not to buy it.
+ *
+ * The most common ending to opening a find is "not at this price" — and until
+ * now that ending was a dead end. A want costs nothing to add and nothing to
+ * take back, so unlike the collection there is no confirmation here.
+ *
+ * Local state only: the sheet is opened per listing and closed again, so
+ * asking the worker whether the shelf already wants this would spend a read
+ * on something the wantlist page answers better anyway.
+ */
+const wanted = ref(false)
+
+async function want() {
+  wanted.value = true
+  if (!(await call('wantlist.add', { digId: props.digId, listingId: props.listingId }))) {
+    wanted.value = false
+  }
+}
+
 const price = computed(() => {
   const value = match.value?.price
   const currency = match.value?.currency
@@ -400,6 +420,23 @@ function onKeydown(event: KeyboardEvent) {
             -->
             <FidIcon name="external-link" :size="14" />
           </a>
+
+          <button
+            v-if="match && !wanted"
+            type="button"
+            class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border border-fid-field px-3 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+            @click="want()"
+          >
+            <FidIcon name="bookmark" :size="14" />
+            {{ d.sheet.want }}
+          </button>
+          <span
+            v-else-if="wanted"
+            class="inline-flex min-h-11 items-center gap-2 px-3 text-fid-sm text-fid-sig-wantlist"
+          >
+            <FidIcon name="bookmark" :size="14" />
+            {{ d.sheet.wanted }}
+          </span>
         </div>
       </template>
     </aside>

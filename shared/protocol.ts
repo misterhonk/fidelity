@@ -235,6 +235,14 @@ export interface WorkerContract {
     progress: never
     result: boolean
   }
+  /** Adds a find to the wantlist. False when its six hours are up. */
+  'wantlist.add': {
+    params: { digId: string; listingId: number }
+    progress: never
+    result: boolean
+  }
+  /** Takes a release off the wantlist. */
+  'wantlist.remove': { params: { releaseId: number }; progress: never; result: boolean }
   /** Recomputed after every sync; null until there has been one. */
   'taste.profile': { params: undefined; progress: never; result: TasteProfile | null }
 

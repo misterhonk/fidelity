@@ -96,6 +96,8 @@ const en = {
   },
 
   wantlist: {
+    dropShort: 'Not any more',
+    drop: (artist: string, title: string) => `Take ${artist} — ${title} off the wantlist`,
     description: 'What you are looking for — and how findable it is.',
     empty:
       'Your wantlist is empty — or not synced yet. It carries the two strongest signals there are.',
@@ -221,6 +223,8 @@ const de: typeof en = {
   },
 
   wantlist: {
+    dropShort: 'Doch nicht',
+    drop: (artist, title) => `${artist} – ${title} von der Wantlist nehmen`,
     description: 'Was du suchst – und wie auffindbar es ist.',
     empty:
       'Deine Wantlist ist leer – oder noch nicht synchronisiert. Sie trägt die zwei stärksten Signale überhaupt.',
