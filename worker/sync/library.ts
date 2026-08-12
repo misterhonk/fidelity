@@ -170,7 +170,28 @@ async function syncPaged<TPage, TItem>(
   return { stored, requests, total: items, newest }
 }
 
-export async function syncCollection(context: SyncContext): Promise<SyncSummary> {
+/**
+ * Walks the collection — as a delta, or all of it.
+ *
+ * The delta stops at the first record it already knows, which makes an
+ * unchanged collection cost one request. It also means it can only ever see
+ * **additions**: a rating changed on the Discogs website leaves `date_added`
+ * untouched, so the walk turns around long before reaching it.
+ *
+ * And Discogs offers nothing to fix that with. A collection row carries
+ * `id`, `instance_id`, `date_added`, `rating`, `folder_id` and
+ * `basic_information` — no modification date, and the endpoint has no
+ * "changed since" filter (measured 2026-08-12, docs/02). Reading the whole
+ * list and comparing is not one way of noticing a changed rating; it is the
+ * only one.
+ *
+ * So `full` exists, it costs one request per hundred records, and something
+ * has to ask for it: the keeper once a day, or somebody pressing refresh.
+ */
+export async function syncCollection(
+  context: SyncContext,
+  { full = false }: { full?: boolean } = {},
+): Promise<SyncSummary> {
   const syncState = await getMeta('syncState')
   const db = await openFidelityDb()
 
@@ -218,7 +239,7 @@ export async function syncCollection(context: SyncContext): Promise<SyncSummary>
       await tx.done
       await mirrorCovers(items)
     },
-    knownSince: syncState?.lastCollectionAdd ?? null,
+    knownSince: full ? null : (syncState?.lastCollectionAdd ?? null),
   })
 
   /*
@@ -246,6 +267,9 @@ export async function syncCollection(context: SyncContext): Promise<SyncSummary>
 
   await updateSyncState({
     collectionSyncedAt: Date.now(),
+    // Only a full walk can claim to have seen everything, so only a full walk
+    // moves this. It is what the daily clock and the refresh button read.
+    ...(full ? { collectionReadFullyAt: Date.now() } : {}),
     // Only ever moves forward, and only when something was actually seen.
     lastCollectionAdd: result.newest ?? syncState?.lastCollectionAdd ?? null,
   })
@@ -294,9 +318,12 @@ export async function syncWantlist(context: SyncContext): Promise<SyncSummary> {
  * deleted from the collection stays in the mirror until a full resync, which
  * is what signing out and back in does.
  */
-export async function syncLibrary(context: SyncContext): Promise<SyncResult> {
+export async function syncLibrary(
+  context: SyncContext,
+  options: { full?: boolean } = {},
+): Promise<SyncResult> {
   return {
-    collection: await syncCollection(context),
+    collection: await syncCollection(context, options),
     wantlist: await syncWantlist(context),
   }
 }

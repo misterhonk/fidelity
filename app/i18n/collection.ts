@@ -45,6 +45,9 @@ const en = {
       rating: { label: 'Rating', about: 'Best first, unrated last' },
     },
     atDiscogs: (artist: string, title: string) => `${artist} — ${title}, view at Discogs`,
+    readFully: (when: string) => `Last full sync ${when}`,
+    reread: 'Sync now',
+    rereading: 'Syncing…',
     sheet: {
       loading: 'Opening the record…',
       facts: {
@@ -200,6 +203,9 @@ const de: typeof en = {
       rating: { label: 'Bewertung', about: 'Beste zuerst, unbewertete zuletzt' },
     },
     atDiscogs: (artist, title) => `${artist} – ${title}, bei Discogs ansehen`,
+    readFully: (when) => `Ganz abgeglichen ${when}`,
+    reread: 'Jetzt abgleichen',
+    rereading: 'Gleicht ab …',
     sheet: {
       loading: 'Platte wird geöffnet…',
       facts: {

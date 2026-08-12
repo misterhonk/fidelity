@@ -124,6 +124,15 @@ export interface SyncState {
   horizonRevalidatedAt: number | null
   /** Newest `date_added` seen, so the daily sync is a delta and not a full run. */
   lastCollectionAdd: string | null
+  /**
+   * When the whole collection was last read, rather than only what is new.
+   *
+   * The delta cannot see a rating changed on the Discogs website — that leaves
+   * `date_added` alone — and Discogs offers no modification date to ask about.
+   * So this is the only honest answer to "how far can the two have drifted",
+   * and the shelf shows it.
+   */
+  collectionReadFullyAt: number | null
 }
 
 /**

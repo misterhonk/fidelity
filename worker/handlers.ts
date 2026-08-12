@@ -553,6 +553,11 @@ export const handlers: HandlerMap = {
     return drainOutbox(discogs(), identity.username)
   },
 
+  'collection.readFullyAt': async () => {
+    const { getSyncState } = await import('~~/db/meta')
+    return (await getSyncState()).collectionReadFullyAt
+  },
+
   'collection.folders': async () => {
     const { knownFolders } = await import('./collection/folders')
     return knownFolders()

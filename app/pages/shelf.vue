@@ -65,7 +65,10 @@ async function load() {
   }
 }
 
-onMounted(load)
+onMounted(async () => {
+  await load()
+  readFullyAt.value = await call('collection.readFullyAt', undefined)
+})
 
 // A new filter or order starts from the top; loading more does not.
 watch([query, sort, direction], () => {
@@ -75,6 +78,31 @@ watch([query, sort, direction], () => {
 watch(shown, load)
 
 const rest = computed(() => (view.value ? view.value.total - view.value.records.length : 0))
+
+/*
+ * How far the two can have drifted, and a way to close the gap.
+ *
+ * The everyday sync is a delta: it stops at the first record it already knows,
+ * which makes an unchanged collection cost one request. The price is that it
+ * can only ever see *additions* — a rating changed on the Discogs website
+ * leaves `date_added` untouched, and Discogs offers no modification date to
+ * ask about instead (docs/02). Reading the whole list is the only way to
+ * notice, so this says when that last happened and offers to do it now.
+ */
+const readFullyAt = ref<number | null>(null)
+const rereading = ref(false)
+const { tick } = useKeeper()
+
+async function reread() {
+  rereading.value = true
+  try {
+    await tick({ force: true })
+    readFullyAt.value = await call('collection.readFullyAt', undefined)
+    await load()
+  } finally {
+    rereading.value = false
+  }
+}
 
 /*
  * A record of your own now opens here, not at Discogs.
@@ -150,6 +178,18 @@ const open = ref<number | null>(null)
             }}</span>
           </button>
         </nav>
+
+        <p class="flex shrink-0 items-center gap-3 text-fid-sm text-fid-text-muted">
+          <span v-if="readFullyAt">{{ c.shelf.readFully(since(readFullyAt)) }}</span>
+          <button
+            type="button"
+            class="fid-lift min-h-11 rounded-fid-sm border border-fid-field px-3 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+            :disabled="rereading"
+            @click="reread()"
+          >
+            {{ rereading ? c.shelf.rereading : c.shelf.reread }}
+          </button>
+        </p>
 
         <p class="fid-num shrink-0 text-fid-sm text-fid-text-muted">
           {{

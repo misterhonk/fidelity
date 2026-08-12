@@ -19,7 +19,9 @@ vi.mock('~~/worker/busy', () => ({
 const syncLibrary = vi.fn()
 const checkWatched = vi.fn()
 const revalidateHorizon = vi.fn()
-const syncState = { value: null as { collectionSyncedAt: number } | null }
+const syncState = {
+  value: null as { collectionSyncedAt: number; collectionReadFullyAt?: number } | null,
+}
 
 const expireDigs = vi.fn()
 
@@ -121,7 +123,7 @@ describe('der Kurator', () => {
   })
 
   it('leaves the collection alone while it is fresh', async () => {
-    syncState.value = { collectionSyncedAt: NOW - 60_000 }
+    syncState.value = { collectionSyncedAt: NOW - 60_000, collectionReadFullyAt: NOW - 60_000 }
     const result = await runKeeper({ client, username: 'mrtnmlchr', now: NOW })
 
     expect(syncLibrary).not.toHaveBeenCalled()
@@ -135,7 +137,7 @@ describe('der Kurator', () => {
    * looked, and the delta costs one request when nothing changed.
    */
   it('looks again for somebody who has just come back', async () => {
-    syncState.value = { collectionSyncedAt: NOW - 5 * 60_000 }
+    syncState.value = { collectionSyncedAt: NOW - 5 * 60_000, collectionReadFullyAt: NOW }
     const result = await runKeeper({ client, username: 'mrtnmlchr', now: NOW, eager: true })
 
     expect(syncLibrary).toHaveBeenCalled()
@@ -143,18 +145,36 @@ describe('der Kurator', () => {
   })
 
   it('still leaves it alone when it was read a minute ago', async () => {
-    syncState.value = { collectionSyncedAt: NOW - 60_000 }
+    syncState.value = { collectionSyncedAt: NOW - 60_000, collectionReadFullyAt: NOW - 60_000 }
     await runKeeper({ client, username: 'mrtnmlchr', now: NOW, eager: true })
 
     expect(syncLibrary).not.toHaveBeenCalled()
   })
 
   it('fetches it anyway when somebody presses "Refresh everything"', async () => {
-    syncState.value = { collectionSyncedAt: NOW - 60_000 }
+    syncState.value = { collectionSyncedAt: NOW - 60_000, collectionReadFullyAt: NOW }
     const result = await runKeeper({ client, username: 'mrtnmlchr', now: NOW, force: true })
 
     expect(syncLibrary).toHaveBeenCalled()
     expect(result.did).toContain('library')
+    // And it reads *everything*: this is the button somebody presses because
+    // the two have drifted, and a delta cannot see a changed rating.
+    expect(syncLibrary).toHaveBeenCalledWith(expect.anything(), { full: true })
+  })
+
+  /*
+   * Once a day, the whole list.
+   *
+   * The delta only ever sees additions — a rating given on the Discogs website
+   * leaves `date_added` alone, and Discogs offers no modification date to ask
+   * about. Reading everything is the only way to notice, so it happens on a
+   * clock rather than only when somebody suspects something.
+   */
+  it('reads the whole collection when a day has passed', async () => {
+    syncState.value = { collectionSyncedAt: NOW, collectionReadFullyAt: NOW - 25 * 3_600_000 }
+    await runKeeper({ client, username: 'mrtnmlchr', now: NOW })
+
+    expect(syncLibrary).toHaveBeenCalledWith(expect.anything(), { full: true })
   })
 
   // Renamed from "does nothing without a sign-in", which stopped being true

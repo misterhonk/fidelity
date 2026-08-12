@@ -61,6 +61,17 @@ const LIBRARY_STALE_MS = 30 * 60 * 1000
  */
 const LIBRARY_EAGER_MS = 2 * 60 * 1000
 
+/**
+ * How long the app may go without reading the whole collection.
+ *
+ * The delta only ever sees additions. A rating given on the Discogs website
+ * leaves `date_added` untouched, so nothing short of reading the whole list
+ * will find it — and Discogs offers no modification date to ask about
+ * instead (docs/02). Once a day, then: a hundred records per request, so a
+ * shelf of 2.400 costs twenty-four requests and half a minute, once.
+ */
+const LIBRARY_FULL_MS = 24 * 60 * 60 * 1000
+
 export type KeeperJob = 'outbox' | 'library' | 'watch' | 'horizon'
 
 export interface KeeperResult {
@@ -173,10 +184,18 @@ export async function runKeeper(options: {
    */
   const syncState = await getSyncState()
   const staleAfter = eager ? LIBRARY_EAGER_MS : LIBRARY_STALE_MS
-  if (force || (syncState?.collectionSyncedAt ?? 0) < now - staleAfter) {
+  /*
+   * A full read when the day is up, or when somebody asked outright.
+   *
+   * "Refresh everything" used to skip the staleness clock and keep the delta,
+   * which meant the one button somebody presses *because* the two have drifted
+   * could not see the drift. Now it reads everything.
+   */
+  const full = force || (syncState?.collectionReadFullyAt ?? 0) < now - LIBRARY_FULL_MS
+  if (full || (syncState?.collectionSyncedAt ?? 0) < now - staleAfter) {
     try {
       const { syncLibrary } = await import('./sync/library')
-      const summary = await syncLibrary({ client, username, signal })
+      const summary = await syncLibrary({ client, username, signal }, { full })
       result.did.push('library')
       result.stored = summary.collection.stored + summary.wantlist.stored
     } catch {

@@ -273,6 +273,8 @@ export interface WorkerContract {
   }
   /** Takes a release off the wantlist. */
   'wantlist.remove': { params: { releaseId: number }; progress: never; result: boolean }
+  /** When the whole collection was last read from Discogs. Null before the first. */
+  'collection.readFullyAt': { params: undefined; progress: never; result: number | null }
   /** Discogs' estimate, as of the last sync. Null before the first one. */
   'collection.value': { params: undefined; progress: never; result: CollectionValue | null }
   /** Recomputed after every sync; null until there has been one. */

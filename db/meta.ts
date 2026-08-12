@@ -72,6 +72,7 @@ export const DEFAULT_SYNC_STATE: SyncState = {
   horizonProgress: null,
   horizonRevalidatedAt: null,
   lastCollectionAdd: null,
+  collectionReadFullyAt: null,
 }
 
 /** Stored preferences merged over the defaults, so a new field is never undefined. */

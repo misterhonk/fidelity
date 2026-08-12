@@ -308,9 +308,8 @@ test('says what the app is called, in the two places an install reads', async ({
     'Fidelity',
   )
   await expect(page).toHaveTitle('Fidelity')
-
-  // Every other screen keeps the name in front, so a truncated title still
-  // says which app it belongs to.
-  await page.goto('/settings/appearance')
-  await expect(page).toHaveTitle(/^Fidelity · /)
 })
+
+// That every other screen keeps the name in front is asserted where a screen
+// is opened with a session: language.spec, on the appearance settings. Going
+// there from here signed out only races the redirect to /welcome.
