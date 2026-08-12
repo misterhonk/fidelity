@@ -54,6 +54,7 @@ export async function shelfView({
     : all
 
   const records: ShelfRecord[] = filtered.map((item) => ({
+    instanceId: item.instanceId,
     releaseId: item.releaseId,
     title: item.title,
     artist: item.artistNames[0] ?? '',
@@ -120,14 +121,14 @@ function sortRecords(records: ShelfRecord[], sort: ShelfSort, direction: SortDir
 }
 
 /**
- * One record of your own, in full.
+ * One copy of your own, in full.
  *
  * The shelf grid carries a flattened row — enough for a tile, not enough for a
  * page. This reads the stored item instead, so genres, styles, every label and
  * every catalogue number are there. It costs no request: the sync wrote all of
  * it, and Discogs never has to be asked again.
  */
-export async function shelfRecord(releaseId: number): Promise<CollectionItem | null> {
+export async function shelfRecord(instanceId: number): Promise<CollectionItem | null> {
   const db = await openFidelityDb()
-  return (await db.get('collection', releaseId)) ?? null
+  return (await db.get('collection', instanceId)) ?? null
 }

@@ -2,6 +2,7 @@ import { openFidelityDb } from '~~/db/open'
 import type { ShelfHit, ShelfResult } from '#shared/types'
 
 import { norm, tokens } from '../match/normalize'
+import { distinctReleases } from '~~/db/collection'
 
 /**
  * "Habe ich die schon?"
@@ -37,7 +38,7 @@ export async function searchShelf(query: string, now: number): Promise<ShelfResu
 
   const db = await openFidelityDb()
   const [collection, wantlist, chunks] = await Promise.all([
-    db.getAll('collection'),
+    distinctReleases(),
     db.getAll('wantlist'),
     db.getAll('horizon'),
   ])

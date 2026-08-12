@@ -121,7 +121,10 @@ describe('database schema', () => {
     ])
 
     const tx = db.transaction(['collection', 'matches'])
-    expect([...tx.objectStore('collection').indexNames]).toEqual(['by-master'])
+    expect([...tx.objectStore('collection').indexNames].sort()).toEqual([
+      'by-master',
+      'by-release',
+    ])
     expect([...tx.objectStore('matches').indexNames]).toEqual(['by-dig-score'])
   })
 })

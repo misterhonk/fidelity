@@ -207,6 +207,9 @@ async function collect(artistId: number, count: number) {
   const db = await openFidelityDb()
   for (let i = 0; i < count; i++) {
     await db.put('collection', {
+      // Keyed by entry since v6 — a fixture needs one of its own.
+      instanceId: artistId * 100 + i,
+      folderId: 1,
       releaseId: artistId * 100 + i,
       masterId: 0,
       title: `Platte ${i}`,

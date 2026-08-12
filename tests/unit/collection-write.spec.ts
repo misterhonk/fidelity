@@ -84,8 +84,8 @@ describe('taking a record off the shelf', () => {
     const db = await openFidelityDb()
     await db.put('collection', record())
 
-    expect(await removeRecord(11)).toBe(true)
-    expect(await db.get('collection', 11)).toBeUndefined()
+    expect(await removeRecord(640)).toBe(true)
+    expect(await db.get('collection', 640)).toBeUndefined()
 
     const [job] = await pendingJobs()
     expect(JSON.parse(String(job?.revert.record)).title).toBe('Loveless')
@@ -99,7 +99,7 @@ describe('taking a record off the shelf', () => {
   it('puts the record back when the delete is given up on', async () => {
     const db = await openFidelityDb()
     await db.put('collection', record())
-    await removeRecord(11)
+    await removeRecord(640)
 
     const fake = client({
       write: async () => {
@@ -110,7 +110,7 @@ describe('taking a record off the shelf', () => {
       await drainOutbox(fake, 'mrtnmlchr')
     }
 
-    expect((await db.get('collection', 11))?.rating).toBe(5)
+    expect((await db.get('collection', 640))?.rating).toBe(5)
   })
 
   /*
@@ -121,7 +121,7 @@ describe('taking a record off the shelf', () => {
   it('treats "already gone" as done', async () => {
     const db = await openFidelityDb()
     await db.put('collection', record())
-    await removeRecord(11)
+    await removeRecord(640)
 
     const fake = client({
       write: async () => {
@@ -139,10 +139,11 @@ describe('putting a bought record on the shelf', () => {
     expect(await addRecord(match())).toBe(true)
 
     const db = await openFidelityDb()
-    const stored = await db.get('collection', 12)
+    // Under a key of its own, derived from the release and negative — see
+    // `collection/add.ts`. Nothing to write to until the sync has been round.
+    const stored = await db.get('collection', -12)
     expect(stored?.title).toBe('Isn’t Anything')
-    // Provisional: nothing to write to until Discogs has been asked properly.
-    expect(stored?.instanceId).toBe(0)
+    expect(stored?.instanceId).toBe(-12)
   })
 
   it('refuses a record already on the shelf, rather than filing a second copy', async () => {

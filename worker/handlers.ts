@@ -541,9 +541,9 @@ export const handlers: HandlerMap = {
     return unwantRecord(releaseId)
   },
 
-  'collection.remove': async ({ releaseId }) => {
+  'collection.remove': async ({ instanceId }) => {
     const { removeRecord } = await import('./collection/remove')
-    return removeRecord(releaseId)
+    return removeRecord(instanceId)
   },
 
   'collection.add': async ({ digId, listingId }) => {
@@ -559,12 +559,12 @@ export const handlers: HandlerMap = {
     return (await getMeta('collectionValue')) ?? null
   },
 
-  'collection.fields': async ({ releaseId }) => {
+  'collection.fields': async ({ instanceId }) => {
     const [{ collectionFields }, { fieldValuesFor }] = await Promise.all([
       import('./collection/fields'),
       import('~~/db/fields'),
     ])
-    const values = await fieldValuesFor(releaseId)
+    const values = await fieldValuesFor(instanceId)
     /*
      * The definitions need a signed-in client; the values do not.
      * Somebody signed out still sees what they noted — losing sight of their
@@ -580,19 +580,19 @@ export const handlers: HandlerMap = {
     }
   },
 
-  'collection.setField': async ({ releaseId, fieldId, value }) => {
+  'collection.setField': async ({ instanceId, fieldId, value }) => {
     const { setFieldValue } = await import('./collection/fields')
-    return setFieldValue(releaseId, fieldId, value)
+    return setFieldValue(instanceId, fieldId, value)
   },
 
-  'collection.rate': async ({ releaseId, rating }) => {
+  'collection.rate': async ({ instanceId, rating }) => {
     const { rateRecord } = await import('./collection/rate')
-    return rateRecord(releaseId, rating)
+    return rateRecord(instanceId, rating)
   },
 
-  'collection.record': async ({ releaseId }) => {
+  'collection.record': async ({ instanceId }) => {
     const { shelfRecord } = await import('./collection/records')
-    return shelfRecord(releaseId)
+    return shelfRecord(instanceId)
   },
 
   'collection.shelf': async ({ query }) => {

@@ -170,12 +170,12 @@ const open = ref<number | null>(null)
         v-else
         class="grid grid-cols-3 gap-x-4 gap-y-6 @md:grid-cols-4 @2xl:grid-cols-6 @5xl:grid-cols-8"
       >
-        <li v-for="record in view.records" :key="record.releaseId" class="flex flex-col gap-2">
+        <li v-for="record in view.records" :key="record.instanceId" class="flex flex-col gap-2">
           <button
             type="button"
             :aria-label="c.open(record.artist, record.title)"
             class="fid-cover-button group flex flex-col gap-2 rounded-fid-sm text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fid-accent"
-            @click="open = record.releaseId"
+            @click="open = record.instanceId"
           >
             <!--
               Lazy, never fetched by hand. i.discogs.com has its own budget of
@@ -237,6 +237,6 @@ const open = ref<number | null>(null)
       </button>
     </template>
 
-    <ShelfSheet v-if="open !== null" :release-id="open" @close="open = null" />
+    <ShelfSheet v-if="open !== null" :instance-id="open" @close="open = null" />
   </main>
 </template>

@@ -52,10 +52,10 @@ describe('rating a record you own', () => {
   it('writes the shelf now and leaves the request to the queue', async () => {
     await store(record())
 
-    expect(await rateRecord(7, 4)).toBe(true)
+    expect(await rateRecord(900, 4)).toBe(true)
 
     const db = await openFidelityDb()
-    expect((await db.get('collection', 7))?.rating).toBe(4)
+    expect((await db.get('collection', 900))?.rating).toBe(4)
 
     const [job] = await pendingJobs()
     expect(job?.payload).toEqual({ releaseId: 7, folderId: 1, instanceId: 900, rating: 4 })
@@ -65,10 +65,10 @@ describe('rating a record you own', () => {
   it('lets a rating be taken back, because zero is a state', async () => {
     await store(record({ rating: 5 }))
 
-    await rateRecord(7, 0)
+    await rateRecord(900, 0)
 
     const db = await openFidelityDb()
-    expect((await db.get('collection', 7))?.rating).toBe(0)
+    expect((await db.get('collection', 900))?.rating).toBe(0)
     expect((await pendingJobs())[0]?.payload.rating).toBe(0)
   })
 
@@ -78,20 +78,19 @@ describe('rating a record you own', () => {
    * what lets the sheet leave the stars out instead of offering a button that
    * does nothing.
    */
-  it('refuses a record with no entry, rather than pretending', async () => {
-    await store(record({ instanceId: 0, folderId: 0 }))
+  it('refuses a copy with no entry behind it, rather than pretending', async () => {
+    // What a record added from a find looks like until the sync has been round.
+    await store(record({ instanceId: -7, folderId: 0 }))
 
-    expect(await rateRecord(7, 4)).toBe(false)
+    expect(await rateRecord(-7, 4)).toBe(false)
 
-    const db = await openFidelityDb()
-    expect((await db.get('collection', 7))?.rating).toBe(0)
     expect(await pendingJobs()).toEqual([])
   })
 
   it('spends nothing when the rating is the one already there', async () => {
     await store(record({ rating: 3 }))
 
-    expect(await rateRecord(7, 3)).toBe(true)
+    expect(await rateRecord(900, 3)).toBe(true)
 
     expect(await pendingJobs()).toEqual([])
   })

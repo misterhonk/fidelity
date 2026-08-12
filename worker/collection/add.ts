@@ -50,8 +50,8 @@ export async function ownsRelease(
 /**
  * A shelf row built from what the dig already knows.
  *
- * Deliberately provisional: no entry ids, so it cannot be rated until the
- * sync has been round — and the sync is asked for straight after the add
+ * Deliberately provisional: no entry behind it, so it cannot be rated until
+ * the sync has been round — and the sync is asked for straight after the add
  * lands, so that is minutes, not the half hour the staleness clock allows.
  * Better a record that is visibly there and not yet editable than a shelf
  * that disagrees with what somebody just did.
@@ -76,7 +76,14 @@ function provisional(match: Match & { title: string; artist: string }): Collecti
     coverUrl: '',
     rating: 0,
     addedAt: new Date().toISOString(),
-    instanceId: 0,
+    /*
+     * Its own key until Discogs hands over a real one.
+     *
+     * Negative, and derived from the release, so two finds of the same record
+     * cannot collide and no write path mistakes it for an entry. The next
+     * sync stores the real instance and deletes this row.
+     */
+    instanceId: -match.releaseId,
     folderId: 0,
   }
 }
@@ -93,9 +100,17 @@ export async function addRecord(match: Match): Promise<boolean> {
   if (!match.title || !match.artist) return false
 
   const db = await openFidelityDb()
-  // Already on the shelf: nothing to file, and filing it would make a second
-  // copy of a record somebody owns once.
-  if (await db.get('collection', match.releaseId)) return false
+  /*
+   * Already on the shelf — asked by release, not by key.
+   *
+   * The store holds copies now, so the question is "is any copy of this
+   * record already here", and that is what the index answers. Filing it again
+   * would make a second copy of a record somebody owns once, which is the
+   * mirror image of the bug that made this store instance-keyed.
+   */
+  if ((await db.getAllFromIndex('collection', 'by-release', match.releaseId)).length > 0) {
+    return false
+  }
 
   await db.put(
     'collection',

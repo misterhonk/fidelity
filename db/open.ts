@@ -18,8 +18,9 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
       if (oldVersion < 1) {
         db.createObjectStore('meta', { keyPath: 'key' })
 
-        const collection = db.createObjectStore('collection', { keyPath: 'releaseId' })
+        const collection = db.createObjectStore('collection', { keyPath: 'instanceId' })
         collection.createIndex('by-master', 'masterId')
+        collection.createIndex('by-release', 'releaseId')
 
         const wantlist = db.createObjectStore('wantlist', { keyPath: 'releaseId' })
         wantlist.createIndex('by-master', 'masterId')
@@ -68,7 +69,7 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
 
       if (oldVersion < 5) {
         db.createObjectStore('outbox', { keyPath: 'id' })
-        db.createObjectStore('fieldValues', { keyPath: 'releaseId' })
+        db.createObjectStore('fieldValues', { keyPath: 'instanceId' })
       }
 
       if (oldVersion > 0 && oldVersion < 5) {
@@ -86,6 +87,39 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
          * Clearing the watermark is what makes that walk a full one.
          */
         tx.objectStore('collection').clear()
+        tx.objectStore('meta').delete('syncState')
+        tx.objectStore('meta').delete('tasteProfile')
+      }
+
+      if (oldVersion > 0 && oldVersion < 6) {
+        /*
+         * v6 keys the shelf by entry instead of by release.
+         *
+         * A collector can own the same record twice, and Discogs says so: 34
+         * rows, 32 releases, measured on a real account. Keyed by release the
+         * second copy overwrote the first without a trace — one copy
+         * invisible, and a rating landing on whichever instance the sync
+         * happened to write last.
+         *
+         * A keyPath cannot be changed in place, so the store is dropped and
+         * rebuilt. Same trade as v2, v3 and v5: every row comes back from the
+         * API, so this costs one walk of the collection.
+         *
+         * `fieldValues` goes with it, and for the same reason: media and
+         * sleeve condition describe *a copy*, not a record. Keyed by release
+         * they would have been two copies' worth of notes on top of each
+         * other. Nothing is lost that Discogs could have told us anyway — it
+         * hands these back in no listing, and a wrong value is worse than an
+         * empty field.
+         */
+        db.deleteObjectStore('collection')
+        const shelf = db.createObjectStore('collection', { keyPath: 'instanceId' })
+        shelf.createIndex('by-master', 'masterId')
+        shelf.createIndex('by-release', 'releaseId')
+
+        db.deleteObjectStore('fieldValues')
+        db.createObjectStore('fieldValues', { keyPath: 'instanceId' })
+
         tx.objectStore('meta').delete('syncState')
         tx.objectStore('meta').delete('tasteProfile')
       }

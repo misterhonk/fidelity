@@ -1,10 +1,13 @@
 import { openFidelityDb } from '~~/db/open'
 import { queueJob } from '~~/db/outbox'
 import type { OutboxJob } from '~~/db/schema'
-import type { CollectionItem } from '#shared/types'
+import { isOwnEntry, type CollectionItem } from '#shared/types'
 
 /**
  * Taking a record off your own shelf.
+ *
+ * One copy, not one record: taking the played one away leaves the sealed one
+ * standing. That is only expressible because the shelf is keyed by entry.
  *
  * The one destructive thing the app can do to somebody's Discogs account, so
  * it is the one that always asks first — the confirmation lives in the sheet,
@@ -14,19 +17,19 @@ import type { CollectionItem } from '#shared/types'
  * only way to put it back after a failed run is to have kept it. Discogs
  * cannot hand back what was never deleted over there.
  */
-export async function removeRecord(releaseId: number): Promise<boolean> {
+export async function removeRecord(instanceId: number): Promise<boolean> {
   const db = await openFidelityDb()
-  const record = await db.get('collection', releaseId)
-  if (!record?.instanceId || !record.folderId) return false
+  const record = await db.get('collection', instanceId)
+  if (!record || !isOwnEntry(record)) return false
 
-  await db.delete('collection', releaseId)
+  await db.delete('collection', instanceId)
   await queueJob({
-    id: `collection.remove:${releaseId}`,
+    id: `collection.remove:${instanceId}`,
     kind: 'collection.remove',
     payload: {
-      releaseId,
+      releaseId: record.releaseId,
       folderId: record.folderId,
-      instanceId: record.instanceId,
+      instanceId,
     },
     // Not a value but the record itself. JSON, because the store holds plain
     // data and the row has to survive a reload of the app to be restorable.

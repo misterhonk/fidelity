@@ -18,7 +18,7 @@ import { DEFAULT_SHELF_DIRECTION, type CollectionItem, type ShelfSort } from '#s
  */
 
 function record(over: Partial<CollectionItem> & { releaseId: number }): CollectionItem {
-  return {
+  const base = {
     masterId: 0,
     title: 'Titel',
     artistIds: [],
@@ -37,6 +37,15 @@ function record(over: Partial<CollectionItem> & { releaseId: number }): Collecti
     rating: 0,
     addedAt: '2024-01-01T00:00:00-00:00',
     ...over,
+  }
+  /*
+   * A key of its own. The shelf is keyed by entry since v6, so two
+   * fixtures sharing a key would silently be one row.
+   */
+  return {
+    ...base,
+    instanceId: base.instanceId ?? -base.releaseId,
+    folderId: base.folderId ?? 1,
   }
 }
 

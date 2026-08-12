@@ -51,7 +51,7 @@ async function queueRating(rating: number, was: number) {
   const db = await openFidelityDb()
   await db.put('collection', record({ rating }))
   await queueJob({
-    id: `collection.rating:42`,
+    id: `collection.rating:900`,
     kind: 'collection.rating',
     payload: { releaseId: 42, folderId: 1, instanceId: 900, rating },
     revert: { rating: was },
@@ -142,7 +142,7 @@ describe('the outbox', () => {
     }
 
     const db = await openFidelityDb()
-    expect((await db.get('collection', 42))?.rating).toBe(3)
+    expect((await db.get('collection', 900))?.rating).toBe(3)
     expect(await pendingJobs()).toEqual([])
   })
 

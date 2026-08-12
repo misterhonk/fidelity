@@ -364,19 +364,25 @@ export interface CollectionItem {
   rating: number
   addedAt: string
   /**
-   * Which entry this is, and which folder it sits in.
+   * Which entry this is — and the key this record is stored under.
    *
-   * A release can stand in the shelf more than once — two pressings, one
-   * played and one sealed — so Discogs addresses a *collection entry*, not a
-   * release, whenever something is written back. Both arrive with every sync
-   * row and were thrown away until writes existed.
+   * A release can stand in the shelf more than once: two pressings, one played
+   * and one sealed, one kept and one to sell. Discogs models that as separate
+   * instances, each with its own rating and condition, and addresses every
+   * write at one of them.
    *
-   * 0 means "synced before this was kept". The record is fine to read and
-   * cannot be written to; whoever offers the button has to say so rather than
-   * quietly doing nothing.
+   * **Negative means provisional.** A record put on the shelf from a find has
+   * no instance until Discogs has been asked, so it gets `-releaseId` — unique
+   * per release, impossible to confuse with a real id (those are positive),
+   * and refused by every write path until the next sync replaces it.
    */
   instanceId: number
   folderId: number
+}
+
+/** Whether this entry can be written back to Discogs. */
+export function isOwnEntry(item: { instanceId: number; folderId: number }): boolean {
+  return item.instanceId > 0 && item.folderId > 0
 }
 
 /** No rating, and nothing to write to — a want is addressed by release alone. */
@@ -405,6 +411,8 @@ export interface ShelfHit {
 
 /** One record on the shelf, as the grid needs it. */
 export interface ShelfRecord {
+  /** The copy. What the sheet opens and what a rating is written against. */
+  instanceId: number
   releaseId: number
   title: string
   artist: string

@@ -1,11 +1,11 @@
 import { z } from 'zod'
 
 import { getMeta, setMeta } from '~~/db/meta'
-import { openFidelityDb } from '~~/db/open'
 import type { CreditHarvest } from '#shared/types'
 
 import type { DiscogsClient } from '../discogs/client'
 import { isAnonymousArtist, norm } from '../match/normalize'
+import { distinctReleases } from '~~/db/collection'
 
 export { creditCandidates, MIN_APPEARANCES } from './credit-select'
 
@@ -84,8 +84,7 @@ export async function harvestCredits({
   now = Date.now,
   limit = Infinity,
 }: HarvestOptions): Promise<CreditHarvest> {
-  const db = await openFidelityDb()
-  const collection = await db.getAll('collection')
+  const collection = await distinctReleases()
 
   const stored = (await getMeta('credits')) ?? emptyHarvest()
   const seen = new Set(stored.harvestedReleaseIds)

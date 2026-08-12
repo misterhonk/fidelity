@@ -184,16 +184,37 @@ export async function syncCollection(context: SyncContext): Promise<SyncSummary>
         dateAdded: row.date_added,
         item: {
           ...toItem(row.id, row.basic_information, row.date_added, row.rating ?? 0),
-          // Missing on an older sync, and on a shared folder Discogs does not
-          // name. Zero is "cannot be written to", not "folder zero" — folder 0
-          // is the virtual "All" and is not a valid target for a write.
-          instanceId: row.instance_id ?? 0,
+          /*
+           * The entry, or a stand-in that cannot be written to.
+           *
+           * Both fields are optional in the schema because an older response
+           * carried neither. Without an id there is still a row to store, and
+           * it still needs a key of its own — `-releaseId`, the same
+           * convention a record added from a find uses: unique per release,
+           * never confusable with a real instance (those are positive), and
+           * refused by every write path.
+           *
+           * Folder 0 would be no better than none: it is Discogs' virtual
+           * "All" and not a valid target for a write.
+           */
+          instanceId: row.instance_id ?? -row.id,
           folderId: row.folder_id ?? 0,
         },
       })),
     write: async (items) => {
       const tx = db.transaction('collection', 'readwrite')
-      for (const item of items) await tx.store.put(item)
+      for (const item of items) {
+        await tx.store.put(item)
+        /*
+         * And the provisional row this replaces, if there was one.
+         *
+         * A record put on the shelf from a find sits under `-releaseId` until
+         * Discogs has been asked. Once the real entry arrives it would
+         * otherwise stand beside it — the same record twice, one of them
+         * un-writable, which is exactly the bug this whole change is about.
+         */
+        if (item.instanceId > 0) await tx.store.delete(-item.releaseId)
+      }
       await tx.done
       await mirrorCovers(items)
     },

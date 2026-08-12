@@ -21,6 +21,10 @@ async function shelve(store: 'collection' | 'wantlist', releaseId: number, added
   const db = await openFidelityDb()
   await db.put(store, {
     releaseId,
+    // The collection is keyed by entry since v6; the wantlist still by release,
+    // and an extra field there is harmless.
+    instanceId: releaseId,
+    folderId: 1,
     masterId: 0,
     title: `Platte ${releaseId}`,
     artistIds: [],

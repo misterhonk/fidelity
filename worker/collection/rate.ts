@@ -1,5 +1,6 @@
 import { queueJob } from '~~/db/outbox'
 import { openFidelityDb } from '~~/db/open'
+import { isOwnEntry } from '#shared/types'
 
 /**
  * A rating, given to a record you own.
@@ -10,27 +11,25 @@ import { openFidelityDb } from '~~/db/open'
  * The outbox is what makes the optimism honest — it either lands or puts the
  * old value back (`worker/outbox.ts`).
  *
- * Returns false when the record carries no entry to address. That happens to
- * anybody who last synced before entry ids were kept, and the screen has to
- * say so; a button that silently does nothing is worse than one that is off.
+ * Addressed by copy, not by record: somebody who owns a sealed one and a
+ * played one rates them apart. Returns false for a copy with no entry behind
+ * it — one added from a find and not yet synced — and the screen has to say
+ * so; a button that silently does nothing is worse than one that is off.
  */
-export async function rateRecord(releaseId: number, rating: number): Promise<boolean> {
+export async function rateRecord(instanceId: number, rating: number): Promise<boolean> {
   const db = await openFidelityDb()
-  const record = await db.get('collection', releaseId)
-  if (!record) return false
-
-  // Falsy, not `=== 0`: rows written before v5 have neither field at all.
-  if (!record.instanceId || !record.folderId) return false
+  const record = await db.get('collection', instanceId)
+  if (!record || !isOwnEntry(record)) return false
   if (record.rating === rating) return true
 
   await db.put('collection', { ...record, rating })
   await queueJob({
-    id: `collection.rating:${releaseId}`,
+    id: `collection.rating:${instanceId}`,
     kind: 'collection.rating',
     payload: {
-      releaseId,
+      releaseId: record.releaseId,
       folderId: record.folderId,
-      instanceId: record.instanceId,
+      instanceId,
       rating,
     },
     revert: { rating: record.rating },

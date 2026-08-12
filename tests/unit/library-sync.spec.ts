@@ -100,7 +100,7 @@ describe('collection sync', () => {
     await syncCollection(context(client))
 
     const db = await openFidelityDb()
-    const stored = await db.get('collection', 1)
+    const stored = await db.get('collection', 501)
     expect(stored?.artistNorms).toEqual(['beatles'])
     expect(stored?.labelNorms).toEqual(['brain'])
     expect(stored?.catnos).toEqual(['BRAIN 1'])
@@ -145,7 +145,7 @@ describe('collection sync', () => {
     expect(result.requests).toBe(1)
 
     const db = await openFidelityDb()
-    expect((await db.getAllKeys('collection')).sort()).toEqual([2, 3])
+    expect((await db.getAllKeys('collection')).sort()).toEqual([502, 503])
   })
 
   it('reports progress per page rather than only at the end', async () => {
@@ -179,12 +179,12 @@ describe('collection sync', () => {
     await syncCollection(context(client))
 
     const db = await openFidelityDb()
-    const stored = await db.get('collection', 1)
+    const stored = await db.get('collection', 501)
     expect(stored?.instanceId).toBe(501)
     expect(stored?.folderId).toBe(1)
   })
 
-  it('leaves a record from an older sync at zero, which is "cannot be written"', async () => {
+  it('gives a row with no entry a key of its own, which is "cannot be written"', async () => {
     const { client } = fakeClient([
       [{ id: 2, date_added: '2026-08-01T10:00:00-07:00', withoutEntry: true }],
     ])
@@ -192,8 +192,10 @@ describe('collection sync', () => {
     await syncCollection(context(client))
 
     const db = await openFidelityDb()
-    const stored = await db.get('collection', 2)
-    expect(stored?.instanceId).toBe(0)
+    // Its own key, derived from the release, so rows without an entry cannot
+    // collide with each other — and negative, so no write path takes it for one.
+    const stored = await db.get('collection', -2)
+    expect(stored?.instanceId).toBe(-2)
     expect(stored?.folderId).toBe(0)
   })
 

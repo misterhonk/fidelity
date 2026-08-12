@@ -12,6 +12,7 @@ import { expandEntity } from './expand'
 import { creditCandidates } from './credit-select'
 import { planRevalidation, type RevalidationPlan } from './revalidate'
 import { candidateKey, selectCandidates, type Candidate } from './select'
+import { distinctReleases } from '~~/db/collection'
 
 /** Revalidation interval from docs/01 §6. */
 export const HORIZON_TTL_MS = 30 * 24 * 60 * 60 * 1000
@@ -80,10 +81,7 @@ export async function buildHorizon({
 }: BuildOptions): Promise<HorizonResult> {
   const db = await openFidelityDb()
 
-  const [collection, wantlist] = await Promise.all([
-    db.getAll('collection'),
-    db.getAll('wantlist'),
-  ])
+  const [collection, wantlist] = await Promise.all([distinctReleases(), db.getAll('wantlist')])
 
   const candidates = only ?? (await allCandidates(collection, wantlist))
 
@@ -240,7 +238,7 @@ export async function horizonRevalidationPlan(
 ): Promise<RevalidationPlan> {
   const db = await openFidelityDb()
   const [collection, wantlist, chunks] = await Promise.all([
-    db.getAll('collection'),
+    distinctReleases(),
     db.getAll('wantlist'),
     db.getAll('horizon'),
   ])
@@ -258,7 +256,7 @@ export async function horizonRevalidationPlan(
 export async function horizonStatus(now: number = Date.now()) {
   const db = await openFidelityDb()
   const [collection, wantlist, chunks] = await Promise.all([
-    db.getAll('collection'),
+    distinctReleases(),
     db.getAll('wantlist'),
     db.getAll('horizon'),
   ])

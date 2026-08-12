@@ -4,7 +4,7 @@ import type { CollectionItem } from '#shared/types'
 import { computeTasteProfile, topFacets } from '~~/worker/match/taste'
 
 function item(overrides: Partial<CollectionItem> = {}): CollectionItem {
-  return {
+  const base = {
     releaseId: 1,
     masterId: 0,
     title: 'Neu! 2',
@@ -22,6 +22,15 @@ function item(overrides: Partial<CollectionItem> = {}): CollectionItem {
     rating: 0,
     addedAt: '2026-08-01T00:00:00-07:00',
     ...overrides,
+  }
+  /*
+   * A key of its own. The shelf is keyed by entry since v6, so two
+   * fixtures sharing a key would silently be one row.
+   */
+  return {
+    ...base,
+    instanceId: base.instanceId ?? -base.releaseId,
+    folderId: base.folderId ?? 1,
   }
 }
 

@@ -123,6 +123,9 @@ describe('signing out', () => {
     await setMeta('token', 'geheim')
     await setMeta('identity', { userId: 7, username: 'x', avatarUrl: '' })
     await db.put('collection', {
+      // Keyed by entry since v6 — a fixture needs one of its own.
+      instanceId: 901,
+      folderId: 1,
       releaseId: 1,
       masterId: 0,
       title: 'Dummy',

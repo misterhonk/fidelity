@@ -4,7 +4,7 @@ import { getMeta, setMeta } from '~~/db/meta'
 import { fieldValuesFor, writeFieldValue } from '~~/db/fields'
 import { openFidelityDb } from '~~/db/open'
 import { queueJob } from '~~/db/outbox'
-import type { CollectionField } from '#shared/types'
+import { isOwnEntry, type CollectionField } from '#shared/types'
 import type { DiscogsClient } from '../discogs/client'
 
 /**
@@ -63,25 +63,25 @@ export async function collectionFields(
  * never lands. Returns false when the record carries no entry to address.
  */
 export async function setFieldValue(
-  releaseId: number,
+  instanceId: number,
   fieldId: number,
   value: string,
 ): Promise<boolean> {
   const db = await openFidelityDb()
-  const record = await db.get('collection', releaseId)
-  if (!record?.instanceId || !record.folderId) return false
+  const record = await db.get('collection', instanceId)
+  if (!record || !isOwnEntry(record)) return false
 
-  const before = (await fieldValuesFor(releaseId))[fieldId] ?? ''
+  const before = (await fieldValuesFor(instanceId))[fieldId] ?? ''
   if (before === value) return true
 
-  await writeFieldValue(releaseId, fieldId, value)
+  await writeFieldValue(instanceId, fieldId, value)
   await queueJob({
-    id: `collection.field:${releaseId}:${fieldId}`,
+    id: `collection.field:${instanceId}:${fieldId}`,
     kind: 'collection.field',
     payload: {
-      releaseId,
+      releaseId: record.releaseId,
       folderId: record.folderId,
-      instanceId: record.instanceId,
+      instanceId,
       fieldId,
       value,
     },

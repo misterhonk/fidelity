@@ -26,7 +26,7 @@ export const DB_NAME = 'fidelity'
  *
  * 4 — added the `covers` store. Additive: nothing existing is touched.
  */
-export const DB_VERSION = 5
+export const DB_VERSION = 6
 
 /**
  * `meta` is a small key-value store rather than nine one-row stores. The union
@@ -96,7 +96,24 @@ export type MetaKey = MetaValue['key']
  */
 export interface FidelityDB extends DBSchema {
   meta: { key: MetaKey; value: MetaValue }
-  collection: { key: number; value: CollectionItem; indexes: { 'by-master': number } }
+  /**
+   * The shelf, keyed by *entry* rather than by release.
+   *
+   * Because a collector can own the same record twice — one played, one
+   * sealed, one to sell — and Discogs models exactly that: every row is an
+   * instance with its own id, rating and condition. Keyed by release, the
+   * second copy silently overwrote the first, which is how a collection of 34
+   * showed up here as 32 (measured 2026-08-12).
+   *
+   * `by-release` is what everything that reasons about *records* rather than
+   * copies goes through, so the matching engine's question — "do I own this
+   * release?" — costs no more than it did.
+   */
+  collection: {
+    key: number
+    value: CollectionItem
+    indexes: { 'by-master': number; 'by-release': number }
+  }
   wantlist: { key: number; value: WantlistItem; indexes: { 'by-master': number } }
   horizon: { key: string; value: HorizonChunk }
   dealers: { key: string; value: Dealer }
@@ -155,7 +172,8 @@ export interface FidelityDB extends DBSchema {
 
 /** The three fields Discogs offers, as far as this device knows them. */
 export interface FieldValues {
-  releaseId: number
+  /** The copy these describe — condition belongs to a copy, not a record. */
+  instanceId: number
   /** Field id → value. Ids are 1 Media, 2 Sleeve, 3 Notes on every account. */
   values: Record<number, string>
 }

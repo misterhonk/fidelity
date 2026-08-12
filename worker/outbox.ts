@@ -50,10 +50,10 @@ const KINDS: Record<OutboxKind, JobKind> = {
       )
     },
     revert: async (job) => {
-      const { releaseId } = job.payload as { releaseId: number }
+      const { instanceId } = job.payload as { instanceId: number }
       const { rating } = job.revert as { rating: number }
       const db = await openFidelityDb()
-      const record = await db.get('collection', releaseId)
+      const record = await db.get('collection', instanceId)
       if (record) await db.put('collection', { ...record, rating })
     },
   },
@@ -77,10 +77,10 @@ const KINDS: Record<OutboxKind, JobKind> = {
       )
     },
     revert: async (job) => {
-      const { releaseId, fieldId } = job.payload as { releaseId: number; fieldId: number }
+      const { instanceId, fieldId } = job.payload as { instanceId: number; fieldId: number }
       const { value } = job.revert as { value: string }
       const { writeFieldValue } = await import('~~/db/fields')
-      await writeFieldValue(releaseId, fieldId, value)
+      await writeFieldValue(instanceId, fieldId, value)
     },
   },
 

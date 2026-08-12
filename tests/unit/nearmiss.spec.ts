@@ -6,7 +6,7 @@ import { MAX_PER_DIG, NearMissAccumulator } from '~~/worker/horizon/nearmiss'
 import type { Listing } from '~~/worker/match'
 
 function record(over: Partial<CollectionItem> = {}): CollectionItem {
-  return {
+  const base = {
     releaseId: 1,
     masterId: 0,
     title: 'Platte',
@@ -24,6 +24,15 @@ function record(over: Partial<CollectionItem> = {}): CollectionItem {
     rating: 0,
     addedAt: '',
     ...over,
+  }
+  /*
+   * A key of its own. The shelf is keyed by entry since v6, so two
+   * fixtures sharing a key would silently be one row.
+   */
+  return {
+    ...base,
+    instanceId: base.instanceId ?? -base.releaseId,
+    folderId: base.folderId ?? 1,
   }
 }
 

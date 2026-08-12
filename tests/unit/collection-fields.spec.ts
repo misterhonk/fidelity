@@ -95,9 +95,9 @@ describe('the fields Discogs keeps beside a record', () => {
     const db = await openFidelityDb()
     await db.put('collection', record())
 
-    expect(await setFieldValue(5, 1, 'Mint (M)')).toBe(true)
+    expect(await setFieldValue(700, 1, 'Mint (M)')).toBe(true)
 
-    expect(await fieldValuesFor(5)).toEqual({ 1: 'Mint (M)' })
+    expect(await fieldValuesFor(700)).toEqual({ 1: 'Mint (M)' })
     const [job] = await pendingJobs()
     expect(job?.payload.value).toBe('Mint (M)')
     expect(job?.revert).toEqual({ value: '' })
@@ -112,18 +112,18 @@ describe('the fields Discogs keeps beside a record', () => {
   it('survives a collection row being rewritten by a sync', async () => {
     const db = await openFidelityDb()
     await db.put('collection', record())
-    await setFieldValue(5, 1, 'Fair (F)')
+    await setFieldValue(700, 1, 'Fair (F)')
 
     await db.put('collection', record({ rating: 4 }))
 
-    expect(await fieldValuesFor(5)).toEqual({ 1: 'Fair (F)' })
+    expect(await fieldValuesFor(700)).toEqual({ 1: 'Fair (F)' })
   })
 
   it('refuses a record with no entry to address', async () => {
     const db = await openFidelityDb()
-    await db.put('collection', record({ instanceId: 0, folderId: 0 }))
+    await db.put('collection', record({ instanceId: -5, folderId: 0 }))
 
-    expect(await setFieldValue(5, 1, 'Mint (M)')).toBe(false)
+    expect(await setFieldValue(-5, 1, 'Mint (M)')).toBe(false)
     expect(await pendingJobs()).toEqual([])
   })
 })

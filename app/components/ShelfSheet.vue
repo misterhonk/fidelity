@@ -5,7 +5,7 @@ import { useCollectionMessages } from '~/i18n/collection'
 const c = useCollectionMessages()
 const m = useMessages()
 
-const props = defineProps<{ releaseId: number }>()
+const props = defineProps<{ instanceId: number }>()
 const emit = defineEmits<{ close: [] }>()
 
 const { call } = useFidelityWorker()
@@ -36,7 +36,7 @@ async function rate(stars: number) {
   const next = item.rating === stars ? 0 : stars
   record.value = { ...item, rating: next }
 
-  const written = await call('collection.rate', { releaseId: item.releaseId, rating: next })
+  const written = await call('collection.rate', { instanceId: item.instanceId, rating: next })
   // The worker refused: put the sheet back rather than show a rating that is
   // nowhere. It only happens for a record with no entry, which is why the
   // stars are not offered in that case at all — this is the second net.
@@ -61,7 +61,7 @@ async function setField(field: CollectionField, value: string) {
   values.value = { ...values.value, [field.id]: value }
 
   const written = await call('collection.setField', {
-    releaseId: props.releaseId,
+    instanceId: props.instanceId,
     fieldId: field.id,
     value,
   })
@@ -70,9 +70,9 @@ async function setField(field: CollectionField, value: string) {
 
 onMounted(async () => {
   panel.value?.focus()
-  record.value = await call('collection.record', { releaseId: props.releaseId })
+  record.value = await call('collection.record', { instanceId: props.instanceId })
 
-  const noted = await call('collection.fields', { releaseId: props.releaseId })
+  const noted = await call('collection.fields', { instanceId: props.instanceId })
   fields.value = noted.fields
   values.value = noted.values
 })
@@ -133,7 +133,7 @@ const tags = computed(() => {
 const confirming = ref(false)
 
 async function remove() {
-  if (!(await call('collection.remove', { releaseId: props.releaseId }))) {
+  if (!(await call('collection.remove', { instanceId: props.instanceId }))) {
     confirming.value = false
     return
   }

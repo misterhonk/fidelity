@@ -20,6 +20,10 @@ async function shelve(
   const db = await openFidelityDb()
   await db.put(store, {
     releaseId: 1,
+    // Keyed by entry since v6. Derived from the release so an override of one
+    // carries the other, and two fixtures never share a row by accident.
+    instanceId: Number(over.releaseId ?? 1),
+    folderId: 1,
     masterId: 0,
     title: 'Dummy',
     artistIds: [],

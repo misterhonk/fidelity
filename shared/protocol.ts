@@ -195,7 +195,7 @@ export interface WorkerContract {
   }
   /** One stored record, for the sheet a shelf tile opens. Reads only. */
   'collection.record': {
-    params: { releaseId: number }
+    params: { instanceId: number }
     progress: never
     result: CollectionItem | null
   }
@@ -208,25 +208,25 @@ export interface WorkerContract {
    * loud rather than a failure to swallow.
    */
   'collection.rate': {
-    params: { releaseId: number; rating: number }
+    params: { instanceId: number; rating: number }
     progress: never
     result: boolean
   }
   /** The field definitions, and this device's values for one record. */
   'collection.fields': {
-    params: { releaseId: number }
+    params: { instanceId: number }
     progress: never
     result: { fields: CollectionField[]; values: Record<number, string> }
   }
   /** Sets one field. False when the record has no entry to write to. */
   'collection.setField': {
-    params: { releaseId: number; fieldId: number; value: string }
+    params: { instanceId: number; fieldId: number; value: string }
     progress: never
     result: boolean
   }
   /** Takes a record off the shelf. Destructive — the screen asks first. */
   'collection.remove': {
-    params: { releaseId: number }
+    params: { instanceId: number }
     progress: never
     result: boolean
   }

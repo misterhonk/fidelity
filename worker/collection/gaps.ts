@@ -3,6 +3,7 @@ import type { CollectionGaps, LabelStanding, ShelfGap } from '#shared/types'
 
 import { buildLookup, labelLift } from '../horizon/lookup'
 import { norm } from '../match/normalize'
+import { distinctReleases } from '~~/db/collection'
 
 /**
  * Where the shelf has holes, and which labels you really collect.
@@ -39,7 +40,7 @@ export const LIMIT = 15
 export async function collectionGaps(): Promise<CollectionGaps> {
   const db = await openFidelityDb()
   const [collection, wantlist, chunks] = await Promise.all([
-    db.getAll('collection'),
+    distinctReleases(),
     db.getAll('wantlist'),
     db.getAll('horizon'),
   ])

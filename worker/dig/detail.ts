@@ -3,6 +3,7 @@ import type { CatalogueContext, DiscographyContext, Match, MatchDetail } from '#
 
 import { buildLookup, hitsFor, type HorizonLookup } from '../horizon/lookup'
 import { parseCatno } from '../horizon/pack'
+import { distinctReleases } from '~~/db/collection'
 
 /**
  * The detail sheet's data.
@@ -33,7 +34,7 @@ async function lookup(): Promise<HorizonLookup> {
   const db = await openFidelityDb()
   const [chunks, collection, wantlist] = await Promise.all([
     db.getAll('horizon'),
-    db.getAll('collection'),
+    distinctReleases(),
     db.getAll('wantlist'),
   ])
 
