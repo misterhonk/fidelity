@@ -138,6 +138,24 @@ function shelfLinks(names: string[], facet: 'label' | 'artist') {
     .map((name) => ({ name, to: `/shelf?${facet}=${encodeURIComponent(name)}` }))
 }
 
+/**
+ * "2 × Vinyl · 12" · 45 RPM · Blue Translucent".
+ *
+ * All of it came with the sync and none of it was shown: the disc count was
+ * parsed away, so a double LP looked exactly like a single, and the colour the
+ * submitter typed never arrived at all.
+ *
+ * The count goes in front, because that is where it changes the meaning of
+ * everything after it. One disc is left unsaid — "1 × Vinyl" is noise on
+ * almost every record in a collection, and a row that says nothing new is a
+ * row that cost a line.
+ */
+function pressing(item: CollectionItem): string {
+  const words = [...item.formats, ...(item.formatText ?? [])].join(' · ')
+  const discs = item.discs ?? 1
+  return discs > 1 ? `${discs} × ${words}` : words
+}
+
 interface Fact {
   key: keyof typeof c.value.shelf.sheet.facts
   /** A plain statement — a year, a catalogue number, a format. */
@@ -156,7 +174,7 @@ const facts = computed<Fact[]>(() => {
         { key: 'artist', links: shelfLinks(item.artistNames, 'artist') },
         { key: 'label', links: shelfLinks(item.labelNames, 'label') },
         { key: 'catno', value: item.catnos.join(' · '), mono: true },
-        { key: 'format', value: item.formats.join(' · ') },
+        { key: 'format', value: pressing(item) },
         { key: 'year', value: item.year > 0 ? String(item.year) : '', mono: true },
         { key: 'added', value: added.value, mono: true },
       ] as Fact[]

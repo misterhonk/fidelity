@@ -43,7 +43,7 @@ export interface SyncResult {
  * `country` is deliberately absent: basic_information does not carry it
  * (docs/02 §4), so a sync alone cannot feed a country facet.
  */
-function toItem(
+export function toItem(
   releaseId: number,
   info: BasicInformation,
   dateAdded: string,
@@ -69,6 +69,15 @@ function toItem(
       format.name,
       ...(format.descriptions ?? []),
     ]),
+    /*
+     * `qty` is a string in the response — "2", not 2. Summed across entries
+     * because a release can list several: a 2×LP with a bonus 7" is three
+     * discs in two blocks, and "2" would be the wrong half of the answer.
+     */
+    discs: (info.formats ?? []).reduce((total, format) => total + (Number(format.qty) || 1), 0),
+    formatText: (info.formats ?? [])
+      .map((format) => format.text ?? '')
+      .filter((text) => text.length > 0),
     year: info.year ?? 0,
     // Empty rather than null when Discogs has no cover, so the shelf can ask
     // one question instead of two.

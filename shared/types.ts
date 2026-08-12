@@ -400,7 +400,29 @@ export interface CollectionItem {
   catnos: string[]
   genres: string[]
   styles: string[]
+  /**
+   * Format name and its descriptions, flattened: `['Vinyl', '12"', '45 RPM']`.
+   *
+   * The matching engine compares these, so the list stays exactly what it was:
+   * words that describe the *kind* of record. How many discs and what colour
+   * they are do not belong in that comparison and sit beside it instead.
+   */
   formats: string[]
+  /**
+   * How many discs — 2 for a double LP, 1 for everything ordinary.
+   *
+   * Optional because it arrives with a full sync and rows written before this
+   * existed have none. Undefined means "not known", which reads as one.
+   */
+  discs?: number
+  /**
+   * The free line the submitter typed: "Blue Translucent", "Etched", "Numbered".
+   *
+   * Not part of `formats` on purpose. It is prose, not a category — matching a
+   * listing against "Blue Translucent" would compare pressing colours as
+   * though they were formats.
+   */
+  formatText?: string[]
   year: number
   /** The 150px cover from Discogs, '' when there is none. */
   thumbUrl: string

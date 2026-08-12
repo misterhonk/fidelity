@@ -91,6 +91,35 @@ describe('the fields Discogs keeps beside a record', () => {
     expect(await getMeta('collectionFields')).toHaveLength(2)
   })
 
+  /**
+   * A field somebody adds later still arrives.
+   *
+   * Three fields come with every account, and those never change — which is
+   * why this was fetched once and kept for ever. But Discogs also lets a
+   * collector *add* fields, and one created after that first fetch would never
+   * have appeared: no error, no empty row, just a field that exists on the
+   * website and not here. The full daily walk asks again.
+   */
+  it('asks again when told to, so a field added later shows up', async () => {
+    const { client, get } = fakeClient()
+    await collectionFields(client, 'mrtnmlchr')
+    expect(get).toHaveBeenCalledTimes(1)
+
+    ANSWER.fields.push({ id: 9, name: 'Bought at', type: 'textarea' })
+    try {
+      const refreshed = await collectionFields(client, 'mrtnmlchr', { refresh: true })
+
+      expect(get).toHaveBeenCalledTimes(2)
+      expect(refreshed.map((field) => field.name)).toContain('Bought at')
+      // And the new list replaces the old one rather than sitting beside it.
+      expect((await getMeta('collectionFields'))?.map((field) => field.name)).toContain(
+        'Bought at',
+      )
+    } finally {
+      ANSWER.fields.pop()
+    }
+  })
+
   it('stores a value and queues it, with the old one to fall back to', async () => {
     const db = await openFidelityDb()
     await db.put('collection', record())

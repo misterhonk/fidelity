@@ -28,18 +28,25 @@ const fieldsSchema = z.object({
 })
 
 /**
- * The definitions, from storage or — once — from Discogs.
+ * The definitions, from storage or from Discogs.
  *
- * They do not change: the same three ids on every account, measured
- * 2026-08-11. So this is fetched the first time somebody opens a record and
- * never again, rather than on every sync.
+ * Three of them come with every account — Media Condition, Sleeve Condition,
+ * Notes — and those really do not change. But Discogs also lets a collector
+ * *add* fields, and this used to be fetched once and kept for ever: somebody
+ * who set up "Bought at" or "First pressing?" on Discogs would never see it
+ * here, and nothing would say why.
+ *
+ * So `refresh` is the answer, and it costs one request on the full daily walk
+ * — the one that already re-reads the whole collection (worker/keeper.ts).
+ * Everywhere else still reads the stored copy and asks nothing.
  */
 export async function collectionFields(
   client: DiscogsClient,
   username: string,
+  { refresh = false }: { refresh?: boolean } = {},
 ): Promise<CollectionField[]> {
   const cached = await getMeta('collectionFields')
-  if (cached) return cached
+  if (cached && !refresh) return cached
 
   const answer = await client.get(
     `/users/${encodeURIComponent(username)}/collection/fields`,

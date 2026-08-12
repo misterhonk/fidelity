@@ -35,7 +35,7 @@ export const paginationSchema = z.object({
  * Identical in the collection and the wantlist, so one parser covers both.
  * Richer than the inventory equivalent, and crucially it carries IDs.
  */
-const basicInformationSchema = z.object({
+export const basicInformationSchema = z.object({
   id: z.number().int(),
   /** 0 or null both mean "no master". */
   master_id: z.number().int().nullable().optional(),
@@ -58,8 +58,24 @@ const basicInformationSchema = z.object({
     .optional(),
   genres: z.array(z.string()).optional(),
   styles: z.array(z.string()).optional(),
+  /*
+   * More than the word "Vinyl", and all of it already paid for.
+   *
+   * `qty` is how many discs — a string, because Discogs sends "2" and not 2 —
+   * and `text` is the free line the submitter typed: "Blue Translucent",
+   * "Etched", "Numbered". Both ride along in `basic_information` (measured
+   * against the live API 2026-08-12, and docs/02 §Sammlung) and were being
+   * parsed away, which is why a double LP looked exactly like a single.
+   */
   formats: z
-    .array(z.object({ name: z.string(), descriptions: z.array(z.string()).optional() }))
+    .array(
+      z.object({
+        name: z.string(),
+        qty: z.string().optional(),
+        text: z.string().optional(),
+        descriptions: z.array(z.string()).optional(),
+      }),
+    )
     .optional(),
 })
 

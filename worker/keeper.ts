@@ -198,6 +198,19 @@ export async function runKeeper(options: {
       const summary = await syncLibrary({ client, username, signal }, { full })
       result.did.push('library')
       result.stored = summary.collection.stored + summary.wantlist.stored
+
+      /*
+       * And on a full walk, what you can note about a record.
+       *
+       * A collector can add their own fields on Discogs, and the definitions
+       * were fetched once and kept for ever — so a field created afterwards
+       * simply never appeared here. One request, on the walk that already
+       * costs many, and never on the half-hourly delta.
+       */
+      if (full) {
+        const { collectionFields } = await import('./collection/fields')
+        await collectionFields(client, username, { refresh: true })
+      }
     } catch {
       // A sync that fails changes nothing; the next tick tries again. It is not
       // worth an error on a screen nobody asked to refresh.

@@ -368,6 +368,23 @@ Beim Parsen sofort dedupliziert wegwerfen.
 
 **Fehlt:** `country`, `tracklist`, `notes`, `barcode`, `community`.
 
+**Und ausdrücklich fehlt auch** (geprüft am 2026-08-12, weil die Gegenannahme
+schon einmal in eine Planung geraten ist): **`identifiers`** — also Matrix-/
+Runout-Nummer, Barcode, Mastering-SID — **und `released`** als volles Datum.
+Beides gibt es **nur** über `GET /releases/{id}`, kostet also eine Anfrage je
+Platte. `basic_information` kennt vom Erscheinen nur `year`.
+
+**Was dagegen wirklich mitkommt und lange weggeworfen wurde:**
+
+| Feld | Form | Wofür |
+|---|---|---|
+| `formats[].qty` | **String**, `"2"` – nicht `2` | Wie viele Scheiben. Über alle Blöcke summieren: ein 2×LP mit Bonus-7" sind drei in zwei Blöcken |
+| `formats[].text` | Freitext des Einreichers | „Blue Translucent", „Etched", „Numbered" |
+
+Der Text gehört **nicht** in die Formatliste, gegen die die Engine vergleicht —
+das wäre eine Pressungsfarbe, die stillschweigend zum Matching-Signal wird
+(`tests/unit/pressing-detail.spec.ts` hält das fest).
+
 ### `GET /users/{u}/wants`
 
 ⚠️ Der Pfad heißt **`/wants`**, nicht `/wantlist`. `basic_information` ist **strukturgleich**
