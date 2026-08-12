@@ -257,13 +257,16 @@ export async function syncWantlist(context: SyncContext): Promise<SyncSummary> {
     pagination: (page) => page.pagination,
     rows: (page) =>
       page.wants.map((row) => {
-        const { rating: _rating, ...want } = toItem(
+        const { rating: _rating, ...base } = toItem(
           row.id,
           row.basic_information,
           row.date_added,
           0,
         )
-        return { dateAdded: row.date_added, item: want }
+        return {
+          dateAdded: row.date_added,
+          item: { ...base, note: row.notes ?? '', want: row.rating ?? 0 },
+        }
       }),
     write: async (items) => {
       const tx = db.transaction('wantlist', 'readwrite')

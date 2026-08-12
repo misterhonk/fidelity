@@ -80,6 +80,9 @@ export const seedWantlist: WantlistItem[] = [
     thumbUrl: 'https://i.discogs.com/wanted-150.jpg',
     coverUrl: 'https://i.discogs.com/wanted-600.jpg',
     addedAt: '2019-03-01T00:00:00-00:00',
+    // The reason this one is still on the list after six years.
+    note: 'Only the 2001 Duophonic press, not the 2019 repress',
+    want: 5,
   },
 ]
 

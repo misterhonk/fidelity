@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { WantlistOverview } from '#shared/types'
+import type { WantedRecord, WantlistOverview } from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
 
@@ -23,6 +23,20 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+/*
+ * The note, edited where it is read.
+ *
+ * No separate screen and no edit mode: a wantlist note is one line, and the
+ * moment it is worth writing is the moment you are looking at the record it
+ * belongs to. Written on blur rather than on every keystroke — the outbox
+ * collapses repeats anyway, but a request per letter would be absurd.
+ */
+async function note(record: WantedRecord, text: string) {
+  if (text === record.note) return
+  await call('wantlist.note', { releaseId: record.releaseId, note: text, want: record.want })
+  overview.value = await call('collection.wantlist', undefined)
+}
 
 async function drop(releaseId: number) {
   if (!(await call('wantlist.remove', { releaseId }))) return
@@ -215,6 +229,27 @@ function waiting(addedAt: string): string | null {
                 {{ c.onDay(day(record.lastSeen.at)) }}
               </NuxtLink>
             </p>
+
+            <!--
+              Which pressing will do, in your own words.
+
+              The most useful line on the screen and the last to arrive: a dig
+              that does not know "only the German press" offers you the wrong
+              one with a straight face. Discogs has carried this all along.
+
+              Drawn without a border until it is wanted. Twenty-three empty
+              boxes down a page shout for attention none of them has earned —
+              a note is an invitation, not a form field, and the placeholder
+              is enough of one.
+            -->
+            <input
+              :value="record.note"
+              type="text"
+              :placeholder="c.wantlist.notePlaceholder"
+              :aria-label="c.wantlist.noteLabel(record.artist, record.title)"
+              class="-mx-2 min-h-11 w-[calc(100%+1rem)] rounded-fid-sm border border-transparent bg-transparent px-2 text-fid-sm text-fid-text transition-colors placeholder:text-fid-text-muted hover:border-fid-field focus:border-fid-field focus:bg-fid-surface"
+              @change="note(record, ($event.target as HTMLInputElement).value)"
+            />
           </div>
         </li>
       </ul>

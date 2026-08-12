@@ -113,6 +113,8 @@ const en = {
       years: (years: string) => `waiting ${years} years`,
     },
     dropShort: 'Not any more',
+    notePlaceholder: 'Which pressing will do?',
+    noteLabel: (artist: string, title: string) => `Your note on ${artist} — ${title}`,
     drop: (artist: string, title: string) => `Take ${artist} — ${title} off the wantlist`,
     description: 'What you are looking for — and how findable it is.',
     empty:
@@ -249,6 +251,8 @@ const de: typeof en = {
       years: (years) => `seit ${years} Jahren`,
     },
     dropShort: 'Doch nicht',
+    notePlaceholder: 'Welche Pressung darf es sein?',
+    noteLabel: (artist, title) => `Deine Notiz zu ${artist} – ${title}`,
     drop: (artist, title) => `${artist} – ${title} von der Wantlist nehmen`,
     description: 'Was du suchst – und wie auffindbar es ist.',
     empty:

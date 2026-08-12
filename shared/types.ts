@@ -264,6 +264,15 @@ export interface WantedRecord {
    */
   thumbUrl: string
   coverUrl: string
+  /**
+   * What you wrote down about this one.
+   *
+   * The most useful thing on the whole screen and the last to arrive: "only
+   * the German press", "not the 2016 repress", "must be the gatefold". A dig
+   * that does not know it offers you the wrong pressing with a straight face.
+   */
+  note: string
+  want: number
   /** Pressings the horizon knows of. Null means it has not expanded this album. */
   pressings: number | null
   /** Where a dig last offered this album — by master, so any pressing counts. */
@@ -395,8 +404,20 @@ export function isOwnEntry(item: { instanceId: number; folderId: number }): bool
   return item.instanceId > 0 && item.folderId > 0
 }
 
-/** No rating, and nothing to write to — a want is addressed by release alone. */
-export type WantlistItem = Omit<CollectionItem, 'rating' | 'instanceId' | 'folderId'>
+/**
+ * A record you are looking for.
+ *
+ * No entry to address — a want is keyed by release alone — but it carries two
+ * things of its own that a collection row does not: a note about *which*
+ * pressing will do, and how much you want it. Both come back with every sync
+ * and both are writable.
+ */
+export type WantlistItem = Omit<CollectionItem, 'rating' | 'instanceId' | 'folderId'> & {
+  /** Free text from Discogs. Empty when nothing was written. */
+  note: string
+  /** 0–5, and 0 means "never said" rather than "not much". */
+  want: number
+}
 
 /**
  * One answer to "habe ich die schon?", asked with a record in your hand.
@@ -1004,6 +1025,15 @@ export interface MatchDetail {
   discography: DiscographyContext[]
   /** Names from the horizon that point at this release, main credits first. */
   connections: { kind: string; name: string; role: number }[]
+  /**
+   * What you wrote on the wantlist about this exact release, if anything.
+   *
+   * The whole reason the note is worth reading back out of Discogs: standing
+   * in a shop with a copy in your hand, "only the German press" is the
+   * difference between a find and a mistake. Empty when there is no note, or
+   * when the record is not on the wantlist at all.
+   */
+  wantNote: string
 }
 
 export type Verdict = 'interesting' | 'meh' | 'wrong' | 'bought'

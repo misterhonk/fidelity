@@ -70,6 +70,15 @@ export async function matchDetail(
       .map((hit) => ({ kind: hit.kind, name: hit.name, role: hit.role }))
       // Main credits before production work: "sein Album" before "hat produziert".
       .sort((a, b) => a.role - b.role || a.name.localeCompare(b.name)),
+    /*
+     * Read by release, not by master.
+     *
+     * A note says which pressing will do, so it belongs to the pressing it was
+     * written on. Carrying it across to a different edition would turn "only
+     * the German press" into advice about the record in front of you being the
+     * German press, which is the opposite of what it says.
+     */
+    wantNote: (await db.get('wantlist', match.releaseId))?.note ?? '',
   }
 }
 

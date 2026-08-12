@@ -99,6 +99,47 @@ const brain = chunk({
 })
 
 describe('the detail sheet, built from the horizon and nothing else', () => {
+  /*
+   * The note, at the moment it matters.
+   *
+   * Read by release rather than by master, and that is the whole care taken:
+   * a note says *which pressing will do*, so carrying it to a different
+   * edition would turn "only the German press" into a claim about the record
+   * in front of you being one — the opposite of what it says.
+   */
+  it('carries the wantlist note for this exact pressing', async () => {
+    await seed([], [])
+    const db = await openFidelityDb()
+    await db.put('wantlist', {
+      releaseId: 500,
+      masterId: 0,
+      title: 'Platte',
+      artistIds: [],
+      artistNorms: [],
+      artistNames: ['Wer'],
+      labelIds: [],
+      labelNorms: [],
+      labelNames: [],
+      catnos: [],
+      genres: [],
+      styles: [],
+      formats: [],
+      year: 1972,
+      thumbUrl: '',
+      coverUrl: '',
+      addedAt: '2020-01-01T00:00:00-00:00',
+      note: 'German press only',
+      want: 5,
+    })
+
+    expect((await matchDetail('01A', 500))?.wantNote).toBe('German press only')
+  })
+
+  it('says nothing when the record is not wanted', async () => {
+    await seed([], [])
+    expect((await matchDetail('01A', 500))?.wantNote).toBe('')
+  })
+
   it('returns null for a listing that is not in this dig', async () => {
     await seed([], [])
     expect(await matchDetail('01A', 999)).toBeNull()

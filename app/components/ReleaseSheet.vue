@@ -234,6 +234,20 @@ function onKeydown(event: KeyboardEvent) {
         <p class="text-fid-base text-fid-text">{{ reasonFor(match.signals) }}</p>
 
         <!--
+          Your own words, at the moment they matter.
+          Standing in a shop with the record in your hand, "only the German
+          press" is the difference between a find and a mistake — and it has
+          been sitting in Discogs, unread by this app, the whole time.
+        -->
+        <p
+          v-if="detail?.wantNote"
+          class="flex items-start gap-2 rounded-fid-sm border border-fid-sig-wantlist/40 bg-fid-sig-wantlist/10 px-3 py-2 text-fid-sm text-fid-text"
+        >
+          <FidIcon name="bookmark" :size="16" class="shrink-0 text-fid-sig-wantlist" />
+          {{ detail.wantNote }}
+        </p>
+
+        <!--
           The market numbers, whenever the enrichment pass paid for them. Shown
           even where neither signal fired: "40 im Angebot, Tiefstpreis 8 €" is
           the answer to "ist das ein Fund oder Massenware", and that question

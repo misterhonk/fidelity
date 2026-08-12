@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import { pendingJobs } from '~~/db/outbox'
 import type { Match, WantlistItem } from '#shared/types'
-import { unwantRecord, wantRecord } from '~~/worker/collection/want'
+import { noteWant, unwantRecord, wantRecord } from '~~/worker/collection/want'
 import type { DiscogsClient } from '~~/worker/discogs/client'
 import { DiscogsError } from '~~/worker/discogs/errors'
 import { drainOutbox } from '~~/worker/outbox'
@@ -67,6 +67,8 @@ function want(over: Partial<WantlistItem> = {}): WantlistItem {
     thumbUrl: '',
     coverUrl: '',
     addedAt: '2024-02-02T00:00:00-00:00',
+    note: '',
+    want: 0,
     ...over,
   }
 }
@@ -109,6 +111,46 @@ describe('the wantlist, written to', () => {
     expect(await unwantRecord(31)).toBe(true)
     expect(await db.get('wantlist', 31)).toBeUndefined()
     expect(JSON.parse(String((await pendingJobs())[0]?.revert.want)).title).toBe('Spiderland')
+  })
+
+  /*
+   * The note, and the trap in the endpoint.
+   *
+   * Discogs replaces both fields on every POST, so writing a note without
+   * carrying the rating along would silently clear it — the kind of thing
+   * nobody notices until a wish rating they set years ago is gone.
+   */
+  it('writes the note and the rating together, because the endpoint does', async () => {
+    const db = await openFidelityDb()
+    await db.put('wantlist', want({ want: 4 }))
+
+    expect(await noteWant(31, 'Only the 1991 press', 4)).toBe(true)
+
+    const fake = client(async () => null)
+    await drainOutbox(fake, 'mrtnmlchr')
+
+    const [method, path, options] = (fake.write as ReturnType<typeof vi.fn>).mock.calls[0] ?? []
+    expect(method).toBe('POST')
+    expect(path).toBe('/users/mrtnmlchr/wants/31')
+    expect(options).toEqual({
+      body: { notes: 'Only the 1991 press', rating: 4 },
+      idempotent: true,
+    })
+  })
+
+  it('puts the old note back when it is given up on', async () => {
+    const db = await openFidelityDb()
+    await db.put('wantlist', want({ note: 'German press only', want: 5 }))
+    await noteWant(31, 'anything will do', 1)
+
+    const fake = client(async () => {
+      throw new DiscogsError(0, 'Discogs antwortet nicht')
+    })
+    for (let attempt = 0; attempt < 5; attempt++) await drainOutbox(fake, 'mrtnmlchr')
+
+    const stored = await db.get('wantlist', 31)
+    expect(stored?.note).toBe('German press only')
+    expect(stored?.want).toBe(5)
   })
 
   it('treats a want that is already gone as gone', async () => {

@@ -86,6 +86,9 @@ export const wantlistPageSchema = z.object({
       id: z.number().int(),
       date_added: z.string(),
       rating: z.number().optional(),
+      // What you wrote down about why you want it — "only the German press",
+      // "not the 2016 repress". Verified present on every row, 2026-08-12.
+      notes: z.string().optional(),
       basic_information: basicInformationSchema,
     }),
   ),

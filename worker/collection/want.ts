@@ -31,6 +31,9 @@ function provisional(match: Match & { title: string; artist: string }): Wantlist
     thumbUrl: match.thumbUrl ?? '',
     coverUrl: '',
     addedAt: new Date().toISOString(),
+    // Nothing said yet, on either count — and zero is "never said", not "meh".
+    note: '',
+    want: 0,
   }
 }
 
@@ -67,6 +70,35 @@ export async function unwantRecord(releaseId: number): Promise<boolean> {
     // The row itself, for the same reason the collection carries one: Discogs
     // cannot hand back a want it never removed.
     revert: { want: JSON.stringify(want) },
+    queuedAt: Date.now(),
+  })
+
+  return true
+}
+
+/**
+ * What you wrote down about a record you are looking for.
+ *
+ * Note and rating travel together because Discogs takes them together: the
+ * endpoint replaces both, so sending one alone would silently clear the other.
+ * That is a trap worth naming rather than discovering.
+ */
+export async function noteWant(
+  releaseId: number,
+  note: string,
+  want: number,
+): Promise<boolean> {
+  const db = await openFidelityDb()
+  const stored = await db.get('wantlist', releaseId)
+  if (!stored) return false
+  if (stored.note === note && stored.want === want) return true
+
+  await db.put('wantlist', { ...stored, note, want })
+  await queueJob({
+    id: `wantlist.note:${releaseId}`,
+    kind: 'wantlist.note',
+    payload: { releaseId, note, want },
+    revert: { note: stored.note, want: stored.want },
     queuedAt: Date.now(),
   })
 

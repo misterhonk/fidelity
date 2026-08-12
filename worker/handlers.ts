@@ -536,6 +536,11 @@ export const handlers: HandlerMap = {
     return wantRecord(match)
   },
 
+  'wantlist.note': async ({ releaseId, note, want }) => {
+    const { noteWant } = await import('./collection/want')
+    return noteWant(releaseId, note, want)
+  },
+
   'wantlist.remove': async ({ releaseId }) => {
     const { unwantRecord } = await import('./collection/want')
     return unwantRecord(releaseId)

@@ -205,6 +205,7 @@ export type OutboxKind =
   | 'collection.add'
   | 'wantlist.add'
   | 'wantlist.remove'
+  | 'wantlist.note'
 
 export interface CoverEntry {
   releaseId: number

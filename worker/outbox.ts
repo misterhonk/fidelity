@@ -169,6 +169,31 @@ const KINDS: Record<OutboxKind, JobKind> = {
     },
   },
 
+  'wantlist.note': {
+    send: async (client, job, username) => {
+      const { releaseId, note, want } = job.payload as {
+        releaseId: number
+        note: string
+        want: number
+      }
+      await client.write(
+        'POST',
+        `/users/${encodeURIComponent(username)}/wants/${releaseId}`,
+        // Setting the same note twice leaves the same note. Both fields go
+        // together because the endpoint takes them together — sending only one
+        // would clear the other.
+        { body: { notes: note, rating: want }, idempotent: true },
+      )
+    },
+    revert: async (job) => {
+      const { releaseId } = job.payload as { releaseId: number }
+      const { note, want } = job.revert as { note: string; want: number }
+      const db = await openFidelityDb()
+      const stored = await db.get('wantlist', releaseId)
+      if (stored) await db.put('wantlist', { ...stored, note, want })
+    },
+  },
+
   'wantlist.remove': {
     send: async (client, job, username) => {
       const { releaseId } = job.payload as { releaseId: number }

@@ -242,6 +242,12 @@ export interface WorkerContract {
     progress: never
     result: boolean
   }
+  /** Writes the note and the wish rating. Both go together — see want.ts. */
+  'wantlist.note': {
+    params: { releaseId: number; note: string; want: number }
+    progress: never
+    result: boolean
+  }
   /** Takes a release off the wantlist. */
   'wantlist.remove': { params: { releaseId: number }; progress: never; result: boolean }
   /** Discogs' estimate, as of the last sync. Null before the first one. */
