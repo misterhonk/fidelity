@@ -1,0 +1,155 @@
+/**
+ * Takes the fonts out of a build and puts them in the repository.
+ *
+ * `@nuxt/fonts` downloads Switzer, Chivo Mono and Array from Google and
+ * Fontshare **while the build runs**, and Google rotates its file addresses
+ * without notice — three release builds died on a 404 from fonts.gstatic.com
+ * on 2026-08-11 and another on 2026-08-12. At runtime the app already loads
+ * nothing from third parties (docs/12); this closes the last gap.
+ *
+ * Run against a fresh build:
+ *
+ *     pnpm build && node scripts/fonts/vendor.mjs
+ *
+ * Every woff2 the build emitted is copied into `app/assets/fonts/` under a
+ * name that says what it is, and the matching @font-face rules are written out —
+ * including `unicode-range`, which is what keeps Chivo Mono's subsets from
+ * all loading at once. Nothing is re-encoded and nothing is dropped: the
+ * bytes and the declarations are the ones that already shipped.
+ */
+import {
+  copyFileSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
+import { join } from 'node:path'
+
+const OUT = '.output/public'
+const DEST = 'app/assets/fonts'
+const CSS = 'app/assets/css/fonts.css'
+
+const cssName = readdirSync(join(OUT, '_nuxt')).find(
+  (name) =>
+    name.endsWith('.css') &&
+    readFileSync(join(OUT, '_nuxt', name), 'utf8').includes('@font-face'),
+)
+if (!cssName) throw new Error('No built CSS with @font-face — run `pnpm build` first.')
+
+const faces =
+  readFileSync(join(OUT, '_nuxt', cssName), 'utf8').match(/@font-face\{[^}]*\}/g) ?? []
+
+rmSync(DEST, { recursive: true, force: true })
+mkdirSync(DEST, { recursive: true })
+
+/** Hashed source file → the readable name it now has. */
+const named = new Map()
+/** How many files a family/weight/style has taken, for the subset suffix. */
+const counts = new Map()
+const rules = []
+
+for (const face of faces) {
+  /*
+   * Every source in the rule, not just the first.
+   *
+   * A `src:` can list more than one file, and taking only the head left two
+   * of eighteen behind — uncopied, and still pointed at the build's own path,
+   * which would have 404'd in production while everything looked fine here.
+   */
+  const sources = [...new Set(face.match(/\/_fonts\/[A-Za-z0-9_-]+\.woff2/g) ?? [])].map(
+    (url) => url.slice('/_fonts/'.length),
+  )
+
+  /*
+   * Fallback faces carry metric overrides and no file of their own. They are
+   * what stops the page reflowing when the real font arrives, so they travel
+   * through unchanged.
+   */
+  if (sources.length === 0) {
+    rules.push(face)
+    continue
+  }
+
+  let rule = face
+  for (const source of sources) {
+    let name = named.get(source)
+    if (!name) {
+      /*
+       * Stop at `;` *or* `}`. Minified CSS drops the semicolon after the last
+       * property in a rule, so `[^;]+` swallowed the closing brace and the rest
+       * of the declaration — which is how every italic came out named as if it
+       * were roman, and overwrote it.
+       */
+      const prop = (name, fallback) =>
+        face.match(new RegExp(`${name}:([^;}]+)`))?.[1].trim() ?? fallback
+
+      const family = prop('font-family', '').replace(/^"|"$/g, '')
+      const weight = prop('font-weight', '400')
+      const italic = prop('font-style', 'normal') === 'italic'
+
+      /*
+       * Chivo Mono ships one file per subset, so the same weight arrives more
+       * than once. The suffix keeps them apart without pretending to know which
+       * alphabet each one covers — the unicode-range in the rule says that.
+       *
+       * Counted, not matched by prefix: "Chivo-Mono-400-italic" starts with
+       * "Chivo-Mono-400-", so a prefix test lets the italics inflate the roman
+       * count and two files end up with the same name. That silently cost two
+       * of eighteen the first time this ran.
+       */
+      const base = `${family.replace(/\s+/g, '-')}-${weight}${italic ? '-italic' : ''}`
+      const taken = counts.get(base) ?? 0
+      counts.set(base, taken + 1)
+      name = `${base}${taken > 0 ? `-${taken}` : ''}.woff2`
+
+      named.set(source, name)
+      copyFileSync(join(OUT, '_fonts', source), join(DEST, name))
+    }
+
+    /*
+     * The whole url(), prefix and all.
+     *
+     * The built CSS writes `url(../_fonts/x.woff2)` — relative to `_nuxt/`.
+     * Replacing only the `/_fonts/x` part left the leading `..` behind and
+     * produced `url(.../fonts/x)`, which resolves to nothing: the build then
+     * emitted no font files at all and the page fell back to Arial without a
+     * single error.
+     *
+     * `../fonts/` because the path is relative to this CSS file, which sits in
+     * `assets/css/` while the faces sit in `assets/fonts/`. `./fonts/` pointed
+     * at `assets/css/fonts/`, which does not exist — same silent nothing.
+     */
+    rule = rule.replace(
+      new RegExp(`url\\([^)]*${source.replace(/[.*+?^$()|[\]\\]/g, '\\$&')}\\)`, 'g'),
+      `url(../fonts/${name})`,
+    )
+  }
+
+  rules.push(rule)
+}
+
+writeFileSync(
+  CSS,
+  `/*
+ * Generated by scripts/fonts/vendor.mjs — do not edit by hand.
+ *
+ * The three faces of Presswerk, served from this repository rather than
+ * fetched from Google and Fontshare while the build runs. The script says
+ * why; re-run it when a family or a weight changes.
+ */
+${rules.join('\n')}
+`,
+)
+
+/*
+ * Under `assets`, not `public`, and referenced relatively.
+ *
+ * An absolute `/fonts/…` would be correct at the root and wrong everywhere
+ * else — this app also lives under `/fidelity/` (NUXT_APP_BASE_URL), where an
+ * absolute path resolves to a 404 and the page silently falls back to Arial.
+ * From `assets` with a relative url(), the bundler rewrites and fingerprints
+ * them, and the base URL is applied for free.
+ */
+console.log(`${named.size} Dateien nach ${DEST}, ${rules.length} Regeln in ${CSS}`)
