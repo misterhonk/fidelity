@@ -389,6 +389,32 @@ zur Sammlung – ein Parser reicht für beides.
 
 ---
 
+### ⚠️⚠️ Es gibt kein Änderungsdatum — nirgends
+
+Eine Sammlungszeile trägt genau das:
+
+```
+id · instance_id · date_added · rating · folder_id · basic_information
+```
+
+**Kein `date_modified`, kein `last_changed`**, und der Endpunkt hat keinen
+Filter dafür (gemessen 2026-08-12). Das ist die folgenreichste Lücke der
+ganzen API, weil sie eine naheliegende Bauweise unmöglich macht:
+
+Ein Delta-Sync, der nach `date_added` absteigend läuft und beim ersten
+bekannten Datensatz anhält, sieht **ausschließlich Neuzugänge**. Wer auf
+discogs.com eine Bewertung ändert, den Zustand einträgt oder eine Platte in
+einen anderen Ordner schiebt, lässt `date_added` unberührt — der Lauf dreht
+lange vorher um, und zwar jedes Mal.
+
+**Die ganze Liste lesen und vergleichen ist nicht *ein* Weg, das zu bemerken,
+sondern der einzige.** Kostet einen Request je 100 Einträge. Fidelity macht
+das einmal täglich, bei „Alles aktualisieren" und auf Knopfdruck über dem
+Regal; der Alltag bleibt beim Delta, weil das bei einer unveränderten
+Sammlung genau einen Request kostet.
+
+Dasselbe gilt für die Wantlist, die deshalb ohnehin immer ganz gelesen wird.
+
 ### Schreibzugriffe — gemessen am 2026-08-11, aus dem Browser
 
 Bis dahin hat Fidelity nur gelesen, und ob die API aus einer reinen Client-App

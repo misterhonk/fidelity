@@ -85,6 +85,9 @@ Alle am 2026-08-09 live verifiziert.
 | **Inventory liefert gar keine Bilder** – `release.thumbnail` ist leer, in 1.200 von 1.200 Zeilen über vier Läden (gemessen 2026-08-10) | `Match.thumbUrl` ist immer `null`. Cover kommen aus `db/covers.ts`: gratis aus der Sammlung, sonst je ein `/releases/{id}` für das, was auf dem Schirm ist |
 | Bilder: **separates Cloudflare-Limit** (~30–40/min) | Nur `loading="lazy"`, nie aktiv fetchen |
 | Wantlist-Pfad heißt **`/wants`**, nicht `/wantlist` | |
+| **Kein Änderungsdatum** an einem Sammlungseintrag, und kein „changed since"-Filter (gemessen 2026-08-12) | Ein Delta über `date_added` sieht nur Neuzugänge. Eine anderswo geänderte Bewertung findet **nur** ein voller Durchlauf — einmal täglich und auf Knopfdruck |
+| **Schreiben geht per CORS**: `POST`, `PUT`, `DELETE` mit Preflight (gemessen 2026-08-11) | Sammlung und Wantlist sind aus dem Browser pflegbar, ohne Backend (ADR-011) |
+| **Eine 404 kann ohne CORS-Header kommen** — wie die 429 | Ein abgelehntes `fetch()` beim Schreiben heißt nicht zwingend „Limit". Nicht-idempotente Aufrufe nie blind wiederholen, sondern nachsehen |
 
 Vollständig: `docs/02-DISCOGS-API.md`.
 
