@@ -98,6 +98,20 @@ const en = {
   },
 
   wantlist: {
+    /*
+     * How long a record has been waited for.
+     *
+     * German for six weeks, on the one screen no test ever rendered with data
+     * in it — which is how a whole paragraph of it survived the sweep that
+     * translated everything else.
+     */
+    waiting: {
+      today: 'noted today',
+      yesterday: 'since yesterday',
+      days: (days: string) => `waiting ${days} days`,
+      months: (months: string) => `waiting ${months} months`,
+      years: (years: string) => `waiting ${years} years`,
+    },
     dropShort: 'Not any more',
     drop: (artist: string, title: string) => `Take ${artist} — ${title} off the wantlist`,
     description: 'What you are looking for — and how findable it is.',
@@ -227,6 +241,13 @@ const de: typeof en = {
   },
 
   wantlist: {
+    waiting: {
+      today: 'heute notiert',
+      yesterday: 'seit gestern',
+      days: (days) => `seit ${days} Tagen`,
+      months: (months) => `seit ${months} Monaten`,
+      years: (years) => `seit ${years} Jahren`,
+    },
     dropShort: 'Doch nicht',
     drop: (artist, title) => `${artist} – ${title} von der Wantlist nehmen`,
     description: 'Was du suchst – und wie auffindbar es ist.',

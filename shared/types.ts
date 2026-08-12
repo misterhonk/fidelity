@@ -254,6 +254,16 @@ export interface WantedRecord {
   year: number
   /** ISO 8601 from Discogs, so it sorts as a string. */
   addedAt: string
+  /**
+   * The sleeve, in both sizes the sync already brought along.
+   *
+   * Empty when Discogs holds no image. These were in the store from the first
+   * wantlist sync and simply never left the worker — which is how the one
+   * screen carrying the two strongest signals in the app ended up the only
+   * one made of text.
+   */
+  thumbUrl: string
+  coverUrl: string
   /** Pressings the horizon knows of. Null means it has not expanded this album. */
   pressings: number | null
   /** Where a dig last offered this album — by master, so any pressing counts. */

@@ -9,6 +9,7 @@ import type {
   Identity,
   Match,
   Signal,
+  WantlistItem,
 } from '#shared/types'
 
 /**
@@ -51,6 +52,35 @@ const DEALER = 'plattenkiste'
 const SIGNALS: Signal[] = [
   { type: 'WANTLIST_EXACT', confidence: 1, evidence: {} },
   { type: 'LABEL_AFFINITY', confidence: 0.8, evidence: { label: 'Blue Note', owned: 14 } },
+]
+
+/**
+ * One record wanted, and wanted for a while.
+ *
+ * There was none until now, which is how a whole paragraph of German text
+ * survived the sweep that translated every other screen: nothing ever
+ * rendered this one with data in it, so nobody ever read it.
+ */
+export const seedWantlist: WantlistItem[] = [
+  {
+    releaseId: 3_299_477,
+    masterId: 21_444,
+    title: 'Sound-Dust',
+    artistIds: [],
+    artistNorms: ['stereolab'],
+    artistNames: ['Stereolab'],
+    labelIds: [],
+    labelNorms: ['duophonic'],
+    labelNames: ['Duophonic'],
+    catnos: ['DUHFCD25'],
+    genres: ['Electronic'],
+    styles: ['Post Rock'],
+    formats: ['Vinyl', 'LP'],
+    year: 2001,
+    thumbUrl: 'https://i.discogs.com/wanted-150.jpg',
+    coverUrl: 'https://i.discogs.com/wanted-600.jpg',
+    addedAt: '2019-03-01T00:00:00-00:00',
+  },
 ]
 
 export const seedCollection: CollectionItem[] = [
@@ -255,7 +285,15 @@ export const seedIdentity: Identity = {
 }
 
 /** The stores this seed writes — and therefore the ones it waits for. */
-const STORES = ['meta', 'collection', 'digs', 'matches', 'basket', 'dealers'] as const
+const STORES = [
+  'meta',
+  'collection',
+  'wantlist',
+  'digs',
+  'matches',
+  'basket',
+  'dealers',
+] as const
 
 /**
  * Waits until the app has finished creating its database.
@@ -360,6 +398,7 @@ export async function seed(page: Page, language: SeedLanguage = 'en'): Promise<D
       for (const item of rows.collection) tx.objectStore('collection').put(item)
       for (const match of rows.matches) tx.objectStore('matches').put(match)
       for (const line of rows.basket) tx.objectStore('basket').put(line)
+      for (const want of rows.wantlist) tx.objectStore('wantlist').put(want)
 
       await new Promise<void>((resolve, reject) => {
         tx.oncomplete = () => resolve()
@@ -379,6 +418,7 @@ export async function seed(page: Page, language: SeedLanguage = 'en'): Promise<D
       collection: seedCollection,
       matches: seedMatches(dig.id),
       basket: seedBasket(now),
+      wantlist: seedWantlist,
     },
   )
 

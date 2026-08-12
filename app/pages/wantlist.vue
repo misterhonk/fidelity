@@ -44,19 +44,26 @@ const records = computed(() => {
   })
 })
 
-/** How long it has been on the list, which is the thing that stings. */
+/**
+ * How long it has been on the list, which is the thing that stings.
+ *
+ * Written out here rather than left to `Intl.RelativeTimeFormat` because the
+ * unit is the point: "since 2019" says something "6 years ago" does not, and
+ * a wantlist is read for exactly that sting.
+ */
 function waiting(addedAt: string): string | null {
   const added = Date.parse(addedAt)
   if (!Number.isFinite(added)) return null
 
   const days = Math.floor((Date.now() - added) / 86_400_000)
-  // "seit 0 Tagen" is arithmetic, not German.
-  if (days === 0) return 'heute notiert'
-  if (days === 1) return 'seit gestern'
-  if (days < 31) return `seit ${days} Tagen`
+  const w = c.value.wantlist.waiting
+  // Zero days is arithmetic, not a length of time.
+  if (days === 0) return w.today
+  if (days === 1) return w.yesterday
+  if (days < 31) return w.days(count(days))
   const months = Math.floor(days / 30)
-  if (months < 24) return `seit ${months} Monaten`
-  return `seit ${Math.floor(months / 12)} Jahren`
+  if (months < 24) return w.months(count(months))
+  return w.years(count(Math.floor(months / 12)))
 }
 </script>
 
@@ -104,57 +111,93 @@ function waiting(addedAt: string): string | null {
         <li
           v-for="record in records"
           :key="record.releaseId"
-          class="flex flex-col gap-1 rounded-fid-md border border-fid-border px-4 py-3"
+          class="flex gap-4 rounded-fid-md border border-fid-border p-3"
         >
-          <div class="flex flex-wrap items-baseline justify-between gap-x-3">
-            <a
-              class="text-fid-base text-fid-text underline-offset-4 hover:underline"
-              :href="`https://www.discogs.com/release/${record.releaseId}`"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {{ record.artist }} – {{ record.title }}
-            </a>
-            <span class="flex items-center gap-3 text-fid-xs text-fid-text-muted">
-              <span>
-                <template v-if="record.year > 0"
-                  ><span class="fid-num">{{ record.year }}</span> · </template
-                >{{ waiting(record.addedAt) }}
-              </span>
-              <!--
+          <!--
+            The sleeve, which was in the store all along.
+
+            Both sizes arrive with every wantlist sync and never left the
+            worker, so the one screen carrying the two strongest signals in
+            the engine was also the only one made of text. A wantlist is a
+            list of records somebody is looking for — and looking for a record
+            is done by eye long before it is done by name.
+
+            Lazy and never fetched by hand: i.discogs.com has a budget of its
+            own, roughly thirty a minute (docs/02).
+          -->
+          <img
+            v-if="record.thumbUrl || record.coverUrl"
+            :src="record.thumbUrl || record.coverUrl"
+            :srcset="
+              record.coverUrl && record.thumbUrl
+                ? `${record.thumbUrl} 150w, ${record.coverUrl} 600w`
+                : undefined
+            "
+            sizes="80px"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            width="80"
+            height="80"
+            class="size-20 shrink-0 rounded-fid-cover bg-fid-inset object-cover"
+          />
+          <span
+            v-else
+            class="flex size-20 shrink-0 items-center justify-center rounded-fid-cover bg-fid-inset text-center text-fid-xs text-fid-text-muted"
+          >
+            {{ c.noCover }}
+          </span>
+
+          <div class="flex min-w-0 grow flex-col gap-1">
+            <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+              <a
+                class="line-clamp-2 min-w-0 text-fid-base text-fid-text underline-offset-4 hover:underline"
+                :href="`https://www.discogs.com/release/${record.releaseId}`"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ record.artist }} – {{ record.title }}
+              </a>
+              <span class="flex items-center gap-3 text-fid-xs text-fid-text-muted">
+                <span>
+                  <template v-if="record.year > 0"
+                    ><span class="fid-num">{{ record.year }}</span> · </template
+                  >{{ waiting(record.addedAt) }}
+                </span>
+                <!--
                 Wanting something is allowed to stop.
                 A wantlist that only ever grows stops being a list of what you
                 are looking for and becomes a record of everything you once
                 considered — and then nobody reads it. No confirmation here:
                 unlike the collection, a want costs nothing to add back.
               -->
-              <button
-                type="button"
-                class="fid-lift min-h-11 rounded-fid-sm px-2 text-fid-xs text-fid-text-muted transition-colors hover:text-fid-text"
-                :aria-label="c.wantlist.drop(record.artist, record.title)"
-                @click="drop(record.releaseId)"
-              >
-                {{ c.wantlist.dropShort }}
-              </button>
-            </span>
-          </div>
+                <button
+                  type="button"
+                  class="fid-lift min-h-11 shrink-0 rounded-fid-sm border border-fid-field px-3 text-fid-xs text-fid-text-muted transition-colors hover:text-fid-text"
+                  :aria-label="c.wantlist.drop(record.artist, record.title)"
+                  @click="drop(record.releaseId)"
+                >
+                  {{ c.wantlist.dropShort }}
+                </button>
+              </span>
+            </div>
 
-          <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">
-            <!--
+            <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">
+              <!--
               The pressing count is what makes a wantlist entry actionable: one
               of 160 turns up far more often than the only pressing there is.
             -->
-            <span v-if="record.pressings !== null">
-              {{ c.wantlist.pressings(count(record.pressings), record.pressings === 1) }}
-            </span>
-            <span v-else-if="record.masterId > 0" class="text-fid-sig-gap">
-              {{ c.wantlist.notExpanded }}
-            </span>
-            <span v-else>
-              {{ c.wantlist.noMaster }}
-            </span>
+              <span v-if="record.pressings !== null">
+                {{ c.wantlist.pressings(count(record.pressings), record.pressings === 1) }}
+              </span>
+              <span v-else-if="record.masterId > 0" class="text-fid-sig-gap">
+                {{ c.wantlist.notExpanded }}
+              </span>
+              <span v-else>
+                {{ c.wantlist.noMaster }}
+              </span>
 
-            <!--
+              <!--
               Seen by master, so a different pressing still counts.
 
               And it links to a new dig at that shop, because "gesehen bei X"
@@ -162,16 +205,17 @@ function waiting(addedAt: string): string | null {
               hand — the shop that had it once is the best guess anybody has
               about where it turns up again.
             -->
-            <NuxtLink
-              v-if="record.lastSeen"
-              :to="`/dig?dealer=${encodeURIComponent(record.lastSeen.dealer)}`"
-              class="fid-action text-fid-sig-wantlist underline-offset-4 hover:underline"
-            >
-              {{ c.lastSeenAt }}
-              <span class="text-fid-text">{{ record.lastSeen.dealer }}</span>
-              {{ c.onDay(day(record.lastSeen.at)) }}
-            </NuxtLink>
-          </p>
+              <NuxtLink
+                v-if="record.lastSeen"
+                :to="`/dig?dealer=${encodeURIComponent(record.lastSeen.dealer)}`"
+                class="fid-action text-fid-sig-wantlist underline-offset-4 hover:underline"
+              >
+                {{ c.lastSeenAt }}
+                <span class="text-fid-text">{{ record.lastSeen.dealer }}</span>
+                {{ c.onDay(day(record.lastSeen.at)) }}
+              </NuxtLink>
+            </p>
+          </div>
         </li>
       </ul>
     </template>

@@ -70,6 +70,8 @@ export async function wantlistOverview(now: number): Promise<WantlistOverview> {
       artist: item.artistNames[0] ?? item.artistNorms[0] ?? '',
       year: item.year,
       addedAt: item.addedAt,
+      thumbUrl: item.thumbUrl ?? '',
+      coverUrl: item.coverUrl ?? '',
       // Null means the horizon has not expanded this album — the pressings are
       // unknown rather than zero, and the interface says so.
       pressings: item.masterId > 0 ? (pressings.get(item.masterId) ?? null) : null,

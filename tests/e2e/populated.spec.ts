@@ -22,6 +22,9 @@ const RECORD = 'Point of Departure'
 /** On the shelf — the collection, which is a different set of records. */
 const OWNED = 'Speak No Evil'
 
+/** On the wantlist — a third set of records, and a third screen. */
+const WANTED = 'Sound-Dust'
+
 test.describe('a device that has been used', () => {
   test('the find list shows what was found', async ({ page }) => {
     const dig = await seed(page, 'en')
@@ -45,6 +48,22 @@ test.describe('a device that has been used', () => {
      * thing that survives forever behind an empty state.
      */
     await expect(page.getByText('€60.00')).toBeVisible()
+  })
+
+  /*
+   * The wantlist, with a record on it and a sleeve beside it.
+   *
+   * Written after finding a paragraph of German in the English build — five
+   * strings about how long something has been waited for, on the one screen
+   * with records that no test had ever rendered with data in it. Everything
+   * else got translated because something drew it.
+   */
+  test('the wantlist shows what is wanted, with its sleeve', async ({ page }) => {
+    await seed(page, 'en')
+    await page.goto('/wantlist')
+
+    await expect(page.getByText('Stereolab – Sound-Dust')).toBeVisible()
+    await expect(page.locator('img[src*="wanted-150"]')).toBeVisible()
   })
 
   test('the shelf shows the records on it', async ({ page }) => {
@@ -137,6 +156,7 @@ test.describe('the same price in two languages', () => {
 const POPULATED = [
   { path: '/basket', shows: RECORD },
   { path: '/shelf', shows: OWNED },
+  { path: '/wantlist', shows: WANTED },
 ] as const
 
 for (const language of ['en', 'de'] as const) {
@@ -158,3 +178,31 @@ for (const language of ['en', 'de'] as const) {
     })
   }
 }
+
+/*
+ * How long something has been waited for, in the language of the app.
+ *
+ * The bug this catches was not a mistranslation but an omission: five strings
+ * written straight into the page, in German, on the one screen with records
+ * that nothing ever rendered with data in it. A price proves the formatter
+ * follows the language; this proves the prose does too.
+ */
+test('says how long a record has been wanted in the chosen language', async ({ page }) => {
+  await seed(page, 'en')
+  await page.goto('/wantlist')
+  const english = await page
+    .getByText(/waiting|noted today|since yesterday/)
+    .first()
+    .innerText()
+
+  await seed(page, 'de')
+  await page.goto('/wantlist')
+  const german = await page
+    .getByText(/seit|heute notiert/)
+    .first()
+    .innerText()
+
+  expect(english).not.toBe(german)
+  expect(english).toMatch(/waiting|noted|yesterday/)
+  expect(german).toMatch(/seit|heute/)
+})
