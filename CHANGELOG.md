@@ -9,6 +9,25 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.13.0](https://github.com/misterhonk/fidelity/compare/v0.12.0...v0.13.0) (2026-08-12)
+
+
+### Added
+
+* **collection:** carry the wantlist note, all the way into the shop ([9de2a0b](https://github.com/misterhonk/fidelity/commit/9de2a0be94da952117f946ec1865d0feac7e77c8))
+* **collection:** give the wantlist its sleeves, and its language back ([f2f1d7d](https://github.com/misterhonk/fidelity/commit/f2f1d7d2ff2b6c42587b3c231e3c64032ea060c3))
+* **collection:** show which shelf a record sits on, and let it move ([908206c](https://github.com/misterhonk/fidelity/commit/908206ceebd01c79c1e84f748f09d1d69ebe136f))
+* **sync:** look again the moment somebody comes back to the app ([7799809](https://github.com/misterhonk/fidelity/commit/779980999551e90ce3b6b7a3e862c47308dbb96c))
+* **sync:** read the whole collection, so a changed rating can arrive at all ([242e02f](https://github.com/misterhonk/fidelity/commit/242e02f67190961848b5153762d061bee63f379a))
+* **ui:** put the shelf's own state on one line and its controls on another ([260ce58](https://github.com/misterhonk/fidelity/commit/260ce58a5aab9049365b645c26e96f3a9e0f2925))
+* **ui:** send a change at once, say what became of it, and warn before deleting ([3d2d41a](https://github.com/misterhonk/fidelity/commit/3d2d41a2c17bf2cc02b30ca8e942509e134dc27e))
+
+
+### Fixed
+
+* **collection:** a record owned twice was quietly one record ([88d1f24](https://github.com/misterhonk/fidelity/commit/88d1f24787a97c1634e5ae875bc0ee0e2f3be6e0))
+* **ui:** a comma could not be typed into the blocked-countries field ([42c0f39](https://github.com/misterhonk/fidelity/commit/42c0f39a8535c5063c7fa656573837d0c2172fd8))
+
 ## [0.12.0](https://github.com/misterhonk/fidelity/compare/v0.11.0...v0.12.0) (2026-08-12)
 
 
