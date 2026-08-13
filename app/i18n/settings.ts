@@ -330,9 +330,17 @@ const en = {
      * discovered, and the sentence has to say where that word comes from, or
      * somebody types their Discogs token into it.
      */
-    foundAndKept: 'Found one on this site and kept it — nothing else to do.',
+    /*
+     * Ohne "hier" oder "auf dieser Seite".
+     *
+     * Die Suche greift auf zwei ganz verschiedene Orte zu — dieselbe Domain
+     * und dieser Rechner —, und ein Satz, der einen davon benennt, ist im
+     * anderen Fall schlicht falsch. Die Adresse steht ohnehin eine Zeile
+     * tiefer im Feld und sagt es genauer, als ein Satz es könnte.
+     */
+    foundAndKept: 'Found one and kept it — nothing else to do.',
     foundSecured:
-      'Found one on this site. It asks for a shared secret: the word whoever set the hub up chose for it. Enter it below, then save.',
+      'Found one, and it asks for a shared secret: the word whoever set the hub up chose for it. Enter it below, then save.',
     // Measured 2026-08-10: from an https page Chromium reaches http://localhost
     // and WebKit refuses outright. On an iPhone a hub that is running perfectly
     // well is simply unreachable this way, and "nothing found" would send
