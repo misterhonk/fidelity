@@ -97,8 +97,29 @@ vom Nutzer selbst unter `discogs.com/settings/developers` erzeugt.
 **3. `fetch()` kann keinen User-Agent setzen.**
 Der Browser sendet seinen eigenen. Die Doku sagt "avoid Mozilla" - der Live-Test zeigt
 aber, dass Discogs Browser-User-Agents akzeptiert (200 auf dem Inventory-Endpunkt).
-**Das ist die riskanteste Annahme des Projekts** und gehoert in M1 als allererstes
-aus einem echten Browser gegengeprueft.
+War als riskanteste Annahme des Projekts vermerkt; in M1 aus einem echten Browser
+gegengeprueft und seither taeglich im Betrieb bestaetigt.
+
+**Aber ohne User-Agent gibt es eine 403.** Am 2026-08-13 gegen `/users/{name}` gemessen:
+
+| Kennung | Antwort |
+|---|---|
+| gar keine (`-H 'User-Agent:'`) | **403** |
+| `node` (Nodes eigener Vorgabewert) | 200 |
+| `FidelityHub/1.0 +https://github.com/…` | 200 |
+
+Im Browser ist das kein Thema — er sendet immer einen. **Fuer den Hub schon**, denn der
+laeuft unter Node und redet mit derselben API. Er setzt deshalb einen eigenen
+(`worker`-seitig unmoeglich, serverseitig eine Zeile): `node` kommt heute durch und ist
+genau die nichtssagende Kennung, die ein Anbieter irgendwann aussperrt. Der Fehlschlag
+waere der leiseste denkbare — eine Antwort ohne `ok` wird im Waechter verschluckt, und
+jeder Laden saehe fuer immer unbewegt aus.
+
+**Und die Kennung einer registrierten Anwendung hebt das Limit.** Consumer-Key und
+-Secret als `Authorization: Discogs key=…, secret=…` machen aus 25 Anfragen pro Minute
+60 — ohne Anmeldung als Person. Als Kopf, nicht als Abfrageparameter: ein Geheimnis in
+einer URL landet in jedem Protokoll dazwischen. Fuer den Hub eingebaut und optional; ohne
+sie taktet der Waechter mit 2.400 ms statt 1.200 ms.
 
 ---
 

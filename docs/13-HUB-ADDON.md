@@ -132,6 +132,22 @@ async function fetchHorizon(kind, id) {
 
 **Timeout 2 Sekunden, kein Retry.** Ein langsamer Hub ist schlimmer als kein Hub.
 
+### Und das, was schon dalag
+
+Die Kette oben greift nur, wenn überhaupt etwas geholt wird. Der Horizont-Lauf überspringt
+aber alles, was lokal schon liegt und frisch ist — und übersprang bis zum 2026-08-13 damit
+auch den Beitrag. Für den häufigsten Weg, erst die App benutzen und den Hub danach
+eintragen, hieß das: **es ging nie etwas hoch.** Gemessen ein Eintrag beim Hub gegen
+hunderte auf dem Gerät; der geteilte Cache, der einzige Grund für die Existenz des Hubs,
+war damit tot, und nichts daran sah kaputt aus.
+
+Übersprungene Blöcke werden deshalb nachgereicht, einmal je Block. Das kostet keine
+Discogs-Anfrage — der Block liegt ja schon da — und `sharedAt` am Datensatz merkt sich,
+was oben ist. **Gemerkt wird erst nach einer angenommenen Antwort**, sonst wäre ein
+falsches Geheimnis ein Block, der nie wieder hochgeht. Höchstens fünfzig je Lauf, damit
+der erste Lauf nach dem Eintragen eines Hubs nicht zu einer halben Minute Geplapper wird;
+die Grenze meldet sich im Protokoll, statt still zu kürzen.
+
 ---
 
 ## 4. Der Hub selbst
@@ -141,40 +157,72 @@ Klein genug, um ihn an einem Nachmittag zu bauen und überall laufen zu lassen.
 ```
 hub/
 ├── src/
-│   ├── index.ts          Hono-App, ~8 Routen
-│   ├── horizon.ts        get / put Kanten
-│   ├── shipping.ts       get / put Versandstaffeln
-│   ├── watch.ts          Subscriptions + Cron-Wächter
-│   ├── push.ts           VAPID / web-push
-│   └── db.ts             SQLite via better-sqlite3
-├── Dockerfile
+│   ├── app.ts            Hono-App, alle Routen
+│   ├── watch.ts          Subscriptions, VAPID, Wächter-Durchgang
+│   ├── db.ts             Schema und Zugriff
+│   └── server.ts         Start, Umgebungsvariablen, Zeitgeber
+├── scripts/
+│   └── ring-once.ts      Push von Ende zu Ende prüfen (siehe unten)
+├── test/
 └── package.json
 ```
 
-**Stack:** Node 22 + **Hono** + **SQLite**. Keine Migrations-Werkzeuge, kein ORM,
-kein Redis. Ein Binary, eine Datei.
+**Stack:** Node ≥ 22.6 + **Hono** + **`node:sqlite`**. Kein Treiber, kein ORB, kein
+Redis, keine native Abhängigkeit — und deshalb auch kein Compiler im Image. Der Dienst
+wird als TypeScript gestartet (`node src/server.ts`), was ab 22.18 ohne Schalter geht.
 
 **Ressourcen:** ~60 MB RAM, ~50 MB Platte bei drei Nutzern. Läuft auf Uberspace
 (supervisord + `uberspace web backend`), auf einem Homeserver hinter Traefik,
 auf jedem VPS, oder als Cloudflare Worker + D1.
 
+### Wo er am besten steht: neben der App
+
+Die naheliegende Antwort — im Heimnetz — ist die schlechtere, sobald die App über `https`
+ausgeliefert wird. Ein Hub unter `http://localhost` ist von dort **Mixed Content**, und
+WebKit weist das hart ab (2026-08-10 gemessen); auf einem iPhone ist ein tadellos
+laufender Hub damit schlicht unerreichbar.
+
+Unter **derselben Domain wie die App** fällt das alles weg — gleiche Herkunft heißt kein
+CORS, kein Mixed Content, kein zweites Zertifikat, kein DNS-Eintrag:
+
+```
+martinmelcher.de/fidelity/   die App (statische Dateien)
+martinmelcher.de/hub         der Dienst auf Port 8787, Präfix abgeschnitten
+```
+
+`.github/workflows/hub.yml` richtet genau das ein — getrennt von `deploy.yml` und nur von
+Hand, weil ADR-008 nicht nur für den Code gilt: ein Fehlschlag am Hub darf die App nicht
+mitnehmen.
+
+**Der Client sucht in dieser Reihenfolge:** `<Herkunft>/hub`, dann die nackte Herkunft,
+dann `http://localhost:8787` in beiden Schreibweisen. Was ohne Geheimnis antwortet, wird
+ohne Rückfrage eingetragen; was eines verlangt, nur ausgefüllt — das Wort ist nicht
+auffindbar, das macht es zu einem.
+
 ### API
 
 ```
-GET  /v1/horizon/:kind/:id           → HorizonChunk | 404
-PUT  /v1/horizon/:kind/:id           ← Chunk beisteuern
-GET  /v1/shipping/:dealer/:country   → ShippingTier[] | 404
-PUT  /v1/shipping/:dealer/:country   ← Staffel beisteuern
-GET  /v1/covers?ids=1,2,3            → { covers: { releaseId: {thumbUrl, coverUrl} } }
-PUT  /v1/covers                      ← { covers: [...] } beisteuern
-POST /v1/watch/subscribe             ← Push-Subscription + Händlerliste
-POST /v1/watch/unsubscribe           ← Endpunkt abmelden
-GET  /v1/watch/pending               → Änderungen seit dem letzten Abruf
-POST /v1/digs                        ← Dig zum Teilen ablegen (TTL 6 h)
-GET  /v1/digs/:id                    → geteilter Dig
-GET  /v1/watch/key                   → { publicKey }  (VAPID, einmal erzeugt)
-GET  /v1/health                      → { ok, version, entities, users }
+GET    /v1/horizon/:kind/:id           → HorizonChunk | 404
+PUT    /v1/horizon/:kind/:id           ← Chunk beisteuern
+GET    /v1/shipping/:dealer/:country   → ShippingTier[] | 404
+PUT    /v1/shipping/:dealer/:country   ← Staffel beisteuern
+GET    /v1/covers?ids=1,2,3            → { covers: { releaseId: {thumbUrl, coverUrl} } }
+PUT    /v1/covers                      ← { covers: [...] } beisteuern
+GET    /v1/vault/:id                   → { sealed, updatedAt } | 404
+PUT    /v1/vault/:id                   ← verschlüsselter Block
+DELETE /v1/vault/:id                   ← Block vergessen (Umzug der Kennung)
+POST   /v1/watch/subscribe             ← Push-Subscription + Händlerliste
+POST   /v1/watch/unsubscribe           ← Endpunkt abmelden
+GET    /v1/watch/key                   → { publicKey }  (VAPID, einmal erzeugt)
+GET    /v1/health                      → { ok, horizon, shipping, covers, watching, secured }
 ```
+
+**Jede dieser Methoden gehört in `allowMethods`.** Der Client ist eine Seite auf einer
+anderen Herkunft, der Vorabflug ist also kein Formalismus, sondern das Tor. `POST` fehlte
+dort bis zum 2026-08-13 — der Hub lief, der Wächter fragte Läden ab, und **kein Browser
+konnte sich je anmelden**, weil `/v1/watch/subscribe` ein POST ist. Es hat den Tag
+überlebt, an dem Push zum ersten Mal klingelte, weil die Anmeldung damals über `curl`
+ging, und curl fragt niemanden um Erlaubnis.
 
 **Auth:** ein geteiltes Secret im `Authorization`-Header, beim Aufsetzen einmal erzeugt.
 Für einen Freundeskreis völlig ausreichend. Keine Nutzerkonten, keine Passwörter,
@@ -235,6 +283,33 @@ bleibt beim Client.
 > Sortiment aktiv pflegt, produziert ständig Bewegung. Und ein verpasster Alarm ist
 > deutlich weniger schlimm als 100 Requests pro Händler und Stunde.
 
+**Er sagt Discogs, wer er ist.** Eine Anfrage ohne User-Agent beantwortet Discogs mit 403
+(`docs/02`). Nodes eigenes `node` käme durch, ist aber genau die nichtssagende Kennung,
+die ein Anbieter irgendwann aussperrt — und der Fehlschlag wäre der leiseste denkbare, weil
+eine Antwort ohne `ok` verschluckt wird und jeder Laden für immer unbewegt aussähe.
+
+**Optional als registrierte Anwendung.** Liegen `HUB_DISCOGS_KEY` und
+`HUB_DISCOGS_SECRET` vor, geht die Kennung als `Authorization: Discogs key=…`-Kopf
+hinaus — nicht als Abfrageparameter, ein Geheimnis in einer URL landet in jedem Protokoll
+dazwischen — und der Takt geht von 2.400 auf 1.200 ms. Es ist **keine** Anmeldung als
+Person; ein persönlicher Token gehört nicht auf einen geteilten Dienst (Regel 6).
+
+### Einmal klingeln lassen
+
+Ein Durchgang meldet nur Wachstum. Das ist richtig und macht die Kette unprüfbar: nach
+einer Auslieferung will man wissen, ob VAPID, Anmeldung, Zustellung und Service Worker
+noch zusammenpassen — und nicht Tage warten, bis jemand Platten einliefert.
+
+```
+node scripts/ring-once.ts [um-wie-viel]
+```
+
+Das Skript senkt die **Erinnerung** des Wächters ab, nicht die Wirklichkeit: die
+Discogs-Antwort ist echt, die Rechnung ist echt, die Benachrichtigung ist echt, und der
+Durchgang schreibt die wahre Zahl danach selbst zurück. Ohne Empfänger oder ohne
+beobachteten Laden bricht es ab, statt Erfolg zu melden — ein Klingeln ohne Ohr wäre kein
+Beweis. Über `gh workflow run Hub -f dry_run=false -f ring_once=true` auch aus der Ferne.
+
 ---
 
 ## 5. Datenschutz
@@ -286,14 +361,42 @@ Kein Cache und nichts Geteiltes: die anderen Routen beschleunigen alle, diese ge
 einem.
 
 ```
-PUT /v1/vault/{id}   { version, iv, salt, cipher }   → { stored: true }
-GET /v1/vault/{id}                                    → { sealed, updatedAt } | 404
+PUT    /v1/vault/{id}   { version, iv, salt, cipher }   → { stored: true }
+GET    /v1/vault/{id}                                    → { sealed, updatedAt } | 404
+DELETE /v1/vault/{id}                                    → { gone: true }
 ```
 
-**Die Kennung** wird aus der Discogs-User-ID abgeleitet (SHA-256, 16 Byte hex). Jedes
-angemeldete Gerät kommt ohne Eingabe auf dieselbe, und der Betreiber eines geteilten Hubs
-sieht undurchsichtige Kennungen statt einer Liste, wer ihn benutzt. Bewusst **nicht** aus
-der Passphrase: eine geänderte Passphrase würde sonst alles Bisherige verwaisen lassen.
+**Die Kennung** wird aus der **Passphrase** abgeleitet, mit der Discogs-User-ID als
+Salzwert (PBKDF2, 600.000 Runden, 16 Byte hex). Jedes Gerät derselben Person kommt damit
+ohne weitere Eingabe auf dieselbe Kennung — Passphrase und User-ID sind ohnehin das
+gemeinsame Wissen.
+
+> **Bis zum 2026-08-13 hing sie an der User-ID allein** (`SHA-256("fidelity-vault:" + id)`),
+> mit der Begründung, eine geänderte Passphrase dürfe nicht alles Bisherige verwaisen
+> lassen. Das war zu teuer erkauft: eine Discogs-User-ID ist öffentlich, also konnte jeder
+> mit dem Geheimnis eines geteilten Hubs den Ablageort jedes Mitbenutzers ausrechnen. Zu
+> lesen war dort nichts — der Block ist verschlüsselt —, aber herunterladen und
+> überschreiben schon. Auf einem Hub, den man mit Freunden teilt, und genau dafür ist er
+> gebaut, ist das die falsche Vorgabe.
+
+Zwei Einzelheiten der Ableitung sind Absicht:
+
+- **PBKDF2 statt SHA-256.** Ein schneller Hash über eine Passphrase macht die Kennung zum
+  Orakel: wer sie sieht, probiert offline Wörter durch und weiß bei jedem Treffer, dass er
+  richtig liegt.
+- **Ein eigener, fester Salzwert** (`fidelity-vault-id:{userId}`). Der der Verschlüsselung
+  ist zufällig und liegt neben dem Block — man müsste ihn schon gefunden haben. Das
+  getrennte Präfix sorgt dafür, dass aus der Kennung kein Schlüsselmaterial folgt.
+
+**Der Umzug** läuft beim ersten Abgleich nach dem Update: nichts an der neuen Kennung →
+an der alten nachsehen → hinüberlegen → alte räumen. Dafür gibt es `DELETE`. Ein Umzug,
+der den Block unter der ausrechenbaren Adresse liegen lässt, hätte nichts behoben.
+
+**Der Preis, den die alte Begründung benannte, bleibt** — nur behandelt: eine geänderte
+Passphrase verschiebt jetzt auch den Ort. Aus „lässt sich nicht öffnen" wird „da liegt
+nichts", was wie eine Erstanlage aussieht, während zwei Geräte in Wahrheit ab da
+nebeneinanderherlaufen. Der Client meldet deshalb ausdrücklich, wenn eine Ablage leer ist,
+obwohl dieses Gerät schon einmal abgeglichen hat.
 
 **Der Hub prüft die Hülle und sonst nichts** — vier Felder, sonst 400. Das hält die
 Tabelle davon ab, ein Pastebin für jeden zu werden, der den Hub erreicht. Den Inhalt kann
