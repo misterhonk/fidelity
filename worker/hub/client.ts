@@ -59,7 +59,15 @@ export interface HubClientOptions {
 
 export interface HubClient {
   horizon(kind: HorizonKind, id: number): Promise<HorizonChunk | null>
-  contributeHorizon(chunk: HorizonChunk): Promise<void>
+  /**
+   * Gibt zurück, ob es ankam.
+   *
+   * Für den normalen Weg egal — der wirft das Ergebnis weg, weil ein Hub, der
+   * einen Beitrag ablehnt, nichts ändert (Regel 8). Das Nachreichen in
+   * `horizon/build.ts` braucht die Auskunft aber: es merkt sich, was geteilt
+   * wurde, und darf einen abgelehnten Beitrag nicht als erledigt verbuchen.
+   */
+  contributeHorizon(chunk: HorizonChunk): Promise<boolean>
   shipping(dealer: string, country: string): Promise<ShippingTier[] | null>
   contributeShipping(dealer: string, country: string, tiers: ShippingTier[]): Promise<void>
 
@@ -279,11 +287,12 @@ export function createHubClient({
     },
 
     async contributeHorizon(chunk) {
-      await fetchImpl(url(`/v1/horizon/${chunk.kind}/${chunk.entityId}`), {
+      const response = await fetchImpl(url(`/v1/horizon/${chunk.kind}/${chunk.entityId}`), {
         method: 'PUT',
         headers,
         body: JSON.stringify(encodeChunk(chunk)),
       })
+      return response.ok
     },
 
     async shipping(dealer, country) {

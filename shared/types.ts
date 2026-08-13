@@ -731,6 +731,20 @@ export interface HorizonChunk {
   catnoNums?: Int32Array
   /** Constant per chunk, e.g. 'BRAIN'. */
   catnoPrefix?: string
+
+  /**
+   * Wann dieser Block beim Hub angekommen ist — falls überhaupt.
+   *
+   * Ohne das Feld erfährt der Hub von allem nichts, was schon lokal lag, als
+   * er eingetragen wurde: `horizon/build.ts` überspringt frische Einträge und
+   * damit auch den Beitrag. Am 2026-08-13 gemessen — der Hub stand auf einem
+   * Eintrag, während lokal hunderte lagen, und der geteilte Cache war damit
+   * für den häufigsten Fall tot.
+   *
+   * `undefined` heißt "noch nie", und genau deshalb braucht das Feld keinen
+   * Versionssprung: ein alter Datensatz ohne es liest sich richtig.
+   */
+  sharedAt?: number
 }
 
 // ---------------------------------------------------------------------------

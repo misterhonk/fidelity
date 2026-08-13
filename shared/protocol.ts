@@ -730,6 +730,14 @@ export interface HorizonResult {
   failed: number
   requests: number
   releaseIds: number
+  /**
+   * Wie viele schon vorhandene Blöcke dieser Lauf beim Hub nachgereicht hat.
+   *
+   * Null heißt "alles schon geteilt" oder "kein Hub" — beides ist der
+   * Normalfall. Von Null verschieden ist es nur in den ersten Läufen nach dem
+   * Eintragen eines Hubs.
+   */
+  shared: number
 }
 
 export interface DigPreflight {

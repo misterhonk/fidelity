@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { getSyncState } from '~~/db/meta'
+import { getSyncState, updatePreferences } from '~~/db/meta'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import type { Candidate } from '~~/worker/horizon/select'
 import type { DiscogsClient } from '~~/worker/discogs/client'
@@ -54,6 +54,9 @@ function expansion(candidate: Candidate, releaseIds: number[], requests = 2) {
       requests,
       releaseIds: Int32Array.from(releaseIds),
       roles: Uint8Array.from(releaseIds.map(() => 0)),
+      // Pflichtfeld am Typ und lange nirgends gebraucht — bis ein Beitrag an
+      // den Hub durch `encodeChunk` lief und an `toBase64(undefined)` starb.
+      years: Int16Array.from(releaseIds.map(() => 1972)),
     },
     requests,
     catalogueSize: releaseIds.length,
@@ -295,5 +298,93 @@ describe('the daily revalidation', () => {
     const state = await getSyncState()
     expect(state.horizonRevalidatedAt).toBe(NOW)
     expect(state.horizonBuiltAt ?? null).toBeNull()
+  })
+})
+
+/**
+ * Was schon dalag, kommt beim Hub trotzdem an.
+ *
+ * Der Zweig für "schon bekannt und noch frisch" endete bis zum 2026-08-13 mit
+ * einem `continue` — und übersprang damit auch den Beitrag. Ein Hub, der nach
+ * dem ersten Aufbau eingetragen wird, erfuhr von der ganzen vorhandenen
+ * Sammlung nichts: gemessen ein Eintrag beim Hub gegen hunderte auf dem Gerät.
+ * Der geteilte Cache, also der einzige Grund für seine Existenz, war für den
+ * häufigsten Fall tot.
+ *
+ * Der Beitrag kostet keine Discogs-Anfrage — der Block liegt schon da.
+ */
+describe('den Hub nachträglich füllen', () => {
+  /** Jeder PUT auf den Horizont, mitgeschrieben. */
+  async function withHub(answer: () => Response) {
+    await updatePreferences({ hubUrl: 'https://hub.test', hubSecret: 'wort' })
+    const seen: string[] = []
+    const fetchMock = vi.fn(async (input: unknown, init?: RequestInit) => {
+      if (init?.method === 'PUT') seen.push(String(input))
+      return answer()
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    return seen
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  const ok = () => ({ ok: true, json: async () => ({}) }) as unknown as Response
+  const refused = () =>
+    ({ ok: false, status: 401, json: async () => ({}) }) as unknown as Response
+
+  it('reicht einen übersprungenen Block nach', async () => {
+    const db = await openFidelityDb()
+    await db.put('horizon', expansion(candidate(1), [10, 11]).chunk)
+    const seen = await withHub(ok)
+
+    const result = await build([candidate(1)])
+
+    expect(result).toMatchObject({ skipped: 1, expanded: 0, requests: 0, shared: 1 })
+    expect(seen).toEqual(['https://hub.test/v1/horizon/artist/1'])
+  })
+
+  it('tut es kein zweites Mal', async () => {
+    const db = await openFidelityDb()
+    await db.put('horizon', expansion(candidate(1), [10, 11]).chunk)
+    await withHub(ok)
+    await build([candidate(1)])
+
+    // Zweiter Lauf, frischer Zähler: der Block trägt jetzt `sharedAt`.
+    const seen = await withHub(ok)
+    const again = await build([candidate(1)])
+
+    expect(again.shared).toBe(0)
+    expect(seen).toEqual([])
+  })
+
+  /**
+   * Und ein abgelehnter Beitrag gilt nicht als erledigt.
+   *
+   * Sonst wäre ein falsches Geheimnis oder ein kurz nicht erreichbarer Hub ein
+   * Block, der nie wieder hochgeht — der teuerste Fehlschlag, weil er wie
+   * Erfolg aussieht.
+   */
+  it('merkt sich nichts, was der Hub abgelehnt hat', async () => {
+    const db = await openFidelityDb()
+    await db.put('horizon', expansion(candidate(1), [10, 11]).chunk)
+    await withHub(refused)
+
+    const result = await build([candidate(1)])
+
+    expect(result.shared).toBe(0)
+    expect((await db.get('horizon', 'artist:1'))?.sharedAt).toBeUndefined()
+  })
+
+  /** Ohne Hub bleibt es, wie es war: übersprungen und still. */
+  it('lässt es ohne Hub genau so wie vorher', async () => {
+    const db = await openFidelityDb()
+    await db.put('horizon', expansion(candidate(1), [10, 11]).chunk)
+
+    const result = await build([candidate(1)])
+
+    expect(result).toMatchObject({ skipped: 1, shared: 0 })
+    expect((await db.get('horizon', 'artist:1'))?.sharedAt).toBeUndefined()
   })
 })

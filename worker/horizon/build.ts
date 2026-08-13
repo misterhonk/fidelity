@@ -34,6 +34,14 @@ export interface HorizonResult {
   failed: number
   requests: number
   releaseIds: number
+  /**
+   * Wie viele schon vorhandene Blöcke dieser Lauf beim Hub nachgereicht hat.
+   *
+   * Null heißt "alles schon geteilt" oder "kein Hub" — beides ist der
+   * Normalfall. Von Null verschieden ist es nur in den ersten Läufen nach dem
+   * Eintragen eines Hubs.
+   */
+  shared: number
 }
 
 /**
@@ -44,6 +52,17 @@ export interface HorizonResult {
  * all three worse.
  */
 const MAX_CONSECUTIVE_FAILURES = 3
+
+/**
+ * Wie viele schon vorhandene Blöcke ein Lauf beim Hub nachreicht.
+ *
+ * Eine Obergrenze, keine Zielgröße. Beim ersten Lauf nach dem Eintragen eines
+ * Hubs liegen womöglich hunderte bereit, und die alle auf einmal zu schicken
+ * macht aus einem Lauf, der sonst in einer Sekunde durch ist, eine halbe
+ * Minute Geplapper — für einen Vorteil, der auch drei Läufe später eintritt.
+ * Discogs kostet nichts davon: die Blöcke liegen schon auf dem Gerät.
+ */
+const MAX_CATCH_UP_PER_RUN = 50
 
 const MS_PER_REQUEST = 1200
 
@@ -104,6 +123,8 @@ export async function buildHorizon({
   let failed = 0
   let consecutiveFailures = 0
   let requests = 0
+  /** Wie viele alte Blöcke dieser Lauf beim Hub nachgereicht hat. */
+  let shared = 0
   let releaseIds = [...existing.values()].reduce(
     (sum, chunk) => sum + chunk.releaseIds.length,
     0,
@@ -127,6 +148,39 @@ export async function buildHorizon({
 
     const known = existing.get(candidateKey(candidate))
     if (known && now() - known.fetchedAt < ttlMs) {
+      /*
+       * Übersprungen — aber nicht mehr verschwiegen.
+       *
+       * Bis zum 2026-08-13 endete der Zweig hier, und damit erfuhr ein später
+       * eingetragener Hub von allem nichts, was schon lokal lag: gemessen ein
+       * Eintrag beim Hub gegen hunderte auf dem Gerät. Der geteilte Cache war
+       * für den häufigsten Fall tot — wer die App zuerst benutzt und den Hub
+       * danach einträgt.
+       *
+       * Kostet keine einzige Discogs-Anfrage; der Block liegt ja schon da.
+       * Gemerkt wird erst nach einer angenommenen Antwort, sonst gilt ein
+       * abgelehnter Beitrag für immer als erledigt.
+       */
+      if (hub && !known.sharedAt && shared < MAX_CATCH_UP_PER_RUN) {
+        try {
+          if (await hub.contributeHorizon(known)) {
+            await db.put('horizon', { ...known, sharedAt: now() })
+            shared += 1
+          }
+        } catch (error) {
+          /*
+           * Ein Hub, der einen Beitrag ablehnt, ändert nichts (Regel 8) — der
+           * nächste Lauf versucht es wieder, weil nichts gemerkt wurde.
+           *
+           * Aber gesagt wird es. Ein stilles `catch` hat beim Schreiben dieser
+           * Zeilen einen kaputten Block verschluckt und den Nachreichweg wie
+           * "nichts zu tun" aussehen lassen — also genau den Fehler, gegen den
+           * das Ganze hier gebaut ist.
+           */
+          log.warn('[horizon] Beitrag abgelehnt', candidate.kind, candidate.id, error)
+        }
+      }
+
       // Already known and still fresh. This is what makes the run resumable
       // without any bookkeeping of its own.
       done += 1
@@ -150,7 +204,11 @@ export async function buildHorizon({
                 : null
             }
           : null,
-        contribute: hub ? (fresh) => hub.contributeHorizon(fresh.chunk) : null,
+        contribute: hub
+          ? async (fresh) => {
+              await hub.contributeHorizon(fresh.chunk)
+            }
+          : null,
       })
       consecutiveFailures = 0
     } catch (error) {
@@ -186,7 +244,22 @@ export async function buildHorizon({
   )
   emit('')
 
-  return { expanded, skipped, failed, requests, releaseIds }
+  /*
+   * Eine Grenze, die sich meldet.
+   *
+   * Beim ersten Lauf nach dem Eintragen eines Hubs liegen womöglich hunderte
+   * Blöcke bereit. Alle auf einmal hochzuschicken macht aus einem Lauf, der
+   * sonst sofort fertig ist, eine halbe Minute Geplapper. Nach ein paar Läufen
+   * ist ohnehin alles oben — und wer nachsieht, warum es noch nicht alles ist,
+   * findet hier die Antwort statt einer stillen Kürzung.
+   */
+  if (hub && shared >= MAX_CATCH_UP_PER_RUN) {
+    log.info(
+      `[horizon] ${shared} Blöcke nachgereicht — Rest beim nächsten Lauf (Grenze ${MAX_CATCH_UP_PER_RUN})`,
+    )
+  }
+
+  return { expanded, skipped, failed, requests, releaseIds, shared }
 }
 
 /**
@@ -225,7 +298,7 @@ export async function revalidateHorizon({
   const plan = await horizonRevalidationPlan(now(), ttlMs)
 
   if (plan.due.length === 0) {
-    return { expanded: 0, skipped: 0, failed: 0, requests: 0, releaseIds: 0, plan }
+    return { expanded: 0, skipped: 0, failed: 0, requests: 0, releaseIds: 0, shared: 0, plan }
   }
 
   const result = await buildHorizon({ client, report, signal, now, ttlMs, only: plan.due })
