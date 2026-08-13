@@ -96,26 +96,77 @@ registerRoute(new NavigationRoute(createHandlerBoundToURL('200')))
  * language somebody reads.
  */
 self.addEventListener('push', (event: PushEvent) => {
-  event.waitUntil(announce(event.data?.json() as unknown))
+  /*
+   * Every push says so, out loud, before anything else happens.
+   *
+   * This worker is the last stretch of a chain that spans four parties — hub,
+   * VAPID, the platform's push service, the browser — and until 2026-08-13 it
+   * was the only stretch with no way to report. The hub could say "delivered,
+   * no error" while somebody looked at a silent phone, and there was no way to
+   * tell "the device never got it" from "the device got it and showed
+   * nothing". Three hours went into that gap; one line closes it.
+   *
+   * A service worker has no other channel. It runs when no tab does, so the
+   * console of whichever page later attaches is where this ends up — and that
+   * is exactly where somebody debugging it will be looking.
+   */
+  // eslint-disable-next-line no-console -- see above: the worker's only voice
+  console.info('[fidelity] push arrived')
+  event.waitUntil(announce(event))
 })
 
-async function announce(data: unknown): Promise<void> {
+async function announce(event: PushEvent): Promise<void> {
+  /*
+   * A payload that is not JSON must not take the handler down with it.
+   *
+   * `event.data.json()` throws on anything else, and a throw inside
+   * `waitUntil` is a rejected promise nobody sees — the notification simply
+   * never appears. Anyone can push to this endpoint who has the address; not
+   * every one of them sends what this worker expects.
+   */
+  let data: unknown
+  try {
+    data = event.data?.json()
+  } catch (error) {
+    console.warn('[fidelity] push carried nothing readable', error)
+    return
+  }
+
   // The wording, and the decision not to show anything at all, live in
   // `shared/notify.ts` — a notification is the one thing here a headless
   // browser refuses to show, so the sentence is testable where a browser is
   // not needed. Null means: not ours, and better silent than an empty buzz.
   const notice = watchNotice(data, await language())
-  if (!notice) return
+  if (!notice) {
+    // Silence with a reason. Without this line an unexpected payload and a
+    // notification the system swallowed look identical from the outside.
+    console.warn('[fidelity] push was not the watchman speaking', data)
+    return
+  }
 
-  await self.registration.showNotification(notice.title, {
-    body: notice.body,
-    icon: new URL('icons/icon-192.png', self.registration.scope).href,
-    badge: new URL('icons/icon-192.png', self.registration.scope).href,
-    // One notification per shop: two rounds an hour apart should replace each
-    // other, not stack into a column of near-identical lines.
-    tag: `watch:${notice.title}`,
-    data: { dealer: notice.title },
-  })
+  /*
+   * And whether it was actually shown.
+   *
+   * `showNotification` refuses when the permission is missing, and on iOS when
+   * the app is not running from the home screen. Unhandled, that rejection
+   * goes nowhere: the hub reports a clean delivery, the screen stays empty,
+   * and those two facts together are the most confusing answer there is.
+   */
+  try {
+    await self.registration.showNotification(notice.title, {
+      body: notice.body,
+      icon: new URL('icons/icon-192.png', self.registration.scope).href,
+      badge: new URL('icons/icon-192.png', self.registration.scope).href,
+      // One notification per shop: two rounds an hour apart should replace each
+      // other, not stack into a column of near-identical lines.
+      tag: `watch:${notice.title}`,
+      data: { dealer: notice.title },
+    })
+    // eslint-disable-next-line no-console -- see the handler above
+    console.info('[fidelity] notification shown:', notice.title)
+  } catch (error) {
+    console.warn('[fidelity] the system refused to show it', error)
+  }
 }
 
 /*
