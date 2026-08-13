@@ -28,6 +28,8 @@ const ROOT = join(import.meta.dirname, '../..')
 /** `>…<` in the template, with the mustaches taken out. */
 const NODE = /(?<=>)[^<>]+(?=<)/g
 const MUSTACHE = /\{\{[\s\S]*?\}\}/g
+/** The same, with the expression itself kept. */
+const MUSTACHE_BODY = /\{\{([\s\S]*?)\}\}/g
 const COMMENT = /<!--[\s\S]*?-->/g
 
 /**
@@ -56,6 +58,24 @@ const NOT_PROSE = new Set([
   'github.com/misterhonk',
   '/users/…/friends',
 ])
+
+/**
+ * A word in quotes, inside the braces.
+ *
+ * The sweep above takes the mustaches out before it looks, which is right for
+ * what it does and left a hole exactly their size: `{{ x === 'a' ? 'bestellt'
+ * : 'befreundet' }}` is not a text node, so nothing saw it. Two of them were
+ * still in the app on 2026-08-13 — one in the shop importer, one on the
+ * in-store screen, where the English build read out "Suchst du".
+ *
+ * Comparisons are pulled out first: `x === 'wantlist'` is a value the code
+ * tests against, never a value it shows, and those are the only literals in
+ * the project's mustaches that legitimately carry a word.
+ */
+const COMPARISON = /[=!]==?\s*(['"])[^'"]*\1/g
+/** And a key into the message pack itself: `d.empty['incremental-empty']`. */
+const LOOKUP = /\[\s*(['"])[^'"]*\1\s*\]/g
+const LITERAL = /(['"])([^'"]*)\1/g
 
 function templates(): { file: string; template: string }[] {
   return ['app/components', 'app/pages'].flatMap((dir) =>
@@ -90,6 +110,29 @@ describe('text in a template', () => {
         const text = node.replace(/\s+/g, ' ').trim()
         if (!WORD.test(text) || NOT_PROSE.has(text)) continue
         literals.push(`${file}: ${text.slice(0, 70)}`)
+      }
+    }
+
+    expect(literals).toEqual([])
+  })
+
+  it('never puts a word in quotes inside an expression', () => {
+    const literals: string[] = []
+
+    for (const { file } of found) {
+      const source = readFileSync(join(ROOT, file), 'utf8')
+      const at = source.indexOf('<template>')
+      if (at === -1) continue
+
+      const template = source.slice(at).replace(COMMENT, '').replace(STYLE, '')
+      for (const [, expression] of template.matchAll(MUSTACHE_BODY)) {
+        for (const [, , value] of expression
+          .replace(COMPARISON, '')
+          .replace(LOOKUP, '')
+          .matchAll(LITERAL)) {
+          if (!value || !WORD.test(value) || NOT_PROSE.has(value)) continue
+          literals.push(`${file}: ${value.slice(0, 70)}`)
+        }
       }
     }
 

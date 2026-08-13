@@ -4,6 +4,16 @@ import type { DealerCandidate } from '#shared/types'
 const m = useMessages()
 const emit = defineEmits<{ imported: [] }>()
 
+/**
+ * Whether there is nothing on the shelf yet.
+ *
+ * Only changes one thing: the friends question starts open instead of folded.
+ * A collapsed summary is a fine footnote next to a working list of shops, and
+ * a poor one when the list is empty and the fold is the only thing between
+ * somebody and the reason their search comes back with two names.
+ */
+const { firstTime = false } = defineProps<{ firstTime?: boolean }>()
+
 const { call } = useFidelityWorker()
 
 const running = ref(false)
@@ -33,7 +43,7 @@ async function discover() {
       answer.candidates.filter((one) => !one.known).map((one) => one.username),
     )
     if (answer.candidates.length === 0) {
-      result.value = 'Nichts gefunden, was nach einem Laden aussieht.'
+      result.value = m.value.discovery.nothing
     }
   } catch (cause) {
     error.value = cause
@@ -42,6 +52,23 @@ async function discover() {
     progress.value = null
   }
 }
+
+/**
+ * Split by where a name came from, and in that order.
+ *
+ * Orders first: they are the documented source and the stronger claim —
+ * somebody who has already bought from a shop has a reason to look there
+ * again. Empty groups are dropped rather than shown as a heading over
+ * nothing.
+ */
+const groups = computed(() =>
+  (['order', 'friend'] as const)
+    .map((source) => ({
+      source,
+      rows: (found.value ?? []).filter((one) => one.source === source),
+    }))
+    .filter((group) => group.rows.length > 0),
+)
 
 function toggle(username: string) {
   const next = new Set(chosen.value)
@@ -88,14 +115,54 @@ async function keep() {
 
     <p v-if="result" class="text-fid-sm text-fid-text-muted" aria-live="polite">{{ result }}</p>
 
-    <WhyNote v-if="!found" label="Wo gesucht wird">
+    <WhyNote v-if="!found" :label="m.discovery.whereLabel">
       {{ m.discovery.about }}
     </WhyNote>
 
-    <template v-if="found && found.length > 0">
+    <!--
+      Der Schalter steht dort, wo er etwas ändert.
+
+      Reading the friends list is off by default and lives in the settings,
+      three taps away from the only screen where it does anything (ADR-009).
+      Somebody whose shop list is empty is exactly the person it was built for
+      — and the moment they look at that empty list is the moment the choice
+      is worth offering. It stays in the settings too; this is a second door,
+      not a move.
+    -->
+    <details
+      v-if="!found"
+      :open="firstTime"
+      class="rounded-fid-sm border border-fid-border p-3"
+    >
+      <summary class="cursor-pointer text-fid-sm text-fid-text-muted">
+        {{ m.discovery.friendsSummary }}
+      </summary>
+      <div class="pt-3"><FriendImportToggle /></div>
+    </details>
+
+    <!--
+      Zwei Listen, nicht eine mit einem Etikett je Zeile.
+
+      "Bought from" and "friends who sell" are different kinds of trust, and
+      the difference is what somebody uses to decide. As a word at the end of
+      a row it was read last, if at all; as a heading it is read first — and
+      it also puts the undocumented half of the list (ADR-009) under a name
+      instead of hiding it in a footnote.
+    -->
+    <template v-for="group in groups" :key="group.source">
+      <div class="flex flex-wrap items-baseline justify-between gap-x-4">
+        <h3 class="text-fid-sm font-medium text-fid-text">
+          {{ m.discovery.sources[group.source] }}
+        </h3>
+        <p class="fid-num text-fid-xs text-fid-text-muted">{{ count(group.rows.length) }}</p>
+      </div>
+      <p class="-mt-1 text-fid-xs text-fid-text-muted">
+        {{ m.discovery.sourceAbout[group.source] }}
+      </p>
+
       <ul class="flex flex-col gap-2">
         <li
-          v-for="candidate in found"
+          v-for="candidate in group.rows"
           :key="candidate.username"
           class="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-fid-sm border border-fid-border px-3 py-2"
         >
@@ -121,19 +188,13 @@ async function keep() {
           <span class="flex min-w-0 flex-wrap gap-x-3 gap-y-1 text-fid-xs text-fid-text-muted">
             <span class="fid-num">{{ m.discovery.listings(count(candidate.numForSale)) }}</span>
             <span v-if="candidate.location">{{ candidate.location }}</span>
-            <!--
-              Where it came from, named. One source is documented and one is
-              not, and somebody deciding whether to trust a list deserves to
-              know which half a row came out of (ADR-009).
-            -->
-            <span :class="candidate.source === 'order' ? 'text-fid-sig-wantlist' : ''">
-              {{ candidate.source === 'order' ? 'bestellt' : 'befreundet' }}
-            </span>
             <span v-if="candidate.known">{{ m.discovery.alreadyThere }}</span>
           </span>
         </li>
       </ul>
+    </template>
 
+    <template v-if="found && found.length > 0">
       <button
         type="button"
         :disabled="chosen.size === 0"

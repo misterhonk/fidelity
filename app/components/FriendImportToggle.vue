@@ -39,7 +39,7 @@ async function set(importFriends: boolean) {
       <span class="flex flex-col gap-1">
         <span class="text-fid-sm text-fid-text">{{ st.search.dealers.friends }}</span>
         <span class="text-fid-xs text-fid-text-muted">
-          {{ st.search.dealers.friendsOff }}
+          {{ prefs.importFriends ? st.search.dealers.friendsOn : st.search.dealers.friendsOff }}
         </span>
       </span>
     </label>

@@ -263,6 +263,8 @@ const de: Messages = {
     norLastDig: '– und der letzte Dig kennt sie auch nicht',
     nothingByName: 'Nichts dabei mit diesem Namen.',
     pressings: (n: number) => `${n} Pressungen`,
+    youWant: 'Suchst du',
+    youOwn: 'Hast du',
   },
 
   discovery: {
@@ -274,6 +276,17 @@ const de: Messages = {
     take: (n) => `${n} übernehmen`,
     listings: (n: string) => `${n} Listings`,
     alreadyThere: 'schon dabei',
+    nothing: 'Nichts gefunden, was nach einem Laden aussieht.',
+    whereLabel: 'Wo gesucht wird',
+    friendsSummary: 'Auch meine Discogs-Freundesliste lesen?',
+    sources: {
+      order: 'Läden, bei denen du gekauft hast',
+      friend: 'Freunde, die Platten verkaufen',
+    },
+    sourceAbout: {
+      order: 'Aus deinen Discogs-Bestellungen.',
+      friend: 'Aus deiner Freundesliste, und nur die, die wirklich Platten anbieten.',
+    },
   },
 
   evidence: {

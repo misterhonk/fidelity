@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
@@ -234,5 +236,49 @@ describe('keeping them', () => {
     expect(dealer?.lastScannedAt).toBe(5000)
     expect(dealer?.watching).toBe(true)
     expect(dealer?.minOrderTotal).toBe(20)
+  })
+})
+
+/**
+ * Und der Einstieg steht dort, wo die Liste leer ist.
+ *
+ * Reading the friends list is the difference between an import that finds two
+ * shops and one that finds twenty — and it lived in Settings → Search, three
+ * taps from the only screen where it does anything. Somebody looking at an
+ * empty shop list is exactly who it was built for, so the question is asked
+ * there, opened rather than folded while there is nothing on the shelf.
+ *
+ * It stays in the settings as well: this is a second door, and a setting that
+ * can only be reached from one screen is a setting nobody can find again.
+ */
+describe('the shops screen', () => {
+  const DISCOVERY = readFileSync('app/components/DealerDiscovery.vue', 'utf8')
+  const PAGE = readFileSync('app/pages/dealers.vue', 'utf8')
+
+  it('offers the friends list where the shop list is', () => {
+    expect(DISCOVERY).toMatch(/<FriendImportToggle \/>/)
+    expect(DISCOVERY).toMatch(/:open="firstTime"/)
+    expect(PAGE).toMatch(/:first-time="dealers\.length === 0"/)
+  })
+
+  /** And the setting keeps its old home — two doors, not a move. */
+  it('leaves it in the settings too', () => {
+    const SEARCH = readFileSync('app/pages/settings/search.vue', 'utf8')
+    expect(SEARCH).toMatch(/<FriendImportToggle/)
+  })
+
+  /**
+   * The two sources are told apart by a heading, not by a word at the end of a
+   * row — where it was read last, if at all. One of them is documented by
+   * Discogs and one is not (ADR-009), and that difference is the whole basis
+   * for deciding whether to trust a name.
+   */
+  it('names where each shop came from', () => {
+    expect(DISCOVERY).toMatch(/m\.discovery\.sources\[group\.source\]/)
+    expect(DISCOVERY).toMatch(/m\.discovery\.sourceAbout\[group\.source\]/)
+    // Orders first: the documented source and the stronger claim.
+    expect(DISCOVERY).toMatch(/\['order', 'friend'\] as const/)
+    // A heading over nothing is worse than no heading.
+    expect(DISCOVERY).toMatch(/filter\(\(group\) => group\.rows\.length > 0\)/)
   })
 })

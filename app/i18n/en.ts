@@ -365,6 +365,13 @@ const en = {
     norLastDig: '— and the last dig does not know it either',
     nothingByName: 'Nothing by that name.',
     pressings: (n: number) => `${n} pressings`,
+    /*
+     * Standing in a shop, holding a sleeve, the only question is which of the
+     * two it is. Was a German ternary in the markup until 2026-08-13, which
+     * the English build read out word for word.
+     */
+    youWant: 'On your wantlist',
+    youOwn: 'Already yours',
   },
 
   /** Where the shop list comes from. */
@@ -377,6 +384,24 @@ const en = {
     take: (n: string) => `Take ${n} over`,
     listings: (n: string) => `${n} listings`,
     alreadyThere: 'already there',
+    nothing: 'Nothing there that looks like a shop.',
+    whereLabel: 'Where it looks',
+    friendsSummary: 'Also read my Discogs friends list?',
+    /*
+     * Named for what they are, not for the endpoint they came from.
+     *
+     * "Friends" on Discogs is a list of people, and most of them sell
+     * nothing — the import keeps only the ones with records for sale, so
+     * calling them shops would be a promise the list does not make.
+     */
+    sources: {
+      order: 'Shops you have bought from',
+      friend: 'Friends who sell records',
+    },
+    sourceAbout: {
+      order: 'From your Discogs orders.',
+      friend: 'From your friends list, kept only where somebody actually has records for sale.',
+    },
   },
 
   /**

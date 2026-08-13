@@ -209,7 +209,7 @@ const expired = computed(() => {
                 hit.source === 'wantlist' ? 'text-fid-sig-wantlist' : 'text-fid-text-muted'
               "
             >
-              {{ hit.source === 'wantlist' ? 'Suchst du' : 'Hast du' }}
+              {{ hit.source === 'wantlist' ? m.inStore.youWant : m.inStore.youOwn }}
             </span>
             <span class="min-w-0 text-fid-base text-fid-text">
               {{ hit.artist }} – {{ hit.title }}

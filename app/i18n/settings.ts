@@ -211,6 +211,12 @@ const en = {
       ordersAlways: 'Orders are always read — those are the shops you have bought from.',
       friends: 'Read the Discogs friends list as well',
       friendsOff: 'Off until you switch it on.',
+      /*
+       * Said only while it is on, because the line above it describes the
+       * default and kept saying "off until you switch it on" to somebody who
+       * already had. Names the price of the exception every time it is read.
+       */
+      friendsOn: 'On. Friends with records for sale are searched too.',
       whyLabel: 'Why this one is an exception',
       why: 'Otherwise this app uses only officially documented Discogs interfaces.',
       whyAfter:
@@ -633,6 +639,7 @@ const de: typeof en = {
         'Bestellungen werden immer gelesen – das sind die Läden, bei denen du gekauft hast.',
       friends: 'Auch die Discogs-Freundesliste lesen',
       friendsOff: 'Aus, solange du es nicht einschaltest.',
+      friendsOn: 'An. Freunde, die Platten anbieten, werden mitgesucht.',
       whyLabel: 'Warum das eine Ausnahme ist',
       why: 'Diese App benutzt sonst ausschließlich offiziell dokumentierte Discogs-Schnittstellen.',
       whyAfter:

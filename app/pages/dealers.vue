@@ -142,7 +142,7 @@ const scanned = computed(() => {
       The shops Discogs already knows you deal with — which beats typing a
       username from memory and getting the underscore wrong.
     -->
-    <DealerDiscovery @imported="load()" />
+    <DealerDiscovery :first-time="dealers.length === 0" @imported="load()" />
 
     <p v-if="dealers.length === 0" class="text-fid-base text-fid-text-muted">
       {{ h.none }}
