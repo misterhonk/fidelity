@@ -53,6 +53,11 @@ on:
         required: false
         type: boolean
         default: true
+      ring_once:
+        description: 'Danach einmal klingeln lassen (prüft Push von Ende zu Ende)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -271,6 +276,7 @@ jobs:
           rsync -az -e "$SSH" \
             hub/package.json hub/package-lock.json "$REMOTE_USER@$HOST:fidelity-hub/"
           rsync -az --delete -e "$SSH" hub/src/ "$REMOTE_USER@$HOST:fidelity-hub/src/"
+          rsync -az --delete -e "$SSH" hub/scripts/ "$REMOTE_USER@$HOST:fidelity-hub/scripts/"
 
           $SSH "$REMOTE_USER@$HOST" 'cd ~/fidelity-hub && npm ci --omit=dev --no-audit --no-fund'
 
@@ -355,3 +361,31 @@ jobs:
           fi
 
           echo "Adresse für Einstellungen → Hub:  ${base}${HUB_PATH}"
+
+      # Einmal klingeln lassen — der einzige Weg, die ganze Kette zu prüfen.
+      #
+      # Ein echter Durchgang meldet nur Wachstum, und darauf zu warten hieße,
+      # nach jeder Auslieferung tagelang nicht zu wissen, ob VAPID, Anmeldung,
+      # Zustellung und Service Worker noch zusammenpassen. Das Skript senkt die
+      # Erinnerung ab, nicht die Wirklichkeit: die Discogs-Antwort ist echt, die
+      # Benachrichtigung ist echt, und der Durchgang schreibt die wahre Zahl
+      # danach selbst zurück.
+      #
+      # Kein Geheimnis auf der Kommandozeile: das Skript geht an der HTTP-Seite
+      # vorbei direkt an die Datenbank und braucht HUB_SECRET deshalb nicht.
+      - if: steps.check.outputs.ready == 'true' && !inputs.dry_run && inputs.ring_once
+        name: Einmal klingeln
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          REMOTE_USER: ${{ secrets.DEPLOY_USER }}
+          VAPID_SUBJECT: ${{ vars.HUB_VAPID_SUBJECT || 'mailto:hub@fidelity.invalid' }}
+          NODE_PATH_ON_SERVER: ${{ steps.node.outputs.path }}
+          NODE_FLAGS: ${{ steps.node.outputs.flags }}
+        run: |
+          set -eu
+          SSH="ssh -i ~/.ssh/id_deploy -o BatchMode=yes"
+          $SSH "$REMOTE_USER@$HOST" \
+            "cd ~/fidelity-hub && \
+             HUB_DB=\"\$HOME/fidelity-hub-data/hub.sqlite\" \
+             HUB_VAPID_SUBJECT='$VAPID_SUBJECT' \
+             ${NODE_PATH_ON_SERVER} ${NODE_FLAGS}scripts/ring-once.ts 5"
