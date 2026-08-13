@@ -18,6 +18,16 @@ const vapidSubject = process.env.HUB_VAPID_SUBJECT ?? 'mailto:hub@fidelity.inval
 /** Aus, bis jemand ihn einschaltet: er ist das Einzige hier, das von selbst hinausgeht. */
 const watching = process.env.HUB_WATCH === '1'
 
+/**
+ * Als welche Discogs-Anwendung der Wächter anklopft — wenn überhaupt.
+ *
+ * Beides oder nichts: mit nur einer Hälfte weist Discogs die Kennung ab und
+ * der Hub liefe schneller getaktet, als er darf.
+ */
+const discogsKey = process.env.HUB_DISCOGS_KEY
+const discogsSecret = process.env.HUB_DISCOGS_SECRET
+const identity = discogsKey && discogsSecret ? { key: discogsKey, secret: discogsSecret } : null
+
 const db = openHubDb(dbPath)
 const app = createHubApp({ db, secret })
 
@@ -34,6 +44,17 @@ serve({ fetch: app.fetch, port, hostname: '0.0.0.0' }, (info) => {
       ? `Wächter an — je Laden höchstens einmal pro ${Math.round(STALE_AFTER_MS / 60000)} Minuten`
       : 'Wächter aus (HUB_WATCH=1 schaltet ihn ein)',
   )
+  if (watching) {
+    // Gesagt, nicht vermutet: der Unterschied ist der Takt, mit dem dieser
+    // Dienst gegen ein fremdes Limit läuft, und eine halb hinterlegte Kennung
+    // fällt sonst nirgends auf.
+    // eslint-disable-next-line no-console
+    console.log(
+      identity
+        ? 'Als Discogs-Anwendung angemeldet — 1.200 ms zwischen zwei Abfragen'
+        : 'Ohne Discogs-Kennung — 2.400 ms zwischen zwei Abfragen',
+    )
+  }
   if (!secret) {
     // Said out loud, every start. An open hub on a public IP is somebody
     // else's cache to fill, and silence would let that happen unnoticed.
@@ -55,7 +76,7 @@ serve({ fetch: app.fetch, port, hostname: '0.0.0.0' }, (info) => {
  */
 if (watching) {
   const tick = () => {
-    void watchRound({ db, subject: vapidSubject }).catch((error: unknown) => {
+    void watchRound({ db, subject: vapidSubject, identity }).catch((error: unknown) => {
       // Ein Durchgang, der scheitert, ist kein Grund, den Dienst zu beenden.
       console.warn('[watch] Durchgang fehlgeschlagen:', String(error))
     })

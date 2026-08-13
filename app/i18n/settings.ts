@@ -323,6 +323,16 @@ const en = {
     discover: 'Look here',
 
     found: 'One is running on this machine — address filled in. Save it now.',
+    /*
+     * Two answers, because the two situations ask different things of the
+     * reader. An open hub beside the app is finished business — saying it was
+     * kept is the whole message. A secured one needs a word that cannot be
+     * discovered, and the sentence has to say where that word comes from, or
+     * somebody types their Discogs token into it.
+     */
+    foundAndKept: 'Found one on this site and kept it — nothing else to do.',
+    foundSecured:
+      'Found one on this site. It asks for a shared secret: the word whoever set the hub up chose for it. Enter it below, then save.',
     // Measured 2026-08-10: from an https page Chromium reaches http://localhost
     // and WebKit refuses outright. On an iPhone a hub that is running perfectly
     // well is simply unreachable this way, and "nothing found" would send
@@ -727,6 +737,10 @@ const de: typeof en = {
     discover: 'Hier suchen',
 
     found: 'Auf diesem Rechner läuft einer – Adresse eingetragen. Jetzt speichern.',
+    foundAndKept:
+      'Auf dieser Seite läuft einer – eingetragen und behalten. Mehr ist nicht zu tun.',
+    foundSecured:
+      'Auf dieser Seite läuft einer. Er verlangt ein gemeinsames Geheimnis: das Wort, das derjenige gewählt hat, der den Hub aufgesetzt hat. Unten eintragen, dann speichern.',
     blockedByMixedContent:
       'Hier nicht erreichbar: diese Seite läuft über HTTPS, und Safari verweigert von dort jede Verbindung zu einem unverschlüsselten localhost. In Chrome geht es. Dauerhaft hilft nur, den Hub selbst über HTTPS erreichbar zu machen.',
     notFound:

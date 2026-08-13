@@ -762,13 +762,31 @@ export const handlers: HandlerMap = {
 
   'hub.discover': async () => {
     /*
-     * Genau die Adresse, an der `hub/compose.yml` ihn aufstellt.
+     * Erst hier, dann auf diesem Rechner.
      *
-     * Both spellings, because a hub bound to 127.0.0.1 does not answer to
-     * `localhost` on a machine where that resolves to ::1 first — and the
-     * failure looks identical to "there is no hub".
+     * `/hub` on the app's own domain is where `.github/workflows/hub.yml` puts
+     * one, and same origin is the only arrangement that cannot fail for a
+     * reason outside the hub itself: no CORS, no mixed content, no second
+     * certificate — and it is the only one that still works on a phone that
+     * is nowhere near the machine at home.
+     *
+     * The bare origin comes second, for a hub sitting at the root of a domain
+     * whose app lives under a path.
+     *
+     * A static host answers an unknown path with the app's own HTML and a 200.
+     * That is not a special case here: `response.json()` throws on it, and a
+     * throw means "not this one" like any other.
+     *
+     * Then localhost, in both spellings — a hub bound to 127.0.0.1 does not
+     * answer to `localhost` on a machine where that resolves to ::1 first, and
+     * the failure looks identical to "there is no hub".
      */
-    const tried = ['http://localhost:8787', 'http://127.0.0.1:8787']
+    const here = self.location?.origin
+    const tried = [
+      ...(here ? [`${here}/hub`, here] : []),
+      'http://localhost:8787',
+      'http://127.0.0.1:8787',
+    ]
 
     /*
      * Vorhergesagt, nicht erkannt.
@@ -789,14 +807,24 @@ export const handlers: HandlerMap = {
           signal: AbortSignal.timeout(1500),
         })
         if (!response.ok) continue
-        const body = (await response.json()) as { ok?: boolean }
-        if (body.ok === true) return { url: base, blockedByMixedContent: false, tried }
+        const body = (await response.json()) as { ok?: boolean; secured?: boolean }
+        if (body.ok === true) {
+          return {
+            url: base,
+            // Assumed secured when the hub does not say: an unsecured guess
+            // would have the app save an address it cannot use, and then fail
+            // silently forever (rule 8).
+            secured: body.secured !== false,
+            blockedByMixedContent: false,
+            tried,
+          }
+        }
       } catch {
         // Refused, blocked or too slow — all three mean "not this one".
       }
     }
 
-    return { url: null, blockedByMixedContent, tried }
+    return { url: null, secured: false, blockedByMixedContent, tried }
   },
 
   'hub.check': async ({ url, secret }) => {

@@ -24,7 +24,7 @@ onMounted(async () => {
 })
 
 /**
- * Look whether one is already running on this machine.
+ * Look whether one is already there — beside the app first, then on this machine.
  *
  * Only from this screen and only while the field is empty — somebody who opened
  * the hub settings is asking exactly this question, and anywhere else it would
@@ -33,6 +33,12 @@ onMounted(async () => {
  * Not a stored default. A prefilled `http://localhost:8787` that nobody checked
  * would make every hub call wait two seconds for a machine that was never
  * there, on every device that copied the settings across.
+ *
+ * **An open hub on the app's own domain is kept without asking.** There is
+ * nothing left to decide: it needs no word, it is the same origin, and the
+ * alternative is showing somebody a filled-in field and a Save button for a
+ * question they already answered by deploying it. One that wants a secret is
+ * only filled in — that word cannot be discovered, which is what makes it one.
  */
 async function discover() {
   hint.value = null
@@ -42,7 +48,16 @@ async function discover() {
     const found = await call('hub.discover', undefined)
     if (found.url) {
       url.value = found.url
-      hint.value = st.value.hubPanel.found
+
+      if (found.secured) {
+        hint.value = st.value.hubPanel.foundSecured
+        return
+      }
+
+      await call('preferences.set', { hubUrl: found.url, hubSecret: null })
+      secret.value = ''
+      hint.value = st.value.hubPanel.foundAndKept
+      void test()
       return
     }
 

@@ -25,14 +25,30 @@ import webpush from 'web-push'
  */
 
 /**
- * Abstand zwischen zwei Discogs-Abfragen.
+ * Abstand zwischen zwei Discogs-Abfragen, ohne Kennung.
  *
- * Der Hub fragt ohne Token, und da erlaubt Discogs 25 Anfragen pro Minute pro
- * IP — und der Hub *ist* eine IP, für alle seine Nutzer zusammen. 2.400 ms
- * lassen ihm reichlich Luft und machen ihn trotzdem schnell genug: hundert
- * beobachtete Läden sind vier Minuten, einmal pro Stunde.
+ * Unangemeldet erlaubt Discogs 25 Anfragen pro Minute pro IP — und der Hub
+ * *ist* eine IP, für alle seine Nutzer zusammen. 2.400 ms lassen ihm reichlich
+ * Luft und machen ihn trotzdem schnell genug: hundert beobachtete Läden sind
+ * vier Minuten, einmal pro Stunde.
  */
 export const POLL_SPACING_MS = 2400
+
+/**
+ * Und mit Kennung.
+ *
+ * Consumer-Key und -Secret einer registrierten Discogs-Anwendung heben das
+ * Limit auf 60 pro Minute. Das ist **keine Anmeldung als Person**: der Hub
+ * sieht damit nichts, was er vorher nicht sah, er sagt Discogs nur, welche
+ * Anwendung anklopft. Ein persönlicher Token hat hier nichts zu suchen — der
+ * Hub ist ein geteilter Dienst, und dessen Abfragen wären dann die eines
+ * einzelnen Menschen.
+ *
+ * Wer keine hinterlegt, verliert nichts als Tempo, das hier ohnehin niemand
+ * braucht: 60 Läden sind so 72 statt 144 Sekunden, in einem Fenster von zehn
+ * Minuten. Eng wird es erst jenseits von ein paar hundert Läden.
+ */
+export const POLL_SPACING_IDENTIFIED_MS = 1200
 
 /** Wie alt ein Stand sein darf, bevor neu nachgesehen wird. */
 export const STALE_AFTER_MS = 60 * 60 * 1000
@@ -46,6 +62,20 @@ export const STALE_AFTER_MS = 60 * 60 * 1000
  */
 export const MAX_PER_ROUND = 60
 
+/**
+ * Wer da klopft.
+ *
+ * Discogs beantwortet eine Anfrage ohne User-Agent mit 403 — gemessen am
+ * 2026-08-13, gegen den echten Endpunkt. Nodes `fetch` schickt von sich aus
+ * `node`, und damit kommt man heute durch; aber „node" ist genau die Art
+ * nichtssagender Kennung, die ein Anbieter irgendwann aussperrt, und der
+ * Wächter läuft ab jetzt rund um die Uhr.
+ *
+ * Im Browser ginge das nicht: `fetch()` darf den User-Agent dort nicht setzen
+ * (CLAUDE.md). Hier läuft Node, hier geht es — also gehört es hierhin.
+ */
+export const USER_AGENT = 'FidelityHub/1.0 +https://github.com/misterhonk/fidelity'
+
 export interface WatchDeps {
   db: DatabaseSync
   /**
@@ -55,6 +85,13 @@ export interface WatchDeps {
    * und Apple, nicht an Discogs, und sagt denen nur, wer diesen Hub betreibt.
    */
   subject?: string
+  /**
+   * Die Discogs-Anwendung, als die dieser Hub auftritt — falls es eine gibt.
+   *
+   * Optional und bleibt es. Fehlt sie, fragt der Hub unangemeldet und
+   * langsamer; nichts sonst ändert sich.
+   */
+  identity?: { key: string; secret: string } | null
   /** Injizierbar, damit Tests weder Netz noch Wartezeit brauchen. */
   fetchImpl?: typeof fetch
   send?: (
@@ -103,6 +140,7 @@ export function vapidKeys(db: DatabaseSync): { publicKey: string; privateKey: st
 export async function watchRound(deps: WatchDeps): Promise<RoundResult> {
   const {
     db,
+    identity = null,
     fetchImpl = globalThis.fetch.bind(globalThis),
     subject = 'mailto:hub@fidelity.invalid',
     now = Date.now,
@@ -124,6 +162,19 @@ export async function watchRound(deps: WatchDeps): Promise<RoundResult> {
     send = (subscription, payload) => webpush.sendNotification(subscription, payload)
   }
 
+  /*
+   * Die Kennung geht in einen Kopf, nicht in die Adresse.
+   *
+   * `key=`/`secret=` als Abfrageparameter ist bei Discogs ebenfalls
+   * dokumentiert und wäre kürzer — aber ein Geheimnis in einer URL landet in
+   * jedem Zugriffsprotokoll, das zwischen hier und Discogs steht.
+   */
+  const headers: Record<string, string> = { 'user-agent': USER_AGENT }
+  if (identity) {
+    headers.authorization = `Discogs key=${identity.key}, secret=${identity.secret}`
+  }
+  const spacing = identity ? POLL_SPACING_IDENTIFIED_MS : POLL_SPACING_MS
+
   const result: RoundResult = { checked: 0, changed: 0, notified: 0, dropped: 0 }
   const cutoff = now() - STALE_AFTER_MS
 
@@ -144,12 +195,13 @@ export async function watchRound(deps: WatchDeps): Promise<RoundResult> {
     .all(cutoff, MAX_PER_ROUND) as { dealer: string; known: number | null }[]
 
   for (const [index, entry] of due.entries()) {
-    if (index > 0) await sleep(POLL_SPACING_MS)
+    if (index > 0) await sleep(spacing)
 
     let numForSale: number
     try {
       const response = await fetchImpl(
         `https://api.discogs.com/users/${encodeURIComponent(entry.dealer)}`,
+        { headers },
       )
       if (!response.ok) continue
       const body = (await response.json()) as { num_for_sale?: number }

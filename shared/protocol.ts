@@ -129,20 +129,37 @@ export interface WorkerContract {
    * what it deliberately leaves alone.
    */
   /**
-   * Nach einem Hub auf demselben Rechner suchen.
+   * Nach einem Hub suchen — erst hier, dann auf diesem Rechner.
    *
-   * `http://localhost:8787` is where `hub/compose.yml` puts it, so it is worth
-   * one probe before making somebody type an address. Measured 2026-08-10: a
-   * page served over https may reach it in Chromium and may **not** in WebKit
-   * — "Not allowed to request resource" — which is every iPhone. That case is
-   * predictable rather than detectable, so the result names it instead of
-   * reporting "nothing found" for something that is simply forbidden.
+   * Two kinds of candidate, and the order is the whole point.
+   *
+   * **Same origin first.** A hub deployed beside the app (`/hub` on the same
+   * domain, which is what `.github/workflows/hub.yml` sets up) is the one case
+   * that can never fail for a reason outside itself: no CORS, no mixed
+   * content, no second certificate. It is also the only one that works on a
+   * phone away from home.
+   *
+   * **Then `http://localhost:8787`**, where `hub/compose.yml` puts it —
+   * worth one probe before making somebody type an address. Measured
+   * 2026-08-10: from an https page Chromium reaches it and WebKit does
+   * **not** ("Not allowed to request resource"), which is every iPhone. That
+   * case is predictable rather than detectable, so the result names it
+   * instead of reporting "nothing found" for something simply forbidden.
    */
   'hub.discover': {
     params: undefined
     progress: never
     result: {
       url: string | null
+      /**
+       * Whether the one that answered wants a shared secret.
+       *
+       * `/v1/health` is open by design and says so (`secured`). It decides
+       * whether the address can simply be kept or still needs a word typed
+       * beside it — without it the app would have to save first and find out
+       * afterwards, from a hub that fails silently by design (rule 8).
+       */
+      secured: boolean
       /** True when this page is https and the candidates are http. */
       blockedByMixedContent: boolean
       tried: string[]

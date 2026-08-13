@@ -1,0 +1,332 @@
+name: Hub
+
+# Den optionalen Hub auf denselben Server bringen wie die App.
+#
+# Er ist optional und bleibt es (ADR-008): dieser Ablauf ist von `deploy.yml`
+# getrennt, läuft nur von Hand, und ein Fehlschlag hier lässt die App
+# unberührt. Wer keinen Hub will, rührt diese Datei nie an.
+#
+# Warum überhaupt auf dem Server und nicht im Heimnetz: die ausgelieferte App
+# läuft über https, und ein Hub unter http://localhost ist damit Mixed Content
+# — WebKit weist das hart ab (2026-08-10 gemessen). Unter derselben Domain wie
+# die App ist er dagegen sogar gleiche Herkunft: kein CORS, kein Mixed
+# Content, kein DNS-Eintrag.
+#
+# Der Aufbau auf dem Zielserver (ein Uberspace):
+#
+#   ~/fidelity-hub/        der Quelltext, wird bei jedem Lauf ersetzt
+#   ~/fidelity-hub-data/   hub.sqlite — wird NIE angefasst, siehe unten
+#   ~/etc/services.d/      die supervisord-Einheit
+#   /hub                   der Pfad, den uberspace auf Port 8787 leitet
+#
+# **Die Datenbank liegt bewusst außerhalb des Quelltextverzeichnisses.**
+# `rsync --delete` räumt dort auf, und in dieser Datei stehen die VAPID-
+# Schlüssel: verliert man sie, ist jede Push-Anmeldung auf jedem Gerät tot und
+# muss von Hand neu erteilt werden. Ein Cache darf weg, dieser eine Wert nicht.
+#
+# Einzurichten, zusätzlich zu dem, was deploy.yml schon braucht:
+#
+#   HUB_SECRET   Secret, frei gewählt, in derselben Environment.
+#                Der Hub steht unter einer öffentlichen Adresse — ohne dieses
+#                Wort ist er der Cache aller Vorbeikommenden. Derselbe Wert
+#                gehört auf jedem Gerät in Einstellungen → Hub.
+#
+# Und zwei, die freiwillig sind:
+#
+#   HUB_DISCOGS_KEY, HUB_DISCOGS_SECRET
+#                Consumer-Key und -Secret einer registrierten Discogs-
+#                Anwendung. Sie heben das Limit des Wächters von 25 auf 60
+#                Abfragen pro Minute — mehr nicht: es ist keine Anmeldung als
+#                Person, und ein persönlicher Token gehört hier nicht hin.
+#                Fehlen sie, läuft der Wächter langsamer getaktet weiter.
+#
+# **HUB_SECRET und HUB_DISCOGS_SECRET sind nicht dasselbe.** Das eine ist das
+# Wort zwischen deinen Geräten und deinem Hub, das andere gehört Discogs. Wer
+# das Consumer-Secret als HUB_SECRET einträgt, tippt es anschließend auf jedem
+# Telefon in ein Klartextfeld.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Nur nachsehen, nichts verändern'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hub-deploy
+  cancel-in-progress: false
+
+jobs:
+  hub:
+    runs-on: ubuntu-latest
+
+    # Dieselbe Environment wie deploy.yml — sonst sind DEPLOY_HOST und die
+    # anderen schlicht leer, und der Lauf meldet grün, ohne etwas getan zu
+    # haben. Genau so ist der erste Trockenlauf am 2026-08-11 ausgegangen.
+    environment: ${{ vars.DEPLOY_ENVIRONMENT || 'martinmelcher.de' }}
+
+    env:
+      # Wo der Hub im Netz auftaucht. Als Variable, damit ein Fork nicht diesen
+      # Pfad erbt; leer heißt /hub.
+      HUB_PATH: ${{ vars.HUB_PATH || '/hub' }}
+      HUB_PORT: '8787'
+      SITE_URL: ${{ vars.DEPLOY_URL || secrets.DEPLOY_URL }}
+
+      # `secrets` steht in einem `if:` **nicht** zur Verfügung, `env` schon —
+      # dieselbe Falle, die in deploy.yml schon einmal eine halbe Stunde
+      # gekostet hat. Also hier ein Ja/Nein daraus machen, das ein `if:` lesen
+      # kann, ohne das Geheimnis selbst anzufassen.
+      HAS_HUB_SECRET: ${{ secrets.HUB_SECRET != '' }}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
+
+      - name: Ist ein Ziel eingerichtet?
+        id: check
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          if [ -n "$HOST" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "ready=false" >> "$GITHUB_OUTPUT"
+          echo "::error::DEPLOY_HOST ist leer — der Lauf hat nichts geprüft."
+          echo "Die Werte liegen in einer Environment; dieser Job nennt sie oben."
+          exit 1
+
+      - if: steps.check.outputs.ready == 'true'
+        name: Schlüssel bereitlegen
+        env:
+          KEY: ${{ secrets.DEPLOY_KEY }}
+          HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          # Den Hostschlüssel einmal holen, statt die Prüfung abzuschalten.
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+      # Der Trockenlauf beantwortet die Fragen, an denen dieser Aufbau
+      # scheitern kann — jede einzeln, statt sie beim echten Lauf gemeinsam als
+      # "Verbindung abgebrochen" zu erleben.
+      #
+      # Die wichtigste ist die Node-Fassung: der Hub wird als TypeScript
+      # gestartet (`node src/server.ts`). Ab 22.18 macht Node das von selbst,
+      # ab 22.6 nur mit --experimental-strip-types, davor gar nicht.
+      - if: steps.check.outputs.ready == 'true' && inputs.dry_run
+        name: Trockenlauf — was steht dort bereit?
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          REMOTE_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -eu
+          SSH="ssh -i ~/.ssh/id_deploy -o BatchMode=yes -o ConnectTimeout=15"
+
+          echo "── 1. Anmeldung ──"
+          $SSH "$REMOTE_USER@$HOST" 'id -un; uname -sr' | sed 's/^/   /'
+
+          echo "── 2. Node ──"
+          $SSH "$REMOTE_USER@$HOST" '
+            if command -v node >/dev/null; then
+              echo "   node: $(node --version) ($(command -v node))"
+            else
+              echo "   KEIN node im PATH"
+            fi
+            command -v npm >/dev/null && echo "   npm:  $(npm --version)" || echo "   KEIN npm"
+            if command -v uberspace >/dev/null; then
+              echo "   verfügbare Fassungen:"
+              uberspace tools version list node 2>&1 | sed "s/^/     /"
+            fi'
+
+          echo "── 3. supervisord ──"
+          $SSH "$REMOTE_USER@$HOST" '
+            command -v supervisorctl >/dev/null \
+              && supervisorctl status 2>&1 | sed "s/^/   /" \
+              || echo "   KEIN supervisorctl — ein Dauerprozess ginge so nicht"'
+
+          echo "── 4. Schon belegte Web-Pfade ──"
+          $SSH "$REMOTE_USER@$HOST" '
+            command -v uberspace >/dev/null \
+              && uberspace web backend list 2>&1 | sed "s/^/   /" \
+              || echo "   kein uberspace-Werkzeug (dann ist das hier kein Uberspace)"'
+
+          echo "── 5. Liegt schon ein Hub dort? ──"
+          $SSH "$REMOTE_USER@$HOST" '
+            test -d ~/fidelity-hub && echo "   Quelltext: ja" || echo "   Quelltext: noch nicht"
+            test -f ~/fidelity-hub-data/hub.sqlite \
+              && echo "   Datenbank: ja — die VAPID-Schlüssel darin bleiben unangetastet" \
+              || echo "   Datenbank: noch keine, der erste Start legt sie an"'
+
+          echo
+          echo "Nichts geschrieben, nichts gestartet."
+
+      - if: steps.check.outputs.ready == 'true' && !inputs.dry_run && env.HAS_HUB_SECRET != 'true'
+        name: Ohne Geheimnis nicht ins offene Netz
+        run: |
+          echo "::error::HUB_SECRET ist leer."
+          echo
+          echo "Der Hub bekäme eine öffentliche Adresse. Ohne Geheimnis darf jeder"
+          echo "Vorbeikommende seinen Cache lesen und füllen — und mitlesen, welche"
+          echo "Läden andere Geräte beobachten."
+          echo
+          echo "Settings → Environments → ${{ vars.DEPLOY_ENVIRONMENT || 'martinmelcher.de' }}"
+          echo "  → Environment secrets → New secret → HUB_SECRET"
+          echo
+          echo "Derselbe Wert gehört danach auf jedem Gerät in Einstellungen → Hub."
+          exit 1
+
+      # Erst fragen, wo Node liegt, dann die Einheit hier bauen.
+      #
+      # supervisord startet keine Login-Shell, also hilft ein `node` im PATH des
+      # Benutzers nichts — der Pfad muss ausgeschrieben in der Datei stehen.
+      - if: steps.check.outputs.ready == 'true' && !inputs.dry_run
+        name: Wo liegt Node?
+        id: node
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          REMOTE_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -eu
+          SSH="ssh -i ~/.ssh/id_deploy -o BatchMode=yes"
+          path=$($SSH "$REMOTE_USER@$HOST" 'command -v node' || true)
+          version=$($SSH "$REMOTE_USER@$HOST" 'node --version' || true)
+
+          if [ -z "$path" ]; then
+            echo "::error::Auf dem Server liegt kein node im PATH."
+            echo "Auf einem Uberspace: uberspace tools version use node 22"
+            exit 1
+          fi
+
+          # Der Hub wird als TypeScript gestartet. Ohne Typ-Entfernung stirbt er
+          # beim ersten Import, und supervisord würde ihn stumm in einer Schleife
+          # neu starten — der teuerste Fehlschlag von allen, weil er wie "läuft"
+          # aussieht.
+          major=$(printf '%s' "$version" | sed -E 's/^v([0-9]+)\..*/\1/')
+          minor=$(printf '%s' "$version" | sed -E 's/^v[0-9]+\.([0-9]+)\..*/\1/')
+          echo "node $version unter $path"
+
+          if [ "$major" -ge 23 ] || { [ "$major" -eq 22 ] && [ "$minor" -ge 18 ]; }; then
+            echo "flags=" >> "$GITHUB_OUTPUT"
+          elif [ "$major" -eq 22 ] && [ "$minor" -ge 6 ]; then
+            echo "Älter als 22.18 — TypeScript wird ausdrücklich eingeschaltet."
+            echo "flags=--experimental-strip-types " >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::node $version kann kein TypeScript ausführen (nötig: ≥ 22.6)."
+            echo "Auf einem Uberspace: uberspace tools version use node 22"
+            exit 1
+          fi
+
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+
+      - if: steps.check.outputs.ready == 'true' && !inputs.dry_run
+        name: Hochladen, einrichten, starten
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          REMOTE_USER: ${{ secrets.DEPLOY_USER }}
+          HUB_SECRET: ${{ secrets.HUB_SECRET }}
+          DISCOGS_KEY: ${{ secrets.HUB_DISCOGS_KEY }}
+          DISCOGS_SECRET: ${{ secrets.HUB_DISCOGS_SECRET }}
+          VAPID_SUBJECT: ${{ vars.HUB_VAPID_SUBJECT || 'mailto:hub@fidelity.invalid' }}
+          NODE_PATH_ON_SERVER: ${{ steps.node.outputs.path }}
+          NODE_FLAGS: ${{ steps.node.outputs.flags }}
+        run: |
+          set -eu
+          SSH="ssh -i ~/.ssh/id_deploy -o BatchMode=yes"
+
+          $SSH "$REMOTE_USER@$HOST" 'mkdir -p ~/fidelity-hub/src ~/fidelity-hub-data ~/etc/services.d ~/logs'
+
+          # Nur der Quelltext. Das Datenverzeichnis liegt daneben und wird von
+          # --delete nicht erreicht — siehe die Begründung ganz oben.
+          rsync -az -e "$SSH" \
+            hub/package.json hub/package-lock.json "$REMOTE_USER@$HOST:fidelity-hub/"
+          rsync -az --delete -e "$SSH" hub/src/ "$REMOTE_USER@$HOST:fidelity-hub/src/"
+
+          $SSH "$REMOTE_USER@$HOST" 'cd ~/fidelity-hub && npm ci --omit=dev --no-audit --no-fund'
+
+          # Die Einheit wird hier gebaut und hinübergelegt, statt drüben per
+          # Heredoc zusammengesetzt: sie trägt das Geheimnis, und eine
+          # Zeichenkette, die durch zwei Shells wandert, ist eine
+          # Anführungszeichen-Falle mit Ansage.
+          #
+          # %(ENV_HOME)s ist supervisord-Schreibweise, kein Shell-Ausdruck: so
+          # steht der Pfad des Benutzers nirgends im öffentlichen Protokoll.
+          umask 077
+          cat > fidelity-hub.ini <<INI
+          [program:fidelity-hub]
+          directory=%(ENV_HOME)s/fidelity-hub
+          command=${NODE_PATH_ON_SERVER} ${NODE_FLAGS}src/server.ts
+          environment=HUB_PORT="${HUB_PORT}",HUB_DB="%(ENV_HOME)s/fidelity-hub-data/hub.sqlite",HUB_SECRET="${HUB_SECRET}",HUB_WATCH="1",HUB_VAPID_SUBJECT="${VAPID_SUBJECT}",HUB_DISCOGS_KEY="${DISCOGS_KEY}",HUB_DISCOGS_SECRET="${DISCOGS_SECRET}"
+          autostart=true
+          autorestart=true
+          startsecs=15
+          stdout_logfile=%(ENV_HOME)s/logs/fidelity-hub.log
+          stderr_logfile=%(ENV_HOME)s/logs/fidelity-hub.err
+          INI
+
+          rsync -az --chmod=600 -e "$SSH" \
+            fidelity-hub.ini "$REMOTE_USER@$HOST:etc/services.d/fidelity-hub.ini"
+          rm -f fidelity-hub.ini
+
+          $SSH "$REMOTE_USER@$HOST" '
+            supervisorctl reread
+            supervisorctl update
+            supervisorctl restart fidelity-hub 2>/dev/null || supervisorctl start fidelity-hub'
+
+      # Den Pfad nur setzen, wenn er noch nicht dorthin zeigt: `web backend set`
+      # ist idempotent, startet aber den Webserver neu — und das bei jedem Lauf
+      # ohne Not zu tun ist unhöflich gegenüber allem anderen auf der Maschine.
+      - if: steps.check.outputs.ready == 'true' && !inputs.dry_run
+        name: Den Pfad auf den Hub leiten
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          REMOTE_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -eu
+          SSH="ssh -i ~/.ssh/id_deploy -o BatchMode=yes"
+          $SSH "$REMOTE_USER@$HOST" \
+            "if uberspace web backend list | grep -Eq '^${HUB_PATH}[[:space:]].*:${HUB_PORT}'; then
+               echo 'Der Pfad zeigt schon dorthin.'
+             else
+               uberspace web backend set '${HUB_PATH}' --http --port '${HUB_PORT}' --remove-prefix
+             fi"
+
+      # Antwortet er? Ein Dienst, den niemand prüft, ist eine Hoffnung.
+      #
+      # Über die öffentliche Adresse, nicht über localhost: geprüft werden soll
+      # der ganze Weg, einschließlich des Pfads und des abgeschnittenen
+      # Präfixes. /v1/health ist bewusst ohne Geheimnis erreichbar (docs/13) —
+      # eine Gesundheitsprüfung, die ein Geheimnis braucht, richtet niemand ein.
+      - if: steps.check.outputs.ready == 'true' && !inputs.dry_run && env.SITE_URL != ''
+        name: Antwortet er?
+        run: |
+          set -eu
+          base=$(printf '%s' "$SITE_URL" | sed -E 's#(https?://[^/]+).*#\1#')
+          url="${base}${HUB_PATH}/v1/health"
+
+          code=000
+          for attempt in 1 2 3 4 5 6; do
+            code=$(curl -s -o /tmp/health -w '%{http_code}' --max-time 15 "$url" || true)
+            [ "$code" = "200" ] && break
+            echo "Versuch $attempt: HTTP $code — er braucht noch."
+            sleep 5
+          done
+
+          echo "GET $url → $code"
+          cat /tmp/health 2>/dev/null || true
+          echo
+
+          if [ "$code" != "200" ]; then
+            echo "::error::Der Hub antwortet nicht (HTTP $code)."
+            echo "Auf dem Server sagen es zwei Stellen:"
+            echo "  supervisorctl status fidelity-hub"
+            echo "  tail ~/logs/fidelity-hub.err"
+            exit 1
+          fi
+
+          echo "Adresse für Einstellungen → Hub:  ${base}${HUB_PATH}"

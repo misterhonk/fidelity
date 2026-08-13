@@ -2,7 +2,12 @@ import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
 import { openHubDb } from '../src/db.ts'
-import { watchRound } from '../src/watch.ts'
+import {
+  POLL_SPACING_IDENTIFIED_MS,
+  POLL_SPACING_MS,
+  USER_AGENT,
+  watchRound,
+} from '../src/watch.ts'
 
 /**
  * Der Wächter — und vor allem: wann er den Mund hält.
@@ -37,6 +42,108 @@ const answering = (counts: Record<string, number>) =>
   }) as unknown as typeof fetch
 
 const nothing = async () => {}
+
+/*
+ * Der Wächter sagt, wer er ist.
+ *
+ * Discogs beantwortet eine Anfrage ohne User-Agent mit 403 (2026-08-13 gegen
+ * den echten Endpunkt gemessen). Nodes eigener Vorgabewert kommt heute durch,
+ * heißt aber „node" — und der Fehlschlag wäre der leiseste denkbare: eine
+ * Antwort, die nicht `ok` ist, wird verschluckt (`continue`), und der Wächter
+ * sähe für immer aus wie ein Laden, der sich nie bewegt.
+ */
+test('nennt Discogs seinen Namen', async () => {
+  const db = setup()
+  db.prepare("INSERT INTO watches (endpoint, dealer) VALUES ('e1', 'fatplastics')").run()
+
+  const seen: (HeadersInit | undefined)[] = []
+  const noting = ((url: string, init?: RequestInit) => {
+    seen.push(init?.headers)
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ num_for_sale: 10 }),
+    } as unknown as Response)
+  }) as unknown as typeof fetch
+
+  await watchRound({ db, fetchImpl: noting, sleep: nothing })
+
+  assert.equal(seen.length, 1)
+  assert.equal((seen[0] as Record<string, string>)['user-agent'], USER_AGENT)
+})
+
+/**
+ * Die Kennung, wenn es eine gibt — und keine erfundene, wenn nicht.
+ *
+ * Sie hebt das Limit von 25 auf 60 Anfragen pro Minute, und genau deshalb
+ * hängt der Takt daran: wer den Kopf wegnimmt und die 1.200 ms stehen lässt,
+ * baut einen Hub, der sein eigenes Limit reißt.
+ */
+describe('die Discogs-Kennung', () => {
+  const noting = (seen: RequestInit[]) =>
+    ((url: string, init?: RequestInit) => {
+      seen.push(init ?? {})
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ num_for_sale: 10 }),
+      } as unknown as Response)
+    }) as unknown as typeof fetch
+
+  test('geht als Kopf hinaus, nie in die Adresse', async () => {
+    const db = setup()
+    db.prepare("INSERT INTO watches (endpoint, dealer) VALUES ('e1', 'fatplastics')").run()
+
+    const seen: RequestInit[] = []
+    const urls: string[] = []
+    const watching = ((url: string, init?: RequestInit) => {
+      urls.push(String(url))
+      seen.push(init ?? {})
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ num_for_sale: 10 }),
+      } as unknown as Response)
+    }) as unknown as typeof fetch
+
+    await watchRound({
+      db,
+      fetchImpl: watching,
+      sleep: nothing,
+      identity: { key: 'k123', secret: 's456' },
+    })
+
+    const headers = seen[0]?.headers as Record<string, string>
+    assert.equal(headers.authorization, 'Discogs key=k123, secret=s456')
+    // Ein Geheimnis in einer URL landet in jedem Protokoll dazwischen.
+    assert.ok(!urls[0]?.includes('s456'))
+    assert.ok(!urls[0]?.includes('k123'))
+  })
+
+  test('bleibt ohne Kennung ganz weg', async () => {
+    const db = setup()
+    db.prepare("INSERT INTO watches (endpoint, dealer) VALUES ('e1', 'fatplastics')").run()
+
+    const seen: RequestInit[] = []
+    await watchRound({ db, fetchImpl: noting(seen), sleep: nothing })
+
+    const headers = seen[0]?.headers as Record<string, string>
+    assert.equal(headers.authorization, undefined)
+  })
+
+  test('gibt der Kennung das schnellere Tempo — und sonst nicht', async () => {
+    const paused: number[] = []
+    const measure = async (ms: number) => {
+      paused.push(ms)
+    }
+
+    for (const identity of [null, { key: 'k', secret: 's' }]) {
+      const db = setup(['a', 'b'])
+      db.prepare("INSERT INTO watches (endpoint, dealer) VALUES ('e1', 'a')").run()
+      db.prepare("INSERT INTO watches (endpoint, dealer) VALUES ('e1', 'b')").run()
+      await watchRound({ db, fetchImpl: noting([]), sleep: measure, identity })
+    }
+
+    assert.deepEqual(paused, [POLL_SPACING_MS, POLL_SPACING_IDENTIFIED_MS])
+  })
+})
 
 describe('der Wächter', () => {
   test('sagt beim ersten Blick nichts — das ist eine Grundlinie', async () => {
