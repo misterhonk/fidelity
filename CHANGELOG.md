@@ -9,6 +9,20 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.17.0](https://github.com/misterhonk/fidelity/compare/v0.16.0...v0.17.0) (2026-08-13)
+
+
+### Added
+
+* **dealers:** the friends question, where the shop list is empty ([7637fa6](https://github.com/misterhonk/fidelity/commit/7637fa62080628c9a9806aae644dd6d3d3b5e3b2))
+* **ui:** a link that leaves says so before it is clicked ([14d9173](https://github.com/misterhonk/fidelity/commit/14d9173793c71d9477f17f53cc496feb0a98bd3d))
+
+
+### Fixed
+
+* **deploy:** ship a release because it exists, not because an action said so ([8a1c138](https://github.com/misterhonk/fidelity/commit/8a1c138cba3d29c0cb74c222b2655839dc79a9fb))
+* **ui:** a cover you want leads to your own row, not to Discogs ([0fc4e5c](https://github.com/misterhonk/fidelity/commit/0fc4e5c68726e796e82012d68775d2d90027f8f9))
+
 ## [0.16.0](https://github.com/misterhonk/fidelity/compare/v0.15.0...v0.16.0) (2026-08-12)
 
 
