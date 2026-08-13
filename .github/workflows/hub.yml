@@ -143,11 +143,11 @@ jobs:
               echo "   verfügbare Fassungen:"
               uberspace tools version list node 2>&1 | sed "s/^/     /"
             fi
-            # Wo eine neuere liegt, ohne die Vorgabe des Accounts anzufassen.
-            echo "   gefundene Binärdateien:"
-            for candidate in /opt/uberspace/tools/*/bin/node /opt/*/node*/bin/node; do
-              [ -x "$candidate" ] && echo "     $candidate → $($candidate --version)"
-            done 2>/dev/null'
+            # `|| :` am Ende, weil ein fehlgeschlagener Test den ganzen Schritt
+            # mitnimmt: der Rückgabewert der letzten Zeile ist der des Aufrufs,
+            # und der Trockenlauf lief unter `set -e`. Hat den zweiten Lauf nach
+            # diesem Abschnitt abgeschnitten (2026-08-13).
+            :'
 
           echo "── 3. supervisord ──"
           $SSH "$REMOTE_USER@$HOST" '
@@ -205,19 +205,32 @@ jobs:
         run: |
           set -eu
           SSH="ssh -i ~/.ssh/id_deploy -o BatchMode=yes"
-          path=$($SSH "$REMOTE_USER@$HOST" 'command -v node' || true)
-          version=$($SSH "$REMOTE_USER@$HOST" 'node --version' || true)
-
-          if [ -z "$path" ]; then
-            echo "::error::Auf dem Server liegt kein node im PATH."
-            echo "Auf einem Uberspace: uberspace tools version use node 22"
-            exit 1
-          fi
+          version=$($SSH "$REMOTE_USER@$HOST" 'node --version 2>/dev/null' || true)
+          echo "vorgefunden: ${version:-keins}"
 
           # Der Hub wird als TypeScript gestartet. Ohne Typ-Entfernung stirbt er
           # beim ersten Import, und supervisord würde ihn stumm in einer Schleife
           # neu starten — der teuerste Fehlschlag von allen, weil er wie "läuft"
-          # aussieht.
+          # aussieht. Also lieber hier abbrechen als dort im Kreis laufen.
+          old=$(printf '%s' "$version" | awk -F. '{ gsub(/v/,"",$1); print ($1 < 22 || ($1 == 22 && $2 < 6)) ? "ja" : "nein" }')
+
+          if [ "${old:-ja}" = "ja" ]; then
+            # Umstellen, nicht umgehen. Uberspace hält mehrere Fassungen
+            # nebeneinander und schaltet den PATH des Benutzers um; die alte
+            # bleibt liegen, der Schritt ist also zurücknehmbar. Vom Betreiber
+            # dieses Servers am 2026-08-13 ausdrücklich freigegeben.
+            echo "Zu alt für TypeScript — stelle auf node 22 um."
+            $SSH "$REMOTE_USER@$HOST" 'uberspace tools version use node 22'
+            version=$($SSH "$REMOTE_USER@$HOST" 'node --version' || true)
+            echo "jetzt: ${version:-keins}"
+          fi
+
+          path=$($SSH "$REMOTE_USER@$HOST" 'command -v node' || true)
+          if [ -z "$path" ]; then
+            echo "::error::Auf dem Server liegt kein node im PATH."
+            exit 1
+          fi
+
           major=$(printf '%s' "$version" | sed -E 's/^v([0-9]+)\..*/\1/')
           minor=$(printf '%s' "$version" | sed -E 's/^v[0-9]+\.([0-9]+)\..*/\1/')
           echo "node $version unter $path"
@@ -229,7 +242,8 @@ jobs:
             echo "flags=--experimental-strip-types " >> "$GITHUB_OUTPUT"
           else
             echo "::error::node $version kann kein TypeScript ausführen (nötig: ≥ 22.6)."
-            echo "Auf einem Uberspace: uberspace tools version use node 22"
+            echo "Die Umstellung oben hat nicht gegriffen — auf dem Server nachsehen:"
+            echo "  uberspace tools version list node"
             exit 1
           fi
 
