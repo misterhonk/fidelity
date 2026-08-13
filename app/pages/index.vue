@@ -260,7 +260,7 @@ const tiles = computed(() => {
             :title="record.title"
             :subtitle="record.artist"
             :note="record.year ? String(record.year) : null"
-            :href="`https://www.discogs.com/release/${record.releaseId}`"
+            :to="`/wantlist#want-${record.releaseId}`"
           />
         </CoverRail>
 

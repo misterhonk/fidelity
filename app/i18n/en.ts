@@ -64,6 +64,15 @@ const en = {
     signIn: { lead: 'Sign in first —', link: 'go to the start page' },
     /** Read out for a cover that leads away from the app. */
     atDiscogs: (title: string) => `${title}, view at Discogs`,
+    /*
+     * And for one that stays.
+     *
+     * A cover tile carries its title *underneath* the button, not inside it,
+     * so without this a screen reader announces "button" and nothing else —
+     * four of them in a row, indistinguishable. Found on 2026-08-13 by a test
+     * that could not find the tiles either.
+     */
+    openRecord: (title: string) => `Open ${title}`,
     nothingYet: 'Nothing fetched yet',
     off: 'Off',
     never: 'never',

@@ -16,12 +16,27 @@ const overview = shallowRef<WantlistOverview | null>(null)
 const loading = ref(true)
 const query = ref('')
 
+const route = useRoute()
+
 onMounted(async () => {
   try {
     overview.value = await call('collection.wantlist', undefined)
   } finally {
     loading.value = false
   }
+
+  /*
+   * Scroll to the row somebody came for, once it exists.
+   *
+   * The browser handles `#want-123` on its own only if the element is in the
+   * document when the address arrives — and here it never is: the list comes
+   * out of IndexedDB a moment later. Coming from a cover on the start screen
+   * therefore landed at the top of twenty-three records, which reads as "that
+   * tap did nothing" (seen 2026-08-13).
+   */
+  if (!route.hash) return
+  await nextTick()
+  document.querySelector(route.hash)?.scrollIntoView({ block: 'start' })
 })
 
 /*
@@ -122,10 +137,21 @@ function waiting(addedAt: string): string | null {
         reminded about.
       -->
       <ul v-else class="grid gap-2 @4xl:grid-cols-2">
+        <!--
+          Jede Zeile ist adressierbar, und dafür gibt es einen Grund.
+
+          A cover on the start screen is a record, not a category — tapping it
+          and landing at the top of a list of twenty-three is being told "look
+          for it yourself". The anchor lands on the row, `scroll-mt` keeps it
+          out from under the sticky nav, and `:target` says which one for a
+          moment, because a page that jumps without saying where is a page that
+          looks like it did nothing.
+        -->
         <li
           v-for="record in records"
+          :id="`want-${record.releaseId}`"
           :key="record.releaseId"
-          class="flex gap-4 rounded-fid-md border border-fid-border p-3"
+          class="fid-want flex scroll-mt-24 gap-4 rounded-fid-md border border-fid-border p-3"
         >
           <!--
             The sleeve, which was in the store all along.
@@ -256,3 +282,35 @@ function waiting(addedAt: string): string | null {
     </template>
   </main>
 </template>
+
+<style scoped>
+/*
+ * Nur ein Moment, dann ist es wieder eine Zeile wie jede andere.
+ *
+ * Der Sprung allein sagt nichts: wer von der Startseite kommt, sieht eine
+ * Liste und weiß nicht, welche davon gemeint war. Der Rahmen sagt es und
+ * verschwindet, statt eine Auswahl zu behaupten, die es nicht gibt.
+ *
+ * `prefers-reduced-motion` schaltet die Animation ab und lässt die Betonung
+ * stehen — die Information darf nicht am Bewegungswunsch hängen.
+ */
+.fid-want:target {
+  border-color: var(--color-fid-accent);
+  animation: fid-want-found 2.4s ease-out forwards;
+}
+
+@keyframes fid-want-found {
+  from {
+    border-color: var(--color-fid-accent);
+  }
+  to {
+    border-color: var(--color-fid-border);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fid-want:target {
+    animation: none;
+  }
+}
+</style>

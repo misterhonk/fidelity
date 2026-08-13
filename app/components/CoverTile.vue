@@ -9,7 +9,7 @@
  */
 const m = useMessages()
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     thumbUrl?: string | null
     coverUrl?: string | null
@@ -30,6 +30,15 @@ withDefaults(
      */
     href?: string | null
     /**
+     * Somewhere inside the app, for a record that has a place here.
+     *
+     * Separate from `href`, which leaves: an internal address must not open a
+     * second tab, and it must be a real link — middle-click, "open in new tab"
+     * and a screen reader's list of links all depend on that, which is what a
+     * button dressed as a link takes away.
+     */
+    to?: string | null
+    /**
      * Was passiert, wenn jemand die Kachel antippt.
      *
      * A callback rather than an emit, and that is the whole point. This used to
@@ -47,6 +56,7 @@ withDefaults(
   {
     index: 0,
     href: null,
+    to: null,
     open: null,
     thumbUrl: null,
     coverUrl: null,
@@ -54,6 +64,24 @@ withDefaults(
     score: null,
     note: null,
   },
+)
+
+/**
+ * Which element this tile actually is — decided here, not in the template.
+ *
+ * `resolveComponent('NuxtLink')` looks like it works in a template expression
+ * and does not: in a production build it silently hands back the *string*
+ * `'NuxtLink'`, so `<component :is>` renders a literal `<nuxtlink>` element.
+ * No error, no warning, and a cover that is simply not clickable — measured
+ * 2026-08-13, and found because the accessibility tree stopped listing the
+ * wantlist rail at all.
+ *
+ * Called in setup it resolves to the real component.
+ */
+const NuxtLinkTag = resolveComponent('NuxtLink')
+
+const tag = computed(() =>
+  props.open ? 'button' : props.to ? NuxtLinkTag : props.href ? 'a' : 'div',
 )
 </script>
 
@@ -63,12 +91,15 @@ withDefaults(
     :style="{ '--fid-stagger': index }"
   >
     <component
-      :is="open ? 'button' : href ? 'a' : 'div'"
+      :is="tag"
       :type="open ? 'button' : undefined"
-      :href="open ? undefined : (href ?? undefined)"
-      :target="open ? undefined : href ? '_blank' : undefined"
-      :rel="open ? undefined : href ? 'noopener noreferrer' : undefined"
-      :aria-label="!open && href ? m.common.atDiscogs(title) : undefined"
+      :to="open ? undefined : (to ?? undefined)"
+      :href="open || to ? undefined : (href ?? undefined)"
+      :target="open || to ? undefined : href ? '_blank' : undefined"
+      :rel="open || to ? undefined : href ? 'noopener noreferrer' : undefined"
+      :aria-label="
+        open || to ? m.common.openRecord(title) : href ? m.common.atDiscogs(title) : undefined
+      "
       class="group relative block w-full text-left"
       @click="open?.()"
     >
