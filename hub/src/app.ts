@@ -77,12 +77,19 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
    * The client is a browser on a different origin, so CORS is not optional.
    * `x-hub-secret` has to be allowed explicitly — it is not a simple header,
    * and without it every request would fail preflight.
+   *
+   * **POST belongs in this list.** The two watch routes are POST, and without
+   * it a browser refuses them at the preflight — no device could ever register
+   * for notifications, which is the one thing the hub is running for.
+   * Measured 2026-08-13 against the deployed hub, and it survived #110 only
+   * because that day's subscription went out through curl, which does not ask
+   * anybody's permission.
    */
   app.use(
     '/v1/*',
     cors({
       origin: '*',
-      allowMethods: ['GET', 'PUT', 'OPTIONS'],
+      allowMethods: ['GET', 'POST', 'PUT', 'OPTIONS'],
       allowHeaders: ['content-type', 'x-hub-secret'],
       maxAge: 86_400,
     }),

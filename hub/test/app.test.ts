@@ -57,6 +57,49 @@ describe('health', () => {
   })
 })
 
+/**
+ * Was ein Browser überhaupt schicken darf.
+ *
+ * Every route here is called from a page on another origin, so the preflight
+ * is not a formality — it is the gate. `POST` was missing from the allowed
+ * methods until 2026-08-13, which meant no browser could ever reach
+ * `/v1/watch/subscribe`: a hub running perfectly, a watchman polling shops,
+ * and not one device able to sign up for the answer.
+ *
+ * It survived the day push was first made to ring because that subscription
+ * went out through curl, which asks nobody's permission.
+ */
+describe('der Vorabflug', () => {
+  const preflight = (path: string, method: string) =>
+    hub('geheim').app.request(path, {
+      method: 'OPTIONS',
+      headers: {
+        origin: 'https://example.org',
+        'access-control-request-method': method,
+        'access-control-request-headers': 'content-type,x-hub-secret',
+      },
+    })
+
+  test('lässt jede Methode durch, die dieser Hub auch anbietet', async () => {
+    const allowed = (await preflight('/v1/watch/subscribe', 'POST')).headers.get(
+      'access-control-allow-methods',
+    )
+
+    for (const method of ['GET', 'POST', 'PUT']) {
+      assert.ok(allowed?.includes(method), `${method} fehlt in "${allowed}"`)
+    }
+  })
+
+  test('lässt das Geheimnis als Kopf zu — ohne ihn scheitert jede Anfrage', async () => {
+    // `x-hub-secret` ist kein einfacher Kopf: ohne ausdrückliche Erlaubnis
+    // bricht der Browser schon vor der eigentlichen Anfrage ab.
+    const allowed = (await preflight('/v1/horizon/artist/1', 'PUT')).headers.get(
+      'access-control-allow-headers',
+    )
+    assert.ok(allowed?.includes('x-hub-secret'), allowed ?? 'kein Kopf erlaubt')
+  })
+})
+
 describe('the shared secret', () => {
   test('refuses without it', async () => {
     const { app } = hub('geheim')
