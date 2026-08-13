@@ -108,6 +108,17 @@ export interface RoundResult {
   notified: number
   /** Empfänger, die der Push-Dienst als endgültig weg gemeldet hat. */
   dropped: number
+  /**
+   * Zustellungen, die scheiterten, ohne dass das Gerät für tot erklärt wurde.
+   *
+   * Bis zum 2026-08-13 gab es diese Zahl nicht, und der `catch` darunter tat
+   * außer beim Aufräumen **nichts** — kein Zähler, kein Protokoll. Ein Gerät,
+   * an das dauerhaft nichts durchkam, sah damit exakt aus wie ein Gerät, das
+   * den Laden gar nicht beobachtet: `notified` fiel nur leiser aus. Genau
+   * diese Lücke stand am selben Tag zwischen "es hat geklingelt" und "ich habe
+   * nichts gesehen".
+   */
+  failed: number
 }
 
 /**
@@ -175,7 +186,7 @@ export async function watchRound(deps: WatchDeps): Promise<RoundResult> {
   }
   const spacing = identity ? POLL_SPACING_IDENTIFIED_MS : POLL_SPACING_MS
 
-  const result: RoundResult = { checked: 0, changed: 0, notified: 0, dropped: 0 }
+  const result: RoundResult = { checked: 0, changed: 0, notified: 0, dropped: 0, failed: 0 }
   const cutoff = now() - STALE_AFTER_MS
 
   /*
@@ -280,7 +291,21 @@ async function notify(
         db.prepare('DELETE FROM watchers WHERE endpoint = ?').run(target.endpoint)
         db.prepare('DELETE FROM watches WHERE endpoint = ?').run(target.endpoint)
         ctx.result.dropped += 1
+        continue
       }
+
+      /*
+       * Und alles andere wird gezählt und gesagt.
+       *
+       * Der Dienst statt der Adresse: letztere ist ein Schlüssel — wer sie
+       * hat, darf diesem Gerät schicken — und hat in einem Protokoll nichts
+       * verloren. Der Host verrät, welches Gerät schweigt, und das ist die
+       * ganze gesuchte Auskunft.
+       */
+      ctx.result.failed += 1
+      const where = URL.parse(target.endpoint)?.host ?? 'unbekannt'
+       
+      console.warn(`[watch] Zustellung an ${where} gescheitert (${status ?? 'ohne Status'})`)
     }
   }
 

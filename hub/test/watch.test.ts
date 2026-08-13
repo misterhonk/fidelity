@@ -281,6 +281,36 @@ describe('der Wächter', () => {
     assert.equal(left.n, 0)
   })
 
+  /**
+   * Ein Schweigen wird gezählt.
+   *
+   * Der `catch` behandelte 404 und 410 und tat sonst gar nichts: kein Zähler,
+   * kein Protokoll. Ein Gerät, an das dauerhaft nichts durchkam, sah damit
+   * genau aus wie eines, das den Laden nie beobachtet hat — `notified` fiel
+   * leiser aus, und das war alles. Am 2026-08-13 stand exakt diese Lücke
+   * zwischen "es hat geklingelt" und "ich habe nichts gesehen".
+   */
+  test('zählt eine gescheiterte Zustellung, statt sie zu verschlucken', async () => {
+    const db = setup()
+    await watchRound({ db, fetchImpl: answering({ fatplastics: 100 }), sleep: nothing })
+    // Ohne das greift die Stundensperre und der zweite Durchgang sieht gar
+    // nicht erst nach.
+    db.prepare('UPDATE watch_state SET checked_at = 0').run()
+
+    const result = await watchRound({
+      db,
+      fetchImpl: answering({ fatplastics: 150 }),
+      sleep: nothing,
+      send: () => Promise.reject(Object.assign(new Error('nope'), { statusCode: 403 })),
+    })
+
+    assert.equal(result.notified, 0)
+    assert.equal(result.failed, 1)
+    // Nicht weggeworfen: eine 403 ist kein "dieses Gerät gibt es nicht mehr".
+    assert.equal(result.dropped, 0)
+    assert.equal((db.prepare('SELECT COUNT(*) AS n FROM watchers').get() as { n: number }).n, 1)
+  })
+
   test('behält einen Empfänger, dessen Zustellung nur vorübergehend scheitert', async () => {
     // 500 heißt "später nochmal", nicht "den gibt es nicht mehr".
     const db = setup()
