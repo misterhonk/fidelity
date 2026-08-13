@@ -134,21 +134,32 @@ jobs:
           echo "── 2. Node ──"
           $SSH "$REMOTE_USER@$HOST" '
             if command -v node >/dev/null; then
-              echo "   node: $(node --version) ($(command -v node))"
+              echo "   im PATH: $(node --version) ($(command -v node))"
             else
               echo "   KEIN node im PATH"
             fi
-            command -v npm >/dev/null && echo "   npm:  $(npm --version)" || echo "   KEIN npm"
+            command -v npm >/dev/null && echo "   npm: $(npm --version)" || echo "   KEIN npm"
             if command -v uberspace >/dev/null; then
               echo "   verfügbare Fassungen:"
               uberspace tools version list node 2>&1 | sed "s/^/     /"
-            fi'
+            fi
+            # Wo eine neuere liegt, ohne die Vorgabe des Accounts anzufassen.
+            echo "   gefundene Binärdateien:"
+            for candidate in /opt/uberspace/tools/*/bin/node /opt/*/node*/bin/node; do
+              [ -x "$candidate" ] && echo "     $candidate → $($candidate --version)"
+            done 2>/dev/null'
 
           echo "── 3. supervisord ──"
           $SSH "$REMOTE_USER@$HOST" '
-            command -v supervisorctl >/dev/null \
-              && supervisorctl status 2>&1 | sed "s/^/   /" \
-              || echo "   KEIN supervisorctl — ein Dauerprozess ginge so nicht"'
+            if command -v supervisorctl >/dev/null; then
+              # Leere Ausgabe heißt "läuft, kennt nur noch nichts" — und das
+              # sah beim ersten Lauf aus wie eine übersprungene Prüfung.
+              echo "   supervisorctl: $(command -v supervisorctl)"
+              supervisorctl status 2>&1 | sed "s/^/   /"
+              supervisorctl status 2>/dev/null | grep -q . || echo "   (noch keine Einheiten)"
+            else
+              echo "   KEIN supervisorctl — ein Dauerprozess ginge so nicht"
+            fi'
 
           echo "── 4. Schon belegte Web-Pfade ──"
           $SSH "$REMOTE_USER@$HOST" '
