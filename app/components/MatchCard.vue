@@ -211,15 +211,9 @@ const meta = computed(() => {
           streiten. Das Zeichen ist trotzdem dasselbe wie im Sheet — dass es
           aus der App hinausführt, soll überall gleich aussehen.
         -->
-        <a
-          class="fid-action inline-flex items-center gap-1 text-fid-accent underline underline-offset-4"
-          :href="`https://www.discogs.com/sell/item/${match.listingId}`"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <OutwardLink :to="`https://www.discogs.com/sell/item/${match.listingId}`">
           {{ d.sheet.atDiscogs }}
-          <FidIcon name="external-link" :size="13" />
-        </a>
+        </OutwardLink>
       </p>
 
       <!--

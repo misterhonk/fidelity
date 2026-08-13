@@ -286,13 +286,12 @@ const peak = computed(() =>
             to protect, and "Wighnomy Brothers & Robag Wruhme – Polytikk…" is a
             record nobody can check against what they meant to buy.
           -->
-            <a
+            <OutwardLink
               v-if="!line.sold"
-              class="min-w-0 grow basis-full text-fid-sm text-fid-text underline-offset-4 hover:underline @sm:basis-auto"
-              :href="`https://www.discogs.com/sell/item/${line.listingId}`"
-              target="_blank"
-              rel="noopener noreferrer"
-              >{{ line.title || b.unknownRecord }}</a
+              tone="inherit"
+              class="min-w-0 grow basis-full text-fid-sm text-fid-text @sm:basis-auto"
+              :to="`https://www.discogs.com/sell/item/${line.listingId}`"
+              >{{ line.title || b.unknownRecord }}</OutwardLink
             >
             <span
               v-else

@@ -272,12 +272,11 @@ async function check() {
             class="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-fid-md border px-4 py-3"
             :class="record.soldAt ? 'border-fid-border/50' : 'border-fid-border'"
           >
-            <a
-              class="min-w-0 grow text-fid-base underline-offset-4 hover:underline"
-              :class="record.soldAt ? 'text-fid-text-muted line-through' : 'text-fid-text'"
-              :href="`https://www.discogs.com/sell/item/${record.listingId}`"
-              target="_blank"
-              rel="noopener noreferrer"
+            <OutwardLink
+              class="min-w-0 grow text-fid-base"
+              :class="record.soldAt ? 'line-through' : 'text-fid-text'"
+              :tone="record.soldAt ? 'muted' : 'inherit'"
+              :to="`https://www.discogs.com/sell/item/${record.listingId}`"
             >
               <template v-if="record.artist || record.title">
                 {{ record.artist }}<template v-if="record.artist && record.title"> – </template
@@ -286,7 +285,7 @@ async function check() {
               <!-- Written before this store kept titles. Says so instead of
                    inventing one; the release id still gets you there. -->
               <template v-else>{{ b.saved.release(record.releaseId) }}</template>
-            </a>
+            </OutwardLink>
 
             <span v-if="record.soldAt" class="shrink-0 text-fid-xs text-fid-sig-gap">{{
               b.saved.gone

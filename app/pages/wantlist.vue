@@ -190,14 +190,18 @@ function waiting(addedAt: string): string | null {
 
           <div class="flex min-w-0 grow flex-col gap-1">
             <div class="flex flex-wrap items-baseline justify-between gap-x-3">
-              <a
-                class="line-clamp-2 min-w-0 text-fid-base text-fid-text underline-offset-4 hover:underline"
-                :href="`https://www.discogs.com/release/${record.releaseId}`"
-                target="_blank"
-                rel="noopener noreferrer"
+              <!--
+                Outward, and marked as such. The row itself is where this app
+                has something to say about a record you want — the note, and
+                the way to stop wanting it. Discogs is where you go to buy one.
+              -->
+              <OutwardLink
+                tone="inherit"
+                class="line-clamp-2 min-w-0 text-fid-base text-fid-text"
+                :to="`https://www.discogs.com/release/${record.releaseId}`"
               >
                 {{ record.artist }} – {{ record.title }}
-              </a>
+              </OutwardLink>
               <span class="flex items-center gap-3 text-fid-xs text-fid-text-muted">
                 <span>
                   <template v-if="record.year > 0"

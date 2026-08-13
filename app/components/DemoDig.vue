@@ -277,12 +277,28 @@ function shapeOf(format: string | null) {
 
       <ul v-else class="grid grid-cols-2 gap-x-3 gap-y-5 @lg:grid-cols-3 @3xl:grid-cols-5">
         <li v-for="find in shown" :key="find.listingId" class="flex min-w-0 flex-col gap-2">
+          <!--
+            Diese Kacheln führen hinaus, und das steht jetzt drauf.
+
+            A cover is a picture, so the mark cannot sit in a line of text the
+            way `OutwardLink` does: it rides on the image, opposite the score,
+            in the same badge shape. These are records in somebody else's shop
+            — Discogs is where you would buy one, and the only screen in this
+            app where every tile leaves.
+          -->
           <a
             :href="`https://www.discogs.com/sell/item/${find.listingId}`"
             target="_blank"
             rel="noopener noreferrer"
+            :aria-label="m.common.atDiscogs(`${find.artist} – ${find.title}`)"
             class="group relative block"
           >
+            <span
+              class="absolute right-1.5 bottom-1.5 z-10 rounded-fid-sm bg-fid-n-990/80 p-1 text-fid-n-50"
+              aria-hidden="true"
+            >
+              <FidIcon name="external-link" :size="12" />
+            </span>
             <img
               v-if="coverFor(find.releaseId, find.thumbUrl)"
               :src="coverFor(find.releaseId, find.thumbUrl)!.thumbUrl"

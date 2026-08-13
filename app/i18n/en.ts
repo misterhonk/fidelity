@@ -73,6 +73,11 @@ const en = {
      * that could not find the tiles either.
      */
     openRecord: (title: string) => `Open ${title}`,
+    /*
+     * Spoken, not drawn. The arrow beside an outward link is decoration; this
+     * is the same fact for somebody who cannot see it.
+     */
+    opensAtDiscogs: '(opens at Discogs)',
     nothingYet: 'Nothing fetched yet',
     off: 'Off',
     never: 'never',
