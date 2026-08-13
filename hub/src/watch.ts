@@ -304,7 +304,7 @@ async function notify(
        */
       ctx.result.failed += 1
       const where = URL.parse(target.endpoint)?.host ?? 'unbekannt'
-       
+
       console.warn(`[watch] Zustellung an ${where} gescheitert (${status ?? 'ohne Status'})`)
     }
   }
