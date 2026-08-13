@@ -21,6 +21,16 @@ export interface SyncReport {
   counts: Record<SyncableStore, number>
   /** Whether anything was out there to merge with. */
   hadRemote: boolean
+  /**
+   * Leer, obwohl dieses Gerät schon einmal abgeglichen hat.
+   *
+   * Seit die Kennung an der Passphrase hängt, verschiebt ein anderes Wort auch
+   * den Ablageort — aus „lässt sich nicht öffnen" wird „da liegt nichts", und
+   * das sieht aus wie eine Erstanlage. Zwei Geräte mit verschiedenen
+   * Passphrasen würden sich also stumm verpassen, statt laut zu scheitern.
+   * Genau dieser eine Fall wird gemeldet, statt still durchzugehen.
+   */
+  emptyThoughSyncedBefore?: boolean
   syncedAt: number
 }
 

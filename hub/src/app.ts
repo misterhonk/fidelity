@@ -89,7 +89,7 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     '/v1/*',
     cors({
       origin: '*',
-      allowMethods: ['GET', 'POST', 'PUT', 'OPTIONS'],
+      allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowHeaders: ['content-type', 'x-hub-secret'],
       maxAge: 86_400,
     }),
@@ -368,6 +368,26 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     // Nothing there yet is the normal first answer, not an error worth a log.
     if (!row) return c.json({ error: 'empty' }, 404)
     return c.json({ sealed: JSON.parse(row.body), updatedAt: row.updated_at })
+  })
+
+  /*
+   * Einen Block wieder loswerden.
+   *
+   * Gebraucht wird das beim Umzug: die Kennung eines Vaults hing bis 2026-08-13
+   * an der öffentlichen Discogs-User-ID, war also für jeden mit dem Geheimnis
+   * ausrechenbar. Sie hängt jetzt an der Passphrase — und ein Umzug, der die
+   * alte Ablage stehen lässt, hat genau nichts behoben.
+   *
+   * Kein Grund zur Vorsicht: der Hub ist ein Zwischenspeicher, und dieser
+   * Block ist eine Kopie. Das Original liegt auf dem Gerät.
+   */
+  app.delete('/v1/vault/:id', (c) => {
+    const id = c.req.param('id')
+    if (!VAULT_ID.test(id)) return c.json({ error: 'not a vault id' }, 400)
+
+    db.prepare('DELETE FROM vault WHERE id = ?').run(id)
+    // Auch wenn nichts da war: "weg" ist der Zustand, um den gebeten wurde.
+    return c.json({ gone: true })
   })
 
   app.put('/v1/vault/:id', async (c) => {

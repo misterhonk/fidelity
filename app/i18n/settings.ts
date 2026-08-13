@@ -300,6 +300,17 @@ const en = {
     merged: (entries: number) => `Merged: ${counted(entries, 'entry', 'entries')}.`,
     firstBackup: (entries: number) =>
       `Backed up for the first time: ${counted(entries, 'entry', 'entries')}.`,
+    /*
+     * Der eine Fall, der wie eine Erstanlage aussieht und keine ist.
+     *
+     * Since the slot is derived from the passphrase, a different word moves the
+     * slot as well — and the honest reading of "nothing was there" is then
+     * "you are looking somewhere else", not "you have never done this". Saying
+     * "first backup" here would let two devices drift apart with nothing
+     * anywhere looking broken.
+     */
+    emptySlot: (entries: number) =>
+      `Nothing was there, though this device has synced before — so ${counted(entries, 'entry', 'entries')} went up as a fresh backup. If you changed your passphrase, the older one is still under the old word: enter it again and sync once to bring the two together.`,
     lastSynced: (when: string) => `Last synced on ${when}.`,
 
     scopeWhyLabel: 'What travels and what does not',
@@ -723,6 +734,8 @@ const de: typeof en = {
     setUp: 'Einrichten',
     merged: (entries) => `Zusammengeführt: ${counted(entries, 'Eintrag', 'Einträge')}.`,
     firstBackup: (entries) => `Erstmals gesichert: ${counted(entries, 'Eintrag', 'Einträge')}.`,
+    emptySlot: (entries) =>
+      `Dort lag nichts, obwohl dieses Gerät schon einmal abgeglichen hat — ${counted(entries, 'Eintrag', 'Einträge')} sind deshalb als frische Sicherung hochgegangen. Falls du die Passphrase geändert hast: die ältere liegt noch unter dem alten Wort. Einmal damit abgleichen führt beide zusammen.`,
     lastSynced: (when) => `Zuletzt abgeglichen am ${when}.`,
 
     scopeWhyLabel: 'Was mitgeht und was nicht',

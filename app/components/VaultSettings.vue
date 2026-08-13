@@ -166,9 +166,23 @@ async function sync() {
           ? await cloud.sync(target, clientIds.value[target] ?? '', passphrase.value)
           : await call('vault.sync', { passphrase: passphrase.value })
     const total = Object.values(report.counts).reduce((sum, n) => sum + n, 0)
+    /*
+     * „Nichts gefunden" heißt zweierlei, und der Unterschied ist teuer.
+     *
+     * Seit die Ablage an der Passphrase hängt, verschiebt ein anderes Wort auch
+     * den Ort. Wer sein Wort ändert, sieht sonst „erste Sicherung angelegt" —
+     * und zwei Geräte laufen ab da nebeneinanderher, ohne dass irgendwo etwas
+     * kaputt aussieht.
+     *
+     * Nur der Hub kennt den Fall — eine Datei und ein Cloud-Ordner liegen da,
+     * wo jemand hingezeigt hat, und wandern nicht mit einem Wort. Deshalb die
+     * Prüfung auf das Feld statt auf seinen Wert.
+     */
     result.value = report.hadRemote
       ? st.value.vault.merged(total)
-      : st.value.vault.firstBackup(total)
+      : 'emptyThoughSyncedBefore' in report && report.emptyThoughSyncedBefore
+        ? st.value.vault.emptySlot(total)
+        : st.value.vault.firstBackup(total)
     // Out of memory the moment it is no longer needed. It is the key to
     // everything in the block and has no business sitting in a form.
     // Kept or dropped as asked, and only after a round that worked — there is

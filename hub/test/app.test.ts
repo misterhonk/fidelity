@@ -229,6 +229,36 @@ describe('the vault', () => {
 
   const ID = 'a'.repeat(32)
 
+  /**
+   * Und wieder loswerden — der zweite Halbsatz des Umzugs.
+   *
+   * Die Kennung eines Vaults hing bis 2026-08-13 an der öffentlichen
+   * Discogs-User-ID. Sie hängt jetzt an der Passphrase; ein Umzug, der den
+   * alten Block an der ausrechenbaren Adresse liegen lässt, hat genau nichts
+   * behoben — und sähe von außen wie ein Erfolg aus.
+   */
+  test('vergisst einen Block auf Zuruf', async () => {
+    const { app } = hub()
+    await app.request(`/v1/vault/${ID}`, { method: 'PUT', body: JSON.stringify(sealed()) })
+    assert.equal((await app.request(`/v1/vault/${ID}`)).status, 200)
+
+    assert.equal((await app.request(`/v1/vault/${ID}`, { method: 'DELETE' })).status, 200)
+    assert.equal((await app.request(`/v1/vault/${ID}`)).status, 404)
+  })
+
+  test('nennt auch das Nichtvorhandene weg', async () => {
+    // "Weg" ist der Zustand, um den gebeten wurde. Ein 404 hier würde einen
+    // Umzug scheitern lassen, bei dem schlicht nichts aufzuräumen war.
+    const { app } = hub()
+    assert.equal((await app.request(`/v1/vault/${ID}`, { method: 'DELETE' })).status, 200)
+  })
+
+  test('lässt eine Kennung nicht durch, die keine ist', async () => {
+    const { app } = hub()
+    assert.equal((await app.request('/v1/vault/../meta', { method: 'DELETE' })).status, 404)
+    assert.equal((await app.request('/v1/vault/kurz', { method: 'DELETE' })).status, 400)
+  })
+
   test('stores a block and hands the same one back', async () => {
     const { app } = hub()
     assert.equal((await put(app, `/v1/vault/${ID}`, sealed())).status, 200)

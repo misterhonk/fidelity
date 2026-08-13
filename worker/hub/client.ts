@@ -86,6 +86,14 @@ export interface HubClient {
    */
   vaultRead(id: string): Promise<SealedVault | null>
   vaultWrite(id: string, sealed: SealedVault): Promise<void>
+  /**
+   * Einen Block loswerden — gebraucht beim Umzug einer Kennung.
+   *
+   * Still: es ist ein Zwischenspeicher, das Original liegt auf dem Gerät, und
+   * ein Umzug soll nicht daran scheitern, dass das Aufräumen danach nicht
+   * geklappt hat.
+   */
+  vaultForget(id: string): Promise<void>
 
   /**
    * The watcher — the one thing here that is not a cache.
@@ -249,6 +257,14 @@ export function createHubClient({
         return null
       }
       return parsed.data
+    },
+
+    async vaultForget(id) {
+      try {
+        await fetchImpl(url(`/v1/vault/${id}`), { method: 'DELETE', headers })
+      } catch {
+        // Siehe oben: das Aufräumen ist der unwichtigste Teil des Umzugs.
+      }
     },
 
     async vaultWrite(id, sealed) {

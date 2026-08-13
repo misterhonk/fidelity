@@ -6,7 +6,7 @@ import { createHubClient } from '../hub/client'
 
 import type { SealedVault } from './crypto'
 import { syncVault, type SyncReport } from './sync'
-import { hubTarget, vaultId } from './targets/hub'
+import { hubTarget, legacyVaultId, vaultId } from './targets/hub'
 
 /**
  * Which destination this device uses, and whether it can right now.
@@ -128,12 +128,40 @@ export async function runVaultSync(passphrase: string): Promise<SyncReport> {
   const client = createHubClient({ baseUrl: prefs.hubUrl, secret: prefs.hubSecret })
   if (!client) throw new Error('Kein Hub eingetragen.')
 
-  const id = await vaultId(identity.userId)
+  const id = await vaultId(identity.userId, passphrase)
+
+  /*
+   * Der Umzug vom alten Ablageort — einmal, und dann nie wieder.
+   *
+   * Bis zum 2026-08-13 hing die Kennung an der öffentlichen Discogs-User-ID
+   * (die Begründung steht in `targets/hub.ts`). Ein Gerät, das seit damals
+   * nicht abgeglichen hat, findet unter der neuen Kennung nichts — und dürfte
+   * das auf keinen Fall als Erstanlage verstehen und den alten Stand
+   * überschreiben.
+   *
+   * Also: an der alten Stelle nachsehen, den Block an die neue legen und die
+   * alte räumen. Das Räumen ist der Punkt, nicht die Ordnung — ein
+   * verschlüsselter Block unter einer ausrechenbaren Adresse ist genau das,
+   * was hier abgestellt wird.
+   */
+  const legacy = await legacyVaultId(identity.userId)
+  if (legacy !== id && !(await client.vaultRead(id))) {
+    const old = await client.vaultRead(legacy)
+    if (old) {
+      await client.vaultWrite(id, old)
+      await client.vaultForget(legacy)
+    }
+  }
+
   const report = await syncVault({
     target: hubTarget(client, id, prefs.hubUrl ?? 'Hub'),
     passphrase,
   })
 
   await updatePreferences({ vaultSyncedAt: report.syncedAt })
-  return report
+
+  return {
+    ...report,
+    emptyThoughSyncedBefore: !report.hadRemote && Boolean(prefs.vaultSyncedAt),
+  }
 }

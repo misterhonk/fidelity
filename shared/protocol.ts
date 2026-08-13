@@ -458,7 +458,20 @@ export interface WorkerContract {
   'vault.sync': {
     params: { passphrase: string }
     progress: never
-    result: { counts: Record<string, number>; hadRemote: boolean; syncedAt: number }
+    result: {
+      counts: Record<string, number>
+      hadRemote: boolean
+      /**
+       * Leer, obwohl dieses Gerät schon einmal abgeglichen hat.
+       *
+       * Nur der Hub kennt diesen Fall: dort hängt die Kennung seit dem
+       * 2026-08-13 an der Passphrase, und ein anderes Wort verschiebt damit
+       * auch den Ablageort. Eine Datei oder ein Cloud-Ordner liegt, wo
+       * jemand hingezeigt hat, und kann das nicht.
+       */
+      emptyThoughSyncedBefore?: boolean
+      syncedAt: number
+    }
   }
   'vault.setTarget': { params: { target: VaultTarget }; progress: never; result: VaultStatus }
   /**
