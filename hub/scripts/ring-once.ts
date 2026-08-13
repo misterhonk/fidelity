@@ -44,7 +44,34 @@ const subject = process.env.HUB_VAPID_SUBJECT ?? 'mailto:hub@fidelity.invalid'
 const watchers = (db.prepare('SELECT COUNT(*) AS n FROM watchers').get() as { n: number }).n
 const watched = db.prepare('SELECT DISTINCT dealer FROM watches').all() as { dealer: string }[]
 
+/*
+ * Wer da eigentlich angemeldet ist.
+ *
+ * Ohne diese Zeilen ist ein Durchgang mit `notified: 1` bei zwei Empfängern
+ * nicht zu deuten: hat das zweite Gerät den Laden nicht beobachtet, oder hat
+ * die Zustellung geschwiegen? Die Adresse verrät den Dienst — und damit das
+ * Gerät —, ohne dass sie im Protokoll landen muss: sie ist ein Schlüssel, wer
+ * sie hat, darf diesem Gerät schicken.
+ */
+const rows = db
+  .prepare(
+    `SELECT w.endpoint AS endpoint, w.created_at AS created_at,
+            (SELECT GROUP_CONCAT(dealer) FROM watches WHERE endpoint = w.endpoint) AS dealers
+       FROM watchers w ORDER BY w.created_at`,
+  )
+  .all() as { endpoint: string; created_at: number; dealers: string | null }[]
+
 console.log(`${watchers} Empfänger, ${watched.length} beobachtete Läden`)
+for (const row of rows) {
+  const host = URL.parse(row.endpoint)?.host ?? 'unbekannt'
+  const service = host.includes('apple')
+    ? 'Safari/iOS'
+    : host.includes('google')
+      ? 'Chrome'
+      : host
+  const when = new Date(row.created_at).toISOString().slice(0, 16).replace('T', ' ')
+  console.log(`  ${service.padEnd(12)} seit ${when}  →  ${row.dealers ?? 'nichts beobachtet'}`)
+}
 
 if (watchers === 0 || watched.length === 0) {
   console.log('Nichts zu tun — erst in der App einen Laden beobachten.')
@@ -68,12 +95,12 @@ if (known.length === 0) {
   console.log(await watchRound({ db, identity, subject }))
 }
 
-const rows = db.prepare('SELECT dealer, num_for_sale FROM watch_state').all() as {
+const states = db.prepare('SELECT dealer, num_for_sale FROM watch_state').all() as {
   dealer: string
   num_for_sale: number
 }[]
 
-for (const row of rows) {
+for (const row of states) {
   // `checked_at = 0` hebt die Stundensperre auf, sonst sieht dieser Durchgang
   // gar nicht erst nach.
   db.prepare('UPDATE watch_state SET num_for_sale = ?, checked_at = 0 WHERE dealer = ?').run(
