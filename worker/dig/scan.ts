@@ -1,7 +1,7 @@
 import { DIG_TTL_MS, pruneDigs } from '~~/db/expire'
 import { getPreferences } from '~~/db/meta'
 import { openFidelityDb, type FidelityDatabase } from '~~/db/open'
-import type { Dig, Match } from '#shared/types'
+import type { Dig, Match, StockRow } from '#shared/types'
 import type { ScanProgress } from '#shared/protocol'
 
 import type { DiscogsClient } from '../discogs/client'
@@ -310,6 +310,8 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
       requests += 1
 
       const fresh: Match[] = []
+      /** Jede gesehene Zeile dieser Seite — siehe die Begründung unten. */
+      const stockRows: StockRow[] = []
       for (const row of response.listings) {
         /*
          * The line between "new since last time" and "was already here".
@@ -349,6 +351,40 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
         fingerprint.add(listing)
         nearMisses.add(listing)
 
+        /*
+         * Jede Zeile, nicht nur die Treffer.
+         *
+         * Der Balken „Labels in stock" zählt hier mit; ohne diese Zeile wäre
+         * er nicht anklickbar, denn was er zählt, existiert danach nirgends
+         * mehr. Und gerade bei einem Label ohne eigene Platten — dem
+         * interessantesten Fall — gibt es per Definition keinen Treffer, der
+         * einspringen könnte.
+         *
+         * Schmal: nur was die Ansicht zeigt. An echten Zeilen gemessen 198
+         * Byte statt 606, also rund 3,8 MB bei zwanzigtausend — und die sind
+         * mit dem Dig nach sechs Stunden wieder weg (db/expire.ts).
+         *
+         * Dasselbe Jahrzehnt wie im Fingerabdruck, damit Balken und Liste
+         * dieselbe Menge meinen: Jahr 0 heißt „Discogs weiß es nicht" und ist
+         * kein Jahrzehnt.
+         */
+        stockRows.push({
+          digId: dig.id,
+          listingId: listing.listingId,
+          releaseId: listing.releaseId,
+          label: listing.label?.trim() || null,
+          decade:
+            listing.year && listing.year > 1880 ? Math.floor(listing.year / 10) * 10 : null,
+          title: listing.title,
+          artist: listing.artist,
+          catno: listing.catno,
+          format: listing.format,
+          year: listing.year,
+          condition: listing.condition,
+          price: listing.price,
+          currency: listing.currency,
+        })
+
         const result = evaluate(listing, index, filters)
         if (!result) continue
 
@@ -381,6 +417,15 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
         for (const match of fresh) await tx.store.put(match)
         await tx.done
         matches += fresh.length
+      }
+
+      // Seitenweise, wie die Treffer: eine Unterbrechung kostet eine Seite und
+      // nicht den Lauf.
+      if (stockRows.length > 0) {
+        const tx = db.transaction('stock', 'readwrite')
+        for (const row of stockRows) await tx.store.put(row)
+        await tx.done
+        stockRows.length = 0
       }
 
       // Written after every page, so an interruption costs one page rather

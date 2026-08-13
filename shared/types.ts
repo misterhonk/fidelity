@@ -801,6 +801,49 @@ export interface Dig {
   cursor: { page: number; order: 'asc' | 'desc' } | null
 }
 
+/**
+ * Eine Zeile aus dem Sortiment eines Ladens — auch die, die nichts trifft.
+ *
+ * Ein Dig hob bis zum 2026-08-13 nur Treffer auf; alles andere ging in die
+ * Zählung des Fingerabdrucks und wurde verworfen. Damit war die Frage „was hat
+ * dieser Laden eigentlich auf Warp?" unbeantwortbar — und zwar genau dann,
+ * wenn sie interessant ist: bei einem Label, von dem man noch nichts besitzt,
+ * gibt es per Definition keinen Treffer.
+ *
+ * Warum überhaupt speichern, statt bei Bedarf zu holen: der Inventar-Endpunkt
+ * kennt keinen Label-Filter. Die Zeilen kommen genau einmal vorbei, während
+ * der Scan läuft. Wer sie nicht mitschreibt, bekommt sie nur durch einen
+ * vollständigen zweiten Scan zurück — Minuten und tausende Anfragen, also
+ * genau das, was die Regeln 2 und 3 verbieten.
+ *
+ * **Alles hier ist Marktplatzdatum, nichts davon ist abgeleitet.** Anders als
+ * bei `Match`, wo Score und Signale eine Auswertung sind und den Ablauf
+ * überleben, bleibt hier nach sechs Stunden nichts Zeigbares übrig. Diese
+ * Zeilen werden deshalb mit dem Dig **gelöscht** und nicht ausgedünnt
+ * (Regel 4).
+ *
+ * Schmal gehalten: an echten Zeilen gemessen 198 Byte statt 606, also rund
+ * 3,8 MB im schlimmsten Fall von 20.000 — und die sind nach sechs Stunden weg.
+ */
+export interface StockRow {
+  digId: string
+  listingId: number
+  releaseId: number
+  /** Genau wie im Fingerabdruck geschrieben, damit der Balken und die Liste
+   *  dieselbe Menge meinen. */
+  label: string | null
+  /** `1990` für die Neunziger. Null, wenn Discogs das Jahr nicht kennt. */
+  decade: number | null
+  title: string | null
+  artist: string | null
+  catno: string | null
+  format: string | null
+  year: number | null
+  condition: string | null
+  price: number | null
+  currency: string | null
+}
+
 export interface Match {
   digId: string
   listingId: number

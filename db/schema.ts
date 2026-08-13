@@ -14,6 +14,7 @@ import type {
   HorizonChunk,
   Identity,
   Match,
+  StockRow,
   Preferences,
   PushRegistration,
   ReleaseDetail,
@@ -29,7 +30,7 @@ export const DB_NAME = 'fidelity'
  *
  * 4 — added the `covers` store. Additive: nothing existing is touched.
  */
-export const DB_VERSION = 7
+export const DB_VERSION = 8
 
 /**
  * `meta` is a small key-value store rather than nine one-row stores. The union
@@ -140,6 +141,19 @@ export interface FidelityDB extends DBSchema {
     key: [string, number]
     value: Match
     indexes: { 'by-dig-score': [string, number] }
+  }
+  /**
+   * Das Sortiment eines Ladens, so wie ein Dig es gesehen hat.
+   *
+   * Die beiden Indizes sind der Grund, warum die Ansicht bezahlbar ist: eine
+   * Frage nach einem Label ist damit ein Bereichslesen statt eines Durchlaufs
+   * durch zwanzigtausend Zeilen. Der Dig steht in beiden Schlüsseln vorn,
+   * damit zwei Läden sich nicht vermischen.
+   */
+  stock: {
+    key: [string, number]
+    value: StockRow
+    indexes: { 'by-dig-label': [string, string]; 'by-dig-decade': [string, number] }
   }
   basket: { key: number; value: BasketItem }
   feedback: { key: number; value: Feedback }

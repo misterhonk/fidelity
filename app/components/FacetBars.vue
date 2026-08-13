@@ -10,6 +10,15 @@ const props = defineProps<{
   /** Token name for the bar, e.g. 'label' → --fid-sig-label. */
   signal: string
   empty?: string
+  /**
+   * Was ein Klick auf eine Zeile tut — falls überhaupt etwas.
+   *
+   * Ohne das bleiben es Balken zum Ansehen, und genau das waren sie auf der
+   * Ladenseite: „fatplastics führt 13 Kompakt-Platten", und keine davon war
+   * erreichbar. Auf der Landkarte, wo dieselbe Komponente die eigene Sammlung
+   * zeigt, gibt es nichts aufzuklappen — deshalb optional und nicht Pflicht.
+   */
+  open?: (facet: TasteFacet) => void
 }>()
 
 /**
@@ -33,7 +42,20 @@ const peak = computed(() => Math.max(1, ...props.facets.map((facet) => facet.n))
     <dl v-else class="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2">
       <template v-for="facet in facets" :key="facet.name">
         <dt class="min-w-0">
-          <span class="block truncate text-fid-sm text-fid-text">{{ facet.name }}</span>
+          <!--
+            Ein Knopf nur da, wo er etwas tut. Ein Element, das wie ein Knopf
+            aussieht und nichts kann, ist schlimmer als eine Beschriftung —
+            und ein Bildschirmleser liest sonst zwanzig Mal „Schaltfläche".
+          -->
+          <component
+            :is="open ? 'button' : 'span'"
+            :type="open ? 'button' : undefined"
+            class="block w-full min-w-0 truncate text-left text-fid-sm text-fid-text"
+            :class="open ? 'fid-action underline-offset-4 hover:underline' : ''"
+            :aria-label="open ? h.stock.show(facet.name, facet.n) : undefined"
+            @click="open?.(facet)"
+            >{{ facet.name }}</component
+          >
           <span
             class="mt-1 block h-1.5 rounded-full"
             :style="{

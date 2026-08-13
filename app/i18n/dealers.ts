@@ -75,6 +75,24 @@ const en = {
   noLabels: 'No label information in the stock.',
   decades: 'Decades',
   noYears: 'No years recorded in the stock.',
+  stock: {
+    /*
+     * Der Balken sagt „13", der Knopf muss sagen, was ein Klick tut — sonst
+     * liest ein Bildschirmleser zwanzig Mal „Schaltfläche, Kompakt".
+     */
+    show: (name: string, n: number) => `Show the ${n} records on ${name}`,
+    close: 'Close',
+    counted: (shown: string, total: string) => `${shown} of ${total}`,
+    more: (n: string) => `Show ${n} more`,
+    loading: 'Fetching …',
+    /*
+     * Der Unterschied zwischen „hat er nicht" und „wissen wir gerade nicht".
+     * Marktplatzdaten leben sechs Stunden; danach sind diese Zeilen gelöscht,
+     * nicht veraltet — und eine leere Liste wäre eine Falschaussage.
+     */
+    needsDig:
+      'The stock list is marketplace data and only lives for six hours. Scan this shop again to see what is on the shelves.',
+  },
   nothingYet: 'Nothing here yet.',
 }
 
@@ -132,6 +150,15 @@ const de: typeof en = {
   noLabels: 'Keine Labelangaben im Sortiment.',
   decades: 'Dekaden',
   noYears: 'Keine Jahresangaben im Sortiment.',
+  stock: {
+    show: (name: string, n: number) => `Die ${n} Platten auf ${name} zeigen`,
+    close: 'Schließen',
+    counted: (shown: string, total: string) => `${shown} von ${total}`,
+    more: (n: string) => `${n} weitere zeigen`,
+    loading: 'Wird geholt …',
+    needsDig:
+      'Das Sortiment ist ein Marktplatzdatum und lebt nur sechs Stunden. Scanne den Laden neu, um zu sehen, was im Regal steht.',
+  },
   nothingYet: 'Noch nichts da.',
 }
 

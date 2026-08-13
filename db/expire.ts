@@ -43,7 +43,7 @@ export async function expireDigs(
   for (const dig of await database.getAll('digs')) {
     if (dig.status === 'expired' || dig.expiresAt > now) continue
 
-    const tx = database.transaction(['digs', 'matches'], 'readwrite')
+    const tx = database.transaction(['digs', 'matches', 'stock'], 'readwrite')
     const matches = tx.objectStore('matches')
 
     for (const match of await matches.index('by-dig-score').getAll(digRange(dig.id))) {
@@ -51,6 +51,17 @@ export async function expireDigs(
       await matches.put(stripMarketplaceData(match))
       expiredMatches += 1
     }
+
+    /*
+     * Das Sortiment wird gelöscht, nicht ausgedünnt.
+     *
+     * Bei einem Treffer überleben Score und Signale den Ablauf — das ist eine
+     * Auswertung und gehört uns. An einer Sortimentszeile ist **jedes** Feld
+     * Marktplatzdatum; nach sechs Stunden bliebe eine leere Hülle übrig, die
+     * nichts mehr sagen darf (Regel 4). Also weg damit.
+     */
+    const stock = tx.objectStore('stock')
+    for (const key of await stock.getAllKeys(digRange(dig.id))) await stock.delete(key)
 
     await tx.objectStore('digs').put({ ...dig, status: 'expired' })
     await tx.done
@@ -76,12 +87,16 @@ export async function pruneDigs(
     .slice(keep)
     .map((dig) => dig.id)
 
-  const tx = database.transaction(['digs', 'matches'], 'readwrite')
+  const tx = database.transaction(['digs', 'matches', 'stock'], 'readwrite')
   const matches = tx.objectStore('matches')
+  const stock = tx.objectStore('stock')
   for (const id of doomed) {
     for (const key of await matches.index('by-dig-score').getAllKeys(digRange(id))) {
       await matches.delete(key)
     }
+    // Ein weggeworfener Dig nimmt sein Sortiment mit. Bleibt es liegen, wächst
+    // der Speicher mit jedem Scan um ein paar Megabyte, die niemand je sieht.
+    for (const key of await stock.getAllKeys(digRange(id))) await stock.delete(key)
     await tx.objectStore('digs').delete(id)
   }
   await tx.done

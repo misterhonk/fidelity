@@ -89,6 +89,24 @@ function facets(dist: Record<string, number>, limit: number): TasteFacet[] {
   )
 }
 
+/**
+ * Welcher Balken gerade aufgeklappt ist.
+ *
+ * Ein einziger, nicht mehrere: zwei offene Listen nebeneinander sind zwei
+ * Fragen gleichzeitig, und die zweite verdrängt die erste ohnehin auf dem
+ * Bildschirm.
+ */
+const browsing = ref<{ title: string; label?: string; decade?: number } | null>(null)
+
+/**
+ * `"1990er"` zurück in `1990`.
+ *
+ * Der Fingerabdruck schreibt das Jahrzehnt als Wort, weil es dort auf einem
+ * Balken steht; gespeichert ist es als Zahl, weil danach gesucht wird. Die
+ * Umkehrung gehört hierhin und nicht in beide.
+ */
+const decadeOf = (name: string) => Number.parseInt(name, 10)
+
 const labels = computed(() => facets(profile.value?.dealer.fingerprint?.labelDist ?? {}, 12))
 const decades = computed(() =>
   facets(profile.value?.dealer.fingerprint?.decadeDist ?? {}, 8).sort((a, b) =>
@@ -318,9 +336,32 @@ const scanned = computed(() => {
             signal="label"
             :facets="labels"
             :empty="h.noLabels"
+            :open="(facet) => (browsing = { title: facet.name, label: facet.name })"
           />
-          <FacetBars :title="h.decades" signal="gap" :facets="decades" :empty="h.noYears" />
+          <FacetBars
+            :title="h.decades"
+            signal="gap"
+            :facets="decades"
+            :empty="h.noYears"
+            :open="(facet) => (browsing = { title: facet.name, decade: decadeOf(facet.name) })"
+          />
         </div>
+
+        <!--
+          Was hinter einem Balken steckt, unter den Balken.
+          Kein eigener Bildschirm und kein Dialog: die Zahl darüber ist der
+          Zusammenhang, und wer eine Reihe von Labels durchsieht, will nicht
+          nach jedem einmal zurücknavigieren.
+        -->
+        <DealerStock
+          v-if="browsing"
+          :key="browsing.title"
+          :dealer="profile.dealer.username"
+          :title="browsing.title"
+          :label="browsing.label ?? null"
+          :decade="browsing.decade ?? null"
+          @close="browsing = null"
+        />
 
         <p v-if="profile.dealer.shippingNote" class="text-fid-sm text-fid-text-muted">
           {{ profile.dealer.shippingNote }}

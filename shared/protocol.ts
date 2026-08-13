@@ -45,6 +45,7 @@ import type {
   SortDirection,
   ShelfView,
   ShippingTier,
+  StockRow,
   Signal,
   TasteProfile,
   VaultStatus,
@@ -510,6 +511,25 @@ export interface WorkerContract {
     result: DealerProfile | null
   }
   /** Every shop you have scanned, best first. */
+  /**
+   * Das Sortiment eines Ladens, nach Label oder Jahrzehnt.
+   *
+   * Blättert von Haus aus: ein großer Laden hat zwanzigtausend Zeilen, und
+   * davon will ein Bildschirm fünfzig. Der Rest bleibt liegen, bis jemand
+   * danach fragt.
+   */
+  'dealer.stock': {
+    params: {
+      dealer: string
+      label?: string | null
+      decade?: number | null
+      offset?: number
+      limit?: number
+    }
+    progress: never
+    result: { rows: StockRow[]; total: number; scannedAt: number | null }
+  }
+
   'dealer.list': { params: undefined; progress: never; result: Dealer[] }
 
   /**

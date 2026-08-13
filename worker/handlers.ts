@@ -432,6 +432,11 @@ export const handlers: HandlerMap = {
     return checkWatched({ client: discogs(), force, signal })
   },
 
+  'dealer.stock': async (params) => {
+    const { dealerStock } = await import('./dealers/stock')
+    return dealerStock(params)
+  },
+
   'dealer.list': async () => {
     const db = await openFidelityDb()
     const dealers = await db.getAll('dealers')

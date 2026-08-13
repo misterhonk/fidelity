@@ -140,6 +140,29 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
         db.createObjectStore('releaseDetail', { keyPath: 'releaseId' })
       }
 
+      /*
+       * v8 hält fest, was ein Dig sonst wegwirft.
+       *
+       * Ein Scan sieht jede Zeile des Sortiments und behielt bisher nur die
+       * Treffer. Damit war „was hat dieser Laden auf Warp?" nicht zu
+       * beantworten — und zwar genau dann nicht, wenn die Frage interessant
+       * ist: bei einem Label ohne eigene Platten gibt es keinen Treffer.
+       *
+       * Rein additiv, wie v7: nichts wird verworfen, nichts muss neu geholt
+       * werden. Der Store bleibt leer, bis der nächste Dig läuft, und leert
+       * sich mit jedem abgelaufenen wieder (db/expire.ts).
+       *
+       * Auch hier kein `oldVersion > 0`: eine frische Datenbank braucht den
+       * Store genauso, sonst erwartet der Code etwas, das es nicht gibt.
+       */
+      if (oldVersion < 8) {
+        const stock = db.createObjectStore('stock', {
+          keyPath: ['digId', 'listingId'],
+        })
+        stock.createIndex('by-dig-label', ['digId', 'label'])
+        stock.createIndex('by-dig-decade', ['digId', 'decade'])
+      }
+
       // Future versions go here. The rule: never migrate destructively unless
       // the state can be rebuilt from the API — which, so far, all of it can.
     },
