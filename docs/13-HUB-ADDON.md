@@ -308,7 +308,17 @@ Das Skript senkt die **Erinnerung** des Wächters ab, nicht die Wirklichkeit: di
 Discogs-Antwort ist echt, die Rechnung ist echt, die Benachrichtigung ist echt, und der
 Durchgang schreibt die wahre Zahl danach selbst zurück. Ohne Empfänger oder ohne
 beobachteten Laden bricht es ab, statt Erfolg zu melden — ein Klingeln ohne Ohr wäre kein
-Beweis. Über `gh workflow run Hub -f dry_run=false -f ring_once=true` auch aus der Ferne.
+Beweis. Aus der Ferne über den Ablauf, der vier Stellungen kennt — `nachsehen`,
+`ausliefern`, `klingeln`, `ausliefern-und-klingeln`:
+
+```
+gh workflow run Hub -f was=klingeln
+```
+
+`klingeln` rührt den Dienst nicht an. Vorher hing die Suche nach Node an „nicht
+Trockenlauf", also lief vor jedem Klingeln die ganze Auslieferung samt
+Neustart — vier Mal an einem Nachmittag, nur um eine Benachrichtigung zu
+prüfen.
 
 ---
 

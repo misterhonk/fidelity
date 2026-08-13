@@ -45,19 +45,29 @@ name: Hub
 # das Consumer-Secret als HUB_SECRET einträgt, tippt es anschließend auf jedem
 # Telefon in ein Klartextfeld.
 
+# Ein Knopf mit vier Stellungen statt zweier Haken.
+#
+# Vorher gab es `dry_run` und `ring_once`, und daraus ließ sich "nur klingeln"
+# nicht bauen: die Suche nach Node hing an `!dry_run`, also lief vor jedem
+# Klingeln die ganze Auslieferung — rsync, `npm ci`, Dienst-Neustart. Am
+# 2026-08-13 vier Mal hintereinander, nur um eine Benachrichtigung zu prüfen,
+# und jedes Mal war der Hub für ein paar Sekunden weg.
+#
+# Und die Benennung war falsch: ein Trockenlauf, der klingelt, verändert die
+# Welt — er schickt jemandem eine Nachricht aufs Telefon.
 on:
   workflow_dispatch:
     inputs:
-      dry_run:
-        description: 'Nur nachsehen, nichts verändern'
-        required: false
-        type: boolean
-        default: true
-      ring_once:
-        description: 'Danach einmal klingeln lassen (prüft Push von Ende zu Ende)'
-        required: false
-        type: boolean
-        default: false
+      was:
+        description: 'Was soll passieren?'
+        required: true
+        type: choice
+        default: nachsehen
+        options:
+          - nachsehen
+          - ausliefern
+          - klingeln
+          - ausliefern-und-klingeln
 
 permissions:
   contents: read
@@ -87,6 +97,10 @@ jobs:
       # gekostet hat. Also hier ein Ja/Nein daraus machen, das ein `if:` lesen
       # kann, ohne das Geheimnis selbst anzufassen.
       HAS_HUB_SECRET: ${{ secrets.HUB_SECRET != '' }}
+
+      # Aus der einen Stellung die zwei Fragen, die die Schritte stellen.
+      DEPLOY: ${{ inputs.was == 'ausliefern' || inputs.was == 'ausliefern-und-klingeln' }}
+      RING: ${{ inputs.was == 'klingeln' || inputs.was == 'ausliefern-und-klingeln' }}
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
@@ -124,7 +138,7 @@ jobs:
       # Die wichtigste ist die Node-Fassung: der Hub wird als TypeScript
       # gestartet (`node src/server.ts`). Ab 22.18 macht Node das von selbst,
       # ab 22.6 nur mit --experimental-strip-types, davor gar nicht.
-      - if: steps.check.outputs.ready == 'true' && inputs.dry_run
+      - if: steps.check.outputs.ready == 'true' && inputs.was == 'nachsehen'
         name: Trockenlauf — was steht dort bereit?
         env:
           HOST: ${{ secrets.DEPLOY_HOST }}
@@ -182,7 +196,7 @@ jobs:
           echo
           echo "Nichts geschrieben, nichts gestartet."
 
-      - if: steps.check.outputs.ready == 'true' && !inputs.dry_run && env.HAS_HUB_SECRET != 'true'
+      - if: steps.check.outputs.ready == 'true' && env.DEPLOY == 'true' && env.HAS_HUB_SECRET != 'true'
         name: Ohne Geheimnis nicht ins offene Netz
         run: |
           echo "::error::HUB_SECRET ist leer."
@@ -201,7 +215,9 @@ jobs:
       #
       # supervisord startet keine Login-Shell, also hilft ein `node` im PATH des
       # Benutzers nichts — der Pfad muss ausgeschrieben in der Datei stehen.
-      - if: steps.check.outputs.ready == 'true' && !inputs.dry_run
+      # Beide brauchen sie: die Auslieferung schreibt den Pfad in die Einheit,
+      # das Klingeln ruft das Skript damit auf.
+      - if: steps.check.outputs.ready == 'true' && (env.DEPLOY == 'true' || env.RING == 'true')
         name: Wo liegt Node?
         id: node
         env:
@@ -254,7 +270,7 @@ jobs:
 
           echo "path=$path" >> "$GITHUB_OUTPUT"
 
-      - if: steps.check.outputs.ready == 'true' && !inputs.dry_run
+      - if: steps.check.outputs.ready == 'true' && env.DEPLOY == 'true'
         name: Hochladen, einrichten, starten
         env:
           HOST: ${{ secrets.DEPLOY_HOST }}
@@ -312,7 +328,7 @@ jobs:
       # Den Pfad nur setzen, wenn er noch nicht dorthin zeigt: `web backend set`
       # ist idempotent, startet aber den Webserver neu — und das bei jedem Lauf
       # ohne Not zu tun ist unhöflich gegenüber allem anderen auf der Maschine.
-      - if: steps.check.outputs.ready == 'true' && !inputs.dry_run
+      - if: steps.check.outputs.ready == 'true' && env.DEPLOY == 'true'
         name: Den Pfad auf den Hub leiten
         env:
           HOST: ${{ secrets.DEPLOY_HOST }}
@@ -333,7 +349,7 @@ jobs:
       # der ganze Weg, einschließlich des Pfads und des abgeschnittenen
       # Präfixes. /v1/health ist bewusst ohne Geheimnis erreichbar (docs/13) —
       # eine Gesundheitsprüfung, die ein Geheimnis braucht, richtet niemand ein.
-      - if: steps.check.outputs.ready == 'true' && !inputs.dry_run && env.SITE_URL != ''
+      - if: steps.check.outputs.ready == 'true' && env.DEPLOY == 'true' && env.SITE_URL != ''
         name: Antwortet er?
         run: |
           set -eu
@@ -373,7 +389,7 @@ jobs:
       #
       # Kein Geheimnis auf der Kommandozeile: das Skript geht an der HTTP-Seite
       # vorbei direkt an die Datenbank und braucht HUB_SECRET deshalb nicht.
-      - if: steps.check.outputs.ready == 'true' && !inputs.dry_run && inputs.ring_once
+      - if: steps.check.outputs.ready == 'true' && env.RING == 'true'
         name: Einmal klingeln
         env:
           HOST: ${{ secrets.DEPLOY_HOST }}
