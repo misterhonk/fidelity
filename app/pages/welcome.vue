@@ -51,6 +51,19 @@ type Step = 'start' | 'token' | 'sync' | 'horizont' | 'credits' | 'fertig'
 
 const step = ref<Step>('start')
 const STEPS: Step[] = ['token', 'sync', 'horizont', 'credits', 'fertig']
+
+/**
+ * Wohin der letzte Knopf führt.
+ *
+ * `?next=` setzt die Middleware, wenn sie jemanden von einem anderen
+ * Bildschirm hierher geschickt hat. Nur relative Pfade werden übernommen: ein
+ * `next=https://…` in einem geteilten Link wäre eine offene Weiterleitung, und
+ * die kostet nichts zu verhindern.
+ */
+const backTo = computed(() => {
+  const next = useRoute().query.next
+  return typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') ? next : '/'
+})
 const stepIndex = computed(() => STEPS.indexOf(step.value))
 
 /**
@@ -349,8 +362,16 @@ const CAN_DO = computed(
             </li>
           </ul>
 
+          <!--
+            Zurück, wo man hinwollte.
+
+            Die Middleware hängt `?next=` an, wenn sie jemanden von einem
+            anderen Bildschirm abgefangen hat. Wer eigentlich seinen Korb sehen
+            wollte, soll nicht auf der Startseite landen und ihn von Hand
+            wiederfinden — die Einrichtung war der Umweg, nicht das Ziel.
+          -->
           <NuxtLink
-            to="/"
+            :to="backTo"
             class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
           >
             {{ w.done.toStart }}

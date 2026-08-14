@@ -29,14 +29,13 @@ onMounted(async () => {
   await load()
 
   /*
-   * Nobody signed in lands here. The setup is three steps — token, collection,
-   * and what to do with it — and a bare token field on a dashboard full of
-   * empty sections was the first of them with the other two left implied.
+   * Wer hier ankommt, ist eingerichtet.
+   *
+   * Das Umleiten stand bis zum 2026-08-14 hier und nur hier — und galt damit
+   * für genau einen von zwölf Bildschirmen. Es liegt jetzt in
+   * `app/middleware/setup.global.ts`, wo es für alle gilt; dieser Zweig wäre
+   * ab da toter Code, der so aussieht, als täte er noch etwas.
    */
-  if (!identity.value) {
-    await navigateTo('/welcome')
-    return
-  }
 
   // Neither of these is awaited: a shop that is slow to answer and a vault
   // that is unreachable must not hold up the screen. Both report where
