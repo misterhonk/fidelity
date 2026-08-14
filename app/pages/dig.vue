@@ -308,6 +308,39 @@ const expired = computed(() => {
 
 /** What this dig is entitled to say — see `digKind`. */
 const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
+
+/*
+ * Ob die Engine überhaupt etwas zu urteilen hatte.
+ *
+ * „Nothing here for you at this dealer. That is a result, not a fault." ist ein
+ * Freispruch, und ohne Horizont ist er unhaltbar: die Engine kennt dann nur die
+ * exakten Release-IDs der eigenen Platten — kein anderes Pressing, kein selber
+ * Künstler, kein selbes Label. Am 2026-08-13 hat genau dieser Satz nach 2.863
+ * durchgesehenen Platten dagestanden, während der Horizont aus einem einzigen
+ * Eintrag bestand, und uns Stunden in die falsche Richtung geschickt.
+ *
+ * Gefragt wird nur, wenn die Frage ansteht: ein voller Dig ohne einen einzigen
+ * Treffer. Nach einem Dig mit Treffern interessiert es niemanden, und die
+ * Abfrage geht über die ganze Sammlung.
+ */
+const horizon = ref<Awaited<ReturnType<typeof call<'horizon.status'>>> | null>(null)
+
+watchEffect(async () => {
+  if (!result.value || result.value.matches.length > 0 || kind.value !== 'full') return
+  if (horizon.value) return
+  horizon.value = await call('horizon.status', undefined)
+})
+
+/**
+ * Nichts ausgebaut, obwohl es etwas auszubauen gäbe.
+ *
+ * Nicht `builtAt === null`: ein Horizont, dessen Blöcke abgelaufen sind, ist
+ * genauso wenig eine Grundlage — und sähe mit einem Datum von damals aus wie
+ * eine.
+ */
+const noHorizon = computed(
+  () => horizon.value !== null && horizon.value.entities > 0 && horizon.value.expanded === 0,
+)
 </script>
 
 <template>
@@ -690,8 +723,24 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
         >.
       </p>
 
+      <!--
+        Kein Freispruch ohne Grundlage.
+        Ohne Horizont ist „hier ist nichts für dich" keine Auskunft über den
+        Laden, sondern eine über uns — und die gehört so gesagt, samt dem Weg
+        dorthin, wo es sich beheben lässt.
+      -->
+      <p v-if="result.matches.length === 0 && noHorizon" class="text-fid-base text-fid-sig-gap">
+        {{ d.empty.noHorizon }}
+        <NuxtLink
+          to="/settings/collection"
+          class="text-fid-accent underline underline-offset-4"
+        >
+          {{ d.empty.buildIt }}
+        </NuxtLink>
+      </p>
+
       <!-- Three different sentences, and why, in `app/i18n/dig.ts`. -->
-      <p v-if="result.matches.length === 0" class="text-fid-base text-fid-text-muted">
+      <p v-else-if="result.matches.length === 0" class="text-fid-base text-fid-text-muted">
         {{
           kind === 'incremental-empty'
             ? d.empty['incremental-empty'](result.dig.dealer)

@@ -87,6 +87,18 @@ const en = {
     incremental:
       'There was nothing for you among the new arrivals. What was there before, this dig did not look at again.',
     full: 'Nothing here for you at this dealer. That is a result, not a fault.',
+    /*
+     * Der Satz darüber ist ein Freispruch, und ohne Horizont ist er unhaltbar.
+     *
+     * Die Engine kennt dann nur die exakten Release-IDs der eigenen Platten —
+     * kein anderes Pressing, kein selber Künstler, kein selbes Label. Am
+     * 2026-08-13 stand er nach 2.863 durchgesehenen Platten da, während der
+     * Horizont aus einem einzigen Eintrag bestand, und schickte die Suche
+     * stundenlang in die falsche Richtung.
+     */
+    noHorizon:
+      'Every listing here was checked and none matched — but the horizon has not been built yet, so there was almost nothing to match against. Until it exists, Fidelity only recognises the exact pressings you already own: no other pressing, no same artist, no same label.',
+    buildIt: 'Build it now',
   },
 
   topFive: 'Top Five',
@@ -275,6 +287,9 @@ const de: typeof en = {
     incremental:
       'Unter dem Neuen war nichts für dich. Was vorher da war, hat dieser Dig nicht noch einmal angesehen.',
     full: 'Bei diesem Händler nichts für dich. Das ist ein Ergebnis, kein Fehler.',
+    noHorizon:
+      'Jede Platte hier wurde geprüft und keine passte — aber der Horizont ist noch nicht gebaut, es gab also fast nichts, wogegen zu prüfen war. Solange er fehlt, erkennt Fidelity nur die Pressungen, die du schon hast: kein anderes Pressing, kein selber Künstler, kein selbes Label.',
+    buildIt: 'Jetzt bauen',
   },
 
   topFive: 'Top Five',
