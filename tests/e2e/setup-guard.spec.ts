@@ -1,6 +1,6 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
-import { DB_VERSION } from '~~/db/schema'
+import { signIn } from './seed'
 
 /**
  * Ohne Token führt jeder Weg zur Einrichtung.
@@ -75,45 +75,12 @@ test.describe('without a token', () => {
  * von ihnen angemeldet war.
  */
 test.describe('with a token', () => {
-  async function signedIn(page: Page) {
-    await page.goto('/')
-    // Abgemeldet räumt die App die Datenbank auf dem Weg zur Einrichtung.
-    // Vorher zu säen heißt, in etwas zu säen, das gleich weggeworfen wird.
-    await page.waitForURL(/\/welcome/, { timeout: 20_000 })
-
-    await page.waitForFunction(
-      async (wanted: number) => {
-        const known = await indexedDB.databases()
-        return known.some(
-          (entry) => entry.name === 'fidelity' && (entry.version ?? 0) >= wanted,
-        )
-      },
-      DB_VERSION,
-      { timeout: 20_000 },
-    )
-
-    await page.evaluate(async () => {
-      const open = indexedDB.open('fidelity')
-      const db: IDBDatabase = await new Promise((resolve, reject) => {
-        open.onsuccess = () => resolve(open.result)
-        open.onerror = () => reject(open.error)
-      })
-      const meta = db.transaction('meta', 'readwrite').objectStore('meta')
-      // Nichts hiervon erreicht je Discogs — der Guard fragt den Worker nach
-      // der Identität, und die steht hier.
-      meta.put({ key: 'token', value: 'not-a-real-token' })
-      meta.put({
-        key: 'identity',
-        value: { username: 'probe', displayName: 'Probe', userId: 1 },
-      })
-      await new Promise((done) => setTimeout(done, 0))
-    })
-  }
+  test.beforeEach(async ({ page }) => {
+    await signIn(page)
+  })
 
   for (const path of ['/shelf', '/dealers']) {
     test(`${path} stays put`, async ({ page }) => {
-      await signedIn(page)
-
       await page.goto(path)
       await page.waitForTimeout(1500)
 

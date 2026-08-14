@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import { signIn } from './seed'
+
 /**
  * The app on a screen with room.
  *
@@ -111,6 +113,7 @@ test.describe('the shelf grid itself', () => {
   // does not have. What can be checked without one is the rule that decides
   // the column count, which is the part that was silently broken.
   test('the collection tabs lead to all three views', async ({ page }) => {
+    await signIn(page)
     await page.setViewportSize(WIDE)
     await page.goto('/shelf')
 
@@ -121,6 +124,7 @@ test.describe('the shelf grid itself', () => {
   })
 
   test('a wide grid really is wider', async ({ page }) => {
+    await signIn(page)
     await page.setViewportSize(WIDE)
     await page.goto('/shelf')
     await expect(page.locator('main')).toBeVisible()

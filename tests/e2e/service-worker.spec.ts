@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 
+import { signIn } from './seed'
 import { underServiceWorker } from './support/service-worker'
 
 /**
@@ -32,6 +33,18 @@ test.describe('the service worker', () => {
     ({ browserName }) => browserName !== 'chromium',
     'Playwright can neither navigate offline nor intercept worker requests in WebKit',
   )
+
+  /*
+   * Eingerichtet, bevor die Leitung wegfällt.
+   *
+   * Ohne Token führt der Guard vom 2026-08-14 jede geschützte Adresse zur
+   * Einrichtung — und die hat auch ein `<main>`. Die Prüfung „öffnet sich
+   * trotzdem" war damit erfüllt, ohne dass der Bildschirm dahinter je geladen
+   * wurde. Angemeldet prüft sie wieder, was sie verspricht.
+   */
+  test.beforeEach(async ({ page }) => {
+    await signIn(page)
+  })
 
   /**
    * An address that was never prerendered still opens offline.

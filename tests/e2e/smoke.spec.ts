@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 
+import { signIn } from './seed'
+
 /**
  * The smoke test: a fresh clone builds to static files, those files boot in a
  * browser, the worker comes up, and what the user sees is accessible.
@@ -123,6 +125,10 @@ test.describe('smoke', () => {
   })
 
   test('the map says what to do instead of showing empty bars', async ({ page }) => {
+    // Eingerichtet, aber leer — genau die Kombination, um die es hier geht.
+    // Ohne Token führt die Adresse seit dem Guard zur Einrichtung, und dann
+    // prüfte dieser Test die Einrichtung statt die Landkarte.
+    await signIn(page)
     await page.goto('/map')
 
     await expect(page.getByRole('heading', { level: 1, name: 'Collection' })).toBeVisible()
@@ -135,6 +141,7 @@ test.describe('smoke', () => {
   })
 
   test('the dig screen asks for a dealer and stays accessible', async ({ page }) => {
+    await signIn(page)
     await page.goto('/dig')
 
     await expect(page.getByRole('heading', { level: 1, name: 'Dig' })).toBeVisible()

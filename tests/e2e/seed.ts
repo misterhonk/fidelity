@@ -345,6 +345,66 @@ async function waitForStores(page: Page): Promise<void> {
   )
 }
 
+/**
+ * Ein eingerichtetes Gerät, und sonst nichts drin.
+ *
+ * Seit dem 2026-08-14 führt `app/middleware/setup.global.ts` jede geschützte
+ * Adresse ohne Token zur Einrichtung. Das ist richtig so — und es hat zwölf
+ * Browser-Tests umgeworfen, die einen leeren Bildschirm prüften und dafür
+ * annahmen, man käme auch abgemeldet dorthin. Diese Annahme stand nirgends
+ * geschrieben; sie war einfach lange wahr.
+ *
+ * Der Unterschied zu `seed()` ist der Zweck: `seed()` füllt ein Gerät mit
+ * Sammlung, Fundliste und Korb, weil die vollen Bildschirme geprüft werden
+ * sollen. Hier geht es um die leeren. „Die Landkarte sagt, was zu tun ist,
+ * statt leere Balken zu zeigen" braucht ein Gerät **mit** Token und **ohne**
+ * Sammlung — genau die Kombination, die vorher niemand herstellen musste.
+ *
+ * Nichts davon erreicht je Discogs. Der Guard fragt den Worker nach der
+ * Identität, und die steht hier.
+ */
+export async function signIn(page: Page): Promise<void> {
+  await page.goto('/')
+  // Dieselbe Wartestelle wie in `seed()`, aus demselben Grund: die Datenbank
+  // legt die App an, nicht dieser Helfer. Die lange Begründung steht dort.
+  await waitForStores(page)
+
+  await page.evaluate(
+    async (rows) => {
+      const open = indexedDB.open(rows.name)
+      const db = await new Promise<IDBDatabase>((resolve, reject) => {
+        open.onsuccess = () => resolve(open.result)
+        open.onerror = () => reject(open.error)
+      })
+
+      const tx = db.transaction('meta', 'readwrite')
+      tx.objectStore('meta').put({ key: 'identity', value: rows.identity })
+      tx.objectStore('meta').put({ key: 'token', value: 'test-token-not-a-real-one' })
+
+      await new Promise<void>((resolve, reject) => {
+        tx.oncomplete = () => resolve()
+        tx.onerror = () => reject(tx.error)
+      })
+      db.close()
+    },
+    { name: DB_NAME, identity: seedIdentity },
+  )
+
+  /*
+   * Neu laden und die Umleitung abwarten, die schon unterwegs ist.
+   *
+   * `page.goto('/')` oben landet abgemeldet beim Guard, und der schickt zur
+   * Einrichtung. Diese Navigation läuft noch, während hier bereits geschrieben
+   * wird — und unterbricht dann das `goto` des Aufrufers: „Navigation to /dig
+   * is interrupted by another navigation to /welcome". In WebKit reproduzierbar,
+   * in Chromium nicht, weil dort das Rennen anders ausgeht.
+   *
+   * Dieselbe Stelle, aus demselben Grund, steht am Ende von `seed()`.
+   */
+  await page.reload()
+  await page.waitForLoadState('networkidle')
+}
+
 export type SeedLanguage = 'en' | 'de'
 
 /**

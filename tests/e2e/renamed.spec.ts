@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { signIn } from './seed'
+
 /**
  * The addresses this app used to have.
  *
@@ -36,6 +38,23 @@ const MOVED = [
 ] as const
 
 test.describe('an address from before the rename', () => {
+  /*
+   * Eingerichtet, und zwar für jeden Fall hier.
+   *
+   * Der Setup-Guard vom 2026-08-14 führt jede geschützte Adresse ohne Token
+   * zur Einrichtung — und diese Datei prüft Adressen mit `toHaveURL(/…$/)`.
+   * `/welcome?next=/dig` endet auf `/dig`, also **blieben die meisten Tests
+   * hier grün, obwohl sie den Umweg maßen statt die Umbenennung.** Nur der
+   * eine Fall mit Query fiel auf, weil dort mehr hinter der Adresse steht.
+   *
+   * Ein Test, der aus dem falschen Grund grün ist, ist schlimmer als einer,
+   * der rot ist: er sagt zu, was er nicht mehr prüft. Angemeldet gibt es
+   * keinen Umweg, und `$` bedeutet wieder, was es soll.
+   */
+  test.beforeEach(async ({ page }) => {
+    await signIn(page)
+  })
+
   for (const [old, moved] of MOVED) {
     test(`${old} still arrives at ${moved}`, async ({ page }) => {
       await page.goto(old)

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 
-import { DB_VERSION } from '~~/db/schema'
+import { signIn } from './seed'
 
 /**
  * Lange Listen: der Weg nach oben, und nicht alles auf einmal.
@@ -15,18 +15,10 @@ import { DB_VERSION } from '~~/db/schema'
 const VIELE = 200
 
 async function withWantlist(page: Page) {
-  await page.goto('/')
-  // Abgemeldet räumt die App die Datenbank auf dem Weg zur Einrichtung.
-  await page.waitForURL(/\/welcome/, { timeout: 20_000 })
-
-  await page.waitForFunction(
-    async (wanted: number) => {
-      const known = await indexedDB.databases()
-      return known.some((entry) => entry.name === 'fidelity' && (entry.version ?? 0) >= wanted)
-    },
-    DB_VERSION,
-    { timeout: 20_000 },
-  )
+  // Der Token gehört dazu: ohne ihn führt der Setup-Guard `/wantlist` zur
+  // Einrichtung, und dort gibt es keine Zeilen zu zählen. `signIn` wartet
+  // dabei auch auf die Stores — die lange Begründung steht in `seed.ts`.
+  await signIn(page)
 
   await page.evaluate(async (howMany: number) => {
     const open = indexedDB.open('fidelity')
@@ -34,10 +26,6 @@ async function withWantlist(page: Page) {
       open.onsuccess = () => resolve(open.result)
       open.onerror = () => reject(open.error)
     })
-
-    const meta = db.transaction('meta', 'readwrite').objectStore('meta')
-    meta.put({ key: 'token', value: 'not-a-real-token' })
-    meta.put({ key: 'identity', value: { username: 'probe', displayName: 'Probe', userId: 1 } })
 
     const tx = db.transaction('wantlist', 'readwrite')
     for (let i = 0; i < howMany; i += 1) {
