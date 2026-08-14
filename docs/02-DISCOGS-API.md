@@ -146,6 +146,24 @@ X-Discogs-Ratelimit-Remaining:  57
   (~30–40/min). 429er bei Bildern, obwohl das API-Budget noch bei 50 steht, sind normal.
   → Bilder ausschließlich clientseitig laden
 
+- ⚠️ **600 auf der langen Kante ist die Decke — und oft ist es weniger.**
+  Am 2026-08-14 gemessen: `images[0]` aus `/releases/{id}` ist dieselbe Fassung
+  wie `cover_image` aus `basic_information`. Ein größeres Bild gibt es über die
+  dokumentierte API nicht.
+
+  **600 × 600 ist dabei der Bestfall, nicht die Regel.** Der CDN passt in ein
+  600er Quadrat ein, ohne aufzublasen: Release 512 kommt als **313 × 238**
+  heraus, weil die Vorlage nicht größer ist. Wer im `srcset` pauschal `600w`
+  schreibt, gibt eine Zusage über die tatsächliche Breite, die das Bild nicht
+  einlöst — die Auswahlrechnung des Browsers rechnet dann mit einer Zahl, die
+  es nicht gibt.
+
+  Die Adresse trägt die Maße im Pfad
+  (`…/rs:fit/g:sm/q:90/h:600/w:600/…`) und **sieht** umschreibbar aus. Ist sie
+  nicht: auf `h:1200/w:1200` geändert antwortet der CDN mit **403** — der Pfad
+  ist signiert. Wer „schärfere Cover" plant, plant etwas, das es nicht gibt;
+  wer sie größer zeigt, rechnet hoch.
+
 **Praxiswert:** 1 Request pro **1,1–1,2 s**, single-threaded. Nebenläufigkeit > 1 ist
 kontraproduktiv.
 

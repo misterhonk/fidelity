@@ -192,20 +192,20 @@ function onKeydown(event: KeyboardEvent) {
             has always been null here (worker/covers.ts). At 96 px on a retina
             screen the 150er is already soft, and this is the one screen
             somebody opens *because* they want a closer look.
+
+            Kein `srcset` — die Begründung steht in `ShelfSheet.vue`: der
+            600w-Kandidat hielt seine Zusage nicht, und der 150er wurde nie
+            gezogen.
           -->
           <img
             v-if="cover"
             :src="cover.coverUrl || cover.thumbUrl"
-            :srcset="
-              cover.coverUrl ? `${cover.thumbUrl} 150w, ${cover.coverUrl} 600w` : undefined
-            "
-            sizes="(min-width: 64rem) 224px, (min-width: 40rem) 176px, 100vw"
             alt=""
             loading="lazy"
             decoding="async"
             width="600"
             height="600"
-            class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-44 sm:w-44 lg:size-56 lg:w-56"
+            class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80"
           />
           <div class="flex min-w-0 grow items-start gap-4 sm:basis-52">
             <div class="flex min-w-0 grow flex-col gap-1">

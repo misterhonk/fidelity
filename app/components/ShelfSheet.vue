@@ -350,21 +350,37 @@ function onKeydown(event: KeyboardEvent) {
           Cover, sobald es nebeneinander nicht mehr lesbar wäre.
         -->
         <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
+          <!--
+              Größer, und der Preis dafür steht hier.
+
+              Discogs gibt die lange Kante mit höchstens 600 heraus und oft mit
+              weniger: `images[0]` aus `/releases/{id}` ist dieselbe Fassung wie
+              `cover_image`, und der CDN-Pfad ist signiert — auf `h:1200/w:1200`
+              umgeschrieben antwortet er mit 403 (2026-08-14 gemessen). Bei
+              384 px auf einem 2×-Schirm sind das 768 Bildpunkte gegen
+              höchstens 600 vorhandene, also mindestens 30 % hochgerechnet.
+              Bewusst gewählt: eine Plattenhülle ist das, wofür jemand dieses
+              Fenster öffnet, und ein bisschen weicher ist besser als ein
+              bisschen zu klein.
+
+              Kein `srcset`. Es stand hier als `thumbUrl 150w, coverUrl 600w`,
+              und beide Hälften waren falsch: die 600 sind eine Zusage über die
+              tatsächliche Breite, die niemand einlöst — Release 512 liefert
+              313 × 238 —, und der 150er-Kandidat wurde nie gezogen. Bei 320 px
+              Fensterbreite und 2× braucht der schmalste Fall dieses Bildschirms
+              640 Bildpunkte; gemessen wählt der Browser auch dort das Cover.
+              Zwei Kandidaten, von denen einer nie gewinnt, sind eine Zeile
+              Auswahl ohne Auswahl.
+            -->
           <img
             v-if="record.coverUrl || record.thumbUrl"
             :src="record.coverUrl || record.thumbUrl"
-            :srcset="
-              record.coverUrl && record.thumbUrl
-                ? `${record.thumbUrl} 150w, ${record.coverUrl} 600w`
-                : undefined
-            "
-            sizes="(min-width: 64rem) 320px, (min-width: 40rem) 224px, 100vw"
             alt=""
             loading="lazy"
             decoding="async"
             width="600"
             height="600"
-            class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-80 lg:w-80"
+            class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-80 lg:w-80 xl:size-96 xl:w-96"
           />
           <dl
             class="grid min-w-0 grow grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-fid-sm sm:basis-52"
