@@ -32,6 +32,7 @@ const de: Messages = {
     signIn: { lead: 'Erst anmelden –', link: 'zur Startseite' },
     atDiscogs: (title) => `${title}, bei Discogs ansehen`,
     openRecord: (title) => `${title} öffnen`,
+    toTop: 'Zurück nach oben',
     opensAtDiscogs: '(öffnet bei Discogs)',
     nothingYet: 'Noch nichts geholt',
     off: 'Aus',

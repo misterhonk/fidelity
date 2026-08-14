@@ -61,6 +61,18 @@ async function drop(releaseId: number) {
   overview.value = await call('collection.wantlist', undefined)
 }
 
+/**
+ * Wie viele Zeilen wirklich im Dokument stehen.
+ *
+ * Die Daten kommen in einem Rutsch aus IndexedDB — das ist billig und bleibt
+ * so. Teuer ist das *Zeichnen*: jede Zeile trägt ein Cover, und eine Wantlist
+ * mit fünfhundert Einträgen sind fünfhundert Bilder, die ein Telefon beim
+ * ersten Blick allesamt anlegt. Das Regal macht es seit jeher so; hier fehlte
+ * es.
+ */
+const shown = ref(60)
+const STEP = 120
+
 const records = computed(() => {
   const all = overview.value?.records ?? []
   const needle = query.value.trim().toLowerCase()
@@ -71,6 +83,20 @@ const records = computed(() => {
     const haystack = `${record.artist} ${record.title}`.toLowerCase()
     return words.every((word) => haystack.includes(word))
   })
+})
+
+/**
+ * Und was davon gezeichnet wird.
+ *
+ * Ein neuer Filter fängt oben an — sonst sucht jemand nach „Aphex", bekommt
+ * drei Treffer und einen Knopf „120 weitere zeigen", der nichts weiter zu
+ * zeigen hat.
+ */
+const visible = computed(() => records.value.slice(0, shown.value))
+const rest = computed(() => records.value.length - visible.value.length)
+
+watch(query, () => {
+  shown.value = 60
 })
 
 /**
@@ -148,7 +174,7 @@ function waiting(addedAt: string): string | null {
           looks like it did nothing.
         -->
         <li
-          v-for="record in records"
+          v-for="record in visible"
           :id="`want-${record.releaseId}`"
           :key="record.releaseId"
           class="fid-want flex scroll-mt-24 gap-4 rounded-fid-md border border-fid-border p-3"
@@ -283,6 +309,15 @@ function waiting(addedAt: string): string | null {
           </div>
         </li>
       </ul>
+
+      <button
+        v-if="rest > 0"
+        type="button"
+        class="fid-action self-center text-fid-sm text-fid-accent underline underline-offset-4"
+        @click="shown += STEP"
+      >
+        {{ c.showMore(count(Math.min(rest, STEP))) }}
+      </button>
     </template>
   </main>
 </template>

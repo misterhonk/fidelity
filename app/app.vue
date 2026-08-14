@@ -133,6 +133,14 @@ onBeforeUnmount(() => {
     -->
     <PwaUpdatePrompt />
     <NuxtPage />
+    <!--
+      Im Rumpf, nicht auf jeder Seite.
+
+      Lange Listen gibt es auf mindestens vier Bildschirmen, und die fünfte
+      vergisst es. Er zeigt sich ohnehin nur, wenn wirklich etwas hinter einem
+      liegt — auf einer kurzen Seite existiert er gar nicht erst.
+    -->
+    <ToTop />
     <SiteFooter />
   </div>
   <LazyCommandPalette v-if="paletteOpen" @close="paletteOpen = false" />

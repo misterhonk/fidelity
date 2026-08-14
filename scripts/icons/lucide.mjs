@@ -37,6 +37,7 @@ const NEEDED = {
   settings: 'Navigation: settings',
   map: 'Sammlungsreiter: Landkarte',
   'arrow-left': 'Back, in the settings',
+  'arrow-up': 'Back to the top of a long list',
   search: 'Befehlspalette und Suchfelder',
   download: 'Export',
   'trash-2': 'Delete everything',

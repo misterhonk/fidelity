@@ -74,6 +74,11 @@ const en = {
      */
     openRecord: (title: string) => `Open ${title}`,
     /*
+     * Der Knopf trägt nur einen Pfeil, also muss der Name gesprochen werden.
+     * „Schaltfläche" allein sagt niemandem, wohin sie führt.
+     */
+    toTop: 'Back to the top',
+    /*
      * Spoken, not drawn. The arrow beside an outward link is decoration; this
      * is the same fact for somebody who cannot see it.
      */
