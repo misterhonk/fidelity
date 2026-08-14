@@ -291,7 +291,7 @@ function onKeydown(event: KeyboardEvent) {
       aria-modal="true"
       :aria-label="record ? `${artist} – ${record.title}` : c.shelf.sheet.loading"
       tabindex="-1"
-      class="fid-sheet flex h-full w-full max-w-lg flex-col gap-6 overflow-y-auto border-l border-fid-border bg-fid-surface p-6 outline-none"
+      class="fid-sheet flex h-full w-full max-w-lg flex-col gap-6 overflow-y-auto border-l border-fid-border bg-fid-surface p-6 outline-none lg:max-w-2xl xl:max-w-3xl"
       style="scrollbar-gutter: stable"
       @keydown.esc="emit('close')"
     >
@@ -340,7 +340,16 @@ function onKeydown(event: KeyboardEvent) {
         </p>
 
         <!-- Same shape as the dig sheet: cover on top on a phone, beside from `sm` up. -->
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+        <!--
+          Umbrechen statt zerquetschen.
+
+          Das Cover ist `shrink-0` und nimmt sich seine Breite; was übrig
+          bleibt, bekamen die Fakten — bei einem 512-px-Sheet und 320 px Cover
+          also 128, und daraus wurde „Poker / Flat / Record". Mit einer
+          Mindestbreite und `flex-wrap` rutschen sie stattdessen unter das
+          Cover, sobald es nebeneinander nicht mehr lesbar wäre.
+        -->
+        <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
           <img
             v-if="record.coverUrl || record.thumbUrl"
             :src="record.coverUrl || record.thumbUrl"
@@ -357,7 +366,9 @@ function onKeydown(event: KeyboardEvent) {
             height="600"
             class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-80 lg:w-80"
           />
-          <dl class="grid min-w-0 grow grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-fid-sm">
+          <dl
+            class="grid min-w-0 grow grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-fid-sm sm:basis-52"
+          >
             <!--
               Only when it was actually given, and first, because it is the one
               line that is an opinion rather than a fact. A zero on Discogs
