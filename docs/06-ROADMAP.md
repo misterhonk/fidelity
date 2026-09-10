@@ -23,6 +23,7 @@ Discogs-Community wünscht und in Discogs nicht bekommt.
 | Wo die Platte steht | M12 | entworfen |
 | Die Platte in der Hand erkennen | M13 | entworfen |
 | Gradet dieser Laden ehrlich? | M14 | entworfen, zwei Messungen davor |
+| Der Stapel (Wischen statt Liste) | M15 | entworfen; die Hörprobe braucht eine Entscheidung |
 
 Wächter mit Web Push und das Hub-Dockerfile standen bis zum 2026-09-10 als offen in
 dieser Tabelle und waren beide seit dem 14. August gebaut. Am Code nachgesehen, nicht
@@ -616,6 +617,84 @@ mitliefert. `worker/dealers/discover.ts` liest heute nur `seller`, und die Feldn
 `docs/02` stammen aus der Dokumentation, nicht aus echten Daten. Ohne sie muss der
 Nutzer die Ausgangslage selbst eintippen — was das Feature nicht unmöglich macht, aber
 schwerer.
+
+---
+
+## M15 · Der Stapel → `v0.15.0`
+
+Eine **zweite** Oberfläche für dieselben Daten, neben der Liste und nicht statt ihr:
+oben eine Reihe Händler wie bei Instagram — farbiger Ring, wo es Neues gibt —, darunter
+eine Platte nach der anderen, ganzflächig, mit Cover, Begründungssatz und Preis. Wischen
+geht weiter, drei Knöpfe: mögen, in den Korb, teilen. Am Ende eines Ladens geht es beim
+nächsten weiter.
+
+### Warum das technisch billig ist
+
+**Ein Wisch kostet null Requests.** Der Dig hat längst stattgefunden, die Treffer liegen
+in `matches`, die Cover in `covers`, und der Nachschlag über die Top 50 ist gelaufen. Der
+Stapel *zeigt* nur, was schon da ist. Damit gilt weder Regel 3 noch das Tempo-Problem —
+und ein Feed, der beim Wischen nachlädt, wäre bei 1,2 s pro Anfrage ohnehin unbenutzbar.
+
+Auch die drei Knöpfe sind Verdrahtung, kein neuer Apparat: `feedback` (M3), `basket` (M4)
+und das Teilen aus M9 gibt es. Der Ring am Händler ist eine Darstellung von Daten, die
+schon existieren — `depth: 'neu'` weiß, was seit dem letzten Besuch dazugekommen ist, und
+der Wächter aus M9 weiß, ob sich der Bestand verändert hat.
+
+- [ ] Eigene Route, eigener Chunk, nur geladen wenn jemand ihn öffnet (Regel 7)
+- [ ] Wischen mit Pointer Events und einer CSS-Transformation. **Keine Bibliothek** — eine
+      Karte, die der Geste folgt, sind rund hundert Zeilen, und das Budget ist 180 kB
+- [ ] `prefers-reduced-motion` respektiert, wie bei `ToTop.vue`
+- [ ] Vollständig mit der Tastatur bedienbar. Ein Stapel, den nur ein Daumen bedienen
+      kann, ist ein Bildschirm, den ein Teil der Leute nicht hat
+
+### Vier Entwurfsentscheidungen, die nicht verhandelbar sind
+
+- [ ] **Zurücknehmen.** Tinder kann sich ein verlorenes Nein leisten, eine seltene Platte
+      nicht. Jeder Wisch ist umkehrbar, und zwar sichtbar.
+- [ ] **Die Reihenfolge bleibt die Punktzahl.** Zu mischen, damit es länger spannend
+      bleibt, würde das Einzige wegwerfen, was diese App kann. Stattdessen sagt sie, wo
+      man steht: „die besten zehn liegen hinter dir."
+- [ ] **Der Begründungssatz steht auf jeder Karte.** Ohne ihn ist der Stapel ein
+      Spielautomat mit Plattenhüllen. Mit ihm ist er das, was Fidelity ohnehin verspricht,
+      nur schneller zu lesen.
+- [ ] **Er hört auf.** Ein Laden ist irgendwann durch, und dann sagt das der Bildschirm.
+      Unendlichkeit vorzutäuschen wäre die eine Sorte Sog, die zu einer App, deren ganzer
+      Wert Ehrlichkeit ist, nicht passt.
+- [ ] Preise grauen aus, sobald `expiresAt` überschritten ist. Ein Stapel, durch den man
+      schnell wischt, ist der leichteste Ort, an dem ein sechs Stunden alter Preis
+      unbemerkt stehen bleibt (Regel 4).
+
+### Hörprobe — möglich, aber sie kostet ein Versprechen
+
+**Am 2026-09-10 gemessen:** `GET /releases/{id}` liefert `videos[]` mit `uri` (YouTube),
+`title` und `duration` — bei Release 1 vierzehn Stück. **Der Nachschlag holt diesen
+Endpunkt für die Top-Treffer ohnehin**, die Hörproben kämen also gratis mit, genau wie die
+Pressing-Felder.
+
+Stichprobe über sieben Releases: fünf hatten Videos (14, 17, 9, 1, 1), zwei keine. Also
+grob zwei von drei — bei sieben Stück ist das ein Anhaltspunkt und keine Zahl.
+
+> ⚠️ **Und hier liegt die eigentliche Entscheidung, und sie ist keine technische.**
+> Discogs' einzige Tonquelle ist YouTube. Ein Embed lädt Google, und die Datenschutzseite
+> sagt heute wörtlich: „alles liegt in der Datenbank deines Browsers und **verlässt dieses
+> Gerät nicht**." Mit einem eingebetteten Player wäre dieser Satz **falsch**.
+>
+> Drei Wege, und der mittlere ist vermutlich der richtige:
+>
+> 1. **Kein Ton.** Das Versprechen bleibt, wie es ist.
+> 2. **Ton als ausdrückliche Ausnahme:** standardmäßig aus, einmal pro Gerät
+>    einzuschalten, mit einem Satz, der sagt, was passiert — und die Datenschutzseite
+>    bekommt den Absatz dazu. Dasselbe Muster wie ADR-009 beim Freunde-Import.
+> 3. **Nur hinausverlinken.** Kein Embed, kein Google in unserer Seite; der Nutzer geht
+>    selbst hin. Ehrlich, aber im Wischstapel kaum benutzbar.
+>
+> Weg 2 braucht eine eigene ADR, so wie ADR-009 eine brauchte.
+
+- [ ] Autoplay geht nicht ohne Weiteres: Browser verlangen eine Geste, bevor Ton läuft.
+      Ein Tippen bewaffnet den Stapel, danach spielt er weiter — das ist der Entwurf,
+      nicht ein Fehler, der sich wegprogrammieren ließe.
+- [ ] Und der Ton hängt an der Platte, nicht am Stück: `videos[]` gehört zum Release. Bei
+      einer Compilation ist das erste Video nicht zwingend das, was auf dem Cover steht.
 
 ---
 
