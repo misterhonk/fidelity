@@ -8,14 +8,21 @@
 
 ## Wo wir stehen
 
-**M0 bis M9 sind umgesetzt.** Die Meilenstein-Versionen oben sind Planungsnamen aus der
-Entwurfszeit und nicht die tatsächliche Zählung — die steht in `CHANGELOG.md`.
+Die Meilenstein-Versionen in den Überschriften sind Planungsnamen aus der Entwurfszeit
+und nicht die tatsächliche Zählung — die steht in `CHANGELOG.md`.
 
-Offen ist **ein** Punkt, in M9 und am **optionalen** Hub:
+**M0 bis M10 sind abgearbeitet** bis auf zwei Reste. **M11 bis M14 sind neu** und noch
+nicht angefangen — sie kommen aus der Recherche vom 2026-09-10, was sich die
+Discogs-Community wünscht und in Discogs nicht bekommt.
 
-| offen | wo |
-|---|---|
-| Dig teilen per Link | M9 |
+| offen | wo | Stand |
+|---|---|---|
+| Dig teilen per Link | M9 | letzter Rest des Hubs |
+| `docs/` ist noch deutsch | M10 | größter Brocken, geringste Dringlichkeit |
+| Beobachtete Platten | M11 | entworfen |
+| Wo die Platte steht | M12 | entworfen |
+| Die Platte in der Hand erkennen | M13 | entworfen |
+| Gradet dieser Laden ehrlich? | M14 | entworfen, zwei Messungen davor |
 
 Wächter mit Web Push und das Hub-Dockerfile standen bis zum 2026-09-10 als offen in
 dieser Tabelle und waren beide seit dem 14. August gebaut. Am Code nachgesehen, nicht
@@ -462,11 +469,161 @@ Entscheidung und Begründung: [ADR-010](adr/010-englisch-als-grundsprache.md).
 
 ---
 
+## M11 · Beobachtete Platten → `v0.11.0`
+
+**Der Fund, auf dem alles hier steht, ist ein negativer.** Es gibt keinen Endpunkt, der
+die Angebote zu einer Release-ID auflistet (`docs/02` § „Der Endpunkt, den es nicht
+gibt"). „Diese Platte ist gerade bei jemandem aufgetaucht" ist per API **nicht
+beantwortbar**. Genau deshalb scrapen die Drittanbieter-Werkzeuge, und genau deshalb
+sterben sie regelmäßig.
+
+Was es gibt, ist `GET /marketplace/stats/{release_id}`: **ohne Token**, ein Request pro
+Release, liefert `num_for_sale` und `lowest_price`. Das beantwortet nicht „wer hat sie",
+aber „wie viele gibt es und was kostet die billigste". Aus einem Mechanismus fallen damit
+zwei Richtungen — und die zweite ist die, die es sonst nirgends gibt.
+
+### Richtung 1: die eigene Sammlung (der eigentliche Grund für M11)
+
+„Deine Pressung von *Selected Ambient Works* stand vor drei Monaten bei 40 €, die
+billigste kostet jetzt 95 €." Discogs sagt einem das nicht, und keine der bekannten
+Drittanbieter-Apps tut es. Wer verkaufen will, erfährt vom Anstieg heute nur durch Zufall.
+
+- [ ] Platten aus dem Regal beobachten. Bewusst eine **Auswahl**, keine Sammlung —
+      siehe „Was das kostet".
+- [ ] Meldung bei einem Anstieg über eine gewählte Schwelle, mit Verlauf statt nur
+      Momentwert. Ein Sprung von 40 auf 95 ist eine Nachricht; 40 auf 44 ist Rauschen.
+- [ ] **„Verkauft" wird nicht behauptet.** Ein fallendes `num_for_sale` heißt „ein
+      Angebot weniger" — das kann ein Kauf sein oder ein zurückgezogenes Listing, und
+      die API sagt nicht, welches. Der Text sagt, was gemessen wurde, nicht was
+      vermutet wird.
+- [ ] Für Platten, die schon in einem Dig auftauchten, geht es genauer:
+      `GET /marketplace/listings/{id}` gibt `status`, und steht dort nicht mehr
+      `For Sale`, ist genau dieses Angebot weg (`docs/02`).
+
+### Richtung 2: die Wantlist, mit Schwelle
+
+Der zweithäufigste Wunsch aus den Foren: Wantlist-Einträge mit Bedingungen — „nur ab
+VG+", „nur unter 30 €". Discogs' eigener **Wantlister** meldet jede Listung, ungefiltert.
+
+⚠️ **Hier sind wir strikt schwächer als Discogs und das gehört gesagt.** Wantlister weiß,
+*wer* gerade gelistet hat, weil Discogs den Marktplatz besitzt. Wir sehen nur „es gibt
+jetzt drei Exemplare, das billigste für 24 €". Der Mehrwert ist deshalb **die Schwelle,
+nicht die Entdeckung** — und der Dig bleibt das, was den Laden findet.
+
+- [ ] Preis- und Zustandsschwelle je Wantlist-Eintrag
+- [ ] Meldung, wenn die billigste Kopie darunter fällt
+- [ ] Der Text nennt nie einen Laden, weil wir keinen kennen
+
+### Was das kostet — und warum es eine Auswahl bleibt
+
+Ein Request pro beobachtetem Release und Runde. Mit Token sind 50 Platten **eine
+Minute**, 500 Platten **zehn**. Die ganze Sammlung zu beobachten hätte genau die Form,
+die Regel 2 verbietet.
+
+Die Obergrenze ist deshalb kein Schönheitsfehler, sondern der Entwurf: **man beobachtet,
+was man verkaufen würde, und was man wirklich sucht.** Der Hub kann es für einen
+Freundeskreis mittragen — `/marketplace/stats/` braucht keinen Token, eine Abfrage bedient
+alle —, aber nach Regel 8 muss es ohne ihn funktionieren.
+
+---
+
+## M12 · Wo die Platte steht → `v0.12.0`
+
+**Optional, und das einzige Feature der ganzen Roadmap, das null Requests kostet.**
+
+Die Sammlung liegt nicht in einer Liste, sie liegt in einer Wohnung: Regal im Wohnzimmer,
+zweites Fach, die Kiste im Keller, der Karton auf dem Dachboden, den man seit dem Umzug
+nicht aufgemacht hat. Discogs kennt diesen Ort nicht und will ihn nicht kennen.
+
+Das ist dieselbe Frage wie der In-Store-Bildschirm, einen Schritt weiter: dort heißt sie
+„habe ich die schon?", hier „und wo ist sie dann?".
+
+- [ ] Orte als flache Hierarchie: Ort → Möbel → Fach/Kiste. Drei Ebenen reichen, und
+      mehr baut sich niemand.
+- [ ] Ein Exemplar liegt an einem Ort — an der `instanceId`, nicht an der `releaseId`.
+      Wer zwei Pressungen hat, hat sie an zwei Stellen.
+- [ ] Beide Richtungen: „wo ist X" und „was liegt im Keller".
+- [ ] Offline und lokal. Ein Standort ist eine Aussage über die eigene Wohnung, kein
+      Discogs-Datum — er bleibt auf dem Gerät (ADR-007).
+- [ ] Über den Tresor mitreisen, damit das Telefon im Keller dieselbe Antwort gibt.
+- [ ] Umziehen können: „alles aus Kiste 3 nach Regal 2" ist der Normalfall nach einem
+      Umzug, nicht das Einzelstück.
+
+⚠️ **Zu messen, bevor gebaut wird:** ob `GET /users/{u}/collection/fields` auch
+selbst angelegte Felder zurückgibt. `worker/collection/fields.ts` kennt heute drei
+(Media, Sleeve, Notes). Gibt es benutzerdefinierte, könnte der Standort **optional** dort
+mitgeschrieben werden und wäre auch außerhalb von Fidelity sichtbar. Das ist eine Zugabe,
+keine Voraussetzung — die Wahrheit bleibt lokal.
+
+---
+
+## M13 · Die Platte in der Hand erkennen → `v0.13.0`
+
+Zwei Stufen, die billigere zuerst.
+
+### Stufe 1: Barcode
+
+`GET /database/search?barcode=…` ist dokumentiert, kostet einen Request und ist eindeutig.
+Deckt alles ab, was nach etwa 1985 gepresst wurde.
+
+- [ ] Kamera → Barcode → Release → die Frage, die Fidelity stellt: *habe ich die schon,
+      steht sie auf meiner Wantlist, wo liegt mein Exemplar (M12), was ist sie wert (M11)*
+
+Die Discogs-App hat einen Barcode-Scanner. Unserer beantwortet eine andere Frage — und
+zwar die, für die man im Laden steht.
+
+### Stufe 2: Cover erkennen, lokal
+
+`db/covers.ts` hält bereits 600er Cover jeder eigenen Platte. Ein perzeptueller Hash über
+diese Bilder, verglichen mit einem Kamerabild, beantwortet „welche meiner Platten ist
+das" **ohne einen einzigen Request** — und damit im Keller ohne Empfang, was genau der
+Fall ist, für den der In-Store-Bildschirm existiert.
+
+- [ ] pHash über die vorhandenen Cover, beim Sync nebenbei
+- [ ] Kamerabild → nächster Nachbar → Treffer mit ehrlicher Sicherheit („ziemlich sicher"
+      / „eine von diesen dreien")
+
+⚠️ **Was hier nicht versprochen wird:** Buchrücken im Regal erkennen. Ein fotografiertes
+Regal in einzelne Platten zu zerlegen ist ein anderes, deutlich härteres Problem — und
+wer es andeutet, verspricht die Lagerhaltung von M12 zum Nulltarif.
+
+⚠️ **Das Budget entscheidet mit.** Ein Hash ist klein, eine Kamera-Pipeline nicht. Beide
+Stufen müssen in einen eigenen Chunk, der nur geladen wird, wenn jemand die Kamera
+öffnet — sonst zahlt der erste Strich für ein Feature, das die meisten nie anfassen
+(Regel 7).
+
+---
+
+## M14 · Gradet dieser Laden ehrlich? → `v0.14.0`
+
+**Die Lücke, die Discogs strukturell nicht schließen kann.** Aus den Foren: das
+Feedback-System misst „quality of transaction" und sagt nichts über die
+Bewertungsgenauigkeit; negative Bewertungen wegen Übergrading werden auf Beschwerde des
+Verkäufers entfernt. Übrig bleibt Aberglaube — „kauf nichts unter 100 %".
+
+Fidelity kann etwas, was ein öffentliches Bewertungssystem nicht kann: **eine private
+Aufzeichnung der eigenen Käufe.** Keine Fremdbewertung, kein Pranger, keine Moderation —
+nur „bei diesem Laden waren sieben von acht Platten so, wie sie beschrieben waren", auf
+dem eigenen Gerät.
+
+- [ ] Nach einer Lieferung: eine Frage, ein Tippen. Wie angekommen, besser, schlechter.
+- [ ] Fließt in den Händler-Fingerprint (M3), der ohnehin schon existiert
+- [ ] Bleibt lokal. Ein Ehrlichkeits-Score über fremde Menschen gehört niemandem außer
+      dem, der die Platte ausgepackt hat.
+
+⚠️ **Zuerst zu messen:** ob `GET /marketplace/orders` die gelistete Kondition je Position
+mitliefert. `worker/dealers/discover.ts` liest heute nur `seller`, und die Feldnamen in
+`docs/02` stammen aus der Dokumentation, nicht aus echten Daten. Ohne sie muss der
+Nutzer die Ausgangslage selbst eintippen — was das Feature nicht unmöglich macht, aber
+schwerer.
+
+---
+
 ## Nicht auf der Roadmap
 
 | Idee | Warum nicht |
 |---|---|
-| Wantlist-Alerts | Discogs besitzt Wantlister – aussichtslos |
+| Wantlist-Alerts als Entdeckung | Discogs besitzt Wantlister, und der weiß, **wer** gerade gelistet hat, weil Discogs den Marktplatz besitzt. Wir sehen über `/marketplace/stats/` nur „es gibt jetzt drei Exemplare, das billigste für 24 €". Auf Entdeckung zu konkurrieren wäre aussichtslos — auf die **Schwelle** nicht, die Wantlister nicht hat. Deshalb M11 Richtung 2, und deshalb nennt sie nie einen Laden. |
 | Eigener Checkout | ToS-Verstoß, strategisch dumm |
 | Sammlungs-Katalogisierung | Gelöstes Problem, ein Dutzend Apps |
 | Native App | PWA reicht vollständig |
@@ -487,4 +644,13 @@ M0 ─▶ M1 ─▶ M2 ──────────────▶ M3 ─▶ M
        │
    ⚠️ User-Agent-Test in M1 —
       bricht der, bricht alles
+
+M11 (Marktwächter) ─┬─▶ braucht M5 nicht, nur /marketplace/stats/
+                    └─▶ teilt sich den Zustellweg mit dem Wächter aus M9
+
+M12 (Lagerorte) ────▶ hängt an nichts. Null Requests, rein lokal.
+      │
+      └──▶ M13 (Erkennen) — Stufe 2 rechnet auf den Covern aus db/covers.ts
+
+M14 (Grading) ──────▶ hängt am Händler-Fingerprint aus M3
 ```
