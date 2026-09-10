@@ -11,13 +11,16 @@
 **M0 bis M9 sind umgesetzt.** Die Meilenstein-Versionen oben sind Planungsnamen aus der
 Entwurfszeit und nicht die tatsächliche Zählung — die steht in `CHANGELOG.md`.
 
-Offen sind drei Punkte, alle in M9 und alle am **optionalen** Hub:
+Offen ist **ein** Punkt, in M9 und am **optionalen** Hub:
 
 | offen | wo |
 |---|---|
-| Wächter mit Web Push | M9 |
 | Dig teilen per Link | M9 |
-| Dockerfile für den Hub | M9 |
+
+Wächter mit Web Push und das Hub-Dockerfile standen bis zum 2026-09-10 als offen in
+dieser Tabelle und waren beide seit dem 14. August gebaut. Am Code nachgesehen, nicht
+aus der Erinnerung gestrichen: `app/sw/sw.ts` hat `push` und `notificationclick`,
+`deploy/hub.Dockerfile` liegt da und wird veröffentlicht.
 
 Zwei Zeilen dieser Datei sind **überholt statt offen** und als solche gekennzeichnet: der
 429-Backoff am Status (im Browser nicht baubar, `docs/02`) und die Uberspace-Backend-
@@ -352,14 +355,23 @@ irgendein Feature ihn voraussetzt. Vollständiges Konzept: `docs/13-HUB-ADDON.md
 
       Abnahme: die vier Tests in `tests/e2e/offline.spec.ts` und
       `tests/e2e/service-worker.spec.ts` gegen den gebauten Ausgabestand.
-- [ ] Wächter, Client-Seite: Push-Subscription und Benachrichtigung — Erlaubnis fragen,
+- [x] Wächter, Client-Seite: Push-Subscription und Benachrichtigung — Erlaubnis fragen,
       beim Hub anmelden (`/v1/watch/key`, `subscribe`, `unsubscribe`), `push` und
-      `notificationclick` im Worker beantworten. Der Worker steht bereit und hat noch
-      keinen `push`-Handler.
+      `notificationclick` im Worker beantworten. `app/composables/usePush.ts` und
+      `app/sw/sw.ts`; am 2026-08-14 gegen den laufenden Hub geklingelt und auf Chrome
+      wie iOS angekommen.
+
+      Zwei Dinge kosteten dabei je einen Anlauf, beide unsichtbar: `allowMethods` des
+      Hubs kannte kein `POST`, weshalb sich **kein Browser** je anmelden konnte (der
+      erste erfolgreiche Test lief per curl an der Lücke vorbei), und Apple lehnt eine
+      VAPID-Subject-Adresse auf `.invalid` mit **403** ab. Beides sah von außen wie
+      „kommt halt nichts an" aus, bis `watch.ts` gescheiterte Zustellungen zählte.
 - [x] Geräte-Sync für Korb und Merkliste — **über den Vault, nicht über den Hub**
       (M8/ADR-007): verschlüsselt, Ziel frei wählbar, funktioniert auch ohne Hub
 - [ ] Dig teilen per Link (TTL 6 h, ToS-konform)
-- [ ] Dockerfile für den Hub — `hub/compose.yml` gibt es, ein Image noch nicht.
+- [x] Dockerfile für den Hub — `deploy/hub.Dockerfile`, das Release-Workflow
+      veröffentlicht das Image mit. Der Hub selbst läuft auf Uberspace unter
+      supervisord (`.github/workflows/hub.yml`).
       ⚠️ Der Zusatz „supervisord + `uberspace web backend`" ist überholt: die App ist seit
       ADR-007 rein statisch und läuft in einem Docroot, ein Backend gibt es nicht mehr
       (siehe `docs/08-DEPLOYMENT.md`). Betroffen ist nur noch der optionale Hub
