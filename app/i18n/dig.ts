@@ -63,6 +63,49 @@ const en = {
   expired:
     'Older than six hours — prices and conditions may no longer be shown. The finds and their reasons stay.',
   refreshPrices: 'Refresh the prices',
+  /*
+   * Eine Fundliste weitergeben.
+   *
+   * Der Link trägt den Schlüssel im `#`-Fragment, das kein Browser an einen
+   * Server schickt — deshalb sagt der Text „nur wer den Link hat" und nicht
+   * „privat", was eine Zusage wäre, die niemand halten kann.
+   */
+  share: 'Share this list',
+  /*
+   * Der Bildschirm für jemanden, der diese App nicht hat.
+   *
+   * Deshalb erklärt jeder Satz sich selbst und setzt nichts voraus — nicht
+   * einmal das Wort „Dig", das hier zum ersten und vielleicht einzigen Mal
+   * gelesen wird.
+   */
+  sharedTitle: 'A list of finds',
+  sharedFrom: (dealer: string) => `Finds at ${dealer}`,
+  sharedScope: (shown: string, total: string, coverage: string) =>
+    shown === total
+      ? `All ${total} of them — ${coverage} % of the shop was read.`
+      : `The best ${shown} of ${total} — ${coverage} % of the shop was read.`,
+  sharedGone: 'This link has expired. Prices from a shop may only be shown for six hours.',
+  sharedBadLink: 'Something is missing from this link — most likely the part after the #.',
+  sharedNoHub:
+    'No hub answers at this address. The link only works where the list was shared from.',
+  sharedWhatIsThis: 'What is Fidelity?',
+  sharedPitch:
+    'Fidelity reads a record shop against your own collection and says, for every find, why it fits.',
+
+  shareBusy: 'Sealing …',
+  shareNeedsHub: 'Sharing needs a hub — one is set up in the settings.',
+  shareReady: (matches: number, total: number) =>
+    matches < total
+      ? `Link ready — the top ${matches} of ${total} finds.`
+      : `Link ready — all ${matches} finds.`,
+  shareCopy: 'Copy link',
+  shareCopied: 'Copied.',
+  shareGone: (when: string) => `Works until ${when}, then it is gone.`,
+  /* Gesagt, weil es sonst niemand ahnt: die Begründungssätze verraten etwas
+   * über die eigene Sammlung. Das ist der Sinn und trotzdem eine Auskunft. */
+  shareTells:
+    'Whoever opens it sees why each record fitted — and so, a little, what you collect.',
+
   refreshAbout: (minutes: number) =>
     `${counted(minutes, 'minute', 'minutes')}. Finds nothing new — only what this dig already found, again.`,
   refreshed: (n: string) => `${n} up to date again`,
@@ -275,6 +318,34 @@ const de: typeof en = {
   expired:
     'Älter als sechs Stunden – Preise und Zustände dürfen nicht mehr angezeigt werden. Die Treffer und ihre Begründungen bleiben.',
   refreshPrices: 'Preise auffrischen',
+  share: 'Diese Liste teilen',
+  sharedTitle: 'Eine Fundliste',
+  sharedFrom: (dealer) => `Fundstücke bei ${dealer}`,
+  sharedScope: (shown, total, coverage) =>
+    shown === total
+      ? `Alle ${total} davon – ${coverage} % des Ladens wurden gelesen.`
+      : `Die besten ${shown} von ${total} – ${coverage} % des Ladens wurden gelesen.`,
+  sharedGone:
+    'Dieser Link ist abgelaufen. Preise aus einem Laden dürfen nur sechs Stunden lang gezeigt werden.',
+  sharedBadLink: 'An diesem Link fehlt etwas – vermutlich der Teil hinter dem #.',
+  sharedNoHub:
+    'Unter dieser Adresse antwortet kein Hub. Der Link funktioniert nur dort, wo die Liste geteilt wurde.',
+  sharedWhatIsThis: 'Was ist Fidelity?',
+  sharedPitch:
+    'Fidelity liest einen Plattenladen gegen deine eigene Sammlung und sagt zu jedem Fund, warum er passt.',
+
+  shareBusy: 'Wird versiegelt …',
+  shareNeedsHub: 'Teilen braucht einen Hub — einer wird in den Einstellungen eingetragen.',
+  shareReady: (matches, total) =>
+    matches < total
+      ? `Link steht — die besten ${matches} von ${total} Treffern.`
+      : `Link steht — alle ${matches} Treffer.`,
+  shareCopy: 'Link kopieren',
+  shareCopied: 'Kopiert.',
+  shareGone: (when) => `Gilt bis ${when}, danach ist er weg.`,
+  shareTells:
+    'Wer ihn öffnet, sieht zu jeder Platte, warum sie passt – und damit ein wenig, was du sammelst.',
+
   refreshAbout: (minutes) =>
     `${counted(minutes, 'Minute', 'Minuten')}. Findet nichts Neues – nur das wieder, was dieser Dig schon gefunden hat.`,
   refreshed: (n) => `${n} wieder aktuell`,

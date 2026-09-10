@@ -30,6 +30,54 @@ const preflight = ref<DigPreflight | null>(null)
 const progress = ref<ScanProgress | null>(null)
 const enriching = ref<EnrichProgress | null>(null)
 const gaps = ref<{ expanded: number; requests: number; titles: string[] } | null>(null)
+/*
+ * Teilen.
+ *
+ * Der Schlüssel kommt aus dem Worker und wandert in das `#`-Fragment des
+ * Links — das ist der einzige Teil einer Adresse, den kein Browser an einen
+ * Server schickt, und darauf beruht, dass der Hub den Inhalt nicht lesen kann.
+ * Deshalb wird er hier zusammengesetzt und nirgends sonst.
+ */
+const hubUrl = ref<string | null>(null)
+const sharing = ref(false)
+const shareLink = ref<{ url: string; matches: number; total: number; until: number } | null>(
+  null,
+)
+const shareCopied = ref(false)
+
+async function share() {
+  if (sharing.value || !result.value) return
+  sharing.value = true
+  shareCopied.value = false
+  error.value = null
+
+  try {
+    const made = await call('share.create', { digId: result.value.dig.id })
+    const base = `${location.origin}${location.pathname.replace(/\/dig\/?$/, '')}`
+    shareLink.value = {
+      url: `${base}/shared?id=${made.id}#k=${made.key}`,
+      matches: made.matches,
+      total: result.value.matches.length,
+      until: made.expiresAt,
+    }
+  } catch (cause) {
+    error.value = cause
+  } finally {
+    sharing.value = false
+  }
+}
+
+async function copyShare() {
+  if (!shareLink.value) return
+  try {
+    await navigator.clipboard.writeText(shareLink.value.url)
+    shareCopied.value = true
+  } catch {
+    // Ohne Zwischenablage bleibt der Link im Feld stehen und lässt sich von
+    // Hand nehmen. Ein Fehler wäre hier lauter als das Problem.
+  }
+}
+
 const refreshing = ref<RefreshProgress | null>(null)
 const refreshed = ref<{ refreshed: number; sold: number; gone: number } | null>(null)
 
@@ -116,6 +164,10 @@ const error = ref<unknown>(null)
 const resumable = ref<Dig | null>(null)
 
 onMounted(async () => {
+  // Nur, um den Teilen-Knopf zu zeigen oder wegzulassen. Ohne Hub gibt es
+  // keinen Ort, an dem eine Fundliste liegen könnte.
+  void call('preferences.get', undefined).then((prefs) => (hubUrl.value = prefs.hubUrl))
+
   // An interrupted dig is offered before anything else: the work is already
   // paid for in requests, and throwing it away to start over would spend the
   // rate limit twice.
@@ -659,6 +711,55 @@ const noHorizon = computed(
           </template>
           <template v-if="result.folded > 0"> · {{ d.folded(result.folded) }}</template>
         </p>
+      </div>
+
+      <!--
+        Teilen, und nur wenn es geht.
+        Ohne Hub gibt es keinen Ort, an dem eine Fundliste liegen könnte —
+        dann steht hier ein Satz statt eines Knopfes, der nichts tut. Nach
+        sechs Stunden verschwindet der Knopf ganz: was nicht mehr gezeigt
+        werden darf, darf auch nicht weitergegeben werden (Regel 4).
+      -->
+      <div v-if="!expired" class="flex flex-col gap-2">
+        <button
+          v-if="hubUrl"
+          type="button"
+          :disabled="sharing || !online"
+          class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+          @click="share"
+        >
+          {{ sharing ? d.shareBusy : d.share }}
+        </button>
+        <p v-else class="text-fid-sm text-fid-text-muted">{{ d.shareNeedsHub }}</p>
+
+        <div
+          v-if="shareLink"
+          class="flex flex-col gap-2 rounded-fid-sm border border-fid-border p-3"
+        >
+          <p class="text-fid-sm text-fid-text">
+            {{ d.shareReady(shareLink.matches, shareLink.total) }}
+          </p>
+          <div class="flex flex-wrap items-center gap-2">
+            <input
+              :value="shareLink.url"
+              readonly
+              :aria-label="d.share"
+              class="min-w-0 grow rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 font-fid-mono text-fid-xs text-fid-text"
+              @focus="($event.target as HTMLInputElement).select()"
+            />
+            <button
+              type="button"
+              class="fid-action shrink-0 rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
+              @click="copyShare"
+            >
+              {{ shareCopied ? d.shareCopied : d.shareCopy }}
+            </button>
+          </div>
+          <p class="text-fid-xs text-fid-text-muted">
+            {{ d.shareGone(dayTime(shareLink.until)) }}
+          </p>
+          <p class="text-fid-xs text-fid-text-muted">{{ d.shareTells }}</p>
+        </div>
       </div>
 
       <!-- The ToS deadline, enforced in the UI and not only in the cleanup job. -->

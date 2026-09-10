@@ -476,6 +476,27 @@ export const handlers: HandlerMap = {
     })
   },
 
+  /*
+   * Teilen — der einzige Handler, der ohne Token auskommen muss.
+   *
+   * `share.read` läuft bei jemandem, der Fidelity vielleicht nie eingerichtet
+   * hat: keine Sammlung, kein Token, kein Hub eingetragen. Deshalb kommt die
+   * Hub-Adresse aus dem Link und nicht aus den Einstellungen, und deshalb
+   * fragt hier nichts nach einer Identität.
+   */
+  'share.create': async ({ digId }) => {
+    const loaded = await loadDig(digId)
+    if (!loaded) throw new Error('no such dig')
+
+    const { createShare } = await import('./share')
+    return createShare(loaded)
+  },
+
+  'share.read': async ({ hubUrl, id, key }) => {
+    const { readShare } = await import('./share')
+    return readShare(hubUrl, id, key)
+  },
+
   'dig.detail': async ({ digId, listingId }) => {
     const { matchDetail } = await import('./dig/detail')
     return matchDetail(digId, listingId)

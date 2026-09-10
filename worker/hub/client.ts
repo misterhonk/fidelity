@@ -104,6 +104,20 @@ export interface HubClient {
   vaultForget(id: string): Promise<void>
 
   /**
+   * Eine Fundliste teilen — und zwar so, dass der Hub sie nicht lesen kann.
+   *
+   * Wie der Tresor ein versiegelter Umschlag, nur mit einem Zufallsschlüssel
+   * statt einer Passphrase; der Schlüssel steht im `#`-Fragment des Links und
+   * erreicht keinen Server.
+   *
+   * `shareRead` ist die **einzige** Methode hier, die ohne das Hub-Secret
+   * auskommen muss: der Link geht an jemanden, der diesen Hub nicht kennt.
+   * Deshalb schickt sie die Kopfzeilen bewusst nicht mit.
+   */
+  shareWrite(id: string, sealed: SealedVault, expiresAt: number): Promise<void>
+  shareRead(id: string): Promise<{ sealed: SealedVault; expiresAt: number } | null>
+
+  /**
    * The watcher — the one thing here that is not a cache.
    *
    * Everything else in this client makes the app faster. This makes it do
@@ -284,6 +298,42 @@ export function createHubClient({
       // Unlike a contribution, this one is not fire-and-forget: somebody is
       // waiting to hear that their shortlist is safe on the other device.
       if (!response.ok) throw new Error(`Hub hat den Tresor abgelehnt (${response.status}).`)
+    },
+
+    async shareWrite(id, sealed, expiresAt) {
+      const response = await fetchImpl(url('/v1/share'), {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ id, expiresAt, sealed }),
+      })
+      // Wie beim Tresor: hier wartet jemand auf einen Link, den er
+      // verschicken will. Ein stilles Scheitern gäbe ihm einen toten.
+      if (!response.ok) {
+        throw new Error(`Hub hat die Fundliste abgelehnt (${response.status}).`)
+      }
+    },
+
+    async shareRead(id) {
+      /*
+       * Ohne `headers`, und das ist der Punkt.
+       *
+       * Wer diesen Link öffnet, hat das Hub-Secret nicht — er kennt den Hub
+       * gar nicht. Schickte diese Methode die Kopfzeilen des Empfängers mit,
+       * bekäme sie beim fremden Hub eine 401 und beim eigenen ein Ergebnis,
+       * was das Feature genau für die Leute kaputtmacht, für die es da ist.
+       */
+      const response = await fetchImpl(url(`/v1/share/${id}`), {
+        headers: { 'content-type': 'application/json' },
+      })
+      if (!response.ok) return null
+
+      const body = (await response.json()) as { sealed?: unknown; expiresAt?: unknown }
+      const parsed = sealedSchema.safeParse(body?.sealed)
+      if (!parsed.success || typeof body?.expiresAt !== 'number') {
+        log.warn('[hub] Antwort auf eine geteilte Fundliste passt nicht zum Schema')
+        return null
+      }
+      return { sealed: parsed.data, expiresAt: body.expiresAt }
     },
 
     async contributeHorizon(chunk) {

@@ -844,6 +844,30 @@ export interface StockRow {
   currency: string | null
 }
 
+/**
+ * Eine Fundliste, wie sie bei jemand anderem ankommt.
+ *
+ * Ein Schnappschuss und keine Verknüpfung: der Empfänger hat keinen Dig, keine
+ * Sammlung und vielleicht nicht einmal einen Token. Was er sieht, steht
+ * vollständig in diesem Objekt — und es ist verschlüsselt unterwegs, weil der
+ * Hub, der es trägt, es nichts angeht.
+ *
+ * `matchesTotal` reist mit, damit der Schnappschuss nicht behauptet, die
+ * hundert mitgeschickten Treffer seien alles gewesen.
+ */
+export interface SharedDig {
+  version: number
+  dealer: string
+  scannedAt: number
+  /** Die Uhr des Digs, nicht die des Teilens — sonst wäre eine fünf Stunden
+   *  alte Fundliste am Ende elf Stunden alt (Regel 4). */
+  expiresAt: number
+  coverage: number
+  listingsTotal: number
+  matchesTotal: number
+  matches: Match[]
+}
+
 export interface Match {
   digId: string
   listingId: number

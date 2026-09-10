@@ -31,7 +31,15 @@
  * Ausnahme für eine 404 nimmt niemand wahr, aber ihr Kommentar behauptet einen
  * Bildschirm, den man dann sucht.
  */
-const OPEN = ['/welcome', '/settings', '/privacy', '/legal']
+/*
+ * `/shared` ist die zweite wichtige Ausnahme, und aus dem gegenteiligen
+ * Grund: dort landet jemand, der Fidelity **nicht** hat. Ein geteilter Link,
+ * der zur Einrichtung umleitet, ist die schlechteste Art, eine App
+ * vorzustellen — und der Bildschirm braucht nichts von dem, was die
+ * Einrichtung besorgt: keine Sammlung, keinen Token, keinen Hub. Alles, was
+ * er zeigt, steht im Link.
+ */
+const OPEN = ['/welcome', '/settings', '/privacy', '/legal', '/shared']
 
 export default defineNuxtRouteMiddleware(async (to) => {
   /*

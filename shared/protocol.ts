@@ -43,6 +43,7 @@ import type {
   ShelfResult,
   ShelfSort,
   SortDirection,
+  SharedDig,
   ShelfView,
   ShippingTier,
   StockRow,
@@ -589,6 +590,32 @@ export interface WorkerContract {
 
   /** Every dig, newest first — what the command palette offers to jump to. */
   'dig.list': { params: undefined; progress: never; result: Dig[] }
+
+  /**
+   * Eine Fundliste teilen.
+   *
+   * Gibt Kennung **und** Schlüssel zurück. Der Schlüssel gehört ins
+   * `#`-Fragment des Links und nirgendwo sonst hin — ein Fragment schickt kein
+   * Browser an einen Server, und genau darauf beruht, dass der Hub den Inhalt
+   * nicht lesen kann.
+   */
+  'share.create': {
+    params: { digId: string }
+    progress: never
+    result: { id: string; key: string; expiresAt: number; matches: number }
+  }
+
+  /**
+   * Und einen geteilten Link öffnen — **ohne Token, ohne Anmeldung**.
+   *
+   * Wer ihn bekommt, hat Fidelity vielleicht nie geöffnet. Die Hub-Adresse
+   * steht im Link, weil der Empfänger keine eingetragen hat.
+   */
+  'share.read': {
+    params: { hubUrl: string; id: string; key: string }
+    progress: never
+    result: SharedDig | null
+  }
 
   /**
    * The basket. One dealer at a time, because postage is per shipment.
