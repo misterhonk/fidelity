@@ -77,8 +77,7 @@ const status = computed(() => {
   const step = progress.value
   if (!step) return m.value.demo.moment
   if (step.step === 'seeds') return m.value.demo.fetching
-  if (step.step === 'shop')
-    return `Lese das Sortiment – Seite ${step.done + 1} von ${step.total}`
+  if (step.step === 'shop') return m.value.demo.reading(step.done + 1, step.total)
   return m.value.demo.comparing
 })
 

@@ -212,6 +212,10 @@ const en = {
     plant: 'pressed at',
     discography: 'Discography',
     owned: (owned: string, total: string) => `${owned} of ${total}`,
+    /* "(yours from 2004 to 2004)" is a sentence nobody would write.
+     * One year is one year. */
+    ownedYear: (year: string) => `(yours from ${year})`,
+    ownedYears: (from: string, to: string) => `(yours from ${from} to ${to})`,
     connections: 'Links to your collection',
     atDiscogs: 'View at Discogs',
     want: 'Want it',
@@ -356,6 +360,8 @@ const de: typeof en = {
     plant: 'Presswerk',
     discography: 'Diskografie',
     owned: (owned, total) => `${owned} von ${total}`,
+    ownedYear: (year) => `(deine von ${year})`,
+    ownedYears: (from, to) => `(deine von ${from} bis ${to})`,
     connections: 'Verbindungen zu deiner Sammlung',
     atDiscogs: 'Bei Discogs ansehen',
     want: 'Auf die Wantlist',

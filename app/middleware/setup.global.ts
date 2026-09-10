@@ -21,10 +21,17 @@
  * aus — und zwar genau für die Leute, die ihn brauchen.
  *
  * Datenschutz und Impressum sind Pflichttexte; sie hinter eine Anmeldung zu
- * stellen wäre absurd. `/demo` zeigt erfundene Daten und ist der Grund, warum
- * jemand sich überhaupt einrichtet.
+ * stellen wäre absurd.
+ *
+ * `/demo` stand hier bis zum 2026-09-10 mit dem Zusatz, es zeige erfundene
+ * Daten und sei der Grund, warum jemand sich überhaupt einrichtet. Diese
+ * Adresse gibt es nicht — es gibt keine `app/pages/demo.vue`, und diese Zeile
+ * war der einzige Ort im ganzen Repository, der sie erwähnte. Die Demo ist
+ * `DemoDig.vue` und steht auf `/welcome`, also ohnehin schon offen. Eine
+ * Ausnahme für eine 404 nimmt niemand wahr, aber ihr Kommentar behauptet einen
+ * Bildschirm, den man dann sucht.
  */
-const OPEN = ['/welcome', '/settings', '/privacy', '/legal', '/demo']
+const OPEN = ['/welcome', '/settings', '/privacy', '/legal']
 
 export default defineNuxtRouteMiddleware(async (to) => {
   /*

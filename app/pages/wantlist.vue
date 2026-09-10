@@ -5,8 +5,8 @@ import { useCollectionMessages } from '~/i18n/collection'
 
 const c = useCollectionMessages()
 useSeoMeta({
-  title: 'Wantlist',
-  description: 'Was du suchst – und wo es zuletzt aufgetaucht ist.',
+  title: () => c.value.tabs.wantlist,
+  description: () => c.value.wantlist.description,
 })
 
 const { call } = useFidelityWorker()
@@ -109,16 +109,7 @@ watch(query, () => {
 function waiting(addedAt: string): string | null {
   const added = Date.parse(addedAt)
   if (!Number.isFinite(added)) return null
-
-  const days = Math.floor((Date.now() - added) / 86_400_000)
-  const w = c.value.wantlist.waiting
-  // Zero days is arithmetic, not a length of time.
-  if (days === 0) return w.today
-  if (days === 1) return w.yesterday
-  if (days < 31) return w.days(count(days))
-  const months = Math.floor(days / 30)
-  if (months < 24) return w.months(count(months))
-  return w.years(count(Math.floor(months / 12)))
+  return waitingFor(Math.floor((Date.now() - added) / 86_400_000))
 }
 </script>
 

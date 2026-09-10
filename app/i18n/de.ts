@@ -324,6 +324,7 @@ const de: Messages = {
     orOne: 'Oder eine von diesen:',
     moment: 'Einen Moment …',
     fetching: 'Hole die Platte …',
+    reading: (page, pages) => `Lese das Sortiment – Seite ${page} von ${pages}`,
     comparing: 'Vergleiche …',
     progress: 'Fortschritt',
     fitsAt: (dealer) => `Bei ${dealer} passt dazu`,

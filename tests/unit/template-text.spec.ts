@@ -139,3 +139,81 @@ describe('text in a template', () => {
     expect(literals).toEqual([])
   })
 })
+
+/**
+ * Und die andere Hälfte der Datei — das `<script setup>`.
+ *
+ * Alles oben prüft, was zwischen den Tags steht. Text kommt aber auf zwei
+ * Wegen auf einen Schirm, und der zweite führt durch eine Mustache: `{{ status
+ * }}` ist für die Regeln oben leer, während der Satz dahinter im Skript
+ * zusammengesetzt wird. Genau dort hat die Übersetzung von ADR-010 zwölf
+ * deutsche Sätze zurückgelassen, verteilt auf fünf Dateien — gefunden am
+ * 2026-09-10, indem jemand die Demo im Browser laufen ließ und „Lese das
+ * Sortiment – Seite 1 von 5" unter einer englischen Überschrift stehen sah.
+ *
+ * Wieder eine Regel über die **Form**, nicht über Vokabeln: zwei Wörter mit
+ * einem Leerzeichen dazwischen sind ein Satz, und ein Satz gehört ins Paket.
+ * Der Kommentar oben erklärt, warum Wortlisten dreimal danebenlagen.
+ */
+
+/** `${…}` ist eine Wortgrenze und kein Wort — sonst rutscht `seit ${n} Tagen` durch. */
+const INTERPOLATION = /\$\{[^}]*\}/g
+
+/**
+ * Zeichenketten paarweise und in der Reihenfolge, in der sie stehen.
+ *
+ * Die erste Fassung hier verlangte vier Zeichen Mindestlänge und sprang damit
+ * über `'/'` hinweg — danach paarte sie das schließende Anführungszeichen der
+ * einen mit dem öffnenden der nächsten und meldete `) return route.path === `
+ * als Prosa. Jede Zeichenkette wird erkannt, gefiltert wird danach.
+ */
+const ANY_STRING = /'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"|`((?:[^`\\]|\\.)*)`/gs
+
+/** Zwei Wörter, ein Leerzeichen. Ein Wort allein ist ein Schlüssel oder eine Klasse. */
+const TWO_WORDS = /[^\W\d_]{2,}[ ]+[^\W\d_]{2,}/u
+
+/**
+ * Eine Tailwind-Klassenliste ist keine Prosa.
+ *
+ * `text-fid-text-muted hover:text-fid-text` hat zwei Wörter und ein
+ * Leerzeichen und ist trotzdem Code. Die Unterscheidung braucht keine Liste:
+ * in einer Klassenliste trägt **jedes** Wort einen Bindestrich oder
+ * Doppelpunkt, in einem Satz keines.
+ */
+function isClassList(value: string): boolean {
+  const parts = value.split(/\s+/).filter(Boolean)
+  return parts.length > 1 && parts.every((part) => part.includes('-') || part.includes(':'))
+}
+
+describe('a sentence in a script block', () => {
+  const scripts = globSync('app/**/*.vue', { cwd: ROOT }).flatMap((file) => {
+    const source = readFileSync(join(ROOT, file), 'utf8')
+    const block = /<script setup[^>]*>([\s\S]*?)<\/script>/.exec(source)
+    if (!block?.[1]) return []
+    // Kommentare erklären auf Deutsch und sollen es dürfen — sie stehen in
+    // keiner Oberfläche.
+    const code = block[1].replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
+    return [{ file, code }]
+  })
+
+  it('looks at every screen, so a new one cannot slip past', () => {
+    expect(scripts.length).toBeGreaterThan(20)
+  })
+
+  it('comes from a message pack, like everything between the tags', () => {
+    const literals: string[] = []
+
+    for (const { file, code } of scripts) {
+      for (const [, single, double, backtick] of code.matchAll(ANY_STRING)) {
+        const raw = single ?? double ?? backtick
+        if (raw === undefined) continue
+
+        const value = raw.replace(INTERPOLATION, ' ')
+        if (!TWO_WORDS.test(value) || isClassList(value) || NOT_PROSE.has(raw)) continue
+        literals.push(`${file}: ${raw.slice(0, 70)}`)
+      }
+    }
+
+    expect(literals).toEqual([])
+  })
+})

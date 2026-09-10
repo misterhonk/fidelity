@@ -113,14 +113,15 @@ function evidenceOf(evidence: Record<string, unknown>): string {
  */
 const EVIDENCE_LABEL = computed<Record<string, string>>(() => m.value.evidence)
 
-/**
- * "(deine von 2004 bis 2004)" is a sentence nobody would write. One year is
- * one year.
+/*
+ * Die Wörter stehen im Paket, die Entscheidung hier: ein Jahr ist ein Jahr,
+ * und „von 2004 bis 2004" schreibt niemand. Der Satz selbst stand bis zum
+ * 2026-09-10 deutsch an dieser Stelle, in einer englischen Oberfläche.
  */
 function years(entry: { from: number; to: number }): string {
   return entry.from === entry.to
-    ? `(deine von ${entry.from})`
-    : `(deine von ${entry.from} bis ${entry.to})`
+    ? d.value.sheet.ownedYear(String(entry.from))
+    : d.value.sheet.ownedYears(String(entry.from), String(entry.to))
 }
 
 function onKeydown(event: KeyboardEvent) {

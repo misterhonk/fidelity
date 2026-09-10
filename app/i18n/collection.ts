@@ -194,6 +194,26 @@ const en = {
     digsGo: 'Digs are cleared away after five — this stays.',
     markBought: (label: string) => `Mark ${label} as bought`,
     remove: (label: string) => `Take ${label} off the shortlist`,
+    /*
+     * Was aus „alle in den Korb" wurde, und was aus dem Nachsehen.
+     *
+     * Beide Sätze standen bis zum 2026-09-10 deutsch im Quelltext von
+     * `saved.vue`, in einer englischen Oberfläche — `template-text.spec.ts`
+     * sieht nur zwischen die Tags, und sie kamen aus dem Skript.
+     *
+     * Die Anzahl kommt zweimal: einmal als Zahl, damit gebeugt werden kann,
+     * einmal als fertige Zeichenkette, weil die Tausenderpunkte am Aufrufer
+     * gesetzt werden. Das deutsche „war schon weg" stand vorher auch bei zwei
+     * verkauften Platten da.
+     */
+    moved: (added: string, sold: number, soldText: string) =>
+      sold === 0
+        ? `${added} in the basket.`
+        : `${added} in the basket, ${soldText} ${sold === 1 ? 'was' : 'were'} already gone.`,
+    checked: (sold: number, soldText: string, left: string) =>
+      sold === 0
+        ? `All ${left} still to be had.`
+        : `${soldText} gone since, ${left} still there.`,
   },
 
   /*
@@ -357,6 +377,14 @@ const de: typeof en = {
     digsGo: 'Digs werden nach fünf weggeräumt – das hier bleibt.',
     markBought: (label) => `${label} als gekauft eintragen`,
     remove: (label) => `${label} von der Merkliste nehmen`,
+    moved: (added, sold, soldText) =>
+      sold === 0
+        ? `${added} im Korb.`
+        : `${added} im Korb, ${soldText} ${sold === 1 ? 'war' : 'waren'} schon weg.`,
+    checked: (sold, soldText, left) =>
+      sold === 0
+        ? `Alle ${left} noch zu haben.`
+        : `${soldText} inzwischen weg, ${left} noch da.`,
   },
 
   shelfCount: (shown: string, of: string | null, records: string) =>

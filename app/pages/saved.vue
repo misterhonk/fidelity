@@ -108,10 +108,7 @@ async function intoBasket(group: { dealer: string | null; records: MarkedRecord[
 
     moveResult.value = {
       dealer: group.dealer ?? '',
-      text:
-        result.sold === 0
-          ? `${count(result.added)} im Korb.`
-          : `${count(result.added)} im Korb, ${count(result.sold)} war schon weg.`,
+      text: c.value.saved.moved(count(result.added), result.sold, count(result.sold)),
     }
   } catch (cause) {
     error.value = cause
@@ -150,10 +147,7 @@ async function check() {
     await load()
 
     const left = Object.keys(result.prices).length
-    checkResult.value =
-      result.sold === 0
-        ? `Alle ${count(left)} noch zu haben.`
-        : `${count(result.sold)} inzwischen weg, ${count(left)} noch da.`
+    checkResult.value = c.value.saved.checked(result.sold, count(result.sold), count(left))
   } catch (cause) {
     error.value = cause
   } finally {

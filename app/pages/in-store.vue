@@ -84,16 +84,14 @@ function formats(hit: ShelfHit): string {
   return hit.formats.slice(0, 2).join(', ')
 }
 
-/** How long it has been wanted — the part that makes the answer sting. */
-function waiting(days: number | null): string | null {
-  if (days === null) return null
-  if (days < 1) return 'heute notiert'
-  if (days === 1) return 'seit gestern'
-  if (days < 31) return `seit ${days} Tagen`
-  const months = Math.floor(days / 30)
-  if (months < 24) return `seit ${months} Monaten`
-  return `seit ${Math.floor(months / 12)} Jahren`
-}
+/*
+ * Wie lange sie schon gesucht wird, steht in `~/utils/when`.
+ *
+ * Hier stand dieselbe Verzweigung ein zweites Mal — auf Deutsch, fest im
+ * Quelltext, in einer englischen Oberfläche. Sie hat die Übersetzung von
+ * ADR-010 überlebt, weil `template-text.spec.ts` nur zwischen die Tags sieht
+ * und dieser Satz über `{{ }}` aus dem Skript kam.
+ */
 
 const expired = computed(() => {
   const dig = result.value?.dig
@@ -225,7 +223,7 @@ const expired = computed(() => {
             -->
             <span v-if="formats(hit)">{{ formats(hit) }}</span>
             <span v-if="hit.rating > 0" class="fid-num">{{ hit.rating }}/5</span>
-            <span v-if="waiting(hit.waitingDays)">{{ waiting(hit.waitingDays) }}</span>
+            <span v-if="waitingFor(hit.waitingDays)">{{ waitingFor(hit.waitingDays) }}</span>
             <!--
               How likely the copy in your hand is the one you meant. One of two
               hundred and forty-seven pressings is a different proposition from

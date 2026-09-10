@@ -1,4 +1,6 @@
 import { activeLocale, useMessages } from '~/composables/useMessages'
+import { useCollectionMessages } from '~/i18n/collection'
+import { count } from '~/utils/money'
 
 /**
  * How long ago something was, as a fragment of a sentence.
@@ -69,4 +71,37 @@ export function dayTime(at: number | Date): string {
 /** The short form, for a list where the date is a detail and not the point. */
 export function shortDay(at: number | Date): string {
   return new Intl.DateTimeFormat(activeLocale(), { dateStyle: 'short' }).format(at)
+}
+
+/**
+ * Wie lange eine Platte schon gesucht wird — als Satzfragment.
+ *
+ * Getrennt von `since()` und mit Absicht: dort geht es um einen Zeitpunkt
+ * („vor 2 Tagen"), hier um eine Dauer, die noch andauert („seit 2 Tagen").
+ * `Intl.RelativeTimeFormat` kann das zweite nicht, deshalb kommen diese
+ * Wörter aus dem Paket.
+ *
+ * **Es gab zwei Fassungen davon.** `wantlist.vue` las aus dem Paket,
+ * `in-store.vue` hatte dieselbe Verzweigung nochmal — auf Deutsch, fest im
+ * Quelltext, in einer englischen Oberfläche. Beide beschreiben dieselbe
+ * Tatsache über dieselbe Platte; zwei Kopien davon können nur auseinander
+ * laufen, und eine war schon losgelaufen. Am 2026-09-10 zusammengelegt, aus
+ * demselben Grund, aus dem oben in dieser Datei drei Zeitangaben zu einer
+ * wurden.
+ *
+ * `null` heißt „dazu ist nichts bekannt" und nicht „null Tage" — der Aufrufer
+ * lässt die Zeile dann weg, statt eine Dauer zu behaupten.
+ */
+export function waitingFor(days: number | null): string | null {
+  if (days === null || !Number.isFinite(days)) return null
+
+  const w = useCollectionMessages().value.wantlist.waiting
+  // Null Tage sind Arithmetik, keine Dauer.
+  if (days < 1) return w.today
+  if (days === 1) return w.yesterday
+  if (days < 31) return w.days(count(days))
+
+  const months = Math.floor(days / 30)
+  if (months < 24) return w.months(count(months))
+  return w.years(count(Math.floor(months / 12)))
 }
