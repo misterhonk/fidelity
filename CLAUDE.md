@@ -161,6 +161,27 @@ Releases macht `release-please`. **Version niemals von Hand hochsetzen**,
 
 Vor jedem PR: `pnpm lint && pnpm typecheck && pnpm test:unit && pnpm size`
 
+**Und `pnpm test:e2e`, sobald die Änderung im Browser sichtbar ist** – Navigation,
+Routen, Guards, Service Worker, Layout, alles was ein Bildschirm zeigt oder verschweigt.
+Die Zeile darüber führt es nicht aus, CI schon. Am 2026-08-14 hat ein neuer Route-Guard
+zwölf Browser-Tests umgeworfen und `main` zwei Commits lang rot stehen lassen, weil vor
+dem Push nur die obere Zeile lief.
+
+Zwei Dinge dazu, die man einmal wissen muss:
+
+- **Die Suite baut selbst.** `playwright.config.ts` startet `pnpm build && pnpm preview`
+  als `webServer` – lokal aber nur, wenn nicht schon einer läuft (`reuseExistingServer`).
+  Ein vergessener `pnpm preview` von vorhin prüft den Stand von vorhin. Im Zweifel den
+  alten Prozess beenden.
+- **Es reicht nicht, die neu geschriebene Spec laufen zu lassen.** Der Schaden von 2026-08-14
+  entstand nicht in den neuen Dateien, sondern in fünf alten Specs, die eine stillschweigende
+  Annahme trugen – „diesen Bildschirm erreicht man auch abgemeldet". Solche Annahmen stehen
+  nirgends und fallen nur im Ganzen auf. Zwei Minuten.
+
+Angemeldete Zustände kommen aus `signIn(page)` oder `seed(page)` in `tests/e2e/seed.ts` –
+keine eigene Seed-Prozedur schreiben, die beiden warten auf die Stores und auf die
+Umleitung, die sonst das nächste `goto` unterbricht.
+
 **Der wichtigste Test des Projekts** ist der Golden-File-Test der Scoring-Engine
 (`tests/unit/scoring.spec.ts`) gegen eingefrorene Fixtures echter Inventare und
 Sammlungen. **Jede Änderung an Signalgewichten muss den Snapshot aktualisieren** – und
@@ -176,7 +197,9 @@ nachjustiert, macht Scores über die Zeit unvergleichbar. Details in
 - **Performance-Benchmark:** 20.000 synthetische Listings scoren in < 250 ms
 - **Bundle-Budget** (`size-limit`) – Überschreitung bricht den Build
 - Discogs-API im Test **immer gemockt**, Fixtures unter `tests/fixtures/`
-- Playwright **inkl. WebKit** – schwächstes Ziel ist iOS Safari
+- Playwright **inkl. WebKit** – schwächstes Ziel ist iOS Safari. Die Hälfte der
+  Fehlschläge dort sind Wettläufe zwischen zwei Navigationen, die Chromium gewinnt
+  und WebKit verliert; das ist kein Flackern, sondern eine fehlende Wartestelle
 
 ---
 
