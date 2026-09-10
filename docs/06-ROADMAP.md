@@ -11,13 +11,12 @@
 Die Meilenstein-Versionen in den Überschriften sind Planungsnamen aus der Entwurfszeit
 und nicht die tatsächliche Zählung — die steht in `CHANGELOG.md`.
 
-**M0 bis M10 sind abgearbeitet** bis auf zwei Reste. **M11 bis M14 sind neu** und noch
+**M0 bis M10 sind abgearbeitet** bis auf einen Rest. **M11 bis M14 sind neu** und noch
 nicht angefangen — sie kommen aus der Recherche vom 2026-09-10, was sich die
 Discogs-Community wünscht und in Discogs nicht bekommt.
 
 | offen | wo | Stand |
 |---|---|---|
-| Dig teilen per Link | M9 | letzter Rest des Hubs |
 | `docs/` ist noch deutsch | M10 | größter Brocken, geringste Dringlichkeit |
 | Beobachtete Platten | M11 | entworfen |
 | Wo die Platte steht | M12 | entworfen |
@@ -376,7 +375,11 @@ irgendein Feature ihn voraussetzt. Vollständiges Konzept: `docs/13-HUB-ADDON.md
       „kommt halt nichts an" aus, bis `watch.ts` gescheiterte Zustellungen zählte.
 - [x] Geräte-Sync für Korb und Merkliste — **über den Vault, nicht über den Hub**
       (M8/ADR-007): verschlüsselt, Ziel frei wählbar, funktioniert auch ohne Hub
-- [ ] Dig teilen per Link (TTL 6 h, ToS-konform)
+- [x] Dig teilen per Link (TTL 6 h, ToS-konform) — der Hub trägt Chiffrat unter einer
+      Zufallskennung, der Schlüssel steht im `#`-Fragment und erreicht keinen Server.
+      `GET /v1/share/:id` ist die einzige Tür am Hub ohne Secret, weil der Empfänger
+      keins hat; `POST` bleibt hinter ihm. Die Uhr läuft ab dem Scan, nicht ab dem
+      Verschicken, und der Server deckelt zusätzlich auf sechs Stunden.
 - [x] Dockerfile für den Hub — `deploy/hub.Dockerfile`, das Release-Workflow
       veröffentlicht das Image mit. Der Hub selbst läuft auf Uberspace unter
       supervisord (`.github/workflows/hub.yml`).
