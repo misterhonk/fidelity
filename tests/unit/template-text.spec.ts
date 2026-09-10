@@ -217,3 +217,53 @@ describe('a sentence in a script block', () => {
     expect(literals).toEqual([])
   })
 })
+
+/**
+ * Und eine geworfene Fehlermeldung ist auch Text, den jemand liest.
+ *
+ * `explain.ts` endet mit `title: message || words.unknown` — eine Meldung
+ * ohne Code wird also zum **Titel**, rot und ganz oben. Ein Satz, der als
+ * `new Error('…')` geschrieben wird, steht damit nicht im Kleingedruckten,
+ * sondern ist die Hauptmeldung.
+ *
+ * Am 2026-09-10 waren dreizehn davon deutsch, in einer englischen
+ * Oberfläche: `useVaultCloud.ts`, `useVaultFile.ts`, `vault-file.ts`. Vier
+ * Meldungen in denselben Dateien lasen längst aus dem Paket — das Muster
+ * stand also daneben und wurde nicht befolgt.
+ *
+ * Geprüft wird nur `app/`. **Im Worker gilt diese Regel nicht und kann es
+ * nicht:** die Pakete hängen an `activeLanguage()` im Hauptthread, und der
+ * Worker rechnet, ohne etwas über Sprache zu wissen (CLAUDE.md). Dort ist die
+ * richtige Form ein `code` am `WorkerError`, den `explain()` in Worte fasst —
+ * `unauthorized`, `hub-unreachable` und `rate-limited` machen es vor. Zehn
+ * geworfene deutsche Sätze im Worker warten noch darauf; sie stehen hier
+ * bewusst nicht als Ausnahme, weil eine Ausnahmeliste sie unsichtbar machen
+ * würde.
+ */
+const THROWN = /throw new (?:\w*Error)\(\s*(['"`])((?:[^\\]|\\.)*?)\1/gs
+
+describe('a thrown message', () => {
+  const sources = globSync('app/**/*.{ts,vue}', { cwd: ROOT }).map((file) => ({
+    file,
+    source: readFileSync(join(ROOT, file), 'utf8'),
+  }))
+
+  it('reads every file under app/', () => {
+    expect(sources.length).toBeGreaterThan(40)
+  })
+
+  it('comes from a message pack, because it is shown as the title', () => {
+    const literals: string[] = []
+
+    for (const { file, source } of sources) {
+      for (const [, , message] of source.matchAll(THROWN)) {
+        if (message === undefined) continue
+        // `${…}` ist eine Wortgrenze, kein Wort.
+        if (!TWO_WORDS.test(message.replace(INTERPOLATION, ' '))) continue
+        literals.push(`${file}: ${message.slice(0, 70)}`)
+      }
+    }
+
+    expect(literals).toEqual([])
+  })
+})

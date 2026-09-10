@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest'
 
 import { readVaultFile } from '~~/app/utils/vault-file'
+import en from '~~/app/i18n/en'
+
+/*
+ * Gegen das Paket geprüft, nicht gegen einen abgeschriebenen Satz.
+ *
+ * Zwei dieser Zusagen standen als deutscher Wortlaut hier — `'kein
+ * Fidelity-Tresor'` — und wurden am 2026-09-10 rot, als die Meldung dorthin
+ * zog, wo sie hingehört. Das war der Test, der seine Arbeit tat, und
+ * gleichzeitig eine Kopplung an eine Formulierung: geprüft werden soll,
+ * *welche* Meldung kommt, nicht wie sie gerade lautet.
+ */
+const words = en.error
 
 /**
  * The moment before a file gets overwritten.
@@ -29,16 +41,16 @@ describe('reading a vault file', () => {
      * step writes over the file — turning "I cannot read this" into "this is
      * gone", and the file is the only copy another device has.
      */
-    expect(() => readVaultFile('{kaputt')).toThrow('no readable vault')
-    expect(() => readVaultFile('nicht mal json')).toThrow('no readable vault')
+    expect(() => readVaultFile('{kaputt')).toThrow(words.fileUnreadable)
+    expect(() => readVaultFile('nicht mal json')).toThrow(words.fileUnreadable)
   })
 
   it('refuses a perfectly good file that is not ours', () => {
     // Somebody picks the wrong file in the dialog. They should hear that,
     // not "falsche Passphrase" three seconds later.
-    expect(() => readVaultFile('{"hallo":"welt"}')).toThrow('kein Fidelity-Tresor')
-    expect(() => readVaultFile('null')).toThrow('kein Fidelity-Tresor')
-    expect(() => readVaultFile('[]')).toThrow('kein Fidelity-Tresor')
+    expect(() => readVaultFile('{"hallo":"welt"}')).toThrow(words.notAVault)
+    expect(() => readVaultFile('null')).toThrow(words.notAVault)
+    expect(() => readVaultFile('[]')).toThrow(words.notAVault)
   })
 
   it('refuses a half-written block', () => {
@@ -47,9 +59,7 @@ describe('reading a vault file', () => {
       const partial = Object.fromEntries(
         Object.entries(sealed).filter(([key]) => key !== missing),
       )
-      expect(() => readVaultFile(JSON.stringify(partial)), missing).toThrow(
-        'kein Fidelity-Tresor',
-      )
+      expect(() => readVaultFile(JSON.stringify(partial)), missing).toThrow(words.notAVault)
     }
   })
 })

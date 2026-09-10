@@ -91,6 +91,18 @@ const de: Messages = {
     noFilePicker: 'Dieser Browser kann keine Datei auswählen.',
     noFileChosen: 'Noch keine Datei gewählt.',
     fileUnreadable: 'Die Datei enthält keinen lesbaren Tresor.',
+    fileDenied: 'Der Browser hat den Zugriff auf die Datei nicht erlaubt.',
+    notAVault: 'Diese Datei ist kein Fidelity-Tresor.',
+    oauthRejected: (provider) => `${provider} hat den Code abgelehnt.`,
+    notConnected: 'Noch nicht verbunden.',
+    connectionExpired: 'Die Verbindung ist abgelaufen – bitte neu verbinden.',
+    // Vorher „liess" — die Schweizer Schreibung in einem sonst deutschen Paket.
+    refreshFailed: 'Die Verbindung ließ sich nicht erneuern.',
+    vaultNotGiven: (provider) => `${provider} hat den Tresor nicht herausgegeben.`,
+    vaultNotTaken: (provider) => `${provider} hat den Tresor nicht angenommen.`,
+    vaultNotCreated: (provider) => `${provider} hat den Tresor nicht angelegt.`,
+    providerUnexpected: (provider) => `${provider} antwortet nicht wie erwartet.`,
+    noCloudTarget: 'Kein Cloud-Ziel.',
 
     tokenRevoked: {
       title: 'Discogs nimmt den Token nicht mehr an.',

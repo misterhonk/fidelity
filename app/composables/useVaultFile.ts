@@ -84,7 +84,7 @@ export function useVaultFile() {
     if (!handle) throw new Error(useMessages().value.error.noFileChosen)
 
     if (!(await ensurePermission(handle))) {
-      throw new Error('Der Browser hat den Zugriff auf die Datei nicht erlaubt.')
+      throw new Error(useMessages().value.error.fileDenied)
     }
 
     const file = await handle.getFile()

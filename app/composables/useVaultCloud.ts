@@ -121,7 +121,7 @@ export function useVaultCloud() {
       }),
     })
 
-    if (!response.ok) throw new Error(`${provider.label} hat den Code abgelehnt.`)
+    if (!response.ok) throw new Error(useMessages().value.error.oauthRejected(provider.label))
     await writeTokens(key, readTokenResponse(await response.json()))
     return key
   }
@@ -137,11 +137,11 @@ export function useVaultCloud() {
   /** A token that has aged out is renewed silently; there is nothing to ask. */
   async function accessToken(key: CloudProvider['key'], clientId: string): Promise<string> {
     const tokens = await readTokens(key)
-    if (!tokens) throw new Error('Noch nicht verbunden.')
+    if (!tokens) throw new Error(useMessages().value.error.notConnected)
     if (!tokenExpired(tokens)) return tokens.accessToken
 
     if (!tokens.refreshToken) {
-      throw new Error('Die Verbindung ist abgelaufen – bitte neu verbinden.')
+      throw new Error(useMessages().value.error.connectionExpired)
     }
 
     const provider = CLOUD_PROVIDERS[key]
@@ -155,7 +155,7 @@ export function useVaultCloud() {
       }),
     })
 
-    if (!response.ok) throw new Error('Die Verbindung liess sich nicht erneuern.')
+    if (!response.ok) throw new Error(useMessages().value.error.refreshFailed)
     const fresh = readTokenResponse(await response.json(), Date.now(), tokens)
     await writeTokens(key, fresh)
     return fresh.accessToken
@@ -174,7 +174,7 @@ export function useVaultCloud() {
 
     // 409 is Dropbox's "path not found", which is the first run, not a fault.
     if (response.status === 409) return null
-    if (!response.ok) throw new Error('Dropbox hat den Tresor nicht herausgegeben.')
+    if (!response.ok) throw new Error(useMessages().value.error.vaultNotGiven('Dropbox'))
     return readVaultFile(await response.text())
   }
 
@@ -193,7 +193,7 @@ export function useVaultCloud() {
       },
       body: JSON.stringify(sealed),
     })
-    if (!response.ok) throw new Error('Dropbox hat den Tresor nicht angenommen.')
+    if (!response.ok) throw new Error(useMessages().value.error.vaultNotTaken('Dropbox'))
   }
 
   /** Drive needs the file's id before it can be replaced, hence the lookup. */
@@ -204,7 +204,8 @@ export function useVaultCloud() {
     url.searchParams.set('fields', 'files(id)')
 
     const response = await fetch(url, { headers: { authorization: `Bearer ${token}` } })
-    if (!response.ok) throw new Error('Google Drive antwortet nicht wie erwartet.')
+    if (!response.ok)
+      throw new Error(useMessages().value.error.providerUnexpected('Google Drive'))
 
     const body = (await response.json()) as { files?: { id: string }[] }
     return body.files?.[0]?.id ?? null
@@ -217,7 +218,7 @@ export function useVaultCloud() {
     const response = await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`, {
       headers: { authorization: `Bearer ${token}` },
     })
-    if (!response.ok) throw new Error('Google Drive hat den Tresor nicht herausgegeben.')
+    if (!response.ok) throw new Error(useMessages().value.error.vaultNotGiven('Google Drive'))
     return readVaultFile(await response.text())
   }
 
@@ -234,7 +235,7 @@ export function useVaultCloud() {
           body,
         },
       )
-      if (!response.ok) throw new Error('Google Drive hat den Tresor nicht angenommen.')
+      if (!response.ok) throw new Error(useMessages().value.error.vaultNotTaken('Google Drive'))
       return
     }
 
@@ -268,12 +269,13 @@ export function useVaultCloud() {
         body: multipart,
       },
     )
-    if (!response.ok) throw new Error('Google Drive hat den Tresor nicht angelegt.')
+    if (!response.ok) throw new Error(useMessages().value.error.vaultNotCreated('Google Drive'))
   }
 
   /** One round, same shape as the file target: read, merge in the worker, write. */
   async function sync(target: VaultTarget, clientId: string, passphrase: string) {
-    if (target !== 'dropbox' && target !== 'drive') throw new Error('Kein Cloud-Ziel.')
+    if (target !== 'dropbox' && target !== 'drive')
+      throw new Error(useMessages().value.error.noCloudTarget)
 
     const token = await accessToken(target, clientId)
     const remote = target === 'dropbox' ? await dropboxRead(token) : await driveRead(token)

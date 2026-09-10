@@ -19,8 +19,6 @@ export interface CloudProvider {
   authorizeExtra?: Record<string, string>
   /** Where somebody registers their own app and finds the client id. */
   consoleUrl: string
-  /** What to expect on the registration form, so nobody has to guess. */
-  hint: string
 }
 
 export const CLOUD_PROVIDERS: Record<CloudProvider['key'], CloudProvider> = {
@@ -34,7 +32,6 @@ export const CLOUD_PROVIDERS: Record<CloudProvider['key'], CloudProvider> = {
     scope: 'files.content.read files.content.write',
     authorizeExtra: { token_access_type: 'offline' },
     consoleUrl: 'https://www.dropbox.com/developers/apps',
-    hint: 'Scoped access, App folder, dann die App key eintragen.',
   },
   drive: {
     key: 'drive',
@@ -49,7 +46,6 @@ export const CLOUD_PROVIDERS: Record<CloudProvider['key'], CloudProvider> = {
     scope: 'https://www.googleapis.com/auth/drive.appdata',
     authorizeExtra: { access_type: 'offline', prompt: 'consent' },
     consoleUrl: 'https://console.cloud.google.com/apis/credentials',
-    hint: 'OAuth-Client-ID, Typ „Web application", Drive API aktiviert.',
   },
 }
 

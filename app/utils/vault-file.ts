@@ -31,6 +31,6 @@ export function readVaultFile(text: string): unknown | null {
     typeof sealed.salt === 'string' &&
     typeof sealed.cipher === 'string'
 
-  if (!looksSealed) throw new Error('Diese Datei ist kein Fidelity-Tresor.')
+  if (!looksSealed) throw new Error(useMessages().value.error.notAVault)
   return parsed
 }

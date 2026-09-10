@@ -261,7 +261,7 @@ const redirectUri = computed(() =>
           @change="saveClientId(currentCloud, ($event.target as HTMLInputElement).value)"
         />
         <span class="text-fid-xs text-fid-text-muted">
-          {{ CLOUD_PROVIDERS[currentCloud].hint }} {{ st.vault.redirect(redirectUri) }}
+          {{ st.vault.providerHint[currentCloud] }} {{ st.vault.redirect(redirectUri) }}
         </span>
         <span class="text-fid-xs text-fid-text-muted">{{ st.vault.redirectMoved }}</span>
       </label>

@@ -159,12 +159,37 @@ const en = {
       action: 'That is the hub talking, not Discogs — its own log will say more.',
     }),
 
-    /** Four failures with no code from Discogs — they get their own words. */
+    /*
+     * The vault's own failures — no code from Discogs, so they get their own
+     * words.
+     *
+     * Five of these read from here; thirteen more were German string literals
+     * in `useVaultCloud.ts`, `useVaultFile.ts` and `vault-file.ts` until the
+     * 2026-09-10. That is not a detail buried in a log: `explain()` has no code
+     * to match, so it falls through to its last line and makes the message the
+     * **title** — red, at the top, in an English interface.
+     *
+     * Where a sentence differs only in the provider's name, it is one sentence
+     * with the name passed in. "Dropbox did not hand the vault over" and
+     * "Google Drive did not hand the vault over" were two literals saying the
+     * same thing in two places.
+     */
     oauthMismatch: 'The provider’s answer does not belong to this request.',
     oauthNoToken: 'The provider sent no access key.',
     noFilePicker: 'This browser cannot pick a file.',
     noFileChosen: 'No file chosen yet.',
     fileUnreadable: 'The file holds no readable vault.',
+    fileDenied: 'The browser did not allow access to the file.',
+    notAVault: 'This file is not a Fidelity vault.',
+    oauthRejected: (provider: string) => `${provider} rejected the code.`,
+    notConnected: 'Not connected yet.',
+    connectionExpired: 'The connection has expired — please connect again.',
+    refreshFailed: 'The connection could not be renewed.',
+    vaultNotGiven: (provider: string) => `${provider} did not hand the vault over.`,
+    vaultNotTaken: (provider: string) => `${provider} did not accept the vault.`,
+    vaultNotCreated: (provider: string) => `${provider} did not create the vault.`,
+    providerUnexpected: (provider: string) => `${provider} is not answering as expected.`,
+    noCloudTarget: 'No cloud target.',
 
     tokenRevoked: {
       title: 'Discogs no longer accepts the token.',

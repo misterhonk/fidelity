@@ -269,6 +269,17 @@ const en = {
     clientId: (provider: string) => `Client ID from ${provider}`,
     redirect: (uri: string) => `As the redirect URL, enter ${uri}.`,
     /*
+     * What the provider's registration form expects, so nobody has to guess.
+     *
+     * Stood in `CLOUD_PROVIDERS` (`app/utils/cloud-vault.ts`) until the
+     * 2026-09-10, in German — and rendered directly beside `redirect()` above,
+     * so one sentence was English and the half before it was not.
+     */
+    providerHint: {
+      dropbox: 'Scoped access, App folder, then enter the app key.',
+      drive: 'An OAuth client id of type “Web application”, with the Drive API enabled.',
+    },
+    /*
      * Said because it is the one rename somebody cannot fix from here: the
      * redirect URL lives in a registration at Dropbox or Google. The old one
      * still works — the app and the server both send it on, query and all —
@@ -710,6 +721,10 @@ const de: typeof en = {
 
     clientId: (provider) => `Client-ID von ${provider}`,
     redirect: (uri) => `Als Redirect-URL trägst du ${uri} ein.`,
+    providerHint: {
+      dropbox: 'Scoped access, App folder, dann die App key eintragen.',
+      drive: 'OAuth-Client-ID, Typ „Web application", Drive API aktiviert.',
+    },
     redirectMoved:
       'Vor August 2026 eingerichtet? Die Adresse endete damals auf /einstellungen/abgleich. Sie funktioniert weiter – da ist nichts zu tun.',
     connect: (provider) => `Mit ${provider} verbinden`,
