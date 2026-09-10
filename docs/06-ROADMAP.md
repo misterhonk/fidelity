@@ -23,7 +23,7 @@ Discogs-Community wünscht und in Discogs nicht bekommt.
 | Wo die Platte steht | M12 | entworfen |
 | Die Platte in der Hand erkennen | M13 | entworfen |
 | Gradet dieser Laden ehrlich? | M14 | entworfen, zwei Messungen davor |
-| Der Stapel (Wischen statt Liste) | M15 | entworfen; die Hörprobe braucht eine Entscheidung |
+| Der Stapel (Wischen statt Liste) | M15 | entworfen, Ton per ADR-012 entschieden; **nach** M9 |
 
 Wächter mit Web Push und das Hub-Dockerfile standen bis zum 2026-09-10 als offen in
 dieser Tabelle und waren beide seit dem 14. August gebaut. Am Code nachgesehen, nicht
@@ -674,27 +674,26 @@ Pressing-Felder.
 Stichprobe über sieben Releases: fünf hatten Videos (14, 17, 9, 1, 1), zwei keine. Also
 grob zwei von drei — bei sieben Stück ist das ein Anhaltspunkt und keine Zahl.
 
-> ⚠️ **Und hier liegt die eigentliche Entscheidung, und sie ist keine technische.**
-> Discogs' einzige Tonquelle ist YouTube. Ein Embed lädt Google, und die Datenschutzseite
-> sagt heute wörtlich: „alles liegt in der Datenbank deines Browsers und **verlässt dieses
-> Gerät nicht**." Mit einem eingebetteten Player wäre dieser Satz **falsch**.
->
-> Drei Wege, und der mittlere ist vermutlich der richtige:
->
-> 1. **Kein Ton.** Das Versprechen bleibt, wie es ist.
-> 2. **Ton als ausdrückliche Ausnahme:** standardmäßig aus, einmal pro Gerät
->    einzuschalten, mit einem Satz, der sagt, was passiert — und die Datenschutzseite
->    bekommt den Absatz dazu. Dasselbe Muster wie ADR-009 beim Freunde-Import.
-> 3. **Nur hinausverlinken.** Kein Embed, kein Google in unserer Seite; der Nutzer geht
->    selbst hin. Ehrlich, aber im Wischstapel kaum benutzbar.
->
-> Weg 2 braucht eine eigene ADR, so wie ADR-009 eine brauchte.
+**Entschieden am 2026-09-10: [ADR-012](adr/012-hoerprobe.md).** Die Hörprobe kommt, als
+benannte Ausnahme in der Form von ADR-009 — denn Discogs' einzige Tonquelle ist YouTube,
+und ein Embed lädt Google. Was dabei tatsächlich abfließt, ist nicht die Sammlung, sondern
+die IP und welche Platte gerade angesehen wird; der Satz „verlässt dieses Gerät nicht"
+stimmt danach trotzdem nicht mehr ohne Zusatz, und ein Versprechen, das nur fast stimmt,
+ist gebrochen.
 
-- [ ] Autoplay geht nicht ohne Weiteres: Browser verlangen eine Geste, bevor Ton läuft.
-      Ein Tippen bewaffnet den Stapel, danach spielt er weiter — das ist der Entwurf,
-      nicht ein Fehler, der sich wegprogrammieren ließe.
-- [ ] Und der Ton hängt an der Platte, nicht am Stück: `videos[]` gehört zum Release. Bei
-      einer Compilation ist das erste Video nicht zwingend das, was auf dem Cover steht.
+- [ ] Standardmäßig aus, ein Schalter pro Gerät
+- [ ] **Kein Byte an Google, bevor jemand es will.** Der `<iframe>` entsteht erst beim
+      ersten bewussten Tippen, nicht beim Zeichnen einer Karte
+- [ ] Danach eine Player-Instanz, die mitwandert (`loadVideoById()` je Karte). Das ist
+      zugleich der einzige Weg, der funktioniert: Browser verlangen für Ton eine Geste,
+      und diese eine trägt dann durch den Stapel. **Autoplay auf Karte eins gibt es
+      nicht**, in keinem Browser
+- [ ] `youtube-nocookie.com` — verhindert Cookies vor dem Abspielen, nicht die Anfrage
+- [ ] Die Datenschutzseite bekommt einen eigenen Absatz, der beim Namen nennt, wer was
+      erfährt
+- [ ] Der Ton hängt an der Platte, nicht am Stück: `videos[]` gehört zum Release. Bei
+      einer Compilation nennt der Bildschirm den Titel, den er spielt, statt so zu tun,
+      als wäre es *die* Platte
 
 ---
 
@@ -732,4 +731,8 @@ M12 (Lagerorte) ────▶ hängt an nichts. Null Requests, rein lokal.
       └──▶ M13 (Erkennen) — Stufe 2 rechnet auf den Covern aus db/covers.ts
 
 M14 (Grading) ──────▶ hängt am Händler-Fingerprint aus M3
+
+M15 (Stapel) ───────▶ **nach** „Dig teilen" aus M9, nicht davor: der dritte
+                      Knopf auf jeder Karte *ist* das Teilen. Andersherum
+                      baut man einen Knopf, der nichts tut — oder zweimal
 ```
