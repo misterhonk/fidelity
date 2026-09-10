@@ -95,11 +95,35 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     }),
   )
 
+  /*
+   * Eine geteilte Fundliste ist zum Lesen da — auch für jemanden ohne Secret.
+   *
+   * Das ist der Sinn der Sache: der Link geht an einen Freund, der diesen Hub
+   * nicht kennt. Verlangte das Lesen das Secret, müsste man es mitschicken —
+   * und damit hätte man den Zugang zum ganzen Hub verschenkt, um eine
+   * Fundliste zu zeigen.
+   *
+   * Was dabei offen liegt, ist nichts: die Kennung ist ein Zufallswert aus
+   * 128 Bit, und was darunter steht, ist Chiffrat, dessen Schlüssel im
+   * `#`-Fragment des Links steht und keinen Server erreicht. Wer eine Kennung
+   * errät, bekommt eine Zeichenkette.
+   *
+   * **Nur Lesen.** `POST /v1/share` bleibt hinter dem Secret — sonst wäre der
+   * Hub ein Pastebin, das jeder befüllen darf.
+   *
+   * Die Methodenprüfung ist heute streng genommen überzählig: das Muster
+   * verlangt ein Segment hinter `/share/`, und dorthin schreibt niemand.
+   * Sie bleibt trotzdem, weil sie es dann ist, wenn jemand später ein
+   * `PUT /v1/share/:id` ergänzt — und dann wäre es niemandem aufgefallen.
+   */
+  const OPEN_READS = /^\/v1\/share\/[^/]+$/
+
   app.use('/v1/*', async (c, next) => {
     // No secret configured means an open hub, which is a legitimate choice for
     // something on a home network. Health stays open either way so a monitor
     // does not need the secret.
     if (!secret || c.req.path === '/v1/health') return next()
+    if (c.req.method === 'GET' && OPEN_READS.test(c.req.path)) return next()
     if (c.req.header('x-hub-secret') !== secret) {
       return c.json({ error: 'wrong or missing x-hub-secret' }, 401)
     }
@@ -411,8 +435,128 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     return c.json({ stored: true })
   })
 
+  /*
+   * Eine Fundliste teilen — der Hub trägt sie, ohne sie zu kennen.
+   *
+   * Was hier ankommt, ist derselbe versiegelte Umschlag wie beim Tresor, nur
+   * mit einem Zufallsschlüssel statt einer Passphrase. Der Hub prüft die Form
+   * und speichert; lesen kann er nichts.
+   */
+  const SHARE_ID = /^[a-f0-9]{32}$/
+
+  app.post('/v1/share', async (c) => {
+    const raw = await c.req.text()
+    if (raw.length > MAX_SHARE_BYTES) return c.json({ error: 'too large' }, 413)
+
+    const parsed = shareSchema.safeParse(safeJson(raw))
+    if (!parsed.success) return c.json({ error: 'not a share' }, 400)
+
+    const at = now()
+    /*
+     * Eine Ablaufzeit in der Vergangenheit ist kein Fehler, sondern ein
+     * abgelaufener Dig — und sie anzunehmen hieße, etwas zu speichern, das
+     * beim ersten Abruf schon weg ist. Das sagt sich besser sofort.
+     */
+    if (parsed.data.expiresAt <= at) return c.json({ error: 'already expired' }, 400)
+
+    /*
+     * Die Obergrenze ist Regel 4 als Zahl. Der Client rechnet sie aus dem Dig
+     * aus, aber der Hub darf sich darauf nicht verlassen: eine geteilte
+     * Fundliste, die drei Tage lebt, wäre ein Verstoß, den niemand mehr sieht.
+     */
+    const latest = at + MAX_SHARE_LIFETIME_MS
+    const expiresAt = Math.min(parsed.data.expiresAt, latest)
+
+    db.prepare(
+      `INSERT INTO shares (id, body, expires_at, created_at)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         body = excluded.body,
+         expires_at = excluded.expires_at`,
+    ).run(parsed.data.id, JSON.stringify(parsed.data.sealed), expiresAt, at)
+
+    sweepShares(db, at)
+    return c.json({ stored: true, expiresAt })
+  })
+
+  app.get('/v1/share/:id', (c) => {
+    const id = c.req.param('id')
+    if (!SHARE_ID.test(id)) return c.json({ error: 'not a share id' }, 400)
+
+    const at = now()
+
+    /*
+     * Die Ablaufzeit steht in der Abfrage, nicht in einer zweiten Prüfung
+     * daneben.
+     *
+     * Hier standen erst beide: ein Kehraus davor und ein `if` danach. Eine
+     * Mutationsprobe hat gezeigt, dass das `if` **toter Code** war — Kehraus
+     * und Abfrage benutzen dasselbe `at`, also kann keine Zeile den einen
+     * überleben und am anderen scheitern. Der Kommentar daneben behauptete
+     * eine Sekunde dazwischen, die es nicht gibt.
+     *
+     * Eine Stelle entscheidet, und der Kehraus räumt nur auf.
+     */
+    const row = db
+      .prepare('SELECT body, expires_at FROM shares WHERE id = ? AND expires_at > ?')
+      .get(id, at) as { body: string; expires_at: number } | undefined
+
+    sweepShares(db, at)
+
+    if (!row) return c.json({ error: 'gone' }, 404)
+    return c.json({ sealed: JSON.parse(row.body), expiresAt: row.expires_at })
+  })
+
   return app
 }
+
+/**
+ * Abgelaufenes verschwindet, und zwar wirklich.
+ *
+ * Kein Hintergrund-Job: der Hub soll auf einem Raspberry Pi laufen und nichts
+ * tun, wenn niemand ihn benutzt. Geräumt wird beim Anfassen — das reicht,
+ * weil eine Fundliste, die niemand liest, auch niemanden stört, und die
+ * nächste Anfrage sie ohnehin mitnimmt.
+ */
+function sweepShares(db: DatabaseSync, at: number): void {
+  db.prepare('DELETE FROM shares WHERE expires_at <= ?').run(at)
+}
+
+/**
+ * Der Umschlag einer geteilten Fundliste.
+ *
+ * Wie `sealedSchema`, plus die Kennung und die Ablaufzeit — beides muss der
+ * Hub sehen, weil er danach ablegt und aufräumt. Den Inhalt sieht er nicht.
+ */
+const shareSchema = z.object({
+  id: z.string().regex(/^[a-f0-9]{32}$/),
+  expiresAt: z.number().int().positive(),
+  sealed: z.object({
+    version: z.number().int().positive(),
+    iv: z.string().min(1),
+    salt: z.string().min(1),
+    cipher: z.string().min(1),
+  }),
+})
+
+/**
+ * Wie groß eine geteilte Fundliste werden darf.
+ *
+ * Ein Dig mit tausend Treffern ist verschlüsselt und base64-kodiert deutlich
+ * unter einem Megabyte. Zwei sind reichlich Luft und immer noch nichts, womit
+ * jemand eine SD-Karte füllt.
+ */
+export const MAX_SHARE_BYTES = 2 * 1024 * 1024
+
+/**
+ * Und wie lange, obendrauf auf das, was der Client sagt.
+ *
+ * Sechs Stunden sind die Regel aus `docs/09` §1.1, hier als Zahl auf dem
+ * Server. Der Client rechnet die Ablaufzeit aus dem Dig aus — aber ein
+ * Client, der sich irrt oder gefälscht ist, darf keine Fundliste hinterlassen,
+ * die drei Tage lebt.
+ */
+export const MAX_SHARE_LIFETIME_MS = 6 * 60 * 60 * 1000
 
 /**
  * The envelope, and only the envelope.

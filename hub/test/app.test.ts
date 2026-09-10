@@ -436,3 +436,153 @@ describe('covers', () => {
     assert.equal((await app.request('/v1/covers?ids=1')).status, 401)
   })
 })
+
+/**
+ * Eine geteilte Fundliste.
+ *
+ * Drei Zusagen, von denen man zwei von außen nicht sieht und die dritte erst,
+ * wenn sie gebrochen ist:
+ *
+ * 1. **Lesen geht ohne Secret.** Sonst müsste man das Secret in den Link
+ *    schreiben und hätte den ganzen Hub verschenkt, um eine Liste zu zeigen.
+ * 2. **Schreiben geht nicht ohne.** Sonst ist der Hub ein Pastebin.
+ * 3. **Nach sechs Stunden ist sie weg** — und zwar sechs Stunden ab dem
+ *    *Scan*, nicht ab dem Teilen. Wer beim Verschicken neu zu zählen anfängt,
+ *    zeigt am Ende elf Stunden alte Preise (Regel 4).
+ */
+describe('eine geteilte Fundliste', () => {
+  const sealed = () => ({
+    version: 1,
+    iv: 'AAAAAAAAAAAAAAAA',
+    salt: 'AAAAAAAAAAAAAAAAAAAAAA==',
+    cipher: 'Zm9vYmFy',
+  })
+
+  const ID = 'b'.repeat(32)
+  const STUNDE = 60 * 60 * 1000
+
+  /** Der Hub steht auf `now: () => 42`; alles davor ist Vergangenheit. */
+  const share = (over = {}) => ({
+    id: ID,
+    expiresAt: 42 + 3 * STUNDE,
+    sealed: sealed(),
+    ...over,
+  })
+
+  const post = (app, body, headers = {}) =>
+    app.request('/v1/share', {
+      method: 'POST',
+      body: typeof body === 'string' ? body : JSON.stringify(body),
+      headers: { 'content-type': 'application/json', ...headers },
+    })
+
+  test('nimmt sie an und gibt sie wieder heraus', async () => {
+    const { app } = hub()
+    assert.equal((await post(app, share())).status, 200)
+
+    const answer = await app.request(`/v1/share/${ID}`)
+    assert.equal(answer.status, 200)
+    const body = await answer.json()
+    assert.deepEqual(body.sealed, sealed())
+  })
+
+  /**
+   * Der Punkt der ganzen Übung.
+   *
+   * Der Link geht an jemanden, der diesen Hub nicht kennt und das Secret nicht
+   * hat. Verlangte das Lesen es, wäre das Feature sinnlos — und der einzige
+   * Weg, es doch zu benutzen, wäre, das Secret mitzuschicken.
+   */
+  test('lässt sich ohne Secret lesen', async () => {
+    const { app } = hub('geheim')
+    assert.equal((await post(app, share(), { 'x-hub-secret': 'geheim' })).status, 200)
+
+    // Ohne jeden Header — so kommt der Freund an.
+    assert.equal((await app.request(`/v1/share/${ID}`)).status, 200)
+  })
+
+  /** Und die andere Hälfte: hineinschreiben darf nur, wer dazugehört. */
+  test('lässt sich ohne Secret nicht befüllen', async () => {
+    const { app } = hub('geheim')
+    assert.equal((await post(app, share())).status, 401)
+    assert.equal((await app.request(`/v1/share/${ID}`)).status, 404)
+  })
+
+  /**
+   * Und sie ist eine **Lese**tür.
+   *
+   * Heute läuft nichts anderes über diesen Pfad, die Prüfung auf `GET` ist
+   * also überzählig — bis jemand ein `PUT /v1/share/:id` ergänzt. Der
+   * Unterschied ist von außen sichtbar: an der Tür abgewiesen ist 401,
+   * hereingelassen und nichts gefunden wäre 404.
+   */
+  test('ist eine Lesetür und keine Klappe', async () => {
+    const { app } = hub('geheim')
+    for (const method of ['POST', 'PUT', 'DELETE']) {
+      const antwort = await app.request(`/v1/share/${ID}`, { method })
+      assert.equal(antwort.status, 401, method)
+    }
+  })
+
+  /** Die offene Lesetür gilt für genau diesen Pfad und nicht für den Rest. */
+  test('öffnet keine andere Tür mit', async () => {
+    const { app } = hub('geheim')
+    for (const pfad of ['/v1/covers', '/v1/vault/' + 'a'.repeat(32), '/v1/watch/key']) {
+      assert.equal((await app.request(pfad)).status, 401, pfad)
+    }
+  })
+
+  test('vergisst sie, sobald der Dig abgelaufen ist', async () => {
+    const db = openHubDb(':memory:')
+    let jetzt = 1_000_000
+    const app = createHubApp({ db, secret: null, now: () => jetzt })
+
+    await app.request('/v1/share', {
+      method: 'POST',
+      body: JSON.stringify({ id: ID, expiresAt: jetzt + STUNDE, sealed: sealed() }),
+      headers: { 'content-type': 'application/json' },
+    })
+    assert.equal((await app.request(`/v1/share/${ID}`)).status, 200)
+
+    jetzt += STUNDE + 1
+    assert.equal((await app.request(`/v1/share/${ID}`)).status, 404)
+
+    // Und zwar wirklich weg, nicht nur verschwiegen.
+    const rest = db.prepare('SELECT COUNT(*) AS n FROM shares').get()
+    assert.equal(rest.n, 0)
+  })
+
+  /**
+   * Regel 4 auch gegen den eigenen Client.
+   *
+   * Die Ablaufzeit rechnet der Client aus dem Dig aus. Ein Client, der sich
+   * irrt — oder einer, den jemand nachgebaut hat —, darf keine Fundliste
+   * hinterlassen, die drei Tage lebt.
+   */
+  test('kürzt eine Ablaufzeit, die zu weit in der Zukunft liegt', async () => {
+    const { app } = hub()
+    const antwort = await post(app, share({ expiresAt: 42 + 72 * STUNDE }))
+    assert.equal(antwort.status, 200)
+
+    const { expiresAt } = await antwort.json()
+    assert.equal(expiresAt, 42 + 6 * STUNDE)
+  })
+
+  test('nimmt gar nicht erst an, was schon abgelaufen ist', async () => {
+    const { app } = hub()
+    assert.equal((await post(app, share({ expiresAt: 41 }))).status, 400)
+  })
+
+  test('weist zurück, was kein versiegelter Umschlag ist', async () => {
+    const { app } = hub()
+    assert.equal((await post(app, { id: ID, expiresAt: 42 + STUNDE })).status, 400)
+    assert.equal((await post(app, 'kein json')).status, 400)
+    assert.equal((await post(app, share({ id: 'zu-kurz' }))).status, 400)
+  })
+
+  test('kennt eine Kennung, die es nicht gibt, als weg', async () => {
+    const { app } = hub()
+    assert.equal((await app.request(`/v1/share/${'c'.repeat(32)}`)).status, 404)
+    assert.equal((await app.request('/v1/share/keine-kennung')).status, 400)
+  })
+})

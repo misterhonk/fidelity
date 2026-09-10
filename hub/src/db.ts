@@ -93,6 +93,31 @@ export function openHubDb(path: string): DatabaseSync {
    * Push-Subscription, die je vergeben wurde, und ein neuer Schlüssel macht
    * sie alle ungültig.
    */
+  /*
+   * Eine geteilte Fundliste — Chiffrat, und sonst nichts.
+   *
+   * Der Hub speichert hier einen Block, den er nicht lesen kann: der Schlüssel
+   * steht im `#`-Fragment des Links und wird von keinem Browser an einen
+   * Server geschickt. Was hier liegt, ist für den Hub eine Zeichenkette.
+   *
+   * `expires_at` ist **nicht** „sechs Stunden ab dem Teilen", sondern das
+   * `expiresAt` des Digs selbst. Andersherum wäre eine fünf Stunden alte
+   * Fundliste am Ende elf Stunden alt, und Regel 4 verbietet, Marktdaten
+   * älter als sechs Stunden zu zeigen — die Uhr läuft ab dem Scan, nicht ab
+   * dem Verschicken.
+   */
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS shares (
+      id         TEXT PRIMARY KEY,
+      body       TEXT NOT NULL,
+      expires_at INTEGER NOT NULL,
+      created_at INTEGER NOT NULL
+    )
+  `)
+
+  // Abgelaufenes wird beim Lesen weggeräumt; der Index macht das billig.
+  db.exec('CREATE INDEX IF NOT EXISTS shares_expires ON shares (expires_at)')
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS meta (
       key   TEXT PRIMARY KEY,
