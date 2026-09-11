@@ -986,7 +986,7 @@ font sets, `UCommandPalette`, a Reka drawer and `motion-v`, none of which exist.
 
 ---
 
-## M19 · Candidates → planned
+## M19 · Candidates → done
 
 **Where these come from.** A research pass over the Discogs forum, r/discogs, r/vinyl,
 Hacker News and the app-store reviews of every Discogs client (2026-09-11), ranked by how
@@ -995,7 +995,10 @@ does the API ToS allow it, does it serve the thesis (collection first, the shop 
 the sentence as the product), and what does it cost. The full ranking with sources is in
 `docs/14-RELAUNCH-CONCEPT.md` §2.
 
-**In this order**, because each earlier one touches no architecture:
+**In this order**, because each earlier one touches no architecture. All nine landed on
+2026-09-11, releases 0.30.0 to 0.38.0 — and two of them (6 and 7) without the hub the table
+had budgeted for, because the API already answered what the hub would only have cached:
+
 
 | # | Candidate | Serves | Cost | Note |
 |---|---|---|---|---|

@@ -34,7 +34,8 @@ you already know get "only what is new" since your last visit.
 **Understand why.** Every find says which signals fired and what they were based on: an
 artist in your collection, a wish on your wantlist, a label you follow, a gap in a
 catalogue run, somebody who appears in the small print of your favourite records. None of
-it is a black box.
+it is a black box. And an artist is recognised under every name Discogs knows them by —
+"Miss Dinky" is Dinky, and the sentence says so.
 
 **The basket.** One per dealer, because postage is charged per parcel. Postage tiers, the
 marginal cost of each further record, and the question "what would fit €50?" with an
@@ -42,14 +43,20 @@ answer. And in the find list itself, every record says what it costs with the po
 would add — sortable, and with a ceiling that counts it.
 
 **Your collection.** Shelf, map and wantlist. The map shows where your collection is dense
-and where the gaps are — by label, decade and style.
+and where the gaps are — by label, decade and style — and keeps Discogs' estimate of what
+it is worth, day by day, as a line. A year on the shelf at a time: what arrived, where it
+came from, who made it. The wantlist knows which of your wants the shops you scanned have,
+and which set of shops covers them cheapest once the postage is counted. Both lists leave
+as CSV, with the columns Discogs' own export lacks.
 
 **In the shop.** With the record in your hand: "do I have this already?" Answered from the
-device, with no signal. Record shops are basements. At a record fair, every shop you scanned
-in the last day is one tap away, or all of them as one list.
+device, with no signal. Record shops are basements. Type the barcode or the run-out and it
+says which pressing you are holding, among all of them: "Europe reissue from 2017, not the
+1994 original." At a record fair, every shop you scanned in the last day is one tap away, or
+all of them as one list.
 
 **Shops.** What a dealer actually stocks, how well they fit you, and whether their stock
-has moved since your last visit.
+has moved since your last visit. And one you never want to see again is hidden, everywhere.
 
 **Try it without signing in.** The start page demonstrates it on one record, with no token
 and no account. Real machinery, not a mock-up.
