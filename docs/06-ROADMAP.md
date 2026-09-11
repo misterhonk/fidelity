@@ -11,17 +11,14 @@
 Die Meilenstein-Versionen in den Überschriften sind Planungsnamen aus der Entwurfszeit
 und nicht die tatsächliche Zählung — die steht in `CHANGELOG.md`.
 
-**M0 bis M10 sind abgearbeitet** bis auf einen Rest. **M11 bis M14 sind neu** und noch
-nicht angefangen — sie kommen aus der Recherche vom 2026-09-10, was sich die
-Discogs-Community wünscht und in Discogs nicht bekommt.
+**M0 bis M12 und M15 sind abgearbeitet.** Offen sind drei Punkte und ein Rest:
 
 | offen | wo | Stand |
 |---|---|---|
-| `docs/` ist noch deutsch | M10 | größter Brocken, geringste Dringlichkeit |
-| Wo die Platte steht | M12 | entworfen |
 | Die Platte in der Hand erkennen | M13 | entworfen |
-| Gradet dieser Laden ehrlich? | M14 | entworfen, zwei Messungen davor |
-| Der Stapel (Wischen statt Liste) | M15 | entworfen, Ton per ADR-012 entschieden; **nach** M9 |
+| Gradet dieser Laden ehrlich? | M14 | entworfen, eine Messung davor |
+| Lagerorte über den Tresor mitreisen lassen | M12 | der einzige offene Haken dort |
+| `docs/` ist noch deutsch | M10 | größter Brocken, geringste Dringlichkeit |
 
 Wächter mit Web Push und das Hub-Dockerfile standen bis zum 2026-09-10 als offen in
 dieser Tabelle und waren beide seit dem 14. August gebaut. Am Code nachgesehen, nicht
@@ -543,22 +540,23 @@ nicht aufgemacht hat. Discogs kennt diesen Ort nicht und will ihn nicht kennen.
 Das ist dieselbe Frage wie der In-Store-Bildschirm, einen Schritt weiter: dort heißt sie
 „habe ich die schon?", hier „und wo ist sie dann?".
 
-- [ ] Orte als flache Hierarchie: Ort → Möbel → Fach/Kiste. Drei Ebenen reichen, und
-      mehr baut sich niemand.
-- [ ] Ein Exemplar liegt an einem Ort — an der `instanceId`, nicht an der `releaseId`.
-      Wer zwei Pressungen hat, hat sie an zwei Stellen.
-- [ ] Beide Richtungen: „wo ist X" und „was liegt im Keller".
-- [ ] Offline und lokal. Ein Standort ist eine Aussage über die eigene Wohnung, kein
-      Discogs-Datum — er bleibt auf dem Gerät (ADR-007).
+- [x] Orte als flache Hierarchie: Ort → Möbel → Fach/Kiste. Drei Ebenen, erzwungen.
+- [x] Ein Exemplar liegt an einem Ort — an der `instanceId`, nicht an der `releaseId`.
+- [x] Beide Richtungen: „wo ist X" im Regal-Sheet, „was liegt im Keller" als Reiter.
+- [x] Offline und lokal, **null Requests**. Ein eigener Store, den der Sync nicht anfasst.
 - [ ] Über den Tresor mitreisen, damit das Telefon im Keller dieselbe Antwort gibt.
-- [ ] Umziehen können: „alles aus Kiste 3 nach Regal 2" ist der Normalfall nach einem
-      Umzug, nicht das Einzelstück.
+- [x] Umziehen können: „alles aus Kiste 3 nach Regal 2".
 
-⚠️ **Zu messen, bevor gebaut wird:** ob `GET /users/{u}/collection/fields` auch
-selbst angelegte Felder zurückgibt. `worker/collection/fields.ts` kennt heute drei
-(Media, Sleeve, Notes). Gibt es benutzerdefinierte, könnte der Standort **optional** dort
-mitgeschrieben werden und wäre auch außerhalb von Fidelity sichtbar. Das ist eine Zugabe,
-keine Voraussetzung — die Wahrheit bleibt lokal.
+✅ **Gemessen am 2026-09-11, und die Antwort ist nein.** `GET
+/users/{u}/collection/fields` gibt genau drei Felder zurück — Media Condition, Sleeve
+Condition, Notes — und keine selbst angelegten. Ein Standort kann also auch optional
+nicht zu Discogs mitwandern: es gibt kein Feld dafür.
+
+⚠️ **Der zweite Fund war wichtiger und stand nicht in der Liste.**
+`worker/sync/library.ts` schreibt jede Sammlungszeile mit `put()` neu. Ein `placeId`
+**am** Eintrag wäre nach dem nächsten vollen Durchlauf weg — lautlos, und niemand merkt
+es, bis er eine Platte sucht. Deshalb ein eigener Store, und ein Test hält fest, dass der
+Sync ihn nicht kennt.
 
 ---
 
