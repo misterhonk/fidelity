@@ -11,7 +11,9 @@
 The milestone versions in the headings are planning names from the design period, not the
 actual numbering — that is in `CHANGELOG.md`.
 
-**M0 through M17 are done, and nothing is open.**
+**M0 through M18 are done. M19 is open** — the first list of candidates in this file that
+came from outside the project: from what Discogs users ask for, checked against what this
+architecture can do (`docs/14-RELAUNCH-CONCEPT.md` has the research behind it).
 
 `docs/` was still German until 2026-09-11 and was translated then — fourteen numbered
 documents and thirteen ADRs. That was read as ADR-010 being finished. It was not: the rule
@@ -958,6 +960,57 @@ moment, when something has already gone wrong.
 
 ---
 
+## M18 · The audit → done
+
+On 2026-09-11 the whole frontend was read against `docs/05`, the tokens and the eleven
+message packs, and the built app was photographed on a desktop and a phone. Ten findings,
+ranked by what a user sees, all fixed the same day:
+
+| # | Finding | Fix |
+|---|---|---|
+| 1 | In-store screen read "7 7 finds" and, under seven finished finds, "No dig yet" | `in-store.vue`: the count was printed twice; the empty state tested "not done" instead of "no dig" |
+| 2 | German inside the English interface — "4 Platten" in the basket, "– hast du" to a screen reader | Plurals inside the packs, labels from the packs; `tests/unit/script-text.spec.ts` now reads string literals, which `template-text.spec.ts` never could |
+| 3 | No focus trap and no focus return in either detail sheet, though `docs/05` promised both | `SheetFrame.vue`: one drawer for both sheets, focus kept in and handed back |
+| 4 | `ShelfSheet` used a class defined only in `ReleaseSheet`'s scoped style — its view transition and reduced-motion opt-out were dead | The name is a custom property on the frame; `.fid-sheet` and its opt-out live once in `main.css` |
+| 5 | `@sm:` inside the shelf sheet measured the window, not the 512 px drawer | `@container` on the panel |
+| 6 | Update banner at `max-w-[80rem]`, footer with its own padding — a third and fourth measure | Both in `fid-page`; `one-measure.spec.ts` checks them |
+| 7 | `tokens/component.json` emitted nine variables and nothing read any of them | Chip alphas, row height, target floor and both motion durations are referenced; `comfortable` and `cover.size` deleted rather than kept as promises |
+| 8 | shop / dealer / seller mixed within six lines; nav said "Shops", palette said "Dealers" | *shop* in English, *Laden* in German, everywhere a person reads it. *dealer* stays a code word; "seller rating" stays Discogs' term |
+| 9 | Start page blank until the stores answered; four pages without an error state; five empty states without a way out | A loading line, `ErrorNote` on `/dealers`, `/basket`, `/wantlist`, `/map`, a link in every empty state |
+| 10 | "40 records" on the shelf, "37 records" on the map | The map says "37 different releases" — it counts taste, the shelf counts copies |
+
+Found on the way and fixed with it: seven pressing marks whose label and sentence were
+German in the worker (now keyed, worded in `app/i18n/pressing.ts`), fourteen German log
+and error strings in the worker, and `docs/05` itself, which was a release behind — three
+font sets, `UCommandPalette`, a Reka drawer and `motion-v`, none of which exist.
+
+---
+
+## M19 · Candidates → planned
+
+**Where these come from.** A research pass over the Discogs forum, r/discogs, r/vinyl,
+Hacker News and the app-store reviews of every Discogs client (2026-09-11), ranked by how
+often a wish recurs, then checked against four questions: does it work without a backend,
+does the API ToS allow it, does it serve the thesis (collection first, the shop as the unit,
+the sentence as the product), and what does it cost. The full ranking with sources is in
+`docs/14-RELAUNCH-CONCEPT.md` §2.
+
+**In this order**, because each earlier one touches no architecture:
+
+| # | Candidate | Serves | Cost | Note |
+|---|---|---|---|---|
+| 1 | **Landed price in the find list.** Price plus the marginal postage from the shop's tiers, in the reader's currency, as a sort and a filter. "VG+ for €24 + €2.10 share." | The most frequent wish after "find the seller with the most of my wantlist": postage only visible in the cart, prices not comparable across shops and currencies | days | Everything is local already — the tiers are in the basket, the rates in `money.ts` |
+| 2 | **Hide a shop.** "Never show this one again" in discovery and on the start page. | Enhancer's flagship paid feature, asked for since 2015 | hours | |
+| 3 | **Collection value over time.** One `collection.value` a day, kept locally, a line on the map. | The single most reliable hook in every collecting app (Collectr, BrickEconomy, Vizcogs); Discogs keeps no history | a day | Grey under the ToS: an aggregate of your own collection, never leaves the device, labelled "Discogs' estimate, not ours". No per-record history — that would be a marketplace archive |
+| 4 | **Record-fair mode.** Several shops one after another in the in-store screen, one find list, one basket per stand, offline. | The in-store mode is the one thing Discogs will structurally not build; this is its natural continuation. Was Phase 4 in `docs/00` | days | |
+| 5 | **CSV export with genres, styles, release ids** — and values, optional. | Discogs' own export lacks all four; tools exist only to fill that gap | hours | Without values it is plainly CC0; with them, the reader's own numbers, exported by the reader |
+| 6 | **Alias resolution in matching.** Artist aliases, group members, sublabel trees from the small dumps (1.15 GB, CC0) — "Miss Dinky*" is Dinky. | Matching precision on the one string the inventory gives us | weeks | Needs the hub or a per-collection shard; the first step of the catalogue hub in `docs/14` |
+| 7 | **Pressing advice with the whole catalogue.** Matrix/runout and barcode of every release via the hub; original / reissue from format descriptions, country, year, notes. | M7's promise, with reach beyond the horizon; "tilting the record under a lamp at 15 angles" | weeks | Hub, CC0 only, no images |
+| 8 | **Year in review.** Additions, decades, labels, producer network, from the CC0 fields. | Letterboxd Pro, StoryGraph Plus: statistics are what people pay for in a catalogue | days | Stronger after 6 and 7 |
+| 9 | **Wantlist optimiser across scanned shops.** "For your 24 wants: 3 shops, €41 postage, not 5 shops, €67." | Wish #1 on every list — but Waxrunner does it across all sellers, Fidelity can only do it across the shops it has scanned | days | Label it as the subset it is. Last, because it starts at the wantlist |
+
+---
+
 ## Not on the roadmap
 
 | Idea | Why not |
@@ -970,6 +1023,10 @@ moment, when something has already gone wrong.
 | Multi-dealer search | There is **no** listings-by-release endpoint. Only through scraping — out of the question. |
 | User accounts with passwords | Nobody needs them. The optional hub (M9) uses a shared secret. |
 | Signal weights per user | Stood in the data model as `signalWeights` and was never read; removed on 2026-08-11. Scores have to stay comparable over time **and between people** — which is why `SCALE` and `SECONDARY` are constants, and why adjusting per user would be the same mistake one level up. |
+| A price archive beyond Discogs' ten sales | Asked for constantly; forbidden just as constantly — the six-hour rule and the storage clause. Popsike lives on it with eBay data. The lawful equivalent exists: your own purchases, with price, condition and how they arrived (`/saved`). |
+| An overlay on discogs.com ("you own 3 / want 7 of these") | Keepa's and Enhancer's pattern, and the one channel this app does not have. Impossible as a PWA — a different origin cannot read this one's IndexedDB. It would be a browser extension, that is, a second product; ADR-007's reasons against extensions (store review, no iOS) apply to the core, not to an add-on. Noted in `docs/14`, not planned. |
+| Cover photo → release | Record Scanner and VinylAI sell it. Training it means downloading images, which are Restricted Data; M13 chose the runout for that reason and it stands. |
+| Play log, random record, item photos, DJ key/BPM, seller tools | Each has a thread and an app. None starts at the collection or ends at a shop. |
 
 ---
 
@@ -996,4 +1053,7 @@ M14 (grading) ──────▶ hangs off the dealer fingerprint from M3
 M15 (the stack) ────▶ **after** "share a dig" from M9, not before: the third
                       button on every card *is* the sharing. The other way
                       round you build a button that does nothing — or twice
+
+M19 (candidates) ───▶ 1–5 touch nothing below them. 6–8 hang off the catalogue
+                      hub (`docs/14`), 9 comes last because it starts at the wantlist
 ```

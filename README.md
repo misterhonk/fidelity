@@ -277,6 +277,7 @@ rules that are not up for negotiation.
 | [`docs/11-CATALOGUE-STRATEGY.md`](docs/11-CATALOGUE-STRATEGY.md) | Why no 10.4 GB dump is needed |
 | [`docs/12-RESOURCE-BUDGET.md`](docs/12-RESOURCE-BUDGET.md) | Bundle, storage, compute, requests |
 | [`docs/13-HUB-ADDON.md`](docs/13-HUB-ADDON.md) | The optional server add-on |
+| [`docs/14-RELAUNCH-CONCEPT.md`](docs/14-RELAUNCH-CONCEPT.md) | What a second version would look like — research, architecture, hosting, business model. Not a plan |
 | [`docs/adr/`](docs/adr/) | Architecture decision records, including the rejected ones |
 
 ---
