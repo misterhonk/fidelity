@@ -5,13 +5,13 @@ import { dealerStock } from '~~/worker/dealers/stock'
 import type { Dig, StockRow } from '#shared/types'
 
 /**
- * Das Sortiment eines Ladens, nach einem Balken gefiltert.
+ * A shop's inventory, filtered by one bar.
  *
- * Die Zahlen unter „Labels in stock" waren tote Auskunft: man sah, dass ein
- * Laden dreizehn Platten auf Kompakt führt, und kam an keine davon heran. Der
- * interessante Fall ist gerade der, in dem die Fundliste nichts sagen kann —
- * ein Label ohne eigene Platten erzeugt keinen Treffer und ist trotzdem
- * womöglich genau das Gesuchte.
+ * The numbers under "labels in stock" were dead information: you could see
+ * that a shop carries thirteen records on Kompakt, and could reach none of
+ * them. The interesting case is precisely the one the find list cannot speak
+ * to — a label you own nothing by produces no match and may still be exactly
+ * what you are looking for.
  */
 afterEach(async () => {
   await deleteFidelityDb()
@@ -82,10 +82,10 @@ describe('the stock behind a bar', () => {
   })
 
   /**
-   * Zwei Läden dürfen sich nicht vermischen.
+   * Two shops must not bleed into each other.
    *
-   * Der Dig steht in beiden Indexschlüsseln vorn, und genau dafür: ohne ihn
-   * wäre „Warp bei fatplastics" dieselbe Menge wie „Warp überall".
+   * The dig comes first in both index keys, and precisely for this: without
+   * it, "Warp at fatplastics" would be the same set as "Warp anywhere".
    */
   it('never mixes two shops', async () => {
     await seed(
@@ -99,12 +99,12 @@ describe('the stock behind a bar', () => {
   })
 
   /**
-   * Ein abgelaufener Dig zählt nicht — und schweigt nicht einfach.
+   * An expired dig does not count — and does not simply stay silent.
    *
-   * Das Sortiment ist ein Marktplatzdatum und lebt sechs Stunden (Regel 4);
-   * danach sind die Zeilen gelöscht, nicht veraltet. Eine leere Liste ohne
-   * `scannedAt` heißt „wir wissen es gerade nicht" und darf auf dem Schirm
-   * nicht als „der Laden führt das nicht" erscheinen.
+   * The inventory is marketplace data and lives six hours (rule 4); after that
+   * the rows are deleted, not stale. An empty list with no `scannedAt` means
+   * "we do not know right now" and must not appear on screen as "the shop does
+   * not carry that".
    */
   it('says nothing rather than something wrong once the dig is expired', async () => {
     await seed([row('01J', 1)], [dig('01J', { status: 'expired' })])
@@ -116,7 +116,7 @@ describe('the stock behind a bar', () => {
     expect(page.scannedAt).toBeNull()
   })
 
-  /** Und der jüngste Dig gewinnt: ULIDs sind lexikographisch chronologisch. */
+  /** And the newest dig wins: ULIDs are lexicographically chronological. */
   it('reads the newest dig of that shop', async () => {
     await seed([row('01J', 1), row('01K', 2)], [dig('01J'), dig('01K')])
 
@@ -126,11 +126,10 @@ describe('the stock behind a bar', () => {
   })
 
   /**
-   * Portionsweise — der ganze Grund, warum ein großer Laden bezahlbar bleibt.
+   * In portions — the whole reason a large shop stays affordable.
    *
-   * Zwanzigtausend Zeilen zu holen, um fünfzig zu zeigen, wäre auf einem
-   * Telefon spürbar. `total` sagt trotzdem die Wahrheit, sonst wüsste niemand,
-   * dass es weitergeht.
+   * Fetching twenty thousand rows to show fifty would be noticeable on a
+   * phone. `total` still tells the truth, or nobody would know there is more.
    */
   it('loads a page at a time and still counts them all', async () => {
     await seed(Array.from({ length: 7 }, (_, i) => row('01J', i + 1)))

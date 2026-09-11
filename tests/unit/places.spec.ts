@@ -17,14 +17,14 @@ import {
 import type { CollectionItem } from '#shared/types'
 
 /**
- * Wo die Platte steht (M12).
+ * Where the record stands (M12).
  *
- * Das einzige Feature dieser App, das **null Requests** kostet — es gibt also
- * nichts zu mocken und keinen Grund, die Datenbank zu meiden. Geprüft wird
- * gegen eine echte IndexedDB, weil genau dort die Entscheidungen liegen:
- * welcher Store, welcher Schlüssel, was beim Löschen passiert.
+ * The one feature in this app that costs **zero requests** — so there is
+ * nothing to mock and no reason to avoid the database. It is checked against a
+ * real IndexedDB, because that is exactly where the decisions are: which
+ * store, which key, what happens on deletion.
  */
-const platte = (instanceId: number, title: string): CollectionItem => ({
+const record = (instanceId: number, title: string): CollectionItem => ({
   releaseId: instanceId * 10,
   instanceId,
   folderId: 1,
@@ -56,22 +56,22 @@ beforeEach(async () => {
 
 describe('a place', () => {
   it('holds records, and counts the ones below it too', async () => {
-    const keller = (await createPlace('Keller', null))!
-    const kiste = (await createPlace('Kiste 3', keller.id))!
+    const cellar = (await createPlace('Keller', null))!
+    const kiste = (await createPlace('Kiste 3', cellar.id))!
 
     const db = await openFidelityDb()
-    await db.put('collection', platte(1, 'Eins'))
-    await db.put('collection', platte(2, 'Zwei'))
-    await placeRecord(1, keller.id)
+    await db.put('collection', record(1, 'Eins'))
+    await db.put('collection', record(2, 'Zwei'))
+    await placeRecord(1, cellar.id)
     await placeRecord(2, kiste.id)
 
     const nodes = await placesOverview()
-    const kellerNode = nodes.find((n) => n.id === keller.id)!
+    const cellarNode = nodes.find((n) => n.id === cellar.id)!
 
-    expect(kellerNode.records).toBe(1)
-    // „Im Keller" meint den ganzen Keller. Ein Keller, der 1 zeigt, während
-    // zwei Platten darin liegen, ist eine Lüge.
-    expect(kellerNode.recordsBelow).toBe(2)
+    expect(cellarNode.records).toBe(1)
+    // "In the cellar" means the whole cellar. A cellar showing 1 while two
+    // records are in it is a lie.
+    expect(cellarNode.recordsBelow).toBe(2)
   })
 
   /** Drei Ebenen: Ort → Möbel → Fach. Wer eine vierte braucht, benennt besser. */
@@ -90,32 +90,32 @@ describe('a place', () => {
   })
 
   /**
-   * Ein Ort aufzulösen wirft keine Platten weg.
+   * Dissolving a place throws no records away.
    *
-   * Das Regal abzubauen heißt nicht, die Platten wegzugeben — sie werden
-   * ortlos. Und Unterorte rücken nach oben statt mitzusterben.
+   * Taking the shelf apart does not mean giving the records away — they become
+   * placeless. And places underneath move up instead of dying with it.
    */
   it('lets go of its records without losing them', async () => {
-    const keller = (await createPlace('Keller', null))!
-    const kiste = (await createPlace('Kiste', keller.id))!
+    const cellar = (await createPlace('Keller', null))!
+    const kiste = (await createPlace('Kiste', cellar.id))!
 
     const db = await openFidelityDb()
-    await db.put('collection', platte(1, 'Eins'))
-    await placeRecord(1, keller.id)
+    await db.put('collection', record(1, 'Eins'))
+    await placeRecord(1, cellar.id)
 
-    await removePlace(keller.id)
+    await removePlace(cellar.id)
 
     expect(await db.get('collection', 1)).toBeTruthy()
     expect(await placeOf(1)).toBeNull()
 
     /*
-     * Und die Zeile ist **da** — mit `placeId: null`.
+     * And the row is **there** — with `placeId: null`.
      *
-     * Sie war früher gelöscht, und das war für ein einzelnes Gerät richtig.
-     * Über den Tresor ist es die falsche Nachricht: eine fehlende Zeile ist
-     * für den Abgleich keine Aussage, sondern eine Lücke, und das andere Gerät
-     * legt die Platte beim nächsten Mal zurück in ein Regal, das es nicht mehr
-     * gibt. „Liegt nirgendwo" muss geschrieben sein, um zu gewinnen.
+     * It used to be deleted, and for a single device that was right. Through
+     * the vault it is the wrong message: a missing row is not a statement to
+     * the merge but a gap, and the other device puts the record back next time
+     * onto a shelf that no longer exists. "Sits nowhere" has to be written to
+     * win.
      */
     expect(await db.get('placements', 1)).toMatchObject({ placeId: null })
 
@@ -125,17 +125,17 @@ describe('a place', () => {
   })
 
   /**
-   * Und dasselbe beim einzelnen Herunternehmen.
+   * And the same for taking a single record down.
    *
-   * `placeRecord(x, null)` war ein `delete`, und für ein einzelnes Gerät war
-   * das richtig. Über den Tresor ist es die falsche Nachricht — geprüft
-   * getrennt von `removePlace`, weil beide Wege eigene Zeilen sind und eine
-   * Mutationsprobe genau hier durchkam.
+   * `placeRecord(x, null)` was a `delete`, and for a single device that was
+   * right. Through the vault it is the wrong message — checked separately from
+   * `removePlace`, because both routes are their own lines and a mutation
+   * probe got through exactly here.
    */
   it('writes "nowhere" instead of forgetting the row', async () => {
     const regal = (await createPlace('Regal', null))!
     const db = await openFidelityDb()
-    await db.put('collection', platte(1, 'Eins'))
+    await db.put('collection', record(1, 'Eins'))
 
     await placeRecord(1, regal.id)
     await placeRecord(1, null)
@@ -146,11 +146,11 @@ describe('a place', () => {
   })
 
   /**
-   * Umbenennen hinterlässt einen Zeitstempel.
+   * Renaming leaves a timestamp.
    *
-   * Ohne ihn entscheidet beim Abgleich der Zufall: `createdAt` ist auf beiden
-   * Geräten dieselbe Zahl, und dann gewinnt nicht der jüngere Name, sondern
-   * derjenige, der zuletzt gelesen wurde.
+   * Without it, the merge is settled by chance: `createdAt` is the same number
+   * on both devices, and then the winner is not the more recent name but
+   * whichever was read last.
    */
   it('stamps a rename so the newer name can win elsewhere', async () => {
     const regal = (await createPlace('Regal', null))!
@@ -166,46 +166,46 @@ describe('a place', () => {
   })
 
   /**
-   * Der aufgelöste Ort selbst bleibt als Grabstein liegen — aus demselben
-   * Grund, und ohne irgendwo aufzutauchen.
+   * The dissolved place itself stays behind as a tombstone — for the same
+   * reason, and without appearing anywhere.
    */
   it('leaves a marker so another device cannot bring it back', async () => {
-    const keller = (await createPlace('Keller', null))!
-    await removePlace(keller.id)
+    const cellar = (await createPlace('Keller', null))!
+    await removePlace(cellar.id)
 
     const db = await openFidelityDb()
-    expect(await db.get('places', keller.id)).toMatchObject({ removedAt: expect.any(Number) })
-    expect((await placesOverview()).map((n) => n.id)).not.toContain(keller.id)
-    // Und er nimmt nichts mehr an: weder einen neuen Namen noch ein Unterfach.
-    expect(await renamePlace(keller.id, 'Dachboden')).toBe(false)
-    expect(await createPlace('Fach', keller.id)).toBeNull()
+    expect(await db.get('places', cellar.id)).toMatchObject({ removedAt: expect.any(Number) })
+    expect((await placesOverview()).map((n) => n.id)).not.toContain(cellar.id)
+    // And it accepts nothing more: neither a new name nor a compartment.
+    expect(await renamePlace(cellar.id, 'Dachboden')).toBe(false)
+    expect(await createPlace('Fach', cellar.id)).toBeNull()
   })
 })
 
 describe('finding things again', () => {
   it('answers what is in the cellar, boxes included', async () => {
-    const keller = (await createPlace('Keller', null))!
-    const kiste = (await createPlace('Kiste', keller.id))!
+    const cellar = (await createPlace('Keller', null))!
+    const kiste = (await createPlace('Kiste', cellar.id))!
 
     const db = await openFidelityDb()
-    await db.put('collection', platte(1, 'Oben'))
-    await db.put('collection', platte(2, 'In der Kiste'))
-    await placeRecord(1, keller.id)
+    await db.put('collection', record(1, 'Oben'))
+    await db.put('collection', record(2, 'In der Kiste'))
+    await placeRecord(1, cellar.id)
     await placeRecord(2, kiste.id)
 
-    const drin = await placeContents(keller.id)
+    const drin = await placeContents(cellar.id)
     expect(drin.map((r) => r.title).sort()).toEqual(['In der Kiste', 'Oben'])
   })
 
   /**
-   * Eine Platte, die aus der Sammlung verschwunden ist, hinterlässt ihren
-   * Standort. Der Ort weiß dann mehr als die Sammlung — gezeigt wird sie
-   * trotzdem nicht, sonst stünde dort ein Loch.
+   * A record that has disappeared from the collection leaves its location
+   * behind. The place then knows more than the collection — it is still not
+   * shown, or there would be a hole there.
    */
   it('skips a record that is no longer in the collection', async () => {
-    const keller = (await createPlace('Keller', null))!
-    await placeRecord(99, keller.id)
-    expect(await placeContents(keller.id)).toEqual([])
+    const cellar = (await createPlace('Keller', null))!
+    await placeRecord(99, cellar.id)
+    expect(await placeContents(cellar.id)).toEqual([])
   })
 
   /** Wer umzieht, trägt Kisten, keine Platten. */
@@ -215,7 +215,7 @@ describe('finding things again', () => {
 
     const db = await openFidelityDb()
     for (const id of [1, 2, 3]) {
-      await db.put('collection', platte(id, `Platte ${id}`))
+      await db.put('collection', record(id, `Platte ${id}`))
       await placeRecord(id, alt.id)
     }
 
@@ -225,40 +225,39 @@ describe('finding things again', () => {
   })
 
   /**
-   * Und eine Kiste zieht nicht auf sich selbst um.
+   * And a crate does not move into itself.
    *
-   * Die erste Fassung dieses Tests war grün aus dem falschen Grund: der Ort
-   * war leer, also kam auch ohne die Prüfung 0 heraus. Eine Mutationsprobe hat
-   * das gezeigt — jetzt liegen Platten darin, und nur die Prüfung hält die
-   * Zahl bei null.
+   * The first version of this test was green for the wrong reason: the place
+   * was empty, so 0 came out without the check too. A mutation probe showed
+   * it — now there are records in it, and only the check keeps the number at
+   * zero.
    */
   it('does not move a box onto itself', async () => {
     const a = (await createPlace('A', null))!
 
     const db = await openFidelityDb()
     for (const id of [1, 2]) {
-      await db.put('collection', platte(id, `Platte ${id}`))
+      await db.put('collection', record(id, `Platte ${id}`))
       await placeRecord(id, a.id)
     }
 
     expect(await moveAll(a.id, a.id)).toBe(0)
-    // Und sie liegen immer noch dort.
+    // And they are still sitting there.
     expect((await placeContents(a.id)).length).toBe(2)
   })
 })
 
 /**
- * Und die Entscheidung, die keinem Testlauf, sondern nur dem Quelltext
- * anzusehen ist.
+ * And the decision that is visible in the source alone, not in any test run.
  */
 describe('where the location is kept', () => {
   /**
-   * **Nicht am Sammlungseintrag.**
+   * **Not on the collection row.**
    *
-   * `worker/sync/library.ts` schreibt jede Zeile mit `put()` neu. Ein
-   * Standort dort wäre nach dem nächsten vollen Durchlauf lautlos weg — und
-   * „lautlos" ist das Schlimme daran: niemand merkt, dass die halbe Wohnung
-   * vergessen wurde, bis er eine Platte sucht.
+   * `worker/sync/library.ts` rewrites every row with `put()`. A location there
+   * would be silently gone after the next full pass — and "silently" is the
+   * bad part: nobody notices half the flat has been forgotten until they go
+   * looking for a record.
    */
   it('lives in a store the sync never touches', () => {
     const schema = readFileSync('db/schema.ts', 'utf8')

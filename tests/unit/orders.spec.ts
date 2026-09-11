@@ -8,19 +8,18 @@ import type { DiscogsClient } from '~~/worker/discogs/client'
 import type { Feedback } from '#shared/types'
 
 /**
- * Eine Bestellung einlesen (M14).
+ * Reading an order (M14).
  *
- * Zwei Dinge tragen dieses Feature, und beide sind gemessen, nicht vermutet:
+ * Two things carry this feature, and both are measured, not assumed:
  *
- * 1. **`GET /marketplace/orders` ist die Verkäuferseite.** Für jemanden, der
- *    nur kauft, antwortet sie für immer mit `items: 0` — zweimal gemessen am
- *    2026-09-11, zehn Stunden auseinander. Deshalb die eingetippte Nummer:
- *    es gibt keinen API-Weg von „ich bin Käufer" zu „hier sind meine
- *    Bestellnummern".
- * 2. **`items[].id` ist die Listing-ID.** Belegt dadurch, dass
- *    `/marketplace/listings/{diese id}` mit 403 „authenticate as the owner"
- *    antwortet — ein verkauftes Angebot gehört nur noch seinem Verkäufer.
- *    Daran hängt, dass ein Import nichts verdoppelt.
+ * 1. **`GET /marketplace/orders` is the seller side.** For somebody who only
+ *    buys it answers `items: 0` forever — measured twice on 2026-09-11, ten
+ *    hours apart. Hence the typed-in number: there is no API route from "I am
+ *    the buyer" to "here are my order numbers".
+ * 2. **`items[].id` is the listing id.** Evidenced by
+ *    `/marketplace/listings/{that id}` answering 403 "authenticate as the
+ *    owner" — a sold listing belongs only to its seller. That an import
+ *    duplicates nothing hangs on it.
  */
 
 /** Die Form, die eine echte Antwort am 2026-09-11 hatte. */
@@ -74,12 +73,12 @@ describe('the order number', () => {
     expect(cleanOrderId('  259022-32308 ')).toBe('259022-32308')
   })
 
-  /** Wer die Nummer im Browser kopiert, hat meistens die ganze Adresse. */
+  /** Anyone copying the number in a browser usually has the whole address. */
   it('takes a pasted address too', () => {
     expect(cleanOrderId('https://www.discogs.com/sell/order/259022-32308')).toBe('259022-32308')
   })
 
-  /** Ein Vertipper soll keine Anfrage kosten. */
+  /** A typo should cost no request. */
   it('refuses what cannot be one', () => {
     for (const unsinn of ['', '259022', 'abc-def', '259022–32308', 'W.B.*']) {
       expect(cleanOrderId(unsinn)).toBeNull()
@@ -96,10 +95,10 @@ describe('the order number', () => {
 describe('reading an order', () => {
   it('asks once and writes one bought row per record', async () => {
     const { fake, gefragt } = client()
-    const ergebnis = await importOrder(fake, '259022-32308', JETZT)
+    const result = await importOrder(fake, '259022-32308', JETZT)
 
     expect(gefragt).toEqual(['/marketplace/orders/259022-32308'])
-    expect(ergebnis).toMatchObject({ ok: true, dealer: '430AM_Studio', added: 2, enriched: 0 })
+    expect(result).toMatchObject({ ok: true, dealer: '430AM_Studio', added: 2, enriched: 0 })
 
     const db = await openFidelityDb()
     const zeile = await db.get('feedback', 4240795662)
@@ -113,12 +112,12 @@ describe('reading an order', () => {
   })
 
   /**
-   * Das Kaufdatum kommt aus der Bestellung, nicht von der Uhr.
+   * The purchase date comes from the order, not from the clock.
    *
-   * Daran hängt die Reifezeit: eine Bestellung von vor drei Wochen ist
-   * angekommen, und ihre Frage ist sofort fällig. Mit `Date.now()` fingen alle
-   * importierten Käufe bei null an, und der Import verschöbe genau die Frage,
-   * für die es ihn gibt, um zehn Tage.
+   * The ripening time hangs on it: an order from three weeks ago has arrived,
+   * and its question is due immediately. With `Date.now()` every imported
+   * purchase would start at zero, and the import would push out by ten days
+   * exactly the question it exists for.
    */
   it('dates the purchase from the order, not from the clock', async () => {
     const { fake } = client()
@@ -129,11 +128,11 @@ describe('reading an order', () => {
   })
 
   /**
-   * Eine Platte, die ein Dig schon gefunden hat, wird ergänzt statt verdoppelt.
+   * A record a dig has already found is filled out, not duplicated.
    *
-   * Möglich, weil `items[].id` die Listing-ID ist. Und nötig, weil die Zeile
-   * aus dem Dig Signale und eine Punktzahl trägt — die Auswertung, um
-   * derentwillen dieser Store existiert.
+   * Possible because `items[].id` is the listing id. And necessary because the
+   * row from the dig carries signals and a score — the appraisal this store
+   * exists for.
    */
   it('enriches a row a dig already wrote instead of replacing it', async () => {
     const db = await openFidelityDb()
@@ -150,8 +149,8 @@ describe('reading an order', () => {
     } as unknown as Feedback)
 
     const { fake } = client()
-    const ergebnis = await importOrder(fake, '259022-32308', JETZT)
-    expect(ergebnis).toMatchObject({ added: 1, enriched: 1 })
+    const result = await importOrder(fake, '259022-32308', JETZT)
+    expect(result).toMatchObject({ added: 1, enriched: 1 })
 
     const zeile = await db.get('feedback', 4240795662)
     expect(zeile?.verdict).toBe('bought')
@@ -160,11 +159,10 @@ describe('reading an order', () => {
   })
 
   /**
-   * Und ein Urteil, das schon da ist, bleibt.
+   * And a verdict that is already there stays.
    *
-   * Wer bereits geantwortet hat, wie die Platte ankam, soll nach einem Import
-   * nicht erneut gefragt werden — sonst ist der Import eine Maschine, die die
-   * eigene Arbeit zurücksetzt.
+   * Anyone who has answered how the record arrived should not be asked again
+   * after an import — or the import is a machine that undoes its own work.
    */
   it('leaves an answer that was already given', async () => {
     const db = await openFidelityDb()
@@ -188,13 +186,13 @@ describe('reading an order', () => {
 
 describe('what an order never brings along', () => {
   /**
-   * **Die versprochene Note, der Preis und die Adresse des Verkäufers.**
+   * **The promised grade, the price and the seller's address.**
    *
-   * Die Antwort enthält alle drei — `media_condition`, `sleeve_condition`,
-   * `condition_comments`, `price` und `seller.email`. Das Zod-Schema an der
-   * Grenze nennt keines davon, also existiert keines dahinter. Geprüft wird
-   * am geschriebenen Datensatz und am Quelltext, weil beides schiefgehen kann:
-   * ein Feld durchreichen, und ein Feld nachträglich ins Schema nehmen.
+   * The answer contains all three — `media_condition`, `sleeve_condition`,
+   * `condition_comments`, `price` and `seller.email`. The Zod schema at the
+   * boundary names none of them, so none exists behind it. Both the written
+   * record and the source are checked, because both can go wrong: passing a
+   * field through, and adding a field to the schema later.
    */
   it('stores neither the promised grade nor the price nor an address', async () => {
     const { fake } = client()
@@ -221,7 +219,7 @@ describe('what an order never brings along', () => {
     }
   })
 
-  /** Und es geht nichts hinaus, was nicht angefragt wurde. */
+  /** And nothing goes out that was not asked for. */
   it('asks Discogs for one order and nothing else', async () => {
     const { fake, gefragt } = client()
     await importOrder(fake, '259022-32308', JETZT)

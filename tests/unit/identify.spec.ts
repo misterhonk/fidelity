@@ -7,17 +7,16 @@ import { cleanBarcode, identify, identifyByRunout, looksLikeBarcode } from '~~/w
 import type { CollectionItem } from '#shared/types'
 
 /**
- * Eine Platte in der Hand erkennen (M13, Stufe 1).
+ * Recognising a record you are holding (M13, stage 1).
  *
- * **Der Fund, der diesen Bildschirm formt: ein Barcode ist nicht eindeutig.**
- * Am 2026-09-11 gegen die echte API gemessen — `5012394144777` liefert acht
- * Releases in fünf Ländern, und das Release, aus dem der Barcode stammt,
- * steht auf Platz sieben. Ein Barcode benennt eine Veröffentlichung, keine
- * Pressung.
+ * **The finding that shapes this screen: a barcode is not unique.** Measured
+ * against the real API on 2026-09-11 — `5012394144777` returns eight releases
+ * across five countries, and the release the barcode came from is seventh. A
+ * barcode names a release, not a pressing.
  *
- * Für „habe ich die schon?" ist das kein Problem, im Gegenteil. Es wird nur
- * eines, sobald die Oberfläche einen einzelnen Treffer als *die* Antwort
- * zeigt — deshalb hält der letzte Block hier fest, dass sie es nicht tut.
+ * For "do I already have this?" that is no problem, quite the opposite. It
+ * only becomes one the moment the interface shows a single hit as *the*
+ * answer — which is why the last block here holds that it does not.
  */
 const platte = (releaseId: number, instanceId: number): CollectionItem => ({
   releaseId,
@@ -42,7 +41,7 @@ const platte = (releaseId: number, instanceId: number): CollectionItem => ({
   addedAt: '2020-01-01T00:00:00-00:00',
 })
 
-/** Die acht echten IDs aus der Messung vom 2026-09-11. */
+/** The eight real ids from the measurement of 2026-09-11. */
 const ACHT = [6778478, 3396037, 3805964, 6154790, 9138092, 12442839, 249504, 1260449]
 
 const client = {
@@ -79,13 +78,12 @@ describe('reading a barcode', () => {
 })
 
 /**
- * Welche Art Nummer wurde da getippt?
+ * Which kind of number was typed there?
  *
- * Als Funktion geprüft und nicht am Quelltext: eine Mutationsprobe hat
- * gezeigt, dass ein Test, der nur nach `identify.barcode` und
- * `identify.runout` im Template sucht, die Entscheidung gar nicht sieht — auf
- * `true` festgenagelt blieb er grün, und dann wäre jeder Runout als Barcode
- * nachgeschlagen worden.
+ * Checked as a function and not against the source: a mutation probe showed
+ * that a test only looking for `identify.barcode` and `identify.runout` in the
+ * template never sees the decision — nailed to `true` it stayed green, and
+ * then every run-out would have been looked up as a barcode.
  */
 describe('telling the two apart', () => {
   it('reads digits as a barcode, even written as they stand on the sleeve', () => {
@@ -97,7 +95,7 @@ describe('telling the two apart', () => {
   it('reads anything with letters as a run-out', () => {
     expect(looksLikeBarcode('MPO SK 032 A1')).toBe(false)
     expect(looksLikeBarcode('PHRUPMASTERGENERAL T2T')).toBe(false)
-    // Auch eine, die fast nur aus Ziffern besteht.
+    // Including one that is almost all digits.
     expect(looksLikeBarcode('01 BC A1 MPO')).toBe(false)
   })
 
@@ -109,11 +107,11 @@ describe('telling the two apart', () => {
 
 describe('what a barcode answers', () => {
   /**
-   * **Eine Liste, keine Antwort.**
+   * **A list, not an answer.**
    *
-   * Die Zahl kommt aus der Messung: acht Pressungen, ein Barcode. Wer hier
-   * eine einzelne zurückgäbe, müsste sich eine aussuchen — und läge in sieben
-   * von acht Fällen daneben.
+   * The number comes from the measurement: eight pressings, one barcode.
+   * Returning a single one here would mean picking one — and being wrong in
+   * seven cases out of eight.
    */
   it('gives every pressing that shares the code', async () => {
     const found = await identify(client, '5012394144777')
@@ -122,11 +120,11 @@ describe('what a barcode answers', () => {
   })
 
   /**
-   * Und die eigene Platte wird gefunden, **egal an welcher Stelle sie steht**.
+   * And your own record is found, **wherever in the list it stands**.
    *
-   * In der Messung war es Platz sieben. Wer nur den ersten Kandidaten gegen
-   * die Sammlung prüft, sagt „hast du nicht" zu einer Platte, die im Regal
-   * steht — der teuerste Fehler, den dieser Bildschirm machen kann.
+   * In the measurement it was seventh. Checking only the first candidate
+   * against the collection says "you do not have it" about a record on the
+   * shelf — the most expensive mistake this screen can make.
    */
   it('finds a copy that is not the first candidate', async () => {
     const db = await openFidelityDb()
@@ -157,15 +155,15 @@ describe('what a barcode answers', () => {
 })
 
 /**
- * Und der zweite Weg: die Auslaufrille.
+ * And the second route: the run-out groove.
  *
- * **Der bessere Ausweis, gemessen am 2026-09-11:** von zwölf Platten einer
- * echten Sammlung hatten zehn einen Barcode, **elf einen Runout**, keine
- * hatte keins von beidem — und die zwei ohne Barcode hatten einen. Bei
- * Club-Vinyl steht der Ausweis im Auslauf, nicht auf der Hülle.
+ * **The better identifier, measured 2026-09-11:** of twelve records from a
+ * real collection, ten had a barcode, **eleven had a run-out**, none had
+ * neither — and the two without a barcode had one. On club vinyl the
+ * identifier is in the run-out, not on the sleeve.
  *
- * Er ist auch genauer: die volle Zeichenkette liefert **einen** Treffer, wo
- * ein Barcode acht liefert.
+ * It is also more precise: the full string returns **one** hit where a barcode
+ * returns eight.
  */
 describe('reading a run-out', () => {
   it('finds the pressing and checks every candidate against the shelf', async () => {
@@ -178,11 +176,11 @@ describe('reading a run-out', () => {
   })
 
   /**
-   * Zu kurz ist kein Runout, sondern ein Tippfehler.
+   * Too short is not a run-out but a typo.
    *
-   * Gemessen: `SK 032 A1` — neun Zeichen — ergab **3406** Treffer. Eine Suche
-   * nach drei oder vier Zeichen holt den halben Katalog und kostet eine
-   * Anfrage für nichts.
+   * Measured: `SK 032 A1` — nine characters — gave **3,406** hits. A search
+   * for three or four characters fetches half the catalogue and costs a
+   * request for nothing.
    */
   it('does not search for a fragment that would match everything', async () => {
     const never = {
@@ -205,17 +203,17 @@ describe('the screen that shows it', () => {
       .replace(/\/\/.*$/gm, '')
       .replace(/<!--[\s\S]*?-->/g, '')
 
-  /** Es sagt, dass es mehrere sind — sonst hält man die erste für *die*. */
+  /** It says there are several — or the first is taken for *the* one. */
   it('says that several pressings share the code', () => {
     expect(code(PAGE)).toMatch(/scanPressings/)
     expect(code(PAGE)).toMatch(/identified\.candidates\.length > 1/)
   })
 
   /**
-   * Und auf einem iPhone wird kein Knopf angeboten, der nichts kann.
+   * And on an iPhone no button is offered that can do nothing.
    *
-   * `BarcodeDetector` fehlt in WebKit. Eine Kamera, die ein Bild zeigt und
-   * nichts erkennt, ist schlimmer als ein Satz, der sagt: hier wird getippt.
+   * `BarcodeDetector` is missing in WebKit. A camera that shows a picture and
+   * recognises nothing is worse than a sentence saying: you type here.
    */
   it('offers the camera only where it can read', () => {
     expect(code(PAGE)).toMatch(/v-if="canScan"/)
@@ -224,11 +222,11 @@ describe('the screen that shows it', () => {
   })
 
   /**
-   * Und keine Bibliothek dafür.
+   * And no library for it.
    *
-   * Ein Decoder in JavaScript wiegt über hundert Kilobyte, und Regel 7
-   * verlangt, dass jede Abhängigkeit ihren Platz rechtfertigt. Getippte
-   * Ziffern kosten null.
+   * A decoder in JavaScript weighs over a hundred kilobytes, and rule 7
+   * demands that every dependency justify its place. Typed digits cost
+   * nothing.
    */
   it('adds no decoder to the bundle', () => {
     const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
@@ -237,10 +235,10 @@ describe('the screen that shows it', () => {
   })
 
   /**
-   * Ein Feld für beides, und es entscheidet selbst.
+   * One field for both, and it decides for itself.
    *
-   * Wer eine Platte in der Hand hält, will nicht erst wählen, welche Art
-   * Nummer er gleich abtippt.
+   * Somebody holding a record does not want to choose first which kind of
+   * number they are about to type.
    */
   it('takes a barcode or a run-out in one field', () => {
     expect(code(PAGE)).toMatch(/identify\.runout/)
@@ -248,7 +246,7 @@ describe('the screen that shows it', () => {
     expect(code(PAGE)).toMatch(/looksLikeBarcode/)
   })
 
-  /** Die Kamera hört auf, wenn der Bildschirm weg ist. */
+  /** The camera stops when the screen is gone. */
   it('turns the camera off again', () => {
     expect(code(SCAN)).toMatch(/onBeforeUnmount\(stop\)/)
     expect(code(SCAN)).toMatch(/getTracks\(\)\.forEach\(\(track\) => track\.stop\(\)\)/)
