@@ -11,6 +11,15 @@ Für eine App bedeutet SemVer:
 
 ## [0.39.0](https://github.com/misterhonk/fidelity/compare/v0.38.0...v0.39.0) (2026-09-11)
 
+**How much you want it.**
+
+Discogs keeps a 0–5 per want, and the sync has carried it all along without showing it.
+Five stars on every wantlist row now, tapped like the shelf's rating and written back with
+the note. "Wanted most" from four up: on the row, on the plan's items — which list the
+important ones first — and in the sentence of a find: "Exactly this is on your wantlist —
+one of the ones you want most." And "Wanted most" as the second order of the wantlist. The
+score did not move: how much you want a record is a fact about you, not about the match.
+
 
 ### Added
 
