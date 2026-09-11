@@ -191,6 +191,14 @@ const SCREENS = [
   // The manual. It is all prose, which is exactly where a wrong heading level
   // survives longest — nobody looks at a help page twice.
   '/settings/help',
+  /*
+   * Was in dieser Ausgabe neu ist — und ebenfalls reine Prosa, nur dass sie
+   * hier aus einer Datei kommt und nicht aus einem Template. Umso mehr Grund,
+   * sie durch dieselbe Prüfung zu schicken: ein Link ohne erkennbares Ziel
+   * oder eine Überschrift auf der falschen Ebene entsteht hier erst beim
+   * Zeichnen.
+   */
+  '/whats-new',
 ]
 
 test.describe('accessibility', () => {

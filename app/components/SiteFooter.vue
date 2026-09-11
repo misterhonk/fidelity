@@ -41,8 +41,19 @@ const { version, commit } = useRuntimeConfig().public
           release is cut, and a service worker can serve an older shell for as
           long as somebody keeps tapping "Later".
         -->
+        <!--
+          Die Version führt zu dem, was sie bedeutet.
+
+          Sie stand hier als toter Text: eine Zahl, die niemandem sagt, was
+          sich geändert hat. Der Commit daneben bleibt es — der beantwortet
+          „ist das der Stand, den ich gerade ausgeliefert habe", und dafür gibt
+          es keine Seite.
+        -->
         <span class="fid-num">
-          v{{ version }}<template v-if="commit"> · {{ commit }}</template>
+          <NuxtLink class="underline underline-offset-4" to="/whats-new">
+            v{{ version }}
+          </NuxtLink>
+          <template v-if="commit"> · {{ commit }}</template>
         </span>
       </p>
     </div>

@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { execSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 
 import pkg from './package.json'
 
@@ -334,9 +335,52 @@ export default defineNuxtConfig({
        * build.
        */
       commit: buildCommit(),
+      /**
+       * Was in dieser Ausgabe neu ist — für Menschen, nicht für Maschinen.
+       *
+       * Aus `CHANGELOG.md` gelesen, aber nur der **handgeschriebene Vorspann**
+       * eines Eintrags: der Absatz zwischen der Versionsüberschrift und dem
+       * ersten `###`. Die Commit-Listen darunter sind für das Repository
+       * geschrieben — „fix(deploy): die Hub-Prüfung hat nichts geprüft" sagt
+       * jemandem, der die App benutzt, genau nichts.
+       *
+       * Die ganze Datei wäre dafür der falsche Weg: 47 kB, und drei Viertel
+       * davon Zeilen, die niemand lesen will. So sind es ein bis zwei.
+       */
+      releaseNotes: releaseNotes(pkg.version),
     },
   },
 })
+
+/**
+ * Der Vorspann des Eintrags zu dieser Version, oder ein leerer String.
+ *
+ * Leer ist kein Fehler im Build, sondern einer im Release: ein Test hält
+ * fest, dass die Version in `package.json` einen Vorspann hat. Das ist die
+ * Stelle, an der ein Release ohne ein Wort an die Leute auffällt — im
+ * Release-PR, wo man es noch schreiben kann.
+ */
+function releaseNotes(version: string): string {
+  let text: string
+  try {
+    text = readFileSync(new URL('./CHANGELOG.md', import.meta.url), 'utf8')
+  } catch {
+    return ''
+  }
+
+  // Die Überschrift dieser Version — verlinkt oder nicht, beides kommt vor.
+  const start = text.search(new RegExp(`^## \\[?${version.replace(/\./g, '\\.')}[\\](]`, 'm'))
+  if (start === -1) return ''
+
+  const rest = text.slice(start)
+  const nachUeberschrift = rest.indexOf('\n') + 1
+  // Bis zum ersten Abschnitt oder zur nächsten Version, je nachdem was zuerst
+  // kommt — ein Eintrag ohne Vorspann soll leer herauskommen und nicht die
+  // Commit-Liste mitnehmen.
+  const ende = rest.slice(nachUeberschrift).search(/^(###? )/m)
+
+  return rest.slice(nachUeberschrift, ende === -1 ? undefined : nachUeberschrift + ende).trim()
+}
 
 function buildCommit(): string {
   if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA.slice(0, 7)

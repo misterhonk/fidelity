@@ -153,6 +153,16 @@ const de: Messages = {
     why: 'Sammlung, Wantlist, die beobachteten Läden und der Horizont – beim Öffnen, beim Zurückkehren in den Tab und alle zwanzig Minuten. Meistens ist das eine einzige Anfrage, weil Discogs nur gefragt wird, was sich geändert hat. Zwei Dinge bleiben absichtlich draußen: ein Dig dauert zwei bis vier Minuten und hundert und mehr Abfragen, den startest also du und keine Uhr; und deine Bestellungen lassen sich gar nicht abrufen – dieser Endpunkt listet nur, was du verkauft hast, ein Kauf wird deshalb über seine Bestellnummer gelesen.',
   },
 
+  news: {
+    title: 'Was neu ist',
+    inVersion: (version) => `In Version ${version}`,
+    none: 'Zu dieser Ausgabe steht nichts geschrieben.',
+    german:
+      'Die Notizen bis 0.26.0 sind deutsch – sie stammen aus den Commits dieses Projekts.',
+    full: 'Alle Versionen, auf GitHub',
+    fullHref: 'https://github.com/misterhonk/fidelity/blob/main/CHANGELOG.md',
+  },
+
   token: {
     title: 'Token eintragen',
     lead: 'Fidelity spricht direkt mit Discogs – ohne Server dazwischen. Dafür braucht es einen persönlichen Token, den du dir selbst erzeugst.',

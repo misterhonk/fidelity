@@ -249,6 +249,22 @@ const en = {
     why: 'Collection, wantlist, the shops you watch and the horizon — when the app opens, when you come back to the tab, and every twenty minutes. Usually that is a single request, because Discogs is only asked what has changed. Two things stay out on purpose: a dig is two to four minutes and a hundred or more lookups, so it is started by you and never by a clock; and your orders cannot be fetched at all — that endpoint only lists what you sold, so a purchase is read from its order number.',
   },
 
+  /** What changed in the version you are running. */
+  news: {
+    title: 'What is new',
+    inVersion: (version: string) => `In version ${version}`,
+    none: 'Nothing written down for this version.',
+    /*
+     * Die Notizen sind bis einschließlich 0.26.0 deutsch, weil sie aus den
+     * Commits dieses Projekts stammen. Ab der nächsten Ausgabe englisch — sie
+     * sind jetzt nutzersichtbarer Text und fallen damit unter ADR-010. Der
+     * Hinweis steht so lange, wie noch deutsche Einträge angezeigt werden.
+     */
+    german: 'Notes up to 0.26.0 are in German — they come from this project’s own commits.',
+    full: 'Every version, on GitHub',
+    fullHref: 'https://github.com/misterhonk/fidelity/blob/main/CHANGELOG.md',
+  },
+
   /** The one form that is on the welcome screen and in the settings. */
   token: {
     title: 'Enter a token',

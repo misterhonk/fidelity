@@ -39,7 +39,12 @@
  * Einrichtung besorgt: keine Sammlung, keinen Token, keinen Hub. Alles, was
  * er zeigt, steht im Link.
  */
-const OPEN = ['/welcome', '/settings', '/privacy', '/legal', '/shared']
+/*
+ * Und `/whats-new` gehört dazu: was in dieser Ausgabe steht, ist keine
+ * Auskunft über die Sammlung von jemandem, sondern über die App. Wer den
+ * Footer-Link ohne Token antippt, soll nicht in der Einrichtung landen.
+ */
+const OPEN = ['/welcome', '/settings', '/privacy', '/legal', '/shared', '/whats-new']
 
 export default defineNuxtRouteMiddleware(async (to) => {
   /*
