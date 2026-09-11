@@ -114,6 +114,32 @@ describe('the way back', () => {
   })
 })
 
+/**
+ * Und er ist zu finden.
+ *
+ * Bis zum 2026-09-11 führte **kein einziger Link** von der Startseite in den
+ * Stapel: der eine, den es gab, stand auf der Dig-Seite und dort nur
+ * innerhalb von `v-if="result"`. Im Browser nachgezählt — null Treffer auf
+ * `/stack`. Ein Bildschirm, den man kennen muss, um ihn zu erreichen,
+ * existiert für die meisten nicht, und das sieht man keinem Test an, der nur
+ * den Bildschirm selbst prüft.
+ */
+describe('the way in', () => {
+  const INDEX = readFileSync('app/pages/index.vue', 'utf8')
+
+  it('is on the start page', () => {
+    expect(code(INDEX)).toMatch(/<StackShops/)
+  })
+
+  /** Und zwar auf den Laden, auf den jemand gezeigt hat. */
+  it('opens the shop that was tapped, not the first one', () => {
+    const SHOPS = readFileSync('app/components/StackShops.vue', 'utf8')
+    expect(code(SHOPS)).toMatch(/query: \{ dealer: shop\.dealer \}/)
+    expect(code(PAGE)).toMatch(/route\.query\.dealer/)
+    expect(code(PAGE)).toMatch(/findIndex\(\(s\) => s\.dealer === wanted\)/)
+  })
+})
+
 describe('the row of shops', () => {
   /** Der Ring ist eine Zahl und keine zweite Wahrheit. */
   it('lights the ring from the same count the stack works through', () => {

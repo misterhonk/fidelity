@@ -21,6 +21,7 @@ const m = useMessages()
 
 useSeoMeta({ title: () => d.value.stack.title, description: () => d.value.stack.lead })
 
+const route = useRoute()
 const { call } = useFidelityWorker()
 const { judge, load: loadFeedback, verdicts } = useFeedback()
 const { load: loadBasket } = useBasket()
@@ -79,7 +80,16 @@ onMounted(async () => {
     await Promise.all([loadFeedback(), loadBasket()])
     audioOn.value = (await call('preferences.get', undefined)).audioPreview
     shops.value = await call('stack.overview', undefined)
-    await openShop(0)
+
+    /*
+     * `?dealer=` kommt von der Ladenreihe auf der Startseite.
+     *
+     * Ohne das landete jedes Tippen dort beim ersten Laden der Liste — also
+     * genau nicht bei dem, auf den jemand gezeigt hat.
+     */
+    const wanted = typeof route.query.dealer === 'string' ? route.query.dealer : null
+    const found = wanted ? shops.value.findIndex((s) => s.dealer === wanted) : -1
+    await openShop(found >= 0 ? found : 0)
   } catch (cause) {
     error.value = cause
   } finally {
@@ -287,38 +297,7 @@ const STACKED =
       Die obere Reihe. Der Ring ist `matches - seen > 0` und sonst nichts —
       keine zweite Wahrheit darüber, ob es etwas Neues gibt.
     -->
-    <ul v-if="shops.length > 0" class="flex gap-3 overflow-x-auto pb-1">
-      <li v-for="(s, i) in shops" :key="s.digId" class="shrink-0">
-        <button
-          type="button"
-          class="flex w-16 flex-col items-center gap-1"
-          :aria-current="i === shopIndex ? 'true' : undefined"
-          :aria-label="d.stack.shop(s.displayName, s.matches - s.seen)"
-          @click="openShop(i)"
-        >
-          <span
-            class="flex size-14 items-center justify-center rounded-full border-2 p-1"
-            :class="
-              s.matches - s.seen > 0 ? 'border-fid-accent-fill' : 'border-fid-border opacity-60'
-            "
-          >
-            <img
-              v-if="s.avatarUrl"
-              :src="s.avatarUrl"
-              alt=""
-              loading="lazy"
-              class="size-full rounded-full object-cover"
-            />
-            <span v-else class="text-fid-sm font-bold text-fid-text">
-              {{ s.displayName.slice(0, 2).toUpperCase() }}
-            </span>
-          </span>
-          <span class="w-full truncate text-center text-fid-xs text-fid-text-muted">
-            {{ s.displayName }}
-          </span>
-        </button>
-      </li>
-    </ul>
+    <StackShops :shops="shops" :current="shopIndex" @open="openShop" />
 
     <p v-if="loading" class="text-fid-base text-fid-text-muted">{{ m.common.loading }}</p>
     <ErrorNote v-if="error" :cause="error" />

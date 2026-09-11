@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { StackShop } from '#shared/types'
 import type { HomeOverview } from '#shared/protocol'
 import { reasonFor } from '~/i18n/reason'
 
@@ -12,6 +13,14 @@ useSeoMeta({
 })
 
 const { call } = useFidelityWorker()
+
+/*
+ * Die Läden mit frischen Funden — für die Reihe oben.
+ *
+ * Kostet keinen Discogs-Request: `stack.overview` liest nur, was die Digs
+ * schon in IndexedDB abgelegt haben.
+ */
+const shops = shallowRef<StackShop[]>([])
 const { checkOnce } = useWatchlist()
 const { syncOnStart } = useVaultSync()
 const { identity, ready, load } = useIdentity()
@@ -53,6 +62,7 @@ onMounted(async () => {
  * numbers on screen unchanged looks exactly like a refresh that did nothing.
  */
 async function reload() {
+  void call('stack.overview', undefined).then((found) => (shops.value = found))
   home.value = await call('home.overview', undefined)
 
   /*
@@ -150,6 +160,20 @@ const tiles = computed(() => {
         <OfflineNotice />
         <WatchBanner />
         <NextStep />
+
+        <!--
+          Der Weg in den Stapel, und der einzige von hier aus.
+
+          Bis zum 2026-09-11 führte gar keiner: der Link stand allein auf der
+          Dig-Seite und dort nur innerhalb von `v-if="result"`. Ein Bildschirm,
+          den man kennen muss, um ihn zu erreichen, existiert für die meisten
+          nicht.
+
+          Und es ist die Reihe selbst statt eines Knopfes „Zum Stapel": sie
+          zeigt schon hier, wo etwas wartet, und ein Tippen ist dann nicht die
+          Entscheidung für eine Ansicht, sondern für einen Laden.
+        -->
+        <StackShops v-if="shops.length > 0" :shops="shops" />
       </div>
 
       <!--
