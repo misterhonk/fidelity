@@ -1,6 +1,8 @@
 import { openFidelityDb } from '~~/db/open'
 import { marketStatsSchema } from '../dig/enrich'
 import { addPoint, judge, type WatchNews } from './judge'
+import { MAX_CONFIRM, seenOffers } from './offers'
+import { FOR_SALE, listingSchema } from '../dig/refresh'
 import type { DiscogsClient } from '../discogs/client'
 import type { WatchedRelease } from '#shared/types'
 
@@ -95,7 +97,35 @@ export async function checkWatched(
       checkedAt: at,
     }
 
-    const news = judge(updated, at)
+    let news = judge(updated, at)
+
+    /*
+     * „Ein Angebot weniger" ist die ehrliche Aussage über die Zahl — aber
+     * nicht die beste, die möglich ist.
+     *
+     * Wenn ein Dig dieses Geräts konkrete Angebote dieser Platte gesehen hat,
+     * lässt sich nachsehen, ob *die* noch stehen. Das kostet einen Request je
+     * Angebot, deshalb erst hier: gefragt wird nur, wenn die Zahl überhaupt
+     * gefallen ist, und das ist selten. Bleibt die Antwort aus, bleibt es bei
+     * `fewer` — schlechter informiert, aber nicht falsch.
+     */
+    if (news?.kind === 'fewer') {
+      const gone = await confirmGone(client, row, {
+        signal,
+        report: () => (result.requests += 1),
+      })
+      if (gone) {
+        updated.goneOffers = [...(row.goneOffers ?? []), gone.listingId]
+        news = {
+          kind: 'gone',
+          dealer: gone.dealer,
+          listingId: gone.listingId,
+          from: news.from,
+          to: news.to,
+        }
+      }
+    }
+
     if (news) {
       result.news.push({
         releaseId: row.releaseId,
@@ -112,6 +142,53 @@ export async function checkWatched(
 
   report?.({ done: due.length, total: due.length })
   return result
+}
+
+/**
+ * Nachsehen, ob eines der selbst gesehenen Angebote verschwunden ist.
+ *
+ * Höchstens `MAX_CONFIRM` Stück, jüngstes zuerst, und schon bekannte
+ * Verschwundene werden übersprungen — sonst kostet dieselbe Kopie bei jedem
+ * Durchlauf erneut einen Request und meldet sich erneut.
+ *
+ * Gibt das erste zurück, das nicht mehr `For Sale` ist. Ein Fehler ist kein
+ * Ergebnis: dann bleibt es bei der Zahl, und der nächste Durchlauf sieht
+ * wieder nach.
+ */
+async function confirmGone(
+  client: DiscogsClient,
+  row: WatchedRelease,
+  options: { signal?: AbortSignal; report: () => void },
+): Promise<{ listingId: number; dealer: string } | null> {
+  const bekannt = new Set(row.goneOffers ?? [])
+  const offers = (await seenOffers(row.releaseId))
+    .filter((offer) => !bekannt.has(offer.listingId))
+    .slice(0, MAX_CONFIRM)
+
+  for (const offer of offers) {
+    options.signal?.throwIfAborted()
+    try {
+      const listing = await client.get(
+        `/marketplace/listings/${offer.listingId}`,
+        listingSchema,
+        { signal: options.signal },
+      )
+      options.report()
+      if (listing.status !== FOR_SALE)
+        return { listingId: offer.listingId, dealer: offer.dealer }
+    } catch (cause) {
+      if (options.signal?.aborted) throw cause
+      /*
+       * Eine 404 heißt hier „das Listing gibt es nicht mehr" und wäre eine
+       * Antwort — aber im Browser kommt sie ohne CORS-Kopf an und ist von
+       * einem Netzfehler nicht zu unterscheiden (`docs/02`). Also nichts
+       * behaupten.
+       */
+      return null
+    }
+  }
+
+  return null
 }
 
 /** Eine Platte in die Beobachtung nehmen. */

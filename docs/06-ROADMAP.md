@@ -497,9 +497,21 @@ Drittanbieter-Apps tut es. Wer verkaufen will, erfährt vom Anstieg heute nur du
       Angebot weniger" — das kann ein Kauf sein oder ein zurückgezogenes Listing, und
       die API sagt nicht, welches. Der Text sagt, was gemessen wurde, nicht was
       vermutet wird.
-- [ ] Noch offen: für Platten, die schon in einem Dig auftauchten, geht es genauer:
+- [x] Für Platten, die schon in einem Dig auftauchten, geht es genauer:
       `GET /marketplace/listings/{id}` gibt `status`, und steht dort nicht mehr
-      `For Sale`, ist genau dieses Angebot weg (`docs/02`).
+      `For Sale`, ist genau dieses Angebot weg (`docs/02`). Aus „ein Angebot weniger"
+      wird dann „die Kopie bei Plattenkiste steht nicht mehr drin".
+
+⚠️ **Und das ist die einzige Stelle, an der der Wächter einen Laden nennt.** Der Satz
+darüber — „wer verkauft Release X" ist per API nicht beantwortbar — gilt unverändert;
+was hier abgefragt wird, sind ausschließlich Angebote, an denen ein Dig **dieses Geräts**
+selbst vorbeigekommen ist. `noShops` auf dem Bildschirm sagt das jetzt so.
+
+Bezahlbar ist es, weil die teure Nachfrage an einem billigen Signal hängt: gefragt wird
+**nur**, wenn `num_for_sale` überhaupt gefallen ist, höchstens dreimal je Meldung
+(`MAX_CONFIRM`), und eine einmal als verschwunden erkannte Kopie kostet nie wieder einen
+Request (`goneOffers`). Im Normalfall — hundert beobachtete Platten, keine Bewegung —
+sind das null zusätzliche Anfragen.
 
 ### Richtung 2: die Wantlist, mit Schwelle
 

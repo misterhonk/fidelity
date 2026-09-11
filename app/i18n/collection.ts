@@ -197,6 +197,11 @@ const en = {
    * Der Satz, der hier am wichtigsten ist, steht in `noShops`: „Wer verkauft
    * Release X?" ist per API nicht beantwortbar (`docs/02`). Wer das nicht
    * weiß, hält den fehlenden Laden für eine Lücke in der App.
+   *
+   * Seit `gone` hat der Satz eine Ausnahme, und die steht jetzt drin: ein Dig
+   * dieses Geräts hat Angebote mit ihrer Listing-ID gesehen, und die sind
+   * einzeln abrufbar. Das ist kein Weg um die fehlende Auflistung herum — es
+   * sind nur die, an denen man selbst schon vorbeigegangen ist.
    */
   /*
    * Wo die Platten stehen (M12).
@@ -263,6 +268,11 @@ const en = {
     /* „Verkauft" wird nicht behauptet: ein Angebot kann auch zurückgezogen
      * worden sein, und die API sagt nicht, welches von beidem. */
     fewer: (from: string, to: string) => `is down from ${from} copies on offer to ${to}.`,
+    /* Der genauere Fall, und der einzige, in dem hier ein Laden steht: ein Dig
+     * dieses Geräts hat genau dieses Angebot gesehen. Immer noch nicht
+     * „verkauft" — zurückgezogen sieht von außen genauso aus. */
+    gone: (dealer: string, from: string, to: string) =>
+      `is down from ${from} copies on offer to ${to} — the one at ${dealer} is no longer listed.`,
     dropShort: 'Stop',
     drop: (label: string) => `Stop watching ${label}`,
     watch: 'Keep an eye on it',
@@ -271,7 +281,7 @@ const en = {
      * aufhört, Platten anzunehmen, ist schlimmer als einer, der Nein sagt. */
     full: 'A hundred is the limit — one request each, and that is two minutes per look.',
     noShops:
-      'No shop is named here, and none can be: Discogs has no way to list who is selling a given record. What you get is the price, not the address.',
+      'No shop is named here: Discogs has no way to list who is selling a given record. What you get is the price, not the address. The one exception is a copy one of your own digs walked past — that one has an address, and it is named.',
   },
 
   saved: {
@@ -509,13 +519,15 @@ const de: typeof en = {
     fell: (to) => `liegt jetzt bei ${to}, unter deiner Grenze.`,
     appeared: (copies) => `wird wieder angeboten – ${copies} Stück.`,
     fewer: (from, to) => `wird statt ${from} nur noch ${to} mal angeboten.`,
+    gone: (dealer, from, to) =>
+      `wird statt ${from} nur noch ${to} mal angeboten – die bei ${dealer} steht nicht mehr drin.`,
     dropShort: 'Stopp',
     drop: (label) => `${label} nicht mehr beobachten`,
     watch: 'Im Blick behalten',
     watchingOn: 'Im Blick',
     full: 'Hundert ist die Grenze – je eine Anfrage, das sind zwei Minuten pro Durchgang.',
     noShops:
-      'Hier steht kein Laden, und es kann keiner stehen: Discogs bietet keinen Weg, die Angebote zu einer Platte aufzulisten. Man bekommt den Preis, nicht die Adresse.',
+      'Hier steht kein Laden: Discogs bietet keinen Weg, die Angebote zu einer Platte aufzulisten. Man bekommt den Preis, nicht die Adresse. Die eine Ausnahme ist ein Exemplar, an dem ein eigener Dig vorbeigekommen ist – das hat eine Adresse, und die steht dann da.',
   },
 
   saved: {

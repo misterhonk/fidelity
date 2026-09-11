@@ -993,6 +993,15 @@ export interface WatchedRelease {
   checkedAt: number | null
   /** Was zuletzt gemeldet wurde, damit dieselbe Nachricht nicht zweimal kommt. */
   notifiedAt: number | null
+  /**
+   * Angebote aus eigenen Digs, die nachweislich weg sind (M11).
+   *
+   * Damit dieselbe Kopie nicht bei jedem Durchlauf erneut einen Request
+   * kostet — und damit dieselbe Nachricht nicht zweimal kommt. Fehlt an
+   * Zeilen, die vor diesem Feld angelegt wurden; das ist kein Schema-Bruch,
+   * sondern ein leerer Verlauf.
+   */
+  goneOffers?: number[]
 }
 
 export interface WatchPoint {

@@ -17,6 +17,15 @@ export type WatchNews =
   | { kind: 'fell'; to: number; threshold: number; currency: string | null }
   | { kind: 'appeared'; numForSale: number; price: number | null; currency: string | null }
   | { kind: 'fewer'; from: number; to: number }
+  /**
+   * Ein bestimmtes Angebot ist weg — der genauere Fall von `fewer` (M11).
+   *
+   * Nur möglich, wenn ein Dig dieses Geräts das Angebot selbst gesehen hat;
+   * `worker/watched/offers.ts` erklärt, warum das die einzige Stelle ist, an
+   * der der Wächter einen Laden nennen darf. Und weiterhin nicht „verkauft":
+   * ein Listing kann auch zurückgezogen werden.
+   */
+  | { kind: 'gone'; dealer: string; listingId: number; from: number; to: number }
 
 /**
  * Der älteste Punkt, mit dem verglichen wird.

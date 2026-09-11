@@ -176,6 +176,9 @@ function span(row: WatchedRelease): string | null {
           <template v-else-if="item.news.kind === 'appeared'">
             {{ c.watched.appeared(count(item.news.numForSale)) }}
           </template>
+          <template v-else-if="item.news.kind === 'gone'">
+            {{ c.watched.gone(item.news.dealer, count(item.news.from), count(item.news.to)) }}
+          </template>
           <template v-else>
             {{ c.watched.fewer(count(item.news.from), count(item.news.to)) }}
           </template>
