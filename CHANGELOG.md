@@ -9,6 +9,26 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.25.1](https://github.com/misterhonk/fidelity/compare/v0.25.0...v0.25.1) (2026-09-11)
+
+**`docs/` ist englisch.** Vierzehn nummerierte Dokumente und dreizehn ADRs, rund 6.500
+Zeilen — die letzte offene Zeile aus [ADR-010](docs/adr/010-english-base-language.md),
+und damit gilt die Sprachregel überall. Die deutschen Dateinamen sind mitgegangen:
+`00-KONZEPT.md` heißt `00-CONCEPT.md`, `012-hoerprobe.md` heißt `012-audio-preview.md`.
+Ein englischer Text unter einer deutschen Adresse ist genau die halbe Sache, gegen die
+jene ADR argumentiert.
+
+**Die Nummern sind geblieben.** Rund zweihundert Stellen im Code zitieren ein Dokument
+über seine Nummer — `docs/02`, `docs/09 §1.1` —, und die ist der stabile Teil. Wer
+Lesezeichen auf die alten Dateinamen hat, findet sie über die Nummer wieder.
+
+Am Code hat sich nichts geändert; der einzige Eintrag unten betrifft einen Ablauf, der
+grün meldete, ohne etwas geprüft zu haben.
+
+### Fixed
+
+* **deploy:** die Hub-Prüfung hat nichts geprüft und grün gemeldet ([9ecb222](https://github.com/misterhonk/fidelity/commit/9ecb222abca9875e4aa78746a9c888448d6c625c))
+
 ## [0.25.0](https://github.com/misterhonk/fidelity/compare/v0.24.0...v0.25.0) (2026-09-11)
 
 Die Ausgabe, in der die App drei Fragen beantwortet, die Discogs nicht beantwortet:
