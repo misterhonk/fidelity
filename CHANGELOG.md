@@ -9,6 +9,36 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.29.0](https://github.com/misterhonk/fidelity/compare/v0.28.0...v0.29.0) (2026-09-11)
+
+**When something goes wrong, the app now says what to do about it — in your language.**
+
+Until this release, a failure that came out of the part of Fidelity that does the actual
+work arrived on screen as whatever sentence happened to be written in the code. Ten of them
+were German, in an English interface. And they were not small print: the red headline at the
+top of an error *is* that sentence, so "Der Sechs-Stunden-Rahmen ist abgelaufen – bitte neu
+scannen." is what an English reader got, and an English one is what a German reader got
+after the last attempt to fix it.
+
+Now each of those eighteen failures has a name rather than a sentence, and the words are
+written where the app knows which language you read. So "a scan is already running" comes
+with *only one at a time — that is the rate limit, not a preference*; an expired dig comes
+with *prices may not be shown once they are that old, a new scan takes a minute*; a backup
+from a newer version comes with *update the app first, an older one would read it wrong
+rather than not at all*. The original technical line is still one tap away, because somebody
+chasing a genuinely new failure needs the words the machine used.
+
+**Why it could not simply be translated.** The half of the app that scans, matches and
+scores runs in a separate thread that deliberately knows nothing about language — that is
+what keeps it fast and what keeps the rate limit honest. A sentence written there can never
+follow the language switch, whichever language it is written in. Naming the failure and
+leaving the wording to the side that *does* know is the only arrangement where both readers
+get a sentence meant for them.
+
+### Added
+
+* **i18n:** der Worker wirft Codes statt Sätze ([d50b45c](https://github.com/misterhonk/fidelity/commit/d50b45c3ee14901cff33cdb4549069f625715c72))
+
 ## [0.28.0](https://github.com/misterhonk/fidelity/compare/v0.27.1...v0.28.0) (2026-09-11)
 
 **The privacy notice was out of date, and it was the kind of out of date that matters.** It
