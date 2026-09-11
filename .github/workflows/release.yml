@@ -160,3 +160,86 @@ jobs:
     with:
       version: ${{ needs.release-please.outputs.tag }}
     secrets: inherit
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Läuft der Hub noch auf demselben Stand wie die App?
+  #
+  # `hub.yml` liefert von Hand aus und bleibt das auch (ADR-008: ein
+  # Fehlschlag am Hub darf die App nicht mitnehmen). Die Kehrseite hat am
+  # 2026-09-11 ein Feature tot ausgeliefert: die App stand auf 0.24.0 mit dem
+  # Teilen-Knopf, der Hub auf dem Stand davor, und `GET /v1/share/{id}`
+  # antwortete mit 401 statt 404 — ein geteilter Link war für jeden ohne
+  # Secret unbrauchbar. Tests grün, Browser grün, draußen kaputt.
+  #
+  # Dieser Job ersetzt das Nachsehen von Hand. Er blockiert nichts: er läuft
+  # **nach** dem Ausliefern, und die App ist dann längst oben.
+  # ──────────────────────────────────────────────────────────────────────
+  hub-check:
+    needs: [release-please, deploy]
+    if: needs.release-please.outputs.ship == 'true'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Die drei Türen am Hub
+        env:
+          SITE_URL: ${{ vars.DEPLOY_URL || secrets.DEPLOY_URL }}
+        run: |
+          set -u
+
+          if [ -z "${SITE_URL:-}" ]; then
+            echo "Keine Adresse hinterlegt — nichts zu prüfen." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # Dieselbe Herleitung wie im Client (`hub.discover`): Hub liegt
+          # unter `<Herkunft>/hub`.
+          origin=$(printf '%s' "$SITE_URL" | sed -E 's#^(https?://[^/]+).*#\1#')
+          hub="$origin/hub"
+
+          code() { curl -s -o /dev/null -m 10 -w '%{http_code}' "$@"; }
+
+          health=$(code "$hub/v1/health")
+          if [ "$health" != "200" ]; then
+            # Ein abwesender Hub ist **kein** Fehler: nach Regel 8 hängt kein
+            # Feature an ihm, und er darf jederzeit aus sein.
+            {
+              echo "### Hub"
+              echo
+              echo "Antwortet nicht (\`$health\` auf \`/v1/health\`) — das ist erlaubt."
+              echo "Nach Regel 8 hängt kein Feature am Hub."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          lesen=$(code "$hub/v1/share/$(openssl rand -hex 16)")
+          schreiben=$(code -X POST -H 'content-type: application/json' -d '{}' "$hub/v1/share")
+
+          {
+            echo "### Hub"
+            echo
+            echo "| Tür | erwartet | bekommen |"
+            echo "|---|---|---|"
+            echo "| \`GET /v1/share/{id}\` | 404 | $lesen |"
+            echo "| \`POST /v1/share\` | 401 oder 400 | $schreiben |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # 401 beim Lesen heißt: die Route existiert dort nicht, die
+          # Auth-Schicht weist alles Unbekannte ab. Der Hub ist alt.
+          if [ "$lesen" = "401" ]; then
+            {
+              echo
+              echo "**Der Hub ist älter als die App.** Ein geteilter Link wäre für"
+              echo "jeden ohne Secret tot."
+              echo
+              echo "Zu tun: \`hub.yml\` mit \`ausliefern\` laufen lassen."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::Der Hub ist älter als die App — GET /v1/share/{id} gab 401 statt 404. hub.yml mit 'ausliefern' laufen lassen."
+            exit 1
+          fi
+
+          if [ "$lesen" != "404" ]; then
+            echo "::warning::GET /v1/share/{id} gab $lesen — erwartet war 404."
+          fi
+
+          echo "Der Hub ist auf demselben Stand." >> "$GITHUB_STEP_SUMMARY"
