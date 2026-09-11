@@ -40,6 +40,11 @@ useSeoMeta({
     </section>
 
     <section class="flex flex-col gap-2">
+      <h2 class="text-fid-base font-medium text-fid-text">{{ l.privacy.audio }}</h2>
+      <p class="text-fid-base text-fid-text-muted">{{ l.privacy.audioBody }}</p>
+    </section>
+
+    <section class="flex flex-col gap-2">
       <h2 class="text-fid-base font-medium text-fid-text">{{ l.privacy.marketplace }}</h2>
       <p class="text-fid-base text-fid-text-muted">{{ l.privacy.marketplaceBody }}</p>
     </section>

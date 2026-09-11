@@ -66,6 +66,15 @@ export const releaseDetailSchema = z.object({
       }),
     )
     .optional(),
+  /*
+   * Die Hörprobe (ADR-012), und sie kostet keinen Request.
+   *
+   * Dieser Aufruf läuft für die Top-Treffer ohnehin — wegen der Stile, der
+   * Pressung und der Marktzahlen. Am 2026-09-10 gemessen: `videos[]` kommt in
+   * derselben Antwort mit, bei Release 1 vierzehn Stück. Ein eigener Durchgang
+   * dafür wären fünfzig Anfragen für Daten, die schon da waren.
+   */
+  videos: z.array(z.object({ title: z.string().optional(), uri: z.string() })).optional(),
 })
 
 /** @deprecated Kept as the old name; the schema grew for M7. */
@@ -244,6 +253,17 @@ export async function enrichTopMatches({
     const updated: Match = {
       ...match,
       signals,
+      /*
+       * Höchstens fünf.
+       *
+       * Discogs sammelt diese Links von allen, und eine einzelne 12" kam mit
+       * neunundachtzig zurück (gemessen 2026-08-12, siehe `ShelfSheet.vue`).
+       * Neunundachtzig mal dreihundert Treffer wären ein Megabyte Adressen für
+       * einen Knopf, den die meisten nie drücken.
+       */
+      videos: (release.videos ?? [])
+        .slice(0, 5)
+        .map((video) => ({ title: video.title ?? '', uri: video.uri })),
       marketLowestPrice: stats.lowestPrice,
       marketNumForSale: stats.numForSale,
       pressing,

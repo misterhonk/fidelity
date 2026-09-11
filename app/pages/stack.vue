@@ -26,6 +26,41 @@ const { judge, load: loadFeedback, verdicts } = useFeedback()
 const { load: loadBasket } = useBasket()
 const { request: requestCovers } = useCovers()
 
+/*
+ * Hörprobe (ADR-012) — aus, bis jemand sie einschaltet, und selbst dann
+ * passiert erst beim Tippen etwas. `mount` ist der Platz, an dem der Rahmen
+ * entstehen *würde*; solange niemand tippt, bleibt dort ein leeres div.
+ */
+const audioOn = ref(false)
+const audio = useAudioPreview()
+const mount = useTemplateRef<HTMLElement>('mount')
+
+/** Der Titel, wie Discogs ihn zu dieser Platte kennt — nicht der der Karte. */
+const hearing = computed(() =>
+  audio.playing.value ? card.value?.videos?.[0]?.title || null : null,
+)
+
+const canHear = computed(
+  () => audioOn.value && !audio.failed.value && (card.value?.videos?.length ?? 0) > 0,
+)
+
+/** Nach einem Kartenwechsel: mitnehmen, was lief, und sonst schweigen. */
+async function follow() {
+  if (!audio.playing.value) return
+  const uri = card.value?.videos?.[0]?.uri
+  if (!uri || !mount.value) {
+    audio.stop()
+    return
+  }
+  await audio.play(uri, mount.value)
+}
+
+async function hear() {
+  const uri = card.value?.videos?.[0]?.uri
+  if (!uri || !mount.value) return
+  await audio.play(uri, mount.value)
+}
+
 const shops = shallowRef<StackShop[]>([])
 const loading = ref(true)
 const error = ref<unknown>(null)
@@ -42,6 +77,7 @@ const expired = computed(() => (dig.value ? Date.now() >= dig.value.dig.expiresA
 onMounted(async () => {
   try {
     await Promise.all([loadFeedback(), loadBasket()])
+    audioOn.value = (await call('preferences.get', undefined)).audioPreview
     shops.value = await call('stack.overview', undefined)
     await openShop(0)
   } catch (cause) {
@@ -91,6 +127,17 @@ function go(step: number) {
     return
   }
   at.value = next
+  /*
+   * Der Ton wandert mit — aber nur, wenn er schon lief.
+   *
+   * ADR-012: die eine Geste trägt durch den Stapel. Sie trägt aber nicht
+   * *gegen* den, der den Ton ausgemacht hat. Also: läuft etwas, bekommt die
+   * nächste Karte ihre Hörprobe; läuft nichts, bleibt es still.
+   *
+   * Und Platte A darf nie unter Platte B weiterlaufen — wer das hört, hält
+   * den Ton für den der Platte, die er sieht.
+   */
+  void follow()
   void remember(next)
   prefetchCovers()
 }
@@ -326,6 +373,19 @@ const verdict = computed(() => (card.value ? verdicts.value[card.value.listingId
             {{ d.stack.like }}
           </button>
           <button
+            v-if="canHear"
+            type="button"
+            class="fid-action min-h-11 rounded-fid-sm border px-3 text-fid-sm"
+            :class="
+              audio.playing.value
+                ? 'border-fid-accent-fill text-fid-accent'
+                : 'border-fid-border text-fid-text'
+            "
+            @click="audio.playing.value ? audio.stop() : hear()"
+          >
+            {{ audio.playing.value ? d.stack.hearStop : d.stack.hear }}
+          </button>
+          <button
             type="button"
             :disabled="busy"
             class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-sm text-fid-text disabled:opacity-40"
@@ -355,6 +415,35 @@ const verdict = computed(() => (card.value ? verdicts.value[card.value.listingId
       <p v-if="shareLink" class="font-fid-mono text-fid-xs break-all text-fid-text-muted">
         {{ shareLink }}
       </p>
+
+      <!--
+        Hier entsteht der Spieler — und bis jemand tippt, ist das ein leeres
+        div und sonst nichts. Kein Skript, kein Rahmen, keine Anfrage an
+        Google (ADR-012).
+
+        Danach ist er **sichtbar**: YouTubes Bedingungen verlangen das, und ein
+        versteckter Spieler startet ohnehin nicht (2026-09-11 gemessen). Also
+        eine kleine, ehrliche Fläche statt eines Tricks — wer Ton anmacht,
+        sieht auch, woher er kommt.
+      -->
+      <div v-show="audio.armed.value" class="flex flex-col gap-1">
+        <div
+          ref="mount"
+          class="aspect-video w-full overflow-hidden rounded-fid-sm bg-fid-inset"
+        />
+        <!--
+          Was da läuft, beim Namen genannt (ADR-012, Bedingung 8).
+
+          Discogs' Videos tragen Leute ein, nicht Discogs — unter einer 12"
+          liegt auch mal ein Album-Rip, eine Live-Fassung oder schlicht eine
+          andere Platte. Der Spieler zeigt YouTubes eigenes Bild und seinen
+          eigenen Titel; ohne diese Zeile sieht das aus, als sei es *die*
+          Platte von der Karte. Steht hier ein anderer Name, sieht man es
+          sofort.
+        -->
+        <p v-if="hearing" class="text-fid-xs text-fid-text">{{ hearing }}</p>
+        <p class="text-fid-xs text-fid-text-muted">{{ d.stack.hearVia }}</p>
+      </div>
     </template>
   </main>
 </template>

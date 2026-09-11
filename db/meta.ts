@@ -53,6 +53,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   shipsToCountry: 'Germany',
   // Off: rule 5 stays the normal case, the exception is switched on by hand.
   importFriends: false,
+  // ADR-012: aus, bis jemand es will. Siehe `Preferences.audioPreview`.
+  audioPreview: false,
   // One device needs no vault, so the default configuration is no vault.
   vaultTarget: 'none' as const,
   vaultSyncedAt: null,

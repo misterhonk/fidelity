@@ -80,6 +80,25 @@ export interface Preferences {
   importFriends: boolean
 
   /**
+   * Hörprobe im Stapel — **standardmäßig aus** (ADR-012).
+   *
+   * Discogs' einzige Tonquelle ist YouTube, und ein eingebetteter Spieler lädt
+   * Google. Was dabei abfließt, ist nicht die Sammlung — Regal, Wantlist und
+   * Token bleiben, wo sie sind —, sondern die IP und welche Platte gerade
+   * angesehen wird. Das ist weniger, als der Satz auf der Datenschutzseite
+   * befürchten lässt, und mehr als null.
+   *
+   * Deshalb dieselbe Form wie ADR-009 beim Freunde-Import: ein Schalter pro
+   * Gerät, aus als Vorgabe, und kein Feature hängt daran — der Stapel
+   * funktioniert ohne Ton vollständig.
+   *
+   * **Und selbst eingeschaltet geht vorher kein Byte an Google.** Der
+   * `<iframe>` entsteht erst beim ersten bewussten Tippen, nicht beim Zeichnen
+   * einer Karte.
+   */
+  audioPreview: boolean
+
+  /**
    * Where this device keeps the block that carries it to the others.
    *
    * 'none' is the default and a complete configuration: a single device needs
@@ -928,6 +947,17 @@ export interface Match {
   marketLowestPrice: number | null
   marketNumForSale: number | null
 
+  /**
+   * Hörproben zu dieser Platte — YouTube-Adressen von Discogs (ADR-012).
+   *
+   * Kommen im Nachschlag über die Top-Treffer mit, kosten also nichts extra.
+   * Fehlen bei allem darunter und bei Platten, zu denen niemand etwas
+   * eingetragen hat; beides heißt „kein Ton" und nicht „Fehler".
+   *
+   * Nur die Adressen. Abgespielt wird erst, wenn jemand den Schalter umgelegt
+   * **und** danach getippt hat — vorher geht kein Byte an Google.
+   */
+  videos?: { title: string; uri: string }[]
   /**
    * What this pressing is (M7). Filled by the top-fifty pass at no extra
    * request cost; null for everything below it.

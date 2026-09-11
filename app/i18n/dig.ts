@@ -108,6 +108,11 @@ const en = {
     shop: (dealer: string, waiting: number) =>
       waiting > 0 ? `${dealer} — ${waiting} still waiting` : `${dealer} — all seen`,
     like: 'Interesting',
+    hear: 'Listen',
+    hearStop: 'Stop',
+    /* Gesagt, sobald es läuft — nicht vorher als Warnung und nicht gar nicht.
+     * Wer den Ton anmacht, soll wissen, wem er dabei begegnet. */
+    hearVia: 'Played from YouTube — Google sees this device while it does.',
     basket: 'To basket',
     share: 'Share',
     next: 'Next',
@@ -366,6 +371,9 @@ const de: typeof en = {
     shop: (dealer, waiting) =>
       waiting > 0 ? `${dealer} — ${waiting} warten noch` : `${dealer} — alle gesehen`,
     like: 'Interessant',
+    hear: 'Anhören',
+    hearStop: 'Stopp',
+    hearVia: 'Kommt von YouTube – Google sieht dieses Gerät, solange es läuft.',
     basket: 'In den Korb',
     share: 'Teilen',
     next: 'Weiter',

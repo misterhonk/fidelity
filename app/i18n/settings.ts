@@ -243,6 +243,18 @@ const en = {
   },
 
   /** Settings → Sync devices. */
+  /*
+   * Die Hörprobe (ADR-012) — eine benannte Ausnahme, also sichtbar und
+   * abwählbar.
+   */
+  audio: {
+    label: 'Listen to a find',
+    off: 'Off. Nothing is loaded from Google.',
+    on: 'On. A player appears in the stack — and only starts talking to Google once you tap it.',
+    whyLabel: 'What happens then',
+    why: 'Discogs has one source of sound: YouTube. So a preview means embedding Google. Your collection, wantlist and token stay on this device — what Google learns is this device’s address and which record is playing. Nothing is loaded until you tap Listen, not even with this switch on.',
+  },
+
   vault: {
     targets: {
       none: { label: 'This device only', hint: 'Nothing leaves the browser.' },
@@ -697,6 +709,14 @@ const de: typeof en = {
       dropbox: 'Dropbox',
       drive: 'Google Drive',
     },
+  },
+
+  audio: {
+    label: 'Fundstück anhören',
+    off: 'Aus. Es wird nichts von Google geladen.',
+    on: 'An. Im Stapel erscheint ein Knopf – und erst beim Tippen spricht er mit Google.',
+    whyLabel: 'Was dann passiert',
+    why: 'Discogs hat genau eine Tonquelle: YouTube. Eine Hörprobe heißt also, Google einzubetten. Sammlung, Wantlist und Token bleiben auf diesem Gerät – was Google erfährt, ist die Adresse dieses Geräts und welche Platte läuft. Vor dem Tippen wird nichts geladen, auch mit eingeschaltetem Schalter nicht.',
   },
 
   vault: {
