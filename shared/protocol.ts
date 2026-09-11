@@ -131,7 +131,7 @@ export interface WorkerContract {
    */
   'demo.run': { params: { listingIds: number[] }; progress: DemoProgress; result: DemoResult }
   /**
-   * Nachsehen, ob etwas aufzufrischen ist — und es dann tun.
+   * Look whether anything wants refreshing — and then do it.
    *
    * Called by the app itself rather than by a button (app/composables/
    * useKeeper.ts). Does nothing at all while something somebody started is
@@ -139,7 +139,7 @@ export interface WorkerContract {
    * what it deliberately leaves alone.
    */
   /**
-   * Nach einem Hub suchen — erst hier, dann auf diesem Rechner.
+   * Look for a hub — here first, then on this machine.
    *
    * Two kinds of candidate, and the order is the whole point.
    *
@@ -177,12 +177,12 @@ export interface WorkerContract {
   }
   'keeper.tick': {
     params: { force?: boolean; eager?: boolean }
-    /** Woran gerade gearbeitet wird, damit die App es sagen kann. */
+    /** What is being worked on, so the app can say so. */
     progress: KeeperProgress
     result: KeeperResult
   }
   /**
-   * Cover, die schon da sind. Kostet keinen Request.
+   * Covers already on hand. Costs no request.
    *
    * Split from the fetch on purpose: every screen asks this first and gets an
    * answer offline, immediately, for the covers the collection sync already
@@ -194,7 +194,7 @@ export interface WorkerContract {
     result: Record<number, { thumbUrl: string; coverUrl: string }>
   }
   /**
-   * Die fehlenden nachholen — ein Bildschirm voll, nicht ein Laden voll.
+   * Fetch the missing ones — a screenful, not a shopful.
    *
    * The marketplace returns listings without images (worker/covers.ts has the
    * measurement), so this is the only way a find ever gets a sleeve. Bounded
@@ -473,12 +473,12 @@ export interface WorkerContract {
       counts: Record<string, number>
       hadRemote: boolean
       /**
-       * Leer, obwohl dieses Gerät schon einmal abgeglichen hat.
+       * Empty, although this device has synced before.
        *
-       * Nur der Hub kennt diesen Fall: dort hängt die Kennung seit dem
-       * 2026-08-13 an der Passphrase, und ein anderes Wort verschiebt damit
-       * auch den Ablageort. Eine Datei oder ein Cloud-Ordner liegt, wo
-       * jemand hingezeigt hat, und kann das nicht.
+       * Only the hub knows this case: there the id has hung off the
+       * passphrase since 2026-08-13, so a different word moves the storage
+       * location with it. A file or a cloud folder sits where somebody
+       * pointed, and cannot do that.
        */
       emptyThoughSyncedBefore?: boolean
       syncedAt: number
@@ -522,11 +522,10 @@ export interface WorkerContract {
   }
   /** Every shop you have scanned, best first. */
   /**
-   * Das Sortiment eines Ladens, nach Label oder Jahrzehnt.
+   * A shop's inventory, by label or by decade.
    *
-   * Blättert von Haus aus: ein großer Laden hat zwanzigtausend Zeilen, und
-   * davon will ein Bildschirm fünfzig. Der Rest bleibt liegen, bis jemand
-   * danach fragt.
+   * Paged by default: a large shop has twenty thousand rows, and a screen
+   * wants fifty of them. The rest stays where it is until somebody asks.
    */
   'dealer.stock': {
     params: {
@@ -601,38 +600,37 @@ export interface WorkerContract {
   'dig.list': { params: undefined; progress: never; result: Dig[] }
 
   /**
-   * Die obere Reihe des Stapels: welche Läden frische Funde haben.
+   * The top row of the stack: which shops have fresh finds.
    *
-   * Die Karten selbst kommen aus `dig.get` — derselbe Dig, dieselbe Auswahl.
-   * Kostet keinen Discogs-Request; alles steht schon in IndexedDB.
+   * The cards themselves come from `dig.get` — the same dig, the same
+   * selection. Costs no Discogs request; all of it is in IndexedDB already.
    */
   /**
-   * Beobachtete Platten (M11).
+   * Watched records (M11).
    *
-   * `watched.check` kostet einen Request je fällige Platte und läuft durch
-   * denselben Taktgeber wie alles andere. Die Obergrenze steckt in
-   * `MAX_WATCHED` — ohne sie wäre der Durchlauf genau die Schleife, die
-   * Regel 2 verbietet.
+   * `watched.check` costs one request per record that is due, and runs
+   * through the same pacer as everything else. The ceiling is `MAX_WATCHED` —
+   * without it the pass would be precisely the loop rule 2 forbids.
    */
   /**
-   * Wo die Platte steht (M12) — das einzige Feature, das null Requests kostet.
+   * Where the record is (M12) — the one feature that costs zero requests.
    *
-   * Ein Standort ist eine Aussage über die eigene Wohnung und kein
-   * Discogs-Datum. Nichts hiervon verlässt das Gerät.
+   * A location is a statement about somebody's own flat, not a piece of
+   * Discogs data. None of this leaves the device.
    */
   /**
-   * Eine Platte in der Hand erkennen (M13).
+   * Recognising a record you are holding (M13).
    *
-   * Ein Request. Das Ergebnis ist eine **Liste** von Pressungen, keine eine:
-   * ein Barcode benennt eine Veröffentlichung, und am 2026-09-11 gemessen
-   * teilten sich acht Releases in fünf Ländern denselben.
+   * One request. The result is a **list** of pressings, not one: a barcode
+   * names a release, and measured on 2026-09-11, eight releases across five
+   * countries shared a single one.
    */
   /**
-   * Gradet dieser Laden ehrlich? (M14)
+   * Does this shop grade honestly? (M14)
    *
-   * Kostet keinen Request — alles steht im `feedback`-Store. Gespeichert wird
-   * **nur der Vergleich**, nie die versprochene Note: die wäre
-   * Discogs-Content und dürfte nach sechs Stunden nicht mehr gezeigt werden.
+   * Costs no request — all of it is in the `feedback` store. What is stored
+   * is **only the comparison**, never the grade that was promised: that would
+   * be Discogs content, and could not be shown after six hours.
    */
   'grading.forDealer': { params: { dealer: string }; progress: never; result: GradingRecord }
   'grading.awaiting': {
@@ -652,22 +650,22 @@ export interface WorkerContract {
   }
 
   /**
-   * Eine Bestellung einlesen und daraus die Ankunftsfragen stellen (M14).
+   * Read an order, and ask the arrival questions from it (M14).
    *
-   * Kostet **eine** Anfrage. Die Nummer muss eingetippt werden, weil
-   * `GET /marketplace/orders` die Verkäuferseite ist und es damit keinen
-   * API-Weg von „ich bin Käufer" zu „hier sind meine Bestellnummern" gibt
-   * (`docs/02`, gemessen 2026-09-11).
+   * Costs **one** request. The number has to be typed in, because
+   * `GET /marketplace/orders` is the seller side, which leaves no API route
+   * from "I am the buyer" to "here are my order numbers" (`docs/02`, measured
+   * 2026-09-11).
    */
   'orders.import': { params: { orderId: string }; progress: never; result: OrderImport }
 
   'identify.barcode': { params: { barcode: string }; progress: never; result: Identified }
   /**
-   * Und über die Auslaufrille — der bessere Ausweis bei Club-Vinyl.
+   * And by the run-out groove — the better identifier on club vinyl.
    *
-   * Am 2026-09-11 gemessen: von zwölf Platten hatten zehn einen Barcode, elf
-   * einen Runout, und die zwei ohne Barcode hatten einen. Die volle
-   * Zeichenkette liefert **einen** Treffer, wo ein Barcode acht liefert.
+   * Measured 2026-09-11: of twelve records, ten had a barcode, eleven had a
+   * run-out, and the two without a barcode had one. The full string returns
+   * **one** hit where a barcode returns eight.
    */
   'identify.runout': { params: { runout: string }; progress: never; result: Identified }
 
@@ -678,7 +676,7 @@ export interface WorkerContract {
     result: Place | null
   }
   'places.rename': { params: { id: string; name: string }; progress: never; result: boolean }
-  /** Löst den Ort auf; die Platten werden ortlos, nicht gelöscht. */
+  /** Dissolves the place; the records become placeless, not deleted. */
   'places.remove': { params: { id: string }; progress: never; result: true }
   'places.assign': {
     params: { instanceId: number; placeId: string | null }
@@ -691,7 +689,7 @@ export interface WorkerContract {
     progress: never
     result: CollectionItem[]
   }
-  /** „Alles aus Kiste 3 nach Regal 2" — der Normalfall nach einem Umzug. */
+  /** "Everything from crate 3 to shelf 2" — the ordinary case after a move. */
   'places.moveAll': { params: { from: string; to: string }; progress: never; result: number }
 
   'watched.list': { params: undefined; progress: never; result: WatchedRelease[] }
@@ -714,16 +712,15 @@ export interface WorkerContract {
   }
 
   'stack.overview': { params: undefined; progress: never; result: StackShop[] }
-  /** Wie weit der Stapel gekommen ist. Nur vorwärts. */
+  /** How far the stack has got. Forwards only. */
   'stack.seen': { params: { digId: string; seen: number }; progress: never; result: true }
 
   /**
-   * Eine Fundliste teilen.
+   * Share a find list.
    *
-   * Gibt Kennung **und** Schlüssel zurück. Der Schlüssel gehört ins
-   * `#`-Fragment des Links und nirgendwo sonst hin — ein Fragment schickt kein
-   * Browser an einen Server, und genau darauf beruht, dass der Hub den Inhalt
-   * nicht lesen kann.
+   * Returns an id **and** a key. The key belongs in the `#` fragment of the
+   * link and nowhere else — no browser sends a fragment to a server, and that
+   * is exactly what the hub's inability to read the contents rests on.
    */
   'share.create': {
     params: { digId: string }
@@ -732,10 +729,10 @@ export interface WorkerContract {
   }
 
   /**
-   * Und einen geteilten Link öffnen — **ohne Token, ohne Anmeldung**.
+   * And open a shared link — **no token, no sign-in**.
    *
-   * Wer ihn bekommt, hat Fidelity vielleicht nie geöffnet. Die Hub-Adresse
-   * steht im Link, weil der Empfänger keine eingetragen hat.
+   * Whoever receives one may never have opened Fidelity. The hub address is
+   * in the link, because the recipient has not entered one.
    */
   'share.read': {
     params: { hubUrl: string; id: string; key: string }
@@ -904,11 +901,10 @@ export interface HorizonResult {
   requests: number
   releaseIds: number
   /**
-   * Wie viele schon vorhandene Blöcke dieser Lauf beim Hub nachgereicht hat.
+   * How many chunks this run handed to the hub that it already had.
    *
-   * Null heißt "alles schon geteilt" oder "kein Hub" — beides ist der
-   * Normalfall. Von Null verschieden ist es nur in den ersten Läufen nach dem
-   * Eintragen eines Hubs.
+   * Zero means "all shared already" or "no hub" — both of them ordinary.
+   * It differs from zero only in the first few runs after a hub is entered.
    */
   shared: number
 }

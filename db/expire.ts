@@ -53,12 +53,12 @@ export async function expireDigs(
     }
 
     /*
-     * Das Sortiment wird gelöscht, nicht ausgedünnt.
+     * Stock is deleted, not thinned out.
      *
-     * Bei einem Treffer überleben Score und Signale den Ablauf — das ist eine
-     * Auswertung und gehört uns. An einer Sortimentszeile ist **jedes** Feld
-     * Marktplatzdatum; nach sechs Stunden bliebe eine leere Hülle übrig, die
-     * nichts mehr sagen darf (Regel 4). Also weg damit.
+     * On a match, the score and the signals survive expiry — that is an
+     * appraisal, and it is ours. On a stock row **every** field is marketplace
+     * data; after six hours what would be left is an empty shell that is not
+     * allowed to say anything (rule 4). So it goes.
      */
     const stock = tx.objectStore('stock')
     for (const key of await stock.getAllKeys(digRange(dig.id))) await stock.delete(key)
@@ -94,8 +94,8 @@ export async function pruneDigs(
     for (const key of await matches.index('by-dig-score').getAllKeys(digRange(id))) {
       await matches.delete(key)
     }
-    // Ein weggeworfener Dig nimmt sein Sortiment mit. Bleibt es liegen, wächst
-    // der Speicher mit jedem Scan um ein paar Megabyte, die niemand je sieht.
+    // A discarded dig takes its stock with it. Left behind, storage grows by a
+    // few megabytes with every scan that nobody will ever look at.
     for (const key of await stock.getAllKeys(digRange(id))) await stock.delete(key)
     await tx.objectStore('digs').delete(id)
   }

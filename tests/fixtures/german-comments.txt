@@ -59,16 +59,10 @@ app/utils/lucide.generated.ts
 app/utils/release-notes.ts
 app/utils/shipping-shapes.ts
 app/utils/when.ts
-db/covers.ts
-db/expire.ts
-db/open.ts
-db/schema.ts
 hub/src/app.ts
 hub/src/db.ts
 hub/src/server.ts
 hub/src/watch.ts
-shared/protocol.ts
-shared/types.ts
 tests/e2e/arrival.spec.ts
 tests/e2e/layout.spec.ts
 tests/e2e/long-lists.spec.ts

@@ -80,21 +80,21 @@ export interface Preferences {
   importFriends: boolean
 
   /**
-   * Hörprobe im Stapel — **standardmäßig aus** (ADR-012).
+   * Audio preview in the stack — **off by default** (ADR-012).
    *
-   * Discogs' einzige Tonquelle ist YouTube, und ein eingebetteter Spieler lädt
-   * Google. Was dabei abfließt, ist nicht die Sammlung — Regal, Wantlist und
-   * Token bleiben, wo sie sind —, sondern die IP und welche Platte gerade
-   * angesehen wird. Das ist weniger, als der Satz auf der Datenschutzseite
-   * befürchten lässt, und mehr als null.
+   * Discogs' one source of sound is YouTube, and an embedded player loads
+   * Google. What flows out is not the collection — shelf, wantlist and token
+   * stay where they are — but the IP address and which record is being looked
+   * at. That is less than the sentence on the privacy page makes you fear, and
+   * more than nothing.
    *
-   * Deshalb dieselbe Form wie ADR-009 beim Freunde-Import: ein Schalter pro
-   * Gerät, aus als Vorgabe, und kein Feature hängt daran — der Stapel
-   * funktioniert ohne Ton vollständig.
+   * Hence the same shape as ADR-009 for the friends import: a switch per
+   * device, off by default, and no feature hangs off it — the stack works
+   * completely without sound.
    *
-   * **Und selbst eingeschaltet geht vorher kein Byte an Google.** Der
-   * `<iframe>` entsteht erst beim ersten bewussten Tippen, nicht beim Zeichnen
-   * einer Karte.
+   * **And even switched on, no byte goes to Google beforehand.** The
+   * `<iframe>` is created on the first deliberate tap, not when a card is
+   * drawn.
    */
   audioPreview: boolean
 
@@ -589,26 +589,26 @@ export interface ShelfRecord {
 export type ShelfSort = 'added' | 'artist' | 'year' | 'rating'
 
 /**
- * Auf- oder absteigend.
+ * Ascending or descending.
  *
- * Jeder der vier Schlüssel hatte bisher genau eine Richtung, und jede war für
- * sich gut begründet — die neueste Platte zuerst, das älteste Jahr zuerst,
- * weil eine nach Jahren sortierte Sammlung eine Zeitachse ist. Gut begründet
- * heißt aber nicht: für jede Frage richtig. Wer wissen will, was am längsten
- * ungehört im Regal steht, braucht dieselbe Liste andersherum.
+ * Each of the four keys used to have exactly one direction, and each was well
+ * argued on its own — newest record first, earliest year first, because a
+ * collection sorted by year is a timeline. Well argued does not mean right for
+ * every question, though. Anyone wanting to know what has stood unplayed on
+ * the shelf longest needs the same list the other way round.
  *
- * Die bisherige Richtung bleibt die Vorgabe je Schlüssel (siehe
- * `DEFAULT_SHELF_DIRECTION`), damit sich nichts ändert, solange niemand dreht.
+ * The previous direction stays the default per key (see
+ * `DEFAULT_SHELF_DIRECTION`), so nothing changes until somebody turns it.
  */
 export type SortDirection = 'asc' | 'desc'
 
 /**
- * Womit ein Schlüssel anfängt, wenn man ihn zum ersten Mal wählt.
+ * Where a key starts when it is chosen for the first time.
  *
- * Nicht überall dasselbe, und das ist der Punkt: bei Namen erwartet man A–Z,
- * bei allem anderen „das Interessanteste zuerst" — die neueste Platte, die
- * beste Bewertung. Nur das Jahr fängt vorne an, weil eine Zeitachse vorwärts
- * läuft.
+ * Not the same everywhere, and that is the point: for names you expect A–Z,
+ * for everything else "the most interesting first" — the newest record, the
+ * best rating. Only the year starts at the front, because a timeline runs
+ * forwards.
  */
 export const DEFAULT_SHELF_DIRECTION = {
   added: 'desc',
@@ -752,16 +752,16 @@ export interface HorizonChunk {
   catnoPrefix?: string
 
   /**
-   * Wann dieser Block beim Hub angekommen ist — falls überhaupt.
+   * When this chunk reached the hub — if it ever did.
    *
-   * Ohne das Feld erfährt der Hub von allem nichts, was schon lokal lag, als
-   * er eingetragen wurde: `horizon/build.ts` überspringt frische Einträge und
-   * damit auch den Beitrag. Am 2026-08-13 gemessen — der Hub stand auf einem
-   * Eintrag, während lokal hunderte lagen, und der geteilte Cache war damit
-   * für den häufigsten Fall tot.
+   * Without the field, the hub learns nothing about anything that was already
+   * local when it was entered: `horizon/build.ts` skips fresh entries, and
+   * with them the contribution. Measured 2026-08-13 — the hub stood at one
+   * entry while hundreds sat locally, which made the shared cache dead for the
+   * commonest case.
    *
-   * `undefined` heißt "noch nie", und genau deshalb braucht das Feld keinen
-   * Versionssprung: ein alter Datensatz ohne es liest sich richtig.
+   * `undefined` means "never yet", and that is exactly why the field needs no
+   * version bump: an old record without it reads correctly.
    */
   sharedAt?: number
 }
@@ -813,12 +813,12 @@ export interface Dig {
    */
   depth?: 'normal' | 'deep' | 'neu'
   /**
-   * Wie weit der Stapel (M15) in diesem Dig gekommen ist.
+   * How far the stack (M15) has got in this dig.
    *
-   * Am Dig und nicht in einem eigenen Store: ein zweiter Eintrag pro Dig
-   * müsste mit dem ersten Schritt halten und verwaiste, sobald ein Dig
-   * weggeräumt wird. Fehlt bei allem, was vor dem Stapel geschrieben wurde —
-   * und „fehlt" liest sich als „noch nichts gesehen", was stimmt.
+   * On the dig rather than in a store of its own: a second record per dig
+   * would have to keep step with the first and would be orphaned the moment a
+   * dig is cleared away. Absent on everything written before the stack — and
+   * "absent" reads as "nothing seen yet", which is true.
    */
   stackSeen?: number
   /** Did the scan hit the 10k pagination wall? */
@@ -830,37 +830,36 @@ export interface Dig {
 }
 
 /**
- * Eine Zeile aus dem Sortiment eines Ladens — auch die, die nichts trifft.
+ * One row of a shop's inventory — including the ones that match nothing.
  *
- * Ein Dig hob bis zum 2026-08-13 nur Treffer auf; alles andere ging in die
- * Zählung des Fingerabdrucks und wurde verworfen. Damit war die Frage „was hat
- * dieser Laden eigentlich auf Warp?" unbeantwortbar — und zwar genau dann,
- * wenn sie interessant ist: bei einem Label, von dem man noch nichts besitzt,
- * gibt es per Definition keinen Treffer.
+ * Until 2026-08-13 a dig kept only the matches; everything else went into the
+ * fingerprint's counting and was thrown away. That left "what does this shop
+ * actually have on Warp?" unanswerable — and unanswerable exactly when it is
+ * interesting: for a label you own nothing by, there is by definition no
+ * match.
  *
- * Warum überhaupt speichern, statt bei Bedarf zu holen: der Inventar-Endpunkt
- * kennt keinen Label-Filter. Die Zeilen kommen genau einmal vorbei, während
- * der Scan läuft. Wer sie nicht mitschreibt, bekommt sie nur durch einen
- * vollständigen zweiten Scan zurück — Minuten und tausende Anfragen, also
- * genau das, was die Regeln 2 und 3 verbieten.
+ * Why store it at all rather than fetch on demand: the inventory endpoint has
+ * no label filter. The rows come past exactly once, while the scan runs.
+ * Anyone not writing them down gets them back only through a complete second
+ * scan — minutes and thousands of requests, which is precisely what rules 2
+ * and 3 forbid.
  *
- * **Alles hier ist Marktplatzdatum, nichts davon ist abgeleitet.** Anders als
- * bei `Match`, wo Score und Signale eine Auswertung sind und den Ablauf
- * überleben, bleibt hier nach sechs Stunden nichts Zeigbares übrig. Diese
- * Zeilen werden deshalb mit dem Dig **gelöscht** und nicht ausgedünnt
- * (Regel 4).
+ * **Everything here is marketplace data, none of it is derived.** Unlike
+ * `Match`, where the score and the signals are an appraisal and survive
+ * expiry, nothing showable is left here after six hours. So these rows are
+ * **deleted** with the dig rather than thinned out (rule 4).
  *
- * Schmal gehalten: an echten Zeilen gemessen 198 Byte statt 606, also rund
- * 3,8 MB im schlimmsten Fall von 20.000 — und die sind nach sechs Stunden weg.
+ * Kept narrow: measured on real rows at 198 bytes instead of 606, so about
+ * 3.8 MB in the worst case of 20,000 — and those are gone after six hours.
  */
 export interface StockRow {
   digId: string
   listingId: number
   releaseId: number
-  /** Genau wie im Fingerabdruck geschrieben, damit der Balken und die Liste
-   *  dieselbe Menge meinen. */
+  /** Written exactly as in the fingerprint, so that the bar and the list mean
+   *  the same set. */
   label: string | null
-  /** `1990` für die Neunziger. Null, wenn Discogs das Jahr nicht kennt. */
+  /** `1990` for the nineties. Zero when Discogs does not know the year. */
   decade: number | null
   title: string | null
   artist: string | null
@@ -873,27 +872,27 @@ export interface StockRow {
 }
 
 /**
- * Eine Fundliste, wie sie bei jemand anderem ankommt.
+ * A find list, as it arrives at somebody else.
  *
- * Ein Schnappschuss und keine Verknüpfung: der Empfänger hat keinen Dig, keine
- * Sammlung und vielleicht nicht einmal einen Token. Was er sieht, steht
- * vollständig in diesem Objekt — und es ist verschlüsselt unterwegs, weil der
- * Hub, der es trägt, es nichts angeht.
+ * A snapshot and not a link: the recipient has no dig, no collection and
+ * perhaps not even a token. What they see is entirely inside this object — and
+ * it is encrypted in transit, because the hub carrying it has no business with
+ * it.
  *
- * `matchesTotal` reist mit, damit der Schnappschuss nicht behauptet, die
- * hundert mitgeschickten Treffer seien alles gewesen.
+ * `matchesTotal` travels along so that the snapshot does not claim the hundred
+ * matches it carries were all of them.
  */
 /**
- * Was hinter einem Barcode steckt (M13).
+ * What is behind a barcode (M13).
  *
- * `candidates` ist bewusst eine Liste: ein Barcode benennt eine
- * Veröffentlichung und keine Pressung — am 2026-09-11 gemessen, acht Releases
- * in fünf Ländern für einen einzigen Barcode. Ein einzelnes Ergebnis
- * vorzugaukeln wäre eine Zusage, die die Daten nicht decken.
+ * `candidates` is deliberately a list: a barcode names a release and not a
+ * pressing — measured 2026-09-11, eight releases across five countries for a
+ * single barcode. Pretending to a single result would be a promise the data
+ * does not cover.
  *
- * `owned` und `wanted` beantworten die Frage, für die jemand im Laden steht,
- * und kommen aus der **eigenen** Datenbank — das kostet nichts und geht auch,
- * wenn die Verbindung wieder weg ist.
+ * `owned` and `wanted` answer the question somebody is standing in the shop
+ * for, and come from the **local** database — which costs nothing and works
+ * when the connection has gone again.
  */
 export interface Identified {
   barcode: string
@@ -910,14 +909,14 @@ export interface Identified {
 }
 
 /**
- * Ein Ort, an dem Platten stehen (M12).
+ * A place where records stand (M12).
  *
- * Flach gespeichert mit einem Zeiger nach oben, nicht verschachtelt: „alles
- * unter Keller" ist damit eine Frage an ein Feld statt ein Durchlauf durch
- * einen Baum, und ein Umzug ändert einen Zeiger statt einen Teilbaum.
+ * Stored flat with a pointer upwards rather than nested: "everything under
+ * the cellar" becomes a question about one field instead of a walk through a
+ * tree, and a move changes a pointer instead of a subtree.
  *
- * **Drei Ebenen, und mehr baut sich niemand.** Ort → Möbel → Fach. Wer eine
- * vierte braucht, benennt sein Fach ausführlicher.
+ * **Three levels, and nobody builds more.** Room → furniture → compartment.
+ * Anyone needing a fourth names their compartment more fully.
  */
 export interface Place {
   id: string
@@ -926,78 +925,77 @@ export interface Place {
   parentId: string | null
   createdAt: number
   /**
-   * Zuletzt angefasst — umbenannt, verschoben, aufgelöst.
+   * Last touched — renamed, moved, dissolved.
    *
-   * Der Tresor entscheidet je Zeile nach dem jüngeren Schreibvorgang
-   * (`worker/vault/merge.ts`). Ohne diesen Stempel gewänne bei einem
-   * umbenannten Regal der Zufall: `createdAt` ist auf beiden Geräten gleich.
-   * Fehlt an Zeilen von vor dem Tresor-Anschluss; dann gilt `createdAt`.
+   * The vault decides per row by the more recent write
+   * (`worker/vault/merge.ts`). Without this stamp, a renamed shelf would be
+   * settled by chance: `createdAt` is identical on both devices. Absent on
+   * rows from before the vault was connected; `createdAt` applies there.
    */
   updatedAt?: number
   /**
-   * Aufgelöst — und trotzdem noch da (M12, Tresor).
+   * Dissolved — and still here all the same (M12, vault).
    *
-   * Ein Grabstein statt einer Löschung. Der Abgleich kennt nur „diese Zeile
-   * ist neuer"; eine wirklich gelöschte Zeile ist für ihn keine Nachricht,
-   * sondern eine Lücke, und das andere Gerät füllt sie beim nächsten Mal
-   * wieder auf. Ein aufgelöstes Regal käme also zurück.
+   * A tombstone instead of a deletion. The merge knows only "this row is
+   * newer"; a genuinely deleted row is not a message to it but a gap, and the
+   * other device fills it in again next time. A dissolved shelf would come
+   * back.
    *
-   * Gefiltert wird in `worker/places.ts`, und nur dort — kein anderes Modul
-   * liest diesen Store.
+   * The filtering happens in `worker/places.ts`, and only there — no other
+   * module reads this store.
    */
   removedAt?: number | null
 }
 
 /**
- * Wo ein **Exemplar** liegt — nicht ein Release.
+ * Where a **copy** sits — not a release.
  *
- * An der `instanceId`, weil zwei Pressungen derselben Platte an zwei Stellen
- * liegen. Am Release festgemacht wäre die zweite unauffindbar.
+ * On the `instanceId`, because two pressings of the same record sit in two
+ * places. Pinned to the release, the second would be unfindable.
  *
- * **Ein eigener Store und kein Feld am Sammlungseintrag.** Der Sync schreibt
- * jede Zeile mit `put()` neu (`worker/sync/library.ts`) — ein Standort dort
- * wäre nach dem nächsten vollen Durchlauf weg, und zwar lautlos. Am
- * 2026-09-11 nachgesehen, nicht vermutet.
+ * **A store of its own, not a field on the collection row.** The sync rewrites
+ * every row with `put()` (`worker/sync/library.ts`) — a location kept there
+ * would be gone after the next full pass, and silently so. Looked up on
+ * 2026-09-11, not assumed.
  */
 export interface Placement {
   instanceId: number
   /**
-   * `null` heißt „liegt nirgendwo" — und zwar als **Aussage**, nicht als
-   * fehlende Zeile.
+   * `null` means "sits nowhere" — as a **statement**, not as a missing row.
    *
-   * Herunternehmen war einmal ein `delete`. Über den Tresor wäre das die
-   * falsche Nachricht: das andere Gerät kennt die Zeile noch, hält sie für
-   * gültig und legt die Platte zurück ins Regal, in dem sie nicht mehr liegt.
-   * Ein `null` mit frischem `at` gewinnt dagegen jeden Vergleich.
+   * Taking a record down used to be a `delete`. Through the vault that would
+   * be the wrong message: the other device still knows the row, holds it
+   * valid, and puts the record back on the shelf it no longer sits on. A
+   * `null` with a fresh `at` wins every comparison instead.
    *
-   * Nebenbei fällt die Zeile damit aus dem `by-place`-Index heraus: `null` ist
-   * kein gültiger Schlüssel, IndexedDB nimmt sie gar nicht erst auf.
+   * As a side effect the row drops out of the `by-place` index: `null` is not
+   * a valid key, so IndexedDB does not take it in at all.
    */
   placeId: string | null
   at: number
 }
 
-/** Ein Ort mit dem, was die Oberfläche über ihn wissen muss. */
+/** A place with what the interface needs to know about it. */
 export interface PlaceNode extends Place {
-  /** Platten direkt hier — ohne die in Unterorten. */
+  /** Records directly here — not counting those in places below. */
   records: number
-  /** Und mit ihnen, denn „im Keller" meint den ganzen Keller. */
+  /** And counting them, because "in the cellar" means the whole cellar. */
   recordsBelow: number
   depth: number
 }
 
 /**
- * Eine Platte, die beobachtet wird (M11).
+ * A record that is being watched (M11).
  *
- * **Warum eine Auswahl und nicht die ganze Sammlung:** `/marketplace/stats/`
- * kostet einen Request pro Release und Runde. Fünfzig Platten sind mit Token
- * eine Minute, fünfhundert sind zehn — und das jeden Tag hätte genau die Form,
- * die Regel 2 verbietet. Man beobachtet, was man verkaufen würde, und was man
- * wirklich sucht.
+ * **Why a selection and not the whole collection:** `/marketplace/stats/`
+ * costs one request per release per round. Fifty records are a minute with a
+ * token, five hundred are ten — and doing that daily would have exactly the
+ * shape rule 2 forbids. You watch what you would sell, and what you are
+ * really after.
  *
- * `kind` sagt, aus welcher Richtung geschaut wird, und das ändert die
- * Nachricht: bei einer eigenen Platte ist ein **steigender** Preis die
- * Neuigkeit, bei einer gesuchten ein **fallender**.
+ * `kind` says which direction it is being watched from, and that changes the
+ * message: on a record you own, a **rising** price is the news; on one you
+ * want, a **falling** one.
  */
 export interface WatchedRelease {
   releaseId: number
@@ -1006,20 +1004,19 @@ export interface WatchedRelease {
   title: string
   since: number
   /**
-   * Die Schwelle, ab der es eine Meldung wert ist.
+   * The threshold at which it is worth saying something.
    *
-   * Bei `shelf` ein Anstieg in Prozent, bei `wantlist` ein Preis in der
-   * Währung des Geräts. Ohne Schwelle meldet nichts — ein Wächter, der bei
-   * jeder Schwankung ruft, wird abgeschaltet.
+   * On `shelf` a rise in percent, on `wantlist` a price in the device's
+   * currency. With no threshold nothing is reported — a watcher that calls out
+   * at every wobble gets switched off.
    */
   threshold: number | null
   /**
-   * Was zuletzt gemessen wurde, älteste zuerst.
+   * What was measured last, oldest first.
    *
-   * Ein Verlauf und nicht nur der letzte Wert: 40 auf 95 ist eine Nachricht,
-   * 40 auf 44 ist Rauschen, und das sieht man nur an zwei Punkten. Gedeckelt,
-   * weil eine Platte über Jahre beobachtet wird und niemand dreihundert
-   * Messungen liest.
+   * A history and not just the latest value: 40 to 95 is news, 40 to 44 is
+   * noise, and you can only see that from two points. Capped, because a record
+   * is watched over years and nobody reads three hundred measurements.
    */
   points: WatchPoint[]
   /** Wann zuletzt nachgesehen wurde — null heißt: noch nie. */
@@ -1027,30 +1024,29 @@ export interface WatchedRelease {
   /** Was zuletzt gemeldet wurde, damit dieselbe Nachricht nicht zweimal kommt. */
   notifiedAt: number | null
   /**
-   * Angebote aus eigenen Digs, die nachweislich weg sind (M11).
+   * Offers from our own digs that are demonstrably gone (M11).
    *
-   * Damit dieselbe Kopie nicht bei jedem Durchlauf erneut einen Request
-   * kostet — und damit dieselbe Nachricht nicht zweimal kommt. Fehlt an
-   * Zeilen, die vor diesem Feld angelegt wurden; das ist kein Schema-Bruch,
-   * sondern ein leerer Verlauf.
+   * So that the same copy does not cost a request on every pass — and so that
+   * the same message does not arrive twice. Absent on rows created before this
+   * field existed; that is not a schema break but an empty history.
    */
   goneOffers?: number[]
 }
 
 export interface WatchPoint {
   at: number
-  /** Null, wenn gerade niemand sie anbietet — das ist eine Aussage, keine Lücke. */
+  /** Zero when nobody is offering it right now — a statement, not a gap. */
   lowestPrice: number | null
   currency: string | null
   numForSale: number
 }
 
 /**
- * Ein Laden in der oberen Reihe des Stapels.
+ * A shop in the top row of the stack.
  *
- * Der farbige Ring ist `matches - seen > 0` und sonst nichts — keine zweite
- * Wahrheit darüber, ob es „etwas Neues" gibt, sondern dieselbe Zahl, die der
- * Stapel auch abarbeitet.
+ * The coloured ring is `matches - seen > 0` and nothing else — not a second
+ * truth about whether there is "something new", but the same number the stack
+ * itself works through.
  */
 export interface StackShop {
   dealer: string
@@ -1067,8 +1063,8 @@ export interface SharedDig {
   version: number
   dealer: string
   scannedAt: number
-  /** Die Uhr des Digs, nicht die des Teilens — sonst wäre eine fünf Stunden
-   *  alte Fundliste am Ende elf Stunden alt (Regel 4). */
+  /** The dig's clock, not the sharing's — otherwise a find list five hours
+   *  old would end up eleven hours old (rule 4). */
   expiresAt: number
   coverage: number
   listingsTotal: number
@@ -1110,14 +1106,14 @@ export interface Match {
   marketNumForSale: number | null
 
   /**
-   * Hörproben zu dieser Platte — YouTube-Adressen von Discogs (ADR-012).
+   * Audio previews for this record — YouTube addresses from Discogs (ADR-012).
    *
-   * Kommen im Nachschlag über die Top-Treffer mit, kosten also nichts extra.
-   * Fehlen bei allem darunter und bei Platten, zu denen niemand etwas
-   * eingetragen hat; beides heißt „kein Ton" und nicht „Fehler".
+   * They come along with the lookup on the top matches, so they cost nothing
+   * extra. Absent on everything below that, and on records nobody has entered
+   * anything for; both mean "no sound", not "error".
    *
-   * Nur die Adressen. Abgespielt wird erst, wenn jemand den Schalter umgelegt
-   * **und** danach getippt hat — vorher geht kein Byte an Google.
+   * The addresses only. Nothing plays until somebody has thrown the switch
+   * **and** then tapped — before that, no byte goes to Google.
    */
   videos?: { title: string; uri: string }[]
   /**
@@ -1197,9 +1193,9 @@ export interface Dealer {
   shippingNote: string
   lastScannedAt: number | null
   /**
-   * Das neueste Angebot, das ein Dig hier gesehen hat — ISO 8601.
+   * The newest listing a dig has seen here — ISO 8601.
    *
-   * The anchor for "nur das Neue". `sort=listed&sort_order=desc` hands the
+   * The anchor for "only what is new". `sort=listed&sort_order=desc` hands the
    * shop back newest first, so a later visit walks until it reaches something
    * not newer than this and stops — usually after one page instead of two
    * hundred.
@@ -1228,7 +1224,7 @@ export interface Dealer {
   /** Last touched, which is what a merge between two devices compares. */
   updatedAt?: number
   /**
-   * Das Ladenschild, wenn der Laden eins gesetzt hat.
+   * The shop sign, where the shop has set one.
    *
    * Comes from `/users/{name}`, which a full dig already fetches to find out
    * how big the shop is — so it costs nothing. Absent on shops scanned before
@@ -1460,9 +1456,9 @@ export interface MarkedRecord {
   createdAt: number
   soldAt: number | null
   /**
-   * Wie die Platte ankam, sofern gefragt und beantwortet (M14).
+   * How the record arrived, where it was asked and answered (M14).
    *
-   * Nur bei gekauften Zeilen gefüllt. Eine Merkliste hat keine Ankunft.
+   * Filled only on bought rows. A saved list has no arrival.
    */
   arrived: 'as-described' | 'better' | 'worse' | null
 }
@@ -1475,11 +1471,10 @@ export interface MarkedOverview {
 }
 
 /**
- * Wie ehrlich ein Laden gradet — aus den eigenen Käufen (M14).
+ * How honestly a shop grades — out of one's own purchases (M14).
  *
- * `rate` ist `null`, solange zu wenige Platten beurteilt sind: zwei von zwei
- * sind 100 %, und das liest sich wie ein Urteil über einen Laden, über den
- * man nichts weiß.
+ * `rate` is `null` while too few records have been judged: two out of two is
+ * 100 %, and that reads like a verdict on a shop one knows nothing about.
  */
 export interface GradingRecord {
   dealer: string
@@ -1492,18 +1487,18 @@ export interface GradingRecord {
 }
 
 /**
- * Was beim Einlesen einer Bestellung herauskam (M14).
+ * What came out of reading an order (M14).
  *
- * `added` und `enriched` getrennt, weil das zwei verschiedene Nachrichten
- * sind: „drei Platten neu eingetragen" und „drei Platten, die du schon
- * gemerkt hattest, sind jetzt als gekauft vermerkt".
+ * `added` and `enriched` kept apart, because they are two different messages:
+ * "three records newly entered" and "three records you had already saved are
+ * now marked as bought".
  */
 export type OrderImport =
   | { ok: false; reason: 'shape' }
   | {
       ok: true
       dealer: string | null
-      /** Das Kaufdatum aus der Bestellung — daran hängt die Reifezeit. */
+      /** The purchase date from the order — the ripening time hangs off it. */
       at: number
       added: number
       enriched: number
@@ -1525,18 +1520,18 @@ export interface Feedback {
   soldAt?: number | null
   verdict: Verdict
   /**
-   * Wie die Platte ankam, verglichen mit dem, was versprochen war (M14).
+   * How the record arrived, against what was promised (M14).
    *
-   * **Nur das Urteil, nie die versprochene Note.** Die wäre Discogs-Content,
-   * und der darf nach sechs Stunden nicht mehr gezeigt werden (`docs/09`
-   * §1.1). Ein Vergleich ist dagegen ein **abgeleitetes** Datum — dieselbe
-   * Kategorie wie Scores und der Händler-Fingerprint, und die dürfen bleiben.
+   * **The verdict only, never the promised grade.** That would be Discogs
+   * content, and it may not be shown after six hours (`docs/09` §1.1). A
+   * comparison, by contrast, is **derived** data — the same category as scores
+   * and the dealer fingerprint, and those may stay.
    *
-   * Das ist die Lücke, die Discogs strukturell nicht schließt: dort misst das
-   * Feedback „quality of transaction" und sagt nichts über die
-   * Bewertungsgenauigkeit; negative Bewertungen wegen Übergrading werden auf
-   * Beschwerde des Verkäufers entfernt. Was hier entsteht, ist keine
-   * Fremdbewertung, sondern eine private Aufzeichnung der eigenen Käufe.
+   * This is the gap Discogs structurally does not close: feedback there
+   * measures "quality of transaction" and says nothing about grading accuracy;
+   * negative ratings for overgrading are removed on the seller's complaint.
+   * What is built here is not a rating of somebody else, but a private record
+   * of one's own purchases.
    */
   arrived?: 'as-described' | 'better' | 'worse' | null
   arrivedAt?: number | null

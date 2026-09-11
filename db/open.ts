@@ -141,19 +141,19 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
       }
 
       /*
-       * v8 hält fest, was ein Dig sonst wegwirft.
+       * v8 keeps what a dig would otherwise throw away.
        *
-       * Ein Scan sieht jede Zeile des Sortiments und behielt bisher nur die
-       * Treffer. Damit war „was hat dieser Laden auf Warp?" nicht zu
-       * beantworten — und zwar genau dann nicht, wenn die Frage interessant
-       * ist: bei einem Label ohne eigene Platten gibt es keinen Treffer.
+       * A scan sees every row of the inventory and used to keep only the
+       * matches. That left "what does this shop have on Warp?" unanswerable —
+       * and unanswerable exactly when the question is interesting: for a label
+       * you own nothing by, there are no matches at all.
        *
-       * Rein additiv, wie v7: nichts wird verworfen, nichts muss neu geholt
-       * werden. Der Store bleibt leer, bis der nächste Dig läuft, und leert
-       * sich mit jedem abgelaufenen wieder (db/expire.ts).
+       * Purely additive, like v7: nothing is discarded, nothing has to be
+       * fetched again. The store stays empty until the next dig runs, and
+       * empties again with every dig that expires (db/expire.ts).
        *
-       * Auch hier kein `oldVersion > 0`: eine frische Datenbank braucht den
-       * Store genauso, sonst erwartet der Code etwas, das es nicht gibt.
+       * No `oldVersion > 0` here either: a fresh database needs the store just
+       * as much, or the code expects something that does not exist.
        */
       if (oldVersion < 8) {
         const stock = db.createObjectStore('stock', {
@@ -165,24 +165,24 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
 
       if (oldVersion < 9) {
         /*
-         * v9 bringt die beobachteten Platten (M11).
+         * v9 brings the watched records (M11).
          *
-         * Rein additiv: ein neuer Store, kein Feld an bestehenden Zeilen, also
-         * nichts zu wandeln und nichts zu verwerfen. Wer vorher nichts
-         * beobachtet hat, beobachtet danach weiterhin nichts.
+         * Purely additive: a new store, no field on any existing row, so there
+         * is nothing to convert and nothing to discard. Anyone watching
+         * nothing before is watching nothing after.
          */
         db.createObjectStore('watched', { keyPath: 'releaseId' })
       }
 
       if (oldVersion < 10) {
         /*
-         * v10 bringt die Lagerorte (M12). Wieder additiv.
+         * v10 brings the storage places (M12). Additive again.
          *
-         * `by-place` macht aus „was liegt in Kiste 3" ein Bereichslesen statt
-         * eines Durchlaufs durch zweitausend Zeilen. Auf `parentId` gibt es
-         * keinen: IndexedDB indiziert `null` nicht, die obersten Orte fielen
-         * also heraus — und bei zwanzig Orten ist ein `getAll()` ohnehin
-         * billiger als der Index.
+         * `by-place` turns "what is in crate 3" into a range read instead of a
+         * walk through two thousand rows. There is none on `parentId`:
+         * IndexedDB does not index `null`, so the topmost places would drop
+         * out — and with twenty places a `getAll()` is cheaper than the index
+         * anyway.
          */
         db.createObjectStore('places', { keyPath: 'id' })
 

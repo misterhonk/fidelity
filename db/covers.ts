@@ -3,7 +3,7 @@ import type { CoverEntry } from './schema'
 import { openFidelityDb } from './open'
 
 /**
- * Die gemeinsame Cover-Ablage.
+ * The shared cover store.
  *
  * One picture per release, shared by every screen that draws one. See
  * `db/schema.ts` for why it has to exist at all — the short version is that the
@@ -33,7 +33,7 @@ export async function readCovers(
 }
 
 /**
- * Merkt sich, was schon bekannt ist — auch das Nichts.
+ * Remembers what is already known — the nothing included.
  *
  * An empty `thumbUrl` is written deliberately for a release Discogs holds no
  * image for. Without it the app would ask again on every visit, and spend a
@@ -53,7 +53,7 @@ export async function writeCovers(entries: Omit<CoverEntry, 'fetchedAt'>[]): Pro
 }
 
 /**
- * Welche davon noch niemand geholt hat.
+ * Which of these nobody has fetched yet.
  *
  * The order of the input is kept, because it is the order the screen wants
  * them in: what is at the top of the list is what somebody is looking at.

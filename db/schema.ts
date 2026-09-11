@@ -146,12 +146,12 @@ export interface FidelityDB extends DBSchema {
     indexes: { 'by-dig-score': [string, number] }
   }
   /**
-   * Das Sortiment eines Ladens, so wie ein Dig es gesehen hat.
+   * A shop's inventory, as one dig saw it.
    *
-   * Die beiden Indizes sind der Grund, warum die Ansicht bezahlbar ist: eine
-   * Frage nach einem Label ist damit ein Bereichslesen statt eines Durchlaufs
-   * durch zwanzigtausend Zeilen. Der Dig steht in beiden Schlüsseln vorn,
-   * damit zwei Läden sich nicht vermischen.
+   * The two indexes are why the view is affordable: a question about a label
+   * becomes a range read instead of a walk through twenty thousand rows. The
+   * dig comes first in both keys so that two shops cannot bleed into each
+   * other.
    */
   stock: {
     key: [string, number]
@@ -159,29 +159,29 @@ export interface FidelityDB extends DBSchema {
     indexes: { 'by-dig-label': [string, string]; 'by-dig-decade': [string, number] }
   }
   /**
-   * Beobachtete Platten (M11) — nach Release-Id.
+   * Watched records (M11) — by release id.
    *
-   * Eine Platte wird einmal beobachtet, egal ob sie im Regal steht oder auf
-   * der Wantlist. Zwei Zeilen für dieselbe Platte wären zwei Verläufe über
-   * dieselbe Messung, und `/marketplace/stats/` zweimal zu fragen wäre ein
-   * Request für eine Antwort, die man schon hat.
+   * A record is watched once, whether it stands on the shelf or on the
+   * wantlist. Two rows for the same record would be two histories of the same
+   * measurement, and asking `/marketplace/stats/` twice would be a request
+   * spent on an answer already in hand.
    */
   /**
-   * Orte und was wo liegt (M12) — die einzigen Stores, die nie etwas von
-   * Discogs enthalten.
+   * Places and what sits where (M12) — the only stores that never hold
+   * anything from Discogs.
    *
-   * `placements` ist bewusst getrennt von `collection`: der Sync ersetzt jede
-   * Sammlungszeile vollständig, ein Standort dort wäre nach dem nächsten
-   * vollen Durchlauf lautlos weg.
+   * `placements` is deliberately separate from `collection`: the sync replaces
+   * every collection row wholesale, so a location kept there would be silently
+   * gone after the next full pass.
    */
   /*
-   * Kein Index auf `parentId`, und zwar aus zwei Gründen.
+   * No index on `parentId`, for two reasons.
    *
-   * **IndexedDB indiziert `null` nicht** — die obersten Orte fielen schlicht
-   * heraus, und „zeig mir alle Räume" wäre leer. Das ließe sich mit einem
-   * Platzhalter umgehen, lohnt aber nicht: Orte sind Dutzende, nicht
-   * Tausende. Ein `getAll()` über zwanzig Zeilen ist billiger als der Index,
-   * der ihn ersetzen soll.
+   * **IndexedDB does not index `null`** — the topmost places would simply drop
+   * out, and "show me all the rooms" would come back empty. A placeholder
+   * value would get round that, but it is not worth it: places are dozens, not
+   * thousands. A `getAll()` over twenty rows is cheaper than the index meant
+   * to replace it.
    */
   places: { key: string; value: Place }
   placements: { key: number; value: Placement; indexes: { 'by-place': string } }
@@ -189,7 +189,7 @@ export interface FidelityDB extends DBSchema {
   basket: { key: number; value: BasketItem }
   feedback: { key: number; value: Feedback }
   /**
-   * Cover, nach Release-Id — die einzige Ablage, die alle Bildschirme teilen.
+   * Covers, by release id — the one store every screen shares.
    *
    * It exists because the marketplace will not hand them over. Every one of
    * 1.200 inventory rows measured on 2026-08-10 came back with an empty
