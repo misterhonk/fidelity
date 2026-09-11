@@ -9,6 +9,19 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.42.0](https://github.com/misterhonk/fidelity/compare/v0.41.0...v0.42.0) (2026-09-11)
+
+**The plan box says how it fills.**
+
+Before the first dig the wantlist showed no box at all — and a feature nobody has seen is a
+feature nobody uses. Now it is there once there is a wantlist, and without a shop scanned
+in the last six hours it says what would fill it, with the way to the dig screen.
+
+
+### Added
+
+* **collection:** the plan box says how it fills before the first dig ([105f044](https://github.com/misterhonk/fidelity/commit/105f0443408493953e290d15533579ce0bfa9f7f))
+
 ## [0.41.0](https://github.com/misterhonk/fidelity/compare/v0.40.0...v0.41.0) (2026-09-11)
 
 **In the shop, the album counts — not only the pressing.**
