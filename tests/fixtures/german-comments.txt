@@ -27,11 +27,6 @@ app/components/SyncStatus.vue
 app/components/ToTop.vue
 app/components/VaultSettings.vue
 app/components/VersionNews.vue
-app/composables/useAudioPreview.ts
-app/composables/useBarcodeScan.ts
-app/composables/useCovers.ts
-app/composables/useFeedback.ts
-app/composables/useKeeper.ts
 app/i18n/basket.ts
 app/i18n/collection.ts
 app/i18n/de.ts

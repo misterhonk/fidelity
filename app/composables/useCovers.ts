@@ -14,7 +14,7 @@
 const covers = shallowRef<Record<number, { thumbUrl: string; coverUrl: string }>>({})
 
 /**
- * Was schon angefragt wurde — auch das, was nichts ergab.
+ * What has already been asked for — including what came back empty.
  *
  * Without this a list that re-renders (a filter, a sort, a scroll) would ask
  * again for every release it already asked about. The worker would answer from
@@ -62,7 +62,7 @@ export function useCovers() {
   }
 
   /**
-   * Sagt, was auf dem Schirm ist — der Rest ergibt sich.
+   * Says what is on the screen — the rest follows.
    *
    * Reads the store first and only then spends requests, because the
    * collection sync has already paid for a few thousand of these. `fetch:

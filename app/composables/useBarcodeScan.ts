@@ -1,26 +1,26 @@
 /**
- * Einen Barcode mit der Kamera lesen (M13, Stufe 1).
+ * Reading a barcode with the camera (M13, stage 1).
  *
- * **Nur wo der Browser es selbst kann.** `BarcodeDetector` ist in Chromium da
- * (am 2026-09-11 gemessen, `ean_13` dabei) und in WebKit nicht — also auf dem
- * iPhone nicht, dem schwächsten Ziel dieses Projekts (CLAUDE.md).
+ * **Only where the browser can do it itself.** `BarcodeDetector` is there in
+ * Chromium (measured 2026-09-11, `ean_13` included) and not in WebKit — so not
+ * on the iPhone, this project's weakest target (CLAUDE.md).
  *
- * Die Alternative wäre ein Decoder in JavaScript. Der wiegt über hundert
- * Kilobyte, und Regel 7 verlangt, dass jede Abhängigkeit ihren Platz
- * rechtfertigt. Deshalb hier: **nichts dazugeladen.** Wo der Browser nicht
- * mitspielt, tippt man die Ziffern — das Feld dafür steht ohnehin daneben, es
- * kostet kein Byte und funktioniert überall.
+ * The alternative would be a decoder in JavaScript. That weighs over a hundred
+ * kilobytes, and rule 7 demands that every dependency justify its place. So:
+ * **nothing loaded in.** Where the browser does not play along, you type the
+ * digits — the field for that is beside it anyway, it costs no bytes and works
+ * everywhere.
  *
- * Das ist keine halbe Lösung, sondern die ehrliche: ein Bildschirm, der auf
- * einem iPhone eine Kamera anbietet, die dort nichts lesen kann, wäre
- * schlimmer als einer, der sagt, dass hier getippt wird.
+ * That is not half a solution but the honest one: a screen offering an iPhone
+ * a camera that can read nothing there would be worse than one saying you type
+ * here.
  */
 
 interface Detector {
   detect(source: CanvasImageSource): Promise<{ rawValue: string }[]>
 }
 
-/** Was auf einer Platte steht. QR und die Frachtformate haben hier nichts zu suchen. */
+/** What is on a record. QR and the freight formats have no business here. */
 const FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e'] as const
 
 export function barcodeSupported(): boolean {
@@ -35,11 +35,11 @@ export function useBarcodeScan() {
   let timer: number | null = null
 
   /**
-   * Läuft, bis etwas gelesen wurde oder jemand aufhört.
+   * Runs until something is read or somebody stops.
    *
-   * Alle 400 ms ein Blick: schneller bringt nichts, weil eine Hand das Bild
-   * ohnehin nicht schneller ruhig hält, und es kostet Akku in einem Laden, in
-   * dem man vielleicht noch eine Stunde steht.
+   * A look every 400 ms: faster gains nothing, because a hand does not hold
+   * the picture still any faster anyway, and it costs battery in a shop where
+   * somebody may be standing for another hour.
    */
   async function start(video: HTMLVideoElement, onFound: (code: string) => void) {
     if (!barcodeSupported()) {
@@ -49,7 +49,7 @@ export function useBarcodeScan() {
 
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        // Die rückwärtige Kamera, sonst filmt ein Telefon das eigene Gesicht.
+        // The rear camera, or a phone films its owner's face.
         video: { facingMode: 'environment' },
       })
     } catch {
@@ -78,8 +78,8 @@ export function useBarcodeScan() {
           return
         }
       } catch {
-        // Ein Einzelbild, aus dem nichts zu lesen ist, ist der Normalfall und
-        // kein Fehler. Der nächste Blick kommt in 400 ms.
+        // A frame with nothing readable in it is the ordinary case, not an
+        // error. The next look comes in 400 ms.
       }
       timer = self.setTimeout(look, 400)
     }
@@ -94,8 +94,8 @@ export function useBarcodeScan() {
     stream = null
   }
 
-  // Eine Kamera, die weiterläuft, weil jemand den Bildschirm gewechselt hat,
-  // ist ein leuchtendes Lämpchen und ein leerer Akku.
+  // A camera left running because somebody changed screen is a glowing light
+  // and a flat battery.
   onBeforeUnmount(stop)
 
   return { running: readonly(running), failure: readonly(failure), start, stop }

@@ -1,35 +1,35 @@
 /**
- * Die Hörprobe — und die Zusage, die sie erst vertretbar macht (ADR-012).
+ * The audio preview — and the promise that makes it defensible (ADR-012).
  *
- * Discogs' einzige Tonquelle ist YouTube. Ein eingebetteter Spieler lädt
- * Google, und die Datenschutzseite verspricht, dass Daten dieses Gerät nicht
- * verlassen. Was tatsächlich abfließt, ist nicht die Sammlung, sondern die IP
- * und welche Platte gerade angesehen wird — weniger als befürchtet, mehr als
- * null. Also: Ausnahme mit Bedingungen, nicht stilles Dehnen.
+ * Discogs' one source of sound is YouTube. An embedded player loads Google,
+ * and the privacy page promises that data does not leave this device. What
+ * actually flows out is not the collection but the IP address and which record
+ * is being looked at — less than feared, more than nothing. So: an exception
+ * with conditions, not a silent stretch.
  *
- * **Die schärfste davon steht in diesem Modul: vor dem ersten bewussten
- * Tippen geht kein Byte an Google.** Kein Skript, kein Rahmen, keine Anfrage
- * — auch dann nicht, wenn der Schalter längst umgelegt ist. Wer den Stapel
- * durchwischt, ohne Ton zu wollen, hat Google nie gesehen.
+ * **The sharpest of them lives in this module: before the first deliberate
+ * tap, no byte goes to Google.** No script, no frame, no request — not even
+ * when the switch has long been thrown. Anyone swiping through the stack
+ * without wanting sound has never seen Google.
  *
- * Dieselbe Geste löst nebenbei das einzige technische Problem: Browser
- * verlangen für Ton eine Nutzergeste. **Ein Autoplay auf Karte eins gibt es in
- * keinem Browser**, und keine Zeile Code ändert das. Nach dem ersten Tippen
- * bleibt eine Player-Instanz stehen und bekommt je Karte ein
- * `loadVideoById()` — die eine Geste trägt durch den Stapel.
+ * The same gesture incidentally solves the one technical problem: browsers
+ * require a user gesture for sound. **Autoplay on card one exists in no
+ * browser**, and no line of code changes that. After the first tap one player
+ * instance stays standing and gets a `loadVideoById()` per card — the one
+ * gesture carries through the stack.
  */
 
-/** Privacy-enhanced mode: keine Cookies vor dem Abspielen. Die Anfrage selbst
- *  sieht Google trotzdem, und das steht auch so auf der Datenschutzseite. */
+/** Privacy-enhanced mode: no cookies before playing. Google still sees the
+ *  request itself, and the privacy page says so. */
 const ORIGIN = 'https://www.youtube-nocookie.com'
 const API = 'https://www.youtube.com/iframe_api'
 
 /**
- * Die Video-Kennung aus einer Discogs-Adresse.
+ * The video id out of a Discogs address.
  *
- * Discogs speichert, was Leute eingetragen haben — mal `watch?v=`, mal
- * `youtu.be/`. Was nicht passt, gibt `null` und der Knopf bleibt weg; eine
- * Adresse zu erraten wäre schlimmer als keine Hörprobe.
+ * Discogs stores what people have entered — sometimes `watch?v=`, sometimes
+ * `youtu.be/`. Anything that does not fit gives `null` and the button stays
+ * away; guessing an address would be worse than no preview.
  */
 export function videoId(uri: string): string | null {
   try {
@@ -52,14 +52,13 @@ let player: Player | null = null
 let ready: Promise<Player> | null = null
 
 /**
- * Erst hier fällt die Entscheidung, Google überhaupt anzusprechen.
+ * Only here is the decision made to speak to Google at all.
  *
- * Der Spieler wird **mit** der ersten Kennung und `autoplay` gebaut, nicht
- * leer und dann befüllt. Am 2026-09-11 gemessen: ein nachträgliches
- * `loadVideoById()` auf einem frisch erzeugten Spieler landet in Zustand 5
- * („vorgemerkt") und spielt nicht — die Nutzergeste zählt für den Rahmen, der
- * beim Tippen noch gar nicht existierte. Ab der zweiten Karte trägt sie dann,
- * weil der Spieler steht.
+ * The player is built **with** the first id and `autoplay`, not empty and then
+ * filled. Measured 2026-09-11: a later `loadVideoById()` on a freshly created
+ * player lands in state 5 ("cued") and does not play — the user gesture counts
+ * for the frame, which did not yet exist at the moment of the tap. From the
+ * second card on it carries, because the player is standing.
  */
 function boot(mount: HTMLElement, first: string): Promise<Player> {
   if (ready) return ready
@@ -80,15 +79,15 @@ function boot(mount: HTMLElement, first: string): Promise<Player> {
         host: ORIGIN,
         videoId: first,
         /*
-         * Sichtbar, und zwar aus zwei Gründen.
+         * Visible, and for two reasons.
          *
-         * YouTubes Bedingungen verlangen, dass der eingebettete Spieler zu
-         * sehen ist — ein versteckter Player ist kein Randfall der Regeln,
-         * sondern ihr Bruch. Und praktisch: ein 0 × 0 großer Spieler startet
-         * gar nicht erst (2026-09-11 gemessen, Zustand 5).
+         * YouTube's terms require the embedded player to be seen — a hidden
+         * player is not an edge case of the rules but a breach of them. And
+         * practically: a 0 × 0 player does not start at all (measured
+         * 2026-09-11, state 5).
          *
-         * Die Größe setzt die Seite per CSS; hier steht nur, dass er sich
-         * seinen Platz nimmt.
+         * The page sets the size in CSS; all this says is that it takes up its
+         * space.
          */
         height: '100%',
         width: '100%',
@@ -121,26 +120,26 @@ export function useAudioPreview() {
   const failed = ref(false)
 
   /**
-   * Der erste Aufruf ist die Geste. Jeder weitere reicht nur eine Kennung
-   * an den Spieler durch, der schon steht.
+   * The first call is the gesture. Every later one only passes an id to the
+   * player that is already standing.
    */
   async function play(uri: string, mount: HTMLElement) {
     const id = videoId(uri)
     if (!id) return
 
     try {
-      // Der erste Aufruf baut den Spieler mit dieser Kennung; jeder weitere
-      // reicht sie an den durch, der schon steht.
-      const frisch = ready === null
+      // The first call builds the player with this id; every later one passes
+      // it to the one already standing.
+      const fresh = ready === null
       armed.value = true
       const instance = await boot(mount, id)
-      if (!frisch) instance.loadVideoById(id)
+      if (!fresh) instance.loadVideoById(id)
       playing.value = id
       failed.value = false
     } catch {
-      // Ein blockiertes Google — Erweiterung, Firewall, Netz — ist kein
-      // Fehler dieser App. Der Stapel funktioniert ohne Ton vollständig, also
-      // verschwindet nur der Knopf.
+      // A blocked Google — extension, firewall, network — is not this app's
+      // failure. The stack works completely without sound, so only the button
+      // goes away.
       failed.value = true
       armed.value = false
     }

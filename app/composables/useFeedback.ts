@@ -24,7 +24,7 @@ let loaded = false
 const failure = shallowRef<unknown>(null)
 
 /**
- * Die vier Urteile, mit Namen aus dem Icon-Satz statt mit Emoji.
+ * The four verdicts, named from the icon set rather than with emoji.
  *
  * They were 👍😐👎🛒, which renders as four colour pictures from whatever font
  * the operating system happens to ship — a different drawing on every device,
@@ -36,32 +36,30 @@ export const VERDICTS = [
   { key: 'bought', icon: 'check', shown: true },
 
   /*
-   * Abgeschaltet, nicht gelöscht.
+   * Switched off, not deleted.
    *
-   * Diese beiden werden gespeichert und von nichts gelesen: `worker/match/`
-   * fasst den feedback-Store nicht an, er landet nur im Export. Das Lernen,
-   * für das sie gedacht waren, ist nie gebaut worden — vier gleich aussehende
-   * Symbole, von denen zwei etwas tun und zwei ins Leere laufen, sind aber
-   * genau die Art Oberfläche, bei der niemand mehr weiß, was ein Klick
-   * bedeutet.
+   * These two are stored and read by nothing: `worker/match/` does not touch
+   * the feedback store, and it only ends up in the export. The learning they
+   * were meant for was never built — and four identical-looking symbols, two
+   * of which do something and two of which go nowhere, are exactly the kind of
+   * interface where nobody knows what a click means any more.
    *
-   * `shown: true` hier, und sie sind zurück. Der Speicher, der Worker, das
-   * Protokoll und die Tests bleiben unangetastet, damit das auch wirklich ein
-   * Schalter ist und kein Wiederaufbau.
+   * `shown: true` here, and they are back. The store, the worker, the protocol
+   * and the tests are untouched, so that this really is a switch and not a
+   * rebuild.
    */
   { key: 'meh', icon: 'meh', shown: false },
   { key: 'wrong', icon: 'thumbs-down', shown: false },
 ] as const satisfies readonly { key: Verdict; icon: string; shown: boolean }[]
 
 /**
- * Was die Oberfläche zeigt.
+ * What the interface shows.
  *
- * Die beiden übrigen sind keine Bewertungen, sondern Aktionen mit sichtbarer
- * Folge: „Merken" trägt in die Merkliste ein, „Gekauft" in die Gekauft-Liste
- * (worker/feedback.ts filtert genau auf diese zwei Werte). Deshalb tragen sie
- * jetzt ein Lesezeichen und ein Häkchen statt eines Daumens und eines zweiten
- * Einkaufswagens — der stand direkt neben „In den Korb" und meinte etwas
- * völlig anderes.
+ * The two that remain are not ratings but actions with a visible consequence:
+ * "save" enters a record on the saved list, "bought" on the bought list
+ * (worker/feedback.ts filters on exactly these two values). So they now carry
+ * a bookmark and a tick rather than a thumb and a second shopping trolley —
+ * which stood right beside "add to basket" and meant something else entirely.
  */
 export const SHOWN_VERDICTS = VERDICTS.filter((v) => v.shown)
 

@@ -1,9 +1,9 @@
 import type { KeeperJob, KeeperResult } from '~~/worker/keeper'
 
 /**
- * Der Takt, in dem die App bei sich selbst nachsieht.
+ * The rhythm in which the app checks up on itself.
  *
- * There is no server, so "im Hintergrund" means "while a tab is open" and
+ * There is no server, so "in the background" means "while a tab is open" and
  * nothing else. That is not a limitation worth working around: a Service
  * Worker with Periodic Background Sync could run without a tab, but it is
  * Chrome-only, needs the app installed, and would spend somebody's Discogs
@@ -18,10 +18,10 @@ const EVERY_MS = 20 * 60 * 1000
 const last = shallowRef<KeeperResult | null>(null)
 
 /**
- * Woran gerade gearbeitet wird — `null`, wenn nichts läuft.
+ * What is being worked on — `null` when nothing is running.
  *
- * Auch das geteilt, und aus demselben Grund wie `last`: die Zeile steht im
- * Layout, und zwei Bildschirme dürfen sich nicht widersprechen.
+ * Shared too, and for the same reason as `last`: the line lives in the layout,
+ * and two screens must not contradict each other.
  */
 const busy = shallowRef<KeeperJob | null>(null)
 let timer: ReturnType<typeof setInterval> | undefined
@@ -59,11 +59,11 @@ export function useKeeper() {
        */
     } finally {
       /*
-       * Und die Zeile geht in jedem Fall weg.
+       * And the line goes away in every case.
        *
-       * Gerade weil der Keeper zu Fehlern schweigt: ein „wird aktualisiert …",
-       * das nach einem Fehlschlag stehen bleibt, wäre die schlechteste Art zu
-       * schweigen — es behauptete Arbeit, die nicht mehr stattfindet.
+       * Precisely because the keeper stays quiet about failures: an "updating
+       * …" left standing after one would be the worst way to stay quiet — it
+       * would claim work that is no longer happening.
        */
       busy.value = null
     }
