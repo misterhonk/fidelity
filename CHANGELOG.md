@@ -11,6 +11,21 @@ Für eine App bedeutet SemVer:
 
 ## [0.31.0](https://github.com/misterhonk/fidelity/compare/v0.30.0...v0.31.0) (2026-09-11)
 
+**A shop can be hidden — and shown again.**
+
+"Never show this one again" has been asked for on Discogs since 2015, and it is the one
+thing the Enhancer extension puts behind its paywall. Here it is a button on the shop's
+profile and a small "never suggest" on every suggestion. A hidden shop is gone from the
+shops screen, the start page, the chips under the dig field, the ⌘K palette and the
+suggestions, and it is no longer watched — a notification about a shop you asked never to
+see would be the app contradicting itself.
+
+It is not gone from a dig you start by name: typing a shop is asking for it, and a finished
+scan brings the shop back onto the lists. The hidden ones are listed at the foot of the
+shops screen with "Show again", outside the part that empties with the last shop — so
+hiding the last one cannot take the way back with it.
+
+The second of the M19 candidates.
 
 ### Added
 
