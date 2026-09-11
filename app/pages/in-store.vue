@@ -216,9 +216,14 @@ const expired = computed(() => {
           there is, when the scan behind that number stopped halfway. The dig
           screen says so and offers to finish; this one showed the same matches
           with none of it.
+
+          An expired dig is not a cut-short one. Seen 2026-09-11 in the built
+          app: a complete scan, six hours on, read "interrupted — 1,328 of 1,328
+          were through", because `expired` is also not `done`. The line below
+          this one is the expired dig's; this one is for the scan that stopped.
         -->
         <p
-          v-if="result && result.dig.status !== 'done'"
+          v-if="result && result.dig.status !== 'done' && result.dig.status !== 'expired'"
           role="status"
           class="text-fid-sm text-fid-sig-gap"
         >
