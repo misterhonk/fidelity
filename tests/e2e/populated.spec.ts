@@ -120,11 +120,17 @@ test.describe('the same price in two languages', () => {
     // that too, and matched first while the basket was still loading.
     await seed(page, 'en')
     await page.goto('/basket')
-    const english = await page.getByText(/34[.,]00/).first().innerText()
+    const english = await page
+      .getByText(/34[.,]00/)
+      .first()
+      .innerText()
 
     await seed(page, 'de')
     await page.goto('/basket')
-    const german = await page.getByText(/34[.,]00/).first().innerText()
+    const german = await page
+      .getByText(/34[.,]00/)
+      .first()
+      .innerText()
 
     expect(english).not.toBe(german)
 
