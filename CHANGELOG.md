@@ -11,6 +11,16 @@ Für eine App bedeutet SemVer:
 
 ## [0.34.0](https://github.com/misterhonk/fidelity/compare/v0.33.0...v0.34.0) (2026-09-11)
 
+**The collection and the wantlist as CSV.**
+
+Discogs' own export leaves out genres, styles, release ids and the master — the four
+columns people write scripts to put back. Two files under Settings › Your data now carry
+them, plus what is yours alone and what Discogs has no export for: rating, folder, the
+three condition fields, and the place a record sits in. No prices and no estimate: read
+against the terms they are marketplace data, and a file is passing them on — the same
+reason the JSON backup strips them. Every cell quoted, a byte-order mark in front, so a
+spreadsheet reads the umlauts.
+
 
 ### Added
 
