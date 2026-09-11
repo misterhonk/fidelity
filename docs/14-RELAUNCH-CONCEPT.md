@@ -256,15 +256,16 @@ image, 20 TB of traffic, and it is where the relaunch would start anyway.
 Roughly €13 + ~€6 + €3.81 + €0 ≈ **€23 a month**, or ~€17 without Object Storage (shards
 served from the VM behind Cloudflare's cache instead). Today's app costs a fraction of that.
 
-**Before renting anything: the home lab.** A machine on the home network with Docker and
-Traefik in front can carry both hubs and the monthly ETL for the price of its electricity,
-with a real domain through Traefik's Let's Encrypt and a tunnel or a port forward for the
-outside. `deploy/compose.yml` already describes the app and the hub as two services; what
-would be added is the Traefik labels and the catalogue job. What it does not solve is the
-one thing `docs/13` §4 measured: an app served over https cannot talk to a hub on
-`http://localhost`, so the home lab needs its public name from the first day — which
-Traefik provides. The right order is therefore: home lab first, Hetzner when the home
-connection's upload or uptime becomes the limit, and the containers move unchanged.
+**Before renting anything: the home lab.** Martin's server on the home network runs Docker
+and can take Traefik in front. `deploy/compose.homelab.yml` already starts the app and the
+hub from the published arm64/amd64 images, without building; what would be added is the
+Traefik labels for a real name with a Let's Encrypt certificate, a port forward or a tunnel
+for the outside, and the monthly catalogue job as a third service. It carries both hubs
+and the ETL for the price of electricity. The one thing it must have from the first day is
+the public name — `docs/13` §4 measured that an app served over https cannot talk to a hub
+on plain `http://localhost` — and that is exactly what Traefik provides. So the order is:
+home lab first, Hetzner only when the home connection's upload or uptime becomes the
+limit, and the containers move unchanged.
 
 **Hostinger** was on the table. Its VPS plans are competitive at the introductory price
 and are billed higher on renewal; the control panel is built around WordPress and
