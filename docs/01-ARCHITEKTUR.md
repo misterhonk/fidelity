@@ -1,16 +1,16 @@
-# 01 – Architektur & Tech-Stack
+# 01 – Architecture & tech stack
 
-> **Fidelity hat kein Backend.** Eine statische PWA, die direkt mit `api.discogs.com`
-> spricht. Alle Daten liegen im Browser des Nutzers. Siehe ADR-007.
+> **Fidelity has no backend.** A static PWA that talks to `api.discogs.com` directly. All
+> data lives in the user's browser. See ADR-007.
 
 ---
 
-## 1. Die vier harten Randbedingungen
+## 1. The four hard constraints
 
-Diese vier Fakten bestimmen die Architektur vollständig. Alle am 2026-08-09 live gegen
-die Produktions-API verifiziert.
+These four facts determine the architecture completely. All verified live against the
+production API on 2026-08-09.
 
-### RB-1 · Discogs erlaubt CORS aus dem Browser
+### C-1 · Discogs allows CORS from the browser
 
 ```
 access-control-allow-origin:  *
@@ -19,34 +19,35 @@ access-control-allow-headers: Content-Type, authorization, User-Agent,
 access-control-expose-headers: Location
 ```
 
-`/users/juno_records/inventory` mit einem Safari-User-Agent → **200, 43.223 Listings.**
-Discogs blockt Browser-User-Agents nicht, obwohl die Doku „avoid Mozilla" sagt.
+`/users/juno_records/inventory` with a Safari user agent → **200, 43,223 listings.**
+Discogs does not block browser user agents, even though the docs say "avoid Mozilla".
 
-**Das ist die Grundlage für alles Weitere.** Ohne CORS gäbe es diese Architektur nicht.
+**That is the foundation for everything else.** Without CORS this architecture would not
+exist.
 
-> ⚠️ **Zwei Einschränkungen, die daraus folgen:**
+> ⚠️ **Two limitations that follow from it:**
 >
-> 1. **`x-discogs-ratelimit-*` steht nicht in `expose-headers`** → JavaScript kann die
->    Rate-Limit-Header **nicht lesen**. Der adaptive Token-Bucket aus dem Serverentwurf
->    ist nicht baubar. Wir fahren blind und konservativ (siehe §5).
-> 2. **`POST /oauth/access_token` ist per CORS gesperrt** (500, nur `HEAD, OPTIONS`)
->    → **OAuth 1.0a ist unmöglich.** Auth läuft über Personal Access Tokens.
+> 1. **`x-discogs-ratelimit-*` is not in `expose-headers`** → JavaScript **cannot read**
+>    the rate-limit headers. The adaptive token bucket from the server design cannot be
+>    built. We drive blind and conservatively (see §5).
+> 2. **`POST /oauth/access_token` is blocked by CORS** (500, only `HEAD, OPTIONS`)
+>    → **OAuth 1.0a is impossible.** Auth runs on Personal Access Tokens.
 
-### RB-2 · Rate Limit gilt pro Quell-IP – und das ist hier ein Vorteil
+### C-2 · The rate limit applies per source IP – and here that is an advantage
 
-- **60 Requests/Minute** authentifiziert, gleitendes 60-Sekunden-Fenster
-- **Pro Quell-IP**
-- Bei Überschreitung: **429 ohne `Retry-After`**
+- **60 requests/minute** authenticated, in a sliding 60-second window
+- **Per source IP**
+- On exceeding it: **429 with no `Retry-After`**
 
 ```
-Server-Architektur:   30 Nutzer  →  1 × 60 req/min   →  Warteschlange
-Client-Architektur:   30 Nutzer  →  30 × 60 req/min  →  keine Warteschlange
+Server architecture:   30 users  →  1 × 60 req/min   →  a queue
+Client architecture:   30 users  →  30 × 60 req/min  →  no queue
 ```
 
-Im Serverentwurf war das die härteste Skalierungsgrenze. Im Browser ist sie weg – jeder
-Nutzer bringt sein eigenes Budget mit.
+In the server design this was the hardest scaling limit. In the browser it is gone — every
+user brings their own budget.
 
-### RB-3 · Maximal 10.000 Listings pro fremdem Händler
+### C-3 · At most 10,000 listings per foreign dealer
 
 ```
 GET /users/{u}/inventory?page=100&per_page=100  →  200 OK
@@ -54,307 +55,308 @@ GET /users/{u}/inventory?page=101&per_page=100  →  403
     {"message":"Pagination above 100 disabled for inventories besides your own"}
 ```
 
-Die Grenze sitzt auf der **Seitenzahl**, nicht auf dem Offset. Und `pagination.pages`
-**lügt** – meldet bei 43.234 Items brav `433`, aber ab Seite 101 kommt 403.
+The limit sits on the **page number**, not on the offset. And `pagination.pages` **lies** —
+it dutifully reports `433` for 43,234 items, but from page 101 you get a 403.
 
-**Mitigation:** `sort_order=asc` **und** `desc` liefern zwei disjunkte Fenster →
-**bis zu 20.000 Listings**. Darüber ist vollständige Abdeckung unmöglich.
+**Mitigation:** `sort_order=asc` **and** `desc` give two disjoint windows → **up to 20,000
+listings**. Above that, complete coverage is impossible.
 
-> **Produktkonsequenz:** Die UI muss ehrlich sein. *„18.400 von 43.234 Listings gescannt
-> (43 %)"* – nicht so tun, als wäre es vollständig.
+> **Product consequence:** the UI has to be honest. *"18,400 of 43,234 listings scanned
+> (43 %)"* — not pretending it was complete.
 
-### RB-4 · Marktplatzdaten dürfen max. 6 Stunden alt angezeigt werden
+### C-4 · Marketplace data may be displayed for at most 6 hours
 
-Aus den API Terms of Use. Katalogdaten dagegen stehen als CC0-Dumps frei zur Verfügung –
-wir holen dieselben Fakten nur über die API und speichern **ausschließlich ID-Kanten**,
-nie anzeigbaren Content. Details: `09-LEGAL.md`, `11-KATALOG-STRATEGIE.md` §7.
+From the API terms of use. Catalogue data, by contrast, is freely available as CC0 dumps —
+we fetch the same facts through the API and store **nothing but id edges**, never
+displayable content. Details: `09-LEGAL.md`, `11-KATALOG-STRATEGIE.md` §7.
 
 ---
 
-## 2. Systemarchitektur
+## 2. System architecture
 
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
-│  BROWSER (installierte PWA)                                            │
+│  BROWSER (installed PWA)                                               │
 │                                                                        │
 │  ┌──────────────────────────────────────────────────────────────────┐ │
 │  │  MAIN THREAD — Nuxt 4 SPA (ssr: false)                           │ │
-│  │  Vue 3 · Tailwind 4 · Nuxt UI 4 · virtualisierte Listen          │ │
+│  │  Vue 3 · Tailwind 4 · Nuxt UI 4 · virtualised lists              │ │
 │  └───────────────────────────┬──────────────────────────────────────┘ │
-│                              │ postMessage (Fortschritt, Treffer)      │
+│                              │ postMessage (progress, matches)         │
 │  ┌───────────────────────────▼──────────────────────────────────────┐ │
-│  │  WEB WORKER — die gesamte Arbeit                                  │ │
+│  │  WEB WORKER — all the work                                        │ │
 │  │  ┌────────────────┐  ┌──────────────┐  ┌───────────────────────┐ │ │
-│  │  │ DiscogsClient  │  │ Matching     │  │ Horizon-Expansion     │ │ │
-│  │  │ · 1 req/1,2 s  │  │ Engine       │  │ · Artists/Labels/     │ │ │
-│  │  │ · 429-Backoff  │  │ (reine Fkt.) │  │   Master → Kanten     │ │ │
-│  │  │ · resumierbar  │  │              │  │                       │ │ │
+│  │  │ DiscogsClient  │  │ Matching     │  │ Horizon expansion     │ │ │
+│  │  │ · 1 req/1.2 s  │  │ engine       │  │ · artists/labels/     │ │ │
+│  │  │ · 429 backoff  │  │ (pure fns)   │  │   masters → edges     │ │ │
+│  │  │ · resumable    │  │              │  │                       │ │ │
 │  │  └────────────────┘  └──────────────┘  └───────────────────────┘ │ │
 │  └───────────────────────────┬──────────────────────────────────────┘ │
 │                              │                                         │
 │  ┌───────────────────────────▼──────────────────────────────────────┐ │
-│  │  INDEXEDDB (via idb, ~2 KB)                                       │ │
+│  │  INDEXEDDB (via idb, ~2 kB)                                       │ │
 │  │  token · collection · wantlist · tasteProfile                     │ │
-│  │  horizon (Int32Array-Blobs) · digs · dealers · basket             │ │
+│  │  horizon (Int32Array blobs) · digs · dealers · basket             │ │
 │  └──────────────────────────────────────────────────────────────────┘ │
 │                                                                        │
 │  ┌──────────────────────────────────────────────────────────────────┐ │
-│  │  SERVICE WORKER — App-Shell precache, Cover-Cache (LRU 150 MB)   │ │
+│  │  SERVICE WORKER — app-shell precache, cover cache (LRU 150 MB)   │ │
 │  └──────────────────────────────────────────────────────────────────┘ │
 └───────────────────────────────┬───────────────────────────────────────┘
-                                │ HTTPS, direkt
+                                │ HTTPS, direct
                     ┌───────────▼──────────────┐
                     │  api.discogs.com         │
-                    │  60 req/min – für DICH   │
+                    │  60 req/min – for YOU    │
                     └──────────────────────────┘
 
 ┌───────────────────────────────────────────────────────────────────────┐
-│  HOSTING — nur statische Dateien, kein Prozess, keine Datenbank        │
-│  Uberspace-Docroot · Cloudflare Pages · GitHub Pages — alle gratis     │
+│  HOSTING — static files only, no process, no database                  │
+│  Uberspace docroot · Cloudflare Pages · GitHub Pages — all free        │
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
-**Alles außer dem Rendering läuft im Worker.** Der Main-Thread bleibt bei 60 fps, auch
-während ein Dig 20.000 Listings durchkaut.
+**Everything but rendering runs in the worker.** The main thread stays at 60 fps, even
+while a dig chews through 20,000 listings.
 
 ---
 
-## 3. Zeit- und Ressourcenbudget
+## 3. Time and resource budget
 
-| Vorgang | Requests | Dauer | Rechenzeit |
+| Operation | Requests | Duration | Compute |
 |---|---:|---:|---:|
-| Sammlung + Wantlist, erstmalig | ~25 | ~30 s | ~200 ms |
-| Horizont-Expansion, einmalig | ~670 | ~13 min | ~2 s |
-| Dig über 10.000 Listings | ~101 | ~2 min | **~60 ms** |
-| Dig über 20.000 Listings | ~201 | ~4 min | **~120 ms** |
-| Sammlungs-Delta, täglich | 1–3 | ~4 s | ~10 ms |
+| Collection + wantlist, first time | ~25 | ~30 s | ~200 ms |
+| Horizon expansion, once | ~670 | ~13 min | ~2 s |
+| A dig over 10,000 listings | ~101 | ~2 min | **~60 ms** |
+| A dig over 20,000 listings | ~201 | ~4 min | **~120 ms** |
+| Collection delta, daily | 1–3 | ~4 s | ~10 ms |
 
-**Das Netzwerk dominiert um den Faktor 2.000.** Rechenzeit ist in dieser App kein Thema –
-was zählt, ist jeder eingesparte Request. Vollständiges Budget: `12-RESSOURCEN-BUDGET.md`.
+**The network dominates by a factor of 2,000.** Compute is not an issue in this app — what
+counts is every request saved. The full budget: `12-RESSOURCEN-BUDGET.md`.
 
 ---
 
-## 4. Tech-Stack – Entscheidung mit Begründung
+## 4. Tech stack – decisions with reasoning
 
-### 4.1 Framework: **Nuxt 4.5 im SPA-Modus** (`ssr: false`)
+### 4.1 Framework: **Nuxt 4.5 in SPA mode** (`ssr: false`)
 
-Statisch generiert (`nuxt generate`), kein Node zur Laufzeit. Du kannst Vue – das ist das
-stärkste Argument, und es ist ein gutes.
+Statically generated (`nuxt generate`), no Node at runtime. You know Vue — that is the
+strongest argument, and it is a good one.
 
-- **Nuxt 3 ist seit 2026-07-31 EOL**, also gar nicht erst dort anfangen
-- File-based Routing, Auto-Imports, `@vite-pwa/nuxt`, Nuxt UI 4 – alles fertig verdrahtet
-- Vite 8 als Build-Layer
+- **Nuxt 3 has been EOL since 2026-07-31**, so do not start there in the first place
+- File-based routing, auto-imports, `@vite-pwa/nuxt`, Nuxt UI 4 — all wired up already
+- Vite 8 as the build layer
 
-| Verworfen | Grund |
+| Rejected | Reason |
 |---|---|
-| Nuxt **mit** SSR | Bräuchte einen Node-Prozess. Bei einer App hinter Token-Eingabe bringt SSR nichts. |
-| Vite + Vue 3 pur | ~40 KB schlanker, aber wir bauen Routing, Auto-Imports und PWA-Integration selbst nach. **Rückfalloption, falls das Bundle-Budget reißt.** |
-| Next.js / SvelteKit / Astro | React-Umlernen bzw. falsche Form; kein Gegenwert |
-| Laravel / Nitro / irgendein Backend | Es gibt keinen Server mehr. Siehe ADR-007. |
+| Nuxt **with** SSR | Would need a Node process. For an app behind a token prompt, SSR buys nothing. |
+| Plain Vite + Vue 3 | ~40 kB leaner, but we would rebuild routing, auto-imports and PWA integration ourselves. **The fallback if the bundle budget breaks.** |
+| Next.js / SvelteKit / Astro | Relearning React, or the wrong shape; nothing in return |
+| Laravel / Nitro / any backend | There is no server any more. See ADR-007. |
 
-> ⚠️ **Vue 3.6 / Vapor Mode nicht einplanen.** RC, opt-in pro Komponente, Ökosystem
-> unerprobt. Bei Listen kommt die Performance aus Virtualisierung.
+> ⚠️ **Do not plan on Vue 3.6 / Vapor Mode.** RC, opt-in per component, an untested
+> ecosystem. For lists, performance comes from virtualisation.
 
-### 4.2 Speicher: **IndexedDB via `idb`**
+### 4.2 Storage: **IndexedDB via `idb`**
 
-~2 KB Wrapper über die native API. Kein Dexie (~25 KB), kein SQLite-in-WASM
-(~1 MB und völlig überdimensioniert für ein paar Key-Value-Stores plus zwei Indizes).
+A ~2 kB wrapper over the native API. No Dexie (~25 kB), no SQLite-in-WASM (~1 MB and
+utterly oversized for a few key-value stores plus two indexes).
 
-Der Horizont wird als **`Int32Array`-Blob** abgelegt, nicht als Objektliste:
-200.000 Release-IDs = **800 KB** statt ~9 MB.
+The horizon is stored as an **`Int32Array` blob**, not as a list of objects: 200,000 release
+ids = **800 kB** instead of ~9 MB.
 
-| Verworfen | Grund |
+| Rejected | Reason |
 |---|---|
-| PostgreSQL + Drizzle | Kein Server mehr. ADR-002 und ADR-003 sind damit gegenstandslos. |
-| SQLite WASM (wa-sqlite / SQLocal) | 1 MB Bundle, OPFS-Zicken auf Safari, und wir brauchen keine relationalen Joins – nur Set-Lookups |
-| localStorage | 5-MB-Limit, synchron, blockiert den Main-Thread |
+| PostgreSQL + Drizzle | No server any more. ADR-002 and ADR-003 are moot. |
+| SQLite WASM (wa-sqlite / SQLocal) | 1 MB of bundle, OPFS trouble on Safari, and we need no relational joins — only set lookups |
+| localStorage | A 5 MB limit, synchronous, blocks the main thread |
 
-### 4.3 Auth: **Personal Access Token**
+### 4.3 Auth: **a Personal Access Token**
 
-`POST /oauth/access_token` ist per CORS gesperrt – OAuth ist damit unmöglich. Der Nutzer
-holt sich seinen Token unter `discogs.com/settings/developers` und trägt ihn einmal ein.
+`POST /oauth/access_token` is blocked by CORS — which makes OAuth impossible. The user
+fetches their token at `discogs.com/settings/developers` and enters it once.
 
-- Token liegt in IndexedDB, verlässt das Gerät nie
-- Wird **nie geloggt**, nie in einen Fehler-Report geschrieben, nie in die URL gepackt
-- „Abmelden" löscht Token und alle Daten
-- Kein Consumer Secret im Client – wir haben keins
+- The token lives in IndexedDB and never leaves the device
+- It is **never logged**, never written into an error report, never put in a URL
+- "Sign out" deletes the token and all data
+- No consumer secret in the client — we do not have one
 
-### 4.4 Der Rest
+### 4.4 The rest
 
-| Bereich | Wahl | Anmerkung |
+| Area | Choice | Note |
 |---|---|---|
-| Sprache | TypeScript (die von Nuxt 4.5 gepinnte Version) | TS 7 erst, wenn `vue-tsc` nachgezogen hat |
-| UI | Nuxt UI 4.10 + Tailwind 4.3 + Reka UI | Nuxt UI Pro ist seit 2026 gratis und OSS. **Radix Vue ist tot.** |
+| Language | TypeScript (the version Nuxt 4.5 pins) | TS 7 only once `vue-tsc` has caught up |
+| UI | Nuxt UI 4.10 + Tailwind 4.3 + Reka UI | Nuxt UI Pro has been free and open source since 2026. **Radix Vue is dead.** |
 | Tokens | DTCG 2025.10 → Style Dictionary → `@theme` | OKLCH |
-| Listen | `@tanstack/vue-virtual` | ab ~200 Zeilen Pflicht |
-| Validierung | Zod 4.4 (nur an der API-Grenze) | |
+| Lists | `@tanstack/vue-virtual` | mandatory from ~200 rows |
+| Validation | Zod 4.4 (at the API boundary only) | |
 | PWA | `@vite-pwa/nuxt` 1.1 | |
-| Test | Vitest 4 + Playwright 1.62 **inkl. WebKit** | schwächstes Ziel ist iOS Safari |
-| Lint | ESLint 10 + `@nuxt/eslint` + Prettier | Biome kann `eslint-plugin-vue` nicht ersetzen |
-| Charts | **keine Bibliothek** | Balken sind `<div>`s, das Serien-Raster ist CSS Grid |
-| Monitoring | optional Sentry, **ohne** Session Replay | Bandbreite beim Nutzer |
+| Testing | Vitest 4 + Playwright 1.62 **including WebKit** | the weakest target is iOS Safari |
+| Linting | ESLint 10 + `@nuxt/eslint` + Prettier | Biome cannot replace `eslint-plugin-vue` |
+| Charts | **no library** | Bars are `<div>`s, the series grid is CSS Grid |
+| Monitoring | Sentry optionally, **without** session replay | It is the user's bandwidth |
 
 ---
 
-## 5. Der Discogs-Client
+## 5. The Discogs client
 
-Die wichtigste eigene Komponente. Lebt im Web Worker.
+The most important component we write ourselves. It lives in the web worker.
 
 ```ts
-// worker/discogs/client.ts – Verhaltensvertrag
+// worker/discogs/client.ts – the behavioural contract
 
-// 1. BLIND UND KONSERVATIV DROSSELN
-//    x-discogs-ratelimit-* steht NICHT in access-control-expose-headers.
-//    JavaScript kann die Header nicht lesen – der adaptive Token-Bucket aus dem
-//    Serverentwurf ist nicht baubar.
-//    → feste 1200 ms zwischen Requests (= 50/min, 10 unter dem Limit)
-//    → bei 429 (Status IST lesbar): 60s, 120s, 240s + Jitter, max. 3 Versuche
-//    → nach 3 Fehlversuchen: Dig pausieren, dem Nutzer sagen warum
+// 1. THROTTLE BLIND AND CONSERVATIVELY
+//    x-discogs-ratelimit-* is NOT in access-control-expose-headers.
+//    JavaScript cannot read the headers – the adaptive token bucket from the
+//    server design cannot be built.
+//    → a fixed 1200 ms between requests (= 50/min, 10 under the limit)
+//    → on a 429 (the status IS readable): 60s, 120s, 240s + jitter, max 3 tries
+//    → after 3 failures: pause the dig and tell the user why
 
-// 2. GENAU EIN IN-FLIGHT-REQUEST
-//    Nebenläufigkeit bringt nichts – das Limit ist zeitbasiert, nicht parallelitätsbasiert.
+// 2. EXACTLY ONE IN-FLIGHT REQUEST
+//    Concurrency buys nothing – the limit is time-based, not parallelism-based.
 
-// 3. AUTH ALS HEADER
+// 3. AUTH AS A HEADER
 //    Authorization: Discogs token=<PAT>
-//    Nie im Querystring (historischer Bug: 25/min statt 60/min).
+//    Never in the query string (a historical bug: 25/min instead of 60/min).
 
-// 4. USER-AGENT GEHT NICHT
-//    fetch() verbietet den Header. Verifiziert unkritisch: Discogs akzeptiert
-//    Browser-User-Agents. ⚠️ In M1 als ALLERERSTES gegenprüfen – bricht das,
-//    bricht die gesamte Architektur.
+// 4. THE USER AGENT IS NOT SETTABLE
+//    fetch() forbids the header. Verified harmless: Discogs accepts browser
+//    user agents. ⚠️ Check this FIRST of all in M1 – if it breaks, the whole
+//    architecture breaks.
 
-// 5. ZWEI FEHLERFORMATE PARSEN
+// 5. PARSE BOTH ERROR SHAPES
 //    Legacy:   { "message": "..." }
-//    Migriert: { "detail": [ { "type": "literal_error", ... } ], "message": "..." }
+//    Migrated: { "detail": [ { "type": "literal_error", ... } ], "message": "..." }
 
-// 6. BILDER NIEMALS AKTIV LADEN
-//    i.discogs.com hat ein eigenes, undokumentiertes Cloudflare-Limit (~30–40/min).
-//    Wir setzen nur <img loading="lazy"> – der Browser holt sie, wenn sie sichtbar sind.
+// 6. NEVER FETCH IMAGES ACTIVELY
+//    i.discogs.com has its own undocumented Cloudflare limit (~30–40/min).
+//    We only set <img loading="lazy"> – the browser fetches them when visible.
 
-// 7. JEDER LAUF IST RESUMIERBAR
-//    Seitencursor nach jeder Seite in IndexedDB. Tab zu, Handy gesperrt,
-//    Netz weg → beim nächsten Öffnen geht es weiter statt von vorn.
+// 7. EVERY RUN IS RESUMABLE
+//    The page cursor goes into IndexedDB after every page. Tab closed, phone
+//    locked, network gone → next time it carries on instead of starting over.
 ```
 
 ---
 
-## 6. Der Horizont – bedarfsgesteuerter Katalog
+## 6. The horizon – a catalogue built on demand
 
-Fünf Signale brauchen Daten, die im Inventory-Listing fehlen (`master_id`, Credits,
-Genres, vollständige Labelliste). Der naheliegende Weg – `/releases/{id}` pro Listing –
-kostet rund **3 Stunden pro Dig** und ist ausgeschlossen.
+Five signals need data the inventory listing lacks (`master_id`, credits, genres, the
+complete label list). The obvious route — `/releases/{id}` per listing — costs roughly
+**3 hours per dig** and is out of the question.
 
-**Die Lösung ist eine Umkehrung der Abfragerichtung:**
+**The solution is to reverse the direction of the query:**
 
 ```
-FALSCH:  20.000 Inventar-Listings  →  je 1 Request  →  Metadaten
-         teuer, flüchtig, pro Dig neu
+WRONG:  20,000 inventory listings  →  1 request each  →  metadata
+        expensive, volatile, redone every dig
 
-RICHTIG: ~150 Entitäten aus der SAMMLUNG  →  je 1–11 Requests  →  Release-ID-Mengen
-         einmalig, langlebig, danach jeder Dig ein Set-Lookup zum Nulltarif
+RIGHT:  ~150 entities from the COLLECTION  →  1–11 requests each  →  sets of release ids
+        once, long-lived, and every dig after that is a free set lookup
 ```
 
-Die Sammlung ist klein und stabil. Das Inventar ist groß und flüchtig.
-**Man cacht die kleine, stabile Seite.**
+The collection is small and stable. The inventory is large and volatile.
+**You cache the small, stable side.**
 
-### Verifiziert am 2026-08-09
+### Verified on 2026-08-09
 
 ```
 GET /artists/40135/releases?per_page=100        (Conny Plank)
-→ 1.095 Einträge · 11 Requests · keine Seitengrenze
-  Rollen: { Main: 13, Remix: 11, Producer: 76 }   ← das role-Feld ist der Schlüssel
-  Typen:  { master: 72, release: 28 }
+→ 1,095 entries · 11 requests · no page limit
+  Roles: { Main: 13, Remix: 11, Producer: 76 }   ← the role field is the key
+  Types: { master: 72, release: 28 }
 
 GET /masters/2598/versions?per_page=100          (Neu! – Neu! 2)
-→ 55 Pressungen mit release_id · 1 Request
+→ 55 pressings with release_id · 1 request
 ```
 
-`/artists/{id}/releases` liefert nicht nur die Alben als Hauptkünstler, sondern **auch die
-produzierten, gemischten und geremixten** – mit Rollenangabe. Damit ist der Credit-Graph
-für elf Requests erreichbar statt für einen 10,4-GB-Dump.
+`/artists/{id}/releases` returns not only the albums as main artist but **also the ones
+produced, mixed and remixed** — with the role stated. That puts the credit graph within
+reach for eleven requests rather than a 10.4 GB dump.
 
-| Was | Auswahl | Endpunkt | Requests |
+| What | Selection | Endpoint | Requests |
 |---|---|---|---|
-| Wantlist-Alben | alle mit `master_id ≠ 0` | `/masters/{id}/versions` | ~1 je Album |
-| Künstler | ≥ 2 Platten in der Sammlung | `/artists/{id}/releases` | 1–11 |
-| Labels | Lift ≥ 2 **und** < 1.500 Releases | `/labels/{id}/releases` | 1–15 |
-| Credits | Personen mit Lift ≥ 3 | `/artists/{id}/releases` | 1–11 |
+| Wantlist albums | all with `master_id ≠ 0` | `/masters/{id}/versions` | ~1 per album |
+| Artists | ≥ 2 records in the collection | `/artists/{id}/releases` | 1–11 |
+| Labels | lift ≥ 2 **and** < 1,500 releases | `/labels/{id}/releases` | 1–15 |
+| Credits | people with lift ≥ 3 | `/artists/{id}/releases` | 1–11 |
 
-**~670 Requests ≈ 13 Minuten, einmalig.** Danach nur Deltas, Revalidierung alle 30 Tage.
-**Der 10,4-GB-Releases-Dump wird nicht gebraucht** – Begründung: `11-KATALOG-STRATEGIE.md`.
+**~670 requests ≈ 13 minutes, once.** After that only deltas, with revalidation every 30
+days. **The 10.4 GB releases dump is not needed** — reasoning in
+`11-KATALOG-STRATEGIE.md`.
 
 ---
 
-## 7. Ablauf eines Digs
+## 7. How a dig runs
 
 ```
-1  Nutzer gibt Händlernamen ein
+1  The user enters a dealer name
 2  Worker: GET /users/{dealer}  →  num_for_sale
-   → > 10.000?  Sofort ehrlich anzeigen, wie viel erreichbar ist
-3  Worker paginiert das Inventar, per_page=100, 1 Request/1,2 s
-4  NACH JEDER SEITE:
-   a) 100 Listings normalisieren, harte Filter
-   b) Set-Lookup gegen den Horizont + Map-Lookup gegen Sammlung/Wantlist
-   c) Fuzzy-Stufe nur für die Reste
-   d) Scoring + Begründungssatz
+   → more than 10,000?  Say honestly, right away, how much is reachable
+3  The worker paginates the inventory, per_page=100, 1 request/1.2 s
+4  AFTER EVERY PAGE:
+   a) normalise 100 listings, apply the hard filters
+   b) set lookup against the horizon + map lookup against collection/wantlist
+   c) the fuzzy stage only for what is left
+   d) scoring + the reason sentence
    e) postMessage: { scanned, total, eta, newMatches }
-   f) Cursor in IndexedDB persistieren
-   g) die 100 Rohlistings verwerfen — nur Treffer ab Score 30 bleiben
-5  Ab 10.000: automatisch zweiter Durchlauf mit sort_order=desc
-6  Fertig: expiresAt = now + 6h  ← ToS, hart im Datenmodell
-7  Nach 6 h: Marktplatzfelder werden genullt, Banner „Snapshot abgelaufen"
+   f) persist the cursor in IndexedDB
+   g) throw the 100 raw listings away — only matches from score 30 up stay
+5  Beyond 10,000: automatically a second pass with sort_order=desc
+6  Done: expiresAt = now + 6h  ← the ToS, hard in the data model
+7  After 6 h: marketplace fields are nulled, banner "snapshot expired"
 ```
 
-**Warum inkrementell?** Vier Minuten Spinner sind produktfeindlich. Treffer, die nach
-fünf Sekunden erscheinen und weiterwachsen, fühlen sich wie Suchen an, nicht wie Warten.
+**Why incrementally?** Four minutes of spinner is hostile. Matches that appear after five
+seconds and keep growing feel like searching, not like waiting.
 
-**Warum die Rohlistings sofort verwerfen?** 20.000 Listings à ~2 KB wären 40 MB im
-Speicher. Wir behalten ~600 Treffer.
+**Why throw the raw listings away at once?** 20,000 listings at ~2 kB would be 40 MB in
+memory. We keep ~600 matches.
 
 ---
 
-## 8. Fuzzy-Matching von Künstler- und Labelnamen
+## 8. Fuzzy matching of artist and label names
 
-Das eigentliche algorithmische Problem – jetzt in JavaScript statt in `pg_trgm`.
+The real algorithmic problem — now in JavaScript rather than in `pg_trgm`.
 
-**Das Problem:** Ein Inventory-Listing liefert `release.artist` als **String**
-(`"Miles Davis"`, `"Various"`, `"Kraftwerk / Neu!"`) und `release.label` als **String**
-(nur das erste!). Die Sammlung liefert `artists[]` und `labels[]` **mit IDs**.
+**The problem:** an inventory listing gives `release.artist` as a **string**
+(`"Miles Davis"`, `"Various"`, `"Kraftwerk / Neu!"`) and `release.label` as a **string**
+(the first one only!). The collection gives `artists[]` and `labels[]` **with ids**.
 
-**Die gute Nachricht:** Beide Seiten stammen aus derselben Discogs-Datenbank. Die Strings
-sind kanonisch, inklusive Disambiguierungs-Suffixen (`"Nirvana (2)"`). Normalisierter
-Exact-Match hat sehr hohe Präzision – und ist eine `Map`-Abfrage in O(1).
+**The good news:** both sides come from the same Discogs database. The strings are
+canonical, including disambiguation suffixes (`"Nirvana (2)"`). A normalised exact match has
+very high precision — and is a `Map` lookup in O(1).
 
 ```
-1. NORMALISIEREN — einmal beim Sync, nicht pro Dig
-   lower → Diakritika entfernen (String.normalize('NFD') + Regex)
-   → führende Artikel weg ("The Beatles" ≈ "Beatles")
-   → Klammer-Qualifikatoren BEHALTEN (!) — "Nirvana (2)" ist ein ANDERER Künstler
-   → übrige Interpunktion und Whitespace kollabieren
+1. NORMALISE — once at sync time, not per dig
+   lower → strip diacritics (String.normalize('NFD') + regex)
+   → drop leading articles ("The Beatles" ≈ "Beatles")
+   → KEEP parenthetical qualifiers (!) — "Nirvana (2)" is a DIFFERENT artist
+   → collapse remaining punctuation and whitespace
 
-2. EXACT MATCH  Map.get(norm)                  → Konfidenz 1.00   O(1)
-3. TOKEN-CONTAINMENT für Mehrfachkünstler      → Konfidenz 0.85
-   "kraftwerk / neu!" enthält Token "kraftwerk"
-4. TRIGRAM-ÄHNLICHKEIT ≥ 0.85, nur für Reste   → Konfidenz 0.70
-5. "various" / "various artists" / "v/a"       → NIE als Künstlertreffer
+2. EXACT MATCH  Map.get(norm)                  → confidence 1.00   O(1)
+3. TOKEN CONTAINMENT for multi-artist strings  → confidence 0.85
+   "kraftwerk / neu!" contains the token "kraftwerk"
+4. TRIGRAM SIMILARITY ≥ 0.85, only for leftovers → confidence 0.70
+5. "various" / "various artists" / "v/a"       → NEVER an artist match
 ```
 
-Stufe 4 ist die einzige teure – sie läuft nur für die wenigen hundert Listings, die
-Stufe 2 und 3 nicht getroffen haben. Gemessenes Budget: < 60 ms für 20.000 Listings.
+Stage 4 is the only expensive one — it runs only for the few hundred listings stages 2 and 3
+did not hit. Measured budget: < 60 ms for 20,000 listings.
 
-> **Keine Embeddings.** „Gleiche Platte, anderes Pressing" ist ein Normalisierungs- und
-> Katalognummern-Problem, kein semantisches.
+> **No embeddings.** "Same record, different pressing" is a normalisation and
+> catalogue-number problem, not a semantic one.
 
 ---
 
-## 9. Sicherheit & Datenschutz
+## 9. Security & privacy
 
-| Thema | Umsetzung |
+| Topic | Implementation |
 |---|---|
-| Personal Access Token | Nur IndexedDB, nie geloggt, nie in URL oder Fehler-Report, nie an Dritte |
-| „Abmelden" | Löscht Token **und** alle lokalen Daten |
-| DSGVO | **Es gibt keinen Server, der fremde Daten verarbeitet.** Kein Auftragsverarbeiter, kein Cookie-Banner, kein Tracking. Datenschutzerklärung beschreibt schlicht: alles bleibt auf deinem Gerät |
-| CSP | Strikt. `connect-src 'self' https://api.discogs.com` · `img-src 'self' https://i.discogs.com data:` |
-| Subresource Integrity | Für alles, was nicht aus dem eigenen Build kommt (idealerweise: nichts) |
-| Abhängigkeiten | Renovate, `pnpm audit` im CI, GitHub Actions auf Commit-SHA gepinnt |
-| Persistenz | `navigator.storage.persist()` anfragen, damit iOS nicht nach 7 Tagen aufräumt |
+| Personal Access Token | IndexedDB only, never logged, never in a URL or error report, never to third parties |
+| "Sign out" | Deletes the token **and** all local data |
+| GDPR | **There is no server processing anyone else's data.** No processor, no cookie banner, no tracking. The privacy notice simply describes: everything stays on your device |
+| CSP | Strict. `connect-src 'self' https://api.discogs.com` · `img-src 'self' https://i.discogs.com data:` |
+| Subresource integrity | For anything not from our own build (ideally: nothing) |
+| Dependencies | Renovate, `pnpm audit` in CI, GitHub Actions pinned to commit SHAs |
+| Persistence | Ask for `navigator.storage.persist()` so iOS does not clean up after 7 days |

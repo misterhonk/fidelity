@@ -1,8 +1,8 @@
-# 03 – Datenmodell (IndexedDB)
+# 03 – Data model (IndexedDB)
 
-> Keine Datenbank, kein Server, kein Schema-Migrationswerkzeug.
-> Alles liegt in **IndexedDB** im Browser des Nutzers, angesprochen über `idb` (~2 KB).
-> Budget: **unter 10 MB**, siehe `12-RESSOURCEN-BUDGET.md`.
+> No database, no server, no schema migration tool.
+> Everything lives in **IndexedDB** in the user's browser, addressed through `idb` (~2 kB).
+> Budget: **under 10 MB**, see `12-RESSOURCEN-BUDGET.md`.
 
 ---
 
@@ -31,13 +31,13 @@ export interface FidelityDB extends DBSchema {
 }
 ```
 
-**Warum keine relationale DB im Browser?** Es gibt keine Joins zu machen. Alles ist ein
-Key-Lookup oder ein Set-Test. SQLite-in-WASM würde 1 MB Bundle kosten für Funktionalität,
-die wir nicht brauchen.
+**Why no relational database in the browser?** There are no joins to make. Everything is a
+key lookup or a set test. SQLite-in-WASM would cost 1 MB of bundle for functionality we do
+not need.
 
 ---
 
-## 2. `meta` – Konfiguration & Zustand
+## 2. `meta` – configuration & state
 
 ```ts
 type MetaValue =
@@ -48,16 +48,16 @@ type MetaValue =
   | { key: 'syncState';    value: SyncState }
 
 interface Preferences {
-  // WEICH — darunter wird gedämpft, nicht verworfen
-  prefMediaCondition:  Condition        // Default 'Very Good Plus (VG+)'
-  targetPrice:         number | null    // Wohlfühlpreis
-  // HART — darüber/darunter wird verworfen bzw. der Dig gar nicht gestartet
-  maxPrice:            number | null    // absolutes Budget
-  minSellerRating:     number           // Default 98.0
-  formatsAllow:        string[]         // Default ['Vinyl']
+  // SOFT — below this it is damped, not discarded
+  prefMediaCondition:  Condition        // default 'Very Good Plus (VG+)'
+  targetPrice:         number | null    // the comfortable price
+  // HARD — outside this it is discarded, or the dig does not start at all
+  maxPrice:            number | null    // an absolute budget
+  minSellerRating:     number           // default 98.0
+  formatsAllow:        string[]         // default ['Vinyl']
   shipsFromBlock:      string[]
   excludeReissues:     boolean
-  // Barry-Score-Feinjustierung pro Nutzer
+  // Barry Score fine-tuning per user
   currency:            string           // 'EUR'
   shipsToCountry:      string           // 'Germany'
 }
@@ -67,28 +67,28 @@ interface SyncState {
   wantlistSyncedAt:   number | null
   horizonBuiltAt:     number | null
   horizonProgress:    { done: number; total: number } | null
-  // Für das Delta statt Vollsync: das zuletzt gesehene date_added
+  // For the delta instead of a full sync: the last date_added seen
   lastCollectionAdd:  string | null
 }
 ```
 
-> ⚠️ **Der Token ist der einzige wirklich sensible Wert.** Nie loggen, nie in einen
-> Fehler-Report, nie in die URL. „Abmelden" löscht die gesamte Datenbank
-> (`indexedDB.deleteDatabase`), nicht nur den Token.
+> ⚠️ **The token is the only genuinely sensitive value.** Never log it, never put it in an
+> error report, never in a URL. "Sign out" deletes the whole database
+> (`indexedDB.deleteDatabase`), not just the token.
 
 ---
 
 ## 3. `collection` & `wantlist`
 
-Direkt aus `basic_information` – bewusst schlank gehalten.
+Straight out of `basic_information` — deliberately kept lean.
 
 ```ts
 interface CollectionItem {
   releaseId:   number      // key
-  masterId:    number      // 0 = keiner
+  masterId:    number      // 0 = none
   title:       string
   artistIds:   number[]
-  artistNorms: string[]    // vornormalisiert — spart pro Dig ~40 ms
+  artistNorms: string[]    // pre-normalised — saves ~40 ms per dig
   labelIds:    number[]
   labelNorms:  string[]
   catnos:      string[]
@@ -103,27 +103,27 @@ interface CollectionItem {
 type WantlistItem = Omit<CollectionItem, 'rating'>
 ```
 
-**Größe:** 2.412 Einträge ≈ 1,4 MB.
+**Size:** 2,412 entries ≈ 1.4 MB.
 
-> **Die Normalisierung passiert einmal beim Sync**, nicht bei jedem Dig. Das ist der
-> Unterschied zwischen 40 ms und 40 ms × Anzahl Digs.
+> **Normalisation happens once, at sync time**, not on every dig. That is the difference
+> between 40 ms and 40 ms × the number of digs.
 
-### Delta statt Vollsync
+### A delta instead of a full sync
 
-Discogs hat keinen `updated_since`-Parameter. Aber:
+Discogs has no `updated_since` parameter. But:
 
 ```
 GET /users/{u}/collection/folders/0/releases?sort=added&sort_order=desc&per_page=100
-→ abbrechen, sobald date_added <= syncState.lastCollectionAdd
+→ stop as soon as date_added <= syncState.lastCollectionAdd
 ```
 
-Ohne neue Platten kostet der tägliche Sync **einen einzigen Request**.
+With no new records the daily sync costs **a single request**.
 
 ---
 
-## 4. `horizon` – der Katalogausschnitt
+## 4. `horizon` – the slice of the catalogue
 
-Das ist der Speicher-kritische Teil. Deshalb `Int32Array`, nicht Objektlisten.
+This is the storage-critical part. Hence `Int32Array`, not lists of objects.
 
 ```ts
 interface HorizonChunk {
@@ -132,66 +132,67 @@ interface HorizonChunk {
   entityId:   number
   name:       string
   fetchedAt:  number
-  complete:   boolean         // false bei Labels > 1.500 Releases
+  complete:   boolean         // false for labels with > 1,500 releases
   requests:   number
 
-  // ── Die Nutzlast: gepackte, SORTIERTE Release-IDs ──
-  // Sortiert, damit binäre Suche möglich ist, und weil sich sortierte
-  // Int32Arrays deutlich besser komprimieren lassen.
-  releaseIds: Int32Array      // ~4 Byte pro ID statt ~45 Byte als Objekt
+  // ── The payload: packed, SORTED release ids ──
+  // Sorted so that binary search is possible, and because sorted
+  // Int32Arrays compress considerably better.
+  releaseIds: Int32Array      // ~4 bytes per id instead of ~45 as an object
 
-  // Parallel-Arrays statt Objektliste — gleiche Länge, gleicher Index
-  roles:      Uint8Array      // Index in ROLE_TABLE: 0=main, 1=Producer, …
+  // Parallel arrays instead of a list of objects — same length, same index
+  roles:      Uint8Array      // index into ROLE_TABLE: 0=main, 1=Producer, …
   years:      Int16Array
-  // Katalognummern nur für Labels — dort wird CATALOG_RUN gebraucht
+  // Catalogue numbers only for labels — that is where CATALOG_RUN is needed
   catnoNums?: Int32Array
-  catnoPrefix?: string        // pro Chunk konstant, z.B. 'BRAIN'
+  catnoPrefix?: string        // constant per chunk, e.g. 'BRAIN'
 }
 
 const ROLE_TABLE = ['main','Producer','Engineer','Mixed By','Mastered By','Remix','Co-producer'] as const
 ```
 
-**Größenvergleich für 200.000 Release-IDs:**
+**Size comparison for 200,000 release ids:**
 
-| Repräsentation | Größe |
+| Representation | Size |
 |---|---:|
-| `{ releaseId, role, year }[]` als JSON | ~9 MB |
-| Parallele TypedArrays | **~1,4 MB** |
+| `{ releaseId, role, year }[]` as JSON | ~9 MB |
+| Parallel typed arrays | **~1.4 MB** |
 
-### Der Lookup-Index
+### The lookup index
 
-Beim App-Start wird aus allen Chunks **ein** flaches Lookup gebaut:
+At app start **one** flat lookup is built from all the chunks:
 
 ```ts
-// Einmal beim Start, ~30 ms für 200.000 IDs
+// Once at start, ~30 ms for 200,000 ids
 const horizonIndex = new Map<number, HorizonHit[]>()
-// Alternativ bei sehr großen Horizonten: sortiertes Int32Array + binäre Suche,
-// spart RAM, kostet ~O(log n) statt O(1). Ab ~500.000 IDs messen und umstellen.
+// Alternatively, for very large horizons: a sorted Int32Array + binary search,
+// which saves RAM and costs ~O(log n) instead of O(1). Measure and switch at
+// around 500,000 ids.
 ```
 
-Ein Dig testet dann pro Listing genau `horizonIndex.get(releaseId)` – O(1),
-null API-Requests.
+A dig then tests exactly `horizonIndex.get(releaseId)` per listing — O(1), zero API
+requests.
 
 ---
 
-## 5. `digs` & `matches` – hier lebt die 6-Stunden-Regel
+## 5. `digs` & `matches` – where the six-hour rule lives
 
 ```ts
 interface Dig {
-  id:              string      // ULID, zeitsortiert
+  id:              string      // ULID, time-sortable
   dealer:          string
   status:          'queued' | 'scanning' | 'done' | 'failed' | 'cancelled' | 'expired'
   startedAt:       number
   finishedAt:      number | null
-  // ⚠️ ToS: Marktplatzdaten dürfen max. 6 h alt angezeigt werden
+  // ⚠️ ToS: marketplace data may be displayed for at most 6 h
   expiresAt:       number      // startedAt + 6h
-  listingsTotal:   number      // was der Händler laut API hat
+  listingsTotal:   number      // what the dealer has according to the API
   listingsScanned: number
-  coverage:        number      // scanned / total — Ehrlichkeitsmetrik
-  truncated:       boolean     // 10k-Wand getroffen?
+  coverage:        number      // scanned / total — the honesty metric
+  truncated:       boolean     // did we hit the 10k wall?
   matchCount:      number
   apiRequests:     number
-  // Für Resume nach Tab-Schließen / Netzabbruch
+  // For resuming after a closed tab / dropped connection
   cursor:          { page: number; order: 'asc' | 'desc' } | null
 }
 
@@ -199,14 +200,14 @@ interface Match {
   digId:        string
   listingId:    number
   releaseId:    number
-  // ── unsere Ableitungen (dürfen bleiben) ──
+  // ── our derivations (these may stay) ──
   score:        number
   signals:      Signal[]       // [{ type, confidence, evidence }]
-  // Der Barry-Satz stand hier bis zum 2026-08-11 als `reason`. Er entsteht
-  // jetzt beim Lesen aus den Signalen (`app/i18n/reason.ts`) statt beim
-  // Scannen — gespeichert war er in der Sprache eingefroren, in der der Dig
-  // lief, und ein Wechsel hätte ihn nie erreicht.
-  // ── Marktplatzdaten (werden nach 6 h genullt) ──
+  // The Barry sentence sat here as `reason` until 2026-08-11. It is now built
+  // when read, from the signals (`app/i18n/reason.ts`), rather than at scan
+  // time — stored, it was frozen in whatever language the dig ran in, and a
+  // language change would never have reached it.
+  // ── marketplace data (nulled after 6 h) ──
   title:        string | null
   artist:       string | null
   label:        string | null
@@ -219,19 +220,19 @@ interface Match {
   currency:     string | null
   comments:     string | null
   thumbUrl:     string | null
-  marketLowestPrice:  number | null    // aus /marketplace/stats/ — KEIN Median
-  marketNumForSale:   number | null    // den gibt die API nicht her
+  marketLowestPrice:  number | null    // from /marketplace/stats/ — NOT a median
+  marketNumForSale:   number | null    // the API does not give this
   expired:      boolean
 }
 ```
 
-### Der Verfalls-Job
+### The expiry job
 
-Läuft beim App-Start und danach stündlich, solange die App offen ist:
+Runs at app start and hourly thereafter, for as long as the app is open:
 
 ```ts
-// Alles, was Marktplatzdaten sind, wird genullt.
-// Score, Signale und Begründung bleiben — das sind unsere eigenen Ableitungen.
+// Everything that is marketplace data gets nulled.
+// Score, signals and reasoning stay — those are our own derivations.
 async function expireDigs(db: IDBPDatabase<FidelityDB>) {
   const now = Date.now()
   for (const dig of await db.getAll('digs')) {
@@ -255,9 +256,8 @@ async function expireDigs(db: IDBPDatabase<FidelityDB>) {
 }
 ```
 
-**Nur die letzten 5 Digs werden behalten**, danach FIFO. Ein abgelaufener Dig behält seine
-Scores und Begründungen – man sieht also weiterhin, *dass* dort 47 Treffer waren, nur
-nicht mehr zu welchem Preis.
+**Only the last 5 digs are kept**, FIFO after that. An expired dig keeps its scores and
+reasoning — so you can still see *that* there were 47 matches there, just not at what price.
 
 ---
 
@@ -272,10 +272,10 @@ interface Dealer {
   ratingCount:   number
   numForSale:    number
   minOrderTotal: number
-  shippingNote:  string       // Freitext aus seller.shipping
+  shippingNote:  string       // free text from seller.shipping
   lastScannedAt: number | null
-  affinity:      number | null      // Faktor gegenüber Zufall
-  // abgeleitet, keine Marktplatzdaten → kein 6-h-Verfall
+  affinity:      number | null      // a factor against chance
+  // derived, not marketplace data → no 6 h expiry
   fingerprint:   {
     sampledItems: number
     totalItems:   number
@@ -285,7 +285,7 @@ interface Dealer {
     decadeDist:   Record<string, number>
     medianPrice:  number
   } | null
-  // Versandstaffel: Nutzereingabe oder aus shipping-profiles.json
+  // Shipping tiers: user input or from shipping-profiles.json
   shippingTiers: { minItems: number; maxItems: number | null;
                    price: number; currency: string;
                    source: 'user' | 'bundled' | 'parsed' }[]
@@ -303,68 +303,67 @@ interface BasketItem {
 }
 ```
 
-> **Versandstaffeln ohne Server:** Eine `shipping-profiles.json` liegt im Repo und wird
-> mit der App ausgeliefert. Wer eine Staffel ergänzt, macht einen Pull Request. Für einen
-> Freundeskreis ist das völlig ausreichend – und kostet nichts.
+> **Shipping tiers without a server:** a `shipping-profiles.json` lives in the repository
+> and ships with the app. Anyone adding a tier makes a pull request. For a circle of
+> friends that is entirely sufficient — and it costs nothing.
 
 ---
 
-## 7. `feedback` – die einzige Möglichkeit, Barry zu kalibrieren
+## 7. `feedback` – the only way to calibrate Barry
 
 ```ts
 interface Feedback {
   listingId: number
   releaseId: number
-  title:     string | null   // Katalog, kein Marktplatz
+  title:     string | null   // catalogue, not marketplace
   artist:    string | null
-  dealer:    string | null   // wo sie stand
-  soldAt:    number | null   // wann eine Prüfung sie als weg vorfand
+  dealer:    string | null   // where it was
+  soldAt:    number | null   // when a check found it gone
   verdict:   'interesting' | 'meh' | 'wrong' | 'bought'
-  signals:   Signal[]     // Snapshot zum Zeitpunkt des Urteils
+  signals:   Signal[]     // a snapshot at the time of the verdict
   score:     number
   createdAt: number
 }
 ```
 
-Bleibt lokal. Für die Auswertung exportiert man es als JSON und wertet es offline aus –
-ab ~200 Urteilen lohnt sich der Blick, welche Signale mit „interessant" korrelieren.
+Stays local. For analysis you export it as JSON and look at it offline — from around 200
+verdicts it becomes worth asking which signals correlate with "interesting".
 
-**Wo die Grenze läuft.** Was die Sechs-Stunden-Regel löscht, ist das *Angebot*: Preis,
-Zustand, Hüllenzustand, Händlernotiz. Nichts davon steht hier und wird nie hier stehen.
+**Where the line runs.** What the six-hour rule deletes is the *offer*: price, condition,
+sleeve condition, the dealer's note. None of that is here and none of it ever will be.
 
-Wer die Platte gemacht hat, wie sie heißt und welcher Laden sie hatte, ist nicht das
-Angebot. Das ist, was eine Merkliste ein Jahr später noch lesbar macht – Digs werden nach
-fünf weggeräumt, und zwei nackte Ganzzahlen sind keine Merkliste. Der Korb hält den Titel
-aus demselben Grund seit M4.
+Who made the record, what it is called and which shop had it is not the offer. It is what
+keeps a shortlist readable a year later — digs are cleared away after five, and two bare
+integers are not a shortlist. The basket has held the title for the same reason since M4.
 
-`soldAt` ist eine Tatsache über die Vergangenheit, keine Zahl vom Marktplatz – und sie
-verhindert, dass derselbe Request zweimal ausgegeben wird: eine Listing-ID kommt nicht
-zurück auf den Markt, eine Neueinstellung bekommt eine neue.
+`soldAt` is a fact about the past, not a number off the marketplace — and it stops the same
+request being spent twice: a listing id does not come back onto the market, and a
+re-listing gets a new one.
 
-**Der Screen dazu** ist `/saved`: gruppiert nach Laden (Porto ist pro Sendung, also ist
-vier Platten bei einem Laden etwas anderes als vier bei vieren), voller Laden zuerst.
-Frische Preise holt „Noch da?" über `GET /marketplace/listings/{id}` – sie stehen im
-Ergebnis und landen **nie** auf der Platte.
+**The screen for it** is `/saved`: grouped by shop (postage is per shipment, so four records
+at one shop is a different proposition from four at four), fullest shop first. Fresh prices
+come from "still there?" via `GET /marketplace/listings/{id}` — they appear in the result
+and **never** land on disk.
 
 ---
 
-## 8. Migrationen
+## 8. Migrations
 
 ```ts
 // db/open.ts
 openDB<FidelityDB>(DB_NAME, DB_VERSION, {
   upgrade(db, oldVersion) {
-    if (oldVersion < 1) { /* alle Stores anlegen */ }
-    // Künftige Versionen hier ergänzen. Regel: NIEMALS destruktiv migrieren,
-    // ohne dass sich der Zustand aus der API wiederherstellen lässt.
+    if (oldVersion < 1) { /* create every store */ }
+    // Future versions go here. The rule: NEVER migrate destructively unless
+    // the state can be restored from the API.
   },
-  blocked()  { /* anderer Tab hält die alte Version — Nutzer informieren */ },
-  blocking() { /* diese Version blockiert ein Upgrade — Verbindung schließen */ },
+  blocked()  { /* another tab holds the old version — tell the user */ },
+  blocking() { /* this version is blocking an upgrade — close the connection */ },
 })
 ```
 
-**Der Notausgang:** Alle Daten sind aus der API reproduzierbar. Im Zweifelsfall ist
-„Datenbank löschen und neu synchronisieren" eine völlig akzeptable Migration – sie kostet
-den Nutzer 13 Minuten, keine Daten.
+**The emergency exit:** all data is reproducible from the API. In case of doubt, "delete the
+database and re-sync" is a perfectly acceptable migration — it costs the user 13 minutes and
+no data.
 
-Das ist der stille Luxus einer App ohne Server.
+That is the quiet luxury of an app with no server.

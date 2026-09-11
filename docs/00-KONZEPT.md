@@ -1,338 +1,337 @@
-# 00 – Produktkonzept
+# 00 – Product concept
 
-> **Status:** Entwurf v0.1 · **Stand:** 2026-08-09 · **Autor:** Martin + Claude
+> **Status:** draft v0.1 · **As of:** 2026-08-09 · **Author:** Martin + Claude
 
 ---
 
-## 1. Die These
+## 1. The thesis
 
-**Discogs ist eine Suchmaschine, kein Plattenladen.**
+**Discogs is a search engine, not a record shop.**
 
-Discogs beantwortet perfekt die Frage *„Habt ihr Platte X?"*. Es beantwortet **nie** die Frage,
-die man in einem guten Plattenladen stellt:
+Discogs answers the question *"do you have record X?"* perfectly. It **never** answers the
+question you ask in a good record shop:
 
-> *„Ich sammle Krautrock und Blue-Note-Jazz. Was habt ihr für mich?"*
+> *"I collect krautrock and Blue Note jazz. What have you got for me?"*
 
-Genau diese Lücke füllt dieses Projekt. Wir bauen nicht noch einen Marktplatz, sondern
-**den Verkäufer hinter der Theke** – die Figur, die weiß, was du hast, was dir fehlt,
-und warum die Platte in Fach C dich interessieren sollte.
+That is exactly the gap this project fills. We are not building another marketplace but
+**the person behind the counter** — the figure who knows what you have, what you are
+missing, and why the record in box C should interest you.
 
-### Der konkrete Schmerz
+### The concrete pain
 
-Ein Händler hat 20.000 Platten im Sortiment. Man kauft bei Discogs immer mehrere Platten
-beim selben Händler, um Versand zu sparen. Also muss man sich durch 20.000 Einträge wühlen –
-manuell, sortiert nach Künstlername, ohne jeden Bezug zur eigenen Sammlung.
+A dealer has 20,000 records in stock. On Discogs you always buy several records from the
+same dealer to save on postage. So you have to dig through 20,000 entries — by hand, sorted
+by artist name, with no relation to your own collection at all.
 
-Discogs' eigene Werkzeuge helfen nur teilweise:
+Discogs' own tools only help so far:
 
-| Discogs-Funktion | Was sie kann | Was fehlt |
+| Discogs feature | What it can do | What is missing |
 |---|---|---|
-| „Items I Want" (`/sell/mywants`) | Zeigt Händler mit den meisten Wantlist-Treffern | Nur **exakte Release-Version**, Top-5-Anzeige, tief vergraben |
-| Wantlister (2024 zugekauft) | Echtzeit-Alerts, Filter, Churn-Erkennung | Nur Wantlist. Kennt deine **Sammlung** nicht |
-| Empfehlungen | ~20 Vorschläge | Praktisch tot, nicht händlerbezogen |
-| Preisvorschläge | Median/Lo/Hi | Nur für Verkäufer, ohne Versand |
+| "Items I Want" (`/sell/mywants`) | Shows dealers with the most wantlist hits | Only the **exact release version**, a top-5 display, buried deep |
+| Wantlister (acquired 2024) | Real-time alerts, filters, churn detection | Wantlist only. Does not know your **collection** |
+| Recommendations | ~20 suggestions | Practically dead, not dealer-related |
+| Price suggestions | Median/lo/hi | For sellers only, without postage |
 
-**Der blinde Fleck:** Alle existierenden Werkzeuge starten bei der **Wantlist** – also bei
-Platten, von denen du schon weißt, dass du sie willst. Keines startet bei der **Sammlung** –
-also bei dem, was dein Geschmack über dich verrät.
+**The blind spot:** every existing tool starts at the **wantlist** — that is, at records you
+already know you want. None starts at the **collection** — at what your taste says about
+you.
 
 ---
 
-## 2. Wettbewerbsanalyse
+## 2. Competitive analysis
 
-Ehrliche Einordnung (Stand August 2026, recherchiert):
+An honest placing (as of August 2026, researched):
 
 ```
-                    PERSONALISIERT auf deine Sammlung
+                    PERSONALISED to your collection
                               ▲
-        recordsv.lt ●         │         ★ DIESES PROJEKT
-     (nur Analyse,            │        (Vorläufer „crate_digger.php"
-      kein Marktplatz)        │         von 2021 – tot seit Jahren)
+        recordsv.lt ●         │         ★ THIS PROJECT
+     (analysis only,          │        (forerunner "crate_digger.php"
+      no marketplace)         │         from 2021 – dead for years)
                               │
-  SAMMLUNGS- ─────────────────┼───────────────────── HÄNDLER-
-    SEITE                     │                        SEITE
+  COLLECTION ─────────────────┼───────────────────── DEALER
+     SIDE                     │                       SIDE
                               │
-      Vizcogs ●               │         ● milkcrate.fm  (keine Personalisierung)
-      Groovv  ●               │         ● Waxrunner     } Wantlist,
-   Discogs Enhancer ●         │         ● Wantlister    } nicht Sammlung
+      Vizcogs ●               │         ● milkcrate.fm  (no personalisation)
+      Groovv  ●               │         ● Waxrunner     } wantlist,
+   Discogs Enhancer ●         │         ● Wantlister    } not collection
                               ▼
-                       NICHT personalisiert
+                        NOT personalised
 ```
 
-### Relevante Player
+### The players that matter
 
-| Tool | Was es macht | Lebt? | Was ihm fehlt |
+| Tool | What it does | Alive? | What it lacks |
 |---|---|---|---|
-| **Discogs Enhancer** (Browser-Ext.) | 60+ Features: Sortierung inkl. Versand, Währungsumrechnung, Sammlungs-Indikatoren | ✅ sehr aktiv, 10k+ User, 3–10 €/Jahr | Keine Empfehlungen, kein Inventar-Matching |
-| **Waxrunner** | Constraint-Solver: beste Kombination Wantlist × Händler | ✅ (HN, Aug 2026) | **Nur Wantlist**, kein Geschmacksprofil |
-| **milkcrate.fm** | Händler-Storefronts, „Crates", Genre-Bins | ✅ (HN, Jun 2026) | **Keine Personalisierung** |
-| **recordsv.lt** | Pressing-Insights, Contributor-Netzwerke aus deiner Sammlung | ✅ (HN, Mär 2026) | **Kein Marktplatz-Bezug** – sagt nicht, was du kaufen sollst |
-| **discogs_alert** (OSS) | Wantlist-Alerts | ✅ | Scraped die Website (ToS-Verstoß), nur Wantlist |
-| **Discogs Wantlist Optimizer** | Händler-Ranking nach Wantlist-Overlap | ❌ **tot** – Domain 2026 an Glücksspiel-Spam verloren | Mahnmal: Hobbyprojekte sterben schnell |
+| **Discogs Enhancer** (browser ext.) | 60+ features: sorting including postage, currency conversion, collection indicators | ✅ very active, 10k+ users, €3–10/year | No recommendations, no inventory matching |
+| **Waxrunner** | Constraint solver: the best combination of wantlist × dealer | ✅ (HN, Aug 2026) | **Wantlist only**, no taste profile |
+| **milkcrate.fm** | Dealer storefronts, "crates", genre bins | ✅ (HN, Jun 2026) | **No personalisation** |
+| **recordsv.lt** | Pressing insights, contributor networks from your collection | ✅ (HN, Mar 2026) | **No marketplace connection** – it does not say what to buy |
+| **discogs_alert** (OSS) | Wantlist alerts | ✅ | Scrapes the website (a ToS breach), wantlist only |
+| **Discogs Wantlist Optimizer** | Dealer ranking by wantlist overlap | ❌ **dead** – domain lost to gambling spam in 2026 | A memorial: hobby projects die quickly |
 
-### Der Präzedenzfall
+### The precedent
 
-Im Discogs-Forum (Thread #786216) beschrieb 2021 ein User namens *faraz12inch45rpm* exakt diese Idee:
+In the Discogs forum (thread #786216) a user called *faraz12inch45rpm* described exactly
+this idea in 2021:
 
-> „It first scans your collection to find unique artist names. Then it checks the entire
+> "It first scans your collection to find unique artist names. Then it checks the entire
 > seller's inventory for those artists."
 
-Lief unter einer nackten IP als `crate_digger.php`. **Ist heute tot.** Nie benannt, nie
-gelauncht, nie vermarktet. Die Idee ist also validiert *und* das Feld ist frei.
+It ran on a bare IP as `crate_digger.php`. **It is dead today.** Never named, never
+launched, never marketed. So the idea is validated *and* the field is open.
 
-### Risiko
+### Risk
 
-Discogs hat **Wantlister im Juni 2024 zugekauft** (Stoat Labs). Das ist gleichzeitig
-Validierung, Exit-Pfad und Klon-Risiko. Unsere Verteidigung: der Sammlungs-Geschmacksgraph
-und der Credit-Graph sind aufwendig; die Wantlist-Schnittmenge ist trivial.
+Discogs **acquired Wantlister in June 2024** (Stoat Labs). That is validation, an exit path
+and a cloning risk all at once. Our defence: the collection taste graph and the credit graph
+are laborious; the wantlist intersection is trivial.
 
 ---
 
-## 3. Namensgebung
+## 3. Naming
 
-Hommage an *High Fidelity* (Stephen Frears, 2000 / Nick Hornby, 1995).
+An homage to *High Fidelity* (Stephen Frears, 2000 / Nick Hornby, 1995).
 
-### Empfehlung: **Fidelity**
+### Recommendation: **Fidelity**
 
-Ein Wort. Drei Bedeutungsebenen:
+One word. Three layers of meaning:
 
-1. **High Fidelity** – die Hommage, für Kenner sofort erkennbar
-2. **Fidelity = Klangtreue** – Pressqualität, Original vs. Reissue
-3. **Fidelity = Verlässlichkeit** – ehrliches Grading, vertrauenswürdige Händler
+1. **High Fidelity** – the homage, instantly recognisable to those who know
+2. **Fidelity = sound fidelity** – pressing quality, original vs. reissue
+3. **Fidelity = reliability** – honest grading, trustworthy dealers
 
-Markenrechtlich unproblematisch (generischer Begriff), gut aussprechbar auf Deutsch und
-Englisch, Domain-Varianten realistisch (`fidelity.app` vermutlich vergeben →
-`fidelity.fm`, `getfidelity.app`, `fidelity-vinyl.de`).
+Unproblematic as a mark (a generic term), pronounceable in German and English, realistic
+domain variants (`fidelity.app` presumably taken → `fidelity.fm`, `getfidelity.app`,
+`fidelity-vinyl.de`).
 
-### Naming-System innerhalb der App
+### The naming system inside the app
 
-| Element | Name | Herkunft |
+| Element | Name | Origin |
 |---|---|---|
-| Produkt | **Fidelity** | *High Fidelity* |
-| Empfehlungs-Engine / Persona | **Barry** | Jack Blacks Barry Judd – der Typ, der alles kennt und ungefragt urteilt |
-| Ein Händler-Scan | **Dig** („einen Dig starten") | Crate Digging |
-| Bewertungs-Score 0–100 | **Barry Score** | s. o. |
-| Die Top-Empfehlungen | **Top Five** | Der Running Gag des Films |
-| Die absolute Nr. 1 im Dig | **Side One, Track One** | Rob Gordons Kategorie |
-| Der Laden-/Dashboard-Screen | **Championship** | *Championship Vinyl* – als interner Screen-Name, nicht als Produktname |
-| Händler-Steckbrief | **The Clerk's Take** | |
+| Product | **Fidelity** | *High Fidelity* |
+| Recommendation engine / persona | **Barry** | Jack Black's Barry Judd – the guy who knows everything and judges unasked |
+| One dealer scan | **Dig** ("start a dig") | Crate digging |
+| The 0–100 rating | **Barry Score** | see above |
+| The top recommendations | **Top Five** | The film's running gag |
+| The outright number one in a dig | **Side One, Track One** | Rob Gordon's category |
+| The shop/dashboard screen | **Championship** | *Championship Vinyl* – as an internal screen name, not a product name |
+| The dealer profile | **The Clerk's Take** | |
 
-> ⚠️ **„Championship Vinyl" bewusst nicht als Produktname.** Fiktiver Firmenname aus einem
-> urheberrechtlich geschützten Werk – als Produktmarke unnötiges Risiko. Als interner
-> Screen-Name / Easter Egg völlig unbedenklich.
+> ⚠️ **"Championship Vinyl" deliberately not used as a product name.** A fictional company
+> name from a copyrighted work — unnecessary risk as a trade mark. As an internal screen
+> name / easter egg, entirely harmless.
 
-### Alternativen (falls „Fidelity" nicht zündet)
+### Alternatives (should "Fidelity" not catch)
 
-- **Top Five** – am unmittelbarsten Film-nah, beschreibt das Output-Format wörtlich
-- **Deep Cut** – Sammler-Slang, gut merkbar
-- **Sleeve** – minimalistisch, .app-Domain wahrscheinlicher frei
-- **Barry** – frech, aber als Produktname zu eng an der Figur
+- **Top Five** – the closest to the film, describes the output format literally
+- **Deep Cut** – collector slang, memorable
+- **Sleeve** – minimal, a .app domain more likely to be free
+- **Barry** – cheeky, but too tied to the character for a product name
 
 ---
 
-## 4. Kernfunktion (MVP)
+## 4. The core function (MVP)
 
-> **Ein Händler rein, eine bewertete Fundliste raus – mit Begründung pro Treffer.**
+> **One dealer in, one scored list of finds out — with a reason per hit.**
 
 ```
-   Discogs-Händlername
+   Discogs dealer name
            │
            ▼
    ┌───────────────────┐     ┌──────────────────────┐
-   │  Inventar-Scan    │◀───▶│  Deine Sammlung      │
-   │  (bis 20.000      │     │  + Wantlist          │
-   │   Listings)       │     │  (OAuth-Sync)        │
+   │  Inventory scan   │◀───▶│  Your collection     │
+   │  (up to 20,000    │     │  + wantlist          │
+   │   listings)       │     │  (OAuth sync)        │
    └─────────┬─────────┘     └──────────────────────┘
              │
              ▼
    ┌───────────────────────────────────────┐
-   │  Matching-Engine  →  Barry Score      │
-   │  11 Signale, gewichtet, mit Begründung│
+   │  Matching engine  →  Barry Score      │
+   │  11 signals, weighted, with a reason  │
    └─────────┬─────────────────────────────┘
              ▼
    ┌───────────────────────────────────────┐
-   │  Top Five · Volltrefferliste · Korb   │
-   │  Händler-Steckbrief · Versandrechner  │
+   │  Top Five · full list · basket        │
+   │  Dealer profile · postage calculator  │
    └───────────────────────────────────────┘
 ```
 
 ---
 
-## 5. Die Match-Signale
+## 5. The match signals
 
-Jeder Treffer trägt einen oder mehrere **Signale**. Das ist das Herz des Produkts – und der
-Grund, warum jede Empfehlung einen erklärenden Satz bekommt.
+Every hit carries one or more **signals**. That is the heart of the product — and the reason
+every recommendation gets a sentence explaining it.
 
-| # | Signal | Bedeutung | Kosten | Phase |
+| # | Signal | Meaning | Cost | Phase |
 |---|---|---|---|---|
-| 1 | `WANTLIST_EXACT` | Genau diese Release-ID steht auf deiner Wantlist | **gratis** | M2 |
-| 2 | `WANTLIST_PRESSING` | Anderes Pressing eines Wantlist-Albums | Katalog-DB | M5 |
-| 3 | `ARTIST_KNOWN` | Künstler in deiner Sammlung, dieses Release nicht | **gratis** | M2 |
-| 4 | `ARTIST_GAP` | Diskografie-Lücke: du hast 4 von 6 | Katalog-DB | M5 |
-| 5 | `LABEL_AFFINITY` | Label, das du überdurchschnittlich sammelst | **gratis** | M2 |
-| 6 | `CATALOG_RUN` | Katalognummern-Serie (Blue Note 4000er, ECM 1000er, Brain/Ohr/Pilz) | Katalog-DB | M5 |
-| 7 | `STYLE_ADJACENT` | Stil-Nachbarschaft zum Zentroid deiner Sammlung | **gratis** | M3 |
-| 8 | `CREDIT_GRAPH` | Gleicher Produzent / Engineer / Studio / Sideman | Katalog-DB | M5 |
-| 9 | `FORMAT_UPGRADE` | Du hast es auf CD – hier gibt's das Original-Vinyl | Katalog-DB | M5 |
-| 10 | `PRICE_SIGNAL` | Deutlich unter dem Markt-Tiefstpreis | 1 API-Call | M4 |
-| 11 | `SCARCITY` | Taucht selten im Marktplatz auf | 1 API-Call | M4 |
+| 1 | `WANTLIST_EXACT` | This exact release id is on your wantlist | **free** | M2 |
+| 2 | `WANTLIST_PRESSING` | A different pressing of a wantlist album | catalogue DB | M5 |
+| 3 | `ARTIST_KNOWN` | The artist is in your collection, this release is not | **free** | M2 |
+| 4 | `ARTIST_GAP` | A discography gap: you have 4 of 6 | catalogue DB | M5 |
+| 5 | `LABEL_AFFINITY` | A label you collect more than average | **free** | M2 |
+| 6 | `CATALOG_RUN` | A catalogue-number run (Blue Note 4000s, ECM 1000s, Brain/Ohr/Pilz) | catalogue DB | M5 |
+| 7 | `STYLE_ADJACENT` | Style adjacency to your collection's centroid | **free** | M3 |
+| 8 | `CREDIT_GRAPH` | Same producer / engineer / studio / sideman | catalogue DB | M5 |
+| 9 | `FORMAT_UPGRADE` | You have it on CD – here is the original vinyl | catalogue DB | M5 |
+| 10 | `PRICE_SIGNAL` | Well below the market's lowest price | 1 API call | M4 |
+| 11 | `SCARCITY` | Rarely turns up on the marketplace | 1 API call | M4 |
 
-### Warum Signal 8 (`CREDIT_GRAPH`) das eigentliche Killer-Feature ist
+### Why signal 8 (`CREDIT_GRAPH`) is the real killer feature
 
-Discogs' größter ungenutzter Schatz ist der **Credit-Graph**: jedes Release trägt
-`extraartists` mit Rollen – Producer, Engineer, Mastered By, Recorded At. Praktisch **kein
-Tool konsumiert diese Daten**.
+Discogs' greatest unused treasure is the **credit graph**: every release carries
+`extraartists` with roles — producer, engineer, mastered by, recorded at. Practically **no
+tool consumes this data**.
 
-Beispiel-Output:
+Example output:
 
-> *„Du besitzt 9 Produktionen von Conny Plank. Dieser Händler hat 4 weitere, die du nicht
-> hast – darunter zwei, nach denen du nie gesucht hättest."*
+> *"You own 9 Conny Plank productions. This dealer has 4 more that you do not — two of them
+> you would never have searched for."*
 
-Das ist exakt das, was ein guter Verkäufer sagt. Und die Daten dafür sind **CC0-lizenziert**
-(Discogs Data Dumps) – also dauerhaft, kostenlos und ohne Nutzungsbeschränkung nutzbar.
+That is exactly what a good shop assistant says. And the data for it is **CC0-licensed**
+(Discogs data dumps) — permanently, freely usable with no restrictions.
 
 ---
 
-## 6. Der Barry Score
+## 6. The Barry Score
 
 ```
-score = (stärkstes Signal + 0,3 × Summe der übrigen) / 115 × 100
+score = (strongest signal + 0.3 × sum of the rest) / 115 × 100
 ```
 
-Gedeckelt auf 0–100. Der stärkste Grund dominiert – fünf mittelmäßige Gründe schlagen
-keinen perfekten. Vollständige Formel inkl. Kalibrierungstabelle in
-`04-MATCHING-ENGINE.md` §4. **Immer** begleitet von einem generierten Begründungssatz:
+Capped at 0–100. The strongest reason dominates — five mediocre reasons do not beat one
+perfect one. The full formula including the calibration table is in
+`04-MATCHING-ENGINE.md` §4. **Always** accompanied by a generated sentence of reasoning:
 
 > **91 · Side One, Track One**
-> *„Conny-Plank-Produktion von 1973 auf Brain – du hast 9 seiner Produktionen und dir
-> fehlen nur noch zwei aus der 1000er-Serie. VG+ für 24 € bei einem Markt-Tiefstpreis
-> von 41 €."*
+> *"A Conny Plank production from 1973 on Brain – you own 9 of his productions and are only
+> two short of the complete 1000 series. VG+ for €24 against a market low of €41."*
 
-**Weiche Dämpfer** (multiplikativ). Hart gefiltert wird vorher – Format, Budget,
-Versandherkunft und Händler-Rating tauchen hier bewusst *nicht* auf, sonst wäre der
-Dämpfer toter Code (siehe `04-MATCHING-ENGINE.md` §2):
-- Zustand unter deinem Wunschzustand → ×0.40
-- Preis über deinem Wohlfühlpreis (aber im Budget) → ×0.55
-- Deutlich über Marktniveau → ×0.75
-- Bereits im Warenkorb → ×0
+**Soft dampers** (multiplicative). Hard filtering happens beforehand — format, budget,
+shipping origin and dealer rating deliberately do *not* appear here, or the damper would be
+dead code (see `04-MATCHING-ENGINE.md` §2):
+- Condition below your desired condition → ×0.40
+- Price above your comfortable price (but within budget) → ×0.55
+- Well above market level → ×0.75
+- Already in the basket → ×0
 
-**Design-Prinzip:** Eine Empfehlung ohne Begründung ist Rauschen. Eine Empfehlung mit
-Begründung ist ein Verkäufer. Der Begründungssatz ist **kein Nice-to-have**, sondern das
-Produkt.
-
----
-
-## 7. Versand-Optimierung („Der Korb")
-
-Der am häufigsten genannte Schmerz überhaupt – und quantifizierbar in Euro.
-
-> *„Die 3. Platte senkt den Versand von 4,50 € auf 3,00 € pro Stück. Hier sind die
-> 12 besten Kandidaten bei diesem Händler in genau diesem Preisfenster."*
-
-Discogs zeigt kombinierte Versandkosten **erst im Warenkorb**. Wir zeigen sie **vorher** –
-als Kaufargument.
-
-### ⚠️ Ehrliche Einschränkung
-
-Das Feld `shipping_price` ist in der Inventory-API bei vielen Händlern **leer** – Discogs
-berechnet Versand erst im Cart. Lösung:
-
-1. **Händler-Versandprofil**: Nutzer trägt die Staffel einmal ein (1 LP: 6 €, 2–3 LP: 9 €, …)
-2. Die App merkt sich das Profil **pro Händler global** – einmal von einem Nutzer gepflegt,
-   profitieren alle (Crowdsourcing im Kleinen)
-3. Heuristik-Parser über den Freitext in `seller.shipping`
-4. Fallback: „Versand unbekannt – trag ihn ein und ich rechne"
-
-Das wird als Limitation dokumentiert, nicht versteckt.
-
-**Der Parser liest nach Zielland.** Ein realer Versandkasten ist selten eine Tabelle,
-meistens sind es drei, gestapelt unter Überschriften: `Germany:`, `Europe:`, `Non-Europe:`.
-Als eine Tabelle gelesen mischen sich die Sätze, und die billigste Zeile vom falschen
-Kontinent gewinnt – genau so kam bei fatplastics ein Korb von zwei Platten auf 13 € statt
-der echten 6 €.
-
-Also: Überschriften, die einen Ort nennen, zerlegen den Text. Gelesen wird **nur der Block
-für das eingestellte Zielland** – exakter Ländername, sonst Region (`Europe:` für ein
-europäisches Ziel), sonst ein Sammelblock (`Rest of World:`). Nennt kein Block das Ziel,
-gibt es **keine Staffel** statt einer aus der Nachbarschaft. Die Karte schreibt dazu, aus
-welchem Abschnitt sie gelesen hat.
-
-Überschriften, die keinen Ort nennen (`Porto:`, `Shipping address Terms:`), zerlegen nichts
-– sonst zerfiele eine gut lesbare Tabelle in Stücke, die auf nichts passen.
+**Design principle:** A recommendation without a reason is noise. A recommendation with a
+reason is a shop assistant. The reason sentence is **not a nice-to-have**; it is the
+product.
 
 ---
 
-## 8. Weitere Features (priorisiert)
+## 7. Postage optimisation ("the basket")
 
-### Phase 2 – Händler-Intelligenz
+The most frequently named pain of all — and quantifiable in euros.
 
-- **Händler-Fingerprint**: *„Sortiment kippt Richtung deutscher Krautrock 1970–77;
-  62 % Brain/Ohr/Pilz; Medianjahr 1974; kaum Reissues."* Kostet einen Scan, sonst nichts.
-- **Affinity-Score**: *„Deine Sammlung überlappt mit diesem Sortiment um Faktor 3,1 –
-  einer deiner Top-5-Händler überhaupt."*
-- **Händler-Watchlist**: Periodischer Rescan mit Diff. *„Vinyl-Tom hat 40 neue Listings,
-  6 passen zu dir."* Kein bestehendes Tool beobachtet auf **Händler**-Ebene.
-- **Preis-Positionierung**: *„Systematisch 15 % unter Median bei Jazz, 40 % drüber bei Soul."*
+> *"The 3rd record brings postage down from €4.50 to €3.00 each. Here are the 12 best
+> candidates at this dealer in exactly that price window."*
 
-### Phase 3 – Pressing-Beratung
+Discogs shows combined postage **only in the basket**. We show it **beforehand** — as an
+argument for buying.
 
-- **Original vs. Reissue** aus Matrix/Runout, Mastering-Stempel (RVG, Porky, RL),
-  Presswerk, Land, Label-Variante
-- **Fallen-Warnung**: *„Das ist eine japanische Pressung von 1983, kein 65er Original –
-  der Preis suggeriert etwas anderes."*
-- **Format-Upgrade-Pfade**
+### ⚠️ An honest limitation
 
-### Phase 4 – In-Store-Modus
+The `shipping_price` field is **empty** for many dealers in the inventory API — Discogs
+calculates postage only in the cart. The answer:
 
-- Du stehst im Laden, der Händler hat einen Discogs-Shop → PWA zeigt die Dig-Liste auf dem
-  Handy, offline-fähig (viele Plattenläden sind Keller ohne Empfang)
-- Plattenbörsen-Modus: mehrere Händler nacheinander
+1. **A dealer shipping profile**: the user enters the tiers once (1 LP: €6, 2–3 LP: €9, …)
+2. The app remembers the profile **globally per dealer** — maintained once by one user,
+   everyone benefits (crowdsourcing on a small scale)
+3. A heuristic parser over the free text in `seller.shipping`
+4. Fallback: "postage unknown — enter it and I will do the arithmetic"
 
-### Vorgemerkt
+This is documented as a limitation, not hidden.
 
-- **Hüllenzustand als Dämpfer.** Die Daten liegen schon da: `sleeve_condition` kommt aus
-  dem Inventar, wird gespeichert und dem Matcher übergeben. Was fehlt, ist der Dämpfer —
-  eine VG+-Platte in einer G-Hülle ist ein anderer Kauf, und Sammler wissen das.
+**The parser reads by destination country.** A real shipping box is rarely one table; more
+often it is three, stacked under headings: `Germany:`, `Europe:`, `Non-Europe:`. Read as one
+table the rates mix, and the cheapest line from the wrong continent wins — that is exactly
+how a two-record basket at fatplastics came to €13 instead of the real €6.
 
-  Stand bis zum 2026-08-11 als `prefSleeveCondition` in den Einstellungen, ohne dass es
-  irgendetwas gelesen hätte, und ist dort entfernt worden. Ein Feld, das ein Feature
-  verspricht, das es nicht gibt, ist schlechter als kein Feld. Wenn es kommt, dann auf dem
-  vorgesehenen Weg: erst `docs/04-MATCHING-ENGINE.md`, dann gebaut — und mit einem
-  erklärten Snapshot-Diff, denn es bewegt jede Punktzahl.
+So: headings that name a place split the text. Only the block **for the configured
+destination country** is read — exact country name, otherwise the region (`Europe:` for a
+European destination), otherwise a catch-all block (`Rest of World:`). If no block names the
+destination there is **no tier** rather than one from the neighbourhood. The card says which
+section it read from.
 
-### Bewusst **nicht** gebaut
+Headings that name no place (`Porto:`, `Shipping address Terms:`) split nothing — otherwise
+a perfectly readable table would fall into pieces that fit nothing.
 
-| Nicht bauen | Warum |
+---
+
+## 8. Further features (prioritised)
+
+### Phase 2 – dealer intelligence
+
+- **Dealer fingerprint**: *"Stock leans towards German krautrock 1970–77; 62 %
+  Brain/Ohr/Pilz; median year 1974; hardly any reissues."* Costs one scan and nothing else.
+- **Affinity score**: *"Your collection overlaps this stock by a factor of 3.1 — one of your
+  top 5 dealers overall."*
+- **Dealer watchlist**: a periodic rescan with a diff. *"Vinyl-Tom has 40 new listings, 6
+  of them suit you."* No existing tool watches at the **dealer** level.
+- **Price positioning**: *"Systematically 15 % below median on jazz, 40 % above on soul."*
+
+### Phase 3 – pressing advice
+
+- **Original vs. reissue** from matrix/runout, mastering stamps (RVG, Porky, RL), pressing
+  plant, country, label variant
+- **Trap warnings**: *"That is a Japanese pressing from 1983, not a '65 original — the price
+  suggests otherwise."*
+- **Format upgrade paths**
+
+### Phase 4 – in-store mode
+
+- You are standing in the shop and the dealer has a Discogs store → the PWA shows the dig
+  list on your phone, offline-capable (many record shops are basements with no reception)
+- Record fair mode: several dealers one after another
+
+### Noted for later
+
+- **Sleeve condition as a damper.** The data is already there: `sleeve_condition` comes from
+  the inventory, is stored, and is handed to the matcher. What is missing is the damper — a
+  VG+ record in a G sleeve is a different purchase, and collectors know it.
+
+  It stood in the settings as `prefSleeveCondition` until 2026-08-11 without anything ever
+  reading it, and has been removed from there. A field that promises a feature which does
+  not exist is worse than no field. If it comes, it comes by the intended route: first
+  `docs/04-MATCHING-ENGINE.md`, then built — and with an explained snapshot diff, because it
+  moves every score.
+
+### Deliberately **not** built
+
+| Not building | Why |
 |---|---|
-| Wantlist-Alerts | Discogs besitzt Wantlister – aussichtslos |
-| Sammlungs-Katalogisierung | Ein Dutzend Apps, gelöstes Problem |
-| Sammlungs-Visualisierung | Vizcogs, Groovv, Discogs Enhancer |
-| Eigener Marktplatz / Checkout | ToS-Verstoß und strategisch dumm |
-| Preis-Arbitrage zu eBay/Amazon | ToS verbietet Traffic-Umleitung |
+| Wantlist alerts | Discogs owns Wantlister — hopeless |
+| Collection cataloguing | A dozen apps, a solved problem |
+| Collection visualisation | Vizcogs, Groovv, Discogs Enhancer |
+| Our own marketplace / checkout | A ToS breach and strategically stupid |
+| Price arbitrage to eBay/Amazon | The ToS forbids diverting traffic |
 
 ---
 
-## 9. Zielgruppe & Scope
+## 9. Audience & scope
 
-**Phase 1 (jetzt):** Martin + Jens. Danach Freundeskreis. Kein Public Launch.
+**Phase 1 (now):** Martin + Jens. Then the circle of friends. No public launch.
 
-Konsequenzen:
-- **Reine Client-PWA ohne Backend** (ADR-007). Jeder Nutzer bringt seinen eigenen
-  Discogs Personal Access Token mit - und damit sein eigenes Rate-Limit-Budget
-- Kein Multi-User-Datenmodell noetig, weil es keine gemeinsame Datenbank gibt.
-  Weitergeben heisst: die URL schicken
-- Keine Registrierung, keine Einladungscodes, keine Nutzerverwaltung
-- Keine Monetarisierung (ToS-Konflikt, siehe `09-LEGAL.md`) - und ohne Server
-  auch nichts zu finanzieren
+Consequences:
+- **A client-only PWA with no backend** (ADR-007). Every user brings their own Discogs
+  Personal Access Token — and with it their own rate-limit budget
+- No multi-user data model needed, because there is no shared database. Passing it on means
+  sending the URL
+- No registration, no invitation codes, no user management
+- No monetisation (a ToS conflict, see `09-LEGAL.md`) — and with no server there is nothing
+  to finance either
 
 ---
 
-## 10. Erfolgskriterien
+## 10. Success criteria
 
-| Kriterium | Zielwert |
+| Criterion | Target |
 |---|---|
-| Zeit vom Händlernamen zur Fundliste | < 3 Minuten bei 10.000 Listings |
-| Precision der Top Five | ≥ 3 von 5 Treffern werden als „interessant" markiert |
-| Nutzung durch Jens ohne Erklärung | Erster Dig ohne Rückfrage erfolgreich |
-| Gesparte Zeit vs. manuelles Durchklicken | Faktor > 50 |
-| Ein Kauf, der ohne die App nicht passiert wäre | Der eigentliche Beweis |
+| Time from a dealer name to a list of finds | < 3 minutes at 10,000 listings |
+| Precision of the Top Five | ≥ 3 of 5 hits marked "interesting" |
+| Use by Jens with no explanation | The first dig succeeds without a question |
+| Time saved vs. clicking through by hand | A factor of > 50 |
+| One purchase that would not have happened without the app | The actual proof |
