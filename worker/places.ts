@@ -2,20 +2,20 @@ import { openFidelityDb } from '~~/db/open'
 import type { CollectionItem, Place, Placement, PlaceNode } from '#shared/types'
 
 /**
- * Wo die Platte steht (M12).
+ * Where the record stands (M12).
  *
- * **Das einzige Feature dieser App, das null Requests kostet.** Ein Standort
- * ist eine Aussage über die eigene Wohnung, kein Discogs-Datum — er entsteht
- * hier, bleibt hier und wird nirgendwohin geschickt.
+ * **The one feature in this app that costs zero requests.** A location is a
+ * statement about somebody's own flat, not a piece of Discogs data — it is
+ * created here, stays here, and is sent nowhere.
  *
- * Am 2026-09-11 nachgemessen und deshalb so gebaut:
+ * Measured on 2026-09-11, and built this way because of it:
  *
- * - `GET /users/{u}/collection/fields` gibt genau drei Felder zurück (Media,
- *   Sleeve, Notes) und keine selbst angelegten. Der Standort kann also auch
- *   nicht optional zu Discogs mitwandern — es gibt kein Feld dafür.
- * - Der Sync schreibt jede Sammlungszeile mit `put()` neu. Ein Standort **am**
- *   Eintrag wäre nach dem nächsten vollen Durchlauf lautlos weg. Deshalb ein
- *   eigener Store, den der Sync nicht anfasst.
+ * - `GET /users/{u}/collection/fields` returns exactly three fields (Media,
+ *   Sleeve, Notes) and none anybody created. So the location cannot even
+ *   optionally travel to Discogs — there is no field for it.
+ * - The sync rewrites every collection row with `put()`. A location **on** the
+ *   row would be silently gone after the next full pass. Hence a store of its
+ *   own that the sync does not touch.
  */
 
 /** Drei Ebenen: Ort → Möbel → Fach. Mehr baut sich niemand. */
@@ -29,37 +29,37 @@ function newId(): string {
 }
 
 /**
- * Alle Orte mit ihren Zahlen, von oben nach unten sortiert.
+ * Every place with its numbers, sorted from the top down.
  *
- * `records` sind die Platten, die direkt hier liegen; `recordsBelow` zählt die
- * in Unterorten mit — „im Keller" meint den ganzen Keller, und ein Keller, der
- * 0 anzeigt, während drei Kisten darin voll sind, ist eine Lüge.
+ * `records` are the records sitting directly here; `recordsBelow` counts those
+ * in places underneath too — "in the cellar" means the whole cellar, and a
+ * cellar showing 0 while three crates in it are full is a lie.
  */
 /**
- * Ein aufgelöster Ort ist noch da, zählt aber nicht mehr.
+ * A dissolved place is still there, but no longer counts.
  *
- * Der Grabstein existiert für den Tresor (`Place.removedAt`); für alles
- * andere ist der Ort weg. Deshalb genau ein Filter, durch den jeder Lesevorgang
- * geht — zwei Filter sind einer, den jemand vergisst.
+ * The tombstone exists for the vault (`Place.removedAt`); for everything else
+ * the place is gone. Hence exactly one filter that every read goes through —
+ * two filters are one somebody forgets.
  */
-const lebt = (place: Place) => !place.removedAt
+const alive = (place: Place) => !place.removedAt
 
 /**
- * Und eine Platte, die nirgends liegt, liegt nirgends — auch mit Zeile.
+ * And a record that sits nowhere sits nowhere — row or no row.
  *
- * Das ist eine **Typ**-Engstelle, keine Verhaltensänderung: `placeId: null`
- * landete sonst als Schlüssel `null` in einer `Map<string, number>`, die
- * niemand abfragt, weil kein Ort `null` heißt. Eine Mutationsprobe hat den
- * Filter folgerichtig überlebt — es gibt hier nichts zu beobachten, und ein
- * Test, der das behauptete, prüfte etwas, das nicht stattfindet.
+ * This is a **type** narrowing, not a change in behaviour: `placeId: null`
+ * would otherwise land as the key `null` in a `Map<string, number>` that
+ * nobody queries, because no place is called `null`. A mutation probe duly
+ * survived the filter — there is nothing to observe here, and a test claiming
+ * otherwise would be checking something that does not happen.
  */
 const liegtIrgendwo = (placement: Placement): placement is Placement & { placeId: string } =>
   placement.placeId !== null
 
 export async function placesOverview(): Promise<PlaceNode[]> {
   const db = await openFidelityDb()
-  const [alle, placements] = await Promise.all([db.getAll('places'), db.getAll('placements')])
-  const places = alle.filter(lebt)
+  const [all, placements] = await Promise.all([db.getAll('places'), db.getAll('placements')])
+  const places = all.filter(alive)
 
   const direct = new Map<string, number>()
   for (const placement of placements.filter(liegtIrgendwo)) {
@@ -80,8 +80,8 @@ export async function placesOverview(): Promise<PlaceNode[]> {
     let below = 0
     for (const place of children.get(parentId) ?? []) {
       const records = direct.get(place.id) ?? 0
-      // Platzhalter: der Zweig wird erst danach gezählt, aber die Reihenfolge
-      // der Liste soll die des Baums sein.
+      // A placeholder: the branch is only counted afterwards, but the order of
+      // the list should be the tree's.
       const node: PlaceNode = { ...place, records, recordsBelow: records, depth }
       nodes.push(node)
       const inChildren = walk(place.id, depth + 1)
@@ -105,16 +105,15 @@ export async function createPlace(
   const db = await openFidelityDb()
 
   /*
-   * Tiefe prüfen, bevor angelegt wird.
+   * Check the depth before creating.
    *
-   * Ohne das wächst der Baum, bis jemand ihn nicht mehr überblickt — und die
-   * Oberfläche rückt jede Ebene ein, bis auf einem Telefon nichts mehr
-   * übrig ist.
+   * Without it the tree grows until nobody can take it in — and the interface
+   * indents every level until there is nothing left on a phone.
    */
   if (parentId !== null) {
     let depth = 1
     let cursor = await db.get('places', parentId)
-    if (!cursor || !lebt(cursor)) return null
+    if (!cursor || !alive(cursor)) return null
     while (cursor?.parentId) {
       depth += 1
       cursor = await db.get('places', cursor.parentId)
@@ -141,23 +140,23 @@ export async function renamePlace(id: string, name: string): Promise<boolean> {
 
   const db = await openFidelityDb()
   const place = await db.get('places', id)
-  if (!place || !lebt(place)) return false
+  if (!place || !alive(place)) return false
 
   await db.put('places', { ...place, name: trimmed, updatedAt: Date.now() })
   return true
 }
 
 /**
- * Einen Ort auflösen — und die Platten darin **nicht** wegwerfen.
+ * Dissolving a place — and **not** throwing the records in it away.
  *
- * Sie werden ortlos, nicht gelöscht. Ein Ort ist eine Notiz über ein Regal;
- * das Regal abzubauen heißt nicht, die Platten wegzugeben. Unterorte rücken
- * eine Ebene nach oben, aus demselben Grund.
+ * They become placeless, not deleted. A place is a note about a shelf; taking
+ * the shelf apart does not mean giving the records away. Places underneath
+ * move up one level, for the same reason.
  */
 export async function removePlace(id: string): Promise<void> {
   const db = await openFidelityDb()
   const place = await db.get('places', id)
-  if (!place || !lebt(place)) return
+  if (!place || !alive(place)) return
 
   const at = Date.now()
   const tx = db.transaction(['places', 'placements'], 'readwrite')
@@ -171,11 +170,11 @@ export async function removePlace(id: string): Promise<void> {
   }
 
   /*
-   * Die Platten werden ortlos geschrieben, nicht gelöscht.
+   * The records are written placeless, not deleted.
    *
-   * Eine gelöschte Zeile ist für den Abgleich keine Nachricht, sondern eine
-   * Lücke — das andere Gerät kennt die alte noch und legt die Platte zurück in
-   * ein Regal, das es nicht mehr gibt. `null` mit frischem `at` gewinnt.
+   * A deleted row is not a message to the merge but a gap — the other device
+   * still knows the old one and puts the record back on a shelf that no longer
+   * exists. A `null` with a fresh `at` wins.
    */
   const drin = await placements.index('by-place').getAll(id)
   for (const row of drin) await placements.put({ ...row, placeId: null, at })
@@ -184,10 +183,10 @@ export async function removePlace(id: string): Promise<void> {
   await tx.done
 }
 
-/** Ein Exemplar an einen Ort legen — oder von überall herunternehmen. */
+/** Put a copy in a place — or take it down from everywhere. */
 export async function placeRecord(instanceId: number, placeId: string | null): Promise<void> {
   const db = await openFidelityDb()
-  // Auch das Herunternehmen wird geschrieben, nicht gelöscht — siehe oben.
+  // Taking it down is written too, not deleted — see above.
   await db.put('placements', { instanceId, placeId, at: Date.now() })
 }
 
@@ -196,26 +195,26 @@ export async function placeOf(instanceId: number): Promise<string | null> {
   const placement = await db.get('placements', instanceId)
   if (!placement?.placeId) return null
 
-  // Ein Ort, den ein anderes Gerät aufgelöst hat, ist keine Antwort auf „wo
-  // liegt sie". Die Platte ist dann ortlos, nicht verschwunden.
+  // A place another device has dissolved is not an answer to "where is it".
+  // The record is placeless then, not missing.
   const place = await db.get('places', placement.placeId)
-  return place && lebt(place) ? placement.placeId : null
+  return place && alive(place) ? placement.placeId : null
 }
 
 /**
- * Was an einem Ort liegt — mit den Unterorten, wenn gefragt.
+ * What sits in a place — with the places underneath, where that is asked for.
  *
- * „Was ist im Keller" meint den ganzen Keller. Ohne `deep` wäre die Antwort
- * für einen Ort, der nur Kisten enthält, immer leer.
+ * "What is in the cellar" means the whole cellar. Without `deep` the answer
+ * for a place holding only crates would always be empty.
  */
 export async function placeContents(placeId: string, deep = true): Promise<CollectionItem[]> {
   const db = await openFidelityDb()
   const ids = new Set<string>([placeId])
 
   if (deep) {
-    // Auch hier nur lebende Orte: nach einem Abgleich kann eine Zeile noch auf
-    // einen Ort zeigen, den dieses Gerät längst aufgelöst hat.
-    const places = (await db.getAll('places')).filter(lebt)
+    // Living places only here too: after a merge, a row can still point at a
+    // place this device dissolved long ago.
+    const places = (await db.getAll('places')).filter(alive)
     let grew = true
     while (grew) {
       grew = false
@@ -232,9 +231,9 @@ export async function placeContents(placeId: string, deep = true): Promise<Colle
   for (const id of ids) {
     for (const placement of await db.getAllFromIndex('placements', 'by-place', id)) {
       const record = await db.get('collection', placement.instanceId)
-      // Eine Platte, die aus der Sammlung verschwunden ist, lässt ihren
-      // Standort zurück. Das Regal weiß dann mehr als die Sammlung — hier
-      // wird sie einfach ausgelassen statt als Loch gezeigt.
+      // A record that has disappeared from the collection leaves its location
+      // behind. The shelf then knows more than the collection — here it is
+      // simply left out rather than shown as a hole.
       if (record) items.push(record)
     }
   }
@@ -243,9 +242,9 @@ export async function placeContents(placeId: string, deep = true): Promise<Colle
 }
 
 /**
- * Alles von einem Ort an einen anderen — der Normalfall nach einem Umzug.
+ * Everything from one place to another — the ordinary case after a move.
  *
- * Nicht das Einzelstück: wer umzieht, trägt Kisten, keine Platten.
+ * Not the single copy: somebody moving carries crates, not records.
  */
 export async function moveAll(from: string, to: string): Promise<number> {
   if (from === to) return 0

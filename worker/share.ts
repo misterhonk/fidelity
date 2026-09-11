@@ -5,36 +5,33 @@ import type { DigWithMatches } from '#shared/protocol'
 import type { SharedDig } from '#shared/types'
 
 /**
- * Eine Fundliste verschicken, ohne sie irgendwo abzulegen, wo sie jemand
- * lesen kann.
+ * Sending a find list without putting it anywhere somebody can read it.
  *
- * Der Hub trägt einen versiegelten Umschlag unter einer zufälligen Kennung.
- * Der Schlüssel steht im `#`-Fragment des Links — und ein Fragment schickt
- * **kein** Browser an einen Server. Wer den Link hat, kann lesen; wer die
- * Datenbank des Hubs hat, hat eine Zeichenkette.
+ * The hub carries a sealed envelope under a random id. The key sits in the `#`
+ * fragment of the link — and **no** browser sends a fragment to a server.
+ * Whoever has the link can read; whoever has the hub's database has a string.
  *
- * **Warum überhaupt der Hub.** Eine Fundliste mit hundert Treffern passt nicht
- * in eine Adresse, und es gibt nichts anderes, worauf beide Seiten zugreifen
- * können. Nach Regel 8 hängt kein Feature am Hub — dieses hier ist die
- * Ausnahme, die die Regel bestätigt: ohne Hub gibt es den Knopf nicht, und
- * alles andere funktioniert weiter.
+ * **Why the hub at all.** A find list of a hundred matches does not fit in an
+ * address, and there is nothing else both sides can reach. Under rule 8 no
+ * feature hangs off the hub — this one is the exception that proves it:
+ * without a hub the button is not there, and everything else carries on.
  */
 
-/** Version des Schnappschusses, damit ein alter Link an einem neuen Client
- *  nicht still falsch gelesen wird. */
+/** The snapshot's version, so that an old link is not silently misread by a
+ *  newer client. */
 const SHARE_VERSION = 1
 
 /**
- * Wie viele Treffer mitreisen.
+ * How many matches travel along.
  *
- * Die Liste ist nach Punktzahl sortiert; wer über hundert hinausliest, liest
- * nicht mehr, er scrollt. Die Gesamtzahl reist mit, damit der Schnappschuss
- * nicht behauptet, das sei alles gewesen.
+ * The list is sorted by score; anyone reading past a hundred is not reading
+ * any more, they are scrolling. The total travels with it so that the snapshot
+ * does not claim that was all of them.
  */
 const MAX_SHARED_MATCHES = 100
 
-/** 128 Bit als Hex — Kennung und Schlüssel haben dieselbe Form und beide
- *  kommen aus `crypto.getRandomValues`, nicht aus `Math.random`. */
+/** 128 bits as hex — id and key have the same shape and both come from
+ *  `crypto.getRandomValues`, not from `Math.random`. */
 function randomHex(bytes: number): string {
   return [...crypto.getRandomValues(new Uint8Array(bytes))]
     .map((b) => b.toString(16).padStart(2, '0'))
@@ -45,19 +42,18 @@ export interface ShareCreated {
   id: string
   /** Gehört ins `#`-Fragment und nirgendwo sonst hin. */
   key: string
-  /** Wann sie verfällt — die Uhr des Digs, nicht die des Teilens. */
+  /** When it expires — the dig's clock, not the sharing's. */
   expiresAt: number
   matches: number
 }
 
 /**
- * Nimmt entgegen, was der Bildschirm ohnehin geladen hat.
+ * Takes what the screen has loaded anyway.
  *
- * Absichtlich nicht `digId`: `loadDig()` wendet `bestPerRelease()` an und
- * faltet doppelte Exemplare weg. Hier dieselbe Liste noch einmal aus der
- * Datenbank zu holen hieße, diese Auswahl ein zweites Mal zu treffen — und
- * die zweite Fassung wäre die, die niemand pflegt. Geteilt wird, was auf dem
- * Schirm steht.
+ * Deliberately not `digId`: `loadDig()` applies `bestPerRelease()` and folds
+ * duplicate copies away. Fetching the same list from the database again here
+ * would mean making that selection a second time — and the second version
+ * would be the one nobody maintains. What is shared is what is on the screen.
  */
 export async function createShare(loaded: DigWithMatches): Promise<ShareCreated> {
   const preferences = await getPreferences()
@@ -67,12 +63,12 @@ export async function createShare(loaded: DigWithMatches): Promise<ShareCreated>
   const dig = loaded.dig
 
   /*
-   * Abgelaufenes wird nicht geteilt.
+   * What has expired is not shared.
    *
-   * Sechs Stunden nach dem Scan dürfen Preise und Zustände nicht mehr gezeigt
-   * werden (Regel 4). Einen abgelaufenen Dig zu teilen hieße, jemand anderem
-   * genau das zu zeigen — und die Sperre auf dem eigenen Bildschirm zu
-   * umgehen, indem man einen zweiten aufmacht.
+   * Six hours after the scan, prices and conditions may not be shown any more
+   * (rule 4). Sharing an expired dig would mean showing somebody else exactly
+   * that — and getting round the lock on one's own screen by opening a second
+   * one.
    */
   if (Date.now() >= dig.expiresAt) throw new Error('dig expired')
 
@@ -96,11 +92,11 @@ export async function createShare(loaded: DigWithMatches): Promise<ShareCreated>
 }
 
 /**
- * Und die andere Seite: einen Link öffnen.
+ * And the other side: opening a link.
  *
- * Läuft **ohne Token und ohne Anmeldung**. Wer den Link bekommt, hat
- * Fidelity vielleicht noch nie geöffnet, und ihn erst zur Einrichtung zu
- * schicken wäre die schlechteste Art, eine App vorzustellen.
+ * Runs **with no token and no sign-in**. Whoever receives the link may never
+ * have opened Fidelity, and sending them to the setup first would be the worst
+ * possible way to introduce an app.
  */
 export async function readShare(
   hubUrl: string,
@@ -108,11 +104,11 @@ export async function readShare(
   key: string,
 ): Promise<SharedDig | null> {
   /*
-   * Ohne Secret gebaut, mit Absicht.
+   * Built without a secret, on purpose.
    *
-   * Der Empfänger hat keins. Selbst wenn er zufällig eines für einen *anderen*
-   * Hub hinterlegt hätte, hätte es hier nichts zu suchen — ein Geheimnis geht
-   * nicht an einen Server, nur weil ein Link auf ihn zeigt.
+   * The recipient has none. Even if they happened to have one stored for some
+   * *other* hub, it would have no business here — a secret does not go to a
+   * server just because a link points at it.
    */
   const hub = createHubClient({ baseUrl: hubUrl, secret: null })
   if (!hub) return null
@@ -123,9 +119,9 @@ export async function readShare(
   const snapshot = await open<SharedDig>(found.sealed, key)
 
   /*
-   * Die Ablaufzeit wird hier noch einmal geprüft, und diesmal ist es kein
-   * toter Code: der Server hat seine eigene Uhr, das Gerät hat eine andere,
-   * und was gezeigt werden darf, entscheidet die, vor der jemand sitzt.
+   * The expiry is checked again here, and this time it is not dead code: the
+   * server has its own clock, the device has another, and what may be shown is
+   * decided by the one somebody is sitting in front of.
    */
   if (Date.now() >= snapshot.expiresAt) return null
   if (snapshot.version > SHARE_VERSION) return null

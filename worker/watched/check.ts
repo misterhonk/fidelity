@@ -7,28 +7,28 @@ import type { DiscogsClient } from '../discogs/client'
 import type { WatchedRelease } from '#shared/types'
 
 /**
- * Die beobachteten Platten nachschlagen (M11).
+ * Looking up the watched records (M11).
  *
- * Ein Request je Platte über `/marketplace/stats/{id}` — **ohne Token
- * möglich**, aber durch denselben Taktgeber wie alles andere (Regel 3). Mit
- * Token sind fünfzig Platten eine Minute.
+ * One request per record through `/marketplace/stats/{id}` — **possible
+ * without a token**, but through the same pacer as everything else (rule 3).
+ * With a token, fifty records are a minute.
  *
- * **Warum nicht die ganze Sammlung:** fünfhundert Platten wären zehn Minuten,
- * jeden Tag, und damit genau die Form, die Regel 2 verbietet. Die Obergrenze
- * ist nicht ein Schönheitsfehler, sondern der Entwurf — man beobachtet, was
- * man verkaufen würde, und was man wirklich sucht.
+ * **Why not the whole collection:** five hundred records would be ten minutes,
+ * every day, and therefore exactly the shape rule 2 forbids. The ceiling is
+ * not a blemish but the design — you watch what you would sell, and what you
+ * are really after.
  */
 
 /**
- * Wie viele Platten überhaupt beobachtet werden dürfen.
+ * How many records may be watched at all.
  *
- * Bei 1,2 s pro Anfrage sind das zwei Minuten je Durchlauf. Darüber wird aus
- * „nachsehen" ein Vorgang, den man plant — und ein Wächter, den man plant,
- * läuft nicht mehr nebenbei.
+ * At 1.2 s a request that is two minutes per pass. Past that, "looking
+ * something up" becomes an operation you plan — and a watcher you plan no
+ * longer runs in the background.
  */
 export const MAX_WATCHED = 100
 
-/** Häufiger als einmal täglich ändert sich am Markt einer Platte nichts. */
+/** More often than once a day, nothing changes in a record's market. */
 const MIN_GAP_MS = 20 * 60 * 60 * 1000
 
 export interface WatchedCheck {
@@ -75,17 +75,17 @@ export async function checkWatched(
     } catch (cause) {
       if (signal?.aborted) throw cause
       /*
-       * Eine Platte, die gerade nicht zu erreichen ist, ist kein Grund, den
-       * Durchlauf abzubrechen: die anderen neunundneunzig hängen nicht an ihr,
-       * und der nächste Durchlauf holt sie nach.
+       * A record that is unreachable right now is no reason to abort the pass:
+       * the other ninety-nine do not depend on it, and the next pass catches
+       * it up.
        */
       continue
     }
 
     const point = {
       at,
-      // `blocked_from_sale` heißt „Discogs handelt sie nicht" — das ist kein
-      // Preis von null, sondern gar keiner.
+      // `blocked_from_sale` means "Discogs does not trade it" — that is not a
+      // price of zero but no price at all.
       lowestPrice: stats.blocked_from_sale ? null : (stats.lowest_price?.value ?? null),
       currency: stats.lowest_price?.currency ?? null,
       numForSale: stats.num_for_sale ?? 0,
@@ -100,14 +100,14 @@ export async function checkWatched(
     let news = judge(updated, at)
 
     /*
-     * „Ein Angebot weniger" ist die ehrliche Aussage über die Zahl — aber
-     * nicht die beste, die möglich ist.
+     * "One offer fewer" is the honest statement about the number — but not the
+     * best one available.
      *
-     * Wenn ein Dig dieses Geräts konkrete Angebote dieser Platte gesehen hat,
-     * lässt sich nachsehen, ob *die* noch stehen. Das kostet einen Request je
-     * Angebot, deshalb erst hier: gefragt wird nur, wenn die Zahl überhaupt
-     * gefallen ist, und das ist selten. Bleibt die Antwort aus, bleibt es bei
-     * `fewer` — schlechter informiert, aber nicht falsch.
+     * Where a dig on this device has seen particular offers of this record, it
+     * is possible to check whether *those* still stand. That costs a request
+     * per offer, hence only here: the question is asked only when the number
+     * has actually fallen, and that is rare. If no answer comes, it stays at
+     * `fewer` — less well informed, but not wrong.
      */
     if (news?.kind === 'fewer') {
       const gone = await confirmGone(client, row, {
@@ -145,15 +145,14 @@ export async function checkWatched(
 }
 
 /**
- * Nachsehen, ob eines der selbst gesehenen Angebote verschwunden ist.
+ * Checking whether one of the offers we saw ourselves has gone.
  *
- * Höchstens `MAX_CONFIRM` Stück, jüngstes zuerst, und schon bekannte
- * Verschwundene werden übersprungen — sonst kostet dieselbe Kopie bei jedem
- * Durchlauf erneut einen Request und meldet sich erneut.
+ * `MAX_CONFIRM` of them at most, newest first, and ones already known to be
+ * gone are skipped — otherwise the same copy costs a request on every pass and
+ * reports itself again.
  *
- * Gibt das erste zurück, das nicht mehr `For Sale` ist. Ein Fehler ist kein
- * Ergebnis: dann bleibt es bei der Zahl, und der nächste Durchlauf sieht
- * wieder nach.
+ * Returns the first that is no longer `For Sale`. An error is not a result:
+ * then it stays at the number, and the next pass looks again.
  */
 async function confirmGone(
   client: DiscogsClient,
@@ -179,10 +178,9 @@ async function confirmGone(
     } catch (cause) {
       if (options.signal?.aborted) throw cause
       /*
-       * Eine 404 heißt hier „das Listing gibt es nicht mehr" und wäre eine
-       * Antwort — aber im Browser kommt sie ohne CORS-Kopf an und ist von
-       * einem Netzfehler nicht zu unterscheiden (`docs/02`). Also nichts
-       * behaupten.
+       * A 404 here would mean "the listing no longer exists" and would be an
+       * answer — but in a browser it arrives without a CORS header and is
+       * indistinguishable from a network error (`docs/02`). So claim nothing.
        */
       return null
     }
@@ -200,8 +198,8 @@ export async function watchRelease(
   const existing = await db.get('watched', entry.releaseId)
 
   if (existing) {
-    // Schon dabei — dann ist das hier eine Änderung der Schwelle und kein
-    // zweiter Eintrag. Der Verlauf bleibt, er gehört der Platte.
+    // Already there — then this is a change of threshold and not a second
+    // entry. The history stays; it belongs to the record.
     await db.put('watched', { ...existing, ...entry })
     return { watched: true, full: false }
   }

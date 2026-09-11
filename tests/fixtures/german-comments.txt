@@ -113,10 +113,3 @@ tests/unit/vault-id.spec.ts
 tests/unit/vault.spec.ts
 tests/unit/watched-judge.spec.ts
 tests/unit/watched-offers.spec.ts
-worker/dealers/stock.ts
-worker/identify.ts
-worker/places.ts
-worker/share.ts
-worker/sync/library.ts
-worker/watched/check.ts
-worker/watched/judge.ts

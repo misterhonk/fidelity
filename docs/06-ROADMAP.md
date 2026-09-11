@@ -830,15 +830,33 @@ fails, and a name on it whose file is already clean fails too.
 
 - [x] A detector and the ratchet around it — `tests/helpers/german.ts`, the list in
       `tests/fixtures/german-comments.txt`
-- [ ] `db/` and `shared/` — 7 files, the schema and the protocol, where a wrong word costs
+- [x] `db/` and `shared/` — 6 files, the schema and the protocol, where a wrong word costs
       the most
-- [ ] `worker/` — 31 files, the reasoning that is not in any document
+- [x] `hub/src/` — 4 files, plus the two gaps the ratchet's own search area had hidden
+- [x] `worker/` — 28 files, the reasoning that is written down nowhere else
 - [ ] `app/` — 61 files
 - [ ] `tests/` — 53 files, several of which explain *why a test exists*, which is the part
       that gets lost first
-- [ ] `hub/src/` — 4 files
+- [ ] `hub/test/`, `hub/scripts/` and `nuxt.config.ts` — 4 files
 - [ ] The list file deleted, and the test with it — the ratchet has no reason to stay once
       it is at zero
+
+**Two things the comments were hiding, both found by reading and not by a rule:**
+
+- [x] **Five error messages in the code were German** — "Treffer nicht gefunden.", "Das ist
+      kein Fidelity-Hub.", "Diesen Dig gibt es nicht mehr." and two from the hub client.
+      They are not in the language packs; they are thrown, and `ErrorNote` shows the raw
+      text behind the detail button. So they were on screen. Translated.
+- [ ] **German identifiers**, about thirty of them: `lebt`, `gesehen`, `vorhanden`,
+      `stuecke`, `bloecke`, `gemeldet`, `treffer`, `ergebnis`, `antwort`. ADR-010 names
+      variables explicitly. The ones in `worker/` were renamed on the way through; the rest
+      are in `app/` and `tests/` and go with those.
+
+> **Neither of those has a guard, and that is the honest state.** The ratchet reads
+> comments; it does not read string literals and it does not read identifiers. A word list
+> over identifiers would be a guess with false positives in a way a word list over prose is
+> not — `war`, `rest`, `die`, `man` are all English. So they are counted here and fixed by
+> hand, and if one comes back, nothing will catch it.
 
 ---
 

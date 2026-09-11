@@ -1,15 +1,15 @@
 import type { WatchedRelease, WatchPoint } from '#shared/types'
 
 /**
- * Wann eine beobachtete Platte eine Meldung wert ist (M11).
+ * When a watched record is worth reporting (M11).
  *
- * **Reine Funktionen, kein I/O** — wie `worker/match/`, und aus demselben
- * Grund: das hier ist die einzige Stelle mit einer Entscheidung, und
- * Entscheidungen gehören geprüft, ohne eine Datenbank aufzumachen.
+ * **Pure functions, no I/O** — like `worker/match/`, and for the same reason:
+ * this is the one place with a decision in it, and decisions belong under test
+ * without opening a database.
  *
- * Die Richtung hängt daran, wem die Platte gehört. Bei einer eigenen ist der
- * **Anstieg** die Neuigkeit („die billigste kostet jetzt 95 statt 40"), bei
- * einer gesuchten der **Fall** unter die eigene Schmerzgrenze.
+ * The direction depends on whose record it is. On one you own, the **rise** is
+ * the news ("the cheapest now costs 95 instead of 40"); on one you want, the
+ * **fall** below your own pain threshold.
  */
 
 export type WatchNews =
@@ -18,33 +18,32 @@ export type WatchNews =
   | { kind: 'appeared'; numForSale: number; price: number | null; currency: string | null }
   | { kind: 'fewer'; from: number; to: number }
   /**
-   * Ein bestimmtes Angebot ist weg — der genauere Fall von `fewer` (M11).
+   * A particular offer is gone — the more precise case of `fewer` (M11).
    *
-   * Nur möglich, wenn ein Dig dieses Geräts das Angebot selbst gesehen hat;
-   * `worker/watched/offers.ts` erklärt, warum das die einzige Stelle ist, an
-   * der der Wächter einen Laden nennen darf. Und weiterhin nicht „verkauft":
-   * ein Listing kann auch zurückgezogen werden.
+   * Only possible where a dig on this device saw the offer itself;
+   * `worker/watched/offers.ts` explains why that is the only place the watcher
+   * may name a shop. And still not "sold": a listing can also be withdrawn.
    */
   | { kind: 'gone'; dealer: string; listingId: number; from: number; to: number }
 
 /**
- * Der älteste Punkt, mit dem verglichen wird.
+ * The oldest point that is compared against.
  *
- * Nicht der vorletzte: zwischen zwei Messungen im Abstand eines Tages liegt
- * fast nie etwas, und wer nur Nachbarn vergleicht, sieht einen Anstieg von
- * vierzig auf fünfundneunzig nie — er kommt in dreißig kleinen Schritten.
- * Verglichen wird deshalb mit dem ältesten Punkt im Fenster.
+ * Not the penultimate: between two measurements a day apart there is almost
+ * never anything, and anyone comparing only neighbours never sees a rise from
+ * forty to ninety-five — it comes in thirty small steps. So the comparison is
+ * against the oldest point in the window.
  */
 export const WINDOW_MS = 90 * 24 * 60 * 60 * 1000
 
-/** Wie viele Messungen aufgehoben werden. Eine pro Tag, ein Vierteljahr weit. */
+/** How many measurements are kept. One a day, a quarter of a year back. */
 export const MAX_POINTS = 120
 
 /**
- * Was sich seit dem ältesten Punkt im Fenster getan hat — oder nichts.
+ * What has happened since the oldest point in the window — or nothing.
  *
- * `null` heißt „keine Nachricht", und das ist der Normalfall: eine Platte, die
- * seit drei Monaten dasselbe kostet, hat nichts zu sagen.
+ * `null` means "no news", and that is the ordinary case: a record that has
+ * cost the same for three months has nothing to say.
  */
 export function judge(watched: WatchedRelease, now: number): WatchNews | null {
   const points = watched.points
@@ -59,10 +58,10 @@ export function judge(watched: WatchedRelease, now: number): WatchNews | null {
 }
 
 /**
- * Die eigene Platte: ist sie mehr wert geworden?
+ * A record you own: has it become worth more?
  *
- * Das ist die Frage, die sonst niemand beantwortet — Discogs sagt es einem
- * nicht, und wer verkaufen will, erfährt vom Anstieg heute durch Zufall.
+ * This is the question nobody else answers — Discogs does not tell you, and
+ * anyone wanting to sell learns about the rise today by chance.
  */
 function judgeShelf(
   watched: WatchedRelease,
@@ -87,14 +86,13 @@ function judgeShelf(
   }
 
   /*
-   * Und die andere Hälfte: es verschwinden Exemplare.
+   * And the other half: copies are disappearing.
    *
-   * **„Verkauft" wird nicht behauptet.** Ein fallendes `num_for_sale` kann ein
-   * Kauf sein oder ein zurückgezogenes Listing, und die API sagt nicht,
-   * welches. Der Text sagt deshalb „ein Angebot weniger" — was gemessen wurde,
-   * nicht was vermutet wird.
+   * **"Sold" is not claimed.** A falling `num_for_sale` can be a purchase or a
+   * withdrawn listing, and the API does not say which. So the text says "one
+   * offer fewer" — what was measured, not what is guessed.
    *
-   * Erst ab zwei, weil ein einzelnes Exemplar ständig kommt und geht.
+   * Only from two, because a single copy comes and goes constantly.
    */
   if (oldest.numForSale - latest.numForSale >= 2) {
     return { kind: 'fewer', from: oldest.numForSale, to: latest.numForSale }
@@ -104,13 +102,13 @@ function judgeShelf(
 }
 
 /**
- * Die gesuchte Platte: ist sie erschwinglich geworden — oder überhaupt da?
+ * A record you want: has it become affordable — or available at all?
  *
- * ⚠️ Hier ist Fidelity **schwächer als Discogs' eigener Wantlister**, und das
- * gehört gesagt: der weiß, *wer* gerade gelistet hat, weil Discogs den
- * Marktplatz besitzt. Wir sehen nur „es gibt jetzt drei, die billigste für
- * 24 €". Der Mehrwert ist die **Schwelle**, nicht die Entdeckung — deshalb
- * nennt keine dieser Nachrichten einen Laden.
+ * ⚠️ Here Fidelity is **weaker than Discogs' own Wantlister**, and that
+ * deserves saying: it knows *who* has just listed, because Discogs owns the
+ * marketplace. We only see "there are three now, the cheapest at €24". The
+ * value added is the **threshold**, not the discovery — which is why none of
+ * these messages names a shop.
  */
 function judgeWantlist(
   watched: WatchedRelease,
@@ -118,10 +116,10 @@ function judgeWantlist(
   latest: WatchPoint,
 ): WatchNews | null {
   if (watched.threshold !== null && latest.lowestPrice !== null) {
-    const war = oldest.lowestPrice
-    // Nur beim Übertreten melden, nicht solange es darunter bleibt.
-    const drueber = war === null || war > watched.threshold
-    if (drueber && latest.lowestPrice <= watched.threshold) {
+    const before = oldest.lowestPrice
+    // Report on crossing only, not for as long as it stays below.
+    const above = before === null || before > watched.threshold
+    if (above && latest.lowestPrice <= watched.threshold) {
       return {
         kind: 'fell',
         to: latest.lowestPrice,
@@ -131,8 +129,8 @@ function judgeWantlist(
     }
   }
 
-  // Von null auf irgendetwas: die Platte war nirgends zu haben und ist es
-  // jetzt. Für eine seltene Platte ist das die eigentliche Nachricht.
+  // From zero to anything: the record was nowhere to be had and now is. For a
+  // rare record that is the real news.
   if (oldest.numForSale === 0 && latest.numForSale > 0) {
     return {
       kind: 'appeared',
@@ -146,11 +144,11 @@ function judgeWantlist(
 }
 
 /**
- * Einen Messpunkt anhängen und den Verlauf kurz halten.
+ * Appending a measurement and keeping the history short.
  *
- * Höchstens einer pro Tag: wer die App fünfmal öffnet, misst fünfmal
- * dasselbe, und fünf identische Punkte machen aus dem ältesten im Fenster den
- * von heute Morgen.
+ * One a day at most: anyone opening the app five times measures the same thing
+ * five times, and five identical points turn the oldest in the window into
+ * this morning's.
  */
 export function addPoint(points: WatchPoint[], next: WatchPoint): WatchPoint[] {
   const previous = points.at(-1)

@@ -30,10 +30,10 @@ export interface SyncSummary {
   requests: number
   total: number
   /**
-   * Zeilen, die es bei Discogs nicht mehr gibt und hier deshalb auch nicht.
+   * Rows that no longer exist at Discogs and therefore no longer here.
    *
-   * Nur nach einem vollen Lauf von null verschieden — ein Delta weiß nichts
-   * über Entfernungen und behauptet deshalb auch keine.
+   * Different from zero only after a full pass — a delta knows nothing about
+   * removals and therefore claims none.
    */
   removed: number
 }
@@ -133,7 +133,7 @@ interface PagedOptions<TPage, TItem> {
    * Stop at the first record already known. null means walk everything.
    */
   knownSince: string | null
-  /** Der Schlüssel einer Zeile im Store — nur für den Abgleich unten gebraucht. */
+  /** A row's key in the store — needed only for the sweep below. */
   key: (item: TItem) => number
 }
 
@@ -157,12 +157,12 @@ async function syncPaged<TPage, TItem>(
   let reachedKnown = false
 
   /*
-   * Was dieser Lauf gesehen hat — aber nur, wenn er alles sehen konnte.
+   * What this run saw — but only where it could see everything.
    *
-   * Ein Delta hält an der ersten bekannten Platte an und kennt den Rest des
-   * Regals nicht. Seine Menge wäre also keine Aussage über „was es noch gibt",
-   * sondern über „was oben lag", und etwas daraus abzuleiten hieße, den Rest
-   * zu löschen. Deshalb `null` statt einer halben Wahrheit.
+   * A delta stops at the first record it already knows and never sees the rest
+   * of the shelf. Its set would therefore not be a statement about "what still
+   * exists" but about "what was on top", and inferring anything from it would
+   * mean deleting the rest. Hence `null` rather than half a truth.
    */
   const gesehen: Set<number> | null = options.knownSince === null ? new Set() : null
 
@@ -197,49 +197,47 @@ async function syncPaged<TPage, TItem>(
   }
 
   /*
-   * Erreicht wird diese Zeile nur nach einem Durchlauf ohne Abbruch: ein
-   * `throwIfAborted` oder ein Fehler des Clients verlässt die Schleife über
-   * eine Ausnahme. Eine zurückgegebene Menge ist also vollständig oder `null`.
+   * This line is only reached after a pass with no abort: a `throwIfAborted`
+   * or a client error leaves the loop through an exception. So a returned set
+   * is either complete or `null`.
    */
   return { stored, requests, total: items, removed: 0, newest, seen: gesehen }
 }
 
 /**
- * Was bei Discogs nicht mehr steht, verschwindet auch hier.
+ * What is no longer at Discogs disappears here too.
  *
- * **Warum das nötig ist:** ein Delta sieht nur Neuzugänge — das steht seit je
- * im Kommentar darüber. Aber auch ein *vollständiger* Lauf hat Entfernungen
- * bisher nicht bemerkt, weil er jede gelesene Zeile schrieb und keine je
- * wegnahm. Am 2026-09-11 an echten Daten gesehen: 26 Wantlist-Einträge lokal,
- * 24 bei Discogs. Zwei entfernte Wünsche, die bleiben, bis sich jemand
- * abmeldet.
+ * **Why this is needed:** a delta sees only new arrivals — the comment above
+ * has always said so. But a *complete* pass had not noticed removals either,
+ * because it wrote every row it read and never took one away. Seen on real
+ * data on 2026-09-11: 26 wantlist entries locally, 24 at Discogs. Two removed
+ * wants that stay until somebody signs out.
  *
- * Bei der Wantlist ist das kosmetisch. In der Sammlung ist es das nicht:
- * „besitze ich schon" ist ein **harter Filter** (`docs/04` §2), und eine
- * verkaufte Platte, die im Spiegel stehenbleibt, blendet sich in jedem
- * künftigen Dig selbst aus.
+ * On the wantlist that is cosmetic. In the collection it is not: "I already
+ * own this" is a **hard filter** (`docs/04` §2), and a sold record left
+ * standing in the mirror hides itself from every future dig.
  *
- * **Die Bedingung, unter der das sicher ist**, ist die ganze Vorsicht hier:
- * gelöscht wird nur nach einem Lauf, der alles gelesen hat (`knownSince ===
- * null`) und ohne Ausnahme zurückkam. Alles andere kennt das Regal nicht
- * vollständig und dürfte nichts daraus schließen.
+ * **The condition under which this is safe** is all of the caution here:
+ * nothing is deleted except after a pass that read everything (`knownSince ===
+ * null`) and returned without an exception. Anything else does not know the
+ * shelf completely and may infer nothing from it.
  */
 async function sweep<TStore extends 'collection' | 'wantlist'>(
   store: TStore,
   gesehen: Set<number>,
-  /** Zeilen, die Discogs noch gar nicht kennen kann — die überleben immer. */
+  /** Rows Discogs cannot know about yet — those always survive. */
   behalten: (key: number) => boolean = () => false,
 ): Promise<number> {
   const db = await openFidelityDb()
   const vorhanden = (await db.getAllKeys(store)) as number[]
 
   /*
-   * Ein leerer Lauf löscht nichts.
+   * An empty pass deletes nothing.
    *
-   * Eine 200 mit null Einträgen ist von „du hast nichts mehr" nicht zu
-   * unterscheiden — und die Folgen sind nicht symmetrisch: im einen Fall
-   * bleiben ein paar tote Zeilen liegen, im anderen ist das Regal weg und der
-   * Horizont dazu. Wer wirklich alles entfernt hat, räumt über „abmelden".
+   * A 200 with zero entries is indistinguishable from "you have nothing left"
+   * — and the consequences are not symmetrical: in one case a few dead rows
+   * stay lying about, in the other the shelf is gone and the horizon with it.
+   * Anyone who really has removed everything clears up through "sign out".
    */
   if (gesehen.size === 0 && vorhanden.length > 0) return 0
 
@@ -326,14 +324,13 @@ export async function syncCollection(
   })
 
   /*
-   * Verkaufte Platten aus dem Spiegel nehmen — nur nach einem vollen Lauf.
+   * Taking sold records out of the mirror — only after a full pass.
    *
-   * Negative Schlüssel überleben: das sind Platten, die aus einem Fund ins
-   * Regal gelegt wurden und auf ihre Bestätigung von Discogs warten
-   * (`instanceId: -releaseId`, siehe oben). Discogs kennt sie noch gar nicht,
-   * also wäre ihr Fehlen in der Antwort kein Beleg für irgendetwas — sie hier
-   * wegzuräumen würde einen Eintrag zurücknehmen, den jemand gerade gemacht
-   * hat.
+   * Negative keys survive: those are records put on the shelf from a find and
+   * waiting for Discogs to confirm them (`instanceId: -releaseId`, see above).
+   * Discogs does not know them yet, so their absence from the answer would be
+   * evidence of nothing — clearing them away here would take back an entry
+   * somebody has just made.
    */
   result.removed = result.seen ? await sweep('collection', result.seen, (key) => key <= 0) : 0
 
@@ -406,11 +403,11 @@ export async function syncWantlist(context: SyncContext): Promise<SyncSummary> {
   })
 
   /*
-   * Und was nicht mehr auf der Wantlist steht, steht auch hier nicht mehr.
+   * And what is no longer on the wantlist is no longer here either.
    *
-   * Die Wantlist wird ohnehin immer ganz gelesen — die Entfernung war also
-   * die ganze Zeit erkennbar und wurde nur nicht vollzogen. Am 2026-09-11
-   * gemessen: 26 lokal, 24 bei Discogs.
+   * The wantlist is always read in full anyway — so the removal was visible
+   * all along and simply never carried out. Measured 2026-09-11: 26 locally,
+   * 24 at Discogs.
    */
   result.removed = result.seen ? await sweep('wantlist', result.seen) : 0
 

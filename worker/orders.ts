@@ -110,10 +110,10 @@ export async function importOrder(
   const at = Number.isNaN(gekauftAm) ? now : gekauftAm
 
   let angelegt = 0
-  let ergaenzt = 0
+  let enriched = 0
 
   for (const item of order.items) {
-    const vorhanden = await db.get('feedback', item.id)
+    const existing = await db.get('feedback', item.id)
 
     /*
      * An existing row is filled out, not replaced.
@@ -124,7 +124,7 @@ export async function importOrder(
      * record arrived should not be asked again after an import.
      */
     const zeile: Feedback = {
-      ...(vorhanden ?? {
+      ...(existing ?? {
         listingId: item.id,
         releaseId: item.release.id,
         signals: [],
@@ -132,16 +132,16 @@ export async function importOrder(
       }),
       listingId: item.id,
       releaseId: item.release.id,
-      title: vorhanden?.title ?? item.release.title ?? null,
-      artist: vorhanden?.artist ?? item.release.artist ?? null,
-      dealer: dealer ?? vorhanden?.dealer ?? null,
+      title: existing?.title ?? item.release.title ?? null,
+      artist: existing?.artist ?? item.release.artist ?? null,
+      dealer: dealer ?? existing?.dealer ?? null,
       verdict: 'bought',
       createdAt: at,
       updatedAt: now,
     }
 
     await db.put('feedback', zeile)
-    if (vorhanden) ergaenzt += 1
+    if (existing) enriched += 1
     else angelegt += 1
   }
 
@@ -150,7 +150,7 @@ export async function importOrder(
     dealer,
     at,
     added: angelegt,
-    enriched: ergaenzt,
+    enriched,
     records: order.items.map((item) => ({
       listingId: item.id,
       title: item.release.title ?? null,

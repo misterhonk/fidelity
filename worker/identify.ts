@@ -5,21 +5,21 @@ import type { DiscogsClient } from './discogs/client'
 import type { CollectionItem, Identified, WantlistItem } from '#shared/types'
 
 /**
- * Eine Platte in der Hand erkennen (M13, Stufe 1: Barcode).
+ * Recognising a record you are holding (M13, stage 1: barcode).
  *
- * **Ein Barcode ist nicht eindeutig, und das ist der wichtigste Fund hier.**
- * Am 2026-09-11 gemessen: `5012394144777` liefert **acht** Releases in fünf
- * Ländern — UK, Italien, Frankreich, Portugal, Europe — und das Release, aus
- * dem der Barcode stammt, steht auf Platz sieben. Ein Barcode benennt eine
- * *Veröffentlichung*, keine *Pressung*.
+ * **A barcode is not unique, and that is the most important finding here.**
+ * Measured 2026-09-11: `5012394144777` returns **eight** releases across five
+ * countries — UK, Italy, France, Portugal, Europe — and the release the
+ * barcode came from is seventh. A barcode names a *release*, not a *pressing*.
  *
- * Für Fidelitys Frage macht das nichts, im Gegenteil: „habe ich die schon?"
- * ist ohnehin eine Frage nach der Platte und nicht nach dem Presswerk. Die
- * Oberfläche darf nur nicht so tun, als sei die Antwort eine.
+ * For Fidelity's question that changes nothing, quite the opposite: "do I
+ * already have this?" is a question about the record and not about the
+ * pressing plant anyway. The interface just must not pretend the answer is
+ * one.
  *
- * **Und nicht jede Platte hat einen.** Stichprobe über zehn Platten aus einer
- * echten Sammlung: acht ja, zwei nein — eine Club-12" und ein White Label.
- * Genau die Fälle, für die Stufe 2 (Cover erkennen) gedacht ist.
+ * **And not every record has one.** A sample of ten records from a real
+ * collection: eight yes, two no — a club 12" and a white label. Precisely the
+ * cases stage 2 (recognising the sleeve) is meant for.
  */
 
 const searchSchema = z.object({
@@ -37,28 +37,27 @@ const searchSchema = z.object({
     .default([]),
 })
 
-/** Genug, um die Auswahl zu zeigen, ohne eine Seite damit zu füllen. */
+/** Enough to show the choice without filling a page with it. */
 const MAX_CANDIDATES = 12
 
-/** Nur Ziffern — ein Scanner liefert manchmal Leerzeichen oder Bindestriche mit. */
+/** Digits only — a scanner sometimes hands over spaces or hyphens too. */
 export function cleanBarcode(raw: string): string | null {
   const digits = raw.replace(/\D/g, '')
-  // EAN-8 bis EAN-13/UPC-A. Alles darunter ist kein Barcode, alles darüber
-  // ist keiner, den eine Platte trägt.
+  // EAN-8 through EAN-13/UPC-A. Anything shorter is not a barcode, anything
+  // longer is not one a record carries.
   return digits.length >= 8 && digits.length <= 14 ? digits : null
 }
 
 /**
- * Barcode oder Auslaufrille? Das Feld nimmt beides, also muss es jemand
- * entscheiden.
+ * Barcode or run-out groove? The field takes both, so somebody has to decide.
  *
- * Nur Ziffern (plus Leerzeichen und Bindestriche, wie sie auf der Hülle
- * stehen) sind ein Barcode. Alles andere ist ein Runout — die tragen fast
- * immer Buchstaben, oft eine Mastering-Signatur wie `PHRUPMASTERGENERAL`.
+ * Digits only (plus the spaces and hyphens as they appear on the sleeve) is a
+ * barcode. Anything else is a run-out — those nearly always carry letters,
+ * often a mastering signature like `PHRUPMASTERGENERAL`.
  *
- * Als Funktion und nicht als Ausdruck in einem Template: eine Mutationsprobe
- * hat gezeigt, dass ein Test, der nur den Quelltext liest, die Entscheidung
- * gar nicht sieht — auf `true` festgenagelt blieb er grün.
+ * As a function and not as an expression in a template: a mutation probe
+ * showed that a test which only reads the source never sees the decision —
+ * nailed to `true`, it stayed green.
  */
 export function looksLikeBarcode(text: string): boolean {
   const trimmed = text.trim()
@@ -82,23 +81,22 @@ export async function identify(
 }
 
 /**
- * Und der zweite Weg: die Nummer aus der Auslaufrille (M13, Stufe 2).
+ * And the second route: the number in the run-out groove (M13, stage 2).
  *
- * **Der bessere Ausweis, und das ist gemessen.** Stichprobe über zwölf Platten
- * einer echten Sammlung am 2026-09-11: zehn hatten einen Barcode, **elf einen
- * Runout**, keine hatte keins von beidem — und die zwei ohne Barcode hatten
- * einen Runout. Bei Club-Vinyl steht der Ausweis im Auslauf, nicht auf der
- * Hülle.
+ * **The better identifier, and that is measured.** A sample of twelve records
+ * from a real collection on 2026-09-11: ten had a barcode, **eleven had a
+ * run-out**, none had neither — and the two without a barcode had a run-out.
+ * On club vinyl the identifier is in the run-out, not on the sleeve.
  *
- * Er ist außerdem **genauer**: die volle Zeichenkette
- * `MPO SK 032 A1 G PHRUPMASTERGENERAL T2T LONDON` liefert genau **einen**
- * Treffer, wo ein Barcode acht liefert.
+ * It is also **more precise**: the full string
+ * `MPO SK 032 A1 G PHRUPMASTERGENERAL T2T LONDON` returns exactly **one** hit
+ * where a barcode returns eight.
  *
- * Bruchstücke gehen auch, werden aber schnell unbrauchbar: `MPO SK 032 A1`
- * ergab 21 Treffer, `SK 032 A1` dreitausendvierhundert. Eine markante
- * Mastering-Signatur allein (`PHRUPMASTERGENERAL T2T`) grenzte auf zwei ein.
- * Deshalb sagt der Bildschirm, wie viele es waren — je mehr abgetippt wird,
- * desto kürzer die Liste.
+ * Fragments work too, but become useless quickly: `MPO SK 032 A1` gave 21
+ * hits, `SK 032 A1` three thousand four hundred. A distinctive mastering
+ * signature on its own (`PHRUPMASTERGENERAL T2T`) narrowed it to two. Which is
+ * why the screen says how many there were — the more that is typed in, the
+ * shorter the list.
  */
 export async function identifyByRunout(
   client: DiscogsClient,
@@ -106,8 +104,8 @@ export async function identifyByRunout(
   signal?: AbortSignal,
 ): Promise<Identified> {
   const text = runout.trim()
-  // Kürzer als das ist kein Runout, sondern ein Tippfehler — und eine Suche
-  // nach drei Zeichen holt den halben Katalog.
+  // Shorter than that is not a run-out but a typo — and a search for three
+  // characters fetches half the catalogue.
   if (text.length < 6) return { barcode: text, candidates: [], owned: [], wanted: [] }
 
   const answer = await client.get('/database/search', searchSchema, {
@@ -119,13 +117,14 @@ export async function identifyByRunout(
 }
 
 /**
- * Die Frage, für die jemand im Laden steht — gegen die **eigene** Datenbank.
+ * The question somebody is standing in the shop for — against the **local**
+ * database.
  *
- * Das kostet nichts und funktioniert auch, wenn die Verbindung wieder weg
- * ist. Geprüft wird **jeder** Kandidat: die eigene Pressung kann eine andere
- * sein als die, die die Suche zuerst nennt — in der Messung vom 2026-09-11
- * stand sie an siebter Stelle von acht. Wer nur den ersten prüft, sagt „hast
- * du nicht" zu einer Platte im eigenen Regal.
+ * It costs nothing and works when the connection has gone again. **Every**
+ * candidate is checked: your own pressing can be a different one from what the
+ * search names first — in the measurement of 2026-09-11 it was seventh of
+ * eight. Anyone checking only the first says "you do not have it" about a
+ * record on their own shelf.
  */
 async function withOwnership(
   code: string,

@@ -3,21 +3,20 @@ import { openFidelityDb } from '~~/db/open'
 import type { StockRow } from '#shared/types'
 
 /**
- * Das Sortiment eines Ladens, nach einem Balken gefiltert.
+ * A shop's inventory, filtered by one bar.
  *
- * Die Zahlen unter „Labels in stock" und „Decades" waren bis hierher tote
- * Auskunft: man sah, dass fatplastics 13 Platten auf Kompakt führt, und kam an
- * keine davon heran. Interessant ist das vor allem bei einem Label, von dem man
- * noch nichts besitzt — dort gibt es per Definition keinen Treffer, der einen
- * hinführen könnte.
+ * The numbers under "labels in stock" and "decades" were dead information
+ * until now: you could see that fatplastics carries 13 records on Kompakt, and
+ * could reach none of them. That matters most for a label you own nothing by —
+ * where there is by definition no match to lead you there.
  *
- * **Gelesen wird über einen Index, nicht über einen Durchlauf.** Ein großer
- * Laden hat zwanzigtausend Zeilen; sie alle zu holen, um zwanzig zu zeigen,
- * wäre auf einem Telefon spürbar. `by-dig-label` und `by-dig-decade` machen
- * daraus ein Bereichslesen, und der Ausschnitt kommt über einen Cursor.
+ * **Read through an index, not through a walk.** A large shop has twenty
+ * thousand rows; fetching all of them to show twenty would be noticeable on a
+ * phone. `by-dig-label` and `by-dig-decade` turn it into a range read, and the
+ * slice comes through a cursor.
  */
 
-/** Wie viele Zeilen eine Seite hat, wenn niemand etwas anderes sagt. */
+/** How many rows a page holds when nobody says otherwise. */
 export const STOCK_PAGE = 50
 
 export interface StockQuery {
@@ -32,15 +31,15 @@ export interface StockQuery {
 
 export interface StockPage {
   rows: StockRow[]
-  /** Wie viele es insgesamt sind — für „20 von 213" und fürs Blättern. */
+  /** How many there are altogether — for "20 of 213" and for paging. */
   total: number
   /**
-   * Wann der Dig lief, aus dem diese Zeilen stammen.
+   * When the dig these rows come from ran.
    *
-   * Null heißt: es gibt keinen frischen. Das Sortiment ist ein Marktplatzdatum
-   * und lebt sechs Stunden (Regel 4); danach ist es gelöscht, nicht veraltet.
-   * Der Bildschirm muss den Unterschied zwischen „der Laden hat nichts davon"
-   * und „wir wissen es gerade nicht" sagen können.
+   * Zero means: there is no fresh one. The inventory is marketplace data and
+   * lives six hours (rule 4); after that it is deleted, not stale. The screen
+   * has to be able to say the difference between "the shop has none of it" and
+   * "we do not know right now".
    */
   scannedAt: number | null
 }
@@ -55,11 +54,11 @@ export async function dealerStock({
   const db = await openFidelityDb()
 
   /*
-   * Der jüngste Dig, der noch leben darf.
+   * The newest dig that is still allowed to live.
    *
-   * Dig-Kennungen sind ULIDs, also ist die lexikographische Ordnung die
-   * zeitliche. Ein abgelaufener zählt nicht: seine Zeilen sind weg, und ein
-   * leeres Ergebnis von ihm hieße fälschlich „der Laden führt das nicht".
+   * Dig ids are ULIDs, so lexicographic order is chronological order. An
+   * expired one does not count: its rows are gone, and an empty result from it
+   * would wrongly mean "the shop does not carry that".
    */
   const now = Date.now()
   const fresh = (await db.getAll('digs'))
@@ -74,15 +73,15 @@ export async function dealerStock({
       ? ([store.index('by-dig-decade'), decade] as const)
       : ([store.index('by-dig-label'), label] as const)
 
-  // `IDBKeyRange.only` auf den zusammengesetzten Schlüssel: derselbe Dig, genau
-  // dieser Wert. Ohne den Dig vorne würden zwei Läden sich vermischen.
+  // `IDBKeyRange.only` on the compound key: the same dig, exactly this value.
+  // Without the dig at the front, two shops would bleed into each other.
   const range = IDBKeyRange.only([fresh.id, value])
   const total = await index.count(range)
 
   const rows: StockRow[] = []
   let cursor = await index.openCursor(range)
-  // `advance(0)` wirft, deshalb der Sprung nur, wenn es etwas zu überspringen
-  // gibt.
+  // `advance(0)` throws, so the jump only happens where there is something to
+  // skip.
   if (cursor && offset > 0) cursor = await cursor.advance(offset)
 
   while (cursor && rows.length < limit) {
@@ -91,9 +90,9 @@ export async function dealerStock({
   }
 
   /*
-   * Teuerstes zuerst ist die falsche Ordnung für eine Sortimentsliste — wer
-   * ein Label durchsieht, will es der Reihe nach. Nach Jahr, und innerhalb
-   * eines Jahres nach Titel: so steht eine Diskografie in jedem Regal.
+   * Most expensive first is the wrong order for an inventory list — somebody
+   * going through a label wants it in sequence. By year, and within a year by
+   * title: that is how a discography stands on any shelf.
    */
   rows.sort(
     (a, b) => (a.year ?? 0) - (b.year ?? 0) || (a.title ?? '').localeCompare(b.title ?? ''),
