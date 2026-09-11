@@ -245,25 +245,24 @@ describe('wantlist sync', () => {
 })
 
 /**
- * Was bei Discogs verschwindet, verschwindet auch hier (2026-09-11).
+ * What disappears at Discogs disappears here too (2026-09-11).
  *
- * **Der Anlass war eine Beobachtung an echten Daten**, nicht eine Idee: 26
- * Wantlist-Einträge lokal, 24 bei Discogs. Die Wantlist wird immer ganz
- * gelesen — die Entfernung war also die ganze Zeit erkennbar und wurde nur
- * nicht vollzogen, weil der Lauf jede gelesene Zeile schrieb und keine je
- * wegnahm.
+ * **The occasion was an observation on real data**, not an idea: 26 wantlist
+ * entries locally, 24 at Discogs. The wantlist is always read in full — so the
+ * removal was visible all along and simply never carried out, because the pass
+ * wrote every row it read and never took one away.
  *
- * **In der Sammlung ist das mehr als kosmetisch.** „Besitze ich schon" ist ein
- * harter Filter (`docs/04` §2): eine verkaufte Platte, die im Spiegel
- * stehenbleibt, blendet sich in jedem künftigen Dig selbst aus — und niemand
- * bemerkt eine Empfehlung, die nicht kommt.
+ * **In the collection this is more than cosmetic.** "I already own this" is a
+ * hard filter (`docs/04` §2): a sold record left standing in the mirror hides
+ * itself from every future dig — and nobody notices a recommendation that
+ * never comes.
  */
 describe('what disappears at Discogs', () => {
   it('is removed from the wantlist mirror too', async () => {
     const db = await openFidelityDb()
     const { client } = fakeClient([[{ id: 1, date_added: '2026-01-02' }]], 'wants')
 
-    // Ein Wunsch, den Discogs nicht mehr kennt.
+    // A want Discogs no longer knows about.
     await db.put('wantlist', { releaseId: 99, masterId: 0, title: 'Weg' } as never)
 
     const summary = await syncWantlist(context(client))
@@ -285,12 +284,12 @@ describe('what disappears at Discogs', () => {
   })
 
   /**
-   * **Ein Delta darf nichts löschen.**
+   * **A delta may delete nothing.**
    *
-   * Es hält an der ersten bekannten Platte an und kennt den Rest des Regals
-   * nicht. Aus „habe ich nicht gesehen" folgt dort „habe ich nicht gesucht" —
-   * und wer daraus löscht, räumt die Sammlung leer, sobald sich nichts
-   * geändert hat.
+   * It stops at the first record it already knows and never sees the rest of
+   * the shelf. There, "I did not see it" means "I did not look for it" — and
+   * anybody deleting from that empties the collection the moment nothing has
+   * changed.
    */
   it('never removes anything on a delta walk', async () => {
     const db = await openFidelityDb()
@@ -306,12 +305,11 @@ describe('what disappears at Discogs', () => {
   })
 
   /**
-   * **Eine leere Antwort löscht nichts.**
+   * **An empty answer deletes nothing.**
    *
-   * Eine 200 mit null Einträgen ist von „du hast nichts mehr" nicht zu
-   * unterscheiden, und die Folgen sind nicht symmetrisch: im einen Fall
-   * bleiben tote Zeilen liegen, im anderen ist das Regal weg und der Horizont
-   * dazu.
+   * A 200 with zero entries is indistinguishable from "you have nothing left",
+   * and the consequences are not symmetrical: in one case dead rows stay lying
+   * about, in the other the shelf is gone and the horizon with it.
    */
   it('refuses to empty the shelf on an empty answer', async () => {
     const db = await openFidelityDb()
@@ -325,12 +323,11 @@ describe('what disappears at Discogs', () => {
   })
 
   /**
-   * **Und eine Platte, die auf ihre Bestätigung wartet, überlebt.**
+   * **And a record waiting for confirmation survives.**
    *
-   * Aus einem Fund ins Regal gelegte Platten liegen unter `-releaseId`, bis
-   * Discogs sie kennt. Ihr Fehlen in der Antwort ist kein Beleg für
-   * irgendetwas — sie wegzuräumen nähme einen Eintrag zurück, den jemand
-   * gerade gemacht hat.
+   * Records put on the shelf from a find sit under `-releaseId` until Discogs
+   * knows them. Their absence from the answer is evidence of nothing — clearing
+   * them away would take back an entry somebody has just made.
    */
   it('keeps a record that Discogs cannot know about yet', async () => {
     const db = await openFidelityDb()

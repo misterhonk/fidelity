@@ -11,12 +11,13 @@
 The milestone versions in the headings are planning names from the design period, not the
 actual numbering — that is in `CHANGELOG.md`.
 
-**M0 through M15 are done. One thing is open, and it is M16 below.**
+**M0 through M16 are done, and nothing is open.**
 
 `docs/` was still German until 2026-09-11 and was translated then — fourteen numbered
 documents and thirteen ADRs. That was read as ADR-010 being finished. It was not: the rule
-says *code, comments, commits*, and the comments were never touched. **141 files, 5,473
-lines.** The counting is in M16.
+says *code, comments, commits*, and the comments were never touched — **141 files, 5,473
+lines**, translated the same day behind a ratchet that is now a plain rule. M16 has the
+count, and the three things the ratchet could not see.
 
 The runout read aloud from M13 stood here until 2026-09-11 and is **measured and
 rejected** — `SpeechRecognition` is available and can even run on the device, but it is
@@ -809,7 +810,7 @@ without a qualifier afterwards, and a promise that is only nearly true is broken
 
 ---
 
-## M16 · The comments, in English → open
+## M16 · The comments, in English → done
 
 ADR-010 has been the rule since 2026-08-11: **English everywhere — code, comments, commits,
 user-visible text and addresses.** The user-visible half was done that week. The docs were
@@ -834,12 +835,41 @@ fails, and a name on it whose file is already clean fails too.
       the most
 - [x] `hub/src/` — 4 files, plus the two gaps the ratchet's own search area had hidden
 - [x] `worker/` — 28 files, the reasoning that is written down nowhere else
-- [ ] `app/` — 61 files
-- [ ] `tests/` — 53 files, several of which explain *why a test exists*, which is the part
+- [x] `app/` — 61 files, plus the icon set, which had to be translated in its *generator*
+      (`scripts/icons/lucide.mjs`); the file it writes says "Do not edit", so the next build
+      would have been the relapse
+- [x] `tests/` — 53 files, several of which explain *why a test exists*, which is the part
       that gets lost first
-- [ ] `hub/test/`, `hub/scripts/` and `nuxt.config.ts` — 4 files
-- [ ] The list file deleted, and the test with it — the ratchet has no reason to stay once
-      it is at zero
+- [x] `hub/test/`, `hub/scripts/` and `nuxt.config.ts` — 4 files. The hub's test *names*
+      were German too, which is not a comment and which the ratchet would never have seen
+- [x] The list file deleted — but **not** the test with it
+
+> **That last line says something different from what it said this morning.** It read "the
+> list file deleted, and the test with it — the ratchet has no reason to stay once it is at
+> zero", and that was written before the two halves had shown themselves to be different
+> jobs. The list was scaffolding: it made a 141-file backlog shrinkable one commit at a
+> time. The other half — *no German comment, anywhere* — is ADR-010 itself, and a rule with
+> nothing enforcing it is what put 5,473 lines there in the first place. So the list is
+> gone and the guard stays, with its own three probes.
+
+**What the ratchet does not see, and did not:**
+
+- [x] **Five error messages** in the code were German. They are thrown, not looked up in a
+      language pack, and `ErrorNote` shows the raw text behind the detail button — so they
+      were on screen. Found by reading the comment beside them.
+- [x] **German identifiers**, about thirty: `lebt`, `vorhanden`, `stuecke`, `bloecke`,
+      `SCHWELLE`, `drueber`, `gemeldet`. Renamed on the way through; in
+      `app/utils/release-notes.ts` the rename pulled through three files, because
+      `kind: 'absatz'` was a *value* in the test and not only a name.
+- [x] **A comment in `DemoDig.vue` that was gibberish** — on 2026-08-11 an English line was
+      inserted into the middle of a German paragraph and the halves of two sentences ran
+      into each other. It stood in the repository for a month. The ratchet reported the file
+      as German, which was true, and would never have said why it mattered.
+
+> **None of those three has a guard.** The scanner reads comments; it does not read string
+> literals and it does not read identifiers. A word list over identifiers would be guesswork
+> where one over prose is not — `war`, `rest`, `die`, `man` are all English words. They were
+> found by reading, they were fixed by hand, and if one comes back nothing will catch it.
 
 **Two things the comments were hiding, both found by reading and not by a rule:**
 

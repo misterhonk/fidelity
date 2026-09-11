@@ -3,32 +3,31 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Ein Maß für die ganze App.
+ * One measure for the whole app.
  *
- * **Der Anlass war ein Screenshot-Stapel, nicht eine Idee.** Am 2026-09-11
- * gemeldet: beim Durchklicken der fünf Sammlungs-Reiter springt die Seite bei
- * jedem Wechsel seitwärts. Nachgemessen war es schlimmer als vermutet — fünf
- * Reiter, vier Breiten:
+ * **The occasion was a stack of screenshots, not an idea.** Reported on
+ * 2026-09-11: clicking through the five collection tabs makes the page jump
+ * sideways at every change. Measured, it was worse than assumed — five tabs,
+ * four widths:
  *
- * | Regal | Landkarte | Wantlist | Im Blick · Orte |
+ * | Shelf | Map | Wantlist | Watched · Places |
  * |---|---|---|---|
  * | 110rem | 90rem | 80rem | 48rem |
  *
- * Und die Hauptleiste lag bei 48rem, floh also auf keiner einzigen Seite mit
- * dem Inhalt darunter. Sechs verschiedene linke Kanten über dreizehn Seiten.
+ * And the main bar sat at 48rem, so it lined up with the content below it on
+ * no page at all. Six different left edges across thirteen pages.
  *
- * `docs/05` §3a hatte die Breiten je *Seite* vergeben, mit einer richtigen
- * Begründung — „Daten dürfen breit werden, Text nicht". Falsch war die Ebene:
- * eine Breite gehört zu einem *Bereich*. Zwei Sichten auf dieselbe Sammlung
- * dürfen kein Umzug sein.
+ * `docs/05` §3a had assigned the widths per *page*, with a sound argument —
+ * "data may be wide, text may not". The level was wrong: a width belongs to an
+ * *area*. Two views of the same collection must not be a house move.
  *
- * Seitdem: ein Container, immer — und **ein** schmales Maß darin, zentriert.
- * Also zwei Kanten statt sechs: die des Containers, den sich die Hauptleiste
- * mit den breiten Seiten teilt, und die der schmalen Spalte.
+ * Since then: one container, always — and **one** narrow measure inside it,
+ * centred. So two edges instead of six: the container's, shared by the main
+ * bar and the wide pages, and the narrow column's.
  *
- * Zentriert statt links verankert, weil links verankert zwar die Kante hält,
- * aber eine 48rem-Spalte auf einem 1800er Schirm ans linke Drittel klebt. Der
- * Handel wurde am laufenden Bild entschieden, nicht am Prinzip.
+ * Centred rather than anchored left, because anchoring left does hold the edge
+ * but leaves a 48rem column clinging to the left third of an 1800 px screen.
+ * The trade was decided on the running picture, not on the principle.
  */
 
 const SEITEN = readdirSync('app/pages', { recursive: true, encoding: 'utf8' })
@@ -36,12 +35,12 @@ const SEITEN = readdirSync('app/pages', { recursive: true, encoding: 'utf8' })
   .map((datei) => ({ datei, quelle: readFileSync(`app/pages/${datei}`, 'utf8') }))
 
 /**
- * Der Bildschirm, der kein Container ist.
+ * The screen that is not a container.
  *
- * Im Stapel *ist* die Karte die Seite: ganzflächig, eine nach der anderen,
- * gewischt statt gescrollt. Ein Seitenmaß darüber wäre ein Rahmen um etwas,
- * das keinen haben soll. Benannt statt erkannt — ein zweiter Eintrag hier
- * braucht ein Argument, keinen Commit.
+ * In the stack the card *is* the page: full-bleed, one after another, swiped
+ * rather than scrolled. A page measure above it would be a frame around
+ * something meant to have none. Named rather than detected — a second entry
+ * here needs an argument, not a commit.
  */
 const OHNE_MASS = ['stack.vue']
 
@@ -50,9 +49,9 @@ describe('every screen shares one measure', () => {
     const abweichler = SEITEN.filter(({ datei, quelle }) => {
       if (OHNE_MASS.includes(datei)) return false
       /*
-       * Seiten ohne eigenes `<main>` erben einen Rahmen — die
-       * Einstellungs-Unterseiten liegen alle in `SettingsPage.vue`. Sie hier
-       * zu verlangen hieße, denselben Container achtmal zu setzen.
+       * Pages with no `<main>` of their own inherit a frame — the settings
+       * subpages all live in `SettingsPage.vue`. Demanding one here would mean
+       * setting the same container eight times over.
        */
       if (!quelle.includes('<main')) return false
       return !/class="[^"]*\bfid-page(-flush)?\b/.test(quelle)
@@ -61,17 +60,17 @@ describe('every screen shares one measure', () => {
     expect(abweichler).toEqual([])
   })
 
-  /** Und der geerbte Rahmen trägt es auch. */
+  /** And the inherited frame carries it too. */
   it('includes the frame the settings pages sit in', () => {
     expect(readFileSync('app/components/SettingsPage.vue', 'utf8')).toMatch(/\bfid-page\b/)
   })
 
   /**
-   * Und keine Seite setzt daneben ihr eigenes Maß.
+   * And no page sets its own measure beside it.
    *
-   * Ein `max-w-…` am `<main>` neben `fid-page` wäre die alte Welt zurück: die
-   * Klasse sagt „ein Maß" und die Zeile daneben widerspricht ihr. Innen ist
-   * ein `max-w-…` dagegen genau richtig — dort entscheidet der Inhalt.
+   * A `max-w-…` on the `<main>` next to `fid-page` would be the old world
+   * back: the class says "one measure" and the line beside it contradicts it.
+   * Inside, a `max-w-…` is exactly right — there the content decides.
    */
   it('does not set a second width on the page itself', () => {
     const doppelt = SEITEN.filter(({ datei, quelle }) => {
@@ -86,40 +85,41 @@ describe('every screen shares one measure', () => {
   })
 
   /**
-   * Die Hauptleiste gehört dazu.
+   * The main bar is part of it.
    *
-   * Sie lag bei `max-w-3xl` und war damit auf jeder Seite gegen den Inhalt
-   * versetzt — der auffälligste Teil des Problems und der, den man am
-   * wenigsten einem einzelnen Bildschirm anlastet.
+   * It sat at `max-w-3xl` and was therefore offset against the content on
+   * every page — the most conspicuous part of the problem and the one least
+   * likely to be blamed on any single screen.
    */
   it('includes the navigation bar', () => {
     expect(readFileSync('app/components/AppNav.vue', 'utf8')).toMatch(/\bfid-page\b/)
   })
 
   /**
-   * **Und schmaler Inhalt hat *ein* schmales Maß.**
+   * **And narrow content has *one* narrow measure.**
    *
-   * Das war der zweite Teil des Befunds und der leiser versteckte. Auch unter
-   * den schmalen Seiten gab es vier Breiten — 48rem für Korb, Orte und die
-   * Rechtsseiten, 42rem für die Einrichtung, 36rem für „Was neu ist" und für
-   * den Laden-Modus. Zentriert heißt: die Breite bestimmt die linke Kante.
-   * Vier Breiten sind vier Kanten, nur langsamer bemerkt.
+   * That was the second half of the finding and the more quietly hidden one.
+   * Among the narrow pages there were four widths too — 48rem for basket,
+   * places and the legal pages, 42rem for the setup, 36rem for "what's new"
+   * and for in-store mode. Centred means: the width determines the left edge.
+   * Four widths are four edges, only noticed more slowly.
    *
-   * Zentriert **und** einheitlich ist die Auflösung: der äußere Container hält
-   * die Leiste in der Flucht, und innen steht jede schmale Seite an derselben
-   * Stelle wie jede andere schmale Seite.
+   * Centred **and** uniform is the resolution: the outer container keeps the
+   * bar in line, and inside, every narrow page stands in the same place as
+   * every other narrow page.
    *
-   * Geprüft am Block direkt hinter `<main>` — der ist der Umschlag, den diese
-   * Regel meint. Ein `max-w-…` weiter innen gehört einer Karte oder einem
-   * Absatz und ist genau richtig dort.
+   * Checked on the block directly after `<main>` — that is the wrapper this
+   * rule means. A `max-w-…` further in belongs to a card or a paragraph and is
+   * exactly right there.
    */
   it('gives narrow content one measure, centred', () => {
     /*
-     * An den Klassen selbst geprüft, nicht an ihrer Reihenfolge.
+     * Checked against the classes themselves, not against their order.
      *
-     * Der erste Anlauf verglich einen Präfix — und brach, sobald `@container`
-     * davorrückte, obwohl an der Regel nichts falsch war. Ein Test, der die
-     * Schreibweise festnagelt statt der Aussage, meldet Umbauten als Fehler.
+     * The first attempt compared a prefix — and broke as soon as `@container`
+     * moved in front of it, although nothing about the rule was wrong. A test
+     * that nails down the spelling rather than the statement reports
+     * rearrangements as faults.
      */
 
     const abweichend: string[] = []
@@ -136,7 +136,7 @@ describe('every screen shares one measure', () => {
       if (auf === -1) continue
       const nachTag = quelle.indexOf('>', auf) + 1
 
-      // Der erste Block dahinter — nur wenn er überhaupt ein Maß trägt.
+      // The first block after it — only where it carries a measure at all.
       const ersterDiv = quelle.slice(nachTag).match(/<div class="([^"]*)"/)
       if (!ersterDiv) continue
       const klassen = ersterDiv[1]!

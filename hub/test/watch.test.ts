@@ -10,12 +10,12 @@ import {
 } from '../src/watch.ts'
 
 /**
- * Der Wächter — und vor allem: wann er den Mund hält.
+ * The watcher — and above all: when it keeps quiet.
  *
- * Er ist die einzige Stelle im ganzen Hub, die von sich aus etwas an ein Gerät
- * schickt. Eine Benachrichtigung, die nicht hätte kommen dürfen, ist deshalb
- * teurer als eine, die ausbleibt: sie klingelt nachts am Telefon von jemandem,
- * der nie darum gebeten hat.
+ * It is the only place in the whole hub that sends anything to a device of its
+ * own accord. A notification that should not have come is therefore more
+ * expensive than one that does not arrive: it rings at night on the phone of
+ * somebody who never asked for it.
  */
 function setup(dealers = ['fatplastics']) {
   const db = openHubDb(':memory:')
@@ -44,15 +44,15 @@ const answering = (counts: Record<string, number>) =>
 const nothing = async () => {}
 
 /*
- * Der Wächter sagt, wer er ist.
+ * The watcher says who it is.
  *
- * Discogs beantwortet eine Anfrage ohne User-Agent mit 403 (2026-08-13 gegen
- * den echten Endpunkt gemessen). Nodes eigener Vorgabewert kommt heute durch,
- * heißt aber „node" — und der Fehlschlag wäre der leiseste denkbare: eine
- * Antwort, die nicht `ok` ist, wird verschluckt (`continue`), und der Wächter
- * sähe für immer aus wie ein Laden, der sich nie bewegt.
+ * Discogs answers a request with no User-Agent with a 403 (measured
+ * 2026-08-13 against the real endpoint). Node's own default gets through
+ * today, but it says "node" — and the failure would be the quietest
+ * imaginable: an answer that is not `ok` is swallowed (`continue`), and the
+ * watcher would look forever like a shop that never moves.
  */
-test('nennt Discogs seinen Namen', async () => {
+test('tells Discogs its name', async () => {
   const db = setup()
   db.prepare("INSERT INTO watches (endpoint, dealer) VALUES ('e1', 'fatplastics')").run()
 
@@ -72,13 +72,14 @@ test('nennt Discogs seinen Namen', async () => {
 })
 
 /**
- * Die Kennung, wenn es eine gibt — und keine erfundene, wenn nicht.
+ * The credentials where there are some — and none invented where there are
+ * not.
  *
- * Sie hebt das Limit von 25 auf 60 Anfragen pro Minute, und genau deshalb
- * hängt der Takt daran: wer den Kopf wegnimmt und die 1.200 ms stehen lässt,
- * baut einen Hub, der sein eigenes Limit reißt.
+ * They raise the limit from 25 to 60 requests a minute, and that is exactly
+ * why the pace hangs off them: anyone removing the header and leaving the
+ * 1,200 ms in place builds a hub that breaks its own limit.
  */
-describe('die Discogs-Kennung', () => {
+describe('the Discogs credentials', () => {
   const noting = (seen: RequestInit[]) =>
     ((url: string, init?: RequestInit) => {
       seen.push(init ?? {})
@@ -88,7 +89,7 @@ describe('die Discogs-Kennung', () => {
       } as unknown as Response)
     }) as unknown as typeof fetch
 
-  test('geht als Kopf hinaus, nie in die Adresse', async () => {
+  test('go out as a header, never in the address', async () => {
     const db = setup()
     db.prepare("INSERT INTO watches (endpoint, dealer) VALUES ('e1', 'fatplastics')").run()
 
@@ -117,7 +118,7 @@ describe('die Discogs-Kennung', () => {
     assert.ok(!urls[0]?.includes('k123'))
   })
 
-  test('bleibt ohne Kennung ganz weg', async () => {
+  test('stay away entirely where there are none', async () => {
     const db = setup()
     db.prepare("INSERT INTO watches (endpoint, dealer) VALUES ('e1', 'fatplastics')").run()
 
@@ -128,7 +129,7 @@ describe('die Discogs-Kennung', () => {
     assert.equal(headers.authorization, undefined)
   })
 
-  test('gibt der Kennung das schnellere Tempo — und sonst nicht', async () => {
+  test('give the faster pace — and nothing else does', async () => {
     const paused: number[] = []
     const measure = async (ms: number) => {
       paused.push(ms)
@@ -145,10 +146,10 @@ describe('die Discogs-Kennung', () => {
   })
 })
 
-describe('der Wächter', () => {
-  test('sagt beim ersten Blick nichts — das ist eine Grundlinie', async () => {
-    // Sonst bekäme jeder, der einen Laden neu aufnimmt, sofort eine Meldung
-    // über zweitausend "neue" Platten.
+describe('the watcher', () => {
+  test('says nothing on the first look — that is a baseline', async () => {
+    // Otherwise anybody taking on a new shop would immediately be told about
+    // two thousand "new" records.
     const db = setup()
     const sent: string[] = []
 
@@ -167,7 +168,7 @@ describe('der Wächter', () => {
     assert.deepEqual(sent, [])
   })
 
-  test('meldet, wenn beim zweiten Blick mehr da ist', async () => {
+  test('reports when there is more on the second look', async () => {
     const db = setup()
     const sent: string[] = []
     const send = async (_s: unknown, payload: string) => {
@@ -176,7 +177,7 @@ describe('der Wächter', () => {
     }
 
     await watchRound({ db, fetchImpl: answering({ fatplastics: 100 }), send, sleep: nothing })
-    // Der Stand ist jetzt gesetzt; für den zweiten Durchgang muss er alt sein.
+    // The reading is set now; for the second pass it has to be old.
     db.prepare('UPDATE watch_state SET checked_at = 0').run()
 
     const result = await watchRound({
@@ -191,8 +192,8 @@ describe('der Wächter', () => {
     assert.equal(JSON.parse(sent[0]!).newListings, 12)
   })
 
-  test('schweigt, wenn ein Laden Platten verkauft hat', async () => {
-    // Nach unten ist keine Nachricht. Darüber will niemand etwas hören.
+  test('stays quiet when a shop has sold records', async () => {
+    // Downwards is not news. Nobody wants to hear about that.
     const db = setup()
     const sent: string[] = []
     const send = async (_s: unknown, payload: string) => {
@@ -213,7 +214,7 @@ describe('der Wächter', () => {
     assert.deepEqual(sent, [])
   })
 
-  test('fasst einen Laden nicht an, den er gerade erst geprüft hat', async () => {
+  test('does not touch a shop it has only just checked', async () => {
     const db = setup()
     let calls = 0
     const counting = ((url: string) => {
@@ -227,7 +228,7 @@ describe('der Wächter', () => {
     assert.equal(calls, 1)
   })
 
-  test('fragt einen Laden einmal, egal wie viele ihn beobachten', async () => {
+  test('asks a shop once, however many are watching it', async () => {
     // Der ganze Grund, warum es diesen Dienst gibt.
     const db = setup()
     for (const n of [1, 2, 3]) {
@@ -264,7 +265,7 @@ describe('der Wächter', () => {
     assert.equal(result.notified, 4)
   })
 
-  test('wirft einen Empfänger weg, den der Push-Dienst für tot erklärt', async () => {
+  test('throws away a recipient the push service declares dead', async () => {
     const db = setup()
     await watchRound({ db, fetchImpl: answering({ fatplastics: 100 }), sleep: nothing })
     db.prepare('UPDATE watch_state SET checked_at = 0').run()
@@ -282,19 +283,19 @@ describe('der Wächter', () => {
   })
 
   /**
-   * Ein Schweigen wird gezählt.
+   * A silence is counted.
    *
-   * Der `catch` behandelte 404 und 410 und tat sonst gar nichts: kein Zähler,
-   * kein Protokoll. Ein Gerät, an das dauerhaft nichts durchkam, sah damit
-   * genau aus wie eines, das den Laden nie beobachtet hat — `notified` fiel
-   * leiser aus, und das war alles. Am 2026-08-13 stand exakt diese Lücke
-   * zwischen "es hat geklingelt" und "ich habe nichts gesehen".
+   * The `catch` handled 404 and 410 and did nothing else: no counter, no log.
+   * A device nothing ever got through to therefore looked exactly like one
+   * that had never watched the shop — `notified` simply came out quieter, and
+   * that was all. On 2026-08-13 that exact gap stood between "it rang" and "I
+   * saw nothing".
    */
-  test('zählt eine gescheiterte Zustellung, statt sie zu verschlucken', async () => {
+  test('counts a failed delivery instead of swallowing it', async () => {
     const db = setup()
     await watchRound({ db, fetchImpl: answering({ fatplastics: 100 }), sleep: nothing })
-    // Ohne das greift die Stundensperre und der zweite Durchgang sieht gar
-    // nicht erst nach.
+    // Without this the hourly bar takes hold and the second pass does not
+    // look at all.
     db.prepare('UPDATE watch_state SET checked_at = 0').run()
 
     const result = await watchRound({
@@ -306,12 +307,12 @@ describe('der Wächter', () => {
 
     assert.equal(result.notified, 0)
     assert.equal(result.failed, 1)
-    // Nicht weggeworfen: eine 403 ist kein "dieses Gerät gibt es nicht mehr".
+    // Not thrown away: a 403 is not "this device no longer exists".
     assert.equal(result.dropped, 0)
     assert.equal((db.prepare('SELECT COUNT(*) AS n FROM watchers').get() as { n: number }).n, 1)
   })
 
-  test('behält einen Empfänger, dessen Zustellung nur vorübergehend scheitert', async () => {
+  test('keeps a recipient whose delivery only fails temporarily', async () => {
     // 500 heißt "später nochmal", nicht "den gibt es nicht mehr".
     const db = setup()
     await watchRound({ db, fetchImpl: answering({ fatplastics: 100 }), sleep: nothing })
@@ -329,7 +330,7 @@ describe('der Wächter', () => {
     assert.equal(left.n, 1)
   })
 
-  test('lässt einen Laden aus, den niemand beobachtet', async () => {
+  test('skips a shop nobody is watching', async () => {
     const db = openHubDb(':memory:')
     let calls = 0
     await watchRound({
@@ -343,7 +344,7 @@ describe('der Wächter', () => {
     assert.equal(calls, 0)
   })
 
-  test('übersteht einen Laden, der nicht antwortet', async () => {
+  test('survives a shop that does not answer', async () => {
     const db = setup(['fatplastics', 'weg'])
     const result = await watchRound({
       db,

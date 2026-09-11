@@ -1,4 +1,4 @@
-import { globSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { globSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -9,56 +9,38 @@ import { OVERLAPPING, germanComments } from '../helpers/german'
 /**
  * ADR-010 says English everywhere — code, comments, commits. The docs were
  * translated on 2026-09-11; the comments were not, and there were 5,473 lines
- * of them across 156 files.
+ * of them across 141 files.
  *
- * **A single pass would only reset a counter.** Two of those files were written
- * in German *during* the session that translated the docs, by somebody who had
- * just read the rule. A rule nothing enforces is a preference.
+ * **A single pass would only have reset a counter.** Two of those files were
+ * written in German *during* the session that translated the docs, by somebody
+ * who had just read the rule. A rule nothing enforces is a preference.
  *
- * So this is a ratchet, not a pass/fail. `german-comments.txt` lists the files
- * that still carry German, and it can only get shorter:
+ * So the translation ran behind a ratchet: `tests/fixtures/german-comments.txt`
+ * listed the files that still carried German, the list could only get shorter,
+ * and the test failed both ways — on a German comment in a file that was not
+ * on it, and on a name on it whose file was already clean. The second
+ * direction was the one that mattered: a list that keeps names it no longer
+ * needs stops being a measurement, which is exactly what had happened to the
+ * roadmap.
  *
- * - a file with German comments that is **not** on the list fails — that is a
- *   new one, and the whole point;
- * - a file on the list with **no** German comments left fails too — because a
- *   list that keeps names it no longer needs stops being a measurement, which
- *   is exactly what happened to the roadmap.
- */
-/**
- * The whole tree, not a list of places somebody happened to look.
- *
- * It started as six roots and missed two: `hub/test/` and `nuxt.config.ts`,
- * both of which are full of German. A guard with a hand-picked search area
- * guards the search area, and the gaps are invisible from inside it.
+ * **The list reached zero the same day and is gone.** What stays is the half
+ * that was never about the backlog: no German comment, anywhere. M16 said to
+ * delete the test with the list — that was written before it was clear the two
+ * halves do different jobs. The list was scaffolding. This is the rule.
  */
 const IGNORED = /node_modules|[/.](nuxt|output|nitro|cache)|dist\/|coverage\//
 const SOURCES = globSync('**/*.{ts,mts,vue,css}', {
   exclude: (path) => IGNORED.test(path),
 })
 
-const LIST = 'tests/fixtures/german-comments.txt'
-
-const listed = new Set(
-  readFileSync(LIST, 'utf8')
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0 && !line.startsWith('#')),
-)
-
-const german = new Set(SOURCES.filter((path) => germanComments(path).length > 0))
-
 describe('comments are English (ADR-010)', () => {
   it('finds the files it is meant to look at', () => {
-    // If the glob ever breaks, every assertion below passes vacuously.
+    // If the glob ever breaks, the assertion below passes vacuously.
     expect(SOURCES.length).toBeGreaterThan(300)
   })
 
-  it('has no German comment outside the list', () => {
-    expect([...german].filter((path) => !listed.has(path)).sort()).toEqual([])
-  })
-
-  it('keeps no name on the list that is already clean', () => {
-    expect([...listed].filter((path) => !german.has(path)).sort()).toEqual([])
+  it('has no German comment anywhere', () => {
+    expect(SOURCES.filter((path) => germanComments(path).length > 0).sort()).toEqual([])
   })
 })
 

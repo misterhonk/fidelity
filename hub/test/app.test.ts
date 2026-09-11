@@ -69,7 +69,7 @@ describe('health', () => {
  * It survived the day push was first made to ring because that subscription
  * went out through curl, which asks nobody's permission.
  */
-describe('der Vorabflug', () => {
+describe('the preflight', () => {
   const preflight = (path: string, method: string) =>
     hub('geheim').app.request(path, {
       method: 'OPTIONS',
@@ -80,7 +80,7 @@ describe('der Vorabflug', () => {
       },
     })
 
-  test('lässt jede Methode durch, die dieser Hub auch anbietet', async () => {
+  test('allows every method this hub actually offers', async () => {
     const allowed = (await preflight('/v1/watch/subscribe', 'POST')).headers.get(
       'access-control-allow-methods',
     )
@@ -90,9 +90,9 @@ describe('der Vorabflug', () => {
     }
   })
 
-  test('lässt das Geheimnis als Kopf zu — ohne ihn scheitert jede Anfrage', async () => {
-    // `x-hub-secret` ist kein einfacher Kopf: ohne ausdrückliche Erlaubnis
-    // bricht der Browser schon vor der eigentlichen Anfrage ab.
+  test('allows the secret as a header — without it every request fails', async () => {
+    // `x-hub-secret` is not a simple header: without explicit permission the
+    // browser gives up before the actual request.
     const allowed = (await preflight('/v1/horizon/artist/1', 'PUT')).headers.get(
       'access-control-allow-headers',
     )
@@ -230,14 +230,14 @@ describe('the vault', () => {
   const ID = 'a'.repeat(32)
 
   /**
-   * Und wieder loswerden — der zweite Halbsatz des Umzugs.
+   * And getting rid of it again — the second half of the move.
    *
-   * Die Kennung eines Vaults hing bis 2026-08-13 an der öffentlichen
-   * Discogs-User-ID. Sie hängt jetzt an der Passphrase; ein Umzug, der den
-   * alten Block an der ausrechenbaren Adresse liegen lässt, hat genau nichts
-   * behoben — und sähe von außen wie ein Erfolg aus.
+   * Until 2026-08-13 a vault's id hung off the public Discogs user id. It now
+   * hangs off the passphrase; a move that leaves the old block at the
+   * computable address has fixed precisely nothing — and would look like
+   * success from outside.
    */
-  test('vergisst einen Block auf Zuruf', async () => {
+  test('forgets a block on request', async () => {
     const { app } = hub()
     await app.request(`/v1/vault/${ID}`, { method: 'PUT', body: JSON.stringify(sealed()) })
     assert.equal((await app.request(`/v1/vault/${ID}`)).status, 200)
@@ -246,14 +246,14 @@ describe('the vault', () => {
     assert.equal((await app.request(`/v1/vault/${ID}`)).status, 404)
   })
 
-  test('nennt auch das Nichtvorhandene weg', async () => {
-    // "Weg" ist der Zustand, um den gebeten wurde. Ein 404 hier würde einen
-    // Umzug scheitern lassen, bei dem schlicht nichts aufzuräumen war.
+  test('calls what was never there gone too', async () => {
+    // "Gone" is the state that was asked for. A 404 here would fail a move
+    // where there was simply nothing to clean up.
     const { app } = hub()
     assert.equal((await app.request(`/v1/vault/${ID}`, { method: 'DELETE' })).status, 200)
   })
 
-  test('lässt eine Kennung nicht durch, die keine ist', async () => {
+  test('does not let through an id that is not one', async () => {
     const { app } = hub()
     assert.equal((await app.request('/v1/vault/../meta', { method: 'DELETE' })).status, 404)
     assert.equal((await app.request('/v1/vault/kurz', { method: 'DELETE' })).status, 400)
@@ -438,19 +438,20 @@ describe('covers', () => {
 })
 
 /**
- * Eine geteilte Fundliste.
+ * A shared find list.
  *
- * Drei Zusagen, von denen man zwei von außen nicht sieht und die dritte erst,
- * wenn sie gebrochen ist:
+ * Three promises, two of which cannot be seen from outside and the third only
+ * once it is broken:
  *
- * 1. **Lesen geht ohne Secret.** Sonst müsste man das Secret in den Link
- *    schreiben und hätte den ganzen Hub verschenkt, um eine Liste zu zeigen.
- * 2. **Schreiben geht nicht ohne.** Sonst ist der Hub ein Pastebin.
- * 3. **Nach sechs Stunden ist sie weg** — und zwar sechs Stunden ab dem
- *    *Scan*, nicht ab dem Teilen. Wer beim Verschicken neu zu zählen anfängt,
- *    zeigt am Ende elf Stunden alte Preise (Regel 4).
+ * 1. **Reading works without the secret.** Otherwise the secret would have to
+ *    go into the link, and the whole hub would have been given away in order
+ *    to show one list.
+ * 2. **Writing does not work without it.** Otherwise the hub is a pastebin.
+ * 3. **After six hours it is gone** — six hours from the *scan*, not from the
+ *    sharing. Starting the count again at the sending shows prices eleven
+ *    hours old in the end (rule 4).
  */
-describe('eine geteilte Fundliste', () => {
+describe('a shared find list', () => {
   const sealed = () => ({
     version: 1,
     iv: 'AAAAAAAAAAAAAAAA',
@@ -476,7 +477,7 @@ describe('eine geteilte Fundliste', () => {
       headers: { 'content-type': 'application/json', ...headers },
     })
 
-  test('nimmt sie an und gibt sie wieder heraus', async () => {
+  test('takes it in and hands it back', async () => {
     const { app } = hub()
     assert.equal((await post(app, share())).status, 200)
 
@@ -487,13 +488,13 @@ describe('eine geteilte Fundliste', () => {
   })
 
   /**
-   * Der Punkt der ganzen Übung.
+   * The point of the whole exercise.
    *
-   * Der Link geht an jemanden, der diesen Hub nicht kennt und das Secret nicht
-   * hat. Verlangte das Lesen es, wäre das Feature sinnlos — und der einzige
-   * Weg, es doch zu benutzen, wäre, das Secret mitzuschicken.
+   * The link goes to somebody who does not know this hub and does not have the
+   * secret. If reading required it, the feature would be pointless — and the
+   * only way to use it anyway would be to send the secret along.
    */
-  test('lässt sich ohne Secret lesen', async () => {
+  test('can be read without the secret', async () => {
     const { app } = hub('geheim')
     assert.equal((await post(app, share(), { 'x-hub-secret': 'geheim' })).status, 200)
 
@@ -501,22 +502,22 @@ describe('eine geteilte Fundliste', () => {
     assert.equal((await app.request(`/v1/share/${ID}`)).status, 200)
   })
 
-  /** Und die andere Hälfte: hineinschreiben darf nur, wer dazugehört. */
-  test('lässt sich ohne Secret nicht befüllen', async () => {
+  /** And the other half: only somebody who belongs may write into it. */
+  test('cannot be filled without the secret', async () => {
     const { app } = hub('geheim')
     assert.equal((await post(app, share())).status, 401)
     assert.equal((await app.request(`/v1/share/${ID}`)).status, 404)
   })
 
   /**
-   * Und sie ist eine **Lese**tür.
+   * And it is a **reading** door.
    *
-   * Heute läuft nichts anderes über diesen Pfad, die Prüfung auf `GET` ist
-   * also überzählig — bis jemand ein `PUT /v1/share/:id` ergänzt. Der
-   * Unterschied ist von außen sichtbar: an der Tür abgewiesen ist 401,
-   * hereingelassen und nichts gefunden wäre 404.
+   * Nothing else runs over this path today, so the check for `GET` is
+   * redundant — until somebody adds a `PUT /v1/share/:id`. The difference is
+   * visible from outside: turned away at the door is 401; let in and finding
+   * nothing would be 404.
    */
-  test('ist eine Lesetür und keine Klappe', async () => {
+  test('is a reading door and not a flap', async () => {
     const { app } = hub('geheim')
     for (const method of ['POST', 'PUT', 'DELETE']) {
       const antwort = await app.request(`/v1/share/${ID}`, { method })
@@ -524,15 +525,15 @@ describe('eine geteilte Fundliste', () => {
     }
   })
 
-  /** Die offene Lesetür gilt für genau diesen Pfad und nicht für den Rest. */
-  test('öffnet keine andere Tür mit', async () => {
+  /** The open reading door applies to this path and not to the rest. */
+  test('does not open any other door with it', async () => {
     const { app } = hub('geheim')
     for (const pfad of ['/v1/covers', '/v1/vault/' + 'a'.repeat(32), '/v1/watch/key']) {
       assert.equal((await app.request(pfad)).status, 401, pfad)
     }
   })
 
-  test('vergisst sie, sobald der Dig abgelaufen ist', async () => {
+  test('forgets it as soon as the dig has expired', async () => {
     const db = openHubDb(':memory:')
     let jetzt = 1_000_000
     const app = createHubApp({ db, secret: null, now: () => jetzt })
@@ -547,19 +548,19 @@ describe('eine geteilte Fundliste', () => {
     jetzt += STUNDE + 1
     assert.equal((await app.request(`/v1/share/${ID}`)).status, 404)
 
-    // Und zwar wirklich weg, nicht nur verschwiegen.
+    // And genuinely gone, not merely passed over in silence.
     const rest = db.prepare('SELECT COUNT(*) AS n FROM shares').get()
     assert.equal(rest.n, 0)
   })
 
   /**
-   * Regel 4 auch gegen den eigenen Client.
+   * Rule 4 against our own client too.
    *
-   * Die Ablaufzeit rechnet der Client aus dem Dig aus. Ein Client, der sich
-   * irrt — oder einer, den jemand nachgebaut hat —, darf keine Fundliste
-   * hinterlassen, die drei Tage lebt.
+   * The client works the expiry out from the dig. A client that is wrong — or
+   * one somebody has rebuilt — must not be able to leave behind a find list
+   * that lives three days.
    */
-  test('kürzt eine Ablaufzeit, die zu weit in der Zukunft liegt', async () => {
+  test('shortens an expiry that lies too far in the future', async () => {
     const { app } = hub()
     const antwort = await post(app, share({ expiresAt: 42 + 72 * STUNDE }))
     assert.equal(antwort.status, 200)
@@ -568,19 +569,19 @@ describe('eine geteilte Fundliste', () => {
     assert.equal(expiresAt, 42 + 6 * STUNDE)
   })
 
-  test('nimmt gar nicht erst an, was schon abgelaufen ist', async () => {
+  test('does not accept what has already expired', async () => {
     const { app } = hub()
     assert.equal((await post(app, share({ expiresAt: 41 }))).status, 400)
   })
 
-  test('weist zurück, was kein versiegelter Umschlag ist', async () => {
+  test('rejects anything that is not a sealed envelope', async () => {
     const { app } = hub()
     assert.equal((await post(app, { id: ID, expiresAt: 42 + STUNDE })).status, 400)
     assert.equal((await post(app, 'kein json')).status, 400)
     assert.equal((await post(app, share({ id: 'zu-kurz' }))).status, 400)
   })
 
-  test('kennt eine Kennung, die es nicht gibt, als weg', async () => {
+  test('treats an id that does not exist as gone', async () => {
     const { app } = hub()
     assert.equal((await app.request(`/v1/share/${'c'.repeat(32)}`)).status, 404)
     assert.equal((await app.request('/v1/share/keine-kennung')).status, 400)
