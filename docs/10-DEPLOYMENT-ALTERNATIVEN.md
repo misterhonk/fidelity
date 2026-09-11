@@ -1,174 +1,176 @@
-# 10 - Deployment-Alternativen
+# 10 - Deployment alternatives
 
-> **WEITGEHEND UEBERHOLT (2026-08-09).** Dieses Dokument verglich Hosting-Optionen fuer
-> den Serverentwurf anhand von RAM, Plattenplatz und ausgehender IP. Seit **ADR-007** hat
-> Fidelity **kein Backend mehr** - deployed werden nur statische Dateien. Damit ist keine
-> dieser Groessen mehr relevant.
+> **LARGELY OBSOLETE (2026-08-09).** This document compared hosting options for the server
+> design in terms of RAM, disk and outbound IP. Since **ADR-007** Fidelity has **no backend**
+> — what gets deployed is static files. None of those figures is relevant any more.
 >
-> **Aktuelle Optionen stehen in [`08-DEPLOYMENT.md`](08-DEPLOYMENT.md) Abschnitt 2.**
-> Kurzfassung: Uberspace-Docroot, Cloudflare Pages oder GitHub Pages - alle kostenlos,
-> alle gleichwertig, alle austauschbar. Der Homeserver bleibt eine Option und ist als
-> reines Static-Hosting deutlich unkritischer als beim Serverentwurf.
+> **The current options are in [`08-DEPLOYMENT.md`](08-DEPLOYMENT.md) section 2.**
+> The short version: an Uberspace docroot, Cloudflare Pages or GitHub Pages — all free, all
+> equivalent, all interchangeable. The home server stays an option and, as pure static
+> hosting, is considerably less critical than it was with the server design.
 >
-> Der Rest bleibt als Entscheidungshistorie stehen - und fuer den Fall, dass spaeter doch
-> ein kleiner Dienst fuer Push dazukommt (`08-DEPLOYMENT.md` Abschnitt 6).
+> The rest stays as decision history — and for the case that a small service for push does
+> get added later (`08-DEPLOYMENT.md` section 6).
 
 ---
 
-## 1. Was diese App vom Hosting braucht
+## 1. What this app needs from hosting
 
-Nicht offensichtlich, deshalb explizit — die Reihenfolge ist nach Wichtigkeit:
+Not obvious, hence explicit — in order of importance:
 
-| Anforderung | Warum | Uberspace |
+| Requirement | Why | Uberspace |
 |---|---|---|
-| **Eigene, stabile ausgehende IP** | Discogs limitiert **pro Quell-IP**. Geteilte IP heißt geteiltes 60/min-Budget mit fremden Kunden. | ⚠️ **geteilt** |
-| **Plattenplatz 15–30 GB** | Katalog-DB ~6 GB, beim Refresh kurzzeitig doppelt | ⚠️ 10 GB (bis 100 buchbar, kostet) |
-| **RAM ≥ 2 GB** | Postgres + Node + Refresh-Spitzen | ⚠️ **1,5 GB, harter Kill** |
-| **Langlaufende Prozesse** | Ein Dig dauert 2–4 Min., Watchlist-Jobs laufen ständig | ✅ supervisord |
-| **Docker** | Lokal/Prod-Parität, Katalog-Pipeline | ❌ |
-| **Postgres mit Extensions** | `pg_trgm`, `unaccent`, `pgcrypto` | ✅ (ältere Major) |
-| **HTTPS + eigene Domain** | OAuth-Callback, PWA-Installation, Web Push | ✅ automatisch |
-| **Kosten** | Hobbyprojekt für 5–30 Leute | ✅ ~5–10 €/Mon. |
+| **Its own, stable outbound IP** | Discogs limits **per source IP**. A shared IP means sharing the 60/min budget with other customers. | ⚠️ **shared** |
+| **15–30 GB of disk** | The catalogue DB is ~6 GB, briefly double during a refresh | ⚠️ 10 GB (up to 100 bookable, at a price) |
+| **RAM ≥ 2 GB** | Postgres + Node + refresh peaks | ⚠️ **1.5 GB, a hard kill** |
+| **Long-running processes** | A dig takes 2–4 min, watchlist jobs run constantly | ✅ supervisord |
+| **Docker** | Local/prod parity, the catalogue pipeline | ❌ |
+| **Postgres with extensions** | `pg_trgm`, `unaccent`, `pgcrypto` | ✅ (an older major) |
+| **HTTPS + our own domain** | The OAuth callback, PWA installation, Web Push | ✅ automatic |
+| **Cost** | A hobby project for 5–30 people | ✅ ~€5–10/month |
 
-> **Die zwei roten Zeilen oben sind der eigentliche Punkt.** Das RAM-Limit und vor allem
-> die **geteilte ausgehende IP** sind für genau diese App unglücklich — sie ist im Kern
-> ein rate-limitierter API-Crawler.
-
----
-
-## 2. Die Optionen
-
-### A · Uberspace 7 — *„hast du schon"*
-
-**~5–10 €/Monat** (Pay-what-you-want ab 5 €, +Storage-Upgrades)
-
-| ✅ | ❌ |
-|---|---|
-| Hast du schon, kein neuer Vertrag | **Geteilte ausgehende IP** → Rate-Limit-Risiko |
-| Kein Server-Betrieb, kein Patchen, kein Backup-Konzept nötig | **1,5 GB RAM hart** — Prozesse werden gekillt |
-| TLS, Domains, Mail automatisch | **10 GB Disk** — Katalog-Refresh wird zur Turnerei |
-| Deutscher Anbieter, DSGVO unkritisch | **Kein Docker** → keine Prod-Parität |
-| Postgres offiziell unterstützt | Node max. 22, Postgres nicht die neueste Major |
-
-**Verdikt:** Funktioniert für M0–M4 problemlos. Ab **M5 (Katalog-DB) wird es eng** —
-6 GB Schema in 10 GB Quota, und beim Refresh liegen kurz zwei Schemas parallel.
+> **The two red rows above are the actual point.** The RAM limit and above all the **shared
+> outbound IP** are unfortunate for this app specifically — at heart it is a rate-limited API
+> crawler.
 
 ---
 
-### B · Kleiner VPS — **die pragmatische Empfehlung**
+## 2. The options
 
-**Hetzner CX22 · 2 vCPU · 4 GB RAM · 40 GB SSD · ~4–5 €/Monat**
-(Alternativen: Netcup RS 1000, Contabo, Scaleway Stardust, Hetzner CAX11/ARM ~3,50 €)
+### A · Uberspace 7 — *"you already have it"*
+
+**~€5–10/month** (pay what you want from €5, plus storage upgrades)
 
 | ✅ | ❌ |
 |---|---|
-| **Eigene, feste IP** → volles 60/min-Budget, kein Fremdverbrauch | Du bist Sysadmin: Updates, Fail2ban, Backups |
-| **4 GB RAM** → Postgres + Node + Katalog-Refresh entspannt | Etwas Einrichtungsaufwand |
-| **40 GB SSD** → Katalog-DB inkl. Blau/Grün-Refresh kein Thema | |
-| **Docker** → exakt dasselbe Compose wie lokal | |
-| Postgres in der Version deiner Wahl, `pgvector` trivial | |
-| Günstiger als Uberspace | |
-| Standort Deutschland/Finnland, DSGVO unkritisch | |
+| You already have it, no new contract | **A shared outbound IP** → a rate-limit risk |
+| No server operation, no patching, no backup plan needed | **1.5 GB RAM, hard** — processes get killed |
+| TLS, domains, mail automatic | **10 GB of disk** — a catalogue refresh becomes gymnastics |
+| A German provider, GDPR uncritical | **No Docker** → no prod parity |
+| Postgres officially supported | Node max 22, Postgres not the newest major |
 
-**Stack:** Docker Compose + **Traefik** (TLS via Let's Encrypt, automatisch) oder **Caddy**
-(noch weniger Konfiguration). Watchtower oder ein simpler Deploy-Hook aus GitHub Actions.
-
-> **Für diese App objektiv der beste Kompromiss.** Billiger als Uberspace, dediziertes
-> Rate-Limit-Budget, dreifacher RAM, vierfacher Platz, volle Docker-Parität.
-> Der einzige echte Preis ist Systemadministration — bei einem Compose-Stack mit
-> `unattended-upgrades` und automatischen Backups überschaubar.
+**Verdict:** works without trouble for M0–M4. From **M5 (the catalogue DB) it gets tight** —
+a 6 GB schema inside a 10 GB quota, and during a refresh two schemas sit side by side for a
+while.
 
 ---
 
-### C · Homeserver + Cloudflare Tunnel
+### B · A small VPS — **the pragmatic recommendation**
 
-**~0 € Fixkosten** (plus Strom)
+**Hetzner CX22 · 2 vCPU · 4 GB RAM · 40 GB SSD · ~€4–5/month**
+(alternatives: Netcup RS 1000, Contabo, Scaleway Stardust, Hetzner CAX11/ARM ~€3.50)
 
 | ✅ | ❌ |
 |---|---|
-| **Hast du schon**, beliebig viel RAM und Platte | **Verfügbarkeit hängt an deinem Anschluss** — Freunde merken jeden Reboot |
-| **Katalog-Pipeline läuft direkt dort** — kein 3-GB-rsync mehr | Dynamische IP / CGNAT (Tunnel löst das) |
-| Cloudflare Tunnel: kein Port-Forwarding, keine Firewall-Löcher, TLS inklusive | Heimischer Upload ist der Flaschenhals |
-| Cloudflare Access davor → Zugang nur für eingeladene Mails, ohne eigenes Auth | Strom + Lärm + Backup-Verantwortung |
-| Perfekt für Staging und Mobile-Tests | ⚠️ **Cloudflare-ToS:** Tunnel für Web-Apps ist ok, exzessives Video/Streaming nicht — für uns unkritisch |
+| **Its own fixed IP** → the full 60/min budget, nobody else consuming it | You are the sysadmin: updates, fail2ban, backups |
+| **4 GB of RAM** → Postgres + Node + a catalogue refresh, relaxed | Some setup effort |
+| **40 GB SSD** → the catalogue DB including a blue/green refresh is a non-issue | |
+| **Docker** → exactly the same compose file as locally | |
+| Postgres in whatever version you like, `pgvector` trivial | |
+| Cheaper than Uberspace | |
+| Located in Germany/Finland, GDPR uncritical | |
 
-**Der unterschätzte Vorteil:** Die Katalog-Pipeline (10,4 GB Download, ~110 GB entpackt,
-stundenlanges Parsen) läuft dort **nativ**. Der ganze „lokal bauen, komprimieren, hochladen"-
-Tanz aus `08-DEPLOYMENT.md` §4 entfällt.
+**The stack:** Docker Compose + **Traefik** (TLS via Let's Encrypt, automatic) or **Caddy**
+(even less configuration). Watchtower or a simple deploy hook from GitHub Actions.
 
-**Verdikt:** Als **Zwischenlösung und Staging exzellent.** Als Dauerbetrieb für Jens und
-Freunde nur, wenn dir Verfügbarkeit egal ist. Deine eigene Einschätzung („nur als
-Zwischenlösung") teile ich.
+> **Objectively the best compromise for this app.** Cheaper than Uberspace, a dedicated
+> rate-limit budget, three times the RAM, four times the space, full Docker parity. The only
+> real price is systems administration — manageable for a compose stack with
+> `unattended-upgrades` and automatic backups.
+
+---
+
+### C · A home server + a Cloudflare tunnel
+
+**~€0 fixed cost** (plus electricity)
+
+| ✅ | ❌ |
+|---|---|
+| **You already have it**, as much RAM and disk as you like | **Availability depends on your connection** — friends notice every reboot |
+| **The catalogue pipeline runs right there** — no more 3 GB rsync | Dynamic IP / CGNAT (the tunnel solves that) |
+| Cloudflare Tunnel: no port forwarding, no holes in the firewall, TLS included | Domestic upload is the bottleneck |
+| Cloudflare Access in front → entry only for invited addresses, without auth of our own | Electricity + noise + backup responsibility |
+| Perfect for staging and mobile testing | ⚠️ **Cloudflare ToS:** a tunnel for web apps is fine, excessive video/streaming is not — uncritical for us |
+
+**The underrated advantage:** the catalogue pipeline (a 10.4 GB download, ~110 GB unpacked,
+hours of parsing) runs there **natively**. The whole "build locally, compress, upload" dance
+from `08-DEPLOYMENT.md` §4 falls away.
+
+**Verdict:** **excellent as an interim solution and for staging.** As permanent hosting for
+Jens and friends only if availability does not matter to you. I share your own assessment
+("only as an interim solution").
 
 ---
 
 ### D · Fly.io / Railway / Render
 
-**~5–15 €/Monat**
+**~€5–15/month**
 
-Git-Push-Deploy, managed Postgres, kein Sysadmin. Aber: **geteilte oder wechselnde
-ausgehende IPs** (dediziert kostet extra), Cold Starts, Volume-Limits, und der Preis
-steigt schnell sobald die Katalog-DB dazukommt.
+Git-push deploys, managed Postgres, no sysadmin. But: **shared or changing outbound IPs**
+(a dedicated one costs extra), cold starts, volume limits, and the price rises quickly once
+the catalogue DB arrives.
 
-**Verdikt:** Bequem, aber teuert sich für den Katalog-Anteil selbst ab — und der
-IP-Punkt trifft uns direkt.
+**Verdict:** convenient, but it prices itself out on the catalogue part — and the IP point
+hits us directly.
 
 ---
 
 ### E · Vercel / Netlify
 
-**❌ Ungeeignet.** Serverless-Timeouts (10–300 s) gegen einen Scan, der 2–4 Minuten
-läuft, plus geteilte ausgehende IPs. Bräuchte ohnehin einen externen Worker — dann kann
-man den auch gleich alles machen lassen.
+**❌ Unsuitable.** Serverless timeouts (10–300 s) against a scan that runs 2–4 minutes, plus
+shared outbound IPs. It would need an external worker anyway — at which point that worker may
+as well do everything.
 
 ---
 
-## 3. Vergleich
+## 3. Comparison
 
-| | Uberspace | **VPS (Hetzner)** | Homeserver | Fly.io | Vercel |
+| | Uberspace | **VPS (Hetzner)** | Home server | Fly.io | Vercel |
 |---|:---:|:---:|:---:|:---:|:---:|
-| Kosten/Monat | 5–10 € | **~4–5 €** | ~0 € | 5–15 € | 0–20 € |
-| **Eigene ausgehende IP** | ❌ | **✅** | ✅ | 💰 | ❌ |
-| RAM | 1,5 GB | **4 GB** | beliebig | 0,5–2 GB | – |
-| Disk | 10 GB | **40 GB** | beliebig | 3–10 GB | – |
+| Cost/month | €5–10 | **~€4–5** | ~€0 | €5–15 | €0–20 |
+| **Its own outbound IP** | ❌ | **✅** | ✅ | 💰 | ❌ |
+| RAM | 1.5 GB | **4 GB** | any | 0.5–2 GB | – |
+| Disk | 10 GB | **40 GB** | any | 3–10 GB | – |
 | Docker | ❌ | **✅** | ✅ | ✅ | ❌ |
-| Langläufer | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Verfügbarkeit | ✅✅ | ✅✅ | ⚠️ | ✅✅ | ✅✅ |
-| Wartungsaufwand | **keiner** | mittel | hoch | gering | keiner |
-| Katalog-DB (M5) | ⚠️ eng | **✅** | ✅✅ | ⚠️ teuer | ❌ |
+| Long-running | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Availability | ✅✅ | ✅✅ | ⚠️ | ✅✅ | ✅✅ |
+| Maintenance effort | **none** | medium | high | low | none |
+| Catalogue DB (M5) | ⚠️ tight | **✅** | ✅✅ | ⚠️ expensive | ❌ |
 
 ---
 
-## 4. Empfehlung
+## 4. Recommendation
 
-**Zweistufig, ohne sich früh festzulegen:**
+**In two stages, without committing early:**
 
 ```
-M0 – M4   Uberspace            Hast du. Reicht. Katalog-DB noch nicht relevant.
-          (+ Homeserver als Staging über Cloudflare Tunnel)
+M0 – M4   Uberspace            You have it. It is enough. The catalogue DB is not
+          (+ the home server    relevant yet.
+           as staging over a
+           Cloudflare tunnel)
 
-ab M5     Hetzner CX22         Wenn der Katalog kommt, wird Uberspace eng —
-          ~4,50 €/Monat        und der VPS ist dann sogar billiger.
+from M5   Hetzner CX22         When the catalogue arrives Uberspace gets tight —
+          ~€4.50/month         and the VPS is cheaper by then anyway.
 ```
 
-**Das kostet nichts an Flexibilität**, weil die App so gebaut wird, dass beides geht:
+**That costs nothing in flexibility**, because the app is built so both work:
 
-- **Docker-Image existiert von Tag 1** (`07-DEV-PIPELINE.md` §5) und ist auf jedem VPS
-  sofort lauffähig
-- **Nitros `.output` ist self-contained** → läuft ohne Docker direkt auf Uberspace
-- Der Deploy-Workflow bekommt einen `TARGET`-Schalter (`uberspace` | `docker`)
-- **Keine anbieterspezifischen Dienste.** Kein S3, kein managed Redis, keine Edge-Functions.
-  Nur Postgres und ein Node-Prozess.
+- **A Docker image exists from day one** (`07-DEV-PIPELINE.md` §5) and runs on any VPS
+  immediately
+- **Nitro's `.output` is self-contained** → runs without Docker directly on Uberspace
+- The deploy workflow gets a `TARGET` switch (`uberspace` | `docker`)
+- **No provider-specific services.** No S3, no managed Redis, no edge functions. Just
+  Postgres and a Node process.
 
-> **Die einzige Entscheidung, die man nicht vertagen kann:** keine Vendor-Lock-in-Dienste
-> einbauen. Das ist ohnehin schon so geplant.
+> **The one decision that cannot be postponed:** do not build in vendor-lock-in services.
+> That is the plan anyway.
 
 ---
 
-## 5. Wenn es der VPS wird — Zielbild
+## 5. If it becomes the VPS — the target picture
 
 ```yaml
-# compose.prod.yml (Skizze)
+# compose.prod.yml (sketch)
 services:
   traefik:
     image: traefik:v3
@@ -192,7 +194,7 @@ services:
     restart: unless-stopped
 
   db:
-    image: postgres:18          # bewusster Versionssprung ggü. Uberspace 15
+    image: postgres:18          # a deliberate version jump over Uberspace 15
     volumes: ["pgdata:/var/lib/postgresql/data"]
     environment: { POSTGRES_DB: fidelity, … }
     healthcheck: { test: ["CMD-SHELL","pg_isready -U fidelity"], interval: 5s }
@@ -201,29 +203,28 @@ services:
 volumes: { pgdata: {}, letsencrypt: {} }
 ```
 
-**Deploy:** GitHub Actions baut das Image, pusht nach GHCR (OIDC, keine Langzeit-Secrets),
-SSH-Hook auf dem VPS zieht und startet neu. Kein rsync, keine Symlink-Releases, kein
-Migrations-Timing-Problem — das Image trägt seine Migrationen mit.
+**Deploy:** GitHub Actions builds the image, pushes to GHCR (OIDC, no long-lived secrets),
+an SSH hook on the VPS pulls and restarts. No rsync, no symlink releases, no migration
+timing problem — the image carries its migrations with it.
 
-**Betrieb minimal halten:**
-`unattended-upgrades`, UFW (nur 22/80/443), SSH nur mit Key, Fail2ban,
-`pg_dump` per Cron nach `/backups` **und** per rsync auf den Homeserver oder eine
-Hetzner Storage Box (~3 €/Monat für 1 TB).
+**Keep operations minimal:**
+`unattended-upgrades`, UFW (only 22/80/443), SSH by key only, fail2ban, `pg_dump` by cron to
+`/backups` **and** by rsync to the home server or a Hetzner Storage Box (~€3/month for 1 TB).
 
 ---
 
-## 6. Offene Punkte für die Homeserver-Session
+## 6. Open points for the home-server session
 
-Wenn du zuhause bist, schau ich mir an:
+When you are at home, I will look at:
 
-- [ ] Hardware: CPU, RAM, Platte, freier Platz
-- [ ] OS und ob schon Docker läuft
-- [ ] Bestehender Reverse Proxy (Traefik? Nginx Proxy Manager? Caddy?)
-- [ ] Cloudflare-Setup: Domain, Tunnel schon aktiv?
-- [ ] Anschluss: Upload-Bandbreite, feste IP oder CGNAT
-- [ ] Was läuft schon drauf und welche Ports sind belegt
-- [ ] Backup-Situation
-- [ ] USV vorhanden? (bestimmt, ob „Zwischenlösung" oder „Dauerlösung")
+- [ ] Hardware: CPU, RAM, disk, free space
+- [ ] The OS and whether Docker is already running
+- [ ] Any existing reverse proxy (Traefik? Nginx Proxy Manager? Caddy?)
+- [ ] The Cloudflare setup: domain, tunnel already active?
+- [ ] The connection: upload bandwidth, fixed IP or CGNAT
+- [ ] What is already running on it and which ports are taken
+- [ ] The backup situation
+- [ ] Is there a UPS? (which decides "interim" vs. "permanent")
 
-Ergebnis: Entscheidung zwischen **Homeserver dauerhaft**, **Homeserver als Staging +
-VPS produktiv**, oder **alles auf Uberspace bis M5**.
+Outcome: a decision between **the home server permanently**, **the home server as staging +
+a VPS in production**, or **everything on Uberspace until M5**.

@@ -1,20 +1,20 @@
-# 07 – Entwicklungs-Pipeline
+# 07 – Development pipeline
 
 ---
 
 ## 1. Repository
 
 ```
-discogs-hifi/                    (GitHub: mister-honk/fidelity, privat)
+discogs-hifi/                    (GitHub: mister-honk/fidelity, private)
 ├── .github/workflows/
 │   ├── ci.yml
 │   ├── release.yml
 │   └── deploy.yml
 ├── app/                         # Nuxt: pages, components, composables, layouts
-├── worker/                      # Web Worker: discogs/, match/, horizon/
-├── db/                          # IndexedDB-Schema und Zugriff via idb
-├── shared/                      # Typen + postMessage-Protokoll
-├── tokens/                      # DTCG Design Tokens
+├── worker/                      # Web worker: discogs/, match/, horizon/
+├── db/                          # The IndexedDB schema and access via idb
+├── shared/                      # Types + the postMessage protocol
+├── tokens/                      # DTCG design tokens
 ├── tests/{unit,e2e,fixtures}/
 ├── docs/
 ├── CHANGELOG.md
@@ -22,8 +22,8 @@ discogs-hifi/                    (GitHub: mister-honk/fidelity, privat)
 └── release-please-config.json
 ```
 
-**Branching:** Trunk-based. `main` ist immer deploybar. Feature-Branches
-`feat/dig-scan`, kurzlebig, Squash-Merge.
+**Branching:** trunk-based. `main` is always deployable. Feature branches
+`feat/dig-scan`, short-lived, squash-merged.
 
 ---
 
@@ -35,25 +35,25 @@ discogs-hifi/                    (GitHub: mister-honk/fidelity, privat)
 feat(dig): add incremental matching during inventory scan
 fix(discogs): handle both legacy and FastAPI error shapes
 perf(match): index taste_name on normalized name
-docs(api): document the 10k pagination wall
+docs(discogs): document the 10k pagination wall
 chore(deps): bump nuxt to 4.5.2
 ```
 
 **Types → Keep a Changelog:**
 
-| Type | CHANGELOG-Sektion | Release |
+| Type | CHANGELOG section | Release |
 |---|---|---|
 | `feat` | Added | minor |
 | `fix` | Fixed | patch |
 | `perf` | Changed | patch |
 | `refactor` | Changed | patch |
-| `docs`, `test`, `chore`, `ci`, `style` | – | keiner |
+| `docs`, `test`, `chore`, `ci`, `style` | – | none |
 | `feat!` / `BREAKING CHANGE:` | Changed + ⚠️ | **major** |
 
 **Scopes:** `dig`, `match`, `discogs`, `auth`, `catalog`, `basket`, `ui`, `db`, `deploy`
 
-Erzwungen durch `commitlint` via `lefthook` (nicht `husky` – dessen letztes Release ist
-von November 2024).
+Enforced by `commitlint` via `lefthook` (not `husky` — whose last release is from November
+2024).
 
 ```yaml
 # lefthook.yml
@@ -73,13 +73,13 @@ pre-push:
 
 ---
 
-## 3. Versionierung & Changelog
+## 3. Versioning & changelog
 
-**`release-please`**, nicht `semantic-release`.
+**`release-please`**, not `semantic-release`.
 
-Grund: release-please öffnet einen **Release-PR**, der Changelog und Version sammelt und den
-man vor dem Merge redigieren kann. semantic-release feuert sofort beim Merge – richtig für
-Libraries, falsch für eine App, bei der man ein menschliches Gate will.
+The reason: release-please opens a **release PR** that collects the changelog and the
+version and can be edited before merging. semantic-release fires immediately on merge —
+right for libraries, wrong for an app where you want a human gate.
 
 ```jsonc
 // release-please-config.json
@@ -105,23 +105,22 @@ Libraries, falsch für eine App, bei der man ein menschliches Gate will.
 }
 ```
 
-`CHANGELOG.md` folgt **Keep a Changelog 1.1.0**. Handgeschriebene Ergänzungen im
-Release-PR sind ausdrücklich erwünscht – generierte Changelogs sind vollständig, aber
-selten verständlich.
+`CHANGELOG.md` follows **Keep a Changelog 1.1.0**. Hand-written additions in the release PR
+are expressly welcome — generated changelogs are complete but rarely comprehensible.
 
-**Tags:** `v0.3.0`. Docker-Images bekommen **beide** Tags: SemVer und Commit-SHA.
+**Tags:** `v0.3.0`. Docker images get **both** tags: the SemVer one and the commit SHA.
 
 ---
 
 ## 4. CI
 
 ```yaml
-# .github/workflows/ci.yml (Auszug)
+# .github/workflows/ci.yml (extract)
 name: CI
 on: { pull_request: {}, push: { branches: [main] } }
 
 permissions:
-  contents: read              # least privilege, workflow-weit
+  contents: read              # least privilege, workflow-wide
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -132,8 +131,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy: { matrix: { task: [lint, typecheck, test:unit] } }
     steps:
-      # ⚠️ Alle Third-Party-Actions auf vollen Commit-SHA pinnen, nicht auf Tags.
-      #    GitHub unterstützt seit Aug 2025 Policy-Enforcement dafür – einschalten.
+      # ⚠️ Pin all third-party actions to a full commit SHA, not to a tag.
+      #    GitHub has supported policy enforcement for this since Aug 2025 –
+      #    turn it on.
       - uses: actions/checkout@<SHA>          # v5
       - uses: pnpm/action-setup@<SHA>         # v4
       - uses: actions/setup-node@<SHA>        # v5
@@ -150,89 +150,89 @@ jobs:
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium webkit
-      - run: pnpm test:e2e        # inkl. @axe-core/playwright
-      - run: pnpm size            # Bundle-Budget
+      - run: pnpm test:e2e        # including @axe-core/playwright
+      - run: pnpm size            # the bundle budget
 ```
 
-> ⚠️ **WebKit im CI installieren.** Die App ist eine PWA, deren schwächstes Ziel iOS Safari
-> ist. Nur Chromium zu testen heißt, den relevanten Browser nicht zu testen.
+> ⚠️ **Install WebKit in CI.** The app is a PWA whose weakest target is iOS Safari. Testing
+> only Chromium means not testing the browser that matters.
 
-**Discogs-API im CI:** niemals live aufrufen. Aufgezeichnete Fixtures (`tests/fixtures/`)
-plus ein MSW-artiger Interceptor. Ein einzelner echter Smoke-Test läuft **nightly**, nicht
-pro PR – sonst brennt man das Rate-Limit für Merges.
+**The Discogs API in CI:** never call it live. Recorded fixtures (`tests/fixtures/`) plus an
+MSW-style interceptor. A single real smoke test runs **nightly**, not per PR — otherwise you
+burn the rate limit on merges.
 
 ---
 
-## 5. Lokale Entwicklung
+## 5. Local development
 
 ```bash
 pnpm install
 pnpm dev            # http://localhost:3000
 ```
 
-**Kein Docker, keine Datenbank, kein Compose-Stack.** Es gibt nichts zu orchestrieren.
-Man braucht nur einen Personal Access Token aus `discogs.com/settings/developers`.
+**No Docker, no database, no compose stack.** There is nothing to orchestrate. All you need
+is a Personal Access Token from `discogs.com/settings/developers`.
 
-### Mobile Tests
+### Mobile testing
 
-PWA-Installation und Service Worker brauchen HTTPS:
-
-```bash
-cloudflared tunnel --url http://localhost:3000     # schnelle Iteration
-```
-
-Für alles, was einen **stabilen Origin** braucht (IndexedDB und Service Worker hängen
-am Origin!), lieber die Staging-Domain nutzen – ein wechselnder Tunnel-Hostname wirft
-bei jedem Start alle lokalen Daten weg. Siehe `08-DEPLOYMENT.md` §4.
-
-### Bundle-Budget
+PWA installation and the service worker need HTTPS:
 
 ```bash
-pnpm size          # size-limit, bricht bei Überschreitung
+cloudflared tunnel --url http://localhost:3000     # for fast iteration
 ```
 
-Budget und Begründung: `12-RESSOURCEN-BUDGET.md` §2. Läuft auch im CI.
+For anything that needs a **stable origin** (IndexedDB and the service worker hang off the
+origin!), use the staging domain instead — a changing tunnel hostname throws away all local
+data on every start. See `08-DEPLOYMENT.md` §4.
+
+### The bundle budget
+
+```bash
+pnpm size          # size-limit, fails when exceeded
+```
+
+Budget and reasoning: `12-RESSOURCEN-BUDGET.md` §2. Runs in CI too.
 
 ## 6. Testing
 
-| Ebene | Werkzeug | Was |
+| Level | Tool | What |
 |---|---|---|
-| Unit | Vitest 4 | **Scoring-Engine** (reine Funktion → Golden Files), Normalisierung, Drosselung, Versandstaffel-Mathematik |
-| Component | Vitest Browser Mode (Provider: Playwright) | `MatchCard`, `ScanProgress`, `CatalogRunGrid` |
-| Integration | Vitest + fake-indexeddb | Stores, Migrationen, Horizont-Packung |
-| Performance | Vitest Benchmark | 20.000 Listings scoren < 250 ms |
-| E2E | Playwright | Login-Flow (gemockt), Dig-Ablauf, Korb, **Start ohne Netz** |
-| A11y | `@axe-core/playwright` | Jeder E2E-Screen |
-| Contract | Fixtures aus echten API-Antworten | Discogs-Antwortformen, **beide Fehlerformate** |
+| Unit | Vitest 4 | **The scoring engine** (a pure function → golden files), normalisation, throttling, shipping-tier arithmetic |
+| Component | Vitest browser mode (provider: Playwright) | `MatchCard`, `ScanProgress`, `CatalogRunGrid` |
+| Integration | Vitest + fake-indexeddb | Stores, migrations, horizon packing |
+| Performance | Vitest benchmark | Score 20,000 listings in < 250 ms |
+| E2E | Playwright | Login flow (mocked), the dig run, the basket, **starting with no network** |
+| A11y | `@axe-core/playwright` | Every E2E screen |
+| Contract | Fixtures from real API responses | Discogs response shapes, **both error formats** |
 
-⚠️ **Der Offline-Test läuft nur in Chromium.** Playwrights WebKit hat zwar einen
-Service Worker, bricht aber beim Neuladen mit gekappter Verbindung browser-intern ab
-(„WebKit encountered an internal error") – vor dem ersten Byte App-Code. Der Test
-überspringt sich dort mit dieser Begründung, statt auf iOS Safaris Rechnung grün zu sein.
-**iOS Safari bleibt also von Hand zu prüfen**, und es ist das Ziel, auf das es ankommt.
+⚠️ **The offline test runs in Chromium only.** Playwright's WebKit does have a service
+worker but aborts internally on a reload with the connection cut ("WebKit encountered an
+internal error") — before the first byte of app code. The test skips itself there with that
+reason rather than being green on iOS Safari's account. **So iOS Safari has to be checked by
+hand**, and it is the target that matters.
 
-Gegengeprüft mit einer Negativkontrolle: Worker abgemeldet und Caches geleert, und die
-App startet offline nicht mehr. Der Test misst damit den Service Worker und nicht den
-HTTP-Cache des Browsers.
+Cross-checked with a negative control: unregister the worker, clear the caches, and the app
+no longer starts offline. So the test measures the service worker and not the browser's HTTP
+cache.
 
-**Der wichtigste Test des Projekts:**
+**The project's most important test:**
 
 ```
-tests/fixtures/inventory-*.json  (3 eingefrorene Händlerinventare)
-tests/fixtures/collection-*.json (Martins + Jens' Sammlung, anonymisiert)
-tests/__snapshots__/scoring.snap (erwartete Top-20 mit Scores)
+tests/fixtures/inventory-*.json  (3 frozen dealer inventories)
+tests/fixtures/collection-*.json (Martin's + Jens's collections, anonymised)
+tests/__snapshots__/scoring.snap (the expected top 20 with scores)
 ```
 
-Jede Gewichtsänderung zeigt sofort, was sie mit der Liste macht. Ohne das ist die
-Score-Entwicklung Blindflug.
+Every change to a weight shows immediately what it does to the list. Without that, score
+development is flying blind.
 
 ---
 
-## 7. Abhängigkeiten
+## 7. Dependencies
 
-**Renovate**, nicht Dependabot: Gruppierung (alle `@nuxt/*` in einem PR), Automerge für
-Patch + devDependencies nach grünem CI, Zeitfenster-Batching, und – wichtig – es bumpt auch
-die **gepinnten Action-SHAs** samt Kommentar-Tag.
+**Renovate**, not Dependabot: grouping (all `@nuxt/*` in one PR), automerge for patches and
+devDependencies after green CI, time-window batching, and — importantly — it also bumps the
+**pinned action SHAs** together with their comment tag.
 
 ```jsonc
 // renovate.json
@@ -242,23 +242,23 @@ die **gepinnten Action-SHAs** samt Kommentar-Tag.
   "packageRules": [
     { "matchUpdateTypes": ["patch"], "matchDepTypes": ["devDependencies"], "automerge": true },
     { "matchPackagePatterns": ["^@nuxt/", "^nuxt$"], "groupName": "nuxt" },
-    { "matchPackagePatterns": ["^@vite-pwa"], "automerge": false }  // SW-Änderungen prüfen
+    { "matchPackagePatterns": ["^@vite-pwa"], "automerge": false }  // check SW changes
   ]
 }
 ```
 
-> ⚠️ **PWA-Updates nie automergen.** Ein kaputter Service Worker ist der einzige Fehler,
-> den man nicht per Deploy zurücknehmen kann – alte Clients halten ihn fest.
+> ⚠️ **Never automerge PWA updates.** A broken service worker is the one failure you cannot
+> take back with a deploy — old clients hold on to it.
 
 ---
 
 ## 8. Observability
 
-**Optional** – und bewusst sparsam, weil jedes Byte beim Nutzer landet:
+**Optional** — and deliberately sparing, because every byte lands on the user's device:
 
-- **Sentry** `@sentry/nuxt`, **ohne Session Replay**, `sendDefaultPii: false`
-- ⚠️ **`beforeSend`-Hook, der den Personal Access Token herausfiltert.** Ein Token in
-  einem Fehler-Report wäre der schlimmste denkbare Bug dieser App:
+- **Sentry** `@sentry/nuxt`, **without session replay**, `sendDefaultPii: false`
+- ⚠️ **A `beforeSend` hook that filters out the Personal Access Token.** A token in an error
+  report would be the worst imaginable bug in this app:
 
 ```ts
 beforeSend(event) {
@@ -267,8 +267,8 @@ beforeSend(event) {
 }
 ```
 
-- **Kein OpenTelemetry**, kein Health-Endpunkt, kein strukturiertes Server-Logging –
-  es gibt keinen Server.
-- **In-App-Diagnose statt Monitoring:** ein Debug-Screen zeigt Anzahl Requests, 429er,
-  Dauer der letzten Digs und Größe der IndexedDB. Das reicht für ein Freundes-Tool und
-  kostet niemanden Bandbreite.
+- **No OpenTelemetry**, no health endpoint, no structured server logging — there is no
+  server.
+- **In-app diagnostics instead of monitoring:** a debug screen shows the number of requests,
+  429s, the duration of recent digs and the size of IndexedDB. That is enough for a tool
+  among friends and costs nobody any bandwidth.
