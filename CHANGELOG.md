@@ -9,6 +9,13 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.25.1](https://github.com/misterhonk/fidelity/compare/v0.25.0...v0.25.1) (2026-09-11)
+
+
+### Fixed
+
+* **deploy:** die Hub-Prüfung hat nichts geprüft und grün gemeldet ([9ecb222](https://github.com/misterhonk/fidelity/commit/9ecb222abca9875e4aa78746a9c888448d6c625c))
+
 ## [0.25.0](https://github.com/misterhonk/fidelity/compare/v0.24.0...v0.25.0) (2026-09-11)
 
 Die Ausgabe, in der die App drei Fragen beantwortet, die Discogs nicht beantwortet:
