@@ -1063,6 +1063,8 @@ export const handlers: HandlerMap = {
     return (await db.getAll('digs')).sort((a, b) => b.id.localeCompare(a.id))
   },
 
+  'dig.stands': async () => (await import('./stands')).recentStands(),
+
   'dig.latest': async () => {
     const db = await openFidelityDb()
     const digs = await db.getAll('digs')

@@ -1054,6 +1054,21 @@ export interface WatchPoint {
  * truth about whether there is "something new", but the same number the stack
  * itself works through.
  */
+/**
+ * One stand at a record fair (M19 #4): the newest dig of a shop scanned in
+ * the last day, expired or not. See `worker/stands.ts`.
+ */
+export interface Stand {
+  dealer: string
+  displayName: string
+  avatarUrl?: string
+  digId: string
+  scannedAt: number
+  expiresAt: number
+  matches: number
+  status: DigStatus
+}
+
 export interface StackShop {
   dealer: string
   displayName: string

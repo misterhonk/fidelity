@@ -554,6 +554,19 @@ const en = {
      */
     youWant: 'On your wantlist',
     youOwn: 'Already yours',
+    /*
+     * A record fair (M19 #4): the shops scanned in the last day, one list per
+     * stand or all of them at once. Every basket stays its own parcel — that
+     * was true before and is what makes "all at once" safe.
+     */
+    stands: {
+      all: (n: number) => `All ${n} stands`,
+      chip: (name: string, finds: string) => `${name} · ${finds}`,
+      line: (stands: number, finds: string) => `${stands} stands · ${finds}`,
+      lead: 'The shops you scanned in the last day. One list per stand, or all of them at once — every basket stays its own parcel.',
+      interrupted: (dealer: string, scanned: string, total: string) =>
+        `${dealer}: ${scanned} of ${total} were through — what is here from that stand is not all of it.`,
+    },
   },
 
   /** Where the shop list comes from. */

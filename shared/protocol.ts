@@ -55,6 +55,7 @@ import type {
   Signal,
   SortDirection,
   StackShop,
+  Stand,
   StockRow,
   TasteProfile,
   ValuePoint,
@@ -361,6 +362,11 @@ export interface WorkerContract {
     result: { refreshed: number; sold: number; requests: number; gone: number }
   }
   'dig.latest': { params: undefined; progress: never; result: DigWithMatches | null }
+  /**
+   * The stands: the newest dig per shop from the last day, expired or not
+   * (M19 #4). What the in-store screen offers at a record fair. No request.
+   */
+  'dig.stands': { params: undefined; progress: never; result: Stand[] }
   /** An interrupted dig still inside its six-hour window, if there is one. */
   'dig.resumable': { params: undefined; progress: never; result: Dig | null }
   'dig.resume': { params: { digId: string }; progress: ScanProgress; result: Dig }

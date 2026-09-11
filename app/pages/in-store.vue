@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { looksLikeBarcode } from '~~/worker/identify'
 import type { DigWithMatches } from '#shared/protocol'
-import type { ShelfHit, ShelfResult, Identified } from '#shared/types'
+import type { ShelfHit, ShelfResult, Identified, Match, Stand } from '#shared/types'
 import { reasonFor } from '~/i18n/reason'
 import { useDigMessages } from '~/i18n/dig'
 
@@ -18,11 +18,73 @@ const { online } = useOnline()
 const { verdicts, judge, failure: judgeFailure, load: loadFeedback } = useFeedback()
 const { contains, toggle, failure: basketFailure, load: loadBasket } = useBasket()
 
+const route = useRoute()
+const router = useRouter()
+
+/*
+ * A record fair (M19 #4).
+ *
+ * The scans happen at home in the morning; the fair is several stands in one
+ * afternoon. So this screen offers every shop scanned in the last day — one
+ * list per stand, or all of them as one list with the stand named on each
+ * row. Which one is in the address (`?stand=`), so a reload in a basement
+ * with no signal lands where you were. With one shop scanned there is no
+ * choice to make and nothing extra on the screen.
+ */
+const stands = shallowRef<Stand[]>([])
 // Shallow: the in-store screen judges records too, and a proxy cannot
 // cross postMessage. Same reason as the dig screen.
-const result = shallowRef<DigWithMatches | null>(null)
+const results = shallowRef<DigWithMatches[]>([])
 const loading = ref(true)
 const query = ref('')
+
+const chosen = computed(() => {
+  const value = route.query.stand
+  return typeof value === 'string' ? value : ''
+})
+const fair = computed(() => stands.value.length > 1)
+const allMode = computed(() => fair.value && chosen.value === 'all')
+
+/** Which stands are on the screen: all of them, the one asked for, or the newest. */
+const showing = computed<Stand[]>(() => {
+  if (stands.value.length === 0) return []
+  if (allMode.value) return stands.value
+  const asked = stands.value.find((stand) => stand.digId === chosen.value)
+  return [asked ?? stands.value[0]!]
+})
+
+function choose(stand: string) {
+  // replace, not push: picking a stand is not a navigation step.
+  void router.replace({ query: { ...route.query, stand } })
+}
+
+async function loadShown() {
+  if (stands.value.length === 0) {
+    // No stand in the last day: the newest dig there is, as this screen always did.
+    const latest = await call('dig.latest', undefined)
+    results.value = latest ? [latest] : []
+    return
+  }
+  const loaded = await Promise.all(
+    showing.value.map((stand) => call('dig.get', { digId: stand.digId })),
+  )
+  results.value = loaded.filter((entry): entry is DigWithMatches => entry !== null)
+}
+
+const single = computed(() => (results.value.length === 1 ? results.value[0]! : null))
+
+/** The stand a row belongs to, for the list that shows several. */
+function shopOf(match: Match): string {
+  const stand = stands.value.find((entry) => entry.digId === match.digId)
+  return (
+    stand?.displayName ?? results.value.find((r) => r.dig.id === match.digId)?.dig.dealer ?? ''
+  )
+}
+
+/** The digs on screen that stopped halfway — named, because there may be several. */
+const interrupted = computed(() =>
+  results.value.filter((r) => r.dig.status !== 'done' && r.dig.status !== 'expired'),
+)
 
 /*
  * Scanning the record in your hand (M13).
@@ -103,12 +165,14 @@ async function lookUp(barcode: string) {
 
 onMounted(async () => {
   try {
-    result.value = await call('dig.latest', undefined)
-    await Promise.all([loadFeedback(), loadBasket()])
+    stands.value = await call('dig.stands', undefined)
+    await Promise.all([loadShown(), loadFeedback(), loadBasket()])
   } finally {
     loading.value = false
   }
 })
+
+watch(chosen, () => void loadShown())
 
 /**
  * Everything, by score, with the shortlist folded in.
@@ -118,7 +182,9 @@ onMounted(async () => {
  * control between you and that answer is in the way.
  */
 const matches = computed(() => {
-  const all = result.value?.matches ?? []
+  const all = results.value.flatMap((entry) => entry.matches)
+  // Several stands as one list: by score, the way each list already is.
+  if (results.value.length > 1) all.sort((a, b) => b.score - a.score)
   const needle = query.value.trim()
   return needle ? all.filter((match) => textMatches(match, needle)) : all
 })
@@ -171,10 +237,7 @@ function formats(hit: ShelfHit): string {
  * out of the script through `{{ }}`.
  */
 
-const expired = computed(() => {
-  const dig = result.value?.dig
-  return dig ? Date.now() > dig.expiresAt : false
-})
+const expired = computed(() => results.value.some((entry) => Date.now() > entry.dig.expiresAt))
 </script>
 
 <template>
@@ -204,9 +267,54 @@ const expired = computed(() => {
       <p v-if="loading" class="text-fid-base text-fid-text-muted">{{ m.common.loading }}</p>
 
       <template v-else>
-        <p v-if="result" class="text-fid-sm text-fid-text-muted">
-          {{ result.dig.dealer }} ·
-          <span class="fid-num">{{ m.inStore.finds(result.matches.length) }}</span
+        <!--
+          The stands, where there are several: a chip per shop and one for all
+          of them. 44 px each — this is the screen for a hand with a record in
+          it. Nothing of it when only one shop was scanned.
+        -->
+        <div v-if="fair" class="flex flex-col gap-2">
+          <p class="text-fid-xs text-fid-text-muted">{{ m.inStore.stands.lead }}</p>
+          <div class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+            <button
+              type="button"
+              :aria-pressed="allMode"
+              class="fid-action min-h-11 shrink-0 rounded-fid-sm border px-4 text-fid-sm"
+              :class="
+                allMode
+                  ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
+                  : 'border-fid-border text-fid-text-muted'
+              "
+              @click="choose('all')"
+            >
+              {{ m.inStore.stands.all(stands.length) }}
+            </button>
+            <button
+              v-for="stand in stands"
+              :key="stand.digId"
+              type="button"
+              :aria-pressed="!allMode && showing[0]?.digId === stand.digId"
+              class="fid-action min-h-11 shrink-0 rounded-fid-sm border px-4 text-fid-sm"
+              :class="
+                !allMode && showing[0]?.digId === stand.digId
+                  ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
+                  : 'border-fid-border text-fid-text-muted'
+              "
+              @click="choose(stand.digId)"
+            >
+              {{ m.inStore.stands.chip(stand.displayName, m.inStore.finds(stand.matches)) }}
+            </button>
+          </div>
+        </div>
+
+        <p v-if="single" class="text-fid-sm text-fid-text-muted">
+          {{ single.dig.dealer }} ·
+          <span class="fid-num">{{ m.inStore.finds(single.matches.length) }}</span
+          ><template v-if="!online"> · {{ m.inStore.offline }}</template>
+        </p>
+        <p v-else-if="allMode" class="text-fid-sm text-fid-text-muted">
+          <span class="fid-num">{{
+            m.inStore.stands.line(results.length, m.inStore.finds(matches.length))
+          }}</span
           ><template v-if="!online"> · {{ m.inStore.offline }}</template>
         </p>
 
@@ -223,15 +331,22 @@ const expired = computed(() => {
           this one is the expired dig's; this one is for the scan that stopped.
         -->
         <p
-          v-if="result && result.dig.status !== 'done' && result.dig.status !== 'expired'"
+          v-for="entry in interrupted"
+          :key="entry.dig.id"
           role="status"
           class="text-fid-sm text-fid-sig-gap"
         >
           {{
-            m.inStore.interrupted(
-              count(result.dig.listingsScanned),
-              count(result.dig.listingsTotal),
-            )
+            single
+              ? m.inStore.interrupted(
+                  count(entry.dig.listingsScanned),
+                  count(entry.dig.listingsTotal),
+                )
+              : m.inStore.stands.interrupted(
+                  entry.dig.dealer,
+                  count(entry.dig.listingsScanned),
+                  count(entry.dig.listingsTotal),
+                )
           }}
         </p>
         <!--
@@ -239,7 +354,7 @@ const expired = computed(() => {
           "do I have this already?" does not, and that is the question somebody
           actually has standing in a shop.
         -->
-        <p v-else-if="!result" class="text-fid-sm text-fid-text-muted">
+        <p v-if="results.length === 0" class="text-fid-sm text-fid-text-muted">
           {{ m.inStore.noDig }}
         </p>
 
@@ -412,7 +527,7 @@ const expired = computed(() => {
 
         <p v-if="nothingAnywhere" class="text-fid-base text-fid-text-muted">
           {{ m.inStore.notInLibrary
-          }}<template v-if="result"> {{ m.inStore.norLastDig }}</template
+          }}<template v-if="results.length > 0"> {{ m.inStore.norLastDig }}</template
           >.
         </p>
         <p
@@ -445,6 +560,10 @@ const expired = computed(() => {
                 {{ match.artist }} – {{ match.title }}
               </span>
               <span class="flex items-baseline gap-2">
+                <!-- Which stand, when the list is all of them. -->
+                <span v-if="allMode" class="shrink-0 text-fid-xs text-fid-text">
+                  {{ shopOf(match) }}
+                </span>
                 <span
                   v-if="money(match.price, match.currency)"
                   class="fid-num shrink-0 text-fid-sm text-fid-text-muted"

@@ -45,7 +45,8 @@ would add — sortable, and with a ceiling that counts it.
 and where the gaps are — by label, decade and style.
 
 **In the shop.** With the record in your hand: "do I have this already?" Answered from the
-device, with no signal. Record shops are basements.
+device, with no signal. Record shops are basements. At a record fair, every shop you scanned
+in the last day is one tap away, or all of them as one list.
 
 **Shops.** What a dealer actually stocks, how well they fit you, and whether their stock
 has moved since your last visit.

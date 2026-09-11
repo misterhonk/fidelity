@@ -392,6 +392,14 @@ const de: Messages = {
     pressings: (n: number) => `${n} Pressungen`,
     youWant: 'Suchst du',
     youOwn: 'Hast du',
+    stands: {
+      all: (n) => `Alle ${n} Stände`,
+      chip: (name, finds) => `${name} · ${finds}`,
+      line: (stands, finds) => `${stands} Stände · ${finds}`,
+      lead: 'Die Läden, die du im letzten Tag gescannt hast. Eine Liste pro Stand, oder alle auf einmal – jeder Korb bleibt sein eigenes Paket.',
+      interrupted: (dealer, scanned, total) =>
+        `${dealer}: ${scanned} von ${total} waren durch – was von diesem Stand hier steht, ist nicht alles.`,
+    },
   },
 
   discovery: {
