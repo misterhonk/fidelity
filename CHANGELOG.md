@@ -11,6 +11,17 @@ Für eine App bedeutet SemVer:
 
 ## [0.35.0](https://github.com/misterhonk/fidelity/compare/v0.34.0...v0.35.0) (2026-09-11)
 
+**The lexicon: "Miss Dinky" is Dinky.**
+
+The inventory hands over one string per listing and no id, and the string is often not
+the name on the shelf. The horizon now fetches, with each artist's discography, every
+other name they go by — name variations, aliases, members and groups, one request per
+artist — and the matching cascade reads the listing against all of them. An alias counts
+as the artist; a member or a group is a related act and never more certain than a
+containment match. The sentence says under which name a record was found: "Holger Czukay
+is part of Can — you have 5 records by Can, not this one." Artists expanded before today
+pick up their names through the daily revalidation slice, a few a day.
+
 
 ### Added
 
