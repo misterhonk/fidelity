@@ -9,6 +9,22 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.41.0](https://github.com/misterhonk/fidelity/compare/v0.40.0...v0.41.0) (2026-09-11)
+
+**In the shop, the album counts — not only the pressing.**
+
+Type a barcode or a run-out and the answer used to know two things: you have this pressing,
+or it is on your wantlist. Measured with a real wantlist, it said "not on your wantlist"
+about a record whose album stood on it three lines below, in a different pressing. Every
+search row carries the album's master, so the answer has four steps now: you have this
+pressing, you have the album in another pressing, this pressing is on your wantlist,
+another pressing of the album is. No request — both stores already knew their masters.
+
+
+### Added
+
+* **dig:** in the shop, the album in another pressing counts ([fa82688](https://github.com/misterhonk/fidelity/commit/fa8268839c292da685e76e6d3671b89d6b401175))
+
 ## [0.40.0](https://github.com/misterhonk/fidelity/compare/v0.39.0...v0.40.0) (2026-09-11)
 
 **Only from Germany, or from the EU.**
