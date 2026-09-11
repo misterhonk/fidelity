@@ -9,6 +9,39 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.27.0](https://github.com/misterhonk/fidelity/compare/v0.26.0...v0.27.0) (2026-09-11)
+
+The release where the app stops moving under you — and where these notes start being
+readable from inside it.
+
+**One measure, everywhere.** Clicking through the five collection tabs used to shift the
+whole page sideways every time: five tabs, four widths (110, 90, 80 and 48rem), all of them
+centred. The navigation bar sat at 48rem and so lined up with the content on no screen at
+all — six different left edges across thirteen screens. A width belongs to an *area*, not to
+a page; two views of the same collection should not be a house move. Measured at 1800 px
+afterwards: thirteen screens, one left edge.
+
+What has to stay narrow — a basket, a privacy page — now keeps its measure **inside** the
+shared container and sits against the left edge instead of floating in the middle. That is
+the visible trade: a receipt no longer centres itself, so the edge holds still.
+
+**And the version number in the footer is a link now.** It leads to what changed in the
+build you are running — this paragraph, in fact. The commit lists below stay in the
+repository, where they were written for.
+
+> From this release the notes are written in English. Up to 0.26.0 they came from this
+> project's own commits and are German; they are shown as they were written rather than
+> rewritten after the fact.
+
+### Added
+
+* **ui:** was in dieser Ausgabe neu ist, in der App nachlesbar ([760a11e](https://github.com/misterhonk/fidelity/commit/760a11e290493ff315cf3cf946df1e10bccf25d4))
+
+
+### Fixed
+
+* **ui:** ein Maß für die ganze App, statt eines je Seite ([28a4ef8](https://github.com/misterhonk/fidelity/commit/28a4ef8e2fbe28054772974a09ea1f748ec79411))
+
 ## [0.26.0](https://github.com/misterhonk/fidelity/compare/v0.25.1...v0.26.0) (2026-09-11)
 
 Die Ausgabe, in der die App **sagt, was sie tut** — und zugibt, was sie nicht tun kann.
