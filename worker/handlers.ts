@@ -57,6 +57,7 @@ const STORES = [
   'basket',
   'feedback',
   'covers',
+  'valueHistory',
 ] as const
 
 /** The wire shape: a plain object, because a Map does not survive postMessage. */
@@ -771,6 +772,8 @@ export const handlers: HandlerMap = {
     const { getMeta } = await import('~~/db/meta')
     return (await getMeta('collectionValue')) ?? null
   },
+
+  'collection.valueHistory': async () => (await import('./collection/value')).valueHistory(),
 
   'collection.fields': async ({ instanceId }) => {
     const [{ collectionFields }, { fieldValuesFor }] = await Promise.all([

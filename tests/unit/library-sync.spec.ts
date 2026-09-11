@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { getSyncState } from '~~/db/meta'
+import { getSyncState, updateSyncState } from '~~/db/meta'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import type { DiscogsClient } from '~~/worker/discogs/client'
 import { syncCollection, syncWantlist, type SyncProgress } from '~~/worker/sync/library'
@@ -205,6 +205,11 @@ describe('collection sync', () => {
    * A delta over an unchanged collection has to stay at exactly one request —
    * that is what lets the keeper run all day without anybody noticing. So the
    * value rides along with a walk that stored something, and otherwise waits.
+   *
+   * Since M19 #3 it waits a day at most: the number is kept day by day, and a
+   * line that only moves when the shelf does is not a line about the market.
+   * The attempt is what is rationed, not the answer — this fake answers the
+   * value endpoint with nonsense, and the second walk still asks nothing.
    */
   it('does not spend a request on the estimate when nothing was added', async () => {
     const { client, get } = fakeClient([[{ id: 1, date_added: '2026-08-01T10:00:00-07:00' }]])
@@ -215,6 +220,20 @@ describe('collection sync', () => {
 
     expect(get.mock.calls.length - afterFirst).toBe(1)
     expect(get.mock.calls.some(([path]) => String(path).endsWith('/value'))).toBe(true)
+  })
+
+  it('asks for the estimate once a day even when nothing was added', async () => {
+    const { client, get } = fakeClient([[{ id: 1, date_added: '2026-08-01T10:00:00-07:00' }]])
+    await syncCollection(context(client))
+    const afterFirst = get.mock.calls.length
+
+    await updateSyncState({ valueTriedAt: Date.now() - 25 * 60 * 60 * 1000 })
+    await syncCollection(context(client))
+
+    expect(get.mock.calls.length - afterFirst).toBe(2)
+    expect(
+      get.mock.calls.slice(afterFirst).some(([path]) => String(path).endsWith('/value')),
+    ).toBe(true)
   })
 })
 

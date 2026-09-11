@@ -57,6 +57,7 @@ import type {
   StackShop,
   StockRow,
   TasteProfile,
+  ValuePoint,
   VaultStatus,
   VaultTarget,
   Verdict,
@@ -330,6 +331,8 @@ export interface WorkerContract {
   /** When the whole collection was last read from Discogs. Null before the first. */
   'collection.readFullyAt': { params: undefined; progress: never; result: number | null }
   /** Discogs' estimate, as of the last sync. Null before the first one. */
+  /** Every day the estimate was kept, oldest first (M19 #3). No request. */
+  'collection.valueHistory': { params: undefined; progress: never; result: ValuePoint[] }
   'collection.value': { params: undefined; progress: never; result: CollectionValue | null }
   /** Recomputed after every sync; null until there has been one. */
   'taste.profile': { params: undefined; progress: never; result: TasteProfile | null }

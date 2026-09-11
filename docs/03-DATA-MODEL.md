@@ -28,8 +28,17 @@ export interface FidelityDB extends DBSchema {
                  indexes: { 'by-dig-score': [string, number] } }
   basket:      { key: number; value: BasketItem }        // key = listingId
   feedback:    { key: number; value: Feedback }          // key = listingId
+  // … and, since v11: Discogs' estimate of the collection, one row a day (M19 #3)
+  valueHistory:{ key: string; value: ValuePoint }        // key = 'YYYY-MM-DD'
 }
 ```
+
+The listing above is the v1 shape and is kept as the reading aid it was; the stores that
+arrived since (`covers`, `outbox`, `fieldValues`, `releaseDetail`, `stock`, `watched`,
+`places`, `placements`, `valueHistory`) are documented where they are declared, in
+`db/schema.ts`, and their migrations in `db/open.ts`. `valueHistory` is the second store
+after `places` that cannot be rebuilt from the API — Discogs keeps no history of the number
+it shows — so it is in the JSON backup like the places are.
 
 **Why no relational database in the browser?** There are no joins to make. Everything is a
 key lookup or a set test. SQLite-in-WASM would cost 1 MB of bundle for functionality we do

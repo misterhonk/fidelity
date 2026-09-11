@@ -119,6 +119,11 @@ export interface FullExport {
    */
   places: unknown[]
   placements: unknown[]
+  /**
+   * Discogs' estimate, day by day (M19 #3). The other thing in this file that
+   * exists nowhere else: Discogs keeps no history of that number.
+   */
+  valueHistory: unknown[]
   note: string
 }
 
@@ -133,18 +138,29 @@ export interface FullExport {
 export async function exportEverything(now: number): Promise<FullExport> {
   const db = await openFidelityDb()
 
-  const [collection, wantlist, dealers, digs, feedback, basket, matches, places, placements] =
-    await Promise.all([
-      db.getAll('collection'),
-      db.getAll('wantlist'),
-      db.getAll('dealers'),
-      db.getAll('digs'),
-      db.getAll('feedback'),
-      db.getAll('basket'),
-      db.getAll('matches'),
-      db.getAll('places'),
-      db.getAll('placements'),
-    ])
+  const [
+    collection,
+    wantlist,
+    dealers,
+    digs,
+    feedback,
+    basket,
+    matches,
+    places,
+    placements,
+    valueHistory,
+  ] = await Promise.all([
+    db.getAll('collection'),
+    db.getAll('wantlist'),
+    db.getAll('dealers'),
+    db.getAll('digs'),
+    db.getAll('feedback'),
+    db.getAll('basket'),
+    db.getAll('matches'),
+    db.getAll('places'),
+    db.getAll('placements'),
+    db.getAll('valueHistory'),
+  ])
 
   const identity = await getMeta('identity')
 
@@ -166,6 +182,7 @@ export async function exportEverything(now: number): Promise<FullExport> {
     basket,
     places,
     placements,
+    valueHistory,
     note:
       'Without the token and without marketplace data. The horizon is left out ' +
       'on purpose — it can be rebuilt at any time and would weigh several times ' +

@@ -135,6 +135,21 @@ const en = {
     noProfile: 'No profile yet — sync your collection first on the',
     startPage: 'start page',
 
+    /*
+     * The line through the estimates (M19 #3). Labelled for what it is: the
+     * number Discogs shows, kept day by day on this device — not an appraisal,
+     * and not ours.
+     */
+    history: {
+      title: 'Over time',
+      about:
+        'Discogs’ middle estimate, kept once a day on this device, with the lowest and highest around it. It moves with the market and with the shelf, and nobody else sees it.',
+      onePoint: 'One day so far. The line starts with the next.',
+      summary: (from: string, first: string, to: string, last: string) =>
+        `Middle estimate from ${from} on ${first} to ${to} on ${last}.`,
+      now: (median: string) => `${median} today`,
+    },
+
     artists: 'Artists',
     labels: 'Labels',
     styles: 'Styles',
@@ -431,6 +446,16 @@ const de: typeof en = {
       `${releases} verschiedene Releases. Was daraus über deinen Geschmack ablesbar ist.`,
     noProfile: 'Noch kein Profil – synchronisiere zuerst deine Sammlung auf der',
     startPage: 'Startseite',
+
+    history: {
+      title: 'Im Verlauf',
+      about:
+        'Die mittlere Schätzung von Discogs, einmal am Tag auf diesem Gerät festgehalten, mit der niedrigsten und der höchsten drumherum. Sie bewegt sich mit dem Markt und mit dem Regal, und niemand sonst sieht sie.',
+      onePoint: 'Bisher ein Tag. Die Linie beginnt mit dem nächsten.',
+      summary: (from, first, to, last) =>
+        `Mittlere Schätzung von ${from} am ${first} bis ${to} am ${last}.`,
+      now: (median) => `${median} heute`,
+    },
 
     artists: 'Künstler',
     labels: 'Labels',

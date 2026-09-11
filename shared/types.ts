@@ -152,6 +152,12 @@ export interface SyncState {
    * and the shelf shows it.
    */
   collectionReadFullyAt: number | null
+  /**
+   * When the estimate was last *asked for*, whether or not Discogs answered
+   * (M19 #3). The attempt is what is rationed, not the answer: a value the
+   * endpoint refuses would otherwise be asked for again every half hour.
+   */
+  valueTriedAt?: number | null
 }
 
 /**
@@ -1616,6 +1622,33 @@ export interface CollectionValue {
   minimum: string
   median: string
   maximum: string
+  fetchedAt: number
+}
+
+/**
+ * One day of Discogs' estimate, kept (M19 #3).
+ *
+ * Discogs keeps no history of the number it shows — the most reliable hook in
+ * every collecting app (Collectr, BrickEconomy, Vizcogs) is a line that goes
+ * up and to the right, and here it is drawn from what this device saw. One row
+ * per day, the latest fetch of the day wins. The three strings are exactly as
+ * they came; the cents beside them are parsed for the chart and `null` where
+ * the string could not be read, so the line has a gap rather than a lie.
+ *
+ * Stays on this device and in the JSON backup. An aggregate of your own
+ * collection, never per record, never anybody else's.
+ */
+export interface ValuePoint {
+  /** ISO day, `YYYY-MM-DD`, in the device's local time — the key. */
+  day: string
+  minimum: string
+  median: string
+  maximum: string
+  minimumCents: number | null
+  medianCents: number | null
+  maximumCents: number | null
+  /** The account's currency at the time, from the preferences. */
+  currency: string
   fetchedAt: number
 }
 

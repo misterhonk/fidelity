@@ -121,6 +121,7 @@ describe('database schema', () => {
       'places',
       'releaseDetail',
       'stock',
+      'valueHistory',
       'wantlist',
       'watched',
     ])

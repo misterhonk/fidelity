@@ -190,6 +190,17 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
         placements.createIndex('by-place', 'placeId')
       }
 
+      if (oldVersion < 11) {
+        /*
+         * v11 keeps Discogs' estimate of the collection, one row a day
+         * (M19 #3). Additive, like v7 to v10: the store starts empty and
+         * fills with the next sync that fetches the value. This is the one
+         * store that cannot be rebuilt from the API — Discogs keeps no history
+         * of that number — which is why it also goes into the backup.
+         */
+        db.createObjectStore('valueHistory', { keyPath: 'day' })
+      }
+
       // Future versions go here. The rule: never migrate destructively unless
       // the state can be rebuilt from the API — which, so far, all of it can.
     },

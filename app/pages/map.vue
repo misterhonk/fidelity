@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import type { CollectionGaps, CollectionValue, TasteFacet, TasteProfile } from '#shared/types'
+import type {
+  CollectionGaps,
+  CollectionValue,
+  TasteFacet,
+  TasteProfile,
+  ValuePoint,
+} from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
 
@@ -16,6 +22,8 @@ const gaps = ref<CollectionGaps | null>(null)
 
 const profile = ref<TasteProfile | null>(null)
 const value = ref<CollectionValue | null>(null)
+/** Discogs' estimate, day by day — the line under the number (M19 #3). */
+const history = shallowRef<ValuePoint[]>([])
 const ready = ref(false)
 const error = ref<unknown>(null)
 
@@ -30,6 +38,7 @@ onMounted(async () => {
   try {
     gaps.value = await call('collection.gaps', undefined)
     value.value = await call('collection.value', undefined)
+    history.value = await call('collection.valueHistory', undefined)
   } catch (cause) {
     error.value = cause
   }
@@ -102,6 +111,27 @@ const decades = computed(() =>
       <FacetBars :title="c.map.genres" signal="catalog" :facets="top(profile.genres, 8)" />
       <FacetBars :title="c.map.decades" signal="gap" :facets="decades" :empty="c.map.noYears" />
     </div>
+
+    <!--
+      The estimate over time (M19 #3). Only once there is a second day: a
+      chart of one point is a dot, and the sentence above it already says
+      what the dot is. Not gated on the profile — the days were kept whether
+      or not the taste has been computed yet, and a kept number belongs on
+      the screen.
+    -->
+    <section
+      v-if="history.length > 1"
+      class="flex max-w-3xl flex-col gap-3 border-t border-fid-border pt-6"
+      aria-labelledby="value-history"
+    >
+      <div class="flex flex-col gap-1">
+        <h2 id="value-history" class="text-fid-base font-medium text-fid-text">
+          {{ c.map.history.title }}
+        </h2>
+        <p class="text-fid-sm text-fid-text-muted">{{ c.map.history.about }}</p>
+      </div>
+      <ValueHistory :points="history" />
+    </section>
 
     <!--
       Said plainly rather than left as a silently missing bar: the number that

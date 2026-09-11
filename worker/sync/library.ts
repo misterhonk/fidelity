@@ -14,6 +14,9 @@ import {
 } from '../discogs/schemas'
 import { norm } from '../match/normalize'
 
+/** How old the kept estimate may get before a sync fetches it again regardless. */
+const VALUE_EVERY_MS = 24 * 60 * 60 * 1000
+
 /** The default is 50, which would double every sync. */
 export const PER_PAGE = 100
 
@@ -346,15 +349,29 @@ export async function syncCollection(
    * moves when a record is added, not when somebody in Osaka reprices theirs.
    * That is the honest reading of an estimate shown with a date on it.
    */
-  if (result.stored > 0) {
+  /*
+   * Since M19 #3 the number is also kept, one row a day, so a line can be
+   * drawn through it — and a line that only moves when the shelf does is not
+   * a line about the market. So once a day the estimate is fetched even from
+   * a walk that stored nothing: one request more per day, against the
+   * half-hourly keeper's forty-eight. The guarantee above still holds for
+   * every walk but one.
+   */
+  const lastTried = (await getMeta('syncState'))?.valueTriedAt ?? 0
+  const valueStale = Date.now() - lastTried > VALUE_EVERY_MS
+
+  if (result.stored > 0 || valueStale) {
     const [{ refreshCollectionValue }, { refreshFolders }] = await Promise.all([
       import('../collection/value'),
       import('../collection/folders'),
     ])
+    // The attempt is what is rationed: an endpoint that refuses would
+    // otherwise be asked again on every walk.
+    await updateSyncState({ valueTriedAt: Date.now() })
     await refreshCollectionValue(context.client, context.username, Date.now())
     // Folder names change about as often as somebody reorganises a shelf, so
     // they ride the same rare walk rather than a clock of their own.
-    await refreshFolders(context.client, context.username)
+    if (result.stored > 0) await refreshFolders(context.client, context.username)
   }
 
   await updateSyncState({

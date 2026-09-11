@@ -9,6 +9,7 @@ import type {
   Identity,
   Match,
   Signal,
+  ValuePoint,
   WantlistItem,
 } from '#shared/types'
 
@@ -250,6 +251,32 @@ export function seedBasket(now: number): BasketItem[] {
   ]
 }
 
+/**
+ * Three days of Discogs' estimate (M19 #3) — enough for a line, and a dip in
+ * the middle so the line is visibly not a ramp.
+ */
+export function seedValueHistory(now: number): ValuePoint[] {
+  const DAY = 24 * 60 * 60 * 1000
+  const point = (daysAgo: number, median: number): ValuePoint => {
+    const at = now - daysAgo * DAY
+    const date = new Date(at)
+    const day = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    const fmt = (cents: number) => `€${(cents / 100).toFixed(2)}`
+    return {
+      day,
+      minimum: fmt(median / 2),
+      median: fmt(median),
+      maximum: fmt(median * 2),
+      minimumCents: median / 2,
+      medianCents: median,
+      maximumCents: median * 2,
+      currency: 'EUR',
+      fetchedAt: at,
+    }
+  }
+  return [point(2, 60_000), point(1, 58_000), point(0, 61_000)]
+}
+
 export const seedDealer: Dealer = {
   username: DEALER,
   displayName: 'Plattenkiste',
@@ -296,6 +323,7 @@ const STORES = [
   'matches',
   'basket',
   'dealers',
+  'valueHistory',
 ] as const
 
 /**
@@ -463,6 +491,7 @@ export async function seed(page: Page, language: SeedLanguage = 'en'): Promise<D
       for (const match of rows.matches) tx.objectStore('matches').put(match)
       for (const line of rows.basket) tx.objectStore('basket').put(line)
       for (const want of rows.wantlist) tx.objectStore('wantlist').put(want)
+      for (const point of rows.valueHistory) tx.objectStore('valueHistory').put(point)
 
       await new Promise<void>((resolve, reject) => {
         tx.oncomplete = () => resolve()
@@ -481,6 +510,7 @@ export async function seed(page: Page, language: SeedLanguage = 'en'): Promise<D
       dig,
       collection: seedCollection,
       matches: seedMatches(dig.id),
+      valueHistory: seedValueHistory(now),
       basket: seedBasket(now),
       wantlist: seedWantlist,
     },

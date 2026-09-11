@@ -1,15 +1,12 @@
 import type { DBSchema } from 'idb'
 
 import type {
-  Place,
-  Placement,
-  WatchedRelease,
   BasketItem,
   CloudTokens,
   CollectionField,
   CollectionFolder,
-  CollectionValue,
   CollectionItem,
+  CollectionValue,
   CreditHarvest,
   Dealer,
   Dig,
@@ -17,13 +14,17 @@ import type {
   HorizonChunk,
   Identity,
   Match,
-  StockRow,
+  Place,
+  Placement,
   Preferences,
   PushRegistration,
   ReleaseDetail,
+  StockRow,
   SyncState,
   TasteProfile,
+  ValuePoint,
   WantlistItem,
+  WatchedRelease,
 } from '#shared/types'
 
 export const DB_NAME = 'fidelity'
@@ -33,7 +34,7 @@ export const DB_NAME = 'fidelity'
  *
  * 4 — added the `covers` store. Additive: nothing existing is touched.
  */
-export const DB_VERSION = 10
+export const DB_VERSION = 11
 
 /**
  * `meta` is a small key-value store rather than nine one-row stores. The union
@@ -186,6 +187,8 @@ export interface FidelityDB extends DBSchema {
   places: { key: string; value: Place }
   placements: { key: number; value: Placement; indexes: { 'by-place': string } }
   watched: { key: number; value: WatchedRelease }
+  /** Discogs' estimate, one row per day (M19 #3). Keyed by the ISO day. */
+  valueHistory: { key: string; value: ValuePoint }
   basket: { key: number; value: BasketItem }
   feedback: { key: number; value: Feedback }
   /**
