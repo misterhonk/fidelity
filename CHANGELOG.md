@@ -9,6 +9,24 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.27.1](https://github.com/misterhonk/fidelity/compare/v0.27.0...v0.27.1) (2026-09-11)
+
+The narrow screens — basket, places, the legal pages, this one — sit in the middle again.
+
+0.27.0 anchored them to the left, which held the edge still and stuck a 48rem column to the
+left third of a wide monitor. Centring them brings back the objection they were moved for:
+when a block is centred, its **width is its left edge**. So they are centred *and* all the
+same width now, which the previous release had not fixed — among the narrow screens alone
+there were four: 48rem for the basket and the legal pages, 42rem for the setup, 36rem for
+these notes and for in-store. Four widths are four edges, only noticed more slowly.
+
+Two edges left in the whole app, then: the wide container that the navigation bar shares,
+and the one narrow column. Neither moves.
+
+### Fixed
+
+* **ui:** schmale Seiten wieder zentriert — aber alle gleich breit ([276b036](https://github.com/misterhonk/fidelity/commit/276b0360c6ffde924802f0aa3e55d15783a0619f))
+
 ## [0.27.0](https://github.com/misterhonk/fidelity/compare/v0.26.0...v0.27.0) (2026-09-11)
 
 The release where the app stops moving under you — and where these notes start being
