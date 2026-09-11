@@ -717,6 +717,32 @@ GET /marketplace/orders?status=All&per_page=100
 einem Konto ohne Bestellungen `items: 0`. Die Feldnamen stammen aus der Dokumentation,
 nicht aus echten Daten – das Schema ist deshalb bewusst nachsichtig (`seller` optional).
 
+> ⚠️ **Am 2026-09-11 nachgemessen, unmittelbar nach einem echten Kauf: weiterhin
+> `items: 0`.**
+>
+> Vier Varianten, alle 200, alle null Einträge: ohne jeden Filter, `status=All`,
+> `archived=false`, `status=Payment Pending`, dazu `sort=created&sort_order=desc`.
+> Derselbe Token beantwortet im selben Durchgang `GET /oauth/identity` mit 200 — es
+> liegt also nicht an fehlendem Marketplace-Zugriff.
+>
+> **Die wahrscheinliche Erklärung ist, dass dieser Endpunkt die Verkäuferseite ist.**
+> Das steht weiter oben in dieser Datei schon so („Bestellungen (Verkäuferseite)"), und
+> die Order-Ressource ist bei Discogs um Verkäufervorgänge herum gebaut — Nachricht an
+> die Bestellung hängen, Status ändern, Versandkosten setzen. Ein *Kauf*, den man selbst
+> tätigt, taucht dann dort nie auf, und ein Konto, das nichts verkauft, sieht immer
+> `items: 0`.
+>
+> **Die zweite Erklärung ist Zeit** — die Bestellung war beim Messen Minuten alt.
+> Ausgeschlossen ist sie nicht; entschieden wird das mit einer Wiederholung nach einem
+> Tag, und bis dahin steht hier beides.
+>
+> **Was daran hängt:** `worker/dealers/discover.ts` benutzt diesen Endpunkt als die
+> *stärkste* Quelle für „Läden, bei denen du wirklich gekauft hast". Trifft die erste
+> Erklärung zu, findet diese Quelle für einen reinen Käufer grundsätzlich nichts, und
+> drei nutzersichtbare Sätze behaupten etwas, das nicht eintreten kann. Nicht
+> umgeschrieben, bevor die Wiederholung da ist — eine falsche Korrektur ist schlimmer
+> als eine offene Frage.
+
 ---
 
 ## `GET /users/{username}/friends` – **undokumentiert**
