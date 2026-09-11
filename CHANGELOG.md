@@ -9,6 +9,23 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.43.0](https://github.com/misterhonk/fidelity/compare/v0.42.0...v0.43.0) (2026-09-11)
+
+**Rare per the catalogue, and the pressing family through the hub.**
+
+A find now says "Only 3 pressings of this album exist" from five down — the horizon knows
+how many pressings a wanted album has, and the scan writes it onto the match. Catalogue, so
+it does not expire; a hint under the sentence, never in the score. And the pressing
+family the shop screen reads — how many pressings, which came first, on what — is cached on
+the hub now, one master at a time: whoever fetched it first saves everybody else the
+request, for thirty days. Without a hub everything stays as it was.
+
+
+### Added
+
+* **dig:** rare per the catalogue — how many pressings an album has, on the find ([7318b46](https://github.com/misterhonk/fidelity/commit/7318b4661ade4e420551dd0e663d4850523dbbac))
+* **hub:** pressing families through the hub ([3f5374d](https://github.com/misterhonk/fidelity/commit/3f5374d9dee6c91573478f403cc5907340db23b8))
+
 ## [0.42.0](https://github.com/misterhonk/fidelity/compare/v0.41.0...v0.42.0) (2026-09-11)
 
 **The plan box says how it fills.**
