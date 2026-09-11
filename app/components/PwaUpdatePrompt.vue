@@ -16,7 +16,7 @@ const { $pwa } = useNuxtApp()
   <div
     v-if="$pwa?.needRefresh"
     role="status"
-    class="mx-auto flex w-full max-w-[80rem] flex-wrap items-center gap-3 border-b border-fid-border bg-fid-surface-raised px-6 py-3 text-fid-sm text-fid-text"
+    class="fid-page flex flex-wrap items-center gap-3 border-b border-fid-border bg-fid-surface-raised py-3 text-fid-sm text-fid-text"
   >
     <p class="grow">{{ m.notice.update.title }}</p>
     <button

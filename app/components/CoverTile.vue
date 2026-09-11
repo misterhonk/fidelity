@@ -111,7 +111,7 @@ const tag = computed(() =>
         alt=""
         loading="lazy"
         decoding="async"
-        class="aspect-square w-full rounded-fid-cover bg-fid-inset object-cover transition-transform duration-200 group-hover:-translate-y-0.5"
+        class="aspect-square w-full rounded-fid-cover bg-fid-inset object-cover transition-transform duration-[var(--fid-motion-feedback)] group-hover:-translate-y-0.5"
       />
       <div
         v-else

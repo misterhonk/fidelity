@@ -70,7 +70,6 @@ async function toggleWatch() {
   watching.value = outcome.watched
   watchFull.value = outcome.full
 }
-const panel = useTemplateRef<HTMLElement>('panel')
 
 /*
  * Rating, and why it is written here rather than after Discogs answers.
@@ -206,7 +205,6 @@ const runouts = computed(() =>
 )
 
 onMounted(async () => {
-  panel.value?.focus()
   record.value = await call('collection.record', { instanceId: props.instanceId })
   if (record.value) {
     const list = await call('watched.list', undefined)
@@ -333,45 +331,21 @@ async function remove() {
   }
   emit('close')
 }
-
-function onKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') emit('close')
-}
 </script>
 
 <template>
-  <div
-    class="fixed inset-0 z-40 flex justify-end bg-black/60"
-    @click.self="emit('close')"
-    @keydown="onKeydown"
+  <SheetFrame
+    :label="record ? `${artist} – ${record.title}` : c.shelf.sheet.loading"
+    transition="shelf-sheet"
+    @close="emit('close')"
   >
-    <aside
-      ref="panel"
-      role="dialog"
-      aria-modal="true"
-      :aria-label="record ? `${artist} – ${record.title}` : c.shelf.sheet.loading"
-      tabindex="-1"
-      class="fid-sheet flex h-full w-full max-w-lg flex-col gap-6 overflow-y-auto border-l border-fid-border bg-fid-surface p-6 outline-none lg:max-w-2xl xl:max-w-3xl"
-      style="scrollbar-gutter: stable"
-      @keydown.esc="emit('close')"
-    >
-      <div class="flex items-start justify-between gap-4">
-        <h2 class="text-fid-base font-bold text-fid-text">
-          <template v-if="record">{{ artist }} – {{ record.title }}</template>
-          <template v-else>{{ c.shelf.sheet.loading }}</template>
-        </h2>
-        <button
-          type="button"
-          :aria-label="m.close"
-          class="fid-lift flex min-h-11 min-w-11 items-center justify-center rounded-fid-sm border border-fid-field bg-fid-surface-raised text-fid-base text-fid-text"
-          @click="emit('close')"
-        >
-          ✕
-        </button>
-      </div>
+    <template #title>
+      <template v-if="record">{{ artist }} – {{ record.title }}</template>
+      <template v-else>{{ c.shelf.sheet.loading }}</template>
+    </template>
 
-      <template v-if="record">
-        <!--
+    <template v-if="record">
+      <!--
           What became of the last change, in one line.
 
           A change lands here first and travels to Discogs afterwards, which is
@@ -380,27 +354,27 @@ function onKeydown(event: KeyboardEvent) {
           and until now the screen only ever showed the first. Somebody rated a
           record, looked at discogs.com, and found nothing there.
         -->
-        <p
-          v-if="writeState !== 'idle'"
-          role="status"
-          class="flex items-center gap-2 rounded-fid-sm px-3 py-2 text-fid-sm"
-          :class="
-            writeState === 'failed'
-              ? 'bg-fid-sig-scarcity/10 text-fid-sig-scarcity'
-              : 'bg-fid-surface-raised text-fid-text-muted'
-          "
-        >
-          <FidIcon
-            v-if="writeState === 'sent'"
-            name="check"
-            :size="14"
-            class="shrink-0 text-fid-sig-price"
-          />
-          {{ c.shelf.sheet.write[writeState] }}
-        </p>
+      <p
+        v-if="writeState !== 'idle'"
+        role="status"
+        class="flex items-center gap-2 rounded-fid-sm px-3 py-2 text-fid-sm"
+        :class="
+          writeState === 'failed'
+            ? 'bg-fid-sig-scarcity/10 text-fid-sig-scarcity'
+            : 'bg-fid-surface-raised text-fid-text-muted'
+        "
+      >
+        <FidIcon
+          v-if="writeState === 'sent'"
+          name="check"
+          :size="14"
+          class="shrink-0 text-fid-sig-price"
+        />
+        {{ c.shelf.sheet.write[writeState] }}
+      </p>
 
-        <!-- Same shape as the dig sheet: cover on top on a phone, beside from `sm` up. -->
-        <!--
+      <!-- Same shape as the dig sheet: cover on top on a phone, beside from `sm` up. -->
+      <!--
           Wrap rather than crush.
 
           The cover is `shrink-0` and takes its width; the facts got what was
@@ -409,8 +383,8 @@ function onKeydown(event: KeyboardEvent) {
           they slide under the cover instead, as soon as side by side would no
           longer be legible.
         -->
-        <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
-          <!--
+      <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
+        <!--
               Larger, and the price for it is stated here.
 
               Discogs hands out the long edge at 600 at most and often less:
@@ -430,159 +404,159 @@ function onKeydown(event: KeyboardEvent) {
               browser picks the cover there too. Two candidates, one of which
               never wins, are a line of choosing without a choice.
             -->
-          <img
-            v-if="record.coverUrl || record.thumbUrl"
-            :src="record.coverUrl || record.thumbUrl"
-            alt=""
-            loading="lazy"
-            decoding="async"
-            width="600"
-            height="600"
-            class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-80 lg:w-80 xl:size-96 xl:w-96"
-          />
-          <dl
-            class="grid min-w-0 grow grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-fid-sm sm:basis-52"
-          >
-            <!--
+        <img
+          v-if="record.coverUrl || record.thumbUrl"
+          :src="record.coverUrl || record.thumbUrl"
+          alt=""
+          loading="lazy"
+          decoding="async"
+          width="600"
+          height="600"
+          class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-80 lg:w-80 xl:size-96 xl:w-96"
+        />
+        <dl
+          class="grid min-w-0 grow grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-fid-sm sm:basis-52"
+        >
+          <!--
               Only when it was actually given, and first, because it is the one
               line that is an opinion rather than a fact. A zero on Discogs
               means "never rated", not "rated nothing" — five hollow stars
               would invent an opinion the collector never had.
             -->
-            <template v-if="canRate || record.rating > 0">
-              <dt class="text-fid-text-muted">{{ c.shelf.sheet.facts.rating }}</dt>
-              <dd class="min-w-0">
-                <div v-if="canRate" class="flex gap-1">
-                  <!--
+          <template v-if="canRate || record.rating > 0">
+            <dt class="text-fid-text-muted">{{ c.shelf.sheet.facts.rating }}</dt>
+            <dd class="min-w-0">
+              <div v-if="canRate" class="flex gap-1">
+                <!--
                     Five buttons, not a slider and not a select.
                     A rating is one tap on the star you mean, and tapping the
                     one already lit takes it back — which is the only way to
                     reach "never rated" again once something has been given.
                   -->
-                  <button
-                    v-for="star in STARS"
-                    :key="star"
-                    type="button"
-                    :aria-label="c.shelf.sheet.rate(star)"
-                    :aria-pressed="record.rating >= star"
-                    class="fid-lift flex min-h-11 min-w-11 items-center justify-center rounded-fid-sm text-fid-base transition-colors"
-                    :class="
-                      record.rating >= star
-                        ? 'text-fid-sig-wantlist'
-                        : 'text-fid-text-muted hover:text-fid-text'
-                    "
-                    @click="rate(star)"
-                  >
-                    {{ record.rating >= star ? '★' : '☆' }}
-                  </button>
-                </div>
-                <span
-                  v-else
-                  class="fid-num text-fid-sig-wantlist"
-                  :aria-label="c.shelf.sheet.rated(record.rating)"
+                <button
+                  v-for="star in STARS"
+                  :key="star"
+                  type="button"
+                  :aria-label="c.shelf.sheet.rate(star)"
+                  :aria-pressed="record.rating >= star"
+                  class="fid-lift flex min-h-11 min-w-11 items-center justify-center rounded-fid-sm text-fid-base transition-colors"
+                  :class="
+                    record.rating >= star
+                      ? 'text-fid-sig-wantlist'
+                      : 'text-fid-text-muted hover:text-fid-text'
+                  "
+                  @click="rate(star)"
                 >
-                  {{ '★'.repeat(record.rating) }}
-                </span>
-              </dd>
-            </template>
-
-            <template v-if="canMove">
-              <dt class="text-fid-text-muted">{{ c.shelf.sheet.facts.folder }}</dt>
-              <dd class="min-w-0">
-                <select
-                  :value="record.folderId"
-                  class="min-h-11 w-full rounded-fid-sm border border-fid-field bg-fid-surface px-2 text-fid-sm text-fid-text"
-                  :aria-label="c.shelf.sheet.facts.folder"
-                  @change="move(Number(($event.target as HTMLSelectElement).value))"
-                >
-                  <option v-for="folder in folders" :key="folder.id" :value="folder.id">
-                    {{ folder.name }}
-                  </option>
-                </select>
-              </dd>
-            </template>
-
-            <template v-for="fact in facts" :key="fact.key">
-              <dt class="text-fid-text-muted">{{ c.shelf.sheet.facts[fact.key] }}</dt>
-              <dd
-                class="min-w-0 text-fid-text"
-                :class="fact.mono ? 'font-fid-mono text-fid-xs' : ''"
+                  {{ record.rating >= star ? '★' : '☆' }}
+                </button>
+              </div>
+              <span
+                v-else
+                class="fid-num text-fid-sig-wantlist"
+                :aria-label="c.shelf.sheet.rated(record.rating)"
               >
-                <!--
+                {{ '★'.repeat(record.rating) }}
+              </span>
+            </dd>
+          </template>
+
+          <template v-if="canMove">
+            <dt class="text-fid-text-muted">{{ c.shelf.sheet.facts.folder }}</dt>
+            <dd class="min-w-0">
+              <select
+                :value="record.folderId"
+                class="min-h-11 w-full rounded-fid-sm border border-fid-field bg-fid-surface px-2 text-fid-sm text-fid-text"
+                :aria-label="c.shelf.sheet.facts.folder"
+                @change="move(Number(($event.target as HTMLSelectElement).value))"
+              >
+                <option v-for="folder in folders" :key="folder.id" :value="folder.id">
+                  {{ folder.name }}
+                </option>
+              </select>
+            </dd>
+          </template>
+
+          <template v-for="fact in facts" :key="fact.key">
+            <dt class="text-fid-text-muted">{{ c.shelf.sheet.facts[fact.key] }}</dt>
+            <dd
+              class="min-w-0 text-fid-text"
+              :class="fact.mono ? 'font-fid-mono text-fid-xs' : ''"
+            >
+              <!--
                   A name that leads back to your own shelf. The separator stays
                   outside the link so that two labels read as two things, not
                   as one long one somebody might click by accident.
                 -->
-                <template v-if="fact.links">
-                  <template v-for="(link, index) in fact.links" :key="link.to">
-                    <span v-if="index > 0" class="text-fid-text-muted"> · </span>
-                    <NuxtLink
-                      :to="link.to"
-                      class="underline underline-offset-4 hover:text-fid-accent"
-                      :title="c.shelf.sheet.ownedBy(link.name)"
-                    >
-                      {{ link.name }}
-                    </NuxtLink>
-                  </template>
+              <template v-if="fact.links">
+                <template v-for="(link, index) in fact.links" :key="link.to">
+                  <span v-if="index > 0" class="text-fid-text-muted"> · </span>
+                  <NuxtLink
+                    :to="link.to"
+                    class="underline underline-offset-4 hover:text-fid-accent"
+                    :title="c.shelf.sheet.ownedBy(link.name)"
+                  >
+                    {{ link.name }}
+                  </NuxtLink>
                 </template>
-                <template v-else>{{ fact.value }}</template>
-              </dd>
-            </template>
-          </dl>
-        </div>
+              </template>
+              <template v-else>{{ fact.value }}</template>
+            </dd>
+          </template>
+        </dl>
+      </div>
 
-        <section v-if="canRate && fields.length > 0" class="flex flex-col gap-3">
-          <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.condition }}</h3>
-          <div class="grid gap-3 @sm:grid-cols-2">
-            <label
-              v-for="field in fields"
-              :key="field.id"
-              class="flex flex-col gap-1"
-              :class="field.type === 'text' ? '@sm:col-span-2' : ''"
-            >
-              <span class="text-fid-xs text-fid-text-muted">{{ field.name }}</span>
-              <!--
+      <section v-if="canRate && fields.length > 0" class="flex flex-col gap-3">
+        <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.condition }}</h3>
+        <div class="grid gap-3 @sm:grid-cols-2">
+          <label
+            v-for="field in fields"
+            :key="field.id"
+            class="flex flex-col gap-1"
+            :class="field.type === 'text' ? '@sm:col-span-2' : ''"
+          >
+            <span class="text-fid-xs text-fid-text-muted">{{ field.name }}</span>
+            <!--
                 A select for what Discogs enumerates, a line for what it does
                 not. The empty option is not padding: a condition you have not
                 decided on yet has to stay sayable, and clearing one is the
                 only way back to it.
               -->
-              <select
-                v-if="field.type === 'dropdown'"
-                :value="values[field.id] ?? ''"
-                class="min-h-11 rounded-fid-sm border border-fid-field bg-fid-surface px-3 text-fid-sm text-fid-text"
-                @change="setField(field, ($event.target as HTMLSelectElement).value)"
-              >
-                <option value="">{{ c.shelf.sheet.unset }}</option>
-                <option v-for="option in field.options" :key="option" :value="option">
-                  {{ option }}
-                </option>
-              </select>
-              <input
-                v-else
-                :value="values[field.id] ?? ''"
-                type="text"
-                class="min-h-11 rounded-fid-sm border border-fid-field bg-fid-surface px-3 text-fid-sm text-fid-text"
-                @change="setField(field, ($event.target as HTMLInputElement).value)"
-              />
-            </label>
-          </div>
-        </section>
-
-        <section v-if="tags.length > 0" class="flex flex-col gap-2">
-          <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.sounds }}</h3>
-          <ul class="flex flex-wrap gap-2">
-            <li
-              v-for="tag in tags"
-              :key="tag"
-              class="rounded-fid-sm border border-fid-field px-2 py-1 text-fid-xs text-fid-text-muted"
+            <select
+              v-if="field.type === 'dropdown'"
+              :value="values[field.id] ?? ''"
+              class="min-h-11 rounded-fid-sm border border-fid-field bg-fid-surface px-3 text-fid-sm text-fid-text"
+              @change="setField(field, ($event.target as HTMLSelectElement).value)"
             >
-              {{ tag }}
-            </li>
-          </ul>
-        </section>
+              <option value="">{{ c.shelf.sheet.unset }}</option>
+              <option v-for="option in field.options" :key="option" :value="option">
+                {{ option }}
+              </option>
+            </select>
+            <input
+              v-else
+              :value="values[field.id] ?? ''"
+              type="text"
+              class="min-h-11 rounded-fid-sm border border-fid-field bg-fid-surface px-3 text-fid-sm text-fid-text"
+              @change="setField(field, ($event.target as HTMLInputElement).value)"
+            />
+          </label>
+        </div>
+      </section>
 
-        <!--
+      <section v-if="tags.length > 0" class="flex flex-col gap-2">
+        <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.sounds }}</h3>
+        <ul class="flex flex-wrap gap-2">
+          <li
+            v-for="tag in tags"
+            :key="tag"
+            class="rounded-fid-sm border border-fid-field px-2 py-1 text-fid-xs text-fid-text-muted"
+          >
+            {{ tag }}
+          </li>
+        </ul>
+      </section>
+
+      <!--
           And what the one lookup brought back.
 
           Everything above came out of storage and was on screen immediately;
@@ -591,123 +565,120 @@ function onKeydown(event: KeyboardEvent) {
           is worse than no heading, and Discogs has no tracklist for plenty of
           records.
         -->
-        <section v-if="detail?.tracks.length" class="flex flex-col gap-2">
-          <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.tracklist }}</h3>
-          <ol class="flex flex-col">
-            <li
-              v-for="(track, index) in detail.tracks"
-              :key="`${track.position}-${index}`"
-              class="flex items-baseline gap-3 border-b border-fid-border/50 py-2 last:border-0"
+      <section v-if="detail?.tracks.length" class="flex flex-col gap-2">
+        <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.tracklist }}</h3>
+        <ol class="flex flex-col">
+          <li
+            v-for="(track, index) in detail.tracks"
+            :key="`${track.position}-${index}`"
+            class="flex items-baseline gap-3 border-b border-fid-border/50 py-2 last:border-0"
+          >
+            <span
+              v-if="track.position"
+              class="fid-num w-8 shrink-0 text-fid-xs text-fid-text-muted"
             >
-              <span
-                v-if="track.position"
-                class="fid-num w-8 shrink-0 text-fid-xs text-fid-text-muted"
-              >
-                {{ track.position }}
-              </span>
-              <span class="min-w-0 grow text-fid-sm text-fid-text">{{ track.title }}</span>
-              <!-- Very often missing, and an empty column is quieter than a dash. -->
-              <span
-                v-if="track.duration"
-                class="fid-num shrink-0 text-fid-xs text-fid-text-muted"
-              >
-                {{ track.duration }}
-              </span>
-            </li>
-          </ol>
-        </section>
-
-        <section v-if="detail?.credits.length" class="flex flex-col gap-2">
-          <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.credits }}</h3>
-          <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-fid-sm">
-            <template
-              v-for="(credit, index) in detail.credits"
-              :key="`${credit.name}-${index}`"
+              {{ track.position }}
+            </span>
+            <span class="min-w-0 grow text-fid-sm text-fid-text">{{ track.title }}</span>
+            <!-- Very often missing, and an empty column is quieter than a dash. -->
+            <span
+              v-if="track.duration"
+              class="fid-num shrink-0 text-fid-xs text-fid-text-muted"
             >
-              <dt class="text-fid-text-muted">{{ credit.role || '—' }}</dt>
-              <dd class="min-w-0 text-fid-text">{{ credit.name }}</dd>
-            </template>
-          </dl>
-        </section>
+              {{ track.duration }}
+            </span>
+          </li>
+        </ol>
+      </section>
 
-        <!--
+      <section v-if="detail?.credits.length" class="flex flex-col gap-2">
+        <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.credits }}</h3>
+        <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-fid-sm">
+          <template v-for="(credit, index) in detail.credits" :key="`${credit.name}-${index}`">
+            <dt class="text-fid-text-muted">{{ credit.role || '—' }}</dt>
+            <dd class="min-w-0 text-fid-text">{{ credit.name }}</dd>
+          </template>
+        </dl>
+      </section>
+
+      <!--
           The number in the run-out groove, and what everybody else thinks.
 
           The matrix is the one identifier you can read off the record itself
           while standing in a shop — which is exactly the question "is this the
           pressing I think it is". The barcode and the rest stay on Discogs.
         -->
-        <section
-          v-if="runouts.length || detail?.community || detail?.country"
-          class="flex flex-col gap-2"
-        >
-          <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.pressing }}</h3>
-          <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-fid-sm">
-            <template v-if="detail?.country">
-              <dt class="text-fid-text-muted">{{ c.shelf.sheet.facts.country }}</dt>
-              <dd class="min-w-0 text-fid-text">
-                {{ detail.country }}
-                <template v-if="detail.released"> · {{ detail.released }}</template>
-              </dd>
-            </template>
-            <template v-for="(runout, index) in runouts" :key="index">
-              <dt class="text-fid-text-muted">{{ runout.description || runout.type }}</dt>
-              <dd class="fid-num min-w-0 text-fid-xs break-all text-fid-text">
-                {{ runout.value }}
-              </dd>
-            </template>
-            <template v-if="detail?.community">
-              <dt class="text-fid-text-muted">{{ c.shelf.sheet.everyone }}</dt>
-              <dd class="min-w-0 text-fid-text">
-                {{
-                  c.shelf.sheet.communityRating(
-                    detail.community.rating.toFixed(2),
-                    count(detail.community.votes),
-                  )
-                }}
-              </dd>
-            </template>
+      <section
+        v-if="runouts.length || detail?.community || detail?.country"
+        class="flex flex-col gap-2"
+      >
+        <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.pressing }}</h3>
+        <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-fid-sm">
+          <template v-if="detail?.country">
+            <dt class="text-fid-text-muted">{{ c.shelf.sheet.facts.country }}</dt>
+            <dd class="min-w-0 text-fid-text">
+              {{ detail.country }}
+              <template v-if="detail.released"> · {{ detail.released }}</template>
+            </dd>
+          </template>
+          <template v-for="(runout, index) in runouts" :key="index">
+            <dt class="text-fid-text-muted">{{ runout.description || runout.type }}</dt>
+            <dd class="fid-num min-w-0 text-fid-xs break-all text-fid-text">
+              {{ runout.value }}
+            </dd>
+          </template>
+          <template v-if="detail?.community">
+            <dt class="text-fid-text-muted">{{ c.shelf.sheet.everyone }}</dt>
+            <dd class="min-w-0 text-fid-text">
+              {{
+                c.shelf.sheet.communityRating(
+                  detail.community.rating.toFixed(2),
+                  count(detail.community.votes),
+                )
+              }}
+            </dd>
+          </template>
 
-            <!--
+          <!--
               What it goes for — the one line here allowed to go stale, and
               therefore the one that disappears rather than ageing. Rule 4:
               marketplace data is never shown once it is six hours old. The
               worker drops it on the way out; this offers to ask again, which
               is the only thing on this sheet that costs a second request.
             -->
-            <template v-if="detail?.market && marketPrice">
-              <dt class="text-fid-text-muted">{{ c.shelf.sheet.forSale }}</dt>
-              <dd class="min-w-0 text-fid-text">
-                {{ c.shelf.sheet.cheapest(marketPrice, count(detail.market.numForSale)) }}
-              </dd>
-            </template>
-            <template v-else-if="detail">
-              <dt class="text-fid-text-muted">{{ c.shelf.sheet.forSale }}</dt>
-              <dd class="min-w-0">
-                <button
-                  type="button"
-                  class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4 disabled:opacity-60"
-                  :disabled="looking"
-                  @click="lookAgain()"
-                >
-                  {{ looking ? c.shelf.sheet.looking : c.shelf.sheet.whatIsItWorth }}
-                </button>
-              </dd>
-            </template>
-          </dl>
-        </section>
+          <template v-if="detail?.market && marketPrice">
+            <dt class="text-fid-text-muted">{{ c.shelf.sheet.forSale }}</dt>
+            <dd class="min-w-0 text-fid-text">
+              {{ c.shelf.sheet.cheapest(marketPrice, count(detail.market.numForSale)) }}
+            </dd>
+          </template>
+          <template v-else-if="detail">
+            <dt class="text-fid-text-muted">{{ c.shelf.sheet.forSale }}</dt>
+            <dd class="min-w-0">
+              <button
+                type="button"
+                class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4 disabled:opacity-60"
+                :disabled="looking"
+                @click="lookAgain()"
+              >
+                {{ looking ? c.shelf.sheet.looking : c.shelf.sheet.whatIsItWorth }}
+              </button>
+            </dd>
+          </template>
+        </dl>
+      </section>
 
-        <!--
+      <!--
           What the people who catalogued it wrote down: which sleeve, which
           plant, who licensed what. Late in the sheet, because it is prose in a
           page of facts and reads like a footnote.
         -->
-        <section v-if="detail?.notes" class="flex flex-col gap-2">
-          <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.aboutIt }}</h3>
-          <p class="text-fid-sm whitespace-pre-line text-fid-text-muted">{{ detail.notes }}</p>
-        </section>
+      <section v-if="detail?.notes" class="flex flex-col gap-2">
+        <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.aboutIt }}</h3>
+        <p class="text-fid-sm whitespace-pre-line text-fid-text-muted">{{ detail.notes }}</p>
+      </section>
 
-        <!--
+      <!--
           Six, and it says so when there are more.
 
           Discogs collects these from everybody, and a single 12" came back
@@ -715,132 +686,131 @@ function onKeydown(event: KeyboardEvent) {
           rest of the sheet; a list silently cut to six claims to be all of
           them. So it is cut, and the cut is named.
         -->
-        <section v-if="detail?.videos.length" class="flex flex-col gap-2">
-          <div class="flex flex-wrap items-baseline justify-between gap-x-4">
-            <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.listen }}</h3>
-            <p v-if="detail.videos.length > 6" class="fid-num text-fid-xs text-fid-text-muted">
-              {{ c.shelf.sheet.someOf(count(detail.videos.length)) }}
-            </p>
-          </div>
-          <ul class="flex flex-col gap-1">
-            <li v-for="video in detail.videos.slice(0, 6)" :key="video.uri">
-              <a
-                :href="video.uri"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-fid-sm underline underline-offset-4 hover:text-fid-accent"
-              >
-                {{ video.title || video.uri }}
-              </a>
-            </li>
-          </ul>
-        </section>
+      <section v-if="detail?.videos.length" class="flex flex-col gap-2">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4">
+          <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.listen }}</h3>
+          <p v-if="detail.videos.length > 6" class="fid-num text-fid-xs text-fid-text-muted">
+            {{ c.shelf.sheet.someOf(count(detail.videos.length)) }}
+          </p>
+        </div>
+        <ul class="flex flex-col gap-1">
+          <li v-for="video in detail.videos.slice(0, 6)" :key="video.uri">
+            <a
+              :href="video.uri"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-fid-sm underline underline-offset-4 hover:text-fid-accent"
+            >
+              {{ video.title || video.uri }}
+            </a>
+          </li>
+        </ul>
+      </section>
 
-        <!--
+      <!--
           Said while the one request is out, and only until it answers.
           Not `v-else` on the block above: a record with no videos is not a
           record that is still loading.
         -->
-        <p v-if="looking && !detail" class="text-fid-sm text-fid-text-muted" aria-live="polite">
-          {{ c.shelf.sheet.looking }}
-        </p>
+      <p v-if="looking && !detail" class="text-fid-sm text-fid-text-muted" aria-live="polite">
+        {{ c.shelf.sheet.looking }}
+      </p>
 
-        <!--
+      <!--
           What Discogs still owns.
           Every other pressing and editing the entry itself live over there —
           this sheet says what the app knows, and hands over for the rest.
         -->
-        <div class="mt-auto flex flex-wrap items-center gap-3 border-t border-fid-border pt-4">
-          <a
-            :href="`https://www.discogs.com/release/${record.releaseId}`"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border border-fid-field bg-fid-surface-raised px-4 text-fid-sm font-medium text-fid-text"
-          >
-            {{ c.shelf.sheet.atDiscogs }}
-            <FidIcon name="external-link" :size="14" />
-          </a>
+      <div class="mt-auto flex flex-wrap items-center gap-3 border-t border-fid-border pt-4">
+        <a
+          :href="`https://www.discogs.com/release/${record.releaseId}`"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border border-fid-field bg-fid-surface-raised px-4 text-fid-sm font-medium text-fid-text"
+        >
+          {{ c.shelf.sheet.atDiscogs }}
+          <FidIcon name="external-link" :size="14" />
+        </a>
 
-          <!--
+        <!--
             Where it stands — only where there are any places at all. An empty
             select beside "view on Discogs" would be a control that can do
             nothing, and the way to make one is right next to it.
           -->
-          <label v-if="places.length > 0" class="flex items-center gap-2 text-fid-sm">
-            <span class="text-fid-text-muted">{{ c.places.where }}</span>
-            <select
-              :value="placeId ?? ''"
-              class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
-              @change="setPlace(($event.target as HTMLSelectElement).value)"
-            >
-              <option value="">{{ c.places.nowhere }}</option>
-              <option v-for="place in places" :key="place.id" :value="place.id">
-                {{ '— '.repeat(place.depth) }}{{ place.name }}
-              </option>
-            </select>
-          </label>
-          <NuxtLink
-            v-else
-            to="/places"
-            class="fid-action inline-flex min-h-11 items-center text-fid-sm text-fid-text-muted underline underline-offset-4"
+        <label v-if="places.length > 0" class="flex items-center gap-2 text-fid-sm">
+          <span class="text-fid-text-muted">{{ c.places.where }}</span>
+          <select
+            :value="placeId ?? ''"
+            class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+            @change="setPlace(($event.target as HTMLSelectElement).value)"
           >
-            {{ c.places.addTop }}
-          </NuxtLink>
+            <option value="">{{ c.places.nowhere }}</option>
+            <option v-for="place in places" :key="place.id" :value="place.id">
+              {{ '— '.repeat(place.depth) }}{{ place.name }}
+            </option>
+          </select>
+        </label>
+        <NuxtLink
+          v-else
+          to="/places"
+          class="fid-action inline-flex min-h-11 items-center text-fid-sm text-fid-text-muted underline underline-offset-4"
+        >
+          {{ c.places.addTop }}
+        </NuxtLink>
 
-          <button
-            type="button"
-            class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border px-4 text-fid-sm"
-            :class="
-              watching
-                ? 'border-fid-accent-fill text-fid-accent'
-                : 'border-fid-field text-fid-text'
-            "
-            @click="toggleWatch"
-          >
-            <FidIcon name="eye" :size="14" aria-hidden="true" />
-            {{ watching ? c.watched.watchingOn : c.watched.watch }}
-          </button>
-          <p v-if="watchFull" class="text-fid-xs text-fid-sig-scarcity">
-            {{ c.watched.full }}
-          </p>
+        <button
+          type="button"
+          class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border px-4 text-fid-sm"
+          :class="
+            watching
+              ? 'border-fid-accent-fill text-fid-accent'
+              : 'border-fid-field text-fid-text'
+          "
+          @click="toggleWatch"
+        >
+          <FidIcon name="eye" :size="14" aria-hidden="true" />
+          {{ watching ? c.watched.watchingOn : c.watched.watch }}
+        </button>
+        <p v-if="watchFull" class="text-fid-xs text-fid-sig-scarcity">
+          {{ c.watched.full }}
+        </p>
 
-          <button
-            v-if="canRate && !confirming"
-            type="button"
-            class="fid-lift ml-auto inline-flex min-h-11 items-center rounded-fid-sm px-3 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
-            @click="confirming = true"
-          >
-            {{ c.shelf.sheet.remove }}
-          </button>
-          <!--
+        <button
+          v-if="canRate && !confirming"
+          type="button"
+          class="fid-lift ml-auto inline-flex min-h-11 items-center rounded-fid-sm px-3 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+          @click="confirming = true"
+        >
+          {{ c.shelf.sheet.remove }}
+        </button>
+        <!--
             Deleting is the one thing here that reaches into a real account and
             cannot be undone from this app — Discogs does not hand back what it
             never deleted. So it says what will happen, in a colour that is
             used nowhere else on this screen, and the confirming button is not
             where the first one was.
           -->
-          <div
-            v-else-if="confirming"
-            class="flex w-full flex-wrap items-center gap-3 rounded-fid-sm border border-fid-sig-scarcity bg-fid-sig-scarcity/10 px-3 py-2"
+        <div
+          v-else-if="confirming"
+          class="flex w-full flex-wrap items-center gap-3 rounded-fid-sm border border-fid-sig-scarcity bg-fid-sig-scarcity/10 px-3 py-2"
+        >
+          <span class="text-fid-sm text-fid-text">{{ c.shelf.sheet.removeSure }}</span>
+          <button
+            type="button"
+            class="fid-lift inline-flex min-h-11 items-center rounded-fid-sm border border-fid-field px-3 text-fid-sm text-fid-text"
+            @click="confirming = false"
           >
-            <span class="text-fid-sm text-fid-text">{{ c.shelf.sheet.removeSure }}</span>
-            <button
-              type="button"
-              class="fid-lift inline-flex min-h-11 items-center rounded-fid-sm border border-fid-field px-3 text-fid-sm text-fid-text"
-              @click="confirming = false"
-            >
-              {{ m.cancel }}
-            </button>
-            <button
-              type="button"
-              class="fid-lift inline-flex min-h-11 items-center rounded-fid-sm border border-fid-sig-scarcity px-3 text-fid-sm font-medium text-fid-sig-scarcity"
-              @click="remove()"
-            >
-              {{ c.shelf.sheet.removeYes }}
-            </button>
-          </div>
+            {{ m.cancel }}
+          </button>
+          <button
+            type="button"
+            class="fid-lift inline-flex min-h-11 items-center rounded-fid-sm border border-fid-sig-scarcity px-3 text-fid-sm font-medium text-fid-sig-scarcity"
+            @click="remove()"
+          >
+            {{ c.shelf.sheet.removeYes }}
+          </button>
         </div>
-      </template>
-    </aside>
-  </div>
+      </div>
+    </template>
+  </SheetFrame>
 </template>

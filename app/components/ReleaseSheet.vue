@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MatchDetail } from '#shared/types'
 import { reasonFor } from '~/i18n/reason'
-import { pressingText } from '~/i18n/pressing'
+import { pressingText, stampText } from '~/i18n/pressing'
 import { useDigMessages } from '~/i18n/dig'
 
 const d = useDigMessages()
@@ -14,10 +14,8 @@ const { call } = useFidelityWorker()
 const { verdicts, judge } = useFeedback()
 
 const detail = ref<MatchDetail | null>(null)
-const panel = useTemplateRef<HTMLElement>('panel')
 
 onMounted(async () => {
-  panel.value?.focus()
   detail.value = await call('dig.detail', {
     digId: props.digId,
     listingId: props.listingId,
@@ -123,50 +121,26 @@ function years(entry: { from: number; to: number }): string {
     ? d.value.sheet.ownedYear(String(entry.from))
     : d.value.sheet.ownedYears(String(entry.from), String(entry.to))
 }
-
-function onKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') emit('close')
-}
 </script>
 
 <template>
-  <div
-    class="fixed inset-0 z-40 flex justify-end bg-black/60"
-    @click.self="emit('close')"
-    @keydown="onKeydown"
+  <!--
+    The slide is the browser's, not ours — a View Transition on the name the
+    frame passes down. Anyone who asked not to be moved gets the state change
+    without the movement; that opt-out lives in `main.css`, once for every sheet.
+  -->
+  <SheetFrame
+    :label="match ? `${match.artist} – ${match.title}` : d.sheet.loading"
+    transition="release-sheet"
+    @close="emit('close')"
   >
-    <!--
-      view-transition-name is set here and matched by the card that opened it,
-      so the cover and title carry across instead of the panel simply appearing
-      (docs/05 §4: same-document View Transitions only).
-    -->
-    <aside
-      ref="panel"
-      role="dialog"
-      aria-modal="true"
-      :aria-label="match ? `${match.artist} – ${match.title}` : 'Release'"
-      tabindex="-1"
-      class="fid-sheet flex h-full w-full max-w-lg flex-col gap-6 overflow-y-auto border-l border-fid-border bg-fid-surface p-6 outline-none lg:max-w-2xl xl:max-w-3xl"
-      style="scrollbar-gutter: stable"
-      @keydown.esc="emit('close')"
-    >
-      <div class="flex items-start justify-between gap-4">
-        <h2 class="text-fid-base font-bold text-fid-text">
-          <template v-if="match">{{ match.artist }} – {{ match.title }}</template>
-          <template v-else>{{ d.sheet.loading }}</template>
-        </h2>
-        <button
-          type="button"
-          :aria-label="m.close"
-          class="fid-lift flex min-h-11 min-w-11 items-center justify-center rounded-fid-sm border border-fid-field bg-fid-surface-raised text-fid-base text-fid-text"
-          @click="emit('close')"
-        >
-          ✕
-        </button>
-      </div>
+    <template #title>
+      <template v-if="match">{{ match.artist }} – {{ match.title }}</template>
+      <template v-else>{{ d.sheet.loading }}</template>
+    </template>
 
-      <template v-if="match">
-        <!--
+    <template v-if="match">
+      <!--
           On a phone the cover goes on top, full width.
           A 96px square beside three lines of text is a layout thought up at a
           desk. On a phone there is no column left next to it for text to
@@ -174,7 +148,7 @@ function onKeydown(event: KeyboardEvent) {
           up the smallest thing on the screen. From `sm` up the row comes back:
           there the room is real.
         -->
-        <!--
+      <!--
           Wrap rather than crush.
 
           The cover is `shrink-0` and takes its width; the facts got what was
@@ -183,8 +157,8 @@ function onKeydown(event: KeyboardEvent) {
           they slide under the cover instead, as soon as side by side would no
           longer be legible.
         -->
-        <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
-          <!--
+      <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
+        <!--
             The largest cover the app shows — so the one where the 600 px
             version is worth having.
 
@@ -197,288 +171,267 @@ function onKeydown(event: KeyboardEvent) {
             No `srcset` — the reasoning is in `ShelfSheet.vue`: the 600w
             candidate did not keep its promise, and the 150 was never picked.
           -->
-          <img
-            v-if="cover"
-            :src="cover.coverUrl || cover.thumbUrl"
-            alt=""
-            loading="lazy"
-            decoding="async"
-            width="600"
-            height="600"
-            class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80"
-          />
-          <div class="flex min-w-0 grow items-start gap-4 sm:basis-52">
-            <div class="flex min-w-0 grow flex-col gap-1">
-              <p v-if="meta" class="font-fid-mono text-fid-xs text-fid-text-muted">
-                {{ meta }}
-              </p>
-              <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">
-                <span v-if="match.condition" class="flex items-center gap-2">
-                  <FidIcon name="platte" :size="14" />
-                  {{ match.condition }}
-                </span>
-                <!--
+        <img
+          v-if="cover"
+          :src="cover.coverUrl || cover.thumbUrl"
+          alt=""
+          loading="lazy"
+          decoding="async"
+          width="600"
+          height="600"
+          class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80"
+        />
+        <div class="flex min-w-0 grow items-start gap-4 sm:basis-52">
+          <div class="flex min-w-0 grow flex-col gap-1">
+            <p v-if="meta" class="font-fid-mono text-fid-xs text-fid-text-muted">
+              {{ meta }}
+            </p>
+            <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">
+              <span v-if="match.condition" class="flex items-center gap-2">
+                <FidIcon name="platte" :size="14" />
+                {{ match.condition }}
+              </span>
+              <!--
                 Two gradings side by side, and which is which decides whether a
                 record is worth buying. "Cover VG" and "VG" read as the same
                 word twice; the disc and the sleeve do not.
               -->
-                <span v-if="match.sleeve" class="flex items-center gap-2">
-                  <FidIcon name="huelle" :size="14" />
-                  {{ match.sleeve }}
-                </span>
-                <span v-if="price" class="fid-num text-fid-base text-fid-text">{{
-                  price
-                }}</span>
-              </p>
-            </div>
-            <span
-              class="fid-num shrink-0 text-fid-xl font-bold text-fid-text"
-              :aria-label="d.match.score(match.score)"
-            >
-              {{ match.score }}
-            </span>
+              <span v-if="match.sleeve" class="flex items-center gap-2">
+                <FidIcon name="huelle" :size="14" />
+                {{ match.sleeve }}
+              </span>
+              <span v-if="price" class="fid-num text-fid-base text-fid-text">{{ price }}</span>
+            </p>
           </div>
+          <span
+            class="fid-num shrink-0 text-fid-xl font-bold text-fid-text"
+            :aria-label="d.match.score(match.score)"
+          >
+            {{ match.score }}
+          </span>
         </div>
+      </div>
 
-        <p class="text-fid-base text-fid-text">{{ reasonFor(match.signals) }}</p>
+      <p class="text-fid-base text-fid-text">{{ reasonFor(match.signals) }}</p>
 
-        <!--
+      <!--
           Your own words, at the moment they matter.
           Standing in a shop with the record in your hand, "only the German
           press" is the difference between a find and a mistake — and it has
           been sitting in Discogs, unread by this app, the whole time.
         -->
-        <p
-          v-if="detail?.wantNote"
-          class="flex items-start gap-2 rounded-fid-sm border border-fid-sig-wantlist/40 bg-fid-sig-wantlist/10 px-3 py-2 text-fid-sm text-fid-text"
-        >
-          <FidIcon name="bookmark" :size="16" class="shrink-0 text-fid-sig-wantlist" />
-          {{ detail.wantNote }}
-        </p>
+      <p
+        v-if="detail?.wantNote"
+        class="flex items-start gap-2 rounded-fid-sm border border-fid-sig-wantlist/40 bg-fid-sig-wantlist/10 px-3 py-2 text-fid-sm text-fid-text"
+      >
+        <FidIcon name="bookmark" :size="16" class="shrink-0 text-fid-sig-wantlist" />
+        {{ detail.wantNote }}
+      </p>
 
-        <!--
+      <!--
           The market numbers, whenever the enrichment pass paid for them. Shown
           even where neither signal fired: "40 im Angebot, Tiefstpreis 8 €" is
           the answer to "is this a find or mass-produced", and that question
           does not stop being interesting because the answer is no.
         -->
-        <section
-          v-if="match.marketNumForSale !== null"
-          class="flex flex-col gap-1"
-          aria-labelledby="sheet-market"
-        >
-          <h3 id="sheet-market" class="text-fid-sm font-medium text-fid-text">
-            {{ d.sheet.market }}
-          </h3>
-          <p class="text-fid-sm text-fid-text-muted">
-            {{ d.sheet.forSale(count(match.marketNumForSale), match.marketNumForSale === 1) }}
-            <template v-if="marketLowest">
-              · {{ d.sheet.lowest }}
-              <span class="fid-num text-fid-text">{{ marketLowest }}</span></template
-            >
-          </p>
-        </section>
+      <section
+        v-if="match.marketNumForSale !== null"
+        class="flex flex-col gap-1"
+        aria-labelledby="sheet-market"
+      >
+        <h3 id="sheet-market" class="text-fid-sm font-medium text-fid-text">
+          {{ d.sheet.market }}
+        </h3>
+        <p class="text-fid-sm text-fid-text-muted">
+          {{ d.sheet.forSale(count(match.marketNumForSale), match.marketNumForSale === 1) }}
+          <template v-if="marketLowest">
+            · {{ d.sheet.lowest }}
+            <span class="fid-num text-fid-text">{{ marketLowest }}</span></template
+          >
+        </p>
+      </section>
 
-        <!-- Every signal with its evidence — the follow-up to the sentence. -->
-        <section class="flex flex-col gap-2" aria-labelledby="sheet-signals">
-          <h3 id="sheet-signals" class="text-fid-sm font-medium text-fid-text">
-            {{ d.sheet.signals }}
-          </h3>
-          <ul class="flex flex-col gap-2">
-            <li
-              v-for="signal in match.signals"
-              :key="signal.type"
-              class="rounded-fid-sm border px-3 py-2"
-              :style="signalChipStyle(signal.type)"
-            >
-              <p class="flex items-baseline justify-between gap-3 text-fid-sm text-fid-text">
-                {{ signalLabel(signal.type) }}
-                <span class="fid-num text-fid-xs text-fid-text-muted">
-                  {{ Math.round(signal.confidence * 100) }} %
-                </span>
-              </p>
-              <p v-if="evidenceOf(signal.evidence)" class="text-fid-xs text-fid-text-muted">
-                {{ evidenceOf(signal.evidence) }}
-              </p>
-            </li>
-          </ul>
-        </section>
+      <!-- Every signal with its evidence — the follow-up to the sentence. -->
+      <section class="flex flex-col gap-2" aria-labelledby="sheet-signals">
+        <h3 id="sheet-signals" class="text-fid-sm font-medium text-fid-text">
+          {{ d.sheet.signals }}
+        </h3>
+        <ul class="flex flex-col gap-2">
+          <li
+            v-for="signal in match.signals"
+            :key="signal.type"
+            class="rounded-fid-sm border px-3 py-2"
+            :style="signalChipStyle(signal.type)"
+          >
+            <p class="flex items-baseline justify-between gap-3 text-fid-sm text-fid-text">
+              {{ signalLabel(signal.type) }}
+              <span class="fid-num text-fid-xs text-fid-text-muted">
+                {{ Math.round(signal.confidence * 100) }} %
+              </span>
+            </p>
+            <p v-if="evidenceOf(signal.evidence)" class="text-fid-xs text-fid-text-muted">
+              {{ evidenceOf(signal.evidence) }}
+            </p>
+          </li>
+        </ul>
+      </section>
 
-        <!--
+      <!--
           The pressing. Everything here is traceable to a field: "Neuauflage"
           is Discogs' own word, and the runout is printed verbatim so somebody
           can hold the record up and compare.
         -->
-        <section
-          v-if="match.pressing"
-          class="flex flex-col gap-2"
-          aria-labelledby="sheet-pressing"
-        >
-          <h3 id="sheet-pressing" class="text-fid-sm font-medium text-fid-text">
-            {{ d.sheet.pressing }}
-          </h3>
+      <section
+        v-if="match.pressing"
+        class="flex flex-col gap-2"
+        aria-labelledby="sheet-pressing"
+      >
+        <h3 id="sheet-pressing" class="text-fid-sm font-medium text-fid-text">
+          {{ d.sheet.pressing }}
+        </h3>
 
-          <ul v-if="match.pressingWarnings?.length" class="flex flex-col gap-1">
-            <li
-              v-for="warning in match.pressingWarnings"
-              :key="warning.kind + (warning.facts.special ?? '')"
-              class="text-fid-sm"
-              :class="
-                warning.severity === 'high' ? 'text-fid-sig-scarcity' : 'text-fid-sig-gap'
-              "
-            >
-              {{ pressingText(warning) }}
-            </li>
-          </ul>
-
-          <p class="text-fid-sm text-fid-text-muted">
-            <template v-if="match.pressing.country">{{ match.pressing.country }}</template>
-            <template v-if="match.pressing.year">
-              · <span class="fid-num">{{ match.pressing.year }}</span></template
-            >
-            <template v-if="match.pressing.plant">
-              · {{ d.sheet.plant }} {{ match.pressing.plant }}</template
-            >
-            <template v-if="match.pressing.freeText.length">
-              · {{ match.pressing.freeText.join(', ') }}</template
-            >
-          </p>
-
-          <ul v-if="match.pressing.stamps.length" class="flex flex-col gap-1">
-            <li
-              v-for="stamp in match.pressing.stamps"
-              :key="stamp.key"
-              class="text-fid-sm text-fid-text-muted"
-            >
-              <span class="text-fid-text">{{ stamp.label }}</span> – {{ stamp.note }}
-            </li>
-          </ul>
-
-          <!-- Printed verbatim: this is what you compare against the record. -->
-          <ul v-if="match.pressing.runouts.length" class="flex flex-col gap-1">
-            <li
-              v-for="runout in match.pressing.runouts"
-              :key="runout"
-              class="font-fid-mono text-fid-xs break-all text-fid-text-muted"
-            >
-              {{ runout }}
-            </li>
-          </ul>
-        </section>
-
-        <CatalogRunGrid v-if="detail?.catalogue" :run="detail.catalogue" />
-
-        <section
-          v-if="detail && detail.discography.length > 0"
-          class="flex flex-col gap-2"
-          aria-labelledby="sheet-disc"
-        >
-          <h3 id="sheet-disc" class="text-fid-sm font-medium text-fid-text">
-            {{ d.sheet.discography }}
-          </h3>
-          <ul class="flex flex-col gap-1">
-            <li
-              v-for="entry in detail.discography"
-              :key="entry.artist"
-              class="text-fid-sm text-fid-text-muted"
-            >
-              <span class="text-fid-text">{{ entry.artist }}</span> –
-              {{ d.sheet.owned(count(entry.owned), m.mainReleases(count(entry.total))) }}
-              <template v-if="entry.from > 0">{{ years(entry) }}</template>
-            </li>
-          </ul>
-        </section>
-
-        <section
-          v-if="detail && detail.connections.length > 0"
-          class="flex flex-col gap-2"
-          aria-labelledby="sheet-links"
-        >
-          <h3 id="sheet-links" class="text-fid-sm font-medium text-fid-text">
-            {{ d.sheet.connections }}
-          </h3>
-          <p class="text-fid-sm text-fid-text-muted">
-            {{ detail.connections.map((c) => c.name).join(' · ') }}
-          </p>
-        </section>
-
-        <div
-          class="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-fid-border pt-4"
-        >
-          <div class="flex gap-1" role="group" :aria-label="d.match.feedback">
-            <!-- Same pair of words as on the card, see MatchCard.vue. -->
-            <button
-              v-for="option in SHOWN_VERDICTS"
-              :key="option.key"
-              type="button"
-              :aria-pressed="verdict === option.key"
-              class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border px-3 text-fid-sm transition-colors"
-              :class="
-                verdict === option.key
-                  ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
-                  : 'border-fid-field text-fid-text-muted hover:text-fid-text'
-              "
-              @click="judge(match, option.key)"
-            >
-              <FidIcon :name="option.icon" :size="16" />
-              {{
-                verdict === option.key
-                  ? d.match.verdictsDone[option.key]
-                  : d.match.verdicts[option.key]
-              }}
-            </button>
-          </div>
-
-          <a
-            class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border border-fid-field bg-fid-surface-raised px-4 text-fid-sm font-medium text-fid-text"
-            :href="`https://www.discogs.com/sell/item/${match.listingId}`"
-            target="_blank"
-            rel="noopener noreferrer"
+        <ul v-if="match.pressingWarnings?.length" class="flex flex-col gap-1">
+          <li
+            v-for="warning in match.pressingWarnings"
+            :key="warning.kind + (warning.facts.special ?? '')"
+            class="text-fid-sm"
+            :class="warning.severity === 'high' ? 'text-fid-sig-scarcity' : 'text-fid-sig-gap'"
           >
-            {{ d.sheet.atDiscogs }}
-            <!--
+            {{ pressingText(warning) }}
+          </li>
+        </ul>
+
+        <p class="text-fid-sm text-fid-text-muted">
+          <template v-if="match.pressing.country">{{ match.pressing.country }}</template>
+          <template v-if="match.pressing.year">
+            · <span class="fid-num">{{ match.pressing.year }}</span></template
+          >
+          <template v-if="match.pressing.plant">
+            · {{ d.sheet.plant }} {{ match.pressing.plant }}</template
+          >
+          <template v-if="match.pressing.freeText.length">
+            · {{ match.pressing.freeText.join(', ') }}</template
+          >
+        </p>
+
+        <ul v-if="match.pressing.stamps.length" class="flex flex-col gap-1">
+          <li
+            v-for="stamp in match.pressing.stamps"
+            :key="stamp.key"
+            class="text-fid-sm text-fid-text-muted"
+          >
+            <span class="text-fid-text">{{ stampText(stamp).label }}</span> –
+            {{ stampText(stamp).note }}
+          </li>
+        </ul>
+
+        <!-- Printed verbatim: this is what you compare against the record. -->
+        <ul v-if="match.pressing.runouts.length" class="flex flex-col gap-1">
+          <li
+            v-for="runout in match.pressing.runouts"
+            :key="runout"
+            class="font-fid-mono text-fid-xs break-all text-fid-text-muted"
+          >
+            {{ runout }}
+          </li>
+        </ul>
+      </section>
+
+      <CatalogRunGrid v-if="detail?.catalogue" :run="detail.catalogue" />
+
+      <section
+        v-if="detail && detail.discography.length > 0"
+        class="flex flex-col gap-2"
+        aria-labelledby="sheet-disc"
+      >
+        <h3 id="sheet-disc" class="text-fid-sm font-medium text-fid-text">
+          {{ d.sheet.discography }}
+        </h3>
+        <ul class="flex flex-col gap-1">
+          <li
+            v-for="entry in detail.discography"
+            :key="entry.artist"
+            class="text-fid-sm text-fid-text-muted"
+          >
+            <span class="text-fid-text">{{ entry.artist }}</span> –
+            {{ d.sheet.owned(count(entry.owned), m.mainReleases(count(entry.total))) }}
+            <template v-if="entry.from > 0">{{ years(entry) }}</template>
+          </li>
+        </ul>
+      </section>
+
+      <section
+        v-if="detail && detail.connections.length > 0"
+        class="flex flex-col gap-2"
+        aria-labelledby="sheet-links"
+      >
+        <h3 id="sheet-links" class="text-fid-sm font-medium text-fid-text">
+          {{ d.sheet.connections }}
+        </h3>
+        <p class="text-fid-sm text-fid-text-muted">
+          {{ detail.connections.map((c) => c.name).join(' · ') }}
+        </p>
+      </section>
+
+      <div
+        class="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-fid-border pt-4"
+      >
+        <div class="flex gap-1" role="group" :aria-label="d.match.feedback">
+          <!-- Same pair of words as on the card, see MatchCard.vue. -->
+          <button
+            v-for="option in SHOWN_VERDICTS"
+            :key="option.key"
+            type="button"
+            :aria-pressed="verdict === option.key"
+            class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border px-3 text-fid-sm transition-colors"
+            :class="
+              verdict === option.key
+                ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
+                : 'border-fid-field text-fid-text-muted hover:text-fid-text'
+            "
+            @click="judge(match, option.key)"
+          >
+            <FidIcon :name="option.icon" :size="16" />
+            {{
+              verdict === option.key
+                ? d.match.verdictsDone[option.key]
+                : d.match.verdicts[option.key]
+            }}
+          </button>
+        </div>
+
+        <a
+          class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border border-fid-field bg-fid-surface-raised px-4 text-fid-sm font-medium text-fid-text"
+          :href="`https://www.discogs.com/sell/item/${match.listingId}`"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ d.sheet.atDiscogs }}
+          <!--
               The arrow out of the box. A link that leaves the app and lands in
               a new tab should say so beforehand — before, it was a text link
               like any other, and the jump came unannounced.
             -->
-            <FidIcon name="external-link" :size="14" />
-          </a>
+          <FidIcon name="external-link" :size="14" />
+        </a>
 
-          <button
-            v-if="match && !wanted"
-            type="button"
-            class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border border-fid-field px-3 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
-            @click="want()"
-          >
-            <FidIcon name="bookmark" :size="14" />
-            {{ d.sheet.want }}
-          </button>
-          <span
-            v-else-if="wanted"
-            class="inline-flex min-h-11 items-center gap-2 px-3 text-fid-sm text-fid-sig-wantlist"
-          >
-            <FidIcon name="bookmark" :size="14" />
-            {{ d.sheet.wanted }}
-          </span>
-        </div>
-      </template>
-    </aside>
-  </div>
+        <button
+          v-if="match && !wanted"
+          type="button"
+          class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border border-fid-field px-3 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+          @click="want()"
+        >
+          <FidIcon name="bookmark" :size="14" />
+          {{ d.sheet.want }}
+        </button>
+        <span
+          v-else-if="wanted"
+          class="inline-flex min-h-11 items-center gap-2 px-3 text-fid-sm text-fid-sig-wantlist"
+        >
+          <FidIcon name="bookmark" :size="14" />
+          {{ d.sheet.wanted }}
+        </span>
+      </div>
+    </template>
+  </SheetFrame>
 </template>
-
-<style scoped>
-.fid-sheet {
-  view-transition-name: release-sheet;
-}
-
-/*
-  The slide is the browser's, not ours — a View Transition on a name the card
-  also carries. Anyone who asked not to be moved gets the state change without
-  the movement.
-*/
-@media (prefers-reduced-motion: reduce) {
-  .fid-sheet {
-    view-transition-name: none;
-  }
-}
-</style>

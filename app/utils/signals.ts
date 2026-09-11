@@ -40,7 +40,7 @@ export function signalLabel(type: SignalType): string {
 export function signalChipStyle(type: SignalType) {
   const token = `var(--fid-sig-${SIGNAL_TOKEN[type] ?? 'label'})`
   return {
-    backgroundColor: `color-mix(in oklch, ${token} 12%, transparent)`,
-    borderColor: `color-mix(in oklch, ${token} 40%, transparent)`,
+    backgroundColor: `color-mix(in oklch, ${token} calc(var(--fid-chip-bg-alpha) * 100%), transparent)`,
+    borderColor: `color-mix(in oklch, ${token} calc(var(--fid-chip-border-alpha) * 100%), transparent)`,
   }
 }

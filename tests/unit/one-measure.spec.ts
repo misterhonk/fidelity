@@ -96,6 +96,24 @@ describe('every screen shares one measure', () => {
   })
 
   /**
+   * And the two other blocks in the page flow.
+   *
+   * Found on 2026-09-11, after the rule above was already green: the update
+   * banner sat at `max-w-[80rem]` directly under the bar, so from 80rem of
+   * window width its left edge stood inside the bar's — a third measure, on
+   * the one element that only ever appears once and is therefore never on the
+   * screenshot anyone compares. The footer carried its own `px-6` instead of
+   * the container's. Both now sit in `fid-page`; neither may name a width.
+   */
+  it('includes the update banner and the footer', () => {
+    for (const component of ['PwaUpdatePrompt', 'SiteFooter']) {
+      const quelle = readFileSync(`app/components/${component}.vue`, 'utf8')
+      expect(quelle, component).toMatch(/\bfid-page\b/)
+      expect(quelle, component).not.toMatch(/max-w-\[/)
+    }
+  })
+
+  /**
    * **And narrow content has *one* narrow measure.**
    *
    * That was the second half of the finding and the more quietly hidden one.

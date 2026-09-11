@@ -50,7 +50,7 @@ const price = computed(() => {
   -->
   <div
     ref="root"
-    class="group grid h-[34px] scroll-mt-28 grid-cols-[1.75rem_2.25rem_1fr_auto] items-center gap-x-2 rounded-fid-sm px-2 hover:bg-fid-surface"
+    class="group grid h-[var(--fid-row-compact)] scroll-mt-28 grid-cols-[1.75rem_2.25rem_1fr_auto] items-center gap-x-2 rounded-fid-sm px-2 hover:bg-fid-surface"
   >
     <!--
       Twenty-six pixels of cover in a 34-pixel row.

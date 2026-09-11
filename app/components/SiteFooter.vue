@@ -13,8 +13,8 @@ const { version, commit } = useRuntimeConfig().public
     also spelled out. `noopener` is fine and is about window.opener, not about
     link equity.
   -->
-  <footer class="mt-auto border-t border-fid-border">
-    <div class="mx-auto flex w-full max-w-3xl flex-col gap-2 px-6 py-6">
+  <footer class="fid-page mt-auto border-t border-fid-border py-6">
+    <div class="mx-auto flex w-full max-w-3xl flex-col gap-2">
       <p class="text-fid-xs text-fid-text-muted">
         <a
           class="underline underline-offset-4"

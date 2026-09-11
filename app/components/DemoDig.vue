@@ -189,7 +189,7 @@ function shapeOf(format: string | null) {
               :alt="`${seed.artist} – ${seed.title}`"
               loading="lazy"
               decoding="async"
-              class="aspect-square w-full rounded-fid-cover bg-fid-inset object-cover shadow-sm transition-transform duration-200 group-hover:-translate-y-1"
+              class="aspect-square w-full rounded-fid-cover bg-fid-inset object-cover shadow-sm transition-transform duration-[var(--fid-motion-feedback)] group-hover:-translate-y-1"
             />
 
             <!--
@@ -308,7 +308,7 @@ function shapeOf(format: string | null) {
               :alt="`${find.artist} – ${find.title}`"
               loading="lazy"
               decoding="async"
-              class="aspect-square w-full rounded-fid-cover bg-fid-inset object-cover transition-transform duration-200 group-hover:-translate-y-1"
+              class="aspect-square w-full rounded-fid-cover bg-fid-inset object-cover transition-transform duration-[var(--fid-motion-feedback)] group-hover:-translate-y-1"
             />
             <!-- No picture is the ordinary case, not an error. -->
             <span

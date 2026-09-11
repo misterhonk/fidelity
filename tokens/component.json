@@ -1,26 +1,17 @@
 {
-  "$description": "Component-specific values that would otherwise be hard-coded in three places. Everything here is a decision from docs/05-DESIGN-SYSTEM.md §3, not a convenience alias.",
+  "$description": "Component-specific values that would otherwise be hard-coded in three places. Everything here is a decision from docs/05-DESIGN-SYSTEM.md §3, not a convenience alias — and everything here is referenced. On 2026-09-11 this file emitted nine variables and nothing read any of them; each had a hard-coded twin in a component. Row `comfortable` (no density toggle exists) and `cover.size` (an <img> needs the literal in `width`, `height` and `sizes`, so a variable there would be a fourth copy rather than a source) were removed rather than kept as promises.",
   "chip": {
-    "$description": "SignalChip: background at 12 % of the signal colour, border at 40 %, text via contrast-color().",
+    "$description": "Signal chips: background at 12 % of the signal colour, border at 40 % (app/utils/signals.ts). min-target is the WCAG 2.2 SC 2.5.8 floor, applied by `.fid-action`.",
     "bg-alpha": { "$type": "number", "$value": 0.12 },
     "border-alpha": { "$type": "number", "$value": 0.4 },
-    "min-target": {
-      "$type": "dimension",
-      "$value": { "value": 24, "unit": "px" },
-      "$description": "WCAG 2.2 SC 2.5.8 minimum target size."
-    }
+    "min-target": { "$type": "dimension", "$value": { "value": 24, "unit": "px" } }
   },
   "row": {
-    "$description": "DensityToggle. Collectors want to see a lot; the answer is a switch, not a compromise.",
-    "comfortable": { "$type": "dimension", "$value": { "value": 52, "unit": "px" } },
+    "$description": "The compact match row (MatchRow.vue): a table of records, 34 px a line.",
     "compact": { "$type": "dimension", "$value": { "value": 34, "unit": "px" } }
   },
-  "cover": {
-    "$description": "MatchCard cover thumbnail. Loaded by the browser straight from i.discogs.com — never server-side, that host has its own Cloudflare limit.",
-    "size": { "$type": "dimension", "$value": { "value": 96, "unit": "px" } }
-  },
   "motion": {
-    "$description": "150–250 ms for UI feedback, 300–400 ms for layout changes. Movement serves orientation and causality, never decoration.",
+    "$description": "150–250 ms for UI feedback, 300–400 ms for layout changes. Movement serves orientation and causality, never decoration. Used by main.css and by every progress bar.",
     "$type": "duration",
     "feedback": { "$value": { "value": 180, "unit": "ms" } },
     "layout": { "$value": { "value": 320, "unit": "ms" } }

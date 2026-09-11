@@ -607,7 +607,7 @@ const noHorizon = computed(
     <section v-if="progress" class="flex flex-col gap-2" aria-live="polite">
       <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
         <div
-          class="h-full rounded-full bg-fid-accent transition-[width] duration-300"
+          class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
           :style="{ width: `${percent}%` }"
         />
       </div>
@@ -640,7 +640,7 @@ const noHorizon = computed(
     >
       <div class="h-1 w-24 overflow-hidden rounded-full bg-fid-inset">
         <div
-          class="h-full rounded-full bg-fid-accent transition-[width] duration-300"
+          class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
           :style="{
             width: `${enriching.total > 0 ? Math.round((enriching.done / enriching.total) * 100) : 0}%`,
           }"
@@ -838,7 +838,7 @@ const noHorizon = computed(
       <div v-if="refreshing" class="flex flex-col gap-1" aria-live="polite">
         <div class="h-1.5 w-full overflow-hidden rounded-full bg-fid-inset">
           <div
-            class="h-full rounded-full bg-fid-accent transition-[width] duration-300"
+            class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
             :style="{
               width: `${refreshing.total > 0 ? Math.round((refreshing.done / refreshing.total) * 100) : 0}%`,
             }"

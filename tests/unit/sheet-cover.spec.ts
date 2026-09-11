@@ -94,8 +94,10 @@ describe('the cover sizes', () => {
 
   /** And the sheet itself has the room for it — or the cover would be the sheet. */
   it('has a sheet wide enough to hold it', () => {
-    for (const source of [SHELF, RELEASE]) {
-      expect(source).toMatch(/max-w-lg .*lg:max-w-2xl xl:max-w-3xl/)
-    }
+    // The width lives on the frame both sheets slide in on, since 2026-09-11.
+    for (const source of [SHELF, RELEASE]) expect(source).toMatch(/<SheetFrame/)
+    expect(readFileSync('app/components/SheetFrame.vue', 'utf8')).toMatch(
+      /max-w-lg .*lg:max-w-2xl xl:max-w-3xl/,
+    )
   })
 })

@@ -126,7 +126,7 @@ body {
 .fid-action {
   display: inline-flex;
   align-items: center;
-  min-height: 1.5rem;
+  min-height: var(--fid-chip-min-target);
 }
 
 /*
@@ -195,7 +195,7 @@ body {
 
 .fid-tile,
 .fid-rise {
-  animation: fid-lay-out 0.35s ease-out backwards;
+  animation: fid-lay-out var(--fid-motion-layout) ease-out backwards;
   animation-delay: calc(min(var(--fid-stagger, 0), 11) * 40ms);
 }
 
@@ -212,8 +212,8 @@ body {
 .fid-step-enter-active,
 .fid-step-leave-active {
   transition:
-    opacity 0.22s ease,
-    transform 0.22s ease;
+    opacity var(--fid-motion-feedback) ease,
+    transform var(--fid-motion-feedback) ease;
 }
 
 .fid-step-enter-from {
@@ -269,9 +269,9 @@ body {
     var(--shadow-fid-elev-1),
     inset 0 1px 0 color-mix(in oklch, var(--fid-white) 22%, transparent);
   transition:
-    box-shadow 0.18s ease,
+    box-shadow var(--fid-motion-feedback) ease,
     transform 0.12s ease,
-    filter 0.18s ease;
+    filter var(--fid-motion-feedback) ease;
 }
 
 .fid-fill:hover:not(:disabled) {
@@ -304,9 +304,9 @@ body {
  */
 .fid-lift {
   transition:
-    box-shadow 0.2s ease,
-    transform 0.2s ease,
-    border-color 0.2s ease;
+    box-shadow var(--fid-motion-feedback) ease,
+    transform var(--fid-motion-feedback) ease,
+    border-color var(--fid-motion-feedback) ease;
 }
 
 @media (hover: hover) {
@@ -327,9 +327,9 @@ body {
  */
 .fid-cover-button {
   transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease,
-    filter 0.18s ease;
+    transform var(--fid-motion-feedback) ease,
+    box-shadow var(--fid-motion-feedback) ease,
+    filter var(--fid-motion-feedback) ease;
 }
 
 @media (hover: hover) {
@@ -361,6 +361,15 @@ body {
 }
 
 /*
+ * The detail sheets slide in on a View Transition (docs/05 §4). The name comes
+ * from `SheetFrame` as a custom property, so each sheet keeps its own group and
+ * the opt-out below covers all of them at once.
+ */
+.fid-sheet {
+  view-transition-name: var(--fid-sheet-name, none);
+}
+
+/*
  * Reduce, do not remove. Opacity crossfades and instant state changes stay;
  * parallax, large translations, scale and scroll-driven effects go.
  */
@@ -376,5 +385,9 @@ body {
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation: none !important;
+  }
+
+  .fid-sheet {
+    view-transition-name: none;
   }
 }
