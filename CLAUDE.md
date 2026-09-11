@@ -146,7 +146,7 @@ Conventional Commits, erzwungen durch commitlint:
 feat(dig): add incremental matching during inventory scan
 fix(discogs): handle both legacy and FastAPI error shapes
 perf(horizon): pack release ids as Int32Array
-docs(api): document the 10k pagination wall
+docs(discogs): document the 10k pagination wall
 ```
 
 Scopes: `dig` `match` `discogs` `horizon` `auth` `basket` `watch` `dealers` `hub` `demo`

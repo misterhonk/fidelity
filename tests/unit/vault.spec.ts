@@ -139,6 +139,94 @@ describe('two devices, one truth', () => {
     expect(mergeSnapshots(b, a).preferences).toMatchObject({ currency: 'GBP' })
   })
 
+  /**
+   * Orte und Standorte reisen mit — und Löschungen reisen mit ihnen (M12).
+   *
+   * Das ist der Teil, der ohne Absicht schiefgeht. Der Abgleich kennt nur
+   * „diese Zeile ist neuer"; eine **gelöschte** Zeile ist für ihn keine
+   * Nachricht, sondern eine Lücke, und das Gerät, das sie noch hat, füllt sie
+   * beim nächsten Mal wieder auf. Ein aufgelöstes Regal käme zurück, und eine
+   * heruntergenommene Platte läge wieder darin.
+   *
+   * Deshalb gibt es in beiden Stores kein Löschen mehr: `removedAt` am Ort,
+   * `placeId: null` am Standort. Beides sind Schreibvorgänge und gewinnen.
+   */
+  describe('places and where records lie', () => {
+    it('travels at all', () => {
+      expect(SYNCABLE_STORES).toContain('places')
+      expect(SYNCABLE_STORES).toContain('placements')
+    })
+
+    it('keeps a dissolved place dissolved', () => {
+      // Das Telefon hat den Keller aufgelöst, der Laptop war offline.
+      const telefon = snapshot({
+        savedAt: 2000,
+        stores: {
+          places: [
+            {
+              id: 'k',
+              name: 'Keller',
+              parentId: null,
+              createdAt: 1,
+              updatedAt: 2000,
+              removedAt: 2000,
+            },
+          ],
+        },
+      })
+      const laptop = snapshot({
+        savedAt: 1000,
+        stores: {
+          places: [{ id: 'k', name: 'Keller', parentId: null, createdAt: 1, updatedAt: 1 }],
+        },
+      })
+
+      const merged = mergeSnapshots(telefon, laptop)
+      expect(merged.stores.places).toEqual([
+        expect.objectContaining({ id: 'k', removedAt: 2000 }),
+      ])
+    })
+
+    it('keeps a record that was taken off the shelf off it', () => {
+      const telefon = snapshot({
+        savedAt: 2000,
+        stores: { placements: [{ instanceId: 7, placeId: null, at: 2000 }] },
+      })
+      const laptop = snapshot({
+        savedAt: 1000,
+        stores: { placements: [{ instanceId: 7, placeId: 'regal', at: 1000 }] },
+      })
+
+      expect(mergeSnapshots(telefon, laptop).stores.placements).toEqual([
+        { instanceId: 7, placeId: null, at: 2000 },
+      ])
+      // Und in die andere Richtung gewinnt genauso der jüngere Schreibvorgang.
+      expect(mergeSnapshots(laptop, telefon).stores.placements).toEqual([
+        { instanceId: 7, placeId: null, at: 2000 },
+      ])
+    })
+
+    /** Ein umbenanntes Regal braucht einen Stempel, sonst entscheidet Zufall. */
+    it('lets the newer name win', () => {
+      const alt = snapshot({
+        stores: {
+          places: [{ id: 'r', name: 'Regal', parentId: null, createdAt: 1, updatedAt: 1 }],
+        },
+      })
+      const neu = snapshot({
+        stores: {
+          places: [
+            { id: 'r', name: 'Wohnzimmer', parentId: null, createdAt: 1, updatedAt: 5000 },
+          ],
+        },
+      })
+
+      expect(mergeSnapshots(alt, neu).stores.places).toEqual([
+        expect.objectContaining({ name: 'Wohnzimmer' }),
+      ])
+    })
+  })
+
   it('carries neither the token nor a single price', () => {
     /*
      * Rule 6 and rule 4, held to at the one place where breaking them would be

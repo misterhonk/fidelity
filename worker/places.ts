@@ -1,5 +1,5 @@
 import { openFidelityDb } from '~~/db/open'
-import type { CollectionItem, Place, PlaceNode } from '#shared/types'
+import type { CollectionItem, Place, Placement, PlaceNode } from '#shared/types'
 
 /**
  * Wo die Platte steht (M12).
@@ -35,12 +35,34 @@ function newId(): string {
  * in Unterorten mit — „im Keller" meint den ganzen Keller, und ein Keller, der
  * 0 anzeigt, während drei Kisten darin voll sind, ist eine Lüge.
  */
+/**
+ * Ein aufgelöster Ort ist noch da, zählt aber nicht mehr.
+ *
+ * Der Grabstein existiert für den Tresor (`Place.removedAt`); für alles
+ * andere ist der Ort weg. Deshalb genau ein Filter, durch den jeder Lesevorgang
+ * geht — zwei Filter sind einer, den jemand vergisst.
+ */
+const lebt = (place: Place) => !place.removedAt
+
+/**
+ * Und eine Platte, die nirgends liegt, liegt nirgends — auch mit Zeile.
+ *
+ * Das ist eine **Typ**-Engstelle, keine Verhaltensänderung: `placeId: null`
+ * landete sonst als Schlüssel `null` in einer `Map<string, number>`, die
+ * niemand abfragt, weil kein Ort `null` heißt. Eine Mutationsprobe hat den
+ * Filter folgerichtig überlebt — es gibt hier nichts zu beobachten, und ein
+ * Test, der das behauptete, prüfte etwas, das nicht stattfindet.
+ */
+const liegtIrgendwo = (placement: Placement): placement is Placement & { placeId: string } =>
+  placement.placeId !== null
+
 export async function placesOverview(): Promise<PlaceNode[]> {
   const db = await openFidelityDb()
-  const [places, placements] = await Promise.all([db.getAll('places'), db.getAll('placements')])
+  const [alle, placements] = await Promise.all([db.getAll('places'), db.getAll('placements')])
+  const places = alle.filter(lebt)
 
   const direct = new Map<string, number>()
-  for (const placement of placements) {
+  for (const placement of placements.filter(liegtIrgendwo)) {
     direct.set(placement.placeId, (direct.get(placement.placeId) ?? 0) + 1)
   }
 
@@ -92,7 +114,7 @@ export async function createPlace(
   if (parentId !== null) {
     let depth = 1
     let cursor = await db.get('places', parentId)
-    if (!cursor) return null
+    if (!cursor || !lebt(cursor)) return null
     while (cursor?.parentId) {
       depth += 1
       cursor = await db.get('places', cursor.parentId)
@@ -100,7 +122,15 @@ export async function createPlace(
     if (depth >= MAX_DEPTH) return null
   }
 
-  const place: Place = { id: newId(), name: trimmed, parentId, createdAt: Date.now() }
+  const at = Date.now()
+  const place: Place = {
+    id: newId(),
+    name: trimmed,
+    parentId,
+    createdAt: at,
+    updatedAt: at,
+    removedAt: null,
+  }
   await db.put('places', place)
   return place
 }
@@ -111,9 +141,9 @@ export async function renamePlace(id: string, name: string): Promise<boolean> {
 
   const db = await openFidelityDb()
   const place = await db.get('places', id)
-  if (!place) return false
+  if (!place || !lebt(place)) return false
 
-  await db.put('places', { ...place, name: trimmed })
+  await db.put('places', { ...place, name: trimmed, updatedAt: Date.now() })
   return true
 }
 
@@ -127,36 +157,49 @@ export async function renamePlace(id: string, name: string): Promise<boolean> {
 export async function removePlace(id: string): Promise<void> {
   const db = await openFidelityDb()
   const place = await db.get('places', id)
-  if (!place) return
+  if (!place || !lebt(place)) return
 
+  const at = Date.now()
   const tx = db.transaction(['places', 'placements'], 'readwrite')
   const places = tx.objectStore('places')
   const placements = tx.objectStore('placements')
 
   for (const child of await places.getAll()) {
-    if (child.parentId === id) await places.put({ ...child, parentId: place.parentId })
+    if (child.parentId === id) {
+      await places.put({ ...child, parentId: place.parentId, updatedAt: at })
+    }
   }
 
+  /*
+   * Die Platten werden ortlos geschrieben, nicht gelöscht.
+   *
+   * Eine gelöschte Zeile ist für den Abgleich keine Nachricht, sondern eine
+   * Lücke — das andere Gerät kennt die alte noch und legt die Platte zurück in
+   * ein Regal, das es nicht mehr gibt. `null` mit frischem `at` gewinnt.
+   */
   const drin = await placements.index('by-place').getAll(id)
-  for (const row of drin) await placements.delete(row.instanceId)
+  for (const row of drin) await placements.put({ ...row, placeId: null, at })
 
-  await places.delete(id)
+  await places.put({ ...place, removedAt: at, updatedAt: at })
   await tx.done
 }
 
 /** Ein Exemplar an einen Ort legen — oder von überall herunternehmen. */
 export async function placeRecord(instanceId: number, placeId: string | null): Promise<void> {
   const db = await openFidelityDb()
-  if (placeId === null) {
-    await db.delete('placements', instanceId)
-    return
-  }
+  // Auch das Herunternehmen wird geschrieben, nicht gelöscht — siehe oben.
   await db.put('placements', { instanceId, placeId, at: Date.now() })
 }
 
 export async function placeOf(instanceId: number): Promise<string | null> {
   const db = await openFidelityDb()
-  return (await db.get('placements', instanceId))?.placeId ?? null
+  const placement = await db.get('placements', instanceId)
+  if (!placement?.placeId) return null
+
+  // Ein Ort, den ein anderes Gerät aufgelöst hat, ist keine Antwort auf „wo
+  // liegt sie". Die Platte ist dann ortlos, nicht verschwunden.
+  const place = await db.get('places', placement.placeId)
+  return place && lebt(place) ? placement.placeId : null
 }
 
 /**
@@ -170,7 +213,9 @@ export async function placeContents(placeId: string, deep = true): Promise<Colle
   const ids = new Set<string>([placeId])
 
   if (deep) {
-    const places = await db.getAll('places')
+    // Auch hier nur lebende Orte: nach einem Abgleich kann eine Zeile noch auf
+    // einen Ort zeigen, den dieses Gerät längst aufgelöst hat.
+    const places = (await db.getAll('places')).filter(lebt)
     let grew = true
     while (grew) {
       grew = false

@@ -8,9 +8,11 @@ import {
   MAX_DEPTH,
   moveAll,
   placeContents,
+  placeOf,
   placeRecord,
   placesOverview,
   removePlace,
+  renamePlace,
 } from '~~/worker/places'
 import type { CollectionItem } from '#shared/types'
 
@@ -104,11 +106,79 @@ describe('a place', () => {
     await removePlace(keller.id)
 
     expect(await db.get('collection', 1)).toBeTruthy()
-    expect(await db.get('placements', 1)).toBeUndefined()
+    expect(await placeOf(1)).toBeNull()
+
+    /*
+     * Und die Zeile ist **da** — mit `placeId: null`.
+     *
+     * Sie war früher gelöscht, und das war für ein einzelnes Gerät richtig.
+     * Über den Tresor ist es die falsche Nachricht: eine fehlende Zeile ist
+     * für den Abgleich keine Aussage, sondern eine Lücke, und das andere Gerät
+     * legt die Platte beim nächsten Mal zurück in ein Regal, das es nicht mehr
+     * gibt. „Liegt nirgendwo" muss geschrieben sein, um zu gewinnen.
+     */
+    expect(await db.get('placements', 1)).toMatchObject({ placeId: null })
 
     // Und die Kiste steht jetzt oben statt nirgends.
     const nodes = await placesOverview()
     expect(nodes.find((n) => n.id === kiste.id)?.parentId).toBeNull()
+  })
+
+  /**
+   * Und dasselbe beim einzelnen Herunternehmen.
+   *
+   * `placeRecord(x, null)` war ein `delete`, und für ein einzelnes Gerät war
+   * das richtig. Über den Tresor ist es die falsche Nachricht — geprüft
+   * getrennt von `removePlace`, weil beide Wege eigene Zeilen sind und eine
+   * Mutationsprobe genau hier durchkam.
+   */
+  it('writes "nowhere" instead of forgetting the row', async () => {
+    const regal = (await createPlace('Regal', null))!
+    const db = await openFidelityDb()
+    await db.put('collection', platte(1, 'Eins'))
+
+    await placeRecord(1, regal.id)
+    await placeRecord(1, null)
+
+    expect(await placeOf(1)).toBeNull()
+    expect(await db.get('placements', 1)).toMatchObject({ placeId: null })
+    expect((await placesOverview()).find((n) => n.id === regal.id)?.records).toBe(0)
+  })
+
+  /**
+   * Umbenennen hinterlässt einen Zeitstempel.
+   *
+   * Ohne ihn entscheidet beim Abgleich der Zufall: `createdAt` ist auf beiden
+   * Geräten dieselbe Zahl, und dann gewinnt nicht der jüngere Name, sondern
+   * derjenige, der zuletzt gelesen wurde.
+   */
+  it('stamps a rename so the newer name can win elsewhere', async () => {
+    const regal = (await createPlace('Regal', null))!
+    const db = await openFidelityDb()
+    const vorher = (await db.get('places', regal.id))!.updatedAt ?? 0
+
+    await new Promise((done) => setTimeout(done, 2))
+    expect(await renamePlace(regal.id, 'Wohnzimmer')).toBe(true)
+
+    const nachher = (await db.get('places', regal.id))!
+    expect(nachher.name).toBe('Wohnzimmer')
+    expect(nachher.updatedAt ?? 0).toBeGreaterThan(vorher)
+  })
+
+  /**
+   * Der aufgelöste Ort selbst bleibt als Grabstein liegen — aus demselben
+   * Grund, und ohne irgendwo aufzutauchen.
+   */
+  it('leaves a marker so another device cannot bring it back', async () => {
+    const keller = (await createPlace('Keller', null))!
+    await removePlace(keller.id)
+
+    const db = await openFidelityDb()
+    expect(await db.get('places', keller.id)).toMatchObject({ removedAt: expect.any(Number) })
+    expect((await placesOverview()).map((n) => n.id)).not.toContain(keller.id)
+    // Und er nimmt nichts mehr an: weder einen neuen Namen noch ein Unterfach.
+    expect(await renamePlace(keller.id, 'Dachboden')).toBe(false)
+    expect(await createPlace('Fach', keller.id)).toBeNull()
   })
 })
 

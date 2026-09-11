@@ -34,6 +34,22 @@ const STAMP = {
     row.updatedAt ?? row.lastScannedAt ?? 0,
   collection: (row: { syncedAt?: number }) => row.syncedAt ?? 0,
   wantlist: (row: { syncedAt?: number }) => row.syncedAt ?? 0,
+  /*
+   * Orte und Standorte (M12).
+   *
+   * Beides kostet null Requests und ist **nur** hier — Discogs hat kein Feld
+   * dafür (`GET /users/{u}/collection/fields` gibt genau drei, gemessen am
+   * 2026-09-11). Wer das Regal auf dem Telefon einträgt und im Keller mit dem
+   * Laptop nachsieht, bekommt ohne den Tresor zwei verschiedene Antworten.
+   *
+   * Löschen gibt es in beiden Stores nicht mehr: ein aufgelöster Ort trägt
+   * `removedAt`, eine heruntergenommene Platte `placeId: null`. Eine gelöschte
+   * Zeile wäre für diesen Abgleich keine Nachricht, sondern eine Lücke, die
+   * das andere Gerät wieder auffüllt.
+   */
+  places: (row: { updatedAt?: number; createdAt?: number }) =>
+    row.updatedAt ?? row.createdAt ?? 0,
+  placements: (row: { at?: number }) => row.at ?? 0,
 } as const
 
 const KEY = {
@@ -43,6 +59,8 @@ const KEY = {
   dealers: 'username',
   collection: 'releaseId',
   wantlist: 'releaseId',
+  places: 'id',
+  placements: 'instanceId',
 } as const
 
 export type SyncableStore = keyof typeof KEY

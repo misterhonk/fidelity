@@ -925,6 +925,27 @@ export interface Place {
   /** `null` ist die oberste Ebene — Wohnzimmer, Keller, Dachboden. */
   parentId: string | null
   createdAt: number
+  /**
+   * Zuletzt angefasst — umbenannt, verschoben, aufgelöst.
+   *
+   * Der Tresor entscheidet je Zeile nach dem jüngeren Schreibvorgang
+   * (`worker/vault/merge.ts`). Ohne diesen Stempel gewänne bei einem
+   * umbenannten Regal der Zufall: `createdAt` ist auf beiden Geräten gleich.
+   * Fehlt an Zeilen von vor dem Tresor-Anschluss; dann gilt `createdAt`.
+   */
+  updatedAt?: number
+  /**
+   * Aufgelöst — und trotzdem noch da (M12, Tresor).
+   *
+   * Ein Grabstein statt einer Löschung. Der Abgleich kennt nur „diese Zeile
+   * ist neuer"; eine wirklich gelöschte Zeile ist für ihn keine Nachricht,
+   * sondern eine Lücke, und das andere Gerät füllt sie beim nächsten Mal
+   * wieder auf. Ein aufgelöstes Regal käme also zurück.
+   *
+   * Gefiltert wird in `worker/places.ts`, und nur dort — kein anderes Modul
+   * liest diesen Store.
+   */
+  removedAt?: number | null
 }
 
 /**
@@ -940,7 +961,19 @@ export interface Place {
  */
 export interface Placement {
   instanceId: number
-  placeId: string
+  /**
+   * `null` heißt „liegt nirgendwo" — und zwar als **Aussage**, nicht als
+   * fehlende Zeile.
+   *
+   * Herunternehmen war einmal ein `delete`. Über den Tresor wäre das die
+   * falsche Nachricht: das andere Gerät kennt die Zeile noch, hält sie für
+   * gültig und legt die Platte zurück ins Regal, in dem sie nicht mehr liegt.
+   * Ein `null` mit frischem `at` gewinnt dagegen jeden Vergleich.
+   *
+   * Nebenbei fällt die Zeile damit aus dem `by-place`-Index heraus: `null` ist
+   * kein gültiger Schlüssel, IndexedDB nimmt sie gar nicht erst auf.
+   */
+  placeId: string | null
   at: number
 }
 

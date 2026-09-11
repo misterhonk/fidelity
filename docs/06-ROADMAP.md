@@ -555,7 +555,22 @@ Das ist dieselbe Frage wie der In-Store-Bildschirm, einen Schritt weiter: dort h
 - [x] Ein Exemplar liegt an einem Ort — an der `instanceId`, nicht an der `releaseId`.
 - [x] Beide Richtungen: „wo ist X" im Regal-Sheet, „was liegt im Keller" als Reiter.
 - [x] Offline und lokal, **null Requests**. Ein eigener Store, den der Sync nicht anfasst.
-- [ ] Über den Tresor mitreisen, damit das Telefon im Keller dieselbe Antwort gibt.
+- [x] Über den Tresor mitreisen, damit das Telefon im Keller dieselbe Antwort gibt — und
+      in der Sicherungsdatei, denn Standorte sind das Einzige darin, das sich nirgends
+      wiederbeschaffen lässt.
+
+⚠️ **Dafür musste das Löschen aus beiden Stores verschwinden.** Der Abgleich kennt nur
+„diese Zeile ist neuer" (`worker/vault/merge.ts`); eine gelöschte Zeile ist für ihn keine
+Nachricht, sondern eine Lücke, und das Gerät, das sie noch hat, füllt sie beim nächsten
+Mal wieder auf. Ein aufgelöstes Regal käme zurück, und eine heruntergenommene Platte läge
+wieder darin — lautlos, und erst im Keller vor dem falschen Fach zu merken.
+
+Seitdem trägt ein aufgelöster Ort `removedAt` und eine heruntergenommene Platte
+`placeId: null`. Beides sind Schreibvorgänge und gewinnen jeden Vergleich. Gefiltert wird
+ausschließlich in `worker/places.ts` — kein anderes Modul liest diese Stores, und ein
+zweiter Filter wäre einer, den jemand vergisst. Ein Ort bekam dafür `updatedAt`: bei einem
+umbenannten Regal ist `createdAt` auf beiden Geräten gleich, und dann entschiede der
+Zufall.
 - [x] Umziehen können: „alles aus Kiste 3 nach Regal 2".
 
 ✅ **Gemessen am 2026-09-11, und die Antwort ist nein.** `GET

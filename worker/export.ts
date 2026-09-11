@@ -108,6 +108,17 @@ export interface FullExport {
   matches: ExportedMatch[]
   feedback: unknown[]
   basket: unknown[]
+  /**
+   * Wo die Platten stehen (M12).
+   *
+   * Das Einzige in dieser Datei, das **nirgendwo sonst existiert**. Sammlung
+   * und Wantlist holt ein neues Gerät bei Discogs wieder, der Horizont lässt
+   * sich nachbauen — „zweites Fach, Regal im Wohnzimmer" steht nur hier, weil
+   * Discogs kein Feld dafür hat (gemessen am 2026-09-11). Eine Sicherung, die
+   * es ausließe, sicherte alles außer dem Unersetzlichen.
+   */
+  places: unknown[]
+  placements: unknown[]
   note: string
 }
 
@@ -122,15 +133,18 @@ export interface FullExport {
 export async function exportEverything(now: number): Promise<FullExport> {
   const db = await openFidelityDb()
 
-  const [collection, wantlist, dealers, digs, feedback, basket, matches] = await Promise.all([
-    db.getAll('collection'),
-    db.getAll('wantlist'),
-    db.getAll('dealers'),
-    db.getAll('digs'),
-    db.getAll('feedback'),
-    db.getAll('basket'),
-    db.getAll('matches'),
-  ])
+  const [collection, wantlist, dealers, digs, feedback, basket, matches, places, placements] =
+    await Promise.all([
+      db.getAll('collection'),
+      db.getAll('wantlist'),
+      db.getAll('dealers'),
+      db.getAll('digs'),
+      db.getAll('feedback'),
+      db.getAll('basket'),
+      db.getAll('matches'),
+      db.getAll('places'),
+      db.getAll('placements'),
+    ])
 
   const identity = await getMeta('identity')
 
@@ -150,6 +164,8 @@ export async function exportEverything(now: number): Promise<FullExport> {
     matches: matches.map(strip),
     feedback,
     basket,
+    places,
+    placements,
     note:
       'Without the token and without marketplace data. The horizon is left out ' +
       'on purpose — it can be rebuilt at any time and would weigh several times ' +
