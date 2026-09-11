@@ -11,6 +11,18 @@ Für eine App bedeutet SemVer:
 
 ## [0.36.0](https://github.com/misterhonk/fidelity/compare/v0.35.0...v0.36.0) (2026-09-11)
 
+**Which pressing is this? The record in your hand, among all of them.**
+
+The in-store screen now lists the pressings that share a barcode or run-out — year,
+country, label and catalogue number, which one is yours — instead of only saying how many
+there are. Pick the one you are holding and it is read against the album's whole family:
+"Europe reissue from 2017, not the 1994 original. One of 160 pressings. The first are from
+1994:" with the first pressings on the same medium, the marks in the run-out, and the
+number etched there for you to compare. A run-out that returns one candidate needs no tap.
+Two requests, for one record, nothing stored, no marketplace data — and no hub: the
+album's own versions list, sorted by release date, is what pressing advice lacked beyond
+the horizon.
+
 
 ### Added
 
