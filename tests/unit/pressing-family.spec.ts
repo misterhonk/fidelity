@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { pressingFamily, yearOf } from '~~/worker/pressing-family'
+import { familyFacts, pressingFamily, yearOf } from '~~/worker/pressing-family'
+import type { HubClient } from '~~/worker/hub/client'
 
 /**
  * The pressing in your hand, among all the others (docs/06 M19 #7).
@@ -185,6 +186,71 @@ describe('placing a pressing among its family', () => {
   it('is null, not an error, when Discogs will not answer at all', async () => {
     const { client } = fakeClient({ '/releases/1': new Error('offline') })
     expect(await pressingFamily(client, 1)).toBeNull()
+  })
+})
+
+/**
+ * Through the hub (M20 #7): a family somebody else fetched costs no request;
+ * a fresh one is offered back; a month-old one is a miss.
+ */
+describe('the family through the hub', () => {
+  const fakeHub = (cached: unknown) => {
+    const offered: unknown[] = []
+    return {
+      offered,
+      hub: {
+        family: async () => cached,
+        contributeFamily: async (family: unknown) => {
+          offered.push(family)
+        },
+      } as unknown as HubClient,
+    }
+  }
+
+  it('takes a fresh family from the hub and asks Discogs nothing', async () => {
+    const { client, calls } = fakeClient({ '/releases/10147986': reissue })
+    const { hub } = fakeHub({
+      masterId: 5542,
+      total: 160,
+      fetchedAt: 900,
+      siblings: [
+        {
+          releaseId: 372340,
+          year: 1994,
+          country: 'UK',
+          label: 'Go! Beat',
+          catno: '828 553-1',
+          format: 'Vinyl, Album',
+        },
+      ],
+    })
+
+    const family = await pressingFamily(client, 10147986, { hub, now: () => 1000 })
+
+    expect(calls.map((c) => c.path)).toEqual(['/releases/10147986'])
+    expect(family?.total).toBe(160)
+    expect(family?.firstYear).toBe(1994)
+  })
+
+  it('treats a month-old family as a miss, and offers the fresh one back', async () => {
+    const { client } = fakeClient({ '/masters/5542/versions': versions })
+    const { hub, offered } = fakeHub({ masterId: 5542, total: 1, fetchedAt: 0, siblings: [] })
+    const DAY = 24 * 60 * 60 * 1000
+
+    const facts = await familyFacts(client, 5542, { hub, now: () => 31 * DAY })
+
+    expect(facts.total).toBe(160)
+    // Fire-and-forget on the way out: give it a tick.
+    await new Promise((done) => setTimeout(done, 0))
+    expect(offered).toHaveLength(1)
+    expect((offered[0] as { fetchedAt: number }).fetchedAt).toBe(31 * DAY)
+  })
+
+  it('works exactly as before without a hub', async () => {
+    const { client, calls } = fakeClient({ '/masters/5542/versions': versions })
+    const facts = await familyFacts(client, 5542, { hub: null, now: () => 5 })
+    expect(calls).toHaveLength(1)
+    expect(facts).toMatchObject({ masterId: 5542, total: 160, fetchedAt: 5 })
   })
 })
 

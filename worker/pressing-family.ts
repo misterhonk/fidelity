@@ -1,8 +1,11 @@
+import { getPreferences } from '~~/db/meta'
 import type { DiscogsClient } from './discogs/client'
 import { masterVersionsSchema } from './discogs/entities'
 import { releaseDetailSchema } from './dig/enrich'
+import { createHubClient, type HubClient } from './hub/client'
+import { preferHub } from './hub/fallback'
 import { pressingWarnings, readPressing } from './match/pressing'
-import type { PressingFamily, PressingSibling } from '#shared/types'
+import type { PressingFamily, PressingFamilyFacts, PressingSibling } from '#shared/types'
 import { mediumOf } from '#shared/format'
 
 /**
@@ -28,11 +31,68 @@ const PER_PAGE = 100
 /** How many first pressings are worth listing. */
 const MAX_FIRST = 6
 
+/** Pressings are added, never taken away: a month-old family is still right. */
+export const FAMILY_TTL_MS = 30 * 24 * 60 * 60 * 1000
+
+export interface FamilyOptions {
+  signal?: AbortSignal
+  now?: () => number
+  /** Normally read from the preferences; a test hands one in. */
+  hub?: HubClient | null
+}
+
+/**
+ * The versions list, from the hub when it has it (M20 #7), else from Discogs
+ * — and then offered back, so the next person is spared the request. The
+ * catalogue hub of docs/14 in miniature, on the hub that already runs.
+ */
+export async function familyFacts(
+  client: DiscogsClient,
+  masterId: number,
+  { signal, now = Date.now, hub }: FamilyOptions = {},
+): Promise<PressingFamilyFacts> {
+  const fromDiscogs = async (): Promise<PressingFamilyFacts> => {
+    const versions = await client.get(`/masters/${masterId}/versions`, masterVersionsSchema, {
+      query: { per_page: PER_PAGE, sort: 'released', sort_order: 'asc' },
+      signal,
+    })
+    return {
+      masterId,
+      total: versions.pagination.items,
+      fetchedAt: now(),
+      siblings: versions.versions.map((version) => ({
+        releaseId: version.id,
+        year: yearOf(version.released),
+        country: version.country ?? '',
+        label: version.label ?? '',
+        catno: version.catno ?? '',
+        format: [...(version.major_formats ?? []), version.format ?? '']
+          .filter(Boolean)
+          .join(', '),
+      })),
+    }
+  }
+
+  return preferHub(fromDiscogs, {
+    hub: hub
+      ? async () => {
+          const cached = await hub.family(masterId)
+          // A family older than a month is a miss: it is still right, but a
+          // month of new pressings is worth one request.
+          return cached && now() - cached.fetchedAt < FAMILY_TTL_MS ? cached : null
+        }
+      : null,
+    contribute: hub ? (fresh) => hub.contributeFamily(fresh) : null,
+  })
+}
+
 export async function pressingFamily(
   client: DiscogsClient,
   releaseId: number,
-  signal?: AbortSignal,
+  options: FamilyOptions | AbortSignal = {},
 ): Promise<PressingFamily | null> {
+  const opts: FamilyOptions = options instanceof AbortSignal ? { signal: options } : options
+  const { signal } = opts
   let release
   try {
     release = await client.get(`/releases/${releaseId}`, releaseDetailSchema, { signal })
@@ -48,21 +108,19 @@ export async function pressingFamily(
 
   if (masterId !== null) {
     try {
-      const versions = await client.get(`/masters/${masterId}/versions`, masterVersionsSchema, {
-        query: { per_page: PER_PAGE, sort: 'released', sort_order: 'asc' },
-        signal,
-      })
-      total = versions.pagination.items
-      siblings = versions.versions.map((version) => ({
-        releaseId: version.id,
-        year: yearOf(version.released),
-        country: version.country ?? '',
-        label: version.label ?? '',
-        catno: version.catno ?? '',
-        format: [...(version.major_formats ?? []), version.format ?? '']
-          .filter(Boolean)
-          .join(', '),
-      }))
+      const hub =
+        opts.hub === undefined
+          ? await (async () => {
+              const preferences = await getPreferences()
+              return createHubClient({
+                baseUrl: preferences.hubUrl,
+                secret: preferences.hubSecret,
+              })
+            })()
+          : opts.hub
+      const facts = await familyFacts(client, masterId, { ...opts, hub })
+      total = facts.total
+      siblings = facts.siblings
     } catch {
       // The versions are the second half; the first half stands on its own.
     }

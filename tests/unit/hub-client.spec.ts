@@ -24,6 +24,54 @@ function respond(body: unknown, ok = true) {
   ) as unknown as typeof fetch
 }
 
+describe('a pressing family from the hub', () => {
+  const family = {
+    masterId: 5542,
+    total: 160,
+    fetchedAt: 1000,
+    siblings: [
+      {
+        releaseId: 372340,
+        year: 1994,
+        country: 'UK',
+        label: 'Go! Beat',
+        catno: '828 553-1',
+        format: 'Vinyl, Album',
+      },
+    ],
+  }
+
+  it('reads one, and refuses one about another master', async () => {
+    const client = createHubClient({ baseUrl: 'https://hub.test', fetchImpl: respond(family) })!
+    expect(await client.family(5542)).toEqual(family)
+    expect(await client.family(7)).toBeNull()
+  })
+
+  it('is null on a miss and on nonsense', async () => {
+    expect(
+      await createHubClient({
+        baseUrl: 'https://hub.test',
+        fetchImpl: respond(null, false),
+      })!.family(5542),
+    ).toBeNull()
+    expect(
+      await createHubClient({
+        baseUrl: 'https://hub.test',
+        fetchImpl: respond({ hello: 1 }),
+      })!.family(5542),
+    ).toBeNull()
+  })
+
+  it('offers a family back with a PUT to its master', async () => {
+    const fetchImpl = respond({ stored: true })
+    await createHubClient({ baseUrl: 'https://hub.test', fetchImpl })!.contributeFamily(family)
+    const [url, init] = (fetchImpl as unknown as { mock: { calls: [string, RequestInit][] } })
+      .mock.calls[0]!
+    expect(url).toBe('https://hub.test/v1/family/5542')
+    expect(init.method).toBe('PUT')
+  })
+})
+
 describe('the wire format', () => {
   it('survives a round trip with its types intact', () => {
     const back = decodeChunk(encodeChunk(chunk))

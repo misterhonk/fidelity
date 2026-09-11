@@ -1099,6 +1099,20 @@ export interface PressingFamily {
   amongFirst: boolean
 }
 
+/**
+ * The CC0 half of a pressing family, as the hub caches it (M20 #7).
+ *
+ * What `/masters/{id}/versions` says about an album: how many pressings, and
+ * the first page of them, earliest first. No prices, nothing that expires —
+ * pressings are added, never taken away, so thirty days is plenty.
+ */
+export interface PressingFamilyFacts {
+  masterId: number
+  total: number
+  siblings: PressingSibling[]
+  fetchedAt: number
+}
+
 export interface PressingSibling {
   releaseId: number
   year: number | null

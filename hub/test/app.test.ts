@@ -46,6 +46,7 @@ describe('health', () => {
       horizon: 0,
       shipping: 0,
       covers: 0,
+      families: 0,
       watching: 0,
       secured: true,
     })
@@ -389,6 +390,51 @@ describe('what the hub refuses to be', () => {
  * The tests that matter here are the ones about what is *refused*: these
  * strings become `<img src>` on every device sharing this hub.
  */
+describe('pressing families', () => {
+  const family = (over = {}) => ({
+    masterId: 5542,
+    total: 160,
+    fetchedAt: 1000,
+    siblings: [
+      {
+        releaseId: 372340,
+        year: 1994,
+        country: 'UK',
+        label: 'Go! Beat',
+        catno: '828 553-1',
+        format: 'Vinyl, Album',
+      },
+    ],
+    ...over,
+  })
+
+  test('a miss is a plain 404', async () => {
+    const { app } = hub()
+    assert.equal((await app.request('/v1/family/5542')).status, 404)
+  })
+
+  test('stores a family and hands it back unchanged', async () => {
+    const { app } = hub()
+    assert.equal((await put(app, '/v1/family/5542', family())).status, 200)
+    assert.deepEqual(await (await app.request('/v1/family/5542')).json(), family())
+  })
+
+  test('refuses a body about another master, and one that is not a family', async () => {
+    const { app } = hub()
+    assert.equal((await put(app, '/v1/family/99', family())).status, 400)
+    assert.equal((await put(app, '/v1/family/5542', { hello: 'world' })).status, 400)
+    assert.equal((await app.request('/v1/family/zero')).status, 400)
+  })
+
+  test('keeps the newer reading', async () => {
+    const { app } = hub()
+    await put(app, '/v1/family/5542', family({ fetchedAt: 2000, total: 161 }))
+    const older = await put(app, '/v1/family/5542', family({ fetchedAt: 1000, total: 160 }))
+    assert.deepEqual(await older.json(), { stored: false, reason: 'older than cached' })
+    assert.equal((await (await app.request('/v1/family/5542')).json()).total, 161)
+  })
+})
+
 describe('covers', () => {
   const cover = (releaseId: number, thumbUrl: string, coverUrl = thumbUrl) => ({
     releaseId,

@@ -1,7 +1,13 @@
 import { z } from 'zod'
 
 import { chunkIsSound, decodeChunk, encodeChunk, type WireChunk } from '#shared/wire'
-import type { HorizonChunk, HorizonKind, PushRegistration, ShippingTier } from '#shared/types'
+import type {
+  HorizonChunk,
+  HorizonKind,
+  PressingFamilyFacts,
+  PushRegistration,
+  ShippingTier,
+} from '#shared/types'
 
 import { log } from '../log'
 import { fail } from '../fail'
@@ -41,6 +47,25 @@ const wireChunkSchema = z.object({
   kin: z
     .array(z.object({ name: z.string(), relation: z.enum(['alias', 'member', 'group']) }))
     .optional(),
+})
+
+/** Same shape as the hub's `familySchema`; the client trusts nothing it did not check. */
+const familySchema = z.object({
+  masterId: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+  fetchedAt: z.number().int().nonnegative(),
+  siblings: z
+    .array(
+      z.object({
+        releaseId: z.number().int().positive(),
+        year: z.number().int().nullable(),
+        country: z.string(),
+        label: z.string(),
+        catno: z.string(),
+        format: z.string(),
+      }),
+    )
+    .max(200),
 })
 
 const tiersSchema = z.object({
@@ -88,6 +113,14 @@ export interface HubClient {
    */
   covers(releaseIds: number[]): Promise<Record<number, HubCover>>
   contributeCovers(covers: (HubCover & { releaseId: number })[]): Promise<void>
+
+  /**
+   * A pressing family, by master (M20 #7) — the catalogue hub of docs/14 in
+   * miniature. CC0 facts, thirty days; a miss is null and the client asks
+   * Discogs itself, then offers the answer back.
+   */
+  family(masterId: number): Promise<PressingFamilyFacts | null>
+  contributeFamily(family: PressingFamilyFacts): Promise<void>
 
   /**
    * The vault: one block of ciphertext per person.
@@ -267,6 +300,25 @@ export function createHubClient({
         method: 'PUT',
         headers,
         body: JSON.stringify({ covers }),
+      })
+    },
+
+    async family(masterId) {
+      const response = await fetchImpl(url(`/v1/family/${masterId}`), { headers })
+      if (!response.ok) return null
+      const parsed = familySchema.safeParse(await response.json())
+      if (!parsed.success || parsed.data.masterId !== masterId) {
+        log.warn('[hub] family answer does not match the schema', masterId)
+        return null
+      }
+      return parsed.data
+    },
+
+    async contributeFamily(family) {
+      await fetchImpl(url(`/v1/family/${family.masterId}`), {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(family),
       })
     },
 

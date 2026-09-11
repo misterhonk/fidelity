@@ -72,6 +72,24 @@ export function openHubDb(path: string): DatabaseSync {
    * release" is worth sharing too, and saves the next person the same wasted
    * request.
    */
+  /*
+   * Pressing families, by master (M20 #7).
+   *
+   * What `/masters/{id}/versions` says about an album — how many pressings,
+   * which came first, on what — is CC0 catalogue and the same for everybody.
+   * Reading it in the shop costs a request per record; whoever fetched a
+   * family first saves everybody else that request. Thirty days, like the
+   * horizon: pressings are added, never taken away.
+   */
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS families (
+      master_id  INTEGER PRIMARY KEY,
+      fetched_at INTEGER NOT NULL,
+      body       TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    )
+  `)
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS covers (
       release_id INTEGER PRIMARY KEY,

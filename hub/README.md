@@ -15,6 +15,8 @@ der Haupt-Suite: mit leerer `hubUrl` muss alles durchlaufen.
 | `PUT /v1/horizon/:kind/:id` | Eine selbst expandierte Entität beisteuern |
 | `GET /v1/shipping/:dealer/:country` | Versandstaffel eines Händlers |
 | `PUT /v1/shipping/:dealer/:country` | Eine Staffel beisteuern |
+| `GET /v1/family/:master` | Pressungsfamilie eines Albums aus dem gemeinsamen Cache (CC0, 30 Tage) |
+| `PUT /v1/family/:master` | Eine selbst geholte Familie beisteuern |
 
 Wer Conny Plank schon expandiert hat, erspart allen anderen elf Requests. Bei
 drei Nutzern schrumpft die Ersteinrichtung von dreizehn Minuten auf Sekunden.

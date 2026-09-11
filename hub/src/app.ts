@@ -144,6 +144,7 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
       horizon: (db.prepare('SELECT COUNT(*) AS n FROM horizon').get() as { n: number }).n,
       shipping: (db.prepare('SELECT COUNT(*) AS n FROM shipping').get() as { n: number }).n,
       covers: (db.prepare('SELECT COUNT(*) AS n FROM covers').get() as { n: number }).n,
+      families: (db.prepare('SELECT COUNT(*) AS n FROM families').get() as { n: number }).n,
       watching: (
         db.prepare('SELECT COUNT(DISTINCT dealer) AS n FROM watches').get() as { n: number }
       ).n,
@@ -330,6 +331,53 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     }
 
     return c.json({ stored, rejected })
+  })
+
+  // --- Pressing families (M20 #7) -----------------------------------------
+
+  app.get('/v1/family/:master', (c) => {
+    const masterId = Number(c.req.param('master'))
+    if (!Number.isSafeInteger(masterId) || masterId <= 0) {
+      return c.json({ error: 'not a master id' }, 400)
+    }
+    const row = db.prepare('SELECT body FROM families WHERE master_id = ?').get(masterId) as
+      { body: string } | undefined
+    // A miss is a 404: the client asks Discogs itself and may offer it back.
+    if (!row) return c.json({ error: 'not cached' }, 404)
+    return c.json(JSON.parse(row.body))
+  })
+
+  app.put('/v1/family/:master', async (c) => {
+    const raw = await c.req.text()
+    if (raw.length > MAX_FAMILY_BYTES) return c.json({ error: 'too large' }, 413)
+
+    const parsed = familySchema.safeParse(safeJson(raw))
+    if (!parsed.success) return c.json({ error: 'not a pressing family' }, 400)
+
+    const family = parsed.data
+    const masterId = Number(c.req.param('master'))
+    // The body has to be about the master the URL names.
+    if (family.masterId !== masterId)
+      return c.json({ error: 'master does not match the path' }, 400)
+
+    const existing = db
+      .prepare('SELECT fetched_at FROM families WHERE master_id = ?')
+      .get(masterId) as { fetched_at: number } | undefined
+    // The newest reading wins; an older one changes nothing.
+    if (existing && existing.fetched_at >= family.fetchedAt) {
+      return c.json({ stored: false, reason: 'older than cached' })
+    }
+
+    db.prepare(
+      `INSERT INTO families (master_id, fetched_at, body, updated_at)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(master_id) DO UPDATE SET
+         fetched_at = excluded.fetched_at,
+         body = excluded.body,
+         updated_at = excluded.updated_at`,
+    ).run(masterId, family.fetchedAt, JSON.stringify(family), now())
+
+    return c.json({ stored: true })
   })
 
   // --- Shipping -----------------------------------------------------------
@@ -592,6 +640,31 @@ const MAX_COVER_IDS = 200
 
 /** Enough for two hundred pairs of URLs and nothing like enough for abuse. */
 export const MAX_COVERS_BYTES = 256 * 1024
+
+/**
+ * A pressing family: a hundred siblings of a few short strings each. Sixty-four
+ * kilobytes is room for that four times over; past it, it is not a family.
+ */
+export const MAX_FAMILY_BYTES = 64 * 1024
+
+/** Same shape as `PressingFamilyFacts` in `shared/types.ts`; CC0 fields only, no prices. */
+const familySchema = z.object({
+  masterId: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+  fetchedAt: z.number().int().nonnegative(),
+  siblings: z
+    .array(
+      z.object({
+        releaseId: z.number().int().positive(),
+        year: z.number().int().nullable(),
+        country: z.string().max(100),
+        label: z.string().max(300),
+        catno: z.string().max(200),
+        format: z.string().max(300),
+      }),
+    )
+    .max(200),
+})
 
 const coversSchema = z.object({
   covers: z

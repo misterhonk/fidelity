@@ -228,13 +228,15 @@ GET    /v1/shipping/:dealer/:country   → ShippingTier[] | 404
 PUT    /v1/shipping/:dealer/:country   ← contribute tiers
 GET    /v1/covers?ids=1,2,3            → { covers: { releaseId: {thumbUrl, coverUrl} } }
 PUT    /v1/covers                      ← contribute { covers: [...] }
+GET    /v1/family/:master              → PressingFamilyFacts | 404   (M20 #7, CC0, 30 days)
+PUT    /v1/family/:master              ← contribute a family
 GET    /v1/vault/:id                   → { sealed, updatedAt } | 404
 PUT    /v1/vault/:id                   ← an encrypted block
 DELETE /v1/vault/:id                   ← forget a block (moving the identifier)
 POST   /v1/watch/subscribe             ← a push subscription + the dealer list
 POST   /v1/watch/unsubscribe           ← unregister an endpoint
 GET    /v1/watch/key                   → { publicKey }  (VAPID, generated once)
-GET    /v1/health                      → { ok, horizon, shipping, covers, watching, secured }
+GET    /v1/health                      → { ok, horizon, shipping, covers, families, watching, secured }
 ```
 
 **Every one of these methods belongs in `allowMethods`.** The client is a page on another

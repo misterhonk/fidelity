@@ -550,7 +550,7 @@ export const handlers: HandlerMap = {
 
   'pressing.family': async ({ releaseId }, { signal }) => {
     const { pressingFamily } = await import('./pressing-family')
-    return pressingFamily(discogs(), releaseId, signal)
+    return pressingFamily(discogs(), releaseId, { signal })
   },
 
   'places.overview': async () => {
