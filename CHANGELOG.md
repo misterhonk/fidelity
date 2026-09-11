@@ -11,6 +11,15 @@ Für eine App bedeutet SemVer:
 
 ## [0.43.0](https://github.com/misterhonk/fidelity/compare/v0.42.0...v0.43.0) (2026-09-11)
 
+**Rare per the catalogue, and the pressing family through the hub.**
+
+A find now says "Only 3 pressings of this album exist" from five down — the horizon knows
+how many pressings a wanted album has, and the scan writes it onto the match. Catalogue, so
+it does not expire; a hint under the sentence, never in the score. And the pressing
+family the shop screen reads — how many pressings, which came first, on what — is cached on
+the hub now, one master at a time: whoever fetched it first saves everybody else the
+request, for thirty days. Without a hub everything stays as it was.
+
 
 ### Added
 
