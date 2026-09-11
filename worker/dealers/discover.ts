@@ -11,9 +11,17 @@ import type { DiscogsClient } from '../discogs/client'
  *
  * Two sources, and the difference between them is not cosmetic:
  *
- *   Orders — `GET /marketplace/orders`, documented by Discogs. The shops you
- *   actually bought from, which is the strongest possible evidence that a shop
- *   is one of yours.
+ *   Orders — `GET /marketplace/orders`, documented by Discogs. Meant as the
+ *   strongest possible evidence that a shop is one of yours.
+ *
+ *   ⚠️ **It is the selling side, measured on 2026-09-11.** Twice, ten hours
+ *   apart, with a real purchase sitting visibly on `discogs.com/sell/purchases`:
+ *   `items: 0` every time, in four filter variants. The web interface splits the
+ *   same way — `/sell/orders` is what you received, `/sell/purchases` what you
+ *   bought — and this endpoint maps to the first. For an account that only buys
+ *   it returns nothing and always will. Kept, because it is right for somebody
+ *   who also sells and costs one request; but the friends list below is what
+ *   finds anything for everybody else, and the screen says so now.
  *
  *   Friends — `GET /users/{username}/friends`, **not documented**. It works,
  *   it is CORS-open, and it is where somebody's favourite shops end up when

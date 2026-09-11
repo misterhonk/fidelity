@@ -434,7 +434,7 @@ const en = {
     search: 'Find shops at Discogs',
     searching: 'Looking …',
     about:
-      'In your orders — those are the shops you have actually bought from. If you allow it in the settings, in your Discogs friends list as well. One lookup per source, then one per candidate, to see who sells at all.',
+      'In your orders — measured on 2026-09-11, that is the selling side: shops that bought from you, not shops you bought at. If you allow it in the settings, in your Discogs friends list as well, and that is the half that finds anything for most people. One lookup per source, then one per candidate, to see who sells at all.',
     added: (n: number) => (n === 1 ? 'One shop added.' : `${n} shops added.`),
     take: (n: string) => `Take ${n} over`,
     listings: (n: string) => `${n} listings`,
@@ -450,7 +450,7 @@ const en = {
      * calling them shops would be a promise the list does not make.
      */
     sources: {
-      order: 'Shops you have bought from',
+      order: 'From your orders (the selling side)',
       friend: 'Friends who sell records',
     },
     sourceAbout: {

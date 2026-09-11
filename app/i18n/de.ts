@@ -299,7 +299,7 @@ const de: Messages = {
     search: 'Läden bei Discogs suchen',
     searching: 'Suche …',
     about:
-      'In deinen Bestellungen – das sind die Läden, bei denen du wirklich gekauft hast. Wenn du es in den Einstellungen erlaubst, zusätzlich in deiner Discogs-Freundesliste. Eine Abfrage je Quelle, dann eine pro Kandidat, um zu sehen wer überhaupt verkauft.',
+      'In deinen Bestellungen – am 2026-09-11 gemessen ist das die Verkaufsseite: Läden, die bei dir gekauft haben, nicht Läden, bei denen du gekauft hast. Wenn du es in den Einstellungen erlaubst, zusätzlich in deiner Discogs-Freundesliste, und das ist für die meisten die Hälfte, die überhaupt etwas findet. Eine Abfrage je Quelle, dann eine pro Kandidat, um zu sehen wer überhaupt verkauft.',
     added: (n) => (n === 1 ? 'Ein Laden dazu.' : `${n} Läden dazu.`),
     take: (n) => `${n} übernehmen`,
     listings: (n: string) => `${n} Listings`,
@@ -308,7 +308,7 @@ const de: Messages = {
     whereLabel: 'Wo gesucht wird',
     friendsSummary: 'Auch meine Discogs-Freundesliste lesen?',
     sources: {
-      order: 'Läden, bei denen du gekauft hast',
+      order: 'Aus deinen Bestellungen (Verkaufsseite)',
       friend: 'Freunde, die Platten verkaufen',
     },
     sourceAbout: {

@@ -689,9 +689,19 @@ eight records were as described", on your own device.
 ### The measurement the design had to work around
 
 ⚠️ The brief was to check `GET /marketplace/orders` for the listed condition per line item.
-**Measured on 2026-09-11: the endpoint answers `items: 0` on this account** — there are no
-orders there. The measurement cannot be performed, and building a feature on a field nobody
-has seen would be guesswork.
+**Measured on 2026-09-11: that endpoint is the seller side** — it answers `items: 0` for an
+account that only buys, ten hours after a real purchase, in four filter variants. So the
+measurement cannot be performed *there*.
+
+**It can be performed one door along, and it was.** `GET /marketplace/orders/{order_id}`
+returns a purchase to its buyer, and `items[]` carries `media_condition`,
+`sleeve_condition` and `condition_comments` — exactly the fields this brief asked about.
+The catch is that the id cannot be discovered: the list is the seller side, so there is no
+API route from "I am a buyer" to "here are my order numbers". The number is on the web at
+`/sell/purchases` and nowhere else. Details in `docs/02`.
+
+**That changes what is available and not what is allowed**, which is why nothing below
+moved: a claimed grade is marketplace data whichever endpoint it comes from.
 
 It also turned out that the question was wrongly put. The promised grade would be **Discogs
 content** and may not be on screen after six hours (rule 4, `docs/09` §1.1). A feature that

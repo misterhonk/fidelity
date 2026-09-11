@@ -208,7 +208,8 @@ const en = {
     dealers: {
       title: 'Where the shops come from',
       about: 'Which sources the import may read.',
-      ordersAlways: 'Orders are always read — those are the shops you have bought from.',
+      ordersAlways:
+        'Orders are always read. Measured on 2026-09-11: that endpoint is the selling side, so for anybody who only buys it finds nothing — the friends list is the half that works.',
       friends: 'Read the Discogs friends list as well',
       friendsOff: 'Off until you switch it on.',
       /*
@@ -688,7 +689,7 @@ const de: typeof en = {
       title: 'Woher die Läden kommen',
       about: 'Welche Quellen der Import lesen darf.',
       ordersAlways:
-        'Bestellungen werden immer gelesen – das sind die Läden, bei denen du gekauft hast.',
+        'Bestellungen werden immer gelesen. Am 2026-09-11 gemessen: dieser Endpunkt ist die Verkaufsseite, für jemanden der nur kauft findet er also nichts – die Freundesliste ist die Hälfte, die funktioniert.',
       friends: 'Auch die Discogs-Freundesliste lesen',
       friendsOff: 'Aus, solange du es nicht einschaltest.',
       friendsOn: 'An. Freunde, die Platten anbieten, werden mitgesucht.',

@@ -706,27 +706,64 @@ GET /marketplace/orders?status=All&per_page=100
 `items: 0` on an account with no orders. The field names come from the documentation, not
 from real data — which is why the schema is deliberately lenient (`seller` optional).
 
-> ⚠️ **Re-measured on 2026-09-11, immediately after a real purchase: still `items: 0`.**
+> ⚠️ **Settled on 2026-09-11, and the answer is: this is the seller side.**
 >
-> Four variants, all 200, all zero entries: with no filter at all, `status=All`,
-> `archived=false`, `status=Payment Pending`, plus `sort=created&sort_order=desc`. The same
-> token answers `GET /oauth/identity` with 200 in the same pass — so it is not a lack of
-> marketplace access.
+> Measured twice, once minutes after a real purchase and once ten hours later, in four
+> filter variants each — no filter at all, `status=All`, `archived=false`,
+> `status=Payment Pending`, plus `sort=created&sort_order=desc`. Every one 200, every one
+> `items: 0`, while the same token answered `GET /oauth/identity` with 200 in the same
+> pass. The purchase is plainly visible on the web at `discogs.com/sell/purchases`.
 >
-> **The likely explanation is that this endpoint is the seller side.** That is already what
-> this file says further up ("orders (the seller side)"), and Discogs' order resource is
-> built around seller operations — attach a message to an order, change its status, set
-> postage. A *purchase* you make yourself then never appears there, and an account that
-> sells nothing always sees `items: 0`.
+> Time was the other candidate explanation and it is now ruled out: the order was ten
+> hours old on the second measurement and the endpoint still reports nothing.
 >
-> **The second explanation is simply time** — the order was minutes old when measured. It is
-> not ruled out; a repeat after a day settles it, and until then both stand here.
+> **The web interface makes the same split.** `/sell/orders` is what you received as a
+> seller, `/sell/purchases` is what you bought. `GET /marketplace/orders` maps to the
+> first. An account that sells nothing sees `items: 0` for ever.
 >
-> **What depends on this:** `worker/dealers/discover.ts` uses this endpoint as the
-> *strongest* source for "shops you have actually bought from". If the first explanation
-> holds, that source finds nothing at all for a pure buyer, and three user-visible sentences
-> claim something that cannot happen. Not rewritten before the repeat is in — a wrong
-> correction is worse than an open question.
+> **What depends on this:** `worker/dealers/discover.ts` used this endpoint as the
+> *strongest* source for "shops you have actually bought from". For a pure buyer that
+> source finds nothing at all, and it never will. Three user-visible sentences said
+> otherwise and were corrected on 2026-09-11 — the orders source is now described as what
+> it is: the shops that have bought **from you**.
+
+---
+
+## `GET /marketplace/orders/{order_id}` – a purchase, through its own id
+
+**Measured on 2026-09-11 with a real order.** This is the counterpart to the wall above:
+the list is the seller side, but a **single** order is readable by its buyer.
+
+```
+GET /marketplace/orders/259022-32308     → 200
+```
+
+| | |
+|---|---|
+| Top level | `id`, `resource_url`, `uri`, `messages_url`, `buyer`, `seller`, `feedback`, `created`, `last_activity`, `status`, `next_status`, `tax`, `total`, `shipping`, `shipping_address`, `archived`, `additional_instructions`, `fee`, `items`, `tracking`, `buyer_fee`, `tax_on_buyer_fee` |
+| `items[]` | `id`, `price`, **`media_condition`**, **`sleeve_condition`**, `condition_comments`, `release` |
+| `items[].release` | `id`, `resource_url`, `description`, `thumbnail`, `title`, `artist`, `format` |
+| `seller` | `id`, `username`, `resource_url`, **`email`** |
+
+**Two things follow, and they point in opposite directions.**
+
+**The good one:** the graded condition per line item *is* available — `media_condition` and
+`sleeve_condition`, the exact fields the M14 brief asked about (`docs/06`). Note the names:
+not `condition`, which is what an inventory listing calls it.
+
+**The limiting one: the id cannot be discovered.** The list endpoint is the seller side, so
+there is no API route from "I am a buyer" to "here are my order numbers". The number is
+visible on the web at `/sell/purchases` and nowhere in the API. Anything built on this has
+to have the number typed or pasted in.
+
+> ⚠️ **`seller.email` is in this response.** A third party's email address, for an order in
+> which the app has no business holding one. It is not stored, not displayed and not logged
+> anywhere — and anybody who parses this endpoint keeps it that way.
+
+⚠️ **And the condition still may not be stored.** It is marketplace data like any other
+(`docs/09` §1.3) and falls under the six-hour rule. That is why M14 keeps only the
+*comparison* — "as described / better / worse" — and never the grade that was promised. The
+measurement changes what is *available*, not what is allowed.
 
 ---
 
