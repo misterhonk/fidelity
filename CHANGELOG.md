@@ -11,6 +11,15 @@ Für eine App bedeutet SemVer:
 
 ## [0.40.0](https://github.com/misterhonk/fidelity/compare/v0.39.0...v0.40.0) (2026-09-11)
 
+**Only from Germany, or from the EU.**
+
+A ships-from filter has been asked for since 2014, and Discogs has none. Fidelity has three
+chips now, on the wantlist's plan and on the shops screen: anywhere, from your country, from
+the EU — the customs union of twenty-seven, because customs and postage are what the
+question is about. A shop with no origin on record is left out under both and counted, never
+hidden. It is a view, in the address; the block list in the preferences stays the rule. Not
+on the find list: a dig is one shop, and there is nothing to filter inside it.
+
 
 ### Added
 
