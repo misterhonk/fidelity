@@ -929,6 +929,11 @@ export const handlers: HandlerMap = {
     return exportEverything(Date.now())
   },
 
+  'data.exportCsv': async ({ what }) => {
+    const { collectionCsv, wantlistCsv } = await import('./csv')
+    return what === 'collection' ? collectionCsv() : wantlistCsv()
+  },
+
   'data.deleteAll': async () => {
     // Same operation as signing out, under the name that says what it does.
     await signOut()

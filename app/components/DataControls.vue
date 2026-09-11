@@ -21,9 +21,11 @@ const confirming = ref(false)
  * a couple of megabytes, and a backup is easily past that.
  */
 function download(name: string, payload: unknown) {
-  const url = URL.createObjectURL(
-    new Blob([JSON.stringify(payload, null, 1)], { type: 'application/json' }),
-  )
+  downloadText(name, JSON.stringify(payload, null, 1), 'application/json')
+}
+
+function downloadText(name: string, text: string, type: string) {
+  const url = URL.createObjectURL(new Blob([text], { type }))
   const link = document.createElement('a')
   link.href = url
   link.download = name
@@ -33,13 +35,17 @@ function download(name: string, payload: unknown) {
 
 const stamp = () => new Date().toISOString().slice(0, 10)
 
-async function run(what: 'all' | 'dig') {
+async function run(what: 'all' | 'dig' | 'collection' | 'wantlist') {
   if (busy.value) return
   busy.value = true
   error.value = null
 
   try {
-    if (what === 'all') {
+    if (what === 'collection' || what === 'wantlist') {
+      // CSV, for a spreadsheet — the columns Discogs' own export lacks (M19 #5).
+      const file = await call('data.exportCsv', { what })
+      downloadText(`fidelity-${what}-${stamp()}.csv`, file.csv, 'text/csv;charset=utf-8')
+    } else if (what === 'all') {
       download(
         `fidelity-backup-${stamp()}.json`,
         withReasons(await call('data.exportAll', undefined)),
@@ -126,6 +132,35 @@ async function deleteAll() {
     </div>
 
     <p class="text-fid-xs text-fid-text-muted">{{ st.dataPanel.contents }}</p>
+
+    <!--
+      CSV, for a spreadsheet (M19 #5). Two files rather than one with a column
+      saying which list a row is from: a wantlist row has no copy, no folder
+      and no place, and a sheet with half its columns empty is a sheet nobody
+      sorts.
+    -->
+    <div class="flex flex-wrap gap-2 border-t border-fid-border pt-3">
+      <button
+        type="button"
+        :disabled="busy"
+        class="flex items-center gap-2 rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+        @click="run('collection')"
+      >
+        <FidIcon name="download" :size="16" />
+        {{ st.dataPanel.exportCollectionCsv }}
+      </button>
+      <button
+        type="button"
+        :disabled="busy"
+        class="flex items-center gap-2 rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+        @click="run('wantlist')"
+      >
+        <FidIcon name="download" :size="16" />
+        {{ st.dataPanel.exportWantlistCsv }}
+      </button>
+    </div>
+
+    <p class="text-fid-xs text-fid-text-muted">{{ st.dataPanel.csvContents }}</p>
 
     <div class="flex flex-col gap-2 border-t border-fid-border pt-3">
       <button

@@ -404,6 +404,16 @@ const en = {
       "Neither file holds your token, prices or conditions — marketplace data may not be passed on under Discogs' terms. What is in there: which records fit how well and why, with a link to each listing.",
     noDigYet: 'No dig yet that could be exported.',
 
+    /*
+     * CSV (M19 #5). Named for what the sheet gets that Discogs' own export
+     * lacks — and for what it does not get, because "no prices" is the line
+     * somebody expecting a valuation needs to read before opening the file.
+     */
+    exportCollectionCsv: 'Collection as CSV',
+    exportWantlistCsv: 'Wantlist as CSV',
+    csvContents:
+      'For a spreadsheet. Every column Discogs’ own export leaves out — genres, styles, release and master ids — plus what is yours alone: rating, folder, the condition fields and the place a record sits in. No prices and no estimate: those are marketplace data and stay in the app.',
+
     deleteAll: 'Delete everything',
     deleteWarning:
       'Deletes the whole database on this device: token, collection, horizon, digs, basket and ratings. There is no copy anywhere else and no way back.',
@@ -818,6 +828,11 @@ const de: typeof en = {
     contents:
       "Beide Dateien enthalten weder deinen Token noch Preise oder Zustände – Marktplatzdaten dürfen laut Discogs' Nutzungsbedingungen nicht weitergegeben werden. Was drinsteht: welche Platten wie gut passen und warum, mit Link zum jeweiligen Angebot.",
     noDigYet: 'Noch kein Dig da, den man exportieren könnte.',
+
+    exportCollectionCsv: 'Sammlung als CSV',
+    exportWantlistCsv: 'Wantlist als CSV',
+    csvContents:
+      'Für eine Tabelle. Jede Spalte, die Discogs’ eigener Export weglässt – Genres, Stile, Release- und Master-IDs – plus das, was nur deins ist: Bewertung, Ordner, die Zustandsfelder und der Ort, an dem eine Platte steht. Keine Preise und keine Schätzung: das sind Marktplatzdaten und bleiben in der App.',
 
     deleteAll: 'Alles löschen',
     deleteWarning:

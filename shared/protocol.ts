@@ -603,6 +603,15 @@ export interface WorkerContract {
    */
   'data.exportDig': { params: { digId: string }; progress: never; result: unknown | null }
   'data.exportAll': { params: undefined; progress: never; result: unknown }
+  /**
+   * The collection or the wantlist as CSV (M19 #5) — the catalogue columns
+   * Discogs' own export leaves out, plus what is yours alone. No prices.
+   */
+  'data.exportCsv': {
+    params: { what: 'collection' | 'wantlist' }
+    progress: never
+    result: { csv: string; rows: number }
+  }
   /** Deletes the database outright, token included. There is no undo. */
   'data.deleteAll': { params: undefined; progress: never; result: { deleted: true } }
 
