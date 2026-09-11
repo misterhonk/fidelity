@@ -1014,6 +1014,32 @@ had budgeted for, because the API already answered what the hub would only have 
 
 ---
 
+## M20 · Candidates → proposed
+
+**Where these come from.** A second research pass on the evening of 2026-09-11 — the
+Discogs forum, r/discogs, r/vinyl, Hacker News, the app-store texts and the comparison blogs
+the competing apps publish — plus a walk through the nine M19 screens with a real
+collection. Checked against the same four questions as M19: no backend, the API terms, the
+thesis, the cost. Proposed, not scheduled.
+
+| # | Candidate | Serves | Cost | Note |
+|---|---|---|---|---|
+| 1 | **The wantlist's priority, shown at last.** Discogs keeps a 0–5 per want; the sync stores it as `want` and nothing displays it. Sort and mark on the wantlist, a "wanted most" line on a find, the plan over the important ones first. | The second most frequent wish ("records I want more than others", multiple wantlists), and the data is already in IndexedDB | hours | No request. Into the display and the order, never into the score — that stays comparable |
+| 2 | **"Only from Germany / the EU" as a switch** on the find list and the plan, from the `shipsFrom` every shop carries. | Seven forum threads since 2014; staff in 2021: there is no such filter | hours | The block list stays the hard rule; the switch is a view like "Up to", in the address |
+| 3 | **In the shop: another pressing of a wanted album.** The search returns `master_id`, the wantlist knows its masters. Today the screen says "not on your wantlist" about a record whose album stands three lines below it. | Found in the walk-through with a real wantlist | hours | S2's principle, one more field in the schema. Measure first that every search row carries the master |
+| 4 | **The plan box says how it fills.** Without a fresh dig the wantlist shows nothing; a sentence with a link to the dig screen instead of silence. | The walk-through: the feature is invisible until you know it | hours | |
+| 5 | **What you paid.** The order import reads `price` and drops it. On the arrival diary: price, condition, how it arrived, per record and as a year's sum in the review. | The lawful twin of the price archive (`docs/14` §9): your own purchases | a day | Your data, not the market's. No median beside it in a file |
+| 6 | **Scarcity as a hint** on a find: "one of 3 pressings", from the horizon's master chunks. | The scarcity proxy of `docs/14` §3.2, without the dump, for the albums the horizon knows | a day | A hint, not a signal. S11 stays `num_for_sale` |
+| 7 | **Pressing families and the lexicon through the hub.** `GET/PUT /v1/family/:master`, CC0 facts, 30 days. Whoever fetched a family first saves everybody else two requests. | The catalogue hub of `docs/14` in miniature, on the hub that already runs | days | Rule 8: without a hub it stays two requests. Redeploy the hub |
+| 8 | **Visible from outside.** A page "what Fidelity is, and is not": against Seller Matches, discdogs, WaxTracker, Groovv, and one sentence on why it is not an API wrapper. | `docs/14` §2.1 #20; every competing app publishes a "best vinyl apps 2026" post and none lists this one | a day, prose | No code. Without it every feature of today is a feature for one user |
+
+**Checked and left out:** an insurance export with values (marketplace data in a file, and a
+`/marketplace/stats` loop per record — both forbidden); alerts (Wantlister, and discdogs for
+free); reviews (the API returns no text); filtering all sellers by postage (only the scanned
+shops are reachable, and there the plan does it).
+
+---
+
 ## Not on the roadmap
 
 | Idea | Why not |
