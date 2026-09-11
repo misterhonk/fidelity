@@ -11,11 +11,12 @@
 The milestone versions in the headings are planning names from the design period, not the
 actual numbering — that is in `CHANGELOG.md`.
 
-**M0 through M15 are done, and nothing is open.**
+**M0 through M15 are done. One thing is open, and it is M16 below.**
 
-The last open point was this file's own neighbourhood: `docs/` was still German. It was
-translated on 2026-09-11 — fourteen numbered documents and thirteen ADRs — and with it the
-rule from [ADR-010](adr/010-english-base-language.md) holds everywhere.
+`docs/` was still German until 2026-09-11 and was translated then — fourteen numbered
+documents and thirteen ADRs. That was read as ADR-010 being finished. It was not: the rule
+says *code, comments, commits*, and the comments were never touched. **141 files, 5,473
+lines.** The counting is in M16.
 
 The runout read aloud from M13 stood here until 2026-09-11 and is **measured and
 rejected** — `SpeechRecognition` is available and can even run on the device, but it is
@@ -805,6 +806,39 @@ without a qualifier afterwards, and a promise that is only nearly true is broken
 - [x] The sound belongs to the record, not the track: `videos[]` belongs to the release. On a
       compilation the screen names the title it is playing rather than pretending it is *the*
       record
+
+---
+
+## M16 · The comments, in English → open
+
+ADR-010 has been the rule since 2026-08-11: **English everywhere — code, comments, commits,
+user-visible text and addresses.** The user-visible half was done that week. The docs were
+done on 2026-09-11. The comments were not, and nobody noticed, because the thing that would
+have noticed did not exist.
+
+**The size, counted rather than guessed:** 141 of 368 source files carry a German comment;
+737 blocks, 5,473 lines. They are not throwaway lines — this codebase explains itself in its
+comments, and several of them are the only place a decision is written down. Translating
+them badly would cost more than leaving them.
+
+**Why a ratchet and not a pass.** Two of those files were written in German *during* the
+session that translated the docs, by somebody who had just read the rule and agreed with it.
+A rule that nothing enforces is a preference, and a single cleanup pass would only reset the
+count. So `tests/unit/english-comments.spec.ts` holds a list of the files that still carry
+German, and the list can only get shorter: a German comment in a file that is **not** on it
+fails, and a name on it whose file is already clean fails too.
+
+- [x] A detector and the ratchet around it — `tests/helpers/german.ts`, the list in
+      `tests/fixtures/german-comments.txt`
+- [ ] `db/` and `shared/` — 7 files, the schema and the protocol, where a wrong word costs
+      the most
+- [ ] `worker/` — 31 files, the reasoning that is not in any document
+- [ ] `app/` — 61 files
+- [ ] `tests/` — 53 files, several of which explain *why a test exists*, which is the part
+      that gets lost first
+- [ ] `hub/src/` — 4 files
+- [ ] The list file deleted, and the test with it — the ratchet has no reason to stay once
+      it is at zero
 
 ---
 
