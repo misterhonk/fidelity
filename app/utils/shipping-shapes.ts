@@ -1,13 +1,14 @@
 /**
- * Die Formen, die der Versand-Parser lesen kann.
+ * The shapes the postage parser can read.
  *
  * `worker/basket/parse-shipping.ts` has carried this list since it was written,
  * with the comment "for the interface to show when it fails". No interface ever
  * showed it — the list sat there, exported, unread, and a fourth entry was
  * added to it without anybody noticing that nobody would see it.
  *
- * Where the parser gives up, the screen says "trag die Staffel ein" and leaves
- * somebody to guess what it was hoping for. These are what it was hoping for.
+ * Where the parser gives up, the screen says "enter the tiers yourself" and
+ * leaves somebody to guess what it was hoping for. These are what it was
+ * hoping for.
  *
  * Kept here rather than imported from the worker because the worker's modules
  * are loaded on demand inside a Web Worker, and pulling one across the boundary

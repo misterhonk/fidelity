@@ -40,7 +40,6 @@ app/i18n/dig.ts
 app/i18n/en.ts
 app/i18n/legal.ts
 app/i18n/settings.ts
-app/middleware/setup.global.ts
 app/pages/dealers.vue
 app/pages/dig.vue
 app/pages/in-store.vue
@@ -57,9 +56,6 @@ app/pages/watched.vue
 app/pages/welcome.vue
 app/pages/whats-new.vue
 app/utils/lucide.generated.ts
-app/utils/release-notes.ts
-app/utils/shipping-shapes.ts
-app/utils/when.ts
 hub/scripts/ring-once.ts
 hub/test/app.test.ts
 hub/test/watch.test.ts

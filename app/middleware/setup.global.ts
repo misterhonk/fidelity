@@ -1,58 +1,55 @@
 /**
- * Ohne Token gehört niemand auf einen Bildschirm voller Daten.
+ * Without a token, nobody belongs on a screen full of data.
  *
- * Die Umleitung stand bis zum 2026-08-14 allein im `onMounted` der Startseite.
- * Wer `/shelf` per Lesezeichen aufrief, wer die App auf `/dealers` geschlossen
- * und wieder geöffnet hatte, oder wer einem Link folgte, landete auf einer
- * fertigen Seite mit „No records here yet. Fetch the collection in the
- * settings." — einer Aussage über die Sammlung, wo eine über den Zustand der
- * App hingehört. Es liegt nicht daran, dass nichts da ist, sondern daran, dass
- * niemand eingerichtet ist.
+ * Until 2026-08-14 the redirect lived in the start page's `onMounted` alone.
+ * Anyone opening `/shelf` from a bookmark, anyone who had closed the app on
+ * `/dealers` and reopened it, or anyone following a link, landed on a finished
+ * page saying "No records here yet. Fetch the collection in the settings." — a
+ * statement about the collection where one about the state of the app belongs.
+ * The reason is not that there is nothing there, but that nobody is set up.
  *
- * Eine Middleware und keine Wiederholung des `onMounted` auf jeder Seite: es
- * gibt zwölf davon, und die dreizehnte vergisst es.
+ * A middleware rather than a repeat of that `onMounted` on every page: there
+ * are twelve of them, and the thirteenth forgets.
  */
 
 /**
- * Wohin man auch ohne Token darf.
+ * Where you may go without a token.
  *
- * `/settings` ist die wichtigste Ausnahme und keine Nachlässigkeit: **dort wird
- * der Token eingetragen.** Wer diesen Zweig aussperrt, sperrt den Weg hinein
- * aus — und zwar genau für die Leute, die ihn brauchen.
+ * `/settings` is the most important exception and not an oversight: **that is
+ * where the token is entered.** Shutting that branch out shuts out the way in
+ * — and shuts it out precisely for the people who need it.
  *
- * Datenschutz und Impressum sind Pflichttexte; sie hinter eine Anmeldung zu
- * stellen wäre absurd.
+ * Privacy and the legal notice are statutory texts; putting them behind a
+ * sign-in would be absurd.
  *
- * `/demo` stand hier bis zum 2026-09-10 mit dem Zusatz, es zeige erfundene
- * Daten und sei der Grund, warum jemand sich überhaupt einrichtet. Diese
- * Adresse gibt es nicht — es gibt keine `app/pages/demo.vue`, und diese Zeile
- * war der einzige Ort im ganzen Repository, der sie erwähnte. Die Demo ist
- * `DemoDig.vue` und steht auf `/welcome`, also ohnehin schon offen. Eine
- * Ausnahme für eine 404 nimmt niemand wahr, aber ihr Kommentar behauptet einen
- * Bildschirm, den man dann sucht.
+ * `/demo` stood here until 2026-09-10, with a note that it showed invented
+ * data and was the reason anybody sets themselves up at all. That address does
+ * not exist — there is no `app/pages/demo.vue`, and this line was the only
+ * place in the whole repository that mentioned it. The demo is `DemoDig.vue`
+ * and sits on `/welcome`, so it is open already. Nobody notices an exception
+ * for a 404, but its comment claims a screen that people then go looking for.
  */
 /*
- * `/shared` ist die zweite wichtige Ausnahme, und aus dem gegenteiligen
- * Grund: dort landet jemand, der Fidelity **nicht** hat. Ein geteilter Link,
- * der zur Einrichtung umleitet, ist die schlechteste Art, eine App
- * vorzustellen — und der Bildschirm braucht nichts von dem, was die
- * Einrichtung besorgt: keine Sammlung, keinen Token, keinen Hub. Alles, was
- * er zeigt, steht im Link.
+ * `/shared` is the second important exception, and for the opposite reason:
+ * somebody who does **not** have Fidelity lands there. A shared link that
+ * redirects to the setup is the worst possible way to introduce an app — and
+ * the screen needs none of what the setup arranges: no collection, no token,
+ * no hub. Everything it shows is in the link.
  */
 /*
- * Und `/whats-new` gehört dazu: was in dieser Ausgabe steht, ist keine
- * Auskunft über die Sammlung von jemandem, sondern über die App. Wer den
- * Footer-Link ohne Token antippt, soll nicht in der Einrichtung landen.
+ * And `/whats-new` belongs with them: what is in this release is information
+ * about the app, not about anybody's collection. Somebody tapping the footer
+ * link without a token should not end up in the setup.
  */
 const OPEN = ['/welcome', '/settings', '/privacy', '/legal', '/shared', '/whats-new']
 
 export default defineNuxtRouteMiddleware(async (to) => {
   /*
-   * Nur im Browser.
+   * In the browser only.
    *
-   * `ssr: false` heißt, dass hier ohnehin kein Server rendert — aber die
-   * Middleware läuft beim Erzeugen der statischen Seiten mit, und dort gibt es
-   * weder IndexedDB noch einen Worker, den man fragen könnte.
+   * `ssr: false` means no server renders here anyway — but the middleware runs
+   * during static page generation, and there is neither IndexedDB nor a worker
+   * to ask there.
    */
   if (import.meta.server) return
 
@@ -63,11 +60,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (identity.value) return
 
   /*
-   * Woher man kam, mitgeben.
+   * Pass along where somebody came from.
    *
-   * Die Einrichtung endet sonst immer auf der Startseite, und wer eigentlich
-   * seinen Korb sehen wollte, sucht ihn danach von Hand. Kostet nichts und
-   * macht aus einer Unterbrechung einen Umweg.
+   * Otherwise the setup always ends on the start page, and anyone who actually
+   * wanted to see their basket goes looking for it by hand afterwards. Costs
+   * nothing and turns an interruption into a detour.
    */
   return navigateTo({
     path: '/welcome',

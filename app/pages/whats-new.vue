@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { bloecke } from '~/utils/release-notes'
+import { blocks } from '~/utils/release-notes'
 
 /**
  * Was in dieser Ausgabe neu ist — in der App, nicht auf GitHub.
@@ -9,7 +9,7 @@ import { bloecke } from '~/utils/release-notes'
  * geschrieben; „fix(deploy): die Hub-Prüfung hat nichts geprüft" sagt jemandem,
  * der die App benutzt, genau nichts. Der Vorspann jeder Ausgabe entsteht von
  * Hand im Release-PR und ist ein bis zwei Kilobyte — der wird zur Bauzeit
- * herausgeschnitten (`nuxt.config.ts`) und liegt als Zeichenkette bei.
+ * herausgeschnitten (`nuxt.config.ts`) und liegt als Zeichenkette at.
  *
  * Ein Test hält fest, dass die laufende Version einen Vorspann hat. Ein
  * Release ohne ein Wort an die Leute macht damit den PR rot, solange man es
@@ -21,7 +21,7 @@ const { version, releaseNotes } = useRuntimeConfig().public
 
 useSeoMeta({ title: () => m.value.news.title })
 
-const teile = computed(() => bloecke(String(releaseNotes ?? '')))
+const parts = computed(() => blocks(String(releaseNotes ?? '')))
 
 /**
  * Bis wann die Notizen deutsch sind.
@@ -36,8 +36,8 @@ const DEUTSCH_BIS = [0, 26, 0]
 const nochDeutsch = computed(() => {
   const jetzt = String(version).split('.').map(Number)
   for (const [i, grenze] of DEUTSCH_BIS.entries()) {
-    const teil = jetzt[i] ?? 0
-    if (teil !== grenze) return teil < grenze
+    const part = jetzt[i] ?? 0
+    if (part !== grenze) return part < grenze
   }
   return true
 })
@@ -51,25 +51,25 @@ const nochDeutsch = computed(() => {
         <p class="fid-num text-fid-sm text-fid-text-muted">{{ m.news.inVersion(version) }}</p>
       </header>
 
-      <p v-if="teile.length === 0" class="text-fid-base text-fid-text-muted">
+      <p v-if="parts.length === 0" class="text-fid-base text-fid-text-muted">
         {{ m.news.none }}
       </p>
 
       <div v-else class="flex flex-col gap-4">
-        <template v-for="(block, i) in teile" :key="i">
+        <template v-for="(block, i) in parts" :key="i">
           <p
             class="max-w-prose text-fid-base text-fid-text"
-            :class="block.art === 'punkt' ? 'border-l-2 border-fid-border pl-4' : ''"
+            :class="block.kind === 'bullet' ? 'border-l-2 border-fid-border pl-4' : ''"
           >
-            <template v-for="(stueck, j) in block.stuecke" :key="j">
-              <strong v-if="stueck.art === 'stark'" class="font-medium">{{
+            <template v-for="(stueck, j) in block.pieces" :key="j">
+              <strong v-if="stueck.kind === 'strong'" class="font-medium">{{
                 stueck.text
               }}</strong>
-              <code v-else-if="stueck.art === 'code'" class="fid-num text-fid-sm">{{
+              <code v-else-if="stueck.kind === 'code'" class="fid-num text-fid-sm">{{
                 stueck.text
               }}</code>
               <a
-                v-else-if="stueck.art === 'link'"
+                v-else-if="stueck.kind === 'link'"
                 :href="stueck.href"
                 target="_blank"
                 rel="noopener noreferrer"

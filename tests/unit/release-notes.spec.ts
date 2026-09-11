@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
-import { bloecke, stuecke } from '~/utils/release-notes'
+import { blocks, pieces } from '~/utils/release-notes'
 
 /**
  * Was in dieser Ausgabe neu ist, in der App lesbar.
@@ -15,17 +15,17 @@ import { bloecke, stuecke } from '~/utils/release-notes'
 
 describe('the inline marks', () => {
   it('keeps plain text plain', () => {
-    expect(stuecke('nichts besonderes')).toEqual([{ art: 'text', text: 'nichts besonderes' }])
+    expect(pieces('nichts besonderes')).toEqual([{ kind: 'text', text: 'nichts besonderes' }])
   })
 
   it('finds bold, code and links in one pass', () => {
-    expect(stuecke('ein **fettes** `wort` und [ein Link](https://example.test)')).toEqual([
-      { art: 'text', text: 'ein ' },
-      { art: 'stark', text: 'fettes' },
-      { art: 'text', text: ' ' },
-      { art: 'code', text: 'wort' },
-      { art: 'text', text: ' und ' },
-      { art: 'link', text: 'ein Link', href: 'https://example.test' },
+    expect(pieces('ein **fettes** `wort` und [ein Link](https://example.test)')).toEqual([
+      { kind: 'text', text: 'ein ' },
+      { kind: 'strong', text: 'fettes' },
+      { kind: 'text', text: ' ' },
+      { kind: 'code', text: 'wort' },
+      { kind: 'text', text: ' und ' },
+      { kind: 'link', text: 'ein Link', href: 'https://example.test' },
     ])
   })
 
@@ -37,27 +37,30 @@ describe('the inline marks', () => {
    * sichtbaren Klammern und ohne Ziel.
    */
   it('does not let one mark swallow another', () => {
-    const raus = stuecke('siehe [docs/02](https://example.test/a) und **fett**')
-    expect(raus.filter((s) => s.art === 'link')).toHaveLength(1)
-    expect(raus.filter((s) => s.art === 'stark')).toHaveLength(1)
+    const out = pieces('siehe [docs/02](https://example.test/a) und **fett**')
+    expect(out.filter((s) => s.kind === 'link')).toHaveLength(1)
+    expect(out.filter((s) => s.kind === 'strong')).toHaveLength(1)
   })
 })
 
 describe('the shape of the notes', () => {
   it('joins the wrapped lines of a paragraph', () => {
     // Die Datei ist auf hundert Zeichen umbrochen; ein Bildschirm bricht anders.
-    expect(bloecke('eine Zeile\nund ihre Fortsetzung')).toEqual([
-      { art: 'absatz', stuecke: [{ art: 'text', text: 'eine Zeile und ihre Fortsetzung' }] },
+    expect(blocks('eine Zeile\nund ihre Fortsetzung')).toEqual([
+      {
+        kind: 'paragraph',
+        pieces: [{ kind: 'text', text: 'eine Zeile und ihre Fortsetzung' }],
+      },
     ])
   })
 
   it('separates paragraphs on a blank line', () => {
-    expect(bloecke('erster\n\nzweiter')).toHaveLength(2)
+    expect(blocks('erster\n\nzweiter')).toHaveLength(2)
   })
 
   it('reads a bullet list', () => {
-    const raus = bloecke('- eins\n- zwei')
-    expect(raus.map((b) => b.art)).toEqual(['punkt', 'punkt'])
+    const out = blocks('- eins\n- zwei')
+    expect(out.map((b) => b.kind)).toEqual(['bullet', 'bullet'])
   })
 
   /**
@@ -68,14 +71,14 @@ describe('the shape of the notes', () => {
    * und einen Absatz, und die Liste sähe zerbrochen aus.
    */
   it('keeps an indented continuation with its bullet', () => {
-    const raus = bloecke('- eins,\n  das weitergeht\n- zwei')
-    expect(raus).toHaveLength(2)
-    expect(raus[0]!.stuecke[0]).toEqual({ art: 'text', text: 'eins, das weitergeht' })
+    const out = blocks('- eins,\n  das weitergeht\n- zwei')
+    expect(out).toHaveLength(2)
+    expect(out[0]!.pieces[0]).toEqual({ kind: 'text', text: 'eins, das weitergeht' })
   })
 
   it('is empty for nothing', () => {
-    expect(bloecke('')).toEqual([])
-    expect(bloecke('   \n\n  ')).toEqual([])
+    expect(blocks('')).toEqual([])
+    expect(blocks('   \n\n  ')).toEqual([])
   })
 })
 
@@ -98,12 +101,12 @@ describe('the release that is about to ship', () => {
     const rest = text.slice(start)
     const nachUeberschrift = rest.indexOf('\n') + 1
     const ende = rest.slice(nachUeberschrift).search(/^(###? )/m)
-    const vorspann = rest
+    const lead = rest
       .slice(nachUeberschrift, ende === -1 ? undefined : nachUeberschrift + ende)
       .trim()
 
-    expect(vorspann, `${version} hat keinen handgeschriebenen Vorspann`).not.toBe('')
+    expect(lead, `${version} hat keinen handgeschriebenen Vorspann`).not.toBe('')
     // Und er ist ein Absatz, keine hingeworfene Zeile.
-    expect(vorspann.length).toBeGreaterThan(80)
+    expect(lead.length).toBeGreaterThan(80)
   })
 })

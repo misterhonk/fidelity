@@ -74,23 +74,22 @@ export function shortDay(at: number | Date): string {
 }
 
 /**
- * Wie lange eine Platte schon gesucht wird — als Satzfragment.
+ * How long a record has been wanted — as a sentence fragment.
  *
- * Getrennt von `since()` und mit Absicht: dort geht es um einen Zeitpunkt
- * („vor 2 Tagen"), hier um eine Dauer, die noch andauert („seit 2 Tagen").
- * `Intl.RelativeTimeFormat` kann das zweite nicht, deshalb kommen diese
- * Wörter aus dem Paket.
+ * Separate from `since()`, and deliberately so: that one is about a point in
+ * time ("2 days ago"), this one about a span that is still running ("for 2
+ * days"). `Intl.RelativeTimeFormat` cannot do the second, so these words come
+ * from the language pack.
  *
- * **Es gab zwei Fassungen davon.** `wantlist.vue` las aus dem Paket,
- * `in-store.vue` hatte dieselbe Verzweigung nochmal — auf Deutsch, fest im
- * Quelltext, in einer englischen Oberfläche. Beide beschreiben dieselbe
- * Tatsache über dieselbe Platte; zwei Kopien davon können nur auseinander
- * laufen, und eine war schon losgelaufen. Am 2026-09-10 zusammengelegt, aus
- * demselben Grund, aus dem oben in dieser Datei drei Zeitangaben zu einer
- * wurden.
+ * **There were two versions of this.** `wantlist.vue` read from the pack;
+ * `in-store.vue` had the same branching again — in German, hard-coded, inside
+ * an English interface. Both describe the same fact about the same record; two
+ * copies of that can only drift apart, and one already had. Merged on
+ * 2026-09-10, for the same reason three time formats higher up in this file
+ * became one.
  *
- * `null` heißt „dazu ist nichts bekannt" und nicht „null Tage" — der Aufrufer
- * lässt die Zeile dann weg, statt eine Dauer zu behaupten.
+ * `null` means "nothing is known about that" and not "zero days" — the caller
+ * then leaves the line out rather than claiming a duration.
  */
 export function waitingFor(days: number | null): string | null {
   if (days === null || !Number.isFinite(days)) return null
