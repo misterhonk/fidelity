@@ -11,6 +11,33 @@ Für eine App bedeutet SemVer:
 
 ## [0.28.0](https://github.com/misterhonk/fidelity/compare/v0.27.1...v0.28.0) (2026-09-11)
 
+**The privacy notice was out of date, and it was the kind of out of date that matters.** It
+opened with "Fidelity has no server. There is nowhere your data could be processed" — three
+releases after sharing a find list had begun sending a sealed dig to a hub. The sentence had
+been true when it was written, and nothing made anybody go back to it.
+
+The hub now has a section of its own, beside the one the audio preview already had, and it
+separates what the hub can read from what it cannot: your backup and a shared find list go
+there sealed; the dealers you are watching, the push address your browser hands out, and the
+release ids it is asked for covers of do not. Your Discogs token is in neither half. The web
+host has a section too — like every web server it logs the requests it answers, and that
+belongs said rather than assumed. None of this is new behaviour; it is behaviour that was
+not written down.
+
+**And the app now says when it is newer than last time.** These notes have been reachable
+since 0.27.0, but only through the version number in the footer — which is to say, only to
+somebody who already knew that number was a link. Now a line on the start page says so once,
+after an update, and never again for that release. On a first visit it says nothing: you
+have not updated from anything, and the first sentence an app tells you should not be a
+false one.
+
+**A note on the last one in the list.** This project has a test that fails if a German
+comment appears anywhere in the source. It reported none while 130 sat in 74 files — a
+regex literal containing a quote derailed its scan, two comment lines counted as two
+comments instead of one paragraph, `.mjs` was outside its search, and eight of its German
+words are also English words, which had forced its threshold so high that most short
+comments slipped under it. All four are fixed and all 130 are translated. Nothing you can
+see changed; a guarantee that was being reported as kept now is.
 
 ### Added
 
