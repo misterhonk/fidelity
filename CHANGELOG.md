@@ -9,6 +9,23 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.34.0](https://github.com/misterhonk/fidelity/compare/v0.33.0...v0.34.0) (2026-09-11)
+
+**The collection and the wantlist as CSV.**
+
+Discogs' own export leaves out genres, styles, release ids and the master — the four
+columns people write scripts to put back. Two files under Settings › Your data now carry
+them, plus what is yours alone and what Discogs has no export for: rating, folder, the
+three condition fields, and the place a record sits in. No prices and no estimate: read
+against the terms they are marketplace data, and a file is passing them on — the same
+reason the JSON backup strips them. Every cell quoted, a byte-order mark in front, so a
+spreadsheet reads the umlauts.
+
+
+### Added
+
+* **collection:** the collection and the wantlist as CSV ([70c7ae3](https://github.com/misterhonk/fidelity/commit/70c7ae3f9d2990a3e9bda0adb4c0262ede2abb25))
+
 ## [0.33.0](https://github.com/misterhonk/fidelity/compare/v0.32.0...v0.33.0) (2026-09-11)
 
 **A record fair: every stand you scanned today, on the shop screen.**
