@@ -9,6 +9,47 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.28.0](https://github.com/misterhonk/fidelity/compare/v0.27.1...v0.28.0) (2026-09-11)
+
+**The privacy notice was out of date, and it was the kind of out of date that matters.** It
+opened with "Fidelity has no server. There is nowhere your data could be processed" — three
+releases after sharing a find list had begun sending a sealed dig to a hub. The sentence had
+been true when it was written, and nothing made anybody go back to it.
+
+The hub now has a section of its own, beside the one the audio preview already had, and it
+separates what the hub can read from what it cannot: your backup and a shared find list go
+there sealed; the dealers you are watching, the push address your browser hands out, and the
+release ids it is asked for covers of do not. Your Discogs token is in neither half. The web
+host has a section too — like every web server it logs the requests it answers, and that
+belongs said rather than assumed. None of this is new behaviour; it is behaviour that was
+not written down.
+
+**And the app now says when it is newer than last time.** These notes have been reachable
+since 0.27.0, but only through the version number in the footer — which is to say, only to
+somebody who already knew that number was a link. Now a line on the start page says so once,
+after an update, and never again for that release. On a first visit it says nothing: you
+have not updated from anything, and the first sentence an app tells you should not be a
+false one.
+
+**A note on the last one in the list.** This project has a test that fails if a German
+comment appears anywhere in the source. It reported none while 130 sat in 74 files — a
+regex literal containing a quote derailed its scan, two comment lines counted as two
+comments instead of one paragraph, `.mjs` was outside its search, and eight of its German
+words are also English words, which had forced its threshold so high that most short
+comments slipped under it. All four are fixed and all 130 are translated. Nothing you can
+see changed; a guarantee that was being reported as kept now is.
+
+### Added
+
+* **ui:** sagen, dass die App neuer ist als beim letzten Mal ([6c7a256](https://github.com/misterhonk/fidelity/commit/6c7a256ee6d7d52d0677326ffc8893d55ecfeef7))
+
+
+### Fixed
+
+* **i18n:** die Wache war grün und hat 130 deutsche Kommentare übersehen ([8a12784](https://github.com/misterhonk/fidelity/commit/8a12784fba41e1617799f79ee8c859a26c39cab7))
+* **ui:** [@container](https://github.com/container) gehört auf den Kasten, dessen Breite der Inhalt hat ([c7ebfcc](https://github.com/misterhonk/fidelity/commit/c7ebfcca21f7207e669f3a337b40720d086cd8e8))
+* **ui:** den Hub im Datenschutzhinweis benennen ([2e4f3a5](https://github.com/misterhonk/fidelity/commit/2e4f3a5e7e2706411e7b47440e3047d6132fbe7b))
+
 ## [0.27.1](https://github.com/misterhonk/fidelity/compare/v0.27.0...v0.27.1) (2026-09-11)
 
 The narrow screens — basket, places, the legal pages, this one — sit in the middle again.
