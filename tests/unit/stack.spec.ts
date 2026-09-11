@@ -75,6 +75,20 @@ describe('the four decisions', () => {
   })
 })
 
+describe('what the card shows', () => {
+  /**
+   * Ein Cover gehört zu einem Titel, und zwar sofort.
+   *
+   * Ohne `key` behält Vue dasselbe `<img>` und tauscht nur die Adresse — bis
+   * das neue Bild geladen ist, steht das vorige über dem neuen Titel. In einer
+   * Liste fällt das nicht auf, weil jede Zeile ihr eigenes Bild hat; hier
+   * wechselt ein einzelnes Element zwischen zwei Platten.
+   */
+  it('builds a fresh card per record, so no cover outlives its title', () => {
+    expect(code(PAGE)).toMatch(/<StackCard\s+:key="card\.listingId"/)
+  })
+})
+
 describe('the way back', () => {
   /**
    * Tinder kann sich ein verlorenes Nein leisten, eine seltene Platte nicht.

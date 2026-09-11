@@ -263,6 +263,20 @@ async function share() {
 }
 
 const verdict = computed(() => (card.value ? verdicts.value[card.value.listingId] : undefined))
+
+/**
+ * Die vier mittleren Knöpfe: Symbol über Text.
+ *
+ * Nebeneinander brach „In den Korb" auf zwei Zeilen und schob die ganze Reihe
+ * auseinander — vier Knöpfe unterschiedlicher Höhe, von denen einer aussah,
+ * als sei er kaputt. Übereinander ist jeder gleich hoch, und die Beschriftung
+ * darf so lang sein, wie sie in der Sprache eben ist.
+ *
+ * Zurück und Weiter machen das **nicht** mit: bei ihnen trägt der Pfeil die
+ * Richtung, und eine Richtung über dem Wort ist keine mehr.
+ */
+const STACKED =
+  'fid-action flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 rounded-fid-sm border px-3 py-2 text-fid-xs'
 </script>
 
 <template>
@@ -341,74 +355,100 @@ const verdict = computed(() => (card.value ? verdicts.value[card.value.listingId
         @pointerup="up"
         @pointercancel="up"
       >
-        <StackCard :match="card" :expired="expired" />
+        <!--
+          Je Karte eine eigene Instanz.
+
+          Ohne `key` ersetzt Vue nur die Prop und behält das `<img>` — und das
+          zeigt weiter das vorige Cover, bis das neue geladen ist. Bei einer
+          Liste fällt das nicht auf, weil dort jede Zeile ihr eigenes Bild hat;
+          hier ist es **dasselbe Element**, das zwischen zwei Platten wechselt,
+          und dann steht kurz ein fremdes Cover über dem richtigen Titel.
+        -->
+        <StackCard :key="card.listingId" :match="card" :expired="expired" />
       </div>
 
       <p class="text-center text-fid-xs text-fid-text-muted" aria-live="polite">
         {{ d.stack.position(count(at + 1), count(cards.length), shop.displayName) }}
       </p>
 
-      <div class="flex items-center justify-between gap-2">
+      <!--
+        `items-stretch`, nicht `items-center`.
+
+        Die vier mittleren Knöpfe sind zweizeilig (Symbol über Text), Zurück
+        und Weiter einzeilig — zentriert schwimmen sie dann unterschiedlich
+        hoch in einer Reihe. Gestreckt nimmt jeder die Höhe der Reihe, und die
+        bestimmt der höchste.
+      -->
+      <div class="flex items-stretch justify-between gap-2">
         <button
           type="button"
           :disabled="at === 0"
-          class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text disabled:opacity-40"
+          class="fid-action flex min-h-11 items-center gap-2 rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text disabled:opacity-40"
           @click="go(-1)"
         >
+          <FidIcon name="arrow-left" :size="16" aria-hidden="true" />
           {{ d.stack.back }}
         </button>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-stretch gap-2">
           <button
             type="button"
-            class="fid-action flex min-h-11 min-w-11 items-center justify-center rounded-fid-sm border px-3 text-fid-sm"
-            :class="
+            :class="[
+              STACKED,
               verdict === 'interesting'
                 ? 'border-fid-accent-fill text-fid-accent'
-                : 'border-fid-border text-fid-text'
-            "
-            :aria-label="d.stack.like"
+                : 'border-fid-border text-fid-text',
+            ]"
             @click="like"
           >
-            {{ d.stack.like }}
+            <FidIcon name="bookmark" :size="18" aria-hidden="true" />
+            <span>{{ d.stack.like }}</span>
           </button>
           <button
             v-if="canHear"
             type="button"
-            class="fid-action min-h-11 rounded-fid-sm border px-3 text-fid-sm"
-            :class="
+            :class="[
+              STACKED,
               audio.playing.value
                 ? 'border-fid-accent-fill text-fid-accent'
-                : 'border-fid-border text-fid-text'
-            "
+                : 'border-fid-border text-fid-text',
+            ]"
             @click="audio.playing.value ? audio.stop() : hear()"
           >
-            {{ audio.playing.value ? d.stack.hearStop : d.stack.hear }}
+            <FidIcon
+              :name="audio.playing.value ? 'square' : 'play'"
+              :size="18"
+              aria-hidden="true"
+            />
+            <span>{{ audio.playing.value ? d.stack.hearStop : d.stack.hear }}</span>
           </button>
           <button
             type="button"
             :disabled="busy"
-            class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-sm text-fid-text disabled:opacity-40"
+            :class="[STACKED, 'border-fid-border text-fid-text disabled:opacity-40']"
             @click="toBasket"
           >
-            {{ d.stack.basket }}
+            <FidIcon name="shopping-cart" :size="18" aria-hidden="true" />
+            <span>{{ d.stack.basket }}</span>
           </button>
           <button
             type="button"
             :disabled="busy"
-            class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-sm text-fid-text disabled:opacity-40"
+            :class="[STACKED, 'border-fid-border text-fid-text disabled:opacity-40']"
             @click="share"
           >
-            {{ d.stack.share }}
+            <FidIcon name="share-2" :size="18" aria-hidden="true" />
+            <span>{{ d.stack.share }}</span>
           </button>
         </div>
 
         <button
           type="button"
-          class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text"
+          class="fid-action flex min-h-11 items-center gap-2 rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text"
           @click="go(1)"
         >
           {{ d.stack.next }}
+          <FidIcon name="arrow-right" :size="16" aria-hidden="true" />
         </button>
       </div>
 
@@ -426,7 +466,16 @@ const verdict = computed(() => (card.value ? verdicts.value[card.value.listingId
         eine kleine, ehrliche Fläche statt eines Tricks — wer Ton anmacht,
         sieht auch, woher er kommt.
       -->
-      <div v-show="audio.armed.value" class="flex flex-col gap-1">
+      <!--
+        Sichtbar nur, solange etwas läuft — und zwar zu **dieser** Karte.
+
+        Hing zuerst an `armed`, also daran, ob überhaupt je getippt wurde. Dann
+        blieb der Spieler nach dem Stoppen stehen und zeigte das Standbild der
+        vorigen Platte unter der neuen Karte: „Robag Wruhme" oben, „The
+        Persuader" im Rahmen darunter. Ein Standbild ist kein Ton, aber es
+        behauptet dasselbe.
+      -->
+      <div v-show="audio.playing.value" class="flex flex-col gap-1">
         <div
           ref="mount"
           class="aspect-video w-full overflow-hidden rounded-fid-sm bg-fid-inset"

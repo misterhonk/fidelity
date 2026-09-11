@@ -73,6 +73,18 @@ describe('nothing reaches Google before somebody asks', () => {
  * alle Treffer hängte — aber der Eindruck war echt).
  */
 describe('what is actually playing', () => {
+  /**
+   * Und der Rahmen verschwindet, sobald nichts mehr läuft.
+   *
+   * An `armed` gehängt — also daran, ob je getippt wurde — blieb er nach dem
+   * Stoppen stehen und zeigte das Standbild der vorigen Platte unter der
+   * neuen Karte. Ein Standbild ist kein Ton, aber es behauptet dasselbe.
+   */
+  it('hides the player as soon as nothing is playing', () => {
+    expect(code(PAGE)).toMatch(/v-show="audio\.playing\.value"/)
+    expect(code(PAGE)).not.toMatch(/v-show="audio\.armed\.value"/)
+  })
+
   it('names the clip, not the record on the card', () => {
     expect(code(PAGE)).toMatch(/card\.value\?\.videos\?\.\[0\]\?\.title/)
     expect(code(PAGE)).toMatch(/v-if="hearing"/)

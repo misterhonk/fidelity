@@ -113,7 +113,7 @@ const en = {
     /* Gesagt, sobald es läuft — nicht vorher als Warnung und nicht gar nicht.
      * Wer den Ton anmacht, soll wissen, wem er dabei begegnet. */
     hearVia: 'Played from YouTube — Google sees this device while it does.',
-    basket: 'To basket',
+    basket: 'Basket',
     share: 'Share',
     next: 'Next',
     back: 'Back',
@@ -374,7 +374,7 @@ const de: typeof en = {
     hear: 'Anhören',
     hearStop: 'Stopp',
     hearVia: 'Kommt von YouTube – Google sieht dieses Gerät, solange es läuft.',
-    basket: 'In den Korb',
+    basket: 'Korb',
     share: 'Teilen',
     next: 'Weiter',
     back: 'Zurück',

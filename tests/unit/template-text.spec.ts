@@ -176,13 +176,32 @@ const TWO_WORDS = /[^\W\d_]{2,}[ ]+[^\W\d_]{2,}/u
  * Eine Tailwind-Klassenliste ist keine Prosa.
  *
  * `text-fid-text-muted hover:text-fid-text` hat zwei Wörter und ein
- * Leerzeichen und ist trotzdem Code. Die Unterscheidung braucht keine Liste:
- * in einer Klassenliste trägt **jedes** Wort einen Bindestrich oder
- * Doppelpunkt, in einem Satz keines.
+ * Leerzeichen und ist trotzdem Code.
+ *
+ * Die erste Fassung verlangte, dass **jedes** Wort einen Bindestrich oder
+ * Doppelpunkt trägt. Das hielt genau so lange, bis eine echte Klassenliste
+ * `flex`, `border` und `py-2` nebeneinander hatte — am 2026-09-11 an den
+ * Knöpfen des Stapels. Tailwind hat nackte Hilfsklassen, und eine Regel, die
+ * sie verbietet, verbietet Tailwind.
+ *
+ * Also die Mehrheit statt aller: **über die Hälfte** der Wörter trägt eines
+ * der beiden Zeichen. Das bleibt eine Regel über die Form — Klassenlisten
+ * sind überwiegend zusammengesetzt, Sätze überwiegend nicht. „E-Mail-Adresse
+ * nicht gefunden" hat eines von drei und wird weiterhin gemeldet.
+ *
+ * **Die Lücke, gemessen und bewusst gelassen:** wer Prosa *in* eine lange
+ * Klassenliste schreibt, kommt durch — bei dreizehn Klassen passen sechs
+ * Wörter daneben, bevor die Mehrheit kippt. Das ist hinnehmbar, weil eine
+ * Zeichenkette, die als `class` landet, **nie als Text erscheint**. Dieser
+ * Wächter schützt, was jemand liest; ein Satz im Klassenattribut wird von
+ * niemandem gelesen.
  */
 function isClassList(value: string): boolean {
   const parts = value.split(/\s+/).filter(Boolean)
-  return parts.length > 1 && parts.every((part) => part.includes('-') || part.includes(':'))
+  if (parts.length < 2) return false
+
+  const compound = parts.filter((part) => part.includes('-') || part.includes(':')).length
+  return compound * 2 > parts.length
 }
 
 describe('a sentence in a script block', () => {

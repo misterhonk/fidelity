@@ -78,6 +78,22 @@ const NEEDED = {
    */
   'thumbs-down': 'Bewertung: danebengegriffen (abgeschaltet)',
   meh: 'Bewertung: naja (abgeschaltet)',
+
+  /*
+   * Der Stapel (M15). Sechs Knöpfe in einer Reihe, auf einem Telefon
+   * nebeneinander — dort trägt das Symbol, was der Text bei 360 px Breite
+   * nicht mehr kann.
+   *
+   * `arrow-left` gab es schon; `arrow-right` ist sein Gegenstück und fehlte
+   * nur, weil bisher nie etwas vorwärts ging. Bewusst **keine** neuen Symbole
+   * für „Interessant" und „In den Korb": dort stehen `bookmark` und
+   * `shopping-cart`, dieselben wie auf der Trefferkarte. Zwei Symbole für
+   * dieselbe Handlung wären zwei Dinge zu lernen statt einem.
+   */
+  'arrow-right': 'Stapel: eine Platte weiter',
+  play: 'Stapel: Hörprobe starten',
+  square: 'Stapel: Hörprobe stoppen — ein Quadrat, weil Pause etwas anderes verspricht',
+  'share-2': 'Stapel: Fundliste teilen',
 }
 
 /**
