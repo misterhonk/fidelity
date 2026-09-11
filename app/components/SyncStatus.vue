@@ -19,17 +19,39 @@ const m = useMessages()
 const props = defineProps<{ collectionSyncedAt: number | null }>()
 const emit = defineEmits<{ refreshed: [] }>()
 
-const { last, tick } = useKeeper()
-const busy = ref(false)
+/**
+ * `busy` ist der Keeper selbst, `pressed` der Knopf.
+ *
+ * Zwei Zustände, weil es zwei Anlässe sind: der Keeper läuft beim Öffnen und
+ * alle zwanzig Minuten von allein, der Knopf ist eine Bitte. Vorher gab es nur
+ * den zweiten — der erste lief stumm, und genau das war die Lücke.
+ */
+const { last, busy, tick } = useKeeper()
+const pressed = ref(false)
+
+/**
+ * Hat dieser Lauf schon einen Schritt gemeldet?
+ *
+ * „Sieht nach …" gehört vor die erste Meldung — der Worker lädt sein Modul,
+ * und ein Knopf, der nichts tut, ist schlimmer als eine Zeile Geduld. Danach
+ * gehört es nicht mehr hin: gemessen am 2026-09-11 rahmte es die benannten
+ * Schritte auf beiden Seiten ein, und das hintere las sich, als finge der Lauf
+ * von vorne an.
+ */
+const gemeldet = ref(false)
+watch(busy, (job) => {
+  if (job !== null) gemeldet.value = true
+})
 
 async function refreshAll() {
-  if (busy.value) return
-  busy.value = true
+  if (pressed.value) return
+  pressed.value = true
+  gemeldet.value = false
   try {
     await tick({ force: true })
     emit('refreshed')
   } finally {
-    busy.value = false
+    pressed.value = false
   }
 }
 
@@ -42,7 +64,15 @@ async function refreshAll() {
  */
 const note = computed(() => {
   const words = m.value.freshness
-  if (busy.value) return words.looking
+
+  /*
+   * Was gerade läuft, schlägt jede Vergangenheitsform.
+   *
+   * Und der Schritt wird benannt: „wird aktualisiert" allein ist eine
+   * Beschwichtigung, „Sammlung und Wantlist" ist eine Auskunft.
+   */
+  if (busy.value) return `${words.updating} — ${words.job[busy.value]} …`
+  if (pressed.value && !gemeldet.value) return words.looking
 
   const result = last.value
   if (result?.did.length) {
@@ -59,15 +89,24 @@ const note = computed(() => {
 </script>
 
 <template>
-  <p class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-fid-xs text-fid-text-muted">
+  <!--
+    Ein `<div>` und kein `<p>` mehr.
+
+    `<p>` nimmt nur Phrasing Content, und `WhyNote` ist ein `<details>`. Der
+    Browser schließt den Absatz dann von selbst und hebt das `<details>`
+    heraus — die Zeile zerfällt in zwei Blöcke, und zwar nur im gerenderten
+    Dokument, nicht im Quelltext. Gemerkt am 2026-09-11 beim Einbau.
+  -->
+  <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-fid-xs text-fid-text-muted">
     <span aria-live="polite">{{ note }}</span>
     <button
       type="button"
-      :disabled="busy"
+      :disabled="pressed || busy !== null"
       class="fid-action underline underline-offset-4 disabled:opacity-50"
       @click="refreshAll"
     >
       {{ m.freshness.refreshAll }}
     </button>
-  </p>
+    <WhyNote :label="m.freshness.whyLabel">{{ m.freshness.why }}</WhyNote>
+  </div>
 </template>

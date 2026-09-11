@@ -14,7 +14,7 @@
  * comes back the other way (CLAUDE.md rule 6).
  */
 import type { CoverProgress } from '~~/worker/covers'
-import type { KeeperResult } from '~~/worker/keeper'
+import type { KeeperProgress, KeeperResult } from '~~/worker/keeper'
 import type { DrainResult } from '~~/worker/outbox'
 import type { CheckProgress, WatchedCheck } from '~~/worker/watched/check'
 import type { DemoProgress, DemoResult } from '~~/worker/demo'
@@ -177,7 +177,8 @@ export interface WorkerContract {
   }
   'keeper.tick': {
     params: { force?: boolean; eager?: boolean }
-    progress: never
+    /** Woran gerade gearbeitet wird, damit die App es sagen kann. */
+    progress: KeeperProgress
     result: KeeperResult
   }
   /**

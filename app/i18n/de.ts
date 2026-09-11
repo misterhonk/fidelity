@@ -140,6 +140,17 @@ const de: Messages = {
     alerts: (shops) => `${counted(shops, 'Laden hat', 'Läden haben')} Neues`,
     asOf: (when) => `Stand von ${when}`,
     refreshAll: 'Alles auffrischen',
+
+    updating: 'Deine Daten werden aktualisiert',
+    job: {
+      outbox: 'deine Änderungen gehen raus',
+      library: 'Sammlung und Wantlist',
+      watch: 'die Läden, die du beobachtest',
+      horizon: 'der Horizont',
+    },
+
+    whyLabel: 'Was frischt sich von selbst auf?',
+    why: 'Sammlung, Wantlist, die beobachteten Läden und der Horizont – beim Öffnen, beim Zurückkehren in den Tab und alle zwanzig Minuten. Meistens ist das eine einzige Anfrage, weil Discogs nur gefragt wird, was sich geändert hat. Zwei Dinge bleiben absichtlich draußen: ein Dig dauert zwei bis vier Minuten und hundert und mehr Abfragen, den startest also du und keine Uhr; und deine Bestellungen lassen sich gar nicht abrufen – dieser Endpunkt listet nur, was du verkauft hast, ein Kauf wird deshalb über seine Bestellnummer gelesen.',
   },
 
   token: {

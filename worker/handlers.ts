@@ -1046,7 +1046,7 @@ export const handlers: HandlerMap = {
     })
   },
 
-  'keeper.tick': async ({ force, eager }, { signal }) => {
+  'keeper.tick': async ({ force, eager }, { report, signal }) => {
     const { runKeeper } = await import('./keeper')
     return runKeeper({
       client: discogs(),
@@ -1054,6 +1054,7 @@ export const handlers: HandlerMap = {
       force,
       eager,
       signal,
+      report,
     })
   },
 

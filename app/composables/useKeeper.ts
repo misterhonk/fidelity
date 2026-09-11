@@ -1,4 +1,4 @@
-import type { KeeperResult } from '~~/worker/keeper'
+import type { KeeperJob, KeeperResult } from '~~/worker/keeper'
 
 /**
  * Der Takt, in dem die App bei sich selbst nachsieht.
@@ -16,6 +16,14 @@ const EVERY_MS = 20 * 60 * 1000
 
 /** Shared, because five screens mounting five tickers is five times the work. */
 const last = shallowRef<KeeperResult | null>(null)
+
+/**
+ * Woran gerade gearbeitet wird — `null`, wenn nichts läuft.
+ *
+ * Auch das geteilt, und aus demselben Grund wie `last`: die Zeile steht im
+ * Layout, und zwei Bildschirme dürfen sich nicht widersprechen.
+ */
+const busy = shallowRef<KeeperJob | null>(null)
 let timer: ReturnType<typeof setInterval> | undefined
 let started = false
 
@@ -37,7 +45,11 @@ export function useKeeper() {
     }
 
     try {
-      last.value = await call('keeper.tick', { force: options.force, eager: options.eager })
+      last.value = await call(
+        'keeper.tick',
+        { force: options.force, eager: options.eager },
+        { onProgress: (update) => (busy.value = update.job) },
+      )
     } catch {
       /*
        * Silent by design. This is the one thing in the app nobody asked for,
@@ -45,6 +57,15 @@ export function useKeeper() {
        * offline, rate-limited, token expired: the next tick tries again, and
        * everything somebody *does* ask for still reports its own failures.
        */
+    } finally {
+      /*
+       * Und die Zeile geht in jedem Fall weg.
+       *
+       * Gerade weil der Keeper zu Fehlern schweigt: ein „wird aktualisiert …",
+       * das nach einem Fehlschlag stehen bleibt, wäre die schlechteste Art zu
+       * schweigen — es behauptete Arbeit, die nicht mehr stattfindet.
+       */
+      busy.value = null
     }
   }
 
@@ -85,5 +106,5 @@ export function useKeeper() {
     started = false
   }
 
-  return { last, tick, start, stop }
+  return { last, busy, tick, start, stop }
 }

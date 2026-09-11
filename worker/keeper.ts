@@ -74,6 +74,21 @@ const LIBRARY_FULL_MS = 24 * 60 * 60 * 1000
 
 export type KeeperJob = 'outbox' | 'library' | 'watch' | 'horizon'
 
+/**
+ * Was der Keeper gerade tut — damit die App es sagen kann.
+ *
+ * Bis zum 2026-09-11 lief er vollständig stumm: er arbeitete beim Öffnen, beim
+ * Zurückkehren in den Tab und alle zwanzig Minuten, und auf dem Schirm stand
+ * dieselbe Zeile wie vorher. Wer nicht in den Quelltext sah, konnte nur
+ * schließen, dass nichts passiert — und drückte „Alles aktualisieren" für
+ * etwas, das gerade lief.
+ *
+ * `null` heißt fertig. Der Kanal meldet den Schritt, nicht den Fortschritt
+ * darin: ein Delta über eine unveränderte Sammlung ist eine Anfrage, und ein
+ * Balken dafür wäre mehr Apparat als Vorgang.
+ */
+export type KeeperProgress = { job: KeeperJob | null }
+
 export interface KeeperResult {
   /** What actually ran. Empty when nothing was due. */
   did: KeeperJob[]
@@ -112,8 +127,10 @@ export async function runKeeper(options: {
   eager?: boolean
   now?: number
   signal?: AbortSignal
+  /** Sagt, woran gerade gearbeitet wird. Siehe `KeeperProgress`. */
+  report?: (progress: KeeperProgress) => void
 }): Promise<KeeperResult> {
-  const { client, username, force = false, eager = false, signal } = options
+  const { client, username, force = false, eager = false, signal, report } = options
   const now = options.now ?? Date.now()
   const result: KeeperResult = {
     did: [],
@@ -172,6 +189,7 @@ export async function runKeeper(options: {
    * fine wait for "did anything change over there", and a poor one for
    * "the thing I just did".
    */
+  report?.({ job: 'outbox' })
   const { drainOutbox } = await import('./outbox')
   const drained = await drainOutbox(client, username)
   if (drained.sent > 0 || drained.givenUp > 0) result.did.push('outbox')
@@ -194,6 +212,7 @@ export async function runKeeper(options: {
   const full = force || (syncState?.collectionReadFullyAt ?? 0) < now - LIBRARY_FULL_MS
   if (full || (syncState?.collectionSyncedAt ?? 0) < now - staleAfter) {
     try {
+      report?.({ job: 'library' })
       const { syncLibrary } = await import('./sync/library')
       const summary = await syncLibrary({ client, username, signal }, { full })
       result.did.push('library')
@@ -226,6 +245,7 @@ export async function runKeeper(options: {
       // No pre-filter here: `checkWatched` already skips shops that are not
       // watched and shops checked within the hour, and duplicating that would
       // give it two places to drift apart.
+      report?.({ job: 'watch' })
       const { checkWatched } = await import('./watch/check')
       const outcome = await checkWatched({ client, force, signal })
       if (outcome.checked > 0) {
@@ -243,6 +263,7 @@ export async function runKeeper(options: {
    */
   if (!isForegroundBusy()) {
     try {
+      report?.({ job: 'horizon' })
       const { revalidateHorizon } = await import('./horizon/build')
       const outcome = await revalidateHorizon({ client, signal })
       if (outcome.expanded > 0) result.did.push('horizon')
@@ -250,6 +271,15 @@ export async function runKeeper(options: {
       // A stale horizon is still a horizon.
     }
   }
+
+  /*
+   * Und Ruhe melden, sonst bliebe die Zeile für immer stehen.
+   *
+   * Die frühen Rückkehrer oben — kein Nutzername, etwas anderes läuft — sind
+   * absichtlich nicht abgedeckt: dort wurde nie etwas gemeldet, es gibt also
+   * auch nichts zurückzunehmen.
+   */
+  report?.({ job: null })
 
   return result
 }

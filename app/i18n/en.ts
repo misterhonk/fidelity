@@ -229,6 +229,24 @@ const en = {
     alerts: (shops: number) => `${counted(shops, 'shop has', 'shops have')} something new`,
     asOf: (when: string) => `As of ${when}`,
     refreshAll: 'Refresh everything',
+
+    /*
+     * Was gerade läuft, beim Namen genannt.
+     *
+     * Der Keeper arbeitet seit je beim Öffnen, beim Zurückkehren in den Tab
+     * und alle zwanzig Minuten — und sagte kein Wort dazu. Wer nicht in den
+     * Quelltext sah, konnte nur schließen, dass nichts passiert.
+     */
+    updating: 'Your data is being updated',
+    job: {
+      outbox: 'sending your changes',
+      library: 'collection and wantlist',
+      watch: 'the shops you watch',
+      horizon: 'the horizon',
+    },
+
+    whyLabel: 'What refreshes by itself?',
+    why: 'Collection, wantlist, the shops you watch and the horizon — when the app opens, when you come back to the tab, and every twenty minutes. Usually that is a single request, because Discogs is only asked what has changed. Two things stay out on purpose: a dig is two to four minutes and a hundred or more lookups, so it is started by you and never by a clock; and your orders cannot be fetched at all — that endpoint only lists what you sold, so a purchase is read from its order number.',
   },
 
   /** The one form that is on the welcome screen and in the settings. */
