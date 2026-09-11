@@ -54,6 +54,11 @@ export const masterVersionsSchema = z.object({
       released: z.string().optional(),
       catno: z.string().optional(),
       country: z.string().optional(),
+      /** The first label, and the free format line: "Album, Stereo". */
+      label: z.string().optional(),
+      format: z.string().optional(),
+      /** ["Vinyl"], ["CD"] — the medium, which the family view groups by. */
+      major_formats: z.array(z.string()).optional(),
     }),
   ),
 })

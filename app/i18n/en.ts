@@ -541,6 +541,25 @@ const en = {
     /* Both in one field: somebody holding a record does not want to decide
      * first which kind of number they are about to type. */
     identifyPlaceholder: 'Barcode, or what is etched in the run-out',
+    /*
+     * Which pressing this is (M19 #7). The candidates are the pressings that
+     * share the code; picking the one in your hand reads it against the
+     * album's whole family — two requests, for one record.
+     */
+    pressing: {
+      pick: 'Which one are you holding? Pick it and it is read against every pressing of the album.',
+      check: 'Which pressing is this?',
+      reading: 'Reading the pressing …',
+      noAnswer: 'Discogs did not answer, so this pressing stays unread. The list stands.',
+      onlyItself: 'Discogs knows no other pressing of this — nothing to compare it with.',
+      among: (total: string, year: number) =>
+        `One of ${total} pressings, and among the first: the album is from ${year}.`,
+      later: (total: string, year: number) =>
+        `One of ${total} pressings. The first are from ${year}:`,
+      firstOnes: 'The first pressings',
+      you: 'yours',
+      onDiscogs: 'On Discogs',
+    },
     finds: (n: number) => `${n} ${n === 1 ? 'find' : 'finds'}`,
     wrong: 'Wrong pick',
     notInLibrary: 'Not in your collection and not on your wantlist',

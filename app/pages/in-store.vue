@@ -1,8 +1,16 @@
 <script setup lang="ts">
 import { looksLikeBarcode } from '~~/worker/identify'
 import type { DigWithMatches } from '#shared/protocol'
-import type { ShelfHit, ShelfResult, Identified, Match, Stand } from '#shared/types'
+import type {
+  ShelfHit,
+  ShelfResult,
+  Identified,
+  Match,
+  PressingFamily,
+  Stand,
+} from '#shared/types'
 import { reasonFor } from '~/i18n/reason'
+import { pressingText, stampText } from '~/i18n/pressing'
 import { useDigMessages } from '~/i18n/dig'
 
 const d = useDigMessages()
@@ -136,12 +144,53 @@ async function lookUpTyped() {
 
     const first = identified.value.candidates[0]
     if (first) query.value = first.title
+    void readOnlyCandidate(identified.value)
   } catch (cause) {
     error.value = cause
   } finally {
     identifying.value = false
   }
 }
+
+/*
+ * Which pressing this is (M19 #7).
+ *
+ * The candidates are the pressings that share the code — eight for one
+ * barcode, measured. Picking the one in your hand reads it against the
+ * album's whole family: stated reissue, the album's first year, which
+ * pressings carry it. Two requests, for one record, on a tap; a run-out that
+ * returns exactly one candidate needs no tap.
+ */
+const family = shallowRef<PressingFamily | null>(null)
+const familyFor = ref<number | null>(null)
+const familyMissing = ref(false)
+const reading = ref(false)
+
+async function readPressing(releaseId: number) {
+  if (familyFor.value === releaseId && (family.value || familyMissing.value)) return
+  familyFor.value = releaseId
+  family.value = null
+  familyMissing.value = false
+  reading.value = true
+  try {
+    family.value = await call('pressing.family', { releaseId })
+    familyMissing.value = family.value === null
+  } catch {
+    familyMissing.value = true
+  } finally {
+    reading.value = false
+  }
+}
+
+function readOnlyCandidate(found: Identified) {
+  family.value = null
+  familyFor.value = null
+  familyMissing.value = false
+  const only = found.candidates.length === 1 ? found.candidates[0] : undefined
+  if (only) return readPressing(only.releaseId)
+}
+
+const ownedIds = computed(() => new Set(identified.value?.owned.map((o) => o.releaseId) ?? []))
 
 async function lookUp(barcode: string) {
   scanning.value = false
@@ -156,6 +205,7 @@ async function lookUp(barcode: string) {
      */
     const first = found.candidates[0]
     if (first) query.value = first.title
+    void readOnlyCandidate(found)
   } catch (cause) {
     error.value = cause
   } finally {
@@ -461,6 +511,147 @@ const expired = computed(() => results.value.some((entry) => Date.now() > entry.
           >
             {{ m.inStore.scanNothing }}
           </p>
+
+          <!--
+            The pressings themselves, as a list to pick from — which one is in
+            your hand is written on its label, not in the code (M19 #7).
+          -->
+          <template v-if="identified.candidates.length > 0">
+            <p v-if="identified.candidates.length > 1" class="text-fid-xs text-fid-text-muted">
+              {{ m.inStore.pressing.pick }}
+            </p>
+            <ul class="flex flex-col gap-1">
+              <li v-for="candidate in identified.candidates" :key="candidate.releaseId">
+                <button
+                  type="button"
+                  class="fid-action flex min-h-11 w-full flex-wrap items-baseline gap-x-2 rounded-fid-sm border px-3 py-1 text-left text-fid-sm"
+                  :class="
+                    familyFor === candidate.releaseId
+                      ? 'border-fid-text bg-fid-inset text-fid-text'
+                      : 'border-fid-border text-fid-text'
+                  "
+                  :aria-pressed="familyFor === candidate.releaseId"
+                  :disabled="reading || !online"
+                  @click="readPressing(candidate.releaseId)"
+                >
+                  <span v-if="candidate.year" class="fid-num">{{ candidate.year }}</span>
+                  <span v-if="candidate.country">{{ candidate.country }}</span>
+                  <span v-if="candidate.label" class="text-fid-text-muted">
+                    {{
+                      candidate.catno
+                        ? `${candidate.label} ${candidate.catno}`
+                        : candidate.label
+                    }}
+                  </span>
+                  <span v-if="candidate.format" class="text-fid-xs text-fid-text-muted">
+                    {{ candidate.format }}
+                  </span>
+                  <span
+                    v-if="ownedIds.has(candidate.releaseId)"
+                    class="text-fid-xs text-fid-sig-artist"
+                  >
+                    {{ m.inStore.pressing.you }}
+                  </span>
+                </button>
+              </li>
+            </ul>
+
+            <p v-if="reading" class="text-fid-sm text-fid-text-muted" aria-live="polite">
+              {{ m.inStore.pressing.reading }}
+            </p>
+            <p v-else-if="familyMissing" class="text-fid-sm text-fid-text-muted">
+              {{ m.inStore.pressing.noAnswer }}
+            </p>
+
+            <!-- The verdict: M7's reading, placed among every pressing of the album. -->
+            <div
+              v-else-if="family"
+              class="flex flex-col gap-2 border-t border-fid-border pt-2"
+              data-testid="pressing-family"
+            >
+              <ul v-if="family.warnings.length" class="flex flex-col gap-1">
+                <li
+                  v-for="warning in family.warnings"
+                  :key="warning.kind + (warning.facts.special ?? '')"
+                  class="text-fid-sm"
+                  :class="
+                    warning.severity === 'high' ? 'text-fid-sig-scarcity' : 'text-fid-sig-gap'
+                  "
+                >
+                  {{ pressingText(warning) }}
+                </li>
+              </ul>
+
+              <p class="text-fid-sm text-fid-text">
+                <template v-if="family.total <= 1 || family.firstYear === null">
+                  {{ m.inStore.pressing.onlyItself }}
+                </template>
+                <template v-else-if="family.amongFirst">
+                  {{ m.inStore.pressing.among(count(family.total), family.firstYear) }}
+                </template>
+                <template v-else>
+                  {{ m.inStore.pressing.later(count(family.total), family.firstYear) }}
+                </template>
+              </p>
+
+              <ul
+                v-if="!family.amongFirst && family.first.length"
+                class="flex flex-col gap-1"
+                :aria-label="m.inStore.pressing.firstOnes"
+              >
+                <li
+                  v-for="sibling in family.first"
+                  :key="sibling.releaseId"
+                  class="flex flex-wrap items-baseline gap-x-2 text-fid-sm text-fid-text-muted"
+                >
+                  <span v-if="sibling.country" class="text-fid-text">{{
+                    sibling.country
+                  }}</span>
+                  <span v-if="sibling.label">
+                    {{ sibling.catno ? `${sibling.label} ${sibling.catno}` : sibling.label }}
+                  </span>
+                  <span v-if="sibling.format" class="text-fid-xs">{{ sibling.format }}</span>
+                  <span
+                    v-if="ownedIds.has(sibling.releaseId)"
+                    class="text-fid-xs text-fid-sig-artist"
+                  >
+                    {{ m.inStore.pressing.you }}
+                  </span>
+                </li>
+              </ul>
+
+              <ul v-if="family.profile.stamps.length" class="flex flex-col gap-1">
+                <li
+                  v-for="stamp in family.profile.stamps"
+                  :key="stamp.key"
+                  class="text-fid-sm text-fid-text-muted"
+                >
+                  <span class="text-fid-text">{{ stampText(stamp).label }}</span> –
+                  {{ stampText(stamp).note }}
+                </li>
+              </ul>
+
+              <!-- Printed verbatim: this is what you compare against the groove. -->
+              <ul v-if="family.profile.runouts.length" class="flex flex-col gap-1">
+                <li
+                  v-for="runout in family.profile.runouts"
+                  :key="runout"
+                  class="fid-num text-fid-xs text-fid-text-muted"
+                >
+                  {{ runout }}
+                </li>
+              </ul>
+
+              <a
+                :href="`https://www.discogs.com/release/${family.releaseId}`"
+                target="_blank"
+                rel="noopener"
+                class="fid-action self-start text-fid-sm text-fid-text underline"
+              >
+                {{ m.inStore.pressing.onDiscogs }}
+              </a>
+            </div>
+          </template>
         </section>
 
         <input

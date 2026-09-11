@@ -557,12 +557,12 @@ numbers, in the currency of the account settings. Meant for display, not for ari
 | `GET /marketplace/stats/{release_id}` | **no** | 1/release | `num_for_sale`, `lowest_price` → signals 10 + 11 |
 | `GET /marketplace/listings/{listing_id}` | no (better currency with a token) | 1/listing | **Refresh a single offer** – see below |
 | `GET /marketplace/price_suggestions/{id}` | yes **+ seller settings** | 1/release | ❌ useless for a buyer's app |
-| `GET /masters/{id}/versions` | no | 1/100 | **The best source for "all pressings"**, undocumented facet filters `format`, `label`, `country`, `released` |
+| `GET /masters/{id}/versions` | no | 1/100 | **The best source for "all pressings"**, undocumented facet filters `format`, `label`, `country`, `released`. `sort=released&sort_order=asc` puts the first pressings on page one (measured 2026-09-11 on master 5542: 160 versions, 1994 first); rows carry `label`, `catno`, `format`, `major_formats` |
 | `GET /artists/{id}/releases` | no | 1/100 | No page limit; the basis for `ARTIST_GAP` |
 | `GET /artists/{id}` | no | 1/artist | `namevariations`, `aliases`, `members`, `groups` — the lexicon behind `ARTIST_KNOWN` stage 0; fetched once per expanded artist with the discography (verified 2026-09-11: CORS open like the rest, `aliases`/`members`/`groups` are `{id, name}` lists, `namevariations` plain strings, each list absent when empty) |
 | `GET /labels/{id}/releases` | no | 1/100 | No page limit; the basis for `CATALOG_RUN` |
 | `GET /releases/{id}` | no | **1/release, ~16 kB → ~3 h for 10,000** | ⛔ **never in the scan loop**; supplies `styles`, `extraartists`, `identifiers` (see below) |
-| `GET /database/search` | no (the docs say yes) | 1/100, max 100 pages | Dealer search, disambiguation via `barcode` |
+| `GET /database/search` | no (the docs say yes) | 1/100, max 100 pages | Dealer search, disambiguation via `barcode`. Release rows carry `label[]` (every company on the record, the label first), `catno`, `format[]`, `country`, `year` as a string (measured 2026-09-11) |
 
 ### `GET /marketplace/listings/{listing_id}` – the way around the six-hour rule
 

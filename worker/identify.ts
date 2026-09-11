@@ -32,6 +32,9 @@ const searchSchema = z.object({
         country: z.string().optional(),
         thumb: z.string().optional(),
         format: z.array(z.string()).optional(),
+        /** Every company on the record, the label first (measured 2026-09-11). */
+        label: z.array(z.string()).optional(),
+        catno: z.string().optional(),
       }),
     )
     .default([]),
@@ -135,6 +138,8 @@ async function withOwnership(
     country?: string
     thumb?: string
     format?: string[]
+    label?: string[]
+    catno?: string
   }[],
 ): Promise<Identified> {
   const candidates = results.map((row) => ({
@@ -144,6 +149,8 @@ async function withOwnership(
     country: row.country ?? '',
     thumbUrl: row.thumb ?? '',
     format: (row.format ?? []).join(' · '),
+    label: row.label?.[0] ?? '',
+    catno: row.catno ?? '',
   }))
 
   const db = await openFidelityDb()

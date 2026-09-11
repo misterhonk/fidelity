@@ -36,6 +36,7 @@ import type {
   Feedback,
   GradingRecord,
   Identified,
+  PressingFamily,
   Identity,
   LandedContext,
   MarkedOverview,
@@ -701,6 +702,18 @@ export interface WorkerContract {
    * **one** hit where a barcode returns eight.
    */
   'identify.runout': { params: { runout: string }; progress: never; result: Identified }
+  /**
+   * Which pressing this is, among all of them (M19 #7).
+   *
+   * Two requests, for one record somebody is holding: the release and the
+   * album's versions. Null when Discogs will not answer — the candidate list
+   * is still there, and nothing in it depended on this.
+   */
+  'pressing.family': {
+    params: { releaseId: number }
+    progress: never
+    result: PressingFamily | null
+  }
 
   'places.overview': { params: undefined; progress: never; result: PlaceNode[] }
   'places.create': {

@@ -935,9 +935,48 @@ export interface Identified {
     country: string
     thumbUrl: string
     format: string
+    /** The first label and its catalogue number — what is printed on the record. */
+    label: string
+    catno: string
   }[]
   owned: CollectionItem[]
   wanted: WantlistItem[]
+}
+
+/**
+ * The pressing in your hand, placed among all the others (docs/06 M19 #7).
+ *
+ * M7 reads a pressing off `/releases/{id}` for the top finds of a dig, and
+ * the year it compares against comes from the horizon — so it reaches as far
+ * as the collection does. A record identified in a shop is usually beyond
+ * that. This is the same reading with the album's own versions list beside
+ * it: one `/masters/{id}/versions` sorted by release date says how many
+ * pressings exist, which came first, and where this one stands.
+ *
+ * Facts only, no marketplace data: nothing here expires.
+ */
+export interface PressingFamily {
+  releaseId: number
+  masterId: number | null
+  profile: PressingProfile
+  warnings: PressingWarning[]
+  /** How many pressings the album has, per Discogs. 0 without a master. */
+  total: number
+  /** The earliest year any pressing carries, or null when none has one. */
+  firstYear: number | null
+  /** Pressings from that first year, this one's medium first. At most six. */
+  first: PressingSibling[]
+  /** Whether this pressing is among them. */
+  amongFirst: boolean
+}
+
+export interface PressingSibling {
+  releaseId: number
+  year: number | null
+  country: string
+  label: string
+  catno: string
+  format: string
 }
 
 /**

@@ -55,6 +55,8 @@ const client = {
       country: ['UK', 'Italy', 'France', 'Portugal', 'Europe'][i % 5],
       thumb: '',
       format: ['Vinyl', '7"'],
+      label: ['RCA', 'BMG Records (UK) Ltd.'],
+      catno: 'PB 41447',
     })),
   }),
 } as never
@@ -119,6 +121,8 @@ describe('what a barcode answers', () => {
     const found = await identify(client, '5012394144777')
     expect(found.candidates).toHaveLength(8)
     expect(found.candidates.map((c) => c.releaseId)).toEqual(ACHT)
+    // What is printed on the record, so the pressings can be told apart.
+    expect(found.candidates[0]).toMatchObject({ label: 'RCA', catno: 'PB 41447' })
   })
 
   /**
@@ -236,6 +240,12 @@ describe('the screen that shows it', () => {
    * Somebody holding a record does not want to choose first which kind of
    * number they are about to type.
    */
+  /** And the pressings are a list to pick from, each read against the family. */
+  it('lets you pick the pressing in your hand', () => {
+    expect(withoutComments(PAGE)).toMatch(/v-for="candidate in identified\.candidates"/)
+    expect(withoutComments(PAGE)).toMatch(/pressing\.family/)
+  })
+
   it('takes a barcode or a run-out in one field', () => {
     expect(withoutComments(PAGE)).toMatch(/identify\.runout/)
     expect(withoutComments(PAGE)).toMatch(/identify\.barcode/)

@@ -384,6 +384,20 @@ const de: Messages = {
     identify: 'Nachschlagen',
     identifyLabel: 'Barcode oder Auslaufrillen-Nummer',
     identifyPlaceholder: 'Barcode – oder was im Auslauf steht',
+    pressing: {
+      pick: 'Welche hältst du in der Hand? Tipp sie an, dann wird sie gegen alle Pressungen des Albums gelesen.',
+      check: 'Welche Pressung ist das?',
+      reading: 'Pressung wird gelesen …',
+      noAnswer:
+        'Discogs hat nicht geantwortet, die Pressung bleibt ungelesen. Die Liste bleibt.',
+      onlyItself: 'Discogs kennt keine andere Pressung davon – nichts zum Vergleichen.',
+      among: (total, year) =>
+        `Eine von ${total} Pressungen, und eine der ersten: das Album ist von ${year}.`,
+      later: (total, year) => `Eine von ${total} Pressungen. Die ersten sind von ${year}:`,
+      firstOnes: 'Die ersten Pressungen',
+      you: 'deine',
+      onDiscogs: 'Bei Discogs',
+    },
     finds: (n: number) => `${n} Treffer`,
     wrong: 'Danebengegriffen',
     notInLibrary: 'Weder in deiner Sammlung noch auf der Wantlist',

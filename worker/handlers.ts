@@ -538,6 +538,11 @@ export const handlers: HandlerMap = {
     return identifyByRunout(discogs(), runout, signal)
   },
 
+  'pressing.family': async ({ releaseId }, { signal }) => {
+    const { pressingFamily } = await import('./pressing-family')
+    return pressingFamily(discogs(), releaseId, signal)
+  },
+
   'places.overview': async () => {
     const { placesOverview } = await import('./places')
     return placesOverview()
