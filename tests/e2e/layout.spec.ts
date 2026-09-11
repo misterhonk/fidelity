@@ -94,13 +94,25 @@ test.describe('room to breathe', () => {
     }
   })
 
+  /**
+   * Und zwar auf dem Dashboard — was dieser Test bis zum 2026-09-11 nicht tat.
+   *
+   * Er ging abgemeldet auf `/`, und abgemeldet leitet der Guard `/` auf
+   * `/welcome` um. Gemessen wurde also immer die Einrichtungsseite, während
+   * der Name und der Kommentar vom Dashboard sprachen. Aufgefallen ist das
+   * erst, als `@container` auf `/welcome` eine Ebene tiefer wanderte und ein
+   * Test rot wurde, der mit dieser Änderung nichts zu tun hatte.
+   *
+   * Ein Test, der grün ist, weil er woanders steht, ist schlimmer als keiner:
+   * er behauptet Abdeckung für einen Bildschirm, den er nie gesehen hat.
+   */
   test('the dashboard tiles spread out instead of stacking', async ({ page }) => {
+    await signIn(page)
     await page.goto('/')
     await expect(page.locator('main')).toBeVisible()
+    // Erst wenn die Adresse stimmt, misst das Folgende das Richtige.
+    expect(new URL(page.url()).pathname).toBe('/')
 
-    // Signed out the dashboard has no tiles; what it does have is a main
-    // element whose container query context has to exist for any of this to
-    // work at all.
     const hasContainer = await page
       .locator('main')
       .evaluate((el) => getComputedStyle(el).containerType !== 'normal')

@@ -16,8 +16,8 @@ const records = computed(() =>
 </script>
 
 <template>
-  <main class="@container fid-page py-16">
-    <div class="mx-auto flex w-full max-w-3xl flex-col gap-8">
+  <main class="fid-page py-16">
+    <div class="@container mx-auto flex w-full max-w-3xl flex-col gap-8">
       <div class="flex flex-col gap-3">
         <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ b.title }}</h1>
         <BasketTabs />

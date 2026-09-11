@@ -133,8 +133,8 @@ const SECTIONS = computed(() => [
 </script>
 
 <template>
-  <main class="@container fid-page py-10">
-    <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
+  <main class="fid-page py-10">
+    <div class="@container mx-auto flex w-full max-w-3xl flex-col gap-6">
       <header class="flex flex-col gap-1">
         <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ st.title }}</h1>
         <p class="text-fid-base text-fid-text-muted">{{ st.lead }}</p>

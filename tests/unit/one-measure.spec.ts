@@ -114,7 +114,13 @@ describe('every screen shares one measure', () => {
    * Absatz und ist genau richtig dort.
    */
   it('gives narrow content one measure, centred', () => {
-    const SCHMAL = 'mx-auto flex w-full max-w-3xl flex-col'
+    /*
+     * An den Klassen selbst geprüft, nicht an ihrer Reihenfolge.
+     *
+     * Der erste Anlauf verglich einen Präfix — und brach, sobald `@container`
+     * davorrückte, obwohl an der Regel nichts falsch war. Ein Test, der die
+     * Schreibweise festnagelt statt der Aussage, meldet Umbauten als Fehler.
+     */
 
     const abweichend: string[] = []
     for (const { datei, quelle } of [
@@ -134,11 +140,52 @@ describe('every screen shares one measure', () => {
       const ersterDiv = quelle.slice(nachTag).match(/<div class="([^"]*)"/)
       if (!ersterDiv) continue
       const klassen = ersterDiv[1]!
-      if (!/\bmax-w-/.test(klassen)) continue
+      const teile = klassen.split(/\s+/)
+      const masse = teile.filter((t) => t.startsWith('max-w-'))
+      if (masse.length === 0) continue
 
-      if (!klassen.startsWith(SCHMAL)) abweichend.push(`${datei}: ${klassen.slice(0, 60)}`)
+      const stimmt = masse.length === 1 && masse[0] === 'max-w-3xl' && teile.includes('mx-auto')
+      if (!stimmt) abweichend.push(`${datei}: ${klassen.slice(0, 60)}`)
     }
 
     expect(abweichend).toEqual([])
+  })
+
+  /**
+   * **Und `@container` sitzt auf dem Kasten, dessen Breite der Inhalt hat.**
+   *
+   * Container-Queries messen genau das Element mit `@container`. Nach dem
+   * Umbau war das auf den schmalen Seiten der 110rem-Container, während der
+   * Inhalt in einer 48rem-Spalte steht — eine Variante darin hätte gegen die
+   * falsche Kiste gemessen.
+   *
+   * **Kaputt war dadurch nichts**, und das ist nachgerechnet, nicht gehofft:
+   * eine höhere Kappe ändert nur Schwellen *zwischen* alter und neuer Kappe,
+   * und in den schmalen Spalten liegt keine über 768 px. Es war eine Falle für
+   * die nächste Variante, nicht ein Fehler in der jetzigen — und die Art
+   * Falle, die man beim Zuschlagen nicht mehr auf diesen Umbau zurückführt.
+   */
+  it('puts @container on the box the content actually fills', () => {
+    const falsch: string[] = []
+    for (const { datei, quelle } of [
+      ...SEITEN,
+      {
+        datei: 'components/SettingsPage.vue',
+        quelle: readFileSync('app/components/SettingsPage.vue', 'utf8'),
+      },
+    ]) {
+      const auf = quelle.indexOf('<main')
+      if (auf === -1) continue
+      const tag = quelle.slice(auf, quelle.indexOf('>', auf))
+      if (!tag.includes('@container')) continue
+
+      // Ein `@container` am `<main>` ist nur richtig, wenn der Inhalt es auch
+      // ausfüllt — also wenn es darunter keine schmale Spalte gibt.
+      const nachTag = quelle.indexOf('>', auf) + 1
+      const ersterDiv = quelle.slice(nachTag).match(/<div class="([^"]*)"/)
+      if (ersterDiv && /\bmax-w-3xl\b/.test(ersterDiv[1]!)) falsch.push(datei)
+    }
+
+    expect(falsch).toEqual([])
   })
 })
