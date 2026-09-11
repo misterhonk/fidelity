@@ -9,6 +9,20 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.24.0](https://github.com/misterhonk/fidelity/compare/v0.23.0...v0.24.0) (2026-09-11)
+
+
+### Added
+
+* **ui:** der Stapel — dieselben Funde, einer nach dem anderen ([c0ec07e](https://github.com/misterhonk/fidelity/commit/c0ec07e1843e20647e19be13459e95218e1b817b))
+* **ui:** die Hörprobe im Stapel — nach ADR-012 ([912ad40](https://github.com/misterhonk/fidelity/commit/912ad4049034ff42b96a44b5b8b8281e3717540f))
+
+
+### Fixed
+
+* **ui:** einen Weg in den Stapel, den man nicht kennen muss ([55109db](https://github.com/misterhonk/fidelity/commit/55109db258e9df919378ab980a31c68515e46d1b))
+* **ui:** Symbole auf die Knöpfe des Stapels — und zwei Fehler, die dabei auffielen ([e45eb48](https://github.com/misterhonk/fidelity/commit/e45eb48fcf0e9ac2a7223f2e3bf192372f4327b3))
+
 ## [0.23.0](https://github.com/misterhonk/fidelity/compare/v0.22.0...v0.23.0) (2026-09-10)
 
 
