@@ -170,7 +170,12 @@ const named = (record: { artist: string; title: string }) =>
       <p class="max-w-prose text-fid-base text-fid-text">
         <template v-if="review.newArtists > 0">
           {{ c.review.newArtists(c.review.artistCount(review.newArtists)) }}
-          <span class="text-fid-text-muted">{{ review.newArtistNames.join(', ') }}</span>
+          <span class="text-fid-text-muted">
+            {{ review.newArtistNames.join(', ') }}
+            <template v-if="review.newArtists > review.newArtistNames.length">
+              {{ c.review.andMore(count(review.newArtists - review.newArtistNames.length)) }}
+            </template>
+          </span>
         </template>
         <template v-else>{{ c.review.noNewArtists }}</template>
       </p>
