@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { HorizonChunk } from '#shared/types'
 import {
   DAILY_REQUEST_BUDGET,
+  lacksKin,
   MIN_INTERVAL_MS,
   planRevalidation,
   REQUESTS_PER_ENTITY,
@@ -31,6 +32,7 @@ const chunk = (id: number, fetchedAt: number): HorizonChunk =>
     releaseIds: Int32Array.from([1]),
     roles: new Uint8Array(1),
     years: new Int16Array(1),
+    kin: [],
   }) as HorizonChunk
 
 const now = 100 * DAY
@@ -97,6 +99,24 @@ describe('spreading the revalidation over days', () => {
       ttlMs: TTL,
     })
     expect(plan.reason).toBe('nothing-stale')
+  })
+
+  it('treats an artist chunk from before the lexicon as due, however fresh', () => {
+    // The discography is there and the names are not, and nothing about the
+    // chunk's age says so. It joins the queue like anything stale — a few a
+    // day, oldest first — until it has both.
+    const { kin: _none, ...before } = chunk(1, now - DAY)
+    const plan = planRevalidation({
+      candidates: [candidate(1), candidate(2)],
+      chunks: [before as HorizonChunk, chunk(2, now - DAY)],
+      now,
+      lastRunAt: null,
+      ttlMs: TTL,
+    })
+
+    expect(lacksKin(before as HorizonChunk)).toBe(true)
+    expect(plan.due.map((c) => c.id)).toEqual([1])
+    expect(plan.stale).toBe(1)
   })
 
   it('leaves a horizon that was never built to the deliberate run', () => {

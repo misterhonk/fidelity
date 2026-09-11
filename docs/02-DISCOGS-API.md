@@ -559,6 +559,7 @@ numbers, in the currency of the account settings. Meant for display, not for ari
 | `GET /marketplace/price_suggestions/{id}` | yes **+ seller settings** | 1/release | ❌ useless for a buyer's app |
 | `GET /masters/{id}/versions` | no | 1/100 | **The best source for "all pressings"**, undocumented facet filters `format`, `label`, `country`, `released` |
 | `GET /artists/{id}/releases` | no | 1/100 | No page limit; the basis for `ARTIST_GAP` |
+| `GET /artists/{id}` | no | 1/artist | `namevariations`, `aliases`, `members`, `groups` — the lexicon behind `ARTIST_KNOWN` stage 0; fetched once per expanded artist with the discography (verified 2026-09-11: CORS open like the rest, `aliases`/`members`/`groups` are `{id, name}` lists, `namevariations` plain strings, each list absent when empty) |
 | `GET /labels/{id}/releases` | no | 1/100 | No page limit; the basis for `CATALOG_RUN` |
 | `GET /releases/{id}` | no | **1/release, ~16 kB → ~3 h for 10,000** | ⛔ **never in the scan loop**; supplies `styles`, `extraartists`, `identifiers` (see below) |
 | `GET /database/search` | no (the docs say yes) | 1/100, max 100 pages | Dealer search, disambiguation via `barcode` |

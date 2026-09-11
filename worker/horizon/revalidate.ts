@@ -31,6 +31,19 @@ export const MIN_INTERVAL_MS = 20 * 60 * 60 * 1000
  */
 export const REQUESTS_PER_ENTITY = 2
 
+/**
+ * A chunk that predates the lexicon.
+ *
+ * Artist chunks built before `kin` existed hold the discography and none of
+ * the names, and nothing about their age says so. They count as stale — a
+ * few a day, oldest first, like everything else here — until the daily slice
+ * has brought them up to date. An artist with nobody else stores `[]`, which
+ * is complete, not missing.
+ */
+export function lacksKin(chunk: HorizonChunk): boolean {
+  return chunk.kind === 'artist' && chunk.kin === undefined
+}
+
 export interface RevalidationPlan {
   /** Entities to re-expand now, oldest first. */
   due: Candidate[]
@@ -72,7 +85,8 @@ export function planRevalidation({
     .map((candidate) => ({ candidate, chunk: byKey.get(candidateKey(candidate)) }))
     .filter(
       (entry): entry is { candidate: Candidate; chunk: HorizonChunk } =>
-        entry.chunk !== undefined && now - entry.chunk.fetchedAt >= ttlMs,
+        entry.chunk !== undefined &&
+        (now - entry.chunk.fetchedAt >= ttlMs || lacksKin(entry.chunk)),
     )
     .sort((a, b) => a.chunk.fetchedAt - b.chunk.fetchedAt)
 

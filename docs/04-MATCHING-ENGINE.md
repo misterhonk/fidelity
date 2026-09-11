@@ -127,10 +127,22 @@ The core of the MVP. The artist is in the collection, this release is not.
 
 | Stage | Condition | Confidence |
 |---|---|---|
+| 0 | **The lexicon.** The map also holds every other name the horizon knows a collected artist by — `namevariations` and `aliases` from `/artists/{id}` as the same person, `members` and `groups` as a related act. "Miss Dinky" is Dinky. | alias: **as the stage that finds it** · member/group: **≤ 0.85** |
 | 1 | `artistMap.get(norm)` – a map lookup, O(1) | **1.00** |
 | 2 | Token containment: `"Kraftwerk / Neu!"` contains `"kraftwerk"` | **0.85** |
 | 3 | Trigram similarity ≥ 0.85 – **only for the leftovers**, in JS | **0.70** |
 | — | `artist_norm IN ('various','various artists','v/a','unknown')` | **discard** |
+
+Stage 0 is not a stage of its own but a wider map: the other names go into the same
+lookup the three stages consult, so an alias is found exactly where the name itself would
+be, a typo in an alias still reaches the trigram stage, and nothing in the loop got
+slower. The name on the shelf wins over an alias that spells it, an alias is never
+"Various", and an artist the collection does not know has no other names — the lexicon
+exists only for artists the horizon expanded, which is the same line the horizon draws
+(two records or more). The evidence carries `via` and `relation`, so the sentence says
+"Miss Dinky is Dinky" or "Holger Czukay is part of Can" instead of claiming the listing
+said the name on the shelf. Since 2026-09-11 (M19 #6); one request per artist, paid with
+the discography.
 
 Multiplied additionally by the weight from the taste profile: an artist you own 12 records
 by counts more than one you own a single record by.

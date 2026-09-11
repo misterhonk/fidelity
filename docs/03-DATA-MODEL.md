@@ -155,6 +155,11 @@ interface HorizonChunk {
   // Catalogue numbers only for labels — that is where CATALOG_RUN is needed
   catnoNums?: Int32Array
   catnoPrefix?: string        // constant per chunk, e.g. 'BRAIN'
+  // Artists only — every other name they go by, from /artists/{id}:
+  // name variations and aliases as 'alias', then 'member' and 'group'.
+  // undefined = built before the field existed (the revalidation treats
+  // that as due); [] = nobody else. At most 100 names.
+  kin?: { name: string; relation: 'alias' | 'member' | 'group' }[]
 }
 
 const ROLE_TABLE = ['main','Producer','Engineer','Mixed By','Mastered By','Remix','Co-producer'] as const

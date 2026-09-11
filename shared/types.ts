@@ -723,6 +723,19 @@ export const ROLE_TABLE = [
 export type HorizonKind = 'artist' | 'label' | 'master'
 
 /**
+ * Another name an artist answers to.
+ *
+ * `alias` covers Discogs' name variations and aliases alike — the same
+ * person, a different spelling or a different project. `member` is somebody
+ * in this group; `group` is a group this person is in. Names, not ids: the
+ * inventory only ever gives a name.
+ */
+export interface Kin {
+  name: string
+  relation: 'alias' | 'member' | 'group'
+}
+
+/**
  * One expanded entity from the collection, as parallel TypedArrays rather than
  * an object list: 200.000 release ids cost 800 KB this way and ~9 MB the other.
  */
@@ -756,6 +769,19 @@ export interface HorizonChunk {
   catnoNums?: Int32Array
   /** Constant per chunk, e.g. 'BRAIN'. */
   catnoPrefix?: string
+
+  /**
+   * Artists only — every other name the artist goes by, from `/artists/{id}`.
+   *
+   * The inventory hands over one string per listing and no id, and the
+   * string is often not the name on the shelf: "Miss Dinky*" is Dinky, and
+   * Holger Czukay's solo record is a Can record to somebody with five of
+   * them. One request per artist buys the lexicon (docs/04 §S3, stage 0).
+   *
+   * `undefined` means the chunk predates the field; the staggered
+   * revalidation treats that as due. An artist with nobody else stores `[]`.
+   */
+  kin?: Kin[]
 
   /**
    * When this chunk reached the hub — if it ever did.

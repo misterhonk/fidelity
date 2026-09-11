@@ -10,7 +10,7 @@ import { createHubClient } from '../hub/client'
 import { preferHub } from '../hub/fallback'
 import { expandEntity } from './expand'
 import { creditCandidates } from './credit-select'
-import { planRevalidation, type RevalidationPlan } from './revalidate'
+import { lacksKin, planRevalidation, type RevalidationPlan } from './revalidate'
 import { candidateKey, selectCandidates, type Candidate } from './select'
 import { distinctReleases } from '~~/db/collection'
 
@@ -146,7 +146,9 @@ export async function buildHorizon({
     signal?.throwIfAborted()
 
     const known = existing.get(candidateKey(candidate))
-    if (known && now() - known.fetchedAt < ttlMs) {
+    // Fresh, and whole: an artist chunk without its names is not done, however
+    // young it is (revalidate.ts).
+    if (known && now() - known.fetchedAt < ttlMs && !lacksKin(known)) {
       /*
        * Skipped — but no longer passed over in silence.
        *
@@ -198,7 +200,11 @@ export async function buildHorizon({
               const cached = await hub.horizon(candidate.kind, candidate.id)
               // A hub hit costs no Discogs requests at all, which is the whole
               // point — so it reports zero rather than pretending it paid.
-              return cached
+              //
+              // A chunk from before the lexicon is a miss, not a hit: taking
+              // it would leave this artist without names, mark it due again
+              // tomorrow, and fetch the same old chunk again — forever.
+              return cached && !lacksKin(cached)
                 ? { chunk: cached, catalogueSize: cached.catalogueSize, requests: 0 }
                 : null
             }

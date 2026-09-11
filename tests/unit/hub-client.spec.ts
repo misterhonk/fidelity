@@ -54,7 +54,23 @@ describe('the wire format', () => {
   it('leaves them out when they are not', () => {
     const wire = encodeChunk(chunk)
     expect('catnoNums' in wire).toBe(false)
+    expect('kin' in wire).toBe(false)
     expect(decodeChunk(wire).catnoNums).toBeUndefined()
+    expect(decodeChunk(wire).kin).toBeUndefined()
+  })
+
+  it('carries the lexicon, and tells nobody-else from not-yet', () => {
+    // `[]` is an artist with no other names; `undefined` is a chunk from
+    // before the field existed. The revalidation reads the difference.
+    const named: HorizonChunk = {
+      ...chunk,
+      kin: [
+        { name: 'Konrad Plank', relation: 'alias' },
+        { name: 'Cluster & Eno', relation: 'group' },
+      ],
+    }
+    expect(decodeChunk(encodeChunk(named)).kin).toEqual(named.kin)
+    expect(decodeChunk(encodeChunk({ ...chunk, kin: [] })).kin).toEqual([])
   })
 
   it('is smaller than the same three arrays as JSON number lists', () => {

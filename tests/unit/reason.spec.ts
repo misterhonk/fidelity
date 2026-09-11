@@ -80,6 +80,17 @@ describe.each(LANGUAGES)('every signal can speak for itself, in %s', (language) 
 describe('the words themselves, in English', () => {
   beforeEach(() => useLanguage().apply('en'))
 
+  it('says under which name an artist was found', () => {
+    // Or the sentence claims the listing said Dinky when it said Miss Dinky.
+    const via = { artist: 'Dinky', owned: 4, via: 'Miss Dinky', relation: 'alias' }
+    expect(reasonFor([signal('ARTIST_KNOWN', via)])).toBe(
+      'Miss Dinky is Dinky — you have 4 records by Dinky, not this one.',
+    )
+    expect(reasonFor([signal('WANTLIST_EXACT'), signal('ARTIST_KNOWN', via)])).toContain(
+      'artist known (Dinky, as Miss Dinky)',
+    )
+  })
+
   it('names both numbers on a price, never the ratio', () => {
     // "0.58×" is arithmetic. "€24 against a market low of €41" is an argument
     // (docs/04 §S10).
@@ -144,6 +155,29 @@ describe('the words themselves, in English', () => {
  */
 describe('the words themselves, in German', () => {
   beforeEach(() => useLanguage().apply('de'))
+
+  it('sagt, unter welchem Namen ein Künstler gefunden wurde', () => {
+    expect(
+      reasonFor([
+        signal('ARTIST_KNOWN', {
+          artist: 'Can',
+          owned: 5,
+          via: 'Holger Czukay',
+          relation: 'member',
+        }),
+      ]),
+    ).toBe('Holger Czukay gehört zu Can – du hast 5 Platten von Can, diese nicht.')
+    expect(
+      reasonFor([
+        signal('ARTIST_KNOWN', {
+          artist: 'Dinky',
+          owned: 1,
+          via: 'Miss Dinky',
+          relation: 'alias',
+        }),
+      ]),
+    ).toBe('Miss Dinky ist Dinky – Dinky steht schon in deiner Sammlung, diese nicht.')
+  })
 
   it('names both numbers on a price, never the ratio', () => {
     const sentence = reasonFor([signal('PRICE_SIGNAL')]).replace(/\s/g, ' ')

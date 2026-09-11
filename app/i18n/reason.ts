@@ -47,6 +47,24 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
       const artist = String(evidence.artist ?? '')
       const owned = Number(evidence.owned ?? 0)
       if (!artist) return null
+
+      // Found under another name (docs/04 §S3, stage 0): say so, or the
+      // sentence claims the listing said Dinky when it said Miss Dinky.
+      const via = String(evidence.via ?? '')
+      const relation = String(evidence.relation ?? '')
+      if (via && relation) {
+        const shelf =
+          owned > 1
+            ? `you have ${count(owned)} records by ${artist}`
+            : `${artist} is already on your shelf`
+        // A member of a group you collect, or the group of somebody you do:
+        // one shape, and only who is part of whom changes.
+        const [person, group] = relation === 'group' ? [artist, via] : [via, artist]
+        return relation === 'alias'
+          ? `${via} is ${artist} — ${shelf}, not this one.`
+          : `${person} is part of ${group} — ${shelf}, not this one.`
+      }
+
       return owned > 1
         ? `You have ${count(owned)} records by ${artist} — not this one.`
         : `${artist} is already on your shelf — this record is not.`
@@ -133,8 +151,11 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
 
   support: {
     WANTLIST_EXACT: () => 'on your wantlist',
-    ARTIST_KNOWN: (evidence) =>
-      evidence.artist ? `artist known (${String(evidence.artist)})` : null,
+    ARTIST_KNOWN: (evidence) => {
+      if (!evidence.artist) return null
+      const via = evidence.via ? `, as ${String(evidence.via)}` : ''
+      return `artist known (${String(evidence.artist)}${via})`
+    },
     LABEL_AFFINITY: (evidence) => (evidence.label ? `label ${String(evidence.label)}` : null),
     WANTLIST_PRESSING: (evidence) =>
       evidence.album ? `another pressing of ${String(evidence.album)}` : null,
@@ -170,6 +191,20 @@ const de: typeof en = {
       const artist = String(evidence.artist ?? '')
       const owned = Number(evidence.owned ?? 0)
       if (!artist) return null
+
+      const via = String(evidence.via ?? '')
+      const relation = String(evidence.relation ?? '')
+      if (via && relation) {
+        const shelf =
+          owned > 1
+            ? `du hast ${count(owned)} Platten von ${artist}`
+            : `${artist} steht schon in deiner Sammlung`
+        const [person, group] = relation === 'group' ? [artist, via] : [via, artist]
+        return relation === 'alias'
+          ? `${via} ist ${artist} – ${shelf}, diese nicht.`
+          : `${person} gehört zu ${group} – ${shelf}, diese nicht.`
+      }
+
       return owned > 1
         ? `Du hast ${count(owned)} Platten von ${artist} – diese nicht.`
         : `${artist} steht schon in deiner Sammlung – diese Platte nicht.`
@@ -254,8 +289,11 @@ const de: typeof en = {
 
   support: {
     WANTLIST_EXACT: () => 'steht auf deiner Wantlist',
-    ARTIST_KNOWN: (evidence) =>
-      evidence.artist ? `Künstler bekannt (${String(evidence.artist)})` : null,
+    ARTIST_KNOWN: (evidence) => {
+      if (!evidence.artist) return null
+      const via = evidence.via ? `, als ${String(evidence.via)}` : ''
+      return `Künstler bekannt (${String(evidence.artist)}${via})`
+    },
     LABEL_AFFINITY: (evidence) => (evidence.label ? `Label ${String(evidence.label)}` : null),
     WANTLIST_PRESSING: (evidence) =>
       evidence.album ? `anderes Pressing von ${String(evidence.album)}` : null,

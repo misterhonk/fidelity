@@ -58,6 +58,25 @@ export const masterVersionsSchema = z.object({
   ),
 })
 
+/**
+ * GET /artists/{id} — who else this artist is.
+ *
+ * `namevariations` are spellings of the same name, `aliases` are the other
+ * names the same person records under, `members` and `groups` are the band
+ * and its people. One request per artist, and the one string the inventory
+ * gives us has a lexicon to be read against (docs/04 §S3, stage 0).
+ */
+export const artistProfileSchema = z.object({
+  id: z.number().int(),
+  // Each list is simply absent when empty (Conny Plank has no `members`,
+  // measured 2026-09-11); nullish rather than optional in case that changes.
+  namevariations: z.array(z.string()).nullish(),
+  aliases: z.array(z.object({ id: z.number().int(), name: z.string() })).nullish(),
+  members: z.array(z.object({ id: z.number().int(), name: z.string() })).nullish(),
+  groups: z.array(z.object({ id: z.number().int(), name: z.string() })).nullish(),
+})
+
 export type ArtistReleasesPage = z.infer<typeof artistReleasesSchema>
+export type ArtistProfile = z.infer<typeof artistProfileSchema>
 export type LabelReleasesPage = z.infer<typeof labelReleasesSchema>
 export type MasterVersionsPage = z.infer<typeof masterVersionsSchema>

@@ -38,6 +38,9 @@ const wireChunkSchema = z.object({
   roles: z.string(),
   years: z.string(),
   catnoNums: z.string().optional(),
+  kin: z
+    .array(z.object({ name: z.string(), relation: z.enum(['alias', 'member', 'group']) }))
+    .optional(),
 })
 
 const tiersSchema = z.object({

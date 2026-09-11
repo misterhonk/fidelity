@@ -1,4 +1,4 @@
-import type { HorizonChunk, HorizonKind } from './types'
+import type { HorizonChunk, HorizonKind, Kin } from './types'
 
 /**
  * How a horizon chunk crosses a network.
@@ -35,6 +35,8 @@ export interface WireChunk {
   roles: string
   years: string
   catnoNums?: string
+  /** Plain JSON: a hundred short strings at most, not worth an encoding. */
+  kin?: Kin[]
 }
 
 function toBase64(view: ArrayBufferView): string {
@@ -72,6 +74,7 @@ export function encodeChunk(chunk: HorizonChunk): WireChunk {
     roles: toBase64(chunk.roles),
     years: toBase64(chunk.years),
     ...(chunk.catnoNums === undefined ? {} : { catnoNums: toBase64(chunk.catnoNums) }),
+    ...(chunk.kin === undefined ? {} : { kin: chunk.kin }),
   }
 }
 
@@ -107,6 +110,8 @@ export function decodeChunk(wire: WireChunk): HorizonChunk {
     const nums = fromBase64(wire.catnoNums)
     chunk.catnoNums = new Int32Array(nums.buffer, nums.byteOffset, nums.byteLength >> 2)
   }
+  if (wire.kin !== undefined)
+    chunk.kin = wire.kin.map(({ name, relation }) => ({ name, relation }))
 
   return chunk
 }

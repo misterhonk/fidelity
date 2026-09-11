@@ -2,6 +2,7 @@ import { buildLookup, labelLift, type HorizonLookup } from '../horizon/lookup'
 import type {
   CollectionItem,
   HorizonChunk,
+  Kin,
   Signal,
   TasteProfile,
   WantlistItem,
@@ -65,11 +66,31 @@ export interface MatchFilters {
   targetPrice: number | null
 }
 
+/** An artist the collection knows, under one of the names it knows them by. */
+export interface ArtistEntry {
+  /** The name on the shelf — what the sentence says, whatever the listing said. */
+  name: string
+  weight: number
+  n: number
+  /**
+   * Set when the key is not the artist's own name but one from the lexicon:
+   * "miss dinky" → Dinky, via the alias. The relation decides how sure the
+   * match may be and what the sentence says.
+   */
+  via?: Kin
+}
+
 export interface MatchIndex {
   wantlistReleaseIds: Set<number>
   collectionReleaseIds: Set<number>
-  /** Normalised artist name → how much of the collection is that artist. */
-  artistWeight: Map<string, { name: string; weight: number; n: number }>
+  /**
+   * Normalised artist name → how much of the collection is that artist.
+   *
+   * Every name the collection knows an artist by, not only the one on the
+   * shelf: the horizon's lexicon adds aliases, members and groups under the
+   * same entry (docs/04 §S3, stage 0), so every stage of the cascade sees them.
+   */
+  artistWeight: Map<string, ArtistEntry>
   labelWeight: Map<string, { name: string; weight: number; n: number }>
   /** Stage three of the cascade, prepared once. */
   artistTrigrams: TrigramIndex<string>
@@ -100,13 +121,28 @@ export function buildIndex(
   taste: TasteProfile | null,
   chunks: HorizonChunk[] = [],
 ): MatchIndex {
-  const artistWeight = new Map<string, { name: string; weight: number; n: number }>()
+  const artistWeight = new Map<string, ArtistEntry>()
   const labelWeight = new Map<string, { name: string; weight: number; n: number }>()
 
   for (const facet of Object.values(taste?.artists ?? {})) {
     const key = norm(facet.name)
     if (key.length > 0 && !isAnonymousArtist(key)) {
       artistWeight.set(key, { name: facet.name, weight: facet.weight, n: facet.n })
+    }
+  }
+
+  // The lexicon, after the names themselves: an alias that spells another
+  // collected artist's name stays that artist. "Miss Dinky" is Dinky only
+  // because the horizon expanded Dinky — an artist you own once has no chunk
+  // and therefore no other names, which is the same line the horizon draws.
+  for (const chunk of chunks) {
+    if (chunk.kind !== 'artist' || !chunk.kin) continue
+    const facet = taste?.artists[String(chunk.entityId)]
+    if (!facet) continue
+    for (const kin of chunk.kin) {
+      const key = norm(kin.name)
+      if (key.length === 0 || isAnonymousArtist(key) || artistWeight.has(key)) continue
+      artistWeight.set(key, { name: facet.name, weight: facet.weight, n: facet.n, via: kin })
     }
   }
   for (const facet of Object.values(taste?.labels ?? {})) {
@@ -167,36 +203,48 @@ export function passesFilters(
   return true
 }
 
+/**
+ * How sure a stage may be about an entry.
+ *
+ * An alias is the same person, so the stage's own confidence stands. A member
+ * or a group is a related act — Holger Czukay is not Can — and is never more
+ * certain than the containment stage, whichever stage found it.
+ */
+function found(entry: ArtistEntry, stage: number): ArtistEntry & { confidence: number } {
+  const related = entry.via !== undefined && entry.via.relation !== 'alias'
+  return { ...entry, confidence: related ? Math.min(stage, 0.85) : stage }
+}
+
 /** The cascade from docs/04 §S3, cheapest stage first. */
 function matchArtist(
   artist: string,
   index: MatchIndex,
-): { name: string; weight: number; n: number; confidence: number } | null {
+): (ArtistEntry & { confidence: number }) | null {
   const normalised = norm(artist)
   if (normalised.length === 0 || isAnonymousArtist(normalised)) return null
 
   const exact = index.artistWeight.get(normalised)
-  if (exact) return { ...exact, confidence: 1 }
+  if (exact) return found(exact, 1)
 
   // "Kraftwerk / Neu!" is two artists in one field. Splitting on the separator
   // Discogs actually uses finds both, including the multi-word ones that a
   // single-token lookup could never match.
   for (const part of splitArtists(artist)) {
     const hit = index.artistWeight.get(part)
-    if (hit) return { ...hit, confidence: 0.85 }
+    if (hit) return found(hit, 0.85)
   }
 
   // Single tokens catch the rest: "Neu! 2" against "neu".
   for (const token of tokens(normalised)) {
     const hit = index.artistWeight.get(token)
-    if (hit) return { ...hit, confidence: 0.85 }
+    if (hit) return found(hit, 0.85)
   }
 
   // Only what stages one and two missed reaches here.
   const fuzzy = index.artistTrigrams.best(normalised, 0.85)
   if (fuzzy) {
     const hit = index.artistWeight.get(fuzzy.value)
-    if (hit) return { ...hit, confidence: 0.7 }
+    if (hit) return found(hit, 0.7)
   }
 
   return null
@@ -238,7 +286,13 @@ export function evaluate(
       // allein" has to be 48, and that assumes confidence 1.0. How many you
       // own belongs in the evidence and the sentence, not in the score.
       confidence: artist.confidence,
-      evidence: { artist: artist.name, owned: artist.n },
+      evidence: {
+        artist: artist.name,
+        owned: artist.n,
+        // Under which other name it was found, so the sentence can say
+        // "Miss Dinky is Dinky" instead of claiming the listing said Dinky.
+        ...(artist.via ? { via: artist.via.name, relation: artist.via.relation } : {}),
+      },
     })
   }
 

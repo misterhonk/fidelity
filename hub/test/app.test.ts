@@ -135,6 +135,24 @@ describe('the horizon cache', () => {
     assert.deepEqual(got, chunk())
   })
 
+  test('keeps the lexicon a chunk brings along', async () => {
+    const { app } = hub()
+    const kin = [
+      { name: 'Konrad Plank', relation: 'alias' },
+      { name: 'Cluster & Eno', relation: 'group' },
+    ]
+    assert.equal((await put(app, '/v1/horizon/artist/55', chunk({ kin }))).status, 200)
+
+    const got = await (await app.request('/v1/horizon/artist/55')).json()
+    assert.deepEqual(got.kin, kin)
+  })
+
+  test('refuses a relation it does not know', async () => {
+    const { app } = hub()
+    const kin = [{ name: 'Konrad Plank', relation: 'twin' }]
+    assert.equal((await put(app, '/v1/horizon/artist/55', chunk({ kin }))).status, 400)
+  })
+
   test('refuses a body that is about something else', async () => {
     // Otherwise one contribution could quietly overwrite an unrelated entity.
     const { app } = hub()

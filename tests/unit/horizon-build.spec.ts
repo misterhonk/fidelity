@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getSyncState, updatePreferences } from '~~/db/meta'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import type { Candidate } from '~~/worker/horizon/select'
+import { encodeChunk } from '#shared/wire'
 import type { DiscogsClient } from '~~/worker/discogs/client'
 
 /**
@@ -57,6 +58,8 @@ function expansion(candidate: Candidate, releaseIds: number[], requests = 2) {
       // Required on the type and long needed nowhere — until a contribution to
       // the hub ran through `encodeChunk` and died on `toBase64(undefined)`.
       years: Int16Array.from(releaseIds.map(() => 1972)),
+      // Whole: an artist chunk without its names is not done (revalidate.ts).
+      kin: [],
     },
     requests,
     catalogueSize: releaseIds.length,
@@ -95,6 +98,20 @@ describe('the expensive run', () => {
     // No bookkeeping of its own: freshness *is* the resume marker.
     expect(expandEntity).toHaveBeenCalledTimes(1)
     expect(result).toMatchObject({ expanded: 1, skipped: 1 })
+  })
+
+  it('expands a fresh artist chunk again when it has no names yet', async () => {
+    // Built before the lexicon existed: the discography is there, the aliases
+    // are not, and nothing about its age says so.
+    const db = await openFidelityDb()
+    const { kin: _none, ...before } = expansion(candidate(1), [10, 11]).chunk
+    await db.put('horizon', before)
+    expandEntity.mockImplementation(async (c: Candidate) => expansion(c, [10, 11]))
+
+    const result = await build([candidate(1)])
+
+    expect(result).toMatchObject({ expanded: 1, skipped: 0 })
+    expect((await db.get('horizon', 'artist:1'))?.kin).toEqual([])
   })
 
   it('expands again once a chunk has aged past the TTL', async () => {
@@ -374,6 +391,35 @@ describe('den Hub nachträglich füllen', () => {
 
     expect(result.shared).toBe(0)
     expect((await db.get('horizon', 'artist:1'))?.sharedAt).toBeUndefined()
+  })
+
+  /**
+   * A hub chunk from before the lexicon is a miss, not a hit.
+   *
+   * Taking it would leave the artist without names, mark it due again
+   * tomorrow, and fetch the same old chunk from the hub again — a loop that
+   * costs no Discogs request and never ends.
+   */
+  it('nimmt einen Hub-Block ohne Namen nicht als Treffer', async () => {
+    const { kin: _none, ...stale } = expansion(candidate(1), [10, 11]).chunk
+    await updatePreferences({ hubUrl: 'https://hub.test', hubSecret: 'wort' })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_input: unknown, init?: RequestInit) =>
+        init?.method === 'PUT'
+          ? ({ ok: true, json: async () => ({}) } as unknown as Response)
+          : ({ ok: true, json: async () => encodeChunk(stale) } as unknown as Response),
+      ),
+    )
+    expandEntity.mockImplementation(async (c: Candidate) => expansion(c, [10, 11]))
+
+    const result = await build([candidate(1)])
+
+    expect(expandEntity).toHaveBeenCalledTimes(1)
+    expect(result).toMatchObject({ expanded: 1 })
+    expect((await openFidelityDb()).get('horizon', 'artist:1')).resolves.toMatchObject({
+      kin: [],
+    })
   })
 
   /** Without a hub it stays as it was: skipped and silent. */

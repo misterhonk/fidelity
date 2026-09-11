@@ -1,10 +1,12 @@
-import type { HorizonChunk } from '#shared/types'
+import type { HorizonChunk, Kin } from '#shared/types'
 
 import type { DiscogsClient } from '../discogs/client'
 import {
+  artistProfileSchema,
   artistReleasesSchema,
   labelReleasesSchema,
   masterVersionsSchema,
+  type ArtistProfile,
 } from '../discogs/entities'
 
 import { packChunk, parseCatno, roleIndex, type Edge } from './pack'
@@ -20,6 +22,15 @@ export const MAX_PAGES_PER_ENTITY = 15
  * Not 1.0: a handful of duplicates across pages is normal and harmless.
  */
 export const COMPLETENESS_THRESHOLD = 0.95
+
+/**
+ * How many other names one artist may bring along.
+ *
+ * An orchestra lists a hundred members and a session band every name that
+ * ever sat in. Past this it is a roster, not a lexicon — and the aliases come
+ * first, because they are the same person and the members are not.
+ */
+export const MAX_KIN = 100
 
 export interface ExpandResult {
   chunk: HorizonChunk
@@ -129,6 +140,20 @@ export async function expandEntity(
 
   if (pages > MAX_PAGES_PER_ENTITY) complete = false
 
+  // The lexicon: one more request for an artist, none for anything else.
+  // Part of the same expansion on purpose — a chunk with the discography and
+  // no names is the state this feature found, and it is "due" until it has
+  // both (revalidate.ts).
+  let kin: Kin[] | undefined
+  if (candidate.kind === 'artist') {
+    signal?.throwIfAborted()
+    const profile = await client.get(`/artists/${candidate.id}`, artistProfileSchema, {
+      signal,
+    })
+    requests += 1
+    kin = kinOf(profile)
+  }
+
   const chunk = packChunk(candidate.kind, candidate.id, candidate.name, edges, {
     fetchedAt: now(),
     complete,
@@ -146,5 +171,35 @@ export async function expandEntity(
     chunk.complete = false
   }
 
+  if (kin) chunk.kin = kin
+
   return { chunk, requests, catalogueSize }
+}
+
+/**
+ * Every other name an artist answers to, the same person first.
+ *
+ * Name variations and aliases are both "alias" here: for matching a string
+ * from an inventory the difference between a spelling and a side project is
+ * none — Discogs says it is the same person either way. Members and groups
+ * keep their direction, because the sentence has to say who is part of whom.
+ */
+export function kinOf(profile: ArtistProfile): Kin[] {
+  const kin: Kin[] = []
+  const seen = new Set<string>()
+
+  const add = (name: string, relation: Kin['relation']) => {
+    const trimmed = name.trim()
+    const key = trimmed.toLowerCase()
+    if (trimmed.length === 0 || seen.has(key) || kin.length >= MAX_KIN) return
+    seen.add(key)
+    kin.push({ name: trimmed, relation })
+  }
+
+  for (const name of profile.namevariations ?? []) add(name, 'alias')
+  for (const alias of profile.aliases ?? []) add(alias.name, 'alias')
+  for (const member of profile.members ?? []) add(member.name, 'member')
+  for (const group of profile.groups ?? []) add(group.name, 'group')
+
+  return kin
 }

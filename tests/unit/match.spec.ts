@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import type { CollectionItem, TasteProfile, WantlistItem } from '#shared/types'
+import type {
+  CollectionItem,
+  HorizonChunk,
+  Kin,
+  TasteProfile,
+  WantlistItem,
+} from '#shared/types'
 import { buildIndex, evaluate, type Listing, type MatchFilters } from '~~/worker/match'
 import { reasonFor } from '~/i18n/reason'
 import { computeTasteProfile } from '~~/worker/match/taste'
@@ -157,6 +163,103 @@ describe('the fuzzy cascade', () => {
       filters,
     )
     expect(result).toBeNull()
+  })
+})
+
+/**
+ * The lexicon — stage 0 of the cascade (docs/04 §S3).
+ *
+ * The inventory gives one string and no id, and the string is often not the
+ * name on the shelf. The horizon's artist chunks bring every other name
+ * along; here they are handed in directly, the way a dig gets them.
+ */
+describe('the lexicon', () => {
+  const lexicon = (entityId: number, name: string, kin: Kin[]): HorizonChunk => ({
+    key: `artist:${entityId}`,
+    kind: 'artist',
+    entityId,
+    name,
+    fetchedAt: 0,
+    complete: true,
+    requests: 2,
+    releaseIds: new Int32Array(0),
+    roles: new Uint8Array(0),
+    years: new Int16Array(0),
+    kin,
+  })
+
+  const known = (artist: string, chunks: HorizonChunk[]) =>
+    evaluate(
+      listing({ artist, label: null }),
+      buildIndex(collection, wantlist, taste, chunks),
+      filters,
+    )?.signals.find((s) => s.type === 'ARTIST_KNOWN')
+
+  it('reads an alias as the artist, as surely as the name itself', () => {
+    const chunks = [lexicon(100, 'Robag Wruhme', [{ name: 'Wuppdeck', relation: 'alias' }])]
+    const signal = known('Wuppdeck', chunks)
+
+    expect(signal?.confidence).toBe(1)
+    expect(signal?.evidence).toEqual({
+      artist: 'Robag Wruhme',
+      owned: 3,
+      via: 'Wuppdeck',
+      relation: 'alias',
+    })
+    // The sentence says under which name it was found, or it would claim the
+    // listing said Robag Wruhme.
+    expect(reasonFor([signal!])).toBe(
+      'Wuppdeck is Robag Wruhme — you have 3 records by Robag Wruhme, not this one.',
+    )
+  })
+
+  it('takes a member as a related act, never more certain than containment', () => {
+    const chunks = [
+      lexicon(102, 'Wighnomy Brothers', [{ name: 'Gabor Schablitzki', relation: 'member' }]),
+    ]
+    const signal = known('Gabor Schablitzki', chunks)
+
+    expect(signal?.confidence).toBe(0.85)
+    expect(reasonFor([signal!])).toBe(
+      'Gabor Schablitzki is part of Wighnomy Brothers — Wighnomy Brothers is already on your shelf, not this one.',
+    )
+  })
+
+  it('and the group of somebody you collect the same way round', () => {
+    const chunks = [lexicon(100, 'Robag Wruhme', [{ name: 'Zimt', relation: 'group' }])]
+    const signal = known('Zimt', chunks)
+
+    expect(signal?.confidence).toBe(0.85)
+    expect(reasonFor([signal!])).toBe(
+      'Robag Wruhme is part of Zimt — you have 3 records by Robag Wruhme, not this one.',
+    )
+  })
+
+  it('lets the name on the shelf win over an alias that spells it', () => {
+    const chunks = [
+      lexicon(100, 'Robag Wruhme', [{ name: 'Kollektiv Turmstrasse', relation: 'alias' }]),
+    ]
+    const signal = known('Kollektiv Turmstrasse', chunks)
+
+    expect(signal?.evidence).toEqual({ artist: 'Kollektiv Turmstrasse', owned: 1 })
+  })
+
+  it('still runs the fuzzy stage over the other names', () => {
+    const chunks = [
+      lexicon(100, 'Robag Wruhme', [{ name: 'Wuppdeckmischmampflow', relation: 'alias' }]),
+    ]
+    expect(known('Wuppdeckmischmampflo', chunks)?.confidence).toBe(0.7)
+  })
+
+  it('never lets an alias be Various', () => {
+    const chunks = [lexicon(100, 'Robag Wruhme', [{ name: 'Various', relation: 'alias' }])]
+    expect(known('Various', chunks)).toBeUndefined()
+  })
+
+  it('has no names for somebody the collection does not know', () => {
+    // A credit person has an artist chunk too, and is not on the shelf.
+    const chunks = [lexicon(555, 'Conny Plank', [{ name: 'Konrad Plank', relation: 'alias' }])]
+    expect(known('Konrad Plank', chunks)).toBeUndefined()
   })
 })
 
