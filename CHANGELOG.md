@@ -11,6 +11,18 @@ Für eine App bedeutet SemVer:
 
 ## [0.38.0](https://github.com/misterhonk/fidelity/compare/v0.37.0...v0.38.0) (2026-09-11)
 
+**Your wants, across the shops you scanned — with the postage.**
+
+A box at the top of the wantlist: which of your wants the shops scanned in the last six
+hours have, the cheapest set of shops that covers them once postage is counted, and the
+plan it beats — each where it is cheapest, with its extra parcels. "2 of your 3 wants are at
+these shops. Cheapest: 1 shop, €55.50 for the records plus €4.50 postage — €60.00. Each
+where it is cheapest would be 2 shops and €10.50 postage — €4.50 more." Labelled as the
+subset it is: nobody outside Discogs can search all sellers by record, so this is over the
+shops you scanned and nothing else. Exact pressings first, one currency, shops without a
+postage table named and left out. With it the nine candidates from the September research
+are all in.
+
 
 ### Added
 
