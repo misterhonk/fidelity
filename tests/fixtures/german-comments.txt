@@ -77,7 +77,6 @@ tests/e2e/smoke.spec.ts
 tests/e2e/stack.spec.ts
 tests/e2e/theme.spec.ts
 tests/e2e/version-news.spec.ts
-tests/helpers/german.ts
 tests/unit/audio-preview.spec.ts
 tests/unit/cover-tile.spec.ts
 tests/unit/db.spec.ts

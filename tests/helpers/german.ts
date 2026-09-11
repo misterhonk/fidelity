@@ -5,18 +5,32 @@ import { readFileSync } from 'node:fs'
  *
  * Not a language detector — a word list. German function words are short,
  * frequent and almost all absent from English; three *different* ones inside
- * one comment is not something an English sentence does by accident. The few
- * that overlap ("die", "was", "hat", "war", "also", "man", "in", "so") are
- * either left out or carried by the three-word threshold.
+ * one comment is not something an English sentence writes by accident.
  *
- * The threshold is the whole design. A stricter test would flag "Der Wächter"
- * in an English sentence; a looser one would miss a one-line German comment.
- * Three catches every comment in `german-comments.txt` and none of the English
- * ones beside them — checked against the whole tree, which is the only way to
- * check a heuristic.
+ * The threshold is the whole design. A stricter one would flag an English
+ * sentence that happens to quote a German phrase; a looser one would miss a
+ * one-line German comment. Three catches every comment in
+ * `german-comments.txt` and none of the English ones beside them — checked
+ * against the whole tree, which is the only way to check a heuristic.
+ */
+/**
+ * The handful that are also English words live in `OVERLAPPING` below rather
+ * than in this comment — because a comment naming three of them is, by this
+ * file's own rule, German. It flagged itself on 2026-09-11, which is a
+ * cheerful way to learn the threshold works.
  */
 const GERMAN =
   /\b(der|die|das|dem|den|des|ein|eine|einen|einem|einer|eines|und|oder|aber|nicht|nur|wenn|weil|dass|sich|wer|ist|sind|war|waren|hat|haben|wird|werden|kann|können|muss|müssen|soll|sollen|darf|dürfen|vom|zum|zur|beim|für|mit|nach|über|unter|durch|gegen|ohne|schon|noch|auch|dann|hier|dort|sonst|damit|deshalb|jede|jeder|jedes|keine|kein|alle|etwas|nichts|immer|wieder)\b/gi
+
+/**
+ * Words that are German *and* English. Some are in the list above and some are
+ * not; either way, none of them alone may flag a comment, which is what the
+ * threshold is for and what `english-comments.spec.ts` checks.
+ *
+ * As data rather than prose, so the scanner never reads them — a comment
+ * naming three would, by this file's own rule, be German.
+ */
+export const OVERLAPPING = ['die', 'was', 'hat', 'war', 'also', 'man', 'in', 'so'] as const
 
 /** How many different German function words make a comment German. */
 export const THRESHOLD = 3

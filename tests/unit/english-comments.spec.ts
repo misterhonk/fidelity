@@ -1,8 +1,10 @@
-import { globSync, readFileSync } from 'node:fs'
+import { globSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-import { germanComments } from '../helpers/german'
+import { OVERLAPPING, germanComments } from '../helpers/german'
 
 /**
  * ADR-010 says English everywhere — code, comments, commits. The docs were
@@ -57,5 +59,54 @@ describe('comments are English (ADR-010)', () => {
 
   it('keeps no name on the list that is already clean', () => {
     expect([...listed].filter((path) => !german.has(path)).sort()).toEqual([])
+  })
+})
+
+/**
+ * The heuristic checked against the cases that would make it useless.
+ *
+ * A detector that flags English prose gets switched off, and one that misses
+ * German is decoration. Both halves need a case, and the second one caught
+ * this very file's neighbour: `german.ts` flagged its own documentation on
+ * 2026-09-11, because the comment quoted three German words while explaining
+ * which German words to look for.
+ */
+describe('the detector', () => {
+  const write = (comment: string) => {
+    const file = join(tmpdir(), `german-probe-${Math.random().toString(36).slice(2)}.ts`)
+    writeFileSync(file, `${comment}\nexport const x = 1\n`)
+    return file
+  }
+
+  it('does not flag an English sentence that happens to use one of these', () => {
+    for (const word of OVERLAPPING) {
+      const file = write(`/** The process may ${word} here, and that is fine. */`)
+      expect(germanComments(file), word).toEqual([])
+      rmSync(file)
+    }
+  })
+
+  it('flags a German comment of a single line', () => {
+    const file = write('// Der Wächter räumt hier nichts weg, und das ist Absicht.')
+    expect(germanComments(file)).toHaveLength(1)
+    rmSync(file)
+  })
+
+  /** The bug that made the scanner necessary — a route pattern, not a comment. */
+  it('does not read a comment out of a string literal', () => {
+    const file = join(tmpdir(), `german-probe-${Math.random().toString(36).slice(2)}.ts`)
+    writeFileSync(
+      file,
+      [
+        "app.use('/v1/*', cors())",
+        '// Der Wächter, und zwar nur dieser Kommentar.',
+        'const y = 1',
+        '/* done */',
+      ].join('\n'),
+    )
+    const found = germanComments(file)
+    expect(found).toHaveLength(1)
+    expect(found[0]).not.toMatch(/cors/)
+    rmSync(file)
   })
 })
