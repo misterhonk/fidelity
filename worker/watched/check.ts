@@ -189,7 +189,7 @@ async function confirmGone(
   return null
 }
 
-/** Eine Platte in die Beobachtung nehmen. */
+/** Taking a record into the watch list. */
 export async function watchRelease(
   entry: Omit<WatchedRelease, 'points' | 'checkedAt' | 'notifiedAt' | 'since'>,
   now = Date.now(),

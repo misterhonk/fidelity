@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
+import { withoutComments } from '../helpers/german'
+
 import type { StackShop } from '#shared/types'
 
 /**
@@ -20,12 +22,6 @@ const PAGE = readFileSync('app/pages/stack.vue', 'utf8')
 const CARD = readFileSync('app/components/StackCard.vue', 'utf8')
 const WORKER = readFileSync('worker/stack.ts', 'utf8')
 
-const code = (source: string) =>
-  source
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/\/\/.*$/gm, '')
-    .replace(/<!--[\s\S]*?-->/g, '')
-
 describe('what a swipe costs', () => {
   /**
    * The most important promise of the whole screen.
@@ -35,13 +31,13 @@ describe('what a swipe costs', () => {
    * 2 forbids. The stack shows only what the dig has already fetched.
    */
   it('asks Discogs for nothing', () => {
-    expect(code(WORKER)).not.toMatch(/fetch\(|DiscogsClient|discogs\.com/)
-    expect(code(PAGE)).not.toMatch(/fetch\(|discogs\.com\/(?!sell)/)
+    expect(withoutComments(WORKER)).not.toMatch(/fetch\(|DiscogsClient|discogs\.com/)
+    expect(withoutComments(PAGE)).not.toMatch(/fetch\(|discogs\.com\/(?!sell)/)
   })
 
   /** Covers come from the shared store, and only the next few. */
   it('asks for the next few covers, not the whole stack', () => {
-    expect(code(PAGE)).toMatch(/slice\(at\.value, at\.value \+ 5\)/)
+    expect(withoutComments(PAGE)).toMatch(/slice\(at\.value, at\.value \+ 5\)/)
   })
 })
 
@@ -49,28 +45,28 @@ describe('the four decisions', () => {
   it('keeps the score order the dig produced', () => {
     // No sorting of the cards here: `dig.get` returns them by score, and a
     // second opinion about that would be a second truth.
-    expect(code(PAGE)).toMatch(/dig\.value\?\.matches \?\? \[\]/)
-    expect(code(PAGE)).not.toMatch(/\.sort\(|shuffle|Math\.random/)
+    expect(withoutComments(PAGE)).toMatch(/dig\.value\?\.matches \?\? \[\]/)
+    expect(withoutComments(PAGE)).not.toMatch(/\.sort\(|shuffle|Math\.random/)
   })
 
   it('puts the reason on every card', () => {
-    expect(code(CARD)).toMatch(/reasonFor\(match\.signals\)/)
+    expect(withoutComments(CARD)).toMatch(/reasonFor\(match\.signals\)/)
   })
 
   it('stops, and says so', () => {
-    expect(code(PAGE)).toMatch(/done\.value = true/)
-    expect(code(PAGE)).toMatch(/d\.stack\.through/)
+    expect(withoutComments(PAGE)).toMatch(/done\.value = true/)
+    expect(withoutComments(PAGE)).toMatch(/d\.stack\.through/)
   })
 
   /** Preis weg, Fund bleibt — die Begründung überlebt die sechs Stunden. */
   it('drops the price once the dig is stale, and keeps the find', () => {
-    expect(code(CARD)).toMatch(/v-if="!expired && match\.price !== null"/)
-    expect(code(PAGE)).toMatch(/Date\.now\(\) >= dig\.value\.dig\.expiresAt/)
+    expect(withoutComments(CARD)).toMatch(/v-if="!expired && match\.price !== null"/)
+    expect(withoutComments(PAGE)).toMatch(/Date\.now\(\) >= dig\.value\.dig\.expiresAt/)
   })
 
   /** And expired digs do not reach the top row at all. */
   it('keeps an expired dig out of the row entirely', () => {
-    expect(code(WORKER)).toMatch(/if \(dig\.expiresAt <= now\) continue/)
+    expect(withoutComments(WORKER)).toMatch(/if \(dig\.expiresAt <= now\) continue/)
   })
 })
 
@@ -84,7 +80,7 @@ describe('what the card shows', () => {
    * here a single element changes between two records.
    */
   it('builds a fresh card per record, so no cover outlives its title', () => {
-    expect(code(PAGE)).toMatch(/<StackCard\s+:key="card\.listingId"/)
+    expect(withoutComments(PAGE)).toMatch(/<StackCard\s+:key="card\.listingId"/)
   })
 })
 
@@ -95,8 +91,8 @@ describe('the way back', () => {
    * So every swipe is reversible — and visibly so, not as a hidden shortcut.
    */
   it('undoes a swipe', () => {
-    expect(code(PAGE)).toMatch(/go\(-1\)/)
-    expect(code(PAGE)).toMatch(/d\.stack\.back/)
+    expect(withoutComments(PAGE)).toMatch(/go\(-1\)/)
+    expect(withoutComments(PAGE)).toMatch(/d\.stack\.back/)
   })
 
   /**
@@ -107,8 +103,8 @@ describe('the way back', () => {
    * not true.
    */
   it('never counts the progress back down', () => {
-    expect(code(WORKER)).toMatch(/Math\.max\(dig\.stackSeen \?\? 0/)
-    expect(code(PAGE)).toMatch(/if \(!current \|\| seen <= current\.seen\) return/)
+    expect(withoutComments(WORKER)).toMatch(/Math\.max\(dig\.stackSeen \?\? 0/)
+    expect(withoutComments(PAGE)).toMatch(/if \(!current \|\| seen <= current\.seen\) return/)
   })
 })
 
@@ -125,28 +121,28 @@ describe('the way in', () => {
   const INDEX = readFileSync('app/pages/index.vue', 'utf8')
 
   it('is on the start page', () => {
-    expect(code(INDEX)).toMatch(/<StackShops/)
+    expect(withoutComments(INDEX)).toMatch(/<StackShops/)
   })
 
   /** And at the shop somebody pointed at. */
   it('opens the shop that was tapped, not the first one', () => {
     const SHOPS = readFileSync('app/components/StackShops.vue', 'utf8')
-    expect(code(SHOPS)).toMatch(/query: \{ dealer: shop\.dealer \}/)
-    expect(code(PAGE)).toMatch(/route\.query\.dealer/)
-    expect(code(PAGE)).toMatch(/findIndex\(\(s\) => s\.dealer === wanted\)/)
+    expect(withoutComments(SHOPS)).toMatch(/query: \{ dealer: shop\.dealer \}/)
+    expect(withoutComments(PAGE)).toMatch(/route\.query\.dealer/)
+    expect(withoutComments(PAGE)).toMatch(/findIndex\(\(s\) => s\.dealer === wanted\)/)
   })
 })
 
 describe('the row of shops', () => {
   /** The ring is a number and not a second truth. */
   it('lights the ring from the same count the stack works through', () => {
-    expect(code(PAGE)).toMatch(/s\.matches - s\.seen > 0/)
+    expect(withoutComments(PAGE)).toMatch(/s\.matches - s\.seen > 0/)
   })
 
   it('can be worked with a keyboard alone', () => {
     // A stack only a thumb can operate is a screen some people do not have.
-    expect(code(PAGE)).toMatch(/ArrowRight/)
-    expect(code(PAGE)).toMatch(/ArrowLeft/)
+    expect(withoutComments(PAGE)).toMatch(/ArrowRight/)
+    expect(withoutComments(PAGE)).toMatch(/ArrowLeft/)
   })
 })
 
@@ -169,7 +165,7 @@ describe('which shop comes first', () => {
     ...over,
   })
 
-  /** Dieselbe Rechnung wie in `stackOverview`, hier isoliert. */
+  /** The same computation as in `stackOverview`, isolated here. */
   const order = (shops: StackShop[]) =>
     [...shops].sort((a, b) => {
       const openA = a.matches - a.seen > 0

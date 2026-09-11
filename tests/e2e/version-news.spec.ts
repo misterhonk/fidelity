@@ -14,7 +14,7 @@ import { signIn } from './seed'
  * on the *first* visit. The last is the one you overlook in the source.
  */
 
-const SCHLUESSEL = 'fidelity:seen-version'
+const KEY = 'fidelity:seen-version'
 
 test.describe('a version somebody has not seen', () => {
   /**
@@ -32,17 +32,17 @@ test.describe('a version somebody has not seen', () => {
     await expect(page.getByText(/updated to|jetzt auf/i)).toBeHidden()
 
     // It has remembered all the same, or the line would come next time.
-    const gemerkt = await page.evaluate((k) => localStorage.getItem(k), SCHLUESSEL)
-    expect(gemerkt).toBeTruthy()
+    const remembered = await page.evaluate((k) => localStorage.getItem(k), KEY)
+    expect(remembered).toBeTruthy()
   })
 
   test('says so when the version moved', async ({ page }) => {
     await signIn(page)
-    await page.evaluate((k) => localStorage.setItem(k, '0.0.1-alt'), SCHLUESSEL)
+    await page.evaluate((k) => localStorage.setItem(k, '0.0.1-alt'), KEY)
     await page.goto('/')
 
-    const zeile = page.getByText(/updated to|jetzt auf/i)
-    await expect(zeile).toBeVisible()
+    const line = page.getByText(/updated to|jetzt auf/i)
+    await expect(line).toBeVisible()
 
     await page.getByRole('link', { name: /what changed|geändert/i }).click()
     await expect(page.locator('h1')).toContainText(/what is new|was neu ist/i)
@@ -51,7 +51,7 @@ test.describe('a version somebody has not seen', () => {
   /** And once read is read — after a reload too. */
   test('does not come back for the same version', async ({ page }) => {
     await signIn(page)
-    await page.evaluate((k) => localStorage.setItem(k, '0.0.1-alt'), SCHLUESSEL)
+    await page.evaluate((k) => localStorage.setItem(k, '0.0.1-alt'), KEY)
     await page.goto('/')
 
     await page.getByRole('button', { name: /not now|später/i }).click()

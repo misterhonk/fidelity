@@ -108,7 +108,7 @@ export function useCovers() {
   }
 
   /**
-   * Ein Cover holen, sobald die Kachel ins Bild kommt.
+   * Fetch a cover as soon as the tile comes into view.
    *
    * The alternative was for the list to guess: hand it every match and let a
    * budget stop the bleeding. That fetches pictures for rows nobody scrolled
@@ -116,7 +116,7 @@ export function useCovers() {
    * for exactly what somebody is looking at, in the order they look at it, and
    * costs one observer for the whole app rather than one per card.
    *
-   * `rootMargin` runs ahead by a screen, because a request takes 1,2 s and an
+   * `rootMargin` runs ahead by a screen, because a request takes 1.2 s and an
    * image that starts loading when it is already visible has arrived too late.
    */
   function watchCover(element: Element | null, releaseId: number) {

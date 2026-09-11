@@ -196,7 +196,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
   },
   {
     /*
-     * Audion – Sky/Motormouth Remixes, nicht Suckfish.
+     * Audion – Sky/Motormouth Remixes, not Suckfish.
      *
      * Suckfish sat here and made the same point about the SPC catalogue run,
      * but Discogs holds no image for that pressing — one grey square in a row

@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
+import { withoutComments } from '../helpers/german'
+
 /**
  * Without a token, nobody belongs on a screen full of data.
  *
@@ -17,8 +19,8 @@ import { describe, expect, it } from 'vitest'
  */
 const GUARD = readFileSync('app/middleware/setup.global.ts', 'utf8')
 
-/** Ohne Kommentare, weil diese Datei erklärt, was sie prüft. */
-const code = GUARD.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
+/** Without comments, because this file explains what it checks. */
+const code = withoutComments(GUARD)
 
 describe('the setup guard', () => {
   it('is global, so nobody has to remember it', () => {

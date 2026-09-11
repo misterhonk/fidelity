@@ -27,29 +27,29 @@ const { version } = useRuntimeConfig().public
  * is allowed to be lost: the line then stands there one time too many, which
  * is the more harmless of two mistakes.
  */
-const SCHLUESSEL = 'fidelity:seen-version'
+const KEY = 'fidelity:seen-version'
 
-const zeigen = ref(false)
+const show = ref(false)
 
-function lies(): string | null {
+function read(): string | null {
   try {
-    return localStorage.getItem(SCHLUESSEL)
+    return localStorage.getItem(KEY)
   } catch {
-    // Privates Fenster, blockierte Website-Daten: dann eben keine Zeile.
+    // A private window, blocked site data: then there is simply no line.
     return null
   }
 }
 
-function merke() {
+function remember() {
   try {
-    localStorage.setItem(SCHLUESSEL, String(version))
+    localStorage.setItem(KEY, String(version))
   } catch {
-    /* siehe oben */
+    /* see above */
   }
 }
 
 onMounted(() => {
-  const zuletzt = lies()
+  const lastSeen = read()
 
   /*
    * On the very first start it only remembers, it does not report.
@@ -58,24 +58,24 @@ onMounted(() => {
    * "new since your last visit" would simply be untrue there, and the first
    * line somebody reads from an app should not be a false one.
    */
-  if (zuletzt === null) {
-    merke()
+  if (lastSeen === null) {
+    remember()
     return
   }
 
-  zeigen.value = zuletzt !== String(version)
+  show.value = lastSeen !== String(version)
 })
 
 /** Read is seen — the line does not come back for this release. */
 function seen() {
-  merke()
-  zeigen.value = false
+  remember()
+  show.value = false
 }
 </script>
 
 <template>
   <p
-    v-if="zeigen"
+    v-if="show"
     class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-fid-sm text-fid-text-muted"
     role="status"
   >

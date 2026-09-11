@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { withoutComments } from '../helpers/german'
+
 import { openFidelityDb } from '~~/db/open'
 import { cleanOrderId, importOrder } from '~~/worker/orders'
 import type { DiscogsClient } from '~~/worker/discogs/client'
@@ -22,7 +24,7 @@ import type { Feedback } from '#shared/types'
  *    duplicates nothing hangs on it.
  */
 
-/** Die Form, die eine echte Antwort am 2026-09-11 hatte. */
+/** The shape a real answer had on 2026-09-11. */
 const ANTWORT = {
   id: '259022-32308',
   created: '2026-09-11T00:33:31-07:00',
@@ -207,7 +209,7 @@ describe('what an order never brings along', () => {
     expect(geschrieben).not.toMatch(/example\.invalid|email/)
 
     const quelle = readFileSync('worker/orders.ts', 'utf8')
-    const code = quelle.replace(/\/\*[\s\S]*?\*\//g, '')
+    const code = withoutComments(quelle)
     for (const verboten of [
       'media_condition',
       'sleeve_condition',

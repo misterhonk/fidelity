@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
+import { withoutComments } from '../helpers/german'
+
 import { videoId } from '~/composables/useAudioPreview'
 
 /**
@@ -18,12 +20,6 @@ const CARD = readFileSync('app/components/StackCard.vue', 'utf8')
 const DEFAULTS = readFileSync('db/meta.ts', 'utf8')
 const LEGAL = readFileSync('app/i18n/legal.ts', 'utf8')
 
-const code = (source: string) =>
-  source
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/\/\/.*$/gm, '')
-    .replace(/<!--[\s\S]*?-->/g, '')
-
 describe('nothing reaches Google before somebody asks', () => {
   /**
    * The script is created **inside a function body**, not at import.
@@ -33,7 +29,7 @@ describe('nothing reaches Google before somebody asks', () => {
    * longer be a decision but a default.
    */
   it('creates the script only inside the function that a tap calls', () => {
-    const bare = code(COMPOSABLE)
+    const bare = withoutComments(COMPOSABLE)
     expect(bare).toMatch(/function boot\(/)
 
     const boot = bare.slice(bare.indexOf('function boot('))
@@ -46,9 +42,9 @@ describe('nothing reaches Google before somebody asks', () => {
 
   /** The template has an empty div and no `<iframe>`. */
   it('has no iframe in the markup', () => {
-    expect(code(PAGE)).not.toMatch(/<iframe/i)
-    expect(code(CARD)).not.toMatch(/<iframe/i)
-    expect(code(PAGE)).toMatch(/ref="mount"/)
+    expect(withoutComments(PAGE)).not.toMatch(/<iframe/i)
+    expect(withoutComments(CARD)).not.toMatch(/<iframe/i)
+    expect(withoutComments(PAGE)).toMatch(/ref="mount"/)
   })
 
   /**
@@ -56,8 +52,8 @@ describe('nothing reaches Google before somebody asks', () => {
    * available. A button that plays nothing still loads.
    */
   it('offers the button only when the switch is on and there is something to play', () => {
-    expect(code(PAGE)).toMatch(/audioOn\.value && !audio\.failed\.value/)
-    expect(code(PAGE)).toMatch(/card\.value\?\.videos\?\.length \?\? 0\) > 0/)
+    expect(withoutComments(PAGE)).toMatch(/audioOn\.value && !audio\.failed\.value/)
+    expect(withoutComments(PAGE)).toMatch(/card\.value\?\.videos\?\.length \?\? 0\) > 0/)
   })
 })
 
@@ -80,25 +76,25 @@ describe('what is actually playing', () => {
    * new card. A still is not sound, but it claims the same thing.
    */
   it('hides the player as soon as nothing is playing', () => {
-    expect(code(PAGE)).toMatch(/v-show="audio\.playing\.value"/)
-    expect(code(PAGE)).not.toMatch(/v-show="audio\.armed\.value"/)
+    expect(withoutComments(PAGE)).toMatch(/v-show="audio\.playing\.value"/)
+    expect(withoutComments(PAGE)).not.toMatch(/v-show="audio\.armed\.value"/)
   })
 
   it('names the clip, not the record on the card', () => {
-    expect(code(PAGE)).toMatch(/card\.value\?\.videos\?\.\[0\]\?\.title/)
-    expect(code(PAGE)).toMatch(/v-if="hearing"/)
+    expect(withoutComments(PAGE)).toMatch(/card\.value\?\.videos\?\.\[0\]\?\.title/)
+    expect(withoutComments(PAGE)).toMatch(/v-if="hearing"/)
   })
 })
 
 describe('the switch', () => {
   it('is off to begin with', () => {
-    expect(code(DEFAULTS)).toMatch(/audioPreview: false/)
+    expect(withoutComments(DEFAULTS)).toMatch(/audioPreview: false/)
   })
 
   /** Nothing hangs off it: the stack works completely without sound. */
   it('leaves the stack working without it', () => {
     // The card knows nothing of sound — it shows cover, reason and price.
-    expect(code(CARD)).not.toMatch(/audio|youtube/i)
+    expect(withoutComments(CARD)).not.toMatch(/audio|youtube/i)
   })
 })
 
@@ -143,13 +139,13 @@ describe('reading a video address', () => {
 
   it('refuses anything that is not YouTube', () => {
     expect(videoId('https://evil.test/watch?v=abc')).toBeNull()
-    // Der naive Test `includes('youtube.com')` fällt auf beide herein.
+    // The naive check `includes('youtube.com')` falls for both.
     expect(videoId('https://www.youtube.com.evil.test/watch?v=abc')).toBeNull()
     expect(videoId('https://evil.test/?a=https://www.youtube.com/watch?v=abc')).toBeNull()
   })
 
   it('gives null instead of a guess', () => {
-    expect(videoId('nicht mal eine adresse')).toBeNull()
+    expect(videoId('not even an address')).toBeNull()
     expect(videoId('https://www.youtube.com/')).toBeNull()
   })
 })

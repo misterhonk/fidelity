@@ -24,7 +24,7 @@ async function columns(page: Page, selector: string) {
 }
 
 /**
- * Jede Seite, jede Breite, kein waagerechter Überlauf.
+ * Every page, every width, no horizontal overflow.
  *
  * This used to check two routes, which is how a credits list pushed a phone 94
  * pixels wide and nobody noticed: the two it checked did not have one. A sweep

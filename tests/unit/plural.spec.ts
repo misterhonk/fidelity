@@ -35,7 +35,7 @@ describe('a count and its noun', () => {
 })
 
 /**
- * Kein Wort mehr direkt hinter einer interpolierten Zahl.
+ * No more words directly after an interpolated number.
  *
  * The helper only helps where it is used, and the failure was never that
  * somebody could not write `n === 1 ? …`. It was that five places each decided

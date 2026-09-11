@@ -248,7 +248,7 @@ async function check() {
   if (!name || busy.value) return
 
   /*
-   * Das Feld zeigt danach, was verstanden wurde.
+   * The field then shows what was understood.
    *
    * Somebody who pasted a forty-character address gets the shop's name back in
    * its place — which is the only way to tell "it read the link" from "it is

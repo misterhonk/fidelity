@@ -92,7 +92,7 @@ export interface WatchDeps {
    * unauthenticated and more slowly; nothing else changes.
    */
   identity?: { key: string; secret: string } | null
-  /** Injizierbar, damit Tests weder Netz noch Wartezeit brauchen. */
+  /** Injectable, so that tests need neither the network nor the wait. */
   fetchImpl?: typeof fetch
   send?: (
     subscription: webpush.PushSubscription,

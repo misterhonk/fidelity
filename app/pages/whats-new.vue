@@ -60,22 +60,22 @@ const nochDeutsch = computed(() => {
             class="max-w-prose text-fid-base text-fid-text"
             :class="block.kind === 'bullet' ? 'border-l-2 border-fid-border pl-4' : ''"
           >
-            <template v-for="(stueck, j) in block.pieces" :key="j">
-              <strong v-if="stueck.kind === 'strong'" class="font-medium">{{
-                stueck.text
+            <template v-for="(piece, j) in block.pieces" :key="j">
+              <strong v-if="piece.kind === 'strong'" class="font-medium">{{
+                piece.text
               }}</strong>
-              <code v-else-if="stueck.kind === 'code'" class="fid-num text-fid-sm">{{
-                stueck.text
+              <code v-else-if="piece.kind === 'code'" class="fid-num text-fid-sm">{{
+                piece.text
               }}</code>
               <a
-                v-else-if="stueck.kind === 'link'"
-                :href="stueck.href"
+                v-else-if="piece.kind === 'link'"
+                :href="piece.href"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="fid-action text-fid-accent underline underline-offset-4"
-                >{{ stueck.text }}</a
+                >{{ piece.text }}</a
               >
-              <template v-else>{{ stueck.text }}</template>
+              <template v-else>{{ piece.text }}</template>
             </template>
           </p>
         </template>

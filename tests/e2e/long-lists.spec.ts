@@ -11,7 +11,7 @@ import { signIn } from './seed'
  * is a `slice`, in the document there are rows.
  */
 
-/** Genug, dass zwei Bildschirmhöhen dahinterliegen. */
+/** Enough that two screen heights lie behind it. */
 const VIELE = 200
 
 async function withWantlist(page: Page) {

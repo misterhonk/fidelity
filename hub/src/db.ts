@@ -60,7 +60,7 @@ export function openHubDb(path: string): DatabaseSync {
   `)
 
   /*
-   * Cover, nach Release-Id.
+   * Covers, by release id.
    *
    * The marketplace returns listings without images — 1.200 of 1.200 rows
    * across four shops, measured 2026-08-10 — so every cover a client shows
@@ -160,7 +160,7 @@ export function openHubDb(path: string): DatabaseSync {
 
   // What the hub is asked most: "is this entity already expanded?"
   db.exec('CREATE INDEX IF NOT EXISTS horizon_fetched ON horizon (fetched_at)')
-  // Und: "wer will von diesem Laden hören?"
+  // And: "who wants to hear about this shop?"
   db.exec('CREATE INDEX IF NOT EXISTS watches_dealer ON watches (dealer)')
 
   return db

@@ -16,7 +16,7 @@ import { legacyVaultId, vaultId } from '~~/worker/vault/targets/hub'
  * one of them away looks harmless in the source.
  */
 describe('the slot a vault lives in', () => {
-  /** Zwei Geräte, dieselbe Person, dasselbe Wort — sonst finden sie sich nie. */
+  /** Two devices, the same person, the same word — or they never find each other. */
   it('is the same on every device of the same person', async () => {
     expect(await vaultId(4711, 'ein langes wort')).toBe(await vaultId(4711, 'ein langes wort'))
   })
@@ -65,7 +65,7 @@ describe('the slot a vault lives in', () => {
     expect(await vaultId(4711, 'ein langes wort')).toBe('7d3569f8aad7a73e5a8c3d60b6f193e0')
   })
 
-  /** 16 Byte hex, so wie der Hub sie annimmt (`VAULT_ID` in hub/src/app.ts). */
+  /** 16 bytes of hex, the way the hub takes them (`VAULT_ID` in hub/src/app.ts). */
   it('looks like an id the hub accepts', async () => {
     expect(await vaultId(4711, 'ein langes wort')).toMatch(/^[0-9a-f]{32}$/)
     expect(await legacyVaultId(4711)).toMatch(/^[0-9a-f]{32}$/)
@@ -99,7 +99,7 @@ describe('the sync that uses it', () => {
     expect(STATUS).toMatch(/await client\.vaultForget\(legacy\)/)
   })
 
-  /** Und nie wieder dorthin geschrieben. */
+  /** And never written there again. */
   it('never writes to the old address', () => {
     expect(STATUS).not.toMatch(/vaultWrite\(legacy/)
   })

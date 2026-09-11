@@ -2,7 +2,7 @@
 import { ICONS, type IconName } from '~/utils/icons'
 
 /**
- * Ein Icon, ohne Laufzeit dahinter.
+ * An icon with no runtime behind it.
  *
  * No icon library, no sprite sheet, no font: the shapes are a constant this
  * component reads, so an icon costs its own path data and nothing else. That

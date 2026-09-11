@@ -8,7 +8,7 @@ afterEach(async () => {
 })
 
 /**
- * Die Startseite, aus dem, was auf dem Gerät liegt.
+ * The start page, out of what is on the device.
  *
  * Two things matter here and neither is visible on screen. The first is that
  * the rails are trimmed *in the worker*: a dig can hold thousands of matches

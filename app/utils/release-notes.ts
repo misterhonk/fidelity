@@ -38,14 +38,14 @@ export function pieces(line: string): Piece[] {
     const at = hit.index
     if (at > last) out.push({ kind: 'text', text: line.slice(last, at) })
 
-    const [ganz, strong, code, linkText, href] = hit
+    const [whole, strong, code, linkText, href] = hit
     if (strong !== undefined) out.push({ kind: 'strong', text: strong })
     else if (code !== undefined) out.push({ kind: 'code', text: code })
     else if (linkText !== undefined && href !== undefined) {
       out.push({ kind: 'link', text: linkText, href })
     }
 
-    last = at + ganz.length
+    last = at + whole.length
   }
 
   if (last < line.length) out.push({ kind: 'text', text: line.slice(last) })

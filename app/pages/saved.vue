@@ -129,8 +129,8 @@ async function intoBasket(group: { dealer: string | null; records: MarkedRecord[
 async function arrived(record: MarkedRecord, how: MarkedRecord['arrived']) {
   error.value = null
   try {
-    // Zweimal dasselbe drücken heißt „doch nicht" — sonst gäbe es keinen Weg
-    // zurück aus einem verrutschten Daumen.
+    // Pressing the same thing twice means "no, after all" — otherwise there
+    // would be no way back from a slipped thumb.
     await call('grading.record', {
       listingId: record.listingId,
       arrived: record.arrived === how ? null : how,

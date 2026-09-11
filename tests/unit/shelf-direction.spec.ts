@@ -120,7 +120,7 @@ describe('the shelf, in both directions', () => {
   it('leaves a call that names no direction exactly as it was', async () => {
     await seed()
 
-    // Der ganze Punkt der Vorgabe: alter Aufrufer, altes Verhalten.
+    // The whole point of the default: old caller, old behaviour.
     for (const sort of SORTS) {
       const implicit = (await shelfView({ sort })).records.map((r) => r.releaseId)
       const explicit = (

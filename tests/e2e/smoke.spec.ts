@@ -43,7 +43,7 @@ test.describe('smoke', () => {
     await expect(page.getByRole('heading', { name: 'Have a look first' })).toBeVisible()
 
     /*
-     * Vier Cover, keine vier Textzeilen.
+     * Four covers, not four lines of text.
      *
      * The address and the alt text, not whether the picture decoded. Waiting
      * for `naturalWidth` was the first version of this and it made the smoke
@@ -54,7 +54,7 @@ test.describe('smoke', () => {
      * when somebody edits the seed list.
      */
     // Matched on the dash, which separates artist from title — the shop logo
-    // in the same tile is alt="Laden …" and must not be counted as a sleeve.
+    // in the same tile is alt="Shop …" and must not be counted as a sleeve.
     const covers = page.locator('ul li button img[alt*=" – "]')
     await expect(covers).toHaveCount(4) // SEEDS_SHOWN
     await expect(covers.first()).toHaveAttribute('src', /^https:\/\/i\.discogs\.com\//)
@@ -145,8 +145,8 @@ test.describe('smoke', () => {
     await page.goto('/dig')
 
     await expect(page.getByRole('heading', { level: 1, name: 'Dig' })).toBeVisible()
-    // Name *oder* Link: nobody carries a Discogs username around, they carry
-    // the address of the page they are standing on.
+    // Name *or* link: nobody carries a Discogs username around, they carry the
+    // address of the page they are standing on.
     await expect(page.getByLabel('Dealer — name or link')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Check' })).toBeDisabled()
 

@@ -108,7 +108,7 @@ describe('what the service worker says out loud', () => {
     expect(SW).toMatch(/push carried nothing readable/)
   })
 
-  /** Und Schweigen bekommt einen Grund statt gar keiner Spur. */
+  /** And a silence gets a reason instead of no trace at all. */
   it('names the two silences apart', () => {
     expect(SW).toMatch(/push was not the watchman speaking/)
     expect(SW).toMatch(/the system refused to show it/)

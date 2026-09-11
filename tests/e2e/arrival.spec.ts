@@ -15,7 +15,7 @@ import { seed, seedDealer } from './seed'
 
 const TAG = 24 * 60 * 60 * 1000
 
-/** Käufe schreiben, wie sie der Dig hinterlassen hätte. */
+/** Writing purchases the way a dig would have left them. */
 async function bought(
   page: Page,
   rows: { listingId: number; ageDays: number; arrived?: 'as-described' | 'worse' }[],
@@ -101,7 +101,7 @@ test.describe('the arrival question', () => {
     await page.goto('/dealers')
     await expect(page.getByText(/4 records judged so far/i)).toBeVisible({ timeout: 15_000 })
 
-    // Die fünfte kommt über die Frage auf der Startseite herein.
+    // The fifth comes in through the question on the start page.
     await bought(page, [{ listingId: 9105, ageDays: 30 }])
     await page.goto('/')
     const box = page.getByRole('group', { name: /how did .* arrive/i })
@@ -109,7 +109,7 @@ test.describe('the arrival question', () => {
     await box.getByRole('button', { name: 'As described' }).click()
 
     await page.goto('/dealers')
-    // Vier von fünf wie beschrieben oder besser.
+    // Four of five as described or better.
     await expect(page.getByText(/80 % of 5 records/i)).toBeVisible({ timeout: 15_000 })
     await expect(page.getByText(/1 was worse than described/i)).toBeVisible()
   })

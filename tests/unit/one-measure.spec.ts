@@ -152,18 +152,18 @@ describe('every screen shares one measure', () => {
   })
 
   /**
-   * **Und `@container` sitzt auf dem Kasten, dessen Breite der Inhalt hat.**
+   * **And `@container` sits on the box whose width the content has.**
    *
-   * Container-Queries messen genau das Element mit `@container`. Nach dem
-   * Umbau war das auf den schmalen Seiten der 110rem-Container, während der
-   * Inhalt in einer 48rem-Spalte steht — eine Variante darin hätte gegen die
-   * falsche Kiste gemessen.
+   * Container queries measure exactly the element carrying `@container`. After
+   * the rebuild that was, on the narrow pages, the 110rem container, while the
+   * content sits in a 48rem column — a variant inside it would have measured
+   * against the wrong box.
    *
-   * **Kaputt war dadurch nichts**, und das ist nachgerechnet, nicht gehofft:
-   * eine höhere Kappe ändert nur Schwellen *zwischen* alter und neuer Kappe,
-   * und in den schmalen Spalten liegt keine über 768 px. Es war eine Falle für
-   * die nächste Variante, nicht ein Fehler in der jetzigen — und die Art
-   * Falle, die man beim Zuschlagen nicht mehr auf diesen Umbau zurückführt.
+   * **Nothing was broken by it**, and that is worked out rather than hoped:
+   * raising the cap only changes thresholds *between* the old and new cap, and
+   * the narrow columns have none above 768 px. It was a trap for the next
+   * variant, not a fault in the current one — and the kind of trap nobody
+   * traces back to this rebuild when it finally springs.
    */
   it('puts @container on the box the content actually fills', () => {
     const falsch: string[] = []
@@ -179,8 +179,8 @@ describe('every screen shares one measure', () => {
       const tag = quelle.slice(auf, quelle.indexOf('>', auf))
       if (!tag.includes('@container')) continue
 
-      // Ein `@container` am `<main>` ist nur richtig, wenn der Inhalt es auch
-      // ausfüllt — also wenn es darunter keine schmale Spalte gibt.
+      // An `@container` on the `<main>` is only right where the content fills
+      // it — that is, where there is no narrow column below it.
       const nachTag = quelle.indexOf('>', auf) + 1
       const ersterDiv = quelle.slice(nachTag).match(/<div class="([^"]*)"/)
       if (ersterDiv && /\bmax-w-3xl\b/.test(ersterDiv[1]!)) falsch.push(datei)

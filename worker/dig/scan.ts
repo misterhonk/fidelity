@@ -310,7 +310,7 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
       requests += 1
 
       const fresh: Match[] = []
-      /** Jede gesehene Zeile dieser Seite — siehe die Begründung unten. */
+      /** Every row seen on this page — the reasoning is below. */
       const stockRows: StockRow[] = []
       for (const row of response.listings) {
         /*
@@ -578,7 +578,7 @@ export async function runDig(
     total = profile.num_for_sale ?? 0
 
     /*
-     * Das Ladenschild, sobald es vorbeikommt.
+     * The shop sign, as soon as it comes past.
      *
      * Written here rather than threaded through to the end of the dig, because
      * this is the one moment the profile is in hand — and a scan that is

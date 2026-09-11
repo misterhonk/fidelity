@@ -58,7 +58,7 @@ describe('health', () => {
 })
 
 /**
- * Was ein Browser überhaupt schicken darf.
+ * What a browser is allowed to send at all.
  *
  * Every route here is called from a page on another origin, so the preflight
  * is not a formality — it is the gate. `POST` was missing from the allowed
@@ -362,7 +362,7 @@ describe('what the hub refuses to be', () => {
 })
 
 /**
- * Der Cover-Cache.
+ * The cover cache.
  *
  * The marketplace hands back listings without images, so every cover a client
  * shows costs it one request to Discogs — the same request, for the same
@@ -462,7 +462,7 @@ describe('a shared find list', () => {
   const ID = 'b'.repeat(32)
   const STUNDE = 60 * 60 * 1000
 
-  /** Der Hub steht auf `now: () => 42`; alles davor ist Vergangenheit. */
+  /** The hub stands at `now: () => 42`; everything before that is the past. */
   const share = (over = {}) => ({
     id: ID,
     expiresAt: 42 + 3 * STUNDE,
@@ -498,7 +498,7 @@ describe('a shared find list', () => {
     const { app } = hub('geheim')
     assert.equal((await post(app, share(), { 'x-hub-secret': 'geheim' })).status, 200)
 
-    // Ohne jeden Header — so kommt der Freund an.
+    // With no headers at all — this is how the friend arrives.
     assert.equal((await app.request(`/v1/share/${ID}`)).status, 200)
   })
 

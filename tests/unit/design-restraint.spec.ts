@@ -2,8 +2,10 @@ import { readFileSync, readdirSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
+import { withoutComments } from '../helpers/german'
+
 /**
- * Weniger, aber besser — nachgemessen statt behauptet.
+ * Less, but better — measured rather than asserted.
  *
  * Three habits that a design system loses one commit at a time, and that no
  * type or lint rule catches: a seventh type size because one heading wanted to
@@ -163,7 +165,7 @@ describe('the accent', () => {
  */
 describe('the basket badge', () => {
   const NAV = readFileSync('app/components/AppNav.vue', 'utf8')
-  const code = NAV.replace(/<!--[\s\S]*?-->/g, '')
+  const code = withoutComments(NAV)
 
   it('is positioned rather than laid out', () => {
     const badge = code.slice(code.indexOf('basketCount > 0'))

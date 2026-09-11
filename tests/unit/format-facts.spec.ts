@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { describeFormat, kindOf, MEDIUMS, mediumOf, sizeOf } from '#shared/format'
 
 /**
- * Was auf der Platte steht, in Teilen, die jemand lesen will.
+ * What is on the record, in parts somebody wants to read.
  *
  * The app knew the medium — it had to, for the filter — and showed neither it
  * nor anything else. A dig listed "Freude Am Tanzen · FAT 016 · 2003" and left

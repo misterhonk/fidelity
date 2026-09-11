@@ -22,7 +22,7 @@ const nodes = shallowRef<PlaceNode[]>([])
 const loading = ref(true)
 const error = ref<unknown>(null)
 
-/** Welcher Ort gerade aufgeklappt ist — einer genügt. */
+/** Which place is currently open — one is enough. */
 const open = ref<string | null>(null)
 const contents = shallowRef<CollectionItem[]>([])
 

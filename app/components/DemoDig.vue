@@ -82,7 +82,7 @@ const status = computed(() => {
 })
 
 /**
- * Wie weit der Lauf ist, als Anteil von 0 bis 1.
+ * How far the run has got, as a fraction from 0 to 1.
  *
  * Weighted rather than counted, because the three phases are not the same
  * size: fetching the seed is two requests, reading the shop is five, and the
@@ -255,7 +255,7 @@ function shapeOf(format: string | null) {
     </div>
     <p v-else class="text-fid-xs text-fid-text-muted">{{ m.demo.takesAMinute }}</p>
 
-    <!-- Das Ergebnis, wieder als Cover. -->
+    <!-- The result, as covers again. -->
     <section v-if="result" class="flex flex-col gap-3" aria-live="polite">
       <h3 class="flex items-center gap-2 text-fid-base font-medium text-fid-text">
         <img
@@ -275,7 +275,7 @@ function shapeOf(format: string | null) {
       <ul v-else class="grid grid-cols-2 gap-x-3 gap-y-5 @lg:grid-cols-3 @3xl:grid-cols-5">
         <li v-for="find in shown" :key="find.listingId" class="flex min-w-0 flex-col gap-2">
           <!--
-            Diese Kacheln führen hinaus, und das steht jetzt drauf.
+            These tiles lead out, and now they say so.
 
             A cover is a picture, so the mark cannot sit in a line of text the
             way `OutwardLink` does: it rides on the image, opposite the score,

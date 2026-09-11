@@ -850,7 +850,31 @@ fails, and a name on it whose file is already clean fails too.
 > jobs. The list was scaffolding: it made a 141-file backlog shrinkable one commit at a
 > time. The other half — *no German comment, anywhere* — is ADR-010 itself, and a rule with
 > nothing enforcing it is what put 5,473 lines there in the first place. So the list is
-> gone and the guard stays, with its own three probes.
+> gone and the guard stays.
+
+> **And the guard was wrong when this was first ticked.** It reported zero while 130 German
+> comments sat in 74 files, and M16 was declared done on that reading. Four holes, each
+> found by looking rather than by running it:
+>
+> 1. **A regex literal containing a quote derailed the walk.** `/'([^']*)'/` opened a
+>    phantom string and everything after it in the file went unseen — nine comments in four
+>    files, including the guard's own neighbours `template-text.spec.ts` and
+>    `one-measure.spec.ts`. The walk had learned about strings after `'/v1/*'` and stopped
+>    one delimiter short.
+> 2. **Each `//` line counted as its own comment.** A German sentence written across two
+>    lines put one or two words in each and fell under any threshold.
+> 3. **`.mjs` was outside the glob** — including `scripts/icons/lucide.mjs`, the generator
+>    this very checklist names as the relapse risk. Its German shipped into the generated
+>    file on every build.
+> 4. **The word list held eight words that are also English** (`die`, `was`, `hat`, `war`,
+>    `also`, `man`, `in`, `so`), which forced the threshold to three distinct hits. Most
+>    comments here are a line or two; a short German one carries one or two. That single
+>    number hid about a hundred.
+>
+> Dropping the eight ambiguous words buys the threshold back: one unambiguous German
+> function word is decisive, quoted spans do not count, and an all-capital word is an
+> acronym (`MIT` in a licence header matched `mit`). Six probes hold it — including one per
+> hole.
 
 **What the ratchet does not see, and did not:**
 

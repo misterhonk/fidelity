@@ -200,7 +200,7 @@ body {
 }
 
 /*
- * Ein Schritt löst den nächsten ab.
+ * One step gives way to the next.
  *
  * The onboarding replaces its whole panel at each step, and a swap with no
  * movement reads as a page that broke rather than a page that advanced. Out to

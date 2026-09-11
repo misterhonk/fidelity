@@ -95,7 +95,7 @@ export function waitingFor(days: number | null): string | null {
   if (days === null || !Number.isFinite(days)) return null
 
   const w = useCollectionMessages().value.wantlist.waiting
-  // Null Tage sind Arithmetik, keine Dauer.
+  // Zero days is arithmetic, not a duration.
   if (days < 1) return w.today
   if (days === 1) return w.yesterday
   if (days < 31) return w.days(count(days))

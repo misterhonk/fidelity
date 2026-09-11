@@ -1,5 +1,5 @@
 /**
- * Sechs Zeichen, die es bei Lucide nicht gibt.
+ * Six marks Lucide does not have.
  *
  * Lucide has a shopping basket and a house and a magnifying glass, and it has
  * no word for the things this app is actually about. A record, a sleeve, a
@@ -85,7 +85,7 @@ export const GLYPHS = {
   ],
 
   /**
-   * Regal: Platten auf einem Brett, unterschiedlich hoch.
+   * Shelf: records on a board, at differing heights.
    *
    * Spines rather than covers — a shelf seen from across a room is a row of
    * edges. The first version boxed them in and came out as a floppy disk: the
@@ -98,7 +98,7 @@ export const GLYPHS = {
   ],
 
   /**
-   * Wantlist: die Platte, die noch fehlt.
+   * Wantlist: the record that is still missing.
    *
    * A gap in the ring where the record is not, and the plus that would close
    * it. A heart would have said "favourite", which is the collection's job.

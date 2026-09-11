@@ -53,7 +53,7 @@ const price = computed(() => {
     class="group grid h-[34px] scroll-mt-28 grid-cols-[1.75rem_2.25rem_1fr_auto] items-center gap-x-2 rounded-fid-sm px-2 hover:bg-fid-surface"
   >
     <!--
-      Sechsundzwanzig Pixel Cover in einer 34-Pixel-Zeile.
+      Twenty-six pixels of cover in a 34-pixel row.
 
       This mode is a table and stays one — but a table of records with no
       records in it is a spreadsheet. At this size the sleeve is not something

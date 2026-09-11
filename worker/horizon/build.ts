@@ -122,7 +122,7 @@ export async function buildHorizon({
   let failed = 0
   let consecutiveFailures = 0
   let requests = 0
-  /** Wie viele alte Blöcke dieser Lauf beim Hub nachgereicht hat. */
+  /** How many old chunks this run handed to the hub. */
   let shared = 0
   let releaseIds = [...existing.values()].reduce(
     (sum, chunk) => sum + chunk.releaseIds.length,

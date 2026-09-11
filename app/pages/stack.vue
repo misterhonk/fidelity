@@ -36,7 +36,7 @@ const audioOn = ref(false)
 const audio = useAudioPreview()
 const mount = useTemplateRef<HTMLElement>('mount')
 
-/** Der Titel, wie Discogs ihn zu dieser Platte kennt — nicht der der Karte. */
+/** The title as Discogs knows it for this record — not the card's. */
 const hearing = computed(() =>
   audio.playing.value ? card.value?.videos?.[0]?.title || null : null,
 )
@@ -212,10 +212,10 @@ function up(event: PointerEvent) {
   dragging.value = false
   pointer = null
 
-  const weit = dragX.value
+  const distance = dragX.value
   dragX.value = 0
-  if (Math.abs(weit) < THRESHOLD) return
-  go(weit < 0 ? 1 : -1)
+  if (Math.abs(distance) < THRESHOLD) return
+  go(distance < 0 ? 1 : -1)
 }
 
 /*

@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-import { OVERLAPPING, germanComments } from '../helpers/german'
+import { germanComments } from '../helpers/german'
 
 /**
  * ADR-010 says English everywhere — code, comments, commits. The docs were
@@ -29,7 +29,7 @@ import { OVERLAPPING, germanComments } from '../helpers/german'
  * halves do different jobs. The list was scaffolding. This is the rule.
  */
 const IGNORED = /node_modules|[/.](nuxt|output|nitro|cache)|dist\/|coverage\//
-const SOURCES = globSync('**/*.{ts,mts,vue,css}', {
+const SOURCES = globSync('**/*.{ts,mts,mjs,vue,css}', {
   exclude: (path) => IGNORED.test(path),
 })
 
@@ -60,31 +60,49 @@ describe('the detector', () => {
     return file
   }
 
-  it('does not flag an English sentence that happens to use one of these', () => {
-    for (const word of OVERLAPPING) {
-      const file = write(`/** The process may ${word} here, and that is fine. */`)
-      expect(germanComments(file), word).toEqual([])
-      rmSync(file)
-    }
+  it('does not flag English that happens to quote German', () => {
+    const file = write('/** Where a "nur das Neue" run stops. */')
+    expect(germanComments(file)).toEqual([])
+    rmSync(file)
   })
 
-  it('flags a German comment of a single line', () => {
-    const file = write('// Der Wächter räumt hier nichts weg, und das ist Absicht.')
+  /** One unambiguous word is the bar — the version before this needed three. */
+  it('flags a single German word outside quotes', () => {
+    const file = write('/** Kurz, und trotzdem Deutsch. */')
+    expect(germanComments(file)).toHaveLength(1)
+    rmSync(file)
+  })
+
+  /**
+   * Two `//` lines are one paragraph.
+   *
+   * Counted apart, a German sentence split across two lines put one or two
+   * words in each — under any threshold worth having. Three files hid that way.
+   */
+  it('reads consecutive line comments as one comment', () => {
+    const file = write('// Ohne diese Zeile\n// bleibt der Satz unsichtbar.')
+    expect(germanComments(file)).toHaveLength(1)
+    rmSync(file)
+  })
+
+  /**
+   * A regex literal is not a string.
+   *
+   * `/'([^']*)'/ ` opened a phantom string in the first version, and every
+   * comment after it in the file went unseen. Nine did, across four files.
+   */
+  it('does not read a comment out of a regex literal', () => {
+    const file = write("const re = /'([^']*)'/g\n/** Dahinter, und trotzdem sichtbar. */")
     expect(germanComments(file)).toHaveLength(1)
     rmSync(file)
   })
 
   /** The bug that made the scanner necessary — a route pattern, not a comment. */
   it('does not read a comment out of a string literal', () => {
-    const file = join(tmpdir(), `german-probe-${Math.random().toString(36).slice(2)}.ts`)
-    writeFileSync(
-      file,
-      [
-        "app.use('/v1/*', cors())",
-        '// Der Wächter, und zwar nur dieser Kommentar.',
-        'const y = 1',
-        '/* done */',
-      ].join('\n'),
+    const file = write(
+      ["app.use('/v1/*', cors())", '// Der Wächter, und zwar nur dieser.', '/* done */'].join(
+        '\n',
+      ),
     )
     const found = germanComments(file)
     expect(found).toHaveLength(1)

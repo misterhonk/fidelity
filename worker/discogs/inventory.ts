@@ -13,7 +13,7 @@ export const dealerSchema = z.object({
   seller_num_ratings: z.number().int().optional(),
   location: z.string().optional(),
   /**
-   * Das Ladenschild.
+   * The shop sign.
    *
    * Free — this endpoint is fetched anyway, once per dig, to find out how big
    * the shop is. Most sellers have set one; the ones who have not get Discogs'

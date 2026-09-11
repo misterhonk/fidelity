@@ -7,7 +7,7 @@ import type { DiscogsClient } from '../discogs/client'
 import { FOR_SALE } from '../dig/refresh'
 
 /**
- * Angebote von Hand in den Korb holen.
+ * Putting listings into the basket by hand.
  *
  * Discogs' API has no cart — `/marketplace/cart` answers 404 where an endpoint
  * that merely needs a token answers 401 (docs/02, measured 2026-08-10). So

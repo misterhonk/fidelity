@@ -98,8 +98,8 @@ const states = db.prepare('SELECT dealer, num_for_sale FROM watch_state').all() 
 }[]
 
 for (const row of states) {
-  // `checked_at = 0` hebt die Stundensperre auf, sonst sieht dieser Durchgang
-  // gar nicht erst nach.
+  // `checked_at = 0` lifts the hourly bar; without it this pass would not look
+  // at all.
   db.prepare('UPDATE watch_state SET num_for_sale = ?, checked_at = 0 WHERE dealer = ?').run(
     Math.max(0, row.num_for_sale - by),
     row.dealer,

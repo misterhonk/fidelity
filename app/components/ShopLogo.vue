@@ -22,7 +22,7 @@ const props = withDefaults(
 )
 
 /**
- * Zwei Buchstaben aus dem Namen.
+ * Two letters out of the name.
  *
  * Split on what shop names actually use — `schoenwettermusik`,
  * `430AM_Studio`, `spirax.records` — so the second letter comes from the

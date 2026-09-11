@@ -113,7 +113,7 @@ describe('the Discogs credentials', () => {
 
     const headers = seen[0]?.headers as Record<string, string>
     assert.equal(headers.authorization, 'Discogs key=k123, secret=s456')
-    // Ein Geheimnis in einer URL landet in jedem Protokoll dazwischen.
+    // A secret in a URL lands in every log in between.
     assert.ok(!urls[0]?.includes('s456'))
     assert.ok(!urls[0]?.includes('k123'))
   })
@@ -229,7 +229,7 @@ describe('the watcher', () => {
   })
 
   test('asks a shop once, however many are watching it', async () => {
-    // Der ganze Grund, warum es diesen Dienst gibt.
+    // The whole reason this service exists.
     const db = setup()
     for (const n of [1, 2, 3]) {
       db.prepare(
@@ -313,7 +313,7 @@ describe('the watcher', () => {
   })
 
   test('keeps a recipient whose delivery only fails temporarily', async () => {
-    // 500 heißt "später nochmal", nicht "den gibt es nicht mehr".
+    // 500 means "try later", not "that one no longer exists".
     const db = setup()
     await watchRound({ db, fetchImpl: answering({ fatplastics: 100 }), sleep: nothing })
     db.prepare('UPDATE watch_state SET checked_at = 0').run()

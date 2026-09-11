@@ -3,6 +3,8 @@ import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
+import { withoutComments } from '../helpers/german'
+
 /**
  * Nothing a person reads is written into a template.
  *
@@ -169,32 +171,30 @@ const INTERPOLATION = /\$\{[^}]*\}/g
  */
 const ANY_STRING = /'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"|`((?:[^`\\]|\\.)*)`/gs
 
-/** Zwei Wörter, ein Leerzeichen. Ein Wort allein ist ein Schlüssel oder eine Klasse. */
+/** Two words, one space. A word on its own is a key or a class. */
 const TWO_WORDS = /[^\W\d_]{2,}[ ]+[^\W\d_]{2,}/u
 
 /**
- * Eine Tailwind-Klassenliste ist keine Prosa.
+ * A Tailwind class list is not prose.
  *
- * `text-fid-text-muted hover:text-fid-text` hat zwei Wörter und ein
- * Leerzeichen und ist trotzdem Code.
+ * `text-fid-text-muted hover:text-fid-text` has two words and a space and is
+ * still code.
  *
- * Die erste Fassung verlangte, dass **jedes** Wort einen Bindestrich oder
- * Doppelpunkt trägt. Das hielt genau so lange, bis eine echte Klassenliste
- * `flex`, `border` und `py-2` nebeneinander hatte — am 2026-09-11 an den
- * Knöpfen des Stapels. Tailwind hat nackte Hilfsklassen, und eine Regel, die
- * sie verbietet, verbietet Tailwind.
+ * The first version demanded that **every** word carry a hyphen or a colon.
+ * That held exactly until a real class list had `flex`, `border` and `py-2`
+ * side by side — on 2026-09-11, on the stack's buttons. Tailwind has bare
+ * utility classes, and a rule forbidding them forbids Tailwind.
  *
- * Also die Mehrheit statt aller: **über die Hälfte** der Wörter trägt eines
- * der beiden Zeichen. Das bleibt eine Regel über die Form — Klassenlisten
- * sind überwiegend zusammengesetzt, Sätze überwiegend nicht. „E-Mail-Adresse
- * nicht gefunden" hat eines von drei und wird weiterhin gemeldet.
+ * So the majority rather than all of them: **more than half** the words carry
+ * one of the two characters. That stays a rule about shape — class lists are
+ * mostly compound, sentences mostly are not. "E-mail address not found" has
+ * one of three and is still reported.
  *
- * **Die Lücke, gemessen und bewusst gelassen:** wer Prosa *in* eine lange
- * Klassenliste schreibt, kommt durch — bei dreizehn Klassen passen sechs
- * Wörter daneben, bevor die Mehrheit kippt. Das ist hinnehmbar, weil eine
- * Zeichenkette, die als `class` landet, **nie als Text erscheint**. Dieser
- * Wächter schützt, was jemand liest; ein Satz im Klassenattribut wird von
- * niemandem gelesen.
+ * **The gap, measured and left deliberately:** writing prose *inside* a long
+ * class list gets through — with thirteen classes, six words fit alongside
+ * before the majority tips. That is acceptable, because a string that lands as
+ * `class` **never appears as text**. This guard protects what somebody reads;
+ * a sentence in a class attribute is read by nobody.
  */
 function isClassList(value: string): boolean {
   const parts = value.split(/\s+/).filter(Boolean)
@@ -209,9 +209,9 @@ describe('a sentence in a script block', () => {
     const source = readFileSync(join(ROOT, file), 'utf8')
     const block = /<script setup[^>]*>([\s\S]*?)<\/script>/.exec(source)
     if (!block?.[1]) return []
-    // Kommentare erklären auf Deutsch und sollen es dürfen — sie stehen in
-    // keiner Oberfläche.
-    const code = block[1].replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
+    // Comments explain things and are allowed to; they appear in no
+    // interface.
+    const code = withoutComments(block[1])
     return [{ file, code }]
   })
 
@@ -238,26 +238,25 @@ describe('a sentence in a script block', () => {
 })
 
 /**
- * Und eine geworfene Fehlermeldung ist auch Text, den jemand liest.
+ * And a thrown error message is text somebody reads too.
  *
- * `explain.ts` endet mit `title: message || words.unknown` — eine Meldung
- * ohne Code wird also zum **Titel**, rot und ganz oben. Ein Satz, der als
- * `new Error('…')` geschrieben wird, steht damit nicht im Kleingedruckten,
- * sondern ist die Hauptmeldung.
+ * `explain.ts` ends with `title: message || words.unknown` — so a message with
+ * no code becomes the **title**, red and at the top. A sentence written as
+ * `new Error('…')` is therefore not in the small print; it is the headline.
  *
- * Am 2026-09-10 waren dreizehn davon deutsch, in einer englischen
- * Oberfläche: `useVaultCloud.ts`, `useVaultFile.ts`, `vault-file.ts`. Vier
- * Meldungen in denselben Dateien lasen längst aus dem Paket — das Muster
- * stand also daneben und wurde nicht befolgt.
+ * On 2026-09-10 thirteen of them were German, inside an English interface:
+ * `useVaultCloud.ts`, `useVaultFile.ts`, `vault-file.ts`. Four messages in the
+ * same files already read from the language pack — so the pattern stood beside
+ * them and was not followed.
  *
- * Geprüft wird nur `app/`. **Im Worker gilt diese Regel nicht und kann es
- * nicht:** die Pakete hängen an `activeLanguage()` im Hauptthread, und der
- * Worker rechnet, ohne etwas über Sprache zu wissen (CLAUDE.md). Dort ist die
- * richtige Form ein `code` am `WorkerError`, den `explain()` in Worte fasst —
- * `unauthorized`, `hub-unreachable` und `rate-limited` machen es vor. Zehn
- * geworfene deutsche Sätze im Worker warten noch darauf; sie stehen hier
- * bewusst nicht als Ausnahme, weil eine Ausnahmeliste sie unsichtbar machen
- * würde.
+ * Only `app/` is checked. **In the worker this rule does not apply and
+ * cannot:** the packs hang off `activeLanguage()` on the main thread, and the
+ * worker computes without knowing anything about language (CLAUDE.md). There
+ * the right form is a `code` on the `WorkerError` that `explain()` puts into
+ * words — `unauthorized`, `hub-unreachable` and `rate-limited` show how. Ten
+ * thrown German sentences in the worker are still waiting for it; they are
+ * deliberately not listed here as exceptions, because an exception list would
+ * make them invisible.
  */
 const THROWN = /throw new (?:\w*Error)\(\s*(['"`])((?:[^\\]|\\.)*?)\1/gs
 
@@ -277,7 +276,7 @@ describe('a thrown message', () => {
     for (const { file, source } of sources) {
       for (const [, , message] of source.matchAll(THROWN)) {
         if (message === undefined) continue
-        // `${…}` ist eine Wortgrenze, kein Wort.
+        // `${…}` is a word boundary, not a word.
         if (!TWO_WORDS.test(message.replace(INTERPOLATION, ' '))) continue
         literals.push(`${file}: ${message.slice(0, 70)}`)
       }

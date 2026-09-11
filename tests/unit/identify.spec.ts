@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { withoutComments } from '../helpers/german'
+
 import { openFidelityDb } from '~~/db/open'
 import { cleanBarcode, identify, identifyByRunout, looksLikeBarcode } from '~~/worker/identify'
 import type { CollectionItem } from '#shared/types'
@@ -66,7 +68,7 @@ beforeEach(async () => {
 describe('reading a barcode', () => {
   it('keeps only the digits a scanner should have given', () => {
     expect(cleanBarcode('5012394144777')).toBe('5012394144777')
-    // Scanner und Menschen liefern Leerzeichen und Bindestriche mit.
+    // Scanners and people hand over spaces and hyphens too.
     expect(cleanBarcode(' 501 239-414 4777 ')).toBe('5012394144777')
   })
 
@@ -197,16 +199,10 @@ describe('the screen that shows it', () => {
   const PAGE = readFileSync('app/pages/in-store.vue', 'utf8')
   const SCAN = readFileSync('app/composables/useBarcodeScan.ts', 'utf8')
 
-  const code = (source: string) =>
-    source
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/\/\/.*$/gm, '')
-      .replace(/<!--[\s\S]*?-->/g, '')
-
   /** It says there are several — or the first is taken for *the* one. */
   it('says that several pressings share the code', () => {
-    expect(code(PAGE)).toMatch(/scanPressings/)
-    expect(code(PAGE)).toMatch(/identified\.candidates\.length > 1/)
+    expect(withoutComments(PAGE)).toMatch(/scanPressings/)
+    expect(withoutComments(PAGE)).toMatch(/identified\.candidates\.length > 1/)
   })
 
   /**
@@ -216,9 +212,9 @@ describe('the screen that shows it', () => {
    * recognises nothing is worse than a sentence saying: you type here.
    */
   it('offers the camera only where it can read', () => {
-    expect(code(PAGE)).toMatch(/v-if="canScan"/)
-    expect(code(PAGE)).toMatch(/scanNotHere/)
-    expect(code(SCAN)).toMatch(/'BarcodeDetector' in globalThis/)
+    expect(withoutComments(PAGE)).toMatch(/v-if="canScan"/)
+    expect(withoutComments(PAGE)).toMatch(/scanNotHere/)
+    expect(withoutComments(SCAN)).toMatch(/'BarcodeDetector' in globalThis/)
   })
 
   /**
@@ -241,14 +237,16 @@ describe('the screen that shows it', () => {
    * number they are about to type.
    */
   it('takes a barcode or a run-out in one field', () => {
-    expect(code(PAGE)).toMatch(/identify\.runout/)
-    expect(code(PAGE)).toMatch(/identify\.barcode/)
-    expect(code(PAGE)).toMatch(/looksLikeBarcode/)
+    expect(withoutComments(PAGE)).toMatch(/identify\.runout/)
+    expect(withoutComments(PAGE)).toMatch(/identify\.barcode/)
+    expect(withoutComments(PAGE)).toMatch(/looksLikeBarcode/)
   })
 
   /** The camera stops when the screen is gone. */
   it('turns the camera off again', () => {
-    expect(code(SCAN)).toMatch(/onBeforeUnmount\(stop\)/)
-    expect(code(SCAN)).toMatch(/getTracks\(\)\.forEach\(\(track\) => track\.stop\(\)\)/)
+    expect(withoutComments(SCAN)).toMatch(/onBeforeUnmount\(stop\)/)
+    expect(withoutComments(SCAN)).toMatch(
+      /getTracks\(\)\.forEach\(\(track\) => track\.stop\(\)\)/,
+    )
   })
 })

@@ -122,7 +122,7 @@ export interface WorkerContract {
   /** Everything the start screen shows, from this device only. */
   'home.overview': { params: undefined; progress: never; result: HomeOverview }
   /**
-   * Fidelity an ein, zwei Platten — ohne Token.
+   * Fidelity on one or two records — without a token.
    *
    * Everything it reads answers unauthenticated (docs/02), so this is the one
    * request kind that works before anybody has signed in. It runs the real

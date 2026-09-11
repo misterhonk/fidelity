@@ -921,7 +921,7 @@ export interface Identified {
 export interface Place {
   id: string
   name: string
-  /** `null` ist die oberste Ebene — Wohnzimmer, Keller, Dachboden. */
+  /** `null` is the topmost level — living room, cellar, loft. */
   parentId: string | null
   createdAt: number
   /**
@@ -1019,9 +1019,9 @@ export interface WatchedRelease {
    * is watched over years and nobody reads three hundred measurements.
    */
   points: WatchPoint[]
-  /** Wann zuletzt nachgesehen wurde — null heißt: noch nie. */
+  /** When it was last looked up — null means: never yet. */
   checkedAt: number | null
-  /** Was zuletzt gemeldet wurde, damit dieselbe Nachricht nicht zweimal kommt. */
+  /** What was last reported, so the same message does not arrive twice. */
   notifiedAt: number | null
   /**
    * Offers from our own digs that are demonstrably gone (M11).
@@ -1482,7 +1482,7 @@ export interface GradingRecord {
   asDescribed: number
   better: number
   worse: number
-  /** Anteil „wie beschrieben oder besser", oder null bei zu wenigen. */
+  /** The share of "as described or better", or null when there are too few. */
   rate: number | null
 }
 

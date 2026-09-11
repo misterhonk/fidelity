@@ -40,7 +40,7 @@ const watching = (over: Partial<WatchedRelease>): WatchedRelease => ({
 })
 
 describe('a record of your own', () => {
-  /** Die Frage, die sonst niemand beantwortet. */
+  /** The question nobody else answers. */
   it('says when it has become worth more', () => {
     const news = judge(watching({ points: [punkt(60, 40), punkt(0, 95)], threshold: 25 }), NOW)
     expect(news).toEqual({ kind: 'rose', from: 40, to: 95, percent: 138, currency: 'EUR' })
@@ -155,7 +155,7 @@ describe('a record you are after', () => {
 })
 
 describe('the trail of measurements', () => {
-  /** Wer die App fünfmal öffnet, misst fünfmal dasselbe. */
+  /** Opening the app five times measures the same thing five times. */
   it('keeps one point per day, not one per look', () => {
     const morgens = punkt(0, 40)
     const mittags = { ...punkt(0, 41), at: morgens.at + 3600_000 }
@@ -168,7 +168,7 @@ describe('the trail of measurements', () => {
     expect(addPoint([gestern], heute)).toEqual([gestern, heute])
   })
 
-  /** Eine Platte wird über Jahre watching; niemand liest dreihundert Punkte. */
+  /** A record is watched over years; nobody reads three hundred points. */
   it('has a ceiling', () => {
     const viele = Array.from({ length: MAX_POINTS + 20 }, (_, i) => punkt(200 - i, 40))
     const nach = addPoint(viele, punkt(0, 41))

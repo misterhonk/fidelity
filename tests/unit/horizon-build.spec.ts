@@ -54,7 +54,7 @@ function expansion(candidate: Candidate, releaseIds: number[], requests = 2) {
       requests,
       releaseIds: Int32Array.from(releaseIds),
       roles: Uint8Array.from(releaseIds.map(() => 0)),
-      // Pflichtfeld am Typ und lange nirgends gebraucht — bis ein Beitrag an
+      // Required on the type and long needed nowhere — until a contribution to
       // the hub ran through `encodeChunk` and died on `toBase64(undefined)`.
       years: Int16Array.from(releaseIds.map(() => 1972)),
     },
@@ -313,7 +313,7 @@ describe('the daily revalidation', () => {
  * The contribution costs no Discogs request — the chunk is already there.
  */
 describe('den Hub nachträglich füllen', () => {
-  /** Jeder PUT auf den Horizont, mitgeschrieben. */
+  /** Every PUT to the horizon, recorded. */
   async function withHub(answer: () => Response) {
     await updatePreferences({ hubUrl: 'https://hub.test', hubSecret: 'wort' })
     const seen: string[] = []
@@ -350,7 +350,7 @@ describe('den Hub nachträglich füllen', () => {
     await withHub(ok)
     await build([candidate(1)])
 
-    // Zweiter Lauf, frischer Zähler: der Block trägt jetzt `sharedAt`.
+    // Second run, fresh counter: the chunk now carries `sharedAt`.
     const seen = await withHub(ok)
     const again = await build([candidate(1)])
 

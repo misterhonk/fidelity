@@ -126,7 +126,7 @@ describe('the pacer', () => {
   })
 
   /*
-   * Zwei Tabs, ein Limit.
+   * Two tabs, one limit.
    *
    * The limit is per IP and a tab is not. Two workers pacing themselves
    * perfectly still send twice as often as either believes — 100 requests a

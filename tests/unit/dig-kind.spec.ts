@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
+import { withoutComments } from '../helpers/german'
+
 import { digKind } from '~/utils/dig-kind'
 
 /**
@@ -84,9 +86,7 @@ describe('the verdict a dig is allowed to give', () => {
    * insisting on the absence of that string would otherwise trip over its own
    * explanation. The same trap is in `template-text.spec.ts`.
    */
-  const code = DIG.replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/\/\/.*$/gm, '')
+  const code = withoutComments(DIG)
 
   it('asks about the horizon before absolving the shop', () => {
     expect(DIG).toMatch(/await call\('horizon\.status', undefined\)/)

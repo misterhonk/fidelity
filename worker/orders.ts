@@ -109,7 +109,7 @@ export async function importOrder(
   const gekauftAm = order.created ? Date.parse(order.created) : NaN
   const at = Number.isNaN(gekauftAm) ? now : gekauftAm
 
-  let angelegt = 0
+  let added = 0
   let enriched = 0
 
   for (const item of order.items) {
@@ -123,7 +123,7 @@ export async function importOrder(
      * And it may already carry a verdict: anyone who has answered how the
      * record arrived should not be asked again after an import.
      */
-    const zeile: Feedback = {
+    const row: Feedback = {
       ...(existing ?? {
         listingId: item.id,
         releaseId: item.release.id,
@@ -140,16 +140,16 @@ export async function importOrder(
       updatedAt: now,
     }
 
-    await db.put('feedback', zeile)
+    await db.put('feedback', row)
     if (existing) enriched += 1
-    else angelegt += 1
+    else added += 1
   }
 
   return {
     ok: true,
     dealer,
     at,
-    added: angelegt,
+    added,
     enriched,
     records: order.items.map((item) => ({
       listingId: item.id,

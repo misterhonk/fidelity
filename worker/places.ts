@@ -18,10 +18,10 @@ import type { CollectionItem, Place, Placement, PlaceNode } from '#shared/types'
  *   own that the sync does not touch.
  */
 
-/** Drei Ebenen: Ort → Möbel → Fach. Mehr baut sich niemand. */
+/** Three levels: room → furniture → compartment. Nobody builds more. */
 export const MAX_DEPTH = 3
 
-/** Kurz, zufällig, und nur innerhalb dieses Geräts gültig. */
+/** Short, random, and valid only inside this device. */
 function newId(): string {
   return [...crypto.getRandomValues(new Uint8Array(8))]
     .map((b) => b.toString(16).padStart(2, '0'))

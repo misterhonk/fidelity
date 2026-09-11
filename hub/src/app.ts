@@ -204,7 +204,7 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     return c.json({ stored: true })
   })
 
-  // --- Der Wächter ------------------------------------------------------------
+  // --- The watcher -----------------------------------------------------------
 
   /*
    * The public VAPID key. Without it a browser cannot create a subscription at
@@ -258,7 +258,7 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
   // --- Covers ---------------------------------------------------------------
 
   /*
-   * Gebündelt, nicht einzeln.
+   * Batched, not one at a time.
    *
    * A screen asks for about a dozen covers at once, and a dozen round trips to
    * a Raspberry Pi — each with its own two-second ceiling — would cost more

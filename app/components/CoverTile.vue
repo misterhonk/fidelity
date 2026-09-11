@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * Ein Cover in einer Reihe.
+ * One cover in a rail.
  *
  * The image is never fetched actively — `loading="lazy"` and nothing else.
  * i.discogs.com has its own Cloudflare limit of roughly 30–40 a minute that
@@ -39,7 +39,7 @@ const props = withDefaults(
      */
     to?: string | null
     /**
-     * Was passiert, wenn jemand die Kachel antippt.
+     * What happens when somebody taps the tile.
      *
      * A callback rather than an emit, and that is the whole point. This used to
      * be `@open`, and the element decided what to render by asking

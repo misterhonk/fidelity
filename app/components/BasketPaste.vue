@@ -6,7 +6,7 @@ import { useBasketMessages } from '~/i18n/basket'
 const b = useBasketMessages()
 const m = useMessages()
 /**
- * Der Weg aus dem Discogs-Warenkorb hierher.
+ * The way from the Discogs cart to here.
  *
  * Discogs does not expose a cart over its API — `/marketplace/cart` answers
  * 404 where an endpoint that merely wants a token answers 401 — so Fidelity

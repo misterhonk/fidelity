@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
+import { withoutComments } from '../helpers/german'
+
 /**
  * A shared find list — and the three promises that hold it together.
  *
@@ -26,24 +28,19 @@ const PAGE = readFileSync('app/pages/shared.vue', 'utf8')
 const DIG = readFileSync('app/pages/dig.vue', 'utf8')
 
 /** Without comments — this file explains what it checks, and so do the others. */
-const code = (source: string) =>
-  source
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/\/\/.*$/gm, '')
-    .replace(/<!--[\s\S]*?-->/g, '')
 
 describe('the link that carries a find list', () => {
   it('puts the key in the fragment, never in the query', () => {
     // `#k=` and nothing else. A `?k=` here would be the whole bug.
-    expect(code(DIG)).toMatch(/\/shared\?id=\$\{[^}]+\}#k=\$\{[^}]+\}/)
-    expect(code(DIG)).not.toMatch(/[?&]k=/)
+    expect(withoutComments(DIG)).toMatch(/\/shared\?id=\$\{[^}]+\}#k=\$\{[^}]+\}/)
+    expect(withoutComments(DIG)).not.toMatch(/[?&]k=/)
   })
 
   it('reads it back out of the fragment', () => {
-    expect(code(PAGE)).toMatch(/location\.hash/)
+    expect(withoutComments(PAGE)).toMatch(/location\.hash/)
     // And the id from the query, because that is where it belongs: the server
     // has to see it or it finds nothing.
-    expect(code(PAGE)).toMatch(/route\.query\.id/)
+    expect(withoutComments(PAGE)).toMatch(/route\.query\.id/)
   })
 
   /**
@@ -53,8 +50,8 @@ describe('the link that carries a find list', () => {
    * list — and the difference is invisible in a running app.
    */
   it('draws the key from the browser’s own randomness', () => {
-    expect(code(SHARE)).toMatch(/crypto\.getRandomValues/)
-    expect(code(SHARE)).not.toMatch(/Math\.random/)
+    expect(withoutComments(SHARE)).toMatch(/crypto\.getRandomValues/)
+    expect(withoutComments(SHARE)).not.toMatch(/Math\.random/)
   })
 })
 
@@ -67,7 +64,7 @@ describe('the recipient', () => {
    * secret does not belong at a server just because a link points at it.
    */
   it('asks without a secret, because they have none', () => {
-    expect(code(SHARE)).toMatch(
+    expect(withoutComments(SHARE)).toMatch(
       /createHubClient\(\{\s*baseUrl:\s*hubUrl,\s*secret:\s*null\s*\}\)/,
     )
   })
@@ -77,7 +74,7 @@ describe('the recipient', () => {
     // `headers` — the *reading* device's secret is in there.
     // Read without comments: the reasoning beside it contains the word
     // `headers`, and that must not trip the test.
-    const bare = code(CLIENT)
+    const bare = withoutComments(CLIENT)
     const shareRead = bare.slice(bare.indexOf('async shareRead('))
     const body = shareRead.slice(0, shareRead.indexOf('async contributeHorizon'))
     expect(body).not.toMatch(/\bheaders\b(?!:)/)
@@ -100,32 +97,32 @@ describe('the six-hour rule', () => {
    * prices somebody gets to see.
    */
   it('carries the dig’s own clock, not a fresh one', () => {
-    expect(code(SHARE)).toMatch(/expiresAt: dig\.expiresAt/)
-    expect(code(SHARE)).toMatch(/hub\.shareWrite\(id, sealed, dig\.expiresAt\)/)
-    // Keine eigene Frist irgendwo in dieser Datei.
-    expect(code(SHARE)).not.toMatch(/6 \* 60 \* 60|21_600_000|SIX_HOURS/)
+    expect(withoutComments(SHARE)).toMatch(/expiresAt: dig\.expiresAt/)
+    expect(withoutComments(SHARE)).toMatch(/hub\.shareWrite\(id, sealed, dig\.expiresAt\)/)
+    // No deadline of its own anywhere in this file.
+    expect(withoutComments(SHARE)).not.toMatch(/6 \* 60 \* 60|21_600_000|SIX_HOURS/)
   })
 
   it('refuses to share what may no longer be shown', () => {
-    expect(code(SHARE)).toMatch(/Date\.now\(\) >= dig\.expiresAt/)
+    expect(withoutComments(SHARE)).toMatch(/Date\.now\(\) >= dig\.expiresAt/)
   })
 
   it('checks again when the link is opened', () => {
     // And this time it is not a dead branch: the server has one clock, the
     // device another, and the one somebody is sitting in front of counts.
-    expect(code(SHARE)).toMatch(/Date\.now\(\) >= snapshot\.expiresAt/)
+    expect(withoutComments(SHARE)).toMatch(/Date\.now\(\) >= snapshot\.expiresAt/)
   })
 
   it('takes the button away once the dig is stale', () => {
-    expect(code(DIG)).toMatch(/v-if="!expired"/)
+    expect(withoutComments(DIG)).toMatch(/v-if="!expired"/)
   })
 })
 
 describe('what travels', () => {
   /** The screen makes the selection, not a second database read. */
   it('shares the list that is on screen, folded copies and all', () => {
-    expect(code(SHARE)).toMatch(/loaded\.matches\.slice\(0, MAX_SHARED_MATCHES\)/)
-    expect(code(SHARE)).toMatch(/matchesTotal: loaded\.matches\.length/)
+    expect(withoutComments(SHARE)).toMatch(/loaded\.matches\.slice\(0, MAX_SHARED_MATCHES\)/)
+    expect(withoutComments(SHARE)).toMatch(/matchesTotal: loaded\.matches\.length/)
   })
 
   /**
@@ -136,6 +133,6 @@ describe('what travels', () => {
    * that form.
    */
   it('says how many there really were', () => {
-    expect(code(PAGE)).toMatch(/snapshot\.matchesTotal/)
+    expect(withoutComments(PAGE)).toMatch(/snapshot\.matchesTotal/)
   })
 })

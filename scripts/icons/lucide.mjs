@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Die benutzten Lucide-Icons, und nur die.
+ * The Lucide icons this app uses, and only those.
  *
  * `@iconify-json/lucide` carries 1.834 icons. Depending on it at runtime, or
  * copying path data by hand into a component, are both wrong for different
@@ -35,72 +35,70 @@ const NEEDED = {
   'shopping-basket': 'Navigation: basket',
   store: 'Navigation: shops',
   settings: 'Navigation: settings',
-  map: 'Sammlungsreiter: Landkarte',
+  map: 'Collection tab: map',
   'arrow-left': 'Back, in the settings',
   'arrow-up': 'Back to the top of a long list',
-  search: 'Befehlspalette und Suchfelder',
+  search: 'Command palette and search fields',
   download: 'Export',
   'trash-2': 'Delete everything',
-  'wifi-off': 'Offline-Hinweis',
+  'wifi-off': 'The offline notice',
   /*
-   * Merken und Gekauft sind Aktionen, keine Bewertungen.
+   * Save and Bought are actions, not ratings.
    *
-   * Sie waren einmal zwei von vier Daumen-und-Smiley-Symbolen in einer Reihe,
-   * und der vierte trug ausgerechnet einen Einkaufswagen — direkt neben dem
-   * Knopf „In den Korb", der etwas ganz anderes tut. Ein Lesezeichen merkt
-   * vor, ein Häkchen sagt „habe ich", und beides ist ohne Beschriftung
-   * erkennbar.
+   * They were once two of four thumb-and-smiley symbols in a row, and the
+   * fourth carried a shopping trolley of all things — right beside the "add to
+   * basket" button, which does something else entirely. A bookmark says "set
+   * aside", a tick says "have it", and both read without a label.
    */
   /*
-   * Der Einkaufswagen bleibt — aber nur noch für den Korb, im Laden-Screen.
-   * Er war zusätzlich das Symbol der Bewertung „gekauft" und stand damit
-   * zweimal nebeneinander für zwei verschiedene Dinge.
+   * The trolley stays — but only for the basket now, on the shop screen. It
+   * was also the symbol of the "bought" rating, and so stood twice side by
+   * side for two different things.
    */
-  'shopping-cart': 'In den Korb (Laden-Screen)',
+  'shopping-cart': 'Add to basket (shop screen)',
 
   /*
-   * Der Pfeil, der aus dem Kasten zeigt. Ein Link, der die App verlässt, soll
-   * das vorher sagen — "View at Discogs" sah aus wie jeder andere Textlink,
-   * und der Sprung in einen neuen Tab kam unangekündigt.
+   * The arrow pointing out of the box. A link that leaves the app should say
+   * so beforehand — "View at Discogs" looked like any other text link, and the
+   * jump into a new tab came unannounced.
    */
-  'external-link': 'Führt aus der App heraus',
+  'external-link': 'Leads out of the app',
 
-  bookmark: 'Merken — trägt in die Merkliste ein',
-  check: 'Gekauft — trägt in die Gekauft-Liste ein',
+  bookmark: 'Save — enters it on the saved list',
+  check: 'Bought — enters it on the bought list',
 
   /*
-   * Die zwei folgenlosen Bewertungen. Sie werden gespeichert und von nichts
-   * gelesen — das Lernen, für das sie gedacht waren, ist nie gebaut worden
-   * (worker/match/ fasst den feedback-Store nicht an). Sie sind deshalb in der
-   * Oberfläche abgeschaltet, aber nicht gelöscht: kommt das Lernen, kommen sie
-   * mit einem Schalter zurück. Ihre Symbole bleiben hier, damit dieser
-   * Schalter genau das ist — ein Schalter, kein Wiederaufbau.
+   * The two ratings with no consequence. They are stored and read by nothing —
+   * the learning they were meant for was never built (worker/match/ does not
+   * touch the feedback store). So they are switched off in the interface but
+   * not deleted: if the learning arrives, they come back with a switch. Their
+   * symbols stay here so that the switch is exactly that — a switch, not a
+   * rebuild.
    */
-  'thumbs-down': 'Bewertung: danebengegriffen (abgeschaltet)',
-  meh: 'Bewertung: naja (abgeschaltet)',
+  'thumbs-down': 'Rating: not for me (switched off)',
+  meh: 'Rating: so-so (switched off)',
 
   /*
-   * Der Stapel (M15). Sechs Knöpfe in einer Reihe, auf einem Telefon
-   * nebeneinander — dort trägt das Symbol, was der Text bei 360 px Breite
-   * nicht mehr kann.
+   * The stack (M15). Six buttons in a row, side by side on a phone — there the
+   * symbol carries what the text can no longer carry at 360 px.
    *
-   * `arrow-left` gab es schon; `arrow-right` ist sein Gegenstück und fehlte
-   * nur, weil bisher nie etwas vorwärts ging. Bewusst **keine** neuen Symbole
-   * für „Interessant" und „In den Korb": dort stehen `bookmark` und
-   * `shopping-cart`, dieselben wie auf der Trefferkarte. Zwei Symbole für
-   * dieselbe Handlung wären zwei Dinge zu lernen statt einem.
+   * `arrow-left` already existed; `arrow-right` is its counterpart and was
+   * missing only because nothing had ever gone forwards. Deliberately **no**
+   * new symbols for "save" and "add to basket": those are `bookmark` and
+   * `shopping-cart`, the same as on the match card. Two symbols for one action
+   * would be two things to learn instead of one.
    */
   'arrow-right': 'Stack: one record on',
   play: 'Stack: start the audio preview',
   square: 'Stack: stop the audio preview — a square, because pause promises something else',
   'share-2': 'Stack: share the find list',
 
-  /* Sammlungsreiter: Im Blick (M11) — die Platten, deren Marktwert verfolgt wird. */
-  eye: 'Sammlungsreiter: Im Blick',
-  /* Sammlungsreiter: Orte (M12) — wo die Platte in der Wohnung steht. */
+  /* Collection tab: watched (M11) — the records whose market value is tracked. */
+  eye: 'Collection tab: watched',
+  /* Collection tab: places (M12) — where the record stands in the flat. */
   'map-pin': 'Collection tab: places',
-  /* Im Laden: Barcode scannen (M13). */
-  scan: 'Barcode scannen',
+  /* In the shop: scanning a barcode (M13). */
+  scan: 'Scan a barcode',
 }
 
 /**

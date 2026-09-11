@@ -74,7 +74,8 @@ describe('a place', () => {
     expect(cellarNode.recordsBelow).toBe(2)
   })
 
-  /** Drei Ebenen: Ort → Möbel → Fach. Wer eine vierte braucht, benennt besser. */
+  /** Three levels: room → furniture → compartment. Anyone needing a fourth
+   * should name things better. */
   it('stops at three levels', async () => {
     const a = (await createPlace('Wohnzimmer', null))!
     const b = (await createPlace('Regal', a.id))!
@@ -119,7 +120,7 @@ describe('a place', () => {
      */
     expect(await db.get('placements', 1)).toMatchObject({ placeId: null })
 
-    // Und die Kiste steht jetzt oben statt nirgends.
+    // And the crate now stands at the top rather than nowhere.
     const nodes = await placesOverview()
     expect(nodes.find((n) => n.id === kiste.id)?.parentId).toBeNull()
   })
@@ -208,7 +209,7 @@ describe('finding things again', () => {
     expect(await placeContents(cellar.id)).toEqual([])
   })
 
-  /** Wer umzieht, trägt Kisten, keine Platten. */
+  /** Somebody moving carries crates, not records. */
   it('moves a whole box at once', async () => {
     const alt = (await createPlace('Kiste 3', null))!
     const neu = (await createPlace('Regal 2', null))!
@@ -271,7 +272,7 @@ describe('where the location is kept', () => {
     expect(item.slice(0, item.indexOf('\n}'))).not.toMatch(/placeId/)
   })
 
-  /** Am Exemplar, nicht am Release: zwei Pressungen liegen an zwei Stellen. */
+  /** On the copy, not on the release: two pressings sit in two places. */
   it('hangs on the copy, not on the record', () => {
     const types = readFileSync('shared/types.ts', 'utf8')
     const placement = types.slice(types.indexOf('export interface Placement'))
@@ -279,7 +280,7 @@ describe('where the location is kept', () => {
     expect(placement.slice(0, placement.indexOf('\n}'))).not.toMatch(/releaseId/)
   })
 
-  /** Und nichts davon geht irgendwohin. */
+  /** And none of it goes anywhere. */
   it('never leaves the device', () => {
     const source = readFileSync('worker/places.ts', 'utf8')
     expect(source).not.toMatch(/fetch\(|DiscogsClient|hub|discogs\.com/i)

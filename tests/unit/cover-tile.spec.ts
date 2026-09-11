@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
+import { withoutComments } from '../helpers/german'
+
 /**
  * A tile that is meant to do something is clickable too.
  *
@@ -24,20 +26,18 @@ const TILE = readFileSync('app/components/CoverTile.vue', 'utf8')
  * Comments stripped, because this file explains the bug it fixes by name and a
  * check that reads prose would fail on its own explanation.
  */
-const code = (source: string) =>
-  source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '')
 
 describe('a cover tile', () => {
   it('decides what it is from its own props, not from $attrs', () => {
     // `$attrs.onOpen` is the bug. Any reading of it is the bug coming back.
-    expect(code(TILE)).not.toMatch(/\$attrs\.onOpen/)
+    expect(withoutComments(TILE)).not.toMatch(/\$attrs\.onOpen/)
   })
 
   it('does not declare the click as an emit', () => {
     // An emit is exactly what removes the listener from `$attrs`, and it is
     // what made the two facts — "is bound" and "is interactive" — able to
     // disagree.
-    expect(code(TILE)).not.toMatch(/defineEmits/)
+    expect(withoutComments(TILE)).not.toMatch(/defineEmits/)
   })
 
   it('renders a button when it has something to do', () => {
@@ -93,7 +93,7 @@ describe('a cover tile', () => {
     // Said through the message pack, not as a literal. It used to be a German
     // string sitting in the markup, which the English build read out too.
     expect(TILE).toMatch(/m\.common\.atDiscogs\(title\)/)
-    expect(code(TILE)).not.toMatch(/bei Discogs/)
+    expect(withoutComments(TILE)).not.toMatch(/bei Discogs/)
   })
 })
 

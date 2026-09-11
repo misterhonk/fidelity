@@ -53,7 +53,7 @@ const watching = (over: Partial<WatchedRelease> = {}): WatchedRelease => ({
   title: 'Journey in Satchidananda',
   since: NOW - 90 * TAG,
   threshold: null,
-  // Von fünf auf zwei: `fewer` greift, also wird nachgefragt.
+  // From five to two: `fewer` applies, so it asks.
   points: [
     { at: NOW - 60 * TAG, lowestPrice: 40, currency: 'EUR', numForSale: 5 },
     { at: NOW - TAG, lowestPrice: 44, currency: 'EUR', numForSale: 2 },

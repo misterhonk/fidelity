@@ -40,7 +40,7 @@ function randomHex(bytes: number): string {
 
 export interface ShareCreated {
   id: string
-  /** Gehört ins `#`-Fragment und nirgendwo sonst hin. */
+  /** Belongs in the `#` fragment and nowhere else. */
   key: string
   /** When it expires — the dig's clock, not the sharing's. */
   expiresAt: number

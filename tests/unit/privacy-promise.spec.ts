@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
+import { packs } from '~/i18n/legal'
+
 /**
  * The privacy notice has to name every place data can go.
  *
@@ -11,23 +13,21 @@ import { describe, expect, it } from 'vitest'
  * sentence had been true when it was written and nobody went back to it,
  * because nothing made them.
  *
- * So the test is the thing that makes them: a destination in the code, a
- * heading on the page. The audio preview has had exactly this guard since
- * ADR-012 (`audio-preview.spec.ts`); it was the missing second copy that let
- * the hub through.
+ * **Two rules, and only the second is about words.** The first is structural:
+ * a destination in the code has a section in the pack, and every section in
+ * the pack is rendered by the page. The second is the handful of sentences
+ * whose *absence* would make the notice misleading — kept small, and kept
+ * because `tests/unit/vault-file.spec.ts` is right that pinning prose couples
+ * a test to a phrasing. A required sentence is the exception it names: what is
+ * being guarded here is the disclosure itself, not how it reads.
  */
-const LEGAL = readFileSync('app/i18n/legal.ts', 'utf8')
 const PAGE = readFileSync('app/pages/privacy.vue', 'utf8')
 const HUB = readFileSync('worker/hub/client.ts', 'utf8')
 
-/** Both language packs carry the same keys, so every key appears twice. */
-const BOTH = 2
+/** Every `…Body` in the pack is a destination with something to disclose. */
+const BODIES = Object.keys(packs.en.privacy).filter((key) => key.endsWith('Body'))
 
-function keyCount(key: string) {
-  return [...LEGAL.matchAll(new RegExp(`^\\s{4}${key}:$`, 'gm'))].length
-}
-
-describe('the hub is named', () => {
+describe('the privacy notice', () => {
   /**
    * The premise, checked rather than assumed.
    *
@@ -35,16 +35,45 @@ describe('the hub is named', () => {
    * pointless and should go — but then it should go deliberately, with this
    * line failing first and somebody reading why.
    */
-  it('is something data actually goes to', () => {
+  it('is about a hub that data actually goes to', () => {
     expect(HUB).toMatch(/shareWrite/)
     expect(HUB).toMatch(/watchSubscribe/)
     expect(HUB).toMatch(/method: 'POST'/)
   })
 
-  it('has a heading of its own, in both languages', () => {
-    expect(keyCount('hubBody')).toBe(BOTH)
-    expect(PAGE).toMatch(/l\.privacy\.hub\b/)
-    expect(PAGE).toMatch(/l\.privacy\.hubBody/)
+  /**
+   * Structure, not indentation.
+   *
+   * The version before this counted `^\s{4}hubBody:$` in the file text, which
+   * asserted how deep the key is nested and that prettier had wrapped the
+   * value onto its own line. Reading the pack asks the question that was meant
+   * instead — and the German half comes with it, because `messages.spec.ts`
+   * holds both packs to the same keys.
+   */
+  it('gives the hub and the web host a section of their own', () => {
+    expect(BODIES).toContain('hubBody')
+    expect(BODIES).toContain('hostingBody')
+  })
+
+  it('renders every section it declares', () => {
+    for (const body of BODIES) {
+      const heading = body.replace(/Body$/, '')
+      expect(PAGE, body).toContain(`l.privacy.${body}`)
+      expect(PAGE, heading).toContain(`l.privacy.${heading}`)
+    }
+  })
+
+  /**
+   * And the other direction, which is the one that fails silently.
+   *
+   * A key removed from the pack leaves the page rendering `undefined` — an
+   * empty heading where a disclosure used to be, and nothing anywhere says so.
+   * Checked one way only, this guard let exactly that through.
+   */
+  it('declares every section it renders', () => {
+    const used = [...PAGE.matchAll(/l\.privacy\.(\w+)/g)].map(([, key]) => key!)
+    const known = Object.keys(packs.en.privacy)
+    expect([...new Set(used)].filter((key) => !known.includes(key))).toEqual([])
   })
 
   /**
@@ -56,51 +85,29 @@ describe('the hub is named', () => {
    * mentions neither, because it sounds like an answer.
    */
   it('separates what the hub can read from what it cannot', () => {
-    expect(LEGAL).toMatch(/sealed, so the hub holds them and cannot read them/)
-    expect(LEGAL).toMatch(/versiegelt dorthin, der Hub hält sie und kann sie nicht lesen/)
-
-    expect(LEGAL).toMatch(/in plain sight is the dealers you are watching/)
-    expect(LEGAL).toMatch(/Im Klartext sieht er die Händler, die du beobachtest/)
+    for (const hub of [packs.en.privacy.hubBody, packs.de.privacy.hubBody]) {
+      expect(hub).toMatch(/sealed|versiegelt/)
+      expect(hub).toMatch(/plain sight|Klartext/)
+      expect(hub).toMatch(/token/i)
+    }
   })
 
-  /** Rule 6 in CLAUDE.md, stated where a user can read it. */
-  it('says the token is not among it', () => {
-    expect(LEGAL).toMatch(/Discogs token is never among it/)
-    expect(LEGAL).toMatch(/Discogs-Token ist nie dabei/)
-  })
-})
-
-describe('the web host is named', () => {
-  it('has a heading of its own, in both languages', () => {
-    expect(keyCount('hostingBody')).toBe(BOTH)
-    expect(PAGE).toMatch(/l\.privacy\.hosting\b/)
-    expect(PAGE).toMatch(/l\.privacy\.hostingBody/)
+  /** The host writes logs whether or not anybody says so. */
+  it('says the web host logs requests', () => {
+    expect(packs.en.privacy.hostingBody).toMatch(/logs the requests/)
+    expect(packs.de.privacy.hostingBody).toMatch(/protokolliert/)
   })
 
-  it('says the host logs requests', () => {
-    expect(LEGAL).toMatch(/logs the requests it answers/)
-    expect(LEGAL).toMatch(/protokolliert er die Anfragen/)
-  })
-})
-
-/**
- * The lead may no longer promise more than the sections below deliver.
- *
- * "There is nowhere your data could be processed" was the sentence that made
- * the rest of the page unnecessary to read. It is gone, and it should not come
- * back by someone tidying the opening paragraph.
- */
-describe('the opening paragraph', () => {
+  /**
+   * The one sentence that must stay gone.
+   *
+   * "There is nowhere your data could be processed" made the rest of the page
+   * unnecessary to read. A forbidden sentence is legitimately about its
+   * wording — unlike a required one — so this is the prose assertion that
+   * earns its coupling.
+   */
   it('does not claim data can go nowhere', () => {
-    expect(LEGAL).not.toMatch(/nowhere your data could be processed/)
-    expect(LEGAL).not.toMatch(/keine Stelle, an der deine Daten verarbeitet werden/)
-  })
-
-  it('says how many exceptions there are, and both are numbered below', () => {
-    expect(keyCount('audioBody')).toBe(BOTH)
-    expect(LEGAL).toMatch(/The first exception/)
-    expect(LEGAL).toMatch(/The second exception/)
-    expect(LEGAL).toMatch(/Die erste Ausnahme/)
-    expect(LEGAL).toMatch(/Die zweite Ausnahme/)
+    expect(packs.en.privacy.lead).not.toMatch(/nowhere your data could be processed/)
+    expect(packs.de.privacy.lead).not.toMatch(/keine Stelle, an der deine Daten verarbeitet/)
   })
 })

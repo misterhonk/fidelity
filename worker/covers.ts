@@ -38,7 +38,7 @@ const releaseImagesSchema = z.object({
 })
 
 /**
- * Wie viele auf einen Rutsch.
+ * How many in one go.
  *
  * Twelve is about one screen of results and about fifteen seconds at the
  * signed-in pace. Small enough that a dig started right after does not queue
@@ -53,7 +53,7 @@ export interface CoverProgress {
 }
 
 /**
- * Holt die fehlenden Cover und legt sie ab.
+ * Fetches the missing covers and files them.
  *
  * Returns what was newly learned. Releases Discogs has no picture for are
  * stored as empty rather than skipped, so they are asked about exactly once.

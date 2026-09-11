@@ -114,7 +114,7 @@ export interface FormatFacts {
 }
 
 /**
- * Ein Formatstring, aufgeteilt in das, was jemand wissen will.
+ * A format string, split into what somebody wants to know.
  *
  * `2xCD, Album, Mono, Dlx, RE, RM` is six facts of which two matter at a
  * glance. The rest — mono, deluxe, reissue, remastered — is in the pressing

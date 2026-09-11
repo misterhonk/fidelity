@@ -15,7 +15,7 @@
 export const MIN_REQUEST_INTERVAL_MS = 1200
 
 /**
- * Und ohne Token: 25 statt 60 pro Minute.
+ * And without a token: 25 a minute instead of 60.
  *
  * Measured 2026-08-10 — every endpoint the app reads answers unauthenticated
  * with `x-discogs-ratelimit: 25`. The demo runs without a token by design, so

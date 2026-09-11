@@ -114,7 +114,7 @@ function boot(mount: HTMLElement, first: string): Promise<Player> {
 }
 
 export function useAudioPreview() {
-  /** Ob überhaupt schon einmal getippt wurde — davor existiert nichts. */
+  /** Whether anybody has ever tapped — before that, nothing exists. */
   const armed = ref(false)
   const playing = ref<string | null>(null)
   const failed = ref(false)

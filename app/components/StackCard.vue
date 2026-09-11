@@ -13,7 +13,7 @@ import { useDigMessages } from '~/i18n/dig'
  */
 const props = defineProps<{
   match: Match
-  /** Grau, sobald `dig.expiresAt` überschritten ist — Preise verschwinden dann. */
+  /** Grey once `dig.expiresAt` has passed — prices disappear then. */
   expired: boolean
 }>()
 

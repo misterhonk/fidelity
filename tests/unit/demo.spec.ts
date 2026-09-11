@@ -5,7 +5,7 @@ import { DEMO_PAGES, MAX_SEEDS, runDemo } from '~~/worker/demo'
 import { reasonFor } from '~/i18n/reason'
 
 /**
- * Fidelity ohne Token, an einer Platte.
+ * Fidelity without a token, on one record.
  *
  * The demo exists because the setup screen asked for the key to somebody's
  * Discogs account before showing them anything at all. Its worth rests

@@ -1,7 +1,7 @@
 import { devices, expect, test } from '@playwright/test'
 
 /**
- * Hell und dunkel, und was auf einem Telefon passiert.
+ * Light and dark, and what happens on a phone.
  *
  * Two things are worth a browser rather than a unit test here. The first is
  * that the theme has to be right *before* the first paint — a class applied

@@ -133,8 +133,8 @@ export const collectionPageSchema = z.object({
   releases: z.array(
     z.object({
       id: z.number().int(),
-      // Beide zusammen adressieren einen Sammlungseintrag beim Schreiben:
-      // a release can stand on the shelf more than once, an instance only once.
+      // Together these address a collection row when writing: a release can
+      // stand on the shelf more than once, an instance only once.
       instance_id: z.number().int().optional(),
       folder_id: z.number().int().optional(),
       date_added: z.string(),

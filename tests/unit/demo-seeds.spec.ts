@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { DEALER_LOGOS, DEMO_SEEDS, seedsForToday, SEEDS_SHOWN } from '~/utils/demo-seeds'
 
 /**
- * Vier Platten, die einladend aussehen sollen.
+ * Four records meant to look inviting.
  *
  * The pool is offered four at a time, taken consecutively, and rotated by the
  * date. Grouped by genre — which is how it was first written — that produced

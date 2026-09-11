@@ -21,9 +21,9 @@ export const STOCK_PAGE = 50
 
 export interface StockQuery {
   dealer: string
-  /** Genau die Schreibweise aus dem Balken. */
+  /** Exactly the spelling from the bar. */
   label?: string | null
-  /** `1990` für die Neunziger. */
+  /** `1990` for the nineties. */
   decade?: number | null
   offset?: number
   limit?: number

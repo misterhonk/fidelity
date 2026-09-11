@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
+import { withoutComments } from '../helpers/german'
+
 /**
  * The cover in the two sheets: as large as it goes, and with no false promise.
  *
@@ -30,8 +32,6 @@ const SHELF = readFileSync('app/components/ShelfSheet.vue', 'utf8')
 const RELEASE = readFileSync('app/components/ReleaseSheet.vue', 'utf8')
 
 /** Without comments — this file explains what it checks, and so do the sheets. */
-const code = (source: string) =>
-  source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '')
 
 describe.each([
   ['the shelf sheet', SHELF],
@@ -46,10 +46,10 @@ describe.each([
    * already settled.
    */
   it('makes no promise about a width it cannot keep', () => {
-    expect(code(source)).not.toMatch(/srcset/)
-    expect(code(source)).not.toMatch(/600w/)
+    expect(withoutComments(source)).not.toMatch(/srcset/)
+    expect(withoutComments(source)).not.toMatch(/600w/)
     // `sizes` without `srcset` does nothing and reads as though it did something.
-    expect(code(source)).not.toMatch(/\bsizes=/)
+    expect(withoutComments(source)).not.toMatch(/\bsizes=/)
   })
 
   /**
@@ -62,7 +62,7 @@ describe.each([
    * line.
    */
   it('shows the cover, and falls back to the thumb only when there is none', () => {
-    expect(code(source)).toMatch(/:src="\w+\.coverUrl \|\| \w+\.thumbUrl"/)
+    expect(withoutComments(source)).toMatch(/:src="\w+\.coverUrl \|\| \w+\.thumbUrl"/)
   })
 
   /**
@@ -74,7 +74,7 @@ describe.each([
    * that.
    */
   it('still waits to be scrolled into view', () => {
-    expect(code(source)).toMatch(/loading="lazy"/)
+    expect(withoutComments(source)).toMatch(/loading="lazy"/)
   })
 })
 

@@ -892,7 +892,7 @@ export const handlers: HandlerMap = {
 
   'hub.discover': async () => {
     /*
-     * Erst hier, dann auf diesem Rechner.
+     * Here first, then on this machine.
      *
      * `/hub` on the app's own domain is where `.github/workflows/hub.yml` puts
      * one, and same origin is the only arrangement that cannot fail for a
@@ -919,7 +919,7 @@ export const handlers: HandlerMap = {
     ]
 
     /*
-     * Vorhergesagt, nicht erkannt.
+     * Predicted, not detected.
      *
      * A blocked request and a refused connection are the same TypeError to
      * JavaScript. But the block is knowable in advance: an https page asking
@@ -971,7 +971,7 @@ export const handlers: HandlerMap = {
       })
     } catch {
       /*
-       * „Failed to fetch" ist keine Antwort.
+       * "Failed to fetch" is not an answer.
        *
        * That string is what the browser says and it reached the screen
        * untouched. It covers four different situations and names none of them,
@@ -1058,7 +1058,7 @@ export const handlers: HandlerMap = {
   },
 
   /*
-   * Cover. Zwei Wege, weil sie zwei verschiedene Dinge kosten.
+   * Covers. Two routes, because they cost two different things.
    *
    * `known` reads the store and answers offline; `fetch` spends requests. A
    * screen calls the first on every render and the second only for what is

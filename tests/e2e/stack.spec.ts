@@ -15,7 +15,7 @@ test.describe('the stack', () => {
     await seed(page)
     await page.goto('/stack')
 
-    // Der Laden aus dem Seed steht in der oberen Reihe.
+    // The shop from the seed stands in the top row.
     const row = page.getByRole('button', { name: /plattenkiste/i })
     await expect(row.first()).toBeVisible({ timeout: 15_000 })
 
@@ -67,14 +67,14 @@ test.describe('the stack', () => {
     const y = box.y + box.height / 2
     const x = box.x + box.width / 2
 
-    // Zu kurz: nichts passiert.
+    // Too short: nothing happens.
     await page.mouse.move(x, y)
     await page.mouse.down()
     await page.mouse.move(x - 30, y, { steps: 5 })
     await page.mouse.up()
     await expect(position).toHaveText(start ?? '')
 
-    // Weit genug: eine Karte weiter.
+    // Far enough: one card on.
     await page.mouse.move(x, y)
     await page.mouse.down()
     await page.mouse.move(x - 160, y, { steps: 10 })

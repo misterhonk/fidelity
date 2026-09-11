@@ -232,7 +232,7 @@ const en = {
     nothingHere: 'Nothing here yet.',
     staysHere:
       'Where a record stands is something about your flat, not about Discogs. It is kept on this device and sent nowhere.',
-    /* Am Exemplar, nicht am Release: zwei Pressungen liegen an zwei Stellen. */
+    /* On the copy, not on the release: two pressings sit in two places. */
     where: 'Where it is',
     nowhere: 'No place yet',
   },

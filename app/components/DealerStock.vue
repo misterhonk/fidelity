@@ -20,16 +20,16 @@ const { call } = useFidelityWorker()
 
 const props = defineProps<{
   dealer: string
-  /** Genau die Schreibweise aus dem Balken. */
+  /** Exactly the spelling from the bar. */
   label?: string | null
   decade?: number | null
-  /** Was in der Überschrift steht — „Kompakt" oder „1990er". */
+  /** What goes in the heading — "Kompakt" or "1990s". */
   title: string
 }>()
 
 const emit = defineEmits<{ close: [] }>()
 
-// Nie mutiert, immer ersetzt: eine Seite kommt am Stück (CLAUDE.md).
+// Never mutated, always replaced: a page arrives whole (CLAUDE.md).
 const rows = shallowRef<StockRow[]>([])
 const total = ref(0)
 const scannedAt = ref<number | null>(null)

@@ -127,7 +127,7 @@ export async function runKeeper(options: {
   eager?: boolean
   now?: number
   signal?: AbortSignal
-  /** Sagt, woran gerade gearbeitet wird. Siehe `KeeperProgress`. */
+  /** Says what is being worked on. See `KeeperProgress`. */
   report?: (progress: KeeperProgress) => void
 }): Promise<KeeperResult> {
   const { client, username, force = false, eager = false, signal, report } = options

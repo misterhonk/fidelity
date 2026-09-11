@@ -38,7 +38,7 @@ async function load() {
   dealers.value = await call('dealer.list', undefined)
   const first = dealers.value[0]
   /*
-   * ?dealer= kommt von der Startseite.
+   * ?dealer= comes from the start page.
    * Every shop tile there shows a hit rate and a stock size and led nowhere;
    * the heading led here and landed on whichever shop sorted first. A name in
    * the query picks the one somebody actually tapped — and an unknown one
