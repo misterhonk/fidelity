@@ -5,9 +5,19 @@ const b = useBasketMessages()
 
 useSeoMeta({ title: () => b.value.title, description: () => b.value.description })
 
-const { view, load, clear } = useBasket()
+const { view, load, clear, failure } = useBasket()
 
-onMounted(load)
+/* Loading and the last toggle can each fail; whichever did is what is shown. */
+const error = ref<unknown>(null)
+const trouble = computed(() => error.value ?? failure.value)
+
+onMounted(async () => {
+  try {
+    await load()
+  } catch (cause) {
+    error.value = cause
+  }
+})
 
 const baskets = computed(() => view.value.baskets)
 const records = computed(() =>
@@ -29,10 +39,15 @@ const records = computed(() =>
         somebody arrives in mid-shopping-session: records already picked out on
         Discogs, and nothing here yet to reason about.
       -->
+      <ErrorNote v-if="trouble" :cause="trouble" />
+
       <BasketPaste />
 
       <p v-if="baskets.length === 0" class="text-fid-base text-fid-text-muted">
         {{ b.empty }}
+        <NuxtLink class="fid-action text-fid-text underline underline-offset-4" to="/dig">{{
+          b.emptyAction
+        }}</NuxtLink>
       </p>
 
       <template v-else>

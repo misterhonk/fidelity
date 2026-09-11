@@ -57,7 +57,7 @@ onMounted(async () => {
 })
 
 /**
- * Alles, was die Startseite zeigt — neu geholt.
+ * Everything the start page shows, fetched afresh.
  *
  * Also the callback after "Alles auffrischen": a refresh that leaves the
  * numbers on screen unchanged looks exactly like a refresh that did nothing.
@@ -139,6 +139,9 @@ const tiles = computed(() => {
       and a dashboard flashing its empty sections on the way there is worse
       than a blank half-second.
     -->
+    <p v-if="!ready" role="status" class="px-6 text-fid-base text-fid-text-muted">
+      {{ m.common.loading }}
+    </p>
     <template v-if="ready && identity">
       <div class="flex flex-col gap-6 px-6">
         <header class="flex flex-wrap items-baseline justify-between gap-2">

@@ -14,6 +14,7 @@ const { call } = useFidelityWorker()
 // Replaced wholesale, never mutated — Vue has no reason to proxy every row.
 const overview = shallowRef<WantlistOverview | null>(null)
 const loading = ref(true)
+const error = ref<unknown>(null)
 const query = ref('')
 
 const route = useRoute()
@@ -21,6 +22,8 @@ const route = useRoute()
 onMounted(async () => {
   try {
     overview.value = await call('collection.wantlist', undefined)
+  } catch (cause) {
+    error.value = cause
   } finally {
     loading.value = false
   }
@@ -118,10 +121,17 @@ function waiting(addedAt: string): string | null {
       <CollectionTabs />
     </header>
 
+    <ErrorNote v-if="error" :cause="error" />
+
     <p v-if="loading" class="text-fid-base text-fid-text-muted">{{ c.loading }}</p>
 
     <p v-else-if="!overview || overview.total === 0" class="text-fid-base text-fid-text-muted">
       {{ c.wantlist.empty }}
+      <NuxtLink
+        class="fid-action text-fid-text underline underline-offset-4"
+        to="/settings/collection"
+        >{{ c.wantlist.emptyAction }}</NuxtLink
+      >
     </p>
 
     <template v-else>

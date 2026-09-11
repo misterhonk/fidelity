@@ -206,9 +206,8 @@ const expired = computed(() => {
       <template v-else>
         <p v-if="result" class="text-fid-sm text-fid-text-muted">
           {{ result.dig.dealer }} ·
-          <span class="fid-num">{{ result.matches.length }}</span>
-          {{ m.inStore.finds(result.matches.length)
-          }}<template v-if="!online"> · {{ m.inStore.offline }}</template>
+          <span class="fid-num">{{ m.inStore.finds(result.matches.length) }}</span
+          ><template v-if="!online"> · {{ m.inStore.offline }}</template>
         </p>
 
         <!--
@@ -235,7 +234,7 @@ const expired = computed(() => {
           "do I have this already?" does not, and that is the question somebody
           actually has standing in a shop.
         -->
-        <p v-else class="text-fid-sm text-fid-text-muted">
+        <p v-else-if="!result" class="text-fid-sm text-fid-text-muted">
           {{ m.inStore.noDig }}
         </p>
 

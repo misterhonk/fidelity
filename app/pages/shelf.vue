@@ -156,6 +156,11 @@ const open = ref<number | null>(null)
 
     <p v-else-if="!view || view.collection === 0" class="text-fid-base text-fid-text-muted">
       {{ c.shelf.empty }}
+      <NuxtLink
+        class="fid-action text-fid-text underline underline-offset-4"
+        to="/settings/collection"
+        >{{ c.shelf.emptyAction }}</NuxtLink
+      >
     </p>
 
     <template v-else>

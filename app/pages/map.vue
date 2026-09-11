@@ -17,15 +17,22 @@ const gaps = ref<CollectionGaps | null>(null)
 const profile = ref<TasteProfile | null>(null)
 const value = ref<CollectionValue | null>(null)
 const ready = ref(false)
+const error = ref<unknown>(null)
 
 onMounted(async () => {
   try {
     profile.value = await call('taste.profile', undefined)
+  } catch (cause) {
+    error.value = cause
   } finally {
     ready.value = true
   }
-  gaps.value = await call('collection.gaps', undefined)
-  value.value = await call('collection.value', undefined)
+  try {
+    gaps.value = await call('collection.gaps', undefined)
+    value.value = await call('collection.value', undefined)
+  } catch (cause) {
+    error.value = cause
+  }
 })
 
 /** Strongest first; ties alphabetically so the order never jitters. */
@@ -53,6 +60,7 @@ const decades = computed(() =>
     <div class="flex flex-col gap-3">
       <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ c.title }}</h1>
       <CollectionTabs />
+      <ErrorNote v-if="error" :cause="error" />
       <p v-if="profile" class="max-w-prose text-fid-base text-fid-text-muted">
         {{ c.map.lead(count(profile.releaseCount)) }}
       </p>

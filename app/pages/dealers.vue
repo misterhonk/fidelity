@@ -33,6 +33,7 @@ const profile = ref<DealerProfile | null>(null)
  * profile comes from the server, this from your own past.
  */
 const grading = ref<GradingRecord | null>(null)
+const error = ref<unknown>(null)
 
 async function load() {
   dealers.value = await call('dealer.list', undefined)
@@ -55,8 +56,12 @@ async function load() {
 }
 
 onMounted(async () => {
-  await load()
-  await loadWatchlist()
+  try {
+    await load()
+    await loadWatchlist()
+  } catch (cause) {
+    error.value = cause
+  }
 
   /*
    * Deliberately last and deliberately not awaited: it asks the hub whether
@@ -70,8 +75,14 @@ onMounted(async () => {
 async function select(username: string) {
   selected.value = username
   grading.value = null
-  profile.value = await call('dealer.profile', { dealer: username })
-  grading.value = await call('grading.forDealer', { dealer: username })
+  error.value = null
+  try {
+    profile.value = await call('dealer.profile', { dealer: username })
+    grading.value = await call('grading.forDealer', { dealer: username })
+  } catch (cause) {
+    error.value = cause
+    return
+  }
 
   /*
    * The list above learns about the sign that was just fetched.
@@ -170,6 +181,8 @@ const scanned = computed(() => {
       The shops Discogs already knows you deal with — which beats typing a
       username from memory and getting the underscore wrong.
     -->
+    <ErrorNote v-if="error" :cause="error" />
+
     <DealerDiscovery :first-time="dealers.length === 0" @imported="load()" />
 
     <p v-if="dealers.length === 0" class="text-fid-base text-fid-text-muted">
