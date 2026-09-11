@@ -180,7 +180,7 @@ const expired = computed(() => {
 
 <template>
   <main class="fid-page py-6">
-    <div class="flex w-full max-w-xl flex-col gap-4">
+    <div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
       <!--
         The in-store screen (docs/05 §3 row 9).
 

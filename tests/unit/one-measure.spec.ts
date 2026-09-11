@@ -22,9 +22,13 @@ import { describe, expect, it } from 'vitest'
  * eine Breite gehört zu einem *Bereich*. Zwei Sichten auf dieselbe Sammlung
  * dürfen kein Umzug sein.
  *
- * Seitdem: ein Container, immer. Was schmal bleiben muss, bekommt sein Maß
- * innen und wird **links verankert** statt zentriert — sonst wandert die Kante
- * wieder. Nachgemessen bei 1800 px: dreizehn Seiten, eine Kante, 44 px.
+ * Seitdem: ein Container, immer — und **ein** schmales Maß darin, zentriert.
+ * Also zwei Kanten statt sechs: die des Containers, den sich die Hauptleiste
+ * mit den breiten Seiten teilt, und die der schmalen Spalte.
+ *
+ * Zentriert statt links verankert, weil links verankert zwar die Kante hält,
+ * aber eine 48rem-Spalte auf einem 1800er Schirm ans linke Drittel klebt. Der
+ * Handel wurde am laufenden Bild entschieden, nicht am Prinzip.
  */
 
 const SEITEN = readdirSync('app/pages', { recursive: true, encoding: 'utf8' })
@@ -93,19 +97,48 @@ describe('every screen shares one measure', () => {
   })
 
   /**
-   * Schmaler Inhalt wird links verankert, nicht zentriert.
+   * **Und schmaler Inhalt hat *ein* schmales Maß.**
    *
-   * `mx-auto` innerhalb einer Seite bringt genau das zurück, was hier
-   * abgeschafft wurde: ein Block, dessen linke Kante von seiner eigenen Breite
-   * abhängt. Der Container zentriert bereits — ein zweites Mal zentrieren
-   * heißt, gegen ihn zu arbeiten.
+   * Das war der zweite Teil des Befunds und der leiser versteckte. Auch unter
+   * den schmalen Seiten gab es vier Breiten — 48rem für Korb, Orte und die
+   * Rechtsseiten, 42rem für die Einrichtung, 36rem für „Was neu ist" und für
+   * den Laden-Modus. Zentriert heißt: die Breite bestimmt die linke Kante.
+   * Vier Breiten sind vier Kanten, nur langsamer bemerkt.
+   *
+   * Zentriert **und** einheitlich ist die Auflösung: der äußere Container hält
+   * die Leiste in der Flucht, und innen steht jede schmale Seite an derselben
+   * Stelle wie jede andere schmale Seite.
+   *
+   * Geprüft am Block direkt hinter `<main>` — der ist der Umschlag, den diese
+   * Regel meint. Ein `max-w-…` weiter innen gehört einer Karte oder einem
+   * Absatz und ist genau richtig dort.
    */
-  it('anchors narrow content instead of centring it again', () => {
-    const zentriert = SEITEN.filter(({ datei, quelle }) => {
-      if (OHNE_MASS.includes(datei)) return false
-      return /class="[^"]*\bmx-auto\b[^"]*\bmax-w-/.test(quelle)
-    }).map(({ datei }) => datei)
+  it('gives narrow content one measure, centred', () => {
+    const SCHMAL = 'mx-auto flex w-full max-w-3xl flex-col'
 
-    expect(zentriert).toEqual([])
+    const abweichend: string[] = []
+    for (const { datei, quelle } of [
+      ...SEITEN.map((s) => ({ ...s })),
+      {
+        datei: 'components/SettingsPage.vue',
+        quelle: readFileSync('app/components/SettingsPage.vue', 'utf8'),
+      },
+    ]) {
+      if (OHNE_MASS.includes(datei)) continue
+
+      const auf = quelle.indexOf('<main')
+      if (auf === -1) continue
+      const nachTag = quelle.indexOf('>', auf) + 1
+
+      // Der erste Block dahinter — nur wenn er überhaupt ein Maß trägt.
+      const ersterDiv = quelle.slice(nachTag).match(/<div class="([^"]*)"/)
+      if (!ersterDiv) continue
+      const klassen = ersterDiv[1]!
+      if (!/\bmax-w-/.test(klassen)) continue
+
+      if (!klassen.startsWith(SCHMAL)) abweichend.push(`${datei}: ${klassen.slice(0, 60)}`)
+    }
+
+    expect(abweichend).toEqual([])
   })
 })

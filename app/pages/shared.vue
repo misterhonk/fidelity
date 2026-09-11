@@ -101,7 +101,7 @@ const fresh = computed(() => {
 
 <template>
   <main class="fid-page py-4">
-    <div class="flex w-full max-w-3xl flex-col gap-6">
+    <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <p v-if="loading" class="text-fid-base text-fid-text-muted">{{ d.sheet.loading }}</p>
 
       <section v-else-if="problem" class="flex flex-col gap-3">

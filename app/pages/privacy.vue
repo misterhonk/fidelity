@@ -11,7 +11,7 @@ useSeoMeta({
 
 <template>
   <main class="fid-page py-16">
-    <div class="flex w-full max-w-3xl flex-col gap-6">
+    <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <NuxtLink
         class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
         to="/"

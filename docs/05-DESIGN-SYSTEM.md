@@ -310,9 +310,17 @@ A width belongs to an **area**, not to a page. Two views of the same collection 
 a house move. So:
 
 > **One container, always.** `.fid-page` — 110rem, centred, `px-6`. What has to stay
-> narrow gets its measure **inside** and is **anchored left**, never centred again.
+> narrow gets its measure **inside**, and there is exactly **one** narrow measure: 48rem,
+> centred.
 
-Measured at 1800 px afterwards: thirteen screens, one left edge, 44 px.
+Two measures, then, not six: the container that the navigation bar shares, and the column
+that a basket or a legal page sits in. Measured at 1800 px: the wide screens share one left
+edge, the narrow ones share another, and neither moves.
+
+**The narrow half was the quieter half of the problem.** Even among the narrow screens there
+were four widths — 48rem for the basket, places and the legal pages, 42rem for the setup,
+36rem for "what is new" and for in-store. Centred, the width *is* the left edge; four widths
+are four edges, only noticed more slowly.
 
 | | |
 |---|---|

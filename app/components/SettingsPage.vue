@@ -27,7 +27,7 @@ onMounted(load)
 
 <template>
   <main class="@container fid-page py-10">
-    <div class="flex w-full max-w-3xl flex-col gap-6">
+    <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <div class="flex flex-col gap-3">
         <NuxtLink
           to="/settings"

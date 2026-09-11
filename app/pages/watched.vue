@@ -103,7 +103,7 @@ function span(row: WatchedRelease): string | null {
 
 <template>
   <main class="fid-page py-4">
-    <div class="flex w-full max-w-3xl flex-col gap-6">
+    <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <CollectionTabs />
 
       <header class="flex flex-col gap-2">

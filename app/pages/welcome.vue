@@ -151,7 +151,7 @@ const CAN_DO = computed(
 
 <template>
   <main class="@container fid-page py-16">
-    <div class="flex w-full max-w-2xl flex-col gap-8">
+    <div class="mx-auto flex w-full max-w-3xl flex-col gap-8">
       <header class="flex flex-col gap-3">
         <h1 class="fid-display text-fid-xl font-bold text-fid-text">Fidelity</h1>
         <p class="text-fid-base text-fid-text-muted">
