@@ -77,7 +77,7 @@ export async function refreshDig({
 }: RefreshOptions): Promise<RefreshResult> {
   const db = await openFidelityDb()
   const dig = await db.get('digs', digId)
-  if (!dig) throw new Error('Diesen Dig gibt es nicht mehr.')
+  if (!dig) throw new Error('This dig no longer exists.')
 
   const matches = await db
     .transaction('matches')

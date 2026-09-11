@@ -67,12 +67,12 @@ export const releaseDetailSchema = z.object({
     )
     .optional(),
   /*
-   * Die Hörprobe (ADR-012), und sie kostet keinen Request.
+   * The audio preview (ADR-012), and it costs no request.
    *
-   * Dieser Aufruf läuft für die Top-Treffer ohnehin — wegen der Stile, der
-   * Pressung und der Marktzahlen. Am 2026-09-10 gemessen: `videos[]` kommt in
-   * derselben Antwort mit, bei Release 1 vierzehn Stück. Ein eigener Durchgang
-   * dafür wären fünfzig Anfragen für Daten, die schon da waren.
+   * This call runs for the top matches anyway — for the styles, the pressing
+   * and the market figures. Measured 2026-09-10: `videos[]` comes along in the
+   * same answer, fourteen of them on release 1. A pass of its own would be
+   * fifty requests for data that was already there.
    */
   videos: z.array(z.object({ title: z.string().optional(), uri: z.string() })).optional(),
 })
@@ -254,12 +254,12 @@ export async function enrichTopMatches({
       ...match,
       signals,
       /*
-       * Höchstens fünf.
+       * Five at most.
        *
-       * Discogs sammelt diese Links von allen, und eine einzelne 12" kam mit
-       * neunundachtzig zurück (gemessen 2026-08-12, siehe `ShelfSheet.vue`).
-       * Neunundachtzig mal dreihundert Treffer wären ein Megabyte Adressen für
-       * einen Knopf, den die meisten nie drücken.
+       * Discogs collects these links from everybody, and a single 12" came
+       * back with eighty-nine (measured 2026-08-12, see `ShelfSheet.vue`).
+       * Eighty-nine times three hundred matches would be a megabyte of
+       * addresses for a button most people never press.
        */
       videos: (release.videos ?? [])
         .slice(0, 5)

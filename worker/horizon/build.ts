@@ -35,11 +35,10 @@ export interface HorizonResult {
   requests: number
   releaseIds: number
   /**
-   * Wie viele schon vorhandene Blöcke dieser Lauf beim Hub nachgereicht hat.
+   * How many chunks this run handed to the hub that it already had.
    *
-   * Null heißt "alles schon geteilt" oder "kein Hub" — beides ist der
-   * Normalfall. Von Null verschieden ist es nur in den ersten Läufen nach dem
-   * Eintragen eines Hubs.
+   * Zero means "all shared already" or "no hub" — both of them ordinary. It
+   * differs from zero only in the first few runs after a hub is entered.
    */
   shared: number
 }
@@ -54,13 +53,13 @@ export interface HorizonResult {
 const MAX_CONSECUTIVE_FAILURES = 3
 
 /**
- * Wie viele schon vorhandene Blöcke ein Lauf beim Hub nachreicht.
+ * How many already-present chunks one run hands to the hub.
  *
- * Eine Obergrenze, keine Zielgröße. Beim ersten Lauf nach dem Eintragen eines
- * Hubs liegen womöglich hunderte bereit, und die alle auf einmal zu schicken
- * macht aus einem Lauf, der sonst in einer Sekunde durch ist, eine halbe
- * Minute Geplapper — für einen Vorteil, der auch drei Läufe später eintritt.
- * Discogs kostet nichts davon: die Blöcke liegen schon auf dem Gerät.
+ * A ceiling, not a target. On the first run after a hub is entered there may
+ * be hundreds waiting, and sending them all at once turns a run that would
+ * otherwise finish in a second into half a minute of chatter — for a benefit
+ * that also arrives three runs later. None of it costs Discogs anything: the
+ * chunks are already on the device.
  */
 const MAX_CATCH_UP_PER_RUN = 50
 
@@ -149,17 +148,17 @@ export async function buildHorizon({
     const known = existing.get(candidateKey(candidate))
     if (known && now() - known.fetchedAt < ttlMs) {
       /*
-       * Übersprungen — aber nicht mehr verschwiegen.
+       * Skipped — but no longer passed over in silence.
        *
-       * Bis zum 2026-08-13 endete der Zweig hier, und damit erfuhr ein später
-       * eingetragener Hub von allem nichts, was schon lokal lag: gemessen ein
-       * Eintrag beim Hub gegen hunderte auf dem Gerät. Der geteilte Cache war
-       * für den häufigsten Fall tot — wer die App zuerst benutzt und den Hub
-       * danach einträgt.
+       * Until 2026-08-13 the branch ended here, so a hub entered later learnt
+       * nothing about anything already sitting locally: measured, one entry at
+       * the hub against hundreds on the device. The shared cache was dead for
+       * the commonest case — somebody who uses the app first and enters the
+       * hub afterwards.
        *
-       * Kostet keine einzige Discogs-Anfrage; der Block liegt ja schon da.
-       * Gemerkt wird erst nach einer angenommenen Antwort, sonst gilt ein
-       * abgelehnter Beitrag für immer als erledigt.
+       * Costs not one Discogs request; the chunk is already there. It is only
+       * marked after an accepted answer, or a rejected contribution would
+       * count as done forever.
        */
       if (hub && !known.sharedAt && shared < MAX_CATCH_UP_PER_RUN) {
         try {
@@ -169,13 +168,13 @@ export async function buildHorizon({
           }
         } catch (error) {
           /*
-           * Ein Hub, der einen Beitrag ablehnt, ändert nichts (Regel 8) — der
-           * nächste Lauf versucht es wieder, weil nichts gemerkt wurde.
+           * A hub that rejects a contribution changes nothing (rule 8) — the
+           * next run tries again, because nothing was marked.
            *
-           * Aber gesagt wird es. Ein stilles `catch` hat beim Schreiben dieser
-           * Zeilen einen kaputten Block verschluckt und den Nachreichweg wie
-           * "nichts zu tun" aussehen lassen — also genau den Fehler, gegen den
-           * das Ganze hier gebaut ist.
+           * But it is said out loud. While these lines were being written, a
+           * silent `catch` swallowed a broken chunk and made the catch-up path
+           * look like "nothing to do" — which is precisely the failure this is
+           * built against.
            */
           log.warn('[horizon] Beitrag abgelehnt', candidate.kind, candidate.id, error)
         }
@@ -245,13 +244,13 @@ export async function buildHorizon({
   emit('')
 
   /*
-   * Eine Grenze, die sich meldet.
+   * A limit that says so.
    *
-   * Beim ersten Lauf nach dem Eintragen eines Hubs liegen womöglich hunderte
-   * Blöcke bereit. Alle auf einmal hochzuschicken macht aus einem Lauf, der
-   * sonst sofort fertig ist, eine halbe Minute Geplapper. Nach ein paar Läufen
-   * ist ohnehin alles oben — und wer nachsieht, warum es noch nicht alles ist,
-   * findet hier die Antwort statt einer stillen Kürzung.
+   * On the first run after a hub is entered there may be hundreds of chunks
+   * waiting. Sending them all at once turns a run that would otherwise finish
+   * at once into half a minute of chatter. After a few runs everything is up
+   * there anyway — and anyone looking into why it is not all up yet finds the
+   * answer here instead of a silent truncation.
    */
   if (hub && shared >= MAX_CATCH_UP_PER_RUN) {
     log.info(

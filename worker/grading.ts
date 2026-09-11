@@ -2,47 +2,45 @@ import { openFidelityDb } from '~~/db/open'
 import type { GradingRecord } from '#shared/types'
 
 /**
- * Gradet dieser Laden ehrlich? (M14)
+ * Does this shop grade honestly? (M14)
  *
- * **Die Lücke, die Discogs strukturell nicht schließen kann.** Dort misst das
- * Feedback „quality of transaction" und sagt nichts über die
- * Bewertungsgenauigkeit; negative Bewertungen wegen Übergrading werden auf
- * Beschwerde des Verkäufers entfernt. Übrig bleibt Aberglaube — „kauf nichts
- * unter 100 %".
+ * **The gap Discogs structurally cannot close.** Feedback there measures
+ * "quality of transaction" and says nothing about grading accuracy; negative
+ * ratings for overgrading are removed on the seller's complaint. What is left
+ * is superstition — "never buy under 100 %".
  *
- * Was hier entsteht, ist keine Fremdbewertung und kein Pranger, sondern eine
- * **private Aufzeichnung der eigenen Käufe**: bei diesem Laden waren sieben
- * von acht Platten so, wie sie beschrieben waren.
+ * What is built here is not a rating of somebody else and not a pillory, but a
+ * **private record of one's own purchases**: at this shop, seven records out
+ * of eight were as described.
  *
- * **Die versprochene Note wird nirgends gespeichert.** Sie wäre
- * Discogs-Content und dürfte nach sechs Stunden nicht mehr gezeigt werden
- * (`docs/09` §1.1). Gespeichert wird nur der Vergleich — ein abgeleitetes
- * Datum, dieselbe Kategorie wie Scores und Fingerprint.
+ * **The promised grade is stored nowhere.** It would be Discogs content and
+ * could not be shown after six hours (`docs/09` §1.1). Only the comparison is
+ * stored — derived data, the same category as scores and the fingerprint.
  *
- * Kostet keinen Request: alles steht im `feedback`-Store.
+ * Costs no request: all of it is in the `feedback` store.
  */
 
 /**
- * Unter dieser Zahl wird keine Quote gezeigt.
+ * Below this count no rate is shown.
  *
- * Zwei von zwei sind 100 %, und das liest sich wie ein Urteil über einen
- * Laden, über den man nichts weiß. Ab fünf trägt die Zahl etwas; darunter
- * steht die nackte Anzahl, die niemanden in die Irre führt.
+ * Two out of two is 100 %, and that reads like a verdict on a shop one knows
+ * nothing about. From five the number carries something; below it, the bare
+ * count stands instead, which misleads nobody.
  */
 export const MIN_FOR_RATE = 5
 
 /**
- * Wie lange nach dem Kauf frühestens gefragt wird.
+ * How soon after a purchase the question is asked at the earliest.
  *
- * Ein Haken bei „gekauft" heißt bestellt, nicht angekommen. Wer am selben
- * Abend gefragt wird, wie die Platte war, lernt in einer Woche, die Frage zu
- * überlesen — und dann sammelt sich nie genug an, um eine Quote zu tragen.
+ * A tick at "bought" means ordered, not arrived. Somebody asked the same
+ * evening how the record was learns within a week to read past the question —
+ * and then never enough accumulates to carry a rate.
  *
- * Zehn Tage sind kein gemessener Wert, sondern eine bewusst großzügige Grenze:
- * Auslandsversand von Platten dauert regelmäßig zwei Wochen, und zu früh
- * gefragt ist teurer als zu spät. **Das betrifft nur die Frage von selbst.**
- * Auf der Kaufliste steht sie ab dem ersten Tag — wer die Platte schon in der
- * Hand hat, soll antworten dürfen.
+ * Ten days is not a measured value but a deliberately generous bound:
+ * international record post regularly takes two weeks, and asked too early is
+ * more expensive than asked too late. **This applies only to the question
+ * asking itself.** On the purchase list it stands from the first day — anyone
+ * already holding the record should be allowed to answer.
  */
 export const ASK_AFTER_MS = 10 * 24 * 60 * 60 * 1000
 
@@ -62,17 +60,17 @@ export async function gradingFor(dealer: string): Promise<GradingRecord> {
     better,
     worse,
     /*
-     * „Besser als beschrieben" zählt als ehrlich mit.
+     * "Better than described" counts as honest too.
      *
-     * Wer untertreibt, hat einen nicht enttäuscht — und ein Laden, dessen
-     * Platten regelmäßig besser ankommen als angesagt, ist genau das
-     * Gegenteil des Problems, um das es hier geht.
+     * Anyone understating has not disappointed you — and a shop whose records
+     * regularly arrive better than announced is precisely the opposite of the
+     * problem this is about.
      */
     rate: mine.length >= MIN_FOR_RATE ? (asDescribed + better) / mine.length : null,
   }
 }
 
-/** Wie eine gekaufte Platte ankam. Nur vom Käufer, nur auf diesem Gerät. */
+/** How a bought record arrived. From the buyer only, on this device only. */
 export async function recordArrival(
   listingId: number,
   arrived: 'as-described' | 'better' | 'worse' | null,
@@ -90,11 +88,10 @@ export async function recordArrival(
 }
 
 /**
- * Was gekauft, lange genug her und noch nicht beurteilt ist — die offene Frage.
+ * What is bought, long enough ago and not yet judged — the open question.
  *
- * Die Zeitgrenze gehört hierher und nicht in einen Bildschirm: „wann ist die
- * Frage fällig" ist eine Entscheidung über die Daten, und eine, die man
- * nachrechnen können muss.
+ * The time bound belongs here and not in a screen: "when is the question due"
+ * is a decision about the data, and one that has to be checkable.
  */
 export async function awaitingArrival(
   now = Date.now(),

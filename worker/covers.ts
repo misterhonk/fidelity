@@ -8,7 +8,7 @@ import { createHubClient } from './hub/client'
 import { HUB_TIMEOUT_MS, withTimeout } from './hub/fallback'
 
 /**
- * Cover nachholen, die der Marktplatz nicht mitliefert.
+ * Fetching the covers the marketplace does not hand over.
  *
  * `/users/{u}/inventory` returns `release.thumbnail` as an empty string — in
  * 1.200 of 1.200 rows across four shops, measured 2026-08-10, while the

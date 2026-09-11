@@ -2,30 +2,29 @@ import { openFidelityDb } from '~~/db/open'
 import type { StackShop } from '#shared/types'
 
 /**
- * Der Stapel: dieselben Funde, nur einer nach dem anderen.
+ * The stack: the same finds, only one after another.
  *
- * Dieses Modul liefert **nur die obere Reihe** — welche Läden einen frischen
- * Dig haben und wie weit man in jedem gekommen ist. Die Karten selbst kommen
- * aus `dig.get`, das es längst gibt: derselbe Dig, dieselbe Auswahl, dieselbe
- * Reihenfolge. Eine zweite Abfrage für dieselben Treffer wäre eine zweite
- * Stelle, an der „was zeigen wir zuerst" entschieden wird.
+ * This module supplies **the top row only** — which shops have a fresh dig and
+ * how far somebody has got in each. The cards themselves come from `dig.get`,
+ * which has existed all along: the same dig, the same selection, the same
+ * order. A second query for the same matches would be a second place where
+ * "what do we show first" gets decided.
  *
- * **Kostet keinen einzigen Discogs-Request.** Alles hier steht schon in
- * IndexedDB, weil der Dig längst gelaufen ist. Das ist der Grund, warum ein
- * Wischstapel in dieser App überhaupt geht: bei 1,2 s pro Anfrage wäre ein
- * Feed, der beim Wischen nachlädt, unbenutzbar.
+ * **Costs not one Discogs request.** Everything here is already in IndexedDB,
+ * because the dig ran long ago. That is why a swipe stack is possible in this
+ * app at all: at 1.2 s a request, a feed that loaded as you swiped would be
+ * unusable.
  */
 
 /**
- * Wie weit jemand gekommen ist, steht am Dig.
+ * How far somebody has got lives on the dig.
  *
- * Ein eigener Store wäre eine zweite Zeile pro Dig, die mit der ersten
- * Schritt halten müsste — und die verwaiste, sobald ein Dig weggeräumt wird.
- * Als Feld verschwindet der Fortschritt mit dem Dig, zu dem er gehört.
+ * A store of its own would be a second row per dig that had to keep step with
+ * the first — and that would be orphaned the moment a dig is cleared away. As
+ * a field, the progress disappears with the dig it belongs to.
  *
- * Das Feld ist optional: Digs, die vor dem Stapel geschrieben wurden, haben
- * es nicht, und „nicht da" liest sich als „noch nichts gesehen" — was
- * stimmt.
+ * The field is optional: digs written before the stack do not have it, and
+ * "not there" reads as "nothing seen yet" — which is true.
  */
 export async function stackOverview(now = Date.now()): Promise<StackShop[]> {
   const db = await openFidelityDb()
@@ -35,8 +34,8 @@ export async function stackOverview(now = Date.now()): Promise<StackShop[]> {
   const newest = new Map<string, (typeof digs)[number]>()
 
   for (const dig of digs) {
-    // Abgelaufene Digs haben hier nichts verloren: der Stapel zeigt Preise,
-    // und nach sechs Stunden dürfen die nicht mehr gezeigt werden (Regel 4).
+    // Expired digs have no business here: the stack shows prices, and after
+    // six hours those may not be shown any more (rule 4).
     if (dig.expiresAt <= now) continue
     const held = newest.get(dig.dealer)
     if (!held || dig.startedAt > held.startedAt) newest.set(dig.dealer, dig)
@@ -65,11 +64,11 @@ export async function stackOverview(now = Date.now()): Promise<StackShop[]> {
   }
 
   /*
-   * Ungesehenes zuerst, danach das Neueste.
+   * Unseen first, newest after that.
    *
-   * Das ist der Ring: wo noch etwas liegt, steht vorn. Rein nach Datum zu
-   * sortieren hieße, dass ein Laden, den man durchgesehen hat, einen anderen
-   * verdeckt, in dem noch dreißig Funde warten.
+   * That is the ring: wherever something is still waiting stands at the front.
+   * Sorting purely by date would mean a shop you have been through hiding one
+   * where thirty finds are still waiting.
    */
   return shops.sort((a, b) => {
     const openA = a.matches - a.seen > 0
@@ -80,11 +79,11 @@ export async function stackOverview(now = Date.now()): Promise<StackShop[]> {
 }
 
 /**
- * Merkt sich, wie weit der Stapel gekommen ist.
+ * Remembers how far the stack has got.
  *
- * **Nur vorwärts.** Wer zurückwischt und noch einmal schaut, hat die Karten
- * trotzdem gesehen; den Zähler dabei zu senken würde den Ring wieder
- * anschalten und dem Bildschirm eine Behauptung aufdrücken, die nicht stimmt.
+ * **Forwards only.** Anyone swiping back for another look has seen the cards
+ * all the same; lowering the counter would switch the ring back on and press a
+ * claim onto the screen that is not true.
  */
 export async function stackSeen(digId: string, seen: number): Promise<void> {
   const db = await openFidelityDb()

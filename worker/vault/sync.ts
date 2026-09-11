@@ -22,13 +22,13 @@ export interface SyncReport {
   /** Whether anything was out there to merge with. */
   hadRemote: boolean
   /**
-   * Leer, obwohl dieses Gerät schon einmal abgeglichen hat.
+   * Empty, although this device has synced before.
    *
-   * Seit die Kennung an der Passphrase hängt, verschiebt ein anderes Wort auch
-   * den Ablageort — aus „lässt sich nicht öffnen" wird „da liegt nichts", und
-   * das sieht aus wie eine Erstanlage. Zwei Geräte mit verschiedenen
-   * Passphrasen würden sich also stumm verpassen, statt laut zu scheitern.
-   * Genau dieser eine Fall wird gemeldet, statt still durchzugehen.
+   * Since the id hangs off the passphrase, a different word moves the storage
+   * location too — "cannot be opened" becomes "nothing is there", which looks
+   * like a first setup. Two devices with different passphrases would therefore
+   * miss each other silently instead of failing loudly. This one case is
+   * reported rather than waved through.
    */
   emptyThoughSyncedBefore?: boolean
   syncedAt: number

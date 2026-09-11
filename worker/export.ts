@@ -109,13 +109,13 @@ export interface FullExport {
   feedback: unknown[]
   basket: unknown[]
   /**
-   * Wo die Platten stehen (M12).
+   * Where the records stand (M12).
    *
-   * Das Einzige in dieser Datei, das **nirgendwo sonst existiert**. Sammlung
-   * und Wantlist holt ein neues Gerät bei Discogs wieder, der Horizont lässt
-   * sich nachbauen — „zweites Fach, Regal im Wohnzimmer" steht nur hier, weil
-   * Discogs kein Feld dafür hat (gemessen am 2026-09-11). Eine Sicherung, die
-   * es ausließe, sicherte alles außer dem Unersetzlichen.
+   * The one thing in this file that **exists nowhere else**. A new device
+   * fetches collection and wantlist from Discogs again, and the horizon can be
+   * rebuilt — "second compartment, shelf in the living room" is only here,
+   * because Discogs has no field for it (measured 2026-09-11). A backup
+   * leaving it out would back up everything except the irreplaceable part.
    */
   places: unknown[]
   placements: unknown[]

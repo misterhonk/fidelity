@@ -12,7 +12,7 @@ export { creditCandidates, MIN_APPEARANCES } from './credit-select'
 /**
  * Harvesting the credits off your favourite records.
  *
- * docs/11 §3 wants "Personen mit Lift ≥ 3 in der Sammlung" as a fourth class
+ * docs/11 §3 wants "people with a lift of ≥ 3 in the collection" as a fourth class
  * of entity, and never says how they are found. They cannot be: `extraartists`
  * exists only in `/releases/{id}`, so knowing who produced your collection
  * means one request per record — 2.412 of them for a real shelf, and exactly
@@ -22,8 +22,8 @@ export { creditCandidates, MIN_APPEARANCES } from './credit-select'
  * ones whose production you actually care about, they are a few hundred rather
  * than a few thousand, and the run is bounded, resumable and started by hand.
  *
- * What it buys: the case docs/00 §5 opens with — "Conny Plank hat 9 deiner
- * Platten produziert, du besitzt aber keine *von* ihm". Without it S8 only ever
+ * What it buys: the case docs/00 §5 opens with — "Conny Plank produced 9 of
+ * your records, but you own none *by* him". Without it S8 only ever
  * fires for people you own records by, because those are the only ones the
  * horizon has a chunk for.
  */

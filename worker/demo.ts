@@ -9,7 +9,7 @@ import { norm } from './match/normalize'
 import { computeTasteProfile } from './match/taste'
 
 /**
- * Fidelity ohne Token, an ein oder zwei Platten.
+ * Fidelity without a token, on one or two records.
  *
  * The setup asks for the key to somebody's Discogs account before it has shown
  * them anything. This is the other order: name a record you like from a shop,

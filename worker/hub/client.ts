@@ -60,12 +60,12 @@ export interface HubClientOptions {
 export interface HubClient {
   horizon(kind: HorizonKind, id: number): Promise<HorizonChunk | null>
   /**
-   * Gibt zurück, ob es ankam.
+   * Returns whether it arrived.
    *
-   * Für den normalen Weg egal — der wirft das Ergebnis weg, weil ein Hub, der
-   * einen Beitrag ablehnt, nichts ändert (Regel 8). Das Nachreichen in
-   * `horizon/build.ts` braucht die Auskunft aber: es merkt sich, was geteilt
-   * wurde, und darf einen abgelehnten Beitrag nicht als erledigt verbuchen.
+   * Irrelevant on the ordinary path — that throws the result away, because a
+   * hub rejecting a contribution changes nothing (rule 8). The catch-up in
+   * `horizon/build.ts` does need to know, though: it remembers what has been
+   * shared, and must not book a rejected contribution as done.
    */
   contributeHorizon(chunk: HorizonChunk): Promise<boolean>
   shipping(dealer: string, country: string): Promise<ShippingTier[] | null>
@@ -95,24 +95,23 @@ export interface HubClient {
   vaultRead(id: string): Promise<SealedVault | null>
   vaultWrite(id: string, sealed: SealedVault): Promise<void>
   /**
-   * Einen Block loswerden — gebraucht beim Umzug einer Kennung.
+   * Getting rid of a block — needed when an id moves.
    *
-   * Still: es ist ein Zwischenspeicher, das Original liegt auf dem Gerät, und
-   * ein Umzug soll nicht daran scheitern, dass das Aufräumen danach nicht
-   * geklappt hat.
+   * Silent: it is a cache, the original is on the device, and a move should
+   * not fail because the tidying up afterwards did not work.
    */
   vaultForget(id: string): Promise<void>
 
   /**
-   * Eine Fundliste teilen — und zwar so, dass der Hub sie nicht lesen kann.
+   * Share a find list — in such a way that the hub cannot read it.
    *
-   * Wie der Tresor ein versiegelter Umschlag, nur mit einem Zufallsschlüssel
-   * statt einer Passphrase; der Schlüssel steht im `#`-Fragment des Links und
-   * erreicht keinen Server.
+   * A sealed envelope like the vault's, only with a random key instead of a
+   * passphrase; the key sits in the `#` fragment of the link and reaches no
+   * server.
    *
-   * `shareRead` ist die **einzige** Methode hier, die ohne das Hub-Secret
-   * auskommen muss: der Link geht an jemanden, der diesen Hub nicht kennt.
-   * Deshalb schickt sie die Kopfzeilen bewusst nicht mit.
+   * `shareRead` is the **only** method here that has to manage without the hub
+   * secret: the link goes to somebody who does not know this hub. So it
+   * deliberately does not send the headers.
    */
   shareWrite(id: string, sealed: SealedVault, expiresAt: number): Promise<void>
   shareRead(id: string): Promise<{ sealed: SealedVault; expiresAt: number } | null>
@@ -285,7 +284,7 @@ export function createHubClient({
       try {
         await fetchImpl(url(`/v1/vault/${id}`), { method: 'DELETE', headers })
       } catch {
-        // Siehe oben: das Aufräumen ist der unwichtigste Teil des Umzugs.
+        // See above: the tidying up is the least important part of the move.
       }
     },
 
@@ -297,7 +296,7 @@ export function createHubClient({
       })
       // Unlike a contribution, this one is not fire-and-forget: somebody is
       // waiting to hear that their shortlist is safe on the other device.
-      if (!response.ok) throw new Error(`Hub hat den Tresor abgelehnt (${response.status}).`)
+      if (!response.ok) throw new Error(`The hub refused the vault (${response.status}).`)
     },
 
     async shareWrite(id, sealed, expiresAt) {
@@ -306,21 +305,21 @@ export function createHubClient({
         headers,
         body: JSON.stringify({ id, expiresAt, sealed }),
       })
-      // Wie beim Tresor: hier wartet jemand auf einen Link, den er
-      // verschicken will. Ein stilles Scheitern gäbe ihm einen toten.
+      // As with the vault: somebody here is waiting for a link they mean to
+      // send. Failing silently would hand them a dead one.
       if (!response.ok) {
-        throw new Error(`Hub hat die Fundliste abgelehnt (${response.status}).`)
+        throw new Error(`The hub refused the find list (${response.status}).`)
       }
     },
 
     async shareRead(id) {
       /*
-       * Ohne `headers`, und das ist der Punkt.
+       * Without `headers`, and that is the point.
        *
-       * Wer diesen Link öffnet, hat das Hub-Secret nicht — er kennt den Hub
-       * gar nicht. Schickte diese Methode die Kopfzeilen des Empfängers mit,
-       * bekäme sie beim fremden Hub eine 401 und beim eigenen ein Ergebnis,
-       * was das Feature genau für die Leute kaputtmacht, für die es da ist.
+       * Whoever opens this link does not have the hub secret — they do not
+       * know the hub at all. If this method sent the recipient's headers, it
+       * would get a 401 at a foreign hub and a result at their own, which
+       * breaks the feature for exactly the people it is there for.
        */
       const response = await fetchImpl(url(`/v1/share/${id}`), {
         headers: { 'content-type': 'application/json' },

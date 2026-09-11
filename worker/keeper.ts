@@ -75,17 +75,17 @@ const LIBRARY_FULL_MS = 24 * 60 * 60 * 1000
 export type KeeperJob = 'outbox' | 'library' | 'watch' | 'horizon'
 
 /**
- * Was der Keeper gerade tut — damit die App es sagen kann.
+ * What the keeper is doing — so the app can say so.
  *
- * Bis zum 2026-09-11 lief er vollständig stumm: er arbeitete beim Öffnen, beim
- * Zurückkehren in den Tab und alle zwanzig Minuten, und auf dem Schirm stand
- * dieselbe Zeile wie vorher. Wer nicht in den Quelltext sah, konnte nur
- * schließen, dass nichts passiert — und drückte „Alles aktualisieren" für
- * etwas, das gerade lief.
+ * Until 2026-09-11 it ran entirely silently: it worked on opening, on
+ * returning to the tab and every twenty minutes, and the screen showed the
+ * same line as before. Anyone not reading the source could only conclude that
+ * nothing was happening — and pressed "Refresh everything" for something that
+ * was already running.
  *
- * `null` heißt fertig. Der Kanal meldet den Schritt, nicht den Fortschritt
- * darin: ein Delta über eine unveränderte Sammlung ist eine Anfrage, und ein
- * Balken dafür wäre mehr Apparat als Vorgang.
+ * `null` means finished. The channel reports the step, not the progress
+ * within it: a delta over an unchanged collection is one request, and a bar
+ * for that would be more apparatus than event.
  */
 export type KeeperProgress = { job: KeeperJob | null }
 
@@ -273,11 +273,11 @@ export async function runKeeper(options: {
   }
 
   /*
-   * Und Ruhe melden, sonst bliebe die Zeile für immer stehen.
+   * And report quiet, or the line would stand there forever.
    *
-   * Die frühen Rückkehrer oben — kein Nutzername, etwas anderes läuft — sind
-   * absichtlich nicht abgedeckt: dort wurde nie etwas gemeldet, es gibt also
-   * auch nichts zurückzunehmen.
+   * The early returns above — no username, something else running — are
+   * deliberately not covered: nothing was ever reported there, so there is
+   * nothing to take back either.
    */
   report?.({ job: null })
 

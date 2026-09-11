@@ -49,8 +49,8 @@ export async function shelfView({
   label = '',
   artist = '',
   sort = 'added',
-  // Ohne Angabe die Vorgabe des Schlüssels — so verhält sich jeder Aufruf, der
-  // die Richtung nicht kennt, exakt wie vorher.
+  // With nothing given, the key's default — so every caller that does not know
+  // about direction behaves exactly as before.
   direction,
   offset = 0,
   limit = PAGE_SIZE,
@@ -96,15 +96,15 @@ export async function shelfView({
 }
 
 /**
- * Sortiert, und dreht danach um, wenn es verlangt ist.
+ * Sorts, and reverses afterwards where that is asked for.
  *
- * Umdrehen statt zwei Vergleicher je Schlüssel: der Vergleicher entscheidet
- * die *Reihenfolge*, die Richtung nur, von welchem Ende man sie liest. Zwei
- * Vergleicher wären zwei Stellen, an denen die Nebensortierung — bei gleichem
- * Jahr nach Künstler — auseinanderlaufen kann.
+ * Reversing rather than two comparators per key: the comparator decides the
+ * *order*, the direction only which end you read it from. Two comparators
+ * would be two places where the secondary sort — by artist within the same
+ * year — could drift apart.
  *
- * Die Vorgabe je Schlüssel steht in `DEFAULT_SHELF_DIRECTION`; hier ist sie
- * die eine Richtung, die *nicht* umdreht.
+ * The default per key is in `DEFAULT_SHELF_DIRECTION`; here it is the one
+ * direction that does *not* reverse.
  */
 function sortRecords(records: ShelfRecord[], sort: ShelfSort, direction: SortDirection): void {
   const byArtist = (a: ShelfRecord, b: ShelfRecord) =>
@@ -117,13 +117,13 @@ function sortRecords(records: ShelfRecord[], sort: ShelfSort, direction: SortDir
       records.sort(byArtist)
       break
     case 'year':
-      // Ältestes zuerst, weil eine nach Jahren sortierte Sammlung eine
-      // Zeitachse ist und Zeitachsen vorwärts laufen.
+      // Earliest first, because a collection sorted by year is a timeline and
+      // timelines run forwards.
       records.sort((a, b) => a.year - b.year || byArtist(a, b))
       break
     case 'rating':
-      // Unbewertet ans Ende statt an den Anfang: eine 0 heißt hier „nie etwas
-      // gesagt", nicht „schlecht".
+      // Unrated to the end rather than the front: a 0 here means "never said
+      // anything", not "bad".
       records.sort(
         (a, b) => (b.rating || -1) - (a.rating || -1) || a.artist.localeCompare(b.artist, 'de'),
       )
@@ -133,8 +133,8 @@ function sortRecords(records: ShelfRecord[], sort: ShelfSort, direction: SortDir
       records.sort((a, b) => b.addedAt.localeCompare(a.addedAt) || byArtist(a, b))
   }
 
-  // Der Vergleicher oben liefert die Vorgabe-Richtung dieses Schlüssels. Ist
-  // die andere verlangt, wird dieselbe Reihenfolge von hinten gelesen.
+  // The comparator above yields this key's default direction. Where the other
+  // is asked for, the same order is read from the back.
   if (direction !== DEFAULT_SHELF_DIRECTION[sort]) records.reverse()
 }
 

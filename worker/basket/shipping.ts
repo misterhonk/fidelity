@@ -71,7 +71,7 @@ export function shippingCurve(tiers: ShippingTier[], upTo: number): ShippingPoin
  * are steps: inside a 4–6 tier the next record changes nothing, and only
  * checking n+1 would report no saving where there plainly is one.
  *
- * The *nearest* saving wins, not the deepest. "Noch eine Platte und der
+ * The *nearest* saving wins, not the deepest. "One record more and the
  * postage drops from €4.50 to €3.00 each" is a decision somebody can
  * make; "four more records and it drops to €2.00" is a shopping trip. The
  * full picture is one curve away for anyone who wants it.

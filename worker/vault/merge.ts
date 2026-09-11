@@ -35,17 +35,16 @@ const STAMP = {
   collection: (row: { syncedAt?: number }) => row.syncedAt ?? 0,
   wantlist: (row: { syncedAt?: number }) => row.syncedAt ?? 0,
   /*
-   * Orte und Standorte (M12).
+   * Places and locations (M12).
    *
-   * Beides kostet null Requests und ist **nur** hier — Discogs hat kein Feld
-   * dafür (`GET /users/{u}/collection/fields` gibt genau drei, gemessen am
-   * 2026-09-11). Wer das Regal auf dem Telefon einträgt und im Keller mit dem
-   * Laptop nachsieht, bekommt ohne den Tresor zwei verschiedene Antworten.
+   * Both cost zero requests and exist **only** here — Discogs has no field for
+   * them (`GET /users/{u}/collection/fields` returns exactly three, measured
+   * 2026-09-11). Anyone entering the shelf on their phone and then looking it
+   * up on a laptop in the cellar gets two different answers without the vault.
    *
-   * Löschen gibt es in beiden Stores nicht mehr: ein aufgelöster Ort trägt
-   * `removedAt`, eine heruntergenommene Platte `placeId: null`. Eine gelöschte
-   * Zeile wäre für diesen Abgleich keine Nachricht, sondern eine Lücke, die
-   * das andere Gerät wieder auffüllt.
+   * Neither store deletes any more: a dissolved place carries `removedAt`, a
+   * record taken down carries `placeId: null`. A deleted row would not be a
+   * message to this merge but a gap, which the other device fills in again.
    */
   places: (row: { updatedAt?: number; createdAt?: number }) =>
     row.updatedAt ?? row.createdAt ?? 0,

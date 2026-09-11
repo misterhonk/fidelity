@@ -477,12 +477,11 @@ export const handlers: HandlerMap = {
   },
 
   /*
-   * Teilen — der einzige Handler, der ohne Token auskommen muss.
+   * Sharing — the one handler that has to manage without a token.
    *
-   * `share.read` läuft bei jemandem, der Fidelity vielleicht nie eingerichtet
-   * hat: keine Sammlung, kein Token, kein Hub eingetragen. Deshalb kommt die
-   * Hub-Adresse aus dem Link und nicht aus den Einstellungen, und deshalb
-   * fragt hier nichts nach einer Identität.
+   * `share.read` runs at somebody who may never have set Fidelity up: no
+   * collection, no token, no hub entered. So the hub address comes from the
+   * link rather than from the settings, and nothing here asks for an identity.
    */
   'grading.forDealer': async ({ dealer }) => {
     const { gradingFor } = await import('./grading')
@@ -612,7 +611,7 @@ export const handlers: HandlerMap = {
     const db = await openFidelityDb()
     const match = await db.get('matches', [digId, listingId])
     const dig = await db.get('digs', digId)
-    if (!match || !dig) throw new Error('Treffer nicht gefunden.')
+    if (!match || !dig) throw new Error('Match not found.')
 
     await addToBasket(match, dig.dealer, Date.now())
     return basketView()
@@ -1000,7 +999,7 @@ export const handlers: HandlerMap = {
       shipping?: number
       secured?: boolean
     }
-    if (body.ok !== true) throw new Error('Das ist kein Fidelity-Hub.')
+    if (body.ok !== true) throw new Error('That is not a Fidelity hub.')
 
     return {
       ok: true,

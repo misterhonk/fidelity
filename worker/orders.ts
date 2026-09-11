@@ -5,51 +5,48 @@ import type { DiscogsClient } from './discogs/client'
 import type { Feedback, OrderImport } from '#shared/types'
 
 /**
- * Eine Bestellung einlesen — und daraus die Ankunftsfragen stellen (M14).
+ * Reading an order — and asking the arrival questions from it (M14).
  *
- * **Warum es das überhaupt geben kann.** `GET /marketplace/orders` ist die
- * Verkäuferseite; für jemanden, der nur kauft, antwortet sie für immer mit
- * `items: 0` (am 2026-09-11 zweimal gemessen, zehn Stunden auseinander,
- * `docs/02`). Eine **einzelne** Bestellung ist ihrem Käufer dagegen zugänglich:
- * `GET /marketplace/orders/{id}` liefert sie vollständig.
+ * **Why this can exist at all.** `GET /marketplace/orders` is the seller side;
+ * for somebody who only buys it answers `items: 0` forever (measured twice on
+ * 2026-09-11, ten hours apart, `docs/02`). A **single** order, by contrast, is
+ * readable by its buyer: `GET /marketplace/orders/{id}` returns it in full.
  *
- * **Warum es eine eingetippte Nummer braucht.** Weil die Liste die
- * Verkäuferseite ist, führt kein API-Weg von „ich bin Käufer" zu „hier sind
- * meine Bestellnummern". Die Nummer steht im Web unter `/sell/purchases` und
- * sonst nirgends. Das ist keine Bequemlichkeitsentscheidung, sondern die
- * einzige Form, die die API zulässt.
+ * **Why it needs a typed-in number.** Because the list is the seller side,
+ * there is no API route from "I am the buyer" to "here are my order numbers".
+ * The number is on the web under `/sell/purchases` and nowhere else. That is
+ * not a convenience decision but the only shape the API allows.
  *
- * **Was es spart:** drei Platten in einer Bestellung sind sonst drei Haken bei
- * „gekauft", von Hand, nachdem der Dig längst weggeräumt ist. Hier ist es eine
- * Nummer und eine Anfrage.
+ * **What it saves:** three records in one order are otherwise three ticks at
+ * "bought", by hand, after the dig has long been cleared away. Here it is one
+ * number and one request.
  *
- * **`items[].id` ist die Listing-ID** — gemessen an der Form (zehn Ziffern wie
- * jede andere) und daran, dass `GET /marketplace/listings/{diese id}` mit
- * **403 „authenticate as the owner"** antwortet: ein verkauftes Angebot gehört
- * nur noch seinem Verkäufer. Das ist der Grund, warum ein Import nichts
- * verdoppelt: eine Platte, die ein Dig gefunden hat, trägt dieselbe Nummer,
- * und die Zeile wird ergänzt statt ein zweites Mal angelegt.
+ * **`items[].id` is the listing id** — measured by its shape (ten digits like
+ * any other) and by the fact that `GET /marketplace/listings/{that id}`
+ * answers **403 "authenticate as the owner"**: a sold listing belongs only to
+ * its seller any more. That is why an import duplicates nothing: a record a
+ * dig found carries the same number, and the row is filled out rather than
+ * created a second time.
  */
 
 /**
- * Was von einer Bestellung gelesen wird — und damit auch: was nicht.
+ * What is read from an order — and therefore also: what is not.
  *
- * **Das Schema ist hier die Zusage, nicht ein Kommentar.** Die Antwort enthält
- * `media_condition`, `sleeve_condition`, `condition_comments`, `price` und
- * `seller.email`. Nichts davon steht unten, also existiert nichts davon
- * hinter dieser Zeile — es kann gar nicht erst versehentlich weitergereicht
- * werden.
+ * **The schema is the promise here, not a comment.** The answer contains
+ * `media_condition`, `sleeve_condition`, `condition_comments`, `price` and
+ * `seller.email`. None of it is named below, so none of it exists past this
+ * line — it cannot be passed on by accident in the first place.
  *
- * - Die **versprochene Note** wäre Discogs-Content und dürfte nach sechs
- *   Stunden nicht mehr gezeigt werden (Regel 4). M14 speichert deshalb nur den
- *   *Vergleich*, nie die Note — und ein Import, der sie mitbrächte, wäre die
- *   Hintertür in genau diese Zusage.
- * - **Preise** sind aus demselben Grund draußen.
- * - **`seller.email`** ist die Adresse eines Dritten in einer Antwort, in der
- *   diese App nichts damit zu tun hat.
+ * - The **promised grade** would be Discogs content and could not be shown
+ *   after six hours (rule 4). M14 therefore stores only the *comparison*,
+ *   never the grade — and an import that brought it along would be the back
+ *   door into precisely that promise.
+ * - **Prices** are out for the same reason.
+ * - **`seller.email`** is a third party's address in an answer this app has no
+ *   business with.
  *
- * Titel, Künstler und Laden bleiben: das ist Katalog, kein Angebot, und ohne
- * sie ist eine Kaufliste zwei nackte Ganzzahlen (`docs/03` §7).
+ * Title, artist and shop stay: that is catalogue, not a listing, and without
+ * them a purchase list is two bare integers (`docs/03` §7).
  */
 const orderSchema = z.object({
   id: z.union([z.string(), z.number()]),
@@ -70,18 +67,17 @@ const orderSchema = z.object({
 })
 
 /**
- * Die Form einer Bestellnummer: `259022-32308`.
+ * The shape of an order number: `259022-32308`.
  *
- * Gemessen an einer echten. Geprüft wird sie, damit ein Vertipper keine
- * Anfrage kostet — nicht, um klug zu sein: was durchkommt, entscheidet
- * weiterhin Discogs.
+ * Measured against a real one. It is checked so that a typo costs no request —
+ * not to be clever: what gets through is still Discogs' decision.
  */
 export function cleanOrderId(raw: string): string | null {
   const getrimmt = raw.trim()
   /*
-   * Eine ganze Adresse ist auch eine Eingabe. Wer die Nummer aus dem Browser
-   * kopiert, hat oft `discogs.com/sell/order/259022-32308` in der Zwischen-
-   * ablage, und daran zu scheitern wäre eine Kleinlichkeit.
+   * A whole address is an input too. Anyone copying the number out of the
+   * browser often has `discogs.com/sell/order/259022-32308` on the clipboard,
+   * and failing on that would be pettiness.
    */
   const ausAdresse = getrimmt.match(/(\d+-\d+)\s*$/)
   const kandidat = ausAdresse ? ausAdresse[1]! : getrimmt
@@ -102,13 +98,13 @@ export async function importOrder(
   const dealer = order.seller?.username ?? null
 
   /*
-   * Das Kaufdatum kommt aus der Bestellung, nicht von der Uhr.
+   * The purchase date comes from the order, not from the clock.
    *
-   * Daran hängt die Reifezeit aus `worker/grading.ts`: eine Bestellung von vor
-   * drei Wochen ist angekommen, und ihre Frage ist sofort fällig. Mit
-   * `Date.now()` fingen alle importierten Käufe bei null an, und der ganze
-   * Sinn des Imports — die Frage stellen zu können, wenn sie dran ist — wäre
-   * um zehn Tage verschoben.
+   * The ripening time in `worker/grading.ts` hangs off it: an order from three
+   * weeks ago has arrived, and its question is due immediately. With
+   * `Date.now()` every imported purchase would start at zero, and the whole
+   * point of the import — being able to ask the question when it is due —
+   * would be pushed out by ten days.
    */
   const gekauftAm = order.created ? Date.parse(order.created) : NaN
   const at = Number.isNaN(gekauftAm) ? now : gekauftAm
@@ -120,13 +116,12 @@ export async function importOrder(
     const vorhanden = await db.get('feedback', item.id)
 
     /*
-     * Eine vorhandene Zeile wird ergänzt, nicht ersetzt.
+     * An existing row is filled out, not replaced.
      *
-     * Sie kann aus einem Dig stammen und trägt dann Signale und eine
-     * Punktzahl — die Auswertung, um derentwillen dieser Store überhaupt
-     * existiert (`docs/03` §7). Und sie kann bereits ein Urteil tragen: wer
-     * schon geantwortet hat, wie die Platte ankam, soll nach einem Import
-     * nicht erneut gefragt werden.
+     * It may come from a dig, in which case it carries signals and a score —
+     * the appraisal this store exists for in the first place (`docs/03` §7).
+     * And it may already carry a verdict: anyone who has answered how the
+     * record arrived should not be asked again after an import.
      */
     const zeile: Feedback = {
       ...(vorhanden ?? {

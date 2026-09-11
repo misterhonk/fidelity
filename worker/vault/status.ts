@@ -131,18 +131,16 @@ export async function runVaultSync(passphrase: string): Promise<SyncReport> {
   const id = await vaultId(identity.userId, passphrase)
 
   /*
-   * Der Umzug vom alten Ablageort — einmal, und dann nie wieder.
+   * The move from the old storage location — once, and then never again.
    *
-   * Bis zum 2026-08-13 hing die Kennung an der öffentlichen Discogs-User-ID
-   * (die Begründung steht in `targets/hub.ts`). Ein Gerät, das seit damals
-   * nicht abgeglichen hat, findet unter der neuen Kennung nichts — und dürfte
-   * das auf keinen Fall als Erstanlage verstehen und den alten Stand
-   * überschreiben.
+   * Until 2026-08-13 the id hung off the public Discogs user id (the reasoning
+   * is in `targets/hub.ts`). A device that has not synced since then finds
+   * nothing under the new id — and must on no account read that as a first
+   * setup and overwrite the older state.
    *
-   * Also: an der alten Stelle nachsehen, den Block an die neue legen und die
-   * alte räumen. Das Räumen ist der Punkt, nicht die Ordnung — ein
-   * verschlüsselter Block unter einer ausrechenbaren Adresse ist genau das,
-   * was hier abgestellt wird.
+   * So: look in the old place, put the block in the new one, and clear the
+   * old. The clearing is the point, not the tidiness — an encrypted block at a
+   * computable address is exactly what is being stopped here.
    */
   const legacy = await legacyVaultId(identity.userId)
   if (legacy !== id && !(await client.vaultRead(id))) {

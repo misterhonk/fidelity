@@ -15,35 +15,35 @@ import { KDF_ITERATIONS, type SealedVault } from '../crypto'
  */
 
 /**
- * Wo der Block liegt — und warum das nicht auszurechnen sein darf.
+ * Where the block lies — and why that must not be computable.
  *
- * Bis zum 2026-08-13 war die Kennung `SHA-256("fidelity-vault:" + userId)`.
- * Eine Discogs-User-ID ist öffentlich, also konnte jeder, der das Geheimnis
- * eines geteilten Hubs kennt, den Ablageort jedes Mitbenutzers ausrechnen. Zu
- * lesen war da nichts — der Block ist mit der Passphrase verschlüsselt —, aber
- * herunterladen und überschreiben schon. Auf einem Hub, den man mit Freunden
- * teilt, soll niemand den Platz des anderen auch nur kennen.
+ * Until 2026-08-13 the id was `SHA-256("fidelity-vault:" + userId)`. A Discogs
+ * user id is public, so anyone knowing a shared hub's secret could work out
+ * every co-user's storage location. There was nothing to read there — the
+ * block is encrypted with the passphrase — but downloading and overwriting,
+ * yes. On a hub shared with friends, nobody should so much as know where
+ * somebody else's place is.
  *
- * Also aus der Passphrase mitabgeleitet. Zwei Dinge daran sind Absicht:
+ * So it is derived from the passphrase as well. Two things about that are
+ * deliberate:
  *
- * **PBKDF2 und nicht SHA-256.** Ein schneller Hash über eine Passphrase macht
- * die Kennung zum Orakel: wer sie sieht, kann offline Passphrasen durchprobieren
- * und weiß bei jedem Treffer, dass er richtig liegt. 600.000 Runden machen
- * daraus eine Rechnung, die sich nicht lohnt.
+ * **PBKDF2 and not SHA-256.** A fast hash over a passphrase turns the id into
+ * an oracle: anyone seeing it can try passphrases offline and know on every
+ * hit that they are right. 600,000 rounds make that a sum not worth doing.
  *
- * **Ein eigener, fester Salzwert.** Die Verschlüsselung nimmt einen zufälligen,
- * der neben dem Block liegt — der taugt hier nicht, denn man müsste den Block
- * schon gefunden haben, um ihn zu kennen. Das Präfix trennt die beiden
- * Ableitungen sauber: aus der Kennung folgt kein Schlüsselmaterial.
+ * **A separate, fixed salt.** The encryption takes a random one that sits
+ * beside the block — no use here, because you would have to have found the
+ * block already to know it. The prefix keeps the two derivations cleanly
+ * apart: no key material follows from the id.
  *
- * Der Preis ist eine dritte teure Ableitung je Abgleich — auf einem Pfad, der
- * mit `seal` und `open` ohnehin schon zwei davon hat.
+ * The price is a third expensive derivation per sync — on a path that already
+ * has two of them in `seal` and `open`.
  *
- * **Und der Haken, der beim alten Weg nicht bestand:** eine geänderte
- * Passphrase verschiebt jetzt auch den Ablageort. Vorher war ein falsches Wort
- * ein „lässt sich nicht öffnen", jetzt ist es ein „da liegt nichts" — was
- * gefährlicher aussieht, als es ist, und deshalb in `status.ts` ausdrücklich
- * benannt wird, statt als Erstanlage durchzugehen.
+ * **And the catch the old way did not have:** a changed passphrase now moves
+ * the storage location too. A wrong word used to be a "cannot be opened"; now
+ * it is a "nothing is there" — which looks more dangerous than it is, and is
+ * therefore named explicitly in `status.ts` rather than passing as a first
+ * setup.
  */
 export async function vaultId(userId: number, passphrase: string): Promise<string> {
   const material = await crypto.subtle.importKey(
@@ -69,10 +69,10 @@ export async function vaultId(userId: number, passphrase: string): Promise<strin
 }
 
 /**
- * Wo er bis zum 2026-08-13 lag.
+ * Where it lay until 2026-08-13.
  *
- * Bleibt, damit ein Gerät seinen alten Block noch findet und umziehen kann —
- * und nur dafür. Geschrieben wird dorthin nie wieder.
+ * Kept so that a device can still find its old block and move it — and for
+ * nothing else. Nothing is ever written there again.
  */
 export async function legacyVaultId(userId: number): Promise<string> {
   const bytes = new TextEncoder().encode(`fidelity-vault:${userId}`)

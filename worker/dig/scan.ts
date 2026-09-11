@@ -25,7 +25,7 @@ export const MAX_PAGES = 100
 export const REACHABLE = PER_PAGE * MAX_PAGES * 2
 
 /**
- * Wie man an einem Laden vorbeikommt, der mehr als 20.000 Platten hat.
+ * How to get past a shop with more than 20,000 records.
  *
  * The wall is on the page number, not on the offset — `page=101` is 403 no
  * matter how small `per_page` is, and `per_page` itself is clamped to 100
@@ -242,10 +242,10 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
     dig.depth === 'deep' ? SCAN_PASSES : dig.depth === 'neu' ? SINCE_PASSES : NORMAL_PASSES
 
   /**
-   * Das neueste Angebot, das dieser Lauf gesehen hat.
+   * The newest listing this run has seen.
    *
-   * Written to the dealer at the end, and read by the *next* "nur das Neue"
-   * visit as the line to stop at. Kept as the string Discogs sent rather than
+   * Written to the dealer at the end, and read by the *next* "only what is
+   * new" visit as the line to stop at. Kept as the string Discogs sent rather than
    * a parsed date: it is only ever compared to another one of its own kind,
    * and ISO 8601 with an offset does not compare as a string across offsets.
    */
@@ -352,21 +352,19 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
         nearMisses.add(listing)
 
         /*
-         * Jede Zeile, nicht nur die Treffer.
+         * Every row, not only the matches.
          *
-         * Der Balken „Labels in stock" zählt hier mit; ohne diese Zeile wäre
-         * er nicht anklickbar, denn was er zählt, existiert danach nirgends
-         * mehr. Und gerade bei einem Label ohne eigene Platten — dem
-         * interessantesten Fall — gibt es per Definition keinen Treffer, der
-         * einspringen könnte.
+         * The "labels in stock" bar counts here too; without this line it
+         * would not be clickable, because what it counts exists nowhere
+         * afterwards. And for a label you own nothing by — the most
+         * interesting case — there is by definition no match to stand in.
          *
-         * Schmal: nur was die Ansicht zeigt. An echten Zeilen gemessen 198
-         * Byte statt 606, also rund 3,8 MB bei zwanzigtausend — und die sind
-         * mit dem Dig nach sechs Stunden wieder weg (db/expire.ts).
+         * Narrow: only what the view shows. Measured on real rows at 198 bytes
+         * instead of 606, so about 3.8 MB at twenty thousand — and those go
+         * with the dig after six hours (db/expire.ts).
          *
-         * Dasselbe Jahrzehnt wie im Fingerabdruck, damit Balken und Liste
-         * dieselbe Menge meinen: Jahr 0 heißt „Discogs weiß es nicht" und ist
-         * kein Jahrzehnt.
+         * The same decade as in the fingerprint, so that bar and list mean the
+         * same set: year 0 means "Discogs does not know" and is not a decade.
          */
         stockRows.push({
           digId: dig.id,
@@ -419,8 +417,8 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
         matches += fresh.length
       }
 
-      // Seitenweise, wie die Treffer: eine Unterbrechung kostet eine Seite und
-      // nicht den Lauf.
+      // A page at a time, like the matches: an interruption costs a page and
+      // not the run.
       if (stockRows.length > 0) {
         const tx = db.transaction('stock', 'readwrite')
         for (const row of stockRows) await tx.store.put(row)

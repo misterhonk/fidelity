@@ -1,48 +1,49 @@
 import { openFidelityDb } from '~~/db/open'
 
 /**
- * Welche konkreten Angebote ein Dig für eine Platte gesehen hat (M11).
+ * Which particular offers a dig saw for a record (M11).
  *
- * **Warum es das überhaupt geben kann.** Der Wächter fragt
- * `/marketplace/stats/{id}` und bekommt eine Zahl: „drei Exemplare, billigstes
- * 24 €". Wer sie anbietet, sagt Discogs nicht — `/marketplace/listings?
- * release_id=…` antwortet mit 405, und einen Ersatz gibt es nicht (`docs/02`).
- * Deshalb steht auf dem Wächter-Bildschirm kein Laden.
+ * **Why this can exist at all.** The watcher asks
+ * `/marketplace/stats/{id}` and gets a number: "three copies, cheapest €24".
+ * Who is offering them, Discogs does not say — `/marketplace/listings?
+ * release_id=…` answers 405, and there is no substitute (`docs/02`). Which is
+ * why no shop appears on the watcher screen.
  *
- * Mit **einer** Ausnahme, und die ist hier: ein Dig, den dieses Gerät selbst
- * gefahren hat, hat Angebote mit ihrer Listing-ID gesehen. Die überleben den
- * Ablauf — `db/expire.ts` nullt die Marktplatzfelder, `listingId` und `digId`
- * gehören uns. Über `GET /marketplace/listings/{id}` ist ein einzelnes Angebot
- * abrufbar, und `status` sagt, ob es noch zu haben ist.
+ * With **one** exception, and it is this: a dig this device ran itself has
+ * seen offers with their listing id. Those survive expiry — `db/expire.ts`
+ * nulls the marketplace fields, and `listingId` and `digId` are ours. A single
+ * offer can be fetched through `GET /marketplace/listings/{id}`, and `status`
+ * says whether it is still to be had.
  *
- * Das macht aus „ein Angebot weniger" ein „die Kopie bei Plattenkiste ist
- * weg". Nicht „verkauft" — ein Listing kann auch zurückgezogen werden, und die
- * API sagt nicht, welches von beidem.
+ * That turns "one offer fewer" into "the copy at Plattenkiste is gone". Not
+ * "sold" — a listing can also be withdrawn, and the API does not say which of
+ * the two.
  */
 
 /**
- * Wie viele Angebote je Meldung nachgeschlagen werden.
+ * How many offers are looked up per report.
  *
- * Jedes kostet einen Request, und der Wächter läuft über bis zu hundert
- * Platten. Drei ist die Grenze, an der aus „nachsehen" ein Vorgang würde:
- * gefragt wird ohnehin nur, wenn die Zahl gefallen ist, und das ist selten.
+ * Each costs a request, and the watcher runs over up to a hundred records.
+ * Three is the point at which "looking something up" would become an
+ * operation: the question is only asked when the count has fallen anyway, and
+ * that is rare.
  */
 export const MAX_CONFIRM = 3
 
 export interface SeenOffer {
   listingId: number
-  /** Wo es gesehen wurde. Der einzige Laden, den dieser Bildschirm nennen darf. */
+  /** Where it was seen. The only shop this screen is allowed to name. */
   dealer: string
-  /** Wann der Dig lief — das Jüngste zuerst, Altes ist wahrscheinlicher weg. */
+  /** When the dig ran — newest first; older is likelier to be gone. */
   at: number
 }
 
 /**
- * Die Angebote aus den aufgehobenen Digs, jüngstes zuerst.
+ * The offers from the digs that were kept, newest first.
  *
- * Ohne Index über `releaseId`: die Digs sind auf fünf gedeckelt
- * (`DIG_HISTORY_LIMIT`), und ein Index, der bei jedem Scan mitgeschrieben
- * wird, kostet mehr als ein Durchlauf, der selten stattfindet.
+ * With no index over `releaseId`: the digs are capped at five
+ * (`DIG_HISTORY_LIMIT`), and an index written on every scan costs more than a
+ * walk that rarely happens.
  */
 export async function seenOffers(releaseId: number): Promise<SeenOffer[]> {
   const db = await openFidelityDb()
@@ -60,8 +61,8 @@ export async function seenOffers(releaseId: number): Promise<SeenOffer[]> {
     if (!dig) continue
 
     /*
-     * Dasselbe Angebot in zwei Digs ist ein Angebot. Behalten wird der
-     * jüngere Fund — er trägt den Laden, unter dem es zuletzt gesehen wurde.
+     * The same offer in two digs is one offer. The newer find is kept — it
+     * carries the shop it was last seen under.
      */
     const known = found.get(match.listingId)
     if (known && known.at >= dig.at) continue
