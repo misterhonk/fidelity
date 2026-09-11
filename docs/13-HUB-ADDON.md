@@ -1,86 +1,84 @@
-# 13 – Der Hub: optionales Server-Addon
+# 13 – The hub: an optional server add-on
 
-> **Fidelity funktioniert vollständig ohne Hub.** Der Hub ist ein winziger,
-> selbst hostbarer Dienst, der die Erfahrung anreichert – niemals eine Voraussetzung.
-> Status: **geplant für M9**, aber die Nahtstellen entstehen bereits in M2/M5.
+> **Fidelity works completely without a hub.** The hub is a tiny, self-hostable service that
+> enriches the experience — never a requirement.
+> Status: **planned for M9**, but the seams are being built in M2/M5 already.
 
 ---
 
-## 1. Das Prinzip
+## 1. The principle
 
 ```
-Kein Hub konfiguriert          Hub konfiguriert
+No hub configured              A hub configured
 ─────────────────────          ─────────────────────────────────
-App läuft vollständig    →     App läuft vollständig
-Horizont: 13 Min Aufbau  →     Horizont: Sekunden (geteilter Cache)
-Versandstaffeln aus JSON →     Versandstaffeln aus der Community
-Watchlist beim Öffnen    →     Push, wenn sich was tut
-Digs bleiben lokal       →     Digs zwischen deinen Geräten synchron
+The app runs fully       →     The app runs fully
+Horizon: 13 min to build →     Horizon: seconds (a shared cache)
+Shipping tiers from JSON →     Shipping tiers from the community
+Watchlist on opening     →     Push, when something moves
+Digs stay local          →     Digs in step between your devices
 ```
 
-**Die Regel, die niemals gebrochen wird:** Kein Feature darf einen Hub *voraussetzen*.
-Der Hub ist ein Beschleuniger, kein Fundament. Wer ihn abschaltet, verliert Komfort –
-nie Funktionalität.
+**The rule that is never broken:** no feature may *require* a hub. The hub is an
+accelerator, not a foundation. Switch it off and you lose convenience — never functionality.
 
-In den Einstellungen gibt es genau ein Feld:
+There is exactly one field in the settings:
 
 ```
-Hub-URL (optional)   https://hub.mister-honk.de
-                     [ Verbindung testen ]
+Hub URL (optional)   https://hub.mister-honk.de
+                     [ Test the connection ]
 ```
 
-Leer = alles lokal. Gesetzt = die App nutzt ihn, wo er hilft, und fällt bei jedem Fehler
-still auf den lokalen Weg zurück.
+Empty = everything local. Set = the app uses it where it helps, and falls back quietly to
+the local route on any error.
 
 ---
 
-## 2. Was der Hub kann – und was bewusst nicht
+## 2. What the hub can do – and what it deliberately cannot
 
-### ✅ Sinnvoll
+### ✅ Worthwhile
 
-| Funktion | Nutzen | Braucht Token? |
+| Feature | Benefit | Needs a token? |
 |---|---|---|
-| **Horizont-Cache** | Wer Conny Plank schon expandiert hat, erspart allen anderen 11 Requests. Bei drei Nutzern schrumpft die Ersteinrichtung von 13 Min auf Sekunden | ❌ nein |
-| **Versandstaffeln** | Einer trägt sie ein, alle haben sie. Ersetzt den Pull-Request-Weg | ❌ nein |
-| **Änderungs-Wächter** | Pollt `num_for_sale` je beobachtetem Händler – **1 Request statt 100** – und schickt bei Veränderung einen Push | ❌ nein |
-| **Web Push** | Der einzige Weg zu echten Benachrichtigungen. Braucht zwingend einen Application Server | ❌ nein |
-| **Geräte-Sync** | Desktop und Handy teilen Wantlist-Notizen, Korb, Feedback | ❌ nein |
-| **Dig teilen** | Dig hochladen, Link an Jens schicken | ❌ nein |
+| **Horizon cache** | Whoever has expanded Conny Plank already saves everybody else 11 requests. With three users, first-time setup shrinks from 13 min to seconds | ❌ no |
+| **Shipping tiers** | One person enters them, everybody has them. Replaces the pull-request route | ❌ no |
+| **The change watcher** | Polls `num_for_sale` per watched dealer — **1 request instead of 100** — and sends a push on a change | ❌ no |
+| **Web Push** | The only route to real notifications. Strictly requires an application server | ❌ no |
+| **Device sync** | Desktop and phone share wantlist notes, the basket, feedback | ❌ no |
+| **Sharing a dig** | Upload a dig, send Jens the link | ❌ no |
 
-> **Der wichtigste Fund: Nichts davon braucht den Discogs-Token.**
-> `GET /users/{username}` funktioniert **unauthentifiziert** (25 req/min). Der Wächter
-> pollt nur `num_for_sale`, vergleicht mit dem letzten Wert und schickt bei Abweichung
-> einen Push. Den eigentlichen Scan macht danach wieder der Client – mit seinem eigenen
-> Rate-Limit-Budget.
+> **The most important find: none of that needs the Discogs token.**
+> `GET /users/{username}` works **unauthenticated** (25 req/min). The watcher polls only
+> `num_for_sale`, compares it with the last value and sends a push on a difference. The
+> actual scan is then done by the client again — on its own rate-limit budget.
 
-### ❌ Bewusst nicht
+### ❌ Deliberately not
 
-| Nicht bauen | Warum |
+| Not building | Why |
 |---|---|
-| **Serverseitiges Scannen als Standard** | Der Hub hat *eine* IP. Alle Nutzer teilten sich wieder 60 req/min – genau die Grenze, die wir gerade losgeworden sind |
-| **Discogs-Tokens speichern** | Ein Token gibt Vollzugriff inklusive Schreibrechten auf Sammlung, Wantlist und Bestellungen. Es gibt keine Scopes. Das gehört nicht auf einen fremden Rechner |
-| **Nutzerkonten mit Passwort** | Braucht niemand. Zugang über ein geteiltes Hub-Secret reicht für einen Freundeskreis |
-| **Der Hub als Discogs-Proxy** | Wäre ToS-grenzwertig („circumvent rate limits") und macht ihn zum Flaschenhals |
+| **Server-side scanning as the default** | The hub has *one* IP. All users would be sharing 60 req/min again — the very limit we just got rid of |
+| **Storing Discogs tokens** | A token gives full access including write rights to the collection, wantlist and orders. There are no scopes. That does not belong on somebody else's machine |
+| **User accounts with passwords** | Nobody needs them. Access through a shared hub secret is enough for a circle of friends |
+| **The hub as a Discogs proxy** | Would be borderline under the ToS ("circumvent rate limits") and makes it the bottleneck |
 
-> ⚠️ **Optionale Ausnahme, explizit opt-in:** Wer *will*, kann seinen Token im Hub
-> hinterlegen, damit dieser nachts vollständig scannt. Muss mit einer unmissverständlichen
-> Warnung versehen sein und ist **niemals Default**. Bei einem Hub, den man selbst hostet
-> und der nur Freunde bedient, ist das vertretbar – die Entscheidung trifft der Nutzer.
+> ⚠️ **An optional exception, explicitly opt-in:** anybody who *wants* to can store their
+> token in the hub so that it scans fully overnight. It must carry an unmistakable warning
+> and is **never the default**. On a hub you host yourself and that serves only friends, that
+> is defensible — the user makes the decision.
 
 ---
 
-## 3. Die Nahtstellen im Client
+## 3. The seams in the client
 
-**Das ist der Teil, der jetzt schon gebaut werden muss.** Drei Interfaces, hinter denen
-später eine Hub-Implementierung stecken kann, ohne dass Matching-Engine oder UI etwas merken.
+**This is the part that has to be built now.** Three interfaces behind which a hub
+implementation can sit later, without the matching engine or the UI noticing anything.
 
 ```ts
-// shared/ports.ts — die einzigen Stellen, an denen ein Hub andocken kann
+// shared/ports.ts — the only places a hub can attach
 
 export interface HorizonSource {
-  /** Kanten für eine Entität holen. Hub fragt zuerst, API ist der Fallback. */
+  /** Fetch the edges for an entity. The hub is asked first, the API is the fallback. */
   fetch(kind: 'artist' | 'label' | 'master', id: number): Promise<HorizonChunk | null>
-  /** Nach eigener Expansion anbieten. No-op ohne Hub. */
+  /** Offer up after expanding ourselves. A no-op without a hub. */
   contribute?(chunk: HorizonChunk): Promise<void>
 }
 
@@ -90,309 +88,301 @@ export interface ShippingProfileSource {
 }
 
 export interface WatchService {
-  /** Ohne Hub: Prüfung beim App-Start. Mit Hub: Push. */
+  /** Without a hub: a check at app start. With a hub: push. */
   register(dealers: string[]): Promise<void>
   pending(): Promise<WatchAlert[]>
 }
 ```
 
-Implementierungen:
+The implementations:
 
 ```
-worker/horizon/source-api.ts    ← Standard: direkt gegen Discogs
-worker/horizon/source-hub.ts    ← ab M9: erst Hub, dann API-Fallback
+worker/horizon/source-api.ts    ← the default: straight to Discogs
+worker/horizon/source-hub.ts    ← from M9: the hub first, then the API fallback
 
-worker/shipping/source-bundled.ts   ← shipping-profiles.json aus dem Build
-worker/shipping/source-hub.ts       ← ab M9
+worker/shipping/source-bundled.ts   ← shipping-profiles.json from the build
+worker/shipping/source-hub.ts       ← from M9
 
-worker/watch/service-local.ts   ← Prüfung beim App-Start
-worker/watch/service-hub.ts     ← ab M9: Push-Subscription
+worker/watch/service-local.ts   ← a check at app start
+worker/watch/service-hub.ts     ← from M9: a push subscription
 ```
 
-**Der Aufwand jetzt: drei Interfaces und eine Fallback-Kette.** Vielleicht eine Stunde.
-Ohne sie wäre M9 ein Refactoring quer durch den Worker.
+**The effort now: three interfaces and a fallback chain.** Maybe an hour. Without them M9
+would be a refactoring right across the worker.
 
-### Die Fallback-Kette
+### The fallback chain
 
 ```ts
-// Jede Hub-Abfrage ist optimistisch und scheitert lautlos.
-// Ein kaputter oder abgeschalteter Hub darf die App NIE blockieren.
+// Every hub query is optimistic and fails silently.
+// A broken or switched-off hub must NEVER block the app.
 async function fetchHorizon(kind, id) {
   if (hubUrl) {
     try {
       const hit = await withTimeout(hub.horizon(kind, id), 2000)
       if (hit) return hit
-    } catch { /* absichtlich still – wir fallen einfach zurück */ }
+    } catch { /* deliberately quiet – we simply fall back */ }
   }
   const fresh = await api.expandEntity(kind, id)
-  void hub?.contribute(fresh)          // fire-and-forget
+  void hub?.contribute(fresh)          // fire and forget
   return fresh
 }
 ```
 
-**Timeout 2 Sekunden, kein Retry.** Ein langsamer Hub ist schlimmer als kein Hub.
+**A 2-second timeout, no retry.** A slow hub is worse than no hub.
 
-### Und das, was schon dalag
+### And what was already there
 
-Die Kette oben greift nur, wenn überhaupt etwas geholt wird. Der Horizont-Lauf überspringt
-aber alles, was lokal schon liegt und frisch ist — und übersprang bis zum 2026-08-13 damit
-auch den Beitrag. Für den häufigsten Weg, erst die App benutzen und den Hub danach
-eintragen, hieß das: **es ging nie etwas hoch.** Gemessen ein Eintrag beim Hub gegen
-hunderte auf dem Gerät; der geteilte Cache, der einzige Grund für die Existenz des Hubs,
-war damit tot, und nichts daran sah kaputt aus.
+The chain above only applies when something is fetched at all. But the horizon run skips
+everything that is already local and fresh — and until 2026-08-13 it skipped the
+contribution with it. For the most common route, using the app first and entering the hub
+afterwards, that meant: **nothing ever went up.** Measured, one entry at the hub against
+hundreds on the device; the shared cache, the only reason the hub exists, was dead — and
+nothing about it looked broken.
 
-Übersprungene Blöcke werden deshalb nachgereicht, einmal je Block. Das kostet keine
-Discogs-Anfrage — der Block liegt ja schon da — und `sharedAt` am Datensatz merkt sich,
-was oben ist. **Gemerkt wird erst nach einer angenommenen Antwort**, sonst wäre ein
-falsches Geheimnis ein Block, der nie wieder hochgeht. Höchstens fünfzig je Lauf, damit
-der erste Lauf nach dem Eintragen eines Hubs nicht zu einer halben Minute Geplapper wird;
-die Grenze meldet sich im Protokoll, statt still zu kürzen.
+Skipped blocks are therefore sent on afterwards, once per block. That costs no Discogs
+request — the block is already there — and `sharedAt` on the record remembers what is up.
+**It is only remembered after an accepted response**, or a wrong secret would be a block that
+never goes up again. At most fifty per run, so that the first run after entering a hub does
+not become half a minute of chatter; the limit reports itself in the log rather than quietly
+truncating.
 
 ---
 
-## 4. Der Hub selbst
+## 4. The hub itself
 
-Klein genug, um ihn an einem Nachmittag zu bauen und überall laufen zu lassen.
+Small enough to build in an afternoon and run anywhere.
 
 ```
 hub/
 ├── src/
-│   ├── app.ts            Hono-App, alle Routen
-│   ├── watch.ts          Subscriptions, VAPID, Wächter-Durchgang
-│   ├── db.ts             Schema und Zugriff
-│   └── server.ts         Start, Umgebungsvariablen, Zeitgeber
+│   ├── app.ts            The Hono app, all the routes
+│   ├── watch.ts          Subscriptions, VAPID, the watcher pass
+│   ├── db.ts             Schema and access
+│   └── server.ts         Start, environment variables, the timer
 ├── scripts/
-│   └── ring-once.ts      Push von Ende zu Ende prüfen (siehe unten)
+│   └── ring-once.ts      Check push end to end (see below)
 ├── test/
 └── package.json
 ```
 
-**Stack:** Node ≥ 22.6 + **Hono** + **`node:sqlite`**. Kein Treiber, kein ORB, kein
-Redis, keine native Abhängigkeit — und deshalb auch kein Compiler im Image. Der Dienst
-wird als TypeScript gestartet (`node src/server.ts`), was ab 22.18 ohne Schalter geht.
+**The stack:** Node ≥ 22.6 + **Hono** + **`node:sqlite`**. No driver, no ORM, no Redis, no
+native dependency — and therefore no compiler in the image either. The service is started as
+TypeScript (`node src/server.ts`), which works without a flag from 22.18.
 
-**Ressourcen:** ~60 MB RAM, ~50 MB Platte bei drei Nutzern. Läuft auf Uberspace
-(supervisord + `uberspace web backend`), auf einem Homeserver hinter Traefik,
-auf jedem VPS, oder als Cloudflare Worker + D1.
+**Resources:** ~60 MB of RAM, ~50 MB of disk with three users. Runs on Uberspace
+(supervisord + `uberspace web backend`), on a home server behind Traefik, on any VPS, or as a
+Cloudflare Worker + D1.
 
-### Wo er am besten steht: neben der App
+### Where it is best placed: next to the app
 
-Die naheliegende Antwort — im Heimnetz — ist die schlechtere, sobald die App über `https`
-ausgeliefert wird. Ein Hub unter `http://localhost` ist von dort **Mixed Content**, und
-WebKit weist das hart ab (2026-08-10 gemessen); auf einem iPhone ist ein tadellos
-laufender Hub damit schlicht unerreichbar.
+The obvious answer — on the home network — is the worse one as soon as the app is served over
+`https`. A hub at `http://localhost` is **mixed content** from there, and WebKit rejects that
+hard (measured 2026-08-10); on an iPhone a perfectly running hub is then simply unreachable.
 
-Unter **derselben Domain wie die App** fällt das alles weg — gleiche Herkunft heißt kein
-CORS, kein Mixed Content, kein zweites Zertifikat, kein DNS-Eintrag:
+Under **the same domain as the app** all of that falls away — same origin means no CORS, no
+mixed content, no second certificate, no DNS entry:
 
 ```
-martinmelcher.de/fidelity/   die App (statische Dateien)
-martinmelcher.de/hub         der Dienst auf Port 8787, Präfix abgeschnitten
+martinmelcher.de/fidelity/   the app (static files)
+martinmelcher.de/hub         the service on port 8787, prefix stripped
 ```
 
-`.github/workflows/hub.yml` richtet genau das ein — getrennt von `deploy.yml` und nur von
-Hand, weil ADR-008 nicht nur für den Code gilt: ein Fehlschlag am Hub darf die App nicht
-mitnehmen.
+`.github/workflows/hub.yml` sets up exactly that — separate from `deploy.yml` and by hand
+only, because ADR-008 applies to more than the code: a failure at the hub must not take the
+app with it.
 
-> ⚠️ **Die Kehrseite: App und Hub laufen auseinander, und zwar still.**
+> ⚠️ **The downside: the app and the hub drift apart, and quietly.**
 >
-> Das Release-Workflow baut zwar ein Hub-Image, liefert es aber **nicht** auf Uberspace
-> aus. Am 2026-09-11 stand die App auf 0.24.0 mit dem Teilen-Knopf, während der laufende
-> Hub noch der Stand davor war: `GET /v1/share/{id}` antwortete mit **401 statt 404**,
-> weil die Route dort gar nicht existierte und die Auth-Schicht alles Unbekannte abweist.
-> Ein geteilter Link wäre für jeden ohne Secret tot gewesen — also für genau die Leute,
-> für die er gemacht ist.
+> The release workflow does build a hub image but does **not** deploy it to Uberspace. On
+> 2026-09-11 the app stood at 0.24.0 with the share button while the running hub was still
+> the version before: `GET /v1/share/{id}` answered **401 instead of 404**, because the route
+> did not exist there and the auth layer rejects anything unknown. A shared link would have
+> been dead for anyone without the secret — that is, for exactly the people it is made for.
 >
-> Aufgefallen ist das nur, weil nach dem Release am **laufenden** Server geprüft wurde,
-> nicht am lokalen. Die Tests waren grün, der Browser war grün, und trotzdem war das
-> Feature draußen kaputt.
+> It was only noticed because after the release the **running** server was checked, not the
+> local one. The tests were green, the browser was green, and the feature was broken in the
+> wild all the same.
 >
-> **Nach jedem Release, das den Hub anfasst:** `hub.yml` mit `ausliefern` laufen lassen
-> und danach die drei Türen nachsehen —
+> **After every release that touches the hub:** run `hub.yml` with `deploy` and then check
+> the three doors —
 >
 > ```
-> GET  /v1/share/<zufall>  → 404   (Lesen geht ohne Secret)
-> POST /v1/share           → 401   (Schreiben nicht)
-> GET  /v1/covers          → 401   (andere Türen bleiben zu)
+> GET  /v1/share/<random>  → 404   (reading works without the secret)
+> POST /v1/share           → 401   (writing does not)
+> GET  /v1/covers          → 401   (the other doors stay shut)
 > ```
 >
-> Eine 401 an der ersten Stelle heißt: der Hub ist alt.
+> A 401 at the first of these means: the hub is old.
 
-**Der Client sucht in dieser Reihenfolge:** `<Herkunft>/hub`, dann die nackte Herkunft,
-dann `http://localhost:8787` in beiden Schreibweisen. Was ohne Geheimnis antwortet, wird
-ohne Rückfrage eingetragen; was eines verlangt, nur ausgefüllt — das Wort ist nicht
-auffindbar, das macht es zu einem.
+**The client looks in this order:** `<origin>/hub`, then the bare origin, then
+`http://localhost:8787` in both spellings. Whatever answers without a secret is entered
+without asking; whatever demands one is only filled in — the word cannot be discovered, which
+is what makes it one.
 
-### API
+### The API
 
 ```
 GET    /v1/horizon/:kind/:id           → HorizonChunk | 404
-PUT    /v1/horizon/:kind/:id           ← Chunk beisteuern
+PUT    /v1/horizon/:kind/:id           ← contribute a chunk
 GET    /v1/shipping/:dealer/:country   → ShippingTier[] | 404
-PUT    /v1/shipping/:dealer/:country   ← Staffel beisteuern
+PUT    /v1/shipping/:dealer/:country   ← contribute tiers
 GET    /v1/covers?ids=1,2,3            → { covers: { releaseId: {thumbUrl, coverUrl} } }
-PUT    /v1/covers                      ← { covers: [...] } beisteuern
+PUT    /v1/covers                      ← contribute { covers: [...] }
 GET    /v1/vault/:id                   → { sealed, updatedAt } | 404
-PUT    /v1/vault/:id                   ← verschlüsselter Block
-DELETE /v1/vault/:id                   ← Block vergessen (Umzug der Kennung)
-POST   /v1/watch/subscribe             ← Push-Subscription + Händlerliste
-POST   /v1/watch/unsubscribe           ← Endpunkt abmelden
-GET    /v1/watch/key                   → { publicKey }  (VAPID, einmal erzeugt)
+PUT    /v1/vault/:id                   ← an encrypted block
+DELETE /v1/vault/:id                   ← forget a block (moving the identifier)
+POST   /v1/watch/subscribe             ← a push subscription + the dealer list
+POST   /v1/watch/unsubscribe           ← unregister an endpoint
+GET    /v1/watch/key                   → { publicKey }  (VAPID, generated once)
 GET    /v1/health                      → { ok, horizon, shipping, covers, watching, secured }
 ```
 
-**Jede dieser Methoden gehört in `allowMethods`.** Der Client ist eine Seite auf einer
-anderen Herkunft, der Vorabflug ist also kein Formalismus, sondern das Tor. `POST` fehlte
-dort bis zum 2026-08-13 — der Hub lief, der Wächter fragte Läden ab, und **kein Browser
-konnte sich je anmelden**, weil `/v1/watch/subscribe` ein POST ist. Es hat den Tag
-überlebt, an dem Push zum ersten Mal klingelte, weil die Anmeldung damals über `curl`
-ging, und curl fragt niemanden um Erlaubnis.
+**Every one of these methods belongs in `allowMethods`.** The client is a page on another
+origin, so the preflight is not a formality but the gate. `POST` was missing there until
+2026-08-13 — the hub ran, the watcher polled shops, and **no browser could ever subscribe**,
+because `/v1/watch/subscribe` is a POST. It survived the day push rang for the first time,
+because the subscription then went through `curl`, and curl asks nobody for permission.
 
-**Auth:** ein geteiltes Secret im `Authorization`-Header, beim Aufsetzen einmal erzeugt.
-Für einen Freundeskreis völlig ausreichend. Keine Nutzerkonten, keine Passwörter,
-keine Sessions.
+**Auth:** a shared secret in the `Authorization` header, generated once at setup. Entirely
+sufficient for a circle of friends. No user accounts, no passwords, no sessions.
 
-### Cover — der billigste Gewinn im ganzen Addon
+### Covers — the cheapest win in the whole add-on
 
-Der Inventar-Endpunkt liefert **überhaupt keine Bilder**: `release.thumbnail` ist leer, in
-1.200 von 1.200 Zeilen über vier Läden (gemessen 2026-08-10, siehe `02-DISCOGS-API.md`).
-Jedes Cover, das ein Client zeigt, kostet ihn also eine eigene Abfrage von
-`/releases/{id}` — und die liefert für alle dieselbe Antwort, dauerhaft, weil ein Cover
-sich nicht ändert. Genau der Fall, für den es diesen Hub gibt.
+The inventory endpoint delivers **no images at all**: `release.thumbnail` is empty, in 1,200
+of 1,200 rows across four shops (measured 2026-08-10, see `02-DISCOGS-API.md`). Every cover a
+client shows therefore costs it a lookup of `/releases/{id}` of its own — and that returns
+the same answer for everybody, permanently, because a cover does not change. Exactly the case
+this hub exists for.
 
-**Gebündelt, nicht einzeln.** Ein Bildschirm will rund ein Dutzend Cover auf einmal. Ein
-Dutzend Rundreisen zu einem Raspberry Pi, jede mit eigenem Zwei-Sekunden-Limit, kostet
-mehr als die Anfragen, die sie sparen sollen.
+**In bulk, not one at a time.** A screen wants about a dozen covers at once. A dozen round
+trips to a Raspberry Pi, each with its own two-second limit, costs more than the requests they
+are meant to save.
 
-**Leere Paare werden absichtlich gespeichert.** „Discogs hat für dieses Release kein Bild"
-ist genauso viel wert wie ein Bild und kostet dieselbe Anfrage, um es herauszufinden.
+**Empty pairs are stored deliberately.** "Discogs has no image for this release" is worth as
+much as an image and costs the same request to find out.
 
-**Die Adressen werden an beiden Enden geprüft, und das ist keine Formalie.** Sie landen in
-einem `<img src>` auf jedem Gerät, das denselben Hub benutzt — wer hier frei schreiben
-dürfte, könnte alle diese Geräte beliebige Adressen laden lassen. Akzeptiert wird nur
-`i.discogs.com` über HTTPS, und zwar **geparst statt gemustert**:
+**The addresses are checked at both ends, and that is not a formality.** They land in an
+`<img src>` on every device using the same hub — anyone who could write here freely could make
+all those devices load arbitrary addresses. Only `i.discogs.com` over HTTPS is accepted, and
+**parsed rather than pattern-matched**:
 
 ```
-https://i.discogs.com.evil.test/x.jpeg      ← überlebt ein naives includes()
-https://evil.test/?a=https://i.discogs.com  ← ebenso
+https://i.discogs.com.evil.test/x.jpeg      ← survives a naive includes()
+https://evil.test/?a=https://i.discogs.com  ← likewise
 ```
 
-Der Hub lehnt sie beim Einliefern ab, der Client lehnt sie beim Lesen noch einmal ab. Der
-Hub ist genau die Komponente, gegen die `worker/hub/client.ts` geschrieben ist — eine alte
-Version, eine falsch konfigurierte, oder jemand anderes' Hub. Keine der beiden Seiten
-verlässt sich auf die andere.
+The hub rejects them on the way in, the client rejects them again on the way out. The hub is
+precisely the component `worker/hub/client.ts` is written against — an old version, a
+misconfigured one, or somebody else's hub. Neither side relies on the other.
 
-### Der Wächter
+### The watcher
 
 ```ts
-// Cron, stündlich. Der einzige Hintergrundprozess im ganzen Projekt.
+// A cron job, hourly. The only background process in the whole project.
 for (const dealer of watchedDealers) {
-  const { num_for_sale } = await discogs.get(`/users/${dealer}`)   // ohne Token!
+  const { num_for_sale } = await discogs.get(`/users/${dealer}`)   // no token!
   if (num_for_sale !== lastSeen[dealer]) {
     await push(subscribersOf(dealer), {
-      title: `${dealer} hat neue Platten`,
-      body: `${num_for_sale - lastSeen[dealer]} neue Listings`,
+      title: `${dealer} has new records`,
+      body: `${num_for_sale - lastSeen[dealer]} new listings`,
     })
     lastSeen[dealer] = num_for_sale
   }
 }
 ```
 
-**Ein Request pro Händler und Stunde.** Bei 20 beobachteten Händlern sind das
-20 von 25 unauthentifizierten Requests pro Minute – bequem im Rahmen. Der Vollscan
-bleibt beim Client.
+**One request per dealer per hour.** With 20 watched dealers that is 20 of 25 unauthenticated
+requests a minute — comfortably within bounds. The full scan stays with the client.
 
-> ⚠️ **`num_for_sale` erkennt nur Nettoveränderungen.** Verkauft ein Händler 3 Platten
-> und listet 3 neue, bleibt die Zahl gleich. Als Wecker reicht das trotzdem: Wer ein
-> Sortiment aktiv pflegt, produziert ständig Bewegung. Und ein verpasster Alarm ist
-> deutlich weniger schlimm als 100 Requests pro Händler und Stunde.
+> ⚠️ **`num_for_sale` only detects net changes.** If a dealer sells 3 records and lists 3
+> new ones, the number stays the same. As an alarm clock that is still enough: anybody
+> actively tending a stock produces movement constantly. And a missed alert is considerably
+> less bad than 100 requests per dealer per hour.
 
-**Er sagt Discogs, wer er ist.** Eine Anfrage ohne User-Agent beantwortet Discogs mit 403
-(`docs/02`). Nodes eigenes `node` käme durch, ist aber genau die nichtssagende Kennung,
-die ein Anbieter irgendwann aussperrt — und der Fehlschlag wäre der leiseste denkbare, weil
-eine Antwort ohne `ok` verschluckt wird und jeder Laden für immer unbewegt aussähe.
+**It tells Discogs who it is.** A request with no user agent gets a 403 from Discogs
+(`docs/02`). Node's own `node` would get through but is exactly the meaningless
+identification a provider eventually blocks — and the failure would be the quietest
+imaginable, because a response without `ok` is swallowed and every shop would look unmoved
+forever.
 
-**Optional als registrierte Anwendung.** Liegen `HUB_DISCOGS_KEY` und
-`HUB_DISCOGS_SECRET` vor, geht die Kennung als `Authorization: Discogs key=…`-Kopf
-hinaus — nicht als Abfrageparameter, ein Geheimnis in einer URL landet in jedem Protokoll
-dazwischen — und der Takt geht von 2.400 auf 1.200 ms. Es ist **keine** Anmeldung als
-Person; ein persönlicher Token gehört nicht auf einen geteilten Dienst (Regel 6).
+**Optionally as a registered application.** If `HUB_DISCOGS_KEY` and `HUB_DISCOGS_SECRET` are
+present, the identification goes out as an `Authorization: Discogs key=…` header — not as a
+query parameter, since a secret in a URL ends up in every log along the way — and the pacing
+goes from 2,400 to 1,200 ms. It is **not** a sign-in as a person; a personal token does not
+belong on a shared service (rule 6).
 
-### Einmal klingeln lassen
+### Ringing it once
 
-Ein Durchgang meldet nur Wachstum. Das ist richtig und macht die Kette unprüfbar: nach
-einer Auslieferung will man wissen, ob VAPID, Anmeldung, Zustellung und Service Worker
-noch zusammenpassen — und nicht Tage warten, bis jemand Platten einliefert.
-
-```
-node scripts/ring-once.ts [um-wie-viel]
-```
-
-Das Skript senkt die **Erinnerung** des Wächters ab, nicht die Wirklichkeit: die
-Discogs-Antwort ist echt, die Rechnung ist echt, die Benachrichtigung ist echt, und der
-Durchgang schreibt die wahre Zahl danach selbst zurück. Ohne Empfänger oder ohne
-beobachteten Laden bricht es ab, statt Erfolg zu melden — ein Klingeln ohne Ohr wäre kein
-Beweis. Aus der Ferne über den Ablauf, der vier Stellungen kennt — `nachsehen`,
-`ausliefern`, `klingeln`, `ausliefern-und-klingeln`:
+A pass only reports growth. That is right, and it makes the chain untestable: after a deploy
+you want to know whether VAPID, subscription, delivery and the service worker still fit
+together — and not wait days until somebody puts records in.
 
 ```
-gh workflow run Hub -f was=klingeln
+node scripts/ring-once.ts [by-how-much]
 ```
 
-`klingeln` rührt den Dienst nicht an. Vorher hing die Suche nach Node an „nicht
-Trockenlauf", also lief vor jedem Klingeln die ganze Auslieferung samt
-Neustart — vier Mal an einem Nachmittag, nur um eine Benachrichtigung zu
-prüfen.
+The script lowers the watcher's **memory**, not reality: the Discogs response is real, the
+arithmetic is real, the notification is real, and the pass writes the true number back
+afterwards itself. With no recipient or no watched shop it aborts rather than reporting
+success — a ring with no ear would be no proof. From a distance, through the workflow, which
+knows four positions — `check`, `deploy`, `ring`, `deploy-and-ring`:
+
+```
+gh workflow run Hub -f what=ring
+```
+
+`ring` does not touch the service. Before, finding Node hung off "not a dry run", so every
+ring ran the whole deploy including a restart — four times in one afternoon, just to check a
+notification.
 
 ---
 
-## 5. Datenschutz
+## 5. Privacy
 
-Der Hub speichert bewusst fast nichts Persönliches:
+The hub deliberately stores almost nothing personal:
 
-| Was | Personenbezug | Anmerkung |
+| What | Personal data | Note |
 |---|---|---|
-| Horizont-Kanten | ❌ keiner | Öffentliche Katalogfakten – wer hat was produziert |
-| Versandstaffeln | ❌ keiner | Öffentliche Händlerkonditionen |
-| Beobachtete Händlernamen | ⚠️ mittelbar | Verrät Sammelinteressen |
-| Push-Subscription | ⚠️ ja | Endpoint-URL des Push-Dienstes |
-| Geteilte Digs | ⚠️ ja | TTL 6 h, danach gelöscht (ohnehin ToS-Vorgabe) |
-| **Discogs-Token** | 🔴 | **Wird nicht gespeichert** (außer explizit opt-in, s. §2) |
+| Horizon edges | ❌ none | Public catalogue facts – who produced what |
+| Shipping tiers | ❌ none | Public dealer terms |
+| Watched dealer names | ⚠️ indirectly | Reveals collecting interests |
+| Push subscription | ⚠️ yes | The endpoint URL of the push service |
+| Shared digs | ⚠️ yes | TTL 6 h, deleted after that (a ToS requirement anyway) |
+| **The Discogs token** | 🔴 | **Is not stored** (except explicitly opt-in, see §2) |
 
-Wer den Hub für andere betreibt, braucht eine kurze Datenschutzerklärung. Wer ihn nur für
-sich selbst laufen lässt, braucht gar nichts.
-
----
-
-## 6. Zeitpunkt
-
-**M9, nach `v1.0.0`.** Nicht vorher – aus zwei Gründen:
-
-1. Erst wenn die App ohne Hub läuft, weiß man, was der Hub wirklich beitragen müsste.
-   Vermutungen darüber sind fast immer falsch.
-2. Der Client muss nachweislich ohne funktionieren. Baut man beides parallel,
-   schleichen sich unweigerlich Abhängigkeiten ein.
-
-**Was in M2/M5 vorbereitet wird:** die drei Interfaces aus §3 samt Fallback-Kette und
-dem `hubUrl`-Feld in den Preferences. Mehr nicht.
-
-**Auslöser, den Hub tatsächlich zu bauen:**
-
-- Push wird spürbar vermisst
-- Ein dritter oder vierter Nutzer kommt dazu und die 13-Minuten-Ersteinrichtung nervt
-- Versandstaffeln per Pull Request zu pflegen wird lästig
-- Du willst Digs zwischen Desktop und Handy synchron haben
-
-Vorher: nicht bauen.
-
+Anybody running the hub for others needs a short privacy notice. Anybody running it only for
+themselves needs nothing at all.
 
 ---
 
-## Der Tresor – `PUT`/`GET /v1/vault/{id}`
+## 6. Timing
 
-Ein Block verschlüsselter Bytes pro Person, damit ihre eigenen Geräte einander finden.
-Kein Cache und nichts Geteiltes: die anderen Routen beschleunigen alle, diese gehört
-einem.
+**M9, after `v1.0.0`.** Not before — for two reasons:
+
+1. Only once the app runs without a hub do you know what the hub would really have to
+   contribute. Guesses about that are almost always wrong.
+2. The client has to demonstrably work without one. Build both in parallel and dependencies
+   creep in inevitably.
+
+**What is prepared in M2/M5:** the three interfaces from §3 together with the fallback chain
+and the `hubUrl` field in the preferences. Nothing more.
+
+**Triggers for actually building the hub:**
+
+- Push is noticeably missed
+- A third or fourth user arrives and the 13-minute first-time setup grates
+- Maintaining shipping tiers by pull request becomes tiresome
+- You want digs in step between desktop and phone
+
+Before that: do not build it.
+
+
+---
+
+## The vault – `PUT`/`GET /v1/vault/{id}`
+
+One block of encrypted bytes per person, so that their own devices can find one another. Not
+a cache and not shared: the other routes speed everybody up, this one belongs to somebody.
 
 ```
 PUT    /v1/vault/{id}   { version, iv, salt, cipher }   → { stored: true }
@@ -400,44 +390,41 @@ GET    /v1/vault/{id}                                    → { sealed, updatedAt
 DELETE /v1/vault/{id}                                    → { gone: true }
 ```
 
-**Die Kennung** wird aus der **Passphrase** abgeleitet, mit der Discogs-User-ID als
-Salzwert (PBKDF2, 600.000 Runden, 16 Byte hex). Jedes Gerät derselben Person kommt damit
-ohne weitere Eingabe auf dieselbe Kennung — Passphrase und User-ID sind ohnehin das
-gemeinsame Wissen.
+**The identifier** is derived from the **passphrase**, with the Discogs user id as the salt
+(PBKDF2, 600,000 rounds, 16 bytes hex). Every device belonging to the same person arrives at
+the same identifier with no further input — passphrase and user id are the shared knowledge
+anyway.
 
-> **Bis zum 2026-08-13 hing sie an der User-ID allein** (`SHA-256("fidelity-vault:" + id)`),
-> mit der Begründung, eine geänderte Passphrase dürfe nicht alles Bisherige verwaisen
-> lassen. Das war zu teuer erkauft: eine Discogs-User-ID ist öffentlich, also konnte jeder
-> mit dem Geheimnis eines geteilten Hubs den Ablageort jedes Mitbenutzers ausrechnen. Zu
-> lesen war dort nichts — der Block ist verschlüsselt —, aber herunterladen und
-> überschreiben schon. Auf einem Hub, den man mit Freunden teilt, und genau dafür ist er
-> gebaut, ist das die falsche Vorgabe.
+> **Until 2026-08-13 it hung off the user id alone** (`SHA-256("fidelity-vault:" + id)`), on
+> the grounds that a changed passphrase should not orphan everything so far. That was bought
+> too dearly: a Discogs user id is public, so anybody with the secret of a shared hub could
+> compute the storage location of every co-user. There was nothing to read there — the block
+> is encrypted — but downloading and overwriting, yes. On a hub you share with friends, and
+> that is exactly what it is built for, that is the wrong default.
 
-Zwei Einzelheiten der Ableitung sind Absicht:
+Two details of the derivation are deliberate:
 
-- **PBKDF2 statt SHA-256.** Ein schneller Hash über eine Passphrase macht die Kennung zum
-  Orakel: wer sie sieht, probiert offline Wörter durch und weiß bei jedem Treffer, dass er
-  richtig liegt.
-- **Ein eigener, fester Salzwert** (`fidelity-vault-id:{userId}`). Der der Verschlüsselung
-  ist zufällig und liegt neben dem Block — man müsste ihn schon gefunden haben. Das
-  getrennte Präfix sorgt dafür, dass aus der Kennung kein Schlüsselmaterial folgt.
+- **PBKDF2 rather than SHA-256.** A fast hash over a passphrase turns the identifier into an
+  oracle: anybody who sees it can try words offline and know on every hit that they are right.
+- **A separate, fixed salt** (`fidelity-vault-id:{userId}`). The encryption's salt is random
+  and sits next to the block — you would have to have found it already. The separate prefix
+  makes sure no key material follows from the identifier.
 
-**Der Umzug** läuft beim ersten Abgleich nach dem Update: nichts an der neuen Kennung →
-an der alten nachsehen → hinüberlegen → alte räumen. Dafür gibt es `DELETE`. Ein Umzug,
-der den Block unter der ausrechenbaren Adresse liegen lässt, hätte nichts behoben.
+**The move** happens at the first sync after the update: nothing at the new identifier → look
+at the old one → carry it across → clear the old one away. That is what `DELETE` is for. A
+move that left the block at the computable address would have fixed nothing.
 
-**Der Preis, den die alte Begründung benannte, bleibt** — nur behandelt: eine geänderte
-Passphrase verschiebt jetzt auch den Ort. Aus „lässt sich nicht öffnen" wird „da liegt
-nichts", was wie eine Erstanlage aussieht, während zwei Geräte in Wahrheit ab da
-nebeneinanderherlaufen. Der Client meldet deshalb ausdrücklich, wenn eine Ablage leer ist,
-obwohl dieses Gerät schon einmal abgeglichen hat.
+**The price the old reasoning named remains** — only handled: a changed passphrase now moves
+the location too. "Cannot be opened" becomes "there is nothing there", which looks like a
+first-time setup, while in truth two devices run alongside each other from then on. So the
+client says so explicitly when a store is empty even though this device has synced before.
 
-**Der Hub prüft die Hülle und sonst nichts** — vier Felder, sonst 400. Das hält die
-Tabelle davon ab, ein Pastebin für jeden zu werden, der den Hub erreicht. Den Inhalt kann
-er nicht prüfen und soll es nicht: er hat keinen Schlüssel.
+**The hub checks the envelope and nothing else** — four fields, otherwise a 400. That keeps
+the table from becoming a pastebin for anybody who can reach the hub. It cannot check the
+content and should not: it has no key.
 
-**Grenze:** 32 MB je Block. Ein ganzer Horizont samt Merkliste passt mehrfach hinein, und
-ein durchdrehender Client kann die Karte eines Raspberry Pi nicht über Nacht füllen.
+**The limit:** 32 MB per block. A whole horizon including the shortlist fits several times
+over, and a client gone haywire cannot fill a Raspberry Pi's card overnight.
 
-**404 ist die normale erste Antwort.** Ein Gerät, das noch nie geschrieben hat, fragt ins
-Leere — das ist kein Fehler und nichts, was einen Logeintrag verdient.
+**404 is the normal first answer.** A device that has never written asks into the void —
+that is not an error and not something that deserves a log entry.
