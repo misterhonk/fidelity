@@ -1,179 +1,174 @@
 # 08 – Deployment
 
-> **Es gibt nichts zu deployen außer statischen Dateien.**
-> Kein Server, keine Datenbank, keine Migrationen, keine Backups, kein Monitoring-Stack.
-> Siehe ADR-007.
+> **There is nothing to deploy but static files.**
+> No server, no database, no migrations, no backups, no monitoring stack.
+> See ADR-007.
 
 ---
 
-## 1. Was gebaut wird
+## 1. What gets built
 
 ```bash
 pnpm build          # nuxt generate  →  .output/public/
 ```
 
-Ergebnis: HTML, JS, CSS, Service Worker, Manifest, Icons. **Ein paar hundert Kilobyte.**
-Kein Node zur Laufzeit, kein Prozess, der laufen muss.
+The result: HTML, JS, CSS, a service worker, a manifest, icons. **A few hundred
+kilobytes.** No Node at runtime, no process that has to be running.
 
-**Anforderungen an das Hosting:**
+**What the hosting has to provide:**
 
-- HTTPS (Pflicht für Service Worker, PWA-Installation und den Token-Umgang)
-- SPA-Fallback: alle unbekannten Pfade auf `index.html`
-- Korrekte MIME-Types, `Cache-Control: immutable` für gehashte Assets
-- Ein paar Security-Header
+- HTTPS (mandatory for the service worker, PWA installation and handling the token)
+- An SPA fallback: every unknown path goes to `index.html`
+- Correct MIME types, `Cache-Control: immutable` for hashed assets
+- A few security headers
 
-Das kann jeder Webserver. Es gibt keinen Grund, dafür Geld auszugeben.
+Any web server can do that. There is no reason to pay for it.
 
 ---
 
-## 1a. Alles per Docker
+## 1a. Everything by Docker
 
-Zwei Dienste, die nichts voneinander wissen. Das ist keine Ordnungsliebe, das ist ADR-008:
-die App muss mit abgeschaltetem Hub funktionieren, also werden beide **getrennt
-konfiguriert und getrennt gestartet**, und keiner wartet auf den anderen.
+Two services that know nothing about each other. That is not tidiness, it is ADR-008: the
+app must work with the hub switched off, so both are **configured separately and started
+separately**, and neither waits for the other.
 
 ```bash
 cp .env.example .env
 
-docker compose up -d app          # nur die App
-docker compose up -d app hub      # Heimnetz-Aufbau
+docker compose up -d app          # the app only
+docker compose up -d app hub      # a home-network setup
 ```
 
-| Datei | Was drin steht |
+| File | What is in it |
 |---|---|
-| `deploy/app.Dockerfile` | Zweistufig: Node baut, **nginx liefert aus**. Zur Laufzeit läuft kein Node – es gibt nichts, was laufen müsste. 62 MB. |
-| `deploy/nginx.conf` | SPA-Fallback, Cache-Header, Security-Header |
-| `deploy/hub.Dockerfile` | Node 24 Alpine, läuft als `node`, `/data` als Volume, Healthcheck auf `/v1/health` |
-| `compose.yml` | Beide Dienste plus zwei Tunnel-Profile |
-| `.env.example` | Ports, Bind-Adressen, Hub-Secret, Tunnel-Token |
+| `deploy/app.Dockerfile` | Two-stage: Node builds, **nginx serves**. No Node runs at runtime — there is nothing that would need to. 62 MB. |
+| `deploy/nginx.conf` | The SPA fallback, cache headers, security headers |
+| `deploy/hub.Dockerfile` | Node 24 Alpine, runs as `node`, `/data` as a volume, a healthcheck on `/v1/health` |
+| `compose.yml` | Both services plus two tunnel profiles |
+| `.env.example` | Ports, bind addresses, the hub secret, the tunnel token |
 
-**`APP_BIND` ist die eine Entscheidung, die man bewusst trifft.** Voreingestellt ist
-`127.0.0.1` – nur dieser Rechner. `0.0.0.0` macht die App im ganzen Heimnetz erreichbar,
-also auch auf dem Telefon auf dem Sofa.
+**`APP_BIND` is the one decision you make deliberately.** The default is `127.0.0.1` — this
+machine only. `0.0.0.0` makes the app reachable across the home network, including on the
+phone on the sofa.
 
-**Cache-Header, die zählen.** Gehashte Assets unter `/_nuxt/` ein Jahr `immutable`; der
-Service Worker und die Shell `no-cache`. Ein zwischengespeicherter `sw.js` ist eine App,
-die sich nie wieder reparieren lässt.
+**Cache headers that matter.** Hashed assets under `/_nuxt/` get a year of `immutable`; the
+service worker and the shell get `no-cache`. A cached `sw.js` is an app that can never be
+repaired again.
 
-**Routen ohne Umleitung.** Nuxt legt jede Route als eigenes Verzeichnis ab, `/saved` ist
-in Wahrheit `gemerkt/index.html`. `try_files … $uri/index.html` liefert sie direkt aus;
-mit `$uri/` würde nginx auf `/saved/` umleiten, und ein Schrägstrich am Ende ist für den
-Router, den Precache und das Lesezeichen eine andere URL.
+**Routes without a redirect.** Nuxt writes every route as its own directory; `/saved` is in
+truth `saved/index.html`. `try_files … $uri/index.html` serves it directly; with `$uri/`,
+nginx would redirect to `/saved/`, and a trailing slash is a different URL to the router, the
+precache and the bookmark.
 
-### Von unterwegs
+### From elsewhere
 
 ```bash
-docker compose --profile tunnel-quick up -d   # Wegwerf-Adresse, steht im Log
-docker compose --profile tunnel up -d         # feste Adresse, TUNNEL_TOKEN nötig
+docker compose --profile tunnel-quick up -d   # a throwaway address, printed in the log
+docker compose --profile tunnel up -d         # a fixed address, needs TUNNEL_TOKEN
 ```
 
-> ⚠️ **Ein Tunnel liefert die App, nicht deine Daten.** Sammlung, Wantlist, Digs und der
-> Token liegen in IndexedDB – pro Gerät **und pro Origin**. Ein Schnelltunnel bekommt bei
-> jedem Neustart einen neuen Hostnamen, und ein neuer Hostname ist ein neuer Origin: das
-> Telefon fängt bei null an und würde seine eigene Kopie von Discogs synchronisieren.
+> ⚠️ **A tunnel serves the app, not your data.** Collection, wantlist, digs and the token
+> live in IndexedDB — per device **and per origin**. A quick tunnel gets a new hostname on
+> every restart, and a new hostname is a new origin: the phone starts from nothing and would
+> sync its own copy of Discogs.
 >
-> Für etwas, das man öfter als einmal benutzt, also **benannter Tunnel mit fester
-> Adresse**. Dann bleibt auf dem Telefon stehen, was einmal synchronisiert wurde.
+> So for anything you use more than once: a **named tunnel with a fixed address**. Then what
+> was synced once stays on the phone.
 >
-> Was tatsächlich *geteilt* wird, ist der Hub – und der hält bewusst nichts Persönliches
-> (ADR-008): Horizont-Chunks und Versandstaffeln, sonst nichts.
+> What actually *is* shared is the hub — and it deliberately holds nothing personal
+> (ADR-008): horizon chunks and shipping tiers, nothing else.
 
-**Der Hub gehört nur hinter einen Tunnel, wenn `HUB_SECRET` gesetzt ist.** Leer heißt
-offen; im Heimnetz in Ordnung, im Internet nicht.
+**The hub belongs behind a tunnel only when `HUB_SECRET` is set.** Empty means open; fine on
+a home network, not on the internet.
 
 ---
 
-## 1b. Geräte abgleichen
+## 1b. Keeping devices in step
 
-Vier Ziele, eins davon leer. Alles, was das Gerät verlässt, ist AES-GCM-Chiffrat mit einem
-Schlüssel aus deiner Passphrase — der Speicherort spielt deshalb keine Rolle.
+Four targets, one of them empty. Everything that leaves the device is AES-GCM ciphertext with
+a key derived from your passphrase — so where it is stored does not matter.
 
-| Ziel | Läuft auf | Dritter beteiligt | Was du brauchst |
+| Target | Runs on | A third party involved | What you need |
 |---|---|---|---|
-| Nur dieses Gerät | überall | – | nichts |
-| Dein Hub | überall, auch iPhone | – | Hub-Adresse |
-| Datei im Sync-Ordner | **nur Chromium** | dein Cloud-Client, nicht die App | eine Datei |
-| Dropbox / Google Drive | überall, auch iPhone | ja | eigene Client-ID |
+| This device only | anywhere | – | nothing |
+| Your hub | anywhere, including an iPhone | – | the hub address |
+| A file in a sync folder | **Chromium only** | your cloud client, not the app | a file |
+| Dropbox / Google Drive | anywhere, including an iPhone | yes | your own client id |
 
-**Nicht dabei:** der Discogs-Token (Regel 6 — jedes Gerät meldet sich einmal selbst an)
-und Digs (Regel 4 — Preise sind nach sechs Stunden gelöscht).
+**Not included:** the Discogs token (rule 6 — each device signs in once, itself) and digs
+(rule 4 — prices are deleted after six hours).
 
-### Einmal einrichten, dann von selbst
+### Set it up once, then it looks after itself
 
-Ziel wählen, Passphrase setzen, einmal abgleichen. Danach läuft es beim Öffnen der App
-mit, gedrosselt auf höchstens alle fünf Minuten und **nie abgewartet** — ein Ziel, das
-gerade nicht erreichbar ist, hält niemandem den Bildschirm auf. Wann es zuletzt geklappt
-hat, steht in den Einstellungen; da würde man auch nachsehen.
+Choose a target, set a passphrase, sync once. After that it runs along when the app opens,
+throttled to at most every five minutes and **never waited on** — a target that happens to be
+unreachable does not hold anybody's screen. When it last worked is in the settings; that is
+where you would look anyway.
 
-**Die Passphrase darf auf dem Gerät bleiben** — voreingestellt tut sie das. Das sieht nach
-Schlüssel neben dem Schloss aus und ist keiner: das Schloss sitzt auf der Kopie in der
-Ferne. Die lokale Datenbank ist unverschlüsselt und war es immer; Sammlung, Merkliste und
-der Discogs-Token liegen längst darin. Die Passphrase daneben zu legen gibt niemandem
-etwas, das der Besitz des Geräts nicht ohnehin gibt.
+**The passphrase may stay on the device** — by default it does. That looks like the key next
+to the lock and is not one: the lock is on the copy that is far away. The local database is
+unencrypted and always has been; the collection, the shortlist and the Discogs token have
+long been in it. Putting the passphrase beside them gives nobody anything that possession of
+the device does not already give.
 
-Auf einem geteilten Rechner ist das eine andere Frage. Dann Haken weg — die Passphrase
-wird gelöscht, und jeder Abgleich fragt wieder.
+On a shared machine that is a different question. Then uncheck it — the passphrase is
+deleted, and every sync asks again.
 
-### Dropbox und Drive: deine eigene Registrierung
+### Dropbox and Drive: your own registration
 
-Es gibt keinen Fidelity-Server und deshalb auch keine Fidelity-App bei Dropbox oder
-Google. Du legst deine eigene an und trägst die **Client-ID** ein — öffentlich by design,
-denn PKCE braucht kein Secret.
+There is no Fidelity server and therefore no Fidelity app at Dropbox or Google. You create
+your own and enter the **client id** — public by design, since PKCE needs no secret.
 
 **Dropbox** → `dropbox.com/developers/apps` → *Scoped access*, *App folder*.
-Berechtigungen `files.content.read` und `files.content.write`. Der *App key* ist die
-Client-ID.
+Permissions `files.content.read` and `files.content.write`. The *app key* is the client id.
 
-**Google Drive** → `console.cloud.google.com/apis/credentials` → OAuth-Client-ID, Typ
-*Web application*, Drive API aktivieren. Fidelity fragt nur `drive.appdata` an: ein
-verstecktes Verzeichnis, das nur diese App sieht — an deine eigenen Dateien kommt sie
-nicht.
+**Google Drive** → `console.cloud.google.com/apis/credentials` → an OAuth client id, type
+*Web application*, enable the Drive API. Fidelity asks only for `drive.appdata`: a hidden
+directory only this app can see — it cannot reach your own files.
 
-> ⚠️ **Die Redirect-URL muss exakt stimmen.** Der Einstellungen-Screen zeigt sie zum
-> Kopieren an. Damit scheidet ein Schnelltunnel aus: jeder Neustart ist eine neue Adresse
-> und eine neue Registrierung. Für Dropbox und Drive brauchst du den **benannten** Tunnel
-> oder ein festes Deployment.
+> ⚠️ **The redirect URL has to match exactly.** The settings screen shows it for copying.
+> Which rules out a quick tunnel: every restart is a new address and a new registration. For
+> Dropbox and Drive you need the **named** tunnel or a fixed deployment.
 
 ---
 
-## 2. Optionen
+## 2. Options
 
-| Option | Kosten | Aufwand | Anmerkung |
+| Option | Cost | Effort | Note |
 |---|---:|---|---|
-| **Uberspace-Docroot** | hast du | rsync im CI | Eigene Domain, deutscher Anbieter. Keine 1,5-GB-RAM-Grenze mehr, weil nichts läuft. |
-| **Cloudflare Pages** | 0 € | Git-Push | Global CDN, Preview-Deploys pro PR, automatisches TLS |
-| **GitHub Pages** | 0 € | Actions | Am simpelsten, wenn das Repo ohnehin dort liegt |
-| **Homeserver + Caddy** | Strom | Container | Nur noch statische Dateien – Verfügbarkeit ist unkritischer als beim Serverentwurf |
+| **An Uberspace docroot** | you have it | rsync in CI | Your own domain, a German provider. No more 1.5 GB RAM limit, because nothing runs. |
+| **Cloudflare Pages** | €0 | git push | A global CDN, preview deploys per PR, automatic TLS |
+| **GitHub Pages** | €0 | Actions | The simplest, when the repository is there anyway |
+| **A home server + Caddy** | electricity | a container | Static files only now — availability matters less than it did with the server design |
 
-> **Der frühere Zielkonflikt ist weg.** `10-DEPLOYMENT-ALTERNATIVEN.md` verglich Uberspace,
-> VPS und Homeserver anhand von RAM, Plattenplatz und ausgehender IP. Nichts davon spielt
-> noch eine Rolle: Es gibt keinen Prozess, keine Datenbank, und die Discogs-Requests gehen
-> von der IP des **Nutzers** aus.
+> **The old trade-off is gone.** `10-DEPLOYMENT-ALTERNATIVEN.md` compared Uberspace, a VPS
+> and a home server in terms of RAM, disk and outbound IP. None of that matters now: there
+> is no process, no database, and the Discogs requests go out from the **user's** IP.
 >
-> **Empfehlung: Uberspace-Docroot**, weil du es hast und eine eigene Domain willst.
-> Cloudflare Pages als Zweitweg für Preview-Deploys pro Pull Request.
+> **Recommendation: the Uberspace docroot**, because you have it and want your own domain.
+> Cloudflare Pages as a second route for preview deploys per pull request.
 
 ---
 
 ## 3. Uberspace
 
-### Einmalig
+### Once
 
 ```bash
-uberspace web domain add fidelity.example.de     # TLS kommt automatisch
+uberspace web domain add fidelity.example.de     # TLS comes automatically
 mkdir -p ~/html/fidelity
 ```
 
-SPA-Fallback und Header über `~/html/fidelity/.htaccess`:
+The SPA fallback and the headers go in `~/html/fidelity/.htaccess`:
 
 ```apache
-# SPA-Fallback: alles, was keine echte Datei ist, geht an index.html
+# SPA fallback: anything that is not a real file goes to index.html
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.html [L]
 
-# Gehashte Assets ewig cachen, index.html nie
+# Cache hashed assets forever, index.html never
 <FilesMatch "\.(js|css|woff2)$">
   Header set Cache-Control "public, max-age=31536000, immutable"
 </FilesMatch>
@@ -191,9 +186,9 @@ Header set Content-Security-Policy "default-src 'self'; \
   worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'"
 ```
 
-> ⚠️ **`connect-src` auf `api.discogs.com` beschränken.** Das ist der wirksamste Schutz
-> für den Personal Access Token: Selbst wenn irgendwann fremder Code in die Seite käme,
-> könnte er den Token nirgendwohin schicken.
+> ⚠️ **Restrict `connect-src` to `api.discogs.com`.** That is the most effective protection
+> for the Personal Access Token: even if foreign code ever got into the page, it could not
+> send the token anywhere.
 
 ### Deploy
 
@@ -218,119 +213,119 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
 
-      - name: SSH-Key
+      - name: SSH key
         run: |
           mkdir -p ~/.ssh && echo "${{ secrets.UBERSPACE_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           echo "${{ secrets.UBERSPACE_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
 
-      # Ein rsync. Das ist das ganze Deployment.
+      # One rsync. That is the whole deployment.
       - name: Upload
         run: |
           rsync -az --delete --exclude='.htaccess' \
             .output/public/ \
             ${{ secrets.UBERSPACE_USER }}@${{ secrets.UBERSPACE_HOST }}:html/fidelity/
 
-      - name: Smoke-Test
+      - name: Smoke test
         run: curl -fsS https://fidelity.example.de/ | grep -q "Fidelity"
 ```
 
-Kein Build-Secret nötig – die App hat kein Consumer Secret, weil sie kein OAuth macht.
+No build secret is needed — the app has no consumer secret, because it does no OAuth.
 
-**Rollback:** vorherigen Tag auschecken, `pnpm build`, rsync. Oder direkt aus dem
-Actions-Artefakt des letzten grünen Builds.
+**Rollback:** check out the previous tag, `pnpm build`, rsync. Or straight from the Actions
+artefact of the last green build.
 
-### Wenn ein Release nur halb durchläuft
+### When a release only half runs through
 
-Passiert am 2026-08-12 mit 0.16.0: `release-please` hat das Release **angelegt** und ist
-danach beim Aufräumen der Labels ausgestiegen. Weil `site`, `images` und `deploy` an einem
-Output dieses Jobs hingen, wurden alle drei übersprungen — Tag und Release standen, es gab
-kein Zip, keine Images, und die Seite lief weiter auf der Vorversion.
+Happened on 2026-08-12 with 0.16.0: `release-please` **created** the release and then bailed
+out while tidying up labels. Because `site`, `images` and `deploy` hung off an output of that
+job, all three were skipped — the tag and the release stood, there was no zip, no images, and
+the site carried on running the previous version.
 
-**Seitdem repariert sich das von selbst.** Der Ablauf fragt nicht mehr „hat release-please
-gerade etwas angelegt", sondern „gibt es ein Release, an dem das Zip fehlt" — und das Zip
-ist der Beleg, dass der Rest gelaufen ist. Ein halber Release wird also beim nächsten Push
-auf `main` fertig gemacht, und ein vollständiger löst nie wieder etwas aus.
+**Since then it repairs itself.** The workflow no longer asks "did release-please just create
+something" but "is there a release with the zip missing" — and the zip is the evidence that
+the rest ran. So a half release is finished off on the next push to `main`, and a complete
+one never triggers anything again.
 
-Wer trotzdem von Hand nachziehen muss:
+For anyone who does have to do it by hand:
 
 ```bash
-# 1. Das Zip, so wie der site-Job es baut — vom Tag, nicht vom Arbeitsstand.
+# 1. The zip, exactly as the site job builds it — from the tag, not the working tree.
 git checkout v0.16.0 && pnpm install --frozen-lockfile && pnpm build
 sed "s|__FIDELITY_BASE__|/|" deploy/.htaccess > .output/public/.htaccess
 cp deploy/LIESMICH.txt .output/public/LIESMICH.txt
 (cd .output/public && zip -qr ../../fidelity-v0.16.0.zip . -x '.DS_Store')
 gh release upload v0.16.0 fidelity-v0.16.0.zip --clobber
 
-# 2. Images und Deploy. **Immer mit --ref auf dem Tag**: ohne den greift bei
-#    den Images nur ein SHA-Tag, also weder 0.16.0 noch latest.
+# 2. Images and deploy. **Always with --ref on the tag**: without it, the images
+#    only get a SHA tag, so neither 0.16.0 nor latest.
 gh workflow run images.yml --ref v0.16.0
-gh workflow run deploy.yml --ref v0.16.0 -f dry_run=true   # erst prüfen
-gh workflow run deploy.yml --ref v0.16.0 -f dry_run=false  # dann wirklich
+gh workflow run deploy.yml --ref v0.16.0 -f dry_run=true   # check first
+gh workflow run deploy.yml --ref v0.16.0 -f dry_run=false  # then do it
 ```
 
-> ⚠️ **Service-Worker-Fallstrick:** Nach einem Deploy laufen alte Clients weiter, bis der
-> SW aktualisiert. `@vite-pwa/nuxt` mit `registerType: 'prompt'` konfigurieren und dem
-> Nutzer ein „Neue Version verfügbar – neu laden" anbieten. **Kein `skipWaiting` ohne
-> Prompt** – sonst tauschen wir mitten in einem laufenden Dig den Code aus.
+> ⚠️ **A service-worker trap:** after a deploy, old clients carry on until the SW updates.
+> Configure `@vite-pwa/nuxt` with `registerType: 'prompt'` and offer the user "a new version
+> is available — reload". **No `skipWaiting` without a prompt** — otherwise we swap the code
+> out in the middle of a running dig.
 
 ---
 
-## 4. Lokale Entwicklung
+## 4. Local development
 
 ```bash
 pnpm install
 pnpm dev            # http://localhost:3000
 ```
 
-Kein Docker nötig. Keine Datenbank, kein Compose-Stack, kein Seed. Man braucht nur
-einen Personal Access Token aus `discogs.com/settings/developers`.
+No Docker needed. No database, no compose stack, no seed. All you need is a Personal Access
+Token from `discogs.com/settings/developers`.
 
-> Docker bleibt optional als Prod-Parität-Check (`docker run` mit einem statischen
-> Webserver plus `.htaccess`-Äquivalent), ist aber für die tägliche Arbeit überflüssig.
+> Docker stays optional as a prod-parity check (`docker run` with a static web server plus an
+> `.htaccess` equivalent), but it is superfluous for daily work.
 
-### Mobile Tests
+### Mobile testing
 
-PWA-Installation und Service Worker brauchen HTTPS. Zwei Wege:
+PWA installation and the service worker need HTTPS. Two routes:
 
 ```bash
-# a) Cloudflare Tunnel gegen den Dev-Server
+# a) A Cloudflare tunnel against the dev server
 cloudflared tunnel --url http://localhost:3000
 
-# b) Staging-Domain auf Uberspace
+# b) A staging domain on Uberspace
 uberspace web domain add fidelity-stage.example.de
-# eigener Ordner ~/html/fidelity-stage, Deploy von main statt von Tags
+# its own folder ~/html/fidelity-stage, deploying from main rather than from tags
 ```
 
-Empfehlung: **beides**. Der Tunnel für schnelle Iteration am Handy, die Staging-Domain
-für alles, was einen stabilen Origin braucht – IndexedDB und Service Worker sind an den
-Origin gebunden, ein wechselnder Tunnel-Hostname wirft bei jedem Start alles weg.
+Recommendation: **both**. The tunnel for fast iteration on the phone, the staging domain for
+anything that needs a stable origin — IndexedDB and the service worker are bound to the
+origin, and a changing tunnel hostname throws everything away on every start.
 
 ---
 
-## 5. Betrieb
+## 5. Operations
 
-Es gibt keinen.
+There are none.
 
-| Frühere Aufgabe | Jetzt |
+| The old task | Now |
 |---|---|
-| supervisord-Services überwachen | entfällt |
-| PostgreSQL-Backups | entfällt – Daten liegen beim Nutzer und sind aus der API reproduzierbar |
-| RAM-Limit überwachen | entfällt |
-| Disk-Quota überwachen | ein paar hundert KB |
-| Migrationen ausrollen | IndexedDB-Upgrade läuft im Client |
-| Katalog-Dump einspielen | entfällt (siehe `11-KATALOG-STRATEGIE.md`) |
-| Rate-Limit-Warteschlange verwalten | entfällt – jeder Nutzer hat sein eigenes Budget |
+| Watch the supervisord services | gone |
+| PostgreSQL backups | gone — the data lives with the user and is reproducible from the API |
+| Watch the RAM limit | gone |
+| Watch the disk quota | a few hundred kB |
+| Roll out migrations | the IndexedDB upgrade runs in the client |
+| Load the catalogue dump | gone (see `11-KATALOG-STRATEGIE.md`) |
+| Manage the rate-limit queue | gone — every user has their own budget |
 
-**Was bleibt:**
+**What remains:**
 
-- Uptime des statischen Hostings (Uberspace macht das)
-- Bundle-Budget im CI (siehe `12-RESSOURCEN-BUDGET.md` §7)
-- Optional Sentry für Client-Fehler – **ohne** Session Replay, mit `sendDefaultPii: false`
-  und **Redaction des Tokens** in der `beforeSend`-Hook
+- The uptime of the static hosting (Uberspace handles that)
+- The bundle budget in CI (see `12-RESSOURCEN-BUDGET.md` §7)
+- Optionally Sentry for client errors — **without** session replay, with
+  `sendDefaultPii: false` and **redaction of the token** in the `beforeSend` hook
 
 ```ts
-// Der Token darf unter keinen Umständen in einen Fehler-Report geraten
+// The token must under no circumstances end up in an error report
 beforeSend(event) {
   const s = JSON.stringify(event)
   return s.includes(getToken()) ? null : event
@@ -339,18 +334,18 @@ beforeSend(event) {
 
 ---
 
-## 6. Wann doch ein Server dazukommt
+## 6. When a server does get added after all
 
-Nur für zwei Dinge, und beide sind **additiv** – die App funktioniert ohne sie weiter:
+Only for two things, and both are **additive** — the app keeps working without them:
 
-| Funktion | Warum ein Server nötig ist | Möglicher Weg |
+| Feature | Why a server is needed | A possible route |
 |---|---|---|
-| **Push-Benachrichtigungen** | Web Push braucht einen Application Server, der an den Push-Dienst zustellt | Cloudflare Worker, gratis bis 100k Requests/Tag |
-| **Nächtliche Watchlist-Läufe** | Ein Browser scannt nicht, während er zu ist | Derselbe Worker, mit Cron-Trigger |
+| **Push notifications** | Web Push needs an application server that delivers to the push service | A Cloudflare Worker, free up to 100k requests a day |
+| **Nightly watchlist runs** | A browser does not scan while it is closed | The same worker, with a cron trigger |
 
-> ⚠️ **Achtung beim Watchlist-Server:** Er würde von *einer* IP scannen – damit wäre das
-> geteilte Rate-Limit zurück. Sinnvoller Zuschnitt: der Worker prüft nur `num_for_sale`
-> pro beobachtetem Händler (**1 Request statt 100**) und schickt bei Veränderung einen
-> Push. Den eigentlichen Scan macht dann wieder der Client mit seinem eigenen Budget.
+> ⚠️ **Careful with a watchlist server:** it would scan from *one* IP — which would bring the
+> shared rate limit back. A sensible scope: the worker checks only `num_for_sale` per watched
+> dealer (**1 request instead of 100**) and sends a push on a change. The actual scan is then
+> done by the client again, on its own budget.
 
-**Auslöser:** Push wird tatsächlich vermisst. Nicht vorher.
+**Trigger:** push is genuinely missed. Not before.

@@ -1,41 +1,41 @@
-# 05 – Design-System & UI/UX
+# 05 – Design system & UI/UX
 
-> Zielbild: **Ein guter Plattenladen im Jahr 2026.** Warm, dicht, kompetent.
-> Nicht Retro-Kitsch, nicht Neon-Cyberpunk, nicht Enterprise-Dashboard.
+> The target: **a good record shop in 2026.** Warm, dense, knowledgeable.
+> Not retro kitsch, not neon cyberpunk, not an enterprise dashboard.
 
 ---
 
-## 1. Haltung
+## 1. Attitude
 
-| Prinzip | Konkret |
+| Principle | In practice |
 |---|---|
-| **Cover first** | Plattencover sind das Interface. Das UI ist der Rahmen, nicht der Star. |
-| **Dark first** | Plattenläden sind dunkel, und Cover-Art leuchtet auf dunklem Grund. Light Mode existiert, ist aber die zweite Wahl. |
-| **Dichte ist ein Feature** | Sammler wollen viel sehen. Dichte-Umschalter statt Kompromiss. |
-| **Jede Zahl erklärt sich** | Ein Score ohne Begründung ist eine Beleidigung. |
-| **Ehrlichkeit über Vollständigkeit** | „18.400 von 43.234 gescannt (42 %)" statt so zu tun, als wäre alles drin. |
-| **Warten ist Suchen** | Nie ein Spinner. Immer echte Zahlen und einströmende Treffer. |
+| **Cover first** | Record covers are the interface. The UI is the frame, not the star. |
+| **Dark first** | Record shops are dark, and cover art glows on a dark ground. Light mode exists but is the second choice. |
+| **Density is a feature** | Collectors want to see a lot. A density switch rather than a compromise. |
+| **Every number explains itself** | A score without a reason is an insult. |
+| **Honesty over completeness** | "18,400 of 43,234 scanned (42 %)" rather than pretending it is all there. |
+| **Waiting is searching** | Never a spinner. Always real numbers and matches flowing in. |
 
 ---
 
-## 2. Design Tokens
+## 2. Design tokens
 
-Format: **DTCG 2025.10** (der W3C-Standard ist seit Oktober 2025 stabil) →
-Style Dictionary → CSS Custom Properties → Tailwind `@theme`.
+Format: **DTCG 2025.10** (the W3C standard has been stable since October 2025) →
+Style Dictionary → CSS custom properties → Tailwind `@theme`.
 
 ```
 tokens/
-├── core.json        # Rohwerte: Farbrampen, Spacing, Radii, Schrift
-├── semantic.json    # Rollen: surface, text, border, accent, signal-*
-└── component.json   # Komponentenspezifisch
+├── core.json        # Raw values: colour ramps, spacing, radii, type
+├── semantic.json    # Roles: surface, text, border, accent, signal-*
+└── component.json   # Component-specific
 ```
 
-**Alle Farben in OKLCH.** Perzeptuell gleichmäßige Helligkeit heißt: die Signalfarben
-wirken alle gleich schwer – keine sieht dominanter aus als die andere.
+**All colours in OKLCH.** Perceptually even lightness means the signal colours all carry the
+same weight — none looks more dominant than another.
 
-### 2.1 Neutrale Rampe – „Karton"
+### 2.1 The neutral ramp – "cardboard"
 
-Warmes Neutral (Hue 70, minimale Chroma). Papier, Pappe, Innenhüllen.
+A warm neutral (hue 70, minimal chroma). Paper, card, inner sleeves.
 
 ```css
 --fid-n-50:  oklch(0.980 0.004 70);
@@ -49,43 +49,43 @@ Warmes Neutral (Hue 70, minimale Chroma). Papier, Pappe, Innenhüllen.
 --fid-n-800: oklch(0.245 0.011 70);
 --fid-n-900: oklch(0.180 0.010 70);
 --fid-n-950: oklch(0.135 0.009 70);
---fid-n-990: oklch(0.105 0.008 70);   /* App-Hintergrund dark */
+--fid-n-990: oklch(0.105 0.008 70);   /* the dark app background */
 ```
 
-### 2.2 Akzent – „Shellac"
+### 2.2 The accent – "shellac"
 
-Warmes Bernstein-Orange. Label-Druckfarbe, Röhrenverstärker, Neonschild im Ladenfenster.
+A warm amber orange. Label printing ink, a valve amplifier, a neon sign in a shop window.
 
 ```css
 --fid-accent-400: oklch(0.800 0.140 62);
---fid-accent-500: oklch(0.740 0.165 58);   /* Primär */
+--fid-accent-500: oklch(0.740 0.165 58);   /* primary */
 --fid-accent-600: oklch(0.660 0.170 54);
 --fid-accent-700: oklch(0.560 0.150 52);
 ```
 
-### 2.3 Signalfarben – eine je Match-Typ
+### 2.3 Signal colours – one per match type
 
-Zehn Farben für elf Signale: S1 und S2 (Wantlist exakt / anderes Pressing) teilen sich eine.
-Alle in einem engen Helligkeitsband (L 0.70–0.78) und mit ähnlicher Chroma (C 0.11–0.18) –
-dadurch wirkt keine Signalfarbe schwerer als die anderen.
+Ten colours for eleven signals: S1 and S2 (wantlist exact / different pressing) share one.
+All within a narrow lightness band (L 0.70–0.78) and at similar chroma (C 0.11–0.18) — so no
+signal colour looks heavier than the others.
 
 ```css
---fid-sig-wantlist:  oklch(0.72 0.170 350);  /* Magenta  – Wantlist exakt/Pressing */
---fid-sig-gap:       oklch(0.78 0.150  85);  /* Gold     – Diskografie-Lücke       */
---fid-sig-credit:    oklch(0.75 0.120 190);  /* Türkis   – Credit-Graph            */
---fid-sig-artist:    oklch(0.70 0.140 250);  /* Blau     – Künstler bekannt        */
---fid-sig-label:     oklch(0.70 0.160 300);  /* Violett  – Label-Affinität         */
---fid-sig-catalog:   oklch(0.74 0.150 150);  /* Grün     – Katalog-Serie           */
---fid-sig-style:     oklch(0.76 0.110 210);  /* Cyan     – Stil-Adjazenz           */
---fid-sig-price:     oklch(0.78 0.160 130);  /* Limette  – Preis-Signal            */
---fid-sig-scarcity:  oklch(0.70 0.180  28);  /* Rotorange– Seltenheit              */
---fid-sig-upgrade:   oklch(0.74 0.130 170);  /* Mint     – Format-Upgrade          */
+--fid-sig-wantlist:  oklch(0.72 0.170 350);  /* magenta   – wantlist exact/pressing */
+--fid-sig-gap:       oklch(0.78 0.150  85);  /* gold      – discography gap         */
+--fid-sig-credit:    oklch(0.75 0.120 190);  /* turquoise – credit graph            */
+--fid-sig-artist:    oklch(0.70 0.140 250);  /* blue      – artist known            */
+--fid-sig-label:     oklch(0.70 0.160 300);  /* violet    – label affinity          */
+--fid-sig-catalog:   oklch(0.74 0.150 150);  /* green     – catalogue run           */
+--fid-sig-style:     oklch(0.76 0.110 210);  /* cyan      – style adjacency         */
+--fid-sig-price:     oklch(0.78 0.160 130);  /* lime      – price signal            */
+--fid-sig-scarcity:  oklch(0.70 0.180  28);  /* red-orange– scarcity                */
+--fid-sig-upgrade:   oklch(0.74 0.130 170);  /* mint      – format upgrade          */
 ```
 
-`contrast-color()` (Baseline 2026) für die Chip-Schrift – so bleibt der Kontrast korrekt,
-ohne pro Farbe eine Vordergrundfarbe zu pflegen.
+`contrast-color()` (Baseline 2026) for the chip text — so the contrast stays correct without
+maintaining a foreground colour per colour.
 
-### 2.4 Semantische Rollen mit `light-dark()`
+### 2.4 Semantic roles with `light-dark()`
 
 ```css
 :root {
@@ -102,251 +102,251 @@ ohne pro Farbe eine Vordergrundfarbe zu pflegen.
 }
 ```
 
-Eine Deklaration pro Token statt eines doppelten `.dark`-Blocks. Nutzer-Override in
-`localStorage`, **vor dem ersten Paint angewendet** (Inline-Script im `<head>`), sonst blitzt es.
+One declaration per token instead of a duplicate `.dark` block. The user's override lives in
+`localStorage` and is **applied before the first paint** (an inline script in the `<head>`),
+or it flashes.
 
-**`--fid-inset`** ist der zurückgesetzte Grund: Fortschrittsbalken, leere Cover-Flächen,
-ungefüllte Rasterzellen. Er kam spät dazu, weil im Markup überall `--fid-n-800` fest
-stand – im Dunkelmodus richtig, im Hellmodus schwarze Kacheln auf weißem Grund.
-Er trägt **keine Akzentschrift**: 3,62:1 im Hellmodus, das reicht nicht. Ein Unit-Test
-liest die Templates und lässt die Kombination nicht durch.
+**`--fid-inset`** is the recessed ground: progress bars, empty cover areas, unfilled grid
+cells. It arrived late, because the markup had `--fid-n-800` hard-coded everywhere — right in
+dark mode, black tiles on a white ground in light mode. It carries **no accent text**: 3.62:1
+in light mode, which is not enough. A unit test reads the templates and does not let that
+combination through.
 
-**Der Schalter** steht unter Einstellungen › Darstellung und kennt System, Hell, Dunkel.
-`system` ist keine dritte Palette, sondern der Verzicht auf ein Override: dann entscheidet
-`color-scheme: light dark` allein. `<meta name="theme-color">` folgt dem Ergebnis zur
-Laufzeit – das Manifest kann nur einen Wert nennen, und der wäre für die Hälfte falsch.
+**The switch** lives under Settings › Appearance and knows system, light and dark. `system`
+is not a third palette but the absence of an override: then `color-scheme: light dark`
+decides alone. `<meta name="theme-color">` follows the result at runtime — the manifest can
+only name one value, and that would be wrong for half the users.
 
-**Mobile Felder sind 16 px.** Darunter zoomt iOS Safari beim Fokus die ganze Seite und
-zoomt nicht zurück. Die Alternative wäre `maximum-scale=1` – das nimmt Pinch-Zoom
-mit und verstößt gegen WCAG 2.2 SC 1.4.4. Der Doppeltipp-Zoom ist über
-`touch-action: manipulation` aus, der Pinch-Zoom bleibt.
+**Mobile fields are 16 px.** Below that, iOS Safari zooms the whole page on focus and does
+not zoom back. The alternative would be `maximum-scale=1` — which takes pinch zoom with it
+and breaches WCAG 2.2 SC 1.4.4. Double-tap zoom is off via `touch-action: manipulation`;
+pinch zoom stays.
 
-### 2.5 Typografie
+### 2.5 Typography
 
-Drei Sätze, umschaltbar unter Einstellungen › Darstellung, alle selbst gehostet über
-`@nuxt/fonts`. Voreinstellung ist **Presswerk**. Kein Bauteil nennt eine Schrift –
-alles läuft über `--fid-font-sans`, `--fid-font-mono`, `--fid-font-display`.
+Three sets, switchable under Settings › Appearance, all self-hosted through `@nuxt/fonts`.
+The default is **Presswerk**. No component names a typeface — everything goes through
+`--fid-font-sans`, `--fid-font-mono`, `--fid-font-display`.
 
-| Satz | Fließtext | Zahlen | Überschriften |
+| Set | Body | Numbers | Headings |
 |---|---|---|---|
-| **Presswerk** (Standard) | Switzer | Chivo Mono | Array – schmal wie der Aufdruck auf einem Plattenrücken |
+| **Presswerk** (default) | Switzer | Chivo Mono | Array – narrow, like the print on a record spine |
 | Kontor | General Sans | Chivo Mono | Clash Display |
-| Schweiz | Switzer | JetBrains Mono | keine – Hierarchie nur über Größe und Gewicht |
+| Schweiz | Switzer | JetBrains Mono | none – hierarchy through size and weight alone |
 
-| Rolle | Klasse | Warum |
+| Role | Class | Why |
 |---|---|---|
-| UI + Fließtext | (Standard) | Neutral, exzellente Lesbarkeit in kleinen Größen |
-| Katalognummern, Matrix/Runout, Preise, Scores | `.fid-num` | Codes, keine Prosa – dazu `tabular-nums`, damit Spalten fluchten |
-| Überschriften, Wortmarke | `.fid-display` | Zweimal pro Bildschirm, sonst ist es keine Auszeichnung mehr |
+| UI + body | (default) | Neutral, excellent legibility at small sizes |
+| Catalogue numbers, matrix/runout, prices, scores | `.fid-num` | Codes, not prose — plus `tabular-nums` so columns line up |
+| Headings, the wordmark | `.fid-display` | Twice per screen, otherwise it is no longer emphasis |
 
 ```css
-/* Fluide Skala – clamp() mit rem-Anteil, damit Browser-Zoom funktioniert (WCAG 1.4.4) */
+/* A fluid scale – clamp() with a rem term so browser zoom works (WCAG 1.4.4) */
 --fid-text-xs:   clamp(0.75rem,  0.72rem + 0.15vw, 0.8125rem);
 --fid-text-sm:   clamp(0.875rem, 0.84rem + 0.18vw, 0.9375rem);
 --fid-text-base: clamp(1rem,     0.96rem + 0.20vw, 1.0625rem);
 --fid-text-xl:   clamp(1.375rem, 1.24rem + 0.65vw, 1.75rem);
 ```
 
-**Vier Stufen, seit 2026-08-10 statt sechs.** `lg` saß mit sechzehn Verwendungen zwischen
-`base` und `xl`, ohne dass eine davon die Stufe gebraucht hätte – Abschnittsüberschriften
-tragen ihre Hierarchie jetzt über `font-medium` und Abstand. `2xl` machte Seitentitel bei
-40 px lauter als alles darunter; sie stehen jetzt auf `xl`, und den Charakter liefert
-`.fid-display`. Was groß bleiben muss, weil die Größe die Aussage ist – der Barry Score, die
-Zahlen auf der Startseite, die Ziele im Laden – steht ebenfalls auf `xl`.
+**Four steps since 2026-08-10, instead of six.** `lg` sat between `base` and `xl` with
+sixteen uses, not one of which needed the step — section headings now carry their hierarchy
+through `font-medium` and spacing. `2xl` made page titles louder at 40 px than anything below
+them; they now sit on `xl`, and `.fid-display` supplies the character. What has to stay large
+because the size *is* the statement — the Barry Score, the numbers on the start page, the
+targets in a shop — also sits on `xl`.
 
-Eine Stufe wieder aufzunehmen ist möglich, aber begründungspflichtig: sechs Stufen bedeuten
-sechs Entscheidungen pro Bildschirm, und die vorige Skala hatte zwei, die niemand traf.
+Bringing a step back is possible but must be justified: six steps mean six decisions per
+screen, and the previous scale had two that nobody made.
 
-> ⚠️ **Nie `vw` allein für `font-size`.** Bricht Browser-Zoom, verletzt WCAG 1.4.4.
-> Immer ein `rem`-Term im `clamp()`.
+> ⚠️ **Never `vw` alone for `font-size`.** It breaks browser zoom and violates WCAG 1.4.4.
+> Always a `rem` term inside the `clamp()`.
 
-**Tabellenziffern sind Pflicht** bei Preisen, Jahren, Katalognummern und Scores:
+**Tabular figures are mandatory** for prices, years, catalogue numbers and scores:
 
 ```css
 .fid-num { font-variant-numeric: tabular-nums; }
 /* Tailwind 4: font-features-["tnum"] */
 ```
 
-### 2.6 Raster, Radien, Schatten
+### 2.6 Grid, radii, shadows
 
 ```css
---fid-space: 4px;                      /* alles ist ein Vielfaches */
+--fid-space: 4px;                      /* everything is a multiple */
 --fid-radius-sm: 6px;
 --fid-radius-md: 10px;
 --fid-radius-lg: 16px;
---fid-radius-cover: 2px;               /* Cover sind fast eckig – wie echte Hüllen */
+--fid-radius-cover: 2px;               /* covers are almost square – like real sleeves */
 
-/* Erhebung im Dark Mode über Helligkeit, nicht über Schlagschatten */
+/* Elevation in dark mode through lightness, not through drop shadows */
 --fid-elev-1: 0 1px 2px oklch(0 0 0 / 0.28);
 --fid-elev-2: 0 4px 14px oklch(0 0 0 / 0.34);
 ```
 
 ---
 
-## 3. Kernkomponenten
+## 3. The core components
 
-### 3.1 `MatchCard` – die wichtigste Komponente der App
+### 3.1 `MatchCard` – the app's most important component
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │ ┌────────┐  Neu! – Neu! 2                          ╭──────╮  │
 │ │        │  Brain · BRAIN 1028 · DE · 1973         │  91  │  │
 │ │ Cover  │                                          │Side 1│  │
-│ │ 96×96  │  ◆ Credit  ◆ Katalog-Serie  ◆ Preis     ╰──────╯  │
+│ │ 96×96  │  ◆ Credit  ◆ Catalogue run  ◆ Price     ╰──────╯  │
 │ │        │                                                    │
-│ └────────┘  Conny Plank am Pult – du hast 9 seiner            │
-│             Produktionen, diese nicht. In der 1000er-Reihe    │
-│             fehlen dir nur noch 1051 und 1060.                │
+│ └────────┘  Conny Plank at the desk – you have 9 of his       │
+│             productions, not this one. In the 1000 series     │
+│             you are only missing 1051 and 1060.               │
 │                                                                │
-│  VG+/VG+   24,00 €  (Markt ab 41 €)     [+ Korb]  [Discogs ↗] │
+│  VG+/VG+   €24.00  (market from €41)    [+ basket] [Discogs ↗]│
 └──────────────────────────────────────────────────────────────┘
 ```
 
-Regeln:
+The rules:
 
-- **Container Queries**, nicht Viewport-Breakpoints. Dieselbe Karte funktioniert im
-  3-Spalten-Grid und in einem 320px-Drawer, ohne Varianten-Komponenten.
-- Score als Ring mit Bandfarbe; die Zahl ist tabellarisch gesetzt.
-- Signal-Chips als `<button>`, klickbar → filtert die Liste auf dieses Signal.
-- Der Begründungssatz ist **niemals** truncated. Er ist das Produkt.
-- Cover: `loading="lazy"`, `decoding="async"`, feste Aspect-Ratio 1:1, Skeleton in
-  Neutral-800, **direkt vom Browser von `i.discogs.com`** (nie serverseitig – separates
-  Cloudflare-Rate-Limit).
+- **Container queries**, not viewport breakpoints. The same card works in a 3-column grid and
+  in a 320 px drawer, without variant components.
+- The score as a ring in the band's colour; the number is set tabularly.
+- Signal chips as `<button>`s, clickable → filters the list down to that signal.
+- The reason sentence is **never** truncated. It is the product.
+- Covers: `loading="lazy"`, `decoding="async"`, a fixed 1:1 aspect ratio, a skeleton in
+  neutral 800, **straight from `i.discogs.com` by the browser** (never server-side — a
+  separate Cloudflare rate limit).
 
 ### 3.2 `ScanProgress`
 
-Kein Spinner. Nie.
+No spinner. Ever.
 
 ```
 ┌───────────────────────────────────────────────────────────┐
-│ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░  8.400 / 20.000    │
-│ Seite 84 · noch ca. 2:10 · 47 Treffer bisher              │
-│ ⓘ Händler hat 43.234 Listings – die API gibt max. 20.000  │
-│                                     frei. [Was heißt das?] │
+│ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░  8,400 / 20,000    │
+│ Page 84 · about 2:10 left · 47 matches so far             │
+│ ⓘ The dealer has 43,234 listings – the API releases at    │
+│   most 20,000.                       [What does that mean?]│
 └───────────────────────────────────────────────────────────┘
 ```
 
-Nach NN/g: unter 1 s gar nichts, 1–3 s Skeleton, über 3 s **determinierter Fortschritt mit
-echten Zahlen und Abbrechen-Option**. Ein Zwei-Minuten-Spinner ist nutzerfeindlich.
+Per NN/g: under 1 s nothing at all, 1–3 s a skeleton, over 3 s **determinate progress with
+real numbers and the option to cancel**. A two-minute spinner is hostile.
 
-Der ⓘ-Hinweis zur 10k-Grenze ist kein Kleingedrucktes, sondern ein Vertrauenssignal.
+The ⓘ note about the 10k wall is not small print but a signal of trustworthiness.
 
 ### 3.3 `SignalChip`
 
 ```html
 <button class="fid-chip" data-signal="credit">
-  <span class="fid-chip__dot"></span> Credit-Graph
+  <span class="fid-chip__dot"></span> Credit graph
   <span class="fid-chip__n fid-num">9</span>
 </button>
 ```
 
-Hintergrund: Signalfarbe bei 12 % Deckkraft, Rand bei 40 %, Text `contrast-color()`.
-Mindestgröße 24×24 px (WCAG 2.2 SC 2.5.8).
+The background: the signal colour at 12 % opacity, the border at 40 %, text via
+`contrast-color()`. Minimum size 24×24 px (WCAG 2.2 SC 2.5.8).
 
 ### 3.4 `CatalogRunGrid`
 
-Die Katalogserie als Raster. Der Dopamin-Loop.
+The catalogue run as a grid. The dopamine loop.
 
 ```
-Brain 1000er-Reihe                              9 von 12
+Brain 1000 series                               9 of 12
 ┌────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬────┐
 │1001│1002│1004│1005│1010│1021│1031│1042│1051│1055│1060│1071│
 │ ●  │ ●  │ ●  │ ●  │ ●  │ ●  │ ★  │ ●  │ ○  │ ●  │ ○  │ ●  │
 └────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘
- ● besitzt    ★ hier kaufbar    ○ fehlt
+ ● owned      ★ buyable here      ○ missing
 ```
 
 ### 3.5 `ShippingLadder`
 
 ```
-Versand zu dir (DE)              aktuell 2 Platten · 9,00 € gesamt · 4,50 €/Stk
- 1 ▏ 6,00 €    6,00 €/Stk
- 2 ▓ 9,00 €    4,50 €/Stk   ← du bist hier
- 3 ▓ 9,00 €    3,00 €/Stk   ← +1 Platte spart 1,50 €/Stk   [Kandidaten zeigen]
- 4 ▓ 12,00 €   3,00 €/Stk
+Postage to you (DE)             currently 2 records · €9.00 total · €4.50 each
+ 1 ▏ €6.00     €6.00 each
+ 2 ▓ €9.00     €4.50 each   ← you are here
+ 3 ▓ €9.00     €3.00 each   ← +1 record saves €1.50 each   [show candidates]
+ 4 ▓ €12.00    €3.00 each
 ```
 
-### 3.6 Weitere
+### 3.6 The rest
 
-| Komponente | Zweck |
+| Component | Purpose |
 |---|---|
-| `CommandPalette` (⌘K) | Sucht **Daten**, nicht nur Navigation: Künstler, Labels, Händler, gespeicherte Digs. Nuxt UI 4 bringt `UCommandPalette` mit. |
-| `DealerFingerprint` | Stacked Bars für Label-/Stil-/Dekaden-Verteilung + Affinity-Zahl |
-| `FilterRail` | Desktop: Sticky-Sidebar. Mobil: Bottom Sheet (Reka `Drawer`). |
-| `DensityToggle` | comfortable 52 px / compact 34 px Zeilenhöhe |
-| `EmptyState` | Nicht „keine Ergebnisse", sondern „Bei diesem Händler nichts für dich – aber [Name] hat 12 Treffer" |
+| `CommandPalette` (⌘K) | Searches **data**, not just navigation: artists, labels, dealers, saved digs. Nuxt UI 4 brings `UCommandPalette` along. |
+| `DealerFingerprint` | Stacked bars for the label/style/decade distribution + the affinity figure |
+| `FilterRail` | Desktop: a sticky sidebar. Mobile: a bottom sheet (Reka `Drawer`). |
+| `DensityToggle` | comfortable 52 px / compact 34 px row height |
+| `EmptyState` | Not "no results" but "nothing for you at this dealer — but [name] has 12 matches" |
 
 ---
 
-## 4. Interaktionsmuster
+## 4. Interaction patterns
 
-| Muster | Umsetzung |
+| Pattern | Implementation |
 |---|---|
-| **Virtualisierung** | Ab ~200 Zeilen `@tanstack/vue-virtual`. Sammlungen haben 5.000+ Einträge. |
-| **View Transitions** | Same-document, für Karte → Detail-Sheet. Cross-document noch nicht (Interop-2026-Baustelle). |
-| **Optimistic UI** | Nur für Korb, Wantlist-Add, Feedback. **Nicht** für alles mit Geld oder echter Fehlerrate. |
-| **Worker-Fortschritt** | `postMessage` aus dem Web Worker. Kein Polling, kein SSE - es gibt keinen Server. |
-| **URL ist der State** | Filter, Sortierung, Dichte in Query-Params. Digs liegen lokal - zum Teilen gibt es JSON-Export. |
-| **`scrollbar-gutter: stable`** | Auf allen Listen-Panes. Kein Layout-Sprung beim Filtern. |
-| **Skeletons** | Nur mit exakt den Maßen des echten Inhalts, sonst tauscht man Spinner gegen CLS. |
+| **Virtualisation** | From ~200 rows, `@tanstack/vue-virtual`. Collections have 5,000+ entries. |
+| **View transitions** | Same-document, for card → detail sheet. Cross-document not yet (an Interop 2026 building site). |
+| **Optimistic UI** | Only for the basket, wantlist adds and feedback. **Not** for anything involving money or a real error rate. |
+| **Worker progress** | `postMessage` from the web worker. No polling, no SSE — there is no server. |
+| **The URL is the state** | Filters, sorting and density in query params. Digs live locally — for sharing there is JSON export. |
+| **`scrollbar-gutter: stable`** | On every list pane. No layout jump when filtering. |
+| **Skeletons** | Only with exactly the dimensions of the real content, or you swap a spinner for CLS. |
 
 ---
 
-## 3a. Breite
+## 3a. Width
 
-**Daten dürfen breit werden, Text nicht.**
+**Data may get wide, text may not.**
 
-Die App war mobil-zuerst gebaut und blieb auf jedem Monitor eine Spalte von 768 px. Für
-ein Regal voller Cover und fünf Balkendiagramme ist das die falsche Form.
+The app was built mobile-first and stayed a single 768 px column on every monitor. For a
+shelf full of covers and five bar charts, that is the wrong shape.
 
-| Seite | Breite | Warum |
+| Page | Width | Why |
 |---|---|---|
-| Regal | `110rem` | Cover sind das Einzige hier, was mit Platz besser wird – 3 Spalten am Telefon, 8 am Monitor |
-| Landkarte | `90rem` | Fünf Facetten nebeneinander statt 2×2 über mehrere Bildschirmhöhen |
-| Dig, Wantlist, Gemerkt, Läden | `80rem` | Zwei Spalten ab `@4xl`, mehr Treffer gleichzeitig sichtbar |
-| Korb | `48rem` | Ein Kassenzettel wird nicht besser, wenn er breiter ist |
-| Datenschutz, Impressum, Im Laden | `48rem` / `36rem` | Fließtext und Daumenbedienung |
+| Shelf | `110rem` | Covers are the one thing here that gets better with room — 3 columns on a phone, 8 on a monitor |
+| Map | `90rem` | Five facets side by side instead of 2×2 over several screen heights |
+| Dig, wantlist, saved, shops | `80rem` | Two columns from `@4xl`, more matches visible at once |
+| Basket | `48rem` | A till receipt does not get better for being wider |
+| Privacy, legal notice, in-store | `48rem` / `36rem` | Body text and thumb operation |
 
-**Innen bleibt Text schmal.** `max-w-prose` auf jeden Absatz und jeden Begründungssatz,
-auch in einer 1400 px breiten Karte. Eine Zeile mit 200 Zeichen liest niemand zweimal.
+**Inside, text stays narrow.** `max-w-prose` on every paragraph and every reason sentence,
+even in a 1400 px card. Nobody reads a 200-character line twice.
 
 ---
 
 ## 4a. Text
 
-**Die Zahl zuerst, die Begründung einen Klick entfernt.**
+**The number first, the reasoning one click away.**
 
-Diese App erklärt sich – das ist Absicht, denn eine Zahl ohne ihren Nenner ist eine
-Behauptung, und docs/00 ist darauf gebaut, keine aufzustellen. Nur war die Erklärung
-*vor* der Zahl gelandet: vier Zeilen darüber, wie der Lift gerechnet wird, und dann der
-Lift.
+This app explains itself — that is deliberate, because a number without its denominator is an
+assertion, and docs/00 is built on making none. Only the explanation had landed *before* the
+number: four lines about how the lift is computed, and then the lift.
 
-`<WhyNote>` ist die Antwort. Der Absatz bleibt und rückt hinter einen Aufklapper: wer den
-Screen zum dritten Mal liest, überspringt ihn; wer sich fragt, wo eine Zahl herkommt, ist
-einen Klick von der Antwort entfernt. Technisch `<details>`/`<summary>` – tastaturbedienbar,
-von Screenreadern angesagt, funktioniert ohne JavaScript.
+`<WhyNote>` is the answer. The paragraph stays and moves behind a disclosure: somebody
+reading the screen for the third time skips it; somebody wondering where a number comes from
+is one click from the answer. Technically `<details>`/`<summary>` — keyboard-operable,
+announced by screen readers, works without JavaScript.
 
-**Was inline bleibt, und warum:**
+**What stays inline, and why:**
 
-| Bleibt stehen | Grund |
+| Stays | Reason |
 |---|---|
-| Warnungen vor destruktiven Aktionen | Eine Warnung gehört vor den Knopf, nicht hinter einen Aufklapper |
-| Die Datenschutzseite | Eine Rechtsseite *ist* Fließtext |
-| Erklärungen für **fehlende** Daten („Preise älter als sechs Stunden") | Erklärt die Lücke genau dann, wenn sie da ist |
-| Leerzustände | Es steht ohnehin nichts anderes auf dem Schirm – aber ein Satz, kein Absatz |
+| Warnings before destructive actions | A warning belongs in front of the button, not behind a disclosure |
+| The privacy page | A legal page *is* body text |
+| Explanations for **missing** data ("prices older than six hours") | Explains the gap exactly when it is there |
+| Empty states | There is nothing else on screen anyway — but a sentence, not a paragraph |
 
-**Maß:** Fließtext ≥ 70 Zeichen, der beim ersten Blick sichtbar ist, wird gezählt. Beim
-Aufräumen im August 2026: 61 Blöcke / 8.276 Zeichen → 55 / 6.916. Was verschwand, war
-nicht der Gedanke, sondern seine Position.
+**The measure:** body text of ≥ 70 characters visible at first glance is counted. During the
+tidy-up in August 2026: 61 blocks / 8,276 characters → 55 / 6,916. What disappeared was not
+the thought but its position.
 
 ---
 
 ## 5. Motion
 
-- 150–250 ms für UI-Feedback, 300–400 ms für Layout-/Seitenwechsel
-- **Spring statt Ease** bei allem, was der Nutzer direkt manipuliert
-- Bewegung dient Orientierung und Kausalität, nicht Dekoration
-- `motion-v` 2.3 als Bibliothek
+- 150–250 ms for UI feedback, 300–400 ms for layout/page changes
+- **Spring rather than ease** for anything the user manipulates directly
+- Motion serves orientation and causality, not decoration
+- `motion-v` 2.3 as the library
 
 ```css
 @media (prefers-reduced-motion: reduce) {
@@ -360,120 +360,116 @@ nicht der Gedanke, sondern seine Position.
 }
 ```
 
-> ⚠️ `prefers-reduced-motion` heißt **reduzieren, nicht abschalten**. Opacity-Crossfades und
-> sofortige Zustandswechsel bleiben – Parallax, große Translationen, Scale und
-> scroll-getriebene Effekte fliegen raus.
+> ⚠️ `prefers-reduced-motion` means **reduce, not remove**. Opacity crossfades and instant
+> state changes stay — parallax, large translations, scale and scroll-driven effects go.
 
 ---
 
-## 6. Barrierefreiheit
+## 6. Accessibility
 
-**Ziel: WCAG 2.2 Level AA.** Das ist der operative Standard – WCAG 3.0 ist laut W3C-Entwurf
-vom März 2026 „an incomplete draft" und noch Jahre entfernt.
+**The target: WCAG 2.2 Level AA.** That is the operative standard — WCAG 3.0 is, per the W3C
+draft of March 2026, "an incomplete draft" and years away.
 
-> ⚠️ **Rechtlicher Kontext DE/EU:** Der European Accessibility Act und das deutsche **BFSG**
-> sind seit **2025-06-28** in Kraft und erfassen den Privatsektor, ausdrücklich inklusive
-> E-Commerce-Dienstleistungen. Technischer Standard: **EN 301 549**, das WCAG 2.x AA
-> inkorporiert.
-> **Kleinstunternehmen-Ausnahme:** < 10 Beschäftigte **und** ≤ 2 Mio. € Umsatz →
-> von den BFSG-Dienstleistungspflichten ausgenommen. Ein privates Freundes-Tool fällt
-> klar darunter. **Trotzdem von Tag 1 auf AA bauen** – Barrierefreiheit nachträglich in
-> eine dichte Filter-/Tabellen-UI zu bekommen ist brutal.
+> ⚠️ **The legal context in DE/EU:** the European Accessibility Act and the German **BFSG**
+> have been in force since **2025-06-28** and cover the private sector, expressly including
+> e-commerce services. The technical standard: **EN 301 549**, which incorporates WCAG 2.x
+> AA.
+> **The micro-enterprise exemption:** < 10 employees **and** ≤ €2m turnover → exempt from the
+> BFSG service obligations. A private tool for friends clearly falls under it. **Build to AA
+> from day one all the same** — getting accessibility into a dense filter/table UI afterwards
+> is brutal.
 
-> **`.fid-action` ist Pflicht** auf jedem Bedienelement, das wie ein Textlink aussieht
-> und wie ein Knopf funktioniert – „Noch da?", „Korb leeren", „raus", „Zurück". Eine Zeile
-> 14-px-Text wird 21 px hoch: sieht richtig aus, verfehlt die Grenze um drei. axe hat für
-> Target Size **keine Regel**, und das Auge hat kein Lineal – deshalb misst
-> `tests/e2e/smoke.spec.ts` jeden Screen bei 375 px nach.
+> **`.fid-action` is mandatory** on every control that looks like a text link and behaves
+> like a button — "still there?", "empty the basket", "remove", "back". A line of 14 px text
+> is 21 px tall: it looks right and misses the limit by three. axe has **no rule** for target
+> size, and the eye has no ruler — so `tests/e2e/smoke.spec.ts` measures every screen at
+> 375 px.
 >
-> Links **mitten im Fließtext** sind laut Kriterium ausgenommen und bekommen die Klasse
-> nicht; `inline-flex` würde dort die Grundlinie verschieben. Ein Ankreuzfeld in seinem
-> eigenen `<label>` ist so groß wie das Label – das Label *ist* das Ziel.
+> Links **in the middle of body text** are exempt under the criterion and do not get the
+> class; `inline-flex` would shift the baseline there. A checkbox inside its own `<label>` is
+> as large as the label — the label *is* the target.
 
-> **Container-Queries brauchen einen Container.** `@sm:`, `@md:` und Verwandte messen
-> gegen den nächsten Vorfahren mit `@container` – gibt es keinen, greift die Regel **nie**,
-> ohne Fehler und ohne Warnung. Genau das war der Fall: außer in `MatchCard` hatte keine
-> einzige dieser Regeln einen Container, also blieb der große Schirm ungenutzt. Jede Seite,
-> die responsiv sein soll, setzt `@container` auf ihr `<main>`.
+> **Container queries need a container.** `@sm:`, `@md:` and relatives measure against the
+> nearest ancestor with `@container` — if there is none, the rule **never** applies, with no
+> error and no warning. That was exactly the case: apart from `MatchCard`, not one of these
+> rules had a container, so the large screen went unused. Every page that is meant to be
+> responsive sets `@container` on its `<main>`.
 
-### WCAG-2.2-Kriterien, die genau diese App treffen
+### The WCAG 2.2 criteria that hit this app specifically
 
-| SC | Kriterium | Wo es beißt |
+| SC | Criterion | Where it bites |
 |---|---|---|
-| 2.4.11 | Focus Not Obscured | **Sticky Filterleiste** verdeckt fokussierte Zeilen → `scroll-margin-top` |
-| 2.5.8 | Target Size 24×24 | Signal-Chips, Zeilenaktionen im Compact-Modus, **Textlinks, die Aktionen sind** |
-| 2.5.7 | Dragging Movements | Falls Korb-Sortierung per Drag → Tastatur-Alternative Pflicht |
-| 3.2.6 | Consistent Help | Hilfe-Einstiegspunkt an jeder Stelle gleich |
-| 3.3.7 | Redundant Entry | Händlername nicht zweimal eintippen lassen |
+| 2.4.11 | Focus Not Obscured | The **sticky filter bar** covers focused rows → `scroll-margin-top` |
+| 2.5.8 | Target Size 24×24 | Signal chips, row actions in compact mode, **text links that are actions** |
+| 2.5.7 | Dragging Movements | If basket sorting is by drag → a keyboard alternative is mandatory |
+| 3.2.6 | Consistent Help | The entry point to help is the same everywhere |
+| 3.3.7 | Redundant Entry | Do not make people type the dealer name twice |
 
-### Umsetzung
+### Implementation
 
-- Score-Ring: `role="img"` + `aria-label="Barry Score 91 von 100 – Side One, Track One"`
-- Signalfarben **nie als einziger Bedeutungsträger** – immer Label dazu (SC 1.4.1)
-- Scan-Fortschritt in `aria-live="polite"`, gedrosselt auf max. 1 Ansage/10 s
-- Virtualisierte Listen: `aria-rowcount`/`aria-rowindex`, damit Screenreader die
-  Gesamtmenge kennen
-- Fokusfalle im Detail-Sheet, `Escape` schließt, Fokus kehrt zur Karte zurück
-- Kontrast: alle Text-auf-Signalfarbe-Paare über `contrast-color()` oder händisch geprüft
-- **Automatisiert:** `@axe-core/playwright` in der E2E-Suite. **Manuell:** ein
-  Tastatur-Durchlauf und ein VoiceOver-Durchlauf pro Release. Automatik findet ~30–40 %.
+- The score ring: `role="img"` + `aria-label="Barry Score 91 of 100 – Side One, Track One"`
+- Signal colours are **never the sole carrier of meaning** — always with a label (SC 1.4.1)
+- Scan progress in `aria-live="polite"`, throttled to at most 1 announcement per 10 s
+- Virtualised lists: `aria-rowcount`/`aria-rowindex`, so screen readers know the total
+- A focus trap in the detail sheet, `Escape` closes it, focus returns to the card
+- Contrast: every text-on-signal-colour pair via `contrast-color()` or checked by hand
+- **Automated:** `@axe-core/playwright` in the E2E suite. **Manual:** one keyboard pass and
+  one VoiceOver pass per release. Automation finds ~30–40 %.
 
 ---
 
 ## 7. PWA
 
-| Aspekt | Stand August 2026 |
+| Aspect | As of August 2026 |
 |---|---|
-| **iOS-Installation** | Safari 26 hat **alle Installability-Anforderungen abgeschafft** – jede Website öffnet als Web-App vom Home-Bildschirm. Aber: **kein `beforeinstallprompt` auf iOS.** Manueller Coach-Mark „Teilen → Zum Home-Bildschirm" nötig. |
-| **Push** | **Gibt es nicht.** Web Push braucht einen Application Server, den wir bewusst nicht haben (ADR-007). Ersatz: Pruefung beim App-Start, Badge-API, Banner mit den Neuigkeiten seit dem letzten Besuch. |
-| **Background Sync** | ⚠️ **Chromium-only, nicht Baseline** (Safari: nein). **Keinen Flow darauf bauen.** Eigene IndexedDB-Outbox, geleert bei `online`/`visibilitychange`. |
-| **Speicher-Eviction** | WebKit räumt Site-Daten nach ~7 Tagen Inaktivität ab – **installierte Home-Screen-Apps sind ausgenommen.** Noch ein Grund, auf Installation zu drängen. |
+| **iOS installation** | Safari 26 has **dropped all installability requirements** — any website opens as a web app from the home screen. But: **no `beforeinstallprompt` on iOS.** A manual coach mark "Share → Add to Home Screen" is needed. |
+| **Push** | **Does not exist.** Web Push needs an application server, which we deliberately do not have (ADR-007). The substitute: a check at app start, the Badging API, a banner with the news since the last visit. |
+| **Background Sync** | ⚠️ **Chromium-only, not Baseline** (Safari: no). **Do not build a flow on it.** An IndexedDB outbox of our own, drained on `online`/`visibilitychange`. |
+| **Storage eviction** | WebKit clears site data after ~7 days of inactivity — **installed home-screen apps are exempt.** Another reason to push for installation. |
 
-**Offline-Strategie**
+**The offline strategy**
 
-| Daten | Strategie |
+| Data | Strategy |
 |---|---|
-| App-Shell | Precache (`generateSW`) |
-| Sammlung/Wantlist | IndexedDB - ohnehin der einzige Speicherort, offline ist der Normalfall |
-| Dig-Ergebnisse | IndexedDB, **mit sichtbarem Zeitstempel** („Stand 09:14") |
-| Cover | CacheStorage, stale-while-revalidate, LRU-Deckel ~200 MB |
-| Preise | Network-first. Still veraltende Preise sind schlimmer als ein ehrliches Label. |
+| App shell | Precache (`generateSW`) |
+| Collection/wantlist | IndexedDB — the only place it lives anyway, offline is the normal case |
+| Dig results | IndexedDB, **with a visible timestamp** ("as of 09:14") |
+| Covers | CacheStorage, stale-while-revalidate, an LRU cap of ~200 MB |
+| Prices | Network-first. Quietly ageing prices are worse than an honest label. |
 
-**Ist eine PWA ein Ersatz für eine native App?** Für genau diese App: ja, bequem. Es ist
-eine vernetzte, listenlastige Datenbrowsing-App – der Archetyp, den das Web am besten kann.
-Reale verbleibende Lücken: schlechterer Install-Funnel auf iOS, kein App-Store, kein
-Background Sync, kein NFC auf iOS. Nichts davon ist für Fidelity blockierend.
+**Is a PWA a substitute for a native app?** For this app specifically: yes, comfortably. It is
+a networked, list-heavy data-browsing app — the archetype the web does best. The real
+remaining gaps: a worse install funnel on iOS, no app store, no background sync, no NFC on
+iOS. None of that is a blocker for Fidelity.
 
 ---
 
 ## 8. Screens (v1)
 
-| # | Screen | Kern |
+| # | Screen | The core |
 |---|---|---|
-| 1 | **Championship** (Dashboard) | Sammlungs-Snapshot, gespeicherte Händler mit Affinity, letzte Digs, Watchlist-Neuigkeiten |
-| 2 | **Neuer Dig** | Händler-Eingabe + Vorabprüfung („43.234 Listings – wir schaffen 20.000") |
-| 3 | **Dig läuft** | Fortschritt mit echten Zahlen, erste Treffer strömen ein |
-| 4 | **Dig-Ergebnis** | Top Five oben, dann Volltrefferliste, Filterleiste, Signal-Chips |
-| 5 | **Release-Detail** (Sheet) | Alle Signale, Katalogserie-Raster, Preisvergleich, Pressing-Info |
-| 6 | **Der Korb** | Versandstaffel, Grenzkosten, Kandidatenvorschläge, Deeplinks zu Discogs |
-| 7 | **The Clerk's Take** | Händler-Steckbrief: Fingerprint, Affinity, Preispositionierung |
-| 8 | **Deine Landkarte** | Sammlungsprofil: Labels, Dekaden, Stile, Lücken |
-| 9a | **Dein Regal** | Cover-Grid, 3 Spalten am Telefon bis 8 am Monitor, Suche und Sortierung im Worker |
-| 9 | **In-Store** (nur mobil) | Große Touch-Targets, offline, Dig-Liste nach Score, **Sammlung + Wantlist durchsuchbar** („Habe ich die schon?“) |
-| 10 | **Einstellungen** | Konto, Sammlung, Horizont, Credits, Hub, Datenexport – alles, was man einmal einrichtet |
+| 1 | **Championship** (dashboard) | A snapshot of the collection, saved dealers with affinity, recent digs, watchlist news |
+| 2 | **A new dig** | Dealer input + the advance check ("43,234 listings — we can manage 20,000") |
+| 3 | **A dig running** | Progress with real numbers, the first matches flowing in |
+| 4 | **Dig results** | Top Five at the top, then the full list, a filter bar, signal chips |
+| 5 | **Release detail** (sheet) | Every signal, the catalogue run grid, a price comparison, pressing information |
+| 6 | **The basket** | Shipping tiers, marginal costs, candidate suggestions, deep links to Discogs |
+| 7 | **The Clerk's Take** | The dealer profile: fingerprint, affinity, price positioning |
+| 8 | **Your map** | The collection profile: labels, decades, styles, gaps |
+| 9a | **Your shelf** | A cover grid, 3 columns on a phone up to 8 on a monitor, search and sorting in the worker |
+| 9 | **In-store** (mobile only) | Large touch targets, offline, the dig list by score, **collection + wantlist searchable** ("have I got this already?") |
+| 10 | **Settings** | Account, collection, horizon, credits, hub, data export — everything you set up once |
 
-### Navigation (ergänzt nach M9)
+### Navigation (added after M9)
 
-Fünf Bereiche, in der Reihenfolge, in der man sich durch sie bewegt:
-**Start · Graben · Korb · Sammlung · Läden**, dazu ein Zahnrad für die
-Einstellungen. Auf dem Desktop eine Leiste oben, auf dem Handy eine feste
-Leiste unten in Daumenreichweite.
+Five areas, in the order you move through them:
+**Start · Dig · Basket · Collection · Shops**, plus a gear for the settings. On the desktop a
+bar at the top, on a phone a fixed bar at the bottom within thumb reach.
 
-> **Warum überhaupt:** Bis M9 lagen die Sprungmarken als Buttons *innerhalb*
-> des Sync-Panels und das Dashboard trug neun gleichgewichtige Panels — von
-> „letzter Dig" bis „alles löschen". Ein Bildschirm, auf dem alles gleich
-> dringend aussieht, beantwortet die Frage „was jetzt?" nicht.
+> **Why at all:** until M9 the jump-off points sat as buttons *inside* the sync panel, and the
+> dashboard carried nine equally weighted panels — from "last dig" to "delete everything". A
+> screen on which everything looks equally urgent does not answer the question "what now?".
 >
-> **In-Store ist bewusst kein Reiter.** Das ist ein *Modus*, in den man mit
-> einer Platte in der Hand geht, kein Bereich zum Blättern — erreichbar von der
-> Startseite und aus dem Dig-Ergebnis, also dort, wo diese Entscheidung fällt.
+> **In-store is deliberately not a tab.** That is a *mode* you enter with a record in your
+> hand, not an area to browse — reachable from the start page and from the dig result, which
+> is where that decision is made.
