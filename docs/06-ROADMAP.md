@@ -719,27 +719,33 @@ und das Teilen aus M9 gibt es. Der Ring am Händler ist eine Darstellung von Dat
 schon existieren — `depth: 'neu'` weiß, was seit dem letzten Besuch dazugekommen ist, und
 der Wächter aus M9 weiß, ob sich der Bestand verändert hat.
 
-- [ ] Eigene Route, eigener Chunk, nur geladen wenn jemand ihn öffnet (Regel 7)
-- [ ] Wischen mit Pointer Events und einer CSS-Transformation. **Keine Bibliothek** — eine
-      Karte, die der Geste folgt, sind rund hundert Zeilen, und das Budget ist 180 kB
-- [ ] `prefers-reduced-motion` respektiert, wie bei `ToTop.vue`
-- [ ] Vollständig mit der Tastatur bedienbar. Ein Stapel, den nur ein Daumen bedienen
-      kann, ist ein Bildschirm, den ein Teil der Leute nicht hat
+- [x] Eigene Route, eigener Chunk, nur geladen wenn jemand ihn öffnet (Regel 7) —
+      `stack-*.js` liegt als eigene Datei im Build
+- [x] Wischen mit Pointer Events und einer CSS-Transformation. **Keine Bibliothek** — eine
+      Karte, die der Geste folgt, sind rund hundert Zeilen, und das Budget ist 180 kB.
+      Die Schwelle liegt bei 80 px; darunter ist es ein Zittern beim Tippen
+- [x] `prefers-reduced-motion` respektiert — über die globale Regel in `main.css`, die
+      jede Übergangsdauer auf 0,01 ms zieht. Der Stapel braucht dafür keine eigene Zeile
+- [x] Vollständig mit der Tastatur bedienbar (Pfeiltasten links und rechts). Ein Stapel,
+      den nur ein Daumen bedienen kann, ist ein Bildschirm, den ein Teil der Leute nicht
+      hat
 
 ### Vier Entwurfsentscheidungen, die nicht verhandelbar sind
 
-- [ ] **Zurücknehmen.** Tinder kann sich ein verlorenes Nein leisten, eine seltene Platte
+- [x] **Zurücknehmen.** Tinder kann sich ein verlorenes Nein leisten, eine seltene Platte
       nicht. Jeder Wisch ist umkehrbar, und zwar sichtbar.
-- [ ] **Die Reihenfolge bleibt die Punktzahl.** Zu mischen, damit es länger spannend
-      bleibt, würde das Einzige wegwerfen, was diese App kann. Stattdessen sagt sie, wo
-      man steht: „die besten zehn liegen hinter dir."
-- [ ] **Der Begründungssatz steht auf jeder Karte.** Ohne ihn ist der Stapel ein
-      Spielautomat mit Plattenhüllen. Mit ihm ist er das, was Fidelity ohnehin verspricht,
-      nur schneller zu lesen.
-- [ ] **Er hört auf.** Ein Laden ist irgendwann durch, und dann sagt das der Bildschirm.
-      Unendlichkeit vorzutäuschen wäre die eine Sorte Sog, die zu einer App, deren ganzer
-      Wert Ehrlichkeit ist, nicht passt.
-- [ ] Preise grauen aus, sobald `expiresAt` überschritten ist. Ein Stapel, durch den man
+- [x] **Die Reihenfolge bleibt die Punktzahl.** Zu mischen, damit es länger spannend
+      bleibt, würde das Einzige wegwerfen, was diese App kann. Der Stapel sortiert
+      überhaupt nicht — er zeigt, was `dig.get` liefert, und das ist nach Punktzahl
+      geordnet.
+- [x] **Der Begründungssatz steht auf jeder Karte** (`reasonFor(match.signals)`). Ohne ihn
+      ist der Stapel ein Spielautomat mit Plattenhüllen. Mit ihm ist er das, was Fidelity
+      ohnehin verspricht, nur schneller zu lesen.
+- [x] **Er hört auf.** Ein Laden ist irgendwann durch, und dann sagt das der Bildschirm
+      und bietet den nächsten an, der noch etwas hat. Unendlichkeit vorzutäuschen wäre
+      die eine Sorte Sog, die zu einer App, deren ganzer Wert Ehrlichkeit ist, nicht
+      passt.
+- [x] Preise grauen aus, sobald `expiresAt` überschritten ist. Ein Stapel, durch den man
       schnell wischt, ist der leichteste Ort, an dem ein sechs Stunden alter Preis
       unbemerkt stehen bleibt (Regel 4).
 
@@ -760,17 +766,17 @@ die IP und welche Platte gerade angesehen wird; der Satz „verlässt dieses Ger
 stimmt danach trotzdem nicht mehr ohne Zusatz, und ein Versprechen, das nur fast stimmt,
 ist gebrochen.
 
-- [ ] Standardmäßig aus, ein Schalter pro Gerät
-- [ ] **Kein Byte an Google, bevor jemand es will.** Der `<iframe>` entsteht erst beim
+- [x] Standardmäßig aus, ein Schalter pro Gerät
+- [x] **Kein Byte an Google, bevor jemand es will.** Der `<iframe>` entsteht erst beim
       ersten bewussten Tippen, nicht beim Zeichnen einer Karte
-- [ ] Danach eine Player-Instanz, die mitwandert (`loadVideoById()` je Karte). Das ist
+- [x] Danach eine Player-Instanz, die mitwandert (`loadVideoById()` je Karte). Das ist
       zugleich der einzige Weg, der funktioniert: Browser verlangen für Ton eine Geste,
       und diese eine trägt dann durch den Stapel. **Autoplay auf Karte eins gibt es
       nicht**, in keinem Browser
-- [ ] `youtube-nocookie.com` — verhindert Cookies vor dem Abspielen, nicht die Anfrage
-- [ ] Die Datenschutzseite bekommt einen eigenen Absatz, der beim Namen nennt, wer was
+- [x] `youtube-nocookie.com` — verhindert Cookies vor dem Abspielen, nicht die Anfrage
+- [x] Die Datenschutzseite hat einen eigenen Absatz, der beim Namen nennt, wer was
       erfährt
-- [ ] Der Ton hängt an der Platte, nicht am Stück: `videos[]` gehört zum Release. Bei
+- [x] Der Ton hängt an der Platte, nicht am Stück: `videos[]` gehört zum Release. Bei
       einer Compilation nennt der Bildschirm den Titel, den er spielt, statt so zu tun,
       als wäre es *die* Platte
 
