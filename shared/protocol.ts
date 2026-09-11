@@ -1111,6 +1111,36 @@ export interface WorkerError {
     | 'hub-mixed-content'
     | 'hub-unreachable'
     | 'hub-http-error'
+    /*
+     * And the rest of them, for the same reason one level further in.
+     *
+     * Until 2026-09-11 the worker threw sentences: `'Kein Token eingegeben.'`,
+     * `'Der Sechs-Stunden-Rahmen ist abgelaufen – bitte neu scannen.'`, ten of
+     * them in German inside an English interface. Translating them moved the
+     * fault rather than removing it — `explain()` ends with
+     * `title: message || words.unknown`, so a thrown sentence *is* the red
+     * headline, and a worker sentence can never follow `activeLanguage()`.
+     *
+     * A code can. `worker/fail.ts` is now the only way to throw one, and
+     * `tests/unit/template-text.spec.ts` holds the worker to it by shape —
+     * no vocabulary, no exception list.
+     */
+    | 'no-token'
+    | 'not-signed-in'
+    | 'no-listing'
+    | 'dig-gone'
+    | 'dig-expired'
+    | 'dig-running'
+    | 'dig-not-running'
+    | 'deep-scan-done'
+    | 'no-anchor'
+    | 'match-gone'
+    | 'no-hub'
+    | 'not-a-hub'
+    | 'vault-too-new'
+    | 'vault-unusable'
+    | 'passphrase-short'
+    | 'asset-missing'
   /** The HTTP status, for `hub-http-error`. Nothing else carries one. */
   status?: number
 }

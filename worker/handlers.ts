@@ -11,6 +11,7 @@ import { allFeedback, clearFeedback, feedbackVerdicts, recordFeedback } from './
 
 import { bestPerRelease, topFive } from './match/select'
 import { computeTasteProfile } from './match/taste'
+import { fail } from './fail'
 
 /**
  * A handler gets its params and a way to report progress, and returns the
@@ -96,7 +97,7 @@ export const handlers: HandlerMap = {
 
   'library.sync': async (_params, { report, signal }) => {
     const identity = await currentIdentity()
-    if (!identity) throw new Error('Nicht angemeldet.')
+    if (!identity) throw fail('not-signed-in', 'not signed in')
 
     await requestPersistence()
     const { syncLibrary } = await library()
@@ -590,7 +591,7 @@ export const handlers: HandlerMap = {
 
   'share.create': async ({ digId }) => {
     const loaded = await loadDig(digId)
-    if (!loaded) throw new Error('no such dig')
+    if (!loaded) throw fail('dig-gone', 'no such dig')
 
     const { createShare } = await import('./share')
     return createShare(loaded)
@@ -611,7 +612,7 @@ export const handlers: HandlerMap = {
     const db = await openFidelityDb()
     const match = await db.get('matches', [digId, listingId])
     const dig = await db.get('digs', digId)
-    if (!match || !dig) throw new Error('Match not found.')
+    if (!match || !dig) throw fail('match-gone', 'no such match')
 
     await addToBasket(match, dig.dealer, Date.now())
     return basketView()
@@ -668,7 +669,7 @@ export const handlers: HandlerMap = {
   'dealer.discover': async (_params, { report, signal }) => {
     const { discoverDealers } = await import('./dealers/discover')
     const identity = await currentIdentity()
-    if (!identity) throw new Error('Nicht angemeldet.')
+    if (!identity) throw fail('not-signed-in', 'not signed in')
 
     const { importFriends } = await getPreferences()
     return discoverDealers({
@@ -959,7 +960,7 @@ export const handlers: HandlerMap = {
 
   'hub.check': async ({ url, secret }) => {
     const base = url.trim().replace(/\/+$/, '')
-    if (!base) throw new Error('hub: no url given')
+    if (!base) throw fail('no-hub', 'hub: no url given')
 
     // Deliberately a plain fetch rather than the hub client: this is the one
     // place a failure has to be *reported* instead of swallowed.
@@ -982,13 +983,12 @@ export const handlers: HandlerMap = {
       const mixed = self.location?.protocol === 'https:' && base.startsWith('http://')
       // A code, not a sentence: `HubSettings` writes the words, in whatever
       // language the person reading them has chosen.
-      throw Object.assign(new Error(mixed ? 'hub: mixed content' : 'hub: no answer'), {
-        code: mixed ? ('hub-mixed-content' as const) : ('hub-unreachable' as const),
-      })
+      throw mixed
+        ? fail('hub-mixed-content', 'hub: mixed content')
+        : fail('hub-unreachable', 'hub: no answer')
     }
     if (!response.ok) {
-      throw Object.assign(new Error(`hub: HTTP ${response.status}`), {
-        code: 'hub-http-error' as const,
+      throw Object.assign(fail('hub-http-error', `hub: HTTP ${response.status}`), {
         status: response.status,
       })
     }
@@ -999,7 +999,7 @@ export const handlers: HandlerMap = {
       shipping?: number
       secured?: boolean
     }
-    if (body.ok !== true) throw new Error('That is not a Fidelity hub.')
+    if (body.ok !== true) throw fail('not-a-hub', 'not a fidelity hub')
 
     return {
       ok: true,

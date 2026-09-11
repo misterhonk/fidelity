@@ -58,8 +58,10 @@ describe('what leaves the device', () => {
 
   it('says so rather than failing oddly on a newer format', async () => {
     const sealed = await seal({ x: 1 }, 'egal')
-    await expect(open({ ...sealed, version: VAULT_VERSION + 1 }, 'egal')).rejects.toThrow(
-      'neueren Version',
+    await expect(open({ ...sealed, version: VAULT_VERSION + 1 }, 'egal')).rejects.toMatchObject(
+      {
+        code: 'vault-too-new',
+      },
     )
   }, 30_000)
 })

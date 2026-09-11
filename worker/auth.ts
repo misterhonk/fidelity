@@ -10,6 +10,7 @@ import {
 } from './discogs/pacer'
 import { identitySchema, userProfileSchema } from './discogs/schemas'
 import { forgetSecrets, registerSecret } from './log'
+import { fail } from './fail'
 
 /**
  * The client used for everything after sign-in. It reads the token per request
@@ -69,7 +70,7 @@ export function discogs(): DiscogsClient {
 export async function signIn(token: string): Promise<Identity> {
   const trimmed = token.trim()
   if (trimmed.length === 0) {
-    throw new Error('Kein Token eingegeben.')
+    throw fail('no-token', 'no token given')
   }
   registerSecret(trimmed)
 

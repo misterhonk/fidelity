@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import type { ShippingProfileSource } from '#shared/ports'
 import type { ShippingTier } from '#shared/types'
+import { fail } from '../fail'
 
 /** External data, so it crosses a schema at the boundary (CLAUDE.md). */
 const tierSchema = z.object({
@@ -47,7 +48,7 @@ export function createBundledShippingSource({
 
   async function load(): Promise<Record<string, ShippingTier[]>> {
     const response = await fetchImpl(url)
-    if (!response.ok) throw new Error(`shipping profiles: HTTP ${response.status}`)
+    if (!response.ok) throw fail('asset-missing', `shipping profiles: HTTP ${response.status}`)
 
     const parsed = fileSchema.parse(await response.json())
     return Object.fromEntries(

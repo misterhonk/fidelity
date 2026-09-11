@@ -3,6 +3,7 @@ import { createHubClient } from './hub/client'
 import { getPreferences } from '~~/db/meta'
 import type { DigWithMatches } from '#shared/protocol'
 import type { SharedDig } from '#shared/types'
+import { fail } from './fail'
 
 /**
  * Sending a find list without putting it anywhere somebody can read it.
@@ -58,7 +59,7 @@ export interface ShareCreated {
 export async function createShare(loaded: DigWithMatches): Promise<ShareCreated> {
   const preferences = await getPreferences()
   const hub = createHubClient({ baseUrl: preferences.hubUrl, secret: preferences.hubSecret })
-  if (!hub) throw new Error('no hub configured')
+  if (!hub) throw fail('no-hub', 'no hub configured')
 
   const dig = loaded.dig
 
@@ -70,7 +71,7 @@ export async function createShare(loaded: DigWithMatches): Promise<ShareCreated>
    * that — and getting round the lock on one's own screen by opening a second
    * one.
    */
-  if (Date.now() >= dig.expiresAt) throw new Error('dig expired')
+  if (Date.now() >= dig.expiresAt) throw fail('dig-expired', 'dig expired')
 
   const snapshot: SharedDig = {
     version: SHARE_VERSION,

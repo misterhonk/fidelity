@@ -1,3 +1,5 @@
+import { fail } from '../fail'
+
 /**
  * What leaves the device is a block nobody else can read.
  *
@@ -80,7 +82,7 @@ export async function seal(data: unknown, passphrase: string): Promise<SealedVau
  */
 export async function open<T>(sealed: SealedVault, passphrase: string): Promise<T> {
   if (sealed.version > VAULT_VERSION) {
-    throw new Error('Diese Sicherung stammt aus einer neueren Version von Fidelity.')
+    throw fail('vault-too-new', 'vault from a newer version')
   }
 
   const key = await deriveKey(passphrase, fromBase64(sealed.salt))

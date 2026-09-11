@@ -2,7 +2,7 @@ import { DIG_TTL_MS, pruneDigs } from '~~/db/expire'
 import { getPreferences } from '~~/db/meta'
 import { openFidelityDb, type FidelityDatabase } from '~~/db/open'
 import type { Dig, Match, StockRow } from '#shared/types'
-import type { ScanProgress } from '#shared/protocol'
+import type { ScanProgress, WorkerError } from '#shared/protocol'
 
 import type { DiscogsClient } from '../discogs/client'
 import { dealerSchema, inventoryPageSchema, toListing } from '../discogs/inventory'
@@ -519,6 +519,7 @@ function passLabel(pass: ScanPass): string {
 function acquire(digId: string): void {
   if (running !== null) {
     throw new DigNotResumable(
+      'dig-running',
       running === digId ? 'this dig is already running' : 'another dig is already running',
     )
   }
@@ -533,7 +534,16 @@ async function walkExclusively(dig: Dig, ctx: ScanContext): Promise<Dig> {
   }
 }
 
-export class NoAnchorYet extends Error {}
+/**
+ * A "only what is new" visit with nothing to anchor to.
+ *
+ * Carries a code like everything else the worker throws: the reason has to
+ * reach the screen in the reader's language, and the worker has none
+ * (`worker/fail.ts`).
+ */
+export class NoAnchorYet extends Error {
+  readonly code = 'no-anchor' as const
+}
 
 export async function runDig(
   options: ScanOptions & { dealer: string; digId: string; depth?: 'normal' | 'deep' | 'neu' },
@@ -621,7 +631,25 @@ export async function runDig(
   return walkExclusively(dig, ctx)
 }
 
-export class DigNotResumable extends Error {}
+/**
+ * There is nothing here to pick up again — and which nothing it is matters.
+ *
+ * Four different situations end here: another scan holds the slot, the dig is
+ * gone, it was never running, a deep scan is finished, the window has closed.
+ * Each is a different sentence on screen, so each carries its own code rather
+ * than a message the worker would have to word itself.
+ */
+export class DigNotResumable extends Error {
+  constructor(
+    readonly code: Extract<
+      NonNullable<WorkerError['code']>,
+      'dig-running' | 'dig-gone' | 'dig-not-running' | 'deep-scan-done' | 'dig-expired'
+    >,
+    detail: string,
+  ) {
+    super(detail)
+  }
+}
 
 /**
  * Picks an interrupted dig back up.
@@ -641,8 +669,9 @@ export async function resumeDig(options: ScanOptions & { digId: string }): Promi
     const ctx = await prepare(options)
     const dig = await ctx.db.get('digs', options.digId)
 
-    if (!dig) throw new DigNotResumable('Dieser Dig existiert nicht mehr.')
-    if (dig.status !== 'scanning') throw new DigNotResumable('this dig is not running')
+    if (!dig) throw new DigNotResumable('dig-gone', 'no such dig')
+    if (dig.status !== 'scanning')
+      throw new DigNotResumable('dig-not-running', 'this dig is not running')
 
     /*
      * A deep scan is not picked up again, and that is a choice rather than an
@@ -654,13 +683,13 @@ export async function resumeDig(options: ScanOptions & { digId: string }): Promi
     if (dig.depth === 'deep') {
       dig.status = 'done'
       await ctx.db.put('digs', dig)
-      throw new DigNotResumable('Ein Tiefenscan wird nicht fortgesetzt – die Funde sind da.')
+      throw new DigNotResumable('deep-scan-done', 'a deep scan is not resumed')
     }
 
     if (ctx.now() > dig.expiresAt) {
       dig.status = 'expired'
       await ctx.db.put('digs', dig)
-      throw new DigNotResumable('Der Sechs-Stunden-Rahmen ist abgelaufen – bitte neu scannen.')
+      throw new DigNotResumable('dig-expired', 'the six-hour window has closed')
     }
 
     return await walkExclusively(dig, ctx)

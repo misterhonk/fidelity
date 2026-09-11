@@ -7,6 +7,7 @@ import { createHubClient } from '../hub/client'
 import type { SealedVault } from './crypto'
 import { syncVault, type SyncReport } from './sync'
 import { hubTarget, legacyVaultId, vaultId } from './targets/hub'
+import { fail } from '../fail'
 
 /**
  * Which destination this device uses, and whether it can right now.
@@ -107,7 +108,7 @@ function requirePassphrase(passphrase: string): void {
   if (passphrase.trim().length < 8) {
     // Short enough to brute-force is short enough to refuse. The block it
     // protects is somebody's whole collection and every judgement they made.
-    throw new Error('Die Passphrase muss mindestens acht Zeichen haben.')
+    throw fail('passphrase-short', 'passphrase shorter than eight characters')
   }
 }
 
@@ -118,15 +119,15 @@ export async function runVaultSync(passphrase: string): Promise<SyncReport> {
   if (!status.ready || status.target === 'none') {
     // Not user-facing: the sync button is disabled unless `ready`. If this
     // ever surfaces it is a bug, and a bug report is better in one language.
-    throw new Error(`vault target not usable: ${status.blocked ?? 'none set'}`)
+    throw fail('vault-unusable', `vault target not usable: ${status.blocked ?? 'none set'}`)
   }
 
   const prefs = await getPreferences()
   const identity = await currentIdentity()
-  if (!identity) throw new Error('not signed in')
+  if (!identity) throw fail('not-signed-in', 'not signed in')
 
   const client = createHubClient({ baseUrl: prefs.hubUrl, secret: prefs.hubSecret })
-  if (!client) throw new Error('Kein Hub eingetragen.')
+  if (!client) throw fail('no-hub', 'no hub configured')
 
   const id = await vaultId(identity.userId, passphrase)
 

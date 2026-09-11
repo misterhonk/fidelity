@@ -45,7 +45,15 @@ const PROFILE = { id: 7, username: 'mrtnmlchr', avatar_url: 'https://img/av.png'
 
 describe('signing in', () => {
   it('refuses an empty token without touching anything', async () => {
-    await expect(signIn('   ')).rejects.toThrow('Kein Token')
+    /*
+     * The code, not the sentence.
+     *
+     * The worker has no language — `explain()` turns the code into words on
+     * the main thread (`worker/fail.ts`). Asserting the wording here would
+     * pin a translation, which is the coupling `vault-file.spec.ts` warns
+     * about; asserting the code says which failure this is.
+     */
+    await expect(signIn('   ')).rejects.toMatchObject({ code: 'no-token' })
     expect(await getMeta('token')).toBeUndefined()
     expect(await getMeta('identity')).toBeUndefined()
   })

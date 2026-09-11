@@ -249,14 +249,12 @@ describe('a sentence in a script block', () => {
  * same files already read from the language pack — so the pattern stood beside
  * them and was not followed.
  *
- * Only `app/` is checked. **In the worker this rule does not apply and
- * cannot:** the packs hang off `activeLanguage()` on the main thread, and the
- * worker computes without knowing anything about language (CLAUDE.md). There
- * the right form is a `code` on the `WorkerError` that `explain()` puts into
- * words — `unauthorized`, `hub-unreachable` and `rate-limited` show how. Ten
- * thrown German sentences in the worker are still waiting for it; they are
- * deliberately not listed here as exceptions, because an exception list would
- * make them invisible.
+ * This block checks `app/`. **The worker needs a different rule, not an
+ * exemption:** the packs hang off `activeLanguage()` on the main thread, and
+ * the worker computes without knowing anything about language (CLAUDE.md). It
+ * cannot read from a pack, so it throws a `code` that `explain()` puts into
+ * words. The block below holds it to that — and it needs no vocabulary at all,
+ * because `worker/fail.ts` is the only way to throw one.
  */
 const THROWN = /throw new (?:\w*Error)\(\s*(['"`])((?:[^\\]|\\.)*?)\1/gs
 
@@ -278,6 +276,45 @@ describe('a thrown message', () => {
         if (message === undefined) continue
         // `${…}` is a word boundary, not a word.
         if (!TWO_WORDS.test(message.replace(INTERPOLATION, ' '))) continue
+        literals.push(`${file}: ${message.slice(0, 70)}`)
+      }
+    }
+
+    expect(literals).toEqual([])
+  })
+})
+
+/**
+ * And in the worker, the same guarantee by a different shape.
+ *
+ * Ten German sentences were thrown from `worker/` until 2026-09-11 — `'Kein
+ * Token eingegeben.'`, `'Der Sechs-Stunden-Rahmen ist abgelaufen – bitte neu
+ * scannen.'` — inside an English interface. Translating them would have moved
+ * the fault rather than removed it: `explain()` makes a message with no code
+ * the **title**, and a sentence written in the worker can never follow a
+ * language switch.
+ *
+ * So every one of them is a `fail(code, detail)` now, and this is the rule that
+ * keeps it that way. **It names no words.** `throw new Error('…')` under
+ * `worker/` is simply gone as a shape, which is why there is no exception list
+ * here — an exception list is where this kind of thing goes to become
+ * invisible.
+ */
+describe('what the worker throws', () => {
+  const sources = globSync('worker/**/*.ts', { cwd: ROOT })
+    .filter((file) => file !== 'worker/fail.ts')
+    .map((file) => ({ file, source: readFileSync(join(ROOT, file), 'utf8') }))
+
+  it('reads every file under worker/', () => {
+    expect(sources.length).toBeGreaterThan(30)
+  })
+
+  it('throws a code rather than a sentence', () => {
+    const literals: string[] = []
+
+    for (const { file, source } of sources) {
+      for (const [, , message] of withoutComments(source).matchAll(THROWN)) {
+        if (message === undefined) continue
         literals.push(`${file}: ${message.slice(0, 70)}`)
       }
     }

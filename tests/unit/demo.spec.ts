@@ -134,6 +134,8 @@ describe('the demo', () => {
 
   it('refuses politely when there is nothing to start from', async () => {
     const { client } = fakeShop()
-    await expect(runDemo({ client, listingIds: [] })).rejects.toThrow('Kein Angebot')
+    await expect(runDemo({ client, listingIds: [] })).rejects.toMatchObject({
+      code: 'no-listing',
+    })
   })
 })

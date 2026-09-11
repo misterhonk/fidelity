@@ -4,6 +4,7 @@ import { chunkIsSound, decodeChunk, encodeChunk, type WireChunk } from '#shared/
 import type { HorizonChunk, HorizonKind, PushRegistration, ShippingTier } from '#shared/types'
 
 import { log } from '../log'
+import { fail } from '../fail'
 
 /**
  * Talking to a hub, if there is one.
@@ -296,7 +297,10 @@ export function createHubClient({
       })
       // Unlike a contribution, this one is not fire-and-forget: somebody is
       // waiting to hear that their shortlist is safe on the other device.
-      if (!response.ok) throw new Error(`The hub refused the vault (${response.status}).`)
+      if (!response.ok)
+        throw Object.assign(fail('hub-http-error', 'hub refused the vault'), {
+          status: response.status,
+        })
     },
 
     async shareWrite(id, sealed, expiresAt) {
@@ -308,7 +312,9 @@ export function createHubClient({
       // As with the vault: somebody here is waiting for a link they mean to
       // send. Failing silently would hand them a dead one.
       if (!response.ok) {
-        throw new Error(`The hub refused the find list (${response.status}).`)
+        throw Object.assign(fail('hub-http-error', 'hub refused the find list'), {
+          status: response.status,
+        })
       }
     },
 

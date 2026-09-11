@@ -191,6 +191,90 @@ const en = {
     providerUnexpected: (provider: string) => `${provider} is not answering as expected.`,
     noCloudTarget: 'No cloud target.',
 
+    /**
+     * What the worker throws, in words.
+     *
+     * Keyed by `WorkerError['code']` rather than reached through fourteen
+     * branches in `explain()` — every one of these says the same *kind* of
+     * thing ("this is what happened, here is what to do"), so a lookup is the
+     * honest shape for it.
+     *
+     * Until 2026-09-11 the worker threw sentences instead. Ten were German,
+     * inside an English interface, and `explain()` makes a message with no
+     * code the **title** — red, at the top. They could not follow a language
+     * switch either, because the packs hang off `activeLanguage()` in the main
+     * thread and the worker knows nothing about language (CLAUDE.md).
+     */
+    failed: {
+      'no-token': {
+        title: 'No token entered.',
+        action: 'Paste your personal access token from Discogs into the field.',
+      },
+      'not-signed-in': {
+        title: 'Not signed in.',
+        action: 'Enter your Discogs token in the settings — everything here needs it.',
+      },
+      'no-listing': {
+        title: 'No record given.',
+        action: 'Paste a link to a record in a Discogs shop.',
+      },
+      'dig-gone': {
+        title: 'That dig is no longer here.',
+        action: 'Digs are kept for six hours, then their prices go. Scan the shop again.',
+      },
+      'dig-expired': {
+        title: 'The six-hour window has closed.',
+        action: 'Prices may not be shown once they are that old. A new scan takes a minute.',
+      },
+      'dig-running': {
+        title: 'A scan is already running.',
+        action: 'Only one at a time — that is the rate limit, not a preference. Let it finish.',
+      },
+      'dig-not-running': {
+        title: 'There is nothing here to continue.',
+        action: 'This dig is not running. Start a new scan of the shop.',
+      },
+      'deep-scan-done': {
+        title: 'A deep scan is not continued.',
+        action: 'What it found is here. Picking it up again would count records twice.',
+      },
+      'no-anchor': {
+        title: 'Nothing to compare against yet.',
+        action: '"Only what is new" needs one full scan of this shop to start from.',
+      },
+      'match-gone': {
+        title: 'That find is no longer here.',
+        action: 'It went with its dig after six hours. Scan the shop again.',
+      },
+      'no-hub': {
+        title: 'No hub entered.',
+        action: 'A hub is optional — enter one in the settings, or leave it and use the rest.',
+      },
+      'not-a-hub': {
+        title: 'That is not a Fidelity hub.',
+        action:
+          'Something answered at that address, but not a hub. Check the address and port.',
+      },
+      'vault-too-new': {
+        title: 'This backup is from a newer Fidelity.',
+        action:
+          'Update the app first — an older one would read it wrong rather than not at all.',
+      },
+      'vault-unusable': {
+        title: 'This backup target cannot be used.',
+        action: 'Check the target in the settings.',
+      },
+      'passphrase-short': {
+        title: 'The passphrase is too short.',
+        action:
+          'Eight characters at least. It is the only thing standing between the backup and whoever finds it.',
+      },
+      'asset-missing': {
+        title: 'Part of the app did not load.',
+        action: 'Reload the page. If it keeps happening, the deployment is incomplete.',
+      },
+    },
+
     tokenRevoked: {
       title: 'Discogs no longer accepts the token.',
       action:

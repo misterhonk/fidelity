@@ -11,7 +11,7 @@
 The milestone versions in the headings are planning names from the design period, not the
 actual numbering — that is in `CHANGELOG.md`.
 
-**M0 through M16 are done, and nothing is open.**
+**M0 through M17 are done, and nothing is open.**
 
 `docs/` was still German until 2026-09-11 and was translated then — fourteen numbered
 documents and thirteen ADRs. That was read as ADR-010 being finished. It was not: the rule
@@ -890,10 +890,54 @@ fails, and a name on it whose file is already clean fails too.
       into each other. It stood in the repository for a month. The ratchet reported the file
       as German, which was true, and would never have said why it mattered.
 
-> **None of those three has a guard.** The scanner reads comments; it does not read string
-> literals and it does not read identifiers. A word list over identifiers would be guesswork
-> where one over prose is not — `war`, `rest`, `die`, `man` are all English words. They were
-> found by reading, they were fixed by hand, and if one comes back nothing will catch it.
+> **Two of those three now have a guard; one never will.** Identifiers are the one that
+> never will — see M17 for why the alternative is worse than the gap. The string literals
+> turned out to have a rule after all, and it is M17.
+
+---
+
+## M17 · What the worker throws → done
+
+**The comment that started it was in the test suite, not here.**
+`tests/unit/template-text.spec.ts` forbids thrown prose under `app/` and ended with: *"Ten
+thrown German sentences in the worker are still waiting for it; they are deliberately not
+listed here as exceptions, because an exception list would make them invisible."* This file
+meanwhile said nothing was open.
+
+**Why translating them is the wrong fix, and why five of them got it anyway.** `explain()`
+ends with `title: message || words.unknown` — so a thrown sentence *is* the red headline,
+not a line of small print. And a sentence written in the worker can never follow a language
+switch: the packs hang off `activeLanguage()` in the main thread, and the worker computes
+without knowing anything about language (CLAUDE.md). On 2026-09-11 five of them were
+translated from German to English, which moved the fault from one set of readers to the
+other.
+
+- [x] `worker/fail.ts` — `fail(code, detail)`, the only way the worker throws something a
+      person reads. The code picks the words; the detail stays behind `ErrorNote`'s detail
+      button, where somebody debugging a genuinely new failure needs the original.
+- [x] Eighteen codes on `WorkerError['code']`, and every throw in `worker/` converted —
+      including the two error classes in `dig/scan.ts`, which carried their own sentences.
+- [x] Words for all of them in both packs, as a **lookup keyed by code** rather than
+      fourteen more branches in `explain()`. Every one of them says the same *kind* of thing;
+      only the words differ.
+- [x] `tests/unit/explain.spec.ts` walks the whole table in both languages: a code with no
+      words behind it would otherwise reach a screen as `passphrase shorter than eight
+      characters`.
+- [x] Three tests that asserted the old wording now assert the **code**. That is the
+      coupling `tests/unit/vault-file.spec.ts` warns about, and they were an instance of it.
+- [x] The rule that keeps it: **`throw new Error('…')` under `worker/` is gone as a shape.**
+
+> **The rule names no words, and that is the whole point.** `app/` forbids thrown prose by
+> shape — two words with a space. The worker cannot use that rule, because a terse marker
+> like `no such dig` is two words and is exactly what should be thrown as a *detail*. So the
+> worker's rule is about the throw itself rather than its contents: there is one function
+> that makes a failure, and `new Error` is not it. No vocabulary, no exception list — and an
+> exception list is where a thing like this goes to become invisible.
+
+**The cost, said rather than buried:** the words live in the shell pack, so they are in the
+first paint. 116.81 → 117.51 kB of a 180 kB budget. That is a deliberate 0.7 kB, not a free
+one — the alternative is a separate chunk for text that appears at the worst possible
+moment, when something has already gone wrong.
 
 **Two things the comments were hiding, both found by reading and not by a rule:**
 

@@ -76,7 +76,20 @@ export function explain(cause: unknown, context: ExplainContext = {}): Explained
     return { ...words.offline, detail: message }
   }
 
-  // 5. The disk is full. The one failure where deleting is the answer.
+  /*
+   * 5. Everything else the worker throws, by code.
+   *
+   * One lookup rather than fourteen branches: each of these says the same
+   * *kind* of thing, so the only thing that differs is the words. `fail()` in
+   * the worker is the only way to produce one, and `template-text.spec.ts`
+   * holds the worker to it — so a code arriving here without an entry is a
+   * missing translation, not a missing branch.
+   */
+  if (code && code in words.failed) {
+    return { ...words.failed[code as keyof typeof words.failed], detail: message }
+  }
+
+  // 6. The disk is full. The one failure where deleting is the answer.
   if (STORAGE_NAMES.test(message)) {
     return { ...words.storageFull, detail: message }
   }

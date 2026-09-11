@@ -7,6 +7,7 @@ import { inventoryPageSchema, toListing } from './discogs/inventory'
 import { buildIndex, evaluate } from './match'
 import { norm } from './match/normalize'
 import { computeTasteProfile } from './match/taste'
+import { fail } from './fail'
 
 /**
  * Fidelity without a token, on one or two records.
@@ -151,7 +152,7 @@ export async function runDemo(options: {
 }): Promise<DemoResult> {
   const { client, report, signal } = options
   const listingIds = options.listingIds.slice(0, MAX_SEEDS)
-  if (listingIds.length === 0) throw new Error('Kein Angebot angegeben.')
+  if (listingIds.length === 0) throw fail('no-listing', 'no listing given')
 
   let requests = 0
 
@@ -190,7 +191,7 @@ export async function runDemo(options: {
     collection.push(toCollectionItem(release))
   }
 
-  if (!dealer) throw new Error('no dealer behind this listing')
+  if (!dealer) throw fail('no-listing', 'no dealer behind this listing')
 
   // 2 — the same index a dig builds, from a collection of one or two.
   const taste = computeTasteProfile(collection, Date.now())

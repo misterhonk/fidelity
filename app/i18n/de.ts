@@ -104,6 +104,76 @@ const de: Messages = {
     providerUnexpected: (provider) => `${provider} antwortet nicht wie erwartet.`,
     noCloudTarget: 'Kein Cloud-Ziel.',
 
+    failed: {
+      'no-token': {
+        title: 'Kein Token eingegeben.',
+        action: 'Füge deinen Personal Access Token von Discogs in das Feld ein.',
+      },
+      'not-signed-in': {
+        title: 'Nicht angemeldet.',
+        action: 'Trag deinen Discogs-Token in den Einstellungen ein – alles hier braucht ihn.',
+      },
+      'no-listing': {
+        title: 'Keine Platte angegeben.',
+        action: 'Füge einen Link zu einer Platte in einem Discogs-Laden ein.',
+      },
+      'dig-gone': {
+        title: 'Diesen Dig gibt es nicht mehr.',
+        action: 'Digs leben sechs Stunden, dann sind ihre Preise weg. Scanne den Laden neu.',
+      },
+      'dig-expired': {
+        title: 'Der Sechs-Stunden-Rahmen ist abgelaufen.',
+        action:
+          'So alte Preise dürfen nicht mehr gezeigt werden. Ein neuer Scan dauert eine Minute.',
+      },
+      'dig-running': {
+        title: 'Es läuft schon ein Scan.',
+        action:
+          'Nur einer auf einmal – das ist das Rate-Limit, keine Vorliebe. Lass ihn zu Ende laufen.',
+      },
+      'dig-not-running': {
+        title: 'Hier ist nichts fortzusetzen.',
+        action: 'Dieser Dig läuft nicht. Starte einen neuen Scan des Ladens.',
+      },
+      'deep-scan-done': {
+        title: 'Ein Tiefenscan wird nicht fortgesetzt.',
+        action: 'Was er gefunden hat, ist da. Ihn aufzunehmen würde Platten doppelt zählen.',
+      },
+      'no-anchor': {
+        title: 'Es gibt noch nichts zu vergleichen.',
+        action: '„Nur das Neue" braucht einen vollständigen Scan dieses Ladens als Anfang.',
+      },
+      'match-gone': {
+        title: 'Diesen Fund gibt es nicht mehr.',
+        action: 'Er ist nach sechs Stunden mit seinem Dig gegangen. Scanne den Laden neu.',
+      },
+      'no-hub': {
+        title: 'Kein Hub eingetragen.',
+        action: 'Ein Hub ist freiwillig – trag in den Einstellungen einen ein oder lass es.',
+      },
+      'not-a-hub': {
+        title: 'Das ist kein Fidelity-Hub.',
+        action: 'Unter der Adresse antwortet etwas, aber kein Hub. Prüfe Adresse und Port.',
+      },
+      'vault-too-new': {
+        title: 'Diese Sicherung stammt aus einem neueren Fidelity.',
+        action: 'Aktualisiere zuerst die App – eine ältere läse sie falsch statt gar nicht.',
+      },
+      'vault-unusable': {
+        title: 'Dieses Sicherungsziel lässt sich nicht benutzen.',
+        action: 'Sieh in den Einstellungen nach dem Ziel.',
+      },
+      'passphrase-short': {
+        title: 'Die Passphrase ist zu kurz.',
+        action:
+          'Mindestens acht Zeichen. Sie ist das Einzige zwischen der Sicherung und dem, der sie findet.',
+      },
+      'asset-missing': {
+        title: 'Ein Teil der App wurde nicht geladen.',
+        action: 'Lade die Seite neu. Passiert es weiter, ist die Auslieferung unvollständig.',
+      },
+    },
+
     tokenRevoked: {
       title: 'Discogs nimmt den Token nicht mehr an.',
       action:

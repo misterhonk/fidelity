@@ -4,6 +4,7 @@ import { openFidelityDb } from '~~/db/open'
 import type { Dig, Match } from '#shared/types'
 
 import type { DiscogsClient } from '../discogs/client'
+import { fail } from '../fail'
 
 /**
  * Bringing an expired dig back to life.
@@ -77,7 +78,7 @@ export async function refreshDig({
 }: RefreshOptions): Promise<RefreshResult> {
   const db = await openFidelityDb()
   const dig = await db.get('digs', digId)
-  if (!dig) throw new Error('This dig no longer exists.')
+  if (!dig) throw fail('dig-gone', 'no such dig')
 
   const matches = await db
     .transaction('matches')

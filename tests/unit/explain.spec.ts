@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 
+import en from '~/i18n/en'
 import { useLanguage } from '~/composables/useMessages'
 import { explain } from '~/utils/explain'
 
@@ -69,5 +70,37 @@ describe('a rejected token, in German', () => {
 
   it('keeps the raw message untranslated, because Discogs wrote it', () => {
     expect(explain(unauthorized).detail).toBe('You must authenticate to access this resource.')
+  })
+})
+
+/**
+ * And everything the worker throws arrives as words, in both languages.
+ *
+ * This is the half that used to be missing. Until 2026-09-11 the worker threw
+ * sentences, ten of them German; `explain()` had no code to match, fell
+ * through to its last line, and made the message the **title** — red, at the
+ * top, in whichever language the worker happened to be written in.
+ *
+ * The table is walked rather than sampled. A code added to
+ * `WorkerError['code']` and to `worker/fail.ts` with no words behind it would
+ * otherwise reach a screen as a raw marker like `passphrase shorter than eight
+ * characters`, and that is precisely the failure this replaced.
+ */
+describe('what the worker throws', () => {
+  const codes = Object.keys(en.error.failed) as (keyof typeof en.error.failed)[]
+
+  it.each(['en', 'de'] as const)('says something useful in %s', (language) => {
+    useLanguage().apply(language)
+
+    for (const code of codes) {
+      const { title, action, detail } = explain(
+        Object.assign(new Error('terse marker'), { code }),
+      )
+      expect(title, code).not.toBe('terse marker')
+      expect(title.trim(), code).not.toBe('')
+      expect(action, code).toBeTruthy()
+      // The original stays reachable — somebody debugging needs the marker.
+      expect(detail, code).toBe('terse marker')
+    }
   })
 })
