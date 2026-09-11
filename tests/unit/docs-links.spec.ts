@@ -21,6 +21,14 @@ import { describe, expect, it } from 'vitest'
  * stehen rund zweihundert Mal im Code und sind Absicht: sie nennen die Nummer,
  * und die ist der stabile Teil. Wer sie mitprüfen wollte, müsste raten, welcher
  * Suffix gemeint ist — und genau deshalb sind sie die haltbare Form.
+ *
+ * **Und `CHANGELOG.md` bleibt ebenfalls außen vor**, aus einem Grund, der beim
+ * ersten Lauf auffiel: dort *nennt* ein Eintrag alte Dateinamen, um eine
+ * Umbenennung zu erklären („`00-KONZEPT.md` heißt jetzt `00-CONCEPT.md`").
+ * Ein Name, über den geredet wird, ist kein Verweis — und ein Changelog ist
+ * eine Aufzeichnung der Vergangenheit, die naturgemäß Dinge nennt, die es
+ * nicht mehr gibt. Ihn mitzuprüfen hieße, Geschichte umschreiben zu müssen,
+ * sobald etwas umbenannt wird.
  */
 
 const WURZEL = process.cwd()
@@ -43,7 +51,9 @@ function markdownDateien(): string[] {
   for (const start of ['docs', '.']) {
     if (start === '.') {
       for (const eintrag of readdirSync(WURZEL, { withFileTypes: true })) {
-        if (eintrag.isFile() && eintrag.name.endsWith('.md')) gefunden.push(eintrag.name)
+        if (!eintrag.isFile() || !eintrag.name.endsWith('.md')) continue
+        if (eintrag.name === 'CHANGELOG.md') continue // siehe oben
+        gefunden.push(eintrag.name)
       }
     } else {
       gehen(start)

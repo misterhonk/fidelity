@@ -638,8 +638,10 @@ two.
       of number they are typing.
 - [x] Fragments that are too short are not searched at all — under six characters the search
       fetches half the catalogue and costs a request for nothing.
-- [ ] ~~Read the runout **aloud** instead of typing it.~~ **Measured on 2026-09-11, and the
-      answer is: not like this.** Not on availability — that is better than expected.
+- ~~Read the runout **aloud** instead of typing it.~~ **Measured on 2026-09-11, and the
+  answer is: not like this.** Not on availability — that is better than expected. No
+  checkbox, because this is not an open task: it was examined and rejected, and the
+  difference matters for anyone reading this list to find out what is left.
 
 > **What the measurement showed.** In current Chrome, `SpeechRecognition` exists **without a
 > prefix**, with `continuous`, `interimResults`, `maxAlternatives` and even `processLocally`
