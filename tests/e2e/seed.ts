@@ -187,6 +187,8 @@ export function seedMatches(digId: string): Match[] {
       year: 1965,
       condition: 'Near Mint (NM or M-)',
       sleeve: 'Very Good Plus (VG+)',
+      // Rare per the catalogue (M20 #6): the card says so from five down.
+      pressings: 3,
       price: 34,
       currency: 'EUR',
       comments: 'Gatefold, light ring wear',

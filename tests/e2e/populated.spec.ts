@@ -34,6 +34,8 @@ test.describe('a device that has been used', () => {
     // again in the long list below it.
     await expect(page.getByText(RECORD).first()).toBeVisible()
     await expect(page.getByText('Unity').first()).toBeVisible()
+    // Rare per the catalogue (M20 #6): the seed's first find has three pressings.
+    await expect(page.getByText('Only 3 pressings of this album exist.').first()).toBeVisible()
   })
 
   test('the basket adds up, and says what the postage does', async ({ page }) => {

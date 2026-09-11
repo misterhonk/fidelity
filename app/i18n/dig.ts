@@ -255,6 +255,9 @@ const en = {
    * paint has 2 kB of headroom, not 20.
    */
   match: {
+    /* Rare per the catalogue (M20 #6): a hint under the sentence, never in the score. */
+    fewPressings: (n: number) =>
+      n === 1 ? 'The only pressing of this album.' : `Only ${n} pressings of this album exist.`,
     /*
      * The bands are named, not numbered, and two of the four names are
      * quotations — a record shop's own vocabulary for how much it matters, as
@@ -496,6 +499,10 @@ const de: typeof en = {
   },
 
   match: {
+    fewPressings: (n) =>
+      n === 1
+        ? 'Die einzige Pressung dieses Albums.'
+        : `Von diesem Album gibt es nur ${n} Pressungen.`,
     band: {
       S: 'Side One, Track One',
       A: 'Top Five',

@@ -1287,10 +1287,20 @@ export interface SharedDig {
   matches: Match[]
 }
 
+/** Up to this many pressings an album is rare enough to say so on a find (M20 #6). */
+export const FEW_PRESSINGS = 5
+
 export interface Match {
   digId: string
   listingId: number
   releaseId: number
+  /**
+   * How many pressings the album has, per the horizon at scan time (M20 #6).
+   *
+   * Catalogue, not marketplace: it does not expire. Absent on matches from
+   * before, and null when the horizon did not know the album.
+   */
+  pressings?: number | null
 
   // Ours, derived — survives expiry
   score: number

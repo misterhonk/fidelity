@@ -46,6 +46,15 @@ export interface HorizonLookup {
   runs: Map<string, CatalogueRun>
   /** Per label: catalogue size, for the lift. */
   catalogueSizes: Map<number, number>
+  /**
+   * Per master: how many pressings the horizon knows of the album (M20 #6).
+   *
+   * The scarcity proxy of docs/14 §3.2 without the dump — for the albums the
+   * horizon has expanded, which is every wantlist album and whatever a dig
+   * asked for since. A hint on a find, never a signal: S11 stays what the
+   * marketplace says is for sale.
+   */
+  pressings: Map<number, number>
 }
 
 const EMPTY: HorizonHit[] = []
@@ -64,9 +73,15 @@ export function buildLookup(
   >()
 
   const ownedReleaseIds = new Set(collection.map((item) => item.releaseId))
+  const pressings = new Map<number, number>()
 
   for (const chunk of chunks) {
     if (chunk.kind === 'label') catalogueSizes.set(chunk.entityId, chunk.catalogueSize ?? 0)
+    // Only a complete versions list counts: a chunk cut short at fifteen pages
+    // would call a 2,000-pressing album "one of 1,500".
+    if (chunk.kind === 'master' && chunk.complete) {
+      pressings.set(chunk.entityId, chunk.releaseIds.length)
+    }
 
     for (let i = 0; i < chunk.releaseIds.length; i++) {
       const releaseId = chunk.releaseIds[i]!
@@ -160,7 +175,25 @@ export function buildLookup(
       upgradeMasters.set(item.masterId, { title: item.title, formats: item.formats })
   }
 
-  return { byRelease, wantlistMasters, upgradeMasters, discography, runs, catalogueSizes }
+  return {
+    byRelease,
+    wantlistMasters,
+    upgradeMasters,
+    discography,
+    runs,
+    catalogueSizes,
+    pressings,
+  }
+}
+
+/** How many pressings the album of this release has, or null when the horizon does not know. */
+export function pressingsOf(lookup: HorizonLookup, releaseId: number): number | null {
+  for (const hit of hitsFor(lookup, releaseId)) {
+    if (hit.kind !== 'master') continue
+    const n = lookup.pressings.get(hit.entityId)
+    if (n !== undefined) return n
+  }
+  return null
 }
 
 export function hitsFor(lookup: HorizonLookup, releaseId: number): HorizonHit[] {

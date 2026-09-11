@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { describeFormat } from '#shared/format'
-import type { Match } from '#shared/types'
+import { FEW_PRESSINGS, type Match } from '#shared/types'
 import { reasonFor } from '~/i18n/reason'
 import { pressingText, stampText } from '~/i18n/pressing'
 import { useDigMessages } from '~/i18n/dig'
@@ -192,6 +192,22 @@ const meta = computed(() => {
     <!-- Never truncated. The sentence is the product. -->
     <!-- A sentence, so it keeps a sentence's width however wide the card gets. -->
     <p class="max-w-prose text-fid-sm text-fid-text">{{ reasonFor(match.signals) }}</p>
+
+    <!--
+      Rare, per the catalogue (M20 #6): an album with five pressings or fewer
+      does not come round again the way one with a hundred and sixty does. A
+      hint, not a signal — the score is what the marketplace says is for sale.
+    -->
+    <p
+      v-if="
+        match.pressings !== null &&
+        match.pressings !== undefined &&
+        match.pressings <= FEW_PRESSINGS
+      "
+      class="text-fid-sm text-fid-sig-scarcity"
+    >
+      {{ d.match.fewPressings(match.pressings) }}
+    </p>
 
     <!--
       What this pressing is (M7). Never says a reissue is bad — plenty of
