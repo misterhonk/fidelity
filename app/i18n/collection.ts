@@ -281,6 +281,10 @@ const en = {
       subset:
         'Only the shops scanned in the last six hours — not all of Discogs, which nobody outside Discogs can search by record. What this adds is the postage.',
       none: 'None of your wants at a shop scanned in the last six hours.',
+      /* Before the first dig (M20 #4): what would fill this, and the way there. */
+      empty:
+        'No shop scanned in the last six hours. Scan one and this says which of your wants it has, and what the parcel would cost.',
+      emptyAction: 'Start a dig',
       lead: (available: string, wanted: string) =>
         `${available} of your ${wanted} wants are at these shops.`,
       best: (shops: string, goods: string, postage: string, total: string) =>
@@ -666,6 +670,9 @@ const de: typeof en = {
       subset:
         'Nur die Läden aus den letzten sechs Stunden – nicht ganz Discogs, das kann außerhalb von Discogs niemand nach Platte durchsuchen. Was hier dazukommt, ist der Versand.',
       none: 'Keine deiner gesuchten Platten bei einem Laden aus den letzten sechs Stunden.',
+      empty:
+        'Kein Laden aus den letzten sechs Stunden gescannt. Scann einen, und hier steht, welche deiner gesuchten Platten er hat und was das Paket kosten würde.',
+      emptyAction: 'Dig starten',
       lead: (available, wanted) =>
         `${available} deiner ${wanted} gesuchten Platten sind bei diesen Läden.`,
       best: (shops, goods, postage, total) =>

@@ -131,6 +131,35 @@ test('one parcel beats two, and the box says by how much', async ({ page }) => {
   await expect(box).toContainText('Prices as scanned, good until')
 })
 
+test('before the first dig it says what would fill it, with the way there', async ({
+  page,
+}) => {
+  await seed(page, 'en')
+  // The seed's dig, expired: nothing inside the six hours any more (rule 4).
+  await page.evaluate(async () => {
+    const open = indexedDB.open('fidelity')
+    const db: IDBDatabase = await new Promise((resolve, reject) => {
+      open.onsuccess = () => resolve(open.result)
+      open.onerror = () => reject(open.error)
+    })
+    const tx = db.transaction('digs', 'readwrite')
+    const store = tx.objectStore('digs')
+    const all: { id: string; expiresAt: number }[] = await new Promise((resolve) => {
+      const req = store.getAll()
+      req.onsuccess = () => resolve(req.result)
+    })
+    for (const dig of all) store.put({ ...dig, expiresAt: Date.now() - 1000 })
+    await new Promise((done) => (tx.oncomplete = () => done(null)))
+    db.close()
+  })
+  await page.goto('/wantlist')
+
+  const box = page.getByTestId('want-plan')
+  await expect(box).toContainText('No shop scanned in the last six hours.', { timeout: 15_000 })
+  await expect(box.getByRole('link', { name: 'Start a dig' })).toHaveAttribute('href', '/dig')
+  await expect(box.getByRole('group', { name: 'Ships from' })).toHaveCount(0)
+})
+
 test('says when the scanned shops have none of them', async ({ page }) => {
   await seed(page, 'de')
   await page.goto('/wantlist')

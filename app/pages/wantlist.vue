@@ -199,7 +199,7 @@ function waiting(addedAt: string): string | null {
         what it adds is the postage from the same tables the basket uses.
       -->
       <section
-        v-if="plan && (plan.available > 0 || plan.shopsScanned > 0)"
+        v-if="plan"
         class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
         aria-labelledby="want-plan"
         data-testid="want-plan"
@@ -211,7 +211,20 @@ function waiting(addedAt: string): string | null {
           <p class="text-fid-xs text-fid-text-muted">{{ c.wantlist.plan.subset }}</p>
         </div>
 
+        <!--
+          Before the first dig the box said nothing at all (M20 #4) — and a
+          feature nobody has seen is a feature nobody uses. So it says what
+          would fill it, with the way there.
+        -->
+        <p v-if="plan.shopsScanned === 0" class="text-fid-sm text-fid-text-muted">
+          {{ c.wantlist.plan.empty }}
+          <NuxtLink to="/dig" class="fid-action text-fid-text underline underline-offset-4">{{
+            c.wantlist.plan.emptyAction
+          }}</NuxtLink>
+        </p>
+
         <div
+          v-else
           role="group"
           :aria-label="c.wantlist.plan.origin.label"
           class="flex flex-wrap gap-1"
@@ -237,7 +250,10 @@ function waiting(addedAt: string): string | null {
           </button>
         </div>
 
-        <p v-if="plan.available === 0" class="text-fid-sm text-fid-text-muted">
+        <p
+          v-if="plan.shopsScanned > 0 && plan.available === 0"
+          class="text-fid-sm text-fid-text-muted"
+        >
           {{ c.wantlist.plan.none }}
           <template v-if="plan.originLeftOut > 0">
             {{
@@ -246,7 +262,7 @@ function waiting(addedAt: string): string | null {
           >
         </p>
 
-        <template v-else>
+        <template v-else-if="plan.available > 0">
           <p class="text-fid-sm text-fid-text">
             {{ c.wantlist.plan.lead(count(plan.available), count(plan.wanted)) }}
             <template v-if="plan.best">
