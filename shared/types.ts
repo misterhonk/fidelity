@@ -502,6 +502,8 @@ export interface PlannedItem {
   price: number
   /** False when it is another pressing of the wanted album. */
   exact: boolean
+  /** Discogs' 0–5 for this want; the plan lists the important ones first. */
+  want: number
 }
 
 export interface CreditPerson {
@@ -658,6 +660,14 @@ export type WantlistItem = Omit<CollectionItem, 'rating' | 'instanceId' | 'folde
   /** 0–5, and 0 means "never said" rather than "not much". */
   want: number
 }
+
+/**
+ * From this priority up a want is one of the ones you want most (M20 #1).
+ *
+ * Four and five, on Discogs' five. It changes what a find says and the order
+ * of the wantlist and the plan — never the score, which stays comparable.
+ */
+export const WANT_MOST = 4
 
 /**
  * One answer to "habe ich die schon?", asked with a record in your hand.

@@ -82,6 +82,8 @@ export interface ArtistEntry {
 
 export interface MatchIndex {
   wantlistReleaseIds: Set<number>
+  /** Release id → Discogs' 0–5 for the want, only where one was given (M20 #1). */
+  wantPriority: Map<number, number>
   collectionReleaseIds: Set<number>
   /**
    * Normalised artist name → how much of the collection is that artist.
@@ -166,6 +168,9 @@ export function buildIndex(
 
   return {
     wantlistReleaseIds: new Set(wantlist.map((item) => item.releaseId)),
+    wantPriority: new Map(
+      wantlist.filter((item) => item.want > 0).map((item) => [item.releaseId, item.want]),
+    ),
     collectionReleaseIds: new Set(collection.map((item) => item.releaseId)),
     artistWeight,
     labelWeight,
@@ -268,10 +273,13 @@ export function evaluate(
   // S1 — the exact release is on the wantlist. Free, and confidence is always 1.
   const wantlistExact = index.wantlistReleaseIds.has(listing.releaseId)
   if (wantlistExact) {
+    // How much it is wanted rides along for the sentence — only where Discogs
+    // has a number, so a want nobody rated says nothing rather than "0".
+    const want = index.wantPriority.get(listing.releaseId)
     signals.push({
       type: 'WANTLIST_EXACT',
       confidence: 1,
-      evidence: { releaseId: listing.releaseId },
+      evidence: { releaseId: listing.releaseId, ...(want ? { want } : {}) },
     })
   }
 

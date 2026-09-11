@@ -35,7 +35,13 @@ const shop = (
   minOrderTotal,
 })
 
-const offer = (wantKey: number, dealer: string, price: number, exact = true): WantOffer => ({
+const offer = (
+  wantKey: number,
+  dealer: string,
+  price: number,
+  exact = true,
+  want = 0,
+): WantOffer => ({
   wantKey,
   dealer,
   listingId: wantKey * 100 + dealer.length,
@@ -45,6 +51,7 @@ const offer = (wantKey: number, dealer: string, price: number, exact = true): Wa
   exact,
   title: `Want ${wantKey}`,
   artist: 'Somebody',
+  want,
 })
 
 describe('the cheapest set of shops', () => {
@@ -86,6 +93,21 @@ describe('the cheapest set of shops', () => {
     const offers = [offer(1, 'a', 10), offer(2, 'a', 15), offer(2, 'b', 10)]
     // a alone: 25 + 5 = 30; a + b: 10 + 10 + 5 + 5 = 30. One parcel wins the tie.
     expect(optimise(offers, shops).best?.shops.map((s) => s.dealer)).toEqual(['a'])
+  })
+
+  it('lists the ones you want most first in a shop', () => {
+    const shops = new Map([['a', shop('a', 5)]])
+    const offers = [
+      offer(1, 'a', 10, true, 0),
+      offer(2, 'a', 10, true, 5),
+      offer(3, 'a', 10, true, 3),
+    ]
+    const { best } = optimise(offers, shops)
+    expect(best?.shops[0]?.items.map((item) => [item.wantedReleaseId, item.want])).toEqual([
+      [2, 5],
+      [3, 3],
+      [1, 0],
+    ])
   })
 
   it('refuses a parcel the postage table does not cover', () => {
@@ -131,8 +153,8 @@ describe('the offers a dig leaves behind', () => {
       expired: false,
       ...over,
     }) as Match
-  const want = (releaseId: number, masterId: number): WantlistItem =>
-    ({ releaseId, masterId }) as WantlistItem
+  const want = (releaseId: number, masterId: number, priority = 0): WantlistItem =>
+    ({ releaseId, masterId, want: priority }) as WantlistItem
 
   it('takes the wantlist as the truth, not the signal', () => {
     // A dig from before the want was dropped still carries the signal.
@@ -168,6 +190,11 @@ describe('the offers a dig leaves behind', () => {
         [want(1, 7)],
       ),
     ).toMatchObject([{ wantKey: 1, exact: true, dealer: 'b' }])
+  })
+
+  it('carries the priority from the wantlist onto the offer', () => {
+    const offers = offersFrom([match({ releaseId: 1 })], [dig('d1', 'a')], [want(1, 0, 5)])
+    expect(offers[0]?.want).toBe(5)
   })
 
   it('keeps the cheapest listing per want and shop, and nothing expired', () => {

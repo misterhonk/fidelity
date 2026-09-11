@@ -34,7 +34,7 @@ export interface HorizonLookup {
   /** releaseId → every entity that points at it. */
   byRelease: Map<number, HorizonHit[]>
   /** Masters of wantlist albums — the basis for "same album, other pressing". */
-  wantlistMasters: Map<number, { title: string; year: number }>
+  wantlistMasters: Map<number, { title: string; year: number; want: number }>
   /** Masters of records you own on something other than vinyl. */
   upgradeMasters: Map<number, { title: string; formats: string[] }>
   /** Per artist: how much of their main discography you already have. */
@@ -136,10 +136,18 @@ export function buildLookup(
     }
   }
 
-  const wantlistMasters = new Map<number, { title: string; year: number }>()
+  const wantlistMasters = new Map<number, { title: string; year: number; want: number }>()
   for (const want of wantlist) {
-    if (want.masterId > 0)
-      wantlistMasters.set(want.masterId, { title: want.title, year: want.year })
+    if (want.masterId <= 0) continue
+    // Two wants of one album: the higher priority speaks for the master.
+    const held = wantlistMasters.get(want.masterId)
+    if (!held || want.want > held.want) {
+      wantlistMasters.set(want.masterId, {
+        title: want.title,
+        year: want.year,
+        want: want.want,
+      })
+    }
   }
 
   // "You have it on CD, here is the vinyl." Only records you own on something

@@ -42,6 +42,8 @@ export interface WantOffer {
   exact: boolean
   title: string
   artist: string
+  /** Discogs' 0–5 for the want. */
+  want: number
 }
 
 export interface PlanShopInput {
@@ -88,8 +90,14 @@ export function evaluate(
       dealer,
       displayName: shop.displayName,
       digId: shop.digId,
+      // The ones you want most first (M20 #1), then by name.
       items: items
-        .sort((a, b) => a.artist.localeCompare(b.artist) || a.title.localeCompare(b.title))
+        .sort(
+          (a, b) =>
+            b.want - a.want ||
+            a.artist.localeCompare(b.artist) ||
+            a.title.localeCompare(b.title),
+        )
         .map((item) => ({
           wantedReleaseId: item.wantKey,
           listingId: item.listingId,
@@ -98,6 +106,7 @@ export function evaluate(
           artist: item.artist,
           price: item.price,
           exact: item.exact,
+          want: item.want,
         })),
       goods,
       postage,
@@ -190,6 +199,7 @@ export function offersFrom(
 ): WantOffer[] {
   const dealerOf = new Map(digs.map((dig) => [dig.id, dig.dealer]))
   const wantedReleases = new Set(wantlist.map((item) => item.releaseId))
+  const wantOf = new Map(wantlist.map((item) => [item.releaseId, item.want ?? 0]))
   const wantsByMaster = new Map<number, number[]>()
   for (const item of wantlist) {
     if (item.masterId > 0) {
@@ -215,13 +225,18 @@ export function offersFrom(
       artist: match.artist ?? '',
     }
     if (wantedReleases.has(match.releaseId)) {
-      exact.push({ ...base, wantKey: match.releaseId, exact: true })
+      exact.push({
+        ...base,
+        wantKey: match.releaseId,
+        exact: true,
+        want: wantOf.get(match.releaseId) ?? 0,
+      })
       continue
     }
     for (const signal of match.signals) {
       if (signal.type !== 'WANTLIST_PRESSING') continue
       for (const wantKey of wantsByMaster.get(Number(signal.evidence.masterId ?? 0)) ?? []) {
-        pressing.push({ ...base, wantKey, exact: false })
+        pressing.push({ ...base, wantKey, exact: false, want: wantOf.get(wantKey) ?? 0 })
       }
     }
   }

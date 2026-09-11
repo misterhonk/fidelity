@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import type { WantedRecord, WantlistOverview, WantPlan } from '#shared/types'
+import {
+  WANT_MOST,
+  type WantedRecord,
+  type WantlistOverview,
+  type WantPlan,
+} from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
 
@@ -59,6 +64,31 @@ async function note(record: WantedRecord, text: string) {
   overview.value = await call('collection.wantlist', undefined)
 }
 
+/*
+ * How much you want it (M20 #1).
+ *
+ * Five buttons, like the shelf's rating: one tap on the star you mean, and
+ * the lit one taken back is "never said" again. Note and priority travel to
+ * Discogs together — the endpoint replaces both, so the note goes along
+ * unchanged rather than being cleared by accident.
+ */
+const STARS = [1, 2, 3, 4, 5] as const
+
+async function want(record: WantedRecord, stars: number) {
+  const next = record.want === stars ? 0 : stars
+  await call('wantlist.note', { releaseId: record.releaseId, note: record.note, want: next })
+  overview.value = await call('collection.wantlist', undefined)
+}
+
+/** Longest wanted, or the ones you want most first — in the address. */
+const sort = computed(() => (route.query.sort === 'want' ? 'want' : 'waiting'))
+const router = useRouter()
+function sortBy(key: 'waiting' | 'want') {
+  void router.replace({
+    query: { ...route.query, sort: key === 'want' ? 'want' : undefined },
+  })
+}
+
 async function drop(releaseId: number) {
   if (!(await call('wantlist.remove', { releaseId }))) return
   // Re-read rather than splice: the overview carries counts that a removed
@@ -79,7 +109,10 @@ const shown = ref(60)
 const STEP = 120
 
 const records = computed(() => {
-  const all = overview.value?.records ?? []
+  const stored = overview.value?.records ?? []
+  // The overview arrives longest-wanted-first; "wanted most" is a stable
+  // re-sort on top of that, so equal priorities keep their queue order.
+  const all = sort.value === 'want' ? [...stored].sort((a, b) => b.want - a.want) : stored
   const needle = query.value.trim().toLowerCase()
   if (!needle) return all
 
@@ -220,6 +253,12 @@ function waiting(addedAt: string): string | null {
                     :aria-label="`${item.artist} – ${item.title} (${c.wantlist.plan.open})`"
                   >
                     {{ item.artist }} – {{ item.title }}
+                    <span
+                      v-if="item.want >= WANT_MOST"
+                      class="text-fid-xs text-fid-sig-wantlist"
+                    >
+                      · {{ c.wantlist.priority.most }}</span
+                    >
                     <span v-if="!item.exact" class="text-fid-xs text-fid-text-muted">
                       · {{ c.wantlist.plan.otherPressing }}</span
                     >
@@ -273,15 +312,35 @@ function waiting(addedAt: string): string | null {
         </template>
       </section>
 
-      <input
-        v-model="query"
-        type="search"
-        autocomplete="off"
-        spellcheck="false"
-        :placeholder="c.wantlist.search"
-        :aria-label="c.wantlist.searchLabel"
-        class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
-      />
+      <div class="flex flex-wrap items-center gap-3">
+        <input
+          v-model="query"
+          type="search"
+          autocomplete="off"
+          spellcheck="false"
+          :placeholder="c.wantlist.search"
+          :aria-label="c.wantlist.searchLabel"
+          class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+        />
+        <!-- Longest wanted, or wanted most (M20 #1). Two states, in the address. -->
+        <div role="group" :aria-label="c.wantlist.priority.sortLabel" class="flex gap-1">
+          <button
+            v-for="key in ['waiting', 'want'] as const"
+            :key="key"
+            type="button"
+            class="fid-action min-h-11 rounded-fid-sm border px-3 text-fid-xs"
+            :class="
+              sort === key
+                ? 'border-fid-text bg-fid-inset text-fid-text'
+                : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+            "
+            :aria-pressed="sort === key"
+            @click="sortBy(key)"
+          >
+            {{ c.wantlist.priority[key] }}
+          </button>
+        </div>
+      </div>
 
       <p v-if="records.length === 0" class="text-fid-sm text-fid-text-muted">
         {{ c.map.nothingByName }}
@@ -363,6 +422,9 @@ function waiting(addedAt: string): string | null {
                   <template v-if="record.year > 0"
                     ><span class="fid-num">{{ record.year }}</span> · </template
                   >{{ waiting(record.addedAt) }}
+                  <template v-if="record.want >= WANT_MOST">
+                    · <span class="text-fid-sig-wantlist">{{ c.wantlist.priority.most }}</span>
+                  </template>
                 </span>
                 <!--
                 Wanting something is allowed to stop.
@@ -380,6 +442,30 @@ function waiting(addedAt: string): string | null {
                   {{ c.wantlist.dropShort }}
                 </button>
               </span>
+            </div>
+
+            <!--
+              How much you want it — Discogs' own 0–5, synced all along and
+              shown nowhere until now (M20 #1). The lit star tapped again is
+              "never said": zero is a state, not the absence of one.
+            -->
+            <div role="group" :aria-label="c.wantlist.priority.label" class="-ml-2 flex">
+              <button
+                v-for="star in STARS"
+                :key="star"
+                type="button"
+                :aria-label="c.wantlist.priority.set(star)"
+                :aria-pressed="record.want >= star"
+                class="fid-lift flex min-h-11 min-w-9 items-center justify-center rounded-fid-sm text-fid-sm transition-colors"
+                :class="
+                  record.want >= star
+                    ? 'text-fid-sig-wantlist'
+                    : 'text-fid-text-muted hover:text-fid-text'
+                "
+                @click="want(record, star)"
+              >
+                {{ record.want >= star ? '★' : '☆' }}
+              </button>
             </div>
 
             <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">

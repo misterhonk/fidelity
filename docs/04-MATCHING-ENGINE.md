@@ -100,6 +100,11 @@ wantlistIds.has(listing.releaseId)      // Set<number>, O(1)
 Confidence always 1.0. Free. The basic hit Discogs can already manage — but we show it in
 the context of the whole dig.
 
+Since 2026-09-11 (M20 #1) the evidence carries `want`, Discogs' 0–5 for the entry, where one
+was given — S2 the same, through the master. From four up the sentence says "one of the ones
+you want most". The score does not move: priority is a fact about the reader, not about the
+match, and `WEIGHTS` stay comparable between people.
+
 > *"Has been on your wantlist for 14 months."*
 
 ### S2 · `WANTLIST_PRESSING` — weight 75 · from M5

@@ -255,6 +255,19 @@ const en = {
      * turns up far more often than the only pressing there is.
      */
     pressings: (n: string, one: boolean) => `${n} ${one ? 'pressing' : 'pressings'} known`,
+    /*
+     * How much you want it (M20 #1). Discogs' 0–5 per want, synced all along
+     * and shown nowhere until now. Zero means "never said", not "not much" —
+     * so five hollow stars are an invitation, never a verdict.
+     */
+    priority: {
+      label: 'How much you want it',
+      set: (stars: number) => (stars === 1 ? 'Want it 1 star' : `Want it ${stars} stars`),
+      most: 'wanted most',
+      sortLabel: 'Order',
+      waiting: 'Longest wanted',
+      want: 'Wanted most',
+    },
     notExpanded: 'Pressings not unfolded yet',
     noMaster: 'No master at Discogs — only this exact pressing can be recognised',
 
@@ -628,6 +641,14 @@ const de: typeof en = {
     search: 'Künstler oder Titel',
     searchLabel: 'Wantlist durchsuchen',
     pressings: (n, one) => `${n} ${one ? 'Pressung' : 'Pressungen'} bekannt`,
+    priority: {
+      label: 'Wie sehr du sie willst',
+      set: (stars) => (stars === 1 ? '1 Stern vergeben' : `${stars} Sterne vergeben`),
+      most: 'ganz oben',
+      sortLabel: 'Reihenfolge',
+      waiting: 'Am längsten gesucht',
+      want: 'Am meisten gewollt',
+    },
     notExpanded: 'Pressungen noch nicht ausgeklappt',
     noMaster: 'Kein Master bei Discogs – nur genau diese Pressung ist erkennbar',
 

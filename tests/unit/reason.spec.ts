@@ -80,6 +80,18 @@ describe.each(LANGUAGES)('every signal can speak for itself, in %s', (language) 
 describe('the words themselves, in English', () => {
   beforeEach(() => useLanguage().apply('en'))
 
+  it('says when a want is one of the ones you want most, from four stars up', () => {
+    expect(reasonFor([signal('WANTLIST_EXACT', { want: 4 })])).toBe(
+      'Exactly this is on your wantlist — one of the ones you want most.',
+    )
+    expect(reasonFor([signal('WANTLIST_EXACT', { want: 3 })])).toBe(
+      'Exactly this is on your wantlist.',
+    )
+    expect(reasonFor([signal('WANTLIST_PRESSING', { want: 5 })])).toContain(
+      'One you want most.',
+    )
+  })
+
   it('says under which name an artist was found', () => {
     // Or the sentence claims the listing said Dinky when it said Miss Dinky.
     const via = { artist: 'Dinky', owned: 4, via: 'Miss Dinky', relation: 'alias' }
@@ -155,6 +167,15 @@ describe('the words themselves, in English', () => {
  */
 describe('the words themselves, in German', () => {
   beforeEach(() => useLanguage().apply('de'))
+
+  it('sagt, wenn ein Wunsch ganz oben steht', () => {
+    expect(reasonFor([signal('WANTLIST_EXACT', { want: 5 })])).toBe(
+      'Steht genau so auf deiner Wantlist – eine von denen, die du am meisten willst.',
+    )
+    expect(reasonFor([signal('WANTLIST_PRESSING', { want: 4 })])).toContain(
+      'Eine von denen, die du am meisten willst.',
+    )
+  })
 
   it('sagt, unter welchem Namen ein Künstler gefunden wurde', () => {
     expect(

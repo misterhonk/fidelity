@@ -1,4 +1,4 @@
-import type { Signal } from '#shared/types'
+import { WANT_MOST, type Signal } from '#shared/types'
 
 import { byStrength } from '~~/worker/match/reason'
 
@@ -41,7 +41,12 @@ const price = (evidence: Record<string, unknown>, key: string): string | null =>
 
 const en: { lead: Table; support: Table; fallback: string; also: (rest: string) => string } = {
   lead: {
-    WANTLIST_EXACT: () => 'Exactly this is on your wantlist.',
+    // "One you want most" only from Discogs' four stars up (M20 #1): the
+    // priority changes the sentence, never the score.
+    WANTLIST_EXACT: (evidence) =>
+      Number(evidence.want ?? 0) >= WANT_MOST
+        ? 'Exactly this is on your wantlist — one of the ones you want most.'
+        : 'Exactly this is on your wantlist.',
 
     ARTIST_KNOWN: (evidence) => {
       const artist = String(evidence.artist ?? '')
@@ -85,10 +90,11 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
       if (!album) return null
       const wanted = Number(evidence.wantedYear ?? 0)
       const pressing = Number(evidence.pressingYear ?? 0)
+      const most = Number(evidence.want ?? 0) >= WANT_MOST ? ' One you want most.' : ''
       if (wanted > 0 && pressing > 0 && pressing - wanted >= 15) {
-        return `The same album as on your wantlist — but a pressing from ${pressing}, not the ${wanted} original.`
+        return `The same album as on your wantlist — but a pressing from ${pressing}, not the ${wanted} original.${most}`
       }
-      return `Not the pressing from your wantlist, but the same album: ${album}.`
+      return `Not the pressing from your wantlist, but the same album: ${album}.${most}`
     },
 
     ARTIST_GAP: (evidence) => {
@@ -150,7 +156,10 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
   },
 
   support: {
-    WANTLIST_EXACT: () => 'on your wantlist',
+    WANTLIST_EXACT: (evidence) =>
+      Number(evidence.want ?? 0) >= WANT_MOST
+        ? 'on your wantlist, wanted most'
+        : 'on your wantlist',
     ARTIST_KNOWN: (evidence) => {
       if (!evidence.artist) return null
       const via = evidence.via ? `, as ${String(evidence.via)}` : ''
@@ -185,7 +194,10 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
 
 const de: typeof en = {
   lead: {
-    WANTLIST_EXACT: () => 'Steht genau so auf deiner Wantlist.',
+    WANTLIST_EXACT: (evidence) =>
+      Number(evidence.want ?? 0) >= WANT_MOST
+        ? 'Steht genau so auf deiner Wantlist – eine von denen, die du am meisten willst.'
+        : 'Steht genau so auf deiner Wantlist.',
 
     ARTIST_KNOWN: (evidence) => {
       const artist = String(evidence.artist ?? '')
@@ -225,10 +237,14 @@ const de: typeof en = {
       if (!album) return null
       const wanted = Number(evidence.wantedYear ?? 0)
       const pressing = Number(evidence.pressingYear ?? 0)
+      const most =
+        Number(evidence.want ?? 0) >= WANT_MOST
+          ? ' Eine von denen, die du am meisten willst.'
+          : ''
       if (wanted > 0 && pressing > 0 && pressing - wanted >= 15) {
-        return `Dasselbe Album wie auf deiner Wantlist – aber eine Pressung von ${pressing}, nicht das Original von ${wanted}.`
+        return `Dasselbe Album wie auf deiner Wantlist – aber eine Pressung von ${pressing}, nicht das Original von ${wanted}.${most}`
       }
-      return `Nicht die Pressung von deiner Wantlist, aber dasselbe Album: ${album}.`
+      return `Nicht die Pressung von deiner Wantlist, aber dasselbe Album: ${album}.${most}`
     },
 
     ARTIST_GAP: (evidence) => {
@@ -288,7 +304,10 @@ const de: typeof en = {
   },
 
   support: {
-    WANTLIST_EXACT: () => 'steht auf deiner Wantlist',
+    WANTLIST_EXACT: (evidence) =>
+      Number(evidence.want ?? 0) >= WANT_MOST
+        ? 'steht auf deiner Wantlist, ganz oben'
+        : 'steht auf deiner Wantlist',
     ARTIST_KNOWN: (evidence) => {
       if (!evidence.artist) return null
       const via = evidence.via ? `, als ${String(evidence.via)}` : ''

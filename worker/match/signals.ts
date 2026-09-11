@@ -49,6 +49,7 @@ export function wantlistPressing(
         album: wanted.title,
         wantedYear: wanted.year,
         pressingYear: listingYear,
+        ...(wanted.want > 0 ? { want: wanted.want } : {}),
       },
     }
   }

@@ -100,6 +100,27 @@ describe('the signals that M2 can actually fire', () => {
     expect(reasonFor(result!.signals)).toContain('wantlist')
   })
 
+  it('S1 carries how much it is wanted, and only when Discogs has a number', () => {
+    // The priority changes the sentence, never the score (M20 #1).
+    const wanted = buildIndex(
+      collection,
+      [
+        { ...wantlist[0]!, want: 5 },
+        { ...wantlist[0]!, releaseId: 901, want: 0 },
+      ],
+      taste,
+    )
+    const most = evaluate(listing({ releaseId: 900, artist: 'Stardust' }), wanted, filters)
+    const plain = evaluate(listing({ releaseId: 901, artist: 'Stardust' }), wanted, filters)
+
+    expect(most?.signals[0]?.evidence).toEqual({ releaseId: 900, want: 5 })
+    expect(plain?.signals[0]?.evidence).toEqual({ releaseId: 901 })
+    expect(most?.score).toBe(plain?.score)
+    expect(reasonFor(most!.signals)).toBe(
+      'Exactly this is on your wantlist — one of the ones you want most.',
+    )
+  })
+
   it('S3 — an artist already in the collection, this record not', () => {
     const result = evaluate(listing(), index, filters)
 
