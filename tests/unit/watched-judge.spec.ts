@@ -4,35 +4,34 @@ import { addPoint, judge, MAX_POINTS, WINDOW_MS } from '~~/worker/watched/judge'
 import type { WatchedRelease, WatchPoint } from '#shared/types'
 
 /**
- * Wann eine beobachtete Platte eine Meldung wert ist (M11).
+ * When a watched record is worth reporting (M11).
  *
- * Die einzige Rechnung des Features, und deshalb reine Funktionen: sie lassen
- * sich prüfen, ohne eine Datenbank aufzumachen — dasselbe Prinzip wie bei
- * `worker/match/`.
+ * The feature's only computation, and therefore pure functions: they can be
+ * checked without opening a database — the same principle as `worker/match/`.
  *
- * Die Richtung hängt daran, wem die Platte gehört. Bei einer eigenen ist der
- * **Anstieg** die Neuigkeit, bei einer gesuchten der **Fall**.
+ * The direction depends on whose record it is. On one you own, the **rise** is
+ * the news; on one you want, the **fall**.
  */
 const TAG = 24 * 60 * 60 * 1000
-const JETZT = 1_800_000_000_000
+const NOW = 1_800_000_000_000
 
 const punkt = (
   tageZurueck: number,
   lowestPrice: number | null,
   numForSale = 3,
 ): WatchPoint => ({
-  at: JETZT - tageZurueck * TAG,
+  at: NOW - tageZurueck * TAG,
   lowestPrice,
   currency: 'EUR',
   numForSale,
 })
 
-const beobachtet = (over: Partial<WatchedRelease>): WatchedRelease => ({
+const watching = (over: Partial<WatchedRelease>): WatchedRelease => ({
   releaseId: 1,
   kind: 'shelf',
   artist: 'The Persuader',
   title: 'Stockholm',
-  since: JETZT - 90 * TAG,
+  since: NOW - 90 * TAG,
   threshold: null,
   points: [],
   checkedAt: null,
@@ -43,118 +42,110 @@ const beobachtet = (over: Partial<WatchedRelease>): WatchedRelease => ({
 describe('a record of your own', () => {
   /** Die Frage, die sonst niemand beantwortet. */
   it('says when it has become worth more', () => {
-    const news = judge(
-      beobachtet({ points: [punkt(60, 40), punkt(0, 95)], threshold: 25 }),
-      JETZT,
-    )
+    const news = judge(watching({ points: [punkt(60, 40), punkt(0, 95)], threshold: 25 }), NOW)
     expect(news).toEqual({ kind: 'rose', from: 40, to: 95, percent: 138, currency: 'EUR' })
   })
 
   it('stays quiet about noise', () => {
-    // 40 auf 44 sind zehn Prozent und keine Nachricht.
+    // 40 to 44 is ten per cent and not news.
     expect(
-      judge(beobachtet({ points: [punkt(60, 40), punkt(0, 44)], threshold: 25 }), JETZT),
+      judge(watching({ points: [punkt(60, 40), punkt(0, 44)], threshold: 25 }), NOW),
     ).toBeNull()
   })
 
   /**
-   * Verglichen wird mit dem **ältesten** Punkt im Fenster, nicht mit dem
-   * vorletzten.
+   * The comparison is against the **oldest** point in the window, not against
+   * the penultimate one.
    *
-   * Ein Anstieg von vierzig auf fünfundneunzig kommt in dreißig kleinen
-   * Schritten. Wer nur Nachbarn vergleicht, sieht ihn nie — jeder einzelne
-   * Schritt liegt unter jeder vernünftigen Schwelle.
+   * A rise from forty to ninety-five comes in thirty small steps. Anyone
+   * comparing only neighbours never sees it — every single step is below any
+   * sensible threshold.
    */
   it('sees a slow climb that no two neighbours would show', () => {
     const langsam = Array.from({ length: 30 }, (_, i) => punkt(60 - i * 2, 40 + i * 2))
-    expect(judge(beobachtet({ points: langsam, threshold: 25 }), JETZT)).toMatchObject({
+    expect(judge(watching({ points: langsam, threshold: 25 }), NOW)).toMatchObject({
       kind: 'rose',
       from: 40,
     })
 
-    // Und zum Beleg: zwei Nachbarn allein sagen nichts.
+    // And as evidence: two neighbours on their own say nothing.
     const zweiNachbarn = langsam.slice(-2)
-    expect(judge(beobachtet({ points: zweiNachbarn, threshold: 25 }), JETZT)).toBeNull()
+    expect(judge(watching({ points: zweiNachbarn, threshold: 25 }), NOW)).toBeNull()
   })
 
   /**
-   * **„Verkauft" wird nicht behauptet.**
+   * **"Sold" is not claimed.**
    *
-   * Ein fallendes `num_for_sale` kann ein Kauf sein oder ein zurückgezogenes
-   * Listing, und die API sagt nicht, welches. Die Nachricht heißt deshalb
-   * `fewer` und nicht `sold` — was gemessen wurde, nicht was vermutet wird.
+   * A falling `num_for_sale` can be a purchase or a withdrawn listing, and the
+   * API does not say which. So the message is called `fewer` and not `sold` —
+   * what was measured, not what is guessed.
    */
   it('reports one fewer on offer, and does not call it a sale', () => {
-    const news = judge(beobachtet({ points: [punkt(30, 40, 5), punkt(0, 40, 2)] }), JETZT)
+    const news = judge(watching({ points: [punkt(30, 40, 5), punkt(0, 40, 2)] }), NOW)
     expect(news).toEqual({ kind: 'fewer', from: 5, to: 2 })
     expect(JSON.stringify(news)).not.toMatch(/sold|verkauft/i)
   })
 
   it('ignores a single copy coming and going', () => {
-    expect(judge(beobachtet({ points: [punkt(30, 40, 3), punkt(0, 40, 2)] }), JETZT)).toBeNull()
+    expect(judge(watching({ points: [punkt(30, 40, 3), punkt(0, 40, 2)] }), NOW)).toBeNull()
   })
 
-  /** Nichts angeboten heißt kein Preis — und kein Preis ist keine Rechnung. */
+  /** Nothing on offer means no price — and no price is not a calculation. */
   it('does not divide by a price that is not there', () => {
-    expect(
-      judge(beobachtet({ points: [punkt(30, null, 0), punkt(0, 40, 1)] }), JETZT),
-    ).toBeNull()
-    expect(judge(beobachtet({ points: [punkt(30, 0, 1), punkt(0, 40, 1)] }), JETZT)).toBeNull()
+    expect(judge(watching({ points: [punkt(30, null, 0), punkt(0, 40, 1)] }), NOW)).toBeNull()
+    expect(judge(watching({ points: [punkt(30, 0, 1), punkt(0, 40, 1)] }), NOW)).toBeNull()
   })
 })
 
 describe('a record you are after', () => {
   it('says when it drops below your limit', () => {
     const news = judge(
-      beobachtet({ kind: 'wantlist', threshold: 30, points: [punkt(30, 48), punkt(0, 24)] }),
-      JETZT,
+      watching({ kind: 'wantlist', threshold: 30, points: [punkt(30, 48), punkt(0, 24)] }),
+      NOW,
     )
     expect(news).toEqual({ kind: 'fell', to: 24, threshold: 30, currency: 'EUR' })
   })
 
-  /** Und nicht bei jedem Durchlauf noch einmal, solange es darunter bleibt. */
+  /** And not again on every pass, for as long as it stays below. */
   it('says it once, not on every check', () => {
     expect(
       judge(
-        beobachtet({ kind: 'wantlist', threshold: 30, points: [punkt(30, 24), punkt(0, 22)] }),
-        JETZT,
+        watching({ kind: 'wantlist', threshold: 30, points: [punkt(30, 24), punkt(0, 22)] }),
+        NOW,
       ),
     ).toBeNull()
   })
 
-  /** Von nirgends zu haben auf überhaupt zu haben — bei einer seltenen Platte
-   *  ist das die eigentliche Nachricht. */
+  /** From nowhere to be had to available at all — on a rare record that is the
+   *  real news. */
   it('says when one turns up at all', () => {
     expect(
       judge(
-        beobachtet({
+        watching({
           kind: 'wantlist',
           threshold: null,
           points: [punkt(30, null, 0), punkt(0, 55, 2)],
         }),
-        JETZT,
+        NOW,
       ),
     ).toEqual({ kind: 'appeared', numForSale: 2, price: 55, currency: 'EUR' })
   })
 
   /**
-   * **Keine Nachricht nennt einen Laden.**
+   * **No message names a shop.**
    *
-   * Es gibt keinen Endpunkt, der die Angebote zu einer Release-Id auflistet
-   * (`docs/02`). Wir wissen, dass es eine gibt und was sie kostet — nicht, wo.
-   * Ein Feld dafür wäre eine Zusage, die die API nicht deckt.
+   * There is no endpoint that lists the offers for a release id (`docs/02`).
+   * We know one exists and what it costs — not where. A field for that would
+   * be a promise the API does not cover.
    */
   it('never names a shop, because it cannot know one', () => {
     const alle = [
-      judge(beobachtet({ points: [punkt(60, 40), punkt(0, 95)], threshold: 25 }), JETZT),
+      judge(watching({ points: [punkt(60, 40), punkt(0, 95)], threshold: 25 }), NOW),
       judge(
-        beobachtet({ kind: 'wantlist', threshold: 30, points: [punkt(30, 48), punkt(0, 24)] }),
-        JETZT,
+        watching({ kind: 'wantlist', threshold: 30, points: [punkt(30, 48), punkt(0, 24)] }),
+        NOW,
       ),
-      judge(
-        beobachtet({ kind: 'wantlist', points: [punkt(30, null, 0), punkt(0, 55, 2)] }),
-        JETZT,
-      ),
+      judge(watching({ kind: 'wantlist', points: [punkt(30, null, 0), punkt(0, 55, 2)] }), NOW),
     ]
     for (const news of alle) {
       expect(Object.keys(news ?? {})).not.toContain('dealer')
@@ -177,7 +168,7 @@ describe('the trail of measurements', () => {
     expect(addPoint([gestern], heute)).toEqual([gestern, heute])
   })
 
-  /** Eine Platte wird über Jahre beobachtet; niemand liest dreihundert Punkte. */
+  /** Eine Platte wird über Jahre watching; niemand liest dreihundert Punkte. */
   it('has a ceiling', () => {
     const viele = Array.from({ length: MAX_POINTS + 20 }, (_, i) => punkt(200 - i, 40))
     const nach = addPoint(viele, punkt(0, 41))
@@ -185,12 +176,12 @@ describe('the trail of measurements', () => {
     expect(nach.at(-1)?.lowestPrice).toBe(41)
   })
 
-  /** Was älter ist als das Fenster, zählt nicht mehr als Vergleichspunkt. */
+  /** Anything older than the window no longer counts as a comparison point. */
   it('forgets what is older than the window', () => {
-    const uralt = { ...punkt(0, 10), at: JETZT - WINDOW_MS - TAG }
-    const neu = punkt(0, 40)
-    // Der uralte Punkt würde 300 % ergeben — er ist aber außerhalb, und der
-    // nächste im Fenster ist der einzige andere.
-    expect(judge(beobachtet({ points: [uralt, neu], threshold: 25 }), JETZT)).toBeNull()
+    const ancient = { ...punkt(0, 10), at: NOW - WINDOW_MS - TAG }
+    const fresh = punkt(0, 40)
+    // The ancient point would give 300 % — but it is outside, and the next
+    // one in the window is the only other.
+    expect(judge(watching({ points: [ancient, fresh], threshold: 25 }), NOW)).toBeNull()
   })
 })

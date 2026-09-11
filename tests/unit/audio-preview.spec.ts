@@ -5,13 +5,12 @@ import { describe, expect, it } from 'vitest'
 import { videoId } from '~/composables/useAudioPreview'
 
 /**
- * Die Hörprobe und die Bedingungen, unter denen ADR-012 sie erlaubt.
+ * The audio preview and the conditions under which ADR-012 allows it.
  *
- * Die wichtigste davon ist unsichtbar: **vor dem ersten bewussten Tippen geht
- * kein Byte an Google** — kein Skript, kein Rahmen, keine Anfrage, auch dann
- * nicht, wenn der Schalter längst umgelegt ist. Das ist der Unterschied
- * zwischen einer benannten Ausnahme und einer Hintertür, und einer laufenden
- * App sieht man ihn nicht an.
+ * The most important of them is invisible: **before the first deliberate tap,
+ * no byte goes to Google** — no script, no frame, no request, not even when
+ * the switch has long been thrown. That is the difference between a named
+ * exception and a back door, and a running app does not show it.
  */
 const COMPOSABLE = readFileSync('app/composables/useAudioPreview.ts', 'utf8')
 const PAGE = readFileSync('app/pages/stack.vue', 'utf8')
@@ -27,11 +26,11 @@ const code = (source: string) =>
 
 describe('nothing reaches Google before somebody asks', () => {
   /**
-   * Das Skript wird **im Rumpf einer Funktion** angelegt, nicht beim Import.
+   * The script is created **inside a function body**, not at import.
    *
-   * Ein `<script src>` auf Modulebene oder ein `<iframe>` im Template würde
-   * laden, sobald der Bildschirm erscheint — und dann wäre die Ausnahme keine
-   * Entscheidung mehr, sondern eine Vorgabe.
+   * A `<script src>` at module level or an `<iframe>` in the template would
+   * load as soon as the screen appears — and then the exception would no
+   * longer be a decision but a default.
    */
   it('creates the script only inside the function that a tap calls', () => {
     const bare = code(COMPOSABLE)
@@ -40,12 +39,12 @@ describe('nothing reaches Google before somebody asks', () => {
     const boot = bare.slice(bare.indexOf('function boot('))
     expect(boot).toMatch(/createElement\('script'\)/)
 
-    // Und nirgends sonst — vor `boot` darf nichts angelegt werden.
+    // And nowhere else — nothing may be created before `boot`.
     const before = bare.slice(0, bare.indexOf('function boot('))
     expect(before).not.toMatch(/createElement|document\.head|new .*Player/)
   })
 
-  /** Im Template steht ein leeres div und kein `<iframe>`. */
+  /** The template has an empty div and no `<iframe>`. */
   it('has no iframe in the markup', () => {
     expect(code(PAGE)).not.toMatch(/<iframe/i)
     expect(code(CARD)).not.toMatch(/<iframe/i)
@@ -53,8 +52,8 @@ describe('nothing reaches Google before somebody asks', () => {
   })
 
   /**
-   * Und der Knopf erscheint nur, wenn beides stimmt: Schalter an **und**
-   * Hörproben vorhanden. Ein Knopf, der nichts abspielt, lädt trotzdem.
+   * And the button appears only when both hold: switch on **and** previews
+   * available. A button that plays nothing still loads.
    */
   it('offers the button only when the switch is on and there is something to play', () => {
     expect(code(PAGE)).toMatch(/audioOn\.value && !audio\.failed\.value/)
@@ -63,22 +62,22 @@ describe('nothing reaches Google before somebody asks', () => {
 })
 
 /**
- * Und der Bildschirm behauptet nicht, es sei *die* Platte.
+ * And the screen does not claim it is *the* record.
  *
- * Discogs' Videos tragen Leute ein: unter einer 12" liegt auch mal ein
- * Album-Rip, eine Live-Fassung oder eine andere Platte. Der Spieler zeigt
- * YouTubes eigenes Bild und seinen eigenen Titel — ohne die Zeile darunter
- * sieht das aus, als gehöre beides zusammen. Am 2026-09-11 aufgefallen, weil
- * genau dieser Eindruck entstand (an einem Fixture, das drei Clips reihum an
- * alle Treffer hängte — aber der Eindruck war echt).
+ * People enter Discogs' videos: under a 12" there is sometimes an album rip, a
+ * live version or a different record. The player shows YouTube's own picture
+ * and its own title — without the line below it, that looks as though the two
+ * belonged together. Noticed on 2026-09-11, because exactly that impression
+ * arose (on a fixture that hung three clips round-robin on every match — but
+ * the impression was real).
  */
 describe('what is actually playing', () => {
   /**
-   * Und der Rahmen verschwindet, sobald nichts mehr läuft.
+   * And the frame disappears as soon as nothing is playing.
    *
-   * An `armed` gehängt — also daran, ob je getippt wurde — blieb er nach dem
-   * Stoppen stehen und zeigte das Standbild der vorigen Platte unter der
-   * neuen Karte. Ein Standbild ist kein Ton, aber es behauptet dasselbe.
+   * Hung off `armed` — so off whether anybody had ever tapped — it stayed
+   * standing after stopping and showed the previous record's still under the
+   * new card. A still is not sound, but it claims the same thing.
    */
   it('hides the player as soon as nothing is playing', () => {
     expect(code(PAGE)).toMatch(/v-show="audio\.playing\.value"/)
@@ -96,28 +95,28 @@ describe('the switch', () => {
     expect(code(DEFAULTS)).toMatch(/audioPreview: false/)
   })
 
-  /** Nichts hängt daran: der Stapel läuft ohne Ton vollständig. */
+  /** Nothing hangs off it: the stack works completely without sound. */
   it('leaves the stack working without it', () => {
-    // Die Karte weiß nichts von Ton — sie zeigt Cover, Grund und Preis.
+    // The card knows nothing of sound — it shows cover, reason and price.
     expect(code(CARD)).not.toMatch(/audio|youtube/i)
   })
 })
 
 describe('the promise that had to change', () => {
   /**
-   * Das Versprechen wird **geändert**, nicht still gedehnt.
+   * The promise is **changed**, not silently stretched.
    *
-   * Ein eigener Abschnitt mit eigener Überschrift, nicht ein Halbsatz im
-   * Absatz darüber — sonst wäre es versteckt, und ADR-012 erlaubt die
-   * Ausnahme genau unter dieser Bedingung.
+   * A section of its own with a heading of its own, not half a sentence in the
+   * paragraph above — otherwise it would be hidden, and ADR-012 allows the
+   * exception on precisely that condition.
    */
   it('says so on the privacy page, in both languages', () => {
     const hits = [...LEGAL.matchAll(/^\s{4}audioBody:$/gm)]
     expect(hits).toHaveLength(2)
 
     expect(LEGAL).toMatch(/YouTube/)
-    // Und nennt beim Namen, was *nicht* passiert — sonst klingt die Ausnahme
-    // größer, als sie ist.
+    // And names what does *not* happen — otherwise the exception sounds bigger
+    // than it is.
     expect(LEGAL).toMatch(/collection, wantlist and token stay here/)
     expect(LEGAL).toMatch(/Sammlung, Wantlist und Token bleiben hier/)
   })
@@ -130,11 +129,11 @@ describe('the promise that had to change', () => {
 })
 
 /**
- * Und die eine Rechnung in dem Modul: aus einer Discogs-Adresse eine Kennung.
+ * And the module's one computation: an id out of a Discogs address.
  *
- * Discogs speichert, was Leute eingetragen haben — mal `watch?v=`, mal
- * `youtu.be`. Was nicht passt, muss `null` geben: eine geratene Kennung
- * spielte irgendein fremdes Video ab.
+ * Discogs stores what people have entered — sometimes `watch?v=`, sometimes
+ * `youtu.be`. Anything that does not fit must give `null`: a guessed id would
+ * play somebody else's video.
  */
 describe('reading a video address', () => {
   it('reads the two shapes Discogs actually stores', () => {

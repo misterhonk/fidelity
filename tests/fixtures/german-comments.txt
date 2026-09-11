@@ -8,8 +8,5 @@
 # whole tree the same day, which found four more the roots had hidden.
 hub/test/app.test.ts
 hub/test/watch.test.ts
-tests/unit/audio-preview.spec.ts
 tests/unit/library-sync.spec.ts
 tests/unit/one-measure.spec.ts
-tests/unit/watched-judge.spec.ts
-tests/unit/watched-offers.spec.ts
