@@ -11,6 +11,12 @@ Für eine App bedeutet SemVer:
 
 ## [0.42.0](https://github.com/misterhonk/fidelity/compare/v0.41.0...v0.42.0) (2026-09-11)
 
+**The plan box says how it fills.**
+
+Before the first dig the wantlist showed no box at all — and a feature nobody has seen is a
+feature nobody uses. Now it is there once there is a wantlist, and without a shop scanned
+in the last six hours it says what would fill it, with the way to the dig screen.
+
 
 ### Added
 
