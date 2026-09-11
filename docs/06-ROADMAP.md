@@ -16,7 +16,6 @@ und nicht die tatsächliche Zählung — die steht in `CHANGELOG.md`.
 | offen | wo | Stand |
 |---|---|---|
 | Den Runout **vorlesen** statt abtippen | M13 | `SpeechRecognition`, erst zu messen |
-| Lagerorte über den Tresor mitreisen lassen | M12 | der einzige offene Haken dort |
 | `docs/` ist noch deutsch | M10 | größter Brocken, geringste Dringlichkeit |
 
 Wächter mit Web Push und das Hub-Dockerfile standen bis zum 2026-09-10 als offen in
