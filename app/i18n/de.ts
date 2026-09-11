@@ -282,6 +282,9 @@ const de: Messages = {
     scanPressings: (n) =>
       `${n} Pressungen teilen sich diesen Barcode – ein Barcode benennt eine Veröffentlichung, keine Pressung.`,
     scanNothing: 'Discogs kennt keine Platte mit diesem Barcode.',
+    identify: 'Nachschlagen',
+    identifyLabel: 'Barcode oder Auslaufrillen-Nummer',
+    identifyPlaceholder: 'Barcode – oder was im Auslauf steht',
     finds: (n: number) => `${n} Treffer`,
     wrong: 'Danebengegriffen',
     notInLibrary: 'Weder in deiner Sammlung noch auf der Wantlist',

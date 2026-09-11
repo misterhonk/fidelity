@@ -409,6 +409,11 @@ const en = {
     scanPressings: (n: string) =>
       `${n} pressings share this barcode — a barcode names a release, not a pressing.`,
     scanNothing: 'Discogs knows no record with this barcode.',
+    identify: 'Look it up',
+    identifyLabel: 'Barcode or run-out number',
+    /* Beides in einem Feld: wer eine Platte in der Hand hält, will nicht erst
+     * entscheiden, welche Art Nummer er gleich abtippt. */
+    identifyPlaceholder: 'Barcode, or what is etched in the run-out',
     finds: (n: number) => `${n} ${n === 1 ? 'find' : 'finds'}`,
     wrong: 'Wrong pick',
     notInLibrary: 'Not in your collection and not on your wantlist',

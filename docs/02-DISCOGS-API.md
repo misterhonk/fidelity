@@ -146,6 +146,14 @@ X-Discogs-Ratelimit-Remaining:  57
   (~30–40/min). 429er bei Bildern, obwohl das API-Budget noch bei 50 steht, sind normal.
   → Bilder ausschließlich clientseitig laden
 
+- ⚠️ **Die Bilder sind nicht lesbar, nur zeigbar.** Am 2026-09-11 am Server geprüft:
+  `i.discogs.com` schickt **keine CORS-Kopfzeile** — weder auf ein GET noch auf einen
+  Preflight. Im Browser heißt das: ohne `crossOrigin` lädt das Bild und vergiftet den
+  Canvas (`getImageData` wirft `SecurityError`), mit `crossOrigin="anonymous"` lädt es
+  gar nicht, und `fetch` scheitert. **Jede Idee, die Cover-Pixel auswerten will —
+  Ähnlichkeit, perzeptueller Hash, Farbanalyse — ist damit erledigt**, bevor sie
+  angefangen wird.
+
 - ⚠️ **600 auf der langen Kante ist die Decke — und oft ist es weniger.**
   Am 2026-08-14 gemessen: `images[0]` aus `/releases/{id}` ist dieselbe Fassung
   wie `cover_image` aus `basic_information`. Ein größeres Bild gibt es über die

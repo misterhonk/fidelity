@@ -625,6 +625,14 @@ export interface WorkerContract {
    * teilten sich acht Releases in fünf Ländern denselben.
    */
   'identify.barcode': { params: { barcode: string }; progress: never; result: Identified }
+  /**
+   * Und über die Auslaufrille — der bessere Ausweis bei Club-Vinyl.
+   *
+   * Am 2026-09-11 gemessen: von zwölf Platten hatten zehn einen Barcode, elf
+   * einen Runout, und die zwei ohne Barcode hatten einen. Die volle
+   * Zeichenkette liefert **einen** Treffer, wo ein Barcode acht liefert.
+   */
+  'identify.runout': { params: { runout: string }; progress: never; result: Identified }
 
   'places.overview': { params: undefined; progress: never; result: PlaceNode[] }
   'places.create': {

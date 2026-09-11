@@ -594,25 +594,52 @@ Token** (am 2026-09-11 gemessen).
 Die Discogs-App hat einen Barcode-Scanner. Unserer beantwortet eine andere Frage — und
 zwar die, für die man im Laden steht.
 
-### Stufe 2: Cover erkennen, lokal
+### Stufe 2: die Auslaufrille — nicht das Cover
 
-`db/covers.ts` hält bereits 600er Cover jeder eigenen Platte. Ein perzeptueller Hash über
-diese Bilder, verglichen mit einem Kamerabild, beantwortet „welche meiner Platten ist
-das" **ohne einen einzigen Request** — und damit im Keller ohne Empfang, was genau der
-Fall ist, für den der In-Store-Bildschirm existiert.
+> ⚠️ **Der Cover-Entwurf, der hier stand, ist nicht baubar. Gemessen am
+> 2026-09-11.**
+>
+> Er lautete: perzeptueller Hash über die Cover aus `db/covers.ts`, verglichen mit einem
+> Kamerabild, ohne einen einzigen Request. Das scheitert an einer Zeile, die nirgends
+> steht: **`i.discogs.com` schickt keine CORS-Kopfzeile.** Am Server nachgeprüft — weder
+> `access-control-allow-origin` noch irgendetwas Verwandtes, auch nicht auf einen
+> Preflight.
+>
+> Die Folge im Browser: ohne `crossOrigin` lädt das Bild und **vergiftet den Canvas**,
+> `getImageData` wirft einen `SecurityError`. Mit `crossOrigin="anonymous"` lädt es gar
+> nicht. Ein `fetch` scheitert ebenfalls. Es gibt also keinen Weg, die Pixel der eigenen
+> Cover zu lesen — und ohne lesbare Vergleichswerte kein Hash.
+>
+> Auch der Umweg über eine Texterkennung ist zu: `TextDetector` gibt es in keinem
+> Browser mehr (gemessen: `BarcodeDetector` ja, `TextDetector` und `FaceDetector` nein).
+> Eine OCR-Bibliothek wiegt Megabyte und fällt unter Regel 7.
 
-- [ ] pHash über die vorhandenen Cover, beim Sync nebenbei
-- [ ] Kamerabild → nächster Nachbar → Treffer mit ehrlicher Sicherheit („ziemlich sicher"
-      / „eine von diesen dreien")
+**Stattdessen das, was Sammler ohnehin tun: die Nummer im Auslauf lesen.** Und sie ist
+der bessere Ausweis, gemessen an derselben Stichprobe von zwölf Platten:
 
-⚠️ **Was hier nicht versprochen wird:** Buchrücken im Regal erkennen. Ein fotografiertes
-Regal in einzelne Platten zu zerlegen ist ein anderes, deutlich härteres Problem — und
-wer es andeutet, verspricht die Lagerhaltung von M12 zum Nulltarif.
+| | |
+|---|---|
+| mit Barcode | 10 von 12 |
+| **mit Runout** | **11 von 12** |
+| mit keinem von beidem | 0 |
+| ohne Barcode, aber mit Runout | 2 |
 
-⚠️ **Das Budget entscheidet mit.** Ein Hash ist klein, eine Kamera-Pipeline nicht. Beide
-Stufen müssen in einen eigenen Chunk, der nur geladen wird, wenn jemand die Kamera
-öffnet — sonst zahlt der erste Strich für ein Feature, das die meisten nie anfassen
-(Regel 7).
+Und genauer: die volle Zeichenkette `MPO SK 032 A1 G PHRUPMASTERGENERAL T2T LONDON`
+liefert **einen** Treffer, wo ein Barcode acht liefert. Bruchstücke werden schnell
+unbrauchbar — `MPO SK 032 A1` ergab 21, `SK 032 A1` dreitausendvierhundert, eine
+markante Mastering-Signatur allein zwei.
+
+- [x] Ein Feld nimmt beides und entscheidet selbst: nur Ziffern sind ein Barcode, alles
+      mit Buchstaben ein Runout. Wer eine Platte in der Hand hält, will nicht erst
+      wählen, welche Art Nummer er abtippt.
+- [x] Zu kurze Bruchstücke werden gar nicht erst gesucht — unter sechs Zeichen holt die
+      Suche den halben Katalog und kostet eine Anfrage für nichts.
+- [ ] Offen: den Runout **vorlesen** statt abtippen. `SpeechRecognition` ist in Chrome
+      da und in WebKit teilweise; zu messen, bevor es jemand verspricht.
+
+⚠️ **Was hier weiterhin nicht versprochen wird:** Buchrücken im Regal erkennen. Ein
+fotografiertes Regal in einzelne Platten zu zerlegen ist ein anderes, deutlich härteres
+Problem.
 
 ---
 

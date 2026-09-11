@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { openFidelityDb } from '~~/db/open'
-import { cleanBarcode, identify } from '~~/worker/identify'
+import { cleanBarcode, identify, identifyByRunout, looksLikeBarcode } from '~~/worker/identify'
 import type { CollectionItem } from '#shared/types'
 
 /**
@@ -78,6 +78,35 @@ describe('reading a barcode', () => {
   })
 })
 
+/**
+ * Welche Art Nummer wurde da getippt?
+ *
+ * Als Funktion geprüft und nicht am Quelltext: eine Mutationsprobe hat
+ * gezeigt, dass ein Test, der nur nach `identify.barcode` und
+ * `identify.runout` im Template sucht, die Entscheidung gar nicht sieht — auf
+ * `true` festgenagelt blieb er grün, und dann wäre jeder Runout als Barcode
+ * nachgeschlagen worden.
+ */
+describe('telling the two apart', () => {
+  it('reads digits as a barcode, even written as they stand on the sleeve', () => {
+    expect(looksLikeBarcode('807297164718')).toBe(true)
+    expect(looksLikeBarcode('8 07297 1647 1 8')).toBe(true)
+    expect(looksLikeBarcode(' 501-239-414 ')).toBe(true)
+  })
+
+  it('reads anything with letters as a run-out', () => {
+    expect(looksLikeBarcode('MPO SK 032 A1')).toBe(false)
+    expect(looksLikeBarcode('PHRUPMASTERGENERAL T2T')).toBe(false)
+    // Auch eine, die fast nur aus Ziffern besteht.
+    expect(looksLikeBarcode('01 BC A1 MPO')).toBe(false)
+  })
+
+  it('calls an empty field neither', () => {
+    expect(looksLikeBarcode('')).toBe(false)
+    expect(looksLikeBarcode('   ')).toBe(false)
+  })
+})
+
 describe('what a barcode answers', () => {
   /**
    * **Eine Liste, keine Antwort.**
@@ -127,6 +156,45 @@ describe('what a barcode answers', () => {
   })
 })
 
+/**
+ * Und der zweite Weg: die Auslaufrille.
+ *
+ * **Der bessere Ausweis, gemessen am 2026-09-11:** von zwölf Platten einer
+ * echten Sammlung hatten zehn einen Barcode, **elf einen Runout**, keine
+ * hatte keins von beidem — und die zwei ohne Barcode hatten einen. Bei
+ * Club-Vinyl steht der Ausweis im Auslauf, nicht auf der Hülle.
+ *
+ * Er ist auch genauer: die volle Zeichenkette liefert **einen** Treffer, wo
+ * ein Barcode acht liefert.
+ */
+describe('reading a run-out', () => {
+  it('finds the pressing and checks every candidate against the shelf', async () => {
+    const db = await openFidelityDb()
+    await db.put('collection', platte(249504, 1))
+
+    const found = await identifyByRunout(client, 'MPO SK 032 A1 G PHRUPMASTERGENERAL')
+    expect(found.candidates).toHaveLength(8)
+    expect(found.owned.map((o) => o.releaseId)).toEqual([249504])
+  })
+
+  /**
+   * Zu kurz ist kein Runout, sondern ein Tippfehler.
+   *
+   * Gemessen: `SK 032 A1` — neun Zeichen — ergab **3406** Treffer. Eine Suche
+   * nach drei oder vier Zeichen holt den halben Katalog und kostet eine
+   * Anfrage für nichts.
+   */
+  it('does not search for a fragment that would match everything', async () => {
+    const never = {
+      get: async () => {
+        throw new Error('should not be called')
+      },
+    } as never
+    expect((await identifyByRunout(never, 'A1')).candidates).toEqual([])
+    expect((await identifyByRunout(never, '   ')).candidates).toEqual([])
+  })
+})
+
 describe('the screen that shows it', () => {
   const PAGE = readFileSync('app/pages/in-store.vue', 'utf8')
   const SCAN = readFileSync('app/composables/useBarcodeScan.ts', 'utf8')
@@ -166,6 +234,18 @@ describe('the screen that shows it', () => {
     const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
     const deps = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies })
     expect(deps.filter((d) => /zxing|quagga|barcode|jsqr/i.test(d))).toEqual([])
+  })
+
+  /**
+   * Ein Feld für beides, und es entscheidet selbst.
+   *
+   * Wer eine Platte in der Hand hält, will nicht erst wählen, welche Art
+   * Nummer er gleich abtippt.
+   */
+  it('takes a barcode or a run-out in one field', () => {
+    expect(code(PAGE)).toMatch(/identify\.runout/)
+    expect(code(PAGE)).toMatch(/identify\.barcode/)
+    expect(code(PAGE)).toMatch(/looksLikeBarcode/)
   })
 
   /** Die Kamera hört auf, wenn der Bildschirm weg ist. */

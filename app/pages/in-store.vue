@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { looksLikeBarcode } from '~~/worker/identify'
 import type { DigWithMatches } from '#shared/protocol'
 import type { ShelfHit, ShelfResult, Identified } from '#shared/types'
 import { reasonFor } from '~/i18n/reason'
@@ -50,6 +51,35 @@ async function openCamera() {
 function closeCamera() {
   scan.stop()
   scanning.value = false
+}
+
+/**
+ * Getippt statt gescannt — und es nimmt beides.
+ *
+ * Nur Ziffern sind ein Barcode, alles andere eine Auslaufrillen-Nummer. Zwei
+ * Felder nebeneinander wären zwei Entscheidungen, die niemand treffen will,
+ * während er eine Platte in der Hand hält.
+ */
+const typed = ref('')
+
+async function lookUpTyped() {
+  const text = typed.value.trim()
+  if (!text) return
+
+  identifying.value = true
+  identified.value = null
+  try {
+    identified.value = looksLikeBarcode(text)
+      ? await call('identify.barcode', { barcode: text })
+      : await call('identify.runout', { runout: text })
+
+    const first = identified.value.candidates[0]
+    if (first) query.value = first.title
+  } catch (cause) {
+    error.value = cause
+  } finally {
+    identifying.value = false
+  }
 }
 
 async function lookUp(barcode: string) {
@@ -257,6 +287,33 @@ const expired = computed(() => {
         </p>
       </div>
       <p v-else class="text-fid-sm text-fid-text-muted">{{ m.inStore.scanNotHere }}</p>
+
+      <!--
+        Getippt: Barcode oder Auslaufrille.
+
+        Am 2026-09-11 an zwölf Platten gemessen: zehn hatten einen Barcode,
+        **elf einen Runout**, keine hatte keins von beidem. Bei Club-Vinyl
+        steht der Ausweis im Auslauf — und die volle Zeichenkette ist genauer
+        als jeder Barcode (ein Treffer statt acht).
+      -->
+      <form class="flex flex-wrap gap-2" @submit.prevent="lookUpTyped">
+        <input
+          v-model="typed"
+          type="text"
+          autocomplete="off"
+          spellcheck="false"
+          :placeholder="m.inStore.identifyPlaceholder"
+          :aria-label="m.inStore.identifyLabel"
+          class="min-w-0 grow rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+        />
+        <button
+          type="submit"
+          :disabled="identifying || !online"
+          class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text disabled:opacity-40"
+        >
+          {{ identifying ? m.inStore.scanning : m.inStore.identify }}
+        </button>
+      </form>
 
       <!--
         Was der Barcode ergab — als **Liste**, nicht als Antwort.

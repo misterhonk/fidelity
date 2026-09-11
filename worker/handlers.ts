@@ -489,6 +489,11 @@ export const handlers: HandlerMap = {
     return identify(discogs(), barcode, signal)
   },
 
+  'identify.runout': async ({ runout }, { signal }) => {
+    const { identifyByRunout } = await import('./identify')
+    return identifyByRunout(discogs(), runout, signal)
+  },
+
   'places.overview': async () => {
     const { placesOverview } = await import('./places')
     return placesOverview()
