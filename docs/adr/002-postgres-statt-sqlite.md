@@ -1,43 +1,44 @@
-# ADR-002: PostgreSQL statt SQLite
+# ADR-002: PostgreSQL instead of SQLite
 
-**Status:** **Ersetzt durch ADR-007** · **Datum:** 2026-08-09
+**Status:** **Superseded by ADR-007** · **Date:** 2026-08-09
 
-> **Gegenstandslos.** Es gibt keinen Server und damit keine serverseitige Datenbank.
-> Gespeichert wird in IndexedDB im Browser des Nutzers (`03-DATENMODELL.md`).
-> Dokument bleibt als Entscheidungshistorie erhalten.
+> **Moot.** There is no server and therefore no server-side database. Storage is
+> IndexedDB in the user's browser (`03-DATENMODELL.md`). Kept as decision history.
 
-## Kontext
+## Context
 
-Produktion läuft auf Uberspace: 1,5 GB RAM für alle Prozesse, 10 GB Platte, kein Docker.
-SQLite wäre dort erheblich einfacher – kein Daemon, kein RAM-Overhead, Backup = Datei
-kopieren, Deploy = Datei rsyncen. Nutzerzahl: 5–30.
+Production runs on Uberspace: 1.5 GB RAM for all processes, 10 GB of disk, no Docker.
+SQLite would be considerably simpler there — no daemon, no RAM overhead, backup = copy a
+file, deploy = rsync a file. Number of users: 5–30.
 
-## Entscheidung
+## Decision
 
-**PostgreSQL** (Major-Version = die auf Uberspace verfügbare, lokal identisch gepinnt),
-mit `pg_trgm`, `unaccent`, `pgcrypto`.
+**PostgreSQL** (major version = whatever Uberspace has, pinned identically in
+development), with `pg_trgm`, `unaccent` and `pgcrypto`.
 
-## Alternativen
+## Alternatives
 
-**SQLite/libSQL** – ernsthaft erwogen, an drei Punkten gescheitert:
-1. Der Credit-Graph (Signal 8) und die Diskografie-Lücken (Signal 4) sind echte
-   relationale Graph-Abfragen über 30M+ Zeilen
-2. `pg_trgm` ist das Rückgrat des Fuzzy-Matchings; SQLites `spellfix1`/`editdist3` sind
-   kein gleichwertiger Ersatz
-3. Web-Tier und Job-Worker schreiben gleichzeitig; `FOR UPDATE SKIP LOCKED` gibt es nicht
+**SQLite/libSQL** – seriously considered, failed on three points:
+1. The credit graph (signal 8) and the discography gaps (signal 4) are genuine
+   relational graph queries over 30M+ rows
+2. `pg_trgm` is the backbone of the fuzzy matching; SQLite's `spellfix1`/`editdist3` are
+   not an equivalent substitute
+3. The web tier and the job worker write concurrently; there is no
+   `FOR UPDATE SKIP LOCKED`
 
-Wir würden binnen eines Jahres migrieren – dann lieber gleich richtig.
+We would migrate within a year — better to do it properly straight away.
 
-**MariaDB** (Uberspace-Default) – kein `pg_trgm`, schwächere Volltextsuche, kein JSONB.
+**MariaDB** (the Uberspace default) – no `pg_trgm`, weaker full-text search, no JSONB.
 
-## Konsequenzen
+## Consequences
 
-**Leichter:** Fuzzy-Matching, Katalog-Joins, Queue (pg-boss statt Redis), späteres
-`pgvector` für Stil-Adjazenz.
+**Easier:** Fuzzy matching, catalogue joins, the queue (pg-boss instead of Redis), and
+`pgvector` later for style adjacency.
 
-**Schwerer:** Ein Daemon mehr im 1,5-GB-Budget (~250 MB bei `shared_buffers=128MB`).
-Uberspace-spezifische Einrichtung über supervisord. Version wahrscheinlich älter als das
-lokal aktuellste Postgres – deshalb wird lokal auf dieselbe Major gepinnt.
+**Harder:** One more daemon inside the 1.5 GB budget (~250 MB at
+`shared_buffers=128MB`). Uberspace-specific setup through supervisord. The version is
+probably older than the newest Postgres available locally — which is why development
+pins to the same major.
 
-**Ausstiegspfad:** Falls das RAM reißt, siehe Eskalationsliste in `08-DEPLOYMENT.md` §6.
-Ein VPS-Umzug ist vorbereitet (Docker-Image existiert).
+**The way out:** If RAM gives way, see the escalation list in `08-DEPLOYMENT.md` §6. A
+move to a VPS is prepared (a Docker image exists).

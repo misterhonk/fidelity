@@ -1,35 +1,36 @@
-# ADR-004: Ein Node-Prozess für App und Worker
+# ADR-004: One Node process for app and worker
 
-**Status:** **Ersetzt durch ADR-007** · **Datum:** 2026-08-09
+**Status:** **Superseded by ADR-007** · **Date:** 2026-08-09
 
-> **Gegenstandslos.** Es gibt null Serverprozesse. Die Trennung, die zaehlt, verlaeuft
-> jetzt zwischen Main-Thread und Web Worker im Browser (`01-ARCHITEKTUR.md` Abschnitt 2).
+> **Moot.** There are zero server processes. The split that matters now runs between the
+> main thread and the web worker in the browser (`01-ARCHITEKTUR.md`, section 2).
 
-## Kontext
+## Context
 
-Reine Lehre wäre: Web-Tier und Job-Worker als getrennte Prozesse. Uberspace gibt
-**1,5 GB RAM für alles**. Postgres braucht ~250 MB, jeder Node-Prozess ~200–250 MB.
+Pure doctrine would be: web tier and job worker as separate processes. Uberspace gives
+**1.5 GB of RAM for everything**. Postgres needs ~250 MB, each Node process ~200–250 MB.
 
-## Entscheidung
+## Decision
 
-**Ein Nitro-Prozess.** Der pg-boss-Worker startet als Nitro-Plugin in-process.
+**One Nitro process.** The pg-boss worker starts in-process as a Nitro plugin.
 
-## Begründung
+## Reasoning
 
-Der Scan ist **I/O-gebunden bei einem Request pro Sekunde**. Er verbraucht praktisch keine
-CPU und konkurriert nicht mit dem Request-Handling. Ein zweiter Prozess kostete ~200 MB
-für einen Vorteil, den wir bei 5–30 Nutzern nicht messen könnten.
+The scan is **I/O-bound at one request per second**. It uses practically no CPU and does
+not compete with request handling. A second process would cost ~200 MB for a benefit we
+could not measure at 5–30 users.
 
-## Konsequenzen
+## Consequences
 
-**Leichter:** Halbes RAM-Budget, ein supervisord-Service, ein Deploy-Artefakt, ein Logstream.
+**Easier:** Half the RAM budget, one supervisord service, one deployment artefact, one
+log stream.
 
-**Schwerer:** Kein unabhängiges Skalieren. Ein Crash im Worker reißt die Web-App mit
-(Mitigation: Job-Handler in Try/Catch, `autorestart=true`). Ein CPU-intensiver Job – etwa
-der Optimierer bei sehr großen Körben – kann Requests blockieren
-(Mitigation: Kandidaten auf 200 deckeln, Greedy statt exakter Solver).
+**Harder:** No independent scaling. A crash in the worker takes the web app with it
+(mitigation: job handlers in try/catch, `autorestart=true`). A CPU-heavy job — the
+optimiser on very large baskets, say — can block requests (mitigation: cap candidates at
+200, greedy rather than an exact solver).
 
-**Ausstiegspfad:** pg-boss ist ohnehin prozessübergreifend. Der Worker lässt sich mit
-wenigen Zeilen als eigener Entry-Point (`server/worker.mjs`) plus zweitem
-supervisord-Service herauslösen. **Auslöser:** > 50 Nutzer, mehrere parallele Digs,
-oder messbare Request-Latenz während eines Scans.
+**The way out:** pg-boss is cross-process anyway. The worker can be split out in a few
+lines as its own entry point (`server/worker.mjs`) plus a second supervisord service.
+**Trigger:** more than 50 users, several digs in parallel, or measurable request latency
+during a scan.

@@ -1,88 +1,90 @@
-# ADR-008: Optionaler, selbst hostbarer Hub
+# ADR-008: An optional, self-hostable hub
 
-**Status:** Vorgeschlagen (Umsetzung M9) · **Datum:** 2026-08-09
+**Status:** Proposed (built in M9) · **Date:** 2026-08-09
 
-## Kontext
+## Context
 
-ADR-007 hat das Backend gestrichen. Drei Dinge gehen dadurch nicht mehr:
-echte Push-Benachrichtigungen (brauchen zwingend einen Application Server),
-Hintergrund-Watchlist (ein Browser scannt nicht, während er zu ist) und geteilte
-Daten zwischen Nutzern (Horizont-Cache, Versandstaffeln).
+ADR-007 removed the backend. Three things stopped being possible: real push
+notifications (which strictly require an application server), a background watchlist (a
+browser does not scan while it is closed) and data shared between users (a horizon cache,
+shipping tiers).
 
-Die Frage: Lässt sich das als optionales Addon nachrüsten, ohne die Client-Architektur
-wieder aufzuweichen?
+The question: can that be added back as an optional add-on without softening the client
+architecture again?
 
-## Entscheidung
+## Decision
 
-**Ja – als „Hub": ein winziger, selbst hostbarer Dienst, den man konfigurieren kann,
-aber nicht muss.** Ein Feld in den Einstellungen, leer als Default.
+**Yes — as a "hub": a tiny, self-hostable service you may configure but do not have to.**
+One field in the settings, empty by default.
 
-Drei Regeln, die den Entwurf tragen:
+Three rules hold the design up:
 
-1. **Kein Feature setzt einen Hub voraus.** Er beschleunigt, er ermöglicht nicht.
-2. **Der Hub bekommt keinen Discogs-Token.** Alles, was er tut, geht unauthentifiziert
-   oder ganz ohne Discogs.
-3. **Der Hub scannt keine Inventare.** Er hat eine IP – alle Nutzer teilten sich wieder
-   60 req/min. Er pollt nur `num_for_sale` (1 Request statt 100) und weckt den Client.
+1. **No feature requires a hub.** It speeds things up; it does not enable them.
+2. **The hub never gets a Discogs token.** Everything it does works unauthenticated or
+   without Discogs entirely.
+3. **The hub does not scan inventories.** It has one IP — all users would be sharing 60
+   req/min again. It only polls `num_for_sale` (1 request instead of 100) and wakes the
+   client.
 
-## Alternativen
+## Alternatives
 
-**Gar kein Hub** – Push fehlt dauerhaft, jeder Nutzer baut seinen Horizont selbst
-(13 Minuten). Vertretbar, aber unnötig, wenn ein 60-MB-Dienst das löst.
+**No hub at all** – push is permanently missing and every user builds their own horizon
+(13 minutes). Defensible, but needless when a 60 MB service solves it.
 
-**Hub als Pflicht-Backend** – wäre der Rückfall auf den verworfenen Serverentwurf.
+**The hub as a mandatory backend** – that would be a return to the rejected server design.
 
-**Hub als Discogs-Proxy** – ToS-grenzwertig („circumvent rate limits"), macht ihn zum
-Flaschenhals und wirft den größten Vorteil der Client-Architektur weg.
+**The hub as a Discogs proxy** – borderline under the terms of use ("circumvent rate
+limits"), makes it the bottleneck, and throws away the greatest advantage of the client
+architecture.
 
-**Nur Cloudflare Worker** – bequem, aber Vendor-Lock-in. Hono + SQLite läuft überall,
-auch auf Uberspace und dem Homeserver.
+**Cloudflare Workers only** – convenient, but vendor lock-in. Hono + SQLite runs
+anywhere, including Uberspace and a home server.
 
-## Konsequenzen
+## Consequences
 
-**Leichter:** Push und Hintergrund-Wächter werden möglich. Der Horizont-Aufbau schrumpft
-für den zweiten und jeden weiteren Nutzer von 13 Minuten auf Sekunden. Versandstaffeln
-werden zu echtem Crowdsourcing statt Pull Requests.
+**Easier:** Push and a background watcher become possible. Building the horizon shrinks
+from 13 minutes to seconds for the second user and every one after. Shipping tiers become
+real crowdsourcing instead of pull requests.
 
-**Schwerer:** Ein zweites Deployment-Artefakt, ein Cron, eine SQLite-Datei mit Backup.
-Und die Versuchung, Features doch vom Hub abhängig zu machen – dagegen hilft nur
-Disziplin und ein CI-Test, der die App mit leerer `hubUrl` durchspielt.
+**Harder:** A second deployment artefact, a cron job, a SQLite file with a backup. And
+the temptation to let features depend on the hub after all — against which only
+discipline helps, plus a CI test that runs the app through with an empty `hubUrl`.
 
-**Was jetzt schon getan werden muss:** Die drei Ports aus `13-HUB-ADDON.md` §3
-(`HorizonSource`, `ShippingProfileSource`, `WatchService`) samt Fallback-Kette und
-`hubUrl` in den Preferences. Kostet etwa eine Stunde. Ohne sie wäre M9 ein Refactoring
-quer durch den gesamten Worker.
+**What has to be done now:** the three ports from `13-HUB-ADDON.md` §3
+(`HorizonSource`, `ShippingProfileSource`, `WatchService`), their fallback chain, and
+`hubUrl` in the preferences. About an hour's work. Without them M9 would be a refactoring
+right across the worker.
 
-**Ausstiegspfad:** Hub-URL löschen. Die App läuft weiter, als hätte es ihn nie gegeben.
+**The way out:** delete the hub URL. The app carries on as if it had never existed.
 
 
 ---
 
-## Nachtrag 2026-08-10 – der Tresor
+## Addendum 2026-08-10 – the vault
 
-Diese ADR sagt an mehreren Stellen, der Hub halte **nichts Persönliches**. Der Tresor
-scheint das zu brechen: er legt Sammlung, Merkliste, Korb, Händler und Horizont eines
-Nutzers auf den Hub, damit dessen Geräte einander finden.
+This ADR says in several places that the hub holds **nothing personal**. The vault appears
+to break that: it puts a user's collection, shortlist, basket, dealers and horizon on the
+hub so that their devices can find one another.
 
-**Er bricht es nicht, weil der Hub nichts davon lesen kann.** Verschlüsselt wird auf dem
-Gerät — AES-GCM, Schlüssel aus einer Passphrase über 600.000 PBKDF2-Runden. Was in der
-Tabelle `vault` steht, sind vier Felder: `version`, `iv`, `salt`, `cipher`. Der Hub hat
-keinen Schlüssel, keine Route die einen entgegennimmt, und nichts, was aus einem Block
-wieder eine Sammlung macht. Ein Test hält das fest.
+**It does not break it, because the hub cannot read any of it.** Encryption happens on the
+device — AES-GCM, with a key derived from a passphrase over 600,000 PBKDF2 rounds. What
+sits in the `vault` table is four fields: `version`, `iv`, `salt`, `cipher`. The hub has
+no key, no route that would accept one, and nothing that turns a block back into a
+collection. A test holds that in place.
 
-Damit bleibt die Aussage der ADR wahr, nur genauer formuliert: **der Hub hält nichts
-Lesbares.** Für den Betreiber — meistens der Nutzer selbst, manchmal ein Freund mit
-Server — ändert sich dadurch nichts an seinen Pflichten, weil er nichts hat, womit er
-etwas anfangen könnte.
+So the ADR's claim stays true, only stated more precisely: **the hub holds nothing
+readable.** For the operator — usually the user themselves, sometimes a friend with a
+server — nothing about their obligations changes, because they hold nothing they could do
+anything with.
 
-Was weiterhin **nicht** hineingeht, und das sind Tests, keine Absichtserklärungen:
+What still does **not** go in, and these are tests rather than declarations of intent:
 
-- **Der Discogs-Token.** Ein Zugangsschlüssel auf drei Geräten ist dreimal so viel
-  Angriffsfläche. Jedes Gerät meldet sich einmal selbst an (Regel 6).
-- **Digs und Treffer.** Marktplatzdaten sind nach sechs Stunden zu löschen (Regel 4).
-  Preise auf einen Server zu legen, um sie zurückzusynchronisieren, wäre genau das, was
-  diese App zugesagt hat nicht zu tun.
+- **The Discogs token.** A credential on three devices is three times the attack surface.
+  Each device signs in once, itself (rule 6).
+- **Digs and matches.** Marketplace data has to be deleted after six hours (rule 4).
+  Putting prices on a server in order to sync them back would be exactly what this app
+  promised not to do.
 
-**Ausstiegspfad, unverändert:** Ziel auf „Nur dieses Gerät" stellen. Nichts verlässt den
-Browser, und der Block auf dem Hub wird nie wieder gelesen. Wer ihn loswerden will,
-löscht die Zeile — mehr ist es nicht.
+**The way out, unchanged:** set the target to "this device only". Nothing leaves the
+browser, and the block on the hub is never read again. Anyone who wants rid of it deletes
+the row — that is all it is.

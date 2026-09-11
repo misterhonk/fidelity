@@ -1,43 +1,42 @@
-# ADR-003: Drizzle 0.45 gepinnt, nicht 1.0-RC
+# ADR-003: Drizzle 0.45 pinned, not the 1.0 RC
 
-**Status:** **Ersetzt durch ADR-007** · **Datum:** 2026-08-09
+**Status:** **Superseded by ADR-007** · **Date:** 2026-08-09
 
-> **Gegenstandslos.** Kein Server, keine SQL-Datenbank, kein ORM.
-> Dokument bleibt als Entscheidungshistorie erhalten.
+> **Moot.** No server, no SQL database, no ORM. Kept as decision history.
 
-## Kontext
+## Context
 
-Wir schreiben viel SQL-nahen Code: `pg_trgm`-Similarity, CTEs für Diskografie-Lücken,
-Array-Operatoren, JSONB-Aggregation. Ein ORM, das sich dazwischendrängt, ist ein Gegner.
+We write a lot of SQL-adjacent code: `pg_trgm` similarity, CTEs for discography gaps,
+array operators, JSONB aggregation. An ORM that pushes itself in between is an opponent.
 
-Drizzle passt fachlich am besten – aber **1.0 ist seit über 18 Monaten im RC**
-(beta.2 im Februar 2025, immer noch RC im August 2026), und stable ist weiterhin die
-0.45-Linie mit letztem Release im März 2026. Das ist ein Signal.
+Drizzle fits the domain best — but **1.0 has been in RC for over 18 months** (beta.2 in
+February 2025, still RC in August 2026), and stable is still the 0.45 line, last released
+in March 2026. That is a signal.
 
-## Entscheidung
+## Decision
 
-**Drizzle ORM 0.45.x, hart gepinnt.** Von Renovate ausgenommen. Upgrades nur manuell
-und bewusst.
+**Drizzle ORM 0.45.x, hard-pinned.** Excluded from Renovate. Upgrades only by hand and
+deliberately.
 
-## Alternativen
+## Alternatives
 
-**Drizzle 1.0-rc** – nein. Ein Projekt, das man behalten will, baut nicht auf einem RC,
-der seit anderthalb Jahren RC ist.
+**Drizzle 1.0-rc** – no. A project you intend to keep is not built on an RC that has
+been an RC for eighteen months.
 
-**Prisma 7.9** – seit 7.0 ohne Rust-Query-Engine (was die Docker-/Bundling-Schmerzen
-beseitigt hat) und mit stetiger Release-Kadenz. Verloren wegen SQL-Transparenz: bei
-`pg_trgm`- und CTE-lastigen Queries kämpft man gegen Prisma.
+**Prisma 7.9** – since 7.0 without the Rust query engine (which removed the
+Docker/bundling pain) and on a steady release cadence. Lost on SQL transparency: with
+`pg_trgm`- and CTE-heavy queries you end up fighting Prisma.
 
-**Kysely 0.29** – reiner typisierter Query-Builder, keine Migrations-Meinung. Bleibt
-der Fallback.
+**Kysely 0.29** – a purely typed query builder with no opinion about migrations. Remains
+the fallback.
 
-## Konsequenzen
+## Consequences
 
-**Leichter:** Rohes SQL da, wo es hingehört. Kein Abstraktionskampf.
+**Easier:** Raw SQL where it belongs. No fight with an abstraction.
 
-**Schwerer:** Wir sitzen möglicherweise auf einer stagnierenden Linie.
+**Harder:** We may be sitting on a stagnating line.
 
-**Ausstiegspfad:** Weil die Query-Logik ohnehin SQL-nah geschrieben ist, wäre eine
-Migration zu Kysely überschaubar – im Wesentlichen Schema-Definition und Migrations-Tooling.
-**Auslöser für eine Neubewertung:** Drizzle 1.0 geht GA, oder die 0.45-Linie bekommt
-6 Monate lang kein Sicherheitsupdate.
+**The way out:** Because the query logic is written close to SQL anyway, migrating to
+Kysely would be manageable — essentially schema definitions and migration tooling.
+**Trigger for a re-evaluation:** Drizzle 1.0 goes GA, or the 0.45 line goes six months
+without a security update.

@@ -1,85 +1,85 @@
-# ADR-012 – Hörprobe: eine benannte Ausnahme vom Datenschutzversprechen
+# ADR-012 – Audio preview: one named exception to the privacy promise
 
-**Status:** Akzeptiert
-**Datum:** 2026-09-10
+**Status:** Accepted
+**Date:** 2026-09-10
 
-## Kontext
+## Context
 
-Der Stapel (M15) soll eine Hörprobe zeigen. Die Daten dafür liegen bereits da:
-**am 2026-09-10 gemessen** liefert `GET /releases/{id}` ein Feld `videos[]` mit `uri`,
-`title` und `duration` — bei Release 1 vierzehn Einträge. Der Nachschlag über die
-Top-Treffer holt genau diesen Endpunkt ohnehin (`worker/dig/enrich.ts`), die Adressen
-kämen also ohne einen zusätzlichen Request mit, genau wie die Pressing-Felder.
+The stack (M15) is meant to offer an audio preview. The data for it is already there:
+**measured on 2026-09-10**, `GET /releases/{id}` returns a `videos[]` field with `uri`,
+`title` and `duration` — fourteen entries for release 1. The follow-up lookup over the top
+matches fetches exactly this endpoint anyway (`worker/dig/enrich.ts`), so the addresses
+would come along without an extra request, just like the pressing fields.
 
-Stichprobe über sieben Releases: fünf hatten Videos (14, 17, 9, 1, 1), zwei keine. Bei
-sieben Stück ist das ein Anhaltspunkt und keine Quote.
+Sample over seven releases: five had videos (14, 17, 9, 1, 1), two had none. At seven that
+is an indication, not a rate.
 
-**Discogs hat keine andere Tonquelle.** `videos[]` sind YouTube-Adressen, und es gibt
-keinen zweiten Weg — keine Vorschau-Schnipsel, keine Audiodateien, nichts. Wer eine
-Hörprobe will, holt sie bei Google oder gar nicht.
+**Discogs has no other source of sound.** `videos[]` are YouTube addresses, and there is no
+second route — no preview snippets, no audio files, nothing. If you want an audio preview,
+you get it from Google or not at all.
 
-Und dagegen steht ein Satz, den die App wörtlich verspricht (`app/i18n/legal.ts`):
+And against that stands a sentence the app promises verbatim (`app/i18n/legal.ts`):
 
-> „Fidelity hat keinen Server. Es gibt keine Stelle, an der deine Daten verarbeitet werden
-> könnten – alles liegt in der Datenbank deines Browsers und verlässt dieses Gerät nicht."
+> "Fidelity has no server. There is no place where your data could be processed — all of it
+> lives in your browser's database and does not leave this device."
 
-**Was ein Embed daran tatsächlich bricht, und was nicht.** Es lädt keine Sammlung
-irgendwohin hoch — Regal, Wantlist, Token und Treffer bleiben, wo sie sind. Was Google
-erfährt, ist die IP-Adresse und welches Video, also welche Platte, gerade angesehen wird.
-Das ist weniger, als der Satz befürchten lässt, und mehr als null. Der Satz stimmt danach
-nicht mehr ohne Zusatz, und **ein Versprechen, das nur fast stimmt, ist gebrochen.**
+**What an embed actually breaks about that, and what it does not.** It does not upload a
+collection anywhere — shelf, wantlist, token and matches stay where they are. What Google
+learns is the IP address and which video, and therefore which record, is being watched.
+That is less than the sentence makes you fear, and more than nothing. Afterwards the
+sentence is no longer true without a qualifier, and **a promise that is only nearly true is
+broken.**
 
-## Entscheidung
+## Decision
 
-**Die Hörprobe ist erlaubt, standardmäßig aus, und nimmt vorher keinen Kontakt auf.**
+**The audio preview is allowed, off by default, and makes no contact before it is asked.**
 
-Bedingungen, unter denen die Ausnahme gilt — dieselbe Form wie ADR-009:
+The conditions under which the exception holds — the same shape as ADR-009:
 
-1. **Kein Feature hängt daran.** Der Stapel funktioniert ohne Ton vollständig. Fällt
-   YouTube weg, ändert sich ein Knopf und sonst nichts.
-2. **Standardmäßig aus.** Ein Schalter pro Gerät, in den Einstellungen, mit einem Satz,
-   der sagt, was passiert — nicht mit dem Wort „Datenschutz" und einem Haken.
-3. **Kein Byte an Google, bevor jemand es will.** Der `<iframe>` entsteht **erst beim
-   ersten bewussten Tippen**, nicht beim Zeichnen einer Karte. Wer den Schalter nie
-   umlegt, hat auch nie eine Verbindung zu Google aufgebaut — das ist der Unterschied
-   zwischen einer Ausnahme und einer Hintertür.
-4. **Danach ein Spieler, der mitwandert.** Nach dem ersten Tippen bleibt eine
-   Player-Instanz stehen und bekommt je Karte ein `loadVideoById()`. Das ist zugleich der
-   einzige Weg, der überhaupt funktioniert: Browser verlangen für Ton eine Geste, und
-   diese eine Geste trägt dann durch den Stapel. Ein Autoplay auf Karte eins gibt es
-   nicht, in keinem Browser, und keine Zeile Code ändert das.
-5. **`youtube-nocookie.com`**, und dazu die Wahrheit: das verhindert Cookies vor dem
-   Abspielen, nicht die Anfrage selbst. Die IP sieht Google trotzdem.
-6. **Die Datenschutzseite bekommt einen eigenen Absatz.** Das Versprechen wird geändert,
-   nicht still gebrochen. Der Absatz nennt beim Namen, wer was erfährt.
-7. **Eigener Chunk.** Wer den Stapel nie öffnet, zahlt nichts dafür (Regel 7).
-8. **Der Ton hängt an der Platte, nicht am Stück.** `videos[]` gehört zum Release; bei
-   einer Compilation ist das erste Video nicht zwingend das, was auf dem Cover steht. Der
-   Bildschirm nennt den Titel, den er spielt, statt so zu tun, als wäre es *die* Platte.
+1. **No feature depends on it.** The stack works completely without sound. If YouTube goes
+   away, one button changes and nothing else.
+2. **Off by default.** One switch per device, in the settings, with a sentence that says
+   what happens — not with the word "privacy" and a checkbox.
+3. **Not a byte to Google before somebody wants it.** The `<iframe>` is created **only on
+   the first deliberate tap**, not when a card is drawn. Anyone who never flips the switch
+   has never opened a connection to Google either — that is the difference between an
+   exception and a back door.
+4. **After that, one player that travels along.** After the first tap a player instance
+   stays put and gets a `loadVideoById()` per card. That also happens to be the only route
+   that works at all: browsers require a gesture for sound, and this one gesture then
+   carries through the stack. There is no autoplay on card one, in any browser, and no line
+   of code changes that.
+5. **`youtube-nocookie.com`**, together with the truth: that prevents cookies before
+   playback, not the request itself. Google sees the IP either way.
+6. **The privacy page gets a paragraph of its own.** The promise is changed, not quietly
+   broken. The paragraph names who learns what.
+7. **Its own chunk.** Anyone who never opens the stack pays nothing for it (rule 7).
+8. **The sound belongs to the record, not to the track.** `videos[]` belongs to the release;
+   on a compilation the first video is not necessarily what is on the cover. The screen
+   names the title it is playing rather than pretending it is *the* record.
 
-## Alternativen
+## Alternatives
 
-**Gar kein Ton.** Sauber und das Versprechen bleibt unangetastet. Verworfen, weil eine
-Hörprobe bei einer Platte, die man nicht kennt, den Unterschied zwischen „sieht
-interessant aus" und „die will ich" ausmacht — und weil die Daten ohne Zusatzkosten schon
-da sind. Eine Grenze zu ziehen, die niemandem nützt, ist keine Vorsicht.
+**No sound at all.** Clean, and the promise stays untouched. Rejected, because for a record
+you do not know an audio preview is the difference between "looks interesting" and "I want
+that" — and because the data is already there at no extra cost. Drawing a line that helps
+nobody is not caution.
 
-**Nur hinausverlinken.** Kein Embed, kein Google auf unserer Seite; der Nutzer geht
-selbst hin. Ehrlich, und im Wischstapel unbenutzbar: wer für jede Hörprobe die App
-verlässt, wischt nicht mehr. Bleibt als das, was ohne den Schalter passiert.
+**Only link out.** No embed, no Google on our page; the user goes there themselves. Honest,
+and unusable in a swipe stack: somebody who leaves the app for every preview stops swiping.
+Stays as what happens without the switch.
 
-**Ton selbst ausliefern.** Rechtlich unmöglich und technisch nicht vorhanden. Steht hier
-nur, damit niemand es ein zweites Mal erwägt.
+**Serve the audio ourselves.** Legally impossible and technically non-existent. Written
+down only so that nobody considers it a second time.
 
-## Folgen
+## Consequences
 
-**Leichter:** Der Stapel bekommt das, was ihn von einer Bildergalerie unterscheidet.
-Kostet keinen zusätzlichen Discogs-Request, weil die Adressen im Nachschlag mitkommen.
+**Easier:** The stack gets what distinguishes it from a picture gallery. Costs no extra
+Discogs request, because the addresses come along with the follow-up lookup.
 
-**Schwerer:** Die Datenschutzseite ist ab jetzt nicht mehr in einem Satz zu sagen. Das ist
-der eigentliche Preis, und er wird bewusst bezahlt.
+**Harder:** The privacy page can no longer be said in one sentence. That is the real price,
+and it is paid deliberately.
 
-**Ausstieg:** Schalter aus — und es gibt keinen Kontakt zu Google, nicht weniger, sondern
-keinen. Ganz zurückbauen heißt: einen Chunk löschen, einen Absatz aus der
-Datenschutzseite streichen, `videos[]` aus dem Schema nehmen. Nichts davon berührt die
-Daten, die jemand schon hat.
+**The way out:** switch off — and there is no contact with Google, not less but none.
+Removing it entirely means: delete a chunk, strike a paragraph from the privacy page, take
+`videos[]` out of the schema. None of that touches data anyone already has.

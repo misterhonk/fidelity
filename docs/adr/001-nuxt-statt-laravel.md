@@ -1,43 +1,43 @@
-# ADR-001: Nuxt/Node statt Laravel/PHP
+# ADR-001: Nuxt/Node instead of Laravel/PHP
 
-**Status:** Akzeptiert, teilweise ersetzt durch **ADR-007** · **Datum:** 2026-08-09
+**Status:** Accepted, partly superseded by **ADR-007** · **Date:** 2026-08-09
 
-> Die Wahl von Nuxt/Vue bleibt gueltig. Die Begruendung ueber Nitro als Server-Runtime
-> ist ueberholt: Fidelity hat kein Backend mehr, Nuxt laeuft im SPA-Modus (`ssr: false`)
-> und wird statisch generiert. Siehe ADR-007.
+> The choice of Nuxt/Vue still holds. The reasoning that leaned on Nitro as a server
+> runtime is obsolete: Fidelity has no backend any more, Nuxt runs in SPA mode
+> (`ssr: false`) and is generated statically. See ADR-007.
 
-## Kontext
+## Context
 
-Martin arbeitet beruflich hauptsächlich mit PHP (Shopware), JavaScript, Vue, SCSS. Der
-Stack war explizit freigestellt. Die Arbeitslast ist ungewöhnlich: tausende paginierte,
-rate-limitierte externe API-Aufrufe in Hintergrundjobs, plus eine datendichte, interaktive UI.
+Martin works mainly with PHP (Shopware), JavaScript, Vue and SCSS. The stack was
+explicitly left open. The workload is unusual: thousands of paginated, rate-limited
+external API calls in background jobs, plus a dense, interactive UI.
 
-## Entscheidung
+## Decision
 
-**Nuxt 4.5 auf Node 22.** Eine Sprache für Front- und Backend.
+**Nuxt 4.5 on Node 22.** One language for front and back.
 
-## Alternativen
+## Alternatives
 
-**Laravel 13 + Inertia/Vue** – ernsthaft erwogen und in einem Punkt objektiv überlegen:
-Laravels Queue-Story ist die beste in jedem Web-Framework. `Bus::batch()` mit Fortschritt
-und `catch()`, `RateLimited`- und `WithoutOverlapping`-Middleware (exakt für „60 Requests
-pro Minute gegen eine externe API" gebaut), Horizon für Queue-Observability, Octane.
-Verworfen, weil zwei Sprachen im Projekt einen dauerhaften Kontextwechsel bedeuten und
-Vue-Kenntnis auf beiden Seiten mehr wiegt als eine bessere Queue-Bibliothek.
+**Laravel 13 + Inertia/Vue** – seriously considered, and objectively better in one
+respect: Laravel's queue story is the best in any web framework. `Bus::batch()` with
+progress and `catch()`, `RateLimited` and `WithoutOverlapping` middleware (built for
+exactly "60 requests per minute against an external API"), Horizon for queue
+observability, Octane. Rejected because two languages in one project mean a permanent
+context switch, and knowing Vue on both sides weighs more than a better queue library.
 
-**Next.js 16** – exzellent, aber React + Vercel-Gravitation. Kein Grund, umzulernen.
-**SvelteKit** – schlank und schön, aber Ökosystem-Tausch ohne Gegenwert.
-**Astro** – falsche Form; das hier ist eine App, keine Dokumentseite.
+**Next.js 16** – excellent, but React plus Vercel gravity. No reason to relearn.
+**SvelteKit** – lean and lovely, but an ecosystem swap with nothing in return.
+**Astro** – the wrong shape; this is an app, not a documentation site.
 
-## Konsequenzen
+## Consequences
 
-**Leichter:** Ein `pnpm install`, ein Typsystem, geteilte Zod-Schemas zwischen Client und
-Server, ein Deploy-Artefakt. Nitros `.output` ist self-contained – auf Uberspace ein
-riesiger Vorteil.
+**Easier:** One `pnpm install`, one type system, Zod schemas shared between client and
+server, one deployment artefact. Nitro's `.output` is self-contained — on Uberspace that
+is an enormous advantage.
 
-**Schwerer:** Wir bauen Job-Infrastruktur selbst nach, die Laravel mitbringt.
-**Gegenmaßnahme:** Laravels *Design* stehlen – Rate-Limiter-Middleware, Batch mit
-Fortschritt, Overlap-Lock – nur auf pg-boss statt Horizon.
+**Harder:** We rebuild job infrastructure that Laravel brings along.
+**Countermeasure:** steal Laravel's *design* — rate-limiter middleware, batch with
+progress, overlap lock — just on pg-boss rather than Horizon.
 
-**Ausstiegspfad:** Die Scoring-Engine ist eine reine Funktion und in jeder Sprache
-portierbar. Der teure Teil wäre der Discogs-Client, nicht die Fachlogik.
+**The way out:** The scoring engine is a pure function and portable to any language. The
+expensive part would be the Discogs client, not the domain logic.

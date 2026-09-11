@@ -1,17 +1,17 @@
-# ADR-007: Reine Client-PWA ohne Backend
+# ADR-007: A client-only PWA with no backend
 
-**Status:** Akzeptiert · **Datum:** 2026-08-09
-**Ersetzt Teile von:** ADR-001, ADR-002, ADR-003, ADR-004
+**Status:** Accepted · **Date:** 2026-08-09
+**Supersedes parts of:** ADR-001, ADR-002, ADR-003, ADR-004
 
-## Kontext
+## Context
 
-Ziel: minimaler Ressourcenverbrauch. Der Serverentwurf (Nuxt SSR + PostgreSQL + pg-boss
-auf Uberspace) brauchte ~700 MB RAM, ein Deployment, Backups, eine Datenbank und
-verteilte ein **geteiltes** Rate-Limit-Budget auf alle Nutzer.
+The goal: minimal resource use. The server design (Nuxt SSR + PostgreSQL + pg-boss on
+Uberspace) needed ~700 MB of RAM, a deployment, backups, a database — and it split a
+**shared** rate-limit budget across all users.
 
-Die Frage war: Geht das komplett im Browser?
+The question was: can this run entirely in the browser?
 
-## Verifiziert am 2026-08-09 gegen `api.discogs.com`
+## Verified on 2026-08-09 against `api.discogs.com`
 
 ```
 access-control-allow-origin:  *
@@ -20,88 +20,85 @@ access-control-allow-headers: Content-Type, authorization, User-Agent,
 access-control-expose-headers: Location
 ```
 
-| Test | Ergebnis |
+| Test | Result |
 |---|---|
-| GET mit `Origin`-Header | **200**, `allow-origin: *` |
-| Preflight mit `authorization` | **204**, Header erlaubt |
-| `/users/juno_records/inventory` mit **Safari-User-Agent** | **200**, 43.223 Listings |
-| Preflight `PUT /users/{u}/wants/{id}` | erlaubt `DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT` |
-| Preflight `POST /oauth/access_token` | **500**, nur `HEAD, OPTIONS` |
-| `x-discogs-ratelimit-*` in `expose-headers` | ❌ **nicht enthalten** |
+| GET with an `Origin` header | **200**, `allow-origin: *` |
+| Preflight with `authorization` | **204**, header allowed |
+| `/users/juno_records/inventory` with a **Safari user agent** | **200**, 43,223 listings |
+| Preflight `PUT /users/{u}/wants/{id}` | allows `DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT` |
+| Preflight `POST /oauth/access_token` | **500**, only `HEAD, OPTIONS` |
+| `x-discogs-ratelimit-*` in `expose-headers` | ❌ **not present** |
 
-## Entscheidung
+## Decision
 
-**Fidelity wird eine reine Client-PWA.** Statische Dateien, kein Backend, keine Datenbank,
-kein Deployment-Prozess. Der Browser spricht direkt mit `api.discogs.com`.
+**Fidelity becomes a client-only PWA.** Static files, no backend, no database, no
+deployment process. The browser talks to `api.discogs.com` directly.
 
-**Authentifizierung über Personal Access Token.** Der Nutzer erzeugt sich unter
-`discogs.com/settings/developers` selbst einen Token und trägt ihn in die App ein.
-Der Token liegt in IndexedDB auf seinem Gerät und verlässt es nie.
+**Authentication through a Personal Access Token.** The user creates one for themselves at
+`discogs.com/settings/developers` and enters it into the app. The token lives in IndexedDB
+on their device and never leaves it.
 
-> **OAuth 1.0a ist keine Option mehr** – `POST /oauth/access_token` ist per CORS gesperrt.
-> Das ist kein Verlust: Ein PAT liest genau die Daten seines Besitzers, und genau das
-> braucht jeder Nutzer. Der ursprüngliche Ausschlussgrund („ein PAT liest nur die Daten
-> seines eigenen Besitzers") galt nur für eine Server-App, die viele Nutzer bedient.
+> **OAuth 1.0a is no longer an option** — `POST /oauth/access_token` is blocked by CORS.
+> That is no loss: a PAT reads exactly its owner's data, and that is precisely what every
+> user needs. The original reason for ruling it out ("a PAT only reads its own owner's
+> data") applied only to a server app serving many users.
 
-## Der eigentliche Gewinn: das Rate-Limit
+## The real prize: the rate limit
 
-Discogs drosselt **pro Quell-IP**. Bei einer Server-App teilen sich alle Nutzer *ein*
-Budget von 60 Requests/Minute – auf Uberspace sogar noch mit fremden Kunden auf demselben
-Host. Im Browser hat **jeder Nutzer sein eigenes Budget**.
+Discogs throttles **per source IP**. In a server app all users share *one* budget of 60
+requests a minute — on Uberspace even with other customers on the same host. In the
+browser **every user has their own budget**.
 
 ```
-Server-Architektur:   30 Nutzer  →  1 × 60 req/min   →  Warteschlange, Staffelung
-Client-Architektur:   30 Nutzer  →  30 × 60 req/min  →  keine Warteschlange
+Server architecture:   30 users  →  1 × 60 req/min   →  a queue, staggering
+Client architecture:   30 users  →  30 × 60 req/min  →  no queue
 ```
 
-Das löst die härteste Skalierungsgrenze des Projekts – ersatzlos.
+That removes the project's hardest scaling limit outright.
 
-## Alternativen
+## Alternatives
 
-**Server-Architektur (der ursprüngliche Entwurf)** – gibt geteilten Horizont,
-Hintergrund-Watchlist und echte Push-Benachrichtigungen. Kostet dafür ~700 MB RAM,
-Betrieb, Backups, DSGVO-Pflichten und das geteilte Rate-Limit. Verworfen: das Verhältnis
-stimmt für 5–30 Nutzer nicht.
+**The server architecture (the original design)** – gives a shared horizon, a background
+watchlist and real push notifications. It costs ~700 MB of RAM, operations, backups, GDPR
+obligations and the shared rate limit. Rejected: the ratio does not work for 5–30 users.
 
-**Hybrid (statische PWA + winziger Push-Dienst)** – bleibt als **additive** Ausbaustufe
-offen, siehe §„Ausstiegspfad". Nicht jetzt.
+**Hybrid (static PWA + a tiny push service)** – stays open as an **additive** step, see
+"The way out". Not now.
 
-**Browser-Extension** – hätte den User-Agent frei setzbar gemacht. Verworfen: Store-Review,
-kein iOS, schlechtere Installierbarkeit. Der Test zeigt ohnehin, dass Discogs
-Browser-User-Agents akzeptiert.
+**A browser extension** – would have made the user agent settable. Rejected: store review,
+no iOS, worse installability. The test shows Discogs accepts browser user agents anyway.
 
-## Konsequenzen
+## Consequences
 
-**Leichter**
+**Easier**
 
-- Kein Server, keine Datenbank, kein ORM, keine Job-Queue, kein Deployment, keine Backups
-- Hosting = statische Dateien. Uberspace-Docroot, Cloudflare Pages, GitHub Pages – gratis
-- **Pro Nutzer ein volles Rate-Limit-Budget**
-- DSGVO wird trivial: es gibt keinen Verantwortlichen für fremde Daten, weil keine fremden
-  Daten irgendwo liegen. Kein Auftragsverarbeiter, kein Token auf fremden Servern
-- Offline-Fähigkeit fällt praktisch ab – die Daten liegen ohnehin lokal
-- Rechenlast trägt das Endgerät, und jedes Handy ist stärker als der Uberspace-Account
+- No server, no database, no ORM, no job queue, no deployment, no backups
+- Hosting = static files. An Uberspace docroot, Cloudflare Pages, GitHub Pages — free
+- **A full rate-limit budget per user**
+- GDPR becomes trivial: there is no controller for anyone else's data, because nobody
+  else's data is stored anywhere. No processor, no token on someone else's server
+- Offline capability falls out for free — the data is local anyway
+- The device does the computing, and every phone is stronger than the Uberspace account
 
-**Schwerer**
+**Harder**
 
-| Verlust | Ersatz |
+| Loss | Replacement |
 |---|---|
-| **Keine Push-Benachrichtigungen** – Web Push braucht einen Application Server | Beim Öffnen prüfen + Badge-API. Ein „seit deinem letzten Besuch"-Banner |
-| **Keine nächtlichen Watchlist-Scans** – Periodic Background Sync ist Chromium-only und unzuverlässig | Watchlist-Prüfung beim App-Start, gestaffelt im Hintergrund-Worker |
-| **Rate-Limit-Header für JS unsichtbar** (`expose-headers` listet nur `Location`) | Konservativ blind fahren: 1 Request/1,2 s, exponentieller Backoff auf 429 (der **Status** ist lesbar) |
-| **Horizont wird nicht geteilt** – jeder Nutzer expandiert selbst | ~12 Minuten einmalig, mit eigenem Budget. Kein echtes Problem |
-| **Versandstaffeln nicht crowdsourcebar** | Als `shipping-profiles.json` im Repo, per Pull Request gepflegt, mit der App ausgeliefert |
-| **Digs nicht per Link teilbar** | Export als JSON-Datei |
-| **iOS räumt Daten nach ~7 Tagen Inaktivität ab** – außer bei installierten Home-Screen-Apps | Installation aktiv bewerben; der Horizont ist ohnehin reproduzierbar |
-| **Kein User-Agent setzbar** – `fetch()` verbietet den Header | Verifiziert unkritisch: Discogs akzeptiert Browser-UAs. **In M1 als erstes gegenprüfen.** |
+| **No push notifications** – Web Push needs an application server | Check on opening + the Badging API. A "since your last visit" banner |
+| **No nightly watchlist scans** – Periodic Background Sync is Chromium-only and unreliable | Watchlist check at app start, staggered in the background worker |
+| **Rate-limit headers invisible to JS** (`expose-headers` lists only `Location`) | Drive blind and conservatively: 1 request per 1.2 s, exponential backoff on 429 (the **status** is readable) |
+| **The horizon is not shared** – every user expands their own | ~12 minutes once, on their own budget. Not a real problem |
+| **Shipping tiers cannot be crowdsourced** | As `shipping-profiles.json` in the repository, maintained by pull request, shipped with the app |
+| **Digs cannot be shared by link** | Export as a JSON file |
+| **iOS clears data after ~7 days of inactivity** – except for installed home-screen apps | Promote installation actively; the horizon is reproducible anyway |
+| **No user agent can be set** – `fetch()` forbids the header | Verified harmless: Discogs accepts browser user agents. **Check this first in M1.** |
 
-**Ausstiegspfad**
+**The way out**
 
-Die Trennlinie ist sauber: Die App spricht mit einem `DiscogsClient`-Interface und einem
-`Store`-Interface. Beide lassen sich später gegen eine Server-Implementierung tauschen,
-ohne dass die Matching-Engine oder die UI davon etwas merkt.
+The dividing line is clean: the app talks to a `DiscogsClient` interface and a `Store`
+interface. Both can later be swapped for a server implementation without the matching
+engine or the UI noticing.
 
-Ein **Cloudflare Worker** (kostenlos bis 100.000 Requests/Tag) könnte später additiv
-dazukommen – ausschließlich für Push und nächtliche Watchlist-Läufe, nicht für das
-Scannen. **Auslöser:** Push wird vermisst, oder die Nutzerzahl geht in den dreistelligen
-Bereich.
+A **Cloudflare Worker** (free up to 100,000 requests a day) could be added later,
+additively — purely for push and nightly watchlist runs, not for scanning.
+**Trigger:** push is missed, or the number of users reaches the hundreds.

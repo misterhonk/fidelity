@@ -1,47 +1,46 @@
-# ADR-006: Händlerzentriert statt wantlistzentriert
+# ADR-006: Dealer-centric rather than wantlist-centric
 
-**Status:** Akzeptiert · **Datum:** 2026-08-09
+**Status:** Accepted · **Date:** 2026-08-09
 
-## Kontext
+## Context
 
-Jedes existierende Tool (Waxrunner, Wantlister, discogs_alert, discogs-market-monitor)
-startet bei der **Wantlist** und sucht sie über alle Händler. Das ist der offensichtliche
-Ansatz.
+Every existing tool (Waxrunner, Wantlister, discogs_alert, discogs-market-monitor) starts
+at the **wantlist** and searches it across all dealers. That is the obvious approach.
 
-## Entscheidung
+## Decision
 
-Wir starten beim **Händler** und der **Sammlung**, nicht bei der Wantlist.
+We start at the **dealer** and the **collection**, not at the wantlist.
 
-## Die zwei Gründe
+## The two reasons
 
-### 1. Technisch: Es gibt keinen Listings-by-Release-Endpunkt
+### 1. Technical: there is no listings-by-release endpoint
 
-„Wer verkauft Release X?" ist über die API **nicht beantwortbar**:
+"Who sells release X?" is **not answerable** through the API:
 
 - `GET /marketplace/listings?release_id=…` → 405
-- `GET /marketplace/search?release_id=…` → 401, undokumentiert, nicht supported
+- `GET /marketplace/search?release_id=…` → 401, undocumented, not supported
 
-**Deshalb scrapen alle wantlistzentrierten Tools die Website** – mit
-TLS-Fingerprint-Spoofing gegen Cloudflare. Das ist ein ToS-Verstoß und bricht regelmäßig.
+**That is why every wantlist-centric tool scrapes the website** — with TLS fingerprint
+spoofing against Cloudflare. It breaches the terms of use and it breaks regularly.
 
-`GET /users/{username}/inventory` ist dagegen **vollständig dokumentiert und öffentlich**.
-Unser Ansatz läuft auf dem supported Pfad. Das ist ein struktureller Haltbarkeitsvorteil.
+`GET /users/{username}/inventory`, by contrast, is **fully documented and public**. Our
+approach runs on the supported path. That is a structural durability advantage.
 
-### 2. Produktlich: Die Wantlist ist die falsche Frage
+### 2. Product: the wantlist is the wrong question
 
-Eine Wantlist enthält, was du schon weißt. Ein guter Verkäufer sagt dir, was du **noch
-nicht** weißt. Der ganze Wert liegt in dem, was die Sammlung über den Geschmack verrät –
-und nichts davon steht in der Wantlist.
+A wantlist contains what you already know. A good seller tells you what you do **not**
+know yet. All the value sits in what the collection reveals about taste — and none of
+that is in the wantlist.
 
-## Konsequenzen
+## Consequences
 
-**Leichter:** ToS-sauber, robust gegen Cloudflare, und das Produkt landet in einer
-Positionierung, die gerade leer steht (siehe Wettbewerbsmatrix in `00-KONZEPT.md`).
+**Easier:** Clean under the terms of use, robust against Cloudflare, and the product
+lands in a position that happens to be vacant (see the competitive matrix in
+`00-KONZEPT.md`).
 
-**Schwerer:** Der Nutzer muss einen Händler benennen. Es gibt kein „such alles ab".
-**Mitigation:** Händlervorschläge aus Discogs' eigener `/sell/mywants`-Übersicht, aus
-bereits gescannten Händlern mit hoher Affinity, und aus den Händlern, bei denen der Nutzer
-schon gekauft hat.
+**Harder:** The user has to name a dealer. There is no "search everything".
+**Mitigation:** dealer suggestions from Discogs' own `/sell/mywants` overview, from
+already-scanned dealers with high affinity, and from the dealers the user has bought from.
 
-**Bewusst nicht gebaut:** Multi-Händler-Suche über den gesamten Marktplatz. Ginge nur
-über Scraping. Kommt nicht in Frage.
+**Deliberately not built:** multi-dealer search across the whole marketplace. It would
+only work by scraping. Out of the question.

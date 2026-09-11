@@ -1,41 +1,41 @@
 # Architecture Decision Records
 
-Kurze Notizen zu Entscheidungen, die schwer rückgängig zu machen sind.
+Short notes on decisions that are hard to undo.
 
-**Vorlage:**
+**Template:**
 
 ```markdown
-# ADR-NNN: <Titel>
+# ADR-NNN: <Title>
 
-**Status:** Vorgeschlagen | Akzeptiert | Ersetzt durch ADR-XXX
-**Datum:** YYYY-MM-DD
+**Status:** Proposed | Accepted | Superseded by ADR-XXX
+**Date:** YYYY-MM-DD
 
-## Kontext
-Was ist die Situation? Welche Zwänge gelten?
+## Context
+What is the situation? What constraints apply?
 
-## Entscheidung
-Was wird gemacht?
+## Decision
+What is being done?
 
-## Alternativen
-Was wurde erwogen und warum verworfen?
+## Alternatives
+What was considered, and why was it rejected?
 
-## Konsequenzen
-Was wird dadurch leichter, was schwerer? Was ist der Ausstiegspfad?
+## Consequences
+What gets easier, what gets harder? What is the way out?
 ```
 
-| ADR | Titel | Status |
+| ADR | Title | Status |
 |---|---|---|
-| [007](007-client-only-pwa.md) | **Reine Client-PWA ohne Backend** | **Akzeptiert** |
-| [011](011-fidelity-schreibt-zurueck.md) | Schreibzugriffe auf die eigene Sammlung | Akzeptiert |
-| [010](010-englisch-als-grundsprache.md) | Englisch als Grundsprache | Akzeptiert |
-| [009](009-haendler-import.md) | Händler-Import über `/friends` | Akzeptiert, standardmäßig aus |
-| [008](008-optionaler-hub.md) | Optionaler, selbst hostbarer Hub | Vorgeschlagen (M9) |
-| [006](006-haendler-zuerst.md) | Händlerzentriert statt wantlistzentriert | Akzeptiert |
-| [005](005-katalog-aus-dumps.md) | Bedarfsgesteuerter Horizont statt Volldump | Akzeptiert |
-| [001](001-nuxt-statt-laravel.md) | Nuxt/Vue statt Laravel/PHP | Akzeptiert, tlw. ersetzt von 007 |
-| [002](002-postgres-statt-sqlite.md) | PostgreSQL statt SQLite | ersetzt von 007 |
-| [003](003-drizzle-gepinnt.md) | Drizzle 0.45 gepinnt | ersetzt von 007 |
-| [004](004-ein-prozess.md) | Ein Node-Prozess für App und Worker | ersetzt von 007 |
+| [007](007-client-only-pwa.md) | **Client-only PWA, no backend** | **Accepted** |
+| [011](011-fidelity-schreibt-zurueck.md) | Writing back to your own collection | Accepted |
+| [010](010-englisch-als-grundsprache.md) | English as the base language | Accepted |
+| [009](009-haendler-import.md) | Dealer import via `/friends` | Accepted, off by default |
+| [008](008-optionaler-hub.md) | An optional, self-hostable hub | Proposed (M9) |
+| [006](006-haendler-zuerst.md) | Dealer-centric rather than wantlist-centric | Accepted |
+| [005](005-katalog-aus-dumps.md) | A horizon built on demand instead of a full dump | Accepted |
+| [001](001-nuxt-statt-laravel.md) | Nuxt/Vue instead of Laravel/PHP | Accepted, partly superseded by 007 |
+| [002](002-postgres-statt-sqlite.md) | PostgreSQL instead of SQLite | superseded by 007 |
+| [003](003-drizzle-gepinnt.md) | Drizzle 0.45 pinned | superseded by 007 |
+| [004](004-ein-prozess.md) | One Node process for app and worker | superseded by 007 |
 
-**ADR-007 ist der wichtigste Eintrag.** Er ersetzt die serverseitige Hälfte des
-ursprünglichen Entwurfs vollständig. Wer nur ein Dokument liest, liest dieses.
+**ADR-007 is the most important entry.** It replaces the server-side half of the
+original design entirely. If you read only one document, read that one.

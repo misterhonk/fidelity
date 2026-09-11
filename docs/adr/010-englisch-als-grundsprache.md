@@ -1,129 +1,135 @@
-# ADR-010: Englisch als Grundsprache, Deutsch als Übersetzung
+# ADR-010: English as the base language, German as a translation
 
-**Status:** **Angenommen** · **Datum:** 2026-08-11 · **Ersetzt:** die Sprachregel in
-`CLAUDE.md` („Nutzersichtbare Texte und Projektdokumentation: Deutsch")
+**Status:** **Accepted** · **Date:** 2026-08-11 · **Supersedes:** the language rule in
+`CLAUDE.md` ("user-visible text and project documentation: German")
 
-## Kontext
+## Context
 
-Fidelity ist seit dem 2026-08-11 ein öffentliches Repository unter AGPL-3.0. Damit
-verschiebt sich eine Annahme, die vorher unauffällig war: dass der einzige Mensch, der
-diesen Quelltext liest, Deutsch spricht.
+Since 2026-08-11 Fidelity is a public repository under AGPL-3.0. That shifts an assumption
+which had been unremarkable until then: that the only person reading this source speaks
+German.
 
-Der Code war nie das Problem — Bezeichner, Kommentare und Commits sind seit dem ersten Tag
-englisch, und eine Stichprobe über `worker/` findet null deutsche Bezeichner. Deutsch sind
-drei andere Dinge:
+The code was never the problem — identifiers, comments and commits have been English from
+day one, and a sample across `worker/` finds zero German identifiers. Three other things
+were German:
 
-1. **Die Oberfläche.** 36 Dateien, rund 1.300 Textstellen.
-2. **Die Adressen.** 14 von 21 Routen: `/korb`, `/regal`, `/haendler`, `/landkarte`,
+1. **The interface.** 36 files, around 1,300 pieces of text.
+2. **The addresses.** 14 of 21 routes: `/korb`, `/regal`, `/haendler`, `/landkarte`,
    `/einstellungen/…`.
-3. **Die Unterlagen.** `docs/` vollständig, dazu README und CONTRIBUTING.
+3. **The documents.** All of `docs/`, plus the README and CONTRIBUTING.
 
-Für jemanden, der beitragen möchte und kein Deutsch spricht, ist das keine Hürde, sondern
-eine geschlossene Tür. Er kann den Code lesen und trotzdem nicht herausfinden, was ein
-Bildschirm verspricht, wohin eine Route gehört oder warum eine Entscheidung so fiel.
+For someone who wants to contribute and does not speak German, that is not a hurdle but a
+closed door. They can read the code and still not find out what a screen promises, where a
+route belongs, or why a decision went the way it did.
 
-Eine deutschsprachige Oberfläche war außerdem nie eine Produktentscheidung. Sie war die
-Muttersprache des Autors, und niemand hat je entschieden, dass sie es bleiben soll.
+A German-language interface was never a product decision either. It was the author's
+mother tongue, and nobody ever decided it should stay that way.
 
-## Entscheidung
+## Decision
 
-**Englisch ist die Grundsprache des Projekts.** Deutsch ist eine Übersetzung.
+**English is the project's base language.** German is a translation.
 
-- **Oberfläche:** Englisch ist die Vorgabe. Deutsch wird angeboten und automatisch
-  gewählt, wenn das Gerät es verlangt (`navigator.language`). Weitere Sprachen können
-  dazukommen, ohne dass sich am Aufbau etwas ändert.
-- **Adressen:** englisch. `/basket` statt `/korb`, `/shelf` statt `/regal`.
-- **Unterlagen und Kommentare:** englisch, ausnahmslos. Auch die Kommentare, die zwischen
-  dem 2026-08-10 und dem 2026-08-11 auf Deutsch entstanden sind — das war eine Abweichung
-  von der bestehenden Regel und wird zurückgenommen.
+- **Interface:** English is the default. German is offered and chosen automatically when
+  the device asks for it (`navigator.language`). Further languages can be added without
+  anything about the structure changing.
+- **Addresses:** English. `/basket` instead of `/korb`, `/shelf` instead of `/regal`.
+- **Documents and comments:** English, without exception. Including the comments written
+  in German between 2026-08-10 and 2026-08-11 — that was a deviation from the existing
+  rule and is being undone.
 
-**Keine Sprach-Präfixe in den Adressen.** Kein `/de/basket`. Die Sprache ist eine
-Einstellung des Nutzers, keine Eigenschaft der Adresse. Präfixe würden jede bestehende
-Adresse brechen, den Precache des Service Workers verdoppeln und aus jedem Lesezeichen eine
-Sprachfestlegung machen.
+**No language prefixes in the addresses.** No `/de/basket`. The language is a setting of
+the user's, not a property of the address. Prefixes would break every existing address,
+double the service worker's precache, and turn every bookmark into a language commitment.
 
-**Kein i18n-Paket.** Nachrichtendateien als einfache Objekte, ein Composable, und die
-aktive Sprache wird nachgeladen. Begründung unten.
+**No i18n package.** Message files as plain objects, one composable, and the active
+language is loaded on demand. Reasoning below.
 
-**Nachtrag vom 2026-08-11: die Texte werden nach Bereichen geteilt.** Es gibt eine
-Schale (`app/i18n/en.ts`, `de.ts`) mit dem, was auf jedem Bildschirm steht — Navigation,
-Zeitangaben, wiederkehrende Sätze — und je einen Bereich (`app/i18n/settings.ts` und
-weitere) mit dem Rest.
+**Addendum of 2026-08-11: the texts are split by area.** There is a shell
+(`app/i18n/en.ts`, `de.ts`) with what appears on every screen — navigation, times,
+recurring sentences — and one file per area (`app/i18n/settings.ts` and others) for the
+rest.
 
-Der Grund ist gemessen: nachdem Navigation und Einstellungen umgestellt waren, lag der
-erste Paint bei 116,9 von 120 kB, und davon waren 4,9 kB Text — bei geschätzt einem Viertel
-der Oberfläche. Das Ganze in einer Datei wäre am Budget zerbrochen, und zwar zu Recht: die
-Formulierung der Tresor-Auswahl gehört nicht in den ersten Bildschirm.
+The reason is measured: after navigation and settings had been converted, the first paint
+sat at 116.9 of 120 kB, and 4.9 kB of that was text — at an estimated quarter of the
+interface. All of it in one file would have broken the budget, and rightly so: the wording
+of the vault picker does not belong in the first screen.
 
-**In den Bereichsdateien stehen beide Sprachen zusammen**, anders als in der Schale. Für die
-Schale lohnt der getrennte Chunk, weil sie auf jedem Bildschirm liegt. Für einen Bereich
-nicht: die Datei wird einmal geholt, wenn jemand den Bereich zum ersten Mal öffnet, und
-zwei Kilobyte zu verdoppeln ist billiger als die Maschinerie, die ein zweiter dynamischer
-Import je Bereich bräuchte — ein `await` in jeder Seite, ein zweiter Ladeweg und ein Flackern,
-das man falsch machen kann.
+**The area files carry both languages together**, unlike the shell. For the shell a
+separate chunk pays off, because it sits on every screen. For an area it does not: the file
+is fetched once, when somebody opens that area for the first time, and doubling two
+kilobytes is cheaper than the machinery a second dynamic import per area would need — an
+`await` in every page, a second loading path, and a flicker you can get wrong.
 
-Ergebnis: erster Paint 113,8 kB — unter dem Stand vor der Umstellung.
+Result: first paint 113.8 kB — below where it was before the change.
 
-## Begründung
+## Reasoning
 
-**Warum kein `@nuxtjs/i18n`.** Das Bundle-Budget für den ersten sinnvollen Paint sind
-120 kB gzip (Regel 7, `docs/12-RESSOURCEN-BUDGET.md`), und der Stand ist 113,2 kB —
-6,8 kB Luft. `@nuxtjs/i18n` bringt vue-i18n mit und sprengt das. Was diese App von einer
-i18n-Bibliothek tatsächlich braucht, ist ein Nachschlagen in einem Objekt und eine
-Pluralform; das sind wenige Dutzend Zeilen.
+**Why not `@nuxtjs/i18n`.** The bundle budget for the first meaningful paint is 120 kB
+gzip (rule 7, `docs/12-RESSOURCEN-BUDGET.md`), and the figure was 113.2 kB — 6.8 kB of
+headroom. `@nuxtjs/i18n` brings vue-i18n along and blows that. What this app actually needs
+from an i18n library is a lookup in an object and a plural form; that is a few dozen lines.
 
-**Warum Nachladen statt Einbetten.** Beide Sprachen im Bundle hieße, dass jeder Nutzer die
-Sprache mitlädt, die er nicht liest. Nachgeladen kostet der erste Paint eine Sprache — und
-die zweite Sprache kostet niemanden etwas, der sie nicht wählt.
+**Why loading on demand rather than embedding.** Both languages in the bundle would mean
+every user downloads the language they do not read. Loaded on demand, the first paint costs
+one language — and the second language costs nothing to anyone who does not choose it.
 
-**Warum die Adressen mitziehen.** Eine englische Oberfläche unter `/korb` ist ein halbes
-Versprechen. Adressen sind das, was jemand im Browser sieht, teilt und in ein Lesezeichen
-legt; sie gehören zur Oberfläche und nicht zum Innenleben.
+**Why the addresses follow.** An English interface at `/korb` is half a promise. Addresses
+are what somebody sees in the browser, shares and bookmarks; they belong to the interface,
+not to the internals.
 
-## Folgen
+## Consequences
 
-**Alte Adressen müssen weiterleiten.** Es gibt Lesezeichen, installierte PWAs mit
-`start_url: '/'` und einen Service Worker mit einem Precache, der die alten Pfade kennt.
-Jede umbenannte Route bekommt eine dauerhafte Weiterleitung von ihrem alten Namen.
+**Old addresses have to redirect.** There are bookmarks, installed PWAs with
+`start_url: '/'`, and a service worker whose precache knows the old paths. Every renamed
+route gets a permanent redirect from its old name.
 
-**Die Übersetzung ist keine Maschinenarbeit.** Die deutschen Texte sind an vielen Stellen
-bewusst formuliert — „Side One, Track One", „Habe ich die schon?", die Begründungssätze der
-Matching-Engine. Sie werden auf Englisch neu geschrieben, nicht übersetzt. Das ist der
-Grund, warum diese Umstellung Sitzungen und nicht Stunden dauert.
+**The translation is not machine work.** The German texts are deliberately worded in many
+places — "Side One, Track One", "Habe ich die schon?", the matching engine's reason
+sentences. They are rewritten in English, not translated. That is why this change takes
+sessions rather than hours.
 
-**Die Begründungssätze der Engine sind der heikelste Teil.** Sie entstehen zur Laufzeit aus
-Signalen und bekommen einen eigenen PR.
+**The engine's reason sentences are the trickiest part.** They are built at runtime from
+signals and get a pull request of their own.
 
-> **Nachtrag vom 2026-08-11, weil die Vorhersage daneben lag.** Hier stand, der
-> Golden-File-Test nagle die Sätze fest und der Snapshot ändere sich vollständig. Das ist
-> falsch: der Snapshot pinnt Punktzahlen und Signale, nie die Prosa — er hat sich um keine
-> Zeile bewegt. Das Risiko lag woanders, nämlich in den Fixtures, und einer davon war
-> falsch: `db.spec` baute ein `CREDIT_GRAPH`-Signal mit `evidence: { artist: … }`, wo die
-> Phrase `person` liest. Der Satz hätte also nie etwas anderes als den Auffangsatz ergeben
-> können. Verdeckt hatte das ausgerechnet der handgeschriebene String, der daneben lag.
+> **Addendum of 2026-08-11, because the prediction was wrong.** This used to say the
+> golden-file test nails the sentences down and the snapshot would change completely. That
+> is false: the snapshot pins scores and signals, never the prose — it did not move by a
+> line. The risk was elsewhere, namely in the fixtures, and one of them was wrong:
+> `db.spec` built a `CREDIT_GRAPH` signal with `evidence: { artist: … }` where the phrase
+> reads `person`. The sentence could therefore never have produced anything but the
+> fallback. What hid this was, of all things, the hand-written string sitting next to it.
 >
-> Und die Sätze sind nicht zweisprachig *im Worker* geworden, sondern aus ihm heraus.
-> `worker/match/reason.ts` behält nur noch `byStrength` — welches Signal führt, ist eine
-> Bewertungsentscheidung und liest dieselbe `WEIGHTS`-Tabelle wie der Score. Wie es klingt,
-> steht in `app/i18n/reason.ts` und entsteht beim Lesen. Das löst nebenbei ein zweites
-> Problem, das hier niemand vorhergesehen hatte: der Satz war auf den Moment des Digs
-> eingefroren, ein Sprachwechsel hätte ihn also ohnehin nicht erreicht.
+> And the sentences did not become bilingual *inside* the worker but outside it.
+> `worker/match/reason.ts` keeps only `byStrength` — which signal leads is a scoring
+> decision and reads the same `WEIGHTS` table as the score. How it sounds lives in
+> `app/i18n/reason.ts` and is built when it is read. That solves a second problem nobody
+> here had foreseen: the sentence was frozen at the moment of the dig, so a language change
+> would never have reached it anyway.
 
-**`docs/` bleibt vorerst deutsch.** Die Unterlagen sind der größte Brocken und der am
-wenigsten dringende: wer beitragen will, braucht zuerst eine englische Oberfläche und
-englische Adressen. Die Übersetzung der Unterlagen folgt, und bis dahin sagt der README es
-offen.
+**`docs/` stays German for now.** The documents are the biggest chunk and the least
+urgent: anyone who wants to contribute needs an English interface and English addresses
+first. The translation of the documents follows, and until then the README says so openly.
 
-## Verworfene Alternativen
+> **Addendum of 2026-09-11: the documents are English.** All of `docs/` — fourteen
+> numbered documents and thirteen ADRs, some 6,500 lines — was translated in one pass, and
+> the German file names went with it: an English document at a German address is exactly
+> the half measure this ADR argues against. The numbers stayed, because around 200
+> references in the code cite a document by its number (`docs/02`, `docs/04`) and the
+> number is the stable identifier; only the suffix moved.
+>
+> With that the rule holds everywhere, and this ADR's own sentence "the documents follow"
+> is redeemed. What is left is German only where German is the subject: the German half of
+> the message files, and the quoted user requests inside this repository's history.
 
-**Deutsch behalten und eine englische Übersetzung anbieten.** Das ist dieselbe Arbeit mit
-umgekehrtem Vorzeichen und lässt die Grundsprache dort, wo sie niemandem außer dem Autor
-nützt. Die Vorgabe entscheidet, wen das Projekt einlädt.
+## Rejected alternatives
 
-**Nur die Oberfläche, Adressen deutsch lassen.** Billiger, und es bleibt ein Projekt, das
-auf halbem Weg stehen bleibt. `/haendler` ist für jemanden ohne Deutsch nicht einmal
-aussprechbar.
+**Keep German and offer an English translation.** That is the same work with the sign
+flipped, and it leaves the base language where it serves nobody but the author. The default
+decides who the project invites.
 
-**Sprach-Präfixe (`/de/…`, `/en/…`).** Der übliche Weg bei serverseitigem Rendering und
-hier falsch: es gibt keinen Server, jede Route existiert doppelt im Precache, und ein
-geteilter Link legt beim Empfänger die Sprache fest statt seiner eigenen.
+**Only the interface, leave the addresses German.** Cheaper, and it leaves a project that
+stops halfway. `/haendler` is not even pronounceable for somebody without German.
+
+**Language prefixes (`/de/…`, `/en/…`).** The usual route for server-side rendering and
+wrong here: there is no server, every route exists twice in the precache, and a shared link
+fixes the recipient's language instead of their own.
