@@ -9,6 +9,29 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.32.0](https://github.com/misterhonk/fidelity/compare/v0.31.0...v0.32.0) (2026-09-11)
+
+**What the shelf is worth, day by day.**
+
+Discogs shows an estimate of your collection and keeps no history of it. Fidelity now
+keeps one: a row per day, written by the same fetch that fills the number on the map, and
+from the second day on the map draws it — the middle estimate as a line, the lowest and
+highest as a band around it, because a single figure reads as an appraisal and the spread
+reads as what it is. Days sit where they fall on the calendar, so a fortnight without a
+sync shows as a fortnight, not as one step.
+
+The sync used to ask for the estimate only when the shelf had changed. It now also asks
+once a day when nothing changed, one request more per day, because a line that only moves
+when you add a record is not a line about the market. The attempt is what is rationed,
+not the answer: an endpoint that refuses is not asked again every half hour.
+
+It is Discogs' estimate, labelled as such, kept on this device and in your JSON backup —
+never per record, never anybody else's. The third of the M19 candidates.
+
+### Added
+
+* **collection:** what the shelf is worth, day by day ([b40505e](https://github.com/misterhonk/fidelity/commit/b40505edf9323e99eff9d182e7ec060968daefce))
+
 ## [0.31.0](https://github.com/misterhonk/fidelity/compare/v0.30.0...v0.31.0) (2026-09-11)
 
 **A shop can be hidden — and shown again.**
