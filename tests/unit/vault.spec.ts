@@ -140,16 +140,16 @@ describe('two devices, one truth', () => {
   })
 
   /**
-   * Orte und Standorte reisen mit — und Löschungen reisen mit ihnen (M12).
+   * Places and locations travel along — and deletions travel with them (M12).
    *
-   * Das ist der Teil, der ohne Absicht schiefgeht. Der Abgleich kennt nur
-   * „diese Zeile ist neuer"; eine **gelöschte** Zeile ist für ihn keine
-   * Nachricht, sondern eine Lücke, und das Gerät, das sie noch hat, füllt sie
-   * beim nächsten Mal wieder auf. Ein aufgelöstes Regal käme zurück, und eine
-   * heruntergenommene Platte läge wieder darin.
+   * This is the part that goes wrong without anybody intending it. The merge
+   * knows only "this row is newer"; a **deleted** row is not a message to it
+   * but a gap, and the device that still has it fills it in again next time. A
+   * dissolved shelf would come back, and a record taken down would be sitting
+   * in it.
    *
-   * Deshalb gibt es in beiden Stores kein Löschen mehr: `removedAt` am Ort,
-   * `placeId: null` am Standort. Beides sind Schreibvorgänge und gewinnen.
+   * So neither store deletes any more: `removedAt` on the place, `placeId:
+   * null` on the location. Both are writes, and writes win.
    */
   describe('places and where records lie', () => {
     it('travels at all', () => {
@@ -158,7 +158,7 @@ describe('two devices, one truth', () => {
     })
 
     it('keeps a dissolved place dissolved', () => {
-      // Das Telefon hat den Keller aufgelöst, der Laptop war offline.
+      // The phone dissolved the cellar; the laptop was offline.
       const telefon = snapshot({
         savedAt: 2000,
         stores: {
@@ -200,13 +200,13 @@ describe('two devices, one truth', () => {
       expect(mergeSnapshots(telefon, laptop).stores.placements).toEqual([
         { instanceId: 7, placeId: null, at: 2000 },
       ])
-      // Und in die andere Richtung gewinnt genauso der jüngere Schreibvorgang.
+      // And in the other direction the more recent write wins just the same.
       expect(mergeSnapshots(laptop, telefon).stores.placements).toEqual([
         { instanceId: 7, placeId: null, at: 2000 },
       ])
     })
 
-    /** Ein umbenanntes Regal braucht einen Stempel, sonst entscheidet Zufall. */
+    /** A renamed shelf needs a stamp, or chance decides. */
     it('lets the newer name win', () => {
       const alt = snapshot({
         stores: {

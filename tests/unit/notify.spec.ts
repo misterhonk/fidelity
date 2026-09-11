@@ -71,39 +71,37 @@ describe('what a watch push says', () => {
 })
 
 /**
- * Der Wurm im Ohr des Service Workers.
+ * The service worker's ear.
  *
- * Dieser Worker ist die letzte Strecke einer Kette über vier Beteiligte — Hub,
- * VAPID, der Push-Dienst der Plattform, der Browser — und war bis zum
- * 2026-08-13 die einzige ohne jede Möglichkeit zu berichten. Der Hub konnte
- * „zugestellt, kein Fehler" melden, während jemand auf ein stummes Telefon
- * sah, und es gab keinen Weg, „das Gerät hat nie etwas bekommen" von „das
- * Gerät hat es bekommen und nichts gezeigt" zu unterscheiden. Genau in dieser
- * Lücke sind an dem Tag drei Stunden verschwunden.
+ * This worker is the last leg of a chain across four parties — hub, VAPID, the
+ * platform's push service, the browser — and until 2026-08-13 it was the only
+ * one with no way of reporting anything. The hub could say "delivered, no
+ * error" while somebody looked at a silent phone, and there was no way to tell
+ * "the device never got anything" from "the device got it and showed nothing".
+ * Three hours disappeared into that gap on that day.
  *
- * Geprüft wird die Form, nicht das Verhalten: ein Service Worker läuft, wenn
- * keine Seite läuft, und seine Konsole ist von hier aus nicht erreichbar. Das
- * Verhalten steht in `tests/e2e/service-worker.spec.ts` — und das läuft nur
- * mit sichtbarem Browser, weil ein headless Chromium keine Benachrichtigung
- * zeigt.
+ * The shape is checked, not the behaviour: a service worker runs when no page
+ * runs, and its console is not reachable from here. The behaviour is in
+ * `tests/e2e/service-worker.spec.ts` — and that runs only with a visible
+ * browser, because a headless Chromium shows no notification.
  */
 describe('what the service worker says out loud', () => {
   const SW = readFileSync('app/sw/sw.ts', 'utf8')
 
   it('reports every push before it does anything else', () => {
-    // Vor `announce`, damit auch ein unlesbarer Inhalt noch als Ankunft gilt.
+    // Before `announce`, so that unreadable content still counts as an arrival.
     const arrival = SW.indexOf("console.info('[fidelity] push arrived')")
     expect(arrival).toBeGreaterThan(-1)
     expect(arrival).toBeLessThan(SW.indexOf('event.waitUntil(announce('))
   })
 
   /**
-   * Ein Inhalt, der kein JSON ist, darf den Handler nicht mitnehmen.
+   * Content that is not JSON must not take the handler down with it.
    *
-   * `event.data.json()` wirft, und ein Wurf in `waitUntil` ist ein abgelehntes
-   * Versprechen, das niemand sieht — die Benachrichtigung bliebe einfach aus.
-   * An diesen Endpunkt darf jeder schicken, der die Adresse hat; nicht jeder
-   * schickt, was hier erwartet wird.
+   * `event.data.json()` throws, and a throw inside `waitUntil` is a rejected
+   * promise nobody sees — the notification would simply not appear. Anybody
+   * with the address may send to this endpoint; not everybody sends what is
+   * expected here.
    */
   it('survives a payload that is not JSON, and says so', () => {
     expect(SW).toMatch(/try \{\s*data = event\.data\?\.json\(\)/)
@@ -117,12 +115,12 @@ describe('what the service worker says out loud', () => {
   })
 
   /**
-   * Die Ablehnung von `showNotification` wird gefangen.
+   * A rejection from `showNotification` is caught.
    *
-   * Sie kommt, wenn die Erlaubnis fehlt oder — auf iOS — die App nicht vom
-   * Home-Bildschirm läuft. Ungefangen steht der Fehlschlag nirgends: der Hub
-   * meldet saubere Zustellung, der Bildschirm bleibt leer, und beides
-   * zusammen ist die verwirrendste aller Auskünfte.
+   * It comes when permission is missing or — on iOS — when the app is not
+   * running from the home screen. Uncaught, the failure is recorded nowhere:
+   * the hub reports clean delivery, the screen stays empty, and the two
+   * together are the most confusing piece of information of all.
    */
   it('catches the refusal instead of rejecting into nowhere', () => {
     const shown = SW.indexOf('await self.registration.showNotification')

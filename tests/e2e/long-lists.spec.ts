@@ -3,21 +3,21 @@ import { expect, test, type Page } from '@playwright/test'
 import { signIn } from './seed'
 
 /**
- * Lange Listen: der Weg nach oben, und nicht alles auf einmal.
+ * Long lists: the way back up, and not all of it at once.
  *
- * Beides ist nur in einem Browser zu prüfen. Ein Knopf, der bei einer
- * Scrollhöhe erscheint, hat keine testbare Form — er hat eine Bedingung, und
- * die kennt nur eine Maschine mit einem Fenster. Dasselbe für „nicht alles
- * gezeichnet": im Quelltext steht ein `slice`, im Dokument stehen Zeilen.
+ * Both can only be checked in a browser. A button that appears at a scroll
+ * height has no testable shape — it has a condition, and only a machine with a
+ * window knows that. The same for "not all of it drawn": in the source there
+ * is a `slice`, in the document there are rows.
  */
 
 /** Genug, dass zwei Bildschirmhöhen dahinterliegen. */
 const VIELE = 200
 
 async function withWantlist(page: Page) {
-  // Der Token gehört dazu: ohne ihn führt der Setup-Guard `/wantlist` zur
-  // Einrichtung, und dort gibt es keine Zeilen zu zählen. `signIn` wartet
-  // dabei auch auf die Stores — die lange Begründung steht in `seed.ts`.
+  // The token is part of it: without one, the setup guard leads `/wantlist` to
+  // the setup, and there are no rows to count there. `signIn` also waits for
+  // the stores — the long reasoning is in `seed.ts`.
   await signIn(page)
 
   await page.evaluate(async (howMany: number) => {
@@ -59,11 +59,11 @@ async function withWantlist(page: Page) {
 
 test.describe('a long list', () => {
   /**
-   * Nicht zweihundert Zeilen auf einmal.
+   * Not two hundred rows at once.
    *
-   * Jede trägt ein Cover; zweihundert davon sind zweihundert Bilder, die ein
-   * Telefon beim ersten Blick allesamt anlegt. Die Daten kommen weiterhin in
-   * einem Rutsch aus IndexedDB — das ist billig. Teuer ist das Zeichnen.
+   * Each carries a cover; two hundred of them are two hundred images a phone
+   * creates all at once on first sight. The data still comes out of IndexedDB
+   * in one go — that is cheap. The drawing is what is expensive.
    */
   test('draws a window, not everything', async ({ page }) => {
     await withWantlist(page)
@@ -72,27 +72,27 @@ test.describe('a long list', () => {
     await expect(rows.first()).toBeVisible({ timeout: 15_000 })
     expect(await rows.count()).toBeLessThan(VIELE)
 
-    // Und der Rest ist erreichbar, nicht verschluckt.
+    // And the rest is reachable, not swallowed.
     await page.getByRole('button', { name: /more|weitere/i }).click()
     expect(await rows.count()).toBeGreaterThan(60)
   })
 
   /**
-   * Der Weg nach oben zeigt sich erst, wenn er gebraucht wird.
+   * The way back up shows itself only once there is a way back.
    *
-   * Ein Knopf, der von Anfang an dasteht, ist auf jedem kurzen Bildschirm im
-   * Weg — und er schwebt, kann also etwas verdecken. Zwei Bildschirmhöhen
-   * heißen überall dasselbe: „du hast etwas hinter dir gelassen."
+   * A button that is there from the start is in the way on every short screen
+   * — and it floats, so it can cover something. Two screen heights mean the
+   * same thing everywhere: "you have left something behind."
    */
   test('offers the way back only once there is a way back', async ({ page }) => {
     await withWantlist(page)
 
     /*
-     * Erst die Zeilen abwarten, dann scrollen.
+     * Wait for the rows first, then scroll.
      *
-     * Sie kommen aus IndexedDB, also nach dem ersten Bild. Wer vorher scrollt,
-     * scrollt auf einer kurzen Seite — `scrollY` bleibt 0, und der Knopf
-     * erscheint völlig zu Recht nicht. Am 2026-08-14 zwei Anläufe gekostet.
+     * They come from IndexedDB, so after the first paint. Anyone scrolling
+     * before that scrolls on a short page — `scrollY` stays 0, and the button
+     * quite rightly does not appear. Cost two attempts on 2026-08-14.
      */
     await expect(page.locator('.fid-want').first()).toBeVisible({ timeout: 15_000 })
 
@@ -103,8 +103,8 @@ test.describe('a long list', () => {
     await expect(toTop).toBeVisible()
 
     await toTop.click()
-    // Sanftes Scrollen braucht einen Moment; die Zusage ist der Anfang, nicht
-    // die Geschwindigkeit.
+    // Smooth scrolling takes a moment; the promise is that it starts, not how
+    // fast it goes.
     await expect.poll(async () => page.evaluate(() => window.scrollY)).toBeLessThan(50)
   })
 })

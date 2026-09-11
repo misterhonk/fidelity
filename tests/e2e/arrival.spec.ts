@@ -3,14 +3,14 @@ import { expect, test, type Page } from '@playwright/test'
 import { seed, seedDealer } from './seed'
 
 /**
- * „Ist sie angekommen?" im Browser (M14).
+ * "Did it arrive?" in a browser (M14).
  *
- * Zwei Dinge sind hier und nur hier zu prüfen. Das erste ist eine Bedingung
- * über die Zeit: die Frage erscheint erst, wenn die Post gewesen sein könnte —
- * im Quelltext steht ein Vergleich, auf dem Schirm steht ein Kasten oder
- * keiner. Das zweite ist der Weg von der Antwort zur Zahl: drei Knöpfe auf der
- * Startseite, eine Quote im Händlerprofil, und dazwischen ein Worker und eine
- * Datenbank, die kein Unit-Test zusammen durchläuft.
+ * Two things can be checked here and only here. The first is a condition about
+ * time: the question appears only once the post could have been — in the
+ * source there is a comparison, on the screen there is a box or there is not.
+ * The second is the path from the answer to the number: three buttons on the
+ * start page, a rate in the dealer profile, and in between a worker and a
+ * database that no unit test runs through together.
  */
 
 const TAG = 24 * 60 * 60 * 1000
@@ -54,12 +54,12 @@ async function bought(
 
 test.describe('the arrival question', () => {
   /**
-   * Ein Haken bei „gekauft" heißt bestellt, nicht angekommen.
+   * A tick at "bought" means ordered, not arrived.
    *
-   * Deshalb zwei Käufe im selben Seed: einer von gestern, einer von vor einem
-   * Monat. Gefragt wird nach genau einer Platte, und es muss die ältere sein —
-   * ein Test, der nur „irgendein Kasten steht da" prüft, hielte auch, wenn die
-   * Grenze wegfiele.
+   * Hence two purchases in the same seed: one from yesterday, one from a month
+   * ago. Exactly one record is asked about, and it has to be the older one — a
+   * test that only checks "some box is there" would hold even if the bound
+   * disappeared.
    */
   test('asks about the record the post could have brought, not yesterday’s', async ({
     page,
@@ -77,17 +77,17 @@ test.describe('the arrival question', () => {
     await expect(page.getByText('Journey 9002')).toBeVisible()
     await expect(page.getByText('Journey 9001')).toBeHidden()
 
-    // Beantwortet, und damit weg — es wartet keine zweite reife Platte.
+    // Answered, and therefore gone — no second ripe record is waiting.
     await box.getByRole('button', { name: 'As described' }).click()
     await expect(box).toBeHidden()
   })
 
   /**
-   * Und von dort zur Zahl im Profil.
+   * And from there to the number in the profile.
    *
-   * Unter fünf beurteilten Platten steht bewusst keine Prozentzahl: zwei von
-   * zwei sind 100 %, und das liest sich wie ein Urteil über einen Laden, über
-   * den man nichts weiß. Also erst vier — keine Quote — und dann die fünfte.
+   * Below five judged records there is deliberately no percentage: two out of
+   * two is 100 %, and that reads like a verdict on a shop one knows nothing
+   * about. So four first — no rate — and then the fifth.
    */
   test('turns answers into a figure on the shop', async ({ page }) => {
     await seed(page)

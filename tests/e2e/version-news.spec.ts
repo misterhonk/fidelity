@@ -3,26 +3,26 @@ import { expect, test } from '@playwright/test'
 import { signIn } from './seed'
 
 /**
- * „Die App ist neuer als beim letzten Mal" (2026-09-11).
+ * "The app is newer than last time" (2026-09-11).
  *
- * Seit 760a11e gibt es eine Seite, die sagt, was in dieser Ausgabe neu ist —
- * erreichbar aber nur über die Versionsnummer im Footer, also für jemanden,
- * der weiß, dass diese Zahl ein Link ist.
+ * Since 760a11e there is a page saying what is new in this release — reachable
+ * only through the version number in the footer, though, so only to somebody
+ * who knows that number is a link.
  *
- * Geprüft wird im Browser, weil das Ganze aus drei Dingen besteht, die es nur
- * dort gibt: `localStorage`, ein Neuladen, und die Frage, was beim *ersten*
- * Besuch passiert. Die letzte ist die, die man im Quelltext übersieht.
+ * Checked in a browser, because the whole thing consists of three things that
+ * only exist there: `localStorage`, a reload, and the question of what happens
+ * on the *first* visit. The last is the one you overlook in the source.
  */
 
 const SCHLUESSEL = 'fidelity:seen-version'
 
 test.describe('a version somebody has not seen', () => {
   /**
-   * Beim allerersten Start steht die Zeile **nicht** da.
+   * On the very first start the line is **not** there.
    *
-   * Wer die App zum ersten Mal öffnet, hat auf nichts aktualisiert. „Jetzt
-   * auf 0.27.1" wäre dort schlicht unwahr — und die erste Zeile, die jemand
-   * von einer App liest, sollte keine falsche sein.
+   * Somebody opening the app for the first time has updated from nothing. "Now
+   * on 0.27.1" would simply be untrue there — and the first line somebody
+   * reads from an app should not be a false one.
    */
   test('says nothing on a first visit', async ({ page }) => {
     await signIn(page)
@@ -31,7 +31,7 @@ test.describe('a version somebody has not seen', () => {
 
     await expect(page.getByText(/updated to|jetzt auf/i)).toBeHidden()
 
-    // Gemerkt hat es sich trotzdem, sonst käme die Zeile beim nächsten Mal.
+    // It has remembered all the same, or the line would come next time.
     const gemerkt = await page.evaluate((k) => localStorage.getItem(k), SCHLUESSEL)
     expect(gemerkt).toBeTruthy()
   })
@@ -48,7 +48,7 @@ test.describe('a version somebody has not seen', () => {
     await expect(page.locator('h1')).toContainText(/what is new|was neu ist/i)
   })
 
-  /** Und einmal gelesen ist gelesen — auch nach einem Neuladen. */
+  /** And once read is read — after a reload too. */
   test('does not come back for the same version', async ({ page }) => {
     await signIn(page)
     await page.evaluate((k) => localStorage.setItem(k, '0.0.1-alt'), SCHLUESSEL)

@@ -55,7 +55,7 @@ function expansion(candidate: Candidate, releaseIds: number[], requests = 2) {
       releaseIds: Int32Array.from(releaseIds),
       roles: Uint8Array.from(releaseIds.map(() => 0)),
       // Pflichtfeld am Typ und lange nirgends gebraucht — bis ein Beitrag an
-      // den Hub durch `encodeChunk` lief und an `toBase64(undefined)` starb.
+      // the hub ran through `encodeChunk` and died on `toBase64(undefined)`.
       years: Int16Array.from(releaseIds.map(() => 1972)),
     },
     requests,
@@ -302,16 +302,15 @@ describe('the daily revalidation', () => {
 })
 
 /**
- * Was schon dalag, kommt beim Hub trotzdem an.
+ * What was already there reaches the hub all the same.
  *
- * Der Zweig für "schon bekannt und noch frisch" endete bis zum 2026-08-13 mit
- * einem `continue` — und übersprang damit auch den Beitrag. Ein Hub, der nach
- * dem ersten Aufbau eingetragen wird, erfuhr von der ganzen vorhandenen
- * Sammlung nichts: gemessen ein Eintrag beim Hub gegen hunderte auf dem Gerät.
- * Der geteilte Cache, also der einzige Grund für seine Existenz, war für den
- * häufigsten Fall tot.
+ * Until 2026-08-13 the branch for "already known and still fresh" ended with a
+ * `continue` — and so skipped the contribution too. A hub entered after the
+ * first build learnt nothing about the whole existing collection: measured,
+ * one entry at the hub against hundreds on the device. The shared cache, the
+ * only reason for its existence, was dead for the commonest case.
  *
- * Der Beitrag kostet keine Discogs-Anfrage — der Block liegt schon da.
+ * The contribution costs no Discogs request — the chunk is already there.
  */
 describe('den Hub nachträglich füllen', () => {
   /** Jeder PUT auf den Horizont, mitgeschrieben. */
@@ -360,11 +359,11 @@ describe('den Hub nachträglich füllen', () => {
   })
 
   /**
-   * Und ein abgelehnter Beitrag gilt nicht als erledigt.
+   * And a rejected contribution does not count as done.
    *
-   * Sonst wäre ein falsches Geheimnis oder ein kurz nicht erreichbarer Hub ein
-   * Block, der nie wieder hochgeht — der teuerste Fehlschlag, weil er wie
-   * Erfolg aussieht.
+   * Otherwise a wrong secret or a briefly unreachable hub would be a chunk
+   * that never goes up again — the most expensive failure, because it looks
+   * like success.
    */
   it('merkt sich nichts, was der Hub abgelehnt hat', async () => {
     const db = await openFidelityDb()
@@ -377,7 +376,7 @@ describe('den Hub nachträglich füllen', () => {
     expect((await db.get('horizon', 'artist:1'))?.sharedAt).toBeUndefined()
   })
 
-  /** Ohne Hub bleibt es, wie es war: übersprungen und still. */
+  /** Without a hub it stays as it was: skipped and silent. */
   it('lässt es ohne Hub genau so wie vorher', async () => {
     const db = await openFidelityDb()
     await db.put('horizon', expansion(candidate(1), [10, 11]).chunk)
