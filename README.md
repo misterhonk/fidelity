@@ -64,6 +64,11 @@ and no account. Real machinery, not a mock-up.
 **In English or German.** Picked from your device the first time, changed under
 Settings → Appearance whenever you like.
 
+**What it is not.** Not a catalogue app, not a price tracker, not an alert service, not an
+overlay on discogs.com — each of those exists, several times. What Fidelity computes that
+the API does not hand out, and how it sits beside Seller Matches, discdogs, WaxTracker,
+Groovv and the rest: [`docs/15-COMPARED.md`](docs/15-COMPARED.md).
+
 ---
 
 ## Getting started
@@ -287,6 +292,7 @@ rules that are not up for negotiation.
 | [`docs/12-RESOURCE-BUDGET.md`](docs/12-RESOURCE-BUDGET.md) | Bundle, storage, compute, requests |
 | [`docs/13-HUB-ADDON.md`](docs/13-HUB-ADDON.md) | The optional server add-on |
 | [`docs/14-RELAUNCH-CONCEPT.md`](docs/14-RELAUNCH-CONCEPT.md) | What a second version would look like — research, architecture, hosting, business model. Not a plan |
+| [`docs/15-COMPARED.md`](docs/15-COMPARED.md) | What Fidelity is and is not, beside Seller Matches, discdogs, WaxTracker, Groovv and the rest |
 | [`docs/adr/`](docs/adr/) | Architecture decision records, including the rejected ones |
 
 ---
