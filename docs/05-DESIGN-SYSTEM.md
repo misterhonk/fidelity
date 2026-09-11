@@ -124,15 +124,18 @@ pinch zoom stays.
 
 ### 2.5 Typography
 
-Three sets, switchable under Settings › Appearance, all self-hosted through `@nuxt/fonts`.
-The default is **Presswerk**. No component names a typeface — everything goes through
-`--fid-font-sans`, `--fid-font-mono`, `--fid-font-display`.
+One set, **Presswerk**, self-hosted from `app/assets/fonts/` and declared in `fonts.css`.
+No component names a typeface — everything goes through `--fid-font-sans`,
+`--fid-font-mono`, `--fid-font-display`.
 
-| Set | Body | Numbers | Headings |
-|---|---|---|---|
-| **Presswerk** (default) | Switzer | Chivo Mono | Array – narrow, like the print on a record spine |
-| Kontor | General Sans | Chivo Mono | Clash Display |
-| Schweiz | Switzer | JetBrains Mono | none – hierarchy through size and weight alone |
+| Body | Numbers | Headings |
+|---|---|---|
+| Switzer | Chivo Mono | Array – narrow, like the print on a record spine |
+
+Until 2026-08-11 there were three sets (Kontor, Schweiz) and a switch under Settings ›
+Appearance. Removed: the switch cost two font families in the bundle for a choice nobody
+made twice, and the font module fetched from Google whenever a provider was left on
+(`main.css` §1 has the details). This section said "three sets" for a month after that.
 
 | Role | Class | Why |
 |---|---|---|
@@ -185,6 +188,14 @@ screen, and the previous scale had two that nobody made.
 ---
 
 ## 3. The core components
+
+> **Design names, not file names.** The sections below describe *behaviour* under the
+> names the design was drawn with. In code, `ScanProgress` is the progress block in
+> `pages/dig.vue`, `SignalChip` is `utils/signals.ts` rendered by `MatchCard`/`MatchRow`,
+> `ShippingLadder` is the tier table in `BasketCard.vue`, and `CatalogRunGrid` is the one
+> that kept its name. A component of its own is cut when a second screen needs it — the
+> detail sheets got theirs (`SheetFrame`) on 2026-09-11, when the audit found the drawer
+> chrome copied line for line and drifting.
 
 ### 3.1 `MatchCard` – the app's most important component
 
@@ -269,13 +280,14 @@ Postage to you (DE)             currently 2 records · €9.00 total · €4.50 
 
 ### 3.6 The rest
 
-| Component | Purpose |
-|---|---|
-| `CommandPalette` (⌘K) | Searches **data**, not just navigation: artists, labels, dealers, saved digs. Nuxt UI 4 brings `UCommandPalette` along. |
-| `DealerFingerprint` | Stacked bars for the label/style/decade distribution + the affinity figure |
-| `FilterRail` | Desktop: a sticky sidebar. Mobile: a bottom sheet (Reka `Drawer`). |
-| `DensityToggle` | comfortable 52 px / compact 34 px row height |
-| `EmptyState` | Not "no results" but "nothing for you at this dealer — but [name] has 12 matches" |
+| Component | Purpose | In code |
+|---|---|---|
+| `CommandPalette` (⌘K) | Searches **data**, not just navigation: artists, labels, shops, saved digs. | `CommandPalette.vue`, hand-rolled. `@nuxt/ui` is installed for its module scaffolding only — its stylesheet is dropped in `main.css` §0 and no `<U…>` component is rendered anywhere. |
+| `DealerFingerprint` | Bars for the label/style/decade distribution + the hit rate | `FacetBars.vue` on `/dealers` and `/map` — the same bars serve both the shop and the collection |
+| `FilterRail` | The filters over a find list | `DigFilters.vue`, inline above the list on every width. No sidebar, no bottom sheet, no drawer library. |
+| `DensityToggle` | comfortable / compact rows | **Not built.** `MatchRow` is the compact row (34 px, `--fid-row-compact`), used above ~200 finds; `MatchCard` is the other. There is no switch. |
+| `EmptyState` | Not "no results" but a sentence with a way out | Inlined per screen: every empty state names the next step as a link (`/shelf`, `/wantlist`, `/basket`, `/saved`, `/watched`, `/stack`). The "but [name] has 12 matches" version needs a second scanned shop and is not built. |
+| `SheetFrame` | The drawer both detail sheets slide in on | `SheetFrame.vue`: focus trap, focus returned to the opener, `@container` on the panel, Escape and scrim close, `view-transition-name` per sheet |
 
 ---
 
@@ -370,10 +382,14 @@ the thought but its position.
 
 ## 5. Motion
 
-- 150–250 ms for UI feedback, 300–400 ms for layout/page changes
-- **Spring rather than ease** for anything the user manipulates directly
+- 150–250 ms for UI feedback, 300–400 ms for layout/page changes — as two tokens,
+  `--fid-motion-feedback` (180 ms) and `--fid-motion-layout` (320 ms), and no other
+  duration anywhere. `main.css` and every progress bar read them; a component that writes
+  `duration-300` is writing a third value.
 - Motion serves orientation and causality, not decoration
-- `motion-v` 2.3 as the library
+- No motion library. The detail sheets use a same-document View Transition, the cards
+  CSS transitions, and that is the whole inventory. `motion-v` stood here until
+  2026-09-11 and was never installed.
 
 ```css
 @media (prefers-reduced-motion: reduce) {
@@ -438,7 +454,8 @@ draft of March 2026, "an incomplete draft" and years away.
 - Signal colours are **never the sole carrier of meaning** — always with a label (SC 1.4.1)
 - Scan progress in `aria-live="polite"`, throttled to at most 1 announcement per 10 s
 - Virtualised lists: `aria-rowcount`/`aria-rowindex`, so screen readers know the total
-- A focus trap in the detail sheet, `Escape` closes it, focus returns to the card
+- A focus trap in the detail sheets, `Escape` closes them, focus returns to whatever opened
+  them — all three in `SheetFrame.vue`, since 2026-09-11; before that this line was a promise
 - Contrast: every text-on-signal-colour pair via `contrast-color()` or checked by hand
 - **Automated:** `@axe-core/playwright` in the E2E suite. **Manual:** one keyboard pass and
   one VoiceOver pass per release. Automation finds ~30–40 %.
