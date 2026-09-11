@@ -484,6 +484,11 @@ export const handlers: HandlerMap = {
    * Hub-Adresse aus dem Link und nicht aus den Einstellungen, und deshalb
    * fragt hier nichts nach einer Identität.
    */
+  'identify.barcode': async ({ barcode }, { signal }) => {
+    const { identify } = await import('./identify')
+    return identify(discogs(), barcode, signal)
+  },
+
   'places.overview': async () => {
     const { placesOverview } = await import('./places')
     return placesOverview()

@@ -270,6 +270,18 @@ const de: Messages = {
       'Älter als sechs Stunden – Preise und Zustände dürfen nicht mehr angezeigt werden. Die Treffer und ihre Begründungen stehen weiter.',
     search: 'Künstler oder Titel',
     searchLabel: 'Sammlung, Wantlist und die Fundliste durchsuchen',
+    scan: 'Barcode scannen',
+    scanning: 'Wird nachgeschlagen …',
+    scanStop: 'Abbrechen',
+    scanDenied: 'Die Kamera blieb zu. Tippen geht auch.',
+    scanNotHere:
+      'Dieser Browser kann keinen Barcode lesen – Safari bringt keinen Leser mit. Tipp die Ziffern; es findet dasselbe.',
+    scanOwned: (copies) => `Hast du – ${copies} in der Sammlung.`,
+    scanWanted: 'Nicht in der Sammlung. Steht auf deiner Wantlist.',
+    scanNew: 'Weder in der Sammlung noch auf der Wantlist.',
+    scanPressings: (n) =>
+      `${n} Pressungen teilen sich diesen Barcode – ein Barcode benennt eine Veröffentlichung, keine Pressung.`,
+    scanNothing: 'Discogs kennt keine Platte mit diesem Barcode.',
     finds: (n: number) => `${n} Treffer`,
     wrong: 'Danebengegriffen',
     notInLibrary: 'Weder in deiner Sammlung noch auf der Wantlist',

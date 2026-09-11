@@ -566,11 +566,30 @@ Zwei Stufen, die billigere zuerst.
 
 ### Stufe 1: Barcode
 
-`GET /database/search?barcode=…` ist dokumentiert, kostet einen Request und ist eindeutig.
-Deckt alles ab, was nach etwa 1985 gepresst wurde.
+`GET /database/search?barcode=…` ist dokumentiert, kostet einen Request und geht **ohne
+Token** (am 2026-09-11 gemessen).
 
-- [ ] Kamera → Barcode → Release → die Frage, die Fidelity stellt: *habe ich die schon,
-      steht sie auf meiner Wantlist, wo liegt mein Exemplar (M12), was ist sie wert (M11)*
+> ⚠️ **Und er ist nicht eindeutig — das stand hier vorher falsch.** Gemessen am
+> 2026-09-11: `5012394144777` liefert **acht** Releases in fünf Ländern (UK, Italien,
+> Frankreich, Portugal, Europe), und das Release, aus dem der Barcode stammt, steht auf
+> **Platz sieben**. Ein Barcode benennt eine *Veröffentlichung*, keine *Pressung*.
+>
+> Für Fidelitys Frage ist das kein Problem — „habe ich die schon" fragt ohnehin nach der
+> Platte. Es wird nur eines, sobald die Oberfläche einen Treffer als *die* Antwort zeigt,
+> oder wenn nur der erste Kandidat gegen die Sammlung geprüft wird: die eigene Pressung
+> stand in der Messung an siebter Stelle.
+>
+> **Und nicht jede Platte hat einen.** Stichprobe über zehn Platten aus einer echten
+> Sammlung: acht ja, zwei nein — eine Club-12" und ein White Label. Genau die Fälle, für
+> die Stufe 2 gedacht ist.
+
+- [x] Kamera → Barcode → Release → die Frage, die Fidelity stellt: *habe ich die schon,
+      steht sie auf meiner Wantlist*. Gebaut in den In-Store-Bildschirm, der diese Frage
+      schon beantwortet — die Kamera ist dort ein dritter Weg ins Suchfeld.
+- [x] **Ohne neue Abhängigkeit.** `BarcodeDetector` ist in Chromium da und in WebKit
+      nicht; auf einem iPhone wird deshalb kein Kameraknopf angeboten, sondern gesagt,
+      dass dort getippt wird. Ein Decoder in JavaScript wiegt über hundert Kilobyte, und
+      Regel 7 verlangt eine Rechtfertigung, die getippte Ziffern nicht brauchen.
 
 Die Discogs-App hat einen Barcode-Scanner. Unserer beantwortet eine andere Frage — und
 zwar die, für die man im Laden steht.

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DigWithMatches } from '#shared/protocol'
-import type { ShelfHit, ShelfResult } from '#shared/types'
+import type { ShelfHit, ShelfResult, Identified } from '#shared/types'
 import { reasonFor } from '~/i18n/reason'
 import { useDigMessages } from '~/i18n/dig'
 
@@ -22,6 +22,55 @@ const { contains, toggle, failure: basketFailure, load: loadBasket } = useBasket
 const result = shallowRef<DigWithMatches | null>(null)
 const loading = ref(true)
 const query = ref('')
+
+/*
+ * Die Platte in der Hand scannen (M13).
+ *
+ * Derselbe Bildschirm, dritter Weg ins Suchfeld: tippen, oder die Kamera
+ * draufhalten. Was der Barcode ergibt, wird **nicht** als Antwort gezeigt,
+ * sondern als Suchbegriff eingesetzt — die Antwort steht ohnehin darunter,
+ * und sie kommt aus der eigenen Datenbank.
+ */
+const error = ref<unknown>(null)
+const scan = useBarcodeScan()
+const video = useTemplateRef<HTMLVideoElement>('video')
+const scanning = ref(false)
+const identified = shallowRef<Identified | null>(null)
+const identifying = ref(false)
+
+const canScan = barcodeSupported()
+
+async function openCamera() {
+  scanning.value = true
+  identified.value = null
+  await nextTick()
+  if (video.value) await scan.start(video.value, (code) => void lookUp(code))
+}
+
+function closeCamera() {
+  scan.stop()
+  scanning.value = false
+}
+
+async function lookUp(barcode: string) {
+  scanning.value = false
+  identifying.value = true
+  try {
+    const found = await call('identify.barcode', { barcode })
+    identified.value = found
+    /*
+     * Der erste Kandidat füllt das Suchfeld — nicht, weil er der richtige
+     * ist, sondern weil er der beste Anhaltspunkt ist. Die Liste darunter
+     * zeigt, dass es mehrere gibt.
+     */
+    const first = found.candidates[0]
+    if (first) query.value = first.title
+  } catch (cause) {
+    error.value = cause
+  } finally {
+    identifying.value = false
+  }
+}
 
 onMounted(async () => {
   try {
@@ -174,6 +223,71 @@ const expired = computed(() => {
       <ErrorNote v-else-if="basketFailure" :cause="basketFailure" />
 
       <!-- Big enough to hit while walking. -->
+      <!--
+        Die Kamera, und nur wo sie etwas lesen kann.
+        `BarcodeDetector` fehlt in WebKit — auf einem iPhone würde ein
+        Kameraknopf ein Bild zeigen und nichts erkennen. Dort steht stattdessen
+        ein Satz, und getippt wird sowieso ins Feld darunter (M13).
+      -->
+      <div v-if="canScan" class="flex flex-col gap-2">
+        <button
+          v-if="!scanning"
+          type="button"
+          :disabled="identifying || !online"
+          class="fid-action flex min-h-11 items-center gap-2 self-start rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text disabled:opacity-40"
+          @click="openCamera"
+        >
+          <FidIcon name="scan" :size="16" aria-hidden="true" />
+          {{ identifying ? m.inStore.scanning : m.inStore.scan }}
+        </button>
+
+        <div v-show="scanning" class="flex flex-col gap-2">
+          <video ref="video" playsinline muted class="w-full rounded-fid-md bg-fid-inset" />
+          <button
+            type="button"
+            class="fid-action min-h-11 self-start rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text"
+            @click="closeCamera"
+          >
+            {{ m.inStore.scanStop }}
+          </button>
+        </div>
+
+        <p v-if="scan.failure.value === 'denied'" class="text-fid-sm text-fid-sig-scarcity">
+          {{ m.inStore.scanDenied }}
+        </p>
+      </div>
+      <p v-else class="text-fid-sm text-fid-text-muted">{{ m.inStore.scanNotHere }}</p>
+
+      <!--
+        Was der Barcode ergab — als **Liste**, nicht als Antwort.
+        Am 2026-09-11 gemessen: acht Releases in fünf Ländern teilten sich
+        einen Barcode. Ein einzelnes Ergebnis zu zeigen wäre eine Zusage, die
+        die Daten nicht decken.
+      -->
+      <section
+        v-if="identified"
+        class="flex flex-col gap-2 rounded-fid-md border border-fid-border p-3"
+      >
+        <p class="text-fid-sm text-fid-text">
+          {{
+            identified.owned.length > 0
+              ? m.inStore.scanOwned(count(identified.owned.length))
+              : identified.wanted.length > 0
+                ? m.inStore.scanWanted
+                : m.inStore.scanNew
+          }}
+        </p>
+        <p v-if="identified.candidates.length > 1" class="text-fid-xs text-fid-text-muted">
+          {{ m.inStore.scanPressings(count(identified.candidates.length)) }}
+        </p>
+        <p
+          v-else-if="identified.candidates.length === 0"
+          class="text-fid-xs text-fid-text-muted"
+        >
+          {{ m.inStore.scanNothing }}
+        </p>
+      </section>
+
       <input
         v-model="query"
         type="search"

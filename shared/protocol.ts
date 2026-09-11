@@ -34,6 +34,7 @@ import type {
   Dig,
   DiscoveryResult,
   Feedback,
+  Identified,
   Identity,
   MarkedOverview,
   Match,
@@ -616,6 +617,15 @@ export interface WorkerContract {
    * Ein Standort ist eine Aussage über die eigene Wohnung und kein
    * Discogs-Datum. Nichts hiervon verlässt das Gerät.
    */
+  /**
+   * Eine Platte in der Hand erkennen (M13).
+   *
+   * Ein Request. Das Ergebnis ist eine **Liste** von Pressungen, keine eine:
+   * ein Barcode benennt eine Veröffentlichung, und am 2026-09-11 gemessen
+   * teilten sich acht Releases in fünf Ländern denselben.
+   */
+  'identify.barcode': { params: { barcode: string }; progress: never; result: Identified }
+
   'places.overview': { params: undefined; progress: never; result: PlaceNode[] }
   'places.create': {
     params: { name: string; parentId: string | null }

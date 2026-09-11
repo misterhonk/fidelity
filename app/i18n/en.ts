@@ -389,6 +389,26 @@ const en = {
       'Older than six hours — prices and conditions may no longer be shown. The finds and their reasons stay.',
     search: 'Artist or title',
     searchLabel: 'Search the collection, the wantlist and the finds',
+    /*
+     * Der Barcode-Scan (M13).
+     *
+     * `scanPressings` ist der wichtigste Satz: ein Barcode benennt eine
+     * Veröffentlichung, keine Pressung — am 2026-09-11 gemessen, acht
+     * Releases in fünf Ländern für einen. Wer das nicht liest, hält die erste
+     * Zeile für *die* Platte.
+     */
+    scan: 'Scan a barcode',
+    scanning: 'Looking it up …',
+    scanStop: 'Stop',
+    scanDenied: 'The camera stayed shut. Typing works too.',
+    scanNotHere:
+      'This browser cannot read a barcode — Safari has no reader of its own. Type the digits instead; it finds the same thing.',
+    scanOwned: (copies: string) => `You have it — ${copies} in the collection.`,
+    scanWanted: 'Not in the collection. It is on your wantlist.',
+    scanNew: 'Not in your collection and not on your wantlist.',
+    scanPressings: (n: string) =>
+      `${n} pressings share this barcode — a barcode names a release, not a pressing.`,
+    scanNothing: 'Discogs knows no record with this barcode.',
     finds: (n: number) => `${n} ${n === 1 ? 'find' : 'finds'}`,
     wrong: 'Wrong pick',
     notInLibrary: 'Not in your collection and not on your wantlist',

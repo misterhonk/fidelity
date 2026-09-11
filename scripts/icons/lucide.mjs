@@ -99,6 +99,8 @@ const NEEDED = {
   eye: 'Sammlungsreiter: Im Blick',
   /* Sammlungsreiter: Orte (M12) — wo die Platte in der Wohnung steht. */
   'map-pin': 'Sammlungsreiter: Orte',
+  /* Im Laden: Barcode scannen (M13). */
+  scan: 'Barcode scannen',
 }
 
 /**

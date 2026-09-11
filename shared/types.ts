@@ -884,6 +884,32 @@ export interface StockRow {
  * hundert mitgeschickten Treffer seien alles gewesen.
  */
 /**
+ * Was hinter einem Barcode steckt (M13).
+ *
+ * `candidates` ist bewusst eine Liste: ein Barcode benennt eine
+ * Veröffentlichung und keine Pressung — am 2026-09-11 gemessen, acht Releases
+ * in fünf Ländern für einen einzigen Barcode. Ein einzelnes Ergebnis
+ * vorzugaukeln wäre eine Zusage, die die Daten nicht decken.
+ *
+ * `owned` und `wanted` beantworten die Frage, für die jemand im Laden steht,
+ * und kommen aus der **eigenen** Datenbank — das kostet nichts und geht auch,
+ * wenn die Verbindung wieder weg ist.
+ */
+export interface Identified {
+  barcode: string
+  candidates: {
+    releaseId: number
+    title: string
+    year: number | null
+    country: string
+    thumbUrl: string
+    format: string
+  }[]
+  owned: CollectionItem[]
+  wanted: WantlistItem[]
+}
+
+/**
  * Ein Ort, an dem Platten stehen (M12).
  *
  * Flach gespeichert mit einem Zeiger nach oben, nicht verschachtelt: „alles
