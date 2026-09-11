@@ -171,8 +171,10 @@ Zwei Dinge dazu, die man einmal wissen muss:
 
 - **Die Suite baut selbst.** `playwright.config.ts` startet `pnpm build && pnpm preview`
   als `webServer` – lokal aber nur, wenn nicht schon einer läuft (`reuseExistingServer`).
-  Ein vergessener `pnpm preview` von vorhin prüft den Stand von vorhin. Im Zweifel den
-  alten Prozess beenden.
+  Ein vergessener `pnpm preview` von vorhin prüft den Stand von vorhin — und baut dann
+  gar nicht erst neu. Der Prozess heißt in der Prozessliste `nuxt.mjs preview`, `pkill -f
+  "nuxt preview"` trifft ihn also nicht; `lsof -nP -iTCP:3000 -sTCP:LISTEN` schon, und der
+  Port ist ohnehin die Bedingung, nach der Playwright fragt.
 - **Es reicht nicht, die neu geschriebene Spec laufen zu lassen.** Der Schaden von 2026-08-14
   entstand nicht in den neuen Dateien, sondern in fünf alten Specs, die eine stillschweigende
   Annahme trugen – „diesen Bildschirm erreicht man auch abgemeldet". Solche Annahmen stehen

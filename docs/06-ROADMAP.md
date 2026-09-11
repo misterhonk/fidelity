@@ -11,12 +11,11 @@
 Die Meilenstein-Versionen in den Überschriften sind Planungsnamen aus der Entwurfszeit
 und nicht die tatsächliche Zählung — die steht in `CHANGELOG.md`.
 
-**M0 bis M12 und M15 sind abgearbeitet.** Offen sind drei Punkte und ein Rest:
+**M0 bis M15 sind abgearbeitet.** Offen sind noch drei Reste:
 
 | offen | wo | Stand |
 |---|---|---|
-| Die Platte in der Hand erkennen | M13 | entworfen |
-| Gradet dieser Laden ehrlich? | M14 | entworfen, eine Messung davor |
+| Den Runout **vorlesen** statt abtippen | M13 | `SpeechRecognition`, erst zu messen |
 | Lagerorte über den Tresor mitreisen lassen | M12 | der einzige offene Haken dort |
 | `docs/` ist noch deutsch | M10 | größter Brocken, geringste Dringlichkeit |
 
@@ -655,16 +654,48 @@ Aufzeichnung der eigenen Käufe.** Keine Fremdbewertung, kein Pranger, keine Mod
 nur „bei diesem Laden waren sieben von acht Platten so, wie sie beschrieben waren", auf
 dem eigenen Gerät.
 
-- [ ] Nach einer Lieferung: eine Frage, ein Tippen. Wie angekommen, besser, schlechter.
-- [ ] Fließt in den Händler-Fingerprint (M3), der ohnehin schon existiert
-- [ ] Bleibt lokal. Ein Ehrlichkeits-Score über fremde Menschen gehört niemandem außer
-      dem, der die Platte ausgepackt hat.
+- [x] Nach einer Lieferung: eine Frage, ein Tippen. Wie angekommen, besser, schlechter.
+      Auf der Startseite (`ArrivalQuestion.vue`, immer nur **eine** Platte) und auf der
+      Kaufliste, dort für jede gekaufte Zeile und jederzeit änderbar.
+- [x] Steht im Händlerprofil — **neben** dem Fingerprint, nicht darin (siehe unten)
+- [x] Bleibt lokal. Ein Ehrlichkeits-Score über fremde Menschen gehört niemandem außer
+      dem, der die Platte ausgepackt hat. `worker/grading.ts` enthält kein `fetch`, und
+      ein Test hält das fest.
 
-⚠️ **Zuerst zu messen:** ob `GET /marketplace/orders` die gelistete Kondition je Position
-mitliefert. `worker/dealers/discover.ts` liest heute nur `seller`, und die Feldnamen in
-`docs/02` stammen aus der Dokumentation, nicht aus echten Daten. Ohne sie muss der
-Nutzer die Ausgangslage selbst eintippen — was das Feature nicht unmöglich macht, aber
-schwerer.
+### Die Messung, die der Entwurf umgehen musste
+
+⚠️ Die Vorgabe war, `GET /marketplace/orders` auf die gelistete Kondition je Position zu
+prüfen. **Am 2026-09-11 gemessen: der Endpunkt antwortet auf diesem Konto mit
+`items: 0`** — es gibt dort keine Bestellungen. Die Messung ist nicht durchführbar, und
+ein Feature auf ein Feld zu bauen, das niemand gesehen hat, wäre geraten.
+
+Es zeigte sich außerdem, dass die Frage falsch gestellt war. Die versprochene Note wäre
+**Discogs-Content** und dürfte nach sechs Stunden nicht mehr auf dem Schirm stehen
+(Regel 4, `docs/09` §1.1). Ein Feature, das sie mitschreibt, um sie Wochen später
+danebenzustellen, verstößt gegen die Regel — egal aus welchem Endpunkt sie kommt.
+
+**Der Ausweg ist, nur den Vergleich zu speichern.** „Wie beschrieben / besser /
+schlechter" ist ein *abgeleitetes* Datum, dieselbe Kategorie wie Scores und der
+Fingerprint, und die dürfen ausdrücklich bleiben. Die Oberfläche fragt deshalb auch nicht
+„war es wirklich VG+", sondern „wie kam sie an" — eine Frage, die die Antwort nicht
+voraussetzt, die die App gar nicht kennt. Zwei Tests halten das: einer liest
+`shared/types.ts` und `worker/grading.ts` gegen jedes Notenwort, einer den Wortschatz
+beider Sprachen.
+
+### Zwei Entscheidungen, die beim Bauen dazukamen
+
+- **Zehn Tage Reifezeit** (`ASK_AFTER_MS`). Ein Haken bei „gekauft" heißt bestellt, nicht
+  angekommen; wer am selben Abend gefragt wird, lernt die Frage zu überlesen. Nur die
+  Frage *von selbst* wartet — auf der Kaufliste steht sie ab dem ersten Tag.
+- **Nicht in den Fingerprint.** Der wird aus einem Inventar-Scan gebaut und trägt
+  Coverage; eine Quote aus den eigenen Käufen ist etwas anderes und müsste den
+  Fingerprint bei jedem Daumen neu schreiben. Sie steht im Profil direkt unter der
+  Discogs-Verkäuferbewertung — nebeneinander liest man den Unterschied zwischen „Ablauf"
+  und „stimmte die Note", untereinander kämen sie nie zusammen.
+
+⚠️ **Unter fünf beurteilten Platten gibt es keine Prozentzahl** (`MIN_FOR_RATE`). Zwei von
+zwei sind 100 %, und das liest sich wie ein Urteil über einen Laden, über den man nichts
+weiß.
 
 ---
 
