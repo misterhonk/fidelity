@@ -116,13 +116,15 @@ test.describe('a device that has been used', () => {
  */
 test.describe('the same price in two languages', () => {
   test('follows the language, rather than whichever one loaded first', async ({ page }) => {
+    // The whole price, not "34": since v0.34.0 the footer's version matches
+    // that too, and matched first while the basket was still loading.
     await seed(page, 'en')
     await page.goto('/basket')
-    const english = await page.getByText(/34/).first().innerText()
+    const english = await page.getByText(/34[.,]00/).first().innerText()
 
     await seed(page, 'de')
     await page.goto('/basket')
-    const german = await page.getByText(/34/).first().innerText()
+    const german = await page.getByText(/34[.,]00/).first().innerText()
 
     expect(english).not.toBe(german)
 
