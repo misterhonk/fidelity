@@ -20,33 +20,33 @@ const props = defineProps<{ collectionSyncedAt: number | null }>()
 const emit = defineEmits<{ refreshed: [] }>()
 
 /**
- * `busy` ist der Keeper selbst, `pressed` der Knopf.
+ * `busy` is the keeper itself, `pressed` is the button.
  *
- * Zwei Zustände, weil es zwei Anlässe sind: der Keeper läuft beim Öffnen und
- * alle zwanzig Minuten von allein, der Knopf ist eine Bitte. Vorher gab es nur
- * den zweiten — der erste lief stumm, und genau das war die Lücke.
+ * Two states, because they are two occasions: the keeper runs on opening and
+ * every twenty minutes of its own accord, the button is a request. Before,
+ * there was only the second — the first ran silently, and that was the gap.
  */
 const { last, busy, tick } = useKeeper()
 const pressed = ref(false)
 
 /**
- * Hat dieser Lauf schon einen Schritt gemeldet?
+ * Has this run reported a step yet?
  *
- * „Sieht nach …" gehört vor die erste Meldung — der Worker lädt sein Modul,
- * und ein Knopf, der nichts tut, ist schlimmer als eine Zeile Geduld. Danach
- * gehört es nicht mehr hin: gemessen am 2026-09-11 rahmte es die benannten
- * Schritte auf beiden Seiten ein, und das hintere las sich, als finge der Lauf
- * von vorne an.
+ * "Looking …" belongs before the first report — the worker is loading its
+ * module, and a button that does nothing is worse than a line of patience.
+ * After that it does not belong: measured 2026-09-11, it bracketed the named
+ * steps on both sides, and the trailing one read as though the run were
+ * starting over.
  */
-const gemeldet = ref(false)
+const reported = ref(false)
 watch(busy, (job) => {
-  if (job !== null) gemeldet.value = true
+  if (job !== null) reported.value = true
 })
 
 async function refreshAll() {
   if (pressed.value) return
   pressed.value = true
-  gemeldet.value = false
+  reported.value = false
   try {
     await tick({ force: true })
     emit('refreshed')
@@ -66,13 +66,13 @@ const note = computed(() => {
   const words = m.value.freshness
 
   /*
-   * Was gerade läuft, schlägt jede Vergangenheitsform.
+   * What is running beats any past tense.
    *
-   * Und der Schritt wird benannt: „wird aktualisiert" allein ist eine
-   * Beschwichtigung, „Sammlung und Wantlist" ist eine Auskunft.
+   * And the step is named: "updating" on its own is a reassurance; "collection
+   * and wantlist" is information.
    */
   if (busy.value) return `${words.updating} — ${words.job[busy.value]} …`
-  if (pressed.value && !gemeldet.value) return words.looking
+  if (pressed.value && !reported.value) return words.looking
 
   const result = last.value
   if (result?.did.length) {
@@ -90,12 +90,12 @@ const note = computed(() => {
 
 <template>
   <!--
-    Ein `<div>` und kein `<p>` mehr.
+    A `<div>` and no longer a `<p>`.
 
-    `<p>` nimmt nur Phrasing Content, und `WhyNote` ist ein `<details>`. Der
-    Browser schließt den Absatz dann von selbst und hebt das `<details>`
-    heraus — die Zeile zerfällt in zwei Blöcke, und zwar nur im gerenderten
-    Dokument, nicht im Quelltext. Gemerkt am 2026-09-11 beim Einbau.
+    `<p>` takes phrasing content only, and `WhyNote` is a `<details>`. The
+    browser then closes the paragraph itself and lifts the `<details>` out —
+    the line falls into two blocks, and only in the rendered document, not in
+    the source. Noticed on 2026-09-11 while fitting it.
   -->
   <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-fid-xs text-fid-text-muted">
     <span aria-live="polite">{{ note }}</span>

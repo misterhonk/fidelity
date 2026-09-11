@@ -1,31 +1,31 @@
 <script setup lang="ts">
 /**
- * „Die App ist neuer als beim letzten Mal" — eine Zeile, einmal.
+ * "The app is newer than last time" — one line, once.
  *
- * **Warum es das braucht.** Seit 760a11e gibt es eine Seite, die sagt, was in
- * dieser Ausgabe neu ist. Erreichbar war sie nur über die Versionsnummer im
- * Footer — also für jemanden, der weiß, dass diese Zahl ein Link ist. Das ist
- * die Sorte Weg, die niemand findet, der ihn nicht schon kennt.
+ * **Why it is needed.** Since 760a11e there is a page saying what is new in
+ * this release. It was reachable only through the version number in the
+ * footer — so only to somebody who knows that number is a link. That is the
+ * kind of route nobody finds who does not already know it.
  *
- * **Warum nicht im Update-Hinweis.** Der steht *vor* dem Neuladen, und die
- * Notizen liegen im Build: davor sieht man die der Ausgabe, die man gerade
- * verlässt. Die Zeile gehört hinter den Wechsel, nicht davor.
+ * **Why not in the update notice.** That one stands *before* the reload, and
+ * the notes are in the build: before it, you see those of the release you are
+ * leaving. The line belongs after the change, not before it.
  *
- * **Warum an der zuletzt gesehenen Version und nicht am Update-Hinweis.** So
- * greift sie unabhängig davon, wie jemand zur neuen Ausgabe kam — über den
- * Hinweis, über einen Neustart des Browsers, über ein neues Gerät.
+ * **Why against the last-seen version and not against the update notice.**
+ * That way it works however somebody arrived at the new release — through the
+ * notice, through restarting the browser, through a new device.
  */
 
 const m = useMessages()
 const { version } = useRuntimeConfig().public
 
 /**
- * Pro Browser, nicht pro Konto.
+ * Per browser, not per account.
  *
- * „Habe ich diese Ausgabe schon gesehen" ist eine Eigenschaft dieses Fensters
- * und nicht der Sammlung — es gehört deshalb nicht in den Tresor und nicht in
- * IndexedDB. Und es darf verlorengehen: dann steht die Zeile einmal zu viel
- * da, was der harmlosere von zwei Fehlern ist.
+ * "Have I seen this release" is a property of this window and not of the
+ * collection — so it does not belong in the vault and not in IndexedDB. And it
+ * is allowed to be lost: the line then stands there one time too many, which
+ * is the more harmless of two mistakes.
  */
 const SCHLUESSEL = 'fidelity:seen-version'
 
@@ -52,11 +52,11 @@ onMounted(() => {
   const zuletzt = lies()
 
   /*
-   * Beim allerersten Start wird nur gemerkt, nicht gemeldet.
+   * On the very first start it only remembers, it does not report.
    *
-   * Wer die App zum ersten Mal öffnet, hat auf nichts aktualisiert — „neu seit
-   * deinem letzten Besuch" wäre dort schlicht unwahr, und die erste Zeile, die
-   * jemand von einer App liest, sollte keine falsche sein.
+   * Somebody opening the app for the first time has updated from nothing —
+   * "new since your last visit" would simply be untrue there, and the first
+   * line somebody reads from an app should not be a false one.
    */
   if (zuletzt === null) {
     merke()
@@ -66,8 +66,8 @@ onMounted(() => {
   zeigen.value = zuletzt !== String(version)
 })
 
-/** Gelesen ist gesehen — die Zeile kommt für diese Ausgabe nicht wieder. */
-function gesehen() {
+/** Read is seen — the line does not come back for this release. */
+function seen() {
   merke()
   zeigen.value = false
 }
@@ -80,13 +80,10 @@ function gesehen() {
     role="status"
   >
     <span class="fid-num">{{ m.news.updatedTo(version) }}</span>
-    <NuxtLink
-      to="/whats-new"
-      class="fid-action underline underline-offset-4"
-      @click="gesehen()"
-      >{{ m.news.whatChanged }}</NuxtLink
-    >
-    <button type="button" class="fid-action underline underline-offset-4" @click="gesehen()">
+    <NuxtLink to="/whats-new" class="fid-action underline underline-offset-4" @click="seen()">{{
+      m.news.whatChanged
+    }}</NuxtLink>
+    <button type="button" class="fid-action underline underline-offset-4" @click="seen()">
       {{ m.news.dismiss }}
     </button>
   </p>

@@ -6,12 +6,6 @@
 #
 # Started at 141 on 2026-09-11, over six hand-picked roots. Widened to the
 # whole tree the same day, which found four more the roots had hidden.
-app/components/ArrivalQuestion.vue
-app/components/OrderImport.vue
-app/components/ReleaseSheet.vue
-app/components/ShelfSheet.vue
-app/components/SyncStatus.vue
-app/components/VersionNews.vue
 app/pages/dealers.vue
 app/pages/dig.vue
 app/pages/in-store.vue

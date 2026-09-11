@@ -20,25 +20,25 @@ const { state: writeState, push } = useWriteBack()
 const record = ref<CollectionItem | null>(null)
 
 /*
- * Diese Platte im Blick behalten (M11).
+ * Keeping an eye on this record (M11).
  *
- * Der Moment, in dem man vor der eigenen Platte steht, ist derselbe, in dem
- * einem einfällt: „was ist die eigentlich wert?" Deshalb steht der Knopf
- * hier und nicht auf einem Bildschirm, den man dafür erst suchen muss.
+ * The moment you are standing in front of your own record is the same moment
+ * it occurs to you: "what is that actually worth?" So the button is here and
+ * not on a screen you would have to go looking for.
  *
- * Die Obergrenze ist sichtbar statt still: ein Wächter, der ohne ein Wort
- * aufhört, Platten anzunehmen, ist schlimmer als einer, der Nein sagt.
+ * The ceiling is visible rather than silent: a watcher that stops accepting
+ * records without a word is worse than one that says no.
  */
 const watching = ref(false)
 const watchFull = ref(false)
 
 /*
- * Und wo sie steht (M12).
+ * And where it stands (M12).
  *
- * Derselbe Moment: die Platte ist offen, und die Frage „wo lag die noch mal"
- * kommt genau hier auf. Ein Auswahlfeld statt eines eigenen Bildschirms —
- * einen Ort zuzuweisen ist eine Sache von zwei Sekunden, und dafür schickt
- * man niemanden woandershin.
+ * The same moment: the record is open, and the question "where was that
+ * again" comes up right here. A select rather than a screen of its own —
+ * assigning a place is a two-second job, and nobody gets sent elsewhere for
+ * it.
  */
 const places = shallowRef<PlaceNode[]>([])
 const placeId = ref<string | null>(null)
@@ -401,36 +401,34 @@ function onKeydown(event: KeyboardEvent) {
 
         <!-- Same shape as the dig sheet: cover on top on a phone, beside from `sm` up. -->
         <!--
-          Umbrechen statt zerquetschen.
+          Wrap rather than crush.
 
-          Das Cover ist `shrink-0` und nimmt sich seine Breite; was übrig
-          bleibt, bekamen die Fakten — bei einem 512-px-Sheet und 320 px Cover
-          also 128, und daraus wurde „Poker / Flat / Record". Mit einer
-          Mindestbreite und `flex-wrap` rutschen sie stattdessen unter das
-          Cover, sobald es nebeneinander nicht mehr lesbar wäre.
+          The cover is `shrink-0` and takes its width; the facts got what was
+          left — with a 512 px sheet and a 320 px cover that is 128, and out of
+          it came "Poker / Flat / Record". With a minimum width and `flex-wrap`
+          they slide under the cover instead, as soon as side by side would no
+          longer be legible.
         -->
         <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
           <!--
-              Größer, und der Preis dafür steht hier.
+              Larger, and the price for it is stated here.
 
-              Discogs gibt die lange Kante mit höchstens 600 heraus und oft mit
-              weniger: `images[0]` aus `/releases/{id}` ist dieselbe Fassung wie
-              `cover_image`, und der CDN-Pfad ist signiert — auf `h:1200/w:1200`
-              umgeschrieben antwortet er mit 403 (2026-08-14 gemessen). Bei
-              384 px auf einem 2×-Schirm sind das 768 Bildpunkte gegen
-              höchstens 600 vorhandene, also mindestens 30 % hochgerechnet.
-              Bewusst gewählt: eine Plattenhülle ist das, wofür jemand dieses
-              Fenster öffnet, und ein bisschen weicher ist besser als ein
-              bisschen zu klein.
+              Discogs hands out the long edge at 600 at most and often less:
+              `images[0]` from `/releases/{id}` is the same version as
+              `cover_image`, and the CDN path is signed — rewritten to
+              `h:1200/w:1200` it answers 403 (measured 2026-08-14). At 384 px on
+              a 2× screen that is 768 device pixels against 600 available at
+              most, so upscaled by at least 30 %. Chosen deliberately: a record
+              sleeve is what somebody opens this panel for, and a little softer
+              is better than a little too small.
 
-              Kein `srcset`. Es stand hier als `thumbUrl 150w, coverUrl 600w`,
-              und beide Hälften waren falsch: die 600 sind eine Zusage über die
-              tatsächliche Breite, die niemand einlöst — Release 512 liefert
-              313 × 238 —, und der 150er-Kandidat wurde nie gezogen. Bei 320 px
-              Fensterbreite und 2× braucht der schmalste Fall dieses Bildschirms
-              640 Bildpunkte; gemessen wählt der Browser auch dort das Cover.
-              Zwei Kandidaten, von denen einer nie gewinnt, sind eine Zeile
-              Auswahl ohne Auswahl.
+              No `srcset`. It stood here as `thumbUrl 150w, coverUrl 600w`, and
+              both halves were wrong: the 600 is a promise about actual width
+              that nobody keeps — release 512 delivers 313 × 238 — and the 150
+              candidate was never picked. At 320 px of window and 2×, this
+              screen's narrowest case needs 640 device pixels; measured, the
+              browser picks the cover there too. Two candidates, one of which
+              never wins, are a line of choosing without a choice.
             -->
           <img
             v-if="record.coverUrl || record.thumbUrl"
@@ -764,9 +762,9 @@ function onKeydown(event: KeyboardEvent) {
           </a>
 
           <!--
-            Wo sie steht — nur wenn es überhaupt Orte gibt.
-            Ein leeres Auswahlfeld neben „Bei Discogs ansehen" wäre ein
-            Bedienelement, das nichts kann, und der Weg dorthin steht daneben.
+            Where it stands — only where there are any places at all. An empty
+            select beside "view on Discogs" would be a control that can do
+            nothing, and the way to make one is right next to it.
           -->
           <label v-if="places.length > 0" class="flex items-center gap-2 text-fid-sm">
             <span class="text-fid-text-muted">{{ c.places.where }}</span>

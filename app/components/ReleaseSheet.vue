@@ -114,9 +114,9 @@ function evidenceOf(evidence: Record<string, unknown>): string {
 const EVIDENCE_LABEL = computed<Record<string, string>>(() => m.value.evidence)
 
 /*
- * Die Wörter stehen im Paket, die Entscheidung hier: ein Jahr ist ein Jahr,
- * und „von 2004 bis 2004" schreibt niemand. Der Satz selbst stand bis zum
- * 2026-09-10 deutsch an dieser Stelle, in einer englischen Oberfläche.
+ * The words are in the language pack, the decision is here: a year is a year,
+ * and nobody writes "from 2004 to 2004". The sentence itself stood in German
+ * at this spot until 2026-09-10, inside an English interface.
  */
 function years(entry: { from: number; to: number }): string {
   return entry.from === entry.to
@@ -175,18 +175,18 @@ function onKeydown(event: KeyboardEvent) {
           there the room is real.
         -->
         <!--
-          Umbrechen statt zerquetschen.
+          Wrap rather than crush.
 
-          Das Cover ist `shrink-0` und nimmt sich seine Breite; was übrig
-          bleibt, bekamen die Fakten — bei einem 512-px-Sheet und 320 px Cover
-          also 128, und daraus wurde „Poker / Flat / Record". Mit einer
-          Mindestbreite und `flex-wrap` rutschen sie stattdessen unter das
-          Cover, sobald es nebeneinander nicht mehr lesbar wäre.
+          The cover is `shrink-0` and takes its width; the facts got what was
+          left — with a 512 px sheet and a 320 px cover that is 128, and out of
+          it came "Poker / Flat / Record". With a minimum width and `flex-wrap`
+          they slide under the cover instead, as soon as side by side would no
+          longer be legible.
         -->
         <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
           <!--
-            The largest cover the app shows — so the one where the 600px
-            Fassung sich lohnt.
+            The largest cover the app shows — so the one where the 600 px
+            version is worth having.
 
             The address comes from the shared store, not from the match: the
             marketplace returns listings without images, so `match.thumbUrl`
@@ -194,9 +194,8 @@ function onKeydown(event: KeyboardEvent) {
             screen the 150er is already soft, and this is the one screen
             somebody opens *because* they want a closer look.
 
-            Kein `srcset` — die Begründung steht in `ShelfSheet.vue`: der
-            600w-Kandidat hielt seine Zusage nicht, und der 150er wurde nie
-            gezogen.
+            No `srcset` — the reasoning is in `ShelfSheet.vue`: the 600w
+            candidate did not keep its promise, and the 150 was never picked.
           -->
           <img
             v-if="cover"
@@ -260,7 +259,7 @@ function onKeydown(event: KeyboardEvent) {
         <!--
           The market numbers, whenever the enrichment pass paid for them. Shown
           even where neither signal fired: "40 im Angebot, Tiefstpreis 8 €" is
-          the answer to "ist das ein Fund oder Massenware", and that question
+          the answer to "is this a find or mass-produced", and that question
           does not stop being interesting because the answer is no.
         -->
         <section
@@ -438,9 +437,9 @@ function onKeydown(event: KeyboardEvent) {
           >
             {{ d.sheet.atDiscogs }}
             <!--
-              Der Pfeil aus dem Kasten. Ein Link, der die App verlässt und in
-              einem neuen Tab landet, soll das vorher sagen — vorher war das
-              ein Textlink wie jeder andere, und der Sprung kam unangekündigt.
+              The arrow out of the box. A link that leaves the app and lands in
+              a new tab should say so beforehand — before, it was a text link
+              like any other, and the jump came unannounced.
             -->
             <FidIcon name="external-link" :size="14" />
           </a>

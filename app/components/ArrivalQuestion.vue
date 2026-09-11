@@ -2,20 +2,20 @@
 import { useBasketMessages } from '~/i18n/basket'
 
 /**
- * „Ist sie angekommen?" — eine Platte, drei Knöpfe (M14).
+ * "Did it arrive?" — one record, three buttons (M14).
  *
- * **Ohne diese Zeile sammelt sich nie etwas an.** Die Ehrlichkeitsquote eines
- * Ladens braucht fünf beurteilte Käufe, und niemand geht von selbst auf
- * „Gemerkt → Gekauft", um eine Frage zu beantworten, die er dort nicht
- * vermutet. Gefragt wird deshalb da, wo man ohnehin hinsieht.
+ * **Without this line nothing ever accumulates.** A shop's honesty rate needs
+ * five judged purchases, and nobody goes to "saved → bought" of their own
+ * accord to answer a question they do not expect to find there. So the asking
+ * happens where people are already looking.
  *
- * Immer nur **eine** Platte. Eine Liste offener Fragen auf der Startseite ist
- * eine Hausaufgabe; eine Frage mit drei Knöpfen ist eine Sekunde. Ist sie
- * beantwortet, rückt die nächste nach — und wenn keine mehr wartet,
- * verschwindet der Kasten, statt als leeres Feld stehen zu bleiben.
+ * Always **one** record. A list of open questions on the start page is
+ * homework; one question with three buttons is a second. Once it is answered
+ * the next moves up — and when none is left the box disappears rather than
+ * standing there as an empty field.
  *
- * Die Zeitgrenze („frühestens zehn Tage nach dem Kauf") sitzt im Worker, nicht
- * hier: wann eine Frage fällig ist, ist eine Entscheidung über die Daten.
+ * The time bound ("ten days after the purchase at the earliest") sits in the
+ * worker, not here: when a question is due is a decision about the data.
  */
 
 const b = useBasketMessages()
@@ -36,7 +36,7 @@ onMounted(async () => {
 
 const asking = computed(() => open.value[0] ?? null)
 
-/** Der Text der Platte, oder ihre Nummer — erfunden wird hier nichts. */
+/** The record's text, or its number — nothing is invented here. */
 function label(record: Open): string {
   const written = [record.artist, record.title].filter(Boolean).join(' – ')
   return written || b.value.saved.release(record.listingId)
@@ -65,8 +65,8 @@ async function answer(record: Open, how: 'as-described' | 'better' | 'worse') {
         {{ b.saved.arrival.nudge }}
       </h2>
       <!--
-        Der Rest ist erreichbar, wird hier aber nicht aufgezählt: die Kaufliste
-        ist der Ort für alle offenen Fragen, diese Zeile für die nächste.
+        The rest is reachable but not listed here: the purchase list is the
+        place for every open question, this line for the next one.
       -->
       <NuxtLink
         v-if="open.length > 1"
@@ -85,11 +85,11 @@ async function answer(record: Open, how: 'as-described' | 'better' | 'worse') {
     </p>
 
     <!--
-      Die Frage trägt die Gruppe, nicht der einzelne Knopf.
+      The group carries the question, not the individual button.
 
-      Drei Knöpfe mit demselben `aria-label` hätten drei Mal denselben Namen
-      und wären für eine Vorlesesoftware nicht zu unterscheiden. Der Name eines
-      Knopfes ist seine Antwort; die Frage steht einmal darüber.
+      Three buttons with the same `aria-label` would have the same name three
+      times over and be indistinguishable to a screen reader. A button's name
+      is its answer; the question stands once above them.
     -->
     <div
       role="group"

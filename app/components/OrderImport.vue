@@ -2,18 +2,17 @@
 import { useBasketMessages } from '~/i18n/basket'
 
 /**
- * Eine Discogs-Bestellung einlesen (M14).
+ * Reading a Discogs order (M14).
  *
- * **Warum die Nummer eingetippt wird, und warum das keine Schlamperei ist.**
- * `GET /marketplace/orders` ist die Verkäuferseite — für jemanden, der nur
- * kauft, antwortet sie für immer mit `items: 0` (am 2026-09-11 zweimal
- * gemessen, `docs/02`). Eine einzelne Bestellung ist ihrem Käufer dagegen
- * zugänglich. Es gibt also keinen Weg von „ich bin Käufer" zu „hier sind meine
- * Bestellnummern", und der Text sagt das, statt es wie eine fehlende Bequem-
- * lichkeit aussehen zu lassen.
+ * **Why the number is typed in, and why that is not sloppiness.**
+ * `GET /marketplace/orders` is the seller side — for somebody who only buys it
+ * answers `items: 0` forever (measured twice on 2026-09-11, `docs/02`). A
+ * single order, by contrast, is readable by its buyer. So there is no route
+ * from "I am the buyer" to "here are my order numbers", and the text says so
+ * rather than letting it look like a missing convenience.
  *
- * **Was es spart:** drei Platten in einer Bestellung sind sonst drei Haken bei
- * „gekauft", von Hand, nachdem der Dig längst weggeräumt ist.
+ * **What it saves:** three records in one order are otherwise three ticks at
+ * "bought", by hand, after the dig has long been cleared away.
  */
 
 const b = useBasketMessages()
@@ -23,48 +22,48 @@ const emit = defineEmits<{ imported: [] }>()
 
 const nummer = ref('')
 const laeuft = ref(false)
-const fehler = ref<unknown>(null)
+const failure = ref<unknown>(null)
 const form = ref<string | null>(null)
-const ergebnis = ref<{ text: string; dazu: string | null } | null>(null)
+const result = ref<{ text: string; dazu: string | null } | null>(null)
 
-async function lesen() {
+async function read() {
   if (laeuft.value || !nummer.value.trim()) return
 
   laeuft.value = true
-  fehler.value = null
+  failure.value = null
   form.value = null
-  ergebnis.value = null
+  result.value = null
 
   try {
-    const antwort = await call('orders.import', { orderId: nummer.value })
+    const answer = await call('orders.import', { orderId: nummer.value })
 
-    if (!antwort.ok) {
-      // Eine verunglückte Nummer ist kein Fehler, sondern ein Vertipper — und
-      // sie hat keine Anfrage gekostet. Also auch keine Fehlermeldung.
+    if (!answer.ok) {
+      // A malformed number is not an error but a typo — and it cost no
+      // request. So no error message either.
       form.value = b.value.saved.order.badShape
       return
     }
 
-    const anzahl = antwort.records.length
-    if (anzahl === 0) {
-      ergebnis.value = { text: b.value.saved.order.nothing, dazu: null }
+    const count = answer.records.length
+    if (count === 0) {
+      result.value = { text: b.value.saved.order.nothing, dazu: null }
       return
     }
 
-    ergebnis.value = {
-      text: antwort.dealer
-        ? b.value.saved.order.done(anzahl, antwort.dealer)
-        : b.value.saved.order.doneNoDealer(anzahl),
+    result.value = {
+      text: answer.dealer
+        ? b.value.saved.order.done(count, answer.dealer)
+        : b.value.saved.order.doneNoDealer(count),
       /*
-       * „Davon hattest du schon" nur, wenn es zutrifft. Eine Zeile, die immer
-       * dasteht und meistens null sagt, liest niemand zweimal.
+       * "You already had some of these" only when it is true. A line that
+       * always stands there and mostly says zero is read twice by nobody.
        */
-      dazu: antwort.enriched > 0 ? b.value.saved.order.already(antwort.enriched) : null,
+      dazu: answer.enriched > 0 ? b.value.saved.order.already(answer.enriched) : null,
     }
     nummer.value = ''
     emit('imported')
   } catch (cause) {
-    fehler.value = cause
+    failure.value = cause
   } finally {
     laeuft.value = false
   }
@@ -75,7 +74,7 @@ async function lesen() {
   <section class="flex flex-col gap-2 rounded-fid-md border border-fid-border p-4">
     <h2 class="text-fid-base font-medium text-fid-text">{{ b.saved.order.title }}</h2>
 
-    <form class="flex flex-wrap items-center gap-2" @submit.prevent="lesen()">
+    <form class="flex flex-wrap items-center gap-2" @submit.prevent="read()">
       <label class="sr-only" for="order-id">{{ b.saved.order.label }}</label>
       <input
         id="order-id"
@@ -98,12 +97,12 @@ async function lesen() {
 
     <p v-if="form" class="text-fid-sm text-fid-text-muted" aria-live="polite">{{ form }}</p>
 
-    <p v-else-if="ergebnis" class="text-fid-sm text-fid-text" aria-live="polite">
-      {{ ergebnis.text }}
-      <template v-if="ergebnis.dazu"> {{ ergebnis.dazu }}</template>
+    <p v-else-if="result" class="text-fid-sm text-fid-text" aria-live="polite">
+      {{ result.text }}
+      <template v-if="result.dazu"> {{ result.dazu }}</template>
     </p>
 
-    <ErrorNote v-if="fehler" :cause="fehler" />
+    <ErrorNote v-if="failure" :cause="failure" />
 
     <WhyNote :label="b.saved.order.whyLabel">{{ b.saved.order.why }}</WhyNote>
   </section>
