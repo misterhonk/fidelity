@@ -5,17 +5,16 @@ import { describe, expect, it } from 'vitest'
 import type { StackShop } from '#shared/types'
 
 /**
- * Der Stapel — und die vier Entscheidungen, die ihn von einem Spielautomaten
- * unterscheiden (`docs/06` M15).
+ * The stack — and the four decisions that separate it from a slot machine
+ * (`docs/06` M15).
  *
- * 1. **Die Reihenfolge bleibt die Punktzahl.** Zu mischen, damit es länger
- *    spannend bleibt, würde das Einzige wegwerfen, was diese App kann.
- * 2. **Der Begründungssatz steht auf jeder Karte.** Ohne ihn sind es Bilder.
- * 3. **Er hört auf.** Ein Laden ist irgendwann durch, und dann sagt der
- *    Bildschirm das.
- * 4. **Preise verschwinden nach sechs Stunden.** Ein Stapel, durch den man
- *    schnell wischt, ist der leichteste Ort, an dem ein alter Preis
- *    unbemerkt stehen bleibt (Regel 4).
+ * 1. **The order stays the score.** Shuffling to keep it exciting for longer
+ *    would throw away the one thing this app can do.
+ * 2. **The reason sentence is on every card.** Without it they are pictures.
+ * 3. **It stops.** A shop runs out eventually, and then the screen says so.
+ * 4. **Prices disappear after six hours.** A stack somebody swipes through
+ *    quickly is the easiest place for an old price to stand unnoticed
+ *    (rule 4).
  */
 const PAGE = readFileSync('app/pages/stack.vue', 'utf8')
 const CARD = readFileSync('app/components/StackCard.vue', 'utf8')
@@ -29,18 +28,18 @@ const code = (source: string) =>
 
 describe('what a swipe costs', () => {
   /**
-   * Die wichtigste Zusage des ganzen Bildschirms.
+   * The most important promise of the whole screen.
    *
-   * Bei 1,2 s pro Discogs-Anfrage wäre ein Feed, der beim Wischen nachlädt,
-   * unbenutzbar — und bei dreihundert Funden wäre er genau die Schleife, die
-   * Regel 2 verbietet. Der Stapel zeigt nur, was der Dig schon geholt hat.
+   * At 1.2 s per Discogs request, a feed that loaded as you swiped would be
+   * unusable — and with three hundred finds it would be exactly the loop rule
+   * 2 forbids. The stack shows only what the dig has already fetched.
    */
   it('asks Discogs for nothing', () => {
     expect(code(WORKER)).not.toMatch(/fetch\(|DiscogsClient|discogs\.com/)
     expect(code(PAGE)).not.toMatch(/fetch\(|discogs\.com\/(?!sell)/)
   })
 
-  /** Cover kommen aus dem gemeinsamen Speicher, und nur die nächsten paar. */
+  /** Covers come from the shared store, and only the next few. */
   it('asks for the next few covers, not the whole stack', () => {
     expect(code(PAGE)).toMatch(/slice\(at\.value, at\.value \+ 5\)/)
   })
@@ -48,8 +47,8 @@ describe('what a swipe costs', () => {
 
 describe('the four decisions', () => {
   it('keeps the score order the dig produced', () => {
-    // Keine eigene Sortierung der Karten: `dig.get` liefert sie nach Punkten,
-    // und eine zweite Meinung darüber wäre eine zweite Wahrheit.
+    // No sorting of the cards here: `dig.get` returns them by score, and a
+    // second opinion about that would be a second truth.
     expect(code(PAGE)).toMatch(/dig\.value\?\.matches \?\? \[\]/)
     expect(code(PAGE)).not.toMatch(/\.sort\(|shuffle|Math\.random/)
   })
@@ -69,7 +68,7 @@ describe('the four decisions', () => {
     expect(code(PAGE)).toMatch(/Date\.now\(\) >= dig\.value\.dig\.expiresAt/)
   })
 
-  /** Und abgelaufene Digs kommen gar nicht erst in die obere Reihe. */
+  /** And expired digs do not reach the top row at all. */
   it('keeps an expired dig out of the row entirely', () => {
     expect(code(WORKER)).toMatch(/if \(dig\.expiresAt <= now\) continue/)
   })
@@ -77,12 +76,12 @@ describe('the four decisions', () => {
 
 describe('what the card shows', () => {
   /**
-   * Ein Cover gehört zu einem Titel, und zwar sofort.
+   * A cover belongs to a title, and at once.
    *
-   * Ohne `key` behält Vue dasselbe `<img>` und tauscht nur die Adresse — bis
-   * das neue Bild geladen ist, steht das vorige über dem neuen Titel. In einer
-   * Liste fällt das nicht auf, weil jede Zeile ihr eigenes Bild hat; hier
-   * wechselt ein einzelnes Element zwischen zwei Platten.
+   * Without `key`, Vue keeps the same `<img>` and only swaps the address —
+   * until the new image has loaded, the previous one stands above the new
+   * title. In a list this does not show, because each row has its own picture;
+   * here a single element changes between two records.
    */
   it('builds a fresh card per record, so no cover outlives its title', () => {
     expect(code(PAGE)).toMatch(/<StackCard\s+:key="card\.listingId"/)
@@ -91,10 +90,9 @@ describe('what the card shows', () => {
 
 describe('the way back', () => {
   /**
-   * Tinder kann sich ein verlorenes Nein leisten, eine seltene Platte nicht.
+   * Tinder can afford a lost no; a rare record cannot.
    *
-   * Deshalb ist jeder Wisch umkehrbar — und zwar sichtbar, nicht als
-   * verstecktes Kürzel.
+   * So every swipe is reversible — and visibly so, not as a hidden shortcut.
    */
   it('undoes a swipe', () => {
     expect(code(PAGE)).toMatch(/go\(-1\)/)
@@ -102,11 +100,11 @@ describe('the way back', () => {
   })
 
   /**
-   * Der Fortschritt zählt aber nur vorwärts.
+   * The progress counts forwards only, though.
    *
-   * Wer zurückwischt, hat die Karten trotzdem gesehen. Den Zähler zu senken
-   * würde den Ring wieder anschalten und dem Bildschirm eine Behauptung
-   * aufdrücken, die nicht stimmt.
+   * Anyone swiping back has seen the cards all the same. Lowering the counter
+   * would switch the ring back on and press a claim onto the screen that is
+   * not true.
    */
   it('never counts the progress back down', () => {
     expect(code(WORKER)).toMatch(/Math\.max\(dig\.stackSeen \?\? 0/)
@@ -115,14 +113,13 @@ describe('the way back', () => {
 })
 
 /**
- * Und er ist zu finden.
+ * And it can be found.
  *
- * Bis zum 2026-09-11 führte **kein einziger Link** von der Startseite in den
- * Stapel: der eine, den es gab, stand auf der Dig-Seite und dort nur
- * innerhalb von `v-if="result"`. Im Browser nachgezählt — null Treffer auf
- * `/stack`. Ein Bildschirm, den man kennen muss, um ihn zu erreichen,
- * existiert für die meisten nicht, und das sieht man keinem Test an, der nur
- * den Bildschirm selbst prüft.
+ * Until 2026-09-11 **not one link** led from the start page into the stack:
+ * the one that existed stood on the dig page and there only inside
+ * `v-if="result"`. Counted in the browser — zero hits on `/stack`. A screen
+ * you have to know about to reach does not exist for most people, and no test
+ * that checks only the screen itself shows that.
  */
 describe('the way in', () => {
   const INDEX = readFileSync('app/pages/index.vue', 'utf8')
@@ -131,7 +128,7 @@ describe('the way in', () => {
     expect(code(INDEX)).toMatch(/<StackShops/)
   })
 
-  /** Und zwar auf den Laden, auf den jemand gezeigt hat. */
+  /** And at the shop somebody pointed at. */
   it('opens the shop that was tapped, not the first one', () => {
     const SHOPS = readFileSync('app/components/StackShops.vue', 'utf8')
     expect(code(SHOPS)).toMatch(/query: \{ dealer: shop\.dealer \}/)
@@ -141,25 +138,24 @@ describe('the way in', () => {
 })
 
 describe('the row of shops', () => {
-  /** Der Ring ist eine Zahl und keine zweite Wahrheit. */
+  /** The ring is a number and not a second truth. */
   it('lights the ring from the same count the stack works through', () => {
     expect(code(PAGE)).toMatch(/s\.matches - s\.seen > 0/)
   })
 
   it('can be worked with a keyboard alone', () => {
-    // Ein Stapel, den nur ein Daumen bedienen kann, ist ein Bildschirm, den
-    // ein Teil der Leute nicht hat.
+    // A stack only a thumb can operate is a screen some people do not have.
     expect(code(PAGE)).toMatch(/ArrowRight/)
     expect(code(PAGE)).toMatch(/ArrowLeft/)
   })
 })
 
 /**
- * Und die Sortierung selbst, als Rechnung statt als Form.
+ * And the sorting itself, as a computation rather than as a shape.
  *
- * Sie ist die eine Stelle in diesem Modul, die etwas entscheidet: wo noch
- * etwas liegt, steht vorn. Rein nach Datum zu sortieren hieße, dass ein
- * durchgesehener Laden einen anderen verdeckt, in dem dreißig Funde warten.
+ * It is the one place in this module that decides something: wherever
+ * something is still waiting stands at the front. Sorting purely by date would
+ * mean a shop you have been through hiding one where thirty finds are waiting.
  */
 describe('which shop comes first', () => {
   const shop = (over: Partial<StackShop>): StackShop => ({

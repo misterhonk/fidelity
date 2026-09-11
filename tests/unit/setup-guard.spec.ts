@@ -3,17 +3,17 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Ohne Token gehört niemand auf einen Bildschirm voller Daten.
+ * Without a token, nobody belongs on a screen full of data.
  *
- * Die Umleitung stand bis zum 2026-08-14 allein im `onMounted` der Startseite
- * und galt damit für genau einen von zwölf Bildschirmen. Wer `/shelf` per
- * Lesezeichen aufrief, sah „No records here yet. Fetch the collection in the
- * settings." — eine Aussage über die Sammlung, wo eine über den Zustand der App
- * hingehört.
+ * Until 2026-08-14 the redirect lived in the start page's `onMounted` alone
+ * and so applied to exactly one of twelve screens. Anyone opening `/shelf`
+ * from a bookmark saw "No records here yet. Fetch the collection in the
+ * settings." — a statement about the collection where one about the state of
+ * the app belongs.
  *
- * Gelesen wird die Form: eine Middleware verlangt einen Router und einen
- * Worker, und was hier schiefgehen kann, ist keine Rechnung, sondern eine
- * Liste. `tests/e2e/setup-guard.spec.ts` fährt den Weg im Browser ab.
+ * The shape is read: a middleware needs a router and a worker, and what can go
+ * wrong here is not a computation but a list. `tests/e2e/setup-guard.spec.ts`
+ * drives the route in a browser.
  */
 const GUARD = readFileSync('app/middleware/setup.global.ts', 'utf8')
 
@@ -22,17 +22,16 @@ const code = GUARD.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
 
 describe('the setup guard', () => {
   it('is global, so nobody has to remember it', () => {
-    // Der Dateiname ist die Zusage: `.global.ts` läuft auf jeder Route.
+    // The filename is the promise: `.global.ts` runs on every route.
     expect(GUARD).toMatch(/defineNuxtRouteMiddleware/)
   })
 
   /**
-   * Die wichtigste Ausnahme, und keine Nachlässigkeit.
+   * The most important exception, and not an oversight.
    *
-   * In den Einstellungen wird der Token eingetragen. Wer diesen Zweig
-   * aussperrt, sperrt den Weg hinein aus — und zwar für genau die Leute, die
-   * ihn brauchen. Ein Guard, der sich selbst zusperrt, ist die teuerste Art
-   * von Sicherheit.
+   * The token is entered in the settings. Shutting that branch out shuts out
+   * the way in — and shuts it out for exactly the people who need it. A guard
+   * that locks itself is the most expensive kind of security.
    */
   it('always leaves the way in open', () => {
     for (const path of ['/welcome', '/settings', '/privacy', '/legal']) {
@@ -40,33 +39,32 @@ describe('the setup guard', () => {
     }
   })
 
-  /** Und die Unterseiten der Ausnahmen zählen mit — /settings/hub ist eine. */
+  /** And the exceptions' subpages count too — /settings/hub is one. */
   it('lets the children of an open path through too', () => {
     expect(code).toMatch(/to\.path\.startsWith\(`\$\{path\}\/`\)/)
   })
 
   /**
-   * Erst fragen, dann urteilen.
+   * Ask first, judge after.
    *
-   * `identity` ist beim ersten Aufruf leer, weil die Antwort aus dem Worker
-   * kommt. Wer nicht auf `ready` wartet, leitet jeden beim ersten Laden um —
-   * auch den, der längst eingerichtet ist.
+   * `identity` is empty on the first call, because the answer comes from the
+   * worker. Anyone not waiting for `ready` redirects everybody on the first
+   * load — including the one who has long been set up.
    */
   it('waits for the answer instead of assuming it', () => {
     expect(code).toMatch(/if \(!ready\.value\) await load\(\)/)
   })
 
-  /** Beim Erzeugen der statischen Seiten gibt es weder IndexedDB noch Worker. */
+  /** During static page generation there is neither IndexedDB nor a worker. */
   it('does nothing while there is no browser', () => {
     expect(code).toMatch(/import\.meta\.server/)
   })
 
   /**
-   * Woher jemand kam, überlebt den Umweg — aber nur als Pfad.
+   * Where somebody came from survives the detour — but only as a path.
    *
-   * `next=https://…` in einem geteilten Link wäre eine offene Weiterleitung.
-   * Das zu verhindern kostet eine Zeile, und sie steht dort, wo der Wert
-   * gelesen wird.
+   * `next=https://…` in a shared link would be an open redirect. Preventing
+   * that costs one line, and it stands where the value is read.
    */
   it('carries the way back, and only as a path', () => {
     expect(code).toMatch(/next: to\.fullPath/)
@@ -78,11 +76,11 @@ describe('the setup guard', () => {
 })
 
 /**
- * Und die alte Umleitung ist weg, nicht bloß überstimmt.
+ * And the old redirect is gone, not merely outvoted.
  *
- * Zwei Stellen, die dasselbe entscheiden, sind eine Stelle zu viel: die eine
- * wird gepflegt, die andere nicht, und welche welche ist, merkt man erst, wenn
- * sie sich widersprechen.
+ * Two places deciding the same thing are one place too many: one is
+ * maintained, the other is not, and which is which only becomes apparent when
+ * they contradict each other.
  */
 describe('the start screen', () => {
   const INDEX = readFileSync('app/pages/index.vue', 'utf8')

@@ -5,12 +5,12 @@ import { describe, expect, it } from 'vitest'
 import { blocks, pieces } from '~/utils/release-notes'
 
 /**
- * Was in dieser Ausgabe neu ist, in der App lesbar.
+ * What is new in this release, readable in the app.
  *
- * Die Datei ist 47 kB groß und zu drei Vierteln für das Repository
- * geschrieben — „fix(deploy): die Hub-Prüfung hat nichts geprüft" sagt jemandem,
- * der die App benutzt, nichts. Gezeigt wird deshalb nur der handgeschriebene
- * Vorspann, und der ist ein bis zwei Kilobyte.
+ * The file is 47 kB and three quarters of it is written for the repository —
+ * "fix(deploy): the hub check checked nothing" says nothing to somebody using
+ * the app. So only the hand-written lead is shown, and that is one or two
+ * kilobytes.
  */
 
 describe('the inline marks', () => {
@@ -30,11 +30,11 @@ describe('the inline marks', () => {
   })
 
   /**
-   * **In einem Durchgang, und das ist der Grund.**
+   * **In one pass, and this is why.**
    *
-   * Nacheinander gesucht verschluckte die fette Stelle die Klammern des Links
-   * — `**[Text](url)**` käme als fetter Text `[Text](url)` heraus, mit
-   * sichtbaren Klammern und ohne Ziel.
+   * Searched one after another, the bold run swallowed the link's brackets —
+   * `**[text](url)**` would come out as bold text `[text](url)`, with visible
+   * brackets and no destination.
    */
   it('does not let one mark swallow another', () => {
     const out = pieces('siehe [docs/02](https://example.test/a) und **fett**')
@@ -45,7 +45,7 @@ describe('the inline marks', () => {
 
 describe('the shape of the notes', () => {
   it('joins the wrapped lines of a paragraph', () => {
-    // Die Datei ist auf hundert Zeichen umbrochen; ein Bildschirm bricht anders.
+    // The file is wrapped at a hundred characters; a screen breaks differently.
     expect(blocks('eine Zeile\nund ihre Fortsetzung')).toEqual([
       {
         kind: 'paragraph',
@@ -64,11 +64,11 @@ describe('the shape of the notes', () => {
   })
 
   /**
-   * Ein mehrzeiliger Punkt bleibt einer.
+   * A multi-line bullet stays one bullet.
    *
-   * Die eingerückte Fortsetzung ist im Changelog die Regel und nicht die
-   * Ausnahme — ohne diese Zeile zerfiele jeder längere Punkt in einen Punkt
-   * und einen Absatz, und die Liste sähe zerbrochen aus.
+   * The indented continuation is the rule in the changelog and not the
+   * exception — without this line every longer bullet would fall into a bullet
+   * and a paragraph, and the list would look broken.
    */
   it('keeps an indented continuation with its bullet', () => {
     const out = blocks('- eins,\n  das weitergeht\n- zwei')
@@ -83,12 +83,12 @@ describe('the shape of the notes', () => {
 })
 
 /**
- * **Und diese Ausgabe hat etwas zu sagen.**
+ * **And this release has something to say.**
  *
- * Der Vorspann wird von Hand geschrieben, im Release-PR — das ist die Stelle,
- * an der aus fünf Commit-Betreffs ein Satz wird, den jemand lesen will. Dieser
- * Test ist die Bedingung dafür: ein Release ohne ein Wort an die Leute macht
- * den PR rot, solange man es noch schreiben kann.
+ * The lead is written by hand, in the release PR — that is where five commit
+ * subjects become a sentence somebody wants to read. This test is the
+ * condition for it: a release with not one word to anybody turns the PR red
+ * while it can still be written.
  */
 describe('the release that is about to ship', () => {
   it('has notes written for people, not for the repository', () => {
@@ -106,7 +106,7 @@ describe('the release that is about to ship', () => {
       .trim()
 
     expect(lead, `${version} hat keinen handgeschriebenen Vorspann`).not.toBe('')
-    // Und er ist ein Absatz, keine hingeworfene Zeile.
+    // And it is a paragraph, not a line tossed off.
     expect(lead.length).toBeGreaterThan(80)
   })
 })
