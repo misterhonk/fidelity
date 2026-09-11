@@ -11,10 +11,10 @@ useSeoMeta({ title: () => st.value.data.title })
     <DataControls />
 
     <!--
-      Hier und nicht unter „Darstellung": eine Hörprobe ist keine Frage des
-      Aussehens, sondern die eine Stelle, an der auf Wunsch etwas dieses Gerät
-      verlässt (ADR-012). Auf der Seite, die „mitnehmen oder loswerden" heißt,
-      steht sie am richtigen Ort.
+      Here and not under "appearance": an audio preview is not a question of
+      how things look but the one place where, on request, something leaves
+      this device (ADR-012). On the page called "take with you or get rid of",
+      it stands in the right spot.
     -->
     <AudioPreviewToggle />
   </SettingsPage>

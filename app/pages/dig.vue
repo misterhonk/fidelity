@@ -31,12 +31,12 @@ const progress = ref<ScanProgress | null>(null)
 const enriching = ref<EnrichProgress | null>(null)
 const gaps = ref<{ expanded: number; requests: number; titles: string[] } | null>(null)
 /*
- * Teilen.
+ * Sharing.
  *
- * Der Schlüssel kommt aus dem Worker und wandert in das `#`-Fragment des
- * Links — das ist der einzige Teil einer Adresse, den kein Browser an einen
- * Server schickt, und darauf beruht, dass der Hub den Inhalt nicht lesen kann.
- * Deshalb wird er hier zusammengesetzt und nirgends sonst.
+ * The key comes from the worker and goes into the `#` fragment of the link —
+ * the one part of an address no browser sends to a server, and what the hub's
+ * inability to read the contents rests on. So it is assembled here and nowhere
+ * else.
  */
 const hubUrl = ref<string | null>(null)
 const sharing = ref(false)
@@ -73,8 +73,8 @@ async function copyShare() {
     await navigator.clipboard.writeText(shareLink.value.url)
     shareCopied.value = true
   } catch {
-    // Ohne Zwischenablage bleibt der Link im Feld stehen und lässt sich von
-    // Hand nehmen. Ein Fehler wäre hier lauter als das Problem.
+    // With no clipboard the link stays in the field and can be taken by hand.
+    // An error here would be louder than the problem.
   }
 }
 
@@ -164,8 +164,8 @@ const error = ref<unknown>(null)
 const resumable = ref<Dig | null>(null)
 
 onMounted(async () => {
-  // Nur, um den Teilen-Knopf zu zeigen oder wegzulassen. Ohne Hub gibt es
-  // keinen Ort, an dem eine Fundliste liegen könnte.
+  // Only to show or leave out the share button. Without a hub there is
+  // nowhere a find list could live.
   void call('preferences.get', undefined).then((prefs) => (hubUrl.value = prefs.hubUrl))
 
   // An interrupted dig is offered before anything else: the work is already
@@ -362,18 +362,18 @@ const expired = computed(() => {
 const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
 
 /*
- * Ob die Engine überhaupt etwas zu urteilen hatte.
+ * Whether the engine had anything to judge at all.
  *
- * „Nothing here for you at this dealer. That is a result, not a fault." ist ein
- * Freispruch, und ohne Horizont ist er unhaltbar: die Engine kennt dann nur die
- * exakten Release-IDs der eigenen Platten — kein anderes Pressing, kein selber
- * Künstler, kein selbes Label. Am 2026-08-13 hat genau dieser Satz nach 2.863
- * durchgesehenen Platten dagestanden, während der Horizont aus einem einzigen
- * Eintrag bestand, und uns Stunden in die falsche Richtung geschickt.
+ * "Nothing here for you at this dealer. That is a result, not a fault." is an
+ * acquittal, and without a horizon it cannot be sustained: the engine then
+ * knows only the exact release ids of your own records — no other pressing, no
+ * same artist, no same label. On 2026-08-13 that exact sentence stood there
+ * after 2,863 records had been looked through, while the horizon consisted of
+ * a single entry, and sent us hours in the wrong direction.
  *
- * Gefragt wird nur, wenn die Frage ansteht: ein voller Dig ohne einen einzigen
- * Treffer. Nach einem Dig mit Treffern interessiert es niemanden, und die
- * Abfrage geht über die ganze Sammlung.
+ * The question is only asked when it arises: a full dig with not one match.
+ * After a dig with matches nobody cares, and the query goes over the whole
+ * collection.
  */
 const horizon = ref<Awaited<ReturnType<typeof call<'horizon.status'>>> | null>(null)
 
@@ -384,11 +384,10 @@ watchEffect(async () => {
 })
 
 /**
- * Nichts ausgebaut, obwohl es etwas auszubauen gäbe.
+ * Nothing expanded, although there is something to expand.
  *
- * Nicht `builtAt === null`: ein Horizont, dessen Blöcke abgelaufen sind, ist
- * genauso wenig eine Grundlage — und sähe mit einem Datum von damals aus wie
- * eine.
+ * Not `builtAt === null`: a horizon whose chunks have expired is no more of a
+ * basis — and with a date from back then would look like one.
  */
 const noHorizon = computed(
   () => horizon.value !== null && horizon.value.entities > 0 && horizon.value.expanded === 0,
@@ -687,21 +686,20 @@ const noHorizon = computed(
         @click="showDig(entry.id)"
       >
         <!--
-          Name, Zeitpunkt, Art, Trefferzahl.
+          Name, time, kind, match count.
 
-          Bis zum 2026-09-11 stand hier nur Name und Zahl — und drei Läufe
-          desselben Ladens am selben Tag waren damit drei identische Knöpfe.
-          Gemeldet mit genau diesem Bild: dreimal „fatplastics 0".
+          Until 2026-09-11 only the name and the number stood here — so three
+          runs of the same shop on the same day were three identical buttons.
+          Reported with exactly that picture: "fatplastics 0" three times over.
 
-          Die Uhrzeit gehört dazu und nicht nur das Datum: zwei der drei lagen
-          eine halbe Stunde auseinander. `dayTime` sagt in seinem eigenen
-          Kommentar, wofür es da ist — „für Dinge, die öfter als einmal am Tag
-          passieren".
+          The time of day belongs there and not only the date: two of the three
+          were half an hour apart. `dayTime` says in its own comment what it is
+          for — "for things that happen more than once a day".
 
-          Und die Art, weil eine Null bei „nur das Neue" etwas anderes heißt
-          als eine Null nach einem vollständigen Lauf: nichts Neues
-          eingetroffen gegen nichts für dich dabei. `digKind` trägt diese
-          Unterscheidung schon an zwei anderen Stellen.
+          And the kind, because a zero on "only what is new" means something
+          different from a zero after a full run: nothing new has arrived
+          against nothing here for you. `digKind` already carries that
+          distinction in two other places.
         -->
         <span class="flex flex-col items-start gap-1">
           <span class="flex flex-wrap items-baseline gap-x-2">
@@ -739,12 +737,11 @@ const noHorizon = computed(
       </div>
 
       <!--
-        Dieselben Funde, einer nach dem anderen.
+        The same finds, one after another.
 
-        Kein sechster Eintrag in der Navigationsleiste: auf einem Telefon sind
-        fünf schon die Grenze. Der Stapel ist eine zweite **Ansicht** dieser
-        Liste, also steht er dort, wo die Liste steht — und nicht an einer
-        Stelle, an der man ihn suchen müsste.
+        No sixth entry in the navigation bar: on a phone five is already the
+        limit. The stack is a second **view** of this list, so it stands where
+        the list stands — and not somewhere you would have to go looking.
       -->
       <NuxtLink
         :to="{ path: '/stack' }"
@@ -754,11 +751,11 @@ const noHorizon = computed(
       </NuxtLink>
 
       <!--
-        Teilen, und nur wenn es geht.
-        Ohne Hub gibt es keinen Ort, an dem eine Fundliste liegen könnte —
-        dann steht hier ein Satz statt eines Knopfes, der nichts tut. Nach
-        sechs Stunden verschwindet der Knopf ganz: was nicht mehr gezeigt
-        werden darf, darf auch nicht weitergegeben werden (Regel 4).
+        Sharing, and only where it is possible.
+        Without a hub there is nowhere a find list could live — then a sentence
+        stands here instead of a button that does nothing. After six hours the
+        button disappears altogether: what may no longer be shown may not be
+        passed on either (rule 4).
       -->
       <div v-if="!expired" class="flex flex-col gap-2">
         <button
@@ -865,10 +862,10 @@ const noHorizon = computed(
       </p>
 
       <!--
-        Kein Freispruch ohne Grundlage.
-        Ohne Horizont ist „hier ist nichts für dich" keine Auskunft über den
-        Laden, sondern eine über uns — und die gehört so gesagt, samt dem Weg
-        dorthin, wo es sich beheben lässt.
+        No acquittal without a basis.
+        Without a horizon, "there is nothing here for you" is not information
+        about the shop but about us — and it belongs said that way, together
+        with the route to where it can be fixed.
       -->
       <p v-if="result.matches.length === 0 && noHorizon" class="text-fid-base text-fid-sig-gap">
         {{ d.empty.noHorizon }}

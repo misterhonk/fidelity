@@ -25,12 +25,12 @@ const loading = ref(true)
 const query = ref('')
 
 /*
- * Die Platte in der Hand scannen (M13).
+ * Scanning the record in your hand (M13).
  *
- * Derselbe Bildschirm, dritter Weg ins Suchfeld: tippen, oder die Kamera
- * draufhalten. Was der Barcode ergibt, wird **nicht** als Antwort gezeigt,
- * sondern als Suchbegriff eingesetzt — die Antwort steht ohnehin darunter,
- * und sie kommt aus der eigenen Datenbank.
+ * The same screen, a third way into the search field: type, or hold the camera
+ * up to it. What the barcode yields is **not** shown as an answer but put in
+ * as a search term — the answer is below anyway, and it comes from the local
+ * database.
  */
 const error = ref<unknown>(null)
 const scan = useBarcodeScan()
@@ -54,11 +54,10 @@ function closeCamera() {
 }
 
 /**
- * Getippt statt gescannt — und es nimmt beides.
+ * Typed rather than scanned — and it takes both.
  *
- * Nur Ziffern sind ein Barcode, alles andere eine Auslaufrillen-Nummer. Zwei
- * Felder nebeneinander wären zwei Entscheidungen, die niemand treffen will,
- * während er eine Platte in der Hand hält.
+ * Digits only is a barcode, anything else a run-out number. Two fields side by
+ * side would be two decisions nobody wants to make while holding a record.
  */
 const typed = ref('')
 
@@ -89,9 +88,9 @@ async function lookUp(barcode: string) {
     const found = await call('identify.barcode', { barcode })
     identified.value = found
     /*
-     * Der erste Kandidat füllt das Suchfeld — nicht, weil er der richtige
-     * ist, sondern weil er der beste Anhaltspunkt ist. Die Liste darunter
-     * zeigt, dass es mehrere gibt.
+     * The first candidate fills the search field — not because it is the right
+     * one but because it is the best starting point. The list below shows that
+     * there are several.
      */
     const first = found.candidates[0]
     if (first) query.value = first.title
@@ -164,12 +163,12 @@ function formats(hit: ShelfHit): string {
 }
 
 /*
- * Wie lange sie schon gesucht wird, steht in `~/utils/when`.
+ * How long it has been wanted lives in `~/utils/when`.
  *
- * Hier stand dieselbe Verzweigung ein zweites Mal — auf Deutsch, fest im
- * Quelltext, in einer englischen Oberfläche. Sie hat die Übersetzung von
- * ADR-010 überlebt, weil `template-text.spec.ts` nur zwischen die Tags sieht
- * und dieser Satz über `{{ }}` aus dem Skript kam.
+ * The same branching stood here a second time — in German, hard-coded, inside
+ * an English interface. It survived the ADR-010 translation because
+ * `template-text.spec.ts` only looks between the tags, and this sentence came
+ * out of the script through `{{ }}`.
  */
 
 const expired = computed(() => {
@@ -255,10 +254,10 @@ const expired = computed(() => {
 
         <!-- Big enough to hit while walking. -->
         <!--
-          Die Kamera, und nur wo sie etwas lesen kann.
-          `BarcodeDetector` fehlt in WebKit — auf einem iPhone würde ein
-          Kameraknopf ein Bild zeigen und nichts erkennen. Dort steht stattdessen
-          ein Satz, und getippt wird sowieso ins Feld darunter (M13).
+          The camera, and only where it can read something.
+          `BarcodeDetector` is missing in WebKit — on an iPhone a camera button
+          would show a picture and recognise nothing. There a sentence stands
+          instead, and typing goes into the field below anyway (M13).
         -->
         <div v-if="canScan" class="flex flex-col gap-2">
           <button
@@ -290,12 +289,12 @@ const expired = computed(() => {
         <p v-else class="text-fid-sm text-fid-text-muted">{{ m.inStore.scanNotHere }}</p>
 
         <!--
-          Getippt: Barcode oder Auslaufrille.
+          Typed: barcode or run-out.
 
-          Am 2026-09-11 an zwölf Platten gemessen: zehn hatten einen Barcode,
-          **elf einen Runout**, keine hatte keins von beidem. Bei Club-Vinyl
-          steht der Ausweis im Auslauf — und die volle Zeichenkette ist genauer
-          als jeder Barcode (ein Treffer statt acht).
+          Measured on twelve records on 2026-09-11: ten had a barcode,
+          **eleven had a run-out**, none had neither. On club vinyl the
+          identifier is in the run-out — and the full string is more precise
+          than any barcode (one hit instead of eight).
         -->
         <form class="flex flex-wrap gap-2" @submit.prevent="lookUpTyped">
           <input
@@ -317,10 +316,9 @@ const expired = computed(() => {
         </form>
 
         <!--
-          Was der Barcode ergab — als **Liste**, nicht als Antwort.
-          Am 2026-09-11 gemessen: acht Releases in fünf Ländern teilten sich
-          einen Barcode. Ein einzelnes Ergebnis zu zeigen wäre eine Zusage, die
-          die Daten nicht decken.
+          What the barcode yielded — as a **list**, not as an answer. Measured
+          2026-09-11: eight releases across five countries shared one barcode.
+          Showing a single result would be a promise the data does not cover.
         -->
         <section
           v-if="identified"

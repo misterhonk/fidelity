@@ -26,11 +26,11 @@ const selected = ref<string | null>(null)
 const profile = ref<DealerProfile | null>(null)
 
 /**
- * Wie ehrlich dieser Laden gradet — aus den eigenen Käufen (M14).
+ * How honestly this shop grades — out of your own purchases (M14).
  *
- * Kostet keinen Request: die Zahl steht im `feedback`-Store dieses Geräts.
- * Getrennt vom Profil geladen, weil sie nichts mit Discogs zu tun hat — das
- * Profil kommt vom Server, das hier aus der eigenen Vergangenheit.
+ * Costs no request: the number is in this device's `feedback` store. Loaded
+ * separately from the profile, because it has nothing to do with Discogs — the
+ * profile comes from the server, this from your own past.
  */
 const grading = ref<GradingRecord | null>(null)
 
@@ -101,20 +101,19 @@ function facets(dist: Record<string, number>, limit: number): TasteFacet[] {
 }
 
 /**
- * Welcher Balken gerade aufgeklappt ist.
+ * Which bar is currently open.
  *
- * Ein einziger, nicht mehrere: zwei offene Listen nebeneinander sind zwei
- * Fragen gleichzeitig, und die zweite verdrängt die erste ohnehin auf dem
- * Bildschirm.
+ * One only, not several: two open lists side by side are two questions at
+ * once, and the second pushes the first off the screen anyway.
  */
 const browsing = ref<{ title: string; label?: string; decade?: number } | null>(null)
 
 /**
- * `"1990er"` zurück in `1990`.
+ * `"1990s"` back into `1990`.
  *
- * Der Fingerabdruck schreibt das Jahrzehnt als Wort, weil es dort auf einem
- * Balken steht; gespeichert ist es als Zahl, weil danach gesucht wird. Die
- * Umkehrung gehört hierhin und nicht in beide.
+ * The fingerprint writes the decade as a word, because there it sits on a bar;
+ * it is stored as a number, because that is what gets searched. The reverse
+ * belongs here and not in both.
  */
 const decadeOf = (name: string) => Number.parseInt(name, 10)
 
@@ -192,7 +191,7 @@ const scanned = computed(() => {
           "
           @click="select(dealer.username)"
         >
-          <!-- Ein Laden ist ein Ort, kein String. -->
+          <!-- A shop is a place, not a string. -->
           <ShopLogo :dealer="dealer.username" :avatar-url="dealer.avatarUrl" :size="24" />
           {{ dealer.displayName || dealer.username }}
         </button>
@@ -219,16 +218,16 @@ const scanned = computed(() => {
           </p>
 
           <!--
-            Und direkt darunter die Zahl, die Discogs nicht führt.
+            And directly below it, the number Discogs does not keep.
 
-            Über der Zeile steht die Verkäuferbewertung: die misst den Ablauf –
-            schnell verschickt, ordentlich verpackt – und sagt nichts darüber,
-            ob die Note stimmte. Genau deshalb steht diese Zeile hier und nicht
-            in einem eigenen Abschnitt: nebeneinander liest man den
-            Unterschied, untereinander kämen sie nie zusammen.
+            Above the row sits the seller rating: that measures the process —
+            shipped quickly, packed properly — and says nothing about whether
+            the grade was right. Which is exactly why this row is here and not
+            in a section of its own: side by side you read the difference; one
+            above the other they would never meet.
 
-            Die versprochene Note steht in keiner dieser Zahlen. Gespeichert
-            ist nur der Vergleich (worker/grading.ts).
+            The promised grade is in none of these numbers. What is stored is
+            only the comparison (worker/grading.ts).
           -->
           <div v-if="grading && grading.judged > 0" class="flex flex-col gap-1">
             <p class="fid-num text-fid-sm text-fid-text">
@@ -388,10 +387,10 @@ const scanned = computed(() => {
         </div>
 
         <!--
-          Was hinter einem Balken steckt, unter den Balken.
-          Kein eigener Bildschirm und kein Dialog: die Zahl darüber ist der
-          Zusammenhang, und wer eine Reihe von Labels durchsieht, will nicht
-          nach jedem einmal zurücknavigieren.
+          What is behind a bar, underneath the bars. No screen of its own and
+          no dialog: the number above is the context, and somebody going
+          through a row of labels does not want to navigate back after each
+          one.
         -->
         <DealerStock
           v-if="browsing"

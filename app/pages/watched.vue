@@ -5,15 +5,15 @@ import type { WatchedRelease } from '#shared/types'
 import { useCollectionMessages } from '~/i18n/collection'
 
 /**
- * Beobachtete Platten (M11).
+ * Watched records (M11).
  *
- * Zwei Richtungen aus einem Mechanismus, und die zweite ist der Grund für das
- * Ganze: **wenn die eigene Platte im Wert springt.** Discogs sagt einem das
- * nicht, und wer verkaufen will, erfährt vom Anstieg sonst durch Zufall.
+ * Two directions out of one mechanism, and the second is the reason for the
+ * whole thing: **when a record you own jumps in value.** Discogs does not tell
+ * you, and anyone wanting to sell otherwise learns about the rise by chance.
  *
- * Was der Bildschirm **nicht** kann und auch nicht behauptet: sagen, *wer* die
- * Platte hat. Es gibt keinen Endpunkt, der die Angebote zu einer Release-Id
- * auflistet (`docs/02`) — deshalb steht hier ein Preis und kein Laden.
+ * What the screen **cannot** do and does not claim to: say *who* has the
+ * record. There is no endpoint that lists the offers for a release id
+ * (`docs/02`) — so a price stands here and not a shop.
  */
 const c = useCollectionMessages()
 const m = useMessages()
@@ -44,11 +44,11 @@ onMounted(async () => {
 })
 
 /**
- * Nachsehen — und zwar sichtbar, was es kostet.
+ * Checking — with the cost visible.
  *
- * Ein Request je fällige Platte, im Takt von 1,2 s. Bei fünfzig Platten ist
- * das eine Minute, und das steht am Knopf, statt dass jemand es merkt, während
- * er wartet.
+ * One request per record that is due, at a pace of 1.2 s. With fifty records
+ * that is a minute, and it says so on the button rather than somebody finding
+ * out while they wait.
  */
 async function check() {
   if (busy.value) return
@@ -71,7 +71,7 @@ async function drop(releaseId: number) {
   rows.value = rows.value.filter((row) => row.releaseId !== releaseId)
 }
 
-/** Der letzte gemessene Preis, oder die Aussage, dass es gerade keinen gibt. */
+/** The last measured price, or the statement that there is none right now. */
 function price(row: WatchedRelease): string {
   const last = row.points.at(-1)
   if (!last) return c.value.watched.notYet
@@ -80,12 +80,11 @@ function price(row: WatchedRelease): string {
 }
 
 /**
- * Die Spanne über den Verlauf, als Satz.
+ * The span across the history, as a sentence.
  *
- * Kein Diagramm: eine Kurve aus vier Punkten ist eine Behauptung über eine
- * Entwicklung, die vier Punkte nicht tragen. Zwei Zahlen und ein Zeitraum
- * sagen dasselbe ehrlicher — und Balken sind in dieser App `<div>`s, nicht
- * eine Bibliothek (CLAUDE.md).
+ * No chart: a curve through four points is a claim about a trend that four
+ * points cannot carry. Two numbers and a period say the same thing more
+ * honestly — and in this app bars are `<div>`s, not a library (CLAUDE.md).
  */
 function span(row: WatchedRelease): string | null {
   const first = row.points[0]
@@ -135,8 +134,8 @@ function span(row: WatchedRelease): string | null {
             {{ busy ? c.watched.checking : c.watched.check }}
           </button>
           <!--
-            Was es kostet, bevor es läuft. Ein Request je Platte im Takt von
-            1,2 s — das ist eine Zahl, die jemand vor dem Tippen kennen soll.
+            What it costs, before it runs. One request per record at a pace of
+            1.2 s — that is a number somebody should know before tapping.
           -->
           <p class="text-fid-xs text-fid-text-muted">
             {{ c.watched.cost(rows.length, Math.ceil((rows.length * 1.2) / 60) || 1) }}
@@ -214,10 +213,10 @@ function span(row: WatchedRelease): string | null {
         </ul>
 
         <!--
-          Die Grenze der API, gesagt statt verschwiegen.
-          „Wer verkauft Release X?" ist nicht beantwortbar (`docs/02`), also nennt
-          dieser Bildschirm einen Preis und keinen Laden. Wer das nicht weiß,
-          hält es für eine Lücke in der App.
+          The API's limit, said rather than passed over.
+          "Who is selling release X?" cannot be answered (`docs/02`), so this
+          screen names a price and not a shop. Anyone not knowing that takes it
+          for a gap in the app.
         -->
         <p class="text-fid-xs text-fid-text-muted">{{ c.watched.noShops }}</p>
       </template>

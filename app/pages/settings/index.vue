@@ -91,9 +91,8 @@ const hub = computed(() => {
 })
 
 const appearance = computed(() => {
-  // Sprache und Thema. Die Schrift stand hier auch einmal — sie war das
-  // dritte, das man einstellen konnte, und ist es seit dem 2026-08-11 nicht
-  // mehr.
+  // Language and theme. The typeface stood here once too — it was the third
+  // thing you could set, and has not been since 2026-08-11.
   const themeLabel = st.value.appearance.theme[theme.value].label
   return `${m.value.meta.name} · ${themeLabel}`
 })

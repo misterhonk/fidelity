@@ -2,18 +2,17 @@
 import { blocks } from '~/utils/release-notes'
 
 /**
- * Was in dieser Ausgabe neu ist — in der App, nicht auf GitHub.
+ * What is new in this release — in the app, not on GitHub.
  *
- * **Gezeigt wird der handgeschriebene Vorspann und sonst nichts.** Die
- * `CHANGELOG.md` ist 47 kB groß und zu drei Vierteln für das Repository
- * geschrieben; „fix(deploy): die Hub-Prüfung hat nichts geprüft" sagt jemandem,
- * der die App benutzt, genau nichts. Der Vorspann jeder Ausgabe entsteht von
- * Hand im Release-PR und ist ein bis zwei Kilobyte — der wird zur Bauzeit
- * herausgeschnitten (`nuxt.config.ts`) und liegt als Zeichenkette at.
+ * **What is shown is the hand-written lead and nothing else.** `CHANGELOG.md`
+ * is 47 kB and three quarters of it is written for the repository;
+ * "fix(deploy): the hub check checked nothing" says precisely nothing to
+ * somebody using the app. Each release's lead is written by hand in the
+ * release PR and is one or two kilobytes — it is cut out at build time
+ * (`nuxt.config.ts`) and sits here as a string.
  *
- * Ein Test hält fest, dass die laufende Version einen Vorspann hat. Ein
- * Release ohne ein Wort an die Leute macht damit den PR rot, solange man es
- * noch schreiben kann.
+ * A test holds that the running version has a lead. A release with not one
+ * word to anybody therefore turns the PR red while it can still be written.
  */
 
 const m = useMessages()
@@ -24,12 +23,12 @@ useSeoMeta({ title: () => m.value.news.title })
 const parts = computed(() => blocks(String(releaseNotes ?? '')))
 
 /**
- * Bis wann die Notizen deutsch sind.
+ * Up to which release the notes are in German.
  *
- * Sie stammen aus den Commits dieses Projekts und waren nie für einen
- * Bildschirm gedacht. Seit sie einer sind, fallen sie unter ADR-010 und werden
- * englisch geschrieben — der Hinweis verschwindet damit von selbst, statt zu
- * einer Zeile zu werden, die irgendwann nicht mehr stimmt.
+ * They come from this project's commits and were never meant for a screen.
+ * Since they are one, they fall under ADR-010 and are written in English — so
+ * the note disappears of its own accord instead of becoming a line that stops
+ * being true.
  */
 const DEUTSCH_BIS = [0, 26, 0]
 

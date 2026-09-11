@@ -15,10 +15,10 @@ useSeoMeta({
 const { call } = useFidelityWorker()
 
 /*
- * Die Läden mit frischen Funden — für die Reihe oben.
+ * The shops with fresh finds — for the row at the top.
  *
- * Kostet keinen Discogs-Request: `stack.overview` liest nur, was die Digs
- * schon in IndexedDB abgelegt haben.
+ * Costs no Discogs request: `stack.overview` only reads what the digs have
+ * already put in IndexedDB.
  */
 const shops = shallowRef<StackShop[]>([])
 const { checkOnce } = useWatchlist()
@@ -38,12 +38,13 @@ onMounted(async () => {
   await load()
 
   /*
-   * Wer hier ankommt, ist eingerichtet.
+   * Anyone arriving here is set up.
    *
-   * Das Umleiten stand bis zum 2026-08-14 hier und nur hier — und galt damit
-   * für genau einen von zwölf Bildschirmen. Es liegt jetzt in
-   * `app/middleware/setup.global.ts`, wo es für alle gilt; dieser Zweig wäre
-   * ab da toter Code, der so aussieht, als täte er noch etwas.
+   * Until 2026-08-14 the redirect lived here and only here — so it applied to
+   * exactly one of twelve screens. It now sits in
+   * `app/middleware/setup.global.ts`, where it applies to all of them; from
+   * then on this branch would be dead code that looks like it still does
+   * something.
    */
 
   // Neither of these is awaited: a shop that is slow to answer and a vault
@@ -66,7 +67,7 @@ async function reload() {
   home.value = await call('home.overview', undefined)
 
   /*
-   * Die Trefferreihe hat ihre Cover nicht dabei.
+   * The match rail does not bring its covers with it.
    *
    * The two rails beside it draw from the collection and the wantlist, whose
    * rows carry a cover from the sync — this one draws from matches, and a
@@ -164,16 +165,15 @@ const tiles = computed(() => {
         <NextStep />
 
         <!--
-          Der Weg in den Stapel, und der einzige von hier aus.
+          The way into the stack, and the only one from here.
 
-          Bis zum 2026-09-11 führte gar keiner: der Link stand allein auf der
-          Dig-Seite und dort nur innerhalb von `v-if="result"`. Ein Bildschirm,
-          den man kennen muss, um ihn zu erreichen, existiert für die meisten
-          nicht.
+          Until 2026-09-11 there was none at all: the link stood on the dig
+          page alone and there only inside `v-if="result"`. A screen you have
+          to know about to reach does not exist for most people.
 
-          Und es ist die Reihe selbst statt eines Knopfes „Zum Stapel": sie
-          zeigt schon hier, wo etwas wartet, und ein Tippen ist dann nicht die
-          Entscheidung für eine Ansicht, sondern für einen Laden.
+          And it is the row itself rather than a "go to the stack" button: it
+          already shows here where something is waiting, so a tap is not a
+          decision about a view but about a shop.
         -->
         <StackShops v-if="shops.length > 0" :shops="shops" />
       </div>
@@ -209,10 +209,10 @@ const tiles = computed(() => {
 
         <div v-if="home.finds.length > 0" class="flex flex-col gap-2 px-6">
           <!--
-            Ein abgebrochener Dig ist kein Ergebnis.
+            An interrupted dig is not a result.
             A scan that stopped — closed tab, lost connection — keeps whatever
             it found, and shown without this it reads as the answer: three
-            records "bei fatplastics" off 1.400 of 2.881 listings. The dig
+            records "at fatplastics" off 1,400 of 2,881 listings. The dig
             screen has always said so and offered to finish; this one borrowed
             its results and none of its honesty.
           -->

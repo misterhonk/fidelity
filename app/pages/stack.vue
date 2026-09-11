@@ -5,16 +5,16 @@ import type { StackShop } from '#shared/types'
 import { useDigMessages } from '~/i18n/dig'
 
 /**
- * Der Stapel — dieselben Funde, einer nach dem anderen.
+ * The stack — the same finds, one after another.
  *
- * Eine zweite Oberfläche **neben** der Liste, nicht statt ihr (`docs/06` M15).
- * Oben die Läden mit frischen Funden, farbiger Ring wo noch etwas liegt;
- * darunter eine Platte, ganzflächig, drei Knöpfe, wischen.
+ * A second interface **beside** the list, not instead of it (`docs/06` M15).
+ * At the top the shops with fresh finds, a coloured ring where something is
+ * waiting; below, one record, full-bleed, three buttons, swipe.
  *
- * **Ein Wisch kostet null Requests.** Der Dig hat längst stattgefunden, die
- * Treffer liegen in `matches`, die Cover in `covers`. Das ist der Grund,
- * warum das hier überhaupt geht: bei 1,2 s pro Discogs-Anfrage wäre ein Feed,
- * der beim Wischen nachlädt, unbenutzbar.
+ * **A swipe costs zero requests.** The dig happened long ago, the matches are
+ * in `matches`, the covers in `covers`. That is why this works at all: at
+ * 1.2 s per Discogs request, a feed that loaded as you swiped would be
+ * unusable.
  */
 const d = useDigMessages()
 const m = useMessages()
@@ -28,9 +28,9 @@ const { load: loadBasket } = useBasket()
 const { request: requestCovers } = useCovers()
 
 /*
- * Hörprobe (ADR-012) — aus, bis jemand sie einschaltet, und selbst dann
- * passiert erst beim Tippen etwas. `mount` ist der Platz, an dem der Rahmen
- * entstehen *würde*; solange niemand tippt, bleibt dort ein leeres div.
+ * Audio preview (ADR-012) — off until somebody switches it on, and even then
+ * nothing happens until a tap. `mount` is the place where the frame *would* be
+ * created; until somebody taps, an empty div stays there.
  */
 const audioOn = ref(false)
 const audio = useAudioPreview()
@@ -45,7 +45,7 @@ const canHear = computed(
   () => audioOn.value && !audio.failed.value && (card.value?.videos?.length ?? 0) > 0,
 )
 
-/** Nach einem Kartenwechsel: mitnehmen, was lief, und sonst schweigen. */
+/** After a card change: carry over what was playing, and otherwise stay quiet. */
 async function follow() {
   if (!audio.playing.value) return
   const uri = card.value?.videos?.[0]?.uri
@@ -82,10 +82,10 @@ onMounted(async () => {
     shops.value = await call('stack.overview', undefined)
 
     /*
-     * `?dealer=` kommt von der Ladenreihe auf der Startseite.
+     * `?dealer=` comes from the shop row on the start page.
      *
-     * Ohne das landete jedes Tippen dort beim ersten Laden der Liste — also
-     * genau nicht bei dem, auf den jemand gezeigt hat.
+     * Without it, every tap there landed at the first shop in the list — which
+     * is exactly not the one somebody pointed at.
      */
     const wanted = typeof route.query.dealer === 'string' ? route.query.dealer : null
     const found = wanted ? shops.value.findIndex((s) => s.dealer === wanted) : -1
@@ -104,24 +104,24 @@ async function openShop(index: number) {
   shopIndex.value = index
   dig.value = await call('dig.get', { digId: next.digId })
   /*
-   * Da weitermachen, wo man war — aber nicht hinter dem Ende.
+   * Carry on where you were — but not past the end.
    *
-   * Wer einen Laden durchgesehen hat und ihn erneut öffnet, will ihn wieder
-   * von vorn sehen und nicht eine leere Karte. „Fertig" ist ein Zustand des
-   * Rings, kein Zustand des Stapels.
+   * Somebody who has been through a shop and opens it again wants to see it
+   * from the start, not an empty card. "Done" is a state of the ring, not a
+   * state of the stack.
    */
   at.value = next.seen >= next.matches ? 0 : next.seen
   prefetchCovers()
 }
 
 /**
- * Die nächsten paar Cover anfordern, nicht alle.
+ * Requesting the next few covers, not all of them.
  *
- * `useCovers` holt fehlende über den Worker — gratis aus der Sammlung, sonst
- * je ein `/releases/{id}`. Den ganzen Stapel auf einmal anzufordern wäre bei
- * dreihundert Funden genau die Schleife, die Regel 2 verbietet. Fünf voraus
- * reicht: schneller wischt niemand, und was nie erreicht wird, wird nie
- * geholt.
+ * `useCovers` fetches the missing ones through the worker — free from the
+ * collection, otherwise one `/releases/{id}` each. Requesting the whole stack
+ * at once would, with three hundred finds, be exactly the loop rule 2 forbids.
+ * Five ahead is enough: nobody swipes faster, and what is never reached is
+ * never fetched.
  */
 function prefetchCovers() {
   const naechste = cards.value.slice(at.value, at.value + 5).map((c) => c.releaseId)
@@ -138,21 +138,21 @@ function go(step: number) {
   }
   at.value = next
   /*
-   * Der Ton wandert mit — aber nur, wenn er schon lief.
+   * The sound travels along — but only if it was already playing.
    *
-   * ADR-012: die eine Geste trägt durch den Stapel. Sie trägt aber nicht
-   * *gegen* den, der den Ton ausgemacht hat. Also: läuft etwas, bekommt die
-   * nächste Karte ihre Hörprobe; läuft nichts, bleibt es still.
+   * ADR-012: the one gesture carries through the stack. It does not carry
+   * *against* somebody who turned the sound off. So: if something is playing,
+   * the next card gets its preview; if nothing is, it stays silent.
    *
-   * Und Platte A darf nie unter Platte B weiterlaufen — wer das hört, hält
-   * den Ton für den der Platte, die er sieht.
+   * And record A must never carry on under record B — anybody hearing that
+   * takes the sound for that of the record they are looking at.
    */
   void follow()
   void remember(next)
   prefetchCovers()
 }
 
-/** Nur vorwärts gezählt — der Worker hält das ebenso, hier ist es nur billiger. */
+/** Counted forwards only — the worker holds to that too; here it is just cheaper. */
 async function remember(seen: number) {
   const current = shop.value
   if (!current || seen <= current.seen) return
@@ -161,11 +161,11 @@ async function remember(seen: number) {
 }
 
 /**
- * Am Ende eines Ladens geht es beim nächsten weiter, der noch etwas hat.
+ * At the end of a shop it carries on at the next one that still has something.
  *
- * Und wenn keiner mehr etwas hat, sagt der Bildschirm das. Unendlichkeit
- * vorzutäuschen wäre die eine Sorte Sog, die zu einer App, deren ganzer Wert
- * Ehrlichkeit ist, nicht passt (`docs/06` M15).
+ * And when none of them has anything left, the screen says so. Feigning
+ * endlessness would be the one kind of pull that does not suit an app whose
+ * whole value is honesty (`docs/06` M15).
  */
 const done = ref(false)
 
@@ -181,19 +181,18 @@ async function nextShop() {
   await openShop(rest[0]!.i)
 }
 
-/* ── Wischen ────────────────────────────────────────────────────────────
+/* ── Swiping ───────────────────────────────────────────────────────────
  *
- * Pointer Events und eine CSS-Transformation, keine Bibliothek. Eine Karte,
- * die dem Finger folgt, sind diese fünfzig Zeilen — und das Budget liegt bei
- * 180 kB (Regel 7).
+ * Pointer events and a CSS transform, no library. A card that follows the
+ * finger is these fifty lines — and the budget is 180 kB (rule 7).
  */
 const dragX = ref(0)
 const dragging = ref(false)
 let startX = 0
 let pointer: number | null = null
 
-/** Ab hier gilt es als Wisch und nicht als Zittern beim Tippen. */
-const SCHWELLE = 80
+/** From here it counts as a swipe and not as a wobble while tapping. */
+const THRESHOLD = 80
 
 function down(event: PointerEvent) {
   if (event.pointerType === 'mouse' && event.button !== 0) return
@@ -215,24 +214,23 @@ function up(event: PointerEvent) {
 
   const weit = dragX.value
   dragX.value = 0
-  if (Math.abs(weit) < SCHWELLE) return
+  if (Math.abs(weit) < THRESHOLD) return
   go(weit < 0 ? 1 : -1)
 }
 
 /*
- * Und dieselbe Bewegung auf der Tastatur.
+ * And the same movement on the keyboard.
  *
- * Ein Stapel, den nur ein Daumen bedienen kann, ist ein Bildschirm, den ein
- * Teil der Leute nicht hat.
+ * A stack only a thumb can operate is a screen some people do not have.
  */
 function onKey(event: KeyboardEvent) {
   if (event.key === 'ArrowRight') go(1)
   else if (event.key === 'ArrowLeft') go(-1)
 }
 
-/* ── Die drei Knöpfe ───────────────────────────────────────────────────
- * Alle drei gibt es längst: `feedback` aus M3, `basket` aus M4, das Teilen
- * aus M9. Hier ist nichts neu außer der Stelle, an der sie sitzen.
+/* ── The three buttons ─────────────────────────────────────────────────
+ * All three have existed for ages: `feedback` from M3, `basket` from M4, the
+ * sharing from M9. Nothing here is new except where they sit.
  */
 const busy = ref(false)
 const shareLink = ref<string | null>(null)
@@ -275,15 +273,15 @@ async function share() {
 const verdict = computed(() => (card.value ? verdicts.value[card.value.listingId] : undefined))
 
 /**
- * Die vier mittleren Knöpfe: Symbol über Text.
+ * The four middle buttons: icon above text.
  *
- * Nebeneinander brach „In den Korb" auf zwei Zeilen und schob die ganze Reihe
- * auseinander — vier Knöpfe unterschiedlicher Höhe, von denen einer aussah,
- * als sei er kaputt. Übereinander ist jeder gleich hoch, und die Beschriftung
- * darf so lang sein, wie sie in der Sprache eben ist.
+ * Side by side, "add to basket" broke onto two lines and pushed the whole row
+ * apart — four buttons of different heights, one of which looked broken.
+ * Stacked, each is the same height, and the label may be as long as it happens
+ * to be in that language.
  *
- * Zurück und Weiter machen das **nicht** mit: bei ihnen trägt der Pfeil die
- * Richtung, und eine Richtung über dem Wort ist keine mehr.
+ * Back and next do **not** join in: there the arrow carries the direction, and
+ * a direction above the word is no longer one.
  */
 const STACKED =
   'fid-action flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 rounded-fid-sm border px-3 py-2 text-fid-xs'
@@ -294,8 +292,8 @@ const STACKED =
     <h1 class="sr-only">{{ d.stack.title }}</h1>
 
     <!--
-      Die obere Reihe. Der Ring ist `matches - seen > 0` und sonst nichts —
-      keine zweite Wahrheit darüber, ob es etwas Neues gibt.
+      The top row. The ring is `matches - seen > 0` and nothing else — not a
+      second truth about whether there is anything new.
     -->
     <StackShops :shops="shops" :current="shopIndex" @open="openShop" />
 
@@ -335,13 +333,14 @@ const STACKED =
         @pointercancel="up"
       >
         <!--
-          Je Karte eine eigene Instanz.
+          One instance per card.
 
-          Ohne `key` ersetzt Vue nur die Prop und behält das `<img>` — und das
-          zeigt weiter das vorige Cover, bis das neue geladen ist. Bei einer
-          Liste fällt das nicht auf, weil dort jede Zeile ihr eigenes Bild hat;
-          hier ist es **dasselbe Element**, das zwischen zwei Platten wechselt,
-          und dann steht kurz ein fremdes Cover über dem richtigen Titel.
+          Without `key`, Vue only replaces the prop and keeps the `<img>` — and
+          that carries on showing the previous cover until the new one has
+          loaded. In a list this does not show, because each row has its own
+          picture there; here it is **the same element** changing between two
+          records, and then somebody else's cover briefly stands above the
+          right title.
         -->
         <StackCard :key="card.listingId" :match="card" :expired="expired" />
       </div>
@@ -351,12 +350,11 @@ const STACKED =
       </p>
 
       <!--
-        `items-stretch`, nicht `items-center`.
+        `items-stretch`, not `items-center`.
 
-        Die vier mittleren Knöpfe sind zweizeilig (Symbol über Text), Zurück
-        und Weiter einzeilig — zentriert schwimmen sie dann unterschiedlich
-        hoch in einer Reihe. Gestreckt nimmt jeder die Höhe der Reihe, und die
-        bestimmt der höchste.
+        The four middle buttons are two lines (icon above text), back and next
+        one line — centred, they then float at different heights in one row.
+        Stretched, each takes the height of the row, and the tallest sets it.
       -->
       <div class="flex items-stretch justify-between gap-2">
         <button
@@ -436,23 +434,24 @@ const STACKED =
       </p>
 
       <!--
-        Hier entsteht der Spieler — und bis jemand tippt, ist das ein leeres
-        div und sonst nichts. Kein Skript, kein Rahmen, keine Anfrage an
-        Google (ADR-012).
+        The player is created here — and until somebody taps, this is an empty
+        div and nothing else. No script, no frame, no request to Google
+        (ADR-012).
 
-        Danach ist er **sichtbar**: YouTubes Bedingungen verlangen das, und ein
-        versteckter Spieler startet ohnehin nicht (2026-09-11 gemessen). Also
-        eine kleine, ehrliche Fläche statt eines Tricks — wer Ton anmacht,
-        sieht auch, woher er kommt.
+        After that it is **visible**: YouTube's terms require it, and a hidden
+        player does not start anyway (measured 2026-09-11). So a small, honest
+        area rather than a trick — anyone turning sound on also sees where it
+        comes from.
       -->
       <!--
-        Sichtbar nur, solange etwas läuft — und zwar zu **dieser** Karte.
+        Visible only while something is playing — and playing for **this**
+        card.
 
-        Hing zuerst an `armed`, also daran, ob überhaupt je getippt wurde. Dann
-        blieb der Spieler nach dem Stoppen stehen und zeigte das Standbild der
-        vorigen Platte unter der neuen Karte: „Robag Wruhme" oben, „The
-        Persuader" im Rahmen darunter. Ein Standbild ist kein Ton, aber es
-        behauptet dasselbe.
+        It hung off `armed` at first, so off whether anybody had ever tapped.
+        Then the player stayed standing after stopping and showed the previous
+        record's still under the new card: "Robag Wruhme" above, "The
+        Persuader" in the frame below. A still is not sound, but it claims the
+        same thing.
       -->
       <div v-show="audio.playing.value" class="flex flex-col gap-1">
         <div
@@ -460,14 +459,13 @@ const STACKED =
           class="aspect-video w-full overflow-hidden rounded-fid-sm bg-fid-inset"
         />
         <!--
-          Was da läuft, beim Namen genannt (ADR-012, Bedingung 8).
+          What is playing, named (ADR-012, condition 8).
 
-          Discogs' Videos tragen Leute ein, nicht Discogs — unter einer 12"
-          liegt auch mal ein Album-Rip, eine Live-Fassung oder schlicht eine
-          andere Platte. Der Spieler zeigt YouTubes eigenes Bild und seinen
-          eigenen Titel; ohne diese Zeile sieht das aus, als sei es *die*
-          Platte von der Karte. Steht hier ein anderer Name, sieht man es
-          sofort.
+          People enter Discogs' videos, not Discogs — under a 12" there is
+          sometimes an album rip, a live version or simply a different record.
+          The player shows YouTube's own picture and its own title; without
+          this line that looks as though it were *the* record on the card. If a
+          different name stands here, you see it at once.
         -->
         <p v-if="hearing" class="text-fid-xs text-fid-text">{{ hearing }}</p>
         <p class="text-fid-xs text-fid-text-muted">{{ d.stack.hearVia }}</p>

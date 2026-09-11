@@ -119,13 +119,12 @@ async function intoBasket(group: { dealer: string | null; records: MarkedRecord[
 }
 
 /**
- * Wie eine gekaufte Platte ankam (M14).
+ * How a bought record arrived (M14).
  *
- * Gespeichert wird nur der Vergleich, nie die versprochene Note — die wäre
- * Discogs-Content und dürfte nach sechs Stunden nicht mehr auf dem Schirm
- * stehen. Deshalb fragt dieser Bildschirm auch nicht „war es wirklich VG+",
- * sondern „wie beschrieben oder nicht": die Frage darf die Antwort nicht
- * voraussetzen, die die App gar nicht kennt.
+ * What is stored is only the comparison, never the promised grade — that would
+ * be Discogs content and could not be on screen after six hours. Which is why
+ * this screen does not ask "was it really VG+" but "as described or not": the
+ * question must not presuppose the answer the app does not have.
  */
 async function arrived(record: MarkedRecord, how: MarkedRecord['arrived']) {
   error.value = null
@@ -198,11 +197,11 @@ async function check() {
 
     <template v-else>
       <!--
-        Eine ganze Bestellung auf einmal eintragen.
+        Entering a whole order at once.
 
-        Steht außerhalb des „Gekauft"-Abschnitts, weil der eingeklappt ist,
-        solange dort nichts steht — und dann käme man nie an das Feld, mit dem
-        man den ersten Eintrag anlegt.
+        It sits outside the "bought" section, because that one is collapsed
+        while nothing is in it — and then nobody would ever reach the field
+        that creates the first entry.
       -->
       <OrderImport @imported="load()" />
 
@@ -395,11 +394,11 @@ async function check() {
             </div>
 
             <!--
-              Wie sie ankam — drei Knöpfe, keine Notenskala.
+              How it arrived — three buttons, no grading scale.
 
-              Die versprochene Note steht nirgends, also darf die Frage sie
-              auch nicht nennen. Der gedrückte Knopf bleibt stehen und ist der
-              Weg zurück: noch einmal darauf, und das Urteil ist wieder offen.
+              The promised grade is nowhere, so the question may not name it
+              either. The pressed button stays pressed and is the way back: tap
+              it again and the verdict is open once more.
             -->
             <div class="flex flex-wrap items-center gap-2">
               <span class="text-fid-xs text-fid-text-muted">

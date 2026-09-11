@@ -37,13 +37,13 @@ function clearFacet() {
 }
 
 /**
- * Die Richtung, und wie man sie umlegt.
+ * The direction, and how it gets turned.
  *
- * Ein zweiter Klick auf denselben Schlüssel dreht — das ist die Geste, die
- * jede Tabelle seit dreißig Jahren benutzt, und sie braucht keinen zweiten
- * Knopf neben jedem Wort. Ein Wechsel auf einen *anderen* Schlüssel fängt bei
- * dessen Vorgabe an, statt eine Richtung mitzuschleppen, die zu ihm nicht
- * passt: Namen wollen A–Z, Bewertungen wollen die beste zuerst.
+ * A second click on the same key reverses it — the gesture every table has
+ * used for thirty years, and it needs no second button beside every word.
+ * Switching to a *different* key starts at that key's default rather than
+ * dragging along a direction that does not suit it: names want A–Z, ratings
+ * want the best first.
  */
 const direction = ref<SortDirection>(DEFAULT_SHELF_DIRECTION.added)
 
@@ -58,9 +58,9 @@ function chooseSort(key: ShelfSort) {
 const shown = ref(120)
 
 /**
- * Nur die Schlüssel. Die Beschriftung kommt aus dem Paket, der Pfeil aus der
- * Richtung — früher steckte er in der Beschriftung, weil jeder Schlüssel nur
- * eine Richtung hatte.
+ * The keys only. The label comes from the language pack, the arrow from the
+ * direction — it used to sit inside the label, because each key had only one
+ * direction.
  */
 const SORTS = ['added', 'artist', 'year', 'rating'] as const satisfies readonly ShelfSort[]
 

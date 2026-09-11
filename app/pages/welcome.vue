@@ -53,12 +53,11 @@ const step = ref<Step>('start')
 const STEPS: Step[] = ['token', 'sync', 'horizont', 'credits', 'fertig']
 
 /**
- * Wohin der letzte Knopf führt.
+ * Where the last button leads.
  *
- * `?next=` setzt die Middleware, wenn sie jemanden von einem anderen
- * Bildschirm hierher geschickt hat. Nur relative Pfade werden übernommen: ein
- * `next=https://…` in einem geteilten Link wäre eine offene Weiterleitung, und
- * die kostet nichts zu verhindern.
+ * The middleware sets `?next=` when it has sent somebody here from another
+ * screen. Only relative paths are accepted: a `next=https://…` in a shared
+ * link would be an open redirect, and preventing that costs nothing.
  */
 const backTo = computed(() => {
   const next = useRoute().query.next
@@ -364,12 +363,12 @@ const CAN_DO = computed(
             </ul>
 
             <!--
-              Zurück, wo man hinwollte.
+              Back to where you were going.
 
-              Die Middleware hängt `?next=` an, wenn sie jemanden von einem
-              anderen Bildschirm abgefangen hat. Wer eigentlich seinen Korb sehen
-              wollte, soll nicht auf der Startseite landen und ihn von Hand
-              wiederfinden — die Einrichtung war der Umweg, nicht das Ziel.
+              The middleware appends `?next=` when it has intercepted somebody
+              from another screen. Anyone who actually wanted to see their
+              basket should not land on the start page and find it again by
+              hand — the setup was the detour, not the destination.
             -->
             <NuxtLink
               :to="backTo"

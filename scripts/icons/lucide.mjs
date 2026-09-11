@@ -90,15 +90,15 @@ const NEEDED = {
    * `shopping-cart`, dieselben wie auf der Trefferkarte. Zwei Symbole für
    * dieselbe Handlung wären zwei Dinge zu lernen statt einem.
    */
-  'arrow-right': 'Stapel: eine Platte weiter',
-  play: 'Stapel: Hörprobe starten',
-  square: 'Stapel: Hörprobe stoppen — ein Quadrat, weil Pause etwas anderes verspricht',
-  'share-2': 'Stapel: Fundliste teilen',
+  'arrow-right': 'Stack: one record on',
+  play: 'Stack: start the audio preview',
+  square: 'Stack: stop the audio preview — a square, because pause promises something else',
+  'share-2': 'Stack: share the find list',
 
   /* Sammlungsreiter: Im Blick (M11) — die Platten, deren Marktwert verfolgt wird. */
   eye: 'Sammlungsreiter: Im Blick',
   /* Sammlungsreiter: Orte (M12) — wo die Platte in der Wohnung steht. */
-  'map-pin': 'Sammlungsreiter: Orte',
+  'map-pin': 'Collection tab: places',
   /* Im Laden: Barcode scannen (M13). */
   scan: 'Barcode scannen',
 }

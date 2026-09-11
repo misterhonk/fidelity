@@ -4,12 +4,12 @@ import type { CollectionItem, PlaceNode } from '#shared/types'
 import { useCollectionMessages } from '~/i18n/collection'
 
 /**
- * Wo die Platten stehen (M12).
+ * Where the records stand (M12).
  *
- * **Das einzige Feature dieser App, das null Requests kostet.** Eine Sammlung
- * liegt nicht in einer Liste, sie liegt in einer Wohnung: Regal im
- * Wohnzimmer, zweites Fach, die Kiste im Keller, der Karton auf dem
- * Dachboden. Discogs kennt diesen Ort nicht und will ihn nicht kennen.
+ * **The one feature in this app that costs zero requests.** A collection does
+ * not live in a list, it lives in a flat: shelf in the living room, second
+ * compartment, the crate in the cellar, the box in the loft. Discogs does not
+ * know that place and does not want to.
  */
 const c = useCollectionMessages()
 const m = useMessages()
@@ -69,11 +69,11 @@ async function rename(node: PlaceNode, name: string) {
 }
 
 /**
- * Auflösen — und der Text sagt, was dabei **nicht** passiert.
+ * Dissolving — and the text says what does **not** happen in the process.
  *
- * Das Regal abzubauen heißt nicht, die Platten wegzugeben. Ohne diesen Satz
- * traut sich niemand auf den Knopf, und das wäre schade für eine Notiz, die
- * man jederzeit neu schreiben kann.
+ * Taking the shelf apart does not mean giving the records away. Without that
+ * sentence nobody dares press the button, which would be a shame for a note
+ * that can be rewritten at any time.
  */
 const dissolving = ref<string | null>(null)
 
@@ -84,7 +84,7 @@ async function dissolve(node: PlaceNode) {
   await load()
 }
 
-/** Der Einzug: alles aus einer Kiste in eine andere. */
+/** Moving in: everything out of one crate and into another. */
 const moving = ref<string | null>(null)
 
 async function move(from: string, to: string) {
@@ -134,9 +134,9 @@ const total = computed(() => nodes.value.reduce((sum, node) => sum + node.record
               >
                 <span class="truncate font-medium">{{ node.name }}</span>
                 <!--
-                  Zwei Zahlen, wenn sie sich unterscheiden: was hier liegt und
-                  was insgesamt darunter. Ein Keller, der 0 zeigt, während drei
-                  Kisten darin voll sind, ist eine Lüge.
+                  Two numbers where they differ: what sits here and what sits
+                  underneath in total. A cellar showing 0 while three crates in
+                  it are full is a lie.
                 -->
                 <span class="fid-num shrink-0 text-fid-xs text-fid-text-muted">
                   {{
@@ -148,9 +148,9 @@ const total = computed(() => nodes.value.reduce((sum, node) => sum + node.record
               </button>
 
               <!--
-                `min-w-0` statt `shrink-0`: die Knopfgruppe **soll** schrumpfen
-                dürfen, sonst kann `flex-wrap` nie umbrechen und die Zeile läuft
-                über den rechten Rand hinaus (`design-restraint.spec.ts`).
+                `min-w-0` rather than `shrink-0`: the button group **should**
+                be allowed to shrink, or `flex-wrap` can never wrap and the row
+                runs past the right edge (`design-restraint.spec.ts`).
               -->
               <div class="flex min-w-0 flex-wrap items-center gap-2">
                 <button
@@ -197,10 +197,10 @@ const total = computed(() => nodes.value.reduce((sum, node) => sum + node.record
                 class="min-w-0 grow rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
               />
               <!--
-                Umrandet, nicht gefüllt. Ein Bildschirm trägt genau einen
-                gefüllten Akzent (`design-restraint.spec.ts`), und der gehört dem
-                Knopf am Fuß: „Ort anlegen" ist der Grund, warum jemand hier ist.
-                Dieser hier legt etwas *in* einen vorhandenen Ort.
+                Outlined, not filled. A screen carries exactly one filled
+                accent (`design-restraint.spec.ts`), and it belongs to the
+                button at the foot: "create a place" is why somebody is here.
+                This one puts something *into* a place that already exists.
               -->
               <button
                 type="submit"
@@ -275,9 +275,9 @@ const total = computed(() => nodes.value.reduce((sum, node) => sum + node.record
         </form>
 
         <!--
-          Gesagt, weil es der Grund ist, warum dieser Bildschirm anders ist als
-          alle anderen: hier entsteht etwas, das es bei Discogs nicht gibt und
-          nirgendwohin geht.
+          Said, because it is why this screen is different from every other:
+          something is created here that does not exist at Discogs and goes
+          nowhere.
         -->
         <p class="text-fid-xs text-fid-text-muted">{{ c.places.staysHere }}</p>
       </template>

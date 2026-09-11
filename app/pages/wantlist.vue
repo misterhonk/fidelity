@@ -62,13 +62,12 @@ async function drop(releaseId: number) {
 }
 
 /**
- * Wie viele Zeilen wirklich im Dokument stehen.
+ * How many rows are really in the document.
  *
- * Die Daten kommen in einem Rutsch aus IndexedDB — das ist billig und bleibt
- * so. Teuer ist das *Zeichnen*: jede Zeile trägt ein Cover, und eine Wantlist
- * mit fünfhundert Einträgen sind fünfhundert Bilder, die ein Telefon beim
- * ersten Blick allesamt anlegt. Das Regal macht es seit jeher so; hier fehlte
- * es.
+ * The data comes out of IndexedDB in one go — that is cheap and stays so. What
+ * is expensive is the *drawing*: every row carries a cover, and a wantlist of
+ * five hundred entries is five hundred images a phone creates all at once on
+ * first sight. The shelf has always done it this way; here it was missing.
  */
 const shown = ref(60)
 const STEP = 120
@@ -86,11 +85,10 @@ const records = computed(() => {
 })
 
 /**
- * Und was davon gezeichnet wird.
+ * And how much of it gets drawn.
  *
- * Ein neuer Filter fängt oben an — sonst sucht jemand nach „Aphex", bekommt
- * drei Treffer und einen Knopf „120 weitere zeigen", der nichts weiter zu
- * zeigen hat.
+ * A new filter starts at the top — otherwise somebody searches for "Aphex",
+ * gets three hits and a "show 120 more" button with nothing more to show.
  */
 const visible = computed(() => records.value.slice(0, shown.value))
 const rest = computed(() => records.value.length - visible.value.length)
@@ -155,7 +153,7 @@ function waiting(addedAt: string): string | null {
       -->
       <ul v-else class="grid gap-2 @4xl:grid-cols-2">
         <!--
-          Jede Zeile ist adressierbar, und dafür gibt es einen Grund.
+          Every row is addressable, and there is a reason for that.
 
           A cover on the start screen is a record, not a category — tapping it
           and landing at the top of a list of twenty-three is being told "look
@@ -315,14 +313,14 @@ function waiting(addedAt: string): string | null {
 
 <style scoped>
 /*
- * Nur ein Moment, dann ist es wieder eine Zeile wie jede andere.
+ * A moment only, then it is a row like any other again.
  *
- * Der Sprung allein sagt nichts: wer von der Startseite kommt, sieht eine
- * Liste und weiß nicht, welche davon gemeint war. Der Rahmen sagt es und
- * verschwindet, statt eine Auswahl zu behaupten, die es nicht gibt.
+ * The jump alone says nothing: somebody coming from the start page sees a list
+ * and does not know which one was meant. The outline says so and then goes,
+ * instead of claiming a selection that does not exist.
  *
- * `prefers-reduced-motion` schaltet die Animation ab und lässt die Betonung
- * stehen — die Information darf nicht am Bewegungswunsch hängen.
+ * `prefers-reduced-motion` turns the animation off and leaves the emphasis
+ * standing — the information must not hang off a preference about movement.
  */
 .fid-want:target {
   border-color: var(--color-fid-accent);
