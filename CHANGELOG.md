@@ -9,6 +9,20 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.28.0](https://github.com/misterhonk/fidelity/compare/v0.27.1...v0.28.0) (2026-09-11)
+
+
+### Added
+
+* **ui:** sagen, dass die App neuer ist als beim letzten Mal ([6c7a256](https://github.com/misterhonk/fidelity/commit/6c7a256ee6d7d52d0677326ffc8893d55ecfeef7))
+
+
+### Fixed
+
+* **i18n:** die Wache war grün und hat 130 deutsche Kommentare übersehen ([8a12784](https://github.com/misterhonk/fidelity/commit/8a12784fba41e1617799f79ee8c859a26c39cab7))
+* **ui:** [@container](https://github.com/container) gehört auf den Kasten, dessen Breite der Inhalt hat ([c7ebfcc](https://github.com/misterhonk/fidelity/commit/c7ebfcca21f7207e669f3a337b40720d086cd8e8))
+* **ui:** den Hub im Datenschutzhinweis benennen ([2e4f3a5](https://github.com/misterhonk/fidelity/commit/2e4f3a5e7e2706411e7b47440e3047d6132fbe7b))
+
 ## [0.27.1](https://github.com/misterhonk/fidelity/compare/v0.27.0...v0.27.1) (2026-09-11)
 
 The narrow screens — basket, places, the legal pages, this one — sit in the middle again.
