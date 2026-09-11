@@ -3,6 +3,7 @@ import { masterVersionsSchema } from './discogs/entities'
 import { releaseDetailSchema } from './dig/enrich'
 import { pressingWarnings, readPressing } from './match/pressing'
 import type { PressingFamily, PressingSibling } from '#shared/types'
+import { mediumOf } from '#shared/format'
 
 /**
  * The pressing in your hand, placed among all the others (docs/06 M19 #7).
@@ -75,9 +76,11 @@ export async function pressingFamily(
 
   // Its own medium first: somebody holding a record wants the first vinyl,
   // and the 1994 cassette from India is the first pressing only on paper.
-  const medium = mediumOf(release.formats?.map((format) => format.name ?? '') ?? [])
+  const medium = mediumOf(
+    release.formats?.map((format) => format.name ?? '').join(', ') ?? null,
+  )
   const fromFirstYear = siblings.filter((sibling) => sibling.year === firstYear)
-  const sameMedium = medium ? fromFirstYear.filter((s) => mediumOf([s.format]) === medium) : []
+  const sameMedium = medium ? fromFirstYear.filter((s) => mediumOf(s.format) === medium) : []
   const first = (sameMedium.length > 0 ? sameMedium : fromFirstYear).slice(0, MAX_FIRST)
 
   const profile = readPressing(release, firstYear)
@@ -98,13 +101,4 @@ export async function pressingFamily(
 export function yearOf(released: string | undefined): number | null {
   const year = Number.parseInt(released ?? '', 10)
   return year > 1880 ? year : null
-}
-
-/** The medium behind a format string, or null when it says none. */
-export function mediumOf(formats: string[]): 'vinyl' | 'cd' | 'cassette' | null {
-  const text = formats.join(' ').toLowerCase()
-  if (/vinyl|\blp\b|12"|10"|7"/.test(text)) return 'vinyl'
-  if (/\bcd\b|compact disc/.test(text)) return 'cd'
-  if (/cassette|\bmc\b/.test(text)) return 'cassette'
-  return null
 }

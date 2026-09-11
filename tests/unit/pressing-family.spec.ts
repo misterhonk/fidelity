@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { mediumOf, pressingFamily, yearOf } from '~~/worker/pressing-family'
+import { pressingFamily, yearOf } from '~~/worker/pressing-family'
 
 /**
  * The pressing in your hand, among all the others (docs/06 M19 #7).
@@ -194,12 +194,5 @@ describe('the small readers', () => {
     expect(yearOf('1994')).toBe(1994)
     expect(yearOf('0')).toBeNull()
     expect(yearOf(undefined)).toBeNull()
-  })
-
-  it('tells the medium from Discogs’ format words', () => {
-    expect(mediumOf(['Vinyl', 'LP'])).toBe('vinyl')
-    expect(mediumOf(['CD, Album'])).toBe('cd')
-    expect(mediumOf(['Cassette, Album'])).toBe('cassette')
-    expect(mediumOf(['File'])).toBeNull()
   })
 })
