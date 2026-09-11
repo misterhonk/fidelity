@@ -16,6 +16,7 @@
 import type { CoverProgress } from '~~/worker/covers'
 import type { KeeperResult } from '~~/worker/keeper'
 import type { DrainResult } from '~~/worker/outbox'
+import type { CheckProgress, WatchedCheck } from '~~/worker/watched/check'
 import type { DemoProgress, DemoResult } from '~~/worker/demo'
 import type {
   BasketPlan,
@@ -45,6 +46,7 @@ import type {
   SortDirection,
   SharedDig,
   StackShop,
+  WatchedRelease,
   ShelfView,
   ShippingTier,
   StockRow,
@@ -598,6 +600,33 @@ export interface WorkerContract {
    * Die Karten selbst kommen aus `dig.get` — derselbe Dig, dieselbe Auswahl.
    * Kostet keinen Discogs-Request; alles steht schon in IndexedDB.
    */
+  /**
+   * Beobachtete Platten (M11).
+   *
+   * `watched.check` kostet einen Request je fällige Platte und läuft durch
+   * denselben Taktgeber wie alles andere. Die Obergrenze steckt in
+   * `MAX_WATCHED` — ohne sie wäre der Durchlauf genau die Schleife, die
+   * Regel 2 verbietet.
+   */
+  'watched.list': { params: undefined; progress: never; result: WatchedRelease[] }
+  'watched.add': {
+    params: {
+      releaseId: number
+      kind: 'shelf' | 'wantlist'
+      artist: string
+      title: string
+      threshold: number | null
+    }
+    progress: never
+    result: { watched: boolean; full: boolean }
+  }
+  'watched.remove': { params: { releaseId: number }; progress: never; result: true }
+  'watched.check': {
+    params: { force?: boolean }
+    progress: CheckProgress
+    result: WatchedCheck
+  }
+
   'stack.overview': { params: undefined; progress: never; result: StackShop[] }
   /** Wie weit der Stapel gekommen ist. Nur vorwärts. */
   'stack.seen': { params: { digId: string; seen: number }; progress: never; result: true }

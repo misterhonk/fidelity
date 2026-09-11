@@ -884,6 +884,56 @@ export interface StockRow {
  * hundert mitgeschickten Treffer seien alles gewesen.
  */
 /**
+ * Eine Platte, die beobachtet wird (M11).
+ *
+ * **Warum eine Auswahl und nicht die ganze Sammlung:** `/marketplace/stats/`
+ * kostet einen Request pro Release und Runde. Fünfzig Platten sind mit Token
+ * eine Minute, fünfhundert sind zehn — und das jeden Tag hätte genau die Form,
+ * die Regel 2 verbietet. Man beobachtet, was man verkaufen würde, und was man
+ * wirklich sucht.
+ *
+ * `kind` sagt, aus welcher Richtung geschaut wird, und das ändert die
+ * Nachricht: bei einer eigenen Platte ist ein **steigender** Preis die
+ * Neuigkeit, bei einer gesuchten ein **fallender**.
+ */
+export interface WatchedRelease {
+  releaseId: number
+  kind: 'shelf' | 'wantlist'
+  artist: string
+  title: string
+  since: number
+  /**
+   * Die Schwelle, ab der es eine Meldung wert ist.
+   *
+   * Bei `shelf` ein Anstieg in Prozent, bei `wantlist` ein Preis in der
+   * Währung des Geräts. Ohne Schwelle meldet nichts — ein Wächter, der bei
+   * jeder Schwankung ruft, wird abgeschaltet.
+   */
+  threshold: number | null
+  /**
+   * Was zuletzt gemessen wurde, älteste zuerst.
+   *
+   * Ein Verlauf und nicht nur der letzte Wert: 40 auf 95 ist eine Nachricht,
+   * 40 auf 44 ist Rauschen, und das sieht man nur an zwei Punkten. Gedeckelt,
+   * weil eine Platte über Jahre beobachtet wird und niemand dreihundert
+   * Messungen liest.
+   */
+  points: WatchPoint[]
+  /** Wann zuletzt nachgesehen wurde — null heißt: noch nie. */
+  checkedAt: number | null
+  /** Was zuletzt gemeldet wurde, damit dieselbe Nachricht nicht zweimal kommt. */
+  notifiedAt: number | null
+}
+
+export interface WatchPoint {
+  at: number
+  /** Null, wenn gerade niemand sie anbietet — das ist eine Aussage, keine Lücke. */
+  lowestPrice: number | null
+  currency: string | null
+  numForSale: number
+}
+
+/**
  * Ein Laden in der oberen Reihe des Stapels.
  *
  * Der farbige Ring ist `matches - seen > 0` und sonst nichts — keine zweite

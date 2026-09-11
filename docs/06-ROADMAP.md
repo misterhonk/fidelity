@@ -18,7 +18,6 @@ Discogs-Community wünscht und in Discogs nicht bekommt.
 | offen | wo | Stand |
 |---|---|---|
 | `docs/` ist noch deutsch | M10 | größter Brocken, geringste Dringlichkeit |
-| Beobachtete Platten | M11 | entworfen |
 | Wo die Platte steht | M12 | entworfen |
 | Die Platte in der Hand erkennen | M13 | entworfen |
 | Gradet dieser Laden ehrlich? | M14 | entworfen, zwei Messungen davor |
@@ -492,15 +491,17 @@ zwei Richtungen — und die zweite ist die, die es sonst nirgends gibt.
 billigste kostet jetzt 95 €." Discogs sagt einem das nicht, und keine der bekannten
 Drittanbieter-Apps tut es. Wer verkaufen will, erfährt vom Anstieg heute nur durch Zufall.
 
-- [ ] Platten aus dem Regal beobachten. Bewusst eine **Auswahl**, keine Sammlung —
-      siehe „Was das kostet".
-- [ ] Meldung bei einem Anstieg über eine gewählte Schwelle, mit Verlauf statt nur
-      Momentwert. Ein Sprung von 40 auf 95 ist eine Nachricht; 40 auf 44 ist Rauschen.
-- [ ] **„Verkauft" wird nicht behauptet.** Ein fallendes `num_for_sale` heißt „ein
+- [x] Platten aus dem Regal beobachten. Bewusst eine **Auswahl**, keine Sammlung —
+      `MAX_WATCHED = 100`, das sind zwei Minuten je Durchlauf.
+- [x] Meldung bei einem Anstieg über eine gewählte Schwelle, mit Verlauf statt nur
+      Momentwert. Verglichen wird mit dem **ältesten Punkt im Fenster**, nicht mit dem
+      vorletzten: ein Anstieg von 40 auf 95 kommt in dreißig kleinen Schritten, und wer
+      Nachbarn vergleicht, sieht ihn nie.
+- [x] **„Verkauft" wird nicht behauptet.** Ein fallendes `num_for_sale` heißt „ein
       Angebot weniger" — das kann ein Kauf sein oder ein zurückgezogenes Listing, und
       die API sagt nicht, welches. Der Text sagt, was gemessen wurde, nicht was
       vermutet wird.
-- [ ] Für Platten, die schon in einem Dig auftauchten, geht es genauer:
+- [ ] Noch offen: für Platten, die schon in einem Dig auftauchten, geht es genauer:
       `GET /marketplace/listings/{id}` gibt `status`, und steht dort nicht mehr
       `For Sale`, ist genau dieses Angebot weg (`docs/02`).
 
@@ -514,9 +515,9 @@ VG+", „nur unter 30 €". Discogs' eigener **Wantlister** meldet jede Listung,
 jetzt drei Exemplare, das billigste für 24 €". Der Mehrwert ist deshalb **die Schwelle,
 nicht die Entdeckung** — und der Dig bleibt das, was den Laden findet.
 
-- [ ] Preis- und Zustandsschwelle je Wantlist-Eintrag
-- [ ] Meldung, wenn die billigste Kopie darunter fällt
-- [ ] Der Text nennt nie einen Laden, weil wir keinen kennen
+- [x] Preisschwelle je beobachtetem Eintrag (Zustand folgt: `/marketplace/stats/` kennt ihn nicht)
+- [x] Meldung, wenn die billigste Kopie darunter fällt — einmal beim Übertreten, nicht bei jedem Durchlauf
+- [x] Der Text nennt nie einen Laden, weil wir keinen kennen — und der Bildschirm sagt das auch
 
 ### Was das kostet — und warum es eine Auswahl bleibt
 

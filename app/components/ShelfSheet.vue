@@ -17,6 +17,40 @@ const { call } = useFidelityWorker()
 const { state: writeState, push } = useWriteBack()
 
 const record = ref<CollectionItem | null>(null)
+
+/*
+ * Diese Platte im Blick behalten (M11).
+ *
+ * Der Moment, in dem man vor der eigenen Platte steht, ist derselbe, in dem
+ * einem einfällt: „was ist die eigentlich wert?" Deshalb steht der Knopf
+ * hier und nicht auf einem Bildschirm, den man dafür erst suchen muss.
+ *
+ * Die Obergrenze ist sichtbar statt still: ein Wächter, der ohne ein Wort
+ * aufhört, Platten anzunehmen, ist schlimmer als einer, der Nein sagt.
+ */
+const watching = ref(false)
+const watchFull = ref(false)
+
+async function toggleWatch() {
+  const item = record.value
+  if (!item) return
+
+  if (watching.value) {
+    await call('watched.remove', { releaseId: item.releaseId })
+    watching.value = false
+    return
+  }
+
+  const outcome = await call('watched.add', {
+    releaseId: item.releaseId,
+    kind: 'shelf',
+    artist: item.artistNames[0] ?? '',
+    title: item.title,
+    threshold: null,
+  })
+  watching.value = outcome.watched
+  watchFull.value = outcome.full
+}
 const panel = useTemplateRef<HTMLElement>('panel')
 
 /*
@@ -155,6 +189,10 @@ const runouts = computed(() =>
 onMounted(async () => {
   panel.value?.focus()
   record.value = await call('collection.record', { instanceId: props.instanceId })
+  if (record.value) {
+    const list = await call('watched.list', undefined)
+    watching.value = list.some((row) => row.releaseId === record.value?.releaseId)
+  }
 
   if (record.value?.releaseId) void look()
 
@@ -702,6 +740,23 @@ function onKeydown(event: KeyboardEvent) {
             {{ c.shelf.sheet.atDiscogs }}
             <FidIcon name="external-link" :size="14" />
           </a>
+
+          <button
+            type="button"
+            class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border px-4 text-fid-sm"
+            :class="
+              watching
+                ? 'border-fid-accent-fill text-fid-accent'
+                : 'border-fid-field text-fid-text'
+            "
+            @click="toggleWatch"
+          >
+            <FidIcon name="eye" :size="14" aria-hidden="true" />
+            {{ watching ? c.watched.watchingOn : c.watched.watch }}
+          </button>
+          <p v-if="watchFull" class="text-fid-xs text-fid-sig-scarcity">
+            {{ c.watched.full }}
+          </p>
 
           <button
             v-if="canRate && !confirming"

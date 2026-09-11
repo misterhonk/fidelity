@@ -94,6 +94,9 @@ const NEEDED = {
   play: 'Stapel: Hörprobe starten',
   square: 'Stapel: Hörprobe stoppen — ein Quadrat, weil Pause etwas anderes verspricht',
   'share-2': 'Stapel: Fundliste teilen',
+
+  /* Sammlungsreiter: Im Blick (M11) — die Platten, deren Marktwert verfolgt wird. */
+  eye: 'Sammlungsreiter: Im Blick',
 }
 
 /**

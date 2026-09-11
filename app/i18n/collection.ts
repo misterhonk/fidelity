@@ -9,7 +9,13 @@ import { activeLanguage } from '~/composables/useMessages'
 
 const en = {
   title: 'Collection',
-  tabs: { label: 'Collection', shelf: 'Shelf', map: 'Map', wantlist: 'Wantlist' },
+  tabs: {
+    label: 'Collection',
+    shelf: 'Shelf',
+    map: 'Map',
+    wantlist: 'Wantlist',
+    watched: 'On watch',
+  },
 
   loading: 'Loading …',
 
@@ -184,6 +190,53 @@ const en = {
     noMaster: 'No master at Discogs — only this exact pressing can be recognised',
   },
 
+  /*
+   * Beobachtete Platten (M11).
+   *
+   * Der Satz, der hier am wichtigsten ist, steht in `noShops`: „Wer verkauft
+   * Release X?" ist per API nicht beantwortbar (`docs/02`). Wer das nicht
+   * weiß, hält den fehlenden Laden für eine Lücke in der App.
+   */
+  watched: {
+    title: 'On watch',
+    lead: 'A handful of records, and what the market does with them.',
+    empty: 'Nothing on watch yet. Put a record here from your shelf or your wantlist.',
+    toShelf: 'To the shelf',
+    check: 'Look now',
+    checking: 'Looking …',
+    /* Beides gebeugt, nicht nur die Minuten: „1 records" stand am 2026-09-11
+     * eine Viertelstunde lang auf dem Schirm, weil ich nur die Hälfte der
+     * Zahlen beachtet hatte. */
+    cost: (records: number, minutes: number) =>
+      `${records} ${records === 1 ? 'record' : 'records'}, one request each — about ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}.`,
+    nothingNew: 'Nothing has moved.',
+    notYet: 'not looked yet',
+    noneForSale: 'none for sale',
+    /* Eine Zahl ohne Währung ist kein Preis. Discogs schickt beides zusammen;
+     * das hier ist der Zweig, der nicht vorkommen sollte und trotzdem etwas
+     * Wahres sagen muss. */
+    noPrice: 'price unclear',
+    fromShelf: 'yours',
+    fromWantlist: 'wanted',
+    span: (from: string, to: string, when: string) => `${from} → ${to} since ${when}`,
+    rose: (from: string, to: string, percent: string) =>
+      `has gone from ${from} to ${to} — ${percent} % more.`,
+    fell: (to: string) => `is down to ${to}, below your limit.`,
+    appeared: (copies: string) => `is on offer again — ${copies} of them.`,
+    /* „Verkauft" wird nicht behauptet: ein Angebot kann auch zurückgezogen
+     * worden sein, und die API sagt nicht, welches von beidem. */
+    fewer: (from: string, to: string) => `is down from ${from} copies on offer to ${to}.`,
+    dropShort: 'Stop',
+    drop: (label: string) => `Stop watching ${label}`,
+    watch: 'Keep an eye on it',
+    watchingOn: 'Watching',
+    /* Die Grenze sichtbar statt still: ein Wächter, der ohne ein Wort
+     * aufhört, Platten anzunehmen, ist schlimmer als einer, der Nein sagt. */
+    full: 'A hundred is the limit — one request each, and that is two minutes per look.',
+    noShops:
+      'No shop is named here, and none can be: Discogs has no way to list who is selling a given record. What you get is the price, not the address.',
+  },
+
   saved: {
     description: 'The records you said yes to — even once the dig is long gone.',
     empty:
@@ -244,7 +297,13 @@ const en = {
 
 const de: typeof en = {
   title: 'Sammlung',
-  tabs: { label: 'Sammlung', shelf: 'Regal', map: 'Landkarte', wantlist: 'Wantlist' },
+  tabs: {
+    label: 'Sammlung',
+    shelf: 'Regal',
+    map: 'Landkarte',
+    wantlist: 'Wantlist',
+    watched: 'Im Blick',
+  },
 
   loading: 'Wird geladen …',
 
@@ -366,6 +425,35 @@ const de: typeof en = {
     pressings: (n, one) => `${n} ${one ? 'Pressung' : 'Pressungen'} bekannt`,
     notExpanded: 'Pressungen noch nicht ausgeklappt',
     noMaster: 'Kein Master bei Discogs – nur genau diese Pressung ist erkennbar',
+  },
+
+  watched: {
+    title: 'Im Blick',
+    lead: 'Eine Handvoll Platten – und was der Markt mit ihnen macht.',
+    empty: 'Noch nichts im Blick. Leg eine Platte aus dem Regal oder der Wantlist hierher.',
+    toShelf: 'Zum Regal',
+    check: 'Jetzt nachsehen',
+    checking: 'Sehe nach …',
+    cost: (records, minutes) =>
+      `${records} ${records === 1 ? 'Platte' : 'Platten'}, je eine Anfrage – etwa ${minutes} ${minutes === 1 ? 'Minute' : 'Minuten'}.`,
+    nothingNew: 'Nichts hat sich bewegt.',
+    notYet: 'noch nicht nachgesehen',
+    noneForSale: 'niemand bietet sie an',
+    noPrice: 'Preis unklar',
+    fromShelf: 'deine',
+    fromWantlist: 'gesucht',
+    span: (from, to, when) => `${from} → ${to} seit ${when}`,
+    rose: (from, to, percent) => `ist von ${from} auf ${to} gestiegen – ${percent} % mehr.`,
+    fell: (to) => `liegt jetzt bei ${to}, unter deiner Grenze.`,
+    appeared: (copies) => `wird wieder angeboten – ${copies} Stück.`,
+    fewer: (from, to) => `wird statt ${from} nur noch ${to} mal angeboten.`,
+    dropShort: 'Stopp',
+    drop: (label) => `${label} nicht mehr beobachten`,
+    watch: 'Im Blick behalten',
+    watchingOn: 'Im Blick',
+    full: 'Hundert ist die Grenze – je eine Anfrage, das sind zwei Minuten pro Durchgang.',
+    noShops:
+      'Hier steht kein Laden, und es kann keiner stehen: Discogs bietet keinen Weg, die Angebote zu einer Platte aufzulisten. Man bekommt den Preis, nicht die Adresse.',
   },
 
   saved: {

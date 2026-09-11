@@ -163,6 +163,17 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
         stock.createIndex('by-dig-decade', ['digId', 'decade'])
       }
 
+      if (oldVersion < 9) {
+        /*
+         * v9 bringt die beobachteten Platten (M11).
+         *
+         * Rein additiv: ein neuer Store, kein Feld an bestehenden Zeilen, also
+         * nichts zu wandeln und nichts zu verwerfen. Wer vorher nichts
+         * beobachtet hat, beobachtet danach weiterhin nichts.
+         */
+        db.createObjectStore('watched', { keyPath: 'releaseId' })
+      }
+
       // Future versions go here. The rule: never migrate destructively unless
       // the state can be rebuilt from the API — which, so far, all of it can.
     },

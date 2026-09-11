@@ -1,6 +1,7 @@
 import type { DBSchema } from 'idb'
 
 import type {
+  WatchedRelease,
   BasketItem,
   CloudTokens,
   CollectionField,
@@ -30,7 +31,7 @@ export const DB_NAME = 'fidelity'
  *
  * 4 — added the `covers` store. Additive: nothing existing is touched.
  */
-export const DB_VERSION = 8
+export const DB_VERSION = 9
 
 /**
  * `meta` is a small key-value store rather than nine one-row stores. The union
@@ -155,6 +156,15 @@ export interface FidelityDB extends DBSchema {
     value: StockRow
     indexes: { 'by-dig-label': [string, string]; 'by-dig-decade': [string, number] }
   }
+  /**
+   * Beobachtete Platten (M11) — nach Release-Id.
+   *
+   * Eine Platte wird einmal beobachtet, egal ob sie im Regal steht oder auf
+   * der Wantlist. Zwei Zeilen für dieselbe Platte wären zwei Verläufe über
+   * dieselbe Messung, und `/marketplace/stats/` zweimal zu fragen wäre ein
+   * Request für eine Antwort, die man schon hat.
+   */
+  watched: { key: number; value: WatchedRelease }
   basket: { key: number; value: BasketItem }
   feedback: { key: number; value: Feedback }
   /**

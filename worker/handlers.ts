@@ -484,6 +484,27 @@ export const handlers: HandlerMap = {
    * Hub-Adresse aus dem Link und nicht aus den Einstellungen, und deshalb
    * fragt hier nichts nach einer Identität.
    */
+  'watched.list': async () => {
+    const { listWatched } = await import('./watched/check')
+    return listWatched()
+  },
+
+  'watched.add': async (entry) => {
+    const { watchRelease } = await import('./watched/check')
+    return watchRelease(entry)
+  },
+
+  'watched.remove': async ({ releaseId }) => {
+    const { unwatchRelease } = await import('./watched/check')
+    await unwatchRelease(releaseId)
+    return true as const
+  },
+
+  'watched.check': async ({ force }, { signal, report }) => {
+    const { checkWatched } = await import('./watched/check')
+    return checkWatched(discogs(), { force, signal, report })
+  },
+
   'stack.overview': async () => {
     const { stackOverview } = await import('./stack')
     return stackOverview()

@@ -120,6 +120,7 @@ describe('database schema', () => {
       'releaseDetail',
       'stock',
       'wantlist',
+      'watched',
     ])
 
     const tx = db.transaction(['collection', 'matches'])

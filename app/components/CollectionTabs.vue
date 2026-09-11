@@ -18,6 +18,14 @@ const TABS = [
   { to: '/shelf', key: 'shelf', icon: 'regal' },
   { to: '/map', key: 'map', icon: 'map' },
   { to: '/wantlist', key: 'wantlist', icon: 'wantlist' },
+  /*
+   * Und der vierte: dieselbe Sammlung, aus der Richtung des Marktes.
+   *
+   * Hierher und nicht in die Hauptleiste — fünf Einträge sind dort die
+   * Grenze. „Im Blick" ist keine eigene Gegend, sondern eine weitere Sicht auf
+   * das, was man hat und was man sucht.
+   */
+  { to: '/watched', key: 'watched', icon: 'eye' },
 ] as const
 </script>
 
