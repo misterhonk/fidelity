@@ -82,29 +82,27 @@ export function openHubDb(path: string): DatabaseSync {
   `)
 
   /*
-   * Der Wächter — die eine Sache, die einen laufenden Prozess rechtfertigt.
+   * The watcher — the one thing that justifies a running process.
    *
-   * Ohne Hub fragt jedes Gerät jeden beobachteten Laden selbst ab: hundert
-   * Nutzer, die denselben Laden beobachten, sind hundert Abfragen für dieselbe
-   * Zahl. Mit Hub ist es **eine**, und alle bekommen dieselbe Antwort.
+   * Without a hub, every device asks every watched shop itself: a hundred
+   * users watching the same shop are a hundred queries for the same number.
+   * With a hub it is **one**, and everybody gets the same answer.
    *
-   * `meta` hält die VAPID-Schlüssel. Die werden beim ersten Start einmal
-   * erzeugt und müssen danach bleiben: der öffentliche Teil steckt in jeder
-   * Push-Subscription, die je vergeben wurde, und ein neuer Schlüssel macht
-   * sie alle ungültig.
+   * `meta` holds the VAPID keys. They are generated once on first start and
+   * have to stay: the public half sits inside every push subscription ever
+   * handed out, and a new key invalidates all of them.
    */
   /*
-   * Eine geteilte Fundliste — Chiffrat, und sonst nichts.
+   * A shared find list — ciphertext, and nothing else.
    *
-   * Der Hub speichert hier einen Block, den er nicht lesen kann: der Schlüssel
-   * steht im `#`-Fragment des Links und wird von keinem Browser an einen
-   * Server geschickt. Was hier liegt, ist für den Hub eine Zeichenkette.
+   * The hub stores a block here that it cannot read: the key sits in the `#`
+   * fragment of the link, and no browser sends that to a server. What lies
+   * here is, to the hub, a string.
    *
-   * `expires_at` ist **nicht** „sechs Stunden ab dem Teilen", sondern das
-   * `expiresAt` des Digs selbst. Andersherum wäre eine fünf Stunden alte
-   * Fundliste am Ende elf Stunden alt, und Regel 4 verbietet, Marktdaten
-   * älter als sechs Stunden zu zeigen — die Uhr läuft ab dem Scan, nicht ab
-   * dem Verschicken.
+   * `expires_at` is **not** "six hours from sharing" but the dig's own
+   * `expiresAt`. The other way round, a find list five hours old would end up
+   * eleven hours old, and rule 4 forbids showing market data older than six —
+   * the clock runs from the scan, not from the sending.
    */
   db.exec(`
     CREATE TABLE IF NOT EXISTS shares (
@@ -115,7 +113,7 @@ export function openHubDb(path: string): DatabaseSync {
     )
   `)
 
-  // Abgelaufenes wird beim Lesen weggeräumt; der Index macht das billig.
+  // Expired rows are cleared away on read; the index makes that cheap.
   db.exec('CREATE INDEX IF NOT EXISTS shares_expires ON shares (expires_at)')
 
   db.exec(`
@@ -126,9 +124,9 @@ export function openHubDb(path: string): DatabaseSync {
   `)
 
   /*
-   * Ein Empfänger. Der Endpunkt kommt vom Push-Dienst des Browsers und ist
-   * die Adresse — nicht die Person. Der Hub weiß nicht, wer dahintersteht,
-   * und hat auch keine Stelle, an der er es erfahren könnte.
+   * One recipient. The endpoint comes from the browser's push service and is
+   * the address — not the person. The hub does not know who is behind it, and
+   * has nowhere it could find out.
    */
   db.exec(`
     CREATE TABLE IF NOT EXISTS watchers (
@@ -149,8 +147,8 @@ export function openHubDb(path: string): DatabaseSync {
   `)
 
   /*
-   * Was der Hub zuletzt bei einem Laden gesehen hat. Eine Zeile je Laden, egal
-   * wie viele ihn beobachten — genau das ist der Gewinn.
+   * What the hub last saw at a shop. One row per shop, however many are
+   * watching it — which is precisely the gain.
    */
   db.exec(`
     CREATE TABLE IF NOT EXISTS watch_state (

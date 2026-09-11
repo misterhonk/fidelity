@@ -15,14 +15,14 @@ const port = Number(process.env.HUB_PORT ?? 8787)
 const dbPath = process.env.HUB_DB ?? './hub.sqlite'
 const secret = process.env.HUB_SECRET ?? null
 const vapidSubject = process.env.HUB_VAPID_SUBJECT ?? 'mailto:hub@fidelity.invalid'
-/** Aus, bis jemand ihn einschaltet: er ist das Einzige hier, das von selbst hinausgeht. */
+/** Off until somebody switches it on: it is the only thing here that reaches out by itself. */
 const watching = process.env.HUB_WATCH === '1'
 
 /**
- * Als welche Discogs-Anwendung der Wächter anklopft — wenn überhaupt.
+ * Which Discogs application the watcher knocks as — if any.
  *
- * Beides oder nichts: mit nur einer Hälfte weist Discogs die Kennung ab und
- * der Hub liefe schneller getaktet, als er darf.
+ * Both or neither: with only one half Discogs rejects the credentials, and the
+ * hub would run at a faster pace than it is allowed.
  */
 const discogsKey = process.env.HUB_DISCOGS_KEY
 const discogsSecret = process.env.HUB_DISCOGS_SECRET
@@ -45,9 +45,9 @@ serve({ fetch: app.fetch, port, hostname: '0.0.0.0' }, (info) => {
       : 'Wächter aus (HUB_WATCH=1 schaltet ihn ein)',
   )
   if (watching) {
-    // Gesagt, nicht vermutet: der Unterschied ist der Takt, mit dem dieser
-    // Dienst gegen ein fremdes Limit läuft, und eine halb hinterlegte Kennung
-    // fällt sonst nirgends auf.
+    // Said, not assumed: the difference is the pace at which this service runs
+    // against somebody else's limit, and half-entered credentials show up
+    // nowhere else.
     // eslint-disable-next-line no-console
     console.log(
       identity
@@ -65,19 +65,18 @@ serve({ fetch: app.fetch, port, hostname: '0.0.0.0' }, (info) => {
 })
 
 /*
- * Der Wächter, wenn er eingeschaltet ist.
+ * The watcher, when it is switched on.
  *
- * Alle zehn Minuten nachsehen, ob ein beobachteter Laden länger als eine
- * Stunde nicht geprüft wurde. Der Takt ist nicht der Prüfabstand — er ist nur
- * feiner als dieser, damit ein Laden, der gerade fällig wird, nicht bis zur
- * vollen Stunde wartet.
+ * Every ten minutes, look whether a watched shop has gone longer than an hour
+ * unchecked. The tick is not the check interval — it is only finer than it, so
+ * that a shop falling due does not wait for the full hour.
  *
- * `unref()`, damit dieser Timer den Prozess nicht am Beenden hindert.
+ * `unref()`, so this timer does not keep the process from ending.
  */
 if (watching) {
   const tick = () => {
     void watchRound({ db, subject: vapidSubject, identity }).catch((error: unknown) => {
-      // Ein Durchgang, der scheitert, ist kein Grund, den Dienst zu beenden.
+      // A pass that fails is no reason to end the service.
       console.warn('[watch] Durchgang fehlgeschlagen:', String(error))
     })
   }

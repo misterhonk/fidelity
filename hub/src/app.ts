@@ -96,25 +96,26 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
   )
 
   /*
-   * Eine geteilte Fundliste ist zum Lesen da — auch für jemanden ohne Secret.
+   * A shared find list is there to be read — by somebody without the secret
+   * too.
    *
-   * Das ist der Sinn der Sache: der Link geht an einen Freund, der diesen Hub
-   * nicht kennt. Verlangte das Lesen das Secret, müsste man es mitschicken —
-   * und damit hätte man den Zugang zum ganzen Hub verschenkt, um eine
-   * Fundliste zu zeigen.
+   * That is the whole point: the link goes to a friend who does not know this
+   * hub. If reading required the secret, it would have to travel with the
+   * link — and then access to the entire hub would have been given away in
+   * order to show one find list.
    *
-   * Was dabei offen liegt, ist nichts: die Kennung ist ein Zufallswert aus
-   * 128 Bit, und was darunter steht, ist Chiffrat, dessen Schlüssel im
-   * `#`-Fragment des Links steht und keinen Server erreicht. Wer eine Kennung
-   * errät, bekommt eine Zeichenkette.
+   * What lies open in the process is nothing: the id is a random 128-bit
+   * value, and what sits under it is ciphertext whose key is in the `#`
+   * fragment of the link and reaches no server. Anyone guessing an id gets a
+   * string.
    *
-   * **Nur Lesen.** `POST /v1/share` bleibt hinter dem Secret — sonst wäre der
-   * Hub ein Pastebin, das jeder befüllen darf.
+   * **Reading only.** `POST /v1/share` stays behind the secret — otherwise the
+   * hub would be a pastebin anyone may fill.
    *
-   * Die Methodenprüfung ist heute streng genommen überzählig: das Muster
-   * verlangt ein Segment hinter `/share/`, und dorthin schreibt niemand.
-   * Sie bleibt trotzdem, weil sie es dann ist, wenn jemand später ein
-   * `PUT /v1/share/:id` ergänzt — und dann wäre es niemandem aufgefallen.
+   * The method check is, strictly speaking, redundant today: the pattern
+   * demands a segment after `/share/`, and nobody writes there. It stays all
+   * the same, because it stops being redundant the moment somebody adds a
+   * `PUT /v1/share/:id` — and then nobody would have noticed.
    */
   const OPEN_READS = /^\/v1\/share\/[^/]+$/
 
@@ -206,8 +207,8 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
   // --- Der Wächter ------------------------------------------------------------
 
   /*
-   * Der öffentliche VAPID-Schlüssel. Ohne ihn kann ein Browser gar nicht erst
-   * eine Subscription anlegen, also ist das der erste Aufruf des Clients.
+   * The public VAPID key. Without it a browser cannot create a subscription at
+   * all, so this is the client's first call.
    */
   app.get('/v1/watch/key', (c) => c.json({ publicKey: vapidKeys(db).publicKey }))
 
@@ -226,21 +227,21 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     ).run(subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth, at, at)
 
     /*
-     * Die Liste wird ersetzt, nicht ergänzt. Sie ist der vollständige Wunsch
-     * dieses Geräts — wer einen Laden nicht mehr beobachtet, schickt ihn
-     * einfach nicht mehr mit, und ohne dieses Löschen bliebe er für immer.
+     * The list is replaced, not added to. It is this device's complete wish —
+     * anyone no longer watching a shop simply stops sending it, and without
+     * this delete it would stay forever.
      */
     db.prepare('DELETE FROM watches WHERE endpoint = ?').run(subscription.endpoint)
     const insert = db.prepare('INSERT INTO watches (endpoint, dealer) VALUES (?, ?)')
     for (const dealer of new Set(dealers)) insert.run(subscription.endpoint, dealer)
 
     /*
-     * Kein Grundwert für neue Läden.
+     * No baseline value for new shops.
      *
-     * `watch_state` bleibt leer, bis der Wächter das erste Mal nachgesehen hat
-     * — und dieser erste Blick ist eine Grundlinie und keine Nachricht. Wer
-     * einen Laden neu aufnimmt, bekommt also nicht sofort eine Meldung über
-     * zweitausend „neue" Platten.
+     * `watch_state` stays empty until the watcher has looked for the first
+     * time — and that first look is a baseline, not news. So anyone taking on
+     * a new shop does not immediately get told about two thousand "new"
+     * records.
      */
     return c.json({ watching: [...new Set(dealers)].length })
   })
@@ -303,7 +304,7 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     let rejected = 0
     for (const cover of parsed.data.covers) {
       /*
-       * Die eigentliche Prüfung, und sie ist keine Formalie.
+       * The check that matters, and it is not a formality.
        *
        * These addresses end up in an `<img src>` on every device that shares
        * this hub. A contributor who could put an arbitrary URL in here could
@@ -395,22 +396,22 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
   })
 
   /*
-   * Einen Block wieder loswerden.
+   * Getting rid of a block again.
    *
-   * Gebraucht wird das beim Umzug: die Kennung eines Vaults hing bis 2026-08-13
-   * an der öffentlichen Discogs-User-ID, war also für jeden mit dem Geheimnis
-   * ausrechenbar. Sie hängt jetzt an der Passphrase — und ein Umzug, der die
-   * alte Ablage stehen lässt, hat genau nichts behoben.
+   * Needed when moving: until 2026-08-13 a vault's id hung off the public
+   * Discogs user id, so anyone with the secret could work it out. It hangs off
+   * the passphrase now — and a move that leaves the old store standing has
+   * fixed precisely nothing.
    *
-   * Kein Grund zur Vorsicht: der Hub ist ein Zwischenspeicher, und dieser
-   * Block ist eine Kopie. Das Original liegt auf dem Gerät.
+   * No cause for caution: the hub is a cache, and this block is a copy. The
+   * original is on the device.
    */
   app.delete('/v1/vault/:id', (c) => {
     const id = c.req.param('id')
     if (!VAULT_ID.test(id)) return c.json({ error: 'not a vault id' }, 400)
 
     db.prepare('DELETE FROM vault WHERE id = ?').run(id)
-    // Auch wenn nichts da war: "weg" ist der Zustand, um den gebeten wurde.
+    // Even if nothing was there: "gone" is the state that was asked for.
     return c.json({ gone: true })
   })
 
@@ -436,11 +437,11 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
   })
 
   /*
-   * Eine Fundliste teilen — der Hub trägt sie, ohne sie zu kennen.
+   * Sharing a find list — the hub carries it without knowing it.
    *
-   * Was hier ankommt, ist derselbe versiegelte Umschlag wie beim Tresor, nur
-   * mit einem Zufallsschlüssel statt einer Passphrase. Der Hub prüft die Form
-   * und speichert; lesen kann er nichts.
+   * What arrives here is the same sealed envelope as the vault's, only with a
+   * random key instead of a passphrase. The hub checks the shape and stores
+   * it; it can read nothing.
    */
   const SHARE_ID = /^[a-f0-9]{32}$/
 
@@ -453,16 +454,16 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
 
     const at = now()
     /*
-     * Eine Ablaufzeit in der Vergangenheit ist kein Fehler, sondern ein
-     * abgelaufener Dig — und sie anzunehmen hieße, etwas zu speichern, das
-     * beim ersten Abruf schon weg ist. Das sagt sich besser sofort.
+     * An expiry in the past is not an error but an expired dig — and accepting
+     * it would mean storing something already gone by the first read. Better
+     * said straight away.
      */
     if (parsed.data.expiresAt <= at) return c.json({ error: 'already expired' }, 400)
 
     /*
-     * Die Obergrenze ist Regel 4 als Zahl. Der Client rechnet sie aus dem Dig
-     * aus, aber der Hub darf sich darauf nicht verlassen: eine geteilte
-     * Fundliste, die drei Tage lebt, wäre ein Verstoß, den niemand mehr sieht.
+     * The ceiling is rule 4 as a number. The client works it out from the dig,
+     * but the hub may not rely on that: a shared find list living three days
+     * would be a breach nobody sees any more.
      */
     const latest = at + MAX_SHARE_LIFETIME_MS
     const expiresAt = Math.min(parsed.data.expiresAt, latest)
@@ -486,16 +487,14 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     const at = now()
 
     /*
-     * Die Ablaufzeit steht in der Abfrage, nicht in einer zweiten Prüfung
-     * daneben.
+     * The expiry lives in the query, not in a second check beside it.
      *
-     * Hier standen erst beide: ein Kehraus davor und ein `if` danach. Eine
-     * Mutationsprobe hat gezeigt, dass das `if` **toter Code** war — Kehraus
-     * und Abfrage benutzen dasselbe `at`, also kann keine Zeile den einen
-     * überleben und am anderen scheitern. Der Kommentar daneben behauptete
-     * eine Sekunde dazwischen, die es nicht gibt.
+     * Both stood here at first: a sweep before and an `if` after. A mutation
+     * probe showed the `if` was **dead code** — sweep and query use the same
+     * `at`, so no row can survive the one and fail the other. The comment
+     * beside it claimed a second in between that does not exist.
      *
-     * Eine Stelle entscheidet, und der Kehraus räumt nur auf.
+     * One place decides, and the sweep only tidies up.
      */
     const row = db
       .prepare('SELECT body, expires_at FROM shares WHERE id = ? AND expires_at > ?')
@@ -511,22 +510,22 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
 }
 
 /**
- * Abgelaufenes verschwindet, und zwar wirklich.
+ * What has expired disappears, and genuinely so.
  *
- * Kein Hintergrund-Job: der Hub soll auf einem Raspberry Pi laufen und nichts
- * tun, wenn niemand ihn benutzt. Geräumt wird beim Anfassen — das reicht,
- * weil eine Fundliste, die niemand liest, auch niemanden stört, und die
- * nächste Anfrage sie ohnehin mitnimmt.
+ * No background job: the hub is meant to run on a Raspberry Pi and do nothing
+ * while nobody uses it. Clearing happens on touch — which is enough, because a
+ * find list nobody reads bothers nobody, and the next request takes it with it
+ * anyway.
  */
 function sweepShares(db: DatabaseSync, at: number): void {
   db.prepare('DELETE FROM shares WHERE expires_at <= ?').run(at)
 }
 
 /**
- * Der Umschlag einer geteilten Fundliste.
+ * The envelope of a shared find list.
  *
- * Wie `sealedSchema`, plus die Kennung und die Ablaufzeit — beides muss der
- * Hub sehen, weil er danach ablegt und aufräumt. Den Inhalt sieht er nicht.
+ * Like `sealedSchema`, plus the id and the expiry — the hub has to see both,
+ * because it files and sweeps by them. The contents it does not see.
  */
 const shareSchema = z.object({
   id: z.string().regex(/^[a-f0-9]{32}$/),
@@ -540,21 +539,21 @@ const shareSchema = z.object({
 })
 
 /**
- * Wie groß eine geteilte Fundliste werden darf.
+ * How large a shared find list may get.
  *
- * Ein Dig mit tausend Treffern ist verschlüsselt und base64-kodiert deutlich
- * unter einem Megabyte. Zwei sind reichlich Luft und immer noch nichts, womit
- * jemand eine SD-Karte füllt.
+ * A dig with a thousand matches is, encrypted and base64-encoded, comfortably
+ * under a megabyte. Two is ample room and still nothing anybody fills an SD
+ * card with.
  */
 export const MAX_SHARE_BYTES = 2 * 1024 * 1024
 
 /**
- * Und wie lange, obendrauf auf das, was der Client sagt.
+ * And for how long, on top of whatever the client says.
  *
- * Sechs Stunden sind die Regel aus `docs/09` §1.1, hier als Zahl auf dem
- * Server. Der Client rechnet die Ablaufzeit aus dem Dig aus — aber ein
- * Client, der sich irrt oder gefälscht ist, darf keine Fundliste hinterlassen,
- * die drei Tage lebt.
+ * Six hours is the rule from `docs/09` §1.1, here as a number on the server.
+ * The client works the expiry out from the dig — but a client that is wrong,
+ * or forged, must not be able to leave behind a find list that lives three
+ * days.
  */
 export const MAX_SHARE_LIFETIME_MS = 6 * 60 * 60 * 1000
 
@@ -601,7 +600,7 @@ const coversSchema = z.object({
 })
 
 /**
- * Nur Discogs' eigener Bildhost — oder gar nichts.
+ * Discogs' own image host only — or nothing at all.
  *
  * Empty is a real answer: it records that Discogs holds no picture for that
  * release, which is worth sharing and saves the next person a request. Anything
@@ -634,19 +633,18 @@ function parseIds(raw: string): number[] {
 }
 
 /**
- * Was ein Browser als Push-Subscription herausgibt — und nur das.
+ * What a browser hands out as a push subscription — and only that.
  *
- * Der Hub prüft die Form und mehr nicht: Endpunkt und zwei Schlüssel. Es gibt
- * kein Feld für einen Namen, kein Feld für eine Kennung und keines für einen
- * Discogs-Token. Was nicht vorgesehen ist, kann auch nicht versehentlich
- * gespeichert werden.
+ * The hub checks the shape and no more: an endpoint and two keys. There is no
+ * field for a name, none for an identity and none for a Discogs token. What is
+ * not provided for cannot be stored by accident either.
  */
 const subscribeSchema = z.object({
   subscription: z.object({
     endpoint: z.string().url().max(2048),
     keys: z.object({ p256dh: z.string().min(1).max(256), auth: z.string().min(1).max(256) }),
   }),
-  /** Höchstens hundert Läden: eine Grenze gegen Unfug, keine Zielgröße. */
+  /** A hundred shops at most: a limit against mischief, not a target. */
   dealers: z.array(z.string().min(1).max(120)).max(100),
 })
 

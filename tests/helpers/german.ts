@@ -22,20 +22,60 @@ const GERMAN =
 export const THRESHOLD = 3
 
 /**
- * Every comment in a source file.
+ * Every comment in a source file, found by scanning rather than by matching.
  *
- * Line comments have to start the line — otherwise every `https://` inside a
- * string would be a comment. Block comments and HTML comments are taken as
- * they come; a `/* *\/` inside a template literal would be a false hit, and in
- * this tree there is none.
+ * A regular expression over the raw text gets this wrong, and did: `hono`'s
+ * route pattern `'/v1/*'` contains `/*`, which opens a comment that then runs
+ * to the next `*\/` and swallows the real code and comments between. Found on
+ * 2026-09-11 in `hub/src/app.ts`, where the invented span happened to contain
+ * a German comment — so it was right for the wrong reason, which is the kind
+ * of luck that runs out.
+ *
+ * So this walks the file once and knows which of four places it is in: code,
+ * a string, a line comment, a block comment. Nothing inside a string is ever
+ * a comment, and nothing inside a comment ever opens a string.
  */
 export function comments(source: string, path: string): string[] {
-  const found = [
-    ...(source.match(/\/\*[\s\S]*?\*\//g) ?? []),
-    ...(source.match(/^[ \t]*\/\/.*(?:\n[ \t]*\/\/.*)*/gm) ?? []),
-  ]
-  if (path.endsWith('.vue')) found.push(...(source.match(/<!--[\s\S]*?-->/g) ?? []))
+  const found: string[] = []
+  const html = path.endsWith('.vue')
+  let i = 0
+
+  while (i < source.length) {
+    const two = source.slice(i, i + 2)
+
+    if (two === '//') {
+      const end = source.indexOf('\n', i)
+      found.push(source.slice(i, end === -1 ? source.length : end))
+      i = end === -1 ? source.length : end
+    } else if (two === '/*') {
+      const end = source.indexOf('*/', i + 2)
+      found.push(source.slice(i, end === -1 ? source.length : end + 2))
+      i = end === -1 ? source.length : end + 2
+    } else if (html && source.startsWith('<!--', i)) {
+      const end = source.indexOf('-->', i + 4)
+      found.push(source.slice(i, end === -1 ? source.length : end + 3))
+      i = end === -1 ? source.length : end + 3
+    } else if (two[0] === "'" || two[0] === '"' || two[0] === '`') {
+      i = skipString(source, i)
+    } else {
+      i += 1
+    }
+  }
+
   return found
+}
+
+/** Past the closing quote, escapes respected. Unterminated runs to the end. */
+function skipString(source: string, start: number): number {
+  const quote = source[start]
+  let i = start + 1
+
+  while (i < source.length) {
+    if (source[i] === '\\') i += 2
+    else if (source[i] === quote) return i + 1
+    else i += 1
+  }
+  return source.length
 }
 
 /** The German comments in one file, empty when it is clean. */

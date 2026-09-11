@@ -22,10 +22,17 @@ import { germanComments } from '../helpers/german'
  *   list that keeps names it no longer needs stops being a measurement, which
  *   is exactly what happened to the roadmap.
  */
-const ROOTS = ['worker', 'db', 'shared', 'app', 'tests', 'hub/src']
-const SOURCES = ROOTS.flatMap((root) =>
-  globSync(`${root}/**/*.{ts,vue,css}`, { exclude: (p) => /node_modules|\.nuxt|dist/.test(p) }),
-)
+/**
+ * The whole tree, not a list of places somebody happened to look.
+ *
+ * It started as six roots and missed two: `hub/test/` and `nuxt.config.ts`,
+ * both of which are full of German. A guard with a hand-picked search area
+ * guards the search area, and the gaps are invisible from inside it.
+ */
+const IGNORED = /node_modules|[/.](nuxt|output|nitro|cache)|dist\/|coverage\//
+const SOURCES = globSync('**/*.{ts,mts,vue,css}', {
+  exclude: (path) => IGNORED.test(path),
+})
 
 const LIST = 'tests/fixtures/german-comments.txt'
 

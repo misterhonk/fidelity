@@ -4,7 +4,8 @@
 # both ways: on a German comment in a file that is not here, and on a name
 # here whose file is already clean.
 #
-# Started at 141 on 2026-09-11.
+# Started at 141 on 2026-09-11, over six hand-picked roots. Widened to the
+# whole tree the same day, which found four more the roots had hidden.
 app/app.vue
 app/assets/css/main.css
 app/components/ArrivalQuestion.vue
@@ -59,10 +60,10 @@ app/utils/lucide.generated.ts
 app/utils/release-notes.ts
 app/utils/shipping-shapes.ts
 app/utils/when.ts
-hub/src/app.ts
-hub/src/db.ts
-hub/src/server.ts
-hub/src/watch.ts
+hub/scripts/ring-once.ts
+hub/test/app.test.ts
+hub/test/watch.test.ts
+nuxt.config.ts
 tests/e2e/arrival.spec.ts
 tests/e2e/layout.spec.ts
 tests/e2e/long-lists.spec.ts
