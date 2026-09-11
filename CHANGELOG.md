@@ -11,6 +11,15 @@ Für eine App bedeutet SemVer:
 
 ## [0.37.0](https://github.com/misterhonk/fidelity/compare/v0.36.0...v0.37.0) (2026-09-11)
 
+**A year on the shelf.**
+
+A sixth collection tab, one year at a time, with the year in the address. What arrived,
+by month and against the year before; the artists new to the shelf — their first record
+ever; the map's bars over that year's additions: artists, labels, styles, the pressing
+decades, the media; the oldest and the newest pressing to arrive; the stars; the digs,
+shops, finds and purchases of that year; and who shaped the additions, from the horizon's
+credits. All of it read off the device — no request, and nothing from the marketplace.
+
 
 ### Added
 
