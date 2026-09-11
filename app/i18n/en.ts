@@ -566,6 +566,10 @@ const en = {
     take: (n: string) => `Take ${n} over`,
     listings: (n: string) => `${n} listings`,
     alreadyThere: 'already there',
+    /* Per suggestion. A shop hidden here has no row yet and gets one, so the
+     * next run knows to leave it out. */
+    hide: 'Never suggest',
+    hideWhy: 'Never suggest this shop again',
     nothing: 'Nothing there that looks like a shop.',
     whereLabel: 'Where it looks',
     friendsSummary: 'Also read my Discogs friends list?',

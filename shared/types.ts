@@ -1250,6 +1250,14 @@ export interface Dealer {
 
   /** Whether the app checks this dealer on start-up. */
   watching?: boolean
+  /**
+   * When somebody said "never show this one again" (M19 #2), or null.
+   *
+   * A hidden shop is left out of every list the app draws and is no longer
+   * watched. A dig started by name still runs and brings it back. Absent on
+   * rows written before this existed, which reads as "not hidden".
+   */
+  hiddenAt?: number | null
   /** `num_for_sale` at the last check — the whole change detector. */
   watchNumForSale?: number | null
   watchCheckedAt?: number | null

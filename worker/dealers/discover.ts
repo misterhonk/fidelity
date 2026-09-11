@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { blankDealer } from '~~/db/dealer'
+import { blankDealer, isHidden } from '~~/db/dealer'
 import { openFidelityDb } from '~~/db/open'
 import type { DealerCandidate, DiscoveryResult } from '#shared/types'
 
@@ -85,7 +85,14 @@ export async function discoverDealers({
   signal,
 }: DiscoverOptions): Promise<DiscoveryResult> {
   const db = await openFidelityDb()
-  const known = new Set((await db.getAll('dealers')).map((dealer) => dealer.username))
+  const rows = await db.getAll('dealers')
+  const known = new Set(
+    rows.filter((dealer) => !isHidden(dealer)).map((dealer) => dealer.username),
+  )
+  // A shop somebody hid is not "already there", it is not suggested at all.
+  const hidden = new Set(
+    rows.filter((dealer) => isHidden(dealer)).map((dealer) => dealer.username),
+  )
 
   let requests = 0
   const sources = new Map<string, DealerCandidate['source']>()
@@ -153,7 +160,7 @@ export async function discoverDealers({
       requests += 1
 
       const listings = profile.num_for_sale ?? 0
-      if (listings >= MIN_LISTINGS) {
+      if (listings >= MIN_LISTINGS && !hidden.has(profile.username)) {
         candidates.push({
           username: profile.username,
           source: sources.get(name) ?? 'friend',
@@ -201,6 +208,8 @@ export async function rememberDealers(candidates: DealerCandidate[]): Promise<nu
       sellerRating: candidate.sellerRating ?? existing?.sellerRating ?? 0,
       ratingCount: candidate.ratingCount || (existing?.ratingCount ?? 0),
       shipsFrom: candidate.location || (existing?.shipsFrom ?? ''),
+      // Taking a shop over is asking for it, whatever was said before.
+      hiddenAt: null,
       updatedAt: Date.now(),
     })
     if (!existing) added += 1

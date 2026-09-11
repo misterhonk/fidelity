@@ -779,6 +779,9 @@ async function saveDealer(
     // changes as soon as another shop is scanned.
     affinity: rate,
     fingerprint: fingerprint.build(dig.listingsTotal),
+    // A dig started by name is asking for the shop, whatever was said before:
+    // a full scan of a hidden shop puts it back on the lists (M19 #2).
+    hiddenAt: null,
     updatedAt: dig.finishedAt ?? Date.now(),
   })
 }

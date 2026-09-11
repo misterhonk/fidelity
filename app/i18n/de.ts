@@ -403,6 +403,8 @@ const de: Messages = {
     take: (n) => `${n} übernehmen`,
     listings: (n: string) => `${n} Listings`,
     alreadyThere: 'schon dabei',
+    hide: 'Nie vorschlagen',
+    hideWhy: 'Diesen Laden nie wieder vorschlagen',
     nothing: 'Nichts gefunden, was nach einem Laden aussieht.',
     whereLabel: 'Wo gesucht wird',
     friendsSummary: 'Auch meine Discogs-Freundesliste lesen?',

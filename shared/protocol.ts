@@ -541,6 +541,20 @@ export interface WorkerContract {
   }
 
   'dealer.list': { params: undefined; progress: never; result: Dealer[] }
+  /**
+   * "Never show this one again", and its undoing.
+   *
+   * Answers with both lists, because the screen that hides a shop is the one
+   * that shows the hidden ones — and the shop just hidden moves from the first
+   * to the second in the same breath.
+   */
+  'dealer.hide': {
+    params: { dealer: string; hidden: boolean }
+    progress: never
+    result: { visible: Dealer[]; hidden: Dealer[] }
+  }
+  /** The hidden shops, by name — the one place they can be brought back. */
+  'dealer.hidden': { params: undefined; progress: never; result: Dealer[] }
 
   /**
    * The watchlist. One request per shop, not a hundred — `num_for_sale` off

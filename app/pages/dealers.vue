@@ -22,6 +22,8 @@ const {
 const route = useRoute()
 
 const dealers = shallowRef<Dealer[]>([])
+/** The shops somebody asked never to see again — listed at the foot, so they can come back. */
+const hidden = shallowRef<Dealer[]>([])
 const selected = ref<string | null>(null)
 const profile = ref<DealerProfile | null>(null)
 
@@ -37,6 +39,7 @@ const error = ref<unknown>(null)
 
 async function load() {
   dealers.value = await call('dealer.list', undefined)
+  hidden.value = await call('dealer.hidden', undefined)
   const first = dealers.value[0]
   /*
    * ?dealer= comes from the start page.
@@ -97,6 +100,36 @@ async function select(username: string) {
   dealers.value = dealers.value.map((dealer) =>
     dealer.username === username ? { ...dealer, avatarUrl: fetched.avatarUrl } : dealer,
   )
+}
+
+/**
+ * "Never show this one again", and its undoing.
+ *
+ * The worker answers with both lists, so the shop moves from one to the other
+ * in the same breath. Hiding the shop that is open closes its profile and
+ * opens the next one — a profile of a shop that is no longer on the list would
+ * be the screen contradicting itself.
+ */
+async function setHidden(username: string, hide: boolean) {
+  error.value = null
+  try {
+    const lists = await call('dealer.hide', { dealer: username, hidden: hide })
+    dealers.value = lists.visible
+    hidden.value = lists.hidden
+  } catch (cause) {
+    error.value = cause
+    return
+  }
+
+  if (hide && selected.value === username) {
+    selected.value = null
+    profile.value = null
+    grading.value = null
+    const next = dealers.value[0]
+    if (next) await select(next.username)
+  } else if (!hide) {
+    await select(username)
+  }
 }
 
 /** Distributions come back as name → count; the bars want facets. */
@@ -289,6 +322,14 @@ const scanned = computed(() => {
             >
               {{ profile.dealer.lastScannedAt === null ? h.digNow : h.digAgain }}
             </NuxtLink>
+            <button
+              type="button"
+              class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+              :title="h.hideWhy"
+              @click="setHidden(profile.dealer.username, true)"
+            >
+              {{ h.hide }}
+            </button>
             <span class="text-fid-xs text-fid-text-muted">{{ h.watchCost }}</span>
           </div>
 
@@ -420,5 +461,37 @@ const scanned = computed(() => {
         </p>
       </section>
     </template>
+
+    <!--
+      The hidden ones, at the foot and only when there are any. Outside the
+      `v-else` above on purpose: hiding the last shop must not take the one
+      place it can be brought back from with it.
+    -->
+    <section
+      v-if="hidden.length > 0"
+      class="flex flex-col gap-2"
+      :aria-label="h.hidden.title(hidden.length)"
+    >
+      <h2 class="text-fid-sm font-medium text-fid-text-muted">
+        {{ h.hidden.title(hidden.length) }}
+      </h2>
+      <p class="text-fid-xs text-fid-text-muted">{{ h.hideWhy }}</p>
+      <ul class="flex flex-wrap gap-2">
+        <li
+          v-for="shop in hidden"
+          :key="shop.username"
+          class="flex items-center gap-2 rounded-fid-sm border border-fid-border py-1 pr-1 pl-3 text-fid-sm text-fid-text-muted"
+        >
+          {{ shop.displayName || shop.username }}
+          <button
+            type="button"
+            class="fid-action rounded-fid-sm px-2 py-1 text-fid-xs text-fid-text underline underline-offset-4"
+            @click="setHidden(shop.username, false)"
+          >
+            {{ h.hidden.restore }}
+          </button>
+        </li>
+      </ul>
+    </section>
   </main>
 </template>

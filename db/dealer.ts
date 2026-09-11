@@ -9,6 +9,11 @@ import type { Dealer } from '#shared/types'
  * added in one place and forgotten in the other — which is precisely how
  * scanning a shop came to stop watching it.
  */
+/** Whether a shop was hidden — absent on old rows, which is "no". */
+export function isHidden(dealer: Pick<Dealer, 'hiddenAt'>): boolean {
+  return typeof dealer.hiddenAt === 'number'
+}
+
 export function blankDealer(username: string): Dealer {
   return {
     username,

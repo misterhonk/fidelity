@@ -77,6 +77,24 @@ function toggle(username: string) {
   chosen.value = next
 }
 
+/**
+ * "Never suggest this one." The worker writes it down (a row with nothing but
+ * the mark, so the next run leaves it out), and the row leaves the screen.
+ */
+async function hide(username: string) {
+  error.value = null
+  try {
+    await call('dealer.hide', { dealer: username, hidden: true })
+  } catch (cause) {
+    error.value = cause
+    return
+  }
+  found.value = (found.value ?? []).filter((one) => one.username !== username)
+  const next = new Set(chosen.value)
+  next.delete(username)
+  chosen.value = next
+}
+
 async function keep() {
   const candidates = (found.value ?? []).filter((one) => chosen.value.has(one.username))
   if (candidates.length === 0) return
@@ -189,6 +207,15 @@ async function keep() {
             <span class="fid-num">{{ m.discovery.listings(count(candidate.numForSale)) }}</span>
             <span v-if="candidate.location">{{ candidate.location }}</span>
             <span v-if="candidate.known">{{ m.discovery.alreadyThere }}</span>
+            <button
+              v-if="!candidate.known"
+              type="button"
+              class="fid-action text-fid-xs text-fid-text-muted underline underline-offset-4 hover:text-fid-text"
+              :title="m.discovery.hideWhy"
+              @click="hide(candidate.username)"
+            >
+              {{ m.discovery.hide }}
+            </button>
           </span>
         </li>
       </ul>

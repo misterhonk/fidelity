@@ -1,3 +1,4 @@
+import { isHidden } from '~~/db/dealer'
 import { openFidelityDb } from '~~/db/open'
 import type { StackShop } from '#shared/types'
 
@@ -37,6 +38,9 @@ export async function stackOverview(now = Date.now()): Promise<StackShop[]> {
     // Expired digs have no business here: the stack shows prices, and after
     // six hours those may not be shown any more (rule 4).
     if (dig.expiresAt <= now) continue
+    // Nor does a shop somebody asked never to see again.
+    const shop = byDealer.get(dig.dealer)
+    if (shop && isHidden(shop)) continue
     const held = newest.get(dig.dealer)
     if (!held || dig.startedAt > held.startedAt) newest.set(dig.dealer, dig)
   }

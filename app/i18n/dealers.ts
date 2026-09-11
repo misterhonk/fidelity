@@ -62,6 +62,19 @@ const en = {
   digAgain: 'Dig again',
 
   /*
+   * "Never show this one again." Gone from every list, unwatched — and one
+   * sentence on what brings it back, because a switch with no visible way
+   * back is a trap, not a setting.
+   */
+  hide: 'Hide this shop',
+  hideWhy:
+    'Gone from the lists, the start page and the suggestions, and no longer watched. A dig you start by name brings it back.',
+  hidden: {
+    title: (n: number) => (n === 1 ? 'One shop hidden' : `${n} shops hidden`),
+    restore: 'Show again',
+  },
+
+  /*
    * Push, worded as what it is: the app is closed, and somebody else is
    * looking. It says "the shops you watch" because the permission is one per
    * device — switching it on here covers all of them, and a line that implied
@@ -151,6 +164,14 @@ const de: typeof en = {
     'Beim Öffnen der App wird nachgesehen, ob sich das Sortiment bewegt hat – eine einzige Abfrage, kein neuer Scan.',
   digNow: 'Jetzt graben',
   digAgain: 'Nochmal graben',
+
+  hide: 'Diesen Laden ausblenden',
+  hideWhy:
+    'Weg aus den Listen, von der Startseite und aus den Vorschlägen, und nicht mehr beobachtet. Ein Dig, den du mit Namen startest, holt ihn zurück.',
+  hidden: {
+    title: (n) => (n === 1 ? 'Ein Laden ausgeblendet' : `${n} Läden ausgeblendet`),
+    restore: 'Wieder zeigen',
+  },
 
   pushOffer: 'Auch Bescheid geben, wenn die App zu ist',
   pushOn: 'Du bekommst Bescheid, auch bei geschlossener App.',

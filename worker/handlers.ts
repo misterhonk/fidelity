@@ -14,6 +14,26 @@ import { computeTasteProfile } from './match/taste'
 import { fail } from './fail'
 
 /**
+ * The shops, best first — what `dealer.list` answers and what `dealer.hide`
+ * answers with once it is done.
+ *
+ * Ranked by how much of their stock is for you, which is the only ordering
+ * that answers "where should I look first". Dealers that were never scanned
+ * come last but are *not* left out: a shipping table entered by hand creates
+ * one, and a shop you can compute postage for should not be invisible on the
+ * screen about shops. Hidden ones are left out — that is what hiding is.
+ */
+async function rankedDealers() {
+  const { visibleDealers } = await import('./dealers/hide')
+  return (await visibleDealers()).sort(
+    (a, b) =>
+      Number(b.lastScannedAt !== null) - Number(a.lastScannedAt !== null) ||
+      (b.affinity ?? 0) - (a.affinity ?? 0) ||
+      a.username.localeCompare(b.username),
+  )
+}
+
+/**
  * A handler gets its params and a way to report progress, and returns the
  * result. Cancellation arrives as an AbortSignal — the scan in M2 checks it
  * between pages, which is the only place a four-minute run can be interrupted
@@ -438,22 +458,24 @@ export const handlers: HandlerMap = {
     return dealerStock(params)
   },
 
-  'dealer.list': async () => {
-    const db = await openFidelityDb()
-    const dealers = await db.getAll('dealers')
+  'dealer.list': async () => rankedDealers(),
 
-    // Ranked by how much of their stock is for you, which is the only ordering
-    // that answers "where should I look first". Dealers that were never
-    // scanned come last but are *not* hidden: a shipping table entered by hand
-    // creates one, and a shop you can compute postage for should not be
-    // invisible on the screen about shops.
-    return dealers.sort(
-      (a, b) =>
-        Number(b.lastScannedAt !== null) - Number(a.lastScannedAt !== null) ||
-        (b.affinity ?? 0) - (a.affinity ?? 0) ||
-        a.username.localeCompare(b.username),
-    )
+  'dealer.hide': async ({ dealer, hidden }) => {
+    const { setHidden, hiddenDealers } = await import('./dealers/hide')
+    const before = await (await openFidelityDb()).get('dealers', dealer)
+    await setHidden(dealer, hidden)
+
+    // Hiding a watched shop unwatches it, and the hub keeps a copy of that
+    // list — told the same way `watch.set` tells it, and not waited for.
+    if (hidden && before?.watching) {
+      const { syncPush } = await import('./watch/push')
+      void syncPush()
+    }
+
+    return { visible: await rankedDealers(), hidden: await hiddenDealers() }
   },
+
+  'dealer.hidden': async () => (await import('./dealers/hide')).hiddenDealers(),
 
   'dig.get': async ({ digId }) => loadDig(digId),
 
@@ -684,8 +706,7 @@ export const handlers: HandlerMap = {
   'dealer.remember': async ({ candidates }) => {
     const { rememberDealers } = await import('./dealers/discover')
     const added = await rememberDealers(candidates)
-    const db = await openFidelityDb()
-    return { added, dealers: await db.getAll('dealers') }
+    return { added, dealers: await rankedDealers() }
   },
 
   'collection.records': async (params) => {

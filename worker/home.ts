@@ -1,3 +1,4 @@
+import { isHidden } from '~~/db/dealer'
 import { openFidelityDb } from '~~/db/open'
 import { getSyncState } from '~~/db/meta'
 
@@ -82,9 +83,11 @@ export async function homeOverview(): Promise<HomeOverview> {
   const db = await openFidelityDb()
   const syncState = await getSyncState()
 
+  // Hidden shops are left out here and in the count below — "never show this
+  // one again" includes the start page.
   const [digs, dealers, feedback, shelf, wanted] = await Promise.all([
     db.getAll('digs'),
-    db.getAll('dealers'),
+    db.getAll('dealers').then((rows) => rows.filter((dealer) => !isHidden(dealer))),
     db.getAll('feedback'),
     newest(db, 'collection', RAIL),
     newest(db, 'wantlist', RAIL),
