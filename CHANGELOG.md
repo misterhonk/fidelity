@@ -9,6 +9,13 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.35.0](https://github.com/misterhonk/fidelity/compare/v0.34.0...v0.35.0) (2026-09-11)
+
+
+### Added
+
+* **match:** the lexicon — aliases, members and groups in the artist cascade ([4623d69](https://github.com/misterhonk/fidelity/commit/4623d699421afbf8851359d5c7cd3bec0c870f76))
+
 ## [0.34.0](https://github.com/misterhonk/fidelity/compare/v0.33.0...v0.34.0) (2026-09-11)
 
 **The collection and the wantlist as CSV.**
