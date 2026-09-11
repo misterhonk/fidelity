@@ -11,12 +11,12 @@ const props = defineProps<{
   signal: string
   empty?: string
   /**
-   * Was ein Klick auf eine Zeile tut — falls überhaupt etwas.
+   * What a click on a row does — if anything at all.
    *
-   * Ohne das bleiben es Balken zum Ansehen, und genau das waren sie auf der
-   * Ladenseite: „fatplastics führt 13 Kompakt-Platten", und keine davon war
-   * erreichbar. Auf der Landkarte, wo dieselbe Komponente die eigene Sammlung
-   * zeigt, gibt es nichts aufzuklappen — deshalb optional und nicht Pflicht.
+   * Without it they stay bars to look at, and that is exactly what they were
+   * on the shop page: "fatplastics carries 13 Kompakt records", and none of
+   * them reachable. On the map, where the same component shows your own
+   * collection, there is nothing to open — hence optional and not required.
    */
   open?: (facet: TasteFacet) => void
 }>()
@@ -43,9 +43,9 @@ const peak = computed(() => Math.max(1, ...props.facets.map((facet) => facet.n))
       <template v-for="facet in facets" :key="facet.name">
         <dt class="min-w-0">
           <!--
-            Ein Knopf nur da, wo er etwas tut. Ein Element, das wie ein Knopf
-            aussieht und nichts kann, ist schlimmer als eine Beschriftung —
-            und ein Bildschirmleser liest sonst zwanzig Mal „Schaltfläche".
+            A button only where it does something. An element that looks like a
+            button and can do nothing is worse than a label — and a screen
+            reader otherwise reads "button" twenty times over.
           -->
           <component
             :is="open ? 'button' : 'span'"

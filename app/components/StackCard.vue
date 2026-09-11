@@ -5,12 +5,11 @@ import { reasonFor } from '~/i18n/reason'
 import { useDigMessages } from '~/i18n/dig'
 
 /**
- * Eine Platte, ganzflächig, mit dem Satz dazu, warum sie passt.
+ * One record, full-bleed, with the sentence saying why it fits.
  *
- * **Der Begründungssatz ist nicht schmückendes Beiwerk, er ist der
- * Unterschied.** Ohne ihn ist der Stapel ein Spielautomat mit Plattenhüllen;
- * mit ihm ist er das, was diese App ohnehin verspricht, nur schneller zu
- * lesen (`docs/06` M15).
+ * **The reason sentence is not decoration, it is the difference.** Without it
+ * the stack is a slot machine with record sleeves; with it, it is what this
+ * app promises anyway, only faster to read (`docs/06` M15).
  */
 const props = defineProps<{
   match: Match
@@ -41,8 +40,8 @@ const meta = computed(() =>
     class="flex h-full w-full flex-col gap-4 overflow-y-auto rounded-fid-md border border-fid-border bg-fid-surface p-5"
   >
     <!--
-      Das Cover, so groß wie es geht. 600 auf der langen Kante ist die Decke,
-      die Discogs hergibt (`docs/02`) — hier bekommt sie die ganze Breite.
+      The cover, as large as it goes. 600 on the long edge is the ceiling
+      Discogs gives (`docs/02`) — here it gets the full width.
     -->
     <img
       v-if="cover"
@@ -78,9 +77,9 @@ const meta = computed(() =>
     <p class="text-fid-base text-fid-text">{{ reasonFor(match.signals) }}</p>
 
     <!--
-      Nach sechs Stunden verschwinden Preis und Zustand, nicht der Fund.
-      Ein Stapel, durch den man schnell wischt, ist der leichteste Ort, an dem
-      ein abgelaufener Preis unbemerkt stehen bleibt (Regel 4).
+      After six hours the price and the condition disappear, not the find. A
+      stack somebody swipes through quickly is the easiest place for an expired
+      price to stand unnoticed (rule 4).
     -->
     <p v-if="!expired && match.price !== null" class="text-fid-base text-fid-text">
       {{ money(match.price, match.currency) }}

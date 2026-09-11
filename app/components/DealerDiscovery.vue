@@ -120,7 +120,7 @@ async function keep() {
     </WhyNote>
 
     <!--
-      Der Schalter steht dort, wo er etwas ändert.
+      The switch stands where it changes something.
 
       Reading the friends list is off by default and lives in the settings,
       three taps away from the only screen where it does anything (ADR-009).
@@ -141,7 +141,7 @@ async function keep() {
     </details>
 
     <!--
-      Zwei Listen, nicht eine mit einem Etikett je Zeile.
+      Two lists, not one with a label on every row.
 
       "Bought from" and "friends who sell" are different kinds of trust, and
       the difference is what somebody uses to decide. As a word at the end of

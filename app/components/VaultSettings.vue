@@ -167,16 +167,16 @@ async function sync() {
           : await call('vault.sync', { passphrase: passphrase.value })
     const total = Object.values(report.counts).reduce((sum, n) => sum + n, 0)
     /*
-     * „Nichts gefunden" heißt zweierlei, und der Unterschied ist teuer.
+     * "Nothing found" means two things, and the difference is expensive.
      *
-     * Seit die Ablage an der Passphrase hängt, verschiebt ein anderes Wort auch
-     * den Ort. Wer sein Wort ändert, sieht sonst „erste Sicherung angelegt" —
-     * und zwei Geräte laufen ab da nebeneinanderher, ohne dass irgendwo etwas
-     * kaputt aussieht.
+     * Since the storage location hangs off the passphrase, a different word
+     * moves the location too. Anyone changing their word otherwise sees "first
+     * backup created" — and from then on two devices run alongside each other
+     * with nothing anywhere looking broken.
      *
-     * Nur der Hub kennt den Fall — eine Datei und ein Cloud-Ordner liegen da,
-     * wo jemand hingezeigt hat, und wandern nicht mit einem Wort. Deshalb die
-     * Prüfung auf das Feld statt auf seinen Wert.
+     * Only the hub knows this case — a file and a cloud folder sit where
+     * somebody pointed and do not travel with a word. Hence the check on the
+     * field rather than on its value.
      */
     result.value = report.hadRemote
       ? st.value.vault.merged(total)

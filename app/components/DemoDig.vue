@@ -54,7 +54,7 @@ async function run(listingId: number) {
     )
 
     /*
-     * Die Cover kommen nach der Liste, nicht vor ihr.
+     * The covers come after the list, not before it.
      *
      * The marketplace hands back listings without images (worker/covers.ts has
      * the measurement), so each of these is a request of its own — five more
@@ -120,16 +120,14 @@ function shapeOf(format: string | null) {
     <!--
       The field is at the top, and open.
 
-      Es lag eine Weile zugeklappt unter den Covern — meine Entscheidung, mit
-      dem Argument, dass ein Formular vor der ersten Platte alle bremst, die gar
-      keinen Link dabeihaben. Zwei Dinge stimmten daran nicht. Ein `summary`
-      sieht nicht nach etwas aus, das man anklicken kann, also fand es niemand;
-      und wer *mit* einer Platte im Sinn kommt, ist genau der, den diese
-      demonstration is supposed to convince — their path must not sit behind a
-      liegen.
+      It sat folded away under the covers for a while, on the argument that a
+      form before the first record slows down everybody who has no link with
+      them. Two things about that were wrong. A `summary` does not look like
+      something you can click, so nobody found it; and somebody who arrives
+      *with* a record in mind is exactly the person this demonstration is
+      meant to convince — their way in must not sit behind a fold.
 
-      fold. Open it costs two lines. That is cheaper than a way in that
-      niemand sieht.
+      Open, it costs two lines. That is cheaper than a way in nobody sees.
     -->
     <form class="flex flex-col gap-2" @submit.prevent="pastedId && run(pastedId)">
       <label class="text-fid-sm font-medium text-fid-text" for="demo-url">
@@ -312,7 +310,7 @@ function shapeOf(format: string | null) {
               decoding="async"
               class="aspect-square w-full rounded-fid-cover bg-fid-inset object-cover transition-transform duration-200 group-hover:-translate-y-1"
             />
-            <!-- Kein Bild ist der Normalfall, kein Fehler. -->
+            <!-- No picture is the ordinary case, not an error. -->
             <span
               v-else
               class="flex aspect-square w-full items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted"

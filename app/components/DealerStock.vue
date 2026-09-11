@@ -5,15 +5,15 @@ import { useDealerMessages } from '~/i18n/dealers'
 import { since } from '~/utils/when'
 
 /**
- * Was ein Laden auf einem Label — oder aus einem Jahrzehnt — wirklich hat.
+ * What a shop really has on a label — or from a decade.
  *
- * Die Balken darüber zählten das schon immer und führten nirgendwohin. Der
- * interessante Fall ist gerade der, in dem die Fundliste nichts sagen kann:
- * ein Label, von dem man noch keine Platte besitzt, erzeugt per Definition
- * keinen Treffer — und ist trotzdem womöglich genau das, wonach man sucht.
+ * The bars above have always counted it and led nowhere. The interesting case
+ * is precisely the one the find list cannot speak to: a label you own no
+ * record by produces, by definition, no match — and may still be exactly what
+ * you are looking for.
  *
- * **Portionsweise.** Ein großer Laden hat zwanzigtausend Zeilen; hier kommen
- * fünfzig, und der Rest erst, wenn jemand danach fragt.
+ * **In portions.** A large shop has twenty thousand rows; fifty come here, and
+ * the rest only when somebody asks.
  */
 const h = useDealerMessages()
 const { call } = useFidelityWorker()
@@ -79,10 +79,10 @@ const more = computed(() => rows.value.length < total.value)
     <ErrorNote v-if="error" :cause="error" />
 
     <!--
-      Kein frischer Dig heißt nicht „der Laden führt das nicht".
-      Das Sortiment ist ein Marktplatzdatum und lebt sechs Stunden (Regel 4);
-      danach ist es gelöscht. Die beiden Fälle auseinanderzuhalten ist der
-      Unterschied zwischen einer Auskunft und einer Falschaussage.
+      No fresh dig does not mean "the shop does not carry that". The inventory
+      is marketplace data and lives six hours (rule 4); after that it is
+      deleted. Telling the two cases apart is the difference between
+      information and a false statement.
     -->
     <p v-else-if="!loading && scannedAt === null" class="text-fid-sm text-fid-sig-gap">
       {{ h.stock.needsDig }}

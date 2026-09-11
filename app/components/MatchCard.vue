@@ -16,7 +16,7 @@ const { show } = useReleaseSheet()
 const { contains, toggle } = useBasket()
 
 /**
- * Das Cover, und die Bitte darum, sobald die Karte ins Bild kommt.
+ * The cover, and the request for it as soon as the card comes into view.
  *
  * Asked for here rather than by the list, because only the card knows when it
  * is actually on screen — and each one costs a request (worker/covers.ts).
@@ -206,10 +206,10 @@ const meta = computed(() => {
         <span v-if="match.condition">{{ match.condition }}</span>
         <span v-if="price" class="fid-num text-fid-text">{{ price }}</span>
         <!--
-          Ein Link bleibt es hier, kein Knopf: die Karte ist dicht, und ein
-          zweiter Knopf neben „In den Korb" würde mit ihm um denselben Blick
-          streiten. Das Zeichen ist trotzdem dasselbe wie im Sheet — dass es
-          aus der App hinausführt, soll überall gleich aussehen.
+          It stays a link here, not a button: the card is dense, and a second
+          button beside "add to basket" would compete with it for the same
+          glance. The mark is the same as in the sheet all the same — that it
+          leads out of the app should look the same everywhere.
         -->
         <OutwardLink :to="`https://www.discogs.com/sell/item/${match.listingId}`">
           {{ d.sheet.atDiscogs }}

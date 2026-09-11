@@ -1,27 +1,26 @@
 <script setup lang="ts">
 /**
- * Zurück nach oben, ohne zu wischen bis der Daumen glüht.
+ * Back to the top, without swiping until your thumb glows.
  *
- * Das Regal zeigt 120 Cover und lädt in Schritten von 240 nach; wer bei 600
- * angekommen ist und wieder an die Filterleiste will, scrollt eine halbe
- * Minute. Auf dem Telefon gibt es keinen Pos1-Ersatz, und die Kopfzeile ist
- * dort nicht klebend.
+ * The shelf shows 120 covers and loads more in steps of 240; anyone who has
+ * reached 600 and wants the filter bar again scrolls for half a minute. On a
+ * phone there is no substitute for Home, and the header is not sticky there.
  *
- * **Er schwebt, also darf er nichts verdecken.** Der Aktualisierungs-Hinweis
- * stand einmal genauso da — `fixed bottom-4` — und lag über einer Trefferkarte,
- * über der Attribution im Fuß und auf dem Telefon über der Navigation selbst
- * (siehe `app/app.vue`). Deshalb: unten rechts, klein, oberhalb der Leiste, und
- * nur sichtbar, wenn wirklich etwas hinter einem liegt.
+ * **It floats, so it must cover nothing.** The update notice once stood
+ * exactly like this — `fixed bottom-4` — and lay over a match card, over the
+ * attribution in the footer, and on a phone over the navigation itself (see
+ * `app/app.vue`). Hence: bottom right, small, above the bar, and visible only
+ * when something really is behind you.
  */
 const m = useMessages()
 
 /**
- * Ab wann er auftaucht: zwei Bildschirmhöhen.
+ * When it appears: two screen heights.
  *
- * Ein fester Pixelwert war die naheliegende Wahl und die schlechtere — 300 px
- * sind auf einem Telefon ein Drittel Bildschirm und auf einem Schreibtisch ein
- * Fünftel. Zwei Höhen heißen überall dasselbe: „du hast etwas hinter dir
- * gelassen, das nicht mehr zu sehen ist."
+ * A fixed pixel value was the obvious choice and the worse one — 300 px is a
+ * third of a phone screen and a fifth of a desktop one. Two heights mean the
+ * same thing everywhere: "you have left something behind that can no longer
+ * be seen."
  */
 const shown = ref(false)
 
@@ -31,8 +30,8 @@ function measure() {
 
 onMounted(() => {
   measure()
-  // Passiv: dieser Zuhörer verhindert nie etwas, und ein Scroll-Handler ohne
-  // das kostet auf einer langen Liste spürbar Bildrate.
+  // Passive: this listener never prevents anything, and a scroll handler
+  // without that costs noticeable frame rate on a long list.
   window.addEventListener('scroll', measure, { passive: true })
   window.addEventListener('resize', measure, { passive: true })
 })
@@ -44,11 +43,11 @@ onBeforeUnmount(() => {
 
 function toTop() {
   /*
-   * Sanft, außer jemand hat darum gebeten, dass es das nicht ist.
+   * Smooth, unless somebody has asked for it not to be.
    *
-   * `prefers-reduced-motion` ist keine Geschmacksfrage: für manche Leute löst
-   * eine lange gleitende Bewegung Übelkeit aus, und sechshundert Cover
-   * vorbeifliegen zu lassen ist eine lange Bewegung.
+   * `prefers-reduced-motion` is not a matter of taste: for some people a long
+   * gliding movement causes nausea, and sending six hundred covers flying past
+   * is a long movement.
    */
   const sanft = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
   window.scrollTo({ top: 0, behavior: sanft ? 'smooth' : 'auto' })
@@ -57,9 +56,9 @@ function toTop() {
 
 <template>
   <!--
-    Aus dem Weg, wenn er nichts zu tun hat: `v-if` statt Deckkraft, damit er
-    auch für die Tastatur und den Bildschirmleser verschwindet, statt als
-    unsichtbares Ziel stehen zu bleiben.
+    Out of the way when it has nothing to do: `v-if` rather than opacity, so
+    that it disappears for the keyboard and the screen reader too instead of
+    standing there as an invisible target.
   -->
   <Transition
     enter-active-class="transition-opacity"

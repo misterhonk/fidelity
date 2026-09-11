@@ -7,12 +7,11 @@ const route = useRoute()
 const bar = useTemplateRef<HTMLElement>('bar')
 
 /*
- * Den aktuellen Reiter ins Bild holen.
+ * Bringing the current tab into view.
  *
- * Ohne das landet man auf „Orte" und sieht eine Leiste, die bei „Regal"
- * anfängt — der Reiter, auf dem man steht, ist dann außerhalb. Ein
- * Bildschirm, dessen eigener Reiter nicht zu sehen ist, wirkt wie ein
- * Bildschirm ohne Reiter.
+ * Without it you land on "places" and see a bar that starts at "shelf" — the
+ * tab you are standing on is off the edge. A screen whose own tab cannot be
+ * seen reads as a screen with no tabs.
  */
 onMounted(() => {
   bar.value
@@ -34,11 +33,11 @@ const TABS = [
   { to: '/map', key: 'map', icon: 'map' },
   { to: '/wantlist', key: 'wantlist', icon: 'wantlist' },
   /*
-   * Und der vierte: dieselbe Sammlung, aus der Richtung des Marktes.
+   * And the fourth: the same collection, from the market's direction.
    *
-   * Hierher und nicht in die Hauptleiste — fünf Einträge sind dort die
-   * Grenze. „Im Blick" ist keine eigene Gegend, sondern eine weitere Sicht auf
-   * das, was man hat und was man sucht.
+   * Here and not in the main bar — five entries is the limit there. "Watched"
+   * is not an area of its own but one more view of what you have and what you
+   * are after.
    */
   { to: '/watched', key: 'watched', icon: 'eye' },
   { to: '/places', key: 'places', icon: 'map-pin' },
@@ -47,23 +46,21 @@ const TABS = [
 
 <template>
   <!--
-    Symbol über Text, überall.
+    Icon above text, everywhere.
 
-    Am 2026-09-11 nachgemessen: fünf Reiter nebeneinander brauchen 435 px in
-    einer 343 px breiten Leiste und laufen über. Gestapelt sind es 341 — das
-    Symbol fällt aus der Breite heraus, und dieselbe Änderung, die die Knöpfe
-    im Stapel lesbar gemacht hat, schafft hier den Platz.
+    Measured 2026-09-11: five tabs side by side need 435 px in a 343 px bar and
+    overflow. Stacked they are 341 — the icon drops out of the width, and the
+    same change that made the buttons in the stack legible makes the room here.
 
-    **Keine `@xl:`-Varianten mehr.** Das sind Container-Queries, und von den
-    fünf Seiten mit dieser Leiste haben nur drei ein `@container` — dieselbe
-    Leiste sah je nach Seite anders aus, ohne dass irgendetwas das erklärt
-    hätte. Am 2026-09-11 nachgesehen, nicht vermutet. Was breitenabhängig sein
-    soll, hängt jetzt am Fenster (`md:`), was überall gleich sein soll, an
-    nichts.
+    **No more `@xl:` variants.** Those are container queries, and of the five
+    pages carrying this bar only three have an `@container` — so the same bar
+    looked different from page to page with nothing anywhere explaining it.
+    Looked up on 2026-09-11, not assumed. What should depend on width now hangs
+    off the window (`md:`); what should be the same everywhere hangs off
+    nothing.
 
-    `overflow-x-auto` bleibt als Reserve für eine Sprache mit längeren
-    Wörtern, und `scrollIntoView` sorgt dafür, dass der Reiter, auf dem man
-    steht, dann zu sehen ist.
+    `overflow-x-auto` stays in reserve for a language with longer words, and
+    `scrollIntoView` makes sure the tab you are standing on is then visible.
   -->
   <nav
     ref="bar"

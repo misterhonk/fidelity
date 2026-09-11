@@ -33,7 +33,7 @@ const { call } = useFidelityWorker()
 const { refresh } = useBasket()
 
 /*
- * Alle Zeilen auf einmal — ein Korb ist kurz.
+ * Every row at once — a basket is short.
  *
  * No observer here, unlike the dig list: a basket holds a handful of records
  * and every one of them is on screen. Watching them into view would be
@@ -243,7 +243,7 @@ const peak = computed(() =>
           :class="line.sold ? 'border-fid-border/50' : 'border-fid-border'"
         >
           <!--
-            Das Cover, auch hier.
+            The cover, here too.
 
             A basket is the one list where somebody checks that what they are
             about to spend money on is what they meant — and a row of titles is

@@ -3,12 +3,11 @@ import type { Preferences } from '#shared/types'
 import { useSettingsMessages } from '~/i18n/settings'
 
 /**
- * Der Schalter für die Hörprobe (ADR-012).
+ * The switch for the audio preview (ADR-012).
  *
- * Dieselbe Form wie `FriendImportToggle`, und aus demselben Grund: beides sind
- * benannte Ausnahmen von einer Regel, die die App sich selbst gegeben hat.
- * Eine Ausnahme, die man nicht sieht und nicht abwählen kann, ist keine
- * Ausnahme, sondern eine Hintertür.
+ * The same shape as `FriendImportToggle`, and for the same reason: both are
+ * named exceptions to a rule the app set itself. An exception you cannot see
+ * and cannot switch off is not an exception but a back door.
  */
 const st = useSettingsMessages()
 
@@ -51,9 +50,9 @@ async function set(audioPreview: boolean) {
     </label>
 
     <!--
-      Was tatsächlich passiert, beim Namen genannt — und was *nicht*: die
-      Sammlung geht nirgendwohin. Ohne diesen Unterschied klingt die Ausnahme
-      größer, als sie ist, und wer sie abwählt, tut es aus dem falschen Grund.
+      What actually happens, named — and what does *not*: the collection goes
+      nowhere. Without that difference the exception sounds bigger than it is,
+      and anyone switching it off does so for the wrong reason.
     -->
     <WhyNote :label="st.audio.whyLabel">
       {{ st.audio.why }}

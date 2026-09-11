@@ -4,21 +4,21 @@ import type { StackShop } from '#shared/types'
 import { useDigMessages } from '~/i18n/dig'
 
 /**
- * Die Ladenreihe des Stapels — oben, mit farbigem Ring wo noch etwas liegt.
+ * The stack's shop row — at the top, with a coloured ring where something is
+ * still waiting.
  *
- * Steht an zwei Stellen, und die zweite ist der Grund, warum es dieses
- * Bauteil gibt: **auf der Startseite war der Stapel sonst nicht zu finden.**
- * Der einzige Weg dorthin führte über die Dig-Seite und dort auch nur
- * innerhalb von `v-if="result"` — also nur, wenn zufällig gerade ein Dig
- * geladen war. Ein Bildschirm, den man kennen muss, um ihn zu erreichen,
- * existiert für die meisten nicht.
+ * It stands in two places, and the second is why this component exists: **the
+ * stack was otherwise not findable from the start page.** The only way there
+ * led through the dig page, and there only inside `v-if="result"` — so only
+ * when a dig happened to be loaded. A screen you have to know about to reach
+ * does not exist for most people.
  *
- * Der Ring ist `matches - seen > 0` und sonst nichts: dieselbe Zahl, die der
- * Stapel abarbeitet, und keine zweite Wahrheit darüber, ob es Neues gibt.
+ * The ring is `matches - seen > 0` and nothing else: the same number the stack
+ * works through, and not a second truth about whether there is anything new.
  */
 const props = defineProps<{
   shops: StackShop[]
-  /** Nur im Stapel gesetzt — auf der Startseite ist kein Laden „offen". */
+  /** Set only in the stack — on the start page no shop is "open". */
   current?: number
 }>()
 
@@ -28,11 +28,10 @@ const d = useDigMessages()
 const router = useRouter()
 
 /**
- * Auf der Startseite gibt es nichts zu öffnen, sondern etwas zu betreten.
+ * On the start page there is nothing to open but something to walk into.
  *
- * Derselbe Knopf, zwei Bedeutungen — deshalb entscheidet der Aufrufer: wer
- * auf `open` hört, bekommt den Index; wer nicht, landet im Stapel bei genau
- * diesem Laden.
+ * The same button, two meanings — so the caller decides: anyone listening for
+ * `open` gets the index; anyone not lands in the stack at exactly this shop.
  */
 function choose(index: number, shop: StackShop) {
   if (props.current !== undefined) {

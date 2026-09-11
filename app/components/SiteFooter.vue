@@ -42,12 +42,11 @@ const { version, commit } = useRuntimeConfig().public
           long as somebody keeps tapping "Later".
         -->
         <!--
-          Die Version führt zu dem, was sie bedeutet.
+          The version leads to what it means.
 
-          Sie stand hier als toter Text: eine Zahl, die niemandem sagt, was
-          sich geändert hat. Der Commit daneben bleibt es — der beantwortet
-          „ist das der Stand, den ich gerade ausgeliefert habe", und dafür gibt
-          es keine Seite.
+          It stood here as dead text: a number that tells nobody what has
+          changed. The commit beside it stays dead — that one answers "is this
+          the build I just deployed", and there is no page for that.
         -->
         <span class="fid-num">
           <NuxtLink class="underline underline-offset-4" to="/whats-new">
