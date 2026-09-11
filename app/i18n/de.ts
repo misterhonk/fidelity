@@ -155,6 +155,9 @@ const de: Messages = {
 
   news: {
     title: 'Was neu ist',
+    updatedTo: (version) => `Jetzt auf ${version}`,
+    whatChanged: 'Was hat sich geändert?',
+    dismiss: 'Später',
     inVersion: (version) => `In Version ${version}`,
     none: 'Zu dieser Ausgabe steht nichts geschrieben.',
     german:

@@ -158,6 +158,7 @@ const tiles = computed(() => {
         />
 
         <OfflineNotice />
+        <VersionNews />
         <WatchBanner />
         <ArrivalQuestion />
         <NextStep />

@@ -252,6 +252,10 @@ const en = {
   /** What changed in the version you are running. */
   news: {
     title: 'What is new',
+    /* Die Zeile auf der Startseite nach einem Wechsel der Ausgabe. */
+    updatedTo: (version: string) => `Updated to ${version}`,
+    whatChanged: 'What changed?',
+    dismiss: 'Not now',
     inVersion: (version: string) => `In version ${version}`,
     none: 'Nothing written down for this version.',
     /*
