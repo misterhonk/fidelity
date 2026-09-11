@@ -142,18 +142,27 @@ user's browser and never leaves the device.
 | Server logs, retention periods | there are none |
 | A cookie banner | none — no cookie, no tracking, no analytics |
 
-**What is still needed** as soon as the app sits on a public domain:
+**What was needed** once the app went onto a public domain — all of it checked against the
+code on 2026-09-11, not ticked from memory:
 
-- [ ] **A legal notice** (section 5 DDG)
-- [ ] **A privacy notice** — short and honest: what the app sends to Discogs (the user's
-      token), what is stored locally, and that none of it goes to us or to third parties
-- [ ] If Sentry is used: name it as a processor, EU region, `sendDefaultPii: false`,
-      **token redaction in the `beforeSend` hook**
-- [ ] The host processes access logs — that belongs in the privacy notice
+- [x] **A legal notice** (section 5 DDG) — `app/pages/legal.vue`. Name and a route to the
+      author; **no postal address, on purpose**, with the reasoning in `app/i18n/legal.ts`
+- [x] **A privacy notice** — `app/pages/privacy.vue`
+- [x] The host processes access logs — said in the notice, under a heading of its own
+- [ ] If Sentry is ever used: name it as a processor, EU region, `sendDefaultPii: false`,
+      **token redaction in the `beforeSend` hook**. There is no Sentry and no error
+      reporting of any kind; this line is a condition, not an open task
 
-> **The privacy notice is allowed to be honestly short.** The most important sentence is:
-> *"This app has no server. Your Discogs data is processed and stored exclusively in your
-> browser."*
+> **The privacy notice is allowed to be honestly short.** But short is not the same as
+> partial, and the difference cost something once. Until 2026-09-11 the notice opened with
+> *"Fidelity has no server. There is nowhere your data could be processed"* — three commits
+> after sharing a find list had begun sending a sealed dig to a hub. The sentence had been
+> true when it was written, and nothing made anybody go back to it.
+>
+> **So something does now.** `tests/unit/privacy-promise.spec.ts` holds the notice against
+> the code: a destination in `worker/hub/client.ts`, a heading on the page. The audio
+> preview has had that guard since ADR-012 — the hub slipped through because the guard
+> existed only once.
 
 ## 4. Accessibility (BFSG / EAA)
 
@@ -184,16 +193,35 @@ Details: `05-DESIGN-SYSTEM.md` §6.
 
 ---
 
-## 6. Compliance checklist before first public access
+## 6. Compliance checklist
 
-- [ ] The attribution strings verbatim in the footer
-- [ ] "Data provided by Discogs" linked, **without** `nofollow`
-- [ ] A deep link to the Discogs listing on every card
-- [ ] `expires_at` enforces the six-hour rule technically
-- [ ] No scraping, no undocumented endpoints (not even `/marketplace/search`)
-- [ ] No advertising, no affiliate links, no fees
-- [ ] Rate-limit headers respected, no key rotation to get round them
-- [ ] Legal notice + privacy notice online
-- [ ] Data export and account deletion work
-- [ ] The user agent identifies the app correctly, including a URL
-- [ ] Marketplace data is not passed on or exported anywhere
+Written before the first public access and left standing unticked long after the app was
+live — which made it useless for the one question a checklist answers. Every line below was
+read against the code on 2026-09-11.
+
+- [x] The attribution strings verbatim in the footer — `app/i18n/en.ts`, word for word out
+      of §1.2, rendered by `SiteFooter.vue`
+- [x] "Data provided by Discogs" linked, **without** `nofollow` — and there is no
+      `rel="nofollow"` anywhere in the project
+- [x] A deep link to the Discogs listing on every card — `MatchCard.vue`
+- [x] `expires_at` enforces the six-hour rule technically — `db/expire.ts`, and every
+      surface that shows a price checks the age itself rather than trusting the sweep
+- [x] No scraping, no undocumented endpoints (not even `/marketplace/search`) — one named
+      exception, `/users/{u}/friends`, off by default, under ADR-009
+- [x] No advertising, no affiliate links, no fees — and no analytics either
+- [x] Legal notice + privacy notice online — §3
+- [x] Data export and account deletion work — `DataControls.vue`: the whole database as
+      JSON, a single dig as JSON, and a delete that takes the token with it
+- [x] Marketplace data is not passed on or exported anywhere — the two ways out are the
+      user's own: a file they download, and a share that is sealed before it leaves and
+      expires with the dig (`worker/share.ts`)
+
+**Two lines cannot be built, and saying so is better than leaving them open:**
+
+- **Rate-limit headers respected.** `x-discogs-ratelimit-*` is not in `expose-headers`, so
+  JavaScript cannot read it — and the 429 arrives without CORS headers, so the status is
+  invisible too (both measured, `docs/02`). What replaces it is not reading but pacing:
+  one request in flight, 1,200 ms with a token, claimed across tabs under a Web Lock. No
+  key rotation, and there is only ever the one key the user pasted in.
+- **The user agent identifies the app.** `fetch()` forbids setting `User-Agent`; the
+  browser writes its own. Verified uncritical — Discogs accepts browser UAs.

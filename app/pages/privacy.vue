@@ -22,9 +22,11 @@ useSeoMeta({
       <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ l.privacy.title }}</h1>
 
       <!--
-        docs/09 §3: there is no server, so there is almost nothing to declare.
-        The honest version of that is a short page, not a long one that pretends
-        otherwise.
+        docs/09 §3: there is no server of ours, so there is little to declare —
+        and the honest version of that is a short page, not a long one that
+        pretends otherwise. Short is not the same as incomplete, though: every
+        place data can go gets a heading here, including the two that only
+        exist once somebody switches them on.
       -->
       <p class="text-fid-base text-fid-text">{{ l.privacy.lead }}</p>
 
@@ -43,6 +45,16 @@ useSeoMeta({
       <section class="flex flex-col gap-2">
         <h2 class="text-fid-base font-medium text-fid-text">{{ l.privacy.audio }}</h2>
         <p class="text-fid-base text-fid-text-muted">{{ l.privacy.audioBody }}</p>
+      </section>
+
+      <section class="flex flex-col gap-2">
+        <h2 class="text-fid-base font-medium text-fid-text">{{ l.privacy.hub }}</h2>
+        <p class="text-fid-base text-fid-text-muted">{{ l.privacy.hubBody }}</p>
+      </section>
+
+      <section class="flex flex-col gap-2">
+        <h2 class="text-fid-base font-medium text-fid-text">{{ l.privacy.hosting }}</h2>
+        <p class="text-fid-base text-fid-text-muted">{{ l.privacy.hostingBody }}</p>
       </section>
 
       <section class="flex flex-col gap-2">
