@@ -194,6 +194,30 @@ martinmelcher.de/hub         der Dienst auf Port 8787, Präfix abgeschnitten
 Hand, weil ADR-008 nicht nur für den Code gilt: ein Fehlschlag am Hub darf die App nicht
 mitnehmen.
 
+> ⚠️ **Die Kehrseite: App und Hub laufen auseinander, und zwar still.**
+>
+> Das Release-Workflow baut zwar ein Hub-Image, liefert es aber **nicht** auf Uberspace
+> aus. Am 2026-09-11 stand die App auf 0.24.0 mit dem Teilen-Knopf, während der laufende
+> Hub noch der Stand davor war: `GET /v1/share/{id}` antwortete mit **401 statt 404**,
+> weil die Route dort gar nicht existierte und die Auth-Schicht alles Unbekannte abweist.
+> Ein geteilter Link wäre für jeden ohne Secret tot gewesen — also für genau die Leute,
+> für die er gemacht ist.
+>
+> Aufgefallen ist das nur, weil nach dem Release am **laufenden** Server geprüft wurde,
+> nicht am lokalen. Die Tests waren grün, der Browser war grün, und trotzdem war das
+> Feature draußen kaputt.
+>
+> **Nach jedem Release, das den Hub anfasst:** `hub.yml` mit `ausliefern` laufen lassen
+> und danach die drei Türen nachsehen —
+>
+> ```
+> GET  /v1/share/<zufall>  → 404   (Lesen geht ohne Secret)
+> POST /v1/share           → 401   (Schreiben nicht)
+> GET  /v1/covers          → 401   (andere Türen bleiben zu)
+> ```
+>
+> Eine 401 an der ersten Stelle heißt: der Hub ist alt.
+
 **Der Client sucht in dieser Reihenfolge:** `<Herkunft>/hub`, dann die nackte Herkunft,
 dann `http://localhost:8787` in beiden Schreibweisen. Was ohne Geheimnis antwortet, wird
 ohne Rückfrage eingetragen; was eines verlangt, nur ausgefüllt — das Wort ist nicht
