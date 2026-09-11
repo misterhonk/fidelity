@@ -1,61 +1,62 @@
-# 11 – Katalog-Strategie: Horizont statt Volldump
+# 11 – Catalogue strategy: a horizon instead of a full dump
 
-> **Entscheidung:** Der 10,4-GB-Releases-Dump wird **nicht** gebraucht.
-> Stattdessen bauen wir bedarfsgesteuert einen **Horizont** – die Teilmenge des
-> Discogs-Katalogs, die für *diesen Nutzer* relevant ist.
-> Ersetzt den ursprünglichen Ansatz aus ADR-005.
-
----
-
-## 1. Der Denkfehler im ersten Entwurf
-
-Die ursprüngliche Überlegung war:
-
-> „Ein Inventar-Listing enthält keine `master_id`, keine Genres, keine Credits.
-> Also müssen wir für jedes der 10.000 Listings die Metadaten nachschlagen.
-> Das kostet 10.000 Requests ≈ 3 Stunden. Also brauchen wir den Volldump."
-
-Der Fehler steckt in „für jedes Listing". **Die Abfragerichtung war falsch herum.**
-
-```
-FALSCH:  10.000 Inventar-Listings  →  je 1 Request  →  Metadaten
-         teuer, flüchtig, pro Dig neu
-
-RICHTIG: ~150 Entitäten aus MEINER Sammlung  →  je 1–11 Requests  →  Release-ID-Mengen
-         einmalig, langlebig, danach ist jeder Dig eine Set-Intersection zum Nulltarif
-```
-
-Meine Sammlung ist klein (2.412 Platten, 418 Künstler, 197 Labels) und ändert sich
-langsam. Das Inventar ist groß und wechselt ständig. **Man cacht die kleine, stabile
-Seite – nicht die große, flüchtige.**
+> **Decision:** the 10.4 GB releases dump is **not** needed.
+> Instead we build a **horizon** on demand — the subset of the Discogs catalogue that is
+> relevant to *this user*.
+> Supersedes the original approach in ADR-005.
 
 ---
 
-## 2. Live gegen die API verifiziert (2026-08-09)
+## 1. The error of thinking in the first design
 
-### `GET /artists/{id}/releases` liefert ein `role`-Feld
+The original reasoning went:
+
+> "An inventory listing carries no `master_id`, no genres, no credits. So we have to look
+> up the metadata for each of the 10,000 listings. That costs 10,000 requests ≈ 3 hours. So
+> we need the full dump."
+
+The error is in "for each listing". **The direction of the query was the wrong way round.**
+
+```
+WRONG:  10,000 inventory listings  →  1 request each  →  metadata
+        expensive, volatile, redone every dig
+
+RIGHT:  ~150 entities from MY collection  →  1–11 requests each  →  sets of release ids
+        once, long-lived, and every dig after that is a free set intersection
+```
+
+My collection is small (2,412 records, 418 artists, 197 labels) and changes slowly. The
+inventory is large and changes constantly. **You cache the small, stable side — not the
+large, volatile one.**
+
+---
+
+## 2. Verified live against the API (2026-08-09)
+
+### `GET /artists/{id}/releases` returns a `role` field
 
 ```
 GET /artists/40135/releases?per_page=100    (Conny Plank)
-→ 1.095 Einträge · 11 Requests · keine Seitengrenze
+→ 1,095 entries · 11 requests · no page limit
 
-Rollenverteilung Seite 1:  { Main: 13, Remix: 11, Producer: 76 }
-Typen Seite 3:             { master: 72, release: 28 }
+Role distribution on page 1:  { Main: 13, Remix: 11, Producer: 76 }
+Types on page 3:              { master: 72, release: 28 }
 ```
 
-**Das ist der entscheidende Fund.** Der Endpunkt liefert nicht nur die Alben, auf denen
-jemand Hauptkünstler ist, sondern **auch die, die er produziert, gemischt oder geremixt
-hat** – mit expliziter Rollenangabe.
+**That is the decisive find.** The endpoint returns not only the albums somebody is the main
+artist on but **also the ones they produced, mixed or remixed** — with the role stated
+explicitly.
 
-Damit ist der **Credit-Graph (Signal S8) ohne Dump erreichbar.** Elf Requests für Conny
-Planks komplettes Werk. Danach ist „Hat dieser Händler eine Conny-Plank-Produktion, die
-mir fehlt?" ein `WHERE release_id = ANY(...)` – null zusätzliche Requests, egal wie oft.
+That puts the **credit graph (signal S8) within reach without a dump.** Eleven requests for
+Conny Plank's complete works. After that, "does this dealer have a Conny Plank production I
+am missing?" is a `WHERE release_id = ANY(...)` — zero extra requests, however often it is
+asked.
 
-### `GET /masters/{id}/versions` liefert alle Pressungen
+### `GET /masters/{id}/versions` returns every pressing
 
 ```
 GET /masters/2598/versions?per_page=100     (Neu! – Neu! 2)
-→ 55 Pressungen · 1 Request
+→ 55 pressings · 1 request
 
 release_id 29630659 · Germany · 1973 · brain 1028
 release_id  2248441 · France  · 1973 · 6499 591
@@ -63,131 +64,131 @@ release_id  1086110 · UK      · 1973 · UAG 29500
    …
 ```
 
-Damit ist **Signal S2 (anderes Pressing) ohne Dump erreichbar.** Ein Request pro
-Wantlist-Album, einmalig.
+That puts **signal S2 (a different pressing) within reach without a dump.** One request per
+wantlist album, once.
 
 ---
 
-## 3. Der Horizont
+## 3. The horizon
 
-Nach dem Sammlungs-Sync ermittelt die App, welche Entitäten für den Nutzer relevant sind,
-und expandiert sie in Release-ID-Mengen.
+After the collection sync the app works out which entities are relevant to the user and
+expands them into sets of release ids.
 
-| Was | Auswahlkriterium | Endpunkt | Requests |
+| What | Selection criterion | Endpoint | Requests |
 |---|---|---|---|
-| **Wantlist-Alben** | alle mit `master_id ≠ 0` | `/masters/{id}/versions` | ~1 pro Album |
-| **Künstler** | ≥ 2 Platten in der Sammlung | `/artists/{id}/releases` | 1–11 pro Künstler |
-| **Labels** | Lift ≥ 2 **und** < 1.500 Releases | `/labels/{id}/releases` | 1–15 pro Label |
-| **Credits** | Personen mit Lift ≥ 3 in der Sammlung | `/artists/{id}/releases` | 1–11 pro Person |
+| **Wantlist albums** | all with `master_id ≠ 0` | `/masters/{id}/versions` | ~1 per album |
+| **Artists** | ≥ 2 records in the collection | `/artists/{id}/releases` | 1–11 per artist |
+| **Labels** | lift ≥ 2 **and** < 1,500 releases | `/labels/{id}/releases` | 1–15 per label |
+| **Credits** | people with lift ≥ 3 in the collection | `/artists/{id}/releases` | 1–11 per person |
 
-### Kostenrechnung für eine reale Sammlung (2.412 Platten)
+### The cost for a real collection (2,412 records)
 
-| Posten | Entitäten | Requests |
+| Item | Entities | Requests |
 |---|---:|---:|
-| Wantlist-Master | 184 | ~190 |
-| Künstler mit ≥ 2 Platten | ~80 | ~210 |
-| Labels mit Lift ≥ 2, klein genug | ~30 | ~160 |
-| Produzenten/Engineers mit Lift ≥ 3 | ~20 | ~110 |
-| **Summe, einmalig** | ~314 | **~670 ≈ 12 Minuten** |
+| Wantlist masters | 184 | ~190 |
+| Artists with ≥ 2 records | ~80 | ~210 |
+| Labels with lift ≥ 2, small enough | ~30 | ~160 |
+| Producers/engineers with lift ≥ 3 | ~20 | ~110 |
+| **Total, once** | ~314 | **~670 ≈ 12 minutes** |
 
-Danach nur noch Deltas: neue Platte in der Sammlung → 1–11 Requests.
-Turnusmäßige Revalidierung: 30 Tage, gestaffelt, ~20 Requests/Tag.
+After that only deltas: a new record in the collection → 1–11 requests.
+Routine revalidation: 30 days, staggered, ~20 requests a day.
 
-**Zum Vergleich der Dump-Weg:** 10,4 GB Download, ~110 GB entpacktes XML, Stunden
-Parsing, ~6 GB Datenbank, 1,5–3 GB rsync – **jeden Monat neu.**
-
----
-
-## 4. Wie ein Dig danach abläuft
-
-```
-Vorher (Dump-Ansatz):
-  Inventar holen → für jedes Listing im 20-Mio-Zeilen-Katalog nachschlagen
-
-Jetzt (Horizont, im Browser):
-  Inventar holen → horizonIndex.get(listing.releaseId)
-                   eine Map-Abfrage in O(1) ueber ein paar hunderttausend IDs
-```
-
-Beide Wege kosten **null zusätzliche API-Requests pro Dig**. Der Unterschied ist
-ausschließlich, wie die Nachschlagetabelle entstanden ist.
-
-### Der Master/Release-Zweischritt
-
-`/artists/{id}/releases` liefert gemischt `type: "master"` und `type: "release"`.
-Master-Einträge tragen `main_release`. Vorgehen:
-
-1. **Stufe 1 – gratis:** `main_release_id` und alle direkten `release`-IDs in den Horizont.
-   Deckt die Hauptpressung ab.
-2. **Stufe 2 – bedarfsgesteuert:** Trifft ein Inventar-Listing *nicht*, gehört aber
-   plausibel dazu (gleicher Künstlername, ähnlicher Titel), wird der Master per
-   `/masters/{id}/versions` nachexpandiert – **ein** Request, danach dauerhaft im Horizont.
-
-Die zweite Stufe läuft asynchron nach dem Dig. Der Horizont wird also mit jedem Dig etwas
-besser. Das ist ein Feature, kein Workaround.
+**For comparison, the dump route:** a 10.4 GB download, ~110 GB of unpacked XML, hours of
+parsing, a ~6 GB database, 1.5–3 GB of rsync — **every month.**
 
 ---
 
-## 5. Was man dadurch verliert – ehrlich
+## 4. How a dig runs afterwards
 
-| Einschränkung | Auswirkung | Bewertung |
+```
+Before (the dump approach):
+  fetch the inventory → look each listing up in a 20-million-row catalogue
+
+Now (the horizon, in the browser):
+  fetch the inventory → horizonIndex.get(listing.releaseId)
+                        one map lookup in O(1) over a few hundred thousand ids
+```
+
+Both routes cost **zero extra API requests per dig**. The difference is purely in how the
+lookup table came to exist.
+
+### The master/release two-step
+
+`/artists/{id}/releases` returns `type: "master"` and `type: "release"` mixed. Master
+entries carry `main_release`. The procedure:
+
+1. **Stage 1 – free:** `main_release_id` and every direct `release` id into the horizon.
+   That covers the main pressing.
+2. **Stage 2 – on demand:** if an inventory listing does *not* hit but plausibly belongs
+   (same artist name, similar title), the master is expanded afterwards via
+   `/masters/{id}/versions` — **one** request, and it is in the horizon permanently.
+
+The second stage runs asynchronously after the dig. So the horizon gets a little better with
+every dig. That is a feature, not a workaround.
+
+---
+
+## 5. What you lose by this – honestly
+
+| Limitation | Effect | Assessment |
 |---|---|---|
-| **Große Labels nicht expandierbar** | RCA hat 186.808 Releases = 1.869 Requests | Egal. Completism bei Majors ergibt keinen Sinn – das Signal zielt auf Brain, Ohr, Blue Note, ECM. Harte Grenze: 1.500 Releases, darüber kein `CATALOG_RUN`. |
-| **Credit-Graph reicht nur so weit wie die Sammlung** | „Alle Kollaborateure zweiten Grades von Conny Plank" geht nicht | Egal für die Kernfunktion. Wäre eine Explorationsfunktion, kein Kaufberater. |
-| **Kein globaler `release → master`-Index** | Ein Listing außerhalb des Horizonts bleibt unaufgelöst | Genau richtig. Ein Release außerhalb deines Horizonts ist per Definition keine Empfehlung. |
-| **Ersteinrichtung dauert ~12 Min** | Frisst das gemeinsame 60/min-Budget | Einmalig, im Hintergrund, mit Fortschrittsanzeige. Bei mehreren Nutzern über Nacht gestaffelt. |
-| **Genres/Styles pro Listing fehlen weiterhin** | S7 nur für Releases im Horizont | Akzeptabel – Stil-Adjazenz ist mit Gewicht 30 ohnehin das schwächste Signal. |
-| **ToS: API-Daten statt CC0** | Formal gilt die 6-Stunden-Regel für allen API-Content | Siehe §7. Argumentierbar, aber nicht so eindeutig wie CC0. |
+| **Large labels cannot be expanded** | RCA has 186,808 releases = 1,869 requests | Does not matter. Completism at majors makes no sense — the signal aims at Brain, Ohr, Blue Note, ECM. A hard limit: 1,500 releases, above which no `CATALOG_RUN`. |
+| **The credit graph reaches only as far as the collection** | "All of Conny Plank's second-degree collaborators" is not possible | Does not matter for the core function. That would be an exploration feature, not a buying advisor. |
+| **No global `release → master` index** | A listing outside the horizon stays unresolved | Exactly right. A release outside your horizon is by definition not a recommendation. |
+| **First-time setup takes ~12 min** | Eats the shared 60/min budget | Once, in the background, with a progress display. With several users, staggered overnight. |
+| **Genres/styles per listing are still missing** | S7 only for releases in the horizon | Acceptable — at weight 30, style adjacency is the weakest signal anyway. |
+| **ToS: API data instead of CC0** | Formally the six-hour rule applies to all API content | See §7. Arguable, but not as unambiguous as CC0. |
 
 ---
 
-## 6. Was man gewinnt
+## 6. What you gain
 
-- **Kein 10,4-GB-Download, kein 110-GB-Parse, kein monatlicher Wartungstermin**
-- **Statt ~6 GB auf einem Server nur ~1,4 MB im Browser des Nutzers** - als
-  `Int32Array`-Parallelarrays gepackt, siehe `03-DATENMODELL.md` Abschnitt 4
-- **M5 ist kein Brocken mehr**, sondern ein normaler Meilenstein. Die fünf teuren Signale
-  rücken damit näher an M2
-- **Der Horizont wächst mit der Nutzung** statt monatlich zu veralten
-- **Kein XML-Streaming-Parser**, kein `pg_dump`/rsync-Tanz, keine Blau/Grün-Schema-Rotation
-- **Die Daten sind aktueller als ein Monatsdump**
-
----
-
-## 7. ToS-Bewertung
-
-Die 6-Stunden-Regel gilt dem Wortlaut nach für allen API-`Content`. Wir bewegen uns
-deshalb bewusst so:
-
-- **Gespeichert werden nur ID-Mengen und Kanten** – `artist_id → release_id + role`.
-  Keine Titel, keine Bilder, keine Preise, keine Zustände. Das ist kein anzeigbarer
-  Content, sondern ein Index auf öffentliche Fakten.
-- **Alles Anzeigbare kommt frisch** aus dem Inventory-Listing desselben Digs
-  (Titel, Künstler, Label, Katalognummer, Preis, Zustand) und verfällt nach 6 Stunden
-  über `app.dig.expires_at`.
-- **Revalidierung alle 30 Tage** hält die Kanten aktuell.
-- Dieselben Fakten stehen als **CC0-Dump** frei zur Verfügung – wir holen sie nur auf
-  einem anderen Weg.
-
-> **Fallback, falls das je beanstandet wird:** Die drei *kleinen* Dumps
-> (`artists.xml.gz` 472 MB, `labels.xml.gz` 86 MB, `masters.xml.gz` 593 MB, zusammen
-> 1,15 GB) sind CC0 und liefern Künstler- und Labelstammdaten inklusive Aliase,
-> Namensvarianten und Sublabel-Hierarchien. Sie ersetzen die Kanten zwar nicht, decken
-> aber die Stammdaten sauber ab. Der **releases**-Dump bleibt in jedem Fall draußen.
+- **No 10.4 GB download, no 110 GB parse, no monthly maintenance appointment**
+- **Instead of ~6 GB on a server, only ~1.4 MB in the user's browser** — packed as
+  `Int32Array` parallel arrays, see `03-DATENMODELL.md` section 4
+- **M5 is no longer a lump** but an ordinary milestone. Which moves the five expensive
+  signals closer to M2
+- **The horizon grows with use** instead of going stale every month
+- **No XML streaming parser**, no `pg_dump`/rsync dance, no blue/green schema rotation
+- **The data is fresher than a monthly dump**
 
 ---
 
-## 8. Wann der Volldump doch Sinn ergibt
+## 7. ToS assessment
 
-Nicht dogmatisch sein. Der Dump-Weg wird wieder interessant bei:
+By its wording the six-hour rule applies to all API `Content`. So we deliberately move like
+this:
 
-- **mehreren hundert Nutzern** – dann amortisiert sich ein gemeinsamer globaler Index
-  gegenüber vielen individuellen Horizonten
-- **Explorationsfunktionen über den eigenen Horizont hinaus** („zeig mir alle
-  Krautrock-Produzenten der 70er, egal was ich besitze")
-- **Offline-Analysen** über den gesamten Katalog
-- **Reichlich Platte** – auf einem VPS mit 40 GB ist der Dump-Weg kein Problem mehr
+- **Only sets of ids and edges are stored** — `artist_id → release_id + role`. No titles, no
+  images, no prices, no conditions. That is not displayable content but an index over public
+  facts.
+- **Everything displayable comes fresh** from the inventory listing of the same dig (title,
+  artist, label, catalogue number, price, condition) and expires after 6 hours via
+  `app.dig.expires_at`.
+- **Revalidation every 30 days** keeps the edges current.
+- The same facts are freely available as a **CC0 dump** — we merely fetch them by another
+  route.
 
-Dann ist es eine **additive** Entscheidung: Der Horizont bleibt, der globale Index kommt
-darunter. Nichts an der Matching-Engine muss sich dafür ändern – sie fragt eine Tabelle,
-nicht eine Datenquelle.
+> **The fallback, should this ever be challenged:** the three *small* dumps
+> (`artists.xml.gz` 472 MB, `labels.xml.gz` 86 MB, `masters.xml.gz` 593 MB, 1.15 GB
+> together) are CC0 and supply artist and label master data including aliases, name variants
+> and sublabel hierarchies. They do not replace the edges, but they cover the master data
+> cleanly. The **releases** dump stays out in any case.
+
+---
+
+## 8. When the full dump does make sense after all
+
+Do not be dogmatic. The dump route becomes interesting again with:
+
+- **several hundred users** — then a shared global index amortises against many individual
+  horizons
+- **exploration features beyond your own horizon** ("show me every krautrock producer of the
+  seventies, regardless of what I own")
+- **offline analyses** across the whole catalogue
+- **plenty of disk** — on a VPS with 40 GB the dump route is no longer a problem
+
+It would then be an **additive** decision: the horizon stays, the global index slides
+underneath. Nothing in the matching engine has to change for it — it queries a table, not a
+data source.

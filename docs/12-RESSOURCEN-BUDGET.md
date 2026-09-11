@@ -1,202 +1,200 @@
-# 12 – Ressourcen-Budget
+# 12 – Resource budget
 
-> Leitsatz: **Die günstigste Ressource ist die, die man nicht benutzt.**
-> Diese App hat kein Backend. Was sie verbraucht, verbraucht sie auf dem Gerät des Nutzers –
-> und auch dort sparsam.
+> The guiding sentence: **the cheapest resource is the one you do not use.**
+> This app has no backend. What it consumes, it consumes on the user's device — and it is
+> frugal there too.
 
 ---
 
-## 1. Serverseitig: null
+## 1. Server side: zero
 
-| Ressource | Verbrauch |
+| Resource | Consumption |
 |---|---:|
 | RAM | **0** |
 | CPU | **0** |
-| Datenbank | **keine** |
-| Hintergrundprozesse | **keine** |
-| Traffic | nur die statischen Dateien beim ersten Laden |
-| Betriebskosten | **0 €** |
+| Database | **none** |
+| Background processes | **none** |
+| Traffic | only the static files on first load |
+| Running costs | **€0** |
 
-Gehostet werden ein paar hundert Kilobyte statischer Dateien. Uberspace-Docroot,
-Cloudflare Pages oder GitHub Pages – überall kostenlos, überall austauschbar.
+What is hosted is a few hundred kilobytes of static files. An Uberspace docroot, Cloudflare
+Pages or GitHub Pages — free everywhere, interchangeable everywhere.
 
 ---
 
-## 2. Bundle-Budget
+## 2. Bundle budget
 
-Das Ding soll auch dort laden, wo der Empfang schlecht ist — im Untergeschoss eines
-Plattenladens, hinter Regalen aus Beton.
+The thing should load where reception is bad too — in the basement of a record shop, behind
+concrete shelving.
 
-| Teil | Budget (gzip) | Stand M3 |
+| Part | Budget (gzip) | As of M3 |
 |---|---:|---:|
-| HTML + kritisches CSS | ≤ 8 KB | |
-| App-Shell JS (Vue + Router + UI-Kern) | ≤ 140 KB | |
-| Matching-Engine (Worker, lazy) | ≤ 35 KB | 31,5 KB |
-| Restliche Routen (lazy) | je ≤ 30 KB | 13,9 KB |
-| **Erster sinnvoller Paint** | **≤ 180 KB** | **118 KB** |
+| HTML + critical CSS | ≤ 8 kB | |
+| App-shell JS (Vue + router + UI core) | ≤ 140 kB | |
+| Matching engine (worker, lazy) | ≤ 35 kB | 31.5 kB |
+| The remaining routes (lazy) | ≤ 30 kB each | 13.9 kB |
+| **First meaningful paint** | **≤ 180 kB** | **118 kB** |
 
-> **Warum der Worker von 25 auf 35 KB gegangen ist (M3).** Die 25 KB waren
-> geschätzt, bevor es Code gab. Gemessen sind es 31,5 KB, davon rund 16 KB Zod.
-> Der naheliegende Ausweg wäre `zod/mini` gewesen – spart etwa 13 KB.
-> Dagegen sprach: die Schemas *sind* die Grenze zwischen ungeprüften API-Daten
-> und allem anderen (CLAUDE.md), und der Worker blockiert den ersten Paint
-> nicht, er lädt parallel dazu. Die entscheidende Zahl, die 120 KB, ist
-> eingehalten. Zods Kern ist außerdem monolithisch: die 16 KB sind einmalig
-> bezahlt, weitere Schemas kosten kaum noch etwas – das Budget läuft also nicht
-> von selbst weiter weg.
+> **Why the worker went from 25 to 35 kB (M3).** The 25 kB were an estimate made before
+> there was any code. Measured, it is 31.5 kB, about 16 kB of which is Zod. The obvious way
+> out would have been `zod/mini` — saving about 13 kB. Against it: the schemas *are* the
+> boundary between unchecked API data and everything else (CLAUDE.md), and the worker does
+> not block the first paint, it loads alongside it. The number that matters, the 120 kB, is
+> met. Zod's core is monolithic besides: the 16 kB are paid once, further schemas cost
+> almost nothing — so the budget does not run away by itself.
 >
-> Falls der Worker doch einmal deutlich über 35 KB steigt, ist die Reihenfolge:
-> erst Horizont- und Matching-Code erst beim Dig nachladen, dann `zod/mini`.
+> If the worker does one day rise well above 35 kB, the order is: first load the horizon and
+> matching code only when a dig starts, then `zod/mini`.
 
-> **Warum aus 120 KB 180 KB geworden sind (2026-08-11).** Die 120 waren an ein
-> Netz gebunden, das es nicht mehr gibt: „im Keller eines Plattenladens über 3G".
-> 3G ist in Deutschland seit 2021 abgeschaltet. Eine Grenze, die eine tote
-> Netzgeneration modelliert, schützt niemanden mehr — sie kostet nur Gestaltung.
+> **Why 120 kB became 180 kB (2026-08-11).** The 120 were tied to a network that no longer
+> exists: "in the basement of a record shop over 3G". 3G was switched off in Germany in
+> 2021. A limit modelling a dead network generation protects nobody any more — it only costs
+> design.
 >
-> Nachgerechnet, was die Erhöhung wirklich kostet:
+> Recalculated, what the increase actually costs:
 >
-> | Verbindung | 120 KB | 180 KB | Aufschlag |
+> | Connection | 120 kB | 180 kB | Extra |
 > |---|---:|---:|---:|
-> | 5G, mittel | 0,00 s | 0,01 s | 0,00 s |
-> | LTE gut | 0,02 s | 0,03 s | 0,01 s |
-> | LTE normal | 0,08 s | 0,12 s | **0,04 s** |
-> | LTE schwach | 0,32 s | 0,48 s | 0,16 s |
-> | Ein Balken im Keller | 1,20 s | 1,80 s | 0,60 s |
+> | 5G, medium | 0.00 s | 0.01 s | 0.00 s |
+> | LTE good | 0.02 s | 0.03 s | 0.01 s |
+> | LTE normal | 0.08 s | 0.12 s | **0.04 s** |
+> | LTE weak | 0.32 s | 0.48 s | 0.16 s |
+> | One bar in the basement | 1.20 s | 1.80 s | 0.60 s |
 >
-> Vierzig Millisekunden im Normalfall. Dafür lohnt es nicht, auf Verläufe,
-> Schatten und Bewegung zu verzichten.
+> Forty milliseconds in the normal case. Doing without gradients, shadows and motion is not
+> worth that.
 >
-> **Was gleich bleibt:** der Leitsatz oben. Ein höheres Dach ist keine
-> Aufforderung, bis unter die Decke zu stapeln — 180 ist der Punkt, an dem der
-> Build bricht, nicht das Ziel. Und die Grenze bleibt eine *echte* Grenze: sie
-> bricht den Build weiterhin, weil ein Budget, das man bei jedem Anlauf
-> hochsetzt, kein Budget ist. Der Keller ist übrigens nie ein Problem der
-> Netzgeneration gewesen, sondern der Abdeckung — LTE bei −110 dBm verhält sich
-> wie 3G. Das macht den Extremfall seltener, nicht besser.
+> **What stays the same:** the sentence at the top. A higher ceiling is not an invitation to
+> stack up to it — 180 is the point at which the build breaks, not the target. And the limit
+> stays a *real* limit: it still breaks the build, because a budget you raise at every
+> attempt is not a budget. The basement, incidentally, was never a problem of network
+> generation but of coverage — LTE at −110 dBm behaves like 3G. That makes the extreme case
+> rarer, not better.
 
-**Maßnahmen**
+**Measures**
 
-- Nuxt im **SPA-Modus** (`ssr: false`), statisch generiert – kein Node zur Laufzeit
-- Route-basiertes Code-Splitting; Korb, Landkarte und Händlerprofil laden erst bei Bedarf
-- Nuxt UI **selektiv** importieren, nicht als Gesamtpaket
-- Keine Icon-Bibliothek als Ganzes – nur die ~20 tatsächlich benutzten SVGs, inline
-- **Keine Chart-Bibliothek.** Balken und Verteilungen sind `<div>`s mit `width: %`.
-  Das Serien-Raster ist CSS Grid. Spart 60–150 KB gegenüber Chart.js/ECharts
-- Keine Moment/date-fns – `Intl.DateTimeFormat` und `Intl.NumberFormat` sind eingebaut
-- Keine Lodash, keine Polyfills (Baseline 2026 ist die Zielplattform)
-- `motion-v` nur wenn es sich in der Praxis lohnt; CSS-Transitions reichen für fast alles
-- Bundle-Größe im CI prüfen, Budget-Überschreitung bricht den Build
+- Nuxt in **SPA mode** (`ssr: false`), statically generated — no Node at runtime
+- Route-based code splitting; basket, map and dealer profile load only when needed
+- Import Nuxt UI **selectively**, not as a whole package
+- No icon library as a whole — only the ~20 SVGs actually used, inline
+- **No chart library.** Bars and distributions are `<div>`s with `width: %`. The series grid
+  is CSS Grid. Saves 60–150 kB against Chart.js/ECharts
+- No Moment/date-fns — `Intl.DateTimeFormat` and `Intl.NumberFormat` are built in
+- No Lodash, no polyfills (Baseline 2026 is the target platform)
+- `motion-v` only where it pays off in practice; CSS transitions are enough for nearly
+  everything
+- Check bundle size in CI; exceeding the budget breaks the build
 
 ---
 
-## 3. Speicher auf dem Gerät
+## 3. Storage on the device
 
-| Was | Größe |
+| What | Size |
 |---|---:|
-| Sammlung, 2.412 Einträge (schlank) | ~1,4 MB |
-| Wantlist, 184 Einträge | ~0,1 MB |
-| Geschmacksprofil | ~50 KB |
-| Horizont: ~200.000 Release-IDs als `Int32Array` | **800 KB** |
-| Horizont-Metadaten (Rolle, Katalognummer, Jahr) | ~6 MB |
-| Letzte 5 Digs, nur Treffer ab Score 30 | ~1 MB |
-| **Summe** | **< 10 MB** |
+| Collection, 2,412 entries (lean) | ~1.4 MB |
+| Wantlist, 184 entries | ~0.1 MB |
+| Taste profile | ~50 kB |
+| Horizon: ~200,000 release ids as an `Int32Array` | **800 kB** |
+| Horizon metadata (role, catalogue number, year) | ~6 MB |
+| The last 5 digs, matches from score 30 up only | ~1 MB |
+| **Total** | **< 10 MB** |
 
-**Maßnahmen**
+**Measures**
 
-- **Release-IDs als `Int32Array`, nicht als Array oder Set von Objekten.**
-  200.000 IDs = 800 KB statt ~9 MB. Lookup per binärer Suche auf dem sortierten Array
-  oder einmalig in ein `Set` gehoben (dann ~4 MB, aber O(1)) – je nach Messung
-- Vom Inventar wird **nichts** persistiert außer den Treffern. 20.000 Listings fließen
-  durch den Worker und werden verworfen
-- Dig-Verlauf hart auf 5 begrenzt, danach FIFO
-- Marktplatzfelder werden nach 6 Stunden genullt (ToS) – der Speicher wird ohnehin frei
-- IndexedDB über `idb` (~2 KB), nicht Dexie (~25 KB)
-- `navigator.storage.persist()` anfragen, damit iOS nicht nach 7 Tagen aufräumt
-
----
-
-## 4. Rechenlast auf dem Gerät
-
-Ein Dig verarbeitet bis zu 20.000 Listings. Das klingt nach viel und ist es nicht.
-
-```
-20.000 Listings
-  → normalisieren            ~20.000 × regex        ≈  40 ms
-  → harte Filter             ~20.000 × Vergleich    ≈   5 ms
-  → Set-Lookup Horizont      ~20.000 × O(1)         ≈   3 ms
-  → Fuzzy nur für Reste      ~800 × Trigram         ≈  60 ms
-  → Scoring + Begründung     ~600 Treffer           ≈  15 ms
-                                            gesamt  ≈ 120 ms
-```
-
-Zum Vergleich: Das **Netzwerk** braucht für dieselben 20.000 Listings **200 Requests
-à 1,2 s = 4 Minuten.** Die Rechenzeit verschwindet vollständig im Rauschen.
-
-**Maßnahmen**
-
-- Scan und Scoring komplett im **Web Worker** – der Main-Thread bleibt bei 60 fps
-- **Inkrementell pro Seite** verarbeiten, nie 20.000 Objekte gleichzeitig im Speicher
-- Normalisierte Namen der Sammlung **einmal** beim Sync berechnen, nicht pro Dig
-- Fuzzy-Matching ist die einzige teure Stufe → läuft **nur** für Listings, die den
-  exakten Map-Lookup nicht getroffen haben
-- Ergebnisliste virtualisiert (`@tanstack/vue-virtual`) – nie 600 DOM-Karten
-- Keine Reaktivität auf großen Arrays: Ergebnisse als `shallowRef`, nicht `ref`
-- Cover lädt der Browser lazy und nur im Viewport
+- **Release ids as an `Int32Array`, not as an array or a set of objects.**
+  200,000 ids = 800 kB instead of ~9 MB. Look up by binary search on the sorted array, or
+  lift it into a `Set` once (then ~4 MB, but O(1)) — depending on what measurement says
+- **Nothing** from the inventory is persisted except the matches. 20,000 listings flow
+  through the worker and are discarded
+- Dig history capped hard at 5, FIFO after that
+- Marketplace fields are nulled after 6 hours (the ToS) — the storage is freed anyway
+- IndexedDB through `idb` (~2 kB), not Dexie (~25 kB)
+- Ask for `navigator.storage.persist()` so iOS does not clean up after 7 days
 
 ---
 
-## 5. Netzwerk – die eigentliche Kostenstelle
+## 4. Compute on the device
 
-Das Rate-Limit ist die einzige Ressource, die wirklich knapp ist.
+A dig processes up to 20,000 listings. That sounds like a lot and is not.
 
-| Vorgang | Requests | Dauer |
+```
+20,000 listings
+  → normalise                ~20,000 × regex        ≈  40 ms
+  → hard filters             ~20,000 × comparison   ≈   5 ms
+  → set lookup in horizon    ~20,000 × O(1)         ≈   3 ms
+  → fuzzy for leftovers only ~800 × trigram         ≈  60 ms
+  → scoring + reasoning      ~600 matches           ≈  15 ms
+                                            total   ≈ 120 ms
+```
+
+For comparison: the **network** needs **200 requests at 1.2 s = 4 minutes** for the same
+20,000 listings. The compute time disappears entirely into the noise.
+
+**Measures**
+
+- Scan and scoring entirely in the **web worker** — the main thread stays at 60 fps
+- Process **incrementally, per page**, never 20,000 objects in memory at once
+- Compute the collection's normalised names **once** at sync time, not per dig
+- Fuzzy matching is the only expensive stage → it runs **only** for listings the exact map
+  lookup did not hit
+- The result list is virtualised (`@tanstack/vue-virtual`) — never 600 DOM cards
+- No reactivity over large arrays: results as `shallowRef`, not `ref`
+- Covers are loaded lazily by the browser, and only in the viewport
+
+---
+
+## 5. Network – the real cost centre
+
+The rate limit is the only resource that is genuinely scarce.
+
+| Operation | Requests | Duration |
 |---|---:|---:|
-| Ersteinrichtung: Sammlung + Wantlist | ~25 | ~30 s |
-| Horizont-Expansion (einmalig) | ~670 | **~13 min** |
-| Ein Dig, 10.000 Listings | ~101 | ~2 min |
-| Ein Dig, 20.000 Listings | ~201 | ~4 min |
-| Sammlungs-Delta (täglich) | 1–3 | ~4 s |
-| Horizont-Revalidierung | ~20/Tag | ~25 s |
+| First-time setup: collection + wantlist | ~25 | ~30 s |
+| Horizon expansion (once) | ~670 | **~13 min** |
+| One dig, 10,000 listings | ~101 | ~2 min |
+| One dig, 20,000 listings | ~201 | ~4 min |
+| Collection delta (daily) | 1–3 | ~4 s |
+| Horizon revalidation | ~20/day | ~25 s |
 
-**Maßnahmen**
+**Measures**
 
-- **`per_page=100` überall.** Der Default ist 50 – das würde alles verdoppeln
-- **Sammlungs-Delta statt Vollsync:** `sort=added&sort_order=desc` und abbrechen, sobald
-  ein bekannter Eintrag kommt. Ohne neue Platten kostet der tägliche Sync **einen** Request
-- **Niemals `/releases/{id}` in einer Schleife** – das ist die teuerste Regel des Projekts
-- `/marketplace/stats/` nur für die **Top 50** nach Vorscore, nicht für alle Treffer
-- **Bilder zählen nicht aufs API-Budget**, haben aber ein eigenes Cloudflare-Limit
-  (~30–40/min) → lazy, nur im Viewport, `CacheStorage` mit LRU-Deckel bei 150 MB
-- Abgebrochene Digs sind resumierbar: Seitencursor wird persistiert
-- Horizont-Expansion läuft in kleinen Häppchen und übersteht Reloads
+- **`per_page=100` everywhere.** The default is 50 — which would double everything
+- **A collection delta instead of a full sync:** `sort=added&sort_order=desc` and stop as
+  soon as a known entry comes. With no new records the daily sync costs **one** request
+- **Never `/releases/{id}` in a loop** — the project's most expensive rule
+- `/marketplace/stats/` only for the **top 50** by preliminary score, not for every match
+- **Images do not count against the API budget** but have a Cloudflare limit of their own
+  (~30–40/min) → lazy, viewport only, `CacheStorage` with an LRU cap at 150 MB
+- Interrupted digs are resumable: the page cursor is persisted
+- Horizon expansion runs in small bites and survives reloads
 
 ---
 
-## 6. Was bewusst nicht gebaut wird
+## 6. What is deliberately not built
 
-| Verzichtet auf | Gespart |
+| Doing without | Saved |
 |---|---|
-| Chart-Bibliothek | 60–150 KB Bundle |
-| Server-Rendering | ein ganzer Node-Prozess |
-| PostgreSQL | ~250 MB RAM, Backups, Migrationen |
-| Redis/Valkey | ein weiterer Dienst |
-| Job-Queue | Prozess + Schema |
-| `pgvector`/Embeddings | Rechenzeit und Komplexität ohne belegten Nutzen |
-| Sentry Session Replay | Bandbreite und CPU beim Nutzer |
-| Analytics/Tracking | alles davon, plus Cookie-Banner |
-| Volldump (10,4 GB) | ~6 GB Platte und ein monatlicher Wartungstermin |
-| Eigene Nutzerkonten | Datenbank, Passwort-Handling, DSGVO-Pflichten |
+| A chart library | 60–150 kB of bundle |
+| Server rendering | an entire Node process |
+| PostgreSQL | ~250 MB of RAM, backups, migrations |
+| Redis/Valkey | another service |
+| A job queue | a process + a schema |
+| `pgvector`/embeddings | compute and complexity with no demonstrated benefit |
+| Sentry session replay | the user's bandwidth and CPU |
+| Analytics/tracking | all of the above, plus a cookie banner |
+| The full dump (10.4 GB) | ~6 GB of disk and a monthly maintenance appointment |
+| Our own user accounts | a database, password handling, GDPR obligations |
 
 ---
 
-## 7. Messen, nicht raten
+## 7. Measure, do not guess
 
-Im CI, mit Schwellwerten die den Build brechen:
+In CI, with thresholds that break the build:
 
-- **Bundle-Budget** pro Chunk (`vite-bundle-visualizer`, `size-limit`)
-- **Lighthouse** auf Mobile-Drosselung: Performance ≥ 95, LCP < 2,0 s
-- **Scoring-Benchmark**: 20.000 synthetische Listings müssen unter 250 ms bleiben
-- **IndexedDB-Größe** nach einem simulierten Vollsync: unter 15 MB
+- **Bundle budget** per chunk (`vite-bundle-visualizer`, `size-limit`)
+- **Lighthouse** under mobile throttling: performance ≥ 95, LCP < 2.0 s
+- **Scoring benchmark**: 20,000 synthetic listings must stay under 250 ms
+- **IndexedDB size** after a simulated full sync: under 15 MB
 
-Regel: **Jede neue Abhängigkeit muss ihren Platz im Budget rechtfertigen.**
-Uberspace hätte 1,5 GB RAM gehabt – ein Handy im 3G-Keller hat weniger Geduld.
+The rule: **every new dependency must justify its place in the budget.**
+Uberspace would have had 1.5 GB of RAM — a phone in a basement has less patience.
