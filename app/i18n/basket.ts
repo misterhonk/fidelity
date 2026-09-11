@@ -195,6 +195,28 @@ const en = {
       why: 'Stays on this device. Discogs feedback rates the transaction, not whether the grading was right — this is your own record of that, and it is what the honesty figure on a shop is built from.',
       whyLabel: 'Where does this go?',
     },
+    /*
+     * Eine Bestellung einlesen (M14).
+     *
+     * Die Nummer muss eingetippt werden, und der Text sagt warum — sonst
+     * liest es sich wie eine Bequemlichkeit, die jemand vergessen hat.
+     */
+    order: {
+      title: 'Bought a few at once?',
+      label: 'Discogs order number',
+      hint: 'For example 259022-32308',
+      submit: 'Read the order',
+      reading: 'Reading …',
+      badShape: 'That is not an order number. It looks like 259022-32308.',
+      done: (records: number, dealer: string) =>
+        `${counted(records, 'record', 'records')} from ${dealer} ${records === 1 ? 'is' : 'are'} now on the list.`,
+      doneNoDealer: (records: number) =>
+        `${counted(records, 'record', 'records')} ${records === 1 ? 'is' : 'are'} now on the list.`,
+      already: (n: number) => `${n} of them you had already saved.`,
+      nothing: 'That order has no records in it.',
+      whyLabel: 'Where do I find it?',
+      why: 'On discogs.com under Marketplace → Purchases, in the first column. It has to be typed because Discogs only hands out an order when you name it — the list of your purchases is not in the API, only the list of what you sold. One lookup, and nothing but the records, the shop and the date is kept: not the price, and not the condition you were promised.',
+    },
   },
 }
 
@@ -342,6 +364,22 @@ const de: typeof en = {
       more: (n) => `${n} weitere offen`,
       why: 'Bleibt auf diesem Gerät. Das Discogs-Feedback bewertet den Ablauf, nicht die Richtigkeit der Note — das hier ist deine eigene Aufzeichnung davon, und daraus entsteht die Ehrlichkeitszahl bei einem Laden.',
       whyLabel: 'Wo landet das?',
+    },
+    order: {
+      title: 'Mehrere auf einmal gekauft?',
+      label: 'Discogs-Bestellnummer',
+      hint: 'Zum Beispiel 259022-32308',
+      submit: 'Bestellung lesen',
+      reading: 'Lese …',
+      badShape: 'Das ist keine Bestellnummer. Sie sieht aus wie 259022-32308.',
+      done: (records, dealer) =>
+        `${counted(records, 'Platte', 'Platten')} von ${dealer} ${records === 1 ? 'steht' : 'stehen'} jetzt auf der Liste.`,
+      doneNoDealer: (records) =>
+        `${counted(records, 'Platte', 'Platten')} ${records === 1 ? 'steht' : 'stehen'} jetzt auf der Liste.`,
+      already: (n) => `${n} davon hattest du schon gemerkt.`,
+      nothing: 'In dieser Bestellung sind keine Platten.',
+      whyLabel: 'Wo finde ich die?',
+      why: 'Auf discogs.com unter Marktplatz → Einkäufe, in der ersten Spalte. Eintippen muss man sie, weil Discogs eine Bestellung nur herausgibt, wenn man sie benennt — die Liste deiner Einkäufe steht nicht in der API, nur die Liste dessen, was du verkauft hast. Eine Abfrage, und behalten wird nichts außer den Platten, dem Laden und dem Datum: nicht der Preis, und nicht der Zustand, der dir versprochen wurde.',
     },
   },
 }

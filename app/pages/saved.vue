@@ -198,6 +198,15 @@ async function check() {
 
     <template v-else>
       <!--
+        Eine ganze Bestellung auf einmal eintragen.
+
+        Steht außerhalb des „Gekauft"-Abschnitts, weil der eingeklappt ist,
+        solange dort nichts steht — und dann käme man nie an das Feld, mit dem
+        man den ersten Eintrag anlegt.
+      -->
+      <OrderImport @imported="load()" />
+
+      <!--
         The point of the screen, said once: a dig is temporary, this is not.
       -->
       <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">

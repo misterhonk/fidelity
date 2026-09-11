@@ -1491,6 +1491,25 @@ export interface GradingRecord {
   rate: number | null
 }
 
+/**
+ * Was beim Einlesen einer Bestellung herauskam (M14).
+ *
+ * `added` und `enriched` getrennt, weil das zwei verschiedene Nachrichten
+ * sind: „drei Platten neu eingetragen" und „drei Platten, die du schon
+ * gemerkt hattest, sind jetzt als gekauft vermerkt".
+ */
+export type OrderImport =
+  | { ok: false; reason: 'shape' }
+  | {
+      ok: true
+      dealer: string | null
+      /** Das Kaufdatum aus der Bestellung — daran hängt die Reifezeit. */
+      at: number
+      added: number
+      enriched: number
+      records: { listingId: number; title: string | null; artist: string | null }[]
+    }
+
 export interface Feedback {
   listingId: number
   releaseId: number

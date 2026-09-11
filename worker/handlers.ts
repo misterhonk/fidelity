@@ -500,6 +500,11 @@ export const handlers: HandlerMap = {
     return true as const
   },
 
+  'orders.import': async ({ orderId }) => {
+    const { importOrder } = await import('./orders')
+    return importOrder(discogs(), orderId)
+  },
+
   'identify.barcode': async ({ barcode }, { signal }) => {
     const { identify } = await import('./identify')
     return identify(discogs(), barcode, signal)

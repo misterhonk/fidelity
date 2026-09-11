@@ -36,6 +36,7 @@ import type {
   Feedback,
   GradingRecord,
   Identified,
+  OrderImport,
   Identity,
   MarkedOverview,
   Match,
@@ -648,6 +649,16 @@ export interface WorkerContract {
     progress: never
     result: true
   }
+
+  /**
+   * Eine Bestellung einlesen und daraus die Ankunftsfragen stellen (M14).
+   *
+   * Kostet **eine** Anfrage. Die Nummer muss eingetippt werden, weil
+   * `GET /marketplace/orders` die Verkäuferseite ist und es damit keinen
+   * API-Weg von „ich bin Käufer" zu „hier sind meine Bestellnummern" gibt
+   * (`docs/02`, gemessen 2026-09-11).
+   */
+  'orders.import': { params: { orderId: string }; progress: never; result: OrderImport }
 
   'identify.barcode': { params: { barcode: string }; progress: never; result: Identified }
   /**
