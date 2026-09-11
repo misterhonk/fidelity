@@ -97,6 +97,8 @@ const NEEDED = {
 
   /* Sammlungsreiter: Im Blick (M11) — die Platten, deren Marktwert verfolgt wird. */
   eye: 'Sammlungsreiter: Im Blick',
+  /* Sammlungsreiter: Orte (M12) — wo die Platte in der Wohnung steht. */
+  'map-pin': 'Sammlungsreiter: Orte',
 }
 
 /**

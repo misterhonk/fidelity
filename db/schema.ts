@@ -1,6 +1,8 @@
 import type { DBSchema } from 'idb'
 
 import type {
+  Place,
+  Placement,
   WatchedRelease,
   BasketItem,
   CloudTokens,
@@ -31,7 +33,7 @@ export const DB_NAME = 'fidelity'
  *
  * 4 — added the `covers` store. Additive: nothing existing is touched.
  */
-export const DB_VERSION = 9
+export const DB_VERSION = 10
 
 /**
  * `meta` is a small key-value store rather than nine one-row stores. The union
@@ -164,6 +166,25 @@ export interface FidelityDB extends DBSchema {
    * dieselbe Messung, und `/marketplace/stats/` zweimal zu fragen wäre ein
    * Request für eine Antwort, die man schon hat.
    */
+  /**
+   * Orte und was wo liegt (M12) — die einzigen Stores, die nie etwas von
+   * Discogs enthalten.
+   *
+   * `placements` ist bewusst getrennt von `collection`: der Sync ersetzt jede
+   * Sammlungszeile vollständig, ein Standort dort wäre nach dem nächsten
+   * vollen Durchlauf lautlos weg.
+   */
+  /*
+   * Kein Index auf `parentId`, und zwar aus zwei Gründen.
+   *
+   * **IndexedDB indiziert `null` nicht** — die obersten Orte fielen schlicht
+   * heraus, und „zeig mir alle Räume" wäre leer. Das ließe sich mit einem
+   * Platzhalter umgehen, lohnt aber nicht: Orte sind Dutzende, nicht
+   * Tausende. Ein `getAll()` über zwanzig Zeilen ist billiger als der Index,
+   * der ihn ersetzen soll.
+   */
+  places: { key: string; value: Place }
+  placements: { key: number; value: Placement; indexes: { 'by-place': string } }
   watched: { key: number; value: WatchedRelease }
   basket: { key: number; value: BasketItem }
   feedback: { key: number; value: Feedback }

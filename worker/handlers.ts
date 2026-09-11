@@ -484,6 +484,48 @@ export const handlers: HandlerMap = {
    * Hub-Adresse aus dem Link und nicht aus den Einstellungen, und deshalb
    * fragt hier nichts nach einer Identität.
    */
+  'places.overview': async () => {
+    const { placesOverview } = await import('./places')
+    return placesOverview()
+  },
+
+  'places.create': async ({ name, parentId }) => {
+    const { createPlace } = await import('./places')
+    return createPlace(name, parentId)
+  },
+
+  'places.rename': async ({ id, name }) => {
+    const { renamePlace } = await import('./places')
+    return renamePlace(id, name)
+  },
+
+  'places.remove': async ({ id }) => {
+    const { removePlace } = await import('./places')
+    await removePlace(id)
+    return true as const
+  },
+
+  'places.assign': async ({ instanceId, placeId }) => {
+    const { placeRecord } = await import('./places')
+    await placeRecord(instanceId, placeId)
+    return true as const
+  },
+
+  'places.of': async ({ instanceId }) => {
+    const { placeOf } = await import('./places')
+    return placeOf(instanceId)
+  },
+
+  'places.contents': async ({ placeId }) => {
+    const { placeContents } = await import('./places')
+    return placeContents(placeId)
+  },
+
+  'places.moveAll': async ({ from, to }) => {
+    const { moveAll } = await import('./places')
+    return moveAll(from, to)
+  },
+
   'watched.list': async () => {
     const { listWatched } = await import('./watched/check')
     return listWatched()

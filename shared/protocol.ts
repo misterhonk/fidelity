@@ -44,6 +44,8 @@ import type {
   ShelfResult,
   ShelfSort,
   SortDirection,
+  Place,
+  PlaceNode,
   SharedDig,
   StackShop,
   WatchedRelease,
@@ -608,6 +610,35 @@ export interface WorkerContract {
    * `MAX_WATCHED` — ohne sie wäre der Durchlauf genau die Schleife, die
    * Regel 2 verbietet.
    */
+  /**
+   * Wo die Platte steht (M12) — das einzige Feature, das null Requests kostet.
+   *
+   * Ein Standort ist eine Aussage über die eigene Wohnung und kein
+   * Discogs-Datum. Nichts hiervon verlässt das Gerät.
+   */
+  'places.overview': { params: undefined; progress: never; result: PlaceNode[] }
+  'places.create': {
+    params: { name: string; parentId: string | null }
+    progress: never
+    result: Place | null
+  }
+  'places.rename': { params: { id: string; name: string }; progress: never; result: boolean }
+  /** Löst den Ort auf; die Platten werden ortlos, nicht gelöscht. */
+  'places.remove': { params: { id: string }; progress: never; result: true }
+  'places.assign': {
+    params: { instanceId: number; placeId: string | null }
+    progress: never
+    result: true
+  }
+  'places.of': { params: { instanceId: number }; progress: never; result: string | null }
+  'places.contents': {
+    params: { placeId: string }
+    progress: never
+    result: CollectionItem[]
+  }
+  /** „Alles aus Kiste 3 nach Regal 2" — der Normalfall nach einem Umzug. */
+  'places.moveAll': { params: { from: string; to: string }; progress: never; result: number }
+
   'watched.list': { params: undefined; progress: never; result: WatchedRelease[] }
   'watched.add': {
     params: {

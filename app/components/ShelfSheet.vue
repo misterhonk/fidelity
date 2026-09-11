@@ -3,6 +3,7 @@ import type {
   CollectionField,
   CollectionFolder,
   CollectionItem,
+  PlaceNode,
   ReleaseDetail,
 } from '#shared/types'
 import { useCollectionMessages } from '~/i18n/collection'
@@ -30,6 +31,24 @@ const record = ref<CollectionItem | null>(null)
  */
 const watching = ref(false)
 const watchFull = ref(false)
+
+/*
+ * Und wo sie steht (M12).
+ *
+ * Derselbe Moment: die Platte ist offen, und die Frage „wo lag die noch mal"
+ * kommt genau hier auf. Ein Auswahlfeld statt eines eigenen Bildschirms —
+ * einen Ort zuzuweisen ist eine Sache von zwei Sekunden, und dafür schickt
+ * man niemanden woandershin.
+ */
+const places = shallowRef<PlaceNode[]>([])
+const placeId = ref<string | null>(null)
+
+async function setPlace(next: string) {
+  const item = record.value
+  if (!item) return
+  placeId.value = next || null
+  await call('places.assign', { instanceId: item.instanceId, placeId: placeId.value })
+}
 
 async function toggleWatch() {
   const item = record.value
@@ -192,6 +211,9 @@ onMounted(async () => {
   if (record.value) {
     const list = await call('watched.list', undefined)
     watching.value = list.some((row) => row.releaseId === record.value?.releaseId)
+
+    places.value = await call('places.overview', undefined)
+    placeId.value = await call('places.of', { instanceId: props.instanceId })
   }
 
   if (record.value?.releaseId) void look()
@@ -740,6 +762,32 @@ function onKeydown(event: KeyboardEvent) {
             {{ c.shelf.sheet.atDiscogs }}
             <FidIcon name="external-link" :size="14" />
           </a>
+
+          <!--
+            Wo sie steht — nur wenn es überhaupt Orte gibt.
+            Ein leeres Auswahlfeld neben „Bei Discogs ansehen" wäre ein
+            Bedienelement, das nichts kann, und der Weg dorthin steht daneben.
+          -->
+          <label v-if="places.length > 0" class="flex items-center gap-2 text-fid-sm">
+            <span class="text-fid-text-muted">{{ c.places.where }}</span>
+            <select
+              :value="placeId ?? ''"
+              class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+              @change="setPlace(($event.target as HTMLSelectElement).value)"
+            >
+              <option value="">{{ c.places.nowhere }}</option>
+              <option v-for="place in places" :key="place.id" :value="place.id">
+                {{ '— '.repeat(place.depth) }}{{ place.name }}
+              </option>
+            </select>
+          </label>
+          <NuxtLink
+            v-else
+            to="/places"
+            class="fid-action inline-flex min-h-11 items-center text-fid-sm text-fid-text-muted underline underline-offset-4"
+          >
+            {{ c.places.addTop }}
+          </NuxtLink>
 
           <button
             type="button"

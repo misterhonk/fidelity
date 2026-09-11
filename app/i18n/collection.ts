@@ -15,6 +15,7 @@ const en = {
     map: 'Map',
     wantlist: 'Wantlist',
     watched: 'On watch',
+    places: 'Places',
   },
 
   loading: 'Loading …',
@@ -197,6 +198,42 @@ const en = {
    * Release X?" ist per API nicht beantwortbar (`docs/02`). Wer das nicht
    * weiß, hält den fehlenden Laden für eine Lücke in der App.
    */
+  /*
+   * Wo die Platten stehen (M12).
+   *
+   * `staysHere` ist der Satz, der diesen Bildschirm von allen anderen
+   * unterscheidet: hier entsteht etwas, das es bei Discogs nicht gibt und das
+   * nirgendwohin geht. Am 2026-09-11 nachgemessen — Discogs gibt genau drei
+   * Sammlungsfelder zurück (Media, Sleeve, Notes), ein Standort passt in
+   * keines davon.
+   */
+  places: {
+    title: 'Where they are',
+    lead: 'A collection does not live in a list. It lives in a flat.',
+    empty: 'No places yet. A room, a shelf, a box in the cellar — start with one.',
+    placed: (records: string) => `${records} records have a place.`,
+    withBelow: (here: string, below: string) => `${here} here · ${below} in all`,
+    namePlaceholder: 'Cellar, shelf, box 3 …',
+    add: 'Add',
+    addTop: 'Add a place',
+    addInside: 'Inside',
+    moveAll: 'Move all',
+    moveTo: 'Everything goes to',
+    dissolve: 'Dissolve',
+    /* Was dabei **nicht** passiert. Ohne diesen Satz traut sich niemand auf
+     * den Knopf — für eine Notiz, die man jederzeit neu schreiben kann. */
+    dissolveWhat:
+      'The place goes, the records stay. They simply have no place afterwards, and anything inside moves up one level.',
+    dissolveConfirm: 'Dissolve it',
+    renameLabel: (name: string) => `Rename ${name}`,
+    nothingHere: 'Nothing here yet.',
+    staysHere:
+      'Where a record stands is something about your flat, not about Discogs. It is kept on this device and sent nowhere.',
+    /* Am Exemplar, nicht am Release: zwei Pressungen liegen an zwei Stellen. */
+    where: 'Where it is',
+    nowhere: 'No place yet',
+  },
+
   watched: {
     title: 'On watch',
     lead: 'A handful of records, and what the market does with them.',
@@ -303,6 +340,7 @@ const de: typeof en = {
     map: 'Landkarte',
     wantlist: 'Wantlist',
     watched: 'Im Blick',
+    places: 'Orte',
   },
 
   loading: 'Wird geladen …',
@@ -425,6 +463,30 @@ const de: typeof en = {
     pressings: (n, one) => `${n} ${one ? 'Pressung' : 'Pressungen'} bekannt`,
     notExpanded: 'Pressungen noch nicht ausgeklappt',
     noMaster: 'Kein Master bei Discogs – nur genau diese Pressung ist erkennbar',
+  },
+
+  places: {
+    title: 'Wo sie stehen',
+    lead: 'Eine Sammlung liegt nicht in einer Liste. Sie liegt in einer Wohnung.',
+    empty: 'Noch keine Orte. Ein Raum, ein Regal, eine Kiste im Keller – fang mit einem an.',
+    placed: (records) => `${records} Platten haben einen Platz.`,
+    withBelow: (here, below) => `${here} hier · ${below} insgesamt`,
+    namePlaceholder: 'Keller, Regal, Kiste 3 …',
+    add: 'Anlegen',
+    addTop: 'Ort anlegen',
+    addInside: 'Darin',
+    moveAll: 'Alles umziehen',
+    moveTo: 'Alles kommt nach',
+    dissolve: 'Auflösen',
+    dissolveWhat:
+      'Der Ort verschwindet, die Platten bleiben. Sie haben danach nur keinen Platz mehr, und was darin lag, rückt eine Ebene nach oben.',
+    dissolveConfirm: 'Auflösen',
+    renameLabel: (name) => `${name} umbenennen`,
+    nothingHere: 'Hier liegt noch nichts.',
+    staysHere:
+      'Wo eine Platte steht, ist eine Aussage über deine Wohnung, nicht über Discogs. Es bleibt auf diesem Gerät und wird nirgendwohin geschickt.',
+    where: 'Wo sie steht',
+    nowhere: 'Noch kein Platz',
   },
 
   watched: {

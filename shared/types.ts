@@ -884,6 +884,50 @@ export interface StockRow {
  * hundert mitgeschickten Treffer seien alles gewesen.
  */
 /**
+ * Ein Ort, an dem Platten stehen (M12).
+ *
+ * Flach gespeichert mit einem Zeiger nach oben, nicht verschachtelt: „alles
+ * unter Keller" ist damit eine Frage an ein Feld statt ein Durchlauf durch
+ * einen Baum, und ein Umzug ändert einen Zeiger statt einen Teilbaum.
+ *
+ * **Drei Ebenen, und mehr baut sich niemand.** Ort → Möbel → Fach. Wer eine
+ * vierte braucht, benennt sein Fach ausführlicher.
+ */
+export interface Place {
+  id: string
+  name: string
+  /** `null` ist die oberste Ebene — Wohnzimmer, Keller, Dachboden. */
+  parentId: string | null
+  createdAt: number
+}
+
+/**
+ * Wo ein **Exemplar** liegt — nicht ein Release.
+ *
+ * An der `instanceId`, weil zwei Pressungen derselben Platte an zwei Stellen
+ * liegen. Am Release festgemacht wäre die zweite unauffindbar.
+ *
+ * **Ein eigener Store und kein Feld am Sammlungseintrag.** Der Sync schreibt
+ * jede Zeile mit `put()` neu (`worker/sync/library.ts`) — ein Standort dort
+ * wäre nach dem nächsten vollen Durchlauf weg, und zwar lautlos. Am
+ * 2026-09-11 nachgesehen, nicht vermutet.
+ */
+export interface Placement {
+  instanceId: number
+  placeId: string
+  at: number
+}
+
+/** Ein Ort mit dem, was die Oberfläche über ihn wissen muss. */
+export interface PlaceNode extends Place {
+  /** Platten direkt hier — ohne die in Unterorten. */
+  records: number
+  /** Und mit ihnen, denn „im Keller" meint den ganzen Keller. */
+  recordsBelow: number
+  depth: number
+}
+
+/**
  * Eine Platte, die beobachtet wird (M11).
  *
  * **Warum eine Auswahl und nicht die ganze Sammlung:** `/marketplace/stats/`

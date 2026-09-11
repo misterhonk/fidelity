@@ -174,6 +174,22 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
         db.createObjectStore('watched', { keyPath: 'releaseId' })
       }
 
+      if (oldVersion < 10) {
+        /*
+         * v10 bringt die Lagerorte (M12). Wieder additiv.
+         *
+         * `by-place` macht aus „was liegt in Kiste 3" ein Bereichslesen statt
+         * eines Durchlaufs durch zweitausend Zeilen. Auf `parentId` gibt es
+         * keinen: IndexedDB indiziert `null` nicht, die obersten Orte fielen
+         * also heraus — und bei zwanzig Orten ist ein `getAll()` ohnehin
+         * billiger als der Index.
+         */
+        db.createObjectStore('places', { keyPath: 'id' })
+
+        const placements = db.createObjectStore('placements', { keyPath: 'instanceId' })
+        placements.createIndex('by-place', 'placeId')
+      }
+
       // Future versions go here. The rule: never migrate destructively unless
       // the state can be rebuilt from the API — which, so far, all of it can.
     },
