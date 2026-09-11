@@ -96,7 +96,7 @@ const de: Messages = {
     oauthRejected: (provider) => `${provider} hat den Code abgelehnt.`,
     notConnected: 'Noch nicht verbunden.',
     connectionExpired: 'Die Verbindung ist abgelaufen – bitte neu verbinden.',
-    // Vorher „liess" — die Schweizer Schreibung in einem sonst deutschen Paket.
+    // Previously „liess" — the Swiss spelling in an otherwise German pack.
     refreshFailed: 'Die Verbindung ließ sich nicht erneuern.',
     vaultNotGiven: (provider) => `${provider} hat den Tresor nicht herausgegeben.`,
     vaultNotTaken: (provider) => `${provider} hat den Tresor nicht angenommen.`,

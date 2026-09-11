@@ -34,11 +34,11 @@ const en = {
       'In ordinary running, only to api.discogs.com and to i.discogs.com for the covers. Your token goes to Discogs and to nobody else. No analytics, no fonts from foreign servers, no error reports. The two sections below are the exceptions, and both stay shut until you open them.',
 
     /*
-     * Die eine Ausnahme, und sie bekommt eine eigene Überschrift.
+     * The first exception, and it gets a heading of its own.
      *
-     * Sie im Absatz darüber unterzubringen hiesse, sie zu verstecken — und
-     * ADR-012 erlaubt sie nur unter der Bedingung, dass das Versprechen
-     * **geändert** wird und nicht still gedehnt.
+     * Tucking it into the paragraph above would mean hiding it — and ADR-012
+     * allows it only on the condition that the promise is **changed** rather
+     * than silently stretched.
      */
     audio: 'The first exception: the audio preview',
     audioBody:

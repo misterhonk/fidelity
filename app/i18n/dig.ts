@@ -33,12 +33,12 @@ const en = {
 
   incremental: {
     /*
-     * Das Kürzel für die Chip-Reihe der früheren Digs.
+     * The short label for the chip row of earlier digs.
      *
-     * Drei Läufe desselben Ladens sahen dort bis zum 2026-09-11 identisch aus
-     * — Name und Trefferzahl, sonst nichts. Ein „nur das Neue"-Lauf sagt etwas
-     * völlig anderes über eine Null als ein vollständiger, und ohne dieses
-     * Wort ist der Unterschied unsichtbar.
+     * Until 2026-09-11 three runs of the same shop looked identical there —
+     * name and match count, nothing else. An "only what is new" run says
+     * something completely different about a zero than a full one does, and
+     * without this word the difference is invisible.
      */
     short: 'only what was new',
     known: (minutes: number) =>
@@ -73,19 +73,18 @@ const en = {
     'Older than six hours — prices and conditions may no longer be shown. The finds and their reasons stay.',
   refreshPrices: 'Refresh the prices',
   /*
-   * Eine Fundliste weitergeben.
+   * Passing a find list on.
    *
-   * Der Link trägt den Schlüssel im `#`-Fragment, das kein Browser an einen
-   * Server schickt — deshalb sagt der Text „nur wer den Link hat" und nicht
-   * „privat", was eine Zusage wäre, die niemand halten kann.
+   * The link carries the key in the `#` fragment, which no browser sends to a
+   * server — so the text says "only whoever has the link" and not "private",
+   * which would be a promise nobody can keep.
    */
   share: 'Share this list',
   /*
-   * Der Bildschirm für jemanden, der diese App nicht hat.
+   * The screen for somebody who does not have this app.
    *
-   * Deshalb erklärt jeder Satz sich selbst und setzt nichts voraus — nicht
-   * einmal das Wort „Dig", das hier zum ersten und vielleicht einzigen Mal
-   * gelesen wird.
+   * So every sentence explains itself and assumes nothing — not even the word
+   * "dig", which is being read here for the first and possibly only time.
    */
   sharedTitle: 'A list of finds',
   sharedFrom: (dealer: string) => `Finds at ${dealer}`,
@@ -102,10 +101,10 @@ const en = {
     'Fidelity reads a record shop against your own collection and says, for every find, why it fits.',
 
   /*
-   * Der Stapel (M15) — dieselben Funde, einer nach dem anderen.
+   * The stack (M15) — the same finds, one after another.
    *
-   * `position` sagt, wo man steht, statt Unendlichkeit vorzutäuschen: ein
-   * Laden ist irgendwann durch, und dann sagt der Bildschirm das.
+   * `position` says where you are instead of feigning endlessness: a shop runs
+   * out eventually, and then the screen says so.
    */
   stack: {
     title: 'One at a time',
@@ -119,8 +118,8 @@ const en = {
     like: 'Interesting',
     hear: 'Listen',
     hearStop: 'Stop',
-    /* Gesagt, sobald es läuft — nicht vorher als Warnung und nicht gar nicht.
-     * Wer den Ton anmacht, soll wissen, wem er dabei begegnet. */
+    /* Said as soon as it runs — not beforehand as a warning and not at all.
+     * Anyone turning the sound on should know who they are meeting. */
     hearVia: 'Played from YouTube — Google sees this device while it does.',
     basket: 'Basket',
     share: 'Share',
@@ -137,8 +136,9 @@ const en = {
   shareCopy: 'Copy link',
   shareCopied: 'Copied.',
   shareGone: (when: string) => `Works until ${when}, then it is gone.`,
-  /* Gesagt, weil es sonst niemand ahnt: die Begründungssätze verraten etwas
-   * über die eigene Sammlung. Das ist der Sinn und trotzdem eine Auskunft. */
+  /* Said because nobody would otherwise guess it: the reason sentences give
+   * something away about your collection. That is the point and still a
+   * disclosure. */
   shareTells:
     'Whoever opens it sees why each record fitted — and so, a little, what you collect.',
 
@@ -167,13 +167,14 @@ const en = {
       'There was nothing for you among the new arrivals. What was there before, this dig did not look at again.',
     full: 'Nothing here for you at this dealer. That is a result, not a fault.',
     /*
-     * Der Satz darüber ist ein Freispruch, und ohne Horizont ist er unhaltbar.
+     * The sentence above is an acquittal, and without a horizon it cannot be
+     * sustained.
      *
-     * Die Engine kennt dann nur die exakten Release-IDs der eigenen Platten —
-     * kein anderes Pressing, kein selber Künstler, kein selbes Label. Am
-     * 2026-08-13 stand er nach 2.863 durchgesehenen Platten da, während der
-     * Horizont aus einem einzigen Eintrag bestand, und schickte die Suche
-     * stundenlang in die falsche Richtung.
+     * The engine then knows only the exact release ids of your own records —
+     * no other pressing, no same artist, no same label. On 2026-08-13 it stood
+     * there after 2,863 records had been looked through, while the horizon
+     * consisted of a single entry, and sent the search in the wrong direction
+     * for hours.
      */
     noHorizon:
       'Every listing here was checked and none matched — but the horizon has not been built yet, so there was almost nothing to match against. Until it exists, Fidelity only recognises the exact pressings you already own: no other pressing, no same artist, no same label.',
@@ -241,11 +242,10 @@ const en = {
     score: (score: number) => `Barry Score ${score} out of 100`,
     scoreBand: (score: number, band: string) => `Barry Score ${score} out of 100 – ${band}`,
     /*
-     * Zwei Aktionen, keine Bewertungen — und bis heute standen sie auf
-     * Deutsch in `app/composables/useFeedback.ts`. Beide Wächter von heute
-     * sehen dort nicht hin: der eine prüft Attribute in Vorlagen, der andere
-     * Textknoten. Ein Text, der in einer .ts-Datei definiert und dann
-     * gebunden wird, fällt durch beide.
+     * Two actions, not ratings — and until today they stood in German in
+     * `app/composables/useFeedback.ts`. Neither of today's guards looks there:
+     * one checks attributes in templates, the other text nodes. A string
+     * defined in a .ts file and then bound falls through both.
      */
     verdicts: { interesting: 'Save', bought: 'Mark bought', meh: 'So-so', wrong: 'Wrong pick' },
     /*

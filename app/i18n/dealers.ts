@@ -94,8 +94,8 @@ const en = {
   noYears: 'No years recorded in the stock.',
   stock: {
     /*
-     * Der Balken sagt „13", der Knopf muss sagen, was ein Klick tut — sonst
-     * liest ein Bildschirmleser zwanzig Mal „Schaltfläche, Kompakt".
+     * The bar says "13"; the button has to say what a click does — otherwise a
+     * screen reader reads "button, Kompakt" twenty times over.
      */
     show: (name: string, n: number) => `Show the ${n} records on ${name}`,
     close: 'Close',
@@ -103,9 +103,9 @@ const en = {
     more: (n: string) => `Show ${n} more`,
     loading: 'Fetching …',
     /*
-     * Der Unterschied zwischen „hat er nicht" und „wissen wir gerade nicht".
-     * Marktplatzdaten leben sechs Stunden; danach sind diese Zeilen gelöscht,
-     * nicht veraltet — und eine leere Liste wäre eine Falschaussage.
+     * The difference between "he does not have it" and "we do not know right
+     * now". Marketplace data lives six hours; after that these rows are
+     * deleted, not stale — and an empty list would be a false statement.
      */
     needsDig:
       'The stock list is marketplace data and only lives for six hours. Scan this shop again to see what is on the shelves.',

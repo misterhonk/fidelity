@@ -74,8 +74,8 @@ const en = {
      */
     openRecord: (title: string) => `Open ${title}`,
     /*
-     * Der Knopf trägt nur einen Pfeil, also muss der Name gesprochen werden.
-     * „Schaltfläche" allein sagt niemandem, wohin sie führt.
+     * The button carries only an arrow, so the name has to be spoken. "Button"
+     * on its own tells nobody where it leads.
      */
     toTop: 'Back to the top',
     /*
@@ -231,11 +231,11 @@ const en = {
     refreshAll: 'Refresh everything',
 
     /*
-     * Was gerade läuft, beim Namen genannt.
+     * What is running, named.
      *
-     * Der Keeper arbeitet seit je beim Öffnen, beim Zurückkehren in den Tab
-     * und alle zwanzig Minuten — und sagte kein Wort dazu. Wer nicht in den
-     * Quelltext sah, konnte nur schließen, dass nichts passiert.
+     * The keeper has always worked on opening, on returning to the tab and
+     * every twenty minutes — and said not a word about it. Anyone not reading
+     * the source could only conclude that nothing was happening.
      */
     updating: 'Your data is being updated',
     job: {
@@ -252,17 +252,17 @@ const en = {
   /** What changed in the version you are running. */
   news: {
     title: 'What is new',
-    /* Die Zeile auf der Startseite nach einem Wechsel der Ausgabe. */
+    /* The line on the start page after the release has changed. */
     updatedTo: (version: string) => `Updated to ${version}`,
     whatChanged: 'What changed?',
     dismiss: 'Not now',
     inVersion: (version: string) => `In version ${version}`,
     none: 'Nothing written down for this version.',
     /*
-     * Die Notizen sind bis einschließlich 0.26.0 deutsch, weil sie aus den
-     * Commits dieses Projekts stammen. Ab der nächsten Ausgabe englisch — sie
-     * sind jetzt nutzersichtbarer Text und fallen damit unter ADR-010. Der
-     * Hinweis steht so lange, wie noch deutsche Einträge angezeigt werden.
+     * The notes are in German up to and including 0.26.0, because they come
+     * from this project's commits. English from the next release onwards —
+     * they are user-visible text now and therefore fall under ADR-010. This
+     * note stands for as long as German entries are still being shown.
      */
     german: 'Notes up to 0.26.0 are in German — they come from this project’s own commits.',
     full: 'Every version, on GitHub',
@@ -428,12 +428,12 @@ const en = {
     search: 'Artist or title',
     searchLabel: 'Search the collection, the wantlist and the finds',
     /*
-     * Der Barcode-Scan (M13).
+     * The barcode scan (M13).
      *
-     * `scanPressings` ist der wichtigste Satz: ein Barcode benennt eine
-     * Veröffentlichung, keine Pressung — am 2026-09-11 gemessen, acht
-     * Releases in fünf Ländern für einen. Wer das nicht liest, hält die erste
-     * Zeile für *die* Platte.
+     * `scanPressings` is the sentence that matters: a barcode names a release,
+     * not a pressing — measured 2026-09-11, eight releases across five
+     * countries for one. Anyone not reading that takes the first row for *the*
+     * record.
      */
     scan: 'Scan a barcode',
     scanning: 'Looking it up …',
@@ -449,8 +449,8 @@ const en = {
     scanNothing: 'Discogs knows no record with this barcode.',
     identify: 'Look it up',
     identifyLabel: 'Barcode or run-out number',
-    /* Beides in einem Feld: wer eine Platte in der Hand hält, will nicht erst
-     * entscheiden, welche Art Nummer er gleich abtippt. */
+    /* Both in one field: somebody holding a record does not want to decide
+     * first which kind of number they are about to type. */
     identifyPlaceholder: 'Barcode, or what is etched in the run-out',
     finds: (n: number) => `${n} ${n === 1 ? 'find' : 'finds'}`,
     wrong: 'Wrong pick',

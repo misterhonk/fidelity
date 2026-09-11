@@ -27,14 +27,6 @@ app/components/SyncStatus.vue
 app/components/ToTop.vue
 app/components/VaultSettings.vue
 app/components/VersionNews.vue
-app/i18n/basket.ts
-app/i18n/collection.ts
-app/i18n/de.ts
-app/i18n/dealers.ts
-app/i18n/dig.ts
-app/i18n/en.ts
-app/i18n/legal.ts
-app/i18n/settings.ts
 app/pages/dealers.vue
 app/pages/dig.vue
 app/pages/in-store.vue

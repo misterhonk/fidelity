@@ -196,10 +196,10 @@ const en = {
       whyLabel: 'Where does this go?',
     },
     /*
-     * Eine Bestellung einlesen (M14).
+     * Reading an order (M14).
      *
-     * Die Nummer muss eingetippt werden, und der Text sagt warum — sonst
-     * liest es sich wie eine Bequemlichkeit, die jemand vergessen hat.
+     * The number has to be typed in, and the text says why — otherwise it
+     * reads like a convenience somebody forgot to build.
      */
     order: {
       title: 'Bought a few at once?',

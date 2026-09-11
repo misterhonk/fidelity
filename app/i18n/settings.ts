@@ -245,8 +245,8 @@ const en = {
 
   /** Settings → Sync devices. */
   /*
-   * Die Hörprobe (ADR-012) — eine benannte Ausnahme, also sichtbar und
-   * abwählbar.
+   * The audio preview (ADR-012) — a named exception, so visible and
+   * switchable.
    */
   audio: {
     label: 'Listen to a find',
@@ -325,7 +325,7 @@ const en = {
     firstBackup: (entries: number) =>
       `Backed up for the first time: ${counted(entries, 'entry', 'entries')}.`,
     /*
-     * Der eine Fall, der wie eine Erstanlage aussieht und keine ist.
+     * The one case that looks like a first setup and is not.
      *
      * Since the slot is derived from the passphrase, a different word moves the
      * slot as well — and the honest reading of "nothing was there" is then
@@ -366,12 +366,12 @@ const en = {
      * somebody types their Discogs token into it.
      */
     /*
-     * Ohne "hier" oder "auf dieser Seite".
+     * Without "here" or "on this page".
      *
-     * Die Suche greift auf zwei ganz verschiedene Orte zu — dieselbe Domain
-     * und dieser Rechner —, und ein Satz, der einen davon benennt, ist im
-     * anderen Fall schlicht falsch. Die Adresse steht ohnehin eine Zeile
-     * tiefer im Feld und sagt es genauer, als ein Satz es könnte.
+     * The search reaches two quite different places — the same domain and this
+     * machine — and a sentence naming one of them is simply wrong in the other
+     * case. The address is a line further down in the field anyway, and says
+     * it more precisely than a sentence could.
      */
     foundAndKept: 'Found one and kept it — nothing else to do.',
     foundSecured:

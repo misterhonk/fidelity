@@ -34,16 +34,15 @@ const en = {
      * and neither is guessable from the word alone.
      */
     /*
-     * Ohne Pfeil im Namen.
+     * No arrow in the name.
      *
-     * Zwei dieser Beschriftungen trugen einen — „Year ↑", „Rating ↓" —, weil
-     * jeder Schlüssel genau eine Richtung hatte und die dazugesagt werden
-     * musste. Seit sich jede Sortierung umdrehen lässt, zeichnet die Oberfläche
-     * den Pfeil selbst, und der eingebackene stand daneben: zwei Pfeile hinter
-     * einem Wort, von denen einer log.
+     * Two of these labels carried one — "Year ↑", "Rating ↓" — because each
+     * key had exactly one direction and it had to be said. Since every sort
+     * can be turned round, the interface draws the arrow itself, and the baked
+     * one stood beside it: two arrows after one word, one of them lying.
      *
-     * `about` beschreibt weiterhin die *Vorgabe* — das ist der Stand vor dem
-     * ersten Klick und die Antwort auf „was passiert, wenn ich das wähle".
+     * `about` still describes the *default* — the state before the first
+     * click, and the answer to "what happens if I choose this".
      */
     sorts: {
       added: { label: 'Last added', about: 'Newest arrival first' },
@@ -192,25 +191,24 @@ const en = {
   },
 
   /*
-   * Beobachtete Platten (M11).
+   * Watched records (M11).
    *
-   * Der Satz, der hier am wichtigsten ist, steht in `noShops`: „Wer verkauft
-   * Release X?" ist per API nicht beantwortbar (`docs/02`). Wer das nicht
-   * weiß, hält den fehlenden Laden für eine Lücke in der App.
+   * The sentence that matters most here is in `noShops`: "who is selling
+   * release X?" cannot be answered through the API (`docs/02`). Anyone not
+   * knowing that takes the missing shop for a gap in the app.
    *
-   * Seit `gone` hat der Satz eine Ausnahme, und die steht jetzt drin: ein Dig
-   * dieses Geräts hat Angebote mit ihrer Listing-ID gesehen, und die sind
-   * einzeln abrufbar. Das ist kein Weg um die fehlende Auflistung herum — es
-   * sind nur die, an denen man selbst schon vorbeigegangen ist.
+   * Since `gone` the sentence has an exception, and it is now stated: a dig on
+   * this device has seen offers with their listing id, and those can be
+   * fetched individually. That is not a way round the missing listing — they
+   * are only the ones you have already walked past yourself.
    */
   /*
-   * Wo die Platten stehen (M12).
+   * Where the records stand (M12).
    *
-   * `staysHere` ist der Satz, der diesen Bildschirm von allen anderen
-   * unterscheidet: hier entsteht etwas, das es bei Discogs nicht gibt und das
-   * nirgendwohin geht. Am 2026-09-11 nachgemessen — Discogs gibt genau drei
-   * Sammlungsfelder zurück (Media, Sleeve, Notes), ein Standort passt in
-   * keines davon.
+   * `staysHere` is the sentence that sets this screen apart from every other:
+   * something is created here that does not exist at Discogs and goes nowhere.
+   * Measured 2026-09-11 — Discogs returns exactly three collection fields
+   * (Media, Sleeve, Notes), and a location fits in none of them.
    */
   places: {
     title: 'Where they are',
@@ -225,8 +223,8 @@ const en = {
     moveAll: 'Move all',
     moveTo: 'Everything goes to',
     dissolve: 'Dissolve',
-    /* Was dabei **nicht** passiert. Ohne diesen Satz traut sich niemand auf
-     * den Knopf — für eine Notiz, die man jederzeit neu schreiben kann. */
+    /* What does **not** happen in the process. Without this sentence nobody
+     * dares press the button — for a note that can be rewritten at any time. */
     dissolveWhat:
       'The place goes, the records stay. They simply have no place afterwards, and anything inside moves up one level.',
     dissolveConfirm: 'Dissolve it',
@@ -246,17 +244,17 @@ const en = {
     toShelf: 'To the shelf',
     check: 'Look now',
     checking: 'Looking …',
-    /* Beides gebeugt, nicht nur die Minuten: „1 records" stand am 2026-09-11
-     * eine Viertelstunde lang auf dem Schirm, weil ich nur die Hälfte der
-     * Zahlen beachtet hatte. */
+    /* Both inflected, not only the minutes: "1 records" stood on screen for a
+     * quarter of an hour on 2026-09-11, because only half the numbers had been
+     * looked at. */
     cost: (records: number, minutes: number) =>
       `${records} ${records === 1 ? 'record' : 'records'}, one request each — about ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}.`,
     nothingNew: 'Nothing has moved.',
     notYet: 'not looked yet',
     noneForSale: 'none for sale',
-    /* Eine Zahl ohne Währung ist kein Preis. Discogs schickt beides zusammen;
-     * das hier ist der Zweig, der nicht vorkommen sollte und trotzdem etwas
-     * Wahres sagen muss. */
+    /* A number without a currency is not a price. Discogs sends both
+     * together; this is the branch that should not occur and still has to say
+     * something true. */
     noPrice: 'price unclear',
     fromShelf: 'yours',
     fromWantlist: 'wanted',
@@ -265,20 +263,20 @@ const en = {
       `has gone from ${from} to ${to} — ${percent} % more.`,
     fell: (to: string) => `is down to ${to}, below your limit.`,
     appeared: (copies: string) => `is on offer again — ${copies} of them.`,
-    /* „Verkauft" wird nicht behauptet: ein Angebot kann auch zurückgezogen
-     * worden sein, und die API sagt nicht, welches von beidem. */
+    /* "Sold" is not claimed: an offer can also have been withdrawn, and the
+     * API does not say which of the two. */
     fewer: (from: string, to: string) => `is down from ${from} copies on offer to ${to}.`,
-    /* Der genauere Fall, und der einzige, in dem hier ein Laden steht: ein Dig
-     * dieses Geräts hat genau dieses Angebot gesehen. Immer noch nicht
-     * „verkauft" — zurückgezogen sieht von außen genauso aus. */
+    /* The more precise case, and the only one where a shop appears here: a
+     * dig on this device saw exactly this offer. Still not "sold" — withdrawn
+     * looks the same from outside. */
     gone: (dealer: string, from: string, to: string) =>
       `is down from ${from} copies on offer to ${to} — the one at ${dealer} is no longer listed.`,
     dropShort: 'Stop',
     drop: (label: string) => `Stop watching ${label}`,
     watch: 'Keep an eye on it',
     watchingOn: 'Watching',
-    /* Die Grenze sichtbar statt still: ein Wächter, der ohne ein Wort
-     * aufhört, Platten anzunehmen, ist schlimmer als einer, der Nein sagt. */
+    /* The limit visible rather than silent: a watcher that stops accepting
+     * records without a word is worse than one that says no. */
     full: 'A hundred is the limit — one request each, and that is two minutes per look.',
     noShops:
       'No shop is named here: Discogs has no way to list who is selling a given record. What you get is the price, not the address. The one exception is a copy one of your own digs walked past — that one has an address, and it is named.',
@@ -295,16 +293,16 @@ const en = {
     markBought: (label: string) => `Mark ${label} as bought`,
     remove: (label: string) => `Take ${label} off the shortlist`,
     /*
-     * Was aus „alle in den Korb" wurde, und was aus dem Nachsehen.
+     * What came of "all into the basket", and what of the checking.
      *
-     * Beide Sätze standen bis zum 2026-09-10 deutsch im Quelltext von
-     * `saved.vue`, in einer englischen Oberfläche — `template-text.spec.ts`
-     * sieht nur zwischen die Tags, und sie kamen aus dem Skript.
+     * Both sentences stood in German in the source of `saved.vue` until
+     * 2026-09-10, inside an English interface — `template-text.spec.ts` only
+     * looks between the tags, and these came from the script.
      *
-     * Die Anzahl kommt zweimal: einmal als Zahl, damit gebeugt werden kann,
-     * einmal als fertige Zeichenkette, weil die Tausenderpunkte am Aufrufer
-     * gesetzt werden. Das deutsche „war schon weg" stand vorher auch bei zwei
-     * verkauften Platten da.
+     * The count arrives twice: once as a number so it can be inflected, once
+     * as a finished string because the thousands separators are set at the
+     * caller. The German "war schon weg" used to stand there for two sold
+     * records as well.
      */
     moved: (added: string, sold: number, soldText: string) =>
       sold === 0
@@ -330,11 +328,11 @@ const en = {
   howMuchLeft: 'How much is still out there',
   whichLabels: 'Which labels you actually collect',
   /*
-   * Die Richtung gehört in den vorgelesenen Namen des Knopfes.
+   * The direction belongs in the button's spoken name.
    *
-   * `aria-sort` wäre das naheliegende Attribut und ist hier falsch: es gilt
-   * für Tabellenspalten, nicht für Knöpfe. axe hat es sofort gemeldet — im
-   * Test von heute Morgen, der die Bildschirme *mit Daten* prüft.
+   * `aria-sort` would be the obvious attribute and is wrong here: it applies
+   * to table columns, not to buttons. axe reported it immediately — in this
+   * morning's test, the one that checks the screens *with data*.
    */
   sortedAsc: (label: string) => `${label}, ascending`,
   sortedDesc: (label: string) => `${label}, descending`,
