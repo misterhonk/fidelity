@@ -125,9 +125,9 @@ test.describe('smoke', () => {
   })
 
   test('the map says what to do instead of showing empty bars', async ({ page }) => {
-    // Eingerichtet, aber leer — genau die Kombination, um die es hier geht.
-    // Ohne Token führt die Adresse seit dem Guard zur Einrichtung, und dann
-    // prüfte dieser Test die Einrichtung statt die Landkarte.
+    // Set up but empty — exactly the combination this is about. Without a
+    // token the address has led to the setup since the guard, and then this
+    // test was checking the setup instead of the map.
     await signIn(page)
     await page.goto('/map')
 
@@ -192,11 +192,10 @@ const SCREENS = [
   // survives longest — nobody looks at a help page twice.
   '/settings/help',
   /*
-   * Was in dieser Ausgabe neu ist — und ebenfalls reine Prosa, nur dass sie
-   * hier aus einer Datei kommt und nicht aus einem Template. Umso mehr Grund,
-   * sie durch dieselbe Prüfung zu schicken: ein Link ohne erkennbares Ziel
-   * oder eine Überschrift auf der falschen Ebene entsteht hier erst beim
-   * Zeichnen.
+   * What is new in this release — also pure prose, except that it comes from a
+   * file here and not from a template. All the more reason to send it through
+   * the same check: a link with no recognisable destination, or a heading at
+   * the wrong level, is created here only at drawing time.
    */
   '/whats-new',
 ]

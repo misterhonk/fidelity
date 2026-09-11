@@ -3,34 +3,33 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Das Cover in den beiden Sheets: so groß wie es geht, und ohne falsche Zusage.
+ * The cover in the two sheets: as large as it goes, and with no false promise.
  *
- * Beides ist am 2026-08-14 gemessen worden, und beide Messungen widerlegen,
- * was vorher im Quelltext stand:
+ * Both were measured on 2026-08-14, and both measurements contradict what the
+ * source said before:
  *
- * 1. **Es gibt kein schärferes Bild.** `images[0]` aus `/releases/{id}` ist
- *    dieselbe Fassung wie `cover_image`, und der CDN-Pfad ist signiert — auf
- *    `h:1200/w:1200` umgeschrieben antwortet er mit 403. Wer das Cover größer
- *    zeigt, rechnet hoch; das ist die bewusste Entscheidung, nicht ein
- *    Versehen.
+ * 1. **There is no sharper image.** `images[0]` from `/releases/{id}` is the
+ *    same version as `cover_image`, and the CDN path is signed — rewritten to
+ *    `h:1200/w:1200` it answers 403. Showing the cover larger means upscaling;
+ *    that is the deliberate decision, not an oversight.
  *
- * 2. **`600w` war gelogen.** Der CDN passt in ein 600er Quadrat ein, ohne
- *    aufzublasen: Release 512 kommt als 313 × 238 heraus. Der `w`-Deskriptor
- *    ist eine Zusage über die tatsächliche Breite, und diese Zusage hielt für
- *    jedes Cover, dessen Vorlage kleiner ist, nicht.
+ * 2. **`600w` was a lie.** The CDN fits into a 600 square without inflating:
+ *    release 512 comes out as 313 × 238. The `w` descriptor is a promise about
+ *    actual width, and that promise did not hold for any cover whose original
+ *    is smaller.
  *
- * Der 150er-Kandidat daneben wurde ohnehin nie gezogen: im schmalsten Fall
- * dieser Bildschirme — 320 px Fensterbreite, 100vw, 2× — braucht der Browser
- * 640 Bildpunkte und wählt gemessen das Cover. Zwei Kandidaten, von denen einer
- * nie gewinnt, sind eine Auswahl ohne Auswahl.
+ * The 150 candidate beside it was never picked anyway: in these screens'
+ * narrowest case — 320 px of window, 100vw, 2× — the browser needs 640 device
+ * pixels and, measured, picks the cover. Two candidates, one of which never
+ * wins, are a choice without a choice.
  *
- * Geprüft wird die Form, weil es hier keine Rechnung gibt: `srcset` ist
- * Markup, und was daran schiefgehen kann, ist eine Zeile, die zurückkommt.
+ * The shape is what is checked, because there is no computation here: `srcset`
+ * is markup, and what can go wrong with it is a line coming back.
  */
 const SHELF = readFileSync('app/components/ShelfSheet.vue', 'utf8')
 const RELEASE = readFileSync('app/components/ReleaseSheet.vue', 'utf8')
 
-/** Ohne Kommentare — diese Datei erklärt, was sie prüft, und die Sheets auch. */
+/** Without comments — this file explains what it checks, and so do the sheets. */
 const code = (source: string) =>
   source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '')
 
@@ -39,39 +38,40 @@ describe.each([
   ['the release sheet', RELEASE],
 ])('%s', (_name, source) => {
   /**
-   * Kein `srcset`, und damit auch keine Breitenzusage, die niemand einlöst.
+   * No `srcset`, and therefore no promise about width that nobody keeps.
    *
-   * Die Alternative wäre, die echten Maße mitzuführen — `images[0]` liefert
-   * `width` und `height`. Das kostet ein Feld im Cover-Speicher und damit eine
-   * Schema-Version, für eine Auswahl zwischen zwei Kandidaten, deren Ausgang
-   * feststeht.
+   * The alternative would be to carry the real dimensions along — `images[0]`
+   * supplies `width` and `height`. That costs a field in the cover store and
+   * so a schema version, for a choice between two candidates whose outcome is
+   * already settled.
    */
   it('makes no promise about a width it cannot keep', () => {
     expect(code(source)).not.toMatch(/srcset/)
     expect(code(source)).not.toMatch(/600w/)
-    // `sizes` ohne `srcset` ist wirkungslos und liest sich, als täte es etwas.
+    // `sizes` without `srcset` does nothing and reads as though it did something.
     expect(code(source)).not.toMatch(/\bsizes=/)
   })
 
   /**
-   * Das größte vorhandene Bild, und der 150er nur, wenn es keines gibt.
+   * The largest image available, and the 150 only where there is none.
    *
-   * Am `:src` festgemacht und nicht bloß am Vorkommen: `v-if="… coverUrl ||
-   * … thumbUrl"` steht eine Zeile darüber und erfüllt jedes lockerere Muster
-   * mit. Eine Mutationsprobe hat genau das gezeigt — `:src` auf das Thumbnail
-   * umgestellt, und der Test blieb grün, weil er die andere Zeile las.
+   * Pinned to `:src` and not merely to an occurrence: `v-if="… coverUrl ||
+   * … thumbUrl"` stands a line above and satisfies any looser pattern along
+   * with it. A mutation probe showed exactly that — `:src` switched to the
+   * thumbnail, and the test stayed green because it was reading the other
+   * line.
    */
   it('shows the cover, and falls back to the thumb only when there is none', () => {
     expect(code(source)).toMatch(/:src="\w+\.coverUrl \|\| \w+\.thumbUrl"/)
   })
 
   /**
-   * Und es wird weiterhin nicht aktiv geholt.
+   * And it is still not fetched actively.
    *
-   * Bilder haben bei Cloudflare ein eigenes Limit (~30–40/min, `docs/02`), das
-   * vom API-Budget getrennt läuft. `loading="lazy"` ist die Regel, unter der
-   * die App überhaupt Cover zeigen darf — ein größeres Bild ändert daran
-   * nichts.
+   * Images have their own limit at Cloudflare (~30–40/min, `docs/02`), running
+   * separately from the API budget. `loading="lazy"` is the rule under which
+   * the app may show covers at all — a larger image changes nothing about
+   * that.
    */
   it('still waits to be scrolled into view', () => {
     expect(code(source)).toMatch(/loading="lazy"/)
@@ -79,12 +79,12 @@ describe.each([
 })
 
 /**
- * Die Größen selbst, damit ein Schrumpfen eine Entscheidung bleibt.
+ * The sizes themselves, so that shrinking stays a decision.
  *
- * Am 2026-08-14 im Browser gemessen: Sheet 768 px ab 1280 px Fensterbreite,
- * Cover darin 384 px im Regal und 320 px in der Fundliste. Das Regal-Sheet
- * darf größer sein — es hat rechts nur die Faktenliste neben sich, und die
- * hielt bei 319 px jede Zeile einzeilig.
+ * Measured in the browser on 2026-08-14: sheet 768 px from 1280 px of window,
+ * cover inside it 384 px on the shelf and 320 px in the find list. The shelf
+ * sheet may be larger — it has only the facts list beside it, and at 319 px
+ * that kept every line to one line.
  */
 describe('the cover sizes', () => {
   it('grows with the sheet instead of staying at the phone size', () => {
@@ -92,7 +92,7 @@ describe('the cover sizes', () => {
     expect(RELEASE).toMatch(/sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80/)
   })
 
-  /** Und das Sheet selbst hat den Platz dafür — sonst wäre das Cover das Sheet. */
+  /** And the sheet itself has the room for it — or the cover would be the sheet. */
   it('has a sheet wide enough to hold it', () => {
     for (const source of [SHELF, RELEASE]) {
       expect(source).toMatch(/max-w-lg .*lg:max-w-2xl xl:max-w-3xl/)

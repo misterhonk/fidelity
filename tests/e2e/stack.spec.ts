@@ -3,12 +3,12 @@ import { expect, test } from '@playwright/test'
 import { seed } from './seed'
 
 /**
- * Der Stapel im Browser.
+ * The stack in a browser.
  *
- * Ein Wisch hat keine testbare Form. Er hat eine Geste, eine Schwelle und
- * eine Richtung, und die kennt nur eine Maschine mit einem Zeigegerät — im
- * Quelltext steht eine Transformation, auf dem Schirm bewegt sich eine Karte.
- * `tests/unit/stack.spec.ts` hält die Entscheidungen, das hier die Bewegung.
+ * A swipe has no testable shape. It has a gesture, a threshold and a
+ * direction, and only a machine with a pointing device knows those — in the
+ * source there is a transform, on the screen a card moves.
+ * `tests/unit/stack.spec.ts` holds the decisions, this the movement.
  */
 test.describe('the stack', () => {
   test('shows one find and moves on', async ({ page }) => {
@@ -28,9 +28,9 @@ test.describe('the stack', () => {
   })
 
   /**
-   * Und zurück, sichtbar.
+   * And back, visibly.
    *
-   * Tinder kann sich ein verlorenes Nein leisten, eine seltene Platte nicht.
+   * Tinder can afford a lost no; a rare record cannot.
    */
   test('takes a swipe back', async ({ page }) => {
     await seed(page)
@@ -48,11 +48,11 @@ test.describe('the stack', () => {
   })
 
   /**
-   * Die Geste selbst, mit der Schwelle.
+   * The gesture itself, with the threshold.
    *
-   * Achtzig Pixel trennen einen Wisch von einem Zittern beim Tippen. Ein
-   * Stapel, der bei jeder Berührung weiterspringt, ist unbenutzbar — und das
-   * fällt in keinem Unit-Test auf, weil dort niemand zittert.
+   * Eighty pixels separate a swipe from a wobble while tapping. A stack that
+   * jumps on at every touch is unusable — and that shows up in no unit test,
+   * because nobody wobbles there.
    */
   test('ignores a nudge and follows a swipe', async ({ page }) => {
     await seed(page)

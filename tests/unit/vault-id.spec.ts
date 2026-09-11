@@ -5,15 +5,15 @@ import { describe, expect, it } from 'vitest'
 import { legacyVaultId, vaultId } from '~~/worker/vault/targets/hub'
 
 /**
- * Wo ein Block liegt, darf niemand ausrechnen können.
+ * Where a block lies must not be computable by anybody.
  *
- * Bis zum 2026-08-13 war die Kennung `SHA-256("fidelity-vault:" + userId)`.
- * Eine Discogs-User-ID ist öffentlich, also konnte jeder mit dem Geheimnis
- * eines geteilten Hubs den Ablageort jedes Mitbenutzers ausrechnen — lesen
- * nicht, der Block ist verschlüsselt, aber holen und überschreiben schon.
+ * Until 2026-08-13 the id was `SHA-256("fidelity-vault:" + userId)`. A Discogs
+ * user id is public, so anybody with a shared hub's secret could work out
+ * every co-user's storage location — not read it, the block is encrypted, but
+ * fetch and overwrite it, yes.
  *
- * Diese Datei hält die drei Eigenschaften fest, an denen die neue Ableitung
- * hängt. Jede einzelne davon wegzunehmen sieht im Quelltext harmlos aus.
+ * This file holds the three properties the new derivation hangs on. Taking any
+ * one of them away looks harmless in the source.
  */
 describe('the slot a vault lives in', () => {
   /** Zwei Geräte, dieselbe Person, dasselbe Wort — sonst finden sie sich nie. */
@@ -22,9 +22,9 @@ describe('the slot a vault lives in', () => {
   })
 
   /**
-   * Und ohne das Wort nicht zu haben.
+   * And not obtainable without the word.
    *
-   * Das ist der ganze Punkt: die öffentliche User-ID allein reicht nicht mehr.
+   * That is the whole point: the public user id alone is no longer enough.
    */
   it('changes with the passphrase', async () => {
     const one = await vaultId(4711, 'ein langes wort')
@@ -37,29 +37,29 @@ describe('the slot a vault lives in', () => {
   })
 
   /**
-   * Niemals dasselbe wie früher.
+   * Never the same as before.
    *
-   * Wäre es das, wäre die Ableitung wirkungslos und der Umzug ein Leerlauf —
-   * und beides sähe von außen genau wie ein Erfolg aus.
+   * If it were, the derivation would be ineffective and the move an idle run —
+   * and both would look exactly like success from outside.
    */
   it('is never where it used to be', async () => {
     expect(await vaultId(4711, 'ein langes wort')).not.toBe(await legacyVaultId(4711))
   })
 
-  /** Der alte Weg bleibt, damit ein Gerät seinen Block noch findet. */
+  /** The old route stays so that a device can still find its block. */
   it('still knows the old address, unchanged', async () => {
-    // Gemessen, nicht ausgedacht. Ändert sich diese Zahl, findet kein Gerät
-    // mehr seinen alten Block, und der Umzug fällt still aus.
+    // Measured, not invented. If this value changes, no device finds its old
+    // block any more and the move silently does not happen.
     expect(await legacyVaultId(4711)).toBe('b9ea8a05da4c0afd5968ec10a7b7296f')
   })
 
   /**
-   * Eingefroren, weil eine Änderung daran jeden Vault verschiebt.
+   * Frozen, because a change to it moves every vault.
    *
-   * Nicht bloß den eigenen: wer die Ableitung anfasst, schickt jedes Gerät auf
-   * der Welt an eine leere Stelle, und die App meldet dort brav „erste
-   * Sicherung angelegt". Der Wert ist gemessen, nicht ausgedacht — der erste
-   * Anlauf dieser Datei stand mit einer erfundenen Zahl da und fiel sofort um.
+   * Not only your own: anyone touching the derivation sends every device in
+   * the world to an empty spot, where the app dutifully reports "first backup
+   * created". The value is measured, not invented — this file's first attempt
+   * stood there with a made-up number and fell over immediately.
    */
   it('lands exactly where it landed yesterday', async () => {
     expect(await vaultId(4711, 'ein langes wort')).toBe('7d3569f8aad7a73e5a8c3d60b6f193e0')
@@ -73,13 +73,13 @@ describe('the slot a vault lives in', () => {
 })
 
 /**
- * Und die Aufrufstelle nimmt sie auch.
+ * And the call site takes it too.
  *
- * Die Ableitung kann tadellos sein, während `runVaultSync` weiter die alte
- * Kennung benutzt — beide Mutationsproben am 2026-08-13 haben genau das
- * überlebt, weil oben nur die Funktionen geprüft wurden und nicht, wer sie
- * ruft. `status.ts` greift beim Laden nach IndexedDB, also wird hier die Form
- * gelesen statt das Verhalten ausgeführt; die Entscheidung ist sichtbar.
+ * The derivation can be flawless while `runVaultSync` carries on using the old
+ * id — both mutation probes on 2026-08-13 survived precisely that, because
+ * only the functions were checked above and not who calls them. `status.ts`
+ * reaches for IndexedDB at import time, so the shape is read here rather than
+ * the behaviour run; the decision is visible.
  */
 describe('the sync that uses it', () => {
   const STATUS = readFileSync('worker/vault/status.ts', 'utf8')
@@ -89,10 +89,9 @@ describe('the sync that uses it', () => {
   })
 
   /**
-   * Der Umzug, und in dieser Reihenfolge: lesen, an die neue Stelle legen,
-   * die alte räumen. Wer das Räumen weglässt, lässt einen verschlüsselten
-   * Block unter einer ausrechenbaren Adresse liegen — also genau das, was
-   * diese Änderung abstellt.
+   * The move, and in this order: read, put in the new place, clear the old
+   * one. Anyone leaving out the clearing leaves an encrypted block at a
+   * computable address — which is exactly what this change stops.
    */
   it('moves an old block across and clears the old address', () => {
     expect(STATUS).toMatch(/await legacyVaultId\(identity\.userId\)/)
@@ -106,10 +105,10 @@ describe('the sync that uses it', () => {
   })
 
   /**
-   * „Da lag nichts" heißt nach dieser Änderung zweierlei, und das teurere
-   * davon sieht aus wie eine Erstanlage: eine geänderte Passphrase verschiebt
-   * den Ablageort mit. Ohne diese Meldung liefen zwei Geräte auseinander,
-   * ohne dass irgendwo etwas kaputt aussieht.
+   * After this change "nothing was there" means two things, and the more
+   * expensive of them looks like a first setup: a changed passphrase moves the
+   * storage location with it. Without this message, two devices would drift
+   * apart with nothing anywhere looking broken.
    */
   it('says when an empty slot is not a first sync', () => {
     expect(STATUS).toMatch(

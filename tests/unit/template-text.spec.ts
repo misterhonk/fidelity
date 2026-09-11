@@ -141,31 +141,31 @@ describe('text in a template', () => {
 })
 
 /**
- * Und die andere Hälfte der Datei — das `<script setup>`.
+ * And the other half of the file — the `<script setup>`.
  *
- * Alles oben prüft, was zwischen den Tags steht. Text kommt aber auf zwei
- * Wegen auf einen Schirm, und der zweite führt durch eine Mustache: `{{ status
- * }}` ist für die Regeln oben leer, während der Satz dahinter im Skript
- * zusammengesetzt wird. Genau dort hat die Übersetzung von ADR-010 zwölf
- * deutsche Sätze zurückgelassen, verteilt auf fünf Dateien — gefunden am
- * 2026-09-10, indem jemand die Demo im Browser laufen ließ und „Lese das
- * Sortiment – Seite 1 von 5" unter einer englischen Überschrift stehen sah.
+ * Everything above checks what stands between the tags. But text reaches a
+ * screen by two routes, and the second goes through a mustache: `{{ status }}`
+ * is empty to the rules above, while the sentence behind it is assembled in
+ * the script. That is exactly where the ADR-010 translation left twelve German
+ * sentences behind, spread across five files — found on 2026-09-10 by somebody
+ * running the demo in a browser and seeing "Lese das Sortiment – Seite 1 von
+ * 5" under an English heading.
  *
- * Wieder eine Regel über die **Form**, nicht über Vokabeln: zwei Wörter mit
- * einem Leerzeichen dazwischen sind ein Satz, und ein Satz gehört ins Paket.
- * Der Kommentar oben erklärt, warum Wortlisten dreimal danebenlagen.
+ * Again a rule about **shape**, not about vocabulary: two words with a space
+ * between them are a sentence, and a sentence belongs in the language pack.
+ * The comment above explains why word lists were wrong three times.
  */
 
-/** `${…}` ist eine Wortgrenze und kein Wort — sonst rutscht `seit ${n} Tagen` durch. */
+/** `${…}` is a word boundary and not a word — otherwise `for ${n} days` slips through. */
 const INTERPOLATION = /\$\{[^}]*\}/g
 
 /**
- * Zeichenketten paarweise und in der Reihenfolge, in der sie stehen.
+ * Strings in pairs and in the order they stand in.
  *
- * Die erste Fassung hier verlangte vier Zeichen Mindestlänge und sprang damit
- * über `'/'` hinweg — danach paarte sie das schließende Anführungszeichen der
- * einen mit dem öffnenden der nächsten und meldete `) return route.path === `
- * als Prosa. Jede Zeichenkette wird erkannt, gefiltert wird danach.
+ * The first version here demanded a minimum length of four characters and so
+ * jumped over `'/'` — after which it paired one string's closing quote with
+ * the next one's opening quote and reported `) return route.path === ` as
+ * prose. Every string is recognised; filtering happens afterwards.
  */
 const ANY_STRING = /'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"|`((?:[^`\\]|\\.)*)`/gs
 
