@@ -11,6 +11,24 @@ Für eine App bedeutet SemVer:
 
 ## [0.25.0](https://github.com/misterhonk/fidelity/compare/v0.24.0...v0.25.0) (2026-09-11)
 
+Die Ausgabe, in der die App drei Fragen beantwortet, die Discogs nicht beantwortet:
+**wo steht die Platte**, **ist meine gerade mehr wert** und **gradet dieser Laden
+ehrlich**. Alles davon bleibt auf dem Gerät, und das teuerste Feature der Liste — die
+Lagerorte — kostet null Anfragen.
+
+Zwei Dinge, die man beim Aktualisieren wissen sollte:
+
+- **Das IndexedDB-Schema geht von 8 auf 10** (`watched`, `places`, `placements`). Rein
+  additiv, die Migration läuft beim ersten Start von selbst, und nichts Vorhandenes wird
+  angefasst. Kein MAJOR, weil nichts von Hand nachzuziehen ist.
+- **Lagerorte kennen kein Löschen mehr.** Ein aufgelöstes Regal bleibt als Markierung
+  liegen, eine heruntergenommene Platte wird als „liegt nirgendwo" geschrieben. Sichtbar
+  ist das nirgends — es ist die Bedingung dafür, dass zwei Geräte über den Tresor nicht
+  gegenseitig Gelöschtes wiederbeleben.
+
+Verworfen wurde ebenfalls etwas, und das steht in `docs/06`: den Runout vorzulesen statt
+abzutippen. `SpeechRecognition` ist verfügbar und sogar geräteintern möglich, aber auf
+Wörter trainiert — und `BN-LP-4001-A [ear] M9 RVG` ist keines.
 
 ### Added
 
