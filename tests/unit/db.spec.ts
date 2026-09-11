@@ -133,11 +133,11 @@ describe('database schema', () => {
     expect([...tx.objectStore('matches').indexNames]).toEqual(['by-dig-score'])
 
     /*
-     * Die beiden Indizes am Sortiment sind der Grund, warum die Ansicht
-     * bezahlbar ist: eine Frage nach einem Label ist damit ein Bereichslesen
-     * statt eines Durchlaufs durch zwanzigtausend Zeilen. Fehlen sie, wird
-     * daraus stillschweigend ein voller Scan — schnell genug bei einem kleinen
-     * Laden, unbenutzbar bei einem großen, und nirgends sichtbar.
+     * The two indexes on the stock store are why the view is affordable: a
+     * question about a label becomes a range read instead of a walk through
+     * twenty thousand rows. Without them it silently becomes a full scan —
+     * fast enough at a small shop, unusable at a large one, and visible
+     * nowhere.
      */
     expect([...db.transaction('stock').objectStore('stock').indexNames].sort()).toEqual([
       'by-dig-decade',

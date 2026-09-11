@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createHubClient, isDiscogsImage } from '~~/worker/hub/client'
 
 /**
- * Der Client glaubt dem Hub nicht.
+ * The client does not trust the hub.
  *
  * A hub is somebody's spare machine: it will be an old version, misconfigured,
  * or someone else's entirely. For covers that matters more than anywhere else

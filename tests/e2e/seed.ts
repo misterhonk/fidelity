@@ -346,27 +346,28 @@ async function waitForStores(page: Page): Promise<void> {
 }
 
 /**
- * Ein eingerichtetes Gerät, und sonst nichts drin.
+ * A device that is set up, and nothing in it.
  *
- * Seit dem 2026-08-14 führt `app/middleware/setup.global.ts` jede geschützte
- * Adresse ohne Token zur Einrichtung. Das ist richtig so — und es hat zwölf
- * Browser-Tests umgeworfen, die einen leeren Bildschirm prüften und dafür
- * annahmen, man käme auch abgemeldet dorthin. Diese Annahme stand nirgends
- * geschrieben; sie war einfach lange wahr.
+ * Since 2026-08-14, `app/middleware/setup.global.ts` leads every protected
+ * address without a token to the setup. That is right — and it knocked over
+ * twelve browser tests that checked an empty screen and assumed for that
+ * purpose that you could reach it signed out. That assumption was written
+ * nowhere; it had simply been true for a long time.
  *
- * Der Unterschied zu `seed()` ist der Zweck: `seed()` füllt ein Gerät mit
- * Sammlung, Fundliste und Korb, weil die vollen Bildschirme geprüft werden
- * sollen. Hier geht es um die leeren. „Die Landkarte sagt, was zu tun ist,
- * statt leere Balken zu zeigen" braucht ein Gerät **mit** Token und **ohne**
- * Sammlung — genau die Kombination, die vorher niemand herstellen musste.
+ * The difference from `seed()` is the purpose: `seed()` fills a device with a
+ * collection, a find list and a basket, because the full screens are what is
+ * being checked. This is about the empty ones. "The map says what to do
+ * instead of showing empty bars" needs a device **with** a token and
+ * **without** a collection — exactly the combination nobody had to produce
+ * before.
  *
- * Nichts davon erreicht je Discogs. Der Guard fragt den Worker nach der
- * Identität, und die steht hier.
+ * None of this ever reaches Discogs. The guard asks the worker for the
+ * identity, and that is here.
  */
 export async function signIn(page: Page): Promise<void> {
   await page.goto('/')
-  // Dieselbe Wartestelle wie in `seed()`, aus demselben Grund: die Datenbank
-  // legt die App an, nicht dieser Helfer. Die lange Begründung steht dort.
+  // The same wait as in `seed()`, for the same reason: the app creates the
+  // database, not this helper. The long reasoning is there.
   await waitForStores(page)
 
   await page.evaluate(
@@ -391,15 +392,15 @@ export async function signIn(page: Page): Promise<void> {
   )
 
   /*
-   * Neu laden und die Umleitung abwarten, die schon unterwegs ist.
+   * Reload, and wait for the redirect that is already on its way.
    *
-   * `page.goto('/')` oben landet abgemeldet beim Guard, und der schickt zur
-   * Einrichtung. Diese Navigation läuft noch, während hier bereits geschrieben
-   * wird — und unterbricht dann das `goto` des Aufrufers: „Navigation to /dig
-   * is interrupted by another navigation to /welcome". In WebKit reproduzierbar,
-   * in Chromium nicht, weil dort das Rennen anders ausgeht.
+   * `page.goto('/')` above lands at the guard while signed out, and that sends
+   * you to the setup. That navigation is still running while this is already
+   * writing — and then interrupts the caller's `goto`: "Navigation to /dig is
+   * interrupted by another navigation to /welcome". Reproducible in WebKit,
+   * not in Chromium, because the race goes the other way there.
    *
-   * Dieselbe Stelle, aus demselben Grund, steht am Ende von `seed()`.
+   * The same place, for the same reason, stands at the end of `seed()`.
    */
   await page.reload()
   await page.waitForLoadState('networkidle')

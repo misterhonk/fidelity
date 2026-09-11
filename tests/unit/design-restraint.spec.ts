@@ -61,8 +61,8 @@ describe('the spacing grid', () => {
 
 describe('boxes that cannot do what they are told', () => {
   /**
-   * `shrink-0` mit `truncate` oder `flex-wrap` — zwei Anweisungen, die sich
-   * gegenseitig aufheben.
+   * `shrink-0` with `truncate` or `flex-wrap` — two instructions that cancel
+   * each other out.
    *
    * `truncate` only ever fires when the box is narrower than its text, and
    * `shrink-0` promises it never will be. `flex-wrap` needs the container to be

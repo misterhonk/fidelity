@@ -34,12 +34,12 @@ test.describe('without a connection', () => {
   )
 
   /*
-   * Eingerichtet, bevor die Leitung wegfällt.
+   * Set up before the connection goes.
    *
-   * Ohne Token führt der Guard vom 2026-08-14 jede geschützte Adresse zur
-   * Einrichtung — und die hat auch ein `<main>`. Die Prüfung „öffnet sich
-   * trotzdem" war damit erfüllt, ohne dass der Bildschirm dahinter je geladen
-   * wurde. Angemeldet prüft sie wieder, was sie verspricht.
+   * Without a token, the guard from 2026-08-14 leads every protected address
+   * to the setup — and that has a `<main>` too. So the check "opens all the
+   * same" was satisfied without the screen behind it ever loading. Signed in,
+   * it checks what it promises again.
    */
   test.beforeEach(async ({ page }) => {
     await signIn(page)

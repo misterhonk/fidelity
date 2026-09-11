@@ -207,7 +207,7 @@ describe('reading a shipping table out of free text', () => {
 })
 
 /**
- * Ein Händlertext, der nach Zielländern sortiert ist.
+ * A dealer's text sorted by destination country.
  *
  * The failure that produced this block: a basket of two records at fatplastics
  * was quoted 13,00 € where the real Discogs checkout charged 6,00 €. The text

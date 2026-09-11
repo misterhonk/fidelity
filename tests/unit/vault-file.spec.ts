@@ -4,13 +4,13 @@ import { readVaultFile } from '~~/app/utils/vault-file'
 import en from '~~/app/i18n/en'
 
 /*
- * Gegen das Paket geprüft, nicht gegen einen abgeschriebenen Satz.
+ * Checked against the language pack, not against a copied sentence.
  *
- * Zwei dieser Zusagen standen als deutscher Wortlaut hier — `'kein
- * Fidelity-Tresor'` — und wurden am 2026-09-10 rot, als die Meldung dorthin
- * zog, wo sie hingehört. Das war der Test, der seine Arbeit tat, und
- * gleichzeitig eine Kopplung an eine Formulierung: geprüft werden soll,
- * *welche* Meldung kommt, nicht wie sie gerade lautet.
+ * Two of these promises stood here as German wording — `'kein
+ * Fidelity-Tresor'` — and went red on 2026-09-10 when the message moved to
+ * where it belongs. That was the test doing its job, and at the same time a
+ * coupling to a phrasing: what should be checked is *which* message arrives,
+ * not how it currently reads.
  */
 const words = en.error
 

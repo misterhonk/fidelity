@@ -6,7 +6,7 @@ import { GLYPHS } from '~/utils/glyphs'
 import { ICONS } from '~/utils/icons'
 
 /**
- * Ein falscher Icon-Name zeichnet nichts, und beschwert sich nicht.
+ * A wrong icon name draws nothing, and does not complain.
  *
  * `ICONS[name]` for a name that is not there is `undefined`, `v-for` over
  * `undefined` renders nothing, and an empty <svg> is invisible. The type

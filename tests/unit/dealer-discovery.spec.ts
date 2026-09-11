@@ -240,7 +240,7 @@ describe('keeping them', () => {
 })
 
 /**
- * Und der Einstieg steht dort, wo die Liste leer ist.
+ * And the way in stands where the list is empty.
  *
  * Reading the friends list is the difference between an import that finds two
  * shops and one that finds twenty — and it lived in Settings → Search, three

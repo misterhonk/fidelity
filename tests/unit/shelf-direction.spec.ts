@@ -5,16 +5,16 @@ import { shelfView } from '~~/worker/collection/records'
 import { DEFAULT_SHELF_DIRECTION, type CollectionItem, type ShelfSort } from '#shared/types'
 
 /**
- * Jede Sortierung lässt sich umdrehen.
+ * Every sort can be turned round.
  *
- * Jeder der vier Schlüssel hatte genau eine Richtung, und jede war gut
- * begründet — die neueste Platte zuerst, das älteste Jahr zuerst, weil eine
- * nach Jahren sortierte Sammlung eine Zeitachse ist. Gut begründet heißt aber
- * nicht: für jede Frage richtig. „Was steht am längsten ungehört im Regal" ist
- * dieselbe Liste andersherum.
+ * Each of the four keys had exactly one direction, and each was well argued —
+ * newest record first, earliest year first, because a collection sorted by
+ * year is a timeline. Well argued does not mean right for every question,
+ * though. "What has stood unplayed on the shelf longest" is the same list the
+ * other way round.
  *
- * Der Test prüft beides, und das zweite ist das wichtigere: dass sich mit der
- * Richtung wirklich die *Reihenfolge* ändert und nicht bloß ein Pfeil.
+ * The test checks both, and the second is the one that matters: that the
+ * direction really changes the *order* and not merely an arrow.
  */
 
 function record(over: Partial<CollectionItem> & { releaseId: number }): CollectionItem {
@@ -88,8 +88,8 @@ describe('the shelf, in both directions', () => {
   it('starts each key on the direction that key is for', async () => {
     await seed()
 
-    // Namen wollen A–Z; alles andere „das Interessanteste zuerst" — die
-    // neueste Platte, die beste Bewertung. Nur das Jahr fängt vorne an.
+    // Names want A–Z; everything else "the most interesting first" — the
+    // newest record, the best rating. Only the year starts at the front.
     expect(DEFAULT_SHELF_DIRECTION).toEqual({
       added: 'desc',
       artist: 'asc',

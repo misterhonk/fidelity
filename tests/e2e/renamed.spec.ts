@@ -39,17 +39,18 @@ const MOVED = [
 
 test.describe('an address from before the rename', () => {
   /*
-   * Eingerichtet, und zwar für jeden Fall hier.
+   * Signed in, and for every case here.
    *
-   * Der Setup-Guard vom 2026-08-14 führt jede geschützte Adresse ohne Token
-   * zur Einrichtung — und diese Datei prüft Adressen mit `toHaveURL(/…$/)`.
-   * `/welcome?next=/dig` endet auf `/dig`, also **blieben die meisten Tests
-   * hier grün, obwohl sie den Umweg maßen statt die Umbenennung.** Nur der
-   * eine Fall mit Query fiel auf, weil dort mehr hinter der Adresse steht.
+   * The setup guard from 2026-08-14 leads every protected address without a
+   * token to the setup — and this file checks addresses with
+   * `toHaveURL(/…$/)`. `/welcome?next=/dig` ends in `/dig`, so **most tests
+   * here stayed green while measuring the detour rather than the rename.**
+   * Only the one case with a query showed up, because there is more after the
+   * address there.
    *
-   * Ein Test, der aus dem falschen Grund grün ist, ist schlimmer als einer,
-   * der rot ist: er sagt zu, was er nicht mehr prüft. Angemeldet gibt es
-   * keinen Umweg, und `$` bedeutet wieder, was es soll.
+   * A test that is green for the wrong reason is worse than one that is red:
+   * it promises what it no longer checks. Signed in there is no detour, and
+   * `$` means what it should again.
    */
   test.beforeEach(async ({ page }) => {
     await signIn(page)

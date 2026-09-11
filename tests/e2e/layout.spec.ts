@@ -95,22 +95,22 @@ test.describe('room to breathe', () => {
   })
 
   /**
-   * Und zwar auf dem Dashboard — was dieser Test bis zum 2026-09-11 nicht tat.
+   * On the dashboard, that is — which this test did not do until 2026-09-11.
    *
-   * Er ging abgemeldet auf `/`, und abgemeldet leitet der Guard `/` auf
-   * `/welcome` um. Gemessen wurde also immer die Einrichtungsseite, während
-   * der Name und der Kommentar vom Dashboard sprachen. Aufgefallen ist das
-   * erst, als `@container` auf `/welcome` eine Ebene tiefer wanderte und ein
-   * Test rot wurde, der mit dieser Änderung nichts zu tun hatte.
+   * It went to `/` signed out, and signed out the guard redirects `/` to
+   * `/welcome`. So what was measured was always the setup page, while the name
+   * and the comment spoke of the dashboard. It only came to light when
+   * `@container` on `/welcome` moved one level down and a test went red that
+   * had nothing to do with that change.
    *
-   * Ein Test, der grün ist, weil er woanders steht, ist schlimmer als keiner:
-   * er behauptet Abdeckung für einen Bildschirm, den er nie gesehen hat.
+   * A test that is green because it stands somewhere else is worse than none:
+   * it claims coverage for a screen it has never seen.
    */
   test('the dashboard tiles spread out instead of stacking', async ({ page }) => {
     await signIn(page)
     await page.goto('/')
     await expect(page.locator('main')).toBeVisible()
-    // Erst wenn die Adresse stimmt, misst das Folgende das Richtige.
+    // Only once the address is right does what follows measure the right thing.
     expect(new URL(page.url()).pathname).toBe('/')
 
     const hasContainer = await page

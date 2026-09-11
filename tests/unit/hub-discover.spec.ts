@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Wo nach einem Hub gesucht wird, und in welcher Reihenfolge.
+ * Where a hub is looked for, and in what order.
  *
  * The order is the feature. `/hub` on the app's own domain is the only
  * candidate that cannot fail for a reason outside the hub itself — no CORS, no
@@ -56,7 +56,7 @@ describe('looking for a hub', () => {
 })
 
 /**
- * Und der Bildschirm behält nur, was ohne Wort brauchbar ist.
+ * And the screen keeps only what is usable without a password.
  *
  * Auto-saving a secured hub would configure something that answers 401 to
  * everything except its own health check.

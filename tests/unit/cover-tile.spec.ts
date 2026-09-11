@@ -3,10 +3,10 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Eine Kachel, die etwas tun soll, ist auch anklickbar.
+ * A tile that is meant to do something is clickable too.
  *
- * Found by walking the start screen as a user: twelve covers under "Zuletzt
- * gefunden", every one of them bound to open the release sheet, and not one of
+ * Found by walking the start screen as a user: twelve covers under "recently
+ * found", every one of them bound to open the release sheet, and not one of
  * them doing anything. `CoverTile` chose its element by asking
  * `$attrs.onOpen` — and Vue removes a listener from `$attrs` the moment the
  * event is declared in `defineEmits`. The test was therefore always false,
@@ -98,7 +98,7 @@ describe('a cover tile', () => {
 })
 
 /**
- * Und die Startseite bindet es auch so.
+ * And the start page binds it that way too.
  *
  * The component can only be right if the call site passes the prop. `@open`
  * would compile, bind nothing, and put the screen straight back where it was.

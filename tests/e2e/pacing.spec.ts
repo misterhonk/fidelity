@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 /**
- * Die eine Umgebungsannahme hinter der geteilten Drosselung.
+ * The one environment assumption behind the shared pacing.
  *
  * The gap between Discogs requests is global rather than per tab because the
  * slot is claimed under a Web Lock (worker/discogs/pacer.ts). Where the API is

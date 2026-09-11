@@ -127,8 +127,8 @@ test.describe('on a phone', () => {
      * exists — Safari zoomed on it and never zoomed back — but the demo field
      * is the first one a stranger touches.
      */
-    // Sichtbar ohne Zutun: es lag eine Weile hinter einem `summary`, das nicht
-    // nach einem Bedienelement aussah — gefunden hat es dort niemand.
+    // Visible with no action: it sat behind a `summary` for a while that did
+    // not look like a control — nobody found it there.
     const demoField = page.locator('#demo-url')
     await expect(demoField).toBeVisible()
     expect(

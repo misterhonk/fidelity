@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Der Index verweist auf nichts, was es nicht gibt.
+ * The index points at nothing that does not exist.
  *
  * The settings overview is a list of links and nothing else. A renamed page
  * file breaks it without breaking a type, without breaking a build, and

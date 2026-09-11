@@ -9,7 +9,7 @@ afterEach(async () => {
 })
 
 /**
- * Der Tiefenscan: an einem Laden vorbei, der größer ist als die Wand.
+ * The deep scan: past a shop that is larger than the wall.
  *
  * Page 101 of a foreign inventory is 403 and `per_page` is clamped to 100, so
  * one ordering can never return more than 10.000 listings. Every sort key is a

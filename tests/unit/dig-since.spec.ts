@@ -10,7 +10,7 @@ afterEach(async () => {
 })
 
 /**
- * „Nur das Neue" — der Besuch, der zwei Abfragen kostet statt zweihundert.
+ * "Only what is new" — the visit that costs two requests instead of two hundred.
  *
  * The watchlist can say a shop's total moved; until now the only answer to
  * that was a full rescan, four minutes of somebody's rate limit to find twelve
