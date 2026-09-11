@@ -532,6 +532,11 @@ const en = {
       'This browser cannot read a barcode — Safari has no reader of its own. Type the digits instead; it finds the same thing.',
     scanOwned: (copies: string) => `You have it — ${copies} in the collection.`,
     scanWanted: 'Not in the collection. It is on your wantlist.',
+    /* The album through its master (M20 #3): another pressing than the one in your hand. */
+    scanOwnedAlbum: (copies: string) =>
+      `You have this album — ${copies} in the collection, in another pressing.`,
+    scanWantedAlbum:
+      'Not in the collection. Another pressing of this album is on your wantlist.',
     scanNew: 'Not in your collection and not on your wantlist.',
     scanPressings: (n: string) =>
       `${n} pressings share this barcode — a barcode names a release, not a pressing.`,

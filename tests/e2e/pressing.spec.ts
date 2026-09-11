@@ -31,6 +31,7 @@ const search = (results: unknown[]) => ({
 
 const uk1994 = {
   id: 372340,
+  master_id: 5542,
   title: 'Portishead - Dummy',
   year: '1994',
   country: 'UK',
@@ -42,6 +43,7 @@ const uk1994 = {
 
 const eu2017 = {
   id: 10147986,
+  master_id: 5542,
   title: 'Portishead - Dummy',
   year: '2017',
   country: 'Europe',
@@ -170,6 +172,55 @@ test('a barcode shared by two pressings: pick one, and it is placed among all of
   )
   await expect(family).toContainText('Sterling')
   await expect(family).toContainText('STERLING 828 553-1 A1')
+})
+
+test('knows the album from the wantlist, in another pressing (M20 #3)', async ({
+  page,
+  context,
+}) => {
+  await answerDiscogs(context, [uk1994, eu2017])
+  await seed(page, 'en')
+  // A third pressing of Dummy on the wantlist — not one of the two the barcode names.
+  await page.evaluate(async () => {
+    const open = indexedDB.open('fidelity')
+    const db: IDBDatabase = await new Promise((resolve, reject) => {
+      open.onsuccess = () => resolve(open.result)
+      open.onerror = () => reject(open.error)
+    })
+    const tx = db.transaction('wantlist', 'readwrite')
+    tx.objectStore('wantlist').put({
+      releaseId: 1065562,
+      masterId: 5542,
+      title: 'Dummy',
+      artistIds: [10],
+      artistNorms: ['portishead'],
+      artistNames: ['Portishead'],
+      labelIds: [],
+      labelNorms: [],
+      labelNames: [],
+      catnos: [],
+      genres: [],
+      styles: [],
+      formats: ['Cassette'],
+      year: 1994,
+      thumbUrl: '',
+      coverUrl: '',
+      addedAt: '2022-01-01T00:00:00-00:00',
+      note: '',
+      want: 0,
+    })
+    await new Promise((done) => (tx.oncomplete = () => done(null)))
+    db.close()
+  })
+  await page.goto('/in-store')
+
+  await page.getByLabel('Barcode or run-out number').fill('5012394144777')
+  await page.getByRole('button', { name: 'Look it up' }).click()
+  await expect(
+    page.getByText(
+      'Not in the collection. Another pressing of this album is on your wantlist.',
+    ),
+  ).toBeVisible({ timeout: 15_000 })
 })
 
 test('a run-out that names one pressing is read without a tap', async ({ page, context }) => {

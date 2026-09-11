@@ -57,6 +57,8 @@ const client = {
       format: ['Vinyl', '7"'],
       label: ['RCA', 'BMG Records (UK) Ltd.'],
       catno: 'PB 41447',
+      // Eight of eight rows carry the master (measured 2026-09-11).
+      master_id: 96559,
     })),
   }),
 } as never
@@ -147,6 +149,41 @@ describe('what a barcode answers', () => {
     const found = await identify(client, '5012394144777')
     expect(found.owned).toEqual([])
     expect(found.wanted.map((w) => w.releaseId)).toEqual([1260449])
+  })
+
+  /**
+   * The album, not only the pressing (M20 #3).
+   *
+   * Measured with a real wantlist: "not on your wantlist" about a record
+   * whose album stood on it three lines below, in a different pressing.
+   */
+  it('finds another pressing of the album on the shelf, and says it apart', async () => {
+    const db = await openFidelityDb()
+    await db.put('collection', { ...platte(555_555, 1), masterId: 96559 })
+
+    const found = await identify(client, '5012394144777')
+    expect(found.owned).toEqual([])
+    expect(found.ownedAlbums.map((o) => o.releaseId)).toEqual([555_555])
+    expect(found.candidates[0]?.masterId).toBe(96559)
+  })
+
+  it('finds another pressing of the album on the wantlist', async () => {
+    const db = await openFidelityDb()
+    const { rating: _r, instanceId: _i, folderId: _f, ...want } = platte(777_777, 1)
+    await db.put('wantlist', { ...want, masterId: 96559, note: '', want: 0 })
+
+    const found = await identify(client, '5012394144777')
+    expect(found.wanted).toEqual([])
+    expect(found.wantedAlbums.map((w) => w.releaseId)).toEqual([777_777])
+  })
+
+  it('does not count an exact hit twice as "another pressing"', async () => {
+    const db = await openFidelityDb()
+    await db.put('collection', { ...platte(249504, 1), masterId: 96559 })
+
+    const found = await identify(client, '5012394144777')
+    expect(found.owned.map((o) => o.releaseId)).toEqual([249504])
+    expect(found.ownedAlbums).toEqual([])
   })
 
   it('asks Discogs nothing when the code is not one', async () => {

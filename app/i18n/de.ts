@@ -377,6 +377,10 @@ const de: Messages = {
       'Dieser Browser kann keinen Barcode lesen – Safari bringt keinen Leser mit. Tipp die Ziffern; es findet dasselbe.',
     scanOwned: (copies) => `Hast du – ${copies} in der Sammlung.`,
     scanWanted: 'Nicht in der Sammlung. Steht auf deiner Wantlist.',
+    scanOwnedAlbum: (copies) =>
+      `Das Album hast du – ${copies} in der Sammlung, in einer anderen Pressung.`,
+    scanWantedAlbum:
+      'Nicht in der Sammlung. Eine andere Pressung dieses Albums steht auf deiner Wantlist.',
     scanNew: 'Weder in der Sammlung noch auf der Wantlist.',
     scanPressings: (n) =>
       `${n} Pressungen teilen sich diesen Barcode – ein Barcode benennt eine Veröffentlichung, keine Pressung.`,

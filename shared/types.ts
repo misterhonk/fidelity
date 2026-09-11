@@ -1056,9 +1056,20 @@ export interface Identified {
     /** The first label and its catalogue number — what is printed on the record. */
     label: string
     catno: string
+    /** 0 when Discogs has no master for it. */
+    masterId: number
   }[]
   owned: CollectionItem[]
   wanted: WantlistItem[]
+  /**
+   * Another pressing of the same album on the shelf or the wantlist (M20 #3).
+   *
+   * Found through the master every search row carries (measured 2026-09-11,
+   * eight of eight rows). Only records that are not already in `owned` or
+   * `wanted` by their exact id — the same line S2 draws beside S1.
+   */
+  ownedAlbums: CollectionItem[]
+  wantedAlbums: WantlistItem[]
 }
 
 /**

@@ -493,13 +493,22 @@ const expired = computed(() => results.value.some((entry) => Date.now() > entry.
           v-if="identified"
           class="flex flex-col gap-2 rounded-fid-md border border-fid-border p-3"
         >
+          <!--
+            The pressing first, then the album (M20 #3): "you have it" and "you
+            have another pressing of it" are different answers in a shop, and
+            the second used to be "not in your collection".
+          -->
           <p class="text-fid-sm text-fid-text">
             {{
               identified.owned.length > 0
                 ? m.inStore.scanOwned(count(identified.owned.length))
-                : identified.wanted.length > 0
-                  ? m.inStore.scanWanted
-                  : m.inStore.scanNew
+                : identified.ownedAlbums.length > 0
+                  ? m.inStore.scanOwnedAlbum(count(identified.ownedAlbums.length))
+                  : identified.wanted.length > 0
+                    ? m.inStore.scanWanted
+                    : identified.wantedAlbums.length > 0
+                      ? m.inStore.scanWantedAlbum
+                      : m.inStore.scanNew
             }}
           </p>
           <p v-if="identified.candidates.length > 1" class="text-fid-xs text-fid-text-muted">

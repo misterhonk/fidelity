@@ -35,6 +35,8 @@ const searchSchema = z.object({
         /** Every company on the record, the label first (measured 2026-09-11). */
         label: z.array(z.string()).optional(),
         catno: z.string().optional(),
+        /** On every row where the release has one (measured 2026-09-11, 8 of 8). */
+        master_id: z.number().int().nullable().optional(),
       }),
     )
     .default([]),
@@ -73,7 +75,7 @@ export async function identify(
   signal?: AbortSignal,
 ): Promise<Identified> {
   const barcode = cleanBarcode(raw)
-  if (!barcode) return { barcode: raw, candidates: [], owned: [], wanted: [] }
+  if (!barcode) return nothing(raw)
 
   const answer = await client.get('/database/search', searchSchema, {
     query: { barcode, type: 'release', per_page: String(MAX_CANDIDATES) },
@@ -109,7 +111,7 @@ export async function identifyByRunout(
   const text = runout.trim()
   // Shorter than that is not a run-out but a typo — and a search for three
   // characters fetches half the catalogue.
-  if (text.length < 6) return { barcode: text, candidates: [], owned: [], wanted: [] }
+  if (text.length < 6) return nothing(text)
 
   const answer = await client.get('/database/search', searchSchema, {
     query: { q: text, type: 'release', per_page: String(MAX_CANDIDATES) },
@@ -140,6 +142,7 @@ async function withOwnership(
     format?: string[]
     label?: string[]
     catno?: string
+    master_id?: number | null
   }[],
 ): Promise<Identified> {
   const candidates = results.map((row) => ({
@@ -151,6 +154,7 @@ async function withOwnership(
     format: (row.format ?? []).join(' · '),
     label: row.label?.[0] ?? '',
     catno: row.catno ?? '',
+    masterId: row.master_id ?? 0,
   }))
 
   const db = await openFidelityDb()
@@ -169,5 +173,38 @@ async function withOwnership(
     if (want) wanted.push(want)
   }
 
-  return { barcode: code, candidates, owned, wanted }
+  /*
+   * And the album, not only the pressing (M20 #3).
+   *
+   * Measured with a real wantlist on 2026-09-11: the screen said "not on your
+   * wantlist" about a record whose album stood on it three lines below, in a
+   * different pressing. The master says what the exact id cannot — and it is
+   * listed apart from the exact hits, because "you have this" and "you have
+   * another pressing of this" are two different answers in a shop.
+   */
+  const exactReleases = new Set(candidates.map((candidate) => candidate.releaseId))
+  const masters = [...new Set(candidates.map((c) => c.masterId).filter((id) => id > 0))]
+  const ownedAlbums: CollectionItem[] = []
+  const wantedAlbums: WantlistItem[] = []
+  for (const masterId of masters) {
+    for (const item of await db.getAllFromIndex('collection', 'by-master', masterId)) {
+      if (!exactReleases.has(item.releaseId)) ownedAlbums.push(item)
+    }
+    for (const item of await db.getAllFromIndex('wantlist', 'by-master', masterId)) {
+      if (!exactReleases.has(item.releaseId)) wantedAlbums.push(item)
+    }
+  }
+
+  return { barcode: code, candidates, owned, wanted, ownedAlbums, wantedAlbums }
+}
+
+function nothing(code: string): Identified {
+  return {
+    barcode: code,
+    candidates: [],
+    owned: [],
+    wanted: [],
+    ownedAlbums: [],
+    wantedAlbums: [],
+  }
 }
