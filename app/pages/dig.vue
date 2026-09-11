@@ -686,8 +686,33 @@ const noHorizon = computed(
         "
         @click="showDig(entry.id)"
       >
-        {{ entry.dealer }}
-        <span class="fid-num text-fid-xs text-fid-text-muted">{{ entry.matchCount }}</span>
+        <!--
+          Name, Zeitpunkt, Art, Trefferzahl.
+
+          Bis zum 2026-09-11 stand hier nur Name und Zahl — und drei Läufe
+          desselben Ladens am selben Tag waren damit drei identische Knöpfe.
+          Gemeldet mit genau diesem Bild: dreimal „fatplastics 0".
+
+          Die Uhrzeit gehört dazu und nicht nur das Datum: zwei der drei lagen
+          eine halbe Stunde auseinander. `dayTime` sagt in seinem eigenen
+          Kommentar, wofür es da ist — „für Dinge, die öfter als einmal am Tag
+          passieren".
+
+          Und die Art, weil eine Null bei „nur das Neue" etwas anderes heißt
+          als eine Null nach einem vollständigen Lauf: nichts Neues
+          eingetroffen gegen nichts für dich dabei. `digKind` trägt diese
+          Unterscheidung schon an zwei anderen Stellen.
+        -->
+        <span class="flex flex-col items-start gap-1">
+          <span class="flex flex-wrap items-baseline gap-x-2">
+            {{ entry.dealer }}
+            <span class="fid-num text-fid-xs text-fid-text-muted">{{ entry.matchCount }}</span>
+          </span>
+          <span class="fid-num text-fid-xs text-fid-text-muted">
+            {{ dayTime(entry.startedAt) }}
+            <template v-if="digKind(entry) !== 'full'"> · {{ d.incremental.short }}</template>
+          </span>
+        </span>
       </button>
     </nav>
 

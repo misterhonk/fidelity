@@ -32,6 +32,15 @@ const en = {
   takesAbout: (minutes: number) => `Takes about ${counted(minutes, 'minute', 'minutes')}.`,
 
   incremental: {
+    /*
+     * Das Kürzel für die Chip-Reihe der früheren Digs.
+     *
+     * Drei Läufe desselben Ladens sahen dort bis zum 2026-09-11 identisch aus
+     * — Name und Trefferzahl, sonst nichts. Ein „nur das Neue"-Lauf sagt etwas
+     * völlig anderes über eine Null als ein vollständiger, und ohne dieses
+     * Wort ist der Unterschied unsichtbar.
+     */
+    short: 'only what was new',
     known: (minutes: number) =>
       `You know this shop already. Fidelity can fetch only the listings that have arrived since last time — usually one or two lookups instead of ${counted(minutes, 'minute', 'minutes')}.`,
     fetch: 'Fetch only what is new',
@@ -315,6 +324,7 @@ const de: typeof en = {
   takesAbout: (minutes) => `Dauert etwa ${counted(minutes, 'Minute', 'Minuten')}.`,
 
   incremental: {
+    short: 'nur das Neue',
     known: (minutes) =>
       `Diesen Laden kennst du schon. Fidelity kann nur die Angebote holen, die seit dem letzten Mal dazugekommen sind — meist ein bis zwei Abfragen statt ${counted(minutes, 'Minute', 'Minuten')}.`,
     fetch: 'Nur das Neue holen',
