@@ -170,6 +170,31 @@ const en = {
     markBought: (record: string) => `Mark ${record} as bought`,
     forget: 'forget',
     boughtTitle: 'Bought',
+
+    /*
+     * How it arrived (M14).
+     *
+     * Deliberately worded against what the shop promised, without ever naming
+     * it: the promised grade is Discogs content and is not stored anywhere
+     * (worker/grading.ts). "As described" carries the comparison on its own.
+     */
+    arrival: {
+      ask: 'How did it arrive?',
+      asDescribed: 'As described',
+      better: 'Better',
+      worse: 'Worse',
+      askFor: (record: string) => `How did ${record} arrive?`,
+      said: {
+        'as-described': 'arrived as described',
+        better: 'arrived better than described',
+        worse: 'arrived worse than described',
+      },
+      undo: 'change',
+      nudge: 'Did it arrive?',
+      more: (n: string) => `${n} more waiting`,
+      why: 'Stays on this device. Discogs feedback rates the transaction, not whether the grading was right — this is your own record of that, and it is what the honesty figure on a shop is built from.',
+      whyLabel: 'Where does this go?',
+    },
   },
 }
 
@@ -300,6 +325,24 @@ const de: typeof en = {
     markBought: (record: string) => `${record} als gekauft eintragen`,
     forget: 'vergessen',
     boughtTitle: 'Gekauft',
+
+    arrival: {
+      ask: 'Wie kam sie an?',
+      asDescribed: 'Wie beschrieben',
+      better: 'Besser',
+      worse: 'Schlechter',
+      askFor: (record: string) => `Wie kam ${record} an?`,
+      said: {
+        'as-described': 'kam wie beschrieben',
+        better: 'kam besser als beschrieben',
+        worse: 'kam schlechter als beschrieben',
+      },
+      undo: 'ändern',
+      nudge: 'Ist sie angekommen?',
+      more: (n) => `${n} weitere offen`,
+      why: 'Bleibt auf diesem Gerät. Das Discogs-Feedback bewertet den Ablauf, nicht die Richtigkeit der Note — das hier ist deine eigene Aufzeichnung davon, und daraus entsteht die Ehrlichkeitszahl bei einem Laden.',
+      whyLabel: 'Wo landet das?',
+    },
   },
 }
 

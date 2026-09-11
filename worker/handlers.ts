@@ -484,6 +484,22 @@ export const handlers: HandlerMap = {
    * Hub-Adresse aus dem Link und nicht aus den Einstellungen, und deshalb
    * fragt hier nichts nach einer Identität.
    */
+  'grading.forDealer': async ({ dealer }) => {
+    const { gradingFor } = await import('./grading')
+    return gradingFor(dealer)
+  },
+
+  'grading.awaiting': async () => {
+    const { awaitingArrival } = await import('./grading')
+    return awaitingArrival()
+  },
+
+  'grading.record': async ({ listingId, arrived }) => {
+    const { recordArrival } = await import('./grading')
+    await recordArrival(listingId, arrived)
+    return true as const
+  },
+
   'identify.barcode': async ({ barcode }, { signal }) => {
     const { identify } = await import('./identify')
     return identify(discogs(), barcode, signal)

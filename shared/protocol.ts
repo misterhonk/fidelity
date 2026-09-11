@@ -34,6 +34,7 @@ import type {
   Dig,
   DiscoveryResult,
   Feedback,
+  GradingRecord,
   Identified,
   Identity,
   MarkedOverview,
@@ -624,6 +625,30 @@ export interface WorkerContract {
    * ein Barcode benennt eine Veröffentlichung, und am 2026-09-11 gemessen
    * teilten sich acht Releases in fünf Ländern denselben.
    */
+  /**
+   * Gradet dieser Laden ehrlich? (M14)
+   *
+   * Kostet keinen Request — alles steht im `feedback`-Store. Gespeichert wird
+   * **nur der Vergleich**, nie die versprochene Note: die wäre
+   * Discogs-Content und dürfte nach sechs Stunden nicht mehr gezeigt werden.
+   */
+  'grading.forDealer': { params: { dealer: string }; progress: never; result: GradingRecord }
+  'grading.awaiting': {
+    params: undefined
+    progress: never
+    result: {
+      listingId: number
+      dealer: string | null
+      artist: string | null
+      title: string | null
+    }[]
+  }
+  'grading.record': {
+    params: { listingId: number; arrived: 'as-described' | 'better' | 'worse' | null }
+    progress: never
+    result: true
+  }
+
   'identify.barcode': { params: { barcode: string }; progress: never; result: Identified }
   /**
    * Und über die Auslaufrille — der bessere Ausweis bei Club-Vinyl.

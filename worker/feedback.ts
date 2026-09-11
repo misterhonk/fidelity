@@ -152,5 +152,6 @@ function toMarked(entry: Feedback): MarkedRecord {
     score: entry.score,
     createdAt: entry.createdAt,
     soldAt: entry.soldAt ?? null,
+    arrived: entry.arrived ?? null,
   }
 }

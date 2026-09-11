@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DealerProfile } from '#shared/protocol'
-import type { Dealer, TasteFacet } from '#shared/types'
+import type { Dealer, GradingRecord, TasteFacet } from '#shared/types'
 
 import { useDealerMessages } from '~/i18n/dealers'
 
@@ -24,6 +24,15 @@ const route = useRoute()
 const dealers = shallowRef<Dealer[]>([])
 const selected = ref<string | null>(null)
 const profile = ref<DealerProfile | null>(null)
+
+/**
+ * Wie ehrlich dieser Laden gradet — aus den eigenen Käufen (M14).
+ *
+ * Kostet keinen Request: die Zahl steht im `feedback`-Store dieses Geräts.
+ * Getrennt vom Profil geladen, weil sie nichts mit Discogs zu tun hat — das
+ * Profil kommt vom Server, das hier aus der eigenen Vergangenheit.
+ */
+const grading = ref<GradingRecord | null>(null)
 
 async function load() {
   dealers.value = await call('dealer.list', undefined)
@@ -60,7 +69,9 @@ onMounted(async () => {
 
 async function select(username: string) {
   selected.value = username
+  grading.value = null
   profile.value = await call('dealer.profile', { dealer: username })
+  grading.value = await call('grading.forDealer', { dealer: username })
 
   /*
    * The list above learns about the sign that was just fetched.
@@ -206,6 +217,35 @@ const scanned = computed(() => {
             </template>
             <template v-if="scanned"> · {{ h.lastScanned(scanned) }}</template>
           </p>
+
+          <!--
+            Und direkt darunter die Zahl, die Discogs nicht führt.
+
+            Über der Zeile steht die Verkäuferbewertung: die misst den Ablauf –
+            schnell verschickt, ordentlich verpackt – und sagt nichts darüber,
+            ob die Note stimmte. Genau deshalb steht diese Zeile hier und nicht
+            in einem eigenen Abschnitt: nebeneinander liest man den
+            Unterschied, untereinander kämen sie nie zusammen.
+
+            Die versprochene Note steht in keiner dieser Zahlen. Gespeichert
+            ist nur der Vergleich (worker/grading.ts).
+          -->
+          <div v-if="grading && grading.judged > 0" class="flex flex-col gap-1">
+            <p class="fid-num text-fid-sm text-fid-text">
+              <template v-if="grading.rate !== null">
+                {{
+                  h.grading.rate(`${Math.round(grading.rate * 100)} %`, count(grading.judged))
+                }}
+              </template>
+              <template v-else>
+                {{ h.grading.tooFew(count(grading.judged), grading.judged === 1) }}
+              </template>
+              <template v-if="grading.worse > 0">
+                {{ h.grading.worse(count(grading.worse), grading.worse === 1) }}
+              </template>
+            </p>
+            <WhyNote :label="h.grading.whyLabel">{{ h.grading.why }}</WhyNote>
+          </div>
 
           <!--
             Watching costs one request per app start, not a rescan. Worth

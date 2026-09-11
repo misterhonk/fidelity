@@ -1417,6 +1417,12 @@ export interface MarkedRecord {
   score: number
   createdAt: number
   soldAt: number | null
+  /**
+   * Wie die Platte ankam, sofern gefragt und beantwortet (M14).
+   *
+   * Nur bei gekauften Zeilen gefüllt. Eine Merkliste hat keine Ankunft.
+   */
+  arrived: 'as-described' | 'better' | 'worse' | null
 }
 
 export interface MarkedOverview {
@@ -1424,6 +1430,23 @@ export interface MarkedOverview {
   bought: MarkedRecord[]
   total: number
   stillOpen: number
+}
+
+/**
+ * Wie ehrlich ein Laden gradet — aus den eigenen Käufen (M14).
+ *
+ * `rate` ist `null`, solange zu wenige Platten beurteilt sind: zwei von zwei
+ * sind 100 %, und das liest sich wie ein Urteil über einen Laden, über den
+ * man nichts weiß.
+ */
+export interface GradingRecord {
+  dealer: string
+  judged: number
+  asDescribed: number
+  better: number
+  worse: number
+  /** Anteil „wie beschrieben oder besser", oder null bei zu wenigen. */
+  rate: number | null
 }
 
 export interface Feedback {
@@ -1440,6 +1463,22 @@ export interface Feedback {
    */
   soldAt?: number | null
   verdict: Verdict
+  /**
+   * Wie die Platte ankam, verglichen mit dem, was versprochen war (M14).
+   *
+   * **Nur das Urteil, nie die versprochene Note.** Die wäre Discogs-Content,
+   * und der darf nach sechs Stunden nicht mehr gezeigt werden (`docs/09`
+   * §1.1). Ein Vergleich ist dagegen ein **abgeleitetes** Datum — dieselbe
+   * Kategorie wie Scores und der Händler-Fingerprint, und die dürfen bleiben.
+   *
+   * Das ist die Lücke, die Discogs strukturell nicht schließt: dort misst das
+   * Feedback „quality of transaction" und sagt nichts über die
+   * Bewertungsgenauigkeit; negative Bewertungen wegen Übergrading werden auf
+   * Beschwerde des Verkäufers entfernt. Was hier entsteht, ist keine
+   * Fremdbewertung, sondern eine private Aufzeichnung der eigenen Käufe.
+   */
+  arrived?: 'as-described' | 'better' | 'worse' | null
+  arrivedAt?: number | null
   /** Signal snapshot at the time of the verdict — otherwise it is unusable later. */
   signals: Signal[]
   score: number

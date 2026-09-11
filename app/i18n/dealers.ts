@@ -35,6 +35,23 @@ const en = {
   rating: (percent: string, count: string) => `${percent} on ${count} ratings`,
   lastScanned: (when: string) => `last scanned on ${when}`,
 
+  /*
+   * How honestly this shop grades — from your own purchases (M14).
+   *
+   * Two shapes on purpose. Below five judged records there is no percentage:
+   * two out of two is 100 % and reads like a verdict on a shop you know
+   * nothing about. The bare count says the same thing without the claim.
+   */
+  grading: {
+    rate: (percent: string, judged: string) =>
+      `${percent} of ${judged} records you bought here arrived as described or better.`,
+    tooFew: (judged: string, one: boolean) =>
+      `${judged} ${one ? 'record' : 'records'} judged so far — too few for a figure.`,
+    worse: (n: string, one: boolean) => `${n} ${one ? 'was' : 'were'} worse than described.`,
+    whyLabel: 'Why is this not on Discogs?',
+    why: 'Discogs feedback rates the transaction, not whether the grading was right — and a negative rating for overgrading is removed when the seller objects. This figure is yours alone: it counts the records you marked as arrived, and it never leaves this device.',
+  },
+
   watching: 'Being watched',
   watch: 'Watch this dealer',
   /* Watching costs one request per app start, not a rescan. Worth saying,
@@ -117,6 +134,16 @@ const de: typeof en = {
   shipsFrom: (country) => `aus ${country}`,
   rating: (percent, count) => `${percent} bei ${count} Bewertungen`,
   lastScanned: (when) => `zuletzt gescannt am ${when}`,
+
+  grading: {
+    rate: (percent, judged) =>
+      `${percent} von ${judged} hier gekauften Platten kamen wie beschrieben oder besser an.`,
+    tooFew: (judged, one) =>
+      `Bisher ${judged} ${one ? 'Platte' : 'Platten'} beurteilt – zu wenige für eine Zahl.`,
+    worse: (n, one) => `${n} ${one ? 'war' : 'waren'} schlechter als beschrieben.`,
+    whyLabel: 'Warum steht das nicht bei Discogs?',
+    why: 'Das Discogs-Feedback bewertet den Ablauf, nicht die Richtigkeit der Note – und eine negative Bewertung wegen Übergrading wird auf Beschwerde des Verkäufers entfernt. Diese Zahl gehört dir allein: sie zählt die Platten, die du als angekommen eingetragen hast, und sie verlässt dieses Gerät nicht.',
+  },
 
   watching: 'Wird beobachtet',
   watch: 'Händler merken',

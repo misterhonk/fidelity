@@ -118,6 +118,30 @@ async function intoBasket(group: { dealer: string | null; records: MarkedRecord[
   }
 }
 
+/**
+ * Wie eine gekaufte Platte ankam (M14).
+ *
+ * Gespeichert wird nur der Vergleich, nie die versprochene Note — die wäre
+ * Discogs-Content und dürfte nach sechs Stunden nicht mehr auf dem Schirm
+ * stehen. Deshalb fragt dieser Bildschirm auch nicht „war es wirklich VG+",
+ * sondern „wie beschrieben oder nicht": die Frage darf die Antwort nicht
+ * voraussetzen, die die App gar nicht kennt.
+ */
+async function arrived(record: MarkedRecord, how: MarkedRecord['arrived']) {
+  error.value = null
+  try {
+    // Zweimal dasselbe drücken heißt „doch nicht" — sonst gäbe es keinen Weg
+    // zurück aus einem verrutschten Daumen.
+    await call('grading.record', {
+      listingId: record.listingId,
+      arrived: record.arrived === how ? null : how,
+    })
+    await load()
+  } catch (cause) {
+    error.value = cause
+  }
+}
+
 async function load() {
   overview.value = await call('feedback.marked', undefined)
 }
@@ -340,25 +364,66 @@ async function check() {
         class="flex flex-col gap-2 border-t border-fid-border pt-6"
       >
         <h2 class="text-fid-base font-bold text-fid-text">{{ b.saved.boughtTitle }}</h2>
-        <ul class="flex flex-col gap-1">
+        <ul class="flex flex-col gap-3">
           <li
             v-for="record in overview.bought"
             :key="record.listingId"
-            class="flex flex-wrap items-baseline justify-between gap-x-3 text-fid-sm"
+            class="flex flex-col gap-1"
           >
-            <span class="min-w-0 grow truncate text-fid-text">
-              <template v-if="record.artist || record.title">
-                {{ record.artist }}<template v-if="record.artist && record.title"> – </template
-                >{{ record.title }}
-              </template>
-              <template v-else>{{ b.saved.release(record.releaseId) }}</template>
-            </span>
-            <span class="shrink-0 text-fid-xs text-fid-text-muted">
-              <template v-if="record.dealer">{{ record.dealer }} · </template>
-              {{ day(record.createdAt) }}
-            </span>
+            <div class="flex flex-wrap items-baseline justify-between gap-x-3 text-fid-sm">
+              <span class="min-w-0 grow truncate text-fid-text">
+                <template v-if="record.artist || record.title">
+                  {{ record.artist
+                  }}<template v-if="record.artist && record.title"> – </template
+                  >{{ record.title }}
+                </template>
+                <template v-else>{{ b.saved.release(record.releaseId) }}</template>
+              </span>
+              <span class="shrink-0 text-fid-xs text-fid-text-muted">
+                <template v-if="record.dealer">{{ record.dealer }} · </template>
+                {{ day(record.createdAt) }}
+              </span>
+            </div>
+
+            <!--
+              Wie sie ankam — drei Knöpfe, keine Notenskala.
+
+              Die versprochene Note steht nirgends, also darf die Frage sie
+              auch nicht nennen. Der gedrückte Knopf bleibt stehen und ist der
+              Weg zurück: noch einmal darauf, und das Urteil ist wieder offen.
+            -->
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-fid-xs text-fid-text-muted">
+                {{
+                  record.arrived ? b.saved.arrival.said[record.arrived] : b.saved.arrival.ask
+                }}
+              </span>
+              <button
+                v-for="how in ['as-described', 'better', 'worse'] as const"
+                :key="how"
+                type="button"
+                class="rounded-fid-sm border px-3 py-1 text-fid-xs"
+                :class="
+                  record.arrived === how
+                    ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
+                    : 'border-fid-border text-fid-text-muted'
+                "
+                :aria-pressed="record.arrived === how"
+                @click="arrived(record, how)"
+              >
+                {{
+                  how === 'as-described'
+                    ? b.saved.arrival.asDescribed
+                    : how === 'better'
+                      ? b.saved.arrival.better
+                      : b.saved.arrival.worse
+                }}
+              </button>
+            </div>
           </li>
         </ul>
+
+        <WhyNote :label="b.saved.arrival.whyLabel">{{ b.saved.arrival.why }}</WhyNote>
       </section>
     </template>
   </main>
