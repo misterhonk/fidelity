@@ -11,6 +11,31 @@ Für eine App bedeutet SemVer:
 
 ## [0.26.0](https://github.com/misterhonk/fidelity/compare/v0.25.1...v0.26.0) (2026-09-11)
 
+Die Ausgabe, in der die App **sagt, was sie tut** — und zugibt, was sie nicht tun kann.
+
+Der Keeper frischt Sammlung, Wantlist, beobachtete Läden und den Horizont seit je beim
+Öffnen auf, beim Zurückkehren in den Tab und alle zwanzig Minuten. Nur stand davon nichts
+auf dem Schirm. Jetzt nennt die Zeile den Schritt beim Namen, und daneben steht, was sich
+**nicht** von selbst auffrischt: ein Dig, weil er zwei bis vier Minuten und hundert
+Abfragen kostet, und Bestellungen, weil Discogs sie nicht herausgibt.
+
+**Drei Korrekturen, die alle an echten Daten aufgefallen sind:**
+
+- **Was bei Discogs verschwindet, verschwindet auch hier.** 26 Wantlist-Einträge lokal,
+  24 bei Discogs — der Abgleich schrieb jede gelesene Zeile und nahm nie eine weg. In der
+  Sammlung war das mehr als kosmetisch: „besitze ich schon" ist ein harter Filter, eine
+  verkaufte Platte hätte sich in jedem künftigen Dig selbst ausgeblendet.
+- **Drei Läufe desselben Ladens sahen identisch aus.** Jetzt stehen Uhrzeit und Art dabei
+  — eine Null bei „nur das Neue" heißt etwas anderes als eine Null nach einem
+  vollständigen Durchgang.
+- **Die Händler-Erkennung behauptete etwas Unmögliches.** `GET /marketplace/orders` ist
+  die Verkäuferseite; für jemanden, der nur kauft, findet diese Quelle nie etwas.
+
+**Und eine Bestellung lässt sich jetzt einlesen.** Eine Nummer von
+`discogs.com/sell/purchases`, eine Anfrage, und alle Platten der Bestellung stehen auf
+der Kaufliste — mit der Ankunftsfrage aus 0.25.0. Gespeichert wird dabei weder der Preis
+noch die versprochene Note noch die Adresse des Verkäufers; das Schema an der Grenze
+nennt diese Felder gar nicht erst.
 
 ### Added
 
