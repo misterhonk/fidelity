@@ -11,6 +11,28 @@ Für eine App bedeutet SemVer:
 
 ## [0.29.1](https://github.com/misterhonk/fidelity/compare/v0.29.0...v0.29.1) (2026-09-11)
 
+**The whole front end was read against its own design document, and photographed.** Ten
+findings, ranked by what a person sees, all fixed in this release.
+
+The in-store screen — the one built for a basement with no signal — read "7 7 finds", and
+under seven finished finds it said "No dig yet". Two German fragments were still rendered
+inside the English interface: "4 Platten" in the basket, "– hast du" to a screen reader. The
+two detail sheets carried the same drawer twice, line for line, and had drifted: neither kept
+the keyboard focus inside or gave it back on close, though the design document promised
+both, and the shelf sheet's slide was dead because it named a style that lived in the other
+file. Nine design tokens were emitted and read by nothing. The start page was blank for the
+seconds it took the stores to answer; four pages showed nothing when the worker failed;
+five empty states were a sentence with no way out. And the words: shop, dealer and seller
+mixed within six lines, "Shops" in the bar, "Dealers" in the palette.
+
+One word now — *shop* in English, *Laden* in German. One drawer for both sheets, with the
+focus trap. Every token read or removed. A loading line, an error note, a link out of every
+empty state. And a new guard in the test suite that reads string literals, which is where
+the German had been hiding: it found fourteen more lines in the worker, now English.
+
+The map says "37 different releases" where the shelf says "40 records", because it counts
+taste and the shelf counts copies — before, the two numbers stood under one heading with
+nothing to explain them.
 
 ### Fixed
 
