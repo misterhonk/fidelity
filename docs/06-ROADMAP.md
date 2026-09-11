@@ -11,12 +11,15 @@
 Die Meilenstein-Versionen in den Überschriften sind Planungsnamen aus der Entwurfszeit
 und nicht die tatsächliche Zählung — die steht in `CHANGELOG.md`.
 
-**M0 bis M15 sind abgearbeitet.** Offen sind noch drei Reste:
+**M0 bis M15 sind abgearbeitet.** Offen ist noch ein Punkt:
 
 | offen | wo | Stand |
 |---|---|---|
-| Den Runout **vorlesen** statt abtippen | M13 | `SpeechRecognition`, erst zu messen |
 | `docs/` ist noch deutsch | M10 | größter Brocken, geringste Dringlichkeit |
+
+Der vorgelesene Runout aus M13 stand hier bis zum 2026-09-11 und ist **geprüft und
+verworfen** — `SpeechRecognition` ist verfügbar und sogar geräteintern möglich, aber auf
+Wörter trainiert, und eine Auslaufrille ist keines. Die Begründung steht bei M13.
 
 Wächter mit Web Push und das Hub-Dockerfile standen bis zum 2026-09-10 als offen in
 dieser Tabelle und waren beide seit dem 14. August gebaut. Am Code nachgesehen, nicht
@@ -659,8 +662,30 @@ markante Mastering-Signatur allein zwei.
       wählen, welche Art Nummer er abtippt.
 - [x] Zu kurze Bruchstücke werden gar nicht erst gesucht — unter sechs Zeichen holt die
       Suche den halben Katalog und kostet eine Anfrage für nichts.
-- [ ] Offen: den Runout **vorlesen** statt abtippen. `SpeechRecognition` ist in Chrome
-      da und in WebKit teilweise; zu messen, bevor es jemand verspricht.
+- [ ] ~~Den Runout **vorlesen** statt abtippen.~~ **Gemessen am 2026-09-11, und die
+      Antwort ist: nicht so.** Nicht an der Verfügbarkeit — die ist besser als gedacht.
+
+> **Was die Messung ergab.** In aktuellem Chrome existiert `SpeechRecognition`
+> **ohne Präfix**, mit `continuous`, `interimResults`, `maxAlternatives` und sogar
+> `processLocally` samt `install()`: eine Erkennung, die das Gerät selbst macht, statt
+> jede Silbe an Google zu schicken. Für eine App, deren Datenschutzseite jeden
+> Fremdzugriff beim Namen nennt, wäre das die Bedingung gewesen, und sie ist erfüllt.
+>
+> **Trotzdem ist es das falsche Werkzeug für diesen Text.** Eine Auslaufrille liest sich
+> `BN-LP-4001-A [ear] M9 RVG`. Spracherkennung ist auf Wörter trainiert und rät bei
+> Buchstabenfolgen und Ziffern; „BN-LP-4001-A" kommt als „Bien LP vierzigeins A" zurück,
+> und die Suche verlangt die **volle** Zeichenkette — sie ist genau deshalb so gut, weil
+> ein vollständiger Runout einen Treffer liefert statt acht. Ein Verfahren, das an
+> jeder dritten Stelle danebenliegt, macht aus dem besten Ausweis den schlechtesten.
+>
+> **Was wahr sein müsste, damit es doch geht:** ein Buchstabier-Modus, in dem jemand
+> „B – N – Bindestrich – L – P" sagt. Das ist langsamer als tippen, und damit fällt der
+> einzige Grund weg, es zu bauen — eine Platte in der einen Hand, das Telefon in der
+> anderen.
+>
+> Bleibt liegen, nicht als „noch nicht geschafft", sondern als geprüft und verworfen.
+> Wer es wieder aufmacht, sollte etwas Neues mitbringen: ein Modell, das Seriennummern
+> kann, oder eine Messung mit echten Rillen statt einer Vermutung.
 
 ⚠️ **Was hier weiterhin nicht versprochen wird:** Buchrücken im Regal erkennen. Ein
 fotografiertes Regal in einzelne Platten zu zerlegen ist ein anderes, deutlich härteres
