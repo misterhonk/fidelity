@@ -92,6 +92,28 @@ const en = {
   sharedPitch:
     'Fidelity reads a record shop against your own collection and says, for every find, why it fits.',
 
+  /*
+   * Der Stapel (M15) — dieselben Funde, einer nach dem anderen.
+   *
+   * `position` sagt, wo man steht, statt Unendlichkeit vorzutäuschen: ein
+   * Laden ist irgendwann durch, und dann sagt der Bildschirm das.
+   */
+  stack: {
+    title: 'One at a time',
+    lead: 'Your finds, one record per screen. Swipe on.',
+    empty: 'No fresh finds yet. A dig fills this screen.',
+    toDig: 'Start a dig',
+    through: 'That was all of them. Nothing left waiting.',
+    position: (at: string, of: string, dealer: string) => `${at} of ${of} at ${dealer}`,
+    shop: (dealer: string, waiting: number) =>
+      waiting > 0 ? `${dealer} — ${waiting} still waiting` : `${dealer} — all seen`,
+    like: 'Interesting',
+    basket: 'To basket',
+    share: 'Share',
+    next: 'Next',
+    back: 'Back',
+  },
+
   shareBusy: 'Sealing …',
   shareNeedsHub: 'Sharing needs a hub — one is set up in the settings.',
   shareReady: (matches: number, total: number) =>
@@ -333,6 +355,22 @@ const de: typeof en = {
   sharedWhatIsThis: 'Was ist Fidelity?',
   sharedPitch:
     'Fidelity liest einen Plattenladen gegen deine eigene Sammlung und sagt zu jedem Fund, warum er passt.',
+
+  stack: {
+    title: 'Eine nach der anderen',
+    lead: 'Deine Funde, eine Platte pro Bildschirm. Weiterwischen.',
+    empty: 'Noch keine frischen Funde. Ein Dig füllt diesen Bildschirm.',
+    toDig: 'Dig starten',
+    through: 'Das waren alle. Es wartet nichts mehr.',
+    position: (at, of, dealer) => `${at} von ${of} bei ${dealer}`,
+    shop: (dealer, waiting) =>
+      waiting > 0 ? `${dealer} — ${waiting} warten noch` : `${dealer} — alle gesehen`,
+    like: 'Interessant',
+    basket: 'In den Korb',
+    share: 'Teilen',
+    next: 'Weiter',
+    back: 'Zurück',
+  },
 
   shareBusy: 'Wird versiegelt …',
   shareNeedsHub: 'Teilen braucht einen Hub — einer wird in den Einstellungen eingetragen.',

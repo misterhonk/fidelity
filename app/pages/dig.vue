@@ -714,6 +714,21 @@ const noHorizon = computed(
       </div>
 
       <!--
+        Dieselben Funde, einer nach dem anderen.
+
+        Kein sechster Eintrag in der Navigationsleiste: auf einem Telefon sind
+        fünf schon die Grenze. Der Stapel ist eine zweite **Ansicht** dieser
+        Liste, also steht er dort, wo die Liste steht — und nicht an einer
+        Stelle, an der man ihn suchen müsste.
+      -->
+      <NuxtLink
+        :to="{ path: '/stack' }"
+        class="fid-action self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+      >
+        {{ d.stack.title }}
+      </NuxtLink>
+
+      <!--
         Teilen, und nur wenn es geht.
         Ohne Hub gibt es keinen Ort, an dem eine Fundliste liegen könnte —
         dann steht hier ein Satz statt eines Knopfes, der nichts tut. Nach

@@ -793,6 +793,15 @@ export interface Dig {
    * of dig worth running on a shop you check every week.
    */
   depth?: 'normal' | 'deep' | 'neu'
+  /**
+   * Wie weit der Stapel (M15) in diesem Dig gekommen ist.
+   *
+   * Am Dig und nicht in einem eigenen Store: ein zweiter Eintrag pro Dig
+   * müsste mit dem ersten Schritt halten und verwaiste, sobald ein Dig
+   * weggeräumt wird. Fehlt bei allem, was vor dem Stapel geschrieben wurde —
+   * und „fehlt" liest sich als „noch nichts gesehen", was stimmt.
+   */
+  stackSeen?: number
   /** Did the scan hit the 10k pagination wall? */
   truncated: boolean
   matchCount: number
@@ -855,6 +864,24 @@ export interface StockRow {
  * `matchesTotal` reist mit, damit der Schnappschuss nicht behauptet, die
  * hundert mitgeschickten Treffer seien alles gewesen.
  */
+/**
+ * Ein Laden in der oberen Reihe des Stapels.
+ *
+ * Der farbige Ring ist `matches - seen > 0` und sonst nichts — keine zweite
+ * Wahrheit darüber, ob es „etwas Neues" gibt, sondern dieselbe Zahl, die der
+ * Stapel auch abarbeitet.
+ */
+export interface StackShop {
+  dealer: string
+  displayName: string
+  avatarUrl?: string
+  digId: string
+  scannedAt: number
+  expiresAt: number
+  matches: number
+  seen: number
+}
+
 export interface SharedDig {
   version: number
   dealer: string

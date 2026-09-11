@@ -44,6 +44,7 @@ import type {
   ShelfSort,
   SortDirection,
   SharedDig,
+  StackShop,
   ShelfView,
   ShippingTier,
   StockRow,
@@ -590,6 +591,16 @@ export interface WorkerContract {
 
   /** Every dig, newest first — what the command palette offers to jump to. */
   'dig.list': { params: undefined; progress: never; result: Dig[] }
+
+  /**
+   * Die obere Reihe des Stapels: welche Läden frische Funde haben.
+   *
+   * Die Karten selbst kommen aus `dig.get` — derselbe Dig, dieselbe Auswahl.
+   * Kostet keinen Discogs-Request; alles steht schon in IndexedDB.
+   */
+  'stack.overview': { params: undefined; progress: never; result: StackShop[] }
+  /** Wie weit der Stapel gekommen ist. Nur vorwärts. */
+  'stack.seen': { params: { digId: string; seen: number }; progress: never; result: true }
 
   /**
    * Eine Fundliste teilen.

@@ -484,6 +484,17 @@ export const handlers: HandlerMap = {
    * Hub-Adresse aus dem Link und nicht aus den Einstellungen, und deshalb
    * fragt hier nichts nach einer Identität.
    */
+  'stack.overview': async () => {
+    const { stackOverview } = await import('./stack')
+    return stackOverview()
+  },
+
+  'stack.seen': async ({ digId, seen }) => {
+    const { stackSeen } = await import('./stack')
+    await stackSeen(digId, seen)
+    return true as const
+  },
+
   'share.create': async ({ digId }) => {
     const loaded = await loadDig(digId)
     if (!loaded) throw new Error('no such dig')
