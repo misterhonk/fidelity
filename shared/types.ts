@@ -443,6 +443,67 @@ export interface WantlistOverview {
   seenRecently: number
 }
 
+/**
+ * Your wants, across the shops you scanned (docs/06 M19 #9).
+ *
+ * Waxrunner answers this over every seller on Discogs; this app can only
+ * answer it over the shops it has scanned inside the six hours — and says so.
+ * What it adds is the postage: three shops at €41 instead of five at €67,
+ * from the same tier tables the basket uses.
+ */
+export interface WantPlan {
+  /** How many records are on the wantlist at all. */
+  wanted: number
+  /** How many of them some scanned shop offers, in any currency, postage known or not. */
+  available: number
+  /** The currency the plan is in — the one most offers carry. Null without offers. */
+  currency: string | null
+  /** Offers left out because they are priced in another currency. */
+  otherCurrencies: number
+  /** Shops whose offers could not be planned: no postage table. Display names. */
+  unknownPostage: string[]
+  /** Wants only those shops have — seen, but not in the plan. */
+  onlyWithoutPostage: number
+  /** The cheapest set of shops that covers every plannable want. */
+  best: PlannedShops | null
+  /** Each want from wherever it is cheapest — the plan the best one beats. */
+  naive: PlannedShops | null
+  /** When the earliest dig behind this plan runs out (rule 4). */
+  expiresAt: number | null
+  /** How many shops had a dig inside the six hours. */
+  shopsScanned: number
+}
+
+export interface PlannedShops {
+  shops: PlannedShop[]
+  goods: number
+  postage: number
+  total: number
+}
+
+export interface PlannedShop {
+  dealer: string
+  displayName: string
+  digId: string
+  items: PlannedItem[]
+  goods: number
+  postage: number
+  minOrderTotal: number
+  belowMinimum: boolean
+}
+
+export interface PlannedItem {
+  /** The wantlist entry this covers. */
+  wantedReleaseId: number
+  listingId: number
+  releaseId: number
+  title: string
+  artist: string
+  price: number
+  /** False when it is another pressing of the wanted album. */
+  exact: boolean
+}
+
 export interface CreditPerson {
   entityId: number
   name: string

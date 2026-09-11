@@ -257,6 +257,39 @@ const en = {
     pressings: (n: string, one: boolean) => `${n} ${one ? 'pressing' : 'pressings'} known`,
     notExpanded: 'Pressings not unfolded yet',
     noMaster: 'No master at Discogs — only this exact pressing can be recognised',
+
+    /*
+     * Your wants across the shops you scanned (M19 #9). Labelled as the
+     * subset it is: the wish is "across all of Discogs", and only Discogs
+     * can grant that one. What this adds is the postage.
+     */
+    plan: {
+      title: 'At the shops you scanned',
+      subset:
+        'Only the shops scanned in the last six hours — not all of Discogs, which nobody outside Discogs can search by record. What this adds is the postage.',
+      none: 'None of your wants at a shop scanned in the last six hours.',
+      lead: (available: string, wanted: string) =>
+        `${available} of your ${wanted} wants are at these shops.`,
+      best: (shops: string, goods: string, postage: string, total: string) =>
+        `Cheapest: ${shops}, ${goods} for the records plus ${postage} postage — ${total}.`,
+      naive: (shops: string, postage: string, more: string) =>
+        `Each where it is cheapest would be ${shops} and ${postage} postage — ${more} more.`,
+      sameAsNaive: 'That is also where each of them is cheapest.',
+      shopLine: (records: string, goods: string, postage: string) =>
+        `${records} · ${goods} + ${postage} postage`,
+      otherPressing: 'other pressing',
+      belowMinimum: (min: string) =>
+        `Under this shop's minimum of ${min} — the checkout refuses it as it stands.`,
+      unknownPostage: (shops: string) => `Left out, postage unknown: ${shops}.`,
+      onlyThere: (n: string) => `${n} of the wants are only there.`,
+      otherCurrencies: (n: string) =>
+        `${n} in another currency left out — nothing here converts.`,
+      expires: (at: string) => `Prices as scanned, good until ${at}.`,
+      open: 'Open at Discogs',
+      shops: (n: number) => `${n} ${n === 1 ? 'shop' : 'shops'}`,
+      records: (n: number) => `${n} ${n === 1 ? 'record' : 'records'}`,
+      offers: (n: number) => `${n} ${n === 1 ? 'offer' : 'offers'}`,
+    },
   },
 
   /*
@@ -597,6 +630,33 @@ const de: typeof en = {
     pressings: (n, one) => `${n} ${one ? 'Pressung' : 'Pressungen'} bekannt`,
     notExpanded: 'Pressungen noch nicht ausgeklappt',
     noMaster: 'Kein Master bei Discogs – nur genau diese Pressung ist erkennbar',
+
+    plan: {
+      title: 'Bei den Läden, die du gescannt hast',
+      subset:
+        'Nur die Läden aus den letzten sechs Stunden – nicht ganz Discogs, das kann außerhalb von Discogs niemand nach Platte durchsuchen. Was hier dazukommt, ist der Versand.',
+      none: 'Keine deiner gesuchten Platten bei einem Laden aus den letzten sechs Stunden.',
+      lead: (available, wanted) =>
+        `${available} deiner ${wanted} gesuchten Platten sind bei diesen Läden.`,
+      best: (shops, goods, postage, total) =>
+        `Am günstigsten: ${shops}, ${goods} für die Platten plus ${postage} Versand – ${total}.`,
+      naive: (shops, postage, more) =>
+        `Jede dort, wo sie am billigsten ist, wären ${shops} und ${postage} Versand – ${more} mehr.`,
+      sameAsNaive: 'Dort ist auch jede einzelne am billigsten.',
+      shopLine: (records, goods, postage) => `${records} · ${goods} + ${postage} Versand`,
+      otherPressing: 'andere Pressung',
+      belowMinimum: (min) =>
+        `Unter dem Mindestbestellwert des Ladens von ${min} – so nimmt die Kasse es nicht an.`,
+      unknownPostage: (shops) => `Nicht dabei, Versand unbekannt: ${shops}.`,
+      onlyThere: (n) => `${n} der gesuchten Platten gibt es nur dort.`,
+      otherCurrencies: (n) =>
+        `${n} in einer anderen Währung weggelassen – hier rechnet nichts um.`,
+      expires: (at) => `Preise wie gescannt, gültig bis ${at}.`,
+      open: 'Bei Discogs öffnen',
+      shops: (n) => `${n} ${n === 1 ? 'Laden' : 'Läden'}`,
+      records: (n) => `${n} ${n === 1 ? 'Platte' : 'Platten'}`,
+      offers: (n) => `${n} ${n === 1 ? 'Angebot' : 'Angebote'}`,
+    },
   },
 
   places: {

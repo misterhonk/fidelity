@@ -64,6 +64,7 @@ import type {
   VaultTarget,
   Verdict,
   WantlistOverview,
+  WantPlan,
   YearReview,
   WatchAlert,
   WatchedRelease,
@@ -226,6 +227,11 @@ export interface WorkerContract {
   }
   /** The wantlist, with pressing counts and where a dig last saw each album. */
   'collection.wantlist': { params: undefined; progress: never; result: WantlistOverview }
+  /**
+   * Your wants across the shops scanned inside the six hours (M19 #9), with
+   * the postage. Reads only; the tier tables come the way the basket gets them.
+   */
+  'wantlist.plan': { params: undefined; progress: never; result: WantPlan }
   /**
    * "Habe ich die schon?" — collection and wantlist, by name. No requests, so
    * it answers in a shop basement with no signal.

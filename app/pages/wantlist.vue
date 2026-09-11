@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { WantedRecord, WantlistOverview } from '#shared/types'
+import type { WantedRecord, WantlistOverview, WantPlan } from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
 
@@ -13,6 +13,8 @@ const { call } = useFidelityWorker()
 
 // Replaced wholesale, never mutated — Vue has no reason to proxy every row.
 const overview = shallowRef<WantlistOverview | null>(null)
+/** Your wants across the shops scanned inside the six hours (M19 #9). */
+const plan = shallowRef<WantPlan | null>(null)
 const loading = ref(true)
 const error = ref<unknown>(null)
 const query = ref('')
@@ -22,6 +24,7 @@ const route = useRoute()
 onMounted(async () => {
   try {
     overview.value = await call('collection.wantlist', undefined)
+    plan.value = await call('wantlist.plan', undefined)
   } catch (cause) {
     error.value = cause
   } finally {
@@ -141,6 +144,134 @@ function waiting(addedAt: string): string | null {
           {{ c.wantlist.seenRecently(count(overview.seenRecently)) }}
         </template>
       </p>
+
+      <!--
+        Across the shops you scanned (M19 #9) — labelled as the subset it is.
+        The wish is "across all of Discogs"; there is no listings-by-release
+        endpoint, so this is over the digs still inside their six hours, and
+        what it adds is the postage from the same tables the basket uses.
+      -->
+      <section
+        v-if="plan && (plan.available > 0 || plan.shopsScanned > 0)"
+        class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
+        aria-labelledby="want-plan"
+        data-testid="want-plan"
+      >
+        <div class="flex flex-col gap-1">
+          <h2 id="want-plan" class="text-fid-base font-medium text-fid-text">
+            {{ c.wantlist.plan.title }}
+          </h2>
+          <p class="text-fid-xs text-fid-text-muted">{{ c.wantlist.plan.subset }}</p>
+        </div>
+
+        <p v-if="plan.available === 0" class="text-fid-sm text-fid-text-muted">
+          {{ c.wantlist.plan.none }}
+        </p>
+
+        <template v-else>
+          <p class="text-fid-sm text-fid-text">
+            {{ c.wantlist.plan.lead(count(plan.available), count(plan.wanted)) }}
+            <template v-if="plan.best">
+              {{
+                c.wantlist.plan.best(
+                  c.wantlist.plan.shops(plan.best.shops.length),
+                  money(plan.best.goods, plan.currency) ?? '',
+                  money(plan.best.postage, plan.currency) ?? '',
+                  money(plan.best.total, plan.currency) ?? '',
+                )
+              }}
+            </template>
+          </p>
+
+          <ul v-if="plan.best" class="flex flex-col gap-2">
+            <li
+              v-for="shop in plan.best.shops"
+              :key="shop.dealer"
+              class="flex flex-col gap-1 rounded-fid-sm border border-fid-border px-3 py-2"
+            >
+              <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+                <NuxtLink
+                  :to="`/dig/${shop.digId}`"
+                  class="fid-action text-fid-sm font-medium text-fid-text underline-offset-4 hover:underline"
+                >
+                  {{ shop.displayName }}
+                </NuxtLink>
+                <span class="fid-num text-fid-xs text-fid-text-muted">
+                  {{
+                    c.wantlist.plan.shopLine(
+                      c.wantlist.plan.records(shop.items.length),
+                      money(shop.goods, plan.currency) ?? '',
+                      money(shop.postage, plan.currency) ?? '',
+                    )
+                  }}
+                </span>
+              </div>
+              <ul class="flex flex-col gap-1">
+                <li
+                  v-for="item in shop.items"
+                  :key="item.listingId"
+                  class="flex flex-wrap items-baseline justify-between gap-x-3 text-fid-sm"
+                >
+                  <NuxtLink
+                    :to="`https://www.discogs.com/sell/item/${item.listingId}`"
+                    target="_blank"
+                    rel="noopener"
+                    class="fid-action min-w-0 text-fid-text underline-offset-4 hover:underline"
+                    :aria-label="`${item.artist} – ${item.title} (${c.wantlist.plan.open})`"
+                  >
+                    {{ item.artist }} – {{ item.title }}
+                    <span v-if="!item.exact" class="text-fid-xs text-fid-text-muted">
+                      · {{ c.wantlist.plan.otherPressing }}</span
+                    >
+                  </NuxtLink>
+                  <span class="fid-num text-fid-text-muted">{{
+                    money(item.price, plan.currency)
+                  }}</span>
+                </li>
+              </ul>
+              <p v-if="shop.belowMinimum" class="text-fid-xs text-fid-sig-scarcity">
+                {{
+                  c.wantlist.plan.belowMinimum(money(shop.minOrderTotal, plan.currency) ?? '')
+                }}
+              </p>
+            </li>
+          </ul>
+
+          <p v-if="plan.best && plan.naive" class="text-fid-sm text-fid-text-muted">
+            <template v-if="plan.naive.total > plan.best.total">
+              {{
+                c.wantlist.plan.naive(
+                  c.wantlist.plan.shops(plan.naive.shops.length),
+                  money(plan.naive.postage, plan.currency) ?? '',
+                  money(plan.naive.total - plan.best.total, plan.currency) ?? '',
+                )
+              }}
+            </template>
+            <template v-else>{{ c.wantlist.plan.sameAsNaive }}</template>
+          </p>
+
+          <p
+            v-if="plan.unknownPostage.length > 0 || plan.otherCurrencies > 0"
+            class="text-fid-xs text-fid-text-muted"
+          >
+            <template v-if="plan.unknownPostage.length > 0">
+              {{ c.wantlist.plan.unknownPostage(plan.unknownPostage.join(', ')) }}
+              <template v-if="plan.onlyWithoutPostage > 0">
+                {{ c.wantlist.plan.onlyThere(count(plan.onlyWithoutPostage)) }}</template
+              >
+            </template>
+            <template v-if="plan.otherCurrencies > 0">
+              {{
+                c.wantlist.plan.otherCurrencies(c.wantlist.plan.offers(plan.otherCurrencies))
+              }}</template
+            >
+          </p>
+
+          <p v-if="plan.expiresAt" class="text-fid-xs text-fid-text-muted">
+            {{ c.wantlist.plan.expires(dayTime(plan.expiresAt)) }}
+          </p>
+        </template>
+      </section>
 
       <input
         v-model="query"
