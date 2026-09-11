@@ -9,6 +9,32 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.37.0](https://github.com/misterhonk/fidelity/compare/v0.36.0...v0.37.0) (2026-09-11)
+
+**A year on the shelf.**
+
+A sixth collection tab, one year at a time, with the year in the address. What arrived,
+by month and against the year before; the artists new to the shelf — their first record
+ever; the map's bars over that year's additions: artists, labels, styles, the pressing
+decades, the media; the oldest and the newest pressing to arrive; the stars; the digs,
+shops, finds and purchases of that year; and who shaped the additions, from the horizon's
+credits. All of it read off the device — no request, and nothing from the marketplace.
+
+
+### Added
+
+* **collection:** a year on the shelf — what arrived, and what it says ([4263d8e](https://github.com/misterhonk/fidelity/commit/4263d8edbcc555c97fb53876b00f4bb66d58c6fd))
+
+
+### Fixed
+
+* **collection:** say how many new artists the review leaves unnamed ([e08a53e](https://github.com/misterhonk/fidelity/commit/e08a53edb9eec2230fd86061389cfd6a33c2cc65))
+
+
+### Changed
+
+* **dig:** one medium reader for the pressing family ([51226e8](https://github.com/misterhonk/fidelity/commit/51226e8872ffe9265a228f5fc52083ebc33c29e3))
+
 ## [0.36.0](https://github.com/misterhonk/fidelity/compare/v0.35.0...v0.36.0) (2026-09-11)
 
 **Which pressing is this? The record in your hand, among all of them.**
