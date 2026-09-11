@@ -179,7 +179,7 @@ const en = {
 
       shipsTo: 'Where it ships to',
       shipsToHint:
-        'Decides the postage: dealers write their prices by destination ("Germany:", "Europe:", "Non-Europe:"), and only the block that belongs to you is read. In English, the way Discogs writes it.',
+        'Decides the postage: shops write their prices by destination ("Germany:", "Europe:", "Non-Europe:"), and only the block that belongs to you is read. In English, the way Discogs writes it.',
 
       blocked: 'No shipping from these countries',
       blockedPlaceholder: 'Search for a country',
@@ -345,7 +345,7 @@ const en = {
   /** Settings → Hub. */
   hubPanel: {
     whyLabel: 'What a hub gives you',
-    why: 'The horizon — everything Fidelity has worked out about your artists and labels — then does not have to be built again on every device. What is in it once is there immediately on the next device instead of after minutes. The same goes for postage per dealer. And if friends use the same hub, you all work for each other.',
+    why: 'The horizon — everything Fidelity has worked out about your artists and labels — then does not have to be built again on every device. What is in it once is there immediately on the next device instead of after minutes. The same goes for postage per shop. And if friends use the same hub, you all work for each other.',
     optional: 'Everything works the same without a hub — it only takes waiting away.',
 
     url: 'Hub URL',
@@ -442,7 +442,7 @@ const en = {
       title: 'How do I start?',
       body: [
         'You need a personal access token from Discogs — you make one yourself under "Settings → Developers". After that Fidelity fetches your collection and your wantlist once. That is the ground everything stands on: without it the app does not know what you like.',
-        'Then, under "Dig", you name a dealer — their name, or simply the link to their Discogs page. Fidelity reads their stock and tells you what in it fits you.',
+        'Then, under "Dig", you name a shop — their name, or simply the link to their Discogs page. Fidelity reads their stock and tells you what in it fits you.',
       ],
     },
     {
@@ -469,7 +469,7 @@ const en = {
       ],
     },
     {
-      title: 'Why one basket per dealer?',
+      title: 'Why one basket per shop?',
       body: [
         'Because postage is charged per parcel, not per record. Two records at two shops is postage twice; two records at one shop is often postage once.',
         "So every basket does its own arithmetic: subtotal, postage tier, and what each further record actually costs. Buying happens at Discogs — Fidelity puts nothing in anybody else's cart.",
@@ -654,12 +654,12 @@ const de: typeof en = {
       noLimit: 'kein Limit',
       maxPriceHint: 'Darüber wird verworfen.',
 
-      minRating: 'Händlerbewertung mindestens',
+      minRating: 'Verkäuferbewertung mindestens',
       minRatingHint: 'Darunter wird der Dig gar nicht erst gestartet.',
 
       shipsTo: 'Wohin geliefert wird',
       shipsToHint:
-        'Entscheidet den Versand: Händler schreiben ihre Preise nach Zielland gestaffelt („Germany:", „Europe:", „Non-Europe:"), und gelesen wird nur der Block, der zu dir gehört. Auf Englisch, wie Discogs es schreibt — „Deutschland" versteht Fidelity auch.',
+        'Entscheidet den Versand: Läden schreiben ihre Preise nach Zielland gestaffelt („Germany:", „Europe:", „Non-Europe:"), und gelesen wird nur der Block, der zu dir gehört. Auf Englisch, wie Discogs es schreibt — „Deutschland" versteht Fidelity auch.',
 
       blocked: 'Versand aus diesen Ländern nicht',
       blockedPlaceholder: 'Land suchen',
@@ -781,7 +781,7 @@ const de: typeof en = {
 
   hubPanel: {
     whyLabel: 'Was ein Hub bringt',
-    why: 'Den Horizont – also alles, was Fidelity über deine Künstler und Labels herausgefunden hat – muss dann nicht jedes Gerät für sich aufbauen. Was einmal drinsteht, ist auf dem nächsten Gerät sofort da statt nach Minuten. Dasselbe gilt für Versandkosten pro Händler. Und wenn Freunde denselben Hub benutzen, arbeitet ihr euch gegenseitig zu.',
+    why: 'Den Horizont – also alles, was Fidelity über deine Künstler und Labels herausgefunden hat – muss dann nicht jedes Gerät für sich aufbauen. Was einmal drinsteht, ist auf dem nächsten Gerät sofort da statt nach Minuten. Dasselbe gilt für Versandkosten pro Laden. Und wenn Freunde denselben Hub benutzen, arbeitet ihr euch gegenseitig zu.',
     optional: 'Ohne Hub funktioniert alles genauso – er nimmt nur Wartezeit weg.',
 
     url: 'Hub-URL',
@@ -847,7 +847,7 @@ const de: typeof en = {
       title: 'Wie fange ich an?',
       body: [
         'Du brauchst einen Personal Access Token von Discogs – den erzeugst du dir unter „Settings → Developers" selbst. Danach holt Fidelity einmal deine Sammlung und deine Wantlist. Das ist die Grundlage: ohne sie weiß die App nicht, was du magst.',
-        'Dann gibst du unter „Graben" einen Händler an – seinen Namen oder einfach den Link seiner Discogs-Seite. Fidelity liest sein Sortiment und sagt dir, was davon zu dir passt.',
+        'Dann gibst du unter „Graben" einen Laden an – seinen Namen oder einfach den Link seiner Discogs-Seite. Fidelity liest sein Sortiment und sagt dir, was davon zu dir passt.',
       ],
     },
     {
@@ -874,7 +874,7 @@ const de: typeof en = {
       ],
     },
     {
-      title: 'Warum ein Korb pro Händler?',
+      title: 'Warum ein Korb pro Laden?',
       body: [
         'Weil Porto pro Sendung anfällt und nicht pro Platte. Zwei Platten bei zwei Läden sind zweimal Versand; zwei Platten bei einem Laden oft einmal.',
         'Deshalb rechnet jeder Korb für sich: Zwischensumme, Versandstaffel, und was jede weitere Platte tatsächlich kostet. Gekauft wird bei Discogs – Fidelity legt nichts in einen fremden Warenkorb.',

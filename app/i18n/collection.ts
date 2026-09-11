@@ -23,6 +23,7 @@ const en = {
   shelf: {
     description: 'Your records, as a shelf.',
     empty: 'No records here yet. Fetch the collection in the settings.',
+    emptyAction: 'Fetch the collection',
     noMatch: 'Nothing by that name on the shelf.',
     search: 'Artist, title or label',
     searchLabel: 'Search the shelf',
@@ -128,8 +129,9 @@ const en = {
     worth: (low: string, high: string, when: string) =>
       `— Discogs' middle estimate, between ${low} and ${high}, as of ${when}`,
     description: 'What your collection gives away about your taste.',
-    lead: (records: string) =>
-      `${records} records. What can be read from that about your taste.`,
+    /** Different releases — the shelf counts copies, and two copies of one record are one taste. */
+    lead: (releases: string) =>
+      `${releases} different releases. What can be read from that about your taste.`,
     noProfile: 'No profile yet — sync your collection first on the',
     startPage: 'start page',
 
@@ -176,9 +178,10 @@ const en = {
     description: 'What you are looking for — and how findable it is.',
     empty:
       'Your wantlist is empty — or not synced yet. It carries the two strongest signals there are.',
+    emptyAction: 'Sync it now',
     lead: (total: string, withPressings: string) =>
       `${total} records wanted. For ${withPressings} of them the horizon knows every pressing — there a dig recognises a different edition than the one you entered, too.`,
-    seenRecently: (n: string) => `${n} turned up at a dealer in the last thirty days.`,
+    seenRecently: (n: string) => `${n} turned up at a shop in the last thirty days.`,
     search: 'Artist or title',
     searchLabel: 'Search the wantlist',
     /*
@@ -286,6 +289,7 @@ const en = {
     description: 'The records you said yes to — even once the dig is long gone.',
     empty:
       'Nothing saved yet. The thumbs up in a dig puts a record here — and here it stays, even once the dig is long gone.',
+    emptyAction: 'Start a dig',
     /** "at 1 shop" is arithmetic, not language. A number that reads aloud as a word is written as one. */
     lead: (records: number, shops: number) =>
       `${records === 1 ? 'One record' : `${records} records`} earmarked at ${shops === 1 ? 'one shop' : `${shops} shops`}.`,
@@ -356,6 +360,7 @@ const de: typeof en = {
   shelf: {
     description: 'Deine Platten, als Regal.',
     empty: 'Noch keine Platten hier. Sammlung in den Einstellungen holen.',
+    emptyAction: 'Sammlung holen',
     noMatch: 'Nichts mit diesem Namen im Regal.',
     search: 'Künstler, Titel oder Label',
     searchLabel: 'Regal durchsuchen',
@@ -422,7 +427,8 @@ const de: typeof en = {
     worth: (low, high, when) =>
       `— Schätzung von Discogs, Mitte zwischen ${low} und ${high}, Stand ${when}`,
     description: 'Was deine Sammlung über deinen Geschmack verrät.',
-    lead: (records) => `${records} Platten. Was daraus über deinen Geschmack ablesbar ist.`,
+    lead: (releases) =>
+      `${releases} verschiedene Releases. Was daraus über deinen Geschmack ablesbar ist.`,
     noProfile: 'Noch kein Profil – synchronisiere zuerst deine Sammlung auf der',
     startPage: 'Startseite',
 
@@ -462,10 +468,10 @@ const de: typeof en = {
     description: 'Was du suchst – und wie auffindbar es ist.',
     empty:
       'Deine Wantlist ist leer – oder noch nicht synchronisiert. Sie trägt die zwei stärksten Signale überhaupt.',
+    emptyAction: 'Jetzt synchronisieren',
     lead: (total, withPressings) =>
       `${total} Platten gesucht. Von ${withPressings} kennt der Horizont alle Pressungen – bei denen erkennt ein Dig auch eine andere Ausgabe als die eingetragene.`,
-    seenRecently: (n) =>
-      `${n} sind in den letzten dreißig Tagen bei einem Händler aufgetaucht.`,
+    seenRecently: (n) => `${n} sind in den letzten dreißig Tagen bei einem Laden aufgetaucht.`,
     search: 'Künstler oder Titel',
     searchLabel: 'Wantlist durchsuchen',
     pressings: (n, one) => `${n} ${one ? 'Pressung' : 'Pressungen'} bekannt`,
@@ -532,6 +538,7 @@ const de: typeof en = {
     description: 'Die Platten, zu denen du ja gesagt hast – auch wenn der Dig längst weg ist.',
     empty:
       'Noch nichts gemerkt. Der Daumen nach oben im Dig legt eine Platte hier ab – und hier bleibt sie, auch wenn der Dig längst weg ist.',
+    emptyAction: 'Einen Dig starten',
     lead: (records, shops) =>
       `${records === 1 ? 'Eine Platte' : `${records} Platten`} vorgemerkt bei ${shops === 1 ? 'einem Laden' : `${shops} Läden`}.`,
     digsGo: 'Digs werden nach fünf weggeräumt – das hier bleibt.',

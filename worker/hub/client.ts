@@ -211,7 +211,7 @@ export function createHubClient({
 
       const parsed = wireChunkSchema.safeParse(await response.json())
       if (!parsed.success) {
-        log.warn('[hub] Antwort passt nicht zum Schema', kind, id)
+        log.warn('[hub] answer does not match the schema', kind, id)
         return null
       }
 
@@ -241,7 +241,7 @@ export function createHubClient({
 
       const parsed = coversSchema.safeParse(await response.json())
       if (!parsed.success) {
-        log.warn('[hub] Cover-Antwort passt nicht zum Schema')
+        log.warn('[hub] cover answer does not match the schema')
         return {}
       }
 
@@ -250,7 +250,7 @@ export function createHubClient({
         const releaseId = Number(key)
         if (!Number.isSafeInteger(releaseId) || releaseId <= 0) continue
         if (!isDiscogsImage(value.thumbUrl) || !isDiscogsImage(value.coverUrl)) {
-          log.warn('[hub] Cover-Adresse ist nicht von Discogs, verworfen', releaseId)
+          log.warn('[hub] cover address is not Discogs, discarded', releaseId)
           continue
         }
         covers[releaseId] = value
@@ -275,7 +275,7 @@ export function createHubClient({
       const body = (await response.json()) as { sealed?: unknown }
       const parsed = sealedSchema.safeParse(body?.sealed)
       if (!parsed.success) {
-        log.warn('[hub] Tresor-Antwort passt nicht zum Schema')
+        log.warn('[hub] vault answer does not match the schema')
         return null
       }
       return parsed.data
@@ -335,7 +335,7 @@ export function createHubClient({
       const body = (await response.json()) as { sealed?: unknown; expiresAt?: unknown }
       const parsed = sealedSchema.safeParse(body?.sealed)
       if (!parsed.success || typeof body?.expiresAt !== 'number') {
-        log.warn('[hub] Antwort auf eine geteilte Fundliste passt nicht zum Schema')
+        log.warn('[hub] shared-list answer does not match the schema')
         return null
       }
       return { sealed: parsed.data, expiresAt: body.expiresAt }

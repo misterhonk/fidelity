@@ -216,7 +216,7 @@ export class DiscogsClient {
        */
       throw new DiscogsError(
         0,
-        'Discogs antwortet nicht – keine Verbindung oder Limit erreicht.',
+        'Discogs is not answering – no connection, or the limit is reached.',
         [error instanceof Error ? error.message : String(error)],
       )
     }

@@ -29,48 +29,53 @@ import type { PressingProfile, PressingStamp, PressingWarning } from '#shared/ty
  * full of noise, and a loose pattern turning "STERLING" out of "MASTERING"
  * would put a stamp on records that never had one.
  */
+/*
+ * `label` and `note` are the English base text and travel with the stored dig
+ * as a fallback. What a reader sees comes from `app/i18n/pressing.ts`, keyed by
+ * `key` — the worker knows what the mark is, not what language it is read in.
+ */
 const STAMPS: { key: PressingStamp['key']; label: string; note: string; pattern: RegExp }[] = [
   {
     key: 'RVG',
     label: 'RVG',
-    note: 'Rudy Van Gelder hat die Lackfolie geschnitten.',
+    note: 'Rudy Van Gelder cut the lacquer.',
     pattern: /(?:^|[^A-Z])RVG(?:[^A-Z]|$)/,
   },
   {
     key: 'PLASTYLITE',
-    label: 'Plastylite-Ohr',
-    note: 'Gepresst bei Plastylite – bei Blue Note das Merkmal der Erstpressung.',
+    label: 'Plastylite ear',
+    note: 'Pressed at Plastylite – on Blue Note, the mark of a first pressing.',
     pattern: /\[ear\]|\bPlastylite\b/i,
   },
   {
     key: 'STERLING',
     label: 'Sterling',
-    note: 'Geschnitten bei Sterling Sound.',
+    note: 'Cut at Sterling Sound.',
     pattern: /\bSTERLING\b/i,
   },
   {
     key: 'MASTERDISK',
     label: 'Masterdisk',
-    note: 'Geschnitten bei Masterdisk.',
+    note: 'Cut at Masterdisk.',
     pattern: /\bMASTERDISK\b/i,
   },
   {
     key: 'RL',
     label: 'RL',
-    note: 'Robert Ludwig hat geschnitten – oft die lautere, gesuchtere Pressung.',
+    note: 'Cut by Robert Ludwig – often the louder, more sought-after pressing.',
     // Initials, so the boundaries matter more than anywhere else here.
     pattern: /(?:^|[^A-Z])RL(?:[^A-Z]|$)/,
   },
   {
     key: 'PORKY',
     label: 'Porky / Pecko',
-    note: 'George Peckham hat geschnitten.',
+    note: 'Cut by George Peckham.',
     pattern: /\bPORKY\b|\bPECKO\b|A PORKY PRIME CUT/i,
   },
   {
     key: 'KENDUN',
     label: 'Kendun',
-    note: 'Geschnitten bei Kendun Recorders.',
+    note: 'Cut at Kendun Recorders.',
     pattern: /\bKENDUN\b/i,
   },
 ]

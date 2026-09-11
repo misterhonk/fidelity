@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs'
  * Dropping the eight ambiguous words buys the threshold back. One unambiguous
  * German function word is decisive, so one is the bar.
  */
-const GERMAN =
+export const GERMAN =
   /\b(der|das|dem|den|des|ein|eine|einen|einem|einer|eines|und|oder|aber|nicht|nur|wenn|weil|dass|sich|wer|ist|sind|waren|haben|wird|werden|kann|können|muss|müssen|soll|sollen|darf|dürfen|vom|zum|zur|beim|für|mit|nach|über|unter|durch|gegen|ohne|schon|noch|auch|dann|hier|dort|sonst|damit|deshalb|jede|jeder|jedes|keine|kein|alle|etwas|nichts|immer|wieder)\b/gi
 
 /**

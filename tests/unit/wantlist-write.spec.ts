@@ -144,7 +144,7 @@ describe('the wantlist, written to', () => {
     await noteWant(31, 'anything will do', 1)
 
     const fake = client(async () => {
-      throw new DiscogsError(0, 'Discogs antwortet nicht')
+      throw new DiscogsError(0, 'Discogs is not answering')
     })
     for (let attempt = 0; attempt < 5; attempt++) await drainOutbox(fake, 'mrtnmlchr')
 

@@ -56,7 +56,7 @@ const en = {
      */
     hub: 'The second exception: a hub of your own',
     hubBody:
-      'Fidelity can make use of a small helper server — the hub. There is none until you enter its address in the settings yourself; with that field empty nothing is ever asked of it. If you do run one: your backup and any find list you share go there sealed, so the hub holds them and cannot read them. What it does see in plain sight is the dealers you are watching, the push address your browser hands out for notifications, the release ids it is asked for covers of, and the dealer and country a postage table belongs to. Your Discogs token is never among it.',
+      'Fidelity can make use of a small helper server — the hub. There is none until you enter its address in the settings yourself; with that field empty nothing is ever asked of it. If you do run one: your backup and any find list you share go there sealed, so the hub holds them and cannot read them. What it does see in plain sight is the shops you are watching, the push address your browser hands out for notifications, the release ids it is asked for covers of, and the shop and country a postage table belongs to. Your Discogs token is never among it.',
 
     hosting: 'Where this page comes from',
     hostingBody:
@@ -118,7 +118,7 @@ const de: typeof en = {
 
     hub: 'Die zweite Ausnahme: ein eigener Hub',
     hubBody:
-      'Fidelity kann einen kleinen Hilfsserver nutzen – den Hub. Es gibt keinen, solange du seine Adresse nicht selbst in den Einstellungen einträgst; bleibt das Feld leer, wird nie etwas bei ihm angefragt. Wer einen betreibt: Sicherung und geteilte Fundliste gehen versiegelt dorthin, der Hub hält sie und kann sie nicht lesen. Im Klartext sieht er die Händler, die du beobachtest, die Push-Adresse, die dein Browser für Benachrichtigungen herausgibt, die Release-IDs, zu denen er Cover liefern soll, und Händler und Land, zu dem eine Versandstaffel gehört. Dein Discogs-Token ist nie dabei.',
+      'Fidelity kann einen kleinen Hilfsserver nutzen – den Hub. Es gibt keinen, solange du seine Adresse nicht selbst in den Einstellungen einträgst; bleibt das Feld leer, wird nie etwas bei ihm angefragt. Wer einen betreibt: Sicherung und geteilte Fundliste gehen versiegelt dorthin, der Hub hält sie und kann sie nicht lesen. Im Klartext sieht er die Läden, die du beobachtest, die Push-Adresse, die dein Browser für Benachrichtigungen herausgibt, die Release-IDs, zu denen er Cover liefern soll, und Laden und Land, zu dem eine Versandstaffel gehört. Dein Discogs-Token ist nie dabei.',
 
     hosting: 'Woher diese Seite kommt',
     hostingBody:

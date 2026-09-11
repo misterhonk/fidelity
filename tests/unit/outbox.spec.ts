@@ -114,7 +114,7 @@ describe('the outbox', () => {
   it('stops the round at the first failure instead of burning the rest', async () => {
     await queueRating(5, 3)
     const fake = client(async () => {
-      throw new DiscogsError(0, 'Discogs antwortet nicht')
+      throw new DiscogsError(0, 'Discogs is not answering')
     })
 
     const result = await drainOutbox(fake, 'mrtnmlchr')
@@ -134,7 +134,7 @@ describe('the outbox', () => {
   it('puts the old rating back when it gives up', async () => {
     await queueRating(5, 3)
     const fake = client(async () => {
-      throw new DiscogsError(0, 'Discogs antwortet nicht')
+      throw new DiscogsError(0, 'Discogs is not answering')
     })
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
@@ -149,7 +149,7 @@ describe('the outbox', () => {
   it('reports having given up, so a screen can say so', async () => {
     await queueRating(5, 3)
     const fake = client(async () => {
-      throw new DiscogsError(0, 'Discogs antwortet nicht')
+      throw new DiscogsError(0, 'Discogs is not answering')
     })
 
     let last = { sent: 0, givenUp: 0, waiting: 0 }

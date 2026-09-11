@@ -10,7 +10,7 @@ import { activeLanguage } from '~/composables/useMessages'
 const en = {
   title: 'Welcome',
   description: 'Set Fidelity up: token, collection, horizon, credits.',
-  lead: 'One dealer in, a scored list of finds out — with a reason for every one.',
+  lead: 'One shop in, a scored list of finds out — with a reason for every one.',
 
   setUp: 'Set it up — with your collection',
   setUpAbout:
@@ -66,7 +66,7 @@ const en = {
   canDo: {
     dig: {
       title: 'Dig through a shop',
-      body: 'Enter a dealer name, Fidelity reads their stock and tells you what in it fits you — with a sentence of reasoning for every find.',
+      body: 'Enter a shop name, Fidelity reads their stock and tells you what in it fits you — with a sentence of reasoning for every find.',
       cta: 'To the dig',
     },
     inStore: {
@@ -100,7 +100,7 @@ const en = {
 const de: typeof en = {
   title: 'Willkommen',
   description: 'Fidelity einrichten: Token, Sammlung, Horizont, Credits.',
-  lead: 'Ein Händler rein, eine bewertete Fundliste raus – mit Begründung pro Treffer.',
+  lead: 'Ein Laden rein, eine bewertete Fundliste raus – mit Begründung pro Treffer.',
 
   setUp: 'Einrichten – mit deiner Sammlung',
   setUpAbout:
@@ -140,7 +140,7 @@ const de: typeof en = {
   canDo: {
     dig: {
       title: 'Einen Laden durchgraben',
-      body: 'Händlernamen eingeben, Fidelity liest sein Sortiment und sagt dir, was davon zu dir passt – mit einem Satz Begründung pro Treffer.',
+      body: 'Ladennamen eingeben, Fidelity liest sein Sortiment und sagt dir, was davon zu dir passt – mit einem Satz Begründung pro Treffer.',
       cta: 'Zum Graben',
     },
     inStore: {

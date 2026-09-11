@@ -1,4 +1,4 @@
-import type { PressingWarning, PressingWarningKind } from '#shared/types'
+import type { PressingStamp, PressingWarning, PressingWarningKind } from '#shared/types'
 
 import { activeLanguage } from '~/composables/useMessages'
 
@@ -28,9 +28,9 @@ const en: Record<PressingWarningKind, Phrase> = {
     `Pressed ${year}, the album is from ${masterYear} — probably not a first pressing.`,
   special: ({ special }) => `Filed as "${special}" — that is not an ordinary retail pressing.`,
   'claims-original-but-reissue': () =>
-    'The dealer writes "original"; Discogs lists this pressing as a reissue.',
+    'The shop writes "original"; Discogs lists this pressing as a reissue.',
   'claims-original-but-late': ({ year, masterYear }) =>
-    `The dealer writes "original", but it was pressed ${year} — the album is from ${masterYear}.`,
+    `The shop writes "original", but it was pressed ${year} — the album is from ${masterYear}.`,
 }
 
 const de: Record<PressingWarningKind, Phrase> = {
@@ -45,12 +45,61 @@ const de: Record<PressingWarningKind, Phrase> = {
   special: ({ special }) =>
     `Als „${special}" eingetragen – das ist keine normale Handelspressung.`,
   'claims-original-but-reissue': () =>
-    'Der Händler schreibt „Original", Discogs führt diese Pressung als Neuauflage.',
+    'Der Laden schreibt „Original", Discogs führt diese Pressung als Neuauflage.',
   'claims-original-but-late': ({ year, masterYear }) =>
-    `Der Händler schreibt „Original", gepresst wurde ${year} – das Album ist von ${masterYear}.`,
+    `Der Laden schreibt „Original", gepresst wurde ${year} – das Album ist von ${masterYear}.`,
 }
 
 export const packs = { en, de }
+
+/**
+ * The marks in a runout, named.
+ *
+ * `worker/match/pressing.ts` finds them and hands back the key; the label and
+ * the sentence under it are written here, per language. The worker carries an
+ * English copy of both as a fallback for a stored dig, and nothing reads it
+ * while this pack is loaded.
+ */
+type StampText = { label: string; note: string }
+
+const stampsEn: Record<PressingStamp['key'], StampText> = {
+  RVG: { label: 'RVG', note: 'Rudy Van Gelder cut the lacquer.' },
+  PLASTYLITE: {
+    label: 'Plastylite ear',
+    note: 'Pressed at Plastylite – on Blue Note, the mark of a first pressing.',
+  },
+  STERLING: { label: 'Sterling', note: 'Cut at Sterling Sound.' },
+  MASTERDISK: { label: 'Masterdisk', note: 'Cut at Masterdisk.' },
+  RL: {
+    label: 'RL',
+    note: 'Cut by Robert Ludwig – often the louder, more sought-after pressing.',
+  },
+  PORKY: { label: 'Porky / Pecko', note: 'Cut by George Peckham.' },
+  KENDUN: { label: 'Kendun', note: 'Cut at Kendun Recorders.' },
+}
+
+const stampsDe: Record<PressingStamp['key'], StampText> = {
+  RVG: { label: 'RVG', note: 'Rudy Van Gelder hat die Lackfolie geschnitten.' },
+  PLASTYLITE: {
+    label: 'Plastylite-Ohr',
+    note: 'Gepresst bei Plastylite – bei Blue Note das Merkmal der Erstpressung.',
+  },
+  STERLING: { label: 'Sterling', note: 'Geschnitten bei Sterling Sound.' },
+  MASTERDISK: { label: 'Masterdisk', note: 'Geschnitten bei Masterdisk.' },
+  RL: {
+    label: 'RL',
+    note: 'Robert Ludwig hat geschnitten – oft die lautere, gesuchtere Pressung.',
+  },
+  PORKY: { label: 'Porky / Pecko', note: 'George Peckham hat geschnitten.' },
+  KENDUN: { label: 'Kendun', note: 'Geschnitten bei Kendun Recorders.' },
+}
+
+const stampPacks = { en: stampsEn, de: stampsDe }
+
+/** Label and sentence for one mark, in the language on screen. */
+export function stampText(stamp: PressingStamp): StampText {
+  return stampPacks[activeLanguage()][stamp.key] ?? { label: stamp.label, note: stamp.note }
+}
 
 /** Read per call, so a sheet already open follows a language switch. */
 export function pressingText(warning: PressingWarning): string {

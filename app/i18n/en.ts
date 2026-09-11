@@ -359,14 +359,14 @@ const en = {
     lead: 'Fidelity talks to Discogs directly — with no server in between. For that it needs a personal token, which you make yourself.',
     sampleTitle: 'What comes out of it',
     sampleNote:
-      "Examples. A score and a sentence saying why — for every record in a dealer's stock. With your collection in place, those are your artists and your labels.",
+      "Examples. A score and a sentence saying why — for every record in a shop's stock. With your collection in place, those are your artists and your labels.",
     step1: 'open',
     step2: 'Click "Generate token"',
     step3: 'Paste the token here',
     field: 'Personal access token',
     readsOnly: 'Fidelity only reads.',
     readsOnlyRest:
-      'Collection, wantlist and dealer stock — nothing more. It changes nothing about your Discogs account, buys nothing and writes nothing back. Buying happens at Discogs, by you.',
+      'Collection, wantlist and shop stock — nothing more. It changes nothing about your Discogs account, buys nothing and writes nothing back. Buying happens at Discogs, by you.',
     staysHere:
       'The token stays stored on this device and is passed to nobody — not to us either. There is no server that could receive it.',
     checking: 'Checking …',
@@ -444,17 +444,17 @@ const en = {
     },
     dig: {
       cta: 'Start a dig',
-      title: 'Now: scan the first dealer',
+      title: 'Now: scan the first shop',
       body: 'Take one you buy from anyway. Two to four minutes for twenty thousand listings, and at the end there is a list with a sentence per find.',
     },
   },
 
   /** ⌘K. */
   palette: {
-    placeholder: 'Artist, dealer, dig …',
-    nothing: 'Nothing found. Digs and dealers turn up here as soon as there are some.',
+    placeholder: 'Artist, shop, dig …',
+    nothing: 'Nothing found. Digs and shops turn up here as soon as there are some.',
     goTo: 'Go to',
-    dealers: 'Dealers',
+    dealers: 'Shops',
     digs: 'Digs',
     lastDig: 'In the last dig',
     inStore: 'In the shop',
@@ -482,6 +482,12 @@ const en = {
   },
 
   catalogRun: 'Filled = on your shelf. Outlined = this record.',
+  /** What a screen reader says for one cell of the run — the number, then its state. */
+  catalogRunEntry: {
+    this: (number: string) => `${number} – this record`,
+    owned: (number: string) => `${number} – on your shelf`,
+    missing: (number: string) => `${number} – missing`,
+  },
 
   credits: {
     title: 'Who worked on this',
@@ -489,8 +495,7 @@ const en = {
     about:
       "Discogs' greatest unused treasure: who produced, mixed or mastered. It is already in the horizon — the answer comes at once.",
     hereOnly: (here: string) => `${here} here that you have none of yet.`,
-    youHave: (owned: string, here: string) =>
-      `You have ${owned} — this dealer has ${here} more.`,
+    youHave: (owned: string, here: string) => `You have ${owned} — this shop has ${here} more.`,
     records: (n: number) => counted(n, 'record', 'records'),
   },
 

@@ -2,7 +2,7 @@
 import { describeFormat } from '#shared/format'
 import type { Match } from '#shared/types'
 import { reasonFor } from '~/i18n/reason'
-import { pressingText } from '~/i18n/pressing'
+import { pressingText, stampText } from '~/i18n/pressing'
 import { useDigMessages } from '~/i18n/dig'
 
 const d = useDigMessages()
@@ -195,9 +195,9 @@ const meta = computed(() => {
         v-for="stamp in match.pressing.stamps"
         :key="stamp.key"
         class="text-fid-text-muted"
-        :title="stamp.note"
+        :title="stampText(stamp).note"
       >
-        <span class="text-fid-text">{{ stamp.label }}</span> {{ d.match.inRunOut }}
+        <span class="text-fid-text">{{ stampText(stamp).label }}</span> {{ d.match.inRunOut }}
       </span>
     </p>
 

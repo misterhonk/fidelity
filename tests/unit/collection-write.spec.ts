@@ -103,7 +103,7 @@ describe('taking a record off the shelf', () => {
 
     const fake = client({
       write: async () => {
-        throw new DiscogsError(0, 'Discogs antwortet nicht')
+        throw new DiscogsError(0, 'Discogs is not answering')
       },
     })
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
@@ -174,7 +174,7 @@ describe('putting a bought record on the shelf', () => {
     await addRecord(match())
 
     const write = vi.fn(async () => {
-      throw new DiscogsError(0, 'Discogs antwortet nicht')
+      throw new DiscogsError(0, 'Discogs is not answering')
     })
     const get = vi.fn(async () => ({ releases: [{ id: 12 }] }))
     const fake = { write, get } as unknown as DiscogsClient
@@ -193,10 +193,10 @@ describe('putting a bought record on the shelf', () => {
 
     const fake = client({
       write: async () => {
-        throw new DiscogsError(0, 'Discogs antwortet nicht')
+        throw new DiscogsError(0, 'Discogs is not answering')
       },
       get: async () => {
-        throw new DiscogsError(0, 'Discogs antwortet nicht')
+        throw new DiscogsError(0, 'Discogs is not answering')
       },
     })
 

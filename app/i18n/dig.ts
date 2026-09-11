@@ -12,10 +12,10 @@ import { counted, plural } from '~/utils/plural'
 
 const en = {
   title: 'Dig',
-  description: 'Scan a Discogs dealer and get a scored list of finds.',
+  description: 'Scan a Discogs shop and get a scored list of finds.',
 
-  dealer: 'Dealer — name or link',
-  dealerPlaceholder: 'juno_records — or the address of the dealer page',
+  dealer: 'Shop — name or link',
+  dealerPlaceholder: 'juno_records — or the address of the shop page',
   check: 'Check',
   yourShops: 'Your shops',
   offline:
@@ -165,7 +165,7 @@ const en = {
       `${dealer} has put nothing new up since your last visit. The rest of the stock was already here.`,
     incremental:
       'There was nothing for you among the new arrivals. What was there before, this dig did not look at again.',
-    full: 'Nothing here for you at this dealer. That is a result, not a fault.',
+    full: 'Nothing here for you at this shop. That is a result, not a fault.',
     /*
      * The sentence above is an acquittal, and without a horizon it cannot be
      * sustained.
@@ -304,10 +304,10 @@ const en = {
 
 const de: typeof en = {
   title: 'Graben',
-  description: 'Einen Discogs-Händler scannen und eine bewertete Fundliste bekommen.',
+  description: 'Einen Discogs-Laden scannen und eine bewertete Fundliste bekommen.',
 
-  dealer: 'Händler – Name oder Link',
-  dealerPlaceholder: 'juno_records – oder die Adresse der Händlerseite',
+  dealer: 'Laden – Name oder Link',
+  dealerPlaceholder: 'juno_records – oder die Adresse der Ladenseite',
   check: 'Prüfen',
   yourShops: 'Deine Läden',
   offline:
@@ -417,7 +417,7 @@ const de: typeof en = {
       `Seit deinem letzten Besuch hat ${dealer} nichts Neues eingestellt. Der Rest des Sortiments stand hier schon.`,
     incremental:
       'Unter dem Neuen war nichts für dich. Was vorher da war, hat dieser Dig nicht noch einmal angesehen.',
-    full: 'Bei diesem Händler nichts für dich. Das ist ein Ergebnis, kein Fehler.',
+    full: 'Bei diesem Laden nichts für dich. Das ist ein Ergebnis, kein Fehler.',
     noHorizon:
       'Jede Platte hier wurde geprüft und keine passte — aber der Horizont ist noch nicht gebaut, es gab also fast nichts, wogegen zu prüfen war. Solange er fehlt, erkennt Fidelity nur die Pressungen, die du schon hast: kein anderes Pressing, kein selber Künstler, kein selbes Label.',
     buildIt: 'Jetzt bauen',

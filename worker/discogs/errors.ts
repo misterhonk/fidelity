@@ -49,7 +49,7 @@ function describe(detail: FastApiDetail): string {
  */
 export function toDiscogsError(status: number, body: unknown): DiscogsError {
   if (typeof body !== 'object' || body === null) {
-    return new DiscogsError(status, `Discogs antwortete mit HTTP ${status}.`)
+    return new DiscogsError(status, `Discogs answered with HTTP ${status}.`)
   }
 
   const { message, detail } = body as { message?: unknown; detail?: unknown }
@@ -58,7 +58,7 @@ export function toDiscogsError(status: number, body: unknown): DiscogsError {
   const text =
     typeof message === 'string' && message.length > 0
       ? message
-      : (details[0] ?? `Discogs antwortete mit HTTP ${status}.`)
+      : (details[0] ?? `Discogs answered with HTTP ${status}.`)
 
   return new DiscogsError(status, text, details)
 }

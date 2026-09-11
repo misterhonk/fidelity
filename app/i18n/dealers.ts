@@ -9,11 +9,11 @@ import { activeLanguage } from '~/composables/useMessages'
 
 const en = {
   title: 'Shops',
-  description: 'What a dealer actually stocks — and how well they fit you.',
+  description: 'What a shop actually stocks — and how well they fit you.',
   lead: 'What a shop actually stocks — and how well it fits you.',
 
-  none: 'No dealer scanned yet. This fills up with the first dig.',
-  scanned: 'Scanned dealers',
+  none: 'No shop scanned yet. This fills up with the first dig.',
+  scanned: 'Scanned shops',
 
   /*
    * A hit rate on its own is a number without a denominator. The comparison is
@@ -21,7 +21,7 @@ const en = {
    * something this app can see, so it does not claim to.
    */
   rateAlone: (rate: string) =>
-    `${rate} finds per thousand listings. Once you have scanned a second dealer, this says how that compares.`,
+    `${rate} finds per thousand listings. Once you have scanned a second shop, this says how that compares.`,
   rateAbove: (rate: string, factor: string) =>
     `${rate} finds per thousand — ${factor} times your other shops.`,
   rateSame: (rate: string) =>
@@ -53,7 +53,7 @@ const en = {
   },
 
   watching: 'Being watched',
-  watch: 'Watch this dealer',
+  watch: 'Watch this shop',
   /* Watching costs one request per app start, not a rescan. Worth saying,
    * because "watch" usually means somebody is polling. */
   watchCost:
@@ -81,12 +81,12 @@ const en = {
   priceTitle: 'Price range',
   median: (amount: string) => `Median ${amount}`,
   mixedCurrencies: '(the shop prices in several currencies)',
-  priceHigh: 'at the top end of your dealers',
-  priceLow: 'at the bottom end of your dealers',
-  priceMiddle: 'in the middle of your dealers',
+  priceHigh: 'at the top end of your shops',
+  priceLow: 'at the bottom end of your shops',
+  priceMiddle: 'in the middle of your shops',
   priceWhyLabel: 'What it is compared against',
   priceWhy:
-    'Only against your own dealers. What the market as a whole asks is not something this app can see, so it does not claim it either.',
+    'Only against your own shops. What the market as a whole asks is not something this app can see, so it does not claim it either.',
 
   labelsInStock: 'Labels in stock',
   noLabels: 'No label information in the stock.',
@@ -115,14 +115,14 @@ const en = {
 
 const de: typeof en = {
   title: 'Läden',
-  description: 'Was ein Händler eigentlich führt – und wie gut er zu dir passt.',
+  description: 'Was ein Laden eigentlich führt – und wie gut er zu dir passt.',
   lead: 'Was ein Laden eigentlich führt – und wie gut er zu dir passt.',
 
-  none: 'Noch keinen Händler gescannt. Das hier füllt sich mit dem ersten Dig.',
-  scanned: 'Gescannte Händler',
+  none: 'Noch keinen Laden gescannt. Das hier füllt sich mit dem ersten Dig.',
+  scanned: 'Gescannte Läden',
 
   rateAlone: (rate) =>
-    `${rate} Treffer je tausend Listings. Sobald du einen zweiten Händler gescannt hast, steht hier, wie sich das vergleicht.`,
+    `${rate} Treffer je tausend Listings. Sobald du einen zweiten Laden gescannt hast, steht hier, wie sich das vergleicht.`,
   rateAbove: (rate, factor) =>
     `${rate} Treffer je tausend – das ${factor}-Fache deiner übrigen Läden.`,
   rateSame: (rate) => `${rate} Treffer je tausend – etwa so viel wie deine übrigen Läden.`,
@@ -146,7 +146,7 @@ const de: typeof en = {
   },
 
   watching: 'Wird beobachtet',
-  watch: 'Händler merken',
+  watch: 'Laden merken',
   watchCost:
     'Beim Öffnen der App wird nachgesehen, ob sich das Sortiment bewegt hat – eine einzige Abfrage, kein neuer Scan.',
   digNow: 'Jetzt graben',
@@ -166,12 +166,12 @@ const de: typeof en = {
   priceTitle: 'Preislage',
   median: (amount) => `Median ${amount}`,
   mixedCurrencies: '(der Laden preist in mehreren Währungen aus)',
-  priceHigh: 'am oberen Ende deiner Händler',
-  priceLow: 'am unteren Ende deiner Händler',
-  priceMiddle: 'im Mittelfeld deiner Händler',
+  priceHigh: 'am oberen Ende deiner Läden',
+  priceLow: 'am unteren Ende deiner Läden',
+  priceMiddle: 'im Mittelfeld deiner Läden',
   priceWhyLabel: 'Womit verglichen wird',
   priceWhy:
-    'Nur gegen deine eigenen Händler. Was der Markt insgesamt aufruft, kann diese App nicht sehen, und sie behauptet es deshalb auch nicht.',
+    'Nur gegen deine eigenen Läden. Was der Markt insgesamt aufruft, kann diese App nicht sehen, und sie behauptet es deshalb auch nicht.',
 
   labelsInStock: 'Labels im Sortiment',
   noLabels: 'Keine Labelangaben im Sortiment.',

@@ -47,10 +47,10 @@ const { identity, ready, load, set } = useIdentity()
  * day one. Each says what it buys before it starts and each is one click to
  * walk past.
  */
-type Step = 'start' | 'token' | 'sync' | 'horizont' | 'credits' | 'fertig'
+type Step = 'start' | 'token' | 'sync' | 'horizon' | 'credits' | 'done'
 
 const step = ref<Step>('start')
-const STEPS: Step[] = ['token', 'sync', 'horizont', 'credits', 'fertig']
+const STEPS: Step[] = ['token', 'sync', 'horizon', 'credits', 'done']
 
 /**
  * Where the last button leads.
@@ -92,7 +92,7 @@ onMounted(async () => {
    */
   const summary = await call('library.summary', undefined)
   library.value = summary
-  step.value = summary.collection > 0 ? 'fertig' : 'sync'
+  step.value = summary.collection > 0 ? 'done' : 'sync'
 })
 
 function signedIn(next: Identity) {
@@ -108,7 +108,7 @@ async function sync() {
   try {
     await call('library.sync', undefined, { onProgress: (p) => (progress.value = p) })
     library.value = await call('library.summary', undefined)
-    step.value = 'horizont'
+    step.value = 'horizon'
   } catch (cause) {
     error.value = cause
   } finally {
@@ -171,7 +171,7 @@ const CAN_DO = computed(
           :aria-current="step === name ? 'step' : undefined"
         >
           <span
-            class="h-1 rounded-full transition-colors duration-300"
+            class="h-1 rounded-full transition-colors duration-[var(--fid-motion-layout)]"
             :class="index <= stepIndex ? 'bg-fid-accent' : 'bg-fid-inset'"
           />
           <span
@@ -244,7 +244,7 @@ const CAN_DO = computed(
             <div v-if="syncing" class="flex flex-col gap-2" aria-live="polite">
               <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
                 <div
-                  class="h-full rounded-full bg-fid-accent transition-[width] duration-300"
+                  class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
                   :style="{ width: `${percent}%` }"
                 />
               </div>
@@ -279,7 +279,7 @@ const CAN_DO = computed(
             So it is a step, and it says how long it takes before it starts, and
             it can be walked past in one click.
           -->
-          <section v-else-if="step === 'horizont'" key="horizont" class="flex flex-col gap-5">
+          <section v-else-if="step === 'horizon'" key="horizon" class="flex flex-col gap-5">
             <div class="flex flex-col gap-2">
               <h2 class="text-fid-base font-medium text-fid-text">
                 {{ w.horizon.title }}
@@ -322,7 +322,7 @@ const CAN_DO = computed(
               <button
                 type="button"
                 class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
-                @click="step = 'fertig'"
+                @click="step = 'done'"
               >
                 {{ w.credits.skip }}
               </button>
@@ -333,7 +333,7 @@ const CAN_DO = computed(
           </section>
 
           <!-- 5 · Fertig ------------------------------------------------------ -->
-          <section v-else key="fertig" class="flex flex-col gap-5">
+          <section v-else key="done" class="flex flex-col gap-5">
             <div class="flex flex-col gap-2">
               <h2 class="text-fid-base font-medium text-fid-text">{{ w.done.title }}</h2>
               <p v-if="library" class="max-w-prose text-fid-base text-fid-text-muted">

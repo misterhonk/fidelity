@@ -241,14 +241,14 @@ const de: Messages = {
     lead: 'Fidelity spricht direkt mit Discogs – ohne Server dazwischen. Dafür braucht es einen persönlichen Token, den du dir selbst erzeugst.',
     sampleTitle: 'Was dabei herauskommt',
     sampleNote:
-      'Beispiele. Eine Punktzahl, ein Satz, warum – für jede Platte im Sortiment eines Händlers. Mit deiner Sammlung stehen dort deine Künstler und deine Labels.',
+      'Beispiele. Eine Punktzahl, ein Satz, warum – für jede Platte im Sortiment eines Ladens. Mit deiner Sammlung stehen dort deine Künstler und deine Labels.',
     step1: 'öffnen',
     step2: '„Generate token" klicken',
     step3: 'Den Token hier einfügen',
     field: 'Personal Access Token',
     readsOnly: 'Fidelity liest nur.',
     readsOnlyRest:
-      'Sammlung, Wantlist und Händlersortimente – mehr nicht. Es ändert nichts an deinem Discogs-Konto, kauft nichts und schreibt nichts zurück. Gekauft wird bei Discogs, von dir.',
+      'Sammlung, Wantlist und Ladensortimente – mehr nicht. Es ändert nichts an deinem Discogs-Konto, kauft nichts und schreibt nichts zurück. Gekauft wird bei Discogs, von dir.',
     staysHere:
       'Der Token bleibt auf diesem Gerät gespeichert und wird an niemanden weitergegeben – auch nicht an uns. Es gibt keinen Server, der ihn empfangen könnte.',
     checking: 'Prüfe …',
@@ -309,16 +309,16 @@ const de: Messages = {
     },
     dig: {
       cta: 'Dig starten',
-      title: 'Jetzt: den ersten Händler scannen',
+      title: 'Jetzt: den ersten Laden scannen',
       body: 'Nimm einen, bei dem du ohnehin kaufst. Zwei bis vier Minuten für zwanzigtausend Listings, und am Ende steht eine Liste mit einem Satz pro Treffer.',
     },
   },
 
   palette: {
-    placeholder: 'Künstler, Händler, Dig …',
-    nothing: 'Nichts gefunden. Digs und Händler tauchen hier auf, sobald es welche gibt.',
+    placeholder: 'Künstler, Laden, Dig …',
+    nothing: 'Nichts gefunden. Digs und Läden tauchen hier auf, sobald es welche gibt.',
     goTo: 'Gehe zu',
-    dealers: 'Händler',
+    dealers: 'Läden',
     digs: 'Digs',
     lastDig: 'Im letzten Dig',
     inStore: 'Im Laden',
@@ -340,6 +340,11 @@ const de: Messages = {
   },
 
   catalogRun: 'Ausgefüllt = im Regal. Umrandet = diese Platte.',
+  catalogRunEntry: {
+    this: (number) => `${number} – diese Platte`,
+    owned: (number) => `${number} – hast du`,
+    missing: (number) => `${number} – fehlt dir`,
+  },
 
   credits: {
     title: 'Wer hier mitgewirkt hat',
@@ -347,7 +352,7 @@ const de: Messages = {
     about:
       "Discogs' größter ungenutzter Schatz: wer produziert, gemischt oder gemastert hat. Steht schon im Horizont – die Antwort kommt sofort.",
     hereOnly: (here) => `${here} hier, von denen du noch nichts hast.`,
-    youHave: (owned, here) => `Du hast ${owned} — dieser Händler hat ${here} mehr.`,
+    youHave: (owned, here) => `Du hast ${owned} — dieser Laden hat ${here} mehr.`,
     records: (n) => counted(n, 'Platte', 'Platten'),
   },
 
@@ -461,7 +466,7 @@ const de: Messages = {
   nav: {
     label: 'Hauptbereiche',
     start: { label: 'Start', hint: 'Was ist neu, was steht an' },
-    dig: { label: 'Graben', hint: 'Einen Händler scannen' },
+    dig: { label: 'Graben', hint: 'Einen Laden scannen' },
     basket: { label: 'Korb', hint: 'Was du kaufen willst' },
     shelf: { label: 'Sammlung', hint: 'Was du hast und was du suchst' },
     dealers: { label: 'Läden', hint: 'Bei wem du kaufst' },

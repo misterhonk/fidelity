@@ -91,11 +91,7 @@ async function checkStock() {
 
     const sold = props.summary.lines.filter((line) => line.sold).length
     checkResult.value =
-      sold === 0
-        ? b.value.allStillThere(
-            plural(before, count(before) + ' Platte', count(before) + ' Platten'),
-          )
-        : b.value.someSold(count(sold))
+      sold === 0 ? b.value.allStillThere(before) : b.value.someSold(count(sold))
   } catch (cause) {
     error.value = cause
   } finally {

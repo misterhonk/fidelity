@@ -176,7 +176,7 @@ export async function buildHorizon({
            * look like "nothing to do" — which is precisely the failure this is
            * built against.
            */
-          log.warn('[horizon] Beitrag abgelehnt', candidate.kind, candidate.id, error)
+          log.warn('[horizon] contribution rejected', candidate.kind, candidate.id, error)
         }
       }
 
@@ -218,7 +218,7 @@ export async function buildHorizon({
       failed += 1
       done += 1
       consecutiveFailures += 1
-      log.warn('[horizon] konnte nicht expandieren', candidate.kind, candidate.id, error)
+      log.warn('[horizon] could not expand', candidate.kind, candidate.id, error)
 
       if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) throw error
       emit(candidate.name)
@@ -254,7 +254,7 @@ export async function buildHorizon({
    */
   if (hub && shared >= MAX_CATCH_UP_PER_RUN) {
     log.info(
-      `[horizon] ${shared} Blöcke nachgereicht — Rest beim nächsten Lauf (Grenze ${MAX_CATCH_UP_PER_RUN})`,
+      `[horizon] ${shared} blocks caught up — the rest on the next run (limit ${MAX_CATCH_UP_PER_RUN})`,
     )
   }
 

@@ -32,10 +32,10 @@ defineProps<{ run: CatalogueContext; heading?: string }>()
         ]"
         :aria-label="
           entry.isThis
-            ? `${entry.number} – diese Platte`
+            ? m.catalogRunEntry.this(String(entry.number))
             : entry.owned
-              ? `${entry.number} – hast du`
-              : `${entry.number} – fehlt dir`
+              ? m.catalogRunEntry.owned(String(entry.number))
+              : m.catalogRunEntry.missing(String(entry.number))
         "
       >
         {{ entry.number }}

@@ -18,6 +18,7 @@ const en = {
   tabs: { label: 'Buying', basket: 'Basket', saved: 'Saved' },
 
   empty: 'Nothing here yet. Putting something in from a dig works too — the basket counts it.',
+  emptyAction: 'Start a dig',
   shops: (shops: string, records: string) =>
     `${shops} shops · ${records} records. Every shop is its own parcel with its own postage.`,
   clearAll: 'Empty all of them',
@@ -53,31 +54,31 @@ const en = {
   source: {
     user: 'entered by you',
     bundled: 'from the bundled profiles',
-    parsed: 'estimated from the dealer text',
+    parsed: 'estimated from the shop text',
   } satisfies Record<ShippingTier['source'], string>,
 
   subtotalExpired:
-    'At least one price is older than six hours. A partial sum would be a smaller number than the truth — scan the dealer again.',
+    'At least one price is older than six hours. A partial sum would be a smaller number than the truth — scan the shop again.',
   missingToMinimum: (missing: string, minimum: string) =>
-    `${missing} more to reach the minimum order of ${minimum}, otherwise the dealer will not ship.`,
+    `${missing} more to reach the minimum order of ${minimum}, otherwise the shop will not ship.`,
 
   /** The sentence the whole feature exists for (docs/00 §7). */
   advice: (add: number, now: string, then: string) =>
     `${counted(add, 'record', 'records')} more and the postage drops from ${now} to ${then} each.`,
 
-  parsedFrom: 'Guessed from the dealer’s free text',
+  parsedFrom: 'Guessed from the shop’s free text',
   parsedSection: (section: string) => `(section "${section}")`,
   parsedMatched: (matched: string) => `— recognised: ${matched}`,
   parsedWrong: 'If that is wrong, enter the tiers.',
 
   unknownLabel: 'Postage unknown — what could I have read?',
   unknownAbout:
-    'The dealer text gives no tier I can read with confidence. These are the shapes I recognise — if something like this is on the dealer page, entering it here helps:',
+    'The shop text gives no tier I can read with confidence. These are the shapes I recognise — if something like this is on the shop page, entering it here helps:',
 
   editTiers: 'Change the tiers',
   enterTiers: 'Enter the postage tiers',
   tiersTitle: 'Postage tiers',
-  tiersAbout: 'It is on the dealer page at Discogs. Entered once, it stays.',
+  tiersAbout: 'It is on the shop page at Discogs. Entered once, it stays.',
   tiersFrom: 'from how many records',
   addTier: 'Add a step',
 
@@ -92,7 +93,7 @@ const en = {
     result: (records: number, goods: string, shipping: string, total: string) =>
       `${counted(records, 'record', 'records')} · ${goods} plus ${shipping} postage = ${total}`,
     belowMinimum: (minimum: string) =>
-      `That stays under the minimum order of ${minimum} — the dealer will not ship it that way. More budget, or another shop.`,
+      `That stays under the minimum order of ${minimum} — the shop will not ship it that way. More budget, or another shop.`,
     caveat:
       'A suggestion, not a proof: filled greedily and then swapped, not optimised exactly. The basket stays as it is — this changes nothing.',
   },
@@ -144,7 +145,8 @@ const en = {
   tiersTo: 'to how many records',
   tiersOpen: 'open',
   tiersPrice: 'Price',
-  allStillThere: (records: string) => `All still there – ${records}, prices current again.`,
+  allStillThere: (records: number) =>
+    `All still there – ${counted(records, 'record', 'records')}, prices current again.`,
   someSold: (sold: string) => `${sold} sold in the meantime. The rest is current again.`,
   noDealer: 'No shop',
   forget: (record: string) => `Take ${record} off the saved list`,
@@ -228,6 +230,7 @@ const de: typeof en = {
   tabs: { label: 'Kaufen', basket: 'Korb', saved: 'Gemerkt' },
 
   empty: 'Sonst noch leer. Im Dig etwas hineinlegen geht auch – der Korb rechnet dann mit.',
+  emptyAction: 'Einen Dig starten',
   shops: (shops, records) =>
     `${shops} Läden · ${records} Platten. Jeder Laden ist eine eigene Sendung mit eigenem Porto.`,
   clearAll: 'Alle leeren',
@@ -262,30 +265,30 @@ const de: typeof en = {
   source: {
     user: 'von dir eingetragen',
     bundled: 'aus den mitgelieferten Profilen',
-    parsed: 'geschätzt aus dem Händlertext',
+    parsed: 'geschätzt aus dem Freitext des Ladens',
   },
 
   subtotalExpired:
-    'Mindestens ein Preis ist älter als sechs Stunden. Eine Teilsumme wäre eine kleinere Zahl als die Wahrheit – scanne den Händler neu.',
+    'Mindestens ein Preis ist älter als sechs Stunden. Eine Teilsumme wäre eine kleinere Zahl als die Wahrheit – scanne den Laden neu.',
   missingToMinimum: (missing, minimum) =>
-    `Noch ${missing} bis zum Mindestbestellwert von ${minimum}, sonst verschickt der Händler nicht.`,
+    `Noch ${missing} bis zum Mindestbestellwert von ${minimum}, sonst verschickt der Laden nicht.`,
 
   advice: (add, now, then) =>
     `Noch ${counted(add, 'Platte', 'Platten')} und der Versand fällt von ${now} auf ${then} pro Stück.`,
 
-  parsedFrom: 'Aus dem Freitext des Händlers geraten',
+  parsedFrom: 'Aus dem Freitext des Ladens geraten',
   parsedSection: (section) => `(Abschnitt „${section}“)`,
   parsedMatched: (matched) => `– erkannt: ${matched}`,
   parsedWrong: 'Stimmt das nicht, trag die Staffel ein.',
 
   unknownLabel: 'Versand unbekannt – was hätte ich lesen können?',
   unknownAbout:
-    'Der Händlertext gibt keine Staffel her, die ich sicher lesen kann. Diese Formen erkenne ich – steht so etwas auf der Händlerseite, hilft es, sie hier einzutragen:',
+    'Der Freitext des Ladens gibt keine Staffel her, die ich sicher lesen kann. Diese Formen erkenne ich – steht so etwas auf der Ladenseite, hilft es, sie hier einzutragen:',
 
   editTiers: 'Staffel ändern',
   enterTiers: 'Versandstaffel eintragen',
   tiersTitle: 'Versandstaffel',
-  tiersAbout: 'Steht auf der Händlerseite bei Discogs. Einmal eingetragen, bleibt sie.',
+  tiersAbout: 'Steht auf der Ladenseite bei Discogs. Einmal eingetragen, bleibt sie.',
   tiersFrom: 'ab wie vielen Platten',
   addTier: 'Stufe hinzufügen',
 
@@ -300,7 +303,7 @@ const de: typeof en = {
     result: (records, goods, shipping, total) =>
       `${counted(records, 'Platte', 'Platten')} · ${goods} plus ${shipping} Versand = ${total}`,
     belowMinimum: (minimum) =>
-      `Das bleibt unter dem Mindestbestellwert von ${minimum} – der Händler verschickt es so nicht. Mehr Budget oder ein anderer Laden.`,
+      `Das bleibt unter dem Mindestbestellwert von ${minimum} – der Laden verschickt es so nicht. Mehr Budget oder ein anderer Laden.`,
     caveat:
       'Ein Vorschlag, kein Beweis: gierig gefüllt und dann getauscht, nicht exakt optimiert. Der Korb bleibt, wie er ist – das hier ändert nichts.',
   },
@@ -329,7 +332,8 @@ const de: typeof en = {
   tiersTo: 'bis wie vielen Platten',
   tiersOpen: 'offen',
   tiersPrice: 'Preis',
-  allStillThere: (records) => `Alles noch da – ${records}, Preise wieder aktuell.`,
+  allStillThere: (records) =>
+    `Alles noch da – ${counted(records, 'Platte', 'Platten')}, Preise wieder aktuell.`,
   someSold: (sold) => `${sold} inzwischen verkauft. Der Rest ist wieder aktuell.`,
   noDealer: 'Ohne Laden',
   forget: (record) => `${record} von der Merkliste nehmen`,
