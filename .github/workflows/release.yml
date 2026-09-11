@@ -180,6 +180,18 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+
+    # Ohne diese Zeile prüft dieser Job nichts und meldet trotzdem grün.
+    #
+    # `DEPLOY_URL` liegt in einer *Environment*, und ein Job sieht
+    # Environment-Werte ausschließlich, wenn er die Umgebung nennt. Genau das
+    # stand seit dem 2026-08-11 als Kommentar in `deploy.yml` — und beim
+    # Einbau dieser Prüfung am 2026-09-11 ist es trotzdem passiert: Lauf
+    # 34576590897 war grün, `SITE_URL` war leer, und der Hub wurde nie
+    # angefasst. Eine Prüfung, die sich selbst überspringt, ist schlimmer als
+    # gar keine: sie beruhigt.
+    environment: ${{ vars.DEPLOY_ENVIRONMENT || 'martinmelcher.de' }}
+
     steps:
       - name: Die drei Türen am Hub
         env:
@@ -188,6 +200,11 @@ jobs:
           set -u
 
           if [ -z "${SITE_URL:-}" ]; then
+            # Kein Fehler — ein Fork hat keine Adresse, und ein rotes Release
+            # wegen fehlender Fremdkonfiguration wird nach der dritten Mail
+            # ignoriert. Aber sichtbar, denn dieselbe Zeile bedeutet hier
+            # „nichts zu prüfen" und dort „die Prüfung ist kaputt".
+            echo "::warning::Keine DEPLOY_URL sichtbar — der Hub wurde nicht geprüft. Liegt der Wert in einer Environment, muss dieser Job sie nennen."
             echo "Keine Adresse hinterlegt — nichts zu prüfen." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
