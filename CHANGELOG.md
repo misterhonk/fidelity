@@ -9,6 +9,31 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.30.0](https://github.com/misterhonk/fidelity/compare/v0.29.1...v0.30.0) (2026-09-11)
+
+**Every find now says what it costs once it is in the parcel.**
+
+Discogs shows postage only in its cart. So a €4 record from a shop that charges €9 to
+ship sorted ahead of a €7 one that would have ridden in a parcel already paid for, and
+nothing on the list said so. Beside the price there is now a second number: the price plus
+the postage this record *adds* — the whole first tier for the first record, often nothing
+for the third — from the same table the basket uses, whether you typed it in, a hub shared
+it, the repository carries it, or the shop's own text gave it away. A record already in the
+basket is taken out of the count first, or it would pay twice.
+
+The list sorts by it ("With postage ↑") and takes a ceiling ("Up to", postage included);
+both live in the address like every other view setting, so a reload and a pasted link keep
+them. It is in the shop's currency, not yours — nothing in this app converts one, and the
+basket refuses for the same reason. A shop whose postage nobody knows gets neither, and one
+line saying why.
+
+This is the first of the candidates under M19 in the roadmap: the wishes Discogs users
+have voiced for years, checked against what a browser app may and can do.
+
+### Added
+
+* **dig:** what a record costs with its postage, on the find list ([b55b4c0](https://github.com/misterhonk/fidelity/commit/b55b4c0642cea8cafa437174c9f347599b9a7ebc))
+
 ## [0.29.1](https://github.com/misterhonk/fidelity/compare/v0.29.0...v0.29.1) (2026-09-11)
 
 **The whole front end was read against its own design document, and photographed.** Ten
