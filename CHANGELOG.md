@@ -11,6 +11,20 @@ Für eine App bedeutet SemVer:
 
 ## [0.33.0](https://github.com/misterhonk/fidelity/compare/v0.32.0...v0.33.0) (2026-09-11)
 
+**A record fair: every stand you scanned today, on the shop screen.**
+
+The scans happen at home in the morning; the fair is several stands in one afternoon. The
+in-store screen now offers every shop scanned in the last day — a chip per stand and one
+for all of them. All at once is one list by score with the stand named on each row; a
+stand whose scan stopped halfway is named too. The stand you picked is in the address, so a
+reload in a basement with no signal lands where you were.
+
+A morning's scan is usually past its six hours by the afternoon. It still counts as a
+stand: the finds and their reasons stay while the prices go, which the screen already
+said. Every basket was its own parcel before and stays so — that is what makes "all at
+once" safe. No request anywhere; with one shop scanned nothing on the screen changes.
+
+Phase 4 of the original concept, and the fourth of the M19 candidates.
 
 ### Added
 
