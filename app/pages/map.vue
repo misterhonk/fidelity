@@ -44,7 +44,7 @@ const decades = computed(() =>
 </script>
 
 <template>
-  <main class="@container mx-auto flex w-full max-w-[90rem] flex-col gap-10 px-6 py-16">
+  <main class="@container fid-page flex flex-col gap-10 py-16">
     <!--
       Wide, because this screen is five bar charts and two rankings — data, not
       reading. The prose inside stays narrow: a sentence that runs 1400 pixels

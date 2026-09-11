@@ -150,242 +150,244 @@ const CAN_DO = computed(
 </script>
 
 <template>
-  <main class="@container mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-16">
-    <header class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">Fidelity</h1>
-      <p class="text-fid-base text-fid-text-muted">
-        {{ w.lead }}
-      </p>
-    </header>
+  <main class="@container fid-page py-16">
+    <div class="flex w-full max-w-2xl flex-col gap-8">
+      <header class="flex flex-col gap-3">
+        <h1 class="fid-display text-fid-xl font-bold text-fid-text">Fidelity</h1>
+        <p class="text-fid-base text-fid-text-muted">
+          {{ w.lead }}
+        </p>
+      </header>
 
-    <!--
-      Segments rather than "Schritt 2 von 5". The filled part is the same
-      information and takes no words, and the labels underneath say what the
-      steps are, which a number never does.
-    -->
-    <ol v-if="step !== 'start'" class="flex gap-2" :aria-label="w.setupProgress">
-      <li
-        v-for="(name, index) in STEPS"
-        :key="name"
-        class="flex flex-1 flex-col gap-2"
-        :aria-current="step === name ? 'step' : undefined"
-      >
-        <span
-          class="h-1 rounded-full transition-colors duration-300"
-          :class="index <= stepIndex ? 'bg-fid-accent' : 'bg-fid-inset'"
-        />
-        <span
-          class="text-fid-xs transition-colors"
-          :class="index <= stepIndex ? 'text-fid-text' : 'text-fid-text-muted'"
+      <!--
+        Segments rather than "Schritt 2 von 5". The filled part is the same
+        information and takes no words, and the labels underneath say what the
+        steps are, which a number never does.
+      -->
+      <ol v-if="step !== 'start'" class="flex gap-2" :aria-label="w.setupProgress">
+        <li
+          v-for="(name, index) in STEPS"
+          :key="name"
+          class="flex flex-1 flex-col gap-2"
+          :aria-current="step === name ? 'step' : undefined"
         >
-          {{ STEP_LABEL[name] }}
-        </span>
-      </li>
-    </ol>
-
-    <ErrorNote v-if="error" :cause="error" :signed-in="Boolean(identity)" />
-
-    <!--
-      `mode="out-in"` so the leaving panel is gone before the next arrives —
-      two panels crossfading through each other is mush at this size.
-    -->
-    <div class="relative">
-      <Transition name="fid-step" mode="out-in">
-        <!-- 0 · Ankommen ---------------------------------------------------- -->
-        <!--
-          The button goes above the demonstration, not below it.
-
-          Somebody who already knows what this is should not have to scroll
-          past a demo to get started, and somebody who does not know finds the
-          demo immediately below. The order costs the first group nothing and
-          gives the second everything.
-        -->
-        <section v-if="step === 'start'" key="start" class="flex flex-col gap-8">
-          <div class="flex flex-col gap-3">
-            <button
-              type="button"
-              class="fid-fill fid-action self-start rounded-fid-md bg-fid-accent-fill px-6 py-3 text-fid-base font-medium text-fid-on-accent"
-              @click="step = 'token'"
-            >
-              {{ w.setUp }}
-            </button>
-            <p class="max-w-prose text-fid-sm text-fid-text-muted">
-              {{ w.setUpAbout }}
-            </p>
-          </div>
-
-          <hr class="border-fid-border" />
-
-          <DemoDig />
-        </section>
-
-        <!-- 1 · Token ------------------------------------------------------ -->
-        <!--
-          No lead of its own. The first draft had one, and on a phone it read
-          as the same sentence twice: TokenForm already opens with "Fidelity
-          spricht direkt mit Discogs – ohne Server dazwischen", and repeating
-          it above is the kind of padding this app is supposed to be free of.
-        -->
-        <section v-else-if="step === 'token'" key="token">
-          <TokenForm @signed-in="signedIn($event)" />
-        </section>
-
-        <!-- 2 · Sammlung --------------------------------------------------- -->
-        <section v-else-if="step === 'sync'" key="sync" class="flex flex-col gap-5">
-          <div class="flex flex-col gap-2">
-            <h2 class="text-fid-base font-medium text-fid-text">
-              {{ w.signedInAs(identity?.username ?? '') }}
-            </h2>
-            <p class="max-w-prose text-fid-base text-fid-text-muted">
-              {{ w.syncAbout }}
-            </p>
-          </div>
-
-          <div v-if="syncing" class="flex flex-col gap-2" aria-live="polite">
-            <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
-              <div
-                class="h-full rounded-full bg-fid-accent transition-[width] duration-300"
-                :style="{ width: `${percent}%` }"
-              />
-            </div>
-            <p class="fid-num text-fid-sm text-fid-text-muted">
-              {{ syncLabel ?? w.asking }}
-            </p>
-          </div>
-
-          <button
-            v-else
-            type="button"
-            class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
-            @click="sync"
+          <span
+            class="h-1 rounded-full transition-colors duration-300"
+            :class="index <= stepIndex ? 'bg-fid-accent' : 'bg-fid-inset'"
+          />
+          <span
+            class="text-fid-xs transition-colors"
+            :class="index <= stepIndex ? 'text-fid-text' : 'text-fid-text-muted'"
           >
-            {{ w.fetchCollection }}
-          </button>
-        </section>
+            {{ STEP_LABEL[name] }}
+          </span>
+        </li>
+      </ol>
 
-        <!-- 3 · Horizont ---------------------------------------------------- -->
-        <!--
-          The horizon was deliberately not in the setup — now it is. Why, in
-          `app/i18n/welcome.ts`.
+      <ErrorNote v-if="error" :cause="error" :signed-in="Boolean(identity)" />
 
-          The argument for leaving it out was that it takes minutes and the app
-          works without it. Both are still true. What that argument missed is
-          that half of what makes Fidelity interesting is invisible without it:
-          another pressing of a record you own, a catalogue series with a hole
-          in it, a producer whose name you never see on a sleeve. Somebody who
-          finishes the setup and never opens the settings gets a matcher that
-          only knows the artists they already own by name.
-
-          So it is a step, and it says how long it takes before it starts, and
-          it can be walked past in one click.
-        -->
-        <section v-else-if="step === 'horizont'" key="horizont" class="flex flex-col gap-5">
-          <div class="flex flex-col gap-2">
-            <h2 class="text-fid-base font-medium text-fid-text">
-              {{ w.horizon.title }}
-            </h2>
-            <p class="max-w-prose text-fid-base text-fid-text-muted">
-              {{ w.horizon.about }}
-            </p>
-          </div>
-
-          <HorizonBuild />
-
-          <div class="flex flex-col gap-2">
-            <button
-              type="button"
-              class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
-              @click="step = 'credits'"
-            >
-              {{ w.horizon.skip }}
-            </button>
-            <p class="text-fid-xs text-fid-text-muted">
-              {{ w.horizon.resumable }}
-            </p>
-          </div>
-        </section>
-
-        <!-- 4 · Credits ----------------------------------------------------- -->
-        <section v-else-if="step === 'credits'" key="credits" class="flex flex-col gap-5">
-          <div class="flex flex-col gap-2">
-            <h2 class="text-fid-base font-medium text-fid-text">
-              {{ w.credits.title }}
-            </h2>
-            <p class="max-w-prose text-fid-base text-fid-text-muted">
-              {{ w.credits.about }}
-            </p>
-          </div>
-
-          <CreditHarvest />
-
-          <div class="flex flex-col gap-2">
-            <button
-              type="button"
-              class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
-              @click="step = 'fertig'"
-            >
-              {{ w.credits.skip }}
-            </button>
-            <p class="text-fid-xs text-fid-text-muted">
-              {{ w.credits.later }}
-            </p>
-          </div>
-        </section>
-
-        <!-- 5 · Fertig ------------------------------------------------------ -->
-        <section v-else key="fertig" class="flex flex-col gap-5">
-          <div class="flex flex-col gap-2">
-            <h2 class="text-fid-base font-medium text-fid-text">{{ w.done.title }}</h2>
-            <p v-if="library" class="max-w-prose text-fid-base text-fid-text-muted">
-              {{ w.done.summary(count(library.collection), count(library.wantlist)) }}
-            </p>
-          </div>
-
-          <ul class="flex flex-col gap-3">
-            <li
-              v-for="(thing, index) in CAN_DO"
-              :key="thing.title"
-              class="fid-rise flex flex-col gap-2 rounded-fid-md border border-fid-border bg-fid-surface p-4"
-              :style="{ '--fid-stagger': index + 1 }"
-            >
-              <h3 class="flex items-center gap-2 text-fid-base font-medium text-fid-text">
-                <FidIcon :name="thing.icon" />
-                {{ thing.title }}
-              </h3>
-              <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ thing.body }}</p>
-              <NuxtLink
-                :to="thing.to"
-                class="fid-action self-start text-fid-sm text-fid-text underline underline-offset-4"
-              >
-                {{ thing.cta }}
-              </NuxtLink>
-            </li>
-          </ul>
-
+      <!--
+        `mode="out-in"` so the leaving panel is gone before the next arrives —
+        two panels crossfading through each other is mush at this size.
+      -->
+      <div class="relative">
+        <Transition name="fid-step" mode="out-in">
+          <!-- 0 · Ankommen ---------------------------------------------------- -->
           <!--
-            Zurück, wo man hinwollte.
+            The button goes above the demonstration, not below it.
 
-            Die Middleware hängt `?next=` an, wenn sie jemanden von einem
-            anderen Bildschirm abgefangen hat. Wer eigentlich seinen Korb sehen
-            wollte, soll nicht auf der Startseite landen und ihn von Hand
-            wiederfinden — die Einrichtung war der Umweg, nicht das Ziel.
+            Somebody who already knows what this is should not have to scroll
+            past a demo to get started, and somebody who does not know finds the
+            demo immediately below. The order costs the first group nothing and
+            gives the second everything.
           -->
-          <NuxtLink
-            :to="backTo"
-            class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
-          >
-            {{ w.done.toStart }}
-          </NuxtLink>
-        </section>
-      </Transition>
-    </div>
+          <section v-if="step === 'start'" key="start" class="flex flex-col gap-8">
+            <div class="flex flex-col gap-3">
+              <button
+                type="button"
+                class="fid-fill fid-action self-start rounded-fid-md bg-fid-accent-fill px-6 py-3 text-fid-base font-medium text-fid-on-accent"
+                @click="step = 'token'"
+              >
+                {{ w.setUp }}
+              </button>
+              <p class="max-w-prose text-fid-sm text-fid-text-muted">
+                {{ w.setUpAbout }}
+              </p>
+            </div>
 
-    <p
-      v-if="ready && (step === 'start' || step === 'token')"
-      class="text-fid-xs text-fid-text-muted"
-    >
-      {{ w.alreadySetUp }}
-      <NuxtLink class="underline underline-offset-4" to="/">{{ w.startPage }}</NuxtLink>
-    </p>
+            <hr class="border-fid-border" />
+
+            <DemoDig />
+          </section>
+
+          <!-- 1 · Token ------------------------------------------------------ -->
+          <!--
+            No lead of its own. The first draft had one, and on a phone it read
+            as the same sentence twice: TokenForm already opens with "Fidelity
+            spricht direkt mit Discogs – ohne Server dazwischen", and repeating
+            it above is the kind of padding this app is supposed to be free of.
+          -->
+          <section v-else-if="step === 'token'" key="token">
+            <TokenForm @signed-in="signedIn($event)" />
+          </section>
+
+          <!-- 2 · Sammlung --------------------------------------------------- -->
+          <section v-else-if="step === 'sync'" key="sync" class="flex flex-col gap-5">
+            <div class="flex flex-col gap-2">
+              <h2 class="text-fid-base font-medium text-fid-text">
+                {{ w.signedInAs(identity?.username ?? '') }}
+              </h2>
+              <p class="max-w-prose text-fid-base text-fid-text-muted">
+                {{ w.syncAbout }}
+              </p>
+            </div>
+
+            <div v-if="syncing" class="flex flex-col gap-2" aria-live="polite">
+              <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
+                <div
+                  class="h-full rounded-full bg-fid-accent transition-[width] duration-300"
+                  :style="{ width: `${percent}%` }"
+                />
+              </div>
+              <p class="fid-num text-fid-sm text-fid-text-muted">
+                {{ syncLabel ?? w.asking }}
+              </p>
+            </div>
+
+            <button
+              v-else
+              type="button"
+              class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
+              @click="sync"
+            >
+              {{ w.fetchCollection }}
+            </button>
+          </section>
+
+          <!-- 3 · Horizont ---------------------------------------------------- -->
+          <!--
+            The horizon was deliberately not in the setup — now it is. Why, in
+            `app/i18n/welcome.ts`.
+
+            The argument for leaving it out was that it takes minutes and the app
+            works without it. Both are still true. What that argument missed is
+            that half of what makes Fidelity interesting is invisible without it:
+            another pressing of a record you own, a catalogue series with a hole
+            in it, a producer whose name you never see on a sleeve. Somebody who
+            finishes the setup and never opens the settings gets a matcher that
+            only knows the artists they already own by name.
+
+            So it is a step, and it says how long it takes before it starts, and
+            it can be walked past in one click.
+          -->
+          <section v-else-if="step === 'horizont'" key="horizont" class="flex flex-col gap-5">
+            <div class="flex flex-col gap-2">
+              <h2 class="text-fid-base font-medium text-fid-text">
+                {{ w.horizon.title }}
+              </h2>
+              <p class="max-w-prose text-fid-base text-fid-text-muted">
+                {{ w.horizon.about }}
+              </p>
+            </div>
+
+            <HorizonBuild />
+
+            <div class="flex flex-col gap-2">
+              <button
+                type="button"
+                class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
+                @click="step = 'credits'"
+              >
+                {{ w.horizon.skip }}
+              </button>
+              <p class="text-fid-xs text-fid-text-muted">
+                {{ w.horizon.resumable }}
+              </p>
+            </div>
+          </section>
+
+          <!-- 4 · Credits ----------------------------------------------------- -->
+          <section v-else-if="step === 'credits'" key="credits" class="flex flex-col gap-5">
+            <div class="flex flex-col gap-2">
+              <h2 class="text-fid-base font-medium text-fid-text">
+                {{ w.credits.title }}
+              </h2>
+              <p class="max-w-prose text-fid-base text-fid-text-muted">
+                {{ w.credits.about }}
+              </p>
+            </div>
+
+            <CreditHarvest />
+
+            <div class="flex flex-col gap-2">
+              <button
+                type="button"
+                class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
+                @click="step = 'fertig'"
+              >
+                {{ w.credits.skip }}
+              </button>
+              <p class="text-fid-xs text-fid-text-muted">
+                {{ w.credits.later }}
+              </p>
+            </div>
+          </section>
+
+          <!-- 5 · Fertig ------------------------------------------------------ -->
+          <section v-else key="fertig" class="flex flex-col gap-5">
+            <div class="flex flex-col gap-2">
+              <h2 class="text-fid-base font-medium text-fid-text">{{ w.done.title }}</h2>
+              <p v-if="library" class="max-w-prose text-fid-base text-fid-text-muted">
+                {{ w.done.summary(count(library.collection), count(library.wantlist)) }}
+              </p>
+            </div>
+
+            <ul class="flex flex-col gap-3">
+              <li
+                v-for="(thing, index) in CAN_DO"
+                :key="thing.title"
+                class="fid-rise flex flex-col gap-2 rounded-fid-md border border-fid-border bg-fid-surface p-4"
+                :style="{ '--fid-stagger': index + 1 }"
+              >
+                <h3 class="flex items-center gap-2 text-fid-base font-medium text-fid-text">
+                  <FidIcon :name="thing.icon" />
+                  {{ thing.title }}
+                </h3>
+                <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ thing.body }}</p>
+                <NuxtLink
+                  :to="thing.to"
+                  class="fid-action self-start text-fid-sm text-fid-text underline underline-offset-4"
+                >
+                  {{ thing.cta }}
+                </NuxtLink>
+              </li>
+            </ul>
+
+            <!--
+              Zurück, wo man hinwollte.
+
+              Die Middleware hängt `?next=` an, wenn sie jemanden von einem
+              anderen Bildschirm abgefangen hat. Wer eigentlich seinen Korb sehen
+              wollte, soll nicht auf der Startseite landen und ihn von Hand
+              wiederfinden — die Einrichtung war der Umweg, nicht das Ziel.
+            -->
+            <NuxtLink
+              :to="backTo"
+              class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
+            >
+              {{ w.done.toStart }}
+            </NuxtLink>
+          </section>
+        </Transition>
+      </div>
+
+      <p
+        v-if="ready && (step === 'start' || step === 'token')"
+        class="text-fid-xs text-fid-text-muted"
+      >
+        {{ w.alreadySetUp }}
+        <NuxtLink class="underline underline-offset-4" to="/">{{ w.startPage }}</NuxtLink>
+      </p>
+    </div>
   </main>
 </template>

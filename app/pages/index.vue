@@ -132,7 +132,7 @@ const tiles = computed(() => {
 </script>
 
 <template>
-  <main class="@container mx-auto flex w-full max-w-[72rem] flex-col gap-8 py-10">
+  <main class="@container fid-page-flush flex flex-col gap-8 py-10">
     <!--
       Signed out there is nothing to draw: the mount redirects to the setup,
       and a dashboard flashing its empty sections on the way there is worse

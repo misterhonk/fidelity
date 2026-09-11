@@ -161,7 +161,7 @@ const scanned = computed(() => {
 </script>
 
 <template>
-  <main class="@container mx-auto flex w-full max-w-[80rem] flex-col gap-8 px-6 py-16">
+  <main class="@container fid-page flex flex-col gap-8 py-16">
     <div class="flex flex-col gap-3">
       <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ h.title }}</h1>
       <p class="text-fid-base text-fid-text-muted">{{ h.lead }}</p>

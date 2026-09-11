@@ -132,6 +132,53 @@ body {
 }
 
 /*
+ * Ein Maß für die ganze App — und der Grund, warum es das braucht.
+ *
+ * Bis zum 2026-09-11 hatte jede Seite ihr eigenes: das Regal 110rem, die
+ * Landkarte 90rem, Wantlist und Dig 80rem, Korb und Orte 48rem, „Was neu ist"
+ * 36rem. Dazu alles zentriert. Wer die fünf Sammlungs-Reiter durchklickte,
+ * sah bei jedem Wechsel die ganze Seite seitwärts springen — fünf Reiter, vier
+ * Breiten. Und die Hauptleiste selbst lag bei 48rem, floh also auf keiner
+ * einzigen Seite mit dem Inhalt darunter.
+ *
+ * `docs/05` §3a hatte die Breiten je *Seite* vergeben, mit einer richtigen
+ * Begründung — „Daten dürfen breit werden, Text nicht". Der Fehler war die
+ * Ebene: eine Breite gehört zu einem *Bereich*, nicht zu einer Seite, sonst
+ * ist der Wechsel zwischen zwei Sichten auf dieselbe Sache ein Umzug.
+ *
+ * Die Regel lautet jetzt: **ein Container, immer.** Was schmal bleiben muss,
+ * bekommt sein Maß *innen* — und wird links verankert statt zentriert, damit
+ * der linke Rand steht. `tests/unit/one-measure.spec.ts` hält das fest.
+ *
+ * 110rem, weil das Regal es wirklich braucht: acht Cover nebeneinander sind
+ * der Bildschirm, für den diese App gebaut ist. Auf einem Laptop ist das
+ * ohnehin „Fenster minus Rand".
+ */
+.fid-page,
+.fid-page-flush {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 110rem;
+}
+
+.fid-page {
+  padding-inline: 1.5rem;
+}
+
+/*
+ * Dasselbe Maß, aber der Rand gehört den Kindern.
+ *
+ * Die Startseite trägt Cover-Reihen, die absichtlich bis an die Kante laufen:
+ * `CoverRail` scrollt über die volle Breite und setzt `px-6` und `scroll-px-6`
+ * selbst, damit ein Cover am Rand einrastet statt bündig abzuschneiden. Eine
+ * Reihe, die vor dem Rand aufhört, sagt „das ist alles" — und das ist sie
+ * nicht.
+ *
+ * Also dieselbe Breite, derselbe linke Rand für alles, was Abstand hat, und
+ * die Reihen dürfen darüber hinaus.
+ */
+
+/*
  * Ein Regal, das sich aufbaut statt zu erscheinen.
  *
  * Eight covers appearing at once is a flash; the same eight arriving 40ms

@@ -84,7 +84,7 @@ const basketCount = computed(() => basketIds.value.size)
       rounded, and a row stretched edge to edge puts the outermost tab — Start
       on one side, the gear on the other — into the curve.
     -->
-    <div class="mx-auto flex max-w-3xl items-stretch gap-1 px-6 max-md:gap-0 max-md:px-3">
+    <div class="fid-page flex items-stretch gap-1 max-md:gap-0 max-md:px-3">
       <NuxtLink
         v-for="section in SECTIONS"
         :key="section.to"

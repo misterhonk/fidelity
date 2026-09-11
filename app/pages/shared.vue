@@ -100,104 +100,106 @@ const fresh = computed(() => {
 </script>
 
 <template>
-  <main class="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4">
-    <p v-if="loading" class="text-fid-base text-fid-text-muted">{{ d.sheet.loading }}</p>
+  <main class="fid-page py-4">
+    <div class="flex w-full max-w-3xl flex-col gap-6">
+      <p v-if="loading" class="text-fid-base text-fid-text-muted">{{ d.sheet.loading }}</p>
 
-    <section v-else-if="problem" class="flex flex-col gap-3">
-      <h1 class="text-fid-xl font-bold text-fid-text">{{ d.sharedTitle }}</h1>
-      <p class="text-fid-base text-fid-text-muted">
-        {{
-          problem === 'link'
-            ? d.sharedBadLink
-            : problem === 'nohub'
-              ? d.sharedNoHub
-              : d.sharedGone
-        }}
-      </p>
-      <ErrorNote v-if="error" :cause="error" :signed-in="false" />
-      <NuxtLink
-        to="/welcome"
-        class="fid-action self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
-      >
-        {{ d.sharedWhatIsThis }}
-      </NuxtLink>
-    </section>
-
-    <template v-else-if="snapshot">
-      <header class="flex flex-col gap-2">
-        <h1 class="text-fid-xl font-bold text-fid-text">
-          {{ d.sharedFrom(snapshot.dealer) }}
-        </h1>
-        <p class="text-fid-sm text-fid-text-muted">
+      <section v-else-if="problem" class="flex flex-col gap-3">
+        <h1 class="text-fid-xl font-bold text-fid-text">{{ d.sharedTitle }}</h1>
+        <p class="text-fid-base text-fid-text-muted">
           {{
-            d.sharedScope(
-              count(snapshot.matches.length),
-              count(snapshot.matchesTotal),
-              String(Math.round(snapshot.coverage * 100)),
-            )
+            problem === 'link'
+              ? d.sharedBadLink
+              : problem === 'nohub'
+                ? d.sharedNoHub
+                : d.sharedGone
           }}
         </p>
-        <!--
-          Die Sechs-Stunden-Uhr, auch hier. Sie läuft ab dem Scan und nicht ab
-          dem Verschicken; deshalb steht hier ein Zeitpunkt und keine Dauer.
-        -->
-        <p v-if="fresh" class="text-fid-xs text-fid-text-muted">
-          {{ d.shareGone(dayTime(snapshot.expiresAt)) }}
-        </p>
-      </header>
-
-      <ul class="flex flex-col gap-3">
-        <li
-          v-for="match in snapshot.matches"
-          :key="match.listingId"
-          class="flex flex-col gap-1 rounded-fid-md border border-fid-border p-3"
-        >
-          <div class="flex flex-wrap items-baseline justify-between gap-2">
-            <p class="text-fid-base font-medium text-fid-text">
-              {{ match.artist }} – {{ match.title }}
-            </p>
-            <p class="fid-num shrink-0 text-fid-sm text-fid-text-muted">{{ match.score }}</p>
-          </div>
-
-          <p
-            v-if="match.label || match.year"
-            class="font-fid-mono text-fid-xs text-fid-text-muted"
-          >
-            {{
-              [match.label, match.catno, match.format, match.year].filter(Boolean).join(' · ')
-            }}
-          </p>
-
-          <p class="text-fid-sm text-fid-text">{{ reasonFor(match.signals) }}</p>
-
-          <!--
-            Preis und Zustand nur, solange sie gezeigt werden dürfen. Nach
-            sechs Stunden ist der Link ohnehin weg — aber zwischen „der Server
-            hat ihn noch" und „dieses Gerät findet ihn abgelaufen" liegt eine
-            Uhr, und die hier zählt.
-          -->
-          <p v-if="fresh && match.price !== null" class="text-fid-sm text-fid-text">
-            {{ money(match.price, match.currency) }}
-            <span v-if="match.condition" class="text-fid-text-muted"
-              >· {{ match.condition }}</span
-            >
-          </p>
-
-          <OutwardLink :to="`https://www.discogs.com/sell/item/${match.listingId}`">
-            {{ d.sheet.atDiscogs }}
-          </OutwardLink>
-        </li>
-      </ul>
-
-      <footer class="flex flex-col gap-2 border-t border-fid-border pt-4">
-        <p class="text-fid-sm text-fid-text-muted">{{ d.sharedPitch }}</p>
+        <ErrorNote v-if="error" :cause="error" :signed-in="false" />
         <NuxtLink
           to="/welcome"
-          class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 text-fid-sm font-medium text-fid-on-accent"
+          class="fid-action self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
         >
           {{ d.sharedWhatIsThis }}
         </NuxtLink>
-      </footer>
-    </template>
+      </section>
+
+      <template v-else-if="snapshot">
+        <header class="flex flex-col gap-2">
+          <h1 class="text-fid-xl font-bold text-fid-text">
+            {{ d.sharedFrom(snapshot.dealer) }}
+          </h1>
+          <p class="text-fid-sm text-fid-text-muted">
+            {{
+              d.sharedScope(
+                count(snapshot.matches.length),
+                count(snapshot.matchesTotal),
+                String(Math.round(snapshot.coverage * 100)),
+              )
+            }}
+          </p>
+          <!--
+            Die Sechs-Stunden-Uhr, auch hier. Sie läuft ab dem Scan und nicht ab
+            dem Verschicken; deshalb steht hier ein Zeitpunkt und keine Dauer.
+          -->
+          <p v-if="fresh" class="text-fid-xs text-fid-text-muted">
+            {{ d.shareGone(dayTime(snapshot.expiresAt)) }}
+          </p>
+        </header>
+
+        <ul class="flex flex-col gap-3">
+          <li
+            v-for="match in snapshot.matches"
+            :key="match.listingId"
+            class="flex flex-col gap-1 rounded-fid-md border border-fid-border p-3"
+          >
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+              <p class="text-fid-base font-medium text-fid-text">
+                {{ match.artist }} – {{ match.title }}
+              </p>
+              <p class="fid-num shrink-0 text-fid-sm text-fid-text-muted">{{ match.score }}</p>
+            </div>
+
+            <p
+              v-if="match.label || match.year"
+              class="font-fid-mono text-fid-xs text-fid-text-muted"
+            >
+              {{
+                [match.label, match.catno, match.format, match.year].filter(Boolean).join(' · ')
+              }}
+            </p>
+
+            <p class="text-fid-sm text-fid-text">{{ reasonFor(match.signals) }}</p>
+
+            <!--
+              Preis und Zustand nur, solange sie gezeigt werden dürfen. Nach
+              sechs Stunden ist der Link ohnehin weg — aber zwischen „der Server
+              hat ihn noch" und „dieses Gerät findet ihn abgelaufen" liegt eine
+              Uhr, und die hier zählt.
+            -->
+            <p v-if="fresh && match.price !== null" class="text-fid-sm text-fid-text">
+              {{ money(match.price, match.currency) }}
+              <span v-if="match.condition" class="text-fid-text-muted"
+                >· {{ match.condition }}</span
+              >
+            </p>
+
+            <OutwardLink :to="`https://www.discogs.com/sell/item/${match.listingId}`">
+              {{ d.sheet.atDiscogs }}
+            </OutwardLink>
+          </li>
+        </ul>
+
+        <footer class="flex flex-col gap-2 border-t border-fid-border pt-4">
+          <p class="text-fid-sm text-fid-text-muted">{{ d.sharedPitch }}</p>
+          <NuxtLink
+            to="/welcome"
+            class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 text-fid-sm font-medium text-fid-on-accent"
+          >
+            {{ d.sharedWhatIsThis }}
+          </NuxtLink>
+        </footer>
+      </template>
+    </div>
   </main>
 </template>

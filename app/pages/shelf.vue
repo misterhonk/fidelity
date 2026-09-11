@@ -138,7 +138,7 @@ const open = ref<number | null>(null)
 </script>
 
 <template>
-  <main class="@container mx-auto flex w-full max-w-[110rem] flex-col gap-6 px-6 py-10">
+  <main class="@container fid-page flex flex-col gap-6 py-10">
     <!--
       Wider than the reading screens on purpose. A grid of covers is the one
       thing in this app that gets better with room, and a collector at a desk

@@ -26,28 +26,32 @@ onMounted(load)
 </script>
 
 <template>
-  <main class="@container mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
-    <div class="flex flex-col gap-3">
-      <NuxtLink
-        to="/settings"
-        class="fid-action gap-2 self-start text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
-      >
-        <FidIcon name="arrow-left" :size="16" />
-        {{ st.back }}
-      </NuxtLink>
+  <main class="@container fid-page py-10">
+    <div class="flex w-full max-w-3xl flex-col gap-6">
+      <div class="flex flex-col gap-3">
+        <NuxtLink
+          to="/settings"
+          class="fid-action gap-2 self-start text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+        >
+          <FidIcon name="arrow-left" :size="16" />
+          {{ st.back }}
+        </NuxtLink>
 
-      <header class="flex flex-col gap-1">
-        <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ title }}</h1>
-        <p v-if="lead" class="max-w-prose text-fid-base text-fid-text-muted">{{ lead }}</p>
-      </header>
+        <header class="flex flex-col gap-1">
+          <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ title }}</h1>
+          <p v-if="lead" class="max-w-prose text-fid-base text-fid-text-muted">{{ lead }}</p>
+        </header>
+      </div>
+
+      <slot v-if="identity" />
+
+      <p v-else class="text-fid-base text-fid-text-muted">
+        {{ m.common.signIn.lead }}
+        <NuxtLink class="underline underline-offset-4" to="/">{{
+          m.common.signIn.link
+        }}</NuxtLink
+        >.
+      </p>
     </div>
-
-    <slot v-if="identity" />
-
-    <p v-else class="text-fid-base text-fid-text-muted">
-      {{ m.common.signIn.lead }}
-      <NuxtLink class="underline underline-offset-4" to="/">{{ m.common.signIn.link }}</NuxtLink
-      >.
-    </p>
   </main>
 </template>

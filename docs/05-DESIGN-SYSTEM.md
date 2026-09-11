@@ -293,23 +293,42 @@ Postage to you (DE)             currently 2 records · €9.00 total · €4.50 
 
 ---
 
-## 3a. Width
+## 3a. One measure
 
-**Data may get wide, text may not.**
+**Data may get wide, text may not — and the container is the same either way.**
 
-The app was built mobile-first and stayed a single 768 px column on every monitor. For a
-shelf full of covers and five bar charts, that is the wrong shape.
+Until 2026-09-11 that first sentence was implemented as a width *per page*: the shelf
+110rem, the map 90rem, the dig and wantlist 80rem, basket and places 48rem, "what is new"
+36rem — each centred. The reasoning was right and the level was wrong.
 
-| Page | Width | Why |
-|---|---|---|
-| Shelf | `110rem` | Covers are the one thing here that gets better with room — 3 columns on a phone, 8 on a monitor |
-| Map | `90rem` | Five facets side by side instead of 2×2 over several screen heights |
-| Dig, wantlist, saved, shops | `80rem` | Two columns from `@4xl`, more matches visible at once |
-| Basket | `48rem` | A till receipt does not get better for being wider |
-| Privacy, legal notice, in-store | `48rem` / `36rem` | Body text and thumb operation |
+**What it did on screen**, reported with a stack of screenshots: clicking through the five
+collection tabs moved the whole page sideways every time. Five tabs, four widths. And the
+navigation bar sat at 48rem, so it lined up with the content on no page at all — six
+different left edges across thirteen screens.
 
-**Inside, text stays narrow.** `max-w-prose` on every paragraph and every reason sentence,
-even in a 1400 px card. Nobody reads a 200-character line twice.
+A width belongs to an **area**, not to a page. Two views of the same collection must not be
+a house move. So:
+
+> **One container, always.** `.fid-page` — 110rem, centred, `px-6`. What has to stay
+> narrow gets its measure **inside** and is **anchored left**, never centred again.
+
+Measured at 1800 px afterwards: thirteen screens, one left edge, 44 px.
+
+| | |
+|---|---|
+| `.fid-page` | the measure plus the page padding — everything |
+| `.fid-page-flush` | the same measure, no padding: the start page, whose cover rails deliberately run to the edge and carry their own `px-6` |
+| no measure | `/stack` alone. There the card *is* the page; a frame around it would be a frame around something meant not to have one |
+
+110rem because the shelf genuinely needs it: eight covers in a row are the screen this app
+is built for. On a laptop it amounts to "window minus margin".
+
+**Inside, text still stays narrow.** `max-w-prose` on every paragraph and every reason
+sentence, even in a 1400 px card. Nobody reads a 200-character line twice.
+
+`tests/unit/one-measure.spec.ts` holds all of it: every page uses the class, no page sets a
+second width beside it, the navigation bar and the settings frame are included, and no
+narrow block centres itself again.
 
 ---
 

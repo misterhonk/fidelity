@@ -44,53 +44,57 @@ const nochDeutsch = computed(() => {
 </script>
 
 <template>
-  <main class="mx-auto flex w-full max-w-[36rem] flex-col gap-6 px-6 py-10">
-    <header class="flex flex-col gap-2">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ m.news.title }}</h1>
-      <p class="fid-num text-fid-sm text-fid-text-muted">{{ m.news.inVersion(version) }}</p>
-    </header>
+  <main class="fid-page py-10">
+    <div class="flex w-full max-w-[36rem] flex-col gap-6">
+      <header class="flex flex-col gap-2">
+        <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ m.news.title }}</h1>
+        <p class="fid-num text-fid-sm text-fid-text-muted">{{ m.news.inVersion(version) }}</p>
+      </header>
 
-    <p v-if="teile.length === 0" class="text-fid-base text-fid-text-muted">
-      {{ m.news.none }}
-    </p>
+      <p v-if="teile.length === 0" class="text-fid-base text-fid-text-muted">
+        {{ m.news.none }}
+      </p>
 
-    <div v-else class="flex flex-col gap-4">
-      <template v-for="(block, i) in teile" :key="i">
-        <p
-          class="max-w-prose text-fid-base text-fid-text"
-          :class="block.art === 'punkt' ? 'border-l-2 border-fid-border pl-4' : ''"
+      <div v-else class="flex flex-col gap-4">
+        <template v-for="(block, i) in teile" :key="i">
+          <p
+            class="max-w-prose text-fid-base text-fid-text"
+            :class="block.art === 'punkt' ? 'border-l-2 border-fid-border pl-4' : ''"
+          >
+            <template v-for="(stueck, j) in block.stuecke" :key="j">
+              <strong v-if="stueck.art === 'stark'" class="font-medium">{{
+                stueck.text
+              }}</strong>
+              <code v-else-if="stueck.art === 'code'" class="fid-num text-fid-sm">{{
+                stueck.text
+              }}</code>
+              <a
+                v-else-if="stueck.art === 'link'"
+                :href="stueck.href"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="fid-action text-fid-accent underline underline-offset-4"
+                >{{ stueck.text }}</a
+              >
+              <template v-else>{{ stueck.text }}</template>
+            </template>
+          </p>
+        </template>
+      </div>
+
+      <p v-if="nochDeutsch" class="max-w-prose text-fid-xs text-fid-text-muted">
+        {{ m.news.german }}
+      </p>
+
+      <p class="text-fid-sm">
+        <a
+          :href="m.news.fullHref"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="fid-action text-fid-accent underline underline-offset-4"
+          >{{ m.news.full }}</a
         >
-          <template v-for="(stueck, j) in block.stuecke" :key="j">
-            <strong v-if="stueck.art === 'stark'" class="font-medium">{{ stueck.text }}</strong>
-            <code v-else-if="stueck.art === 'code'" class="fid-num text-fid-sm">{{
-              stueck.text
-            }}</code>
-            <a
-              v-else-if="stueck.art === 'link'"
-              :href="stueck.href"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="fid-action text-fid-accent underline underline-offset-4"
-              >{{ stueck.text }}</a
-            >
-            <template v-else>{{ stueck.text }}</template>
-          </template>
-        </p>
-      </template>
+      </p>
     </div>
-
-    <p v-if="nochDeutsch" class="max-w-prose text-fid-xs text-fid-text-muted">
-      {{ m.news.german }}
-    </p>
-
-    <p class="text-fid-sm">
-      <a
-        :href="m.news.fullHref"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="fid-action text-fid-accent underline underline-offset-4"
-        >{{ m.news.full }}</a
-      >
-    </p>
   </main>
 </template>
