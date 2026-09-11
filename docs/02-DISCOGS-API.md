@@ -381,7 +381,7 @@ and costs the same request to find out.
 | `country` | ❌ | Pressing origin only via the catalogue DB |
 
 > ⚠️ **`shipping_price` is often `{}`.** Discogs only calculates postage in the cart.
-> → a dealer shipping profile as user input, see `00-KONZEPT.md` §7.
+> → a dealer shipping profile as user input, see `00-CONCEPT.md` §7.
 
 **Payload:** the complete `seller` object is **repeated in every listing** — so at
 `per_page=100` that is 100 copies of the same ~800-byte blob. **250–400 kB per page.**

@@ -36,7 +36,7 @@ that is in the wantlist.
 
 **Easier:** Clean under the terms of use, robust against Cloudflare, and the product
 lands in a position that happens to be vacant (see the competitive matrix in
-`00-KONZEPT.md`).
+`docs/00-CONCEPT.md`).
 
 **Harder:** The user has to name a dealer. There is no "search everything".
 **Mitigation:** dealer suggestions from Discogs' own `/sell/mywants` overview, from

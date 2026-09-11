@@ -55,7 +55,7 @@ horizon grows with use instead of going stale every month.
 fire there. The credit graph reaches only as far as your own collection. First-time setup
 costs ~12 minutes of rate-limit budget per user. And: API data formally falls under the
 six-hour rule where the dump would be CC0 — which is why we store nothing but id edges,
-never displayable content (see `11-KATALOG-STRATEGIE.md` §7).
+never displayable content (see `docs/11-CATALOGUE-STRATEGY.md` §7).
 
 **The way out:** The matching engine queries a **table**, not a data source. A global
 index from the full dump could later be slid underneath **additively**, without anything

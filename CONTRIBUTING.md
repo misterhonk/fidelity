@@ -66,7 +66,7 @@ is not an IP. Everything goes through the one client in the worker.
 are allowed to use the API. Not to be worked around, not even "just for development".
 
 **Never scrape.** Documented endpoints only. There is exactly one named exception with an
-ADR of its own ([ADR-009](docs/adr/009-haendler-import.md)); a second one needs a second
+ADR of its own ([ADR-009](docs/adr/009-dealer-import.md)); a second one needs a second
 ADR.
 
 **The token does not leave IndexedDB.** Never into a log, never into a URL, never into an
@@ -84,7 +84,7 @@ timeout, no retry, and fall back silently to the local path.
 
 **Language: English, everywhere.** Code, comments, commits, variable names, user-facing
 text and addresses. German is a translation, not a foundation
-([ADR-010](docs/adr/010-englisch-als-grundsprache.md)).
+([ADR-010](docs/adr/010-english-base-language.md)).
 
 Anything a user reads lives in a message pack under `app/i18n/`, never in a template. The
 shell (`en.ts`, `de.ts`) holds what appears on every screen; each area has a file of its
@@ -100,8 +100,8 @@ things follow from that and are worth knowing before you add a string:
   or in a template it is a read per evaluation and correct. There is a test that refuses
   the first form.
 
-`docs/` is still German and is being translated last. New documents there may be German;
-new comments in the code may not.
+`docs/` is English since 2026-09-11, file names included. New documents there are English
+too — the exception that used to stand here is spent.
 
 **User-facing text does not talk about the machine.** No "requests", no "entities", no
 "IndexedDB", no ADR numbers. Costs are named in minutes rather than in requests — that is
@@ -186,7 +186,7 @@ you break the thing it checks is checking nothing.
 ## Decisions
 
 Anything hard to undo goes into `docs/adr/` as an ADR — the template is
-[ADR-001](docs/adr/001-nuxt-statt-laravel.md). The rejected ones stay too: the history of a
+[ADR-001](docs/adr/001-nuxt-not-laravel.md). The rejected ones stay too: the history of a
 decision is half its value.
 
 A new signal for the matching engine is described in

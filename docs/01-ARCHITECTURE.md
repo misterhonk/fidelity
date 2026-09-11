@@ -68,7 +68,7 @@ listings**. Above that, complete coverage is impossible.
 
 From the API terms of use. Catalogue data, by contrast, is freely available as CC0 dumps —
 we fetch the same facts through the API and store **nothing but id edges**, never
-displayable content. Details: `09-LEGAL.md`, `11-KATALOG-STRATEGIE.md` §7.
+displayable content. Details: `09-LEGAL.md`, `11-CATALOGUE-STRATEGY.md` §7.
 
 ---
 
@@ -131,7 +131,7 @@ while a dig chews through 20,000 listings.
 | Collection delta, daily | 1–3 | ~4 s | ~10 ms |
 
 **The network dominates by a factor of 2,000.** Compute is not an issue in this app — what
-counts is every request saved. The full budget: `12-RESSOURCEN-BUDGET.md`.
+counts is every request saved. The full budget: `12-RESOURCE-BUDGET.md`.
 
 ---
 
@@ -283,7 +283,7 @@ reach for eleven requests rather than a 10.4 GB dump.
 
 **~670 requests ≈ 13 minutes, once.** After that only deltas, with revalidation every 30
 days. **The 10.4 GB releases dump is not needed** — reasoning in
-`11-KATALOG-STRATEGIE.md`.
+`11-CATALOGUE-STRATEGY.md`.
 
 ---
 

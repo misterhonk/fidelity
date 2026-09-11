@@ -2,7 +2,7 @@
 
 > No database, no server, no schema migration tool.
 > Everything lives in **IndexedDB** in the user's browser, addressed through `idb` (~2 kB).
-> Budget: **under 10 MB**, see `12-RESSOURCEN-BUDGET.md`.
+> Budget: **under 10 MB**, see `12-RESOURCE-BUDGET.md`.
 
 ---
 

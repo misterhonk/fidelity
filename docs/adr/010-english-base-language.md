@@ -65,7 +65,7 @@ Result: first paint 113.8 kB — below where it was before the change.
 ## Reasoning
 
 **Why not `@nuxtjs/i18n`.** The bundle budget for the first meaningful paint is 120 kB
-gzip (rule 7, `docs/12-RESSOURCEN-BUDGET.md`), and the figure was 113.2 kB — 6.8 kB of
+gzip (rule 7, `docs/12-RESOURCE-BUDGET.md`), and the figure was 113.2 kB — 6.8 kB of
 headroom. `@nuxtjs/i18n` brings vue-i18n along and blows that. What this app actually needs
 from an i18n library is a lookup in an object and a plural form; that is a few dozen lines.
 

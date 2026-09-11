@@ -144,7 +144,7 @@ rsync -av --delete .output/public/ your-server:/path/to/docroot/
 ```
 
 Details and alternatives: [`docs/08-DEPLOYMENT.md`](docs/08-DEPLOYMENT.md) and
-[`docs/10-DEPLOYMENT-ALTERNATIVEN.md`](docs/10-DEPLOYMENT-ALTERNATIVEN.md). How work is
+[`docs/10-DEPLOYMENT-ALTERNATIVES.md`](docs/10-DEPLOYMENT-ALTERNATIVES.md). How work is
 done here: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 > **A note on HTTPS:** if you serve the app over `https://`, it can only reach a hub on
@@ -164,7 +164,7 @@ cd hub && docker compose up -d
 **No feature depends on it.** Without a hub everything works the same, it only takes
 longer the first time. It never sees your Discogs token — there is nowhere it could accept
 one. [`docs/13-HUB-ADDON.md`](docs/13-HUB-ADDON.md),
-[ADR-008](docs/adr/008-optionaler-hub.md).
+[ADR-008](docs/adr/008-optional-hub.md).
 
 ---
 
@@ -252,29 +252,30 @@ Backend    none
 [`CONTRIBUTING.md`](CONTRIBUTING.md) explains the tools, the testing obligations and the
 rules that are not up for negotiation.
 
-> **`docs/` is still German.** The interface, the code and this file are English since
-> [ADR-010](docs/adr/010-englisch-als-grundsprache.md); the documents underneath are the
-> largest and least urgent part of that move, and they are being translated last. Nothing
-> in them is required reading to contribute — `CLAUDE.md` and this README carry the rules
-> — but if a document you need is in the way, say so in an issue and it moves up the list.
+> **`docs/` is English too, since 2026-09-11.** It was the last part of
+> [ADR-010](docs/adr/010-english-base-language.md) — the largest and least urgent one —
+> and the German file names went with it, because an English document at a German address
+> is the half measure that ADR argues against. The numbers in front stayed (`docs/02`,
+> `docs/04`): around 200 references in the code cite a document by its number, and the
+> number is the stable part.
 
 ## Documentation
 
 | Document | Contents |
 |---|---|
-| [`docs/00-KONZEPT.md`](docs/00-KONZEPT.md) | Vision, naming, competition, backlog |
-| [`docs/01-ARCHITEKTUR.md`](docs/01-ARCHITEKTUR.md) | System design, Discogs client, horizon |
+| [`docs/00-CONCEPT.md`](docs/00-CONCEPT.md) | Vision, naming, competition, backlog |
+| [`docs/01-ARCHITECTURE.md`](docs/01-ARCHITECTURE.md) | System design, Discogs client, horizon |
 | [`docs/02-DISCOGS-API.md`](docs/02-DISCOGS-API.md) | API reference, measured limits, CORS, traps |
-| [`docs/03-DATENMODELL.md`](docs/03-DATENMODELL.md) | IndexedDB stores, TypedArray packing |
+| [`docs/03-DATA-MODEL.md`](docs/03-DATA-MODEL.md) | IndexedDB stores, TypedArray packing |
 | [`docs/04-MATCHING-ENGINE.md`](docs/04-MATCHING-ENGINE.md) | The eleven signals, Barry score, reasoning |
 | [`docs/05-DESIGN-SYSTEM.md`](docs/05-DESIGN-SYSTEM.md) | Tokens, components, accessibility, PWA |
 | [`docs/06-ROADMAP.md`](docs/06-ROADMAP.md) | M0–M10 with a definition of done |
 | [`docs/07-DEV-PIPELINE.md`](docs/07-DEV-PIPELINE.md) | CI, conventional commits, release-please |
 | [`docs/08-DEPLOYMENT.md`](docs/08-DEPLOYMENT.md) | Static hosting — one rsync |
 | [`docs/09-LEGAL.md`](docs/09-LEGAL.md) | Discogs terms, GDPR, accessibility law |
-| [`docs/10-DEPLOYMENT-ALTERNATIVEN.md`](docs/10-DEPLOYMENT-ALTERNATIVEN.md) | Where else it can run |
-| [`docs/11-KATALOG-STRATEGIE.md`](docs/11-KATALOG-STRATEGIE.md) | Why no 10.4 GB dump is needed |
-| [`docs/12-RESSOURCEN-BUDGET.md`](docs/12-RESSOURCEN-BUDGET.md) | Bundle, storage, compute, requests |
+| [`docs/10-DEPLOYMENT-ALTERNATIVES.md`](docs/10-DEPLOYMENT-ALTERNATIVES.md) | Where else it can run |
+| [`docs/11-CATALOGUE-STRATEGY.md`](docs/11-CATALOGUE-STRATEGY.md) | Why no 10.4 GB dump is needed |
+| [`docs/12-RESOURCE-BUDGET.md`](docs/12-RESOURCE-BUDGET.md) | Bundle, storage, compute, requests |
 | [`docs/13-HUB-ADDON.md`](docs/13-HUB-ADDON.md) | The optional server add-on |
 | [`docs/adr/`](docs/adr/) | Architecture decision records, including the rejected ones |
 

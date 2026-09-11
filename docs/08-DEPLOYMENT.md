@@ -141,7 +141,7 @@ directory only this app can see — it cannot reach your own files.
 | **GitHub Pages** | €0 | Actions | The simplest, when the repository is there anyway |
 | **A home server + Caddy** | electricity | a container | Static files only now — availability matters less than it did with the server design |
 
-> **The old trade-off is gone.** `10-DEPLOYMENT-ALTERNATIVEN.md` compared Uberspace, a VPS
+> **The old trade-off is gone.** `10-DEPLOYMENT-ALTERNATIVES.md` compared Uberspace, a VPS
 > and a home server in terms of RAM, disk and outbound IP. None of that matters now: there
 > is no process, no database, and the Discogs requests go out from the **user's** IP.
 >
@@ -314,13 +314,13 @@ There are none.
 | Watch the RAM limit | gone |
 | Watch the disk quota | a few hundred kB |
 | Roll out migrations | the IndexedDB upgrade runs in the client |
-| Load the catalogue dump | gone (see `11-KATALOG-STRATEGIE.md`) |
+| Load the catalogue dump | gone (see `11-CATALOGUE-STRATEGY.md`) |
 | Manage the rate-limit queue | gone — every user has their own budget |
 
 **What remains:**
 
 - The uptime of the static hosting (Uberspace handles that)
-- The bundle budget in CI (see `12-RESSOURCEN-BUDGET.md` §7)
+- The bundle budget in CI (see `12-RESOURCE-BUDGET.md` §7)
 - Optionally Sentry for client errors — **without** session replay, with
   `sendDefaultPii: false` and **redaction of the token** in the `beforeSend` hook
 

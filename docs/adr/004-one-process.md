@@ -3,7 +3,7 @@
 **Status:** **Superseded by ADR-007** · **Date:** 2026-08-09
 
 > **Moot.** There are zero server processes. The split that matters now runs between the
-> main thread and the web worker in the browser (`01-ARCHITEKTUR.md`, section 2).
+> main thread and the web worker in the browser (`docs/01-ARCHITECTURE.md`, section 2).
 
 ## Context
 

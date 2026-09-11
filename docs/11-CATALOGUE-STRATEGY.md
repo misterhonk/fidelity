@@ -146,7 +146,7 @@ every dig. That is a feature, not a workaround.
 
 - **No 10.4 GB download, no 110 GB parse, no monthly maintenance appointment**
 - **Instead of ~6 GB on a server, only ~1.4 MB in the user's browser** — packed as
-  `Int32Array` parallel arrays, see `03-DATENMODELL.md` section 4
+  `Int32Array` parallel arrays, see `03-DATA-MODEL.md` section 4
 - **M5 is no longer a lump** but an ordinary milestone. Which moves the five expensive
   signals closer to M2
 - **The horizon grows with use** instead of going stale every month

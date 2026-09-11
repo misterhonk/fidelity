@@ -4,7 +4,7 @@ import type { HorizonChunk, HorizonKind } from '#shared/types'
 
 import { preferHub } from '../hub/fallback'
 
-/** Revalidation interval from docs/01-ARCHITEKTUR.md §6. */
+/** Revalidation interval from docs/01-ARCHITECTURE.md §6. */
 export const HORIZON_TTL_MS = 30 * 24 * 60 * 60 * 1000
 
 export function horizonKey(kind: HorizonKind, id: number): string {

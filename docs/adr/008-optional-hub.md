@@ -50,7 +50,7 @@ real crowdsourcing instead of pull requests.
 the temptation to let features depend on the hub after all — against which only
 discipline helps, plus a CI test that runs the app through with an empty `hubUrl`.
 
-**What has to be done now:** the three ports from `13-HUB-ADDON.md` §3
+**What has to be done now:** the three ports from `docs/13-HUB-ADDON.md` §3
 (`HorizonSource`, `ShippingProfileSource`, `WatchService`), their fallback chain, and
 `hubUrl` in the preferences. About an hour's work. Without them M9 would be a refactoring
 right across the worker.

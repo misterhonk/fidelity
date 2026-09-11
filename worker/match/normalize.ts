@@ -1,6 +1,6 @@
 /**
  * The single normalisation point for artist and label names
- * (docs/01-ARCHITEKTUR.md §8, step 1).
+ * (docs/01-ARCHITECTURE.md §8, step 1).
  *
  * It runs once per name at sync time, never per dig. That is the difference
  * between 40 ms and 40 ms times the number of digs ever run.

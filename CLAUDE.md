@@ -13,8 +13,8 @@ pro Treffer.
 **Es ist eine reine Client-PWA. Es gibt kein Backend.** Statische Dateien, IndexedDB,
 direkter Zugriff auf `api.discogs.com` aus dem Browser. Siehe `docs/adr/007-client-only-pwa.md`.
 
-**Lies vor der ersten Aufgabe:** `docs/00-KONZEPT.md`, `docs/01-ARCHITEKTUR.md`,
-`docs/02-DISCOGS-API.md`, `docs/12-RESSOURCEN-BUDGET.md`.
+**Lies vor der ersten Aufgabe:** `docs/00-CONCEPT.md`, `docs/01-ARCHITECTURE.md`,
+`docs/02-DISCOGS-API.md`, `docs/12-RESOURCE-BUDGET.md`.
 
 ---
 
@@ -50,7 +50,7 @@ direkter Zugriff auf `api.discogs.com` aus dem Browser. Siehe `docs/adr/007-clie
    Nie loggen, nie in eine URL, nie in einen Fehler-Report, nie an Dritte.
 
 7. **Jede neue Abhängigkeit muss ihren Platz im Bundle-Budget rechtfertigen.**
-   Budget: ≤ 180 KB gzip für den ersten sinnvollen Paint. Siehe `docs/12-RESSOURCEN-BUDGET.md`.
+   Budget: ≤ 180 KB gzip für den ersten sinnvollen Paint. Siehe `docs/12-RESOURCE-BUDGET.md`.
    Waren bis zum 2026-08-11 120 KB — die Zahl modellierte 3G, das es seit 2021 nicht
    mehr gibt, und kostete im Normalfall vierzig Millisekunden. Das höhere Dach ist
    keine Einladung: die Grenze bricht den Build weiterhin.
@@ -98,7 +98,7 @@ Vollständig: `docs/02-DISCOGS-API.md`.
 **Sprache: Englisch — überall.** Code, Kommentare, Commits, Variablennamen,
 **nutzersichtbare Texte und Adressen**. Deutsch ist eine Übersetzung, keine Grundlage.
 
-Das war bis zum 2026-08-11 anders und ist mit [ADR-010](docs/adr/010-englisch-als-grundsprache.md)
+Das war bis zum 2026-08-11 anders und ist mit [ADR-010](docs/adr/010-english-base-language.md)
 umgestellt: seit das Repository öffentlich ist, schließt eine deutsche Oberfläche mit
 deutschen Adressen jeden aus, der kein Deutsch spricht — er kann den Code lesen und trotzdem
 nicht herausfinden, was ein Bildschirm verspricht.
@@ -106,8 +106,8 @@ nicht herausfinden, was ein Bildschirm verspricht.
 - Oberfläche: Englisch ist die Vorgabe, Deutsch wird angeboten und bei passendem
   `navigator.language` automatisch gewählt.
 - Adressen: englisch, ohne Sprach-Präfix. Die Sprache ist eine Einstellung, keine Route.
-- `docs/` ist noch deutsch und wird es zuletzt. Neue Dokumente dort dürfen deutsch sein,
-  neue Kommentare im Code **nicht**.
+- `docs/` ist seit dem 2026-09-11 englisch, Dateinamen eingeschlossen. Die Ausnahme, die
+  hier stand, ist damit aufgebraucht: neue Dokumente dort sind englisch wie alles andere.
 
 ```
 worker/discogs/    Der einzige Ort, an dem fetch() gegen Discogs stattfindet.
@@ -211,7 +211,7 @@ nachjustiert, macht Scores über die Zeit unvergleichbar. Details in
   vorher Request-Kosten, Auth-Anforderungen **und CORS-Verhalten** klären und dort ergänzen.
 - **Architekturentscheidungen:** ADR unter `docs/adr/` anlegen (Vorlage: ADR-001).
 - **Neue Signale:** erst `docs/04-MATCHING-ENGINE.md` erweitern, dann implementieren.
-- **Neue Abhängigkeit:** Rechtfertigt sie ihre Bytes? Siehe `docs/12-RESSOURCEN-BUDGET.md`.
+- **Neue Abhängigkeit:** Rechtfertigt sie ihre Bytes? Siehe `docs/12-RESOURCE-BUDGET.md`.
 
 ## Was du nicht ohne Rückfrage tust
 

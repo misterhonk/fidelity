@@ -3,7 +3,7 @@
 **Status:** **Superseded by ADR-007** · **Date:** 2026-08-09
 
 > **Moot.** There is no server and therefore no server-side database. Storage is
-> IndexedDB in the user's browser (`03-DATENMODELL.md`). Kept as decision history.
+> IndexedDB in the user's browser (`docs/03-DATA-MODEL.md`). Kept as decision history.
 
 ## Context
 
@@ -40,5 +40,5 @@ We would migrate within a year — better to do it properly straight away.
 probably older than the newest Postgres available locally — which is why development
 pins to the same major.
 
-**The way out:** If RAM gives way, see the escalation list in `08-DEPLOYMENT.md` §6. A
+**The way out:** If RAM gives way, see the escalation list in `docs/08-DEPLOYMENT.md` §6. A
 move to a VPS is prepared (a Docker image exists).

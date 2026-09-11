@@ -191,7 +191,7 @@ data on every start. See `08-DEPLOYMENT.md` §4.
 pnpm size          # size-limit, fails when exceeded
 ```
 
-Budget and reasoning: `12-RESSOURCEN-BUDGET.md` §2. Runs in CI too.
+Budget and reasoning: `12-RESOURCE-BUDGET.md` §2. Runs in CI too.
 
 ## 6. Testing
 

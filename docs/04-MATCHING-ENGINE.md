@@ -479,4 +479,4 @@ No I/O, no IndexedDB, no network. Runs in the web worker. Which gives us:
 - **A regression corpus**: Martin's and Jens's real collections against 3 frozen dealer
   inventories. Run before every release, then compare the Top Five.
 - **A performance benchmark**: 20,000 synthetic listings must stay under **250 ms**. Breaks
-  the build when exceeded (see `12-RESSOURCEN-BUDGET.md`).
+  the build when exceeded (see `12-RESOURCE-BUDGET.md`).

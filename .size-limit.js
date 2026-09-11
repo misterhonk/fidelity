@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 
 /**
- * Bundle budget (docs/12-RESSOURCEN-BUDGET.md §2).
+ * Bundle budget (docs/12-RESOURCE-BUDGET.md §2).
  *
  * It should still load where reception is bad — a shop's basement, behind
  * concrete — so the budget is on the *first meaningful paint*, not on the whole

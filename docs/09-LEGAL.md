@@ -120,7 +120,7 @@ So for releases, artists, labels and masters from the monthly dumps:
 | Commercial use | restricted | free |
 | Marketplace data included | ✅ | ❌ (not in there at all) |
 
-> **The architectural rule that follows is in `01-ARCHITEKTUR.md` §1 and is the project's
+> **The architectural rule that follows is in `01-ARCHITECTURE.md` §1 and is the project's
 > most important one:** catalogue from the dumps, marketplace from the live API, **never
 > mix them.** Not only legally clean but also the only solution that works technically (see
 > the request budget).

@@ -15,7 +15,7 @@ actual numbering — that is in `CHANGELOG.md`.
 
 The last open point was this file's own neighbourhood: `docs/` was still German. It was
 translated on 2026-09-11 — fourteen numbered documents and thirteen ADRs — and with it the
-rule from [ADR-010](adr/010-englisch-als-grundsprache.md) holds everywhere.
+rule from [ADR-010](adr/010-english-base-language.md) holds everywhere.
 
 The runout read aloud from M13 stood here until 2026-09-11 and is **measured and
 rejected** — `SpeechRecognition` is available and can even run on the device, but it is
@@ -42,7 +42,7 @@ instructions (the app has been purely static since ADR-007).
 
 - [x] `git init`, a first conventional commit
 - [x] A Nuxt 4.5 skeleton, **`ssr: false`**, TypeScript, pnpm
-- [x] IndexedDB set up with `idb`, the stores from `docs/03-DATENMODELL.md`
+- [x] IndexedDB set up with `idb`, the stores from `docs/03-DATA-MODEL.md`
 - [x] The web worker scaffolding including a typed `postMessage` protocol
 - [x] Tailwind 4 via `@tailwindcss/vite` + Nuxt UI 4, design tokens (DTCG → `@theme`)
 - [x] `@vite-pwa/nuxt`, a manifest, icons, `registerType: 'prompt'`
@@ -204,7 +204,7 @@ golden dig found a real bug in S9 on its first run (see `docs/04` §S9).
 > ⚠️ **A precondition: rated records.** Anyone who gives no stars on Discogs gets nothing
 > here — the screen says so and gives the reason.
 
-**No download, no parser, no maintenance appointment.** See `11-KATALOG-STRATEGIE.md`.
+**No download, no parser, no maintenance appointment.** See `11-CATALOGUE-STRATEGY.md`.
 
 > Since the full dump fell away, M5 is small enough to be pulled **straight after M2** if
 > needed — the five signals are the real product lead.
@@ -418,7 +418,7 @@ hour's work — without them M9 would be a refactoring right across the worker.
 Triggered by the repository going public on 2026-08-11. A German interface with German
 addresses shuts out everyone who does not speak German — they can read the code and still
 not find out what a screen promises. The decision and the reasoning:
-[ADR-010](adr/010-englisch-als-grundsprache.md).
+[ADR-010](adr/010-english-base-language.md).
 
 **Definition of done**
 
@@ -775,7 +775,7 @@ fields.
 A sample over seven releases: five had videos (14, 17, 9, 1, 1), two had none. So roughly two
 in three — at seven that is an indication, not a figure.
 
-**Decided on 2026-09-10: [ADR-012](adr/012-hoerprobe.md).** The audio preview is coming, as a
+**Decided on 2026-09-10: [ADR-012](adr/012-audio-preview.md).** The audio preview is coming, as a
 named exception in the shape of ADR-009 — because Discogs' only source of sound is YouTube,
 and an embed loads Google. What actually flows out is not the collection but the IP and which
 record is being watched; the sentence "does not leave this device" is still no longer true
