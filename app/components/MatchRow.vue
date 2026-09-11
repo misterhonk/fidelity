@@ -36,6 +36,19 @@ const price = computed(() => {
   const { price: value, currency } = props.match
   return money(value, currency)
 })
+
+/* Only the postage this record adds — the row has no room for the sum, and the
+ * sum is one addition away for anyone who wants it. */
+const { of: landedOf } = useLanded()
+const landed = computed(() => landedOf(props.match))
+const postage = computed(() =>
+  landed.value ? money(landed.value.postage, landed.value.currency) : null,
+)
+const landedWhy = computed(() => {
+  if (!landed.value || !postage.value) return undefined
+  const source = landed.value.source ? d.value.landed.sources[landed.value.source] : ''
+  return d.value.landed.why(postage.value, landed.value.items, source)
+})
 </script>
 
 <template>
@@ -104,6 +117,9 @@ const price = computed(() => {
         {{ shape }}
       </span>
       <span v-if="price" class="fid-num text-fid-sm text-fid-text-muted">{{ price }}</span>
+      <span v-if="postage" class="fid-num text-fid-xs text-fid-text-muted" :title="landedWhy"
+        >+{{ postage }}</span
+      >
 
       <!--
         Only the verdict already given stays visible when the row is at rest.

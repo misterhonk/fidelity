@@ -866,6 +866,30 @@ export const handlers: HandlerMap = {
     return planBasket(candidates, shipping.tiers, budget, row?.minOrderTotal ?? 0)
   },
 
+  'basket.landed': async ({ dealer }) => {
+    const { resolveShipping } = await import('./basket/profiles')
+    const db = await openFidelityDb()
+    const row = await db.get('dealers', dealer)
+    const preferences = await getPreferences()
+    // The same ladder as the basket card and the plan above — see the note there.
+    const shipping = row
+      ? await resolveShipping(row, preferences.shipsToCountry)
+      : { tiers: [], source: null, matched: [] }
+    // Sold lines are shown in the basket but no longer counted, here as there.
+    const lines = (await db.getAll('basket')).filter(
+      (item) => item.dealer === dealer && !item.soldAt,
+    )
+    return {
+      dealer,
+      tiers: shipping.tiers,
+      source: shipping.source,
+      section: shipping.section ?? null,
+      inBasket: lines.length,
+      listingIds: lines.map((item) => item.listingId),
+      currency: shipping.tiers[0]?.currency ?? null,
+    }
+  },
+
   'dig.credits': async ({ digId }) => {
     const { creditGroups } = await import('./dig/credits')
     return creditGroups(digId)

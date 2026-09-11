@@ -1,4 +1,5 @@
-import type { Match, SignalType } from '#shared/types'
+import type { LandedContext, Match, SignalType } from '#shared/types'
+import { landedPrice } from '#shared/shipping'
 
 import {
   arrange,
@@ -6,6 +7,7 @@ import {
   parseDensity,
   parseSignals,
   parseSort,
+  parseUpTo,
   type Density,
   type SortKey,
 } from '~/utils/digview'
@@ -21,7 +23,10 @@ import {
  * This file is only the binding. Everything that can actually be wrong lives
  * in `~/utils/digview`, where it is a pure function and has tests.
  */
-export function useDigView(matches: Ref<Match[]> | ComputedRef<Match[]>) {
+export function useDigView(
+  matches: Ref<Match[]> | ComputedRef<Match[]>,
+  landed: Ref<LandedContext | null> | null = null,
+) {
   const route = useRoute()
   const router = useRouter()
 
@@ -35,7 +40,15 @@ export function useDigView(matches: Ref<Match[]> | ComputedRef<Match[]>) {
   const density = computed(() => parseDensity(param('dicht')))
   const available = computed(() => availableSignals(matches.value))
   const query = computed(() => param('q'))
-  const visible = computed(() => arrange(matches.value, active.value, sort.value, query.value))
+  const upTo = computed(() => parseUpTo(param('upto')))
+  /** Whether this shop's postage is known at all — the list only offers the sort when it is. */
+  const landedKnown = computed(() => (landed?.value?.tiers.length ?? 0) > 0)
+  const visible = computed(() =>
+    arrange(matches.value, active.value, sort.value, query.value, {
+      of: (match) => landedPrice(match, landed?.value ?? null),
+      upTo: landedKnown.value ? upTo.value : null,
+    }),
+  )
 
   function apply(next: Record<string, string | undefined>) {
     // Empty values are dropped rather than written as `?sig=`, so the default
@@ -58,7 +71,11 @@ export function useDigView(matches: Ref<Match[]> | ComputedRef<Match[]>) {
   const setDensity = (value: Density) =>
     apply({ dicht: value === 'compact' ? 'kompakt' : undefined })
   const setQuery = (value: string) => apply({ q: value.trim() || undefined })
-  const clear = () => apply({ sig: undefined, q: undefined })
+  const setUpTo = (value: string) => {
+    const amount = parseUpTo(value)
+    apply({ upto: amount === null ? undefined : String(amount) })
+  }
+  const clear = () => apply({ sig: undefined, q: undefined, upto: undefined })
 
   return {
     active,
@@ -66,11 +83,14 @@ export function useDigView(matches: Ref<Match[]> | ComputedRef<Match[]>) {
     sort,
     density,
     query,
+    upTo,
+    landedKnown,
     visible,
     toggleSignal,
     setSort,
     setDensity,
     setQuery,
+    setUpTo,
     clear,
   }
 }

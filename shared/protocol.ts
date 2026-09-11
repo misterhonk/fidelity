@@ -21,9 +21,9 @@ import type { DemoProgress, DemoResult } from '~~/worker/demo'
 import type {
   BasketPlan,
   BasketView,
-  CollectionGaps,
   CollectionField,
   CollectionFolder,
+  CollectionGaps,
   CollectionItem,
   CollectionValue,
   CreditGroup,
@@ -36,32 +36,33 @@ import type {
   Feedback,
   GradingRecord,
   Identified,
-  OrderImport,
   Identity,
+  LandedContext,
   MarkedOverview,
   Match,
   MatchDetail,
+  OrderImport,
+  Place,
+  PlaceNode,
   Preferences,
   PushRegistration,
   ReleaseDetail,
+  SharedDig,
   ShelfResult,
   ShelfSort,
-  SortDirection,
-  Place,
-  PlaceNode,
-  SharedDig,
-  StackShop,
-  WatchedRelease,
   ShelfView,
   ShippingTier,
-  StockRow,
   Signal,
+  SortDirection,
+  StackShop,
+  StockRow,
   TasteProfile,
   VaultStatus,
   VaultTarget,
   Verdict,
   WantlistOverview,
   WatchAlert,
+  WatchedRelease,
 } from './types'
 
 export interface PingResult {
@@ -795,6 +796,16 @@ export interface WorkerContract {
     progress: never
     result: BasketPlan | null
   }
+  /**
+   * The shop's postage tiers and basket count, for the find list.
+   *
+   * The same ladder of sources the basket card uses — hand-entered, hub,
+   * repository, parsed — so the number beside a find is the number the basket
+   * will show once the record is in it. The arithmetic itself runs on the
+   * main thread (`shared/shipping.ts`): one addition per record, and the list
+   * is sorted there anyway.
+   */
+  'basket.landed': { params: { dealer: string }; progress: never; result: LandedContext }
   /**
    * Everything the detail sheet shows. Costs no request: it is all horizon and
    * stored match, which is the whole reason the collection was expanded.

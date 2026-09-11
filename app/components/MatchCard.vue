@@ -39,6 +39,25 @@ const price = computed(() => {
   return money(value, currency)
 })
 
+/*
+ * The same record with its postage — provided by the dig page, absent
+ * everywhere else this card is rendered. Two strings: the number, and the
+ * sentence behind it for anyone who hovers or is read the title.
+ */
+const { of: landedOf } = useLanded()
+const landed = computed(() => landedOf(props.match))
+const landedText = computed(() => {
+  const total = landed.value ? money(landed.value.total, landed.value.currency) : null
+  return total ? d.value.landed.with(total) : null
+})
+const landedWhy = computed(() => {
+  if (!landed.value) return undefined
+  const postage = money(landed.value.postage, landed.value.currency)
+  if (!postage) return undefined
+  const source = landed.value.source ? d.value.landed.sources[landed.value.source] : ''
+  return d.value.landed.why(postage, landed.value.items, source)
+})
+
 /**
  * Label, Nummer, Format, Jahr.
  *
@@ -205,6 +224,7 @@ const meta = computed(() => {
       <p class="flex flex-wrap items-center gap-x-3 text-fid-sm text-fid-text-muted">
         <span v-if="match.condition">{{ match.condition }}</span>
         <span v-if="price" class="fid-num text-fid-text">{{ price }}</span>
+        <span v-if="landedText" class="fid-num" :title="landedWhy">{{ landedText }}</span>
         <!--
           It stays a link here, not a button: the card is dense, and a second
           button beside "add to basket" would compete with it for the same

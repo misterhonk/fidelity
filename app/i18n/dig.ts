@@ -206,10 +206,39 @@ const en = {
     sorts: {
       score: { label: 'Score', about: 'Best find first' },
       price: { label: 'Price ↑', about: 'Cheapest first' },
+      landed: {
+        label: 'With postage ↑',
+        about: 'Cheapest first, counting the postage this record would add at this shop',
+      },
       year: { label: 'Year ↓', about: 'Newest first' },
       artist: { label: 'Artist', about: 'Alphabetical' },
     },
     nothingMatches: 'Nothing matches this selection.',
+    /* A ceiling that counts postage. In the shop's currency, because nothing
+     * here converts one — the basket says why. */
+    upTo: 'Up to',
+    upToLabel: 'At most this much, postage included',
+    noPostage:
+      'Postage for this shop is not known, so nothing here counts it. The table can be entered in the basket once a record is in it.',
+  },
+
+  /**
+   * What a record costs once it is in the parcel (`shared/shipping.ts`).
+   *
+   * The number is the price plus the postage this record *adds* — the whole
+   * first tier for the first record, often nothing for the third. The sentence
+   * behind it says which record in the parcel it would be and where the table
+   * came from, because "€2.10" on its own is a number nobody can check.
+   */
+  landed: {
+    with: (amount: string) => `${amount} with postage`,
+    why: (postage: string, items: number, source: string) =>
+      `Price plus the postage this record adds at this shop: ${postage} as record ${items} in the parcel${source ? ` — ${source}` : ''}.`,
+    sources: {
+      user: 'table entered by you',
+      bundled: 'from a shared table',
+      parsed: 'estimated from the shop’s text',
+    },
   },
 
   /**
@@ -440,10 +469,30 @@ const de: typeof en = {
     sorts: {
       score: { label: 'Score', about: 'Bester Treffer zuerst' },
       price: { label: 'Preis ↑', about: 'Günstigste zuerst' },
+      landed: {
+        label: 'Mit Porto ↑',
+        about:
+          'Günstigste zuerst, mit dem Porto, das diese Platte bei diesem Laden dazukommen lässt',
+      },
       year: { label: 'Jahr ↓', about: 'Neueste zuerst' },
       artist: { label: 'Künstler', about: 'Alphabetisch' },
     },
     nothingMatches: 'Nichts passt zu dieser Auswahl.',
+    upTo: 'Bis',
+    upToLabel: 'Höchstens so viel, Porto eingerechnet',
+    noPostage:
+      'Das Porto dieses Ladens ist nicht bekannt, deshalb rechnet hier nichts damit. Die Staffel lässt sich im Korb eintragen, sobald eine Platte drin liegt.',
+  },
+
+  landed: {
+    with: (amount) => `${amount} mit Porto`,
+    why: (postage, items, source) =>
+      `Preis plus das Porto, das diese Platte bei diesem Laden dazukommen lässt: ${postage} als ${items}. Platte im Paket${source ? ` – ${source}` : ''}.`,
+    sources: {
+      user: 'Staffel von dir eingetragen',
+      bundled: 'aus einer geteilten Staffel',
+      parsed: 'aus dem Text des Ladens geschätzt',
+    },
   },
 
   match: {

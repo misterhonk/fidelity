@@ -1,4 +1,4 @@
-import type { Match, SignalType } from '#shared/types'
+import type { LandedPrice, Match, SignalType } from '#shared/types'
 
 import { activeLocale } from '~/composables/useMessages'
 
@@ -8,14 +8,39 @@ import { activeLocale } from '~/composables/useMessages'
  * the URL; everything that can actually be wrong lives here.
  */
 
-export type SortKey = 'score' | 'price' | 'year' | 'artist'
+export type SortKey = 'score' | 'price' | 'landed' | 'year' | 'artist'
 export type Density = 'comfortable' | 'compact'
 
 /**
  * The orderings, in the order they are offered. Keys only — the labels carry a
  * direction arrow and live in the pack with everything else somebody reads.
  */
-export const SORTS = ['score', 'price', 'year', 'artist'] as const satisfies readonly SortKey[]
+export const SORTS = [
+  'score',
+  'price',
+  'landed',
+  'year',
+  'artist',
+] as const satisfies readonly SortKey[]
+
+/**
+ * What the list knows about postage, when it knows anything.
+ *
+ * `of` is the landed price of a record or null (`shared/shipping.ts` says
+ * when); `upTo` is the filter somebody typed, in the shop's currency. Both
+ * optional: the shared-list screen and the stack sort the same matches with
+ * no shop context at all.
+ */
+export interface LandedView {
+  of: (match: Match) => LandedPrice | null
+  upTo: number | null
+}
+
+/** A ceiling out of the URL, or null for anything that is not a positive amount. */
+export function parseUpTo(value: string): number | null {
+  const amount = Number(value.replace(',', '.'))
+  return Number.isFinite(amount) && amount > 0 ? amount : null
+}
 
 const SORT_KEYS = new Set<string>(SORTS)
 
@@ -33,10 +58,20 @@ export function parseDensity(value: string): Density {
  * so every key puts the missing ones last rather than letting nulls sort to
  * the front and make an expired dig look like the cheapest shop in town.
  */
-function compare(a: Match, b: Match, key: SortKey): number {
+function compare(
+  a: Match,
+  b: Match,
+  key: SortKey,
+  landed: (match: Match) => number | null,
+): number {
   switch (key) {
     case 'price':
       return missingLast(a.price, b.price) ?? a.price! - b.price!
+    case 'landed': {
+      const la = landed(a)
+      const lb = landed(b)
+      return missingLast(la, lb) ?? la! - lb!
+    }
     case 'year':
       return missingLast(a.year, b.year) ?? b.year! - a.year!
     case 'artist':
@@ -126,16 +161,39 @@ export function arrange(
   active: SignalType[],
   sort: SortKey,
   query = '',
+  landed: LandedView | null = null,
 ): Match[] {
   const wanted = new Set(active)
   const needle = query.trim()
-  const filtered = matches.filter(
-    (match) =>
-      (wanted.size === 0 || match.signals.some((signal) => wanted.has(signal.type))) &&
-      textMatches(match, needle),
-  )
+
+  /*
+   * Computed once per record, not once per comparison: a sort makes n·log n
+   * comparisons, and the landed price walks a tier table each time it is
+   * asked. Only when something actually reads it — most views never do.
+   */
+  const totals = new Map<number, number | null>()
+  const wantsLanded = landed !== null && (sort === 'landed' || landed.upTo !== null)
+  const totalOf = (match: Match): number | null => {
+    if (!wantsLanded) return null
+    if (!totals.has(match.listingId))
+      totals.set(match.listingId, landed.of(match)?.total ?? null)
+    return totals.get(match.listingId) ?? null
+  }
+
+  const filtered = matches.filter((match) => {
+    if (wanted.size > 0 && !match.signals.some((signal) => wanted.has(signal.type)))
+      return false
+    if (!textMatches(match, needle)) return false
+    // A ceiling with postage keeps only what can be priced with postage: a
+    // record nobody can put a number on is not "under €30", it is unknown.
+    if (landed?.upTo !== null && landed?.upTo !== undefined) {
+      const total = totalOf(match)
+      if (total === null || total > landed.upTo) return false
+    }
+    return true
+  })
 
   // Score is the tiebreaker under every other key, so two records at the same
   // price come out in the order the engine ranked them.
-  return [...filtered].sort((a, b) => compare(a, b, sort) || b.score - a.score)
+  return [...filtered].sort((a, b) => compare(a, b, sort, totalOf) || b.score - a.score)
 }

@@ -1,3 +1,4 @@
+import { shippingFor, sortTiers } from '#shared/shipping'
 import type { ShippingAdvice, ShippingPoint, ShippingTier } from '#shared/types'
 
 /**
@@ -16,28 +17,13 @@ import type { ShippingAdvice, ShippingPoint, ShippingTier } from '#shared/types'
  * say "estimated" where it is only a guess.
  */
 
-/** Cheapest first, so a malformed profile still behaves predictably. */
-export function sortTiers(tiers: ShippingTier[]): ShippingTier[] {
-  return [...tiers].sort((a, b) => a.minItems - b.minItems)
-}
-
-/**
- * What N records cost to ship, or null when the table does not cover N.
- *
- * Null rather than an extrapolation: a table that stops at six records says
- * nothing about seven, and inventing the seventh would be a number somebody
- * plans a purchase around.
+/*
+ * `sortTiers` and `shippingFor` live in `shared/shipping.ts` since the find
+ * list started showing landed prices — the main thread needs the same six
+ * lines and cannot reach into a worker chunk for them. Re-exported so nothing
+ * on this side had to move.
  */
-export function shippingFor(tiers: ShippingTier[], items: number): ShippingTier | null {
-  if (items <= 0) return null
-
-  for (const tier of sortTiers(tiers)) {
-    const withinLower = items >= tier.minItems
-    const withinUpper = tier.maxItems === null || items <= tier.maxItems
-    if (withinLower && withinUpper) return tier
-  }
-  return null
-}
+export { shippingFor, sortTiers }
 
 /**
  * The marginal-cost curve (docs/00 §7).

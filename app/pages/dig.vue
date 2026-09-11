@@ -6,7 +6,7 @@ import type {
   RefreshProgress,
   ScanProgress,
 } from '#shared/protocol'
-import type { Dealer, Dig } from '#shared/types'
+import type { Dealer, Dig, LandedContext } from '#shared/types'
 
 import { useDigMessages } from '~/i18n/dig'
 
@@ -20,7 +20,7 @@ useSeoMeta({
 const { call } = useFidelityWorker()
 const { online, noteFailure } = useOnline()
 const { failure: judgeFailure, load: loadFeedback } = useFeedback()
-const { failure: basketFailure, load: loadBasket } = useBasket()
+const { failure: basketFailure, load: loadBasket, ids: basketIds } = useBasket()
 const route = useRoute()
 const router = useRouter()
 const m = useMessages()
@@ -348,10 +348,41 @@ const rest = computed(() => {
   return result.value.matches.filter((match) => !shown.has(match.listingId))
 })
 
+/*
+ * What a record costs with its postage — the shop's tiers and basket count.
+ *
+ * Asked once per shop and again whenever the basket changes, because the
+ * postage a record adds depends on how many are already going in the parcel.
+ * Provided down to every card and row rather than passed through the list,
+ * and handed to the view for the sort and the ceiling. Null until it arrives;
+ * the list simply shows no number until then.
+ */
+const landed = shallowRef<LandedContext | null>(null)
+provideLanded(landed)
+
+watch(
+  [() => result.value?.dig.dealer ?? null, basketIds],
+  async ([shop]) => {
+    if (!shop) {
+      landed.value = null
+      return
+    }
+    try {
+      const context = await call('basket.landed', { dealer: shop })
+      // The dealer may have changed while the worker was answering.
+      if (result.value?.dig.dealer === shop) landed.value = context
+    } catch {
+      // Nothing to say about postage is a state the list already handles.
+      landed.value = null
+    }
+  },
+  { immediate: true },
+)
+
 // The filter bar acts on the long list only. The shortlist is the answer to
 // "was soll ich mir ansehen" and stays put — filtering it would leave you
 // looking at the top five of a subset, which is a different question.
-const view = useDigView(rest)
+const view = useDigView(rest, landed)
 
 const expired = computed(() => {
   const dig = result.value?.dig
@@ -932,10 +963,13 @@ const noHorizon = computed(
             :query="view.query.value"
             :shown="view.visible.value.length"
             :total="rest.length"
+            :landed-known="view.landedKnown.value"
+            :up-to="view.upTo.value"
             @toggle-signal="view.toggleSignal"
             @set-sort="view.setSort"
             @set-density="view.setDensity"
             @set-query="view.setQuery"
+            @set-up-to="view.setUpTo"
             @clear="view.clear"
           />
 

@@ -7,6 +7,7 @@ import {
   parseDensity,
   parseSignals,
   parseSort,
+  parseUpTo,
 } from '~/utils/digview'
 
 function match(over: Partial<Match> = {}): Match {
@@ -227,5 +228,58 @@ describe('an expired dig, where half the fields are gone', () => {
   it('sorts a nameless record last, not first', () => {
     const mixed = [...expired, match({ listingId: 3, score: 10, artist: 'Alpha' })]
     expect(arrange(mixed, [], 'artist').map((m) => m.listingId)).toEqual([3, 2, 1])
+  })
+})
+
+describe('with postage', () => {
+  // A €4 record from a shop that charges €9 to ship is not cheaper than a €7
+  // one that rides in a parcel already paid for. The list can say so only
+  // when it knows the shop's postage; `landedPrice` is tested on its own in
+  // `landed.spec.ts`, this is the sort and the ceiling built on it.
+  const all = [
+    match({ listingId: 1, score: 10, price: 4 }),
+    match({ listingId: 2, score: 20, price: 7 }),
+    match({ listingId: 3, score: 30, price: null }),
+  ]
+  const postage: Record<number, number | null> = { 1: 9, 2: 0, 3: null }
+  const landed = {
+    of: (m: Match) =>
+      m.price === null || postage[m.listingId] === null
+        ? null
+        : {
+            total: m.price + postage[m.listingId]!,
+            postage: postage[m.listingId]!,
+            currency: 'EUR',
+            items: 1,
+            source: 'parsed' as const,
+          },
+    upTo: null,
+  }
+
+  it('sorts by price plus postage, the unpriced last', () => {
+    expect(arrange(all, [], 'landed', '', landed).map((m) => m.listingId)).toEqual([2, 1, 3])
+  })
+
+  it('keeps only what fits under the ceiling, postage counted', () => {
+    // €7 fits under €10; €4 + €9 does not; a record with no number is not
+    // "under €10" either — it is unknown.
+    const capped = { ...landed, upTo: 10 }
+    expect(arrange(all, [], 'score', '', capped).map((m) => m.listingId)).toEqual([2])
+  })
+
+  it('changes nothing when nobody asked', () => {
+    // No context, or a context with no ceiling under a different sort: the
+    // list is exactly what it was.
+    expect(arrange(all, [], 'score').map((m) => m.listingId)).toEqual([3, 2, 1])
+    expect(arrange(all, [], 'score', '', landed).map((m) => m.listingId)).toEqual([3, 2, 1])
+  })
+
+  it('offers the sort key and reads a ceiling out of the URL', () => {
+    expect(parseSort('landed')).toBe('landed')
+    expect(parseUpTo('30')).toBe(30)
+    expect(parseUpTo('12,50')).toBe(12.5)
+    expect(parseUpTo('')).toBeNull()
+    expect(parseUpTo('-3')).toBeNull()
+    expect(parseUpTo('lots')).toBeNull()
   })
 })

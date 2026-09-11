@@ -38,7 +38,8 @@ it is a black box.
 
 **The basket.** One per dealer, because postage is charged per parcel. Postage tiers, the
 marginal cost of each further record, and the question "what would fit €50?" with an
-answer.
+answer. And in the find list itself, every record says what it costs with the postage it
+would add — sortable, and with a ceiling that counts it.
 
 **Your collection.** Shelf, map and wantlist. The map shows where your collection is dense
 and where the gaps are — by label, decade and style.

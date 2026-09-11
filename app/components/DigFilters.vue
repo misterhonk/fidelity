@@ -11,6 +11,10 @@ defineProps<{
   query: string
   shown: number
   total: number
+  /** Whether this shop's postage is known — without it there is no "with postage". */
+  landedKnown: boolean
+  /** The ceiling somebody typed, postage included, or null. */
+  upTo: number | null
 }>()
 
 const emit = defineEmits<{
@@ -18,6 +22,7 @@ const emit = defineEmits<{
   setSort: [SortKey]
   setDensity: [Density]
   setQuery: [string]
+  setUpTo: [string]
   clear: []
 }>()
 
@@ -86,23 +91,49 @@ const DENSITIES = ['comfortable', 'compact'] as const satisfies readonly Density
     <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
       <div class="flex items-center gap-1" role="group" :aria-label="f.sorting">
         <span class="text-fid-xs text-fid-text-muted">{{ f.sortBy }}</span>
-        <button
-          v-for="key in SORTS"
-          :key="key"
-          type="button"
-          :aria-pressed="sort === key"
-          class="min-h-6 rounded-fid-sm px-2 py-1 text-fid-xs transition-colors"
-          :class="
-            sort === key
-              ? 'bg-fid-accent/15 text-fid-text'
-              : 'text-fid-text-muted hover:text-fid-text'
-          "
-          :title="f.sorts[key].about"
-          @click="emit('setSort', key)"
-        >
-          {{ f.sorts[key].label }}
-        </button>
+        <!--
+          "With postage" is offered only where the shop's postage is known.
+          A sort key that puts every record last is not a sort, and the line
+          below the bar says why it is missing.
+        -->
+        <template v-for="key in SORTS" :key="key">
+          <button
+            v-if="key !== 'landed' || landedKnown"
+            type="button"
+            :aria-pressed="sort === key"
+            class="min-h-6 rounded-fid-sm px-2 py-1 text-fid-xs transition-colors"
+            :class="
+              sort === key
+                ? 'bg-fid-accent/15 text-fid-text'
+                : 'text-fid-text-muted hover:text-fid-text'
+            "
+            :title="f.sorts[key].about"
+            @click="emit('setSort', key)"
+          >
+            {{ f.sorts[key].label }}
+          </button>
+        </template>
       </div>
+
+      <!--
+        A ceiling with postage, in the shop's currency. A `change` rather than
+        an `input` listener: the list re-sorts on every keystroke otherwise,
+        and "3" is not a budget on the way to "30".
+      -->
+      <label v-if="landedKnown" class="flex items-center gap-1 text-fid-xs text-fid-text-muted">
+        <span>{{ f.upTo }}</span>
+        <input
+          type="number"
+          inputmode="decimal"
+          min="0"
+          step="1"
+          :value="upTo ?? ''"
+          :aria-label="f.upToLabel"
+          :title="f.upToLabel"
+          class="fid-num w-20 rounded-fid-sm border border-fid-field bg-fid-surface px-2 py-1 text-fid-xs text-fid-text"
+          @change="emit('setUpTo', ($event.target as HTMLInputElement).value)"
+        />
+      </label>
 
       <div class="flex items-center gap-1" role="group" :aria-label="f.density">
         <span class="text-fid-xs text-fid-text-muted">{{ f.density }}</span>
@@ -127,5 +158,9 @@ const DENSITIES = ['comfortable', 'compact'] as const satisfies readonly Density
         {{ f.shown(count(shown), shown === total ? null : count(total)) }}
       </p>
     </div>
+
+    <p v-if="!landedKnown" class="text-fid-xs text-fid-text-muted">
+      {{ f.noPostage }}
+    </p>
   </div>
 </template>

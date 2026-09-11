@@ -1159,6 +1159,38 @@ export interface ShippingTier {
   source: 'user' | 'bundled' | 'parsed'
 }
 
+/**
+ * What the find list needs to say what a record costs with its postage.
+ *
+ * One per shop, read once per dig and again whenever the basket changes —
+ * the tiers for the reader's country, where they came from, and how many
+ * records are already going in this shop's parcel. See `shared/shipping.ts`.
+ */
+export interface LandedContext {
+  dealer: string
+  /** Empty when nobody knows this shop's postage. */
+  tiers: ShippingTier[]
+  source: ShippingTier['source'] | null
+  /** The destination heading the rates were read under, when the text had one. */
+  section: string | null
+  /** Live lines already in this shop's basket. */
+  inBasket: number
+  /** Their listing ids — a record already in the parcel does not pay twice. */
+  listingIds: number[]
+  /** The tiers' currency; a listing priced in another gets no number. */
+  currency: string | null
+}
+
+/** A record's price plus the postage it adds to the parcel. */
+export interface LandedPrice {
+  total: number
+  postage: number
+  currency: string
+  /** Which record in the parcel this would be. */
+  items: number
+  source: ShippingTier['source'] | null
+}
+
 export interface DealerFingerprint {
   sampledItems: number
   totalItems: number
