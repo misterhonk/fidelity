@@ -9,6 +9,21 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.26.0](https://github.com/misterhonk/fidelity/compare/v0.25.1...v0.26.0) (2026-09-11)
+
+
+### Added
+
+* **dealers:** eine Bestellung einlesen — eine Nummer statt drei Haken ([b85dc39](https://github.com/misterhonk/fidelity/commit/b85dc3965590b2b263a73957577d7fcc1ff3a2e1))
+* **ui:** sagen, dass gerade aktualisiert wird — und was nicht ([0b4b73d](https://github.com/misterhonk/fidelity/commit/0b4b73d44313814227a1f2fea71429c50c7a175c))
+
+
+### Fixed
+
+* **dealers:** die Händler-Erkennung behauptete etwas, das nicht eintreten kann ([cc0c9e5](https://github.com/misterhonk/fidelity/commit/cc0c9e54fc7273beace12cbda086c69a267f72a1))
+* **dig:** drei Läufe desselben Ladens sahen identisch aus ([69716dd](https://github.com/misterhonk/fidelity/commit/69716dda756306686b75023d9b4e25b115fb59d7))
+* **sync:** was bei Discogs verschwindet, verschwindet auch hier ([2b9fae5](https://github.com/misterhonk/fidelity/commit/2b9fae553ebb133550da98587189552bcfb89d28))
+
 ## [0.25.1](https://github.com/misterhonk/fidelity/compare/v0.25.0...v0.25.1) (2026-09-11)
 
 **`docs/` ist englisch.** Vierzehn nummerierte Dokumente und dreizehn ADRs, rund 6.500
