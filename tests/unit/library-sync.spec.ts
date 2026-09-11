@@ -243,3 +243,106 @@ describe('wantlist sync', () => {
     expect(want && 'rating' in want).toBe(false)
   })
 })
+
+/**
+ * Was bei Discogs verschwindet, verschwindet auch hier (2026-09-11).
+ *
+ * **Der Anlass war eine Beobachtung an echten Daten**, nicht eine Idee: 26
+ * Wantlist-Einträge lokal, 24 bei Discogs. Die Wantlist wird immer ganz
+ * gelesen — die Entfernung war also die ganze Zeit erkennbar und wurde nur
+ * nicht vollzogen, weil der Lauf jede gelesene Zeile schrieb und keine je
+ * wegnahm.
+ *
+ * **In der Sammlung ist das mehr als kosmetisch.** „Besitze ich schon" ist ein
+ * harter Filter (`docs/04` §2): eine verkaufte Platte, die im Spiegel
+ * stehenbleibt, blendet sich in jedem künftigen Dig selbst aus — und niemand
+ * bemerkt eine Empfehlung, die nicht kommt.
+ */
+describe('what disappears at Discogs', () => {
+  it('is removed from the wantlist mirror too', async () => {
+    const db = await openFidelityDb()
+    const { client } = fakeClient([[{ id: 1, date_added: '2026-01-02' }]], 'wants')
+
+    // Ein Wunsch, den Discogs nicht mehr kennt.
+    await db.put('wantlist', { releaseId: 99, masterId: 0, title: 'Weg' } as never)
+
+    const summary = await syncWantlist(context(client))
+
+    expect(await db.getAllKeys('wantlist')).toEqual([1])
+    expect(summary.removed).toBe(1)
+  })
+
+  it('is removed from the collection after a full walk', async () => {
+    const db = await openFidelityDb()
+    const { client } = fakeClient([[{ id: 1, date_added: '2026-01-02' }]])
+
+    await db.put('collection', { instanceId: 777, releaseId: 99, title: 'Verkauft' } as never)
+
+    const summary = await syncCollection(context(client), { full: true })
+
+    expect((await db.getAllKeys('collection')) as number[]).not.toContain(777)
+    expect(summary.removed).toBe(1)
+  })
+
+  /**
+   * **Ein Delta darf nichts löschen.**
+   *
+   * Es hält an der ersten bekannten Platte an und kennt den Rest des Regals
+   * nicht. Aus „habe ich nicht gesehen" folgt dort „habe ich nicht gesucht" —
+   * und wer daraus löscht, räumt die Sammlung leer, sobald sich nichts
+   * geändert hat.
+   */
+  it('never removes anything on a delta walk', async () => {
+    const db = await openFidelityDb()
+    const { client } = fakeClient([[{ id: 1, date_added: '2026-01-02' }]])
+
+    await syncCollection(context(client), { full: true })
+    await db.put('collection', { instanceId: 777, releaseId: 99, title: 'Bleibt' } as never)
+
+    const summary = await syncCollection(context(client))
+
+    expect((await db.getAllKeys('collection')) as number[]).toContain(777)
+    expect(summary.removed).toBe(0)
+  })
+
+  /**
+   * **Eine leere Antwort löscht nichts.**
+   *
+   * Eine 200 mit null Einträgen ist von „du hast nichts mehr" nicht zu
+   * unterscheiden, und die Folgen sind nicht symmetrisch: im einen Fall
+   * bleiben tote Zeilen liegen, im anderen ist das Regal weg und der Horizont
+   * dazu.
+   */
+  it('refuses to empty the shelf on an empty answer', async () => {
+    const db = await openFidelityDb()
+    await db.put('collection', { instanceId: 777, releaseId: 99, title: 'Bleibt' } as never)
+
+    const { client } = fakeClient([[]])
+    const summary = await syncCollection(context(client), { full: true })
+
+    expect((await db.getAllKeys('collection')) as number[]).toContain(777)
+    expect(summary.removed).toBe(0)
+  })
+
+  /**
+   * **Und eine Platte, die auf ihre Bestätigung wartet, überlebt.**
+   *
+   * Aus einem Fund ins Regal gelegte Platten liegen unter `-releaseId`, bis
+   * Discogs sie kennt. Ihr Fehlen in der Antwort ist kein Beleg für
+   * irgendetwas — sie wegzuräumen nähme einen Eintrag zurück, den jemand
+   * gerade gemacht hat.
+   */
+  it('keeps a record that Discogs cannot know about yet', async () => {
+    const db = await openFidelityDb()
+    await db.put('collection', {
+      instanceId: -42,
+      releaseId: 42,
+      title: 'Gerade erst',
+    } as never)
+
+    const { client } = fakeClient([[{ id: 1, date_added: '2026-01-02' }]])
+    await syncCollection(context(client), { full: true })
+
+    expect((await db.getAllKeys('collection')) as number[]).toContain(-42)
+  })
+})

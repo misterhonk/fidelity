@@ -29,6 +29,13 @@ export interface SyncSummary {
   stored: number
   requests: number
   total: number
+  /**
+   * Zeilen, die es bei Discogs nicht mehr gibt und hier deshalb auch nicht.
+   *
+   * Nur nach einem vollen Lauf von null verschieden — ein Delta weiß nichts
+   * über Entfernungen und behauptet deshalb auch keine.
+   */
+  removed: number
 }
 
 export interface SyncResult {
@@ -126,6 +133,8 @@ interface PagedOptions<TPage, TItem> {
    * Stop at the first record already known. null means walk everything.
    */
   knownSince: string | null
+  /** Der Schlüssel einer Zeile im Store — nur für den Abgleich unten gebraucht. */
+  key: (item: TItem) => number
 }
 
 /**
@@ -138,7 +147,7 @@ interface PagedOptions<TPage, TItem> {
 async function syncPaged<TPage, TItem>(
   { report, signal, client }: SyncContext,
   options: PagedOptions<TPage, TItem>,
-): Promise<SyncSummary & { newest: string | null }> {
+): Promise<SyncSummary & { newest: string | null; seen: Set<number> | null }> {
   let page = 1
   let pages = 1
   let items = 0
@@ -146,6 +155,16 @@ async function syncPaged<TPage, TItem>(
   let stored = 0
   let newest: string | null = null
   let reachedKnown = false
+
+  /*
+   * Was dieser Lauf gesehen hat — aber nur, wenn er alles sehen konnte.
+   *
+   * Ein Delta hält an der ersten bekannten Platte an und kennt den Rest des
+   * Regals nicht. Seine Menge wäre also keine Aussage über „was es noch gibt",
+   * sondern über „was oben lag", und etwas daraus abzuleiten hieße, den Rest
+   * zu löschen. Deshalb `null` statt einer halben Wahrheit.
+   */
+  const gesehen: Set<number> | null = options.knownSince === null ? new Set() : null
 
   while (page <= pages && !reachedKnown) {
     signal?.throwIfAborted()
@@ -165,6 +184,7 @@ async function syncPaged<TPage, TItem>(
         break
       }
       fresh.push(item)
+      gesehen?.add(options.key(item))
     }
 
     if (fresh.length > 0) {
@@ -176,7 +196,60 @@ async function syncPaged<TPage, TItem>(
     page += 1
   }
 
-  return { stored, requests, total: items, newest }
+  /*
+   * Erreicht wird diese Zeile nur nach einem Durchlauf ohne Abbruch: ein
+   * `throwIfAborted` oder ein Fehler des Clients verlässt die Schleife über
+   * eine Ausnahme. Eine zurückgegebene Menge ist also vollständig oder `null`.
+   */
+  return { stored, requests, total: items, removed: 0, newest, seen: gesehen }
+}
+
+/**
+ * Was bei Discogs nicht mehr steht, verschwindet auch hier.
+ *
+ * **Warum das nötig ist:** ein Delta sieht nur Neuzugänge — das steht seit je
+ * im Kommentar darüber. Aber auch ein *vollständiger* Lauf hat Entfernungen
+ * bisher nicht bemerkt, weil er jede gelesene Zeile schrieb und keine je
+ * wegnahm. Am 2026-09-11 an echten Daten gesehen: 26 Wantlist-Einträge lokal,
+ * 24 bei Discogs. Zwei entfernte Wünsche, die bleiben, bis sich jemand
+ * abmeldet.
+ *
+ * Bei der Wantlist ist das kosmetisch. In der Sammlung ist es das nicht:
+ * „besitze ich schon" ist ein **harter Filter** (`docs/04` §2), und eine
+ * verkaufte Platte, die im Spiegel stehenbleibt, blendet sich in jedem
+ * künftigen Dig selbst aus.
+ *
+ * **Die Bedingung, unter der das sicher ist**, ist die ganze Vorsicht hier:
+ * gelöscht wird nur nach einem Lauf, der alles gelesen hat (`knownSince ===
+ * null`) und ohne Ausnahme zurückkam. Alles andere kennt das Regal nicht
+ * vollständig und dürfte nichts daraus schließen.
+ */
+async function sweep<TStore extends 'collection' | 'wantlist'>(
+  store: TStore,
+  gesehen: Set<number>,
+  /** Zeilen, die Discogs noch gar nicht kennen kann — die überleben immer. */
+  behalten: (key: number) => boolean = () => false,
+): Promise<number> {
+  const db = await openFidelityDb()
+  const vorhanden = (await db.getAllKeys(store)) as number[]
+
+  /*
+   * Ein leerer Lauf löscht nichts.
+   *
+   * Eine 200 mit null Einträgen ist von „du hast nichts mehr" nicht zu
+   * unterscheiden — und die Folgen sind nicht symmetrisch: im einen Fall
+   * bleiben ein paar tote Zeilen liegen, im anderen ist das Regal weg und der
+   * Horizont dazu. Wer wirklich alles entfernt hat, räumt über „abmelden".
+   */
+  if (gesehen.size === 0 && vorhanden.length > 0) return 0
+
+  const weg = vorhanden.filter((key) => !gesehen.has(key) && !behalten(key))
+  if (weg.length === 0) return 0
+
+  const tx = db.transaction(store, 'readwrite')
+  for (const key of weg) await tx.store.delete(key)
+  await tx.done
+  return weg.length
 }
 
 /**
@@ -249,7 +322,20 @@ export async function syncCollection(
       await mirrorCovers(items)
     },
     knownSince: full ? null : (syncState?.lastCollectionAdd ?? null),
+    key: (item) => item.instanceId,
   })
+
+  /*
+   * Verkaufte Platten aus dem Spiegel nehmen — nur nach einem vollen Lauf.
+   *
+   * Negative Schlüssel überleben: das sind Platten, die aus einem Fund ins
+   * Regal gelegt wurden und auf ihre Bestätigung von Discogs warten
+   * (`instanceId: -releaseId`, siehe oben). Discogs kennt sie noch gar nicht,
+   * also wäre ihr Fehlen in der Antwort kein Beleg für irgendetwas — sie hier
+   * wegzuräumen würde einen Eintrag zurücknehmen, den jemand gerade gemacht
+   * hat.
+   */
+  result.removed = result.seen ? await sweep('collection', result.seen, (key) => key <= 0) : 0
 
   /*
    * The estimate, but only when the shelf actually changed.
@@ -316,7 +402,17 @@ export async function syncWantlist(context: SyncContext): Promise<SyncSummary> {
     // No delta here. A wantlist is small and changes in both directions —
     // stopping early would save one request and cost correctness.
     knownSince: null,
+    key: (item) => item.releaseId,
   })
+
+  /*
+   * Und was nicht mehr auf der Wantlist steht, steht auch hier nicht mehr.
+   *
+   * Die Wantlist wird ohnehin immer ganz gelesen — die Entfernung war also
+   * die ganze Zeit erkennbar und wurde nur nicht vollzogen. Am 2026-09-11
+   * gemessen: 26 lokal, 24 bei Discogs.
+   */
+  result.removed = result.seen ? await sweep('wantlist', result.seen) : 0
 
   await updateSyncState({ wantlistSyncedAt: Date.now() })
   return result
