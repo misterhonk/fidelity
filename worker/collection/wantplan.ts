@@ -1,6 +1,7 @@
 import { getPreferences } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 import { shippingFor } from '#shared/shipping'
+import { passesOrigin, type OriginFilter } from '#shared/countries'
 import type {
   Dig,
   Match,
@@ -254,14 +255,17 @@ export function offersFrom(
   return [...perShop.values()]
 }
 
-export async function wantlistPlan(now: number): Promise<WantPlan> {
+export async function wantlistPlan(now: number, from: OriginFilter = 'any'): Promise<WantPlan> {
   const db = await openFidelityDb()
-  const [wantlist, digs, matches, dealers] = await Promise.all([
+  const [wantlist, digs, matches, dealers, preferences] = await Promise.all([
     db.getAll('wantlist'),
     db.getAll('digs'),
     db.getAll('matches'),
     db.getAll('dealers'),
+    getPreferences(),
   ])
+  const dealerRows = new Map(dealers.map((row) => [row.username, row]))
+  const home = preferences.shipsToCountry
 
   // Rule 4: only digs still inside their six hours carry prices anyone may see.
   // The newest per shop, so a shop scanned twice today is one shop.
@@ -271,7 +275,13 @@ export async function wantlistPlan(now: number): Promise<WantPlan> {
     const held = fresh.get(dig.dealer)
     if (!held || dig.startedAt > held.startedAt) fresh.set(dig.dealer, dig)
   }
-  const freshDigs = [...fresh.values()]
+  // "Only from Germany / the EU" (M20 #2): shops elsewhere, or with no origin
+  // on record, drop out of the plan and are counted, not hidden.
+  const allFresh = [...fresh.values()]
+  const freshDigs = allFresh.filter((dig) =>
+    passesOrigin(dealerRows.get(dig.dealer)?.shipsFrom, from, home),
+  )
+  const originLeftOut = allFresh.length - freshDigs.length
   const freshIds = new Set(freshDigs.map((dig) => dig.id))
 
   const offers = offersFrom(
@@ -290,7 +300,9 @@ export async function wantlistPlan(now: number): Promise<WantPlan> {
     best: null,
     naive: null,
     expiresAt: null,
-    shopsScanned: freshDigs.length,
+    shopsScanned: allFresh.length,
+    home,
+    originLeftOut,
   }
   if (offers.length === 0) return empty
 
@@ -304,8 +316,7 @@ export async function wantlistPlan(now: number): Promise<WantPlan> {
   const inCurrency = offers.filter((offer) => offer.currency === currency)
 
   const { resolveShipping } = await import('../basket/profiles')
-  const { shipsToCountry } = await getPreferences()
-  const dealerRows = new Map(dealers.map((row) => [row.username, row]))
+  const { shipsToCountry } = preferences
 
   const shops = new Map<string, PlanShopInput>()
   const unknownPostage: string[] = []

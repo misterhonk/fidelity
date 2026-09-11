@@ -13,6 +13,7 @@
  * The Personal Access Token crosses it exactly once, on sign-in. It never
  * comes back the other way (CLAUDE.md rule 6).
  */
+import type { OriginFilter } from './countries'
 import type { CoverProgress } from '~~/worker/covers'
 import type { KeeperProgress, KeeperResult } from '~~/worker/keeper'
 import type { DrainResult } from '~~/worker/outbox'
@@ -231,7 +232,12 @@ export interface WorkerContract {
    * Your wants across the shops scanned inside the six hours (M19 #9), with
    * the postage. Reads only; the tier tables come the way the basket gets them.
    */
-  'wantlist.plan': { params: undefined; progress: never; result: WantPlan }
+  'wantlist.plan': {
+    /** `from` narrows the shops to your country or the EU (M20 #2). */
+    params: { from: OriginFilter }
+    progress: never
+    result: WantPlan
+  }
   /**
    * "Habe ich die schon?" — collection and wantlist, by name. No requests, so
    * it answers in a shop basement with no signal.

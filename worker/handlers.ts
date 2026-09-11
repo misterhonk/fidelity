@@ -151,9 +151,9 @@ export const handlers: HandlerMap = {
     return collectionGaps()
   },
 
-  'wantlist.plan': async () => {
+  'wantlist.plan': async ({ from }) => {
     const { wantlistPlan } = await import('./collection/wantplan')
-    return wantlistPlan(Date.now())
+    return wantlistPlan(Date.now(), from)
   },
 
   'collection.review': async ({ year }) => {

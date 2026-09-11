@@ -472,6 +472,10 @@ export interface WantPlan {
   expiresAt: number | null
   /** How many shops had a dig inside the six hours. */
   shopsScanned: number
+  /** Your country, for the "from …" chip. */
+  home: string
+  /** Shops with a fresh dig left out by the origin filter, including ones with no origin. */
+  originLeftOut: number
 }
 
 export interface PlannedShops {

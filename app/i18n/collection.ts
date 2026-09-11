@@ -299,6 +299,15 @@ const en = {
         `${n} in another currency left out — nothing here converts.`,
       expires: (at: string) => `Prices as scanned, good until ${at}.`,
       open: 'Open at Discogs',
+      /* "Only from Germany / the EU" (M20 #2): a view in the address, not a rule. */
+      origin: {
+        label: 'Ships from',
+        any: 'Anywhere',
+        home: (country: string) => `From ${country}`,
+        eu: 'From the EU',
+        leftOut: (shops: string) =>
+          `${shops} elsewhere, or with no origin on record, left out.`,
+      },
       shops: (n: number) => `${n} ${n === 1 ? 'shop' : 'shops'}`,
       records: (n: number) => `${n} ${n === 1 ? 'record' : 'records'}`,
       offers: (n: number) => `${n} ${n === 1 ? 'offer' : 'offers'}`,
@@ -674,6 +683,13 @@ const de: typeof en = {
         `${n} in einer anderen Währung weggelassen – hier rechnet nichts um.`,
       expires: (at) => `Preise wie gescannt, gültig bis ${at}.`,
       open: 'Bei Discogs öffnen',
+      origin: {
+        label: 'Versand aus',
+        any: 'Überall',
+        home: (country) => `Aus ${country}`,
+        eu: 'Aus der EU',
+        leftOut: (shops) => `${shops} anderswo oder ohne Herkunft weggelassen.`,
+      },
       shops: (n) => `${n} ${n === 1 ? 'Laden' : 'Läden'}`,
       records: (n) => `${n} ${n === 1 ? 'Platte' : 'Platten'}`,
       offers: (n) => `${n} ${n === 1 ? 'Angebot' : 'Angebote'}`,

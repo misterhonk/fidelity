@@ -14,6 +14,14 @@ const en = {
 
   none: 'No shop scanned yet. This fills up with the first dig.',
   scanned: 'Scanned shops',
+  /* "Only from Germany / the EU" (M20 #2), on the shop chips. */
+  origin: {
+    label: 'Ships from',
+    any: 'Anywhere',
+    home: (country: string) => `From ${country}`,
+    eu: 'From the EU',
+    none: 'None of your shops ships from there.',
+  },
 
   /*
    * A hit rate on its own is a number without a denominator. The comparison is
@@ -133,6 +141,13 @@ const de: typeof en = {
 
   none: 'Noch keinen Laden gescannt. Das hier füllt sich mit dem ersten Dig.',
   scanned: 'Gescannte Läden',
+  origin: {
+    label: 'Versand aus',
+    any: 'Überall',
+    home: (country) => `Aus ${country}`,
+    eu: 'Aus der EU',
+    none: 'Keiner deiner Läden versendet von dort.',
+  },
 
   rateAlone: (rate) =>
     `${rate} Treffer je tausend Listings. Sobald du einen zweiten Laden gescannt hast, steht hier, wie sich das vergleicht.`,

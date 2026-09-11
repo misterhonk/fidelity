@@ -5,6 +5,7 @@ import {
   type WantlistOverview,
   type WantPlan,
 } from '#shared/types'
+import { ORIGIN_FILTERS, readOrigin, type OriginFilter } from '#shared/countries'
 
 import { useCollectionMessages } from '~/i18n/collection'
 
@@ -29,7 +30,7 @@ const route = useRoute()
 onMounted(async () => {
   try {
     overview.value = await call('collection.wantlist', undefined)
-    plan.value = await call('wantlist.plan', undefined)
+    plan.value = await call('wantlist.plan', { from: origin.value })
   } catch (cause) {
     error.value = cause
   } finally {
@@ -83,6 +84,19 @@ async function want(record: WantedRecord, stars: number) {
 /** Longest wanted, or the ones you want most first — in the address. */
 const sort = computed(() => (route.query.sort === 'want' ? 'want' : 'waiting'))
 const router = useRouter()
+
+/** "Only from Germany / the EU" on the plan (M20 #2), in the address too. */
+const origin = computed(() => readOrigin(route.query.from))
+function originBy(key: OriginFilter) {
+  void router.replace({ query: { ...route.query, from: key === 'any' ? undefined : key } })
+}
+watch(origin, async (from) => {
+  try {
+    plan.value = await call('wantlist.plan', { from })
+  } catch (cause) {
+    error.value = cause
+  }
+})
 function sortBy(key: 'waiting' | 'want') {
   void router.replace({
     query: { ...route.query, sort: key === 'want' ? 'want' : undefined },
@@ -197,8 +211,39 @@ function waiting(addedAt: string): string | null {
           <p class="text-fid-xs text-fid-text-muted">{{ c.wantlist.plan.subset }}</p>
         </div>
 
+        <div
+          role="group"
+          :aria-label="c.wantlist.plan.origin.label"
+          class="flex flex-wrap gap-1"
+        >
+          <button
+            v-for="key in ORIGIN_FILTERS"
+            :key="key"
+            type="button"
+            class="fid-action min-h-11 rounded-fid-sm border px-3 text-fid-xs"
+            :class="
+              origin === key
+                ? 'border-fid-text bg-fid-inset text-fid-text'
+                : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+            "
+            :aria-pressed="origin === key"
+            @click="originBy(key)"
+          >
+            {{
+              key === 'home'
+                ? c.wantlist.plan.origin.home(plan.home)
+                : c.wantlist.plan.origin[key]
+            }}
+          </button>
+        </div>
+
         <p v-if="plan.available === 0" class="text-fid-sm text-fid-text-muted">
           {{ c.wantlist.plan.none }}
+          <template v-if="plan.originLeftOut > 0">
+            {{
+              c.wantlist.plan.origin.leftOut(c.wantlist.plan.shops(plan.originLeftOut))
+            }}</template
+          >
         </p>
 
         <template v-else>
@@ -304,6 +349,10 @@ function waiting(addedAt: string): string | null {
                 c.wantlist.plan.otherCurrencies(c.wantlist.plan.offers(plan.otherCurrencies))
               }}</template
             >
+          </p>
+
+          <p v-if="plan.originLeftOut > 0" class="text-fid-xs text-fid-text-muted">
+            {{ c.wantlist.plan.origin.leftOut(c.wantlist.plan.shops(plan.originLeftOut)) }}
           </p>
 
           <p v-if="plan.expiresAt" class="text-fid-xs text-fid-text-muted">

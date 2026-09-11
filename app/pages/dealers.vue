@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ORIGIN_FILTERS, passesOrigin, readOrigin, type OriginFilter } from '#shared/countries'
 import type { DealerProfile } from '#shared/protocol'
 import type { Dealer, GradingRecord, TasteFacet } from '#shared/types'
 
@@ -22,6 +23,21 @@ const {
 const route = useRoute()
 
 const dealers = shallowRef<Dealer[]>([])
+
+/*
+ * "Only from Germany / the EU" (M20 #2), on the chips. A view, in the
+ * address; the block list in the preferences stays the hard rule. Your
+ * country comes from the preferences, the same field the postage uses.
+ */
+const home = ref('')
+const router = useRouter()
+const origin = computed(() => readOrigin(route.query.from))
+function originBy(key: OriginFilter) {
+  void router.replace({ query: { ...route.query, from: key === 'any' ? undefined : key } })
+}
+const shown = computed(() =>
+  dealers.value.filter((dealer) => passesOrigin(dealer.shipsFrom, origin.value, home.value)),
+)
 /** The shops somebody asked never to see again — listed at the foot, so they can come back. */
 const hidden = shallowRef<Dealer[]>([])
 const selected = ref<string | null>(null)
@@ -40,6 +56,7 @@ const error = ref<unknown>(null)
 async function load() {
   dealers.value = await call('dealer.list', undefined)
   hidden.value = await call('dealer.hidden', undefined)
+  home.value = (await call('preferences.get', undefined)).shipsToCountry
   const first = dealers.value[0]
   /*
    * ?dealer= comes from the start page.
@@ -223,10 +240,32 @@ const scanned = computed(() => {
     </p>
 
     <template v-else>
-      <!-- Ranked by hit rate: the only ordering that answers "wo zuerst?". -->
-      <nav class="flex flex-wrap gap-2" :aria-label="h.scanned">
+      <div role="group" :aria-label="h.origin.label" class="flex flex-wrap gap-1">
         <button
-          v-for="dealer in dealers"
+          v-for="key in ORIGIN_FILTERS"
+          :key="key"
+          type="button"
+          class="fid-action min-h-11 rounded-fid-sm border px-3 text-fid-xs"
+          :class="
+            origin === key
+              ? 'border-fid-text bg-fid-inset text-fid-text'
+              : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+          "
+          :aria-pressed="origin === key"
+          @click="originBy(key)"
+        >
+          {{ key === 'home' ? h.origin.home(home) : h.origin[key] }}
+        </button>
+      </div>
+
+      <p v-if="shown.length === 0" class="text-fid-sm text-fid-text-muted">
+        {{ h.origin.none }}
+      </p>
+
+      <!-- Ranked by hit rate: the only ordering that answers "wo zuerst?". -->
+      <nav v-else class="flex flex-wrap gap-2" :aria-label="h.scanned">
+        <button
+          v-for="dealer in shown"
           :key="dealer.username"
           type="button"
           class="flex items-center gap-2 rounded-fid-sm border py-2 pr-3 pl-2 text-fid-sm transition-colors"
