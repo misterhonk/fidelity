@@ -9,6 +9,37 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.25.0](https://github.com/misterhonk/fidelity/compare/v0.24.0...v0.25.0) (2026-09-11)
+
+Die Ausgabe, in der die App drei Fragen beantwortet, die Discogs nicht beantwortet:
+**wo steht die Platte**, **ist meine gerade mehr wert** und **gradet dieser Laden
+ehrlich**. Alles davon bleibt auf dem Gerät, und das teuerste Feature der Liste — die
+Lagerorte — kostet null Anfragen.
+
+Zwei Dinge, die man beim Aktualisieren wissen sollte:
+
+- **Das IndexedDB-Schema geht von 8 auf 10** (`watched`, `places`, `placements`). Rein
+  additiv, die Migration läuft beim ersten Start von selbst, und nichts Vorhandenes wird
+  angefasst. Kein MAJOR, weil nichts von Hand nachzuziehen ist.
+- **Lagerorte kennen kein Löschen mehr.** Ein aufgelöstes Regal bleibt als Markierung
+  liegen, eine heruntergenommene Platte wird als „liegt nirgendwo" geschrieben. Sichtbar
+  ist das nirgends — es ist die Bedingung dafür, dass zwei Geräte über den Tresor nicht
+  gegenseitig Gelöschtes wiederbeleben.
+
+Verworfen wurde ebenfalls etwas, und das steht in `docs/06`: den Runout vorzulesen statt
+abzutippen. `SpeechRecognition` ist verfügbar und sogar geräteintern möglich, aber auf
+Wörter trainiert — und `BN-LP-4001-A [ear] M9 RVG` ist keines.
+
+### Added
+
+* **collection:** beobachtete Platten — wenn die eigene im Wert springt ([6e329af](https://github.com/misterhonk/fidelity/commit/6e329affcbb70159ce3ef60bcc5a8e1ee45d4a12))
+* **collection:** die Auslaufrille lesen — weil das Cover nicht geht ([ec0d8d0](https://github.com/misterhonk/fidelity/commit/ec0d8d0af0759fac92b1a9393a52c5ffa266b25d))
+* **collection:** einen Barcode lesen — und sagen, dass er nicht eindeutig ist ([666f9e1](https://github.com/misterhonk/fidelity/commit/666f9e1b370dcdeaf0f10c4db12b6c344dc59945))
+* **collection:** Lagerorte reisen mit — und Löschungen reisen mit ihnen ([0f8d63f](https://github.com/misterhonk/fidelity/commit/0f8d63fcce2d83490338141c114b34579bdcc00e))
+* **collection:** wo die Platte steht — Orte, Regale, Kisten ([199c099](https://github.com/misterhonk/fidelity/commit/199c099529f4840d21e7c636f181148a596807df))
+* **dealers:** gradet dieser Laden ehrlich — aus den eigenen Käufen ([fc917ce](https://github.com/misterhonk/fidelity/commit/fc917ce65345560d088a1eb9fc3184e096374a54))
+* **watch:** nicht nur "ein Angebot weniger", sondern welches ([4e71608](https://github.com/misterhonk/fidelity/commit/4e716080907dbd3db34f977d1afd97070fc435cc))
+
 ## [0.24.0](https://github.com/misterhonk/fidelity/compare/v0.23.0...v0.24.0) (2026-09-11)
 
 
