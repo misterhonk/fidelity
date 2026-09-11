@@ -18,19 +18,19 @@ import pkg from './package.json'
  * tells a person nothing about why the link is worth opening.
  */
 /**
- * Wurzel oder Unterverzeichnis — eine Zahl, fünf Wirkungen.
+ * Root or subdirectory — one value, five effects.
  *
- * Nuxt liest `NUXT_APP_BASE_URL` von sich aus für `app.baseURL`. Was es *nicht*
- * von sich aus tut, ist das Manifest und den Service Worker mitzuziehen: deren
- * `start_url`, `scope` und `navigateFallback` blieben bei "/" stehen, und eine
- * PWA mit falschem Scope installiert sich auf die falsche Adresse.
+ * Nuxt reads `NUXT_APP_BASE_URL` of its own accord for `app.baseURL`. What it
+ * does *not* do of its own accord is carry the manifest and the service worker
+ * along: their `start_url`, `scope` and `navigateFallback` stayed at "/", and a
+ * PWA with the wrong scope installs itself to the wrong address.
  *
- * Gemessen am 2026-08-11 gegen einen Build für martinmelcher.de/fidelity: ohne
- * das hier sucht die fertige Seite ihre eigenen Dateien unter /_nuxt/ — also im
- * Wurzelverzeichnis einer fremden Website — und bleibt weiß.
+ * Measured 2026-08-11 against a build for martinmelcher.de/fidelity: without
+ * this, the finished page looks for its own files under /_nuxt/ — in the root
+ * of somebody else's website — and stays blank.
  *
- * Leer gelassen ist "/", also genau das, was Docker und das Release-Zip
- * erwarten. Der Unterpfad ist die Ausnahme, nicht die Regel.
+ * Left empty it is "/", which is exactly what Docker and the release zip
+ * expect. The subpath is the exception, not the rule.
  */
 const base = process.env.NUXT_APP_BASE_URL ?? '/'
 
@@ -154,18 +154,17 @@ export default defineNuxtConfig({
         { name: 'twitter:description', content: SHARE.description },
 
         /*
-         * Ohne diese zwei bleibt die Adressleiste stehen.
+         * Without these two, the address bar stays put.
          *
-         * Gemessen am 2026-08-11 gegen die ausgelieferte Seite: das HTML trug
-         * *keinen* Verweis auf das Manifest — @vite-pwa erzeugt die Datei, aber
-         * der `<link>` landet bei `ssr: false` nicht im vorgerenderten HTML.
-         * Damit findet iOS das Manifest nie, fällt auf sein altes Verhalten
-         * zurück, und `display: standalone` wird nie gelesen.
+         * Measured 2026-08-11 against the deployed page: the HTML carried *no*
+         * reference to the manifest — @vite-pwa creates the file, but with
+         * `ssr: false` the `<link>` never lands in the pre-rendered HTML. So
+         * iOS never finds the manifest, falls back to its old behaviour, and
+         * `display: standalone` is never read.
          *
-         * `apple-mobile-web-app-capable` ist der alte Name und der, auf den
-         * iOS bis heute hört; `mobile-web-app-capable` ist der heutige.
-         * Beide, weil der eine ohne den anderen auf je einer Plattform nichts
-         * tut.
+         * `apple-mobile-web-app-capable` is the old name and the one iOS still
+         * listens to; `mobile-web-app-capable` is today's. Both, because each
+         * without the other does nothing on one platform or the other.
          */
         /*
          * What the icon on a home screen is called.
@@ -179,23 +178,24 @@ export default defineNuxtConfig({
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'mobile-web-app-capable', content: 'yes' },
 
-        // Die Statusleiste über der App: durchscheinend, damit der dunkle
-        // Hintergrund der App bis unter die Uhr läuft statt an einem weißen
-        // Balken zu enden.
+        // The status bar above the app: translucent, so the app's dark
+        // background runs up under the clock instead of ending at a white
+        // strip.
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
       ],
 
       /*
-       * Alles, was „Zum Home-Bildschirm" liest, muss **hier** stehen.
+       * Everything "add to home screen" reads has to be **here**.
        *
-       * Diese Verweise standen in app.vue, also in einem `useHead` — das läuft
-       * beim Hydrieren und landet nie im vorgerenderten HTML. Safari liest für
-       * das Hinzufügen aber genau dieses statische HTML: es fand kein Manifest
-       * und kein Icon, nahm den Seitentitel („Willkommen · Fidelity") und malte
-       * ein W in ein schwarzes Quadrat.
+       * These references lived in app.vue, so inside a `useHead` — which runs
+       * on hydration and never lands in the pre-rendered HTML. For adding,
+       * Safari reads precisely that static HTML: it found no manifest and no
+       * icon, took the page title ("Welcome · Fidelity") and drew a W in a
+       * black square.
        *
-       * Und alle drei mit Basispfad. Ohne ihn zeigt `/icons/…` unter
-       * /fidelity/ auf die Domainwurzel — gemessen: 404 dort, 200 mit Pfad.
+       * And all three with the base path. Without it, `/icons/…` under
+       * /fidelity/ points at the domain root — measured: 404 there, 200 with
+       * the path.
        */
       link: [
         { rel: 'manifest', href: `${base}manifest.webmanifest` },
@@ -261,23 +261,23 @@ export default defineNuxtConfig({
     },
     client: {
       /*
-       * Ausdrücklich `true`, und das ist kein Zierrat.
+       * Explicitly `true`, and that is not decoration.
        *
-       * Das Modul setzt seine Vorgaben so:
+       * The module sets its defaults like this:
        *
        *     const client = options.client ?? { registerPlugin: true, … }
        *     if (client.registerPlugin) addPlugin(…)
        *
-       * Das Vorgabe-Objekt greift also nur, wenn `client` **ganz** fehlt. Steht
-       * hier auch nur ein einziger anderer Schlüssel — wie `installPrompt` —,
-       * ist `registerPlugin` `undefined`, und das Plugin, das den Service
-       * Worker registriert, wird nie hinzugefügt.
+       * So the default object only applies when `client` is missing
+       * **entirely**. If even a single other key is here — `installPrompt`,
+       * say — `registerPlugin` is `undefined`, and the plugin that registers
+       * the service worker is never added.
        *
-       * Mit `generateSW` fällt das nicht auf: dort spritzt vite-plugin-pwa die
-       * Registrierung zusätzlich ins HTML, und die greift. Beim Versuch, auf
-       * `injectManifest` zu wechseln, blieb nur dieser Weg übrig — und die App
-       * war ohne Service Worker: gebaut, ausgeliefert, von niemandem
-       * registriert. Gemessen: vorher eine Registrierung, nachher null.
+       * With `generateSW` this does not show: there, vite-plugin-pwa injects
+       * the registration into the HTML as well, and that one works. Switching
+       * to `injectManifest` left only this path — and the app had no service
+       * worker: built, deployed, registered by nobody. Measured: one
+       * registration before, zero after.
        */
       registerPlugin: true,
       // The install prompt is handled in the UI, not by the module: iOS has no
@@ -336,16 +336,16 @@ export default defineNuxtConfig({
        */
       commit: buildCommit(),
       /**
-       * Was in dieser Ausgabe neu ist — für Menschen, nicht für Maschinen.
+       * What is new in this release — for people, not for machines.
        *
-       * Aus `CHANGELOG.md` gelesen, aber nur der **handgeschriebene Vorspann**
-       * eines Eintrags: der Absatz zwischen der Versionsüberschrift und dem
-       * ersten `###`. Die Commit-Listen darunter sind für das Repository
-       * geschrieben — „fix(deploy): die Hub-Prüfung hat nichts geprüft" sagt
-       * jemandem, der die App benutzt, genau nichts.
+       * Read from `CHANGELOG.md`, but only an entry's **hand-written lead**:
+       * the paragraph between the version heading and the first `###`. The
+       * commit lists below it are written for the repository — "fix(deploy):
+       * the hub check checked nothing" says precisely nothing to somebody
+       * using the app.
        *
-       * Die ganze Datei wäre dafür der falsche Weg: 47 kB, und drei Viertel
-       * davon Zeilen, die niemand lesen will. So sind es ein bis zwei.
+       * The whole file would be the wrong way to do this: 47 kB, three
+       * quarters of it lines nobody wants to read. This way it is one or two.
        */
       releaseNotes: releaseNotes(pkg.version),
     },
@@ -353,12 +353,12 @@ export default defineNuxtConfig({
 })
 
 /**
- * Der Vorspann des Eintrags zu dieser Version, oder ein leerer String.
+ * The lead of this version's entry, or an empty string.
  *
- * Leer ist kein Fehler im Build, sondern einer im Release: ein Test hält
- * fest, dass die Version in `package.json` einen Vorspann hat. Das ist die
- * Stelle, an der ein Release ohne ein Wort an die Leute auffällt — im
- * Release-PR, wo man es noch schreiben kann.
+ * Empty is not a fault in the build but one in the release: a test holds that
+ * the version in `package.json` has a lead. That is where a release with not
+ * one word to anybody shows up — in the release PR, while it can still be
+ * written.
  */
 function releaseNotes(version: string): string {
   let text: string
@@ -368,18 +368,18 @@ function releaseNotes(version: string): string {
     return ''
   }
 
-  // Die Überschrift dieser Version — verlinkt oder nicht, beides kommt vor.
+  // This version's heading — linked or not, both occur.
   const start = text.search(new RegExp(`^## \\[?${version.replace(/\./g, '\\.')}[\\](]`, 'm'))
   if (start === -1) return ''
 
   const rest = text.slice(start)
-  const nachUeberschrift = rest.indexOf('\n') + 1
-  // Bis zum ersten Abschnitt oder zur nächsten Version, je nachdem was zuerst
-  // kommt — ein Eintrag ohne Vorspann soll leer herauskommen und nicht die
-  // Commit-Liste mitnehmen.
-  const ende = rest.slice(nachUeberschrift).search(/^(###? )/m)
+  const afterHeading = rest.indexOf('\n') + 1
+  // Up to the first section or the next version, whichever comes first — an
+  // entry with no lead should come out empty rather than taking the commit
+  // list with it.
+  const end = rest.slice(afterHeading).search(/^(###? )/m)
 
-  return rest.slice(nachUeberschrift, ende === -1 ? undefined : nachUeberschrift + ende).trim()
+  return rest.slice(afterHeading, end === -1 ? undefined : afterHeading + end).trim()
 }
 
 function buildCommit(): string {

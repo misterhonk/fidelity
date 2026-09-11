@@ -6,8 +6,6 @@
 #
 # Started at 141 on 2026-09-11, over six hand-picked roots. Widened to the
 # whole tree the same day, which found four more the roots had hidden.
-app/app.vue
-app/assets/css/main.css
 app/components/ArrivalQuestion.vue
 app/components/AudioPreviewToggle.vue
 app/components/BasketCard.vue
@@ -43,10 +41,8 @@ app/pages/watched.vue
 app/pages/welcome.vue
 app/pages/whats-new.vue
 app/utils/lucide.generated.ts
-hub/scripts/ring-once.ts
 hub/test/app.test.ts
 hub/test/watch.test.ts
-nuxt.config.ts
 tests/e2e/arrival.spec.ts
 tests/e2e/layout.spec.ts
 tests/e2e/long-lists.spec.ts

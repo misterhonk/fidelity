@@ -29,26 +29,24 @@
 }
 
 /*
- * Eine Schrift, und zwar diese.
+ * One typeface, and it is this one.
  *
- * Bis zum 2026-08-11 waren es drei umschaltbare Sätze — Presswerk, Kontor,
- * Schweiz —, damit man sie an echten Daten vergleichen konnte, statt an einem
- * Schriftmuster zu entscheiden. Der Vergleich hat stattgefunden und ist
- * ausgegangen: Presswerk bleibt. Array ist schmal wie die Prägung auf einem
- * Plattenrücken, und das ist die Art Überschrift, die diese App tatsächlich
- * setzt.
+ * Until 2026-08-11 there were three switchable sets — Presswerk, Kontor,
+ * Schweiz — so they could be compared against real data instead of being
+ * decided on from a specimen. The comparison happened and it settled:
+ * Presswerk stays. Array is narrow like the stamping on a record spine, and
+ * that is the kind of heading this app actually sets.
  *
- * Die anderen beiden kosteten drei Schriftfamilien, die niemand mehr auswählen
- * kann — und weil sie zur Bauzeit von Google und Fontshare geholt werden, war
- * jede davon eine Stelle, an der ein Release scheitern konnte. Genau das ist an
- * einem Tag dreimal passiert.
+ * The other two cost three type families nobody can select any more — and
+ * because they are fetched from Google and Fontshare at build time, each was a
+ * place a release could fail. That happened three times in one day.
  *
- * Alles unten resolviert über --fid-font-*, wo die Token die Typografie
- * ablegen. Keine Komponente nennt eine Schrift beim Namen; das bleibt so, damit
- * ein späterer Wechsel wieder eine Datei ist und nicht dreißig.
+ * Everything below resolves through --fid-font-*, where the tokens keep the
+ * typography. No component names a typeface; it stays that way so that a later
+ * change is one file again and not thirty.
  */
 :root {
-  /* Array ist schmal wie die Prägung auf einem Plattenrücken. */
+  /* Array is narrow like the stamping on a record spine. */
   --fid-font-sans: 'Switzer', ui-sans-serif, system-ui, sans-serif;
   --fid-font-mono: 'Chivo Mono', ui-monospace, monospace;
   --fid-font-display: 'Array', var(--fid-font-sans);
@@ -132,27 +130,27 @@ body {
 }
 
 /*
- * Ein Maß für die ganze App — und der Grund, warum es das braucht.
+ * One measure for the whole app — and why it is needed.
  *
- * Bis zum 2026-09-11 hatte jede Seite ihr eigenes: das Regal 110rem, die
- * Landkarte 90rem, Wantlist und Dig 80rem, Korb und Orte 48rem, „Was neu ist"
- * 36rem. Dazu alles zentriert. Wer die fünf Sammlungs-Reiter durchklickte,
- * sah bei jedem Wechsel die ganze Seite seitwärts springen — fünf Reiter, vier
- * Breiten. Und die Hauptleiste selbst lag bei 48rem, floh also auf keiner
- * einzigen Seite mit dem Inhalt darunter.
+ * Until 2026-09-11 every page had its own: the shelf 110rem, the map 90rem,
+ * wantlist and dig 80rem, basket and places 48rem, "what's new" 36rem. All of
+ * it centred. Anyone clicking through the five collection tabs watched the
+ * whole page jump sideways at every change — five tabs, four widths. And the
+ * main bar itself sat at 48rem, so it lined up with the content below it on no
+ * page at all.
  *
- * `docs/05` §3a hatte die Breiten je *Seite* vergeben, mit einer richtigen
- * Begründung — „Daten dürfen breit werden, Text nicht". Der Fehler war die
- * Ebene: eine Breite gehört zu einem *Bereich*, nicht zu einer Seite, sonst
- * ist der Wechsel zwischen zwei Sichten auf dieselbe Sache ein Umzug.
+ * `docs/05` §3a had assigned the widths per *page*, with a sound argument —
+ * "data may be wide, text may not". The mistake was the level: a width belongs
+ * to an *area*, not to a page, or switching between two views of the same
+ * thing is a house move.
  *
- * Die Regel lautet jetzt: **ein Container, immer.** Was schmal bleiben muss,
- * bekommt sein Maß *innen* — und wird links verankert statt zentriert, damit
- * der linke Rand steht. `tests/unit/one-measure.spec.ts` hält das fest.
+ * The rule now reads: **one container, always.** What has to stay narrow gets
+ * its measure *inside* — and is anchored left rather than centred, so the left
+ * edge holds still. `tests/unit/one-measure.spec.ts` holds it to that.
  *
- * 110rem, weil das Regal es wirklich braucht: acht Cover nebeneinander sind
- * der Bildschirm, für den diese App gebaut ist. Auf einem Laptop ist das
- * ohnehin „Fenster minus Rand".
+ * 110rem, because the shelf genuinely needs it: eight covers side by side are
+ * the screen this app is built for. On a laptop that is "window minus margin"
+ * anyway.
  */
 .fid-page,
 .fid-page-flush {
@@ -166,20 +164,19 @@ body {
 }
 
 /*
- * Dasselbe Maß, aber der Rand gehört den Kindern.
+ * The same measure, but the padding belongs to the children.
  *
- * Die Startseite trägt Cover-Reihen, die absichtlich bis an die Kante laufen:
- * `CoverRail` scrollt über die volle Breite und setzt `px-6` und `scroll-px-6`
- * selbst, damit ein Cover am Rand einrastet statt bündig abzuschneiden. Eine
- * Reihe, die vor dem Rand aufhört, sagt „das ist alles" — und das ist sie
- * nicht.
+ * The start page carries cover rails that deliberately run to the edge:
+ * `CoverRail` scrolls across the full width and sets `px-6` and `scroll-px-6`
+ * itself, so that a cover snaps at the edge instead of being cut flush. A rail
+ * that stops before the edge says "that is all of it" — and it is not.
  *
- * Also dieselbe Breite, derselbe linke Rand für alles, was Abstand hat, und
- * die Reihen dürfen darüber hinaus.
+ * So the same width, the same left edge for everything that has padding, and
+ * the rails may go beyond it.
  */
 
 /*
- * Ein Regal, das sich aufbaut statt zu erscheinen.
+ * A shelf that builds itself rather than appearing.
  *
  * Eight covers appearing at once is a flash; the same eight arriving 40ms
  * apart reads as a hand laying them out. The stagger is capped, because after
@@ -296,7 +293,7 @@ body {
 }
 
 /*
- * Eine Karte, die auf den Zeiger reagiert.
+ * A card that responds to the pointer.
  *
  * Only for cards that lead somewhere — a match, a basket, a shop. Two pixels
  * up and a shadow underneath is enough to say "this is a thing, and it is
@@ -321,7 +318,7 @@ body {
 }
 
 /*
- * Das Cover ist ein Knopf.
+ * The cover is a button.
  *
  * It has to look like one without a border around it — a frame on a sleeve is
  * a frame on the artwork. So the whole picture lifts and brightens slightly
@@ -348,7 +345,7 @@ body {
 }
 
 /*
- * Ein Fokusring, den man auch sieht.
+ * A focus ring you can actually see.
  *
  * The browser default is a thin ring in its own colour, which on a near-black
  * page is nearly invisible and on white is nearly invisible in the other

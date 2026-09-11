@@ -47,11 +47,11 @@ useHead({
   htmlAttrs: { lang: language },
   meta: [{ name: 'theme-color', content: themeColor }],
   /*
-   * Icons und Manifest stehen in nuxt.config, nicht hier.
+   * Icons and manifest live in nuxt.config, not here.
    *
-   * `useHead` läuft beim Hydrieren; „Zum Home-Bildschirm" liest das statische
-   * HTML und war deshalb blind dafür. Was ein Installationsvorgang braucht,
-   * gehört in `app.head` — was sich zur Laufzeit ändert, hierher.
+   * `useHead` runs on hydration; "add to home screen" reads the static HTML
+   * and was therefore blind to it. What an install needs belongs in
+   * `app.head` — what changes at runtime belongs here.
    */
 })
 
@@ -134,11 +134,11 @@ onBeforeUnmount(() => {
     <PwaUpdatePrompt />
     <NuxtPage />
     <!--
-      Im Rumpf, nicht auf jeder Seite.
+      In the shell, not on every page.
 
-      Lange Listen gibt es auf mindestens vier Bildschirmen, und die fünfte
-      vergisst es. Er zeigt sich ohnehin nur, wenn wirklich etwas hinter einem
-      liegt — auf einer kurzen Seite existiert er gar nicht erst.
+      There are long lists on at least four screens, and the fifth forgets. It
+      shows itself only when something really is behind you anyway — on a short
+      page it does not exist at all.
     -->
     <ToTop />
     <SiteFooter />

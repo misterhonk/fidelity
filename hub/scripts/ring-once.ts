@@ -1,29 +1,26 @@
 /**
- * Den Wächter einmal klingeln lassen, ohne auf einen Händler zu warten.
+ * Making the watcher ring once, without waiting for a dealer.
  *
- * Ein echter Durchgang meldet nur, wenn ein Laden seit dem letzten Blick
- * gewachsen ist. Das ist genau richtig und macht die Kette unprüfbar: nach
- * einer Auslieferung will man wissen, ob VAPID, Anmeldung, Zustellung und der
- * Service Worker zusammen noch funktionieren — und nicht drei Tage warten, bis
- * jemand Platten einliefert.
+ * A real pass reports only when a shop has grown since the last look. That is
+ * exactly right and makes the chain untestable: after a deployment you want to
+ * know whether VAPID, subscription, delivery and the service worker still work
+ * together — not wait three days for somebody to take records in.
  *
- * Also wird die letzte bekannte Zahl abgesenkt und ein Durchgang angestoßen.
- * Der Wächter sieht daraufhin echtes Wachstum, rechnet es aus einer echten
- * Discogs-Antwort aus und verschickt eine echte Benachrichtigung — gelogen ist
- * nur die Erinnerung, nicht der Weg. Danach steht die wahre Zahl wieder da:
- * der Durchgang schreibt sie selbst zurück, der Eingriff heilt sich also.
+ * So the last known number is lowered and a pass is started. The watcher then
+ * sees real growth, works it out from a real Discogs answer and sends a real
+ * notification — only the memory is a lie, not the path. Afterwards the true
+ * number is back: the pass writes it itself, so the intervention heals.
  *
- * Aufruf (auf dem Server, neben dem laufenden Hub):
+ * Invocation (on the server, beside the running hub):
  *
- *   node scripts/ring-once.ts [um-wie-viel]
+ *   node scripts/ring-once.ts [by-how-much]
  *
- * Es wird **nichts** angemeldet und nichts erfunden: gibt es keinen
- * beobachteten Laden und keinen Empfänger, sagt das Skript das und hört auf.
- * Ein Klingeln ohne Ohr wäre kein Beweis.
+ * **Nothing** is subscribed and nothing invented: if there is no watched shop
+ * and no recipient, the script says so and stops. A bell with no ear would
+ * prove nothing.
  */
-/* eslint-disable no-console -- Ein Werkzeug für die Kommandozeile: seine
-   Ausgabe *ist* das Ergebnis, und die no-console-Regel ist für Browsercode
-   geschrieben. */
+/* eslint-disable no-console -- A command-line tool: its output *is* the
+   result, and the no-console rule is written for browser code. */
 import { openHubDb } from '../src/db.ts'
 import { watchRound } from '../src/watch.ts'
 
@@ -35,9 +32,9 @@ const key = process.env.HUB_DISCOGS_KEY
 const secret = process.env.HUB_DISCOGS_SECRET
 const identity = key && secret ? { key, secret } : null
 /*
- * Dieselbe Absenderangabe wie der Dienst. Sie geht an Google, Mozilla und
- * Apple; eine andere hier würde eine Zustellung scheitern lassen, die im
- * echten Betrieb funktioniert — und den Test damit zum Lügner machen.
+ * The same sender details as the service. They go to Google, Mozilla and
+ * Apple; a different one here would make a delivery fail that works in real
+ * operation — and so turn the test into a liar.
  */
 const subject = process.env.HUB_VAPID_SUBJECT ?? 'mailto:hub@fidelity.invalid'
 
@@ -45,13 +42,13 @@ const watchers = (db.prepare('SELECT COUNT(*) AS n FROM watchers').get() as { n:
 const watched = db.prepare('SELECT DISTINCT dealer FROM watches').all() as { dealer: string }[]
 
 /*
- * Wer da eigentlich angemeldet ist.
+ * Who is actually subscribed.
  *
- * Ohne diese Zeilen ist ein Durchgang mit `notified: 1` bei zwei Empfängern
- * nicht zu deuten: hat das zweite Gerät den Laden nicht beobachtet, oder hat
- * die Zustellung geschwiegen? Die Adresse verrät den Dienst — und damit das
- * Gerät —, ohne dass sie im Protokoll landen muss: sie ist ein Schlüssel, wer
- * sie hat, darf diesem Gerät schicken.
+ * Without these lines a pass reporting `notified: 1` with two recipients
+ * cannot be read: did the second device not watch the shop, or did the
+ * delivery stay silent? The address gives away the service — and with it the
+ * device — without having to land in the log: it is a key, and whoever has it
+ * may send to that device.
  */
 const rows = db
   .prepare(
@@ -79,11 +76,11 @@ if (watchers === 0 || watched.length === 0) {
 }
 
 /*
- * Ohne Grundlinie zuerst eine holen.
+ * With no baseline, fetch one first.
  *
- * Der erste Blick auf einen Laden meldet absichtlich nichts — sonst bekäme
- * jeder, der einen Laden neu aufnimmt, sofort eine Meldung über zweitausend
- * "neue" Platten. Hier heißt das: einmal leer laufen lassen.
+ * The first look at a shop deliberately reports nothing — otherwise anybody
+ * taking on a new shop would immediately be told about two thousand "new"
+ * records. Here that means: let one pass run empty.
  */
 const known = db.prepare('SELECT dealer, num_for_sale FROM watch_state').all() as {
   dealer: string
