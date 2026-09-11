@@ -9,6 +9,46 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.26.0](https://github.com/misterhonk/fidelity/compare/v0.25.1...v0.26.0) (2026-09-11)
+
+Die Ausgabe, in der die App **sagt, was sie tut** — und zugibt, was sie nicht tun kann.
+
+Der Keeper frischt Sammlung, Wantlist, beobachtete Läden und den Horizont seit je beim
+Öffnen auf, beim Zurückkehren in den Tab und alle zwanzig Minuten. Nur stand davon nichts
+auf dem Schirm. Jetzt nennt die Zeile den Schritt beim Namen, und daneben steht, was sich
+**nicht** von selbst auffrischt: ein Dig, weil er zwei bis vier Minuten und hundert
+Abfragen kostet, und Bestellungen, weil Discogs sie nicht herausgibt.
+
+**Drei Korrekturen, die alle an echten Daten aufgefallen sind:**
+
+- **Was bei Discogs verschwindet, verschwindet auch hier.** 26 Wantlist-Einträge lokal,
+  24 bei Discogs — der Abgleich schrieb jede gelesene Zeile und nahm nie eine weg. In der
+  Sammlung war das mehr als kosmetisch: „besitze ich schon" ist ein harter Filter, eine
+  verkaufte Platte hätte sich in jedem künftigen Dig selbst ausgeblendet.
+- **Drei Läufe desselben Ladens sahen identisch aus.** Jetzt stehen Uhrzeit und Art dabei
+  — eine Null bei „nur das Neue" heißt etwas anderes als eine Null nach einem
+  vollständigen Durchgang.
+- **Die Händler-Erkennung behauptete etwas Unmögliches.** `GET /marketplace/orders` ist
+  die Verkäuferseite; für jemanden, der nur kauft, findet diese Quelle nie etwas.
+
+**Und eine Bestellung lässt sich jetzt einlesen.** Eine Nummer von
+`discogs.com/sell/purchases`, eine Anfrage, und alle Platten der Bestellung stehen auf
+der Kaufliste — mit der Ankunftsfrage aus 0.25.0. Gespeichert wird dabei weder der Preis
+noch die versprochene Note noch die Adresse des Verkäufers; das Schema an der Grenze
+nennt diese Felder gar nicht erst.
+
+### Added
+
+* **dealers:** eine Bestellung einlesen — eine Nummer statt drei Haken ([b85dc39](https://github.com/misterhonk/fidelity/commit/b85dc3965590b2b263a73957577d7fcc1ff3a2e1))
+* **ui:** sagen, dass gerade aktualisiert wird — und was nicht ([0b4b73d](https://github.com/misterhonk/fidelity/commit/0b4b73d44313814227a1f2fea71429c50c7a175c))
+
+
+### Fixed
+
+* **dealers:** die Händler-Erkennung behauptete etwas, das nicht eintreten kann ([cc0c9e5](https://github.com/misterhonk/fidelity/commit/cc0c9e54fc7273beace12cbda086c69a267f72a1))
+* **dig:** drei Läufe desselben Ladens sahen identisch aus ([69716dd](https://github.com/misterhonk/fidelity/commit/69716dda756306686b75023d9b4e25b115fb59d7))
+* **sync:** was bei Discogs verschwindet, verschwindet auch hier ([2b9fae5](https://github.com/misterhonk/fidelity/commit/2b9fae553ebb133550da98587189552bcfb89d28))
+
 ## [0.25.1](https://github.com/misterhonk/fidelity/compare/v0.25.0...v0.25.1) (2026-09-11)
 
 **`docs/` ist englisch.** Vierzehn nummerierte Dokumente und dreizehn ADRs, rund 6.500
