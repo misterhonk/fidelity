@@ -36,6 +36,7 @@ const NEEDED = {
   store: 'Navigation: shops',
   settings: 'Navigation: settings',
   map: 'Collection tab: map',
+  calendar: 'Collection tab: a year on the shelf',
   'arrow-left': 'Back, in the settings',
   'arrow-up': 'Back to the top of a long list',
   search: 'Command palette and search fields',

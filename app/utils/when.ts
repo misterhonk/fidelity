@@ -68,6 +68,12 @@ export function dayTime(at: number | Date): string {
   }).format(at)
 }
 
+/** January to December, short, in the language of the app — for a row of bars. */
+export function shortMonths(): string[] {
+  const format = new Intl.DateTimeFormat(activeLocale(), { month: 'short' })
+  return Array.from({ length: 12 }, (_, month) => format.format(new Date(2000, month, 1)))
+}
+
 /** The short form, for a list where the date is a detail and not the point. */
 export function shortDay(at: number | Date): string {
   return new Intl.DateTimeFormat(activeLocale(), { dateStyle: 'short' }).format(at)

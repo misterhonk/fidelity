@@ -41,6 +41,8 @@ const TABS = [
    */
   { to: '/watched', key: 'watched', icon: 'eye' },
   { to: '/places', key: 'places', icon: 'map-pin' },
+  /** And a year of it at a time — what arrived, and what it says (M19 #8). */
+  { to: '/review', key: 'review', icon: 'calendar' },
 ] as const
 </script>
 

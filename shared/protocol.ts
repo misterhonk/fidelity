@@ -64,6 +64,7 @@ import type {
   VaultTarget,
   Verdict,
   WantlistOverview,
+  YearReview,
   WatchAlert,
   WatchedRelease,
 } from './types'
@@ -214,6 +215,15 @@ export interface WorkerContract {
    * requests: it is a reading of the horizon that already exists.
    */
   'collection.gaps': { params: undefined; progress: never; result: CollectionGaps }
+  /**
+   * A year on the shelf (M19 #8). Null when nothing has ever been added; the
+   * latest year with an addition when none is asked for. Reads only.
+   */
+  'collection.review': {
+    params: { year: number | null }
+    progress: never
+    result: YearReview | null
+  }
   /** The wantlist, with pressing counts and where a dig last saw each album. */
   'collection.wantlist': { params: undefined; progress: never; result: WantlistOverview }
   /**

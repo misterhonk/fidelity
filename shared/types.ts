@@ -352,6 +352,49 @@ export interface LabelStanding {
   lift: number | null
 }
 
+/**
+ * A year on the shelf (docs/06 M19 #8).
+ *
+ * Read off what the device already holds — the shelf with its `addedAt`, the
+ * digs, the verdicts, the horizon — and nothing from the marketplace. What
+ * arrived, where it came from, who shaped it, what Fidelity had to do with
+ * it. The figures a catalogue app sells as a subscription, from CC0 fields.
+ */
+export interface YearReview {
+  year: number
+  /** Every year with an addition, newest first — the chips to switch between. */
+  years: number[]
+  /** Copies added this year, and the year before it, for the comparison. */
+  added: number
+  addedBefore: number
+  /** January to December. */
+  byMonth: number[]
+  /** Artists whose first record on the shelf arrived this year. */
+  newArtists: number
+  newArtistNames: string[]
+  artists: TasteFacet[]
+  labels: TasteFacet[]
+  styles: TasteFacet[]
+  /** Pressing decades of this year's additions, chronological. */
+  decades: TasteFacet[]
+  media: TasteFacet[]
+  oldest: ReviewRecord | null
+  newest: ReviewRecord | null
+  /** How many of the additions got four or five stars, and how many any at all. */
+  loved: number
+  rated: number
+  digs: { runs: number; shops: number; finds: number; bought: number }
+  /** People from the horizon who shaped this year's additions, most often first. */
+  people: { name: string; n: number; role: string }[]
+}
+
+export interface ReviewRecord {
+  releaseId: number
+  title: string
+  artist: string
+  year: number
+}
+
 export interface CollectionGaps {
   /** False before the horizon exists — the map then says so instead of lying. */
   built: boolean

@@ -39,7 +39,7 @@ const SECTIONS = [
     to: '/shelf',
     key: 'shelf',
     icon: 'regal',
-    also: ['/map', '/wantlist', '/watched', '/places'],
+    also: ['/map', '/wantlist', '/watched', '/places', '/review'],
   },
   { to: '/dealers', key: 'dealers', icon: 'store' },
 ] as const

@@ -16,9 +16,59 @@ const en = {
     wantlist: 'Wantlist',
     watched: 'On watch',
     places: 'Places',
+    review: 'Year',
   },
 
   loading: 'Loading …',
+
+  /*
+   * A year on the shelf (M19 #8): what arrived, where it came from, who
+   * shaped it, and what Fidelity had to do with it. Read off the device, no
+   * request, nothing from the marketplace.
+   */
+  review: {
+    title: 'A year on the shelf',
+    description: 'What arrived on the shelf in a year, and what it says.',
+    yearLabel: 'Which year',
+    empty:
+      'Nothing on the shelf yet, so no year to look back on. Fetch the collection first in the',
+    settings: 'settings',
+    lead: (records: string, year: number) => `${records} arrived in ${year}.`,
+    more: (n: string, before: number) => `${n} more than in ${before}.`,
+    fewer: (n: string, before: number) => `${n} fewer than in ${before}.`,
+    same: (before: number) => `The same as in ${before}.`,
+    firstYear: 'The first year on the shelf.',
+    months: 'By month',
+    monthsSummary: (peak: string, month: string) => `Most in ${month}: ${peak}.`,
+    newArtists: (n: string) => `${n} new to the shelf:`,
+    noNewArtists: 'No artist new to the shelf — every addition was somebody you already had.',
+    artists: 'Artists',
+    labels: 'Labels',
+    styles: 'Styles',
+    decades: 'Where they come from',
+    noYears: 'No pressing years on this year’s additions.',
+    media: 'On what',
+    oldest: (record: string, year: number) =>
+      `The oldest pressing to arrive: ${record}, ${year}.`,
+    newest: (record: string, year: number) => `The newest: ${record}, ${year}.`,
+    loved: (loved: string, rated: string) =>
+      `${loved} of them got four or five stars, ${rated} a rating at all.`,
+    unrated: 'None of them has a rating yet.',
+    digs: 'With Fidelity',
+    digsLine: (runs: string, shops: string, finds: string) =>
+      `${runs} across ${shops}, ${finds} altogether.`,
+    bought: (n: string) => `${n} marked as bought.`,
+    noDigs: 'No dig that year.',
+    people: 'Who shaped them',
+    peopleWhyLabel: 'Where the names come from',
+    peopleWhy:
+      'From the horizon: the people it has expanded — artists you collect, and the producers and engineers read off your favourites — matched against the records that arrived this year. Somebody the horizon has not met yet is not in the list, however often they appear.',
+    runs: (n: number) => `${n} ${n === 1 ? 'dig' : 'digs'}`,
+    shops: (n: number) => `${n} ${n === 1 ? 'shop' : 'shops'}`,
+    finds: (n: number) => `${n} ${n === 1 ? 'find' : 'finds'}`,
+    records: (n: number) => `${n} ${n === 1 ? 'record' : 'records'}`,
+    artistCount: (n: number) => `${n} ${n === 1 ? 'artist' : 'artists'}`,
+  },
 
   shelf: {
     description: 'Your records, as a shelf.',
@@ -368,6 +418,49 @@ const de: typeof en = {
     wantlist: 'Wantlist',
     watched: 'Im Blick',
     places: 'Orte',
+    review: 'Jahr',
+  },
+
+  review: {
+    title: 'Ein Jahr im Regal',
+    description: 'Was in einem Jahr ins Regal kam, und was es sagt.',
+    yearLabel: 'Welches Jahr',
+    empty:
+      'Noch nichts im Regal, also kein Jahr zum Zurückschauen. Hol zuerst die Sammlung in den',
+    settings: 'Einstellungen',
+    lead: (records, year) => `${records} kamen ${year} dazu.`,
+    more: (n, before) => `${n} mehr als ${before}.`,
+    fewer: (n, before) => `${n} weniger als ${before}.`,
+    same: (before) => `Genauso viele wie ${before}.`,
+    firstYear: 'Das erste Jahr im Regal.',
+    months: 'Nach Monat',
+    monthsSummary: (peak, month) => `Die meisten im ${month}: ${peak}.`,
+    newArtists: (n) => `${n} neu im Regal:`,
+    noNewArtists: 'Kein Künstler neu im Regal – jeder Zugang war jemand, den du schon hattest.',
+    artists: 'Künstler',
+    labels: 'Labels',
+    styles: 'Stile',
+    decades: 'Woher sie kommen',
+    noYears: 'Keine Pressjahre an den Zugängen dieses Jahres.',
+    media: 'Worauf',
+    oldest: (record, year) => `Die älteste Pressung, die dazukam: ${record}, ${year}.`,
+    newest: (record, year) => `Die neueste: ${record}, ${year}.`,
+    loved: (loved, rated) =>
+      `${loved} davon haben vier oder fünf Sterne bekommen, ${rated} überhaupt eine Bewertung.`,
+    unrated: 'Noch keine davon hat eine Bewertung.',
+    digs: 'Mit Fidelity',
+    digsLine: (runs, shops, finds) => `${runs} in ${shops}, zusammen ${finds}.`,
+    bought: (n) => `${n} als gekauft markiert.`,
+    noDigs: 'Kein Dig in dem Jahr.',
+    people: 'Wer sie gemacht hat',
+    peopleWhyLabel: 'Woher die Namen kommen',
+    peopleWhy:
+      'Aus dem Horizont: die Leute, die er ausgeklappt hat – Künstler, die du sammelst, und die Produzenten und Engineers aus deinen Lieblingsplatten – gegen die Platten gehalten, die in dem Jahr dazukamen. Wen der Horizont noch nicht kennt, der steht nicht in der Liste, so oft er auch vorkommt.',
+    runs: (n) => `${n} ${n === 1 ? 'Dig' : 'Digs'}`,
+    shops: (n) => `${n} ${n === 1 ? 'Laden' : 'Läden'}`,
+    finds: (n) => `${n} ${n === 1 ? 'Treffer' : 'Treffer'}`,
+    records: (n) => `${n} ${n === 1 ? 'Platte' : 'Platten'}`,
+    artistCount: (n) => `${n} ${n === 1 ? 'Künstler' : 'Künstler'}`,
   },
 
   loading: 'Wird geladen …',
