@@ -181,6 +181,8 @@ so the CAX line is the path of least surprise.
 
 ## 6. Access to the paid comfort tier
 
+> Why the code stays open and only a billing repository is private: [ADR-014](adr/014-open-core-hosted-comfort.md).
+
 ### 6.1 What is paid for, and what the terms allow
 
 Discogs' terms forbid charging for *access to an application that integrates with the API*

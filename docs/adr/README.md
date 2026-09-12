@@ -27,6 +27,7 @@ What gets easier, what gets harder? What is the way out?
 |---|---|---|
 | [007](007-client-only-pwa.md) | **Client-only PWA, no backend** | **Accepted** |
 | [013](013-catalogue-service.md) | A stateless catalogue service from the CC0 dump, beside the hub | Proposed (M21) |
+| [014](014-open-core-hosted-comfort.md) | The code stays open; what is paid for is hosting, data and care | Accepted |
 | [011](011-fidelity-writes-back.md) | Writing back to your own collection | Accepted |
 | [010](010-english-base-language.md) | English as the base language | Accepted |
 | [009](009-dealer-import.md) | Dealer import via `/friends` | Accepted, off by default |
