@@ -9,6 +9,25 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.50.0](https://github.com/misterhonk/fidelity/compare/v0.49.0...v0.50.0) (2026-09-12)
+
+**The signals through the catalogue: a label of any size, a person's whole credits.**
+
+The horizon build now asks the catalogue before the hub and the API, per candidate. A label
+comes whole instead of cut off at 1,500 releases — Blue Note's 4000s, Impulse!, Verve — a
+person's whole credit list comes with the names they go by, and a master's versions come
+with their years, all for zero requests and dated by the monthly build. The catalogue hands
+over rows and the app packs them with its own packer, so a run computed from the dump and
+one computed from the API are the same bytes for the same rows. A second golden test runs
+the golden dig with every chunk arriving through the catalogue and pins the ranking
+identical to the API-built one, score for score: the catalogue may add hits, never move a
+score. With the address empty, which it is on every device, nothing changes.
+
+
+### Added
+
+* **horizon:** the signals through the catalogue — a label of any size, a person's whole credits ([a52b9cf](https://github.com/misterhonk/fidelity/commit/a52b9cf733bf5eec218115f07d7e8465560ead93))
+
 ## [0.49.0](https://github.com/misterhonk/fidelity/compare/v0.48.0...v0.49.0) (2026-09-12)
 
 **The catalogue answers: a master's family and a person's names.**
