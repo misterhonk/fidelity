@@ -11,6 +11,17 @@ Für eine App bedeutet SemVer:
 
 ## [0.45.0](https://github.com/misterhonk/fidelity/compare/v0.44.1...v0.45.0) (2026-09-12)
 
+**The seam for the catalogue — nothing runs behind it yet.**
+
+Discogs publishes its whole database once a month under CC0. A catalogue service that has
+read it can answer what the API answers slowly or not at all: every pressing of an album at
+once, every record a producer touched, a barcode without a single request. This release
+is the first phase of ADR-013: the port the app talks to, a catalogue address under the hub
+settings with "Test the connection" and "Look here", and one consumer wired — the pressing
+family in the shop asks the catalogue before the hub. With the address empty, which it is on
+every device, nothing changes: every shape of absence — never set up, dead, slow, lying,
+not knowing — falls through to today's path, and eleven tests hold it there.
+
 
 ### Added
 
