@@ -42,6 +42,8 @@ export interface ShelfQuery {
   direction?: SortDirection
   offset?: number
   limit?: number
+  /** Only what has no living place yet (M27.1c): the pile still to sort in. */
+  unplaced?: boolean
 }
 
 export async function shelfView({
@@ -54,15 +56,34 @@ export async function shelfView({
   direction,
   offset = 0,
   limit = PAGE_SIZE,
+  unplaced = false,
 }: ShelfQuery): Promise<ShelfView> {
   const db = await openFidelityDb()
   const all = await db.getAll('collection')
+
+  /*
+   * "Not placed yet" is a row without a placement, or with one that points
+   * nowhere — or at a place another device has dissolved. The wall counts
+   * only living places, and so does this.
+   */
+  const placed = new Set<number>()
+  if (unplaced) {
+    const [placements, places] = await Promise.all([
+      db.getAll('placements'),
+      db.getAll('places'),
+    ])
+    const alive = new Set(places.filter((place) => !place.removedAt).map((place) => place.id))
+    for (const placement of placements) {
+      if (placement.placeId && alive.has(placement.placeId)) placed.add(placement.instanceId)
+    }
+  }
 
   const needles = tokens(norm(query)).filter((token) => token.length > 0)
   const wantedLabel = norm(label)
   const wantedArtist = norm(artist)
 
   const filtered = all.filter((item) => {
+    if (unplaced && placed.has(item.instanceId)) return false
     if (wantedLabel && !item.labelNorms.includes(wantedLabel)) return false
     if (wantedArtist && !item.artistNorms.includes(wantedArtist)) return false
     if (!needles.length) return true

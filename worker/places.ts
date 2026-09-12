@@ -314,6 +314,19 @@ export async function placeRecord(instanceId: number, placeId: string | null): P
   await db.put('placements', { instanceId, placeId, at: Date.now() })
 }
 
+/** Several at once, one transaction, one stamp — filling a compartment from the wall (M27.1c). */
+export async function placeRecords(
+  instanceIds: number[],
+  placeId: string | null,
+): Promise<number> {
+  const db = await openFidelityDb()
+  const at = Date.now()
+  const tx = db.transaction('placements', 'readwrite')
+  for (const instanceId of instanceIds) await tx.store.put({ instanceId, placeId, at })
+  await tx.done
+  return instanceIds.length
+}
+
 export async function placeOf(instanceId: number): Promise<string | null> {
   const db = await openFidelityDb()
   const placement = await db.get('placements', instanceId)

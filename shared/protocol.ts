@@ -260,6 +260,8 @@ export interface WorkerContract {
       direction?: SortDirection
       offset?: number
       limit?: number
+      /** Only records with no living place (M27.1c) — the ones still to sort in. */
+      unplaced?: boolean
     }
     progress: never
     result: ShelfView
@@ -815,6 +817,12 @@ export interface WorkerContract {
     params: { instanceId: number; placeId: string | null }
     progress: never
     result: true
+  }
+  /** Several records into one place at once — filling a compartment (M27.1c). */
+  'places.assignMany': {
+    params: { instanceIds: number[]; placeId: string | null }
+    progress: never
+    result: number
   }
   'places.of': { params: { instanceId: number }; progress: never; result: string | null }
   'places.contents': {

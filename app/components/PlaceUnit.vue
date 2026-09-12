@@ -68,6 +68,13 @@ async function dissolve() {
   emit('changed')
 }
 
+/** Filling from the wall (M27.1c): the collection, filtered to what has no place yet. */
+const filling = ref(false)
+async function filled() {
+  if (open.value) contents.value = await call('places.contents', { placeId: open.value })
+  emit('changed')
+}
+
 const moving = ref(false)
 async function moveAll(from: string, to: string) {
   if (!to) return
@@ -151,6 +158,15 @@ watch(
         <div class="flex flex-wrap gap-4">
           <button
             type="button"
+            class="fid-plate fid-action min-h-11 transition-colors"
+            :class="filling ? 'text-fid-text' : 'text-fid-text-muted hover:text-fid-text'"
+            :aria-pressed="filling"
+            @click="filling = !filling"
+          >
+            {{ c.places.fill }}
+          </button>
+          <button
+            type="button"
             class="fid-plate fid-action min-h-11 text-fid-text-muted hover:text-fid-text"
             @click="moving = !moving"
           >
@@ -158,6 +174,8 @@ watch(
           </button>
         </div>
       </div>
+
+      <PlaceFill v-if="filling" :place="openCube" @filled="filled" @close="filling = false" />
 
       <input
         :value="openCube.name === labelOf(openCube) ? '' : openCube.name"

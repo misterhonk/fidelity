@@ -603,6 +603,11 @@ export const handlers: HandlerMap = {
     return true as const
   },
 
+  'places.assignMany': async ({ instanceIds, placeId }) => {
+    const { placeRecords } = await import('./places')
+    return placeRecords(instanceIds, placeId)
+  },
+
   'places.of': async ({ instanceId }) => {
     const { placeOf } = await import('./places')
     return placeOf(instanceId)

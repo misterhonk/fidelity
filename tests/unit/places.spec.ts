@@ -3,10 +3,12 @@ import { readFileSync } from 'node:fs'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { openFidelityDb } from '~~/db/open'
+import { shelfView } from '~~/worker/collection/records'
 import {
   createPlace,
   createUnit,
   MAX_DEPTH,
+  placeRecords,
   setFinish,
   moveAll,
   placeContents,
@@ -428,5 +430,50 @@ describe('a finish', () => {
   it('puts dark text on a light face and light text on a dark one', () => {
     expect(textOn('#f5c400')).toBe('#1a1a1a')
     expect(textOn('#00589c')).toBe('#f4f1ea')
+  })
+})
+
+/**
+ * Filling from the wall (M27.1c): the pile still to sort in is what has no
+ * living place, and an armful goes into a compartment at once.
+ */
+describe('filling a compartment', () => {
+  it('lists what has no place yet, and forgets a place that was dissolved', async () => {
+    const db = await openFidelityDb()
+    for (const [id, title] of [
+      [1, 'One'],
+      [2, 'Two'],
+      [3, 'Three'],
+    ] as const) {
+      await db.put('collection', record(id, title))
+    }
+    const room = (await createPlace('Cellar', null))!
+    const crate = (await createPlace('Crate', null))!
+    await placeRecord(1, room.id)
+    await placeRecord(2, crate.id)
+    await removePlace(crate.id)
+
+    const view = await shelfView({ unplaced: true, sort: 'artist' })
+    expect(view.records.map((r) => r.instanceId).sort()).toEqual([2, 3])
+    expect(view.total).toBe(2)
+    expect((await shelfView({})).total).toBe(3)
+  })
+
+  it('puts an armful into one compartment at once', async () => {
+    const db = await openFidelityDb()
+    for (const id of [1, 2, 3]) await db.put('collection', record(id, `Record ${id}`))
+    const unit = (await createUnit({
+      name: 'Kallax',
+      parentId: null,
+      shape: 'shelf',
+      columns: 1,
+      rows: 1,
+      capacity: 70,
+      finish: { material: 'white', thickness: 'thick', colour: null },
+    }))!
+    const cube = (await placesOverview()).find((node) => node.parentId === unit.id)!
+    expect(await placeRecords([1, 2, 3], cube.id)).toBe(3)
+    expect((await placeContents(cube.id)).map((r) => r.instanceId).sort()).toEqual([1, 2, 3])
+    expect((await shelfView({ unplaced: true })).total).toBe(0)
   })
 })

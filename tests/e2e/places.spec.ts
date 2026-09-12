@@ -58,4 +58,15 @@ test('a room, a Kallax, and a record in B1', async ({ page }) => {
   await page.getByRole('grid', { name: 'Kallax' }).getByRole('button').first().focus()
   await page.keyboard.press('ArrowRight')
   await expect(page.getByRole('button', { name: /^B1, 1 records/ })).toBeFocused()
+
+  // And the rest of the pile goes in from the wall: "not placed yet" lists
+  // the other record, a tick and one button put it here.
+  await page.getByRole('button', { name: 'Fill' }).click()
+  await expect(page.getByRole('checkbox', { name: /Speak No Evil/ })).toBeVisible()
+  await expect(page.getByRole('checkbox', { name: /Maiden Voyage/ })).toBeHidden()
+  await page.getByRole('checkbox', { name: /Speak No Evil/ }).check()
+  await page.getByRole('button', { name: 'Put 1 in B1' }).click()
+  await expect(page.getByText('Everything has a place.')).toBeVisible()
+  await expect(page.getByRole('button', { name: /^B1, 2 records/ })).toBeVisible()
+  await expect(page.getByText('2 placed', { exact: false })).toBeVisible()
 })

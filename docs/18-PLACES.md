@@ -75,6 +75,9 @@ follow); **from the record** (the sheet proposes the compartment the rule gives,
 the last one, and the wall is the picker on a phone); **from the compartment** (select mode
 over the collection with the filter *not placed yet*, "12 records to C1").
 
+The third way shipped first (M27.1c): a compartment's drawer has "Fill", the collection
+with *not placed yet* on by default, a tick per record and one button.
+
 Re-sorting: select, then "move to …" with the wall as picker — the main road on touch;
 pointer-based drag and drop on top of it, with long-press and haptics on a phone;
 arrow keys over the grid, `M` to move, a letter to jump; every move with an undo line.
