@@ -64,7 +64,9 @@ test('tries the secret at a locked door, and shows it on request', async ({
   // The screen looks for a hub on its own when it opens and writes what it
   // finds into the field. Let it finish, or the address typed here is
   // overwritten a moment later.
-  await expect(page.getByText(/Found one|Nothing found|Not reachable/)).toBeVisible({
+  await expect(
+    page.getByText(/Found one|None running on this machine|Not reachable|Cannot search/),
+  ).toBeVisible({
     timeout: 15_000,
   })
   await page.getByLabel('Hub URL').fill('https://hub.test')
