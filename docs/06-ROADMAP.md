@@ -1144,7 +1144,7 @@ Fontshare, self-hosted as before.
 | M26.2 Sleeve | The MatchCard with the cover at 40 % and the signals as a plate line, the shelf at six columns with a density switch (eight is the crate), the start rails taller, the wantlist card with a 128 px cover, the release sheet tinted by a blurred copy of its own cover — not by reading pixels, `i.discogs.com` sends no CORS header (docs/02). Golden files untouched: no score moves | **Done 2026-09-12** |
 | M26.3 Sixty | `tests/e2e/sixty.spec.ts`: sixty words of prose above the fold per screen, measured in a browser with a seeded profile; eight screens were over it (data 109, search 101, account 101, hub 89) and every one is under it now — leads shortened, explanations behind “Why?”, the wantlist plan a hairline instead of a box. And one door: the access key and the shared secret share one field on the hub screen, told apart by the `fk1.` prefix; Settings › Access is folded in and its address redirects | **Done 2026-09-12** |
 
-## M27 · Wall → in progress
+## M27 · Wall → `v0.65.0`
 
 **Concept:** [`18-PLACES.md`](18-PLACES.md) · **Decision:** ADR-015
 
