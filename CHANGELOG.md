@@ -9,6 +9,13 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.51.0](https://github.com/misterhonk/fidelity/compare/v0.50.0...v0.51.0) (2026-09-12)
+
+
+### Added
+
+* **basket:** hand the basket over to Discogs, one listing at a time ([c100b6d](https://github.com/misterhonk/fidelity/commit/c100b6d08db9284b0506be69b71ce16a4bb46125))
+
 ## [0.50.0](https://github.com/misterhonk/fidelity/compare/v0.49.0...v0.50.0) (2026-09-12)
 
 **The signals through the catalogue: a label of any size, a person's whole credits.**
