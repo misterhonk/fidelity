@@ -9,6 +9,21 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.44.1](https://github.com/misterhonk/fidelity/compare/v0.44.0...v0.44.1) (2026-09-12)
+
+**Country names in your language.**
+
+"Aus Germany" on the new origin chip and "aus Germany" on a shop: Discogs writes English,
+and the German screens showed it. The same table the country picker uses now translates the
+name on the way out — "Aus Deutschland", "aus Großbritannien" — and a name it does not know
+stays as written. And the deploy workflow for the retired webspace hub refuses to revive it
+by accident.
+
+
+### Fixed
+
+* **i18n:** country names in the language of the app ([f7f55ed](https://github.com/misterhonk/fidelity/commit/f7f55eda53f33902896506533f89287d6653e2ae))
+
 ## [0.44.0](https://github.com/misterhonk/fidelity/compare/v0.43.0...v0.44.0) (2026-09-12)
 
 **The hub check tries the secret — and the secret can be shown.**
