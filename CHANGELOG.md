@@ -9,6 +9,19 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.48.0](https://github.com/misterhonk/fidelity/compare/v0.47.0...v0.48.0) (2026-09-12)
+
+
+### Added
+
+* **auth:** renew the token without losing the shelf ([bc5cbde](https://github.com/misterhonk/fidelity/commit/bc5cbde6ec92904dad3c481ac145e3fc4b44d2a4))
+* **dig:** the page says which shop is scanning, and attaches to a scan it did not start ([6af2dd8](https://github.com/misterhonk/fidelity/commit/6af2dd841dde02c01ade2a8b585c9e2ead9e5e6e))
+
+
+### Fixed
+
+* **hub:** the catalogue build survives a label without an id ([19a3649](https://github.com/misterhonk/fidelity/commit/19a3649e7d84617a4627497e9edc2b17fc1476b8))
+
 ## [0.47.0](https://github.com/misterhonk/fidelity/compare/v0.46.0...v0.47.0) (2026-09-12)
 
 **The catalogue's monthly job, in one image.**
