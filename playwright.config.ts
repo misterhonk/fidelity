@@ -5,6 +5,9 @@ const baseURL = `http://127.0.0.1:${PORT}`
 
 export default defineConfig({
   testDir: './tests/e2e',
+  // The smoke suite asks a live staging origin, not the built preview; it has
+  // its own config (`playwright.smoke.config.ts`) and its own workflow.
+  testIgnore: ['**/smoke/**'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   /*
