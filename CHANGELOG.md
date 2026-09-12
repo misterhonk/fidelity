@@ -9,6 +9,23 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.49.0](https://github.com/misterhonk/fidelity/compare/v0.48.0...v0.49.0) (2026-09-12)
+
+**The catalogue answers: a master's family and a person's names.**
+
+The service is the hub's shape without the door — read-only on the current build, no
+secret, the build date on every answer as its ETag — and it follows the monthly swap
+without a restart. Two routes to begin with, the two the app already asked the API for:
+every pressing of an album, oldest first, and every other name a person goes by. The shop
+screen's pressing family and the horizon's lexicon ask the catalogue first and spend the
+request only when it does not know; with the address empty, which it is on every device,
+nothing changes. The worker's size ceiling goes from 35 to 40 kB, and docs/12 says why.
+
+
+### Added
+
+* **hub:** the catalogue's first two routes — a master's family, a person's names ([5e4b5b0](https://github.com/misterhonk/fidelity/commit/5e4b5b002f0bee3c142b5acd2954edafcd1320da))
+
 ## [0.48.0](https://github.com/misterhonk/fidelity/compare/v0.47.0...v0.48.0) (2026-09-12)
 
 **Renew the token without losing the shelf — and the dig page says which shop is scanning.**
