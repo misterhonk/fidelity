@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MatchDetail } from '#shared/types'
+import type { Match, MatchDetail } from '#shared/types'
 import { reasonFor } from '~/i18n/reason'
 import { pressingText, stampText } from '~/i18n/pressing'
 import { useDigMessages } from '~/i18n/dig'
@@ -31,6 +31,16 @@ const match = computed(() => detail.value?.match ?? null)
  * for a record somebody deliberately tapped. Usually none: whatever list they
  * tapped it from asked for it already, and the store answers offline.
  */
+/**
+ * What the sheet is called. A find from before 2026-09-12 that passed its
+ * six hours lost its title with its price (shared/types.ts, MARKETPLACE_FIELDS);
+ * those rows are still around for a few days, and "–" is no name for them.
+ */
+function nameOf(m: Match): string {
+  if (!m.title && !m.artist) return `Release ${m.releaseId}`
+  return [m.artist, m.title].filter(Boolean).join(' – ')
+}
+
 const { coverFor, request: requestCovers } = useCovers()
 const cover = computed(() =>
   match.value ? coverFor(match.value.releaseId, match.value.thumbUrl) : null,
@@ -130,12 +140,12 @@ function years(entry: { from: number; to: number }): string {
     without the movement; that opt-out lives in `main.css`, once for every sheet.
   -->
   <SheetFrame
-    :label="match ? `${match.artist} – ${match.title}` : d.sheet.loading"
+    :label="match ? nameOf(match) : d.sheet.loading"
     transition="release-sheet"
     @close="emit('close')"
   >
     <template #title>
-      <template v-if="match">{{ match.artist }} – {{ match.title }}</template>
+      <template v-if="match">{{ nameOf(match) }}</template>
       <template v-else>{{ d.sheet.loading }}</template>
     </template>
 

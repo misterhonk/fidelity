@@ -221,13 +221,18 @@ interface Match {
   // when read, from the signals (`app/i18n/reason.ts`), rather than at scan
   // time — stored, it was frozen in whatever language the dig ran in, and a
   // language change would never have reached it.
-  // ── marketplace data (nulled after 6 h) ──
+  // ── catalogue facts about the release — kept past the six hours ──
+  // They were nulled with the rest until 2026-09-12, and a find older than
+  // six hours read "Release 3189681" with an empty sheet. The same words
+  // stand in the collection and in the CC0 dump; the rule is about what the
+  // listing says, not what the record is called (docs/09 §1.1).
   title:        string | null
   artist:       string | null
   label:        string | null
   catno:        string | null
   format:       string | null
   year:         number | null
+  // ── marketplace data (nulled after 6 h) ──
   condition:    string | null
   sleeve:       string | null
   price:        number | null

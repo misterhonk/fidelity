@@ -187,6 +187,10 @@ describe('the six-hour rule', () => {
     expect(after?.condition).toBeNull()
     expect(after?.thumbUrl).toBeNull()
     expect(after?.marketLowestPrice).toBeNull()
+    // The record's name stays: a find older than six hours is still a
+    // record, not a number (2026-09-12, the rail of "Release 3189681").
+    expect(after?.title).toBe(match('01AAA', 500).title)
+    expect(after?.artist).toBe(match('01AAA', 500).artist)
     // Ours — a user still sees that there were 47 matches and why.
     expect(after?.score).toBe(91)
     expect(reasonFor(after!.signals)).toContain('Conny Plank')

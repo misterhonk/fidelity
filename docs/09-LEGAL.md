@@ -22,7 +22,13 @@ inventory snapshot.
 
 **Implementation:** `dig.expiresAt = startedAt + 6h`, hard in the data model. After that the
 UI locks the price and condition data and offers a new scan. Our **derived** data (scores,
-signals, the dealer fingerprint) are not copies of Discogs content and may stay.
+signals, the dealer fingerprint) are not copies of Discogs content and may stay. So do the
+**catalogue facts** a find carries — title, artist, label, catalogue number, format, year:
+they are what the record is called, not what the listing says, and the collection and the
+CC0 dump carry the same words. Until 2026-09-12 `MARKETPLACE_FIELDS` nulled them too, and a
+find older than six hours was a release number with an empty sheet; the list is now the same
+set `tests/unit/export.spec.ts` calls Restricted Data — condition, sleeve, price, currency,
+seller comments, the market statistics and the listing's image address.
 
 ### 1.2 Attribution – prescribed verbatim
 

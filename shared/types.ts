@@ -1387,14 +1387,21 @@ export interface Match {
   expired: boolean
 }
 
-/** Every marketplace field of a match, i.e. exactly what expiry has to null. */
+/**
+ * Every marketplace field of a match, i.e. exactly what expiry has to null.
+ *
+ * Title, artist, label, catalogue number, format and year are **not** on
+ * this list since 2026-09-12. They stood here from M1, and after six hours a
+ * find turned into "Release 3189681" with an empty sheet — a rail of numbers
+ * on the start screen, reported with a screenshot. They are catalogue facts
+ * about the release, the same words the collection and the CC0 dump carry,
+ * not the marketplace content the six-hour rule is about (docs/09 §1.1: the
+ * rule locks price and condition). What the listing itself says — condition,
+ * sleeve, price, seller comments, the market statistics, the listing's own
+ * image address — is what goes. `tests/unit/export.spec.ts` names the same
+ * set as Restricted Data, which is the other side of the same line.
+ */
 export const MARKETPLACE_FIELDS = [
-  'title',
-  'artist',
-  'label',
-  'catno',
-  'format',
-  'year',
   'condition',
   'sleeve',
   'price',
