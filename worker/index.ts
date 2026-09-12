@@ -37,6 +37,16 @@ function send(message: WorkerOutbound) {
   scope.postMessage(message)
 }
 
+/** The last few hundred ids answered — enough to catch a re-delivery, small enough to forget. */
+const answered = new Set<string>()
+function remember(id: string) {
+  answered.add(id)
+  if (answered.size > 500) {
+    const oldest = answered.values().next().value
+    if (oldest !== undefined) answered.delete(oldest)
+  }
+}
+
 async function dispatch(id: string, kind: RequestKind, params: unknown) {
   const controller = new AbortController()
   inFlight.set(id, controller)
@@ -102,7 +112,27 @@ function codeOf(error: unknown, aborted: boolean): WorkerError['code'] {
     : undefined
 }
 
-scope.addEventListener('message', (event: MessageEvent) => {
+/*
+ * Listen once, even when this module runs twice.
+ *
+ * Measured on 2026-09-12 in WebKit: Rollup hoists the code that every lazy
+ * chunk shares — `openFidelityDb`, the log, the pacer — into this entry
+ * chunk, so a lazy chunk imports it back from `./index-….js`. Chromium finds
+ * the worker's own script in its module map and hands out the same
+ * instance; WebKit evaluates the entry a second time, and a second copy of
+ * this listener came to life beside the first. Every message then ran
+ * twice: one `places.create` wrote two rooms called "Living room". The
+ * flag on the global is what a module map is for the browser that has none
+ * here — the second evaluation still serves its exports, it just does not
+ * listen.
+ */
+const listening = scope as unknown as { __fidelityListening?: true }
+if (!listening.__fidelityListening) {
+  listening.__fidelityListening = true
+  scope.addEventListener('message', onMessage)
+}
+
+function onMessage(event: MessageEvent) {
   const message: unknown = event.data
   if (!isWorkerInbound(message)) return
 
@@ -111,5 +141,19 @@ scope.addEventListener('message', (event: MessageEvent) => {
     return
   }
 
+  /*
+   * Once per id, whatever the browser does.
+   *
+   * Measured on 2026-09-12 in WebKit: one `postMessage` from the page
+   * arrived here twice, same id, a millisecond apart — `places.create` ran
+   * twice and wrote two rooms named "Living room". Every idempotent handler
+   * (a put, a read) had been hiding it; the first non-idempotent one showed
+   * it. The bridge on the other side drops the second answer anyway, so the
+   * only trace was the duplicate row. Ids are random per call; a second
+   * arrival of the same one can only be a re-delivery, and is ignored.
+   */
+  if (inFlight.has(message.id) || answered.has(message.id)) return
+  remember(message.id)
+
   void dispatch(message.id, message.kind, message.params)
-})
+}
