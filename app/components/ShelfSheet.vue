@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { addressOf, labelOf } from '#shared/places'
 import type {
   CollectionField,
   CollectionFolder,
@@ -746,7 +747,7 @@ async function remove() {
           >
             <option value="">{{ c.places.nowhere }}</option>
             <option v-for="place in places" :key="place.id" :value="place.id">
-              {{ '— '.repeat(place.depth) }}{{ place.name }}
+              {{ '— '.repeat(place.depth) }}{{ labelOf(place) }}
             </option>
           </select>
         </label>
@@ -757,6 +758,10 @@ async function remove() {
         >
           {{ c.places.addTop }}
         </NuxtLink>
+        <!-- The address, the way it reads on the wall: room · furniture · compartment. -->
+        <p v-if="placeId" class="fid-plate text-fid-text-muted">
+          {{ addressOf(placeId, places).join(' · ') }}
+        </p>
 
         <button
           type="button"

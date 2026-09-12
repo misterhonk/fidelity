@@ -71,6 +71,7 @@ import type {
   YearReview,
   WatchAlert,
   WatchedRelease,
+  UnitShape,
 } from './types'
 
 export interface PingResult {
@@ -787,6 +788,19 @@ export interface WorkerContract {
   'places.overview': { params: undefined; progress: never; result: PlaceNode[] }
   'places.create': {
     params: { name: string; parentId: string | null }
+    progress: never
+    result: Place | null
+  }
+  /** A piece of furniture with its compartments, in one go (M27.1). */
+  'places.createUnit': {
+    params: {
+      name: string
+      parentId: string | null
+      shape: UnitShape
+      columns: number
+      rows: number
+      capacity: number | null
+    }
     progress: never
     result: Place | null
   }

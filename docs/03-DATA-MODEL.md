@@ -40,6 +40,10 @@ arrived since (`covers`, `outbox`, `fieldValues`, `releaseDetail`, `stock`, `wat
 after `places` that cannot be rebuilt from the API — Discogs keeps no history of the number
 it shows — so it is in the JSON backup like the places are.
 
+Since M27 (2026-09-12) a place has a `kind` — room, furniture, compartment — with `grid`,
+`slot` and `capacity` where they apply; `docs/18-PLACES.md` and ADR-015 say why, and
+`shared/types.ts` carries the fields.
+
 **Why no relational database in the browser?** There are no joins to make. Everything is a
 key lookup or a set test. SQLite-in-WASM would cost 1 MB of bundle for functionality we do
 not need.

@@ -1,36 +1,35 @@
 <script setup lang="ts">
-import type { CollectionItem, PlaceNode } from '#shared/types'
+import type { PlaceNode } from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
 
-/**
- * Where the records stand (M12).
- *
- * **The one feature in this app that costs zero requests.** A collection does
- * not live in a list, it lives in a flat: shelf in the living room, second
- * compartment, the crate in the cellar, the box in the loft. Discogs does not
- * know that place and does not want to.
- */
 const c = useCollectionMessages()
 const m = useMessages()
 
 useSeoMeta({ title: () => c.value.places.title, description: () => c.value.places.lead })
 
+/**
+ * Where they are (M27.1, docs/18, ADR-015).
+ *
+ * Rooms hold furniture, furniture holds compartments, compartments hold
+ * records — and a piece of furniture may stand without a room, because not
+ * everybody wants to name the flat first. The furniture is drawn as the
+ * wall it is; a room is a heading.
+ */
 const { call } = useFidelityWorker()
 
 const nodes = shallowRef<PlaceNode[]>([])
+const collection = ref(0)
 const loading = ref(true)
 const error = ref<unknown>(null)
 
-/** Which place is currently open — one is enough. */
-const open = ref<string | null>(null)
-const contents = shallowRef<CollectionItem[]>([])
-
-const naming = ref<string | null>(null)
-const draft = ref('')
-
 async function load() {
-  nodes.value = await call('places.overview', undefined)
+  const [overview, summary] = await Promise.all([
+    call('places.overview', undefined),
+    call('library.summary', undefined),
+  ])
+  nodes.value = overview
+  collection.value = summary.collection
 }
 
 onMounted(async () => {
@@ -43,58 +42,72 @@ onMounted(async () => {
   }
 })
 
-async function show(node: PlaceNode) {
-  if (open.value === node.id) {
-    open.value = null
+const rooms = computed(() =>
+  nodes.value.filter((node) => node.depth === 0 && node.kind !== 'unit'),
+)
+const looseUnits = computed(() =>
+  nodes.value.filter((node) => node.depth === 0 && node.kind === 'unit'),
+)
+const unitsOf = (roomId: string) =>
+  nodes.value.filter((node) => node.parentId === roomId && node.kind === 'unit')
+
+const placed = computed(() =>
+  nodes.value
+    .filter((node) => node.depth === 0)
+    .reduce((sum, node) => sum + node.recordsBelow, 0),
+)
+const unplaced = computed(() => Math.max(0, collection.value - placed.value))
+
+/* Rooms: named, renamed, dissolved, emptied into another place — as before. */
+const draft = ref('')
+const creating = ref(false)
+async function createRoom() {
+  const name = draft.value.trim()
+  if (!name || creating.value) return
+  creating.value = true
+  // Cleared before the call, not after: WebKit delivers a second submit for
+  // one click on a button that becomes disabled mid-event, and the second
+  // one must find nothing to create.
+  draft.value = ''
+  try {
+    await call('places.create', { name, parentId: null })
+    await load()
+  } finally {
+    creating.value = false
+  }
+}
+
+const renaming = ref<string | null>(null)
+async function rename(room: PlaceNode, name: string) {
+  if (!name.trim() || name.trim() === room.name) return
+  await call('places.rename', { id: room.id, name })
+  renaming.value = null
+  await load()
+}
+
+const dissolving = ref<string | null>(null)
+async function dissolve(room: PlaceNode) {
+  await call('places.remove', { id: room.id })
+  dissolving.value = null
+  await load()
+}
+
+/** Which room's picker is open — or `'top'` for furniture without a room. */
+const picking = ref<string | null>(null)
+
+/** Records a room holds directly, from before it had furniture. */
+const openRoom = ref<string | null>(null)
+const roomContents = shallowRef<Awaited<ReturnType<typeof call<'places.contents'>>>>([])
+async function showRoom(room: PlaceNode) {
+  if (openRoom.value === room.id) {
+    openRoom.value = null
     return
   }
-  open.value = node.id
-  contents.value = await call('places.contents', { placeId: node.id })
+  openRoom.value = room.id
+  roomContents.value = await call('places.contents', { placeId: room.id })
 }
 
-async function create(parentId: string | null) {
-  const name = draft.value.trim()
-  if (!name) return
-
-  await call('places.create', { name, parentId })
-  draft.value = ''
-  naming.value = null
-  await load()
-}
-
-async function rename(node: PlaceNode, name: string) {
-  if (!name.trim() || name.trim() === node.name) return
-  await call('places.rename', { id: node.id, name })
-  await load()
-}
-
-/**
- * Dissolving — and the text says what does **not** happen in the process.
- *
- * Taking the shelf apart does not mean giving the records away. Without that
- * sentence nobody dares press the button, which would be a shame for a note
- * that can be rewritten at any time.
- */
-const dissolving = ref<string | null>(null)
-
-async function dissolve(node: PlaceNode) {
-  await call('places.remove', { id: node.id })
-  dissolving.value = null
-  if (open.value === node.id) open.value = null
-  await load()
-}
-
-/** Moving in: everything out of one crate and into another. */
-const moving = ref<string | null>(null)
-
-async function move(from: string, to: string) {
-  await call('places.moveAll', { from, to })
-  moving.value = null
-  await load()
-  if (open.value) contents.value = await call('places.contents', { placeId: open.value })
-}
-
-const total = computed(() => nodes.value.reduce((sum, node) => sum + node.records, 0))
+const sheet = ref<number | null>(null)
 </script>
 
 <template>
@@ -107,175 +120,157 @@ const total = computed(() => nodes.value.reduce((sum, node) => sum + node.record
     <p v-if="loading" class="text-fid-base text-fid-text-muted">{{ m.common.loading }}</p>
 
     <template v-else>
-      <p v-if="nodes.length === 0" class="text-fid-base text-fid-text-muted">
+      <p v-if="nodes.length === 0" class="max-w-prose text-fid-base text-fid-text-muted">
         {{ c.places.empty }}
       </p>
-      <p v-else class="text-fid-sm text-fid-text-muted">
-        {{ c.places.placed(count(total)) }}
+      <p v-else class="fid-plate text-fid-text-muted">
+        {{ c.places.counts(count(placed), count(unplaced)) }}
       </p>
 
-      <ul class="flex flex-col gap-2">
-        <li
-          v-for="node in nodes"
-          :key="node.id"
-          class="flex flex-col gap-2 rounded-fid-md border border-fid-border p-3"
-          :style="{ marginLeft: `${node.depth * 16}px` }"
+      <!-- A room is a heading; its furniture stands under it. -->
+      <section
+        v-for="room in rooms"
+        :key="room.id"
+        class="flex flex-col gap-4 border-t border-fid-border pt-4"
+        :aria-label="room.name"
+      >
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <h2 class="fid-display text-fid-xl font-medium text-fid-text">{{ room.name }}</h2>
+          <div class="flex flex-wrap gap-4">
+            <button
+              type="button"
+              class="fid-plate fid-action min-h-11 text-fid-text-muted hover:text-fid-text"
+              @click="picking = picking === room.id ? null : room.id"
+            >
+              {{ c.places.addUnit }}
+            </button>
+            <button
+              type="button"
+              class="fid-plate fid-action min-h-11 text-fid-text-muted hover:text-fid-text"
+              @click="renaming = renaming === room.id ? null : room.id"
+            >
+              {{ c.places.rename }}
+            </button>
+            <button
+              type="button"
+              class="fid-plate fid-action min-h-11 text-fid-text-muted hover:text-fid-text"
+              @click="dissolving = dissolving === room.id ? null : room.id"
+            >
+              {{ c.places.dissolve }}
+            </button>
+          </div>
+        </div>
+
+        <input
+          v-if="renaming === room.id"
+          :value="room.name"
+          :aria-label="c.places.renameLabel(room.name)"
+          class="fid-field px-3 py-2 text-fid-base text-fid-text"
+          @change="rename(room, ($event.target as HTMLInputElement).value)"
+        />
+
+        <div v-if="dissolving === room.id" class="flex flex-col gap-2">
+          <p class="text-fid-sm text-fid-text-muted">{{ c.places.dissolveWhat }}</p>
+          <button
+            type="button"
+            class="fid-action min-h-11 self-start rounded-fid-sm border border-fid-sig-scarcity px-4 text-fid-sm text-fid-sig-scarcity"
+            @click="dissolve(room)"
+          >
+            {{ c.places.dissolveConfirm }}
+          </button>
+        </div>
+
+        <UnitPicker
+          v-if="picking === room.id"
+          :parent-id="room.id"
+          @created="((picking = null), load())"
+          @cancel="picking = null"
+        />
+
+        <PlaceUnit
+          v-for="unit in unitsOf(room.id)"
+          :key="unit.id"
+          :unit="unit"
+          :nodes="nodes"
+          @changed="load"
+          @record="sheet = $event"
+        />
+
+        <!-- Records in the room itself, from before it had furniture. -->
+        <button
+          v-if="room.records > 0"
+          type="button"
+          class="fid-plate fid-action min-h-11 self-start text-fid-text-muted underline decoration-dotted underline-offset-4 hover:text-fid-text"
+          :aria-expanded="openRoom === room.id"
+          @click="showRoom(room)"
         >
-          <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          {{ c.places.inRoom(count(room.records)) }}
+        </button>
+        <ul v-if="openRoom === room.id" class="flex flex-col gap-1">
+          <li v-for="record in roomContents" :key="record.instanceId">
             <button
               type="button"
-              class="fid-action flex min-h-11 min-w-0 items-center gap-2 text-left text-fid-base text-fid-text"
-              :aria-expanded="open === node.id"
-              @click="show(node)"
-            >
-              <span class="truncate font-medium">{{ node.name }}</span>
-              <!--
-                  Two numbers where they differ: what sits here and what sits
-                  underneath in total. A cellar showing 0 while three crates in
-                  it are full is a lie.
-                -->
-              <span class="fid-num shrink-0 text-fid-xs text-fid-text-muted">
-                {{
-                  node.recordsBelow === node.records
-                    ? count(node.records)
-                    : c.places.withBelow(count(node.records), count(node.recordsBelow))
-                }}
-              </span>
-            </button>
-
-            <!--
-                `min-w-0` rather than `shrink-0`: the button group **should**
-                be allowed to shrink, or `flex-wrap` can never wrap and the row
-                runs past the right edge (`design-restraint.spec.ts`).
-              -->
-            <div class="flex min-w-0 flex-wrap items-center gap-2">
-              <button
-                v-if="node.depth < 2"
-                type="button"
-                class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-xs text-fid-text-muted"
-                @click="((naming = node.id), (draft = ''))"
-              >
-                {{ c.places.addInside }}
-              </button>
-              <button
-                type="button"
-                class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-xs text-fid-text-muted"
-                @click="moving = moving === node.id ? null : node.id"
-              >
-                {{ c.places.moveAll }}
-              </button>
-              <button
-                type="button"
-                class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-xs text-fid-text-muted"
-                @click="dissolving = dissolving === node.id ? null : node.id"
-              >
-                {{ c.places.dissolve }}
-              </button>
-            </div>
-          </div>
-
-          <input
-            :value="node.name"
-            :aria-label="c.places.renameLabel(node.name)"
-            class="fid-field px-3 py-2 text-fid-sm text-fid-text"
-            @change="rename(node, ($event.target as HTMLInputElement).value)"
-          />
-
-          <form
-            v-if="naming === node.id"
-            class="flex flex-wrap gap-2"
-            @submit.prevent="create(node.id)"
-          >
-            <input
-              v-model="draft"
-              :placeholder="c.places.namePlaceholder"
-              :aria-label="c.places.addInside"
-              class="min-w-0 grow fid-field px-3 py-2 text-fid-sm text-fid-text"
-            />
-            <!--
-                Outlined, not filled. A screen carries exactly one filled
-                accent (`design-restraint.spec.ts`), and it belongs to the
-                button at the foot: "create a place" is why somebody is here.
-                This one puts something *into* a place that already exists.
-              -->
-            <button
-              type="submit"
-              class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text"
-            >
-              {{ c.places.add }}
-            </button>
-          </form>
-
-          <div v-if="moving === node.id" class="flex flex-wrap items-center gap-2">
-            <label class="text-fid-xs text-fid-text-muted" :for="`move-${node.id}`">
-              {{ c.places.moveTo }}
-            </label>
-            <select
-              :id="`move-${node.id}`"
-              class="fid-field px-3 py-2 text-fid-sm text-fid-text"
-              @change="move(node.id, ($event.target as HTMLSelectElement).value)"
-            >
-              <option value="">—</option>
-              <option
-                v-for="other in nodes.filter((n) => n.id !== node.id)"
-                :key="other.id"
-                :value="other.id"
-              >
-                {{ other.name }}
-              </option>
-            </select>
-          </div>
-
-          <div v-if="dissolving === node.id" class="flex flex-col gap-2">
-            <p class="text-fid-sm text-fid-text-muted">{{ c.places.dissolveWhat }}</p>
-            <button
-              type="button"
-              class="fid-action min-h-11 self-start rounded-fid-sm border border-fid-sig-scarcity px-4 text-fid-sm text-fid-sig-scarcity"
-              @click="dissolve(node)"
-            >
-              {{ c.places.dissolveConfirm }}
-            </button>
-          </div>
-
-          <ul
-            v-if="open === node.id"
-            class="flex flex-col gap-1 border-t border-fid-border pt-2"
-          >
-            <li v-if="contents.length === 0" class="text-fid-sm text-fid-text-muted">
-              {{ c.places.nothingHere }}
-            </li>
-            <li
-              v-for="record in contents"
-              :key="record.instanceId"
-              class="text-fid-sm text-fid-text"
+              class="fid-action text-left text-fid-sm text-fid-text underline decoration-fid-border underline-offset-4"
+              @click="sheet = record.instanceId"
             >
               {{ record.artistNames.join(' · ') }} – {{ record.title }}
-            </li>
-          </ul>
-        </li>
-      </ul>
+            </button>
+          </li>
+        </ul>
+      </section>
 
-      <form class="flex flex-wrap gap-2" @submit.prevent="create(null)">
+      <section
+        v-if="looseUnits.length > 0"
+        class="flex flex-col gap-4 border-t border-fid-border pt-4"
+        :aria-label="c.places.noRoom"
+      >
+        <h2 class="fid-plate text-fid-text-muted">{{ c.places.noRoom }}</h2>
+        <PlaceUnit
+          v-for="unit in looseUnits"
+          :key="unit.id"
+          :unit="unit"
+          :nodes="nodes"
+          @changed="load"
+          @record="sheet = $event"
+        />
+      </section>
+
+      <!-- The one filled button on the screen: a room is where most people start. -->
+      <form
+        class="flex flex-wrap gap-2 border-t border-fid-border pt-4"
+        @submit.prevent="createRoom"
+      >
         <input
           v-model="draft"
           :placeholder="c.places.namePlaceholder"
           :aria-label="c.places.addTop"
-          class="min-w-0 grow fid-field px-3 py-2 text-fid-sm text-fid-text"
+          class="min-w-0 grow fid-field px-3 py-2 text-fid-base text-fid-text"
         />
         <button
           type="submit"
-          class="fid-fill min-h-11 rounded-fid-sm bg-fid-accent-fill px-4 text-fid-sm font-medium text-fid-on-accent"
+          :disabled="creating"
+          class="fid-fill min-h-11 rounded-fid-sm bg-fid-accent-fill px-4 text-fid-sm font-medium text-fid-on-accent disabled:opacity-50"
         >
           {{ c.places.addTop }}
         </button>
       </form>
+      <button
+        type="button"
+        class="fid-plate fid-action min-h-11 self-start text-fid-text-muted underline decoration-dotted underline-offset-4 hover:text-fid-text"
+        @click="picking = picking === 'top' ? null : 'top'"
+      >
+        {{ c.places.addUnitTop }}
+      </button>
+      <UnitPicker
+        v-if="picking === 'top'"
+        :parent-id="null"
+        @created="((picking = null), load())"
+        @cancel="picking = null"
+      />
 
-      <!--
-          Said, because it is why this screen is different from every other:
-          something is created here that does not exist at Discogs and goes
-          nowhere.
-        -->
       <p class="text-fid-xs text-fid-text-muted">{{ c.places.staysHere }}</p>
     </template>
+
+    <ShelfSheet v-if="sheet !== null" :instance-id="sheet" @close="sheet = null" />
   </AppPage>
 </template>

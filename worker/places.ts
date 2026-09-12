@@ -1,5 +1,6 @@
 import { openFidelityDb } from '~~/db/open'
-import type { CollectionItem, Place, Placement, PlaceNode } from '#shared/types'
+import { MAX_GRID, slotLabel } from '#shared/places'
+import type { CollectionItem, Place, Placement, PlaceNode, UnitShape } from '#shared/types'
 
 /**
  * Where the record stands (M12).
@@ -72,7 +73,33 @@ export async function placesOverview(): Promise<PlaceNode[]> {
     list.push(place)
     children.set(place.parentId, list)
   }
-  for (const list of children.values()) list.sort((a, b) => a.name.localeCompare(b.name))
+  /*
+   * Compartments in the order of the wall — row by row, left to right — and
+   * everything else by name. A1, B1, C1, A2 is how a person reads a shelf.
+   */
+  for (const list of children.values()) {
+    list.sort((a, b) => {
+      if (a.slot && b.slot) return a.slot.row - b.slot.row || a.slot.column - b.slot.column
+      return a.name.localeCompare(b.name)
+    })
+  }
+
+  // The first three covers of what is directly here, for the wall's cubes.
+  const firstIn = new Map<string, number[]>()
+  for (const placement of placements.filter(liegtIrgendwo)) {
+    const list = firstIn.get(placement.placeId) ?? []
+    if (list.length < 3) list.push(placement.instanceId)
+    firstIn.set(placement.placeId, list)
+  }
+  const coverLists = new Map<string, string[]>()
+  for (const place of places) {
+    const covers: string[] = []
+    for (const instanceId of firstIn.get(place.id) ?? []) {
+      const record = await db.get('collection', instanceId)
+      if (record?.thumbUrl) covers.push(record.thumbUrl)
+    }
+    coverLists.set(place.id, covers)
+  }
 
   const nodes: PlaceNode[] = []
 
@@ -82,7 +109,13 @@ export async function placesOverview(): Promise<PlaceNode[]> {
       const records = direct.get(place.id) ?? 0
       // A placeholder: the branch is only counted afterwards, but the order of
       // the list should be the tree's.
-      const node: PlaceNode = { ...place, records, recordsBelow: records, depth }
+      const node: PlaceNode = {
+        ...place,
+        records,
+        recordsBelow: records,
+        depth,
+        covers: coverLists.get(place.id) ?? [],
+      }
       nodes.push(node)
       const inChildren = walk(place.id, depth + 1)
       node.recordsBelow = records + inChildren
@@ -114,6 +147,9 @@ export async function createPlace(
     let depth = 1
     let cursor = await db.get('places', parentId)
     if (!cursor || !alive(cursor)) return null
+    // A compartment holds records, not places; a unit's places are its
+    // compartments and come with it (createUnit). Only a room takes children.
+    if (cursor.kind === 'compartment' || cursor.kind === 'unit') return null
     while (cursor?.parentId) {
       depth += 1
       cursor = await db.get('places', cursor.parentId)
@@ -126,12 +162,73 @@ export async function createPlace(
     id: newId(),
     name: trimmed,
     parentId,
+    kind: 'room',
     createdAt: at,
     updatedAt: at,
     removedAt: null,
   }
   await db.put('places', place)
   return place
+}
+
+/**
+ * A piece of furniture and its compartments, in one transaction (M27.1).
+ *
+ * A Kallax 4×4 is sixteen places that exist together or not at all. The
+ * compartments are ordinary places — everything that works on a place
+ * (assign, move, the vault) works on them from the first day — named by
+ * their coordinate, which stays even when somebody calls one "Jazz".
+ */
+export async function createUnit(params: {
+  name: string
+  parentId: string | null
+  shape: UnitShape
+  columns: number
+  rows: number
+  capacity: number | null
+}): Promise<Place | null> {
+  const name = params.name.trim()
+  const columns = Math.trunc(params.columns)
+  const rows = Math.trunc(params.rows)
+  if (!name || columns < 1 || rows < 1 || columns > MAX_GRID || rows > MAX_GRID) return null
+  const db = await openFidelityDb()
+  if (params.parentId !== null) {
+    const parent = await db.get('places', params.parentId)
+    // Units stand in rooms or at the top — never in a unit or a compartment.
+    if (!parent || !alive(parent) || (parent.kind && parent.kind !== 'room')) return null
+  }
+  const at = Date.now()
+  const unit: Place = {
+    id: newId(),
+    name,
+    parentId: params.parentId,
+    kind: 'unit',
+    shape: params.shape,
+    grid: { columns, rows },
+    capacity: params.capacity,
+    createdAt: at,
+    updatedAt: at,
+    removedAt: null,
+  }
+  const tx = db.transaction('places', 'readwrite')
+  await tx.store.put(unit)
+  for (let row = 0; row < rows; row += 1) {
+    for (let column = 0; column < columns; column += 1) {
+      await tx.store.put({
+        id: newId(),
+        name: slotLabel(column, row),
+        parentId: unit.id,
+        kind: 'compartment',
+        slot: { column, row },
+        capacity: params.capacity,
+        createdAt: at,
+        updatedAt: at,
+        removedAt: null,
+      })
+    }
+  }
+  await tx.done
+  return unit
 }
 
 export async function renamePlace(id: string, name: string): Promise<boolean> {
@@ -164,7 +261,14 @@ export async function removePlace(id: string): Promise<void> {
   const placements = tx.objectStore('placements')
 
   for (const child of await places.getAll()) {
-    if (child.parentId === id) {
+    if (child.parentId !== id || !alive(child)) continue
+    if (child.kind === 'compartment') {
+      // A compartment is nothing without its unit: it goes too, and what it
+      // held moves where the unit stood — the room, or nowhere.
+      const held = await placements.index('by-place').getAll(child.id)
+      for (const row of held) await placements.put({ ...row, placeId: place.parentId, at })
+      await places.put({ ...child, removedAt: at, updatedAt: at })
+    } else {
       await places.put({ ...child, parentId: place.parentId, updatedAt: at })
     }
   }

@@ -1152,11 +1152,41 @@ export interface PressingSibling {
  * **Three levels, and nobody builds more.** Room → furniture → compartment.
  * Anyone needing a fourth names their compartment more fully.
  */
+/**
+ * What a place is (M27, ADR-015).
+ *
+ * A room holds units; a unit is a piece of furniture with a grid of
+ * compartments; a compartment holds records. Rows from before M27 carry no
+ * kind and are rooms. A unit may stand at the top level — not everybody
+ * wants to name the room first.
+ */
+export type PlaceKind = 'room' | 'unit' | 'compartment'
+/** How a unit is drawn: a wall of cubes, or one open box. */
+export type UnitShape = 'shelf' | 'crate' | 'box' | 'pile'
+/**
+ * The order inside a unit (M27.2). A rule proposes where a record goes and
+ * never moves one by itself; an explicit placement always wins.
+ */
+export type PlaceRule = 'artist' | 'label' | 'year' | 'added' | 'manual'
+
 export interface Place {
   id: string
   name: string
   /** `null` is the topmost level — living room, cellar, loft. */
   parentId: string | null
+  /** Absent on rows from before M27, which are rooms. */
+  kind?: PlaceKind
+  shape?: UnitShape
+  /** On a unit: how many compartments across and down. */
+  grid?: { columns: number; rows: number }
+  /** On a compartment: where in the unit's grid, zero-based, A1 is `{0, 0}`. */
+  slot?: { column: number; row: number }
+  /** Records this compartment holds comfortably; `null` for a pile. An estimate, not a lock. */
+  capacity?: number | null
+  /** On a unit (M27.2): what the compartments are sorted by. */
+  rule?: PlaceRule
+  /** On a compartment (M27.2): the divider, "A–Bo". */
+  range?: string
   createdAt: number
   /**
    * Last touched — renamed, moved, dissolved.
@@ -1216,6 +1246,8 @@ export interface PlaceNode extends Place {
   /** And counting them, because "in the cellar" means the whole cellar. */
   recordsBelow: number
   depth: number
+  /** Up to three cover addresses of what is directly here, for the wall's cubes. */
+  covers: string[]
 }
 
 /**

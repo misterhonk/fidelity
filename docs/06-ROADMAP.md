@@ -1144,6 +1144,20 @@ Fontshare, self-hosted as before.
 | M26.2 Sleeve | The MatchCard with the cover at 40 % and the signals as a plate line, the shelf at six columns with a density switch (eight is the crate), the start rails taller, the wantlist card with a 128 px cover, the release sheet tinted by a blurred copy of its own cover — not by reading pixels, `i.discogs.com` sends no CORS header (docs/02). Golden files untouched: no score moves | **Done 2026-09-12** |
 | M26.3 Sixty | `tests/e2e/sixty.spec.ts`: sixty words of prose above the fold per screen, measured in a browser with a seeded profile; eight screens were over it (data 109, search 101, account 101, hub 89) and every one is under it now — leads shortened, explanations behind “Why?”, the wantlist plan a hairline instead of a box. And one door: the access key and the shared secret share one field on the hub screen, told apart by the `fk1.` prefix; Settings › Access is folded in and its address redirects | **Done 2026-09-12** |
 
+## M27 · Wall → in progress
+
+**Concept:** [`18-PLACES.md`](18-PLACES.md) · **Decision:** ADR-015
+
+Where a record stands, in three words: room · furniture · compartment. Furniture from a
+preset, drawn as the wall it is; inside a compartment a rule, not a slot.
+
+| Phase | Delivers | State |
+|---|---|---|
+| M27.1 Compartments | `kind`, `shape`, `grid`, `slot`, `capacity` on a place; `places.createUnit` makes furniture with its compartments in one transaction; the wall on the places screen (`PlaceWall`, a grid with roving focus, fill level, first covers); a compartment's records as covers; presets Kallax 2×2–5×5, crate, 7" box, pile, custom; the address as a plate on the record's sheet; dissolving a unit takes its compartments. Rows from M19 are rooms | **Done 2026-09-12** |
+| M27.2 Rule | "This shelf alphabetically / by label / by year": distribution by capacity, dividers as ranges on the compartments, boundaries movable with a preview; the proposal on the sheet; the filter *not placed yet* | 1 weekend |
+| M27.3 Selection | Select mode on shelf, wantlist and compartment; "move to …" with the wall as picker; an undo line; keyboard over grid and picker; "fill" from the compartment | 1 weekend |
+| M27.4 Drag | Pointer-based drag and drop with long-press and haptics on a phone; compartment onto compartment, furniture into a room | 1 weekend |
+
 ## Not on the roadmap
 
 | Idea | Why not |

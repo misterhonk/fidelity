@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { openFidelityDb } from '~~/db/open'
 import {
   createPlace,
+  createUnit,
   MAX_DEPTH,
   moveAll,
   placeContents,
@@ -14,6 +15,7 @@ import {
   removePlace,
   renamePlace,
 } from '~~/worker/places'
+import { addressOf, labelOf, slotLabel } from '#shared/places'
 import type { CollectionItem } from '#shared/types'
 
 /**
@@ -284,5 +286,93 @@ describe('where the location is kept', () => {
   it('never leaves the device', () => {
     const source = readFileSync('worker/places.ts', 'utf8')
     expect(source).not.toMatch(/fetch\(|DiscogsClient|hub|discogs\.com/i)
+  })
+})
+
+/**
+ * The wall (M27.1, ADR-015).
+ *
+ * A piece of furniture is a grid of compartments that exist together: sixteen
+ * places for a Kallax 4×4, named by their coordinate, read like a spreadsheet
+ * from the front. They are ordinary places from the first day — assign, move,
+ * dissolve, the vault — which is why the tests below use the same calls the
+ * older ones do.
+ */
+describe('a unit with compartments', () => {
+  const kallax = (parentId: string | null, columns = 2, rows = 2) =>
+    createUnit({ name: 'Kallax', parentId, shape: 'shelf', columns, rows, capacity: 70 })
+
+  it('reads its coordinates like a spreadsheet', () => {
+    expect(slotLabel(0, 0)).toBe('A1')
+    expect(slotLabel(3, 1)).toBe('D2')
+    expect(slotLabel(25, 0)).toBe('Z1')
+    expect(slotLabel(26, 2)).toBe('AA3')
+  })
+
+  it('comes with every compartment, in the order of the wall', async () => {
+    const room = (await createPlace('Living room', null))!
+    const unit = (await kallax(room.id, 3, 2))!
+    const nodes = await placesOverview()
+    const cubes = nodes.filter((node) => node.parentId === unit.id)
+    expect(cubes.map((cube) => cube.name)).toEqual(['A1', 'B1', 'C1', 'A2', 'B2', 'C2'])
+    expect(cubes.every((cube) => cube.kind === 'compartment' && cube.capacity === 70)).toBe(
+      true,
+    )
+    expect(nodes.find((node) => node.id === unit.id)?.grid).toEqual({ columns: 3, rows: 2 })
+    expect(addressOf(cubes[4]!.id, nodes)).toEqual(['Living room', 'Kallax', 'B2'])
+  })
+
+  it('keeps the coordinate in front of a name somebody gives a compartment', async () => {
+    const unit = (await kallax(null, 1, 1))!
+    const cube = (await placesOverview()).find((node) => node.parentId === unit.id)!
+    await renamePlace(cube.id, 'Jazz')
+    const renamed = (await placesOverview()).find((node) => node.id === cube.id)!
+    expect(labelOf(renamed)).toBe('A1 · Jazz')
+    expect(labelOf(cube)).toBe('A1')
+  })
+
+  it('takes no places inside a compartment, and none inside a unit by hand', async () => {
+    const unit = (await kallax(null))!
+    const cube = (await placesOverview()).find((node) => node.parentId === unit.id)!
+    expect(await createPlace('Box', cube.id)).toBeNull()
+    expect(await createPlace('Box', unit.id)).toBeNull()
+    expect(await kallax(unit.id)).toBeNull()
+  })
+
+  it('refuses a wall nobody could build', async () => {
+    expect(await kallax(null, 0, 4)).toBeNull()
+    expect(await kallax(null, 11, 1)).toBeNull()
+  })
+
+  it('goes with its compartments when dissolved, and the records move up to the room', async () => {
+    const db = await openFidelityDb()
+    await db.put('collection', record(1, 'Maiden Voyage'))
+    const room = (await createPlace('Living room', null))!
+    const unit = (await kallax(room.id, 2, 1))!
+    const cube = (await placesOverview()).find((node) => node.parentId === unit.id)!
+    await placeRecord(1, cube.id)
+
+    await removePlace(unit.id)
+
+    const nodes = await placesOverview()
+    expect(nodes.map((node) => node.id)).toEqual([room.id])
+    expect(await placeOf(1)).toBe(room.id)
+  })
+
+  it('shows the first covers of what a compartment holds', async () => {
+    const db = await openFidelityDb()
+    for (const id of [1, 2, 3, 4]) {
+      await db.put('collection', {
+        ...record(id, `Record ${id}`),
+        thumbUrl: `https://i.test/${id}.jpg`,
+      })
+    }
+    const unit = (await kallax(null, 1, 1))!
+    const cube = (await placesOverview()).find((node) => node.parentId === unit.id)!
+    for (const id of [1, 2, 3, 4]) await placeRecord(id, cube.id)
+    const shown = (await placesOverview()).find((node) => node.id === cube.id)!
+    expect(shown.records).toBe(4)
+    expect(shown.covers).toHaveLength(3)
+    expect(shown.covers[0]).toMatch(/i\.test/)
   })
 })
