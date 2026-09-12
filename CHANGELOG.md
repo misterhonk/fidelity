@@ -9,6 +9,30 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.57.0](https://github.com/misterhonk/fidelity/compare/v0.56.1...v0.57.0) (2026-09-12)
+
+**One voice, plates instead of boxes, and two new faces.**
+
+The head of every screen now speaks once, and loudly: the area's name in the display face
+at forty to seventy-two pixels, the one size that exists nowhere else. Under it, what a
+field is — the tabs, the terms, the line of facts — is set like the type plate on the back
+of an amplifier: mono, small, spaced capitals. The tabs lost their box and became a line
+with the current one underlined, like the main bar; a field sits on a baseline instead of
+in a frame, so a button and a field no longer look the same. The distance from the bar to
+the head is one number, and the rhythm below it is 8, 16, 32, 64.
+
+Two faces changed with it, both from Fontshare and self-hosted as before: Cabinet Grotesk
+carries the head, JetBrains Mono the plates and figures; Switzer stays for everything you
+read. Four sets were tried on the shelf before this one was picked.
+
+**What to do:** Nothing. The fonts arrive with the update.
+
+
+### Added
+
+* **ui:** one voice, plates instead of boxes — M26.1 ([1480ac4](https://github.com/misterhonk/fidelity/commit/1480ac436d923764526bd23038994acd1cc5dd86))
+* **ui:** the Plate set — Cabinet Grotesk and JetBrains Mono, from Fontshare ([f0fe57d](https://github.com/misterhonk/fidelity/commit/f0fe57d9a5022e12a4e2f941aa819018a642c05a))
+
 ## [0.56.1](https://github.com/misterhonk/fidelity/compare/v0.56.0...v0.56.1) (2026-09-12)
 
 **Every screen starts in the same place, and the Support screen waits for a way to pay.**
