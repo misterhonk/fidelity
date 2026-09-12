@@ -311,6 +311,7 @@ describe('a unit with compartments', () => {
       rows,
       capacity: 70,
       finish: { material: 'white', thickness: 'thick', colour: null },
+      rule: 'artist',
     })
 
   it('reads its coordinates like a spreadsheet', () => {
@@ -402,6 +403,7 @@ describe('a finish', () => {
       rows: 2,
       capacity: 70,
       finish: { material: 'steel', thickness: 'thin', colour: '#c8102e' },
+      rule: 'artist',
     }))!
     expect(unit.finish?.material).toBe('steel')
     expect(
@@ -470,6 +472,7 @@ describe('filling a compartment', () => {
       rows: 1,
       capacity: 70,
       finish: { material: 'white', thickness: 'thick', colour: null },
+      rule: 'artist',
     }))!
     const cube = (await placesOverview()).find((node) => node.parentId === unit.id)!
     expect(await placeRecords([1, 2, 3], cube.id)).toBe(3)

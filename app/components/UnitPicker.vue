@@ -50,6 +50,7 @@ async function create() {
       capacity: chosen.value ? chosen.value.capacity : 70,
       // A plain object, not the reactive proxy: structured clone refuses a Proxy.
       finish: { ...finish.value },
+      rule: chosen.value?.rule ?? 'artist',
     })
     name.value = ''
     chosen.value = null

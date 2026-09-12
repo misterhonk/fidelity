@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { DEFAULT_FINISH } from '#shared/places'
-import type { Finish, PlaceNode } from '#shared/types'
+import type { Finish, PlaceNode, PlaceRule, UnitPlan } from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
 
@@ -50,6 +50,33 @@ watch(finish, async (next) => {
   emit('changed')
 })
 
+/**
+ * The order (M27.2). The rule is set with one tap; "sort in" asks for the
+ * plan and shows it — how many would move, how many from the pile — and
+ * only "apply" moves anything. A rule proposes, never acts.
+ */
+const RULES: PlaceRule[] = ['artist', 'label', 'year', 'added', 'manual']
+async function setRule(rule: PlaceRule) {
+  await call('places.rule', { id: props.unit.id, rule })
+  plan.value = null
+  emit('changed')
+}
+const plan = ref<UnitPlan | null>(null)
+const planning = ref(false)
+async function askPlan() {
+  planning.value = true
+  try {
+    plan.value = await call('places.plan', { unitId: props.unit.id, includeUnplaced: true })
+  } finally {
+    planning.value = false
+  }
+}
+async function applyPlan() {
+  await call('places.apply', { unitId: props.unit.id, includeUnplaced: true })
+  plan.value = null
+  emit('changed')
+}
+
 const dissolving = ref(false)
 async function dissolve() {
   await call('places.remove', { id: props.unit.id })
@@ -96,6 +123,60 @@ async function dissolve() {
     />
 
     <FinishPicker v-if="finishing" v-model="finish" />
+
+    <!-- The order: one tap sets the rule; the plan is shown before anything moves. -->
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <div role="group" :aria-label="c.places.order" class="flex flex-wrap gap-4">
+        <button
+          v-for="rule in RULES"
+          :key="rule"
+          type="button"
+          class="fid-plate min-h-11 border-b-2 transition-colors"
+          :class="
+            (unit.rule ?? 'artist') === rule
+              ? 'border-fid-accent text-fid-text'
+              : 'border-transparent text-fid-text-muted hover:text-fid-text'
+          "
+          :aria-pressed="(unit.rule ?? 'artist') === rule"
+          @click="setRule(rule)"
+        >
+          {{ c.places.rules[rule] }}
+        </button>
+      </div>
+      <button
+        v-if="(unit.rule ?? 'artist') !== 'manual'"
+        type="button"
+        :disabled="planning"
+        class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text disabled:opacity-50"
+        @click="askPlan"
+      >
+        {{ c.places.sortIn }}
+      </button>
+    </div>
+    <div v-if="plan" class="flex flex-wrap items-center gap-4" aria-live="polite">
+      <p class="fid-plate text-fid-text">
+        {{
+          plan.moves.length === 0
+            ? c.places.nothingMoves
+            : c.places.planLine(count(plan.moves.length), count(plan.fromPile))
+        }}
+      </p>
+      <button
+        v-if="plan.moves.length > 0"
+        type="button"
+        class="fid-action min-h-11 rounded-fid-sm border border-fid-accent px-4 text-fid-sm text-fid-text"
+        @click="applyPlan"
+      >
+        {{ c.places.apply }}
+      </button>
+      <button
+        type="button"
+        class="fid-action min-h-11 px-2 text-fid-sm text-fid-text-muted underline underline-offset-4"
+        @click="plan = null"
+      >
+        {{ c.places.cancel }}
+      </button>
+    </div>
 
     <div v-if="dissolving" class="flex flex-col gap-2">
       <p class="text-fid-sm text-fid-text-muted">{{ c.places.dissolveUnitWhat }}</p>

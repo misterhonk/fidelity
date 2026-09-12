@@ -6,6 +6,7 @@ import type {
   Place,
   Placement,
   PlaceNode,
+  PlaceRule,
   UnitShape,
 } from '#shared/types'
 
@@ -196,6 +197,7 @@ export async function createUnit(params: {
   rows: number
   capacity: number | null
   finish: Finish
+  rule: PlaceRule
 }): Promise<Place | null> {
   const name = params.name.trim()
   const columns = Math.trunc(params.columns)
@@ -217,6 +219,7 @@ export async function createUnit(params: {
     grid: { columns, rows },
     capacity: params.capacity,
     finish: params.finish,
+    rule: params.rule,
     createdAt: at,
     updatedAt: at,
     removedAt: null,

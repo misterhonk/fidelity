@@ -73,6 +73,8 @@ import type {
   WatchedRelease,
   UnitShape,
   Finish,
+  PlaceRule,
+  UnitPlan,
 } from './types'
 
 export interface PingResult {
@@ -804,9 +806,30 @@ export interface WorkerContract {
       rows: number
       capacity: number | null
       finish: Finish
+      rule: PlaceRule
     }
     progress: never
     result: Place | null
+  }
+  /** The order inside a piece of furniture (M27.2): a rule proposes, never moves. */
+  'places.rule': { params: { id: string; rule: PlaceRule }; progress: never; result: boolean }
+  /** What sorting a unit by its rule would do — the plan, not the deed. */
+  'places.plan': {
+    params: { unitId: string; includeUnplaced: boolean }
+    progress: never
+    result: UnitPlan | null
+  }
+  /** The deed: the plan as it stands now, written in one transaction. */
+  'places.apply': {
+    params: { unitId: string; includeUnplaced: boolean }
+    progress: never
+    result: number
+  }
+  /** Where a record would go, by the rules and dividers that exist. */
+  'places.propose': {
+    params: { instanceId: number }
+    progress: never
+    result: { placeId: string; unitId: string } | null
   }
   /** The look of a piece of furniture, changed after the fact (M27.1b). */
   'places.finish': { params: { id: string; finish: Finish }; progress: never; result: boolean }

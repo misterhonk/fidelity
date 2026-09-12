@@ -1197,8 +1197,11 @@ export interface Place {
   finish?: Finish
   /** On a unit (M27.2): what the compartments are sorted by. */
   rule?: PlaceRule
-  /** On a compartment (M27.2): the divider, "A–Bo". */
-  range?: string
+  /**
+   * On a compartment (M27.2): the divider. `from` and `to` are sort keys the
+   * rule can compare, `label` is what the wall shows — "A–Bo", "1965–1972".
+   */
+  range?: { from: string; to: string; label: string }
   createdAt: number
   /**
    * Last touched — renamed, moved, dissolved.
@@ -1260,6 +1263,23 @@ export interface PlaceNode extends Place {
   depth: number
   /** Up to three cover addresses of what is directly here, for the wall's cubes. */
   covers: string[]
+}
+
+/**
+ * What sorting a unit by its rule would do (M27.2). A proposal: nothing
+ * moves until `places.apply` — an explicit placement always wins until then.
+ */
+export interface UnitPlan {
+  unitId: string
+  rule: PlaceRule
+  /** Every record that would change compartment, with where from and where to. */
+  moves: { instanceId: number; from: string | null; to: string }[]
+  /** Records that would come in from the pile of the unplaced. */
+  fromPile: number
+  /** How many the unit would hold afterwards. */
+  total: number
+  /** The dividers the wall would show. */
+  ranges: { placeId: string; from: string; to: string; label: string; count: number }[]
 }
 
 /**

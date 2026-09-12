@@ -106,12 +106,13 @@ function onKey(event: KeyboardEvent, index: number) {
           <span class="fid-plate" :class="look.face ? 'opacity-80' : 'text-fid-text-muted'">{{
             coordinate(cube)
           }}</span>
+          <!-- A name if somebody gave one, else the divider the rule wrote (M27.2). -->
           <span
-            v-if="cube.name && cube.name !== coordinate(cube)"
+            v-if="(cube.name && cube.name !== coordinate(cube)) || cube.range"
             class="fid-display truncate text-fid-xs font-semibold"
             :class="look.face ? '' : 'text-fid-text'"
           >
-            {{ cube.name }}
+            {{ cube.name !== coordinate(cube) ? cube.name : cube.range?.label }}
           </span>
         </span>
 

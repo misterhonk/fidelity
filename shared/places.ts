@@ -1,4 +1,4 @@
-import type { Finish, FinishMaterial, Place, PlaceNode, UnitShape } from './types'
+import type { Finish, FinishMaterial, Place, PlaceNode, PlaceRule, UnitShape } from './types'
 
 /**
  * A place, read from the front (docs/18, ADR-015).
@@ -74,6 +74,8 @@ export interface UnitPreset {
   capacity: number | null
   /** How it looks: the material of the walls, their thickness, a colour where the furniture has one. */
   finish: Finish
+  /** The order inside: shelves alphabetical by artist, a crate or a pile by hand. */
+  rule: PlaceRule
 }
 
 /**
@@ -108,10 +110,42 @@ export const DEFAULT_FINISH: Finish = { material: 'white', thickness: 'thick', c
 const white: Finish = { material: 'white', thickness: 'thick', colour: null }
 
 export const UNIT_PRESETS: readonly UnitPreset[] = [
-  { key: 'kallax-2x2', shape: 'shelf', columns: 2, rows: 2, capacity: 70, finish: white },
-  { key: 'kallax-4x2', shape: 'shelf', columns: 4, rows: 2, capacity: 70, finish: white },
-  { key: 'kallax-4x4', shape: 'shelf', columns: 4, rows: 4, capacity: 70, finish: white },
-  { key: 'kallax-5x5', shape: 'shelf', columns: 5, rows: 5, capacity: 70, finish: white },
+  {
+    key: 'kallax-2x2',
+    shape: 'shelf',
+    columns: 2,
+    rows: 2,
+    capacity: 70,
+    finish: white,
+    rule: 'artist',
+  },
+  {
+    key: 'kallax-4x2',
+    shape: 'shelf',
+    columns: 4,
+    rows: 2,
+    capacity: 70,
+    finish: white,
+    rule: 'artist',
+  },
+  {
+    key: 'kallax-4x4',
+    shape: 'shelf',
+    columns: 4,
+    rows: 4,
+    capacity: 70,
+    finish: white,
+    rule: 'artist',
+  },
+  {
+    key: 'kallax-5x5',
+    shape: 'shelf',
+    columns: 5,
+    rows: 5,
+    capacity: 70,
+    finish: white,
+    rule: 'artist',
+  },
   {
     key: 'billy',
     shape: 'shelf',
@@ -119,6 +153,7 @@ export const UNIT_PRESETS: readonly UnitPreset[] = [
     rows: 5,
     capacity: 100,
     finish: { material: 'birch', thickness: 'thin', colour: null },
+    rule: 'artist',
   },
   {
     key: 'usm-haller',
@@ -127,6 +162,7 @@ export const UNIT_PRESETS: readonly UnitPreset[] = [
     rows: 2,
     capacity: 70,
     finish: { material: 'steel', thickness: 'thin', colour: '#c8102e' },
+    rule: 'artist',
   },
   {
     key: 'tylko',
@@ -135,6 +171,7 @@ export const UNIT_PRESETS: readonly UnitPreset[] = [
     rows: 3,
     capacity: 60,
     finish: { material: 'birch', thickness: 'thin', colour: null },
+    rule: 'artist',
   },
   {
     key: 'stocubo',
@@ -143,6 +180,7 @@ export const UNIT_PRESETS: readonly UnitPreset[] = [
     rows: 3,
     capacity: 70,
     finish: { material: 'white', thickness: 'medium', colour: '#00589c' },
+    rule: 'artist',
   },
   {
     key: 'crate',
@@ -151,6 +189,7 @@ export const UNIT_PRESETS: readonly UnitPreset[] = [
     rows: 1,
     capacity: 90,
     finish: { material: 'oak', thickness: 'medium', colour: null },
+    rule: 'manual',
   },
   {
     key: 'hhv-box',
@@ -159,6 +198,7 @@ export const UNIT_PRESETS: readonly UnitPreset[] = [
     rows: 1,
     capacity: 60,
     finish: { material: 'cardboard', thickness: 'thin', colour: null },
+    rule: 'manual',
   },
   {
     key: 'box-7',
@@ -167,6 +207,7 @@ export const UNIT_PRESETS: readonly UnitPreset[] = [
     rows: 1,
     capacity: 150,
     finish: { material: 'black', thickness: 'thin', colour: null },
+    rule: 'manual',
   },
   {
     key: 'pile',
@@ -175,6 +216,7 @@ export const UNIT_PRESETS: readonly UnitPreset[] = [
     rows: 1,
     capacity: null,
     finish: { material: 'white', thickness: 'thin', colour: null },
+    rule: 'manual',
   },
 ]
 

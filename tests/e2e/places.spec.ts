@@ -75,4 +75,20 @@ test('a room, a Kallax, and a record in B1', async ({ page }) => {
   await page.keyboard.press('Escape')
   await expect(page.getByRole('button', { name: /^B1, 2 records/ })).toBeVisible()
   await expect(page.getByText('2 placed', { exact: false })).toBeVisible()
+
+  // The rule proposes, "apply" deals: two records by artist across four
+  // compartments — Hancock to A1, Shorter stays in B1 — and the dividers
+  // are written on the wall.
+  await page.getByRole('button', { name: 'Sort in' }).click()
+  await expect(page.getByText('1 would move · 0 from the pile')).toBeVisible()
+  await page.getByRole('button', { name: 'Apply' }).click()
+  await expect(
+    page.getByRole('button', { name: /^A1 · H, 1 records|^A1, 1 records/ }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('grid', { name: 'Kallax' }).getByText('H', { exact: true }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('grid', { name: 'Kallax' }).getByText('W', { exact: true }),
+  ).toBeVisible()
 })

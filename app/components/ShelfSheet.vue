@@ -43,6 +43,13 @@ const watchFull = ref(false)
  */
 const places = shallowRef<PlaceNode[]>([])
 const placeId = ref<string | null>(null)
+/** The compartment the rule proposes (M27.2), when there is one and it is not where the record already is. */
+const proposal = ref<{ placeId: string; unitId: string } | null>(null)
+const proposed = computed(() =>
+  proposal.value && proposal.value.placeId !== placeId.value
+    ? (places.value.find((place) => place.id === proposal.value?.placeId) ?? null)
+    : null,
+)
 
 async function setPlace(next: string) {
   const item = record.value
@@ -213,6 +220,8 @@ onMounted(async () => {
 
     places.value = await call('places.overview', undefined)
     placeId.value = await call('places.of', { instanceId: props.instanceId })
+    // Where the rule would put it — shown only where it differs from where it is.
+    proposal.value = await call('places.propose', { instanceId: props.instanceId })
   }
 
   if (record.value?.releaseId) void look()
@@ -761,6 +770,20 @@ async function remove() {
         <!-- The address, the way it reads on the wall: room · furniture · compartment. -->
         <p v-if="placeId" class="fid-plate text-fid-text-muted">
           {{ addressOf(placeId, places).join(' · ') }}
+        </p>
+        <!-- And where the rule would put it, one tap away. -->
+        <p
+          v-if="proposed"
+          class="flex flex-wrap items-center gap-3 text-fid-sm text-fid-text-muted"
+        >
+          {{ c.places.suggested(addressOf(proposed.id, places).join(' · ')) }}
+          <button
+            type="button"
+            class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-sm text-fid-text"
+            @click="setPlace(proposed.id)"
+          >
+            {{ c.places.putThere }}
+          </button>
         </p>
 
         <button
