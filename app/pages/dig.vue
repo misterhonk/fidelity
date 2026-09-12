@@ -28,6 +28,8 @@ const m = useMessages()
 const dealer = ref('')
 const preflight = ref<DigPreflight | null>(null)
 const progress = ref<ScanProgress | null>(null)
+/** The shop under the bar — this page's own scan, or one it found running when it opened. */
+const scanningDealer = ref<string | null>(null)
 const enriching = ref<EnrichProgress | null>(null)
 const gaps = ref<{ expanded: number; requests: number; titles: string[] } | null>(null)
 /*
@@ -173,6 +175,7 @@ onMounted(async () => {
   // rate limit twice.
   resumable.value = await call('dig.resumable', undefined)
   await Promise.all([loadFeedback(), loadBasket(), loadHistory(), loadDealers()])
+  void attach()
 
   /*
    * ?id= opens a particular dig.
@@ -196,6 +199,51 @@ onMounted(async () => {
     await check()
   }
 })
+
+/**
+ * A scan that was running before this page opened.
+ *
+ * Leaving the page does not stop a scan — the call lives in the worker until
+ * it is done — and until 2026-09-12 a page opened afterwards knew nothing of
+ * it: it offered the start button, and the button answered "a scan is
+ * already running" without saying which. Now the page attaches: the bar and
+ * the shop's name come from the worker every second and a half, the buttons
+ * wait, and when the scan is through the result appears as if this page
+ * had started it. Not the progress stream itself — that belongs to the call
+ * that started the scan, and it may have been on a page that is gone.
+ */
+let attached: ReturnType<typeof setInterval> | null = null
+
+async function attach() {
+  const live = await call('dig.running', undefined)
+  if (!live || busy.value) return
+
+  busy.value = true
+  scanningDealer.value = live.dealer
+  progress.value = live.progress
+
+  attached = setInterval(async () => {
+    const now = await call('dig.running', undefined)
+    if (now) {
+      scanningDealer.value = now.dealer
+      progress.value = now.progress
+      return
+    }
+    detach()
+    busy.value = false
+    progress.value = null
+    scanningDealer.value = null
+    resumable.value = await call('dig.resumable', undefined)
+    result.value = await call('dig.latest', undefined)
+  }, 1500)
+}
+
+function detach() {
+  if (attached !== null) clearInterval(attached)
+  attached = null
+}
+
+onBeforeUnmount(detach)
 
 /**
  * The enrichment pass, after the scan.
@@ -277,6 +325,8 @@ async function resume() {
   error.value = null
   result.value = null
 
+  scanningDealer.value = dig.dealer
+
   try {
     const done = await call(
       'dig.resume',
@@ -291,6 +341,7 @@ async function resume() {
   } finally {
     busy.value = false
     progress.value = null
+    scanningDealer.value = null
   }
 }
 
@@ -301,6 +352,7 @@ async function start(depth: 'normal' | 'deep' | 'neu' = 'normal') {
   result.value = null
   progress.value = null
   gaps.value = null
+  scanningDealer.value = preflight.value.dealer
 
   try {
     const done = await call(
@@ -318,6 +370,7 @@ async function start(depth: 'normal' | 'deep' | 'neu' = 'normal') {
   } finally {
     busy.value = false
     progress.value = null
+    scanningDealer.value = null
   }
 }
 
@@ -635,8 +688,12 @@ const noHorizon = computed(
       </div>
     </section>
 
-    <section v-if="progress" class="flex flex-col gap-2" aria-live="polite">
-      <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
+    <section v-if="progress || scanningDealer" class="flex flex-col gap-2" aria-live="polite">
+      <!-- Which shop, first. A bar without a name is a bar somebody has to guess at. -->
+      <p v-if="scanningDealer" class="text-fid-sm font-medium text-fid-text">
+        {{ d.scanning(scanningDealer) }}
+      </p>
+      <div v-if="progress" class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
         <div
           class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
           :style="{ width: `${percent}%` }"
@@ -648,7 +705,7 @@ const noHorizon = computed(
         twenty minutes deserves to know it is on the fourth of thirteen
         orderings and not stuck.
       -->
-      <p class="text-fid-sm text-fid-text-muted">
+      <p v-if="progress" class="text-fid-sm text-fid-text-muted">
         {{ m.common.ofTotal(count(progress.unique), count(progress.reachable)) }} ·
         {{ d.matchCount(count(progress.matches)) }}
         <template v-if="progress.passCount > 1">

@@ -115,6 +115,33 @@ const MS_PER_REQUEST = 1200
  * accepting would put two scans on the same rate limit.
  */
 let running: string | null = null
+/** The shop it is scanning, and the last progress it reported — for the screen that asks. */
+let runningDealer: string | null = null
+let lastProgress: ScanProgress | null = null
+
+function release(): void {
+  running = null
+  runningDealer = null
+  lastProgress = null
+}
+
+export interface RunningDig {
+  digId: string
+  dealer: string | null
+  progress: ScanProgress | null
+}
+
+/**
+ * What this worker is scanning right now, for a page that opens mid-scan.
+ *
+ * A scan does not stop when its page is left — the call runs in the worker
+ * until it is done — and until 2026-09-12 a page opened afterwards had no
+ * way to know: it offered a start button, and the button said "a scan is
+ * already running" without saying which. This says which, and how far.
+ */
+export function runningDig(): RunningDig | null {
+  return running ? { digId: running, dealer: runningDealer, progress: lastProgress } : null
+}
 
 /*
  * Re-exported rather than declared twice.
@@ -182,7 +209,11 @@ async function prepare({
       prefMediaCondition: preferences.prefMediaCondition,
       targetPrice: preferences.targetPrice,
     },
-    report,
+    // Remembered as it goes past, so `runningDig()` can say how far.
+    report: (progress) => {
+      lastProgress = progress
+      report?.(progress)
+    },
     signal,
     now,
   }
@@ -520,21 +551,24 @@ function passLabel(pass: ScanPass): string {
  * purpose: split by an await, two callers both pass the check before either
  * sets it, and two scans end up sharing one rate limit.
  */
-function acquire(digId: string): void {
+function acquire(digId: string, dealer: string | null): void {
   if (running !== null) {
     throw new DigNotResumable(
       'dig-running',
       running === digId ? 'this dig is already running' : 'another dig is already running',
+      runningDealer ?? undefined,
     )
   }
   running = digId
+  runningDealer = dealer
+  lastProgress = null
 }
 
 async function walkExclusively(dig: Dig, ctx: ScanContext): Promise<Dig> {
   try {
     return await walk(dig, ctx)
   } finally {
-    running = null
+    release()
   }
 }
 
@@ -553,13 +587,13 @@ export async function runDig(
   options: ScanOptions & { dealer: string; digId: string; depth?: 'normal' | 'deep' | 'neu' },
 ): Promise<Dig> {
   // Claimed before the pre-check, so a second start cannot slip in during it.
-  acquire(options.digId)
+  acquire(options.digId, options.dealer)
 
   let ctx: ScanContext
   try {
     ctx = await prepare(options)
   } catch (error) {
-    running = null
+    release()
     throw error
   }
   const startedAt = ctx.now()
@@ -574,7 +608,7 @@ export async function runDig(
   const incremental = options.depth === 'neu'
   const anchor = anchorFor(known)
   if (incremental && !anchor) {
-    running = null
+    release()
     throw new NoAnchorYet('no earlier dig for this shop to attach to')
   }
 
@@ -585,7 +619,7 @@ export async function runDig(
     const profile = await ctx.client
       .get(`/users/${encodeURIComponent(options.dealer)}`, dealerSchema, { signal: ctx.signal })
       .catch((error: unknown) => {
-        running = null
+        release()
         throw error
       })
 
@@ -650,6 +684,8 @@ export class DigNotResumable extends Error {
       'dig-running' | 'dig-gone' | 'dig-not-running' | 'deep-scan-done' | 'dig-expired'
     >,
     detail: string,
+    /** For 'dig-running': the shop the running scan is at, so the screen can say. */
+    readonly dealer?: string,
   ) {
     super(detail)
   }
@@ -667,13 +703,14 @@ export async function resumeDig(options: ScanOptions & { digId: string }): Promi
   // Claimed first, then verified. The other way round, the record is read
   // before the wait and judged after it — by which point the dig it described
   // may already have finished, and the "resume" walks pages that are done.
-  acquire(options.digId)
+  acquire(options.digId, null)
 
   try {
     const ctx = await prepare(options)
     const dig = await ctx.db.get('digs', options.digId)
 
     if (!dig) throw new DigNotResumable('dig-gone', 'no such dig')
+    runningDealer = dig.dealer
     if (dig.status !== 'scanning')
       throw new DigNotResumable('dig-not-running', 'this dig is not running')
 
@@ -700,7 +737,7 @@ export async function resumeDig(options: ScanOptions & { digId: string }): Promi
   } finally {
     // walkExclusively releases it on the happy path; this covers every way
     // out before the walk ever starts.
-    running = null
+    release()
   }
 }
 

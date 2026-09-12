@@ -230,6 +230,7 @@ export const handlers: HandlerMap = {
   },
 
   'dig.resumable': async () => (await scan()).findResumable(),
+  'dig.running': async () => (await scan()).runningDig(),
 
   'dig.resume': async ({ digId }, { report, signal }) =>
     (await scan()).resumeDig({

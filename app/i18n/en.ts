@@ -154,6 +154,11 @@ const en = {
       action:
         'This page runs over HTTPS, so it may not call an unencrypted address. It works in Chrome; the lasting fix is to make the hub itself reachable over HTTPS.',
     },
+    scanRunning: (dealer: string) => ({
+      title: `A scan of ${dealer} is already running.`,
+      action:
+        'Only one at a time — that is the rate limit, not a preference. It carries on in the background and this screen follows it; start the next one when it is through.',
+    }),
     hubHttpError: (status: number) => ({
       title: `The hub answered with HTTP ${status}.`,
       action: 'That is the hub talking, not Discogs — its own log will say more.',

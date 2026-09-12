@@ -66,6 +66,13 @@ export function explain(cause: unknown, context: ExplainContext = {}): Explained
     return { ...words.hubHttpError(status), detail: message }
   }
 
+  // A scan is running — and which one. Without the shop's name this read as
+  // a fault; it is the rate limit doing its job, on a shop somebody named.
+  if (code === 'dig-running') {
+    const dealer = (cause as { dealer?: string } | null)?.dealer
+    if (dealer) return { ...words.scanRunning(dealer), detail: message }
+  }
+
   // 3. Rate limited. Waiting is the whole fix, and the number matters.
   if (code === 'rate-limited') {
     return { ...words.rateLimited, detail: message }

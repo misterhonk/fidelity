@@ -394,6 +394,12 @@ export interface WorkerContract {
   'dig.stands': { params: undefined; progress: never; result: Stand[] }
   /** An interrupted dig still inside its six-hour window, if there is one. */
   'dig.resumable': { params: undefined; progress: never; result: Dig | null }
+  /** What this worker is scanning right now — a page opened mid-scan attaches to it. */
+  'dig.running': {
+    params: undefined
+    progress: never
+    result: { digId: string; dealer: string | null; progress: ScanProgress | null } | null
+  }
   'dig.resume': { params: { digId: string }; progress: ScanProgress; result: Dig }
   /**
    * The style pass: fifty requests over the best matches, because S7 needs
@@ -1251,6 +1257,8 @@ export interface WorkerError {
     | 'asset-missing'
   /** The HTTP status, for `hub-http-error`. Nothing else carries one. */
   status?: number
+  /** The shop a running scan is at, for `dig-running`. */
+  dealer?: string
 }
 
 export type WorkerOutbound =

@@ -73,6 +73,7 @@ async function dispatch(id: string, kind: RequestKind, params: unknown) {
         // The only number a failure carries. It is the hub's own status, and
         // the sentence for it names it.
         status: (error as { status?: number } | null)?.status,
+        dealer: (error as { dealer?: string } | null)?.dealer,
       },
     })
   } finally {

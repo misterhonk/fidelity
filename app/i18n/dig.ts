@@ -24,6 +24,8 @@ const en = {
   resume: 'Carry on with the dig',
   interrupted: (dealer: string, scanned: string, total: string) =>
     `A dig at ${dealer} was interrupted — ${scanned} of ${total} were through.`,
+  /** Above the bar: which shop. A page opened mid-scan shows the same line. */
+  scanning: (dealer: string) => `Scanning ${dealer}`,
   matchCount: (n: string) => `${n} finds`,
   allFindsHeading: 'All finds',
   listings: (n: string) => `has ${n} listings`,
@@ -348,6 +350,7 @@ const de: typeof en = {
   resume: 'Dig fortsetzen',
   interrupted: (dealer: string, scanned: string, total: string) =>
     `Ein Dig bei ${dealer} wurde unterbrochen – ${scanned} von ${total} waren durch.`,
+  scanning: (dealer: string) => `Scanne ${dealer}`,
   matchCount: (n: string) => `${n} Treffer`,
   allFindsHeading: 'Alle Treffer',
   listings: (n) => `hat ${n} Listings`,

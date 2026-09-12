@@ -81,6 +81,11 @@ const de: Messages = {
       action:
         'Diese Seite läuft über HTTPS und darf deshalb keine unverschlüsselte Adresse aufrufen. In Chrome geht es; dauerhaft hilft nur, den Hub selbst über HTTPS erreichbar zu machen.',
     },
+    scanRunning: (dealer: string) => ({
+      title: `Ein Scan von ${dealer} läuft schon.`,
+      action:
+        'Nur einer auf einmal – das ist das Rate-Limit, keine Vorliebe. Er läuft im Hintergrund weiter und dieser Bildschirm zeigt ihn; den nächsten startest du, wenn er durch ist.',
+    }),
     hubHttpError: (status) => ({
       title: `Der Hub antwortete mit HTTP ${status}.`,
       action: 'Das sagt der Hub, nicht Discogs — sein eigenes Log weiß mehr.',
