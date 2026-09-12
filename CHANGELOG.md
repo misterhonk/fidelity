@@ -9,6 +9,31 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.56.0](https://github.com/misterhonk/fidelity/compare/v0.55.0...v0.56.0) (2026-09-12)
+
+**A page that says what this is beside the others, and a privacy notice that names every door.**
+
+Every app in this niche publishes a "best vinyl apps" post and lists the others, and this
+one appeared in none — there was no page to link to. Now there is: "Compared", in the
+footer, in both languages, open to somebody who does not have the app yet. Seller Matches,
+discdogs, WaxTracker, Groovv, Enhancer, the cover scanners, Vizcogs — what each does, and
+what Fidelity does instead, one app at a time so it reads on a phone.
+
+The privacy notice has two more headings it should have had for a while: a catalogue you
+enter sees the ids and the barcode or run-out it is asked about, and an access key travels
+with every hub and catalogue call — standing for a plan, never for a Discogs account. The
+test that holds the notice against the code now watches the catalogue client as well, so the
+next door gets its heading before anybody reads through it. And the README says the one
+thing the licence does not give away: the name.
+
+**What to do:** Nothing. If you run a catalogue or use an access key, the notice now says
+what that means.
+
+
+### Added
+
+* **ui:** the page beside the others, and two more places the notice names ([faad359](https://github.com/misterhonk/fidelity/commit/faad35915df9424dc424fe19337958af14db7dc5))
+
 ## [0.55.0](https://github.com/misterhonk/fidelity/compare/v0.54.1...v0.55.0) (2026-09-12)
 
 **A backup can be read back in, the update is quiet, and a stranger's afternoon is tested.**
