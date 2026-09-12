@@ -9,6 +9,36 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.63.0](https://github.com/misterhonk/fidelity/compare/v0.62.0...v0.63.0) (2026-09-12)
+
+**A shelf sorts itself — when you say so — and a compartment opens beside the wall.**
+
+Every piece of furniture has an order now: by artist, by label, by year, by arrival, or by
+hand. Tap "Sort in" and Fidelity shows what it would do — how many records would move, how
+many would come in from the pile of the unplaced — and nothing happens until you tap
+"Apply". Then the records are dealt evenly across the compartments in reading order, and the
+dividers appear on the wall the way you would pencil them: A–B, M–O, and where two
+neighbours would read the same, a letter more. A record's own sheet reads the dividers and
+suggests the compartment it belongs in, one tap away.
+
+And a compartment no longer opens under the wall: it slides in from the right, like a
+record's sheet, with its address, "Fill", "Move all" and its sleeves. Escape closes it even
+when a button inside has just disabled itself.
+
+**What to do:** Nothing. To try the rule, open Collection › Places, pick an order under a
+piece of furniture and tap "Sort in".
+
+
+### Added
+
+* **collection:** a compartment opens off the canvas (M27.1d) ([4f1f674](https://github.com/misterhonk/fidelity/commit/4f1f6743dc82a1bb05585b1d39a0626f24274b8c))
+* **collection:** the rule — sort a shelf by artist, label or year (M27.2) ([ba6ec8d](https://github.com/misterhonk/fidelity/commit/ba6ec8d9b28cd46f467bdb3fcf2018afdd89acf9))
+
+
+### Fixed
+
+* **ui:** Escape closes a sheet even when the focus has fallen out of it ([403b41d](https://github.com/misterhonk/fidelity/commit/403b41d65794ec7fc3d7774d928dfd5612d6e8d4))
+
 ## [0.62.0](https://github.com/misterhonk/fidelity/compare/v0.61.0...v0.62.0) (2026-09-12)
 
 **Sorting records in, from the wall.**
