@@ -1,0 +1,22 @@
+{
+  "name": "@fidelity/catalogue",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "description": "The catalogue: the monthly CC0 dump, read once, answering what the API cannot (ADR-013).",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "node src/etl/build.ts",
+    "cut": "node scripts/cut-mini-dump.ts",
+    "test": "node --test test/*.test.ts"
+  },
+  "dependencies": {
+    "sax": "^1.6.1"
+  },
+  "devDependencies": {
+    "@types/sax": "^1.2.7"
+  }
+}

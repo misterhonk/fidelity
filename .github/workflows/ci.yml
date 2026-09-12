@@ -48,6 +48,28 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm ${{ matrix.task }}
 
+  # The two services beside the app, each its own npm package with its own
+  # lock file and no build step: the hub, and the catalogue's ETL on the
+  # mini-dump (docs/16 §9, M21.2) — four hundred real releases, built into
+  # SQLite in well under a second, with golden files for the fields that
+  # bite. `node:sqlite` needs Node 22.13 or later, which "22" resolves to.
+  services:
+    if: ${{ !startsWith(github.head_ref, 'release-please--') }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [hub, catalogue]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci --no-audit --no-fund
+        working-directory: ${{ matrix.service }}
+      - run: npm test
+        working-directory: ${{ matrix.service }}
+
   build:
     needs: quality
     if: ${{ !startsWith(github.head_ref, 'release-please--') }}
