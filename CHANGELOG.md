@@ -9,6 +9,13 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.54.1](https://github.com/misterhonk/fidelity/compare/v0.54.0...v0.54.1) (2026-09-12)
+
+
+### Fixed
+
+* **hub:** the backup mounts the hub writable — WAL needs the shm file even to read ([0bed122](https://github.com/misterhonk/fidelity/commit/0bed1224292b67a2cba103279baa659bc09c1625))
+
 ## [0.54.0](https://github.com/misterhonk/fidelity/compare/v0.53.0...v0.54.0) (2026-09-12)
 
 **The staging ring: a nightly smoke run, a load test, backups, release channels.**
