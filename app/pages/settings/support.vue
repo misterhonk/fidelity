@@ -21,7 +21,7 @@ useSeoMeta({ title: () => st.value.support.title })
         <li
           v-for="plan in st.supportPanel.plans"
           :key="plan.tier"
-          class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 rounded-fid-sm border border-fid-border px-4 py-3"
+          class="grid grid-cols-[1fr_auto] items-baseline gap-x-4 rounded-fid-sm border border-fid-border px-4 py-3"
         >
           <span class="flex min-w-0 flex-col">
             <span class="text-fid-base font-medium text-fid-text">{{ plan.name }}</span>
@@ -39,7 +39,7 @@ useSeoMeta({ title: () => st.value.support.title })
         <li
           v-for="tip in st.supportPanel.tips"
           :key="tip.name"
-          class="flex items-baseline justify-between gap-4 rounded-fid-sm border border-fid-border px-4 py-3"
+          class="grid grid-cols-[1fr_auto] items-baseline gap-x-4 rounded-fid-sm border border-fid-border px-4 py-3"
         >
           <span class="text-fid-sm text-fid-text">{{ tip.name }}</span>
           <span class="fid-num text-fid-sm text-fid-text">{{ tip.price }}</span>
