@@ -1,0 +1,41 @@
+name: Smoke
+
+# The nightly smoke run against staging (docs/17 §4, M23): the home lab's
+# public name, asked the questions a person would ask every morning. It
+# builds nothing — what it tests is what runs, and whether it still does.
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+    inputs:
+      origin:
+        description: 'The origin to smoke, e.g. https://fidelity.mrtnmlchr.de'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:smoke
+        env:
+          SMOKE_BASE_URL: ${{ inputs.origin || 'https://fidelity.mrtnmlchr.de' }}

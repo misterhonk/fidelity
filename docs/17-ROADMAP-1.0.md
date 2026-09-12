@@ -303,6 +303,15 @@ the private repository (ADR-014), and 6, the renewal in the keeper, which needs 
 
 ### 8.3 Ops (M23)
 
+**Progress, 2026-09-12:** 1 (`tests/e2e/smoke/`, `playwright.smoke.config.ts`, the nightly
+`Smoke` workflow against the home lab's public name), 2 (`catalogue/scripts/load.ts` with
+`autocannon`, a floor in CI; measured on the home lab past the proxy: ~1,750 requests a
+second for a family and for credits on the real build, p50 10 ms), 3 (`hub/scripts/backup.ts`,
+`restore-drill.ts`, the `hub-backup` service), 4 without the rehearsal (`compose.cloud.yml`,
+`Caddyfile`, `docs/08` §6.1), 5 (the `Promote` workflow and the `stable` channel). The
+build-date alert is `"stale":false` in the catalogue's health for a keyword monitor. Open:
+the Hetzner week, and the offsite copy of the backup volume.
+
 1. `tests/e2e/smoke/` with a `BASE_URL` env: the routed specs already written run against
    staging; a nightly workflow with the home lab's public name.
 2. `scripts/load/catalogue.mjs` with `autocannon`; a documented target; a CI job that runs

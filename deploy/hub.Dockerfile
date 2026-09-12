@@ -17,6 +17,9 @@ COPY hub/package.json hub/package-lock.json ./
 RUN npm ci --omit=dev --no-audit --no-fund
 
 COPY hub/src ./src
+# The scripts too: the nightly backup and the restore drill run from this
+# image with a different command, and the beta's key issuer lives here.
+COPY hub/scripts ./scripts
 
 # The data lives on a volume, never in the image. Losing it costs requests,
 # not correctness — every entry is reproducible from Discogs.

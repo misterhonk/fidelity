@@ -69,6 +69,12 @@ jobs:
         working-directory: ${{ matrix.service }}
       - run: npm test
         working-directory: ${{ matrix.service }}
+      # The catalogue's load smoke (docs/17 §4, M23): the mini-dump served by
+      # a child process, hammered for five seconds; a floor a runner clears
+      # by a mile, so that a regression of an order of magnitude is red.
+      - if: matrix.service == 'catalogue'
+        run: npm run load -- --seconds 5 --floor 300
+        working-directory: catalogue
 
   build:
     needs: quality

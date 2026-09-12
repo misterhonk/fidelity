@@ -27,7 +27,8 @@
     "test:unit:watch": "vitest",
     "test:unit:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "size": "size-limit"
+    "size": "size-limit",
+    "test:smoke": "playwright test --config playwright.smoke.config.ts"
   },
   "dependencies": {
     "@nuxt/ui": "^4.10.0",

@@ -1,0 +1,18 @@
+# Fidelity behind Caddy (deploy/compose.cloud.yml): the app at /, the hub at
+# /hub, the catalogue at /catalogue — the same shape as the home lab, so the
+# app finds both by looking beside itself. The rate limit that Traefik has at
+# home is not in Caddy's core; the hub limits per key, and the catalogue is
+# cheap. Replace {$DOMAIN} by setting DOMAIN in .env.
+{$DOMAIN} {
+	encode zstd gzip
+
+	handle_path /hub/* {
+		reverse_proxy hub:8787
+	}
+	handle_path /catalogue/* {
+		reverse_proxy catalogue:8788
+	}
+	handle {
+		reverse_proxy app:80
+	}
+}

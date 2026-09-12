@@ -1,0 +1,88 @@
+# Fidelity on one cloud box (docs/17 §5, M23): the same four services as at
+# home, Caddy instead of Traefik, and the release channel `stable` instead
+# of `latest` — a production box moves when somebody promotes a release,
+# not when a build lands.
+#
+#   cp deploy/cloud.env.example .env   # DOMAIN, HUB_SECRET or HUB_ACCESS_PUBLIC_KEY
+#   docker compose -f deploy/compose.cloud.yml up -d
+#
+# Caddy takes the certificate from Let's Encrypt by itself; the box needs
+# ports 80 and 443 open and the name pointed at it. Nothing else listens.
+name: fidelity
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    restart: unless-stopped
+
+  app:
+    image: ghcr.io/misterhonk/fidelity-app:${CHANNEL:-stable}
+    restart: unless-stopped
+
+  hub:
+    image: ghcr.io/misterhonk/fidelity-hub:${CHANNEL:-stable}
+    environment:
+      HUB_PORT: 8787
+      HUB_DB: /data/hub.sqlite
+      # One door or the other (docs/17 §3.2): a secret for a private box,
+      # a public key for one with members. Both may be set.
+      HUB_SECRET: ${HUB_SECRET:-}
+      HUB_ACCESS_PUBLIC_KEY: ${HUB_ACCESS_PUBLIC_KEY:-}
+      HUB_ACCESS_URL: ${HUB_ACCESS_URL:-}
+      HUB_ACCESS_REVOKED: ${HUB_ACCESS_REVOKED:-}
+      HUB_WATCH: ${HUB_WATCH:-0}
+      HUB_VAPID_SUBJECT: ${HUB_VAPID_SUBJECT:-mailto:hub@fidelity.invalid}
+      HUB_DISCOGS_KEY: ${HUB_DISCOGS_KEY:-}
+      HUB_DISCOGS_SECRET: ${HUB_DISCOGS_SECRET:-}
+    volumes:
+      - hub-data:/data
+    restart: unless-stopped
+
+  hub-backup:
+    image: ghcr.io/misterhonk/fidelity-hub:${CHANNEL:-stable}
+    command: ['node', 'scripts/backup.ts']
+    environment:
+      HUB_DB: /data/hub.sqlite
+      HUB_BACKUP_DIR: /backup
+    volumes:
+      - hub-data:/data:ro
+      - hub-backup:/backup
+    restart: unless-stopped
+
+  catalogue:
+    image: ghcr.io/misterhonk/fidelity-catalogue:${CHANNEL:-stable}
+    command: ['node', 'src/service/server.ts']
+    environment:
+      CATALOGUE_PORT: 8788
+      CATALOGUE_DATA: /data
+    volumes:
+      - catalogue-data:/data:ro
+    restart: unless-stopped
+
+  # The monthly build. A CAX21 has 40 GB of disk: 17.5 GB per build and a
+  # 12 GB download means one build kept, not two — set CATALOGUE_KEEP=1, or
+  # build at home and ship the file (docs/17 §5).
+  catalogue-build:
+    image: ghcr.io/misterhonk/fidelity-catalogue:${CHANNEL:-stable}
+    environment:
+      CATALOGUE_DATA: /data
+      CATALOGUE_SCRATCH: /scratch
+    volumes:
+      - catalogue-data:/data
+      - catalogue-scratch:/scratch
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:
+  hub-data:
+  hub-backup:
+  catalogue-data:
+  catalogue-scratch:

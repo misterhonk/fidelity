@@ -12,7 +12,8 @@
     "build": "node src/etl/build.ts",
     "cut": "node scripts/cut-mini-dump.ts",
     "test": "node --test test/*.test.ts",
-    "serve": "node src/service/server.ts"
+    "serve": "node src/service/server.ts",
+    "load": "node scripts/load.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.5",
@@ -20,6 +21,7 @@
     "sax": "^1.6.1"
   },
   "devDependencies": {
-    "@types/sax": "^1.2.7"
+    "@types/sax": "^1.2.7",
+    "autocannon": "^8.0.0"
   }
 }

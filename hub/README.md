@@ -101,3 +101,13 @@ half, which never goes on the hub:
 ```
 HUB_ACCESS_PRIVATE_KEY=./issuer.pem node scripts/access-keys.ts issue <subject> beta 90
 ```
+
+
+## Backups and the drill (M23)
+
+`scripts/backup.ts` makes a consistent copy of the hub's file once a day with `node:sqlite`'s
+online backup — `hub-<date>.sqlite` in `HUB_BACKUP_DIR`, fourteen kept — while the hub keeps
+writing. The VAPID keys are in every copy; the rest is a cache. `scripts/restore-drill.ts`
+starts a throwaway hub on the newest copy and reads health: exit 0 means the copies are
+worth something. Both run from the hub's image with a different command; see
+`deploy/compose.homelab.yml` (`hub-backup`).

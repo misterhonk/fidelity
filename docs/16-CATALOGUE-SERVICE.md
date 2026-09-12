@@ -290,9 +290,10 @@ The Uberspace has neither the disk nor Docker; the catalogue never goes there. H
 stays what `docs/14` §8 said: the step after the home connection's upload or uptime
 becomes the limit, and the containers move unchanged.
 
-**Monitoring:** `health` reports the build date; Uptime Kuma, which the home lab already
-runs, watches it and alerts when the date is older than 40 days — the one failure mode
-that looks like success.
+**Monitoring:** `health` reports the build date and, since M23, `stale`: true after forty
+days without a build. Uptime Kuma, which the home lab already runs, watches
+`/catalogue/v1/catalogue/health` with a keyword monitor on `"stale":false` — the one
+failure mode that looks like success, made into a word a monitor can read.
 
 ## 8. What it costs, and what it saves
 

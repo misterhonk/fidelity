@@ -336,6 +336,41 @@ beforeSend(event) {
 
 ## 6. When a server does get added after all
 
+### 6.1 One cloud box, in ten steps (M23)
+
+`deploy/compose.cloud.yml` is the home lab's stack for a box that has nothing else on it:
+the same four services and the backup, Caddy in front instead of Traefik, and the release
+channel `stable` — a production box moves when a release is promoted, not when a build
+lands. Cross-checked against a Hetzner CAX21 (4 vCPU ARM, 8 GB, 40 GB) in `docs/17` §5.
+
+1. Create the box (Debian 12, ARM is fine: the images are built for arm64 too) and point
+   the name at its address, A and AAAA.
+2. `apt install docker.io docker-compose-v2` — or Docker's own repository; either works.
+3. `mkdir -p ~/fidelity && cd ~/fidelity`, then fetch `deploy/compose.cloud.yml`,
+   `deploy/Caddyfile` and `deploy/cloud.env.example` from the release tag.
+4. `cp cloud.env.example .env` and fill in `DOMAIN`, and one door for the hub: `HUB_SECRET`
+   for a private box, or `HUB_ACCESS_PUBLIC_KEY` from `scripts/access-keys.ts generate` for
+   one with members.
+5. `docker compose -f compose.cloud.yml up -d caddy app hub hub-backup` — Caddy fetches the
+   certificate; a minute later `https://<DOMAIN>/hub/v1/health` answers.
+6. The catalogue: 40 GB of disk is one build, not two. Either
+   `docker compose -f compose.cloud.yml up -d catalogue-build` and wait ninety minutes (it
+   deletes the download as it goes; 17.5 GB stays), or build at home and copy the file into
+   the `catalogue-data` volume as `<date>.sqlite` with a `current` symlink. Then
+   `up -d catalogue`.
+7. `https://<DOMAIN>/catalogue/v1/catalogue/health` says `"stale":false` and the build date.
+8. Point Uptime Kuma (or whatever watches) at the three health routes; for the catalogue,
+   a keyword monitor on `"stale":false`.
+9. Run the smoke suite against it once: `SMOKE_BASE_URL=https://<DOMAIN> pnpm test:smoke`.
+10. Backups: `hub-backup` writes a daily copy into the `hub-backup` volume; copy that
+    volume off the box nightly (a storage box, rclone, whatever is at hand), and run
+    `docker compose -f compose.cloud.yml run --rm hub-backup node scripts/restore-drill.ts /backup`
+    once a month to know the copies are worth something.
+
+The rehearsal itself — a CAX21 for a week, the artefact shipped, torn down — is the step
+that costs money and a decision, and it is listed as such in `docs/06` M23.
+
+
 Only for two things, and both are **additive** — the app keeps working without them:
 
 | Feature | Why a server is needed | A possible route |

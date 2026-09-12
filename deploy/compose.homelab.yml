@@ -59,6 +59,21 @@ services:
       - hub-data:/data
     restart: unless-stopped
 
+  # The hub's nightly copy (M23): the same image, a different command, the
+  # hub's volume read-only and a second one for the copies. Fourteen dailies
+  # stay. `node scripts/restore-drill.ts /backup` in this container proves a
+  # copy is worth anything.
+  hub-backup:
+    image: ghcr.io/misterhonk/fidelity-hub:latest
+    command: ['node', 'scripts/backup.ts']
+    environment:
+      HUB_DB: /data/hub.sqlite
+      HUB_BACKUP_DIR: /backup
+    volumes:
+      - hub-data:/data:ro
+      - hub-backup:/backup
+    restart: unless-stopped
+
   # The catalogue build (ADR-013, docs/16 §4): fetches the monthly CC0 dump,
   # builds one SQLite file from it, keeps two, looks again every day. It is
   # the one service here that needs the open internet (data.discogs.com) and
@@ -92,5 +107,6 @@ services:
 
 volumes:
   hub-data:
+  hub-backup:
   catalogue-data:
   catalogue-scratch:

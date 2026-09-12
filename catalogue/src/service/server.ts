@@ -41,6 +41,7 @@ const app = createCatalogueApp({
     if (!db) throw new Error('no build')
     return db
   },
+  path: () => (opened ? join(dataDir, opened) : null),
 })
 
 /*

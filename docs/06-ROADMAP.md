@@ -1085,6 +1085,19 @@ M21.1 is in 0.45.0 with no catalogue behind it — the port exists, every consum
 | M22.4 The issuer | `hub/scripts/access-keys.ts generate | issue` for beta keys by hand; the access service with the provider's webhooks and the two pages in the private repository (ADR-014) | Script done; the service waits for the provider decision (M25) |
 | M22.5 Renewal | The keeper asks `/v1/renew` once a day when the key is older than 30 days | Waits for M22.4 |
 
+## M23 · Ops → in progress
+
+**Plan:** [`17-ROADMAP-1.0.md`](17-ROADMAP-1.0.md) §4, §8.3
+
+| Phase | Delivers | State |
+|---|---|---|
+| M23.1 The smoke run | `tests/e2e/smoke/` against `SMOKE_BASE_URL`: the app loads, the hub names its doors, the catalogue answers with a build that is not stale and knows a family, the settings pages stand, the shop identifies a barcode with Discogs routed; the nightly `Smoke` workflow at 04:17 UTC against the home lab | **Done 2026-09-12** |
+| M23.2 The load test | `catalogue/scripts/load.ts`: `autocannon` against a family and a person's credits, a child-process service for the mini-dump in CI with a floor of 300 requests a second. Measured on the home lab past Traefik: ~1,750 requests a second on the real build, p50 10 ms — the target of 200 met eight times over. Through Traefik the rate limit answers, which is the proxy's job | **Done 2026-09-12** |
+| M23.3 Backups | `node:sqlite`'s online backup once a day into a second volume, fourteen kept; `restore-drill.ts` starts a throwaway hub on the newest copy and reads health; the `hub-backup` service in both compose files. The offsite copy of the volume is a `rclone` line the box has to get | Done, offsite copy open |
+| M23.4 The build-date alert | `"stale":false` in the catalogue's health, true after forty days without a build — for Uptime Kuma's keyword monitor. A legacy build's distributions are counted in a worker thread, because 25 s on the request thread was two minutes of 502 after every restart | **Done 2026-09-12** |
+| M23.5 Release channels | The home lab on `latest`; the `Promote` workflow points `stable` at a release's three images; `compose.cloud.yml` runs `stable` by default | **Done 2026-09-12** |
+| M23.6 The cloud rehearsal | `compose.cloud.yml`, `Caddyfile`, `cloud.env.example` and the ten steps in `docs/08` §6.1 are written; a CAX21 for a week is the part that costs money and a decision | Files done; the week is Martin's call |
+
 ## Not on the roadmap
 
 | Idea | Why not |

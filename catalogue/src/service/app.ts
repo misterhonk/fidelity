@@ -1,8 +1,10 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import type { DatabaseSync } from 'node:sqlite'
+import { Worker } from 'node:worker_threads'
 
 import { identifierKind, normaliseIdentifier } from '../etl/identifiers.ts'
+import { statsSql } from './stats-sql.ts'
 
 /**
  * The catalogue service (docs/16 §5): the hub's shape, read-only, no secret.
@@ -18,7 +20,17 @@ import { identifierKind, normaliseIdentifier } from '../etl/identifiers.ts'
 export interface CatalogueAppOptions {
   /** The current build, read-only. Swapped by the server when `current` moves. */
   db: () => DatabaseSync
+  /**
+   * The file behind `db`, for a worker thread to open on its own — a build
+   * from before the `stats` table is counted there, not on this thread.
+   * Absent (in tests, in memory): counted here, which is fine for 400 rows.
+   */
+  path?: () => string | null
+  now?: () => number
 }
+
+/** A build this old means the monthly job has stopped — the alert's threshold. */
+export const STALE_AFTER_DAYS = 40
 
 export const MAX_SIBLINGS = 200
 export const MAX_NAMES = 100
@@ -52,21 +64,7 @@ export function formatOf(name: string | null, descriptions: string | null): stri
   return parts.filter(Boolean).join(', ')
 }
 
-/** The same counts as `deriveStats`, for a build from before the table existed. */
-function statsSql(kind: string): string {
-  switch (kind) {
-    case 'decades':
-      return 'SELECT CAST((year / 10) * 10 AS TEXT) AS key, COUNT(*) AS count FROM release WHERE year IS NOT NULL GROUP BY (year / 10) * 10 ORDER BY count DESC'
-    case 'styles':
-      return "SELECT name AS key, COUNT(*) AS count FROM release_style WHERE kind = 'style' GROUP BY name ORDER BY count DESC"
-    case 'genres':
-      return "SELECT name AS key, COUNT(*) AS count FROM release_style WHERE kind = 'genre' GROUP BY name ORDER BY count DESC"
-    default:
-      return "SELECT country AS key, COUNT(*) AS count FROM release WHERE country != '' GROUP BY country ORDER BY count DESC"
-  }
-}
-
-export function createCatalogueApp({ db }: CatalogueAppOptions) {
+export function createCatalogueApp({ db, path, now = Date.now }: CatalogueAppOptions) {
   const app = new Hono()
 
   app.use('/v1/*', cors({ origin: '*', allowMethods: ['GET', 'OPTIONS'], maxAge: 86_400 }))
@@ -95,10 +93,22 @@ export function createCatalogueApp({ db }: CatalogueAppOptions) {
     )
   })
 
+  /**
+   * Health, with the one failure that looks like success named: a build
+   * older than forty days means the job stopped running — the dump is
+   * monthly, and a few days of slack for the 1st. Uptime Kuma watches the
+   * word `"stale":false` (docs/16 §7); nothing else here has a date.
+   */
   app.get('/v1/catalogue/health', (c) => {
     const build = meta('build')
-    if (!build) return c.json({ ok: false, build: null, releases: 0 }, 503)
-    return c.json({ ok: true, build, releases: Number(meta('count:release') ?? 0) })
+    if (!build) return c.json({ ok: false, build: null, releases: 0, stale: true }, 503)
+    const ageDays = (now() - Date.parse(build)) / 86_400_000
+    return c.json({
+      ok: true,
+      build,
+      releases: Number(meta('count:release') ?? 0),
+      stale: ageDays > STALE_AFTER_DAYS,
+    })
   })
 
   /** Every pressing of a master, oldest first — `PressingFamilyFacts`, CC0 fields only. */
@@ -320,41 +330,67 @@ export function createCatalogueApp({ db }: CatalogueAppOptions) {
    * once here and remembered for the process.
    */
   const STATS_KINDS = ['decades', 'styles', 'genres', 'countries'] as const
-  const statsCache = new Map<
-    string,
-    { build: string; total: number; rows: [string, number][] }
-  >()
+  type Stats = { build: string; total: number; rows: [string, number][] }
+  const statsCache = new Map<string, Stats>()
+  const statsInFlight = new Map<string, Promise<Stats>>()
 
-  app.get('/v1/catalogue/stats/:kind', (c) => {
+  /** Off the request thread when there is a file; on it when there is only memory. */
+  function countStats(kind: string, build: string): Promise<Stats> {
+    const file = path?.() ?? null
+    if (!file) {
+      const rows = db().prepare(statsSql(kind)).all() as unknown as {
+        key: string
+        count: number
+      }[]
+      const total = (db().prepare('SELECT COUNT(*) AS n FROM release').get() as { n: number }).n
+      return Promise.resolve({ build, total, rows: rows.map((row) => [row.key, row.count]) })
+    }
+    return new Promise<Stats>((resolve, reject) => {
+      const worker = new Worker(new URL('./stats-worker.ts', import.meta.url), {
+        workerData: { path: file, kind },
+      })
+      worker.once('message', (answer: { total: number; rows: [string, number][] }) =>
+        resolve({ build, ...answer }),
+      )
+      worker.once('error', reject)
+    })
+  }
+
+  app.get('/v1/catalogue/stats/:kind', async (c) => {
     const kind = c.req.param('kind') as (typeof STATS_KINDS)[number]
     if (!STATS_KINDS.includes(kind))
       return c.json({ error: 'decades, styles, genres or countries' }, 400)
     const build = meta('build') ?? 'none'
-    const cached = statsCache.get(`${build}:${kind}`)
+    const cacheKey = `${build}:${kind}`
+    const cached = statsCache.get(cacheKey)
     if (cached) return c.json(cached)
 
     const hasTable = db()
       .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'stats'")
       .get()
-    const rows = (hasTable
-      ? db()
-          .prepare('SELECT key, count FROM stats WHERE kind = ? ORDER BY count DESC')
-          .all(kind)
-      : db().prepare(statsSql(kind)).all()) as unknown as { key: string; count: number }[]
-    const total = hasTable
-      ? Number(
-          (
-            db().prepare("SELECT count FROM stats WHERE kind = 'releases'").get() as
-              { count: number } | undefined
-          )?.count ?? 0,
-        )
-      : Number((db().prepare('SELECT COUNT(*) AS n FROM release').get() as { n: number }).n)
-    const answer = {
-      build,
-      total,
-      rows: rows.map((row) => [row.key, row.count] as [string, number]),
+    if (hasTable) {
+      const rows = db()
+        .prepare('SELECT key, count FROM stats WHERE kind = ? ORDER BY count DESC')
+        .all(kind) as unknown as { key: string; count: number }[]
+      const total = Number(
+        (
+          db().prepare("SELECT count FROM stats WHERE kind = 'releases'").get() as
+            { count: number } | undefined
+        )?.count ?? 0,
+      )
+      const answer: Stats = { build, total, rows: rows.map((row) => [row.key, row.count]) }
+      statsCache.set(cacheKey, answer)
+      return c.json(answer)
     }
-    statsCache.set(`${build}:${kind}`, answer)
+
+    // Counted once, off this thread; the first asker waits, the rest share the wait.
+    let pending = statsInFlight.get(cacheKey)
+    if (!pending) {
+      pending = countStats(kind, build).finally(() => statsInFlight.delete(cacheKey))
+      statsInFlight.set(cacheKey, pending)
+    }
+    const answer = await pending
+    statsCache.set(cacheKey, answer)
     return c.json(answer)
   })
 

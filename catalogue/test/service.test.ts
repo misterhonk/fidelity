@@ -22,8 +22,33 @@ describe('health', () => {
   test('says which build answers and how many releases it holds', async () => {
     const response = await get('/v1/catalogue/health')
     assert.equal(response.status, 200)
-    assert.deepEqual(await response.json(), { ok: true, build: '2026-09-01', releases: 400 })
+    const health = (await response.json()) as {
+      ok: boolean
+      build: string
+      releases: number
+      stale: boolean
+    }
+    assert.equal(health.ok, true)
+    assert.equal(health.build, '2026-09-01')
+    assert.equal(health.releases, 400)
     assert.equal(response.headers.get('etag'), '"2026-09-01"')
+  })
+
+  test('calls a build stale after forty days, and not before', async () => {
+    const day = 86_400_000
+    const at = (days: number) =>
+      createCatalogueApp({
+        db: () => built.db,
+        now: () => Date.parse('2026-09-01') + days * day,
+      })
+    const fresh = (await (await at(39).request('/v1/catalogue/health')).json()) as {
+      stale: boolean
+    }
+    const old = (await (await at(41).request('/v1/catalogue/health')).json()) as {
+      stale: boolean
+    }
+    assert.equal(fresh.stale, false)
+    assert.equal(old.stale, true)
   })
 })
 
@@ -220,6 +245,33 @@ describe('the shop and the map (M21.6)', () => {
     }
     assert.ok(styles.rows.some(([key]) => key === 'Techno'))
     assert.equal((await get('/v1/catalogue/stats/prices')).status, 400)
+  })
+
+  test('stats are counted off the request thread when there is a file', async () => {
+    const { mkdtempSync, rmSync, writeFileSync } = await import('node:fs')
+    const { tmpdir } = await import('node:os')
+    const { join } = await import('node:path')
+    const { buildCatalogue } = await import('../src/etl/build.ts')
+    const { createCatalogueApp } = await import('../src/service/app.ts')
+    const { DatabaseSync } = await import('node:sqlite')
+    const dir = mkdtempSync(join(tmpdir(), 'fidelity-stats-'))
+    const file = join(dir, 'old.sqlite')
+    const older = await buildCatalogue({
+      dumpDir: new URL('../fixtures/mini-dump/', import.meta.url).pathname,
+      date: '20260901',
+      out: file,
+    })
+    older.db.exec('DROP TABLE stats')
+    older.db.close()
+    const reopened = new DatabaseSync(file, { readOnly: true })
+    const threaded = createCatalogueApp({ db: () => reopened, path: () => file })
+    const response = await threaded.request('/v1/catalogue/stats/decades')
+    const stats = (await response.json()) as { total: number; rows: [string, number][] }
+    assert.equal(stats.total, 400)
+    assert.ok(stats.rows.some(([key]) => key === '1990'))
+    reopened.close()
+    writeFileSync(join(dir, '.done'), '')
+    rmSync(dir, { recursive: true, force: true })
   })
 
   test('stats are counted on the spot for a build from before the table', async () => {

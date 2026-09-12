@@ -1,0 +1,42 @@
+name: Promote
+
+# Release channels (docs/17 §4, M23): the home lab runs `latest` and gets
+# every release the moment its images exist; production runs a tag it was
+# pointed at on purpose. This is the pointing: the three images of one
+# release get the `stable` tag, and a production compose file that says
+# `:stable` moves on its next pull — after the staging smoke run was green.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The release to promote, e.g. 0.53.0 (its images must exist)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: promote
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Point stable at the release
+        run: |
+          set -eu
+          version="${{ inputs.version }}"
+          version="${version#v}"
+          for image in app hub catalogue; do
+            ref="ghcr.io/${{ github.repository }}-${image}"
+            docker buildx imagetools create -t "${ref}:stable" "${ref}:${version}"
+            echo "${ref}:stable → ${version}"
+          done
