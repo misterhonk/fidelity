@@ -57,6 +57,65 @@ async function moveAll(to: string) {
 const elsewhere = computed(() =>
   props.nodes.filter((node) => node.id !== props.cube.id && node.kind !== 'unit'),
 )
+
+/**
+ * Re-sorting (M27.3). "Select" turns the sleeves into things to tick; the
+ * ticked ones move to a place picked on the small wall, or come out. Every
+ * move leaves a line with a way back — the records remember where they
+ * came from for as long as the line stands.
+ */
+const selecting = ref(false)
+const selected = ref(new Set<number>())
+const picking = ref(false)
+// Shallow on purpose: the ids go back through postMessage, and a deep
+// proxy would not clone.
+const last = shallowRef<{
+  instanceIds: number[]
+  from: string | null
+  to: string | null
+} | null>(null)
+
+function toggleSelect(instanceId: number) {
+  const next = new Set(selected.value)
+  if (next.has(instanceId)) next.delete(instanceId)
+  else next.add(instanceId)
+  selected.value = next
+}
+function selectAll() {
+  selected.value = new Set(contents.value.map((record) => record.instanceId))
+}
+function stopSelecting() {
+  selecting.value = false
+  picking.value = false
+  selected.value = new Set()
+}
+
+async function moveSelected(to: string | null) {
+  const instanceIds = [...selected.value]
+  if (instanceIds.length === 0) return
+  await call('places.assignMany', { instanceIds, placeId: to })
+  last.value = { instanceIds, from: props.cube.id, to }
+  // The move is done; the line with the way back stands, the ticks go.
+  stopSelecting()
+  await load()
+  emit('changed')
+}
+
+async function undo() {
+  if (!last.value) return
+  await call('places.assignMany', {
+    instanceIds: [...last.value.instanceIds],
+    placeId: last.value.from,
+  })
+  last.value = null
+  await load()
+  emit('changed')
+}
+
+const labelFor = (placeId: string | null) => {
+  const node = props.nodes.find((n) => n.id === placeId)
+  return node ? labelOf(node) : ''
+}
 </script>
 
 <template>
@@ -82,6 +141,73 @@ const elsewhere = computed(() =>
       >
         {{ c.places.moveAll }}
       </button>
+      <button
+        v-if="contents.length > 0"
+        type="button"
+        class="fid-plate fid-action min-h-11 transition-colors"
+        :class="selecting ? 'text-fid-text' : 'text-fid-text-muted hover:text-fid-text'"
+        :aria-pressed="selecting"
+        @click="selecting ? stopSelecting() : (selecting = true)"
+      >
+        {{ selecting ? c.places.done : c.places.select }}
+      </button>
+    </div>
+
+    <!-- The way back, for as long as the line stands. -->
+    <p
+      v-if="last"
+      class="flex flex-wrap items-center gap-3 text-fid-sm text-fid-text"
+      aria-live="polite"
+    >
+      {{
+        last.to
+          ? c.places.moved(count(last.instanceIds.length), labelFor(last.to))
+          : c.places.takenOut(count(last.instanceIds.length))
+      }}
+      <button
+        type="button"
+        class="fid-action min-h-11 text-fid-sm text-fid-accent underline underline-offset-4"
+        @click="undo"
+      >
+        {{ c.places.undo }}
+      </button>
+    </p>
+
+    <!-- The selection's actions: where to, or out. -->
+    <div v-if="selecting" class="flex flex-wrap items-center gap-4">
+      <span class="fid-plate text-fid-text-muted">{{
+        c.places.selected(count(selected.size))
+      }}</span>
+      <button
+        type="button"
+        class="fid-plate fid-action min-h-11 text-fid-text-muted hover:text-fid-text"
+        @click="selectAll"
+      >
+        {{ c.places.all }}
+      </button>
+      <button
+        type="button"
+        :disabled="selected.size === 0"
+        class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-sm text-fid-text disabled:opacity-50"
+        @click="picking = !picking"
+      >
+        {{ c.places.moveSelected(count(selected.size)) }}
+      </button>
+      <button
+        type="button"
+        :disabled="selected.size === 0"
+        class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-sm text-fid-text disabled:opacity-50"
+        @click="moveSelected(null)"
+      >
+        {{ c.places.takeOut(count(selected.size)) }}
+      </button>
+    </div>
+    <div
+      v-if="selecting && picking"
+      class="flex flex-col gap-2 border-t border-fid-border pt-3"
+    >
+      <span class="fid-plate text-fid-text-muted">{{ c.places.whereTo }}</span>
+      <PlacePicker :nodes="nodes" :except="cube.id" @pick="moveSelected($event)" />
     </div>
 
     <input
@@ -114,12 +240,32 @@ const elsewhere = computed(() =>
       {{ c.places.nothingHere }}
     </p>
     <ul v-else class="grid grid-cols-3 gap-x-3 gap-y-4 @md:grid-cols-4">
-      <li v-for="record in contents" :key="record.instanceId" class="flex flex-col gap-1">
+      <li
+        v-for="record in contents"
+        :key="record.instanceId"
+        class="relative flex flex-col gap-1"
+      >
+        <!-- In select mode the sleeve is a thing to tick, not a door. -->
+        <input
+          v-if="selecting"
+          type="checkbox"
+          class="absolute top-2 left-2 z-10 size-5"
+          :checked="selected.has(record.instanceId)"
+          :aria-label="c.places.pick(record.artistNames.join(' · '), record.title)"
+          @change="toggleSelect(record.instanceId)"
+        />
         <button
           type="button"
           class="fid-cover-button group flex flex-col gap-1 rounded-fid-sm text-left"
+          :class="
+            selecting && selected.has(record.instanceId)
+              ? 'outline-2 outline-offset-2 outline-fid-accent'
+              : ''
+          "
           :aria-label="c.open(record.artistNames.join(' · '), record.title)"
-          @click="emit('record', record.instanceId)"
+          @click="
+            selecting ? toggleSelect(record.instanceId) : emit('record', record.instanceId)
+          "
         >
           <img
             v-if="record.thumbUrl || record.coverUrl"

@@ -91,4 +91,16 @@ test('a room, a Kallax, and a record in B1', async ({ page }) => {
   await expect(
     page.getByRole('grid', { name: 'Kallax' }).getByText('W', { exact: true }),
   ).toBeVisible()
+
+  // Re-sorting: select in the compartment, pick a compartment on the small
+  // wall, and a line with a way back.
+  await page.getByRole('button', { name: /^B1, 1 records/ }).click()
+  const b1 = page.getByRole('dialog', { name: 'Living room · Kallax · B1' })
+  await b1.getByRole('button', { name: 'Select' }).click()
+  await b1.getByRole('checkbox', { name: /Speak No Evil/ }).check()
+  await b1.getByRole('button', { name: 'Move 1 to …' }).click()
+  await b1.getByRole('group', { name: 'Kallax' }).getByRole('button', { name: 'A2' }).click()
+  await expect(b1.getByText('1 moved to A2')).toBeVisible()
+  await b1.getByRole('button', { name: 'Undo' }).click()
+  await expect(b1.getByRole('button', { name: /Speak No Evil/ })).toBeVisible()
 })
