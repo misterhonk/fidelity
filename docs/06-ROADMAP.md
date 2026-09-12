@@ -1060,13 +1060,13 @@ behind it, so no feature depends on it and no score moves.
 | Phase | Delivers | Cost |
 |---|---|---|
 | M21.1 The seam · done 2026-09-12 | `CatalogueSource` in `shared/ports.ts`, `catalogueUrl`, the client with two seconds and null for everything, discovery and check, the settings line under the hub; `familyFacts` asks the catalogue before the hub. Eleven tests that every shape of absence falls through to today's path | days, no server |
-| M21.2 The mini-dump | A frozen fixture of ~300 releases; the ETL's golden tests in CI | days |
+| M21.2 The mini-dump · done 2026-09-12 | `catalogue/` with the streaming reader, the shaping and the build — TypeScript on bare Node into `node:sqlite`, no DuckDB (docs/16 §4 says why); 400 real releases and what they point at as a 660 kB fixture; 19 tests in 0.3 s, golden files for the fields that bite, and a twin test holding the copied `parseCatno` and `norm` to the app's; hub and catalogue tests now run in CI | days |
 | M21.3 The build | The ETL container, six steps, two-generation swap, health date | a weekend with the home lab |
 | M21.4 Two routes | `family` and `artist`: the shop reads a pressing with zero requests | days |
 | M21.5 The signals | `credits`, `run`, per-dig lookups with a bound, the second golden test | a week |
 | M21.6 The shop and the map | `identify`, `stats`, the comparison line in the year on the shelf | days |
 
-M21.1 is in 0.45.0 with no catalogue behind it — the port exists, every consumer has the horizon behind it, and the URL is empty on every device. The next phase touches no server either; nothing is bought.
+M21.1 is in 0.45.0 with no catalogue behind it — the port exists, every consumer has the horizon behind it, and the URL is empty on every device. M21.2 is the build that will fill it, proven on a cut of the real dump; the reader streamed the three smaller files (1.2 GB gzip) in 2 min 40 s on a laptop. Nothing is bought; M21.3 is the first weekend with the home lab.
 
 ---
 

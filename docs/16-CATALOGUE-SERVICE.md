@@ -70,41 +70,57 @@ own authors, not by us yet: 30–45 minutes for all four files on a laptop-class
 
 ```
 1. fetch      the four files + checksums → /scratch/dump/2026-09/       (~12 GB, resumable)
-2. parse      discogskit → Parquet, one table per entity                 (~10 GB Parquet)
-3. shape      DuckDB, SQL only: the tables of §5, sorted and indexed     (~6–8 GB SQLite)
-4. check      row counts against last month (±10 % or fail), spot ids
-5. publish    /data/catalogue/2026-09.sqlite, symlink `current` → it
-6. tidy       keep two builds, delete older; delete /scratch
+2. build      `catalogue/src/etl/build.ts`: stream each file, shape, insert  (~6–8 GB SQLite)
+3. check      row counts against last month (±10 % or fail) — part of the build
+4. publish    /data/catalogue/2026-09.sqlite, symlink `current` → it
+5. tidy       keep two builds, delete older; delete /scratch
 ```
 
-**Why Parquet then SQLite, not DuckDB straight through:** the shaping is set-oriented and
-DuckDB does it in minutes; the serving is point lookups by id and `node:sqlite` already
-runs in the hub without a native build step. One reader, one writer, no daemon between
-them. If a query in §5 turns out to need DuckDB's speed at serving time, the `duckdb` npm
-package is the one dependency to add — decided by measurement, not now.
+**Changed at M21.2 (2026-09-12): one stream, no warehouse.** The plan above had
+discogskit → Parquet → DuckDB → SQLite. Writing the shaping showed it is row-local — one
+entity becomes its own rows and nobody else's — and a row-local job wants a stream, not a
+set engine. The build is TypeScript on bare Node: `sax` streams the gzip, `shape.ts` turns
+each entity into rows, `node:sqlite` takes them ten thousand entities per transaction,
+indexes come after the load. The one set-oriented step, the label prefixes, is a GROUP BY at
+the end. That removes two tools, a second language and the "ported to SQL" clause below —
+`parseCatno` and `norm` are the app's own functions, copied, and a test in the root suite
+(`tests/unit/catalogue-twins.spec.ts`) runs both copies over the mini-dump's real values.
+
+Measured on 2026-09-12 on a laptop: the reader streams masters, artists and labels
+(1.2 GB gzip, 9.2 M + 2.3 M + 2.5 M entities) in 2 min 40 s; the mini-dump builds in
+0.26 s. Extrapolated, the releases file is 20–30 minutes of parsing plus the inserts — a
+night at most, and M21.3 measures it on home-deb. If it is more than a night, DuckDB is the
+fallback and only `build.ts` changes.
 
 **The tables** (all CC0 fields; ids as in Discogs):
 
 ```
 release        id, master_id, title, year, country, data_quality
-release_artist release_id, artist_id, role (0 = main, else ROLE_TABLE index), position
+release_artist release_id, artist_id, role (0 = main, ROLE_TABLE index, -1 = unnamed), role_name, position
 release_label  release_id, label_id, catno, catno_prefix, catno_num
 release_format release_id, name, qty, text, descriptions (json)
-release_style  release_id, genre, style
+release_style  release_id, kind (genre|style), name
 identifier     release_id, type (barcode|matrix|other), value_norm, value
 master         id, main_release, year, title
 artist         id, name, real_name
-artist_name    artist_id, name_norm, name, relation (alias|variation|member|group)
+artist_name    artist_id, name_norm, name, relation (self|alias|variation|member|group), other_id
 label          id, name, parent_id
 label_prefix   label_id, prefix, count            -- the series a label actually has
-credit         artist_id, role, release_id        -- the same rows as release_artist, ordered for the person
+meta           key, value                         -- build date, row counts
 ```
 
-`catno_prefix`/`catno_num` use `parseCatno` from `worker/horizon/pack.ts`, ported to SQL
-and pinned by the same golden fixture, or the runs on the two sides disagree.
-`value_norm` for identifiers strips spaces, hyphens and case, the way the run-out search
-does — measured on 2026-09-11: a full run-out returns one hit, a fragment thousands, and
-the index has to make the same distinction.
+`credit` is an index on `release_artist (artist_id, role, release_id)`, not a second copy.
+Three columns the first real cut asked for: `role_name` keeps the dump's credit string
+("Written-By, Producer") next to the strongest table index it maps to, so a credit the
+table has no name for is still a row; `release_style` carries genres and styles as
+(kind, name) rows; `artist_name` has a `self` row and the other artist's id, so the lexicon
+is one query. `<master_id>0</master_id>` is "no master".
+
+`catno_prefix`/`catno_num` come from `parseCatno`, the app's function copied, and
+`name_norm` from `norm`, likewise — the twin test above holds them together. `value_norm`
+for identifiers strips spaces, hyphens and case, the way the run-out search does — measured
+on 2026-09-11: a full run-out returns one hit, a fragment thousands, and the index has to
+make the same distinction.
 
 **Scratch and disk on home-deb:** 12 GB download + 10 GB Parquet + 8 GB SQLite ≈ 30 GB
 during the run, 16 GB kept (two builds). 51 GB were free on 2026-09-12; a 50 GB volume for
@@ -222,15 +238,15 @@ Each phase ends green and shippable on its own; none of them changes a score.
 | Phase | Delivers | Proof |
 |---|---|---|
 | **M21.1 The seam** · done 2026-09-12 | `CatalogueSource` in `shared/ports.ts`, `catalogueUrl` in the preferences, discovery at `<origin>/catalogue`, the settings line, and a CI run with the URL empty | The existing suites unchanged; a new test that every consumer falls through to today's path with no catalogue |
-| **M21.2 The mini-dump** | A frozen fixture: ~300 releases, their artists, labels, masters, cut from a real dump, checked in (a few MB) | The ETL runs on it in CI in seconds; golden tests for `parseCatno` in SQL and the identifier normalisation |
+| **M21.2 The mini-dump** · done 2026-09-12 | `catalogue/`: the streaming reader, the shaping, the build; `fixtures/mini-dump` — 400 releases, 336 masters, 180 labels, 731 artists cut from the dump of 2026-09-01, 660 kB | The ETL runs on it in CI in 0.3 s (19 tests); golden files for every catalogue number, identifier, credit string and name in it; the twin test in the root suite |
 | **M21.3 The build** | The ETL container, the six steps of §4, the two-generation swap, the health date | A full run on home-deb, timed and sized; the numbers replace the estimates in §4 and §8 |
 | **M21.4 Two routes** | `family` and `artist` — the two the app already asks the API for | The shop screen reads a pressing with zero requests; the lexicon covers a listing's artists |
 | **M21.5 The signals** | `credits`, `run`, per-dig lookups with the bound, the second golden test | A dig at a Blue Note specialist fires S6; a producer you own nothing by fires S8 |
 | **M21.6 The shop and the map** | `identify`, `stats`, the comparison line in the year on the shelf | Barcode and run-out without a search request; "3× the catalogue's" on the map |
 | later | `resolve` for every listing artist, co-occurrence, shards behind a CDN | when there are users to serve |
 
-M21.1 and M21.2 are days and touch no server. M21.3 is the first weekend with the home
-lab. M21.4 is where the first user notices something.
+M21.1 and M21.2 were a day each and touched no server. M21.3 is the first weekend with the
+home lab. M21.4 is where the first user notices something.
 
 ## 10. Risks, and what answers them
 
