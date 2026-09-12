@@ -59,5 +59,22 @@ services:
       - hub-data:/data
     restart: unless-stopped
 
+  # The catalogue build (ADR-013, docs/16 §4): fetches the monthly CC0 dump,
+  # builds one SQLite file from it, keeps two, looks again every day. It is
+  # the one service here that needs the open internet (data.discogs.com) and
+  # real disk: a 12 GB download and a file of several GB while it runs. Leave
+  # it out and nothing else changes — the app and the hub do not need it.
+  catalogue-build:
+    image: ghcr.io/misterhonk/fidelity-catalogue:latest
+    environment:
+      CATALOGUE_DATA: /data
+      CATALOGUE_SCRATCH: /scratch
+    volumes:
+      - catalogue-data:/data
+      - catalogue-scratch:/scratch
+    restart: unless-stopped
+
 volumes:
   hub-data:
+  catalogue-data:
+  catalogue-scratch:

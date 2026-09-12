@@ -69,12 +69,24 @@ Once a month, on the home lab, as a container that runs and exits. Measured by t
 own authors, not by us yet: 30–45 minutes for all four files on a laptop-class machine.
 
 ```
-1. fetch      the four files + checksums → /scratch/dump/2026-09/       (~12 GB, resumable)
-2. build      `catalogue/src/etl/build.ts`: stream each file, shape, insert  (~6–8 GB SQLite)
-3. check      row counts against last month (±10 % or fail) — part of the build
-4. publish    /data/catalogue/2026-09.sqlite, symlink `current` → it
-5. tidy       keep two builds, delete older; delete /scratch
+1. fetch      `fetch.ts`: the four files + CHECKSUM.txt → /scratch/dump/<date>/, each
+              hashed on the way down and held against the checksum file; a whole file
+              already there is not fetched twice (~12 GB)
+2. build      `build.ts`: stream each file, shape, insert; each dump file is deleted
+              the moment its rows are in, so the disk never holds download and file
+              at full size together
+3. check      row counts against last month (±10 % or refuse) — part of the build
+4. publish    /data/<build>.sqlite, then `current` → it by renaming a fresh symlink over
+              the old one: a reader opens the old file or the new one, never half of either
+5. tidy       keep two builds, delete older; delete /scratch/dump
 ```
+
+All five are `run.ts`, the job in the `fidelity-catalogue` image (M21.3): it runs once a
+day, and a day on which the listing shows no newer month than `current` is "current is
+still 2026-09-01" in `status.json` and nothing else. `status.json` also carries the last
+run's outcome, seconds, bytes and row counts — the health date until the service (M21.4)
+answers it over HTTP. `CATALOGUE_ONCE=1` runs once and exits; `CATALOGUE_DATE` pins a
+month; `CATALOGUE_OFFLINE=1` builds from files already in the scratch dir.
 
 **Changed at M21.2 (2026-09-12): one stream, no warehouse.** The plan above had
 discogskit → Parquet → DuckDB → SQLite. Writing the shaping showed it is row-local — one
@@ -198,16 +210,25 @@ catalogue may add hits, never move a score.
 
 ## 7. Where it runs
 
-The home lab, beside the hub, as the fourth service in `compose/home-deb/fidelity.yml`:
+The home lab, beside the hub, in `compose/home-deb/fidelity.yml` — one image, two
+services, the same `/data` (M21.3, 2026-09-12):
 
 ```
-fidelity-catalogue   image: ghcr.io/misterhonk/fidelity-catalogue:latest
-                     volumes: $DOCKERDIR/appdata/fidelity-catalogue:/data:ro
+fidelity-catalogue-build   image: ghcr.io/misterhonk/fidelity-catalogue:latest   (M21.3)
+                     command: the default — run.ts, daily, builds when a new month appears
+                     volumes: $DOCKERDIR/appdata/fidelity-catalogue/data:/data
+                              $DOCKERDIR/appdata/fidelity-catalogue/scratch:/scratch
+                     network: the default bridge — it needs data.discogs.com and nothing needs it
+fidelity-catalogue   image: the same                                             (M21.4)
+                     command: the service, read-only on /data/current
                      labels:  Host(`fidelity.…`) && PathPrefix(`/catalogue`), chain-fidelity-hub (rate limit + strip)
-fidelity-catalogue-build   image: ghcr.io/misterhonk/fidelity-catalogue-build:latest   (profile: build)
-                     volumes: /data (rw), /scratch (a 50 GB volume)
-                     run:     docker compose run --rm fidelity-catalogue-build   — monthly, by cron or by hand
 ```
+
+No cron: the job is a container that stays up and looks once a day, which is visible in
+`docker ps` and needs nothing outside compose. The home lab's disk is one 99 GB volume
+with 50 GB free (measured 2026-09-12), not the separate 50 GB scratch volume planned
+above — enough because the job deletes each dump file as soon as it is loaded and keeps
+two builds; a third generation or a second service on the box would call for the volume.
 
 The Uberspace has neither the disk nor Docker; the catalogue never goes there. Hetzner
 stays what `docs/14` §8 said: the step after the home connection's upload or uptime
@@ -239,7 +260,7 @@ Each phase ends green and shippable on its own; none of them changes a score.
 |---|---|---|
 | **M21.1 The seam** · done 2026-09-12 | `CatalogueSource` in `shared/ports.ts`, `catalogueUrl` in the preferences, discovery at `<origin>/catalogue`, the settings line, and a CI run with the URL empty | The existing suites unchanged; a new test that every consumer falls through to today's path with no catalogue |
 | **M21.2 The mini-dump** · done 2026-09-12 | `catalogue/`: the streaming reader, the shaping, the build; `fixtures/mini-dump` — 400 releases, 336 masters, 180 labels, 731 artists cut from the dump of 2026-09-01, 660 kB | The ETL runs on it in CI in 0.3 s (19 tests); golden files for every catalogue number, identifier, credit string and name in it; the twin test in the root suite |
-| **M21.3 The build** | The ETL container, the six steps of §4, the two-generation swap, the health date | A full run on home-deb, timed and sized; the numbers replace the estimates in §4 and §8 |
+| **M21.3 The build** · image and job 2026-09-12, full run pending | `fetch.ts`, `run.ts`, the `fidelity-catalogue` image and the compose service: the five steps of §4, the two-generation swap, `status.json` as the health date | A full run on home-deb, timed and sized; the numbers replace the estimates in §4 and §8 |
 | **M21.4 Two routes** | `family` and `artist` — the two the app already asks the API for | The shop screen reads a pressing with zero requests; the lexicon covers a listing's artists |
 | **M21.5 The signals** | `credits`, `run`, per-dig lookups with the bound, the second golden test | A dig at a Blue Note specialist fires S6; a producer you own nothing by fires S8 |
 | **M21.6 The shop and the map** | `identify`, `stats`, the comparison line in the year on the shelf | Barcode and run-out without a search request; "3× the catalogue's" on the map |

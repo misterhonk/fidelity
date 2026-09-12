@@ -41,6 +41,8 @@ export interface BuildOptions {
   previous?: string
   batch?: number
   log?: (line: string) => void
+  /** Called when a file's rows are all in — the job deletes it here to make room. */
+  afterFile?: (entity: string, path: string) => Promise<void> | void
 }
 
 export interface BuildResult {
@@ -68,9 +70,10 @@ export async function buildCatalogue(options: BuildOptions): Promise<BuildResult
 
   /** Streams one file into the prepared statements, `batch` entities per transaction. */
   async function load<T>(entity: string, tag: string, insert: (node: T) => void) {
+    const path = file(entity)
     let n = 0
     db.exec('BEGIN')
-    for await (const node of entities(openDump(file(entity)), tag)) {
+    for await (const node of entities(openDump(path), tag)) {
       insert(node as T)
       n += 1
       if (n % batch === 0) {
@@ -81,6 +84,7 @@ export async function buildCatalogue(options: BuildOptions): Promise<BuildResult
     }
     db.exec('COMMIT')
     log(`${entity}: ${n} done`)
+    await options.afterFile?.(entity, path)
   }
 
   const ins = {

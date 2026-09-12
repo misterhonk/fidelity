@@ -17,6 +17,8 @@ src/etl/roles.ts        ROLE_TABLE, the app's copy, and the dump's credit string
 src/etl/identifiers.ts  barcode and run-out, in the form two people type the same
 src/etl/db.ts           the schema, the indexes, the derived label prefixes
 src/etl/build.ts        the build: four files in, one SQLite file out, row counts checked
+src/etl/fetch.ts        the dump from data.discogs.com, hashed against CHECKSUM.txt
+src/etl/run.ts          the job: fetch, build, check, swap `current`, tidy — daily, in the image
 scripts/cut-mini-dump.ts  cuts fixtures/mini-dump from a real dump
 fixtures/mini-dump/     400 real releases and what they point at, ~660 kB (see its README)
 test/                   node --test; golden files under test/golden/
@@ -35,8 +37,16 @@ The dump dir holds the four files under their published names,
 `--previous`, the row counts are checked against last month's file and the build refuses to
 finish on a table that moved more than ten percent.
 
-The service that answers over HTTP is M21.4; the container that runs the build monthly on
-the home lab is M21.3.
+## The job in Docker
+
+`deploy/catalogue.Dockerfile` builds the image; `docker compose` runs it with `/data` for the
+builds and `/scratch` for the dump files (see `deploy/compose.homelab.yml`). Once a day it
+looks at the listing; a new month is fetched, built, checked against the previous build and
+made `current` by an atomic symlink swap; two builds are kept. `status.json` in `/data` says
+what the last run did. Environment: `CATALOGUE_ONCE=1` runs once and exits, `CATALOGUE_DATE`
+pins a month, `CATALOGUE_OFFLINE=1` builds from files already under `/scratch/dump/<date>/`.
+
+The service that answers over HTTP is M21.4.
 
 ## Regenerating the golden files
 
