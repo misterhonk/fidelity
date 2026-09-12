@@ -11,6 +11,23 @@ Für eine App bedeutet SemVer:
 
 ## [0.60.0](https://github.com/misterhonk/fidelity/compare/v0.59.0...v0.60.0) (2026-09-12)
 
+**The wall: where a record stands, in three words.**
+
+A place used to be a name in a list. Now a room holds furniture, furniture holds
+compartments, and the places screen draws it as the wall it is. Add a Kallax 2×2 to 5×5, a
+crate, a 7" box, a pile or a grid of your own, and its compartments appear at once, named
+by their coordinate read from the front — A1 top left, like a spreadsheet. Each shows how
+full it is, and the first sleeves in it; tap one and its records appear as covers. A record's
+own sheet lists the compartments and reads the address back: living room · Kallax · B2.
+Everything you had stays: your places are rooms now, and a record with a place keeps it.
+Nothing leaves the device.
+
+And a bug that only Safari could see: every request to the app's worker ran twice there,
+which idempotent work had hidden for months. It runs once now.
+
+**What to do:** Nothing. If you want the wall, open Collection › Places and add furniture
+to a room.
+
 
 ### Added
 
