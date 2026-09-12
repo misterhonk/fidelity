@@ -9,6 +9,30 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.58.0](https://github.com/misterhonk/fidelity/compare/v0.57.0...v0.58.0) (2026-09-12)
+
+**The sleeve carries the card.**
+
+A find used to be a thumbnail on a form: seventy-two pixels of cover beside eight lines
+of text. Now the cover takes forty per cent of the card on a tablet or a desk and the full
+width on a phone, the signals are one small line above the title, the title stands in the
+display face with the artist over it, the facts are set like a type plate, and the sentence
+— the reason, which is the product — keeps its width. The score and the price close the
+card; the actions sit under it. No frame around any of it: sleeves in a crate separate
+themselves.
+
+The shelf shows six across by default, with "Larger" and "More" to choose between the
+sleeve size and the crate, remembered per device. The rails on the start screen grew, the
+wantlist card carries a proper sleeve, and the record sheet takes its colour from the cover
+behind it. Nothing is fetched that was not fetched before, and no score moves.
+
+**What to do:** Nothing. If you liked eight across, tap "More" on the shelf once.
+
+
+### Added
+
+* **ui:** the sleeve carries the card — M26.2 ([beadf69](https://github.com/misterhonk/fidelity/commit/beadf69676099676a37627c24e6889e53fc28395))
+
 ## [0.57.0](https://github.com/misterhonk/fidelity/compare/v0.56.1...v0.57.0) (2026-09-12)
 
 **One voice, plates instead of boxes, and two new faces.**
