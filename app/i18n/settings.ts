@@ -392,6 +392,11 @@ const en = {
     shippingTiers: (tiers: number) => counted(tiers, 'postage tier', 'postage tiers'),
     secured: 'secured with a secret',
     open: 'open',
+    showSecret: 'Show the secret',
+    hideSecret: 'Hide the secret',
+    secretOk: 'the secret opens it',
+    secretWrong: 'the hub refuses this secret — nothing you contribute or fetch gets through',
+    secretMissing: 'no secret entered — nothing you contribute or fetch gets through',
   },
 
   /** Settings → Your data. */
@@ -820,6 +825,13 @@ const de: typeof en = {
     shippingTiers: (tiers) => counted(tiers, 'Versandstaffel', 'Versandstaffeln'),
     secured: 'mit Geheimnis gesichert',
     open: 'offen',
+    showSecret: 'Geheimnis anzeigen',
+    hideSecret: 'Geheimnis verbergen',
+    secretOk: 'das Geheimnis öffnet ihn',
+    secretWrong:
+      'der Hub weist dieses Geheimnis ab – nichts, was du beisteuerst oder holst, kommt durch',
+    secretMissing:
+      'kein Geheimnis eingetragen – nichts, was du beisteuerst oder holst, kommt durch',
   },
 
   dataPanel: {

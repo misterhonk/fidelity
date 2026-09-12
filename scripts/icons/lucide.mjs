@@ -96,6 +96,7 @@ const NEEDED = {
 
   /* Collection tab: watched (M11) — the records whose market value is tracked. */
   eye: 'Collection tab: watched',
+  'eye-off': 'Hub settings: hide the secret again',
   /* Collection tab: places (M12) — where the record stands in the flat. */
   'map-pin': 'Collection tab: places',
   /* In the shop: scanning a barcode (M13). */

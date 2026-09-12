@@ -9,9 +9,16 @@ const url = ref('')
 const secret = ref('')
 const busy = ref(false)
 const error = ref<unknown>(null)
-const status = ref<{ ok: boolean; horizon: number; shipping: number; secured: boolean } | null>(
-  null,
-)
+/** Whether the secret is shown in clear — off on every open, never remembered. */
+const secretShown = ref(false)
+
+const status = ref<{
+  ok: boolean
+  horizon: number
+  shipping: number
+  secured: boolean
+  secret: 'ok' | 'wrong' | 'missing' | 'unchecked'
+} | null>(null)
 
 const hint = ref<string | null>(null)
 
@@ -150,14 +157,32 @@ async function save() {
       <label class="text-fid-sm font-medium text-fid-text" for="hub-secret">
         {{ st.hubPanel.secret }}
       </label>
-      <input
-        id="hub-secret"
-        v-model="secret"
-        type="password"
-        autocomplete="off"
-        spellcheck="false"
-        class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
-      />
+      <!--
+        Shown on request. A forty-eight-character word typed on a phone
+        against dots is a word typed twice; the eye is the same control every
+        password field has grown, and the state is in the button, not only in
+        the glyph.
+      -->
+      <div class="flex gap-2">
+        <input
+          id="hub-secret"
+          v-model="secret"
+          :type="secretShown ? 'text' : 'password'"
+          autocomplete="off"
+          spellcheck="false"
+          autocapitalize="off"
+          class="min-w-0 grow rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+        />
+        <button
+          type="button"
+          class="fid-action flex min-h-11 min-w-11 items-center justify-center rounded-fid-sm border border-fid-border text-fid-text-muted hover:text-fid-text"
+          :aria-label="secretShown ? st.hubPanel.hideSecret : st.hubPanel.showSecret"
+          :aria-pressed="secretShown"
+          @click="secretShown = !secretShown"
+        >
+          <FidIcon :name="secretShown ? 'eye-off' : 'eye'" :size="18" aria-hidden="true" />
+        </button>
+      </div>
       <p class="text-fid-xs text-fid-text-muted">{{ st.hubPanel.notYourToken }}</p>
     </div>
 
@@ -192,6 +217,17 @@ async function save() {
       {{ st.hubPanel.reachable }} · {{ st.hubPanel.horizonEntries(status.horizon) }} ·
       {{ st.hubPanel.shippingTiers(status.shipping) }} ·
       {{ status.secured ? st.hubPanel.secured : st.hubPanel.open }}
+      <!--
+        And whether the word opens the door. "Reachable" alone said nothing
+        about that, and a phone with the wrong secret read it as all fine.
+      -->
+      <template v-if="status.secret === 'ok'"> · {{ st.hubPanel.secretOk }}</template>
+      <span v-else-if="status.secret === 'wrong'" class="text-fid-sig-scarcity">
+        · {{ st.hubPanel.secretWrong }}</span
+      >
+      <span v-else-if="status.secret === 'missing'" class="text-fid-sig-gap">
+        · {{ st.hubPanel.secretMissing }}</span
+      >
     </p>
   </section>
 </template>

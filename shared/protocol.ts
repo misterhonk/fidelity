@@ -649,7 +649,19 @@ export interface WorkerContract {
   'hub.check': {
     params: { url: string; secret?: string }
     progress: never
-    result: { ok: boolean; horizon: number; shipping: number; secured: boolean }
+    result: {
+      ok: boolean
+      horizon: number
+      shipping: number
+      secured: boolean
+      /**
+       * Whether the secret opens the door — asked at a secured route, because
+       * health is open by design and says "reachable" to a wrong word too.
+       * Measured 2026-09-12: a phone with the wrong secret showed "reachable,
+       * secured" while every real request came back 401.
+       */
+      secret: 'ok' | 'wrong' | 'missing' | 'unchecked'
+    }
   }
 
   /** Every dig, newest first — what the command palette offers to jump to. */

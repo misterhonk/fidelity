@@ -1069,8 +1069,36 @@ export const handlers: HandlerMap = {
     }
     if (body.ok !== true) throw fail('not-a-hub', 'not a fidelity hub')
 
+    /*
+     * The secret, tried at a door that is actually locked.
+     *
+     * Health is open on purpose so a monitor needs no word — which means it
+     * answers "reachable" to a wrong word just the same. On 2026-09-12 a phone
+     * showed "reachable · secured with a secret" while every horizon request
+     * it made came back 401. So the check knocks once more where the secret
+     * matters: the cover route answers 200 with an empty map to the right
+     * word and 401 to a wrong one.
+     */
+    let secretState: 'ok' | 'wrong' | 'missing' | 'unchecked' = 'unchecked'
+    if (body.secured) {
+      if (!secret) {
+        secretState = 'missing'
+      } else {
+        try {
+          const door = await fetch(`${base}/v1/covers?ids=1`, {
+            headers: { 'x-hub-secret': secret },
+            signal: AbortSignal.timeout(5000),
+          })
+          secretState = door.status === 401 ? 'wrong' : door.ok ? 'ok' : 'unchecked'
+        } catch {
+          secretState = 'unchecked'
+        }
+      }
+    }
+
     return {
       ok: true,
+      secret: secretState,
       horizon: body.horizon ?? 0,
       shipping: body.shipping ?? 0,
       secured: body.secured ?? false,
