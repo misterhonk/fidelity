@@ -11,6 +11,13 @@ Für eine App bedeutet SemVer:
 
 ## [0.54.1](https://github.com/misterhonk/fidelity/compare/v0.54.0...v0.54.1) (2026-09-12)
 
+**The hub's backup works behind a read-only mount — by not using one.**
+
+The first nightly copy on the home lab failed: SQLite in WAL mode needs to write its
+shared-memory file even to read, and the hub's volume was mounted read-only for the copy.
+Both compose files mount it writable now, a failed copy no longer leaves an empty file for
+the drill to trip on, and the drill says when a copy is not a hub.
+
 
 ### Fixed
 
