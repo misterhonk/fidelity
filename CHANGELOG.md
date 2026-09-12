@@ -9,6 +9,19 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.54.0](https://github.com/misterhonk/fidelity/compare/v0.53.0...v0.54.0) (2026-09-12)
+
+
+### Added
+
+* **deploy:** the staging ring — smoke run, load test, backups, channels, the cloud compose ([524920d](https://github.com/misterhonk/fidelity/commit/524920ddf60984bbc66cffdd0ebc43e6d90bc044))
+
+
+### Fixed
+
+* **deploy:** the smoke suite stays out of the ordinary browser run ([d579d39](https://github.com/misterhonk/fidelity/commit/d579d398e1677f6404f8a6f9931973495087cae0))
+* **ui:** the Support screen's price stands in its own column ([c6d64ea](https://github.com/misterhonk/fidelity/commit/c6d64ea2725868005b3046bde78a62f6e2bb6389))
+
 ## [0.53.0](https://github.com/misterhonk/fidelity/compare/v0.52.0...v0.53.0) (2026-09-12)
 
 **The hub's second door — and three things a phone showed.**
