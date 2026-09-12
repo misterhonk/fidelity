@@ -11,6 +11,22 @@ Für eine App bedeutet SemVer:
 
 ## [0.57.0](https://github.com/misterhonk/fidelity/compare/v0.56.1...v0.57.0) (2026-09-12)
 
+**One voice, plates instead of boxes, and two new faces.**
+
+The head of every screen now speaks once, and loudly: the area's name in the display face
+at forty to seventy-two pixels, the one size that exists nowhere else. Under it, what a
+field is — the tabs, the terms, the line of facts — is set like the type plate on the back
+of an amplifier: mono, small, spaced capitals. The tabs lost their box and became a line
+with the current one underlined, like the main bar; a field sits on a baseline instead of
+in a frame, so a button and a field no longer look the same. The distance from the bar to
+the head is one number, and the rhythm below it is 8, 16, 32, 64.
+
+Two faces changed with it, both from Fontshare and self-hosted as before: Cabinet Grotesk
+carries the head, JetBrains Mono the plates and figures; Switzer stays for everything you
+read. Four sets were tried on the shelf before this one was picked.
+
+**What to do:** Nothing. The fonts arrive with the update.
+
 
 ### Added
 
