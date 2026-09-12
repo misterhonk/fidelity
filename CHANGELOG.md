@@ -9,6 +9,26 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.46.0](https://github.com/misterhonk/fidelity/compare/v0.45.0...v0.46.0) (2026-09-12)
+
+**The catalogue's build, proven on a cut of the real dump.**
+
+Nothing in the app changes with this release — the work is beside it. `catalogue/` is the
+second service next to the hub: a reader that streams a Discogs dump one entity at a time
+whatever its size, a shaping from entity to the tables of docs/16, and a build that puts the
+four monthly files into one SQLite file, checking the row counts against last month's. The
+fixture is four hundred real releases and exactly the masters, labels and artists they name,
+cut from the dump of 2026-09-01; nineteen tests build it in a third of a second, and golden
+files freeze every catalogue number, identifier, credit string and name in it. A twin test
+holds the copied `parseCatno` and `norm` to the app's own, so a label run computed on the
+server can never disagree with one computed in the browser. The hub's and the catalogue's
+test suites now run in CI — the hub's never had.
+
+
+### Added
+
+* **hub:** the mini-dump — the catalogue's ETL, proven on a cut of the real dump ([b42ccb5](https://github.com/misterhonk/fidelity/commit/b42ccb56d58a6d0bda69bedd4b4055652b6e6c42))
+
 ## [0.45.0](https://github.com/misterhonk/fidelity/compare/v0.44.1...v0.45.0) (2026-09-12)
 
 **The seam for the catalogue — nothing runs behind it yet.**
