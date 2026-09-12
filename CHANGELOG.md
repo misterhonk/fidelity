@@ -11,6 +11,19 @@ Für eine App bedeutet SemVer:
 
 ## [0.61.0](https://github.com/misterhonk/fidelity/compare/v0.60.0...v0.61.0) (2026-09-12)
 
+**Your furniture, in its own finish.**
+
+A piece of furniture on the places screen now looks like what it is: walls of white,
+black, birch, oak, walnut, steel or cardboard, thin or thick, and a colour where the
+furniture has one. The presets bring their own — a Kallax comes white and thick, a Billy in
+birch, a USM Haller in steel with ruby red panels, a Tylko, a stocubo, the HHV record box in
+cardboard — and every one can be changed, before saving and after. Nothing is loaded for
+it; the walls are drawn. And the compartments list as A1, A2, A3, B1 now, the way a list
+reads.
+
+**What to do:** Nothing. Tap "Finish" on a piece of furniture if you want it to look like
+yours.
+
 
 ### Added
 
