@@ -9,6 +9,32 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.54.0](https://github.com/misterhonk/fidelity/compare/v0.53.0...v0.54.0) (2026-09-12)
+
+**The staging ring: a nightly smoke run, a load test, backups, release channels.**
+
+Nothing in the app changes with this release. Around it: a smoke suite asks the home lab's
+public name every night what a person would every morning — the app loads, the hub names
+its doors, the catalogue answers with a build that is not stale and knows a family, the
+shop identifies a barcode. A load test measured the catalogue on the real build at about
+1,750 requests a second past the proxy, eight times the target. The hub's file is copied
+once a day and a drill proves the copies are worth something. The catalogue's health says
+`stale` after forty days without a build, for a monitor to read. A `Promote` workflow points
+a `stable` channel at a release, and a compose file with Caddy runs the whole stack on one
+cloud box, walked through in ten steps in the deployment doc. The Support screen's prices
+stand in their own column.
+
+
+### Added
+
+* **deploy:** the staging ring — smoke run, load test, backups, channels, the cloud compose ([524920d](https://github.com/misterhonk/fidelity/commit/524920ddf60984bbc66cffdd0ebc43e6d90bc044))
+
+
+### Fixed
+
+* **deploy:** the smoke suite stays out of the ordinary browser run ([d579d39](https://github.com/misterhonk/fidelity/commit/d579d398e1677f6404f8a6f9931973495087cae0))
+* **ui:** the Support screen's price stands in its own column ([c6d64ea](https://github.com/misterhonk/fidelity/commit/c6d64ea2725868005b3046bde78a62f6e2bb6389))
+
 ## [0.53.0](https://github.com/misterhonk/fidelity/compare/v0.52.0...v0.53.0) (2026-09-12)
 
 **The hub's second door — and three things a phone showed.**
