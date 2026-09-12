@@ -1040,6 +1040,33 @@ shops are reachable, and there the plan does it).
 
 ---
 
+## M21 · The catalogue → planned
+
+**Decision:** [ADR-013](adr/013-catalogue-service.md) · **Concept:** `docs/16-CATALOGUE-SERVICE.md`
+
+Everything left on the lists after M19 and M20 needs the catalogue as a whole: catalogue
+runs for labels above 1,500 releases, credits in the second degree, the lexicon for artists
+nobody on the shelf has, pressing families and identifiers without a request, the map
+compared with the catalogue. ADR-005 named this as the way out — "the engine queries a
+table, not a data source" — and the home lab (`docs/14` §8) is the disk it was waiting for.
+
+A second optional service, `fidelity-catalogue`, built monthly from the CC0 dump, read-only,
+no token, no user, no marketplace data, no images; one port in the client with the horizon
+behind it, so no feature depends on it and no score moves.
+
+| Phase | Delivers | Cost |
+|---|---|---|
+| M21.1 The seam | `CatalogueSource`, `catalogueUrl`, discovery, a CI run with the URL empty | days, no server |
+| M21.2 The mini-dump | A frozen fixture of ~300 releases; the ETL's golden tests in CI | days |
+| M21.3 The build | The ETL container, six steps, two-generation swap, health date | a weekend with the home lab |
+| M21.4 Two routes | `family` and `artist`: the shop reads a pressing with zero requests | days |
+| M21.5 The signals | `credits`, `run`, per-dig lookups with a bound, the second golden test | a week |
+| M21.6 The shop and the map | `identify`, `stats`, the comparison line in the year on the shelf | days |
+
+Not started. The first two phases touch no server; nothing is bought.
+
+---
+
 ## Not on the roadmap
 
 | Idea | Why not |

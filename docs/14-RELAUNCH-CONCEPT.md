@@ -5,7 +5,9 @@
 > Fidelity as it stands is a proof of concept that costs almost nothing to run. This
 > document is what a second version would look like if it were started again today, with
 > what has been learned. Nothing in it is scheduled. The candidates that *are* scheduled
-> came out of §2 and stand in `06-ROADMAP.md` under M19.
+> came out of §2 and stand in `06-ROADMAP.md` under M19 — all built by 2026-09-12, with
+> M20 after them. The thin CC0 server of §3 is now decided and planned as its own step:
+> [ADR-013](adr/013-catalogue-service.md) and `16-CATALOGUE-SERVICE.md`, M21 in the roadmap.
 
 ---
 

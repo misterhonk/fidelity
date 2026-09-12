@@ -293,6 +293,7 @@ rules that are not up for negotiation.
 | [`docs/13-HUB-ADDON.md`](docs/13-HUB-ADDON.md) | The optional server add-on |
 | [`docs/14-RELAUNCH-CONCEPT.md`](docs/14-RELAUNCH-CONCEPT.md) | What a second version would look like — research, architecture, hosting, business model. Not a plan |
 | [`docs/15-COMPARED.md`](docs/15-COMPARED.md) | What Fidelity is and is not, beside Seller Matches, discdogs, WaxTracker, Groovv and the rest |
+| [`docs/16-CATALOGUE-SERVICE.md`](docs/16-CATALOGUE-SERVICE.md) | The catalogue service from the CC0 dump — concept and phases for M21, not built |
 | [`docs/adr/`](docs/adr/) | Architecture decision records, including the rejected ones |
 
 ---
