@@ -741,6 +741,7 @@ const en = {
       'This application uses Discogs\' API but is not affiliated with, sponsored or endorsed by Discogs. "Discogs" is a trademark of Zink Media, LLC.',
     privacy: 'Privacy',
     legal: 'Imprint',
+    compared: 'Compared',
   },
 }
 

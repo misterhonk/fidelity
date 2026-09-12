@@ -18,7 +18,7 @@ const en = {
   privacy: {
     title: 'Privacy',
     description: 'What Fidelity stores — and where. Short, because it is short.',
-    lead: 'Fidelity has no server of its own. Everything it knows sits in your browser’s database; what leaves this device leaves it to Discogs — and to two other places, each of them only if you switch it on.',
+    lead: 'Fidelity has no server of its own. Everything it knows sits in your browser’s database; what leaves this device leaves it to Discogs — and to a few other places, each of them only if you switch it on.',
 
     onDevice: 'What is on your device',
     items: [
@@ -31,7 +31,7 @@ const en = {
 
     connections: 'Where connections go',
     connectionsBody:
-      'In ordinary running, only to api.discogs.com and to i.discogs.com for the covers. Your token goes to Discogs and to nobody else. No analytics, no fonts from foreign servers, no error reports. The two sections below are the exceptions, and both stay shut until you open them.',
+      'In ordinary running, only to api.discogs.com and to i.discogs.com for the covers. Your token goes to Discogs and to nobody else. No analytics, no fonts from foreign servers, no error reports. The sections below are the exceptions, and every one of them stays shut until you open it.',
 
     /*
      * The first exception, and it gets a heading of its own.
@@ -57,6 +57,24 @@ const en = {
     hub: 'The second exception: a hub of your own',
     hubBody:
       'Fidelity can make use of a small helper server — the hub. There is none until you enter its address in the settings yourself; with that field empty nothing is ever asked of it. If you do run one: your backup and any find list you share go there sealed, so the hub holds them and cannot read them. What it does see in plain sight is the shops you are watching, the push address your browser hands out for notifications, the release ids it is asked for covers of, and the shop and country a postage table belongs to. Your Discogs token is never among it.',
+
+    /*
+     * The third exception. The catalogue is read-only and holds nothing of
+     * anybody's — but a lookup still tells its operator what was looked up,
+     * and that is a disclosure whether or not the answer is public data.
+     */
+    catalogue: 'The third exception: a catalogue',
+    catalogueBody:
+      'A catalogue is a second helper server, built from the public Discogs data, that answers what the horizon would otherwise ask Discogs for. There is none until you enter its address in the settings. If you do: it sees the release, artist, label and master ids it is asked about, and the barcode or run-out you type in the shop. It holds nothing of yours — no collection, no wantlist, no token — and it never learns who is asking.',
+
+    /*
+     * The fourth, and the only one that names a person: an access key stands
+     * for a payer. Nothing on this device changes, but every hub and catalogue
+     * call carries the key, and the notice has to say so.
+     */
+    access: 'The fourth exception: an access key',
+    accessBody:
+      'If you enter an access key in the settings, it travels with every call to the hub and the catalogue — that is what lets a hosted hub tell its members’ rows apart. The key stands for a plan, not for a Discogs account: the hub learns which key is asking and when it expires, and nothing about who you are on Discogs. Where the key came from — the receipt, the payment — stays with the service that issued it, which has a privacy notice of its own.',
 
     hosting: 'Where this page comes from',
     hostingBody:
@@ -97,7 +115,7 @@ const de: typeof en = {
   privacy: {
     title: 'Datenschutz',
     description: 'Was Fidelity speichert – und wo. Kurz, weil es kurz ist.',
-    lead: 'Fidelity hat keinen eigenen Server. Alles, was die App weiß, liegt in der Datenbank deines Browsers; was dieses Gerät verlässt, geht an Discogs – und an zwei weitere Stellen, jede nur dann, wenn du sie einschaltest.',
+    lead: 'Fidelity hat keinen eigenen Server. Alles, was die App weiß, liegt in der Datenbank deines Browsers; was dieses Gerät verlässt, geht an Discogs – und an ein paar weitere Stellen, jede nur dann, wenn du sie einschaltest.',
 
     onDevice: 'Was auf deinem Gerät liegt',
     items: [
@@ -110,7 +128,7 @@ const de: typeof en = {
 
     connections: 'Wohin Verbindungen gehen',
     connectionsBody:
-      'Im normalen Betrieb ausschließlich zu api.discogs.com und zu i.discogs.com für die Cover. Dein Token geht dabei an Discogs, an sonst niemanden. Kein Analytics, keine Fonts von fremden Servern, keine Fehler-Berichte. Die beiden Abschnitte darunter sind die Ausnahmen, und beide bleiben zu, bis du sie aufmachst.',
+      'Im normalen Betrieb ausschließlich zu api.discogs.com und zu i.discogs.com für die Cover. Dein Token geht dabei an Discogs, an sonst niemanden. Kein Analytics, keine Fonts von fremden Servern, keine Fehler-Berichte. Die Abschnitte darunter sind die Ausnahmen, und jede bleibt zu, bis du sie aufmachst.',
 
     audio: 'Die erste Ausnahme: die Hörprobe',
     audioBody:
@@ -119,6 +137,14 @@ const de: typeof en = {
     hub: 'Die zweite Ausnahme: ein eigener Hub',
     hubBody:
       'Fidelity kann einen kleinen Hilfsserver nutzen – den Hub. Es gibt keinen, solange du seine Adresse nicht selbst in den Einstellungen einträgst; bleibt das Feld leer, wird nie etwas bei ihm angefragt. Wer einen betreibt: Sicherung und geteilte Fundliste gehen versiegelt dorthin, der Hub hält sie und kann sie nicht lesen. Im Klartext sieht er die Läden, die du beobachtest, die Push-Adresse, die dein Browser für Benachrichtigungen herausgibt, die Release-IDs, zu denen er Cover liefern soll, und Laden und Land, zu dem eine Versandstaffel gehört. Dein Discogs-Token ist nie dabei.',
+
+    catalogue: 'Die dritte Ausnahme: ein Katalog',
+    catalogueBody:
+      'Ein Katalog ist ein zweiter Hilfsserver, gebaut aus den öffentlichen Discogs-Daten, der beantwortet, was der Horizont sonst bei Discogs erfragen würde. Es gibt keinen, solange du seine Adresse nicht in den Einstellungen einträgst. Wenn doch: Er sieht die Release-, Künstler-, Label- und Master-IDs, nach denen er gefragt wird, und den Barcode oder die Auslaufrille, die du im Laden eintippst. Er hält nichts von dir – keine Sammlung, keine Wantlist, kein Token – und erfährt nie, wer fragt.',
+
+    access: 'Die vierte Ausnahme: ein Zugangsschlüssel',
+    accessBody:
+      'Trägst du in den Einstellungen einen Zugangsschlüssel ein, reist er mit jedem Aufruf an Hub und Katalog – so kann ein gehosteter Hub die Zeilen seiner Mitglieder auseinanderhalten. Der Schlüssel steht für einen Plan, nicht für ein Discogs-Konto: Der Hub erfährt, welcher Schlüssel fragt und wann er abläuft, und nichts darüber, wer du auf Discogs bist. Woher der Schlüssel kam – Beleg, Zahlung – bleibt bei dem Dienst, der ihn ausgestellt hat, und der hat eine eigene Datenschutzerklärung.',
 
     hosting: 'Woher diese Seite kommt',
     hostingBody:

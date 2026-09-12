@@ -67,7 +67,7 @@ Settings → Appearance whenever you like.
 **What it is not.** Not a catalogue app, not a price tracker, not an alert service, not an
 overlay on discogs.com — each of those exists, several times. What Fidelity computes that
 the API does not hand out, and how it sits beside Seller Matches, discdogs, WaxTracker,
-Groovv and the rest: [`docs/15-COMPARED.md`](docs/15-COMPARED.md).
+Groovv and the rest: [`docs/15-COMPARED.md`](docs/15-COMPARED.md), and the same page inside the app at `/compared`.
 
 ---
 
@@ -311,6 +311,11 @@ puts on the internet. Anybody meaning well satisfies it with a link to their sou
 
 Without warranty, and here that is not merely a formula: this app works with its users'
 Discogs accounts.
+
+**The name is the one thing the licence does not give.** Run the software, change it, host
+it for your friends or your shop — but not under the name "Fidelity" as a service for other
+people. That name belongs to the hosted one ([ADR-014](docs/adr/014-open-core-hosted-comfort.md)),
+the way Ghost keeps its name and gives away its code.
 
 ---
 

@@ -25,7 +25,7 @@ useSeoMeta({
         docs/09 §3: there is no server of ours, so there is little to declare —
         and the honest version of that is a short page, not a long one that
         pretends otherwise. Short is not the same as incomplete, though: every
-        place data can go gets a heading here, including the two that only
+        place data can go gets a heading here, including the four that only
         exist once somebody switches them on.
       -->
       <p class="text-fid-base text-fid-text">{{ l.privacy.lead }}</p>
@@ -50,6 +50,16 @@ useSeoMeta({
       <section class="flex flex-col gap-2">
         <h2 class="text-fid-base font-medium text-fid-text">{{ l.privacy.hub }}</h2>
         <p class="text-fid-base text-fid-text-muted">{{ l.privacy.hubBody }}</p>
+      </section>
+
+      <section class="flex flex-col gap-2">
+        <h2 class="text-fid-base font-medium text-fid-text">{{ l.privacy.catalogue }}</h2>
+        <p class="text-fid-base text-fid-text-muted">{{ l.privacy.catalogueBody }}</p>
+      </section>
+
+      <section class="flex flex-col gap-2">
+        <h2 class="text-fid-base font-medium text-fid-text">{{ l.privacy.access }}</h2>
+        <p class="text-fid-base text-fid-text-muted">{{ l.privacy.accessBody }}</p>
       </section>
 
       <section class="flex flex-col gap-2">

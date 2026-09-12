@@ -59,8 +59,13 @@ as **Restricted Data**:
 > with Our API or the Content if we provide that access to users free of charge, without
 > Our express written permission."
 
-**Consequence for this project:** Fidelity is **free**. Full stop.
-With no server there is nothing to finance anyway.
+**Consequence for this project:** the **app** is free, and stays free — every signal,
+every screen, self-hosting included. That was "full stop" until ADR-014 (2026-09-12) shaped
+a paid comfort tier for 1.0, and the shape is chosen against this clause: what is paid for
+is *hosting and computation on CC0 data* — a hosted hub, the watcher, the catalogue built
+from the monthly dump — and no paid feature makes an API call on the member's behalf
+(`docs/17` §6.1). The letter asking Discogs to confirm that reading is drafted in the
+private repository (M25) and goes out before the first euro.
 
 > **For context:** Discogs Enhancer (€3–10/year, 10,000+ users) and Vizcogs (€4/month)
 > charge money and are visibly tolerated. The defensible reading would be: you pay for the
@@ -152,6 +157,23 @@ code on 2026-09-11, not ticked from memory:
 - [ ] If Sentry is ever used: name it as a processor, EU region, `sendDefaultPii: false`,
       **token redaction in the `beforeSend` hook**. There is no Sentry and no error
       reporting of any kind; this line is a condition, not an open task
+
+**Two more places since M21 and M22**, and the notice names both (checked 2026-09-12): a
+catalogue somebody enters sees the ids and the barcode or run-out it is asked about, and an
+access key travels with every hub and catalogue call. `privacy-promise.spec.ts` now watches
+`worker/catalogue/client.ts` as well.
+
+### 3.1 The access service — the one process with personal data
+
+`fidelity-access` (`docs/17` §3.4) is the exception to everything above: it receives the
+payment provider's webhooks and keeps `payer_id, email_hash, tier, valid_until, key_id,
+revoked`. That is personal data under art. 4 GDPR, the legal basis is the contract
+(art. 6(1)(b)), and it needs what the app never did — a privacy notice of its own, a
+retention rule (rows deleted 30 days after the plan ends), a processor relationship with the
+provider (who, as merchant of record, is the seller and holds name, address and payment
+data; Fidelity holds none of them), and a real postal address in the legal notice, because
+§ 5 DDG's "geschäftsmäßig" is met the day the first plan is sold. The notice is drafted with
+the service in the private repository; it goes live with the service, not before.
 
 > **The privacy notice is allowed to be honestly short.** But short is not the same as
 > partial, and the difference cost something once. Until 2026-09-11 the notice opened with

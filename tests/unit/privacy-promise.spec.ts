@@ -23,6 +23,7 @@ import { packs } from '~/i18n/legal'
  */
 const PAGE = readFileSync('app/pages/privacy.vue', 'utf8')
 const HUB = readFileSync('worker/hub/client.ts', 'utf8')
+const CATALOGUE = readFileSync('worker/catalogue/client.ts', 'utf8')
 
 /** Every `…Body` in the pack is a destination with something to disclose. */
 const BODIES = Object.keys(packs.en.privacy).filter((key) => key.endsWith('Body'))
@@ -53,6 +54,37 @@ describe('the privacy notice', () => {
   it('gives the hub and the web host a section of their own', () => {
     expect(BODIES).toContain('hubBody')
     expect(BODIES).toContain('hostingBody')
+  })
+
+  /**
+   * The catalogue slipped past this guard for six phases of M21.
+   *
+   * It watched one file, and the catalogue client is another one: a second
+   * address somebody types in, a second server that sees what is looked up,
+   * and until M25 not a word about it on the page. Same shape of mistake as
+   * the hub in September, one directory over.
+   */
+  it('is about a catalogue that lookups actually go to', () => {
+    expect(CATALOGUE).toMatch(/identify/)
+    expect(CATALOGUE).toMatch(/x-fidelity-key/)
+    expect(BODIES).toContain('catalogueBody')
+  })
+
+  /**
+   * The key is the one thing sent that stands for a person.
+   *
+   * Both clients attach it, so the notice says so once, next to the sentence
+   * that it is not the Discogs account — the confusion a reader would most
+   * plausibly have.
+   */
+  it('says the access key travels, and what it is not', () => {
+    expect(HUB).toMatch(/x-fidelity-key/)
+    expect(BODIES).toContain('accessBody')
+    for (const pack of [packs.en.privacy.accessBody, packs.de.privacy.accessBody]) {
+      expect(pack).toMatch(/hub/i)
+      expect(pack).toMatch(/catalogue|Katalog/)
+      expect(pack).toMatch(/not for a Discogs account|nicht für ein Discogs-Konto/)
+    }
   })
 
   it('renders every section it declares', () => {

@@ -541,6 +541,7 @@ const de: Messages = {
       'Diese Anwendung nutzt die Discogs-API, steht aber in keiner Verbindung zu Discogs, wird von Discogs weder unterstützt noch empfohlen. „Discogs" ist eine Marke von Zink Media, LLC.',
     privacy: 'Datenschutz',
     legal: 'Impressum',
+    compared: 'Im Vergleich',
   },
 }
 

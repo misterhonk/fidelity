@@ -41,7 +41,20 @@
  * about the app, not about anybody's collection. Somebody tapping the footer
  * link without a token should not end up in the setup.
  */
-const OPEN = ['/welcome', '/settings', '/privacy', '/legal', '/shared', '/whats-new']
+/*
+ * And `/compared`, for the same reason as `/whats-new`: it is about the app,
+ * not about anybody's collection, and it is the page a link from outside
+ * lands on — from somebody who does not have the app yet.
+ */
+const OPEN = [
+  '/welcome',
+  '/settings',
+  '/privacy',
+  '/legal',
+  '/shared',
+  '/whats-new',
+  '/compared',
+]
 
 export default defineNuxtRouteMiddleware(async (to) => {
   /*

@@ -22,7 +22,7 @@ const GESPERRT = ['/shelf', '/wantlist', '/dig', '/dealers', '/basket', '/saved'
 
 /** Where you may go without a token — the settings above all, because that is
  *  where the token is entered. */
-const OFFEN = ['/welcome', '/settings', '/settings/hub', '/privacy', '/legal']
+const OFFEN = ['/welcome', '/settings', '/settings/hub', '/privacy', '/legal', '/compared']
 
 test.describe('without a token', () => {
   for (const path of GESPERRT) {

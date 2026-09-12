@@ -5,6 +5,10 @@
 > not because it is worse, but because there was no page to link to (`docs/14` §2.1 #20:
 > "all the third-party apps are the same API wrapper"). Facts about the others come from
 > their own pages and store texts on the dates given; nothing here was measured inside them.
+>
+> **Public since 2026-09-12 (M25):** the same text is a page in the app, `/compared`, in
+> both languages, linked from the footer and open without a token. The pack is
+> `app/i18n/compared.ts`; when a row here changes, that file changes with it.
 
 ---
 

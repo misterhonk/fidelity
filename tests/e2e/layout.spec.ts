@@ -57,6 +57,7 @@ const ROUTES = [
   '/settings/data',
   '/privacy',
   '/legal',
+  '/compared',
 ]
 
 test.describe('nothing scrolls sideways', () => {

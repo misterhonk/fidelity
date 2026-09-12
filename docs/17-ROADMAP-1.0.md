@@ -120,8 +120,23 @@ Two shapes, and the choice is about VAT, not about fees:
 **Recommendation for 1.0: a merchant of record.** The tier is a support tier, the volume
 is small, and a solo developer's evening is worth more than three per cent. Stripe is the
 step when the numbers say so; the access service is written against a provider interface
-with two methods (`verifyWebhook`, `portalUrl`) so the swap is a module. *Prices and fee
-figures above are from memory of their public pages and must be checked before signing.*
+with two methods (`verifyWebhook`, `portalUrl`) so the swap is a module.
+
+**Fees as read on 2026-09-12** (M25), replacing the figures from memory above:
+
+| Provider | Base | On top | Note |
+|---|---|---|---|
+| **Paddle** | 5 % + 50 ¢ per checkout | none listed | "Products under $10 … contact us for custom pricing" — three of the eight lines on the Support screen are under $10 |
+| **Lemon Squeezy** | 5 % + 50 ¢ | +0.5 % subscriptions, +1.5 % international cards, +1.5 % PayPal; on the order total including tax | Owned by Stripe since July 2024, still run as its own product; Stripe's successor "Managed Payments" (5 % + 50 ¢) is in public preview and LS merchants can migrate |
+| **Polar** | 5 % + 50 ¢ (Starter) | +1.5 % international; $15 per dispute; payouts $2 a month + 0.25 % + 25 ¢ | Lower rates only on paid plans ($20+ a month) |
+| **Stripe** (Germany) | 1.5 % + 25 ¢ EEA standard cards; 2.8 % premium; 3.15 % non-EEA + 2 % conversion | Stripe Tax 0.5 % per transaction or from €80 a month | Not a merchant of record: OSS registration and per-country VAT are Martin's |
+
+Two things the figures decide. **On a €1.99 tip the fixed 50 ¢ is a quarter of the money**
+— the smallest tip should start at €3, or be dropped. **Paddle's under-$10 rule** rules
+it out for a tier whose entry plan is €9.99. That leaves Lemon Squeezy and Polar at the
+same headline rate; Lemon Squeezy has the customer portal, licence keys and the Stripe
+road behind it, Polar has an open-source SDK and a payout fee. *The choice, and the
+account, are Martin's (M25.3); nothing in the code prefers one.*
 
 ## 4. The test setup, with the home lab
 
@@ -341,9 +356,32 @@ from before v6 skipped with "sync again"). Open: 5, the clean machine.
    the same migrations the database does.
 5. A self-hosting walk-through from a clean machine, tested by doing it once on a fresh VM.
 
+### 8.5 Launch (M25)
+
+**Progress, 2026-09-12:** 1 (the letter drafted in the private folder, the file named for Discogs,
+with the three paid parts named exactly as §6.1's right column), 4 (the access service's
+privacy notice drafted in both languages beside the letter, and the
+app's own notice extended by the catalogue and the access key with the guard watching
+`worker/catalogue/client.ts` as well), 5 (`/compared` in the app, `docs/15` as a page in
+both languages, open without a token, linked from the footer), the README's name sentence
+from ADR-014, and the fee table in §3.5 read from the providers' pages. Open, and all of
+them Martin's: 2 (the letter sent), 3 (prices and the provider account), 6 (the store
+shell, deferred to 1.1 as planned).
+
+1. The letter: drafted in the private folder, sent by Martin, the reply kept beside it.
+2. Sent before the first euro — the tier exists in the app as "free while in beta" until
+   then, and the key issuer is the script, not the service.
+3. Prices and provider: §3.5 and §6.3 as the material; the decision is a number in
+   `app/i18n/settings.ts` and an account at the provider.
+4. The privacy notice for the access service: drafted; the app's notice names the key
+   and the catalogue today.
+5. `docs/15` as the public page: `app/pages/compared.vue`, `app/i18n/compared.ts`.
+6. The store shell (Play, App Store wrappers): 1.1.
+
 ## 9. What was not verified, and what needs a decision
 
-- Provider fees and portal features: from memory of public pages; check before choosing.
+- Provider fees: read from the public pages on 2026-09-12 (§3.5). Portal features and
+  whether a support tier passes their review: only the account will tell.
 - The size of the audience the tier addresses: `docs/14` §7 guessed 20–50k serious
   collectors worldwide and 2,000 payers as an excellent outcome. Nothing measured.
 - Whether a merchant-of-record provider accepts a "support tier that unlocks hosting" as a
@@ -351,6 +389,7 @@ from before v6 skipped with "sync again"). Open: 5, the clean machine.
 - Discogs' answer to the letter. The tier is shaped so that "no answer" is survivable; a
   "no" would move the catalogue features to self-hosting only and leave the hosted hub as
   the tier.
-- Prices and names of the plans (§6.3): placeholders.
+- Prices and names of the plans (§6.3): placeholders — with one fact now known, that a
+  50 ¢ fixed fee makes a €1.99 tip a poor deal for everybody.
 - Whether the home connection's uptime is good enough for hosted members during M22/M23,
   or whether the Hetzner rehearsal in M23 becomes the move. The plan works either way.

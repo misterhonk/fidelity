@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import de from '~/i18n/de'
 import en, { type Messages } from '~/i18n/en'
+import { packs as compared } from '~/i18n/compared'
 import { packs as legal } from '~/i18n/legal'
 import { packs as settings } from '~/i18n/settings'
 import { LANGUAGES } from '~/composables/useMessages'
@@ -32,6 +33,7 @@ const AREAS = {
   shell: { en, de },
   settings,
   legal,
+  compared,
 }
 
 type Node = Record<string, unknown>

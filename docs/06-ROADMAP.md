@@ -1111,6 +1111,22 @@ M21.1 is in 0.45.0 with no catalogue behind it — the port exists, every consum
 | M24.5 Every screen since M8 through axe | The settings screens added since M8 in the accessibility run: hub with the catalogue, access, support, account with the renewal, data with the import | **Done 2026-09-12** |
 | M24.6 The clean machine | The self-hosting walk-through done once from nothing: `deploy/compose.cloud.yml` on a fresh VM, the ten steps of `docs/08` §6.1 timed | Open — a VM and an afternoon |
 
+## M25 · Launch → in progress
+
+**Plan:** [`17-ROADMAP-1.0.md`](17-ROADMAP-1.0.md) §6, §8.5 · **Decision:** ADR-014
+
+The milestone with the fewest lines of code and the most decisions. What could be written
+was written on 2026-09-12; what has to be signed, paid for or sent is Martin's.
+
+| Phase | Delivers | State |
+|---|---|---|
+| M25.1 The letter | The letter to Discogs asking for written confirmation of the tier's shape (`docs/09` §1.4): the app free and self-hostable, the paid parts hosting and CC0 computation, no API call on a member's behalf. Drafted in the private folder as ADR-014 places it | **Drafted 2026-09-12**; sending is Martin's |
+| M25.2 The public page | `docs/15` as `/compared` in the app, both languages, open without a token, in the footer; the README's sentence about the name | **Done 2026-09-12** |
+| M25.3 The privacy notices | The access service's own notice, drafted in both languages beside the letter; the app's notice extended by the catalogue and the access key — two destinations that existed since M21 and M22 without a heading — with the guard now watching the catalogue client too | **Done 2026-09-12** (the service's notice goes live with the service) |
+| M25.4 Prices and provider | Fees read from the providers' pages (`docs/17` §3.5): Paddle out on its under-$10 rule, Lemon Squeezy and Polar at 5 % + 50 ¢, the €1.99 tip a poor deal at that fee. The numbers in `settings.ts` stay placeholders until decided | Material done; decision and account are Martin's |
+| M25.5 The store shell | Play and App Store wrappers | **Deferred to 1.1**, as planned |
+| 1.0 | Tag, changelog, the four promises of `docs/17` §2 checked one by one | After M24.6 and M25.1's reply, or its absence |
+
 ## Not on the roadmap
 
 | Idea | Why not |

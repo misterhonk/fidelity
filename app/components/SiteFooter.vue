@@ -36,6 +36,14 @@ const { version, commit } = useRuntimeConfig().public
         }}</NuxtLink>
         <NuxtLink class="underline underline-offset-4" to="/legal">{{ m.nav.legal }}</NuxtLink>
         <!--
+          What this is beside the others (docs/15). In the footer because that
+          is where a link from somebody else's "best vinyl apps" post lands a
+          reader who wants the short version, and where a member finds it again.
+        -->
+        <NuxtLink class="underline underline-offset-4" to="/compared">{{
+          m.nav.compared
+        }}</NuxtLink>
+        <!--
           The commit next to the version, because the version alone cannot
           answer "is this the build I just deployed". It only moves when a
           release is cut, and a service worker can serve an older shell for as
