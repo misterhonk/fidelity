@@ -9,6 +9,19 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.63.0](https://github.com/misterhonk/fidelity/compare/v0.62.0...v0.63.0) (2026-09-12)
+
+
+### Added
+
+* **collection:** a compartment opens off the canvas (M27.1d) ([4f1f674](https://github.com/misterhonk/fidelity/commit/4f1f6743dc82a1bb05585b1d39a0626f24274b8c))
+* **collection:** the rule — sort a shelf by artist, label or year (M27.2) ([ba6ec8d](https://github.com/misterhonk/fidelity/commit/ba6ec8d9b28cd46f467bdb3fcf2018afdd89acf9))
+
+
+### Fixed
+
+* **ui:** Escape closes a sheet even when the focus has fallen out of it ([403b41d](https://github.com/misterhonk/fidelity/commit/403b41d65794ec7fc3d7774d928dfd5612d6e8d4))
+
 ## [0.62.0](https://github.com/misterhonk/fidelity/compare/v0.61.0...v0.62.0) (2026-09-12)
 
 **Sorting records in, from the wall.**
