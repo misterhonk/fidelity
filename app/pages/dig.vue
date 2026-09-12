@@ -485,15 +485,13 @@ const noHorizon = computed(
 </script>
 
 <template>
-  <main class="@container fid-page flex flex-col gap-8 py-16">
+  <AppPage>
     <!--
       The working surface. A dig is a list somebody reads for minutes, and a
       wider one shows more of it at once — which is the whole reason to sit at
       a desk for this. The prose blocks inside keep their own width.
     -->
-    <div class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ d.title }}</h1>
-    </div>
+    <PageHeader :title="d.title" />
 
     <form class="flex flex-wrap items-end gap-3" @submit.prevent="check">
       <div class="flex min-w-64 grow flex-col gap-2">
@@ -1046,5 +1044,5 @@ const noHorizon = computed(
         </section>
       </template>
     </section>
-  </main>
+  </AppPage>
 </template>

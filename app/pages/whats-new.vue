@@ -43,66 +43,59 @@ const nochDeutsch = computed(() => {
 </script>
 
 <template>
-  <main class="fid-page py-10">
-    <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <header class="flex flex-col gap-2">
-        <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ m.news.title }}</h1>
-        <p class="fid-num text-fid-sm text-fid-text-muted">{{ m.news.inVersion(version) }}</p>
-      </header>
+  <AppPage narrow>
+    <PageHeader :title="m.news.title">
+      <p class="fid-num text-fid-sm text-fid-text-muted">{{ m.news.inVersion(version) }}</p>
+    </PageHeader>
 
-      <p v-if="parts.length === 0" class="text-fid-base text-fid-text-muted">
-        {{ m.news.none }}
-      </p>
+    <p v-if="parts.length === 0" class="text-fid-base text-fid-text-muted">
+      {{ m.news.none }}
+    </p>
 
-      <div v-else class="flex flex-col gap-4">
-        <template v-for="(block, i) in parts" :key="i">
-          <p
-            class="max-w-prose text-fid-base text-fid-text"
-            :class="
-              block.kind === 'bullet'
-                ? 'border-l-2 border-fid-border pl-4'
-                : block.kind === 'action'
-                  ? 'rounded-fid-sm border border-fid-accent px-4 py-3'
-                  : ''
-            "
-          >
-            <span v-if="block.kind === 'action'" class="font-medium"
-              >{{ m.news.whatToDo }}
-            </span>
-            <template v-for="(piece, j) in block.pieces" :key="j">
-              <strong v-if="piece.kind === 'strong'" class="font-medium">{{
-                piece.text
-              }}</strong>
-              <code v-else-if="piece.kind === 'code'" class="fid-num text-fid-sm">{{
-                piece.text
-              }}</code>
-              <a
-                v-else-if="piece.kind === 'link'"
-                :href="piece.href"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="fid-action text-fid-accent underline underline-offset-4"
-                >{{ piece.text }}</a
-              >
-              <template v-else>{{ piece.text }}</template>
-            </template>
-          </p>
-        </template>
-      </div>
-
-      <p v-if="nochDeutsch" class="max-w-prose text-fid-xs text-fid-text-muted">
-        {{ m.news.german }}
-      </p>
-
-      <p class="text-fid-sm">
-        <a
-          :href="m.news.fullHref"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="fid-action text-fid-accent underline underline-offset-4"
-          >{{ m.news.full }}</a
+    <div v-else class="flex flex-col gap-4">
+      <template v-for="(block, i) in parts" :key="i">
+        <p
+          class="max-w-prose text-fid-base text-fid-text"
+          :class="
+            block.kind === 'bullet'
+              ? 'border-l-2 border-fid-border pl-4'
+              : block.kind === 'action'
+                ? 'rounded-fid-sm border border-fid-accent px-4 py-3'
+                : ''
+          "
         >
-      </p>
+          <span v-if="block.kind === 'action'" class="font-medium">{{ m.news.whatToDo }} </span>
+          <template v-for="(piece, j) in block.pieces" :key="j">
+            <strong v-if="piece.kind === 'strong'" class="font-medium">{{ piece.text }}</strong>
+            <code v-else-if="piece.kind === 'code'" class="fid-num text-fid-sm">{{
+              piece.text
+            }}</code>
+            <a
+              v-else-if="piece.kind === 'link'"
+              :href="piece.href"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="fid-action text-fid-accent underline underline-offset-4"
+              >{{ piece.text }}</a
+            >
+            <template v-else>{{ piece.text }}</template>
+          </template>
+        </p>
+      </template>
     </div>
-  </main>
+
+    <p v-if="nochDeutsch" class="max-w-prose text-fid-xs text-fid-text-muted">
+      {{ m.news.german }}
+    </p>
+
+    <p class="text-fid-sm">
+      <a
+        :href="m.news.fullHref"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="fid-action text-fid-accent underline underline-offset-4"
+        >{{ m.news.full }}</a
+      >
+    </p>
+  </AppPage>
 </template>

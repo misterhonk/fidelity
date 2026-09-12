@@ -2,6 +2,8 @@ import { readFileSync, readdirSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
+import { withoutComments } from '../helpers/german'
+
 /**
  * One measure for the whole app.
  *
@@ -25,9 +27,17 @@ import { describe, expect, it } from 'vitest'
  * centred. So two edges instead of six: the container's, shared by the main
  * bar and the wide pages, and the narrow column's.
  *
- * Centred rather than anchored left, because anchoring left does hold the edge
- * but leaves a 48rem column clinging to the left third of an 1800 px screen.
- * The trade was decided on the running picture, not on the principle.
+ * **Anchored left, since 2026-09-12.** The first version centred the narrow
+ * column, on the argument that a 48rem column clinging to the left third of
+ * an 1800 px screen looks lost. The next stack of screenshots said the
+ * opposite: the title of "On watch" stood 500 px to the right of the title of
+ * "Shelf", one tap apart, and that jump is what the eye registers — not the
+ * empty right half. So the column now starts where every other screen
+ * starts, and the head stands still.
+ *
+ * The frame itself lives in `AppPage.vue` (the settings pages keep theirs in
+ * `SettingsPage.vue`); a page carrying its own `<main>` is the exception and
+ * is held to the same classes.
  */
 
 const SEITEN = readdirSync('app/pages', { recursive: true, encoding: 'utf8' })
@@ -60,9 +70,35 @@ describe('every screen shares one measure', () => {
     expect(abweichler).toEqual([])
   })
 
-  /** And the inherited frame carries it too. */
-  it('includes the frame the settings pages sit in', () => {
-    expect(readFileSync('app/components/SettingsPage.vue', 'utf8')).toMatch(/\bfid-page\b/)
+  /** And the two inherited frames carry it too — with one distance to the top. */
+  it('includes the frames the pages sit in, at one distance from the bar', () => {
+    for (const frame of ['AppPage', 'SettingsPage']) {
+      // Without the comments: the frame's own comment names the four
+      // distances it replaced, and a guard that reads the comment reads
+      // the history as a fault.
+      const quelle = withoutComments(readFileSync(`app/components/${frame}.vue`, 'utf8'))
+      expect(quelle, frame).toMatch(/\bfid-page\b/)
+      expect(quelle, frame).not.toMatch(/\bpy-(?!10\b)\d+\b/)
+    }
+  })
+
+  /**
+   * And no page sets its own distance to the bar.
+   *
+   * The occasion of 2026-09-12: `py-4`, `py-6`, `py-10` and `py-16` across
+   * the screens, so the title moved up and down with every tap. The distance
+   * is the frame's; a page that needs its own `<main>` uses the same one.
+   */
+  it('keeps one distance from the bar to the head', () => {
+    const abweichler = SEITEN.filter(({ datei, quelle }) => {
+      if (OHNE_MASS.includes(datei)) return false
+      const auf = quelle.indexOf('<main')
+      if (auf === -1) return false
+      const tag = quelle.slice(auf, quelle.indexOf('>', auf))
+      return !/\bpy-10\b/.test(tag)
+    }).map(({ datei }) => datei)
+
+    expect(abweichler).toEqual([])
   })
 
   /**
@@ -130,7 +166,7 @@ describe('every screen shares one measure', () => {
    * rule means. A `max-w-…` further in belongs to a card or a paragraph and is
    * exactly right there.
    */
-  it('gives narrow content one measure, centred', () => {
+  it('gives narrow content one measure, anchored left', () => {
     /*
      * Checked against the classes themselves, not against their order.
      *
@@ -143,14 +179,15 @@ describe('every screen shares one measure', () => {
     const abweichend: string[] = []
     for (const { datei, quelle } of [
       ...SEITEN.map((s) => ({ ...s })),
-      {
-        datei: 'components/SettingsPage.vue',
-        quelle: readFileSync('app/components/SettingsPage.vue', 'utf8'),
-      },
+      ...['AppPage', 'SettingsPage', 'SiteFooter'].map((name) => ({
+        datei: `components/${name}.vue`,
+        quelle: readFileSync(`app/components/${name}.vue`, 'utf8'),
+      })),
     ]) {
       if (OHNE_MASS.includes(datei)) continue
 
-      const auf = quelle.indexOf('<main')
+      // The footer has no <main>; its column is checked from its own root.
+      const auf = quelle.indexOf(datei.endsWith('SiteFooter.vue') ? '<footer' : '<main')
       if (auf === -1) continue
       const nachTag = quelle.indexOf('>', auf) + 1
 
@@ -162,7 +199,8 @@ describe('every screen shares one measure', () => {
       const masse = teile.filter((t) => t.startsWith('max-w-'))
       if (masse.length === 0) continue
 
-      const stimmt = masse.length === 1 && masse[0] === 'max-w-3xl' && teile.includes('mx-auto')
+      const stimmt =
+        masse.length === 1 && masse[0] === 'max-w-3xl' && !teile.includes('mx-auto')
       if (!stimmt) abweichend.push(`${datei}: ${klassen.slice(0, 60)}`)
     }
 
@@ -187,10 +225,10 @@ describe('every screen shares one measure', () => {
     const falsch: string[] = []
     for (const { datei, quelle } of [
       ...SEITEN,
-      {
-        datei: 'components/SettingsPage.vue',
-        quelle: readFileSync('app/components/SettingsPage.vue', 'utf8'),
-      },
+      ...['AppPage', 'SettingsPage'].map((name) => ({
+        datei: `components/${name}.vue`,
+        quelle: readFileSync(`app/components/${name}.vue`, 'utf8'),
+      })),
     ]) {
       const auf = quelle.indexOf('<main')
       if (auf === -1) continue

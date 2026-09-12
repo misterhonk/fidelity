@@ -138,17 +138,16 @@ const open = ref<number | null>(null)
 </script>
 
 <template>
-  <main class="@container fid-page flex flex-col gap-6 py-10">
+  <AppPage>
     <!--
       Wider than the reading screens on purpose. A grid of covers is the one
       thing in this app that gets better with room, and a collector at a desk
       has room — the column count follows the container, so the same markup is
       three across on a phone and eight on a monitor.
     -->
-    <header class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ c.title }}</h1>
-      <CollectionTabs />
-    </header>
+    <PageHeader :title="c.title">
+      <template #tabs><CollectionTabs /></template>
+    </PageHeader>
 
     <ErrorNote v-if="error" :cause="error" />
 
@@ -341,5 +340,5 @@ const open = ref<number | null>(null)
     </template>
 
     <ShelfSheet v-if="open !== null" :instance-id="open" @close="open = null" />
-  </main>
+  </AppPage>
 </template>

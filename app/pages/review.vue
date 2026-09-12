@@ -80,12 +80,11 @@ const named = (record: { artist: string; title: string }) =>
 </script>
 
 <template>
-  <main class="@container fid-page flex flex-col gap-10 py-16">
-    <div class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ c.review.title }}</h1>
-      <CollectionTabs />
+  <AppPage>
+    <PageHeader :title="c.title" :heading="c.review.title">
+      <template #tabs><CollectionTabs /></template>
       <ErrorNote v-if="error" :cause="error" />
-    </div>
+    </PageHeader>
 
     <p v-if="ready && !review" class="max-w-prose text-fid-base text-fid-text-muted">
       {{ c.review.empty }}
@@ -253,5 +252,5 @@ const named = (record: { artist: string; title: string }) =>
         </dl>
       </section>
     </template>
-  </main>
+  </AppPage>
 </template>

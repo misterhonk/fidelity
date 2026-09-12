@@ -144,10 +144,11 @@ const tiles = computed(() => {
     </p>
     <template v-if="ready && identity">
       <div class="flex flex-col gap-6 px-6">
-        <header class="flex flex-wrap items-baseline justify-between gap-2">
-          <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ m.home.title }}</h1>
-          <p class="text-fid-sm text-fid-text-muted">{{ identity.username }}</p>
-        </header>
+        <PageHeader :title="m.home.title">
+          <template #aside>
+            <p class="text-fid-sm text-fid-text-muted">{{ identity.username }}</p>
+          </template>
+        </PageHeader>
 
         <!--
           How current this is, right under the heading.

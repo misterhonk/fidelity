@@ -14,7 +14,7 @@ const { version, commit } = useRuntimeConfig().public
     link equity.
   -->
   <footer class="fid-page mt-auto border-t border-fid-border py-6">
-    <div class="mx-auto flex w-full max-w-3xl flex-col gap-2">
+    <div class="flex w-full max-w-3xl flex-col gap-2">
       <p class="text-fid-xs text-fid-text-muted">
         <a
           class="underline underline-offset-4"

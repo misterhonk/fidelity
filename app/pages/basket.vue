@@ -26,32 +26,29 @@ const records = computed(() =>
 </script>
 
 <template>
-  <main class="fid-page py-16">
-    <div class="@container mx-auto flex w-full max-w-3xl flex-col gap-8">
-      <div class="flex flex-col gap-3">
-        <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ b.title }}</h1>
-        <BasketTabs />
-        <p class="text-fid-base text-fid-text-muted">{{ b.lead }}</p>
-      </div>
+  <AppPage narrow>
+    <PageHeader :title="b.title" :lead="b.lead">
+      <template #tabs><BasketTabs /></template>
+    </PageHeader>
 
-      <!--
+    <!--
         Offered first when the basket is empty, because that is the state
         somebody arrives in mid-shopping-session: records already picked out on
         Discogs, and nothing here yet to reason about.
       -->
-      <ErrorNote v-if="trouble" :cause="trouble" />
+    <ErrorNote v-if="trouble" :cause="trouble" />
 
-      <BasketPaste />
+    <BasketPaste />
 
-      <p v-if="baskets.length === 0" class="text-fid-base text-fid-text-muted">
-        {{ b.empty }}
-        <NuxtLink class="fid-action text-fid-text underline underline-offset-4" to="/dig">{{
-          b.emptyAction
-        }}</NuxtLink>
-      </p>
+    <p v-if="baskets.length === 0" class="text-fid-base text-fid-text-muted">
+      {{ b.empty }}
+      <NuxtLink class="fid-action text-fid-text underline underline-offset-4" to="/dig">{{
+        b.emptyAction
+      }}</NuxtLink>
+    </p>
 
-      <template v-else>
-        <!--
+    <template v-else>
+      <!--
           One parcel per shop.
 
           Postage is per shipment, so every basket sums, tiers and advises for
@@ -59,24 +56,23 @@ const records = computed(() =>
           three records at one seller and two at another, and until now the
           second click silently deleted the first basket.
         -->
-        <div
-          v-if="baskets.length > 1"
-          class="flex flex-wrap items-baseline justify-between gap-2"
+      <div
+        v-if="baskets.length > 1"
+        class="flex flex-wrap items-baseline justify-between gap-2"
+      >
+        <p class="fid-num text-fid-sm text-fid-text-muted">
+          {{ b.shops(count(baskets.length), count(records)) }}
+        </p>
+        <button
+          type="button"
+          class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
+          @click="clear()"
         >
-          <p class="fid-num text-fid-sm text-fid-text-muted">
-            {{ b.shops(count(baskets.length), count(records)) }}
-          </p>
-          <button
-            type="button"
-            class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
-            @click="clear()"
-          >
-            {{ b.clearAll }}
-          </button>
-        </div>
+          {{ b.clearAll }}
+        </button>
+      </div>
 
-        <BasketCard v-for="basket in baskets" :key="basket.dealer" :summary="basket" />
-      </template>
-    </div>
-  </main>
+      <BasketCard v-for="basket in baskets" :key="basket.dealer" :summary="basket" />
+    </template>
+  </AppPage>
 </template>

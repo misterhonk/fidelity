@@ -101,125 +101,120 @@ function span(row: WatchedRelease): string | null {
 </script>
 
 <template>
-  <main class="fid-page py-4">
-    <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <CollectionTabs />
+  <AppPage narrow>
+    <PageHeader :title="c.title" :heading="c.watched.title" :lead="c.watched.lead">
+      <template #tabs><CollectionTabs /></template>
+    </PageHeader>
 
-      <header class="flex flex-col gap-2">
-        <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ c.watched.title }}</h1>
-        <p class="text-fid-sm text-fid-text-muted">{{ c.watched.lead }}</p>
-      </header>
+    <ErrorNote v-if="error" :cause="error" />
+    <p v-if="loading" class="text-fid-base text-fid-text-muted">{{ m.common.loading }}</p>
 
-      <ErrorNote v-if="error" :cause="error" />
-      <p v-if="loading" class="text-fid-base text-fid-text-muted">{{ m.common.loading }}</p>
+    <section v-else-if="rows.length === 0" class="flex flex-col gap-3">
+      <p class="text-fid-base text-fid-text-muted">{{ c.watched.empty }}</p>
+      <NuxtLink
+        to="/shelf"
+        class="fid-action self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+      >
+        {{ c.watched.toShelf }}
+      </NuxtLink>
+    </section>
 
-      <section v-else-if="rows.length === 0" class="flex flex-col gap-3">
-        <p class="text-fid-base text-fid-text-muted">{{ c.watched.empty }}</p>
-        <NuxtLink
-          to="/shelf"
-          class="fid-action self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+    <template v-else>
+      <div class="flex flex-col gap-2">
+        <button
+          type="button"
+          :disabled="busy || !online"
+          class="fid-action flex min-h-11 items-center gap-2 self-start rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text disabled:opacity-40"
+          @click="check"
         >
-          {{ c.watched.toShelf }}
-        </NuxtLink>
-      </section>
-
-      <template v-else>
-        <div class="flex flex-col gap-2">
-          <button
-            type="button"
-            :disabled="busy || !online"
-            class="fid-action flex min-h-11 items-center gap-2 self-start rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text disabled:opacity-40"
-            @click="check"
-          >
-            {{ busy ? c.watched.checking : c.watched.check }}
-          </button>
-          <!--
+          {{ busy ? c.watched.checking : c.watched.check }}
+        </button>
+        <!--
             What it costs, before it runs. One request per record at a pace of
             1.2 s — that is a number somebody should know before tapping.
           -->
-          <p class="text-fid-xs text-fid-text-muted">
-            {{ c.watched.cost(rows.length, Math.ceil((rows.length * 1.2) / 60) || 1) }}
-          </p>
+        <p class="text-fid-xs text-fid-text-muted">
+          {{ c.watched.cost(rows.length, Math.ceil((rows.length * 1.2) / 60) || 1) }}
+        </p>
 
-          <div v-if="progress" class="flex flex-col gap-1" aria-live="polite">
+        <div v-if="progress" class="flex flex-col gap-1" aria-live="polite">
+          <p class="text-fid-xs text-fid-text-muted">
+            {{ m.common.ofTotal(count(progress.done), count(progress.total)) }}
+          </p>
+        </div>
+      </div>
+
+      <section v-if="outcome" role="status" class="flex flex-col gap-2">
+        <p v-if="outcome.news.length === 0" class="text-fid-sm text-fid-text-muted">
+          {{ c.watched.nothingNew }}
+        </p>
+        <p
+          v-for="item in outcome.news"
+          :key="item.releaseId"
+          class="rounded-fid-sm border border-fid-accent-fill px-3 py-2 text-fid-sm text-fid-text"
+        >
+          <span class="font-medium">{{ item.artist }} – {{ item.title }}</span>
+          {{ ' ' }}
+          <template v-if="item.news.kind === 'rose'">
+            {{
+              c.watched.rose(
+                money(item.news.from, item.news.currency) ?? String(item.news.from),
+                money(item.news.to, item.news.currency) ?? String(item.news.to),
+                String(item.news.percent),
+              )
+            }}
+          </template>
+          <template v-else-if="item.news.kind === 'fell'">
+            {{
+              c.watched.fell(money(item.news.to, item.news.currency) ?? String(item.news.to))
+            }}
+          </template>
+          <template v-else-if="item.news.kind === 'appeared'">
+            {{ c.watched.appeared(count(item.news.numForSale)) }}
+          </template>
+          <template v-else-if="item.news.kind === 'gone'">
+            {{ c.watched.gone(item.news.dealer, count(item.news.from), count(item.news.to)) }}
+          </template>
+          <template v-else>
+            {{ c.watched.fewer(count(item.news.from), count(item.news.to)) }}
+          </template>
+        </p>
+      </section>
+
+      <ul class="flex flex-col gap-2">
+        <li
+          v-for="row in rows"
+          :key="row.releaseId"
+          class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 rounded-fid-md border border-fid-border p-3"
+        >
+          <div class="flex min-w-0 flex-col gap-1">
+            <p class="text-fid-base text-fid-text">{{ row.artist }} – {{ row.title }}</p>
             <p class="text-fid-xs text-fid-text-muted">
-              {{ m.common.ofTotal(count(progress.done), count(progress.total)) }}
+              {{ row.kind === 'shelf' ? c.watched.fromShelf : c.watched.fromWantlist }}
+              <template v-if="span(row)"> · {{ span(row) }}</template>
             </p>
           </div>
-        </div>
+          <div class="flex shrink-0 items-center gap-3">
+            <p class="fid-num text-fid-base text-fid-text">{{ price(row) }}</p>
+            <button
+              type="button"
+              class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-xs text-fid-text-muted"
+              :aria-label="c.watched.drop(`${row.artist} – ${row.title}`)"
+              @click="drop(row.releaseId)"
+            >
+              {{ c.watched.dropShort }}
+            </button>
+          </div>
+        </li>
+      </ul>
 
-        <section v-if="outcome" role="status" class="flex flex-col gap-2">
-          <p v-if="outcome.news.length === 0" class="text-fid-sm text-fid-text-muted">
-            {{ c.watched.nothingNew }}
-          </p>
-          <p
-            v-for="item in outcome.news"
-            :key="item.releaseId"
-            class="rounded-fid-sm border border-fid-accent-fill px-3 py-2 text-fid-sm text-fid-text"
-          >
-            <span class="font-medium">{{ item.artist }} – {{ item.title }}</span>
-            {{ ' ' }}
-            <template v-if="item.news.kind === 'rose'">
-              {{
-                c.watched.rose(
-                  money(item.news.from, item.news.currency) ?? String(item.news.from),
-                  money(item.news.to, item.news.currency) ?? String(item.news.to),
-                  String(item.news.percent),
-                )
-              }}
-            </template>
-            <template v-else-if="item.news.kind === 'fell'">
-              {{
-                c.watched.fell(money(item.news.to, item.news.currency) ?? String(item.news.to))
-              }}
-            </template>
-            <template v-else-if="item.news.kind === 'appeared'">
-              {{ c.watched.appeared(count(item.news.numForSale)) }}
-            </template>
-            <template v-else-if="item.news.kind === 'gone'">
-              {{ c.watched.gone(item.news.dealer, count(item.news.from), count(item.news.to)) }}
-            </template>
-            <template v-else>
-              {{ c.watched.fewer(count(item.news.from), count(item.news.to)) }}
-            </template>
-          </p>
-        </section>
-
-        <ul class="flex flex-col gap-2">
-          <li
-            v-for="row in rows"
-            :key="row.releaseId"
-            class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 rounded-fid-md border border-fid-border p-3"
-          >
-            <div class="flex min-w-0 flex-col gap-1">
-              <p class="text-fid-base text-fid-text">{{ row.artist }} – {{ row.title }}</p>
-              <p class="text-fid-xs text-fid-text-muted">
-                {{ row.kind === 'shelf' ? c.watched.fromShelf : c.watched.fromWantlist }}
-                <template v-if="span(row)"> · {{ span(row) }}</template>
-              </p>
-            </div>
-            <div class="flex shrink-0 items-center gap-3">
-              <p class="fid-num text-fid-base text-fid-text">{{ price(row) }}</p>
-              <button
-                type="button"
-                class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-xs text-fid-text-muted"
-                :aria-label="c.watched.drop(`${row.artist} – ${row.title}`)"
-                @click="drop(row.releaseId)"
-              >
-                {{ c.watched.dropShort }}
-              </button>
-            </div>
-          </li>
-        </ul>
-
-        <!--
+      <!--
           The API's limit, said rather than passed over.
           "Who is selling release X?" cannot be answered (`docs/02`), so this
           screen names a price and not a shop. Anyone not knowing that takes it
           for a gap in the app.
         -->
-        <p class="text-fid-xs text-fid-text-muted">{{ c.watched.noShops }}</p>
-      </template>
-    </div>
-  </main>
+      <p class="text-fid-xs text-fid-text-muted">{{ c.watched.noShops }}</p>
+    </template>
+  </AppPage>
 </template>

@@ -181,11 +181,10 @@ async function check() {
 </script>
 
 <template>
-  <main class="@container fid-page flex flex-col gap-6 py-10">
-    <header class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ b.saved.title }}</h1>
-      <BasketTabs />
-    </header>
+  <AppPage>
+    <PageHeader :title="b.title" :heading="b.saved.title">
+      <template #tabs><BasketTabs /></template>
+    </PageHeader>
 
     <ErrorNote v-if="error" :cause="error" />
 
@@ -437,5 +436,5 @@ async function check() {
         <WhyNote :label="b.saved.arrival.whyLabel">{{ b.saved.arrival.why }}</WhyNote>
       </section>
     </template>
-  </main>
+  </AppPage>
 </template>

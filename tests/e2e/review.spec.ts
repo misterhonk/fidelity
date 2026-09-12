@@ -51,7 +51,7 @@ test('opens on the latest year and switches to an earlier one', async ({ page })
   await page.goto('/review')
 
   await expect(
-    page.getByRole('heading', { level: 1, name: 'A year on the shelf' }),
+    page.getByRole('heading', { level: 2, name: 'A year on the shelf' }),
   ).toBeVisible()
   const chips = page.getByRole('group', { name: 'Which year' })
   await expect(chips.getByRole('button', { name: '2024' })).toHaveAttribute(

@@ -323,7 +323,7 @@ a house move. So:
 
 > **One container, always.** `.fid-page` — 110rem, centred, `px-6`. What has to stay
 > narrow gets its measure **inside**, and there is exactly **one** narrow measure: 48rem,
-> centred.
+> **anchored left**.
 
 Two measures, then, not six: the container that the navigation bar shares, and the column
 that a basket or a legal page sits in. Measured at 1800 px: the wide screens share one left
@@ -346,9 +346,22 @@ is built for. On a laptop it amounts to "window minus margin".
 **Inside, text still stays narrow.** `max-w-prose` on every paragraph and every reason
 sentence, even in a 1400 px card. Nobody reads a 200-character line twice.
 
-`tests/unit/one-measure.spec.ts` holds all of it: every page uses the class, no page sets a
-second width beside it, the navigation bar and the settings frame are included, and no
-narrow block centres itself again.
+**Anchored left, since 2026-09-12.** The first version centred the narrow column, and the
+next stack of screenshots showed why that was not enough: the title of "On watch" stood
+500 px to the right of the title of "Shelf", one tap apart. A centred column moves its left
+edge with its width; a left-anchored one starts where every wide screen starts. The empty
+right half on a monitor is the price, and it is the smaller one.
+
+**One head, one distance.** The same stack of screenshots showed four distances from the
+bar to the title — `py-4`, `py-6`, `py-10`, `py-16` — and on two collection views the tabs
+above the title. Both now live in one place each: `AppPage.vue` is the frame (the measure,
+`py-10`, `gap-8`, `narrow` for the reading column) and `PageHeader.vue` the head, in one
+order everywhere — the area as the `h1`, the area's tabs, the view's own name as the `h2`
+where it has one, the lead. Six views of the collection, six identical heads.
+
+`tests/unit/one-measure.spec.ts` holds all of it: every page uses the frame or the class,
+no page sets a second width or a second distance beside it, the navigation bar, the footer
+and the two frames are included, and no narrow block centres itself again.
 
 ---
 

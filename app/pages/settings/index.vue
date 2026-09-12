@@ -145,42 +145,35 @@ const SECTIONS = computed(() => [
 </script>
 
 <template>
-  <main class="fid-page py-10">
-    <div class="@container mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <header class="flex flex-col gap-1">
-        <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ st.title }}</h1>
-        <p class="text-fid-base text-fid-text-muted">{{ st.lead }}</p>
-      </header>
+  <AppPage narrow>
+    <PageHeader :title="st.title" :lead="st.lead" />
 
-      <!--
+    <!--
         An index rather than a stack of ten open panels.
 
         Each entry says what it currently is, not only what it is for: "Dropbox ·
         2 hours ago" answers the question somebody opened the settings to ask,
         and saves the trip inside.
       -->
-      <nav v-if="identity" class="grid gap-3 @2xl:grid-cols-2">
-        <NuxtLink
-          v-for="section in SECTIONS"
-          :key="section.to"
-          :to="section.to"
-          class="flex flex-col gap-1 rounded-fid-md border border-fid-border bg-fid-surface p-5 transition-colors hover:border-fid-text-muted"
-        >
-          <span class="text-fid-base font-medium text-fid-text">{{ section.title }}</span>
-          <span class="text-fid-sm text-fid-text-muted">{{ section.hint }}</span>
-          <span v-if="section.status" class="fid-num mt-1 text-fid-xs text-fid-text-muted">
-            {{ section.status }}
-          </span>
-        </NuxtLink>
-      </nav>
+    <nav v-if="identity" class="grid gap-3 @2xl:grid-cols-2">
+      <NuxtLink
+        v-for="section in SECTIONS"
+        :key="section.to"
+        :to="section.to"
+        class="flex flex-col gap-1 rounded-fid-md border border-fid-border bg-fid-surface p-5 transition-colors hover:border-fid-text-muted"
+      >
+        <span class="text-fid-base font-medium text-fid-text">{{ section.title }}</span>
+        <span class="text-fid-sm text-fid-text-muted">{{ section.hint }}</span>
+        <span v-if="section.status" class="fid-num mt-1 text-fid-xs text-fid-text-muted">
+          {{ section.status }}
+        </span>
+      </NuxtLink>
+    </nav>
 
-      <p v-else class="text-fid-base text-fid-text-muted">
-        {{ m.common.signIn.lead }}
-        <NuxtLink class="underline underline-offset-4" to="/">{{
-          m.common.signIn.link
-        }}</NuxtLink
-        >.
-      </p>
-    </div>
-  </main>
+    <p v-else class="text-fid-base text-fid-text-muted">
+      {{ m.common.signIn.lead }}
+      <NuxtLink class="underline underline-offset-4" to="/">{{ m.common.signIn.link }}</NuxtLink
+      >.
+    </p>
+  </AppPage>
 </template>

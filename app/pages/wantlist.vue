@@ -165,11 +165,10 @@ function waiting(addedAt: string): string | null {
 </script>
 
 <template>
-  <main class="@container fid-page flex flex-col gap-6 py-10">
-    <header class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ c.title }}</h1>
-      <CollectionTabs />
-    </header>
+  <AppPage>
+    <PageHeader :title="c.title">
+      <template #tabs><CollectionTabs /></template>
+    </PageHeader>
 
     <ErrorNote v-if="error" :cause="error" />
 
@@ -600,7 +599,7 @@ function waiting(addedAt: string): string | null {
         {{ c.showMore(count(Math.min(rest, STEP))) }}
       </button>
     </template>
-  </main>
+  </AppPage>
 </template>
 
 <style scoped>

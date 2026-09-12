@@ -51,10 +51,21 @@ const SECTIONS = [
   },
 ] as const
 
-/** The first `<h1>` of a page, as written. */
+/**
+ * The first heading of a page, as written.
+ *
+ * Since 2026-09-12 the `<h1>` is drawn by `PageHeader.vue`, and a page hands
+ * it the title as `:title="d.title"` — the same expression it used to write
+ * between the tags, read back into the same shape so the checks below need
+ * not know which way it was written. A page that still writes its own `<h1>`
+ * is read as before.
+ */
 function heading(page: string): string {
-  const match = /<h1[^>]*>([\s\S]*?)<\/h1>/.exec(readFileSync(page, 'utf8'))
-  expect(match, `${page} has no <h1>`).not.toBeNull()
+  const source = readFileSync(page, 'utf8')
+  const bound = /<PageHeader[^>]*\s:title="([^"]+)"/.exec(source)
+  if (bound) return `{{ ${bound[1]!} }}`
+  const match = /<h1[^>]*>([\s\S]*?)<\/h1>/.exec(source)
+  expect(match, `${page} has no heading`).not.toBeNull()
   return match![1]!.trim()
 }
 

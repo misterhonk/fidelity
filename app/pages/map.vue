@@ -78,15 +78,14 @@ const decades = computed(() =>
 </script>
 
 <template>
-  <main class="@container fid-page flex flex-col gap-10 py-16">
+  <AppPage>
     <!--
       Wide, because this screen is five bar charts and two rankings — data, not
       reading. The prose inside stays narrow: a sentence that runs 1400 pixels
       is unreadable however much room there is.
     -->
-    <div class="flex flex-col gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">{{ c.title }}</h1>
-      <CollectionTabs />
+    <PageHeader :title="c.title">
+      <template #tabs><CollectionTabs /></template>
       <ErrorNote v-if="error" :cause="error" />
       <p v-if="profile" class="max-w-prose text-fid-base text-fid-text-muted">
         {{ c.map.lead(count(profile.releaseCount)) }}
@@ -104,7 +103,7 @@ const decades = computed(() =>
         <span class="fid-num text-fid-text">{{ value.median }}</span>
         {{ c.map.worth(value.minimum, value.maximum, day(value.fetchedAt)) }}
       </p>
-    </div>
+    </PageHeader>
 
     <p v-if="ready && !profile" class="text-fid-base text-fid-text-muted">
       {{ c.map.noProfile }}
@@ -258,5 +257,5 @@ const decades = computed(() =>
     <p v-else-if="gaps" class="max-w-prose text-fid-xs text-fid-text-muted">
       {{ c.map.needsHorizon }}
     </p>
-  </main>
+  </AppPage>
 </template>
