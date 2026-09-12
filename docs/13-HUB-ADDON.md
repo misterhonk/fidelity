@@ -175,6 +175,13 @@ Cloudflare Worker + D1.
 
 ### Where it is best placed: next to the app
 
+> **As of 2026-09-12 the hub runs on the home lab** — `fidelity.mrtnmlchr.de/hub`, behind
+> Traefik and a Cloudflare tunnel, see `docs/14` §8 — and the Uberspace copy described below
+> is switched off: its supervisord unit is retired and the `/hub` backend deleted, source and
+> database left in place. `hub.yml` with "ausliefern" would bring it back; do not run it
+> unless that is the intention. The section stays as the record of how it was placed.
+
+
 The obvious answer — on the home network — is the worse one as soon as the app is served over
 `https`. A hub at `http://localhost` is **mixed content** from there, and WebKit rejects that
 hard (measured 2026-08-10); on an iPhone a perfectly running hub is then simply unreachable.
