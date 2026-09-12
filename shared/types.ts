@@ -1168,6 +1168,16 @@ export type UnitShape = 'shelf' | 'crate' | 'box' | 'pile'
  * never moves one by itself; an explicit placement always wins.
  */
 export type PlaceRule = 'artist' | 'label' | 'year' | 'added' | 'manual'
+/** What the walls are made of (M27.1b) — drawn with CSS, never loaded. */
+export type FinishMaterial =
+  'white' | 'black' | 'birch' | 'oak' | 'walnut' | 'steel' | 'cardboard'
+export interface Finish {
+  material: FinishMaterial
+  /** Kallax walls are thick, USM tubes and Tylko plywood thin. */
+  thickness: 'thin' | 'medium' | 'thick'
+  /** A hex colour where the furniture has one — USM panels, stocubo cubes — or none. */
+  colour: string | null
+}
 
 export interface Place {
   id: string
@@ -1183,6 +1193,8 @@ export interface Place {
   slot?: { column: number; row: number }
   /** Records this compartment holds comfortably; `null` for a pile. An estimate, not a lock. */
   capacity?: number | null
+  /** On a unit: how it looks. Absent means white and thick, a Kallax. */
+  finish?: Finish
   /** On a unit (M27.2): what the compartments are sorted by. */
   rule?: PlaceRule
   /** On a compartment (M27.2): the divider, "A–Bo". */

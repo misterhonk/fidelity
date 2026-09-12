@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { labelOf, slotLabel } from '#shared/places'
+import { finishStyle, labelOf, slotLabel, textOn } from '#shared/places'
 import type { PlaceNode } from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
@@ -28,6 +28,10 @@ const c = useCollectionMessages()
 
 const columns = computed(() => props.unit.grid?.columns ?? 1)
 
+/** The walls: material as background, thickness as gap; a coloured face where the furniture has one. */
+const look = computed(() => finishStyle(props.unit.finish))
+const faceText = computed(() => (look.value.face ? textOn(look.value.face) : null))
+
 /** How full, 0–1, or null where a pile has no edge to fill to. */
 function fill(cube: PlaceNode): number | null {
   if (!cube.capacity) return null
@@ -40,11 +44,13 @@ function coordinate(cube: PlaceNode): string {
 
 /** Arrow keys walk the grid; the focused cube is the one tabbed to. */
 function onKey(event: KeyboardEvent, index: number) {
+  // The cubes come column by column (A1, A2, …), so a row is one step and a column is `rows` steps.
+  const rows = props.unit.grid?.rows ?? 1
   const step: Record<string, number> = {
-    ArrowRight: 1,
-    ArrowLeft: -1,
-    ArrowDown: columns.value,
-    ArrowUp: -columns.value,
+    ArrowRight: rows,
+    ArrowLeft: -rows,
+    ArrowDown: 1,
+    ArrowUp: -1,
   }
   const delta = step[event.key]
   if (delta === undefined) return
@@ -67,14 +73,24 @@ function onKey(event: KeyboardEvent, index: number) {
   <div
     role="grid"
     :aria-label="unit.name"
-    class="grid w-full max-w-2xl gap-px rounded-fid-sm border border-fid-border bg-fid-border"
-    :style="{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }"
+    class="grid w-full max-w-2xl rounded-fid-sm"
+    :style="{
+      gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+      gap: look.gap,
+      padding: look.gap,
+      background: look.frame,
+    }"
   >
     <div
       v-for="(cube, index) in compartments"
       :key="cube.id"
       role="gridcell"
       class="min-w-0 bg-fid-surface"
+      :style="{
+        gridColumn: (cube.slot?.column ?? 0) + 1,
+        gridRow: (cube.slot?.row ?? 0) + 1,
+        ...(look.face ? { background: look.face, color: faceText ?? undefined } : {}),
+      }"
     >
       <button
         type="button"
@@ -87,10 +103,13 @@ function onKey(event: KeyboardEvent, index: number) {
         @keydown="onKey($event, index)"
       >
         <span class="flex items-baseline justify-between gap-1">
-          <span class="fid-plate text-fid-text-muted">{{ coordinate(cube) }}</span>
+          <span class="fid-plate" :class="look.face ? 'opacity-80' : 'text-fid-text-muted'">{{
+            coordinate(cube)
+          }}</span>
           <span
             v-if="cube.name && cube.name !== coordinate(cube)"
-            class="fid-display truncate text-fid-xs font-semibold text-fid-text"
+            class="fid-display truncate text-fid-xs font-semibold"
+            :class="look.face ? '' : 'text-fid-text'"
           >
             {{ cube.name }}
           </span>
@@ -118,7 +137,7 @@ function onKey(event: KeyboardEvent, index: number) {
         <span class="flex flex-col gap-1">
           <span
             class="fid-num text-fid-xs"
-            :class="fill(cube) === 1 ? 'text-fid-sig-gap' : 'text-fid-text'"
+            :class="fill(cube) === 1 ? 'text-fid-sig-gap' : look.face ? '' : 'text-fid-text'"
           >
             {{
               cube.capacity

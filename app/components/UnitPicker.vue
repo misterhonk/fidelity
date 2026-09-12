@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { MAX_GRID, UNIT_PRESETS, type UnitPreset } from '#shared/places'
+import { DEFAULT_FINISH, MAX_GRID, UNIT_PRESETS, type UnitPreset } from '#shared/places'
+import type { Finish } from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
 
@@ -22,10 +23,13 @@ const name = ref('')
 const columns = ref(4)
 const rows = ref(2)
 const busy = ref(false)
+/** The look; a preset brings its own, and it can be changed before saving. */
+const finish = ref<Finish>({ ...DEFAULT_FINISH })
 
 function pick(preset: UnitPreset | null) {
   chosen.value = preset
   custom.value = preset === null
+  finish.value = { ...(preset?.finish ?? DEFAULT_FINISH) }
 }
 
 const ready = computed(
@@ -44,10 +48,13 @@ async function create() {
       columns: chosen.value?.columns ?? columns.value,
       rows: chosen.value?.rows ?? rows.value,
       capacity: chosen.value ? chosen.value.capacity : 70,
+      // A plain object, not the reactive proxy: structured clone refuses a Proxy.
+      finish: { ...finish.value },
     })
     name.value = ''
     chosen.value = null
     custom.value = false
+    finish.value = { ...DEFAULT_FINISH }
     emit('created')
   } finally {
     busy.value = false
@@ -136,6 +143,8 @@ async function create() {
         />
       </label>
     </div>
+
+    <FinishPicker v-if="chosen || custom" v-model="finish" />
 
     <div class="flex flex-wrap gap-2">
       <input

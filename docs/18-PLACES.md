@@ -58,6 +58,15 @@ the preset is the input, and it draws itself.
 The record's sheet (`ShelfSheet.vue`) lists compartments in its "where it is" select and
 reads the address back as a plate: `Living room · Kallax · B1`.
 
+**The look (M27.1b).** The way a rack picks its theme on ModularGrid, a piece of furniture
+has a `finish`: a material for the walls (white, black, birch, oak, walnut, steel,
+cardboard), a thickness (thin, medium, thick) and a colour where the furniture has one —
+USM's panels, stocubo's cubes. Drawn with CSS on the wall, a gradient with a grain for
+wood and a brushed one for steel, nothing loaded. The presets bring their own: Kallax
+white and thick, Billy birch and thin, USM Haller steel with ruby red panels, Tylko birch
+and thin, stocubo blue cubes, the HHV record box cardboard. `FinishPicker.vue` changes it
+before saving and after.
+
 ## 4. Sorting in and re-sorting (M27.2–M27.4)
 
 Three ways in, from the commonest: **by rule for the whole unit** (the app distributes by

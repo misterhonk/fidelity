@@ -1,6 +1,13 @@
 import { openFidelityDb } from '~~/db/open'
 import { MAX_GRID, slotLabel } from '#shared/places'
-import type { CollectionItem, Place, Placement, PlaceNode, UnitShape } from '#shared/types'
+import type {
+  CollectionItem,
+  Finish,
+  Place,
+  Placement,
+  PlaceNode,
+  UnitShape,
+} from '#shared/types'
 
 /**
  * Where the record stands (M12).
@@ -74,12 +81,14 @@ export async function placesOverview(): Promise<PlaceNode[]> {
     children.set(place.parentId, list)
   }
   /*
-   * Compartments in the order of the wall — row by row, left to right — and
-   * everything else by name. A1, B1, C1, A2 is how a person reads a shelf.
+   * Compartments column by column — A1, A2, A3, B1 — and everything else by
+   * name. In a list the letter groups, so the column is what reads as a
+   * unit (Martin, 2026-09-12); the wall places each cube by its slot and
+   * does not depend on this order.
    */
   for (const list of children.values()) {
     list.sort((a, b) => {
-      if (a.slot && b.slot) return a.slot.row - b.slot.row || a.slot.column - b.slot.column
+      if (a.slot && b.slot) return a.slot.column - b.slot.column || a.slot.row - b.slot.row
       return a.name.localeCompare(b.name)
     })
   }
@@ -186,6 +195,7 @@ export async function createUnit(params: {
   columns: number
   rows: number
   capacity: number | null
+  finish: Finish
 }): Promise<Place | null> {
   const name = params.name.trim()
   const columns = Math.trunc(params.columns)
@@ -206,6 +216,7 @@ export async function createUnit(params: {
     shape: params.shape,
     grid: { columns, rows },
     capacity: params.capacity,
+    finish: params.finish,
     createdAt: at,
     updatedAt: at,
     removedAt: null,
@@ -229,6 +240,15 @@ export async function createUnit(params: {
   }
   await tx.done
   return unit
+}
+
+/** A new look for a piece of furniture; stamped, so the vault can tell which device chose last. */
+export async function setFinish(id: string, finish: Finish): Promise<boolean> {
+  const db = await openFidelityDb()
+  const place = await db.get('places', id)
+  if (!place || !alive(place) || place.kind !== 'unit') return false
+  await db.put('places', { ...place, finish, updatedAt: Date.now() })
+  return true
 }
 
 export async function renamePlace(id: string, name: string): Promise<boolean> {

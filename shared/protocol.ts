@@ -72,6 +72,7 @@ import type {
   WatchAlert,
   WatchedRelease,
   UnitShape,
+  Finish,
 } from './types'
 
 export interface PingResult {
@@ -800,10 +801,13 @@ export interface WorkerContract {
       columns: number
       rows: number
       capacity: number | null
+      finish: Finish
     }
     progress: never
     result: Place | null
   }
+  /** The look of a piece of furniture, changed after the fact (M27.1b). */
+  'places.finish': { params: { id: string; finish: Finish }; progress: never; result: boolean }
   'places.rename': { params: { id: string; name: string }; progress: never; result: boolean }
   /** Dissolves the place; the records become placeless, not deleted. */
   'places.remove': { params: { id: string }; progress: never; result: true }

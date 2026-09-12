@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { labelOf } from '#shared/places'
-import type { CollectionItem, PlaceNode } from '#shared/types'
+import { DEFAULT_FINISH, labelOf } from '#shared/places'
+import type { CollectionItem, Finish, PlaceNode } from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
 
@@ -53,6 +53,14 @@ async function renameCube(cube: PlaceNode, name: string) {
   emit('changed')
 }
 
+/** The look, changed after the fact: every change is saved as it is made. */
+const finishing = ref(false)
+const finish = ref<Finish>({ ...(props.unit.finish ?? DEFAULT_FINISH) })
+watch(finish, async (next) => {
+  await call('places.finish', { id: props.unit.id, finish: { ...next } })
+  emit('changed')
+})
+
 const dissolving = ref(false)
 async function dissolve() {
   await call('places.remove', { id: props.unit.id })
@@ -90,6 +98,13 @@ watch(
         <button
           type="button"
           class="fid-plate fid-action min-h-11 text-fid-text-muted hover:text-fid-text"
+          @click="finishing = !finishing"
+        >
+          {{ c.places.finish }}
+        </button>
+        <button
+          type="button"
+          class="fid-plate fid-action min-h-11 text-fid-text-muted hover:text-fid-text"
           @click="renaming = !renaming"
         >
           {{ c.places.rename }}
@@ -111,6 +126,8 @@ watch(
       class="fid-field px-3 py-2 text-fid-base text-fid-text"
       @change="rename(($event.target as HTMLInputElement).value)"
     />
+
+    <FinishPicker v-if="finishing" v-model="finish" />
 
     <div v-if="dissolving" class="flex flex-col gap-2">
       <p class="text-fid-sm text-fid-text-muted">{{ c.places.dissolveUnitWhat }}</p>

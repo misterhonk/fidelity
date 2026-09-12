@@ -7,6 +7,7 @@ import {
   createPlace,
   createUnit,
   MAX_DEPTH,
+  setFinish,
   moveAll,
   placeContents,
   placeOf,
@@ -15,7 +16,7 @@ import {
   removePlace,
   renamePlace,
 } from '~~/worker/places'
-import { addressOf, labelOf, slotLabel } from '#shared/places'
+import { addressOf, finishStyle, labelOf, slotLabel, textOn } from '#shared/places'
 import type { CollectionItem } from '#shared/types'
 
 /**
@@ -300,7 +301,15 @@ describe('where the location is kept', () => {
  */
 describe('a unit with compartments', () => {
   const kallax = (parentId: string | null, columns = 2, rows = 2) =>
-    createUnit({ name: 'Kallax', parentId, shape: 'shelf', columns, rows, capacity: 70 })
+    createUnit({
+      name: 'Kallax',
+      parentId,
+      shape: 'shelf',
+      columns,
+      rows,
+      capacity: 70,
+      finish: { material: 'white', thickness: 'thick', colour: null },
+    })
 
   it('reads its coordinates like a spreadsheet', () => {
     expect(slotLabel(0, 0)).toBe('A1')
@@ -309,17 +318,17 @@ describe('a unit with compartments', () => {
     expect(slotLabel(26, 2)).toBe('AA3')
   })
 
-  it('comes with every compartment, in the order of the wall', async () => {
+  it('comes with every compartment, column by column', async () => {
     const room = (await createPlace('Living room', null))!
     const unit = (await kallax(room.id, 3, 2))!
     const nodes = await placesOverview()
     const cubes = nodes.filter((node) => node.parentId === unit.id)
-    expect(cubes.map((cube) => cube.name)).toEqual(['A1', 'B1', 'C1', 'A2', 'B2', 'C2'])
+    expect(cubes.map((cube) => cube.name)).toEqual(['A1', 'A2', 'B1', 'B2', 'C1', 'C2'])
     expect(cubes.every((cube) => cube.kind === 'compartment' && cube.capacity === 70)).toBe(
       true,
     )
     expect(nodes.find((node) => node.id === unit.id)?.grid).toEqual({ columns: 3, rows: 2 })
-    expect(addressOf(cubes[4]!.id, nodes)).toEqual(['Living room', 'Kallax', 'B2'])
+    expect(addressOf(cubes[3]!.id, nodes)).toEqual(['Living room', 'Kallax', 'B2'])
   })
 
   it('keeps the coordinate in front of a name somebody gives a compartment', async () => {
@@ -374,5 +383,50 @@ describe('a unit with compartments', () => {
     expect(shown.records).toBe(4)
     expect(shown.covers).toHaveLength(3)
     expect(shown.covers[0]).toMatch(/i\.test/)
+  })
+})
+
+/**
+ * The look (M27.1b): a material, a thickness, a colour — on the furniture,
+ * changed after the fact, drawn as CSS. A compartment has no look of its own.
+ */
+describe('a finish', () => {
+  it('rides on the furniture and can be changed later', async () => {
+    const unit = (await createUnit({
+      name: 'USM',
+      parentId: null,
+      shape: 'shelf',
+      columns: 3,
+      rows: 2,
+      capacity: 70,
+      finish: { material: 'steel', thickness: 'thin', colour: '#c8102e' },
+    }))!
+    expect(unit.finish?.material).toBe('steel')
+    expect(
+      await setFinish(unit.id, { material: 'walnut', thickness: 'medium', colour: null }),
+    ).toBe(true)
+    const after = (await placesOverview()).find((node) => node.id === unit.id)!
+    expect(after.finish).toEqual({ material: 'walnut', thickness: 'medium', colour: null })
+    expect(after.updatedAt).toBeGreaterThanOrEqual(unit.updatedAt!)
+    const cube = (await placesOverview()).find((node) => node.parentId === unit.id)!
+    expect(await setFinish(cube.id, { material: 'oak', thickness: 'thin', colour: null })).toBe(
+      false,
+    )
+  })
+
+  it('draws steel with coloured panels and a cube system in its colour', () => {
+    const usm = finishStyle({ material: 'steel', thickness: 'thin', colour: '#c8102e' })
+    expect(usm.face).toBe('#c8102e')
+    expect(usm.frame).toContain('gradient')
+    expect(usm.gap).toBe('2px')
+    const stocubo = finishStyle({ material: 'white', thickness: 'medium', colour: '#00589c' })
+    expect(stocubo.frame).toBe('#00589c')
+    expect(stocubo.face).toBeNull()
+    expect(finishStyle(undefined).gap).toBe('12px')
+  })
+
+  it('puts dark text on a light face and light text on a dark one', () => {
+    expect(textOn('#f5c400')).toBe('#1a1a1a')
+    expect(textOn('#00589c')).toBe('#f4f1ea')
   })
 })

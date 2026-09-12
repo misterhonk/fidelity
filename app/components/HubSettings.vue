@@ -170,7 +170,13 @@ async function remove() {
 
     <ErrorNote v-if="error" :cause="error" />
 
-    <p v-if="hint" class="max-w-prose text-fid-sm text-fid-text-muted" aria-live="polite">
+    <!-- A reading, not prose: what the hub answered. The sixty-words guard leaves data alone. -->
+    <p
+      v-if="hint"
+      class="max-w-prose text-fid-sm text-fid-text-muted"
+      aria-live="polite"
+      data-prose="data"
+    >
       {{ hint }}
     </p>
 
@@ -273,7 +279,12 @@ async function remove() {
       {{ saved === 'door' ? st.accessPanel.saved : st.accessPanel.removed }}
     </p>
 
-    <p v-if="status" class="text-fid-sm text-fid-text-muted" aria-live="polite">
+    <p
+      v-if="status"
+      class="text-fid-sm text-fid-text-muted"
+      aria-live="polite"
+      data-prose="data"
+    >
       {{ st.hubPanel.reachable }} · {{ st.hubPanel.horizonEntries(status.horizon) }} ·
       {{ st.hubPanel.shippingTiers(status.shipping) }} ·
       {{ status.secured ? st.hubPanel.secured : st.hubPanel.open }}

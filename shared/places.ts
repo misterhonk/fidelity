@@ -1,4 +1,4 @@
-import type { Place, PlaceNode, UnitShape } from './types'
+import type { Finish, FinishMaterial, Place, PlaceNode, UnitShape } from './types'
 
 /**
  * A place, read from the front (docs/18, ADR-015).
@@ -52,7 +52,18 @@ export function labelOf(place: Place): string {
  * level, not a lock: a compartment with 82 of 70 is full, not refused.
  */
 export type UnitPresetKey =
-  'kallax-2x2' | 'kallax-4x2' | 'kallax-4x4' | 'kallax-5x5' | 'crate' | 'box-7' | 'pile'
+  | 'kallax-2x2'
+  | 'kallax-4x2'
+  | 'kallax-4x4'
+  | 'kallax-5x5'
+  | 'billy'
+  | 'usm-haller'
+  | 'tylko'
+  | 'stocubo'
+  | 'crate'
+  | 'hhv-box'
+  | 'box-7'
+  | 'pile'
 
 export interface UnitPreset {
   key: UnitPresetKey
@@ -61,17 +72,149 @@ export interface UnitPreset {
   rows: number
   /** Per compartment; `null` for a pile, which has no edge to fill to. */
   capacity: number | null
+  /** How it looks: the material of the walls, their thickness, a colour where the furniture has one. */
+  finish: Finish
 }
 
-export const UNIT_PRESETS: readonly UnitPreset[] = [
-  { key: 'kallax-2x2', shape: 'shelf', columns: 2, rows: 2, capacity: 70 },
-  { key: 'kallax-4x2', shape: 'shelf', columns: 4, rows: 2, capacity: 70 },
-  { key: 'kallax-4x4', shape: 'shelf', columns: 4, rows: 4, capacity: 70 },
-  { key: 'kallax-5x5', shape: 'shelf', columns: 5, rows: 5, capacity: 70 },
-  { key: 'crate', shape: 'crate', columns: 1, rows: 1, capacity: 90 },
-  { key: 'box-7', shape: 'box', columns: 1, rows: 1, capacity: 150 },
-  { key: 'pile', shape: 'pile', columns: 1, rows: 1, capacity: null },
+/**
+ * The look of a piece of furniture (M27.1b), the way ModularGrid lets a rack
+ * choose its theme. Not a picture of the shelf — a material for the walls,
+ * a thickness for them, and a colour where the furniture has one (USM
+ * panels, stocubo cubes). Drawn with CSS on the wall, nothing loaded.
+ */
+export const FINISH_MATERIALS: readonly FinishMaterial[] = [
+  'white',
+  'black',
+  'birch',
+  'oak',
+  'walnut',
+  'steel',
+  'cardboard',
 ]
+
+/** The colours furniture actually comes in — USM's ruby red, golden yellow and gentian blue among them. */
+export const FINISH_COLOURS: readonly string[] = [
+  '#c8102e',
+  '#f5c400',
+  '#00589c',
+  '#3f7d20',
+  '#e46b0a',
+  '#7a1f4a',
+  '#9ea3aa',
+]
+
+export const DEFAULT_FINISH: Finish = { material: 'white', thickness: 'thick', colour: null }
+
+const white: Finish = { material: 'white', thickness: 'thick', colour: null }
+
+export const UNIT_PRESETS: readonly UnitPreset[] = [
+  { key: 'kallax-2x2', shape: 'shelf', columns: 2, rows: 2, capacity: 70, finish: white },
+  { key: 'kallax-4x2', shape: 'shelf', columns: 4, rows: 2, capacity: 70, finish: white },
+  { key: 'kallax-4x4', shape: 'shelf', columns: 4, rows: 4, capacity: 70, finish: white },
+  { key: 'kallax-5x5', shape: 'shelf', columns: 5, rows: 5, capacity: 70, finish: white },
+  {
+    key: 'billy',
+    shape: 'shelf',
+    columns: 1,
+    rows: 5,
+    capacity: 100,
+    finish: { material: 'birch', thickness: 'thin', colour: null },
+  },
+  {
+    key: 'usm-haller',
+    shape: 'shelf',
+    columns: 3,
+    rows: 2,
+    capacity: 70,
+    finish: { material: 'steel', thickness: 'thin', colour: '#c8102e' },
+  },
+  {
+    key: 'tylko',
+    shape: 'shelf',
+    columns: 4,
+    rows: 3,
+    capacity: 60,
+    finish: { material: 'birch', thickness: 'thin', colour: null },
+  },
+  {
+    key: 'stocubo',
+    shape: 'shelf',
+    columns: 3,
+    rows: 3,
+    capacity: 70,
+    finish: { material: 'white', thickness: 'medium', colour: '#00589c' },
+  },
+  {
+    key: 'crate',
+    shape: 'crate',
+    columns: 1,
+    rows: 1,
+    capacity: 90,
+    finish: { material: 'oak', thickness: 'medium', colour: null },
+  },
+  {
+    key: 'hhv-box',
+    shape: 'box',
+    columns: 1,
+    rows: 1,
+    capacity: 60,
+    finish: { material: 'cardboard', thickness: 'thin', colour: null },
+  },
+  {
+    key: 'box-7',
+    shape: 'box',
+    columns: 1,
+    rows: 1,
+    capacity: 150,
+    finish: { material: 'black', thickness: 'thin', colour: null },
+  },
+  {
+    key: 'pile',
+    shape: 'pile',
+    columns: 1,
+    rows: 1,
+    capacity: null,
+    finish: { material: 'white', thickness: 'thin', colour: null },
+  },
+]
+
+/**
+ * The walls as CSS: a material is a background, a thickness is a gap. Wood
+ * is a gradient with a grain, steel a brushed one, cardboard flat — enough
+ * to tell a Kallax from a USM at a glance, nothing photographic.
+ */
+export function finishStyle(finish: Finish | undefined): {
+  frame: string
+  gap: string
+  face: string | null
+} {
+  const f = finish ?? DEFAULT_FINISH
+  const frames: Record<FinishMaterial, string> = {
+    white: 'linear-gradient(180deg, #f3f0ea, #e6e2da)',
+    black: 'linear-gradient(180deg, #2a2a2a, #161616)',
+    birch: 'repeating-linear-gradient(90deg, #e9dcc0 0 6px, #e1d2b3 6px 9px, #ecdfc5 9px 16px)',
+    oak: 'repeating-linear-gradient(90deg, #c99a5f 0 5px, #b98a50 5px 8px, #cfa36a 8px 14px)',
+    walnut:
+      'repeating-linear-gradient(90deg, #5e3f2c 0 6px, #4d3223 6px 9px, #66452f 9px 15px)',
+    steel: 'linear-gradient(180deg, #d5d8dc, #a9aeb5 50%, #c3c7cc)',
+    cardboard: 'linear-gradient(180deg, #c19a6b, #ad8656)',
+  }
+  const gaps = { thin: '2px', medium: '6px', thick: '12px' }
+  // Coloured furniture: the colour is the frame for a cube system, the face for a panel system.
+  const frame = f.colour && f.material !== 'steel' ? f.colour : frames[f.material]
+  const face = f.colour && f.material === 'steel' ? f.colour : null
+  return { frame, gap: gaps[f.thickness], face }
+}
+
+/** Dark text on a light face, light text on a dark one — for a coloured compartment. */
+export function textOn(colour: string): string {
+  const hex = colour.replace('#', '')
+  const r = parseInt(hex.slice(0, 2), 16)
+  const g = parseInt(hex.slice(2, 4), 16)
+  const b = parseInt(hex.slice(4, 6), 16)
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  return luminance > 0.55 ? '#1a1a1a' : '#f4f1ea'
+}
 
 /** The most anybody builds by hand — a 10 × 10 wall is a hundred places. */
 export const MAX_GRID = 10

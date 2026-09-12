@@ -581,6 +581,11 @@ export const handlers: HandlerMap = {
     return createUnit(params)
   },
 
+  'places.finish': async ({ id, finish }) => {
+    const { setFinish } = await import('./places')
+    return setFinish(id, finish)
+  },
+
   'places.rename': async ({ id, name }) => {
     const { renamePlace } = await import('./places')
     return renamePlace(id, name)
