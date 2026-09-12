@@ -294,6 +294,7 @@ rules that are not up for negotiation.
 | [`docs/14-RELAUNCH-CONCEPT.md`](docs/14-RELAUNCH-CONCEPT.md) | What a second version would look like — research, architecture, hosting, business model. Not a plan |
 | [`docs/15-COMPARED.md`](docs/15-COMPARED.md) | What Fidelity is and is not, beside Seller Matches, discdogs, WaxTracker, Groovv and the rest |
 | [`docs/16-CATALOGUE-SERVICE.md`](docs/16-CATALOGUE-SERVICE.md) | The catalogue service from the CC0 dump — concept and phases for M21, not built |
+| [`docs/17-ROADMAP-1.0.md`](docs/17-ROADMAP-1.0.md) | The road to 1.0: app, hub, catalogue, access — technology, the test rings, the Hetzner cross-check, the paid comfort tier with one key per payer |
 | [`docs/adr/`](docs/adr/) | Architecture decision records, including the rejected ones |
 
 ---

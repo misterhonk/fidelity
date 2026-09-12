@@ -1040,6 +1040,9 @@ shops are reachable, and there the plan does it).
 
 ---
 
+> **The road to 1.0 as a whole — M21 to M25, the test rings, the cloud cross-check and the
+> paid comfort tier — is laid out in [`17-ROADMAP-1.0.md`](17-ROADMAP-1.0.md).**
+
 ## M21 · The catalogue → planned
 
 **Decision:** [ADR-013](adr/013-catalogue-service.md) · **Concept:** `docs/16-CATALOGUE-SERVICE.md`
