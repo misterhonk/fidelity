@@ -11,6 +11,24 @@ Für eine App bedeutet SemVer:
 
 ## [0.48.0](https://github.com/misterhonk/fidelity/compare/v0.47.0...v0.48.0) (2026-09-12)
 
+**Renew the token without losing the shelf — and the dig page says which shop is scanning.**
+
+Two things a phone taught on the same day. Discogs stopped accepting a token, and the only
+way to enter a new one was to sign out, which deletes the database: thirteen minutes of
+horizon, every dig and every rating for a key that takes ten seconds to make. Now the
+account screen has "Renew the token": it checks the new key the way sign-in does, and if it
+belongs to the same account it replaces the old one and nothing else moves. A key for
+another account is refused and the old one stays.
+
+And "A scan is already running" was the whole message, most often after leaving the dig
+page mid-scan and coming back — the scan had carried on in the background, and the page
+knew nothing of it. It attaches now: the shop's name stands over the bar, the numbers keep
+moving, the buttons wait, and the result appears when it is through. The refusal, where it
+is still one, names the shop.
+
+The catalogue build's first full run on the home lab died 90 seconds in on a label without
+an id; it skips those now and survives a single entity the database refuses.
+
 
 ### Added
 
