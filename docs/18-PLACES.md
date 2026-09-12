@@ -50,8 +50,10 @@ and worker share.
 `/places`: a room is a heading, its furniture stands under it as the wall it is —
 `PlaceWall.vue`, a `grid` with roving focus, each compartment with its coordinate, its name
 if it has one, the first three covers of what it holds and a fill bar against its capacity.
-A tap opens the compartment under the wall (`PlaceUnit.vue`): its records as covers, a name
-for the compartment, "move all" to any other place. Furniture is created from a preset
+A tap opens the compartment off the canvas, from the right, in the same frame the record's
+sheet uses (`PlaceSheet.vue`, M27.1d — under the wall at first, moved on Martin's request):
+its records as covers, a name for the compartment, "fill" from the collection, "move all"
+to any other place. The wall stays where it is. Furniture is created from a preset
 (`UnitPicker.vue`): Kallax 2×2 to 5×5, crate, 7" box, pile, or a custom grid up to 10×10 —
 the preset is the input, and it draws itself.
 
