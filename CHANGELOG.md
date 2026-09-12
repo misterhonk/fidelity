@@ -9,6 +9,35 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.59.0](https://github.com/misterhonk/fidelity/compare/v0.58.0...v0.59.0) (2026-09-12)
+
+**Sixty words, one door, and a find that keeps its name.**
+
+Every screen now says what it has to say in sixty words above the fold, and a browser
+test holds it there: leads got shorter, explanations moved behind "Why?", and the wantlist's
+plan is a line instead of a box. The hub screen has one field for the way in — an access
+key or the shared secret of your own hub — and the app reads which one you typed: a key
+starts with "fk1." and opens a hosted hub and catalogue, anything else is a secret. The
+Access screen is folded in; its old address leads to the hub.
+
+And a bug from the first month: seven hours after a dig, a find on the start screen read
+"Release 3189681" and its sheet had no title. The six-hour rule stripped the record's
+name with the price. The name is a catalogue fact, not marketplace data, and it stays now —
+condition, price, seller comments and the market statistics still go on time.
+
+**What to do:** Nothing. If you had an access key under Settings › Access, it is on the hub
+screen now, unchanged.
+
+
+### Added
+
+* **ui:** sixty words above the fold, and one door — M26.3 ([6176d97](https://github.com/misterhonk/fidelity/commit/6176d97583bf9cb1fc6acdd3888a71e8a07b13cc))
+
+
+### Fixed
+
+* **dig:** a find keeps its name past the six hours ([06bd87e](https://github.com/misterhonk/fidelity/commit/06bd87ed0f75472728d30028ed16d0c0f8c97ff4))
+
 ## [0.58.0](https://github.com/misterhonk/fidelity/compare/v0.57.0...v0.58.0) (2026-09-12)
 
 **The sleeve carries the card.**
