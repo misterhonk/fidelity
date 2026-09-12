@@ -11,6 +11,16 @@ Für eine App bedeutet SemVer:
 
 ## [0.64.0](https://github.com/misterhonk/fidelity/compare/v0.63.0...v0.64.0) (2026-09-12)
 
+**Re-sort a compartment: tick, move, take out — and undo.**
+
+Open a compartment and tap "Select": the sleeves become things to tick. "Move n to …"
+opens the wall small — every piece of furniture as a little grid, a button per
+compartment with its coordinate and its divider, the rooms underneath — and one tap moves
+the ticked records there. "Take n out" empties them onto the pile of the unplaced. Every
+move leaves a line with "Undo" that puts the records back where they were.
+
+**What to do:** Nothing. Open Collection › Places, tap a compartment, then "Select".
+
 
 ### Added
 
