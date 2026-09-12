@@ -31,7 +31,7 @@ concrete shelving.
 |---|---:|---:|
 | HTML + critical CSS | ≤ 8 kB | |
 | App-shell JS (Vue + router + UI core) | ≤ 140 kB | |
-| Matching engine (worker, lazy) | ≤ 35 kB | 31.5 kB |
+| Matching engine (worker, lazy) | ≤ 40 kB | 34.8 kB (2026-09-12) |
 | The remaining routes (lazy) | ≤ 30 kB each | 13.9 kB |
 | **First meaningful paint** | **≤ 180 kB** | **118 kB** |
 
@@ -45,6 +45,13 @@ concrete shelving.
 >
 > If the worker does one day rise well above 35 kB, the order is: first load the horizon and
 > matching code only when a dig starts, then `zod/mini`.
+
+> **Why 35 kB became 40 kB (2026-09-12, M21.4).** Measured at 34.8 kB with the catalogue's
+> client (ADR-013), the running-scan report and the token renewal in it — 3.3 kB over
+> eight milestones, none of it Zod. The catalogue adds one more consumer per phase and the
+> horizon and matcher stay where they are for now, because the worker loads beside the
+> first paint, not in front of it. The order above still holds the day 40 is reached: that
+> is the day the horizon and matcher become a chunk a dig loads.
 
 > **Why 120 kB became 180 kB (2026-08-11).** The 120 were tied to a network that no longer
 > exists: "in the basement of a record shop over 3G". 3G was switched off in Germany in

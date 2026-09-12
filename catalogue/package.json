@@ -11,9 +11,12 @@
   "scripts": {
     "build": "node src/etl/build.ts",
     "cut": "node scripts/cut-mini-dump.ts",
-    "test": "node --test test/*.test.ts"
+    "test": "node --test test/*.test.ts",
+    "serve": "node src/service/server.ts"
   },
   "dependencies": {
+    "@hono/node-server": "^1.19.5",
+    "hono": "^4.9.10",
     "sax": "^1.6.1"
   },
   "devDependencies": {

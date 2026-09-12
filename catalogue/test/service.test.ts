@@ -1,0 +1,108 @@
+import assert from 'node:assert/strict'
+import { describe, test } from 'node:test'
+
+import { buildCatalogue } from '../src/etl/build.ts'
+import { createCatalogueApp, formatOf } from '../src/service/app.ts'
+
+/**
+ * The two routes of M21.4 against the mini-dump, built in memory: a family
+ * as the app's `PressingFamilyFacts`, a person as the lexicon's `Kin`, and
+ * the build date on every answer as the ETag.
+ */
+const built = await buildCatalogue({
+  dumpDir: new URL('../fixtures/mini-dump/', import.meta.url).pathname,
+  date: '20260901',
+  out: ':memory:',
+})
+const app = createCatalogueApp({ db: () => built.db })
+const get = (path: string, headers: Record<string, string> = {}) =>
+  app.request(path, { headers })
+
+describe('health', () => {
+  test('says which build answers and how many releases it holds', async () => {
+    const response = await get('/v1/catalogue/health')
+    assert.equal(response.status, 200)
+    assert.deepEqual(await response.json(), { ok: true, build: '2026-09-01', releases: 400 })
+    assert.equal(response.headers.get('etag'), '"2026-09-01"')
+  })
+})
+
+describe('a family', () => {
+  test('is every pressing of the master, oldest first, in the app’s shape', async () => {
+    const response = await get('/v1/catalogue/master/1315/family')
+    assert.equal(response.status, 200)
+    assert.equal(response.headers.get('cache-control'), 'public, max-age=2592000')
+    const facts = (await response.json()) as {
+      masterId: number
+      total: number
+      fetchedAt: number
+      siblings: {
+        releaseId: number
+        year: number | null
+        country: string
+        label: string
+        catno: string
+        format: string
+      }[]
+    }
+    assert.equal(facts.masterId, 1315)
+    assert.equal(facts.total, 2)
+    assert.equal(facts.fetchedAt, Date.parse('2026-09-01'))
+    assert.deepEqual(
+      facts.siblings.map((s) => [s.releaseId, s.year, s.country]),
+      [
+        [157, 1994, 'UK'],
+        [158, 1994, 'UK'],
+      ],
+    )
+    // The label from the label table, the format the way the API writes it.
+    assert.ok(facts.siblings.every((s) => s.label.length > 0))
+    assert.equal(facts.siblings[0]!.format, 'Vinyl, 12", 33 ⅓ RPM, 45 RPM, EP')
+    assert.equal(facts.siblings[1]!.format, 'CD, EP')
+  })
+
+  test('is a 404 for a master the build does not know, and a 400 for nonsense', async () => {
+    assert.equal((await get('/v1/catalogue/master/999999999/family')).status, 404)
+    assert.equal((await get('/v1/catalogue/master/abc/family')).status, 400)
+  })
+
+  test('is a 304 when the browser already has this month’s answer', async () => {
+    const response = await get('/v1/catalogue/master/1315/family', {
+      'if-none-match': '"2026-09-01"',
+    })
+    assert.equal(response.status, 304)
+    const stale = await get('/v1/catalogue/master/1315/family', {
+      'if-none-match': '"2026-08-01"',
+    })
+    assert.equal(stale.status, 200)
+  })
+})
+
+describe('a person', () => {
+  test('is the name and every other name, aliases and variations alike', async () => {
+    const response = await get('/v1/catalogue/artist/1')
+    assert.equal(response.status, 200)
+    const artist = (await response.json()) as {
+      id: number
+      name: string
+      names: { name: string; relation: string }[]
+    }
+    assert.equal(artist.name, 'The Persuader')
+    assert.ok(artist.names.some((n) => n.name === 'Jesper Dahlbäck' && n.relation === 'alias'))
+    assert.ok(artist.names.some((n) => n.name === 'Persuader' && n.relation === 'alias'))
+    assert.ok(artist.names.every((n) => ['alias', 'member', 'group'].includes(n.relation)))
+    assert.ok(!artist.names.some((n) => n.name === 'The Persuader'))
+  })
+
+  test('is a 404 for a person the build does not know', async () => {
+    assert.equal((await get('/v1/catalogue/artist/999999999')).status, 404)
+  })
+})
+
+describe('the format string', () => {
+  test('reads like the API’s', () => {
+    assert.equal(formatOf('Vinyl', '["12\\"","33 ⅓ RPM"]'), 'Vinyl, 12", 33 ⅓ RPM')
+    assert.equal(formatOf('CD', '[]'), 'CD')
+    assert.equal(formatOf(null, null), '')
+  })
+})

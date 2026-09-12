@@ -6,6 +6,7 @@ import type { CollectionItem, WantlistItem } from '#shared/types'
 import { log } from '../log'
 import type { DiscogsClient } from '../discogs/client'
 
+import { createCatalogueClient } from '../catalogue/client'
 import { createHubClient } from '../hub/client'
 import { preferHub } from '../hub/fallback'
 import { expandEntity } from './expand'
@@ -114,6 +115,8 @@ export async function buildHorizon({
    */
   const preferences = await getPreferences()
   const hub = createHubClient({ baseUrl: preferences.hubUrl, secret: preferences.hubSecret })
+  // And the catalogue, for the names (M21.4). Null on every device that has none.
+  const catalogue = createCatalogueClient({ baseUrl: preferences.catalogueUrl })
   const existing = new Map((await db.getAll('horizon')).map((chunk) => [chunk.key, chunk]))
 
   let done = 0
@@ -194,27 +197,30 @@ export async function buildHorizon({
 
     let result
     try {
-      result = await preferHub(() => expandEntity(candidate, { client, signal, now }), {
-        hub: hub
-          ? async () => {
-              const cached = await hub.horizon(candidate.kind, candidate.id)
-              // A hub hit costs no Discogs requests at all, which is the whole
-              // point — so it reports zero rather than pretending it paid.
-              //
-              // A chunk from before the lexicon is a miss, not a hit: taking
-              // it would leave this artist without names, mark it due again
-              // tomorrow, and fetch the same old chunk again — forever.
-              return cached && !lacksKin(cached)
-                ? { chunk: cached, catalogueSize: cached.catalogueSize, requests: 0 }
-                : null
-            }
-          : null,
-        contribute: hub
-          ? async (fresh) => {
-              await hub.contributeHorizon(fresh.chunk)
-            }
-          : null,
-      })
+      result = await preferHub(
+        () => expandEntity(candidate, { client, signal, now, catalogue }),
+        {
+          hub: hub
+            ? async () => {
+                const cached = await hub.horizon(candidate.kind, candidate.id)
+                // A hub hit costs no Discogs requests at all, which is the whole
+                // point — so it reports zero rather than pretending it paid.
+                //
+                // A chunk from before the lexicon is a miss, not a hit: taking
+                // it would leave this artist without names, mark it due again
+                // tomorrow, and fetch the same old chunk again — forever.
+                return cached && !lacksKin(cached)
+                  ? { chunk: cached, catalogueSize: cached.catalogueSize, requests: 0 }
+                  : null
+              }
+            : null,
+          contribute: hub
+            ? async (fresh) => {
+                await hub.contributeHorizon(fresh.chunk)
+              }
+            : null,
+        },
+      )
       consecutiveFailures = 0
     } catch (error) {
       if (signal?.aborted) throw error

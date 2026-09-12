@@ -1,3 +1,4 @@
+import type { CatalogueSource } from '#shared/ports'
 import type { HorizonChunk, Kin } from '#shared/types'
 
 import type { DiscogsClient } from '../discogs/client'
@@ -43,6 +44,8 @@ interface ExpandOptions {
   client: DiscogsClient
   signal?: AbortSignal
   now?: () => number
+  /** The catalogue (ADR-013), asked for the names before the API is; null is the normal case. */
+  catalogue?: CatalogueSource | null
 }
 
 /**
@@ -56,7 +59,7 @@ interface ExpandOptions {
  */
 export async function expandEntity(
   candidate: Candidate,
-  { client, signal, now = Date.now }: ExpandOptions,
+  { client, signal, now = Date.now, catalogue = null }: ExpandOptions,
 ): Promise<ExpandResult> {
   const edges: Edge[] = []
   let requests = 0
@@ -147,11 +150,19 @@ export async function expandEntity(
   let kin: Kin[] | undefined
   if (candidate.kind === 'artist') {
     signal?.throwIfAborted()
-    const profile = await client.get(`/artists/${candidate.id}`, artistProfileSchema, {
-      signal,
-    })
-    requests += 1
-    kin = kinOf(profile)
+    // The catalogue first (M21.4): the dump knows every other name, and the
+    // answer is the same for everybody. Null — no catalogue, or it does not
+    // know — is the request it always was.
+    const known = await catalogue?.artist(candidate.id)
+    if (known) {
+      kin = known.names.slice(0, MAX_KIN)
+    } else {
+      const profile = await client.get(`/artists/${candidate.id}`, artistProfileSchema, {
+        signal,
+      })
+      requests += 1
+      kin = kinOf(profile)
+    }
   }
 
   const chunk = packChunk(candidate.kind, candidate.id, candidate.name, edges, {

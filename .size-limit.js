@@ -114,7 +114,16 @@ export default [
   {
     name: 'Worker (lazy, nach dem ersten Paint)',
     path: [...workerChunks],
-    limit: '35 kB',
+    /*
+     * 35 → 40 kB on 2026-09-12 (M21.4). The worker stood at 34.8 kB with the
+     * catalogue's client and the token renewal in it, and the two catalogue
+     * routes are the first of six. The worker does not block the first
+     * paint; what the ceiling protects is that nobody puts the horizon and
+     * the matcher there without noticing. Still a hard limit — docs/12 says
+     * what comes first if it is reached again: lazy-load the horizon and
+     * the matcher, then zod/mini.
+     */
+    limit: '40 kB',
     gzip: true,
   },
 ]

@@ -166,6 +166,15 @@ GET /v1/catalogue/resolve?artist=string       → { artistIds: [...] }          
 GET /v1/catalogue/stats/decades|styles|countries → the catalogue's own distribution         ← the map, compared
 ```
 
+**Implemented (M21.4, 2026-09-12):** `health`, `master/{id}/family` and `artist/{id}` in
+`catalogue/src/service/app.ts`, served by `server.ts` from `/data/current` read-only —
+the server follows the symlink once a minute, so a new build arrives without a restart.
+A family is every release with that `master_id`, oldest first, capped at 200, with the
+first label and the first format written the way the API writes them; `fetchedAt` is the
+build date, so the client's month-freshness rule reads it as this month's. A person is
+every `artist_name` row but `self`, variations and aliases both as `alias`, capped at 100
+— `kinOf`'s shape. The other routes come with their consumers.
+
 Every answer carries `ETag: "2026-09-01"` and `Cache-Control: public, max-age=2592000`.
 The proxy (Traefik, later a CDN) may cache everything; the service has nothing to
 invalidate — a new build is a new ETag. No secret: it is public data. Rate limit at the
@@ -269,7 +278,7 @@ Each phase ends green and shippable on its own; none of them changes a score.
 | **M21.1 The seam** · done 2026-09-12 | `CatalogueSource` in `shared/ports.ts`, `catalogueUrl` in the preferences, discovery at `<origin>/catalogue`, the settings line, and a CI run with the URL empty | The existing suites unchanged; a new test that every consumer falls through to today's path with no catalogue |
 | **M21.2 The mini-dump** · done 2026-09-12 | `catalogue/`: the streaming reader, the shaping, the build; `fixtures/mini-dump` — 400 releases, 336 masters, 180 labels, 731 artists cut from the dump of 2026-09-01, 660 kB | The ETL runs on it in CI in 0.3 s (19 tests); golden files for every catalogue number, identifier, credit string and name in it; the twin test in the root suite |
 | **M21.3 The build** · image and job 2026-09-12, full run pending | `fetch.ts`, `run.ts`, the `fidelity-catalogue` image and the compose service: the five steps of §4, the two-generation swap, `status.json` as the health date | A full run on home-deb, timed and sized; the numbers replace the estimates in §4 and §8 |
-| **M21.4 Two routes** | `family` and `artist` — the two the app already asks the API for | The shop screen reads a pressing with zero requests; the lexicon covers a listing's artists |
+| **M21.4 Two routes** · done 2026-09-12 | `family` and `artist` in the service; `familyFacts` and the horizon's artist expansion ask the catalogue first; the service in the image beside the job, at `/catalogue` on the home lab | 34 catalogue tests; the app's twin tests; a pressing family and a person's names with zero requests once the URL is set |
 | **M21.5 The signals** | `credits`, `run`, per-dig lookups with the bound, the second golden test | A dig at a Blue Note specialist fires S6; a producer you own nothing by fires S8 |
 | **M21.6 The shop and the map** | `identify`, `stats`, the comparison line in the year on the shelf | Barcode and run-out without a search request; "3× the catalogue's" on the map |
 | later | `resolve` for every listing artist, co-occurrence, shards behind a CDN | when there are users to serve |

@@ -74,6 +74,22 @@ services:
       - catalogue-scratch:/scratch
     restart: unless-stopped
 
+  # The catalogue service: the same image, read-only on what the build left in
+  # /data. Public CC0 data, no secret — put it behind a rate limit if it faces
+  # the internet. The app finds it at <origin>/catalogue, or takes the address
+  # in the settings.
+  catalogue:
+    image: ghcr.io/misterhonk/fidelity-catalogue:latest
+    command: ['node', 'src/service/server.ts']
+    environment:
+      CATALOGUE_PORT: 8788
+      CATALOGUE_DATA: /data
+    ports:
+      - '${CATALOGUE_BIND:-127.0.0.1}:${CATALOGUE_PORT_PUBLIC:-8788}:8788'
+    volumes:
+      - catalogue-data:/data:ro
+    restart: unless-stopped
+
 volumes:
   hub-data:
   catalogue-data:

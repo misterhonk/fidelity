@@ -19,6 +19,8 @@ src/etl/db.ts           the schema, the indexes, the derived label prefixes
 src/etl/build.ts        the build: four files in, one SQLite file out, row counts checked
 src/etl/fetch.ts        the dump from data.discogs.com, hashed against CHECKSUM.txt
 src/etl/run.ts          the job: fetch, build, check, swap `current`, tidy — daily, in the image
+src/service/app.ts      the service: health, master/{id}/family, artist/{id} — ETag = build date
+src/service/server.ts   serves /data/current read-only, follows the swap once a minute
 scripts/cut-mini-dump.ts  cuts fixtures/mini-dump from a real dump
 fixtures/mini-dump/     400 real releases and what they point at, ~660 kB (see its README)
 test/                   node --test; golden files under test/golden/
@@ -46,7 +48,14 @@ made `current` by an atomic symlink swap; two builds are kept. `status.json` in 
 what the last run did. Environment: `CATALOGUE_ONCE=1` runs once and exits, `CATALOGUE_DATE`
 pins a month, `CATALOGUE_OFFLINE=1` builds from files already under `/scratch/dump/<date>/`.
 
-The service that answers over HTTP is M21.4.
+## The service
+
+The same image, a different command: `node src/service/server.ts` answers on `CATALOGUE_PORT`
+(8788) from `CATALOGUE_DATA/current`, read-only, and picks up a new build within a minute
+of the job swapping the symlink. No secret — it is public CC0 data — so put it behind a
+rate limit. Routes so far: `/v1/catalogue/health`, `/v1/catalogue/master/{id}/family`,
+`/v1/catalogue/artist/{id}`; every answer carries the build date as its ETag and may be
+cached for thirty days.
 
 ## Regenerating the golden files
 
