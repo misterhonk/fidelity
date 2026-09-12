@@ -9,6 +9,30 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.53.0](https://github.com/misterhonk/fidelity/compare/v0.52.0...v0.53.0) (2026-09-12)
+
+**The hub's second door — and three things a phone showed.**
+
+A hosted hub needs to tell its members apart without knowing who anybody is on Discogs.
+From this release it takes access keys: signed statements with a tier and an end date,
+verified with a public key and nothing else, one per payer, expiring on their own and
+revocable by a short list. A key opens the member routes and owns its own rows — the vault
+and the push registration answer only for it. A self-hoster's hub keeps its shared secret
+and never sees a key; both doors may be open at once. In the app, Settings › Access takes
+the key and reads its tier and end date, Settings › Support shows the plans and tips —
+nothing is charged while Fidelity is in beta, and every key handed out now is a free beta
+key. A script issues them by hand.
+
+On the phone: the stack's six buttons no longer push the page sideways — two rows below
+640 px; the bottom bar is taller; and the "Start the dig" box goes when a dig is through,
+so a finished list no longer reads as "it did not run". "One at a time" and "Share this
+list" carry an icon and the weight of what they are.
+
+
+### Added
+
+* **hub:** the second door — access keys, personal rows, the Access and Support screens ([00d495f](https://github.com/misterhonk/fidelity/commit/00d495f3d9a8b9f0df0e2932a23ab3dd3bf74be9))
+
 ## [0.52.0](https://github.com/misterhonk/fidelity/compare/v0.51.0...v0.52.0) (2026-09-12)
 
 **The shop and the map through the catalogue — and the first full build.**
