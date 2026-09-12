@@ -285,6 +285,17 @@ jobs:
           set -eu
           SSH="ssh -i ~/.ssh/id_deploy -o BatchMode=yes"
 
+          # Abgeschaltet? Am 2026-09-12 wurde der Hub auf dem Uberspace
+          # stillgelegt, weil er im Heimnetz läuft; der Ordner ~/fidelity-hub-off
+          # ist die Markierung dafür. Ein "ausliefern" aus Gewohnheit würde die
+          # Einheit sonst wieder anlegen und den alten Hub neben dem neuen
+          # hochfahren. Wer ihn wirklich zurück will, entfernt den Ordner —
+          # bewusst, auf dem Server, nicht per Klick.
+          if $SSH "$REMOTE_USER@$HOST" 'test -e ~/fidelity-hub-off'; then
+            echo "::error::Der Hub auf $HOST ist abgeschaltet (~/fidelity-hub-off liegt dort). Zum Wiederbeleben den Ordner entfernen und erneut ausliefern."
+            exit 1
+          fi
+
           $SSH "$REMOTE_USER@$HOST" 'mkdir -p ~/fidelity-hub/src ~/fidelity-hub-data ~/etc/services.d ~/logs'
 
           # Nur der Quelltext. Das Datenverzeichnis liegt daneben und wird von
