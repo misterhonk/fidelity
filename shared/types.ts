@@ -558,6 +558,15 @@ export interface TasteFacet {
   lift: number | null
 }
 
+/** The map's comparison line (M21.6): share here divided by share in the catalogue. */
+export interface TasteComparison {
+  build: string
+  /** Facet key → lift; a decade's key is "1970", a style's or genre's its name. */
+  decades: Record<string, number>
+  styles: Record<string, number>
+  genres: Record<string, number>
+}
+
 /**
  * Barry's knowledge base. Recomputed after every collection sync, never during
  * a dig — a dig has a two-minute budget and none of it belongs here.

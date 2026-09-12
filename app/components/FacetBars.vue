@@ -64,7 +64,19 @@ const peak = computed(() => Math.max(1, ...props.facets.map((facet) => facet.n))
             }"
           />
         </dt>
-        <dd class="fid-num self-start text-fid-sm text-fid-text-muted">{{ facet.n }}</dd>
+        <dd class="fid-num self-start text-right text-fid-sm text-fid-text-muted">
+          {{ facet.n }}
+          <!--
+            The lift, where there is a denominator (M21.6): share here over
+            share in the catalogue. Two and up is collected on purpose.
+          -->
+          <span
+            v-if="facet.lift !== null && facet.lift !== undefined"
+            class="ml-2 text-fid-xs"
+            :class="facet.lift >= 2 ? 'text-fid-text' : 'text-fid-text-muted'"
+            >{{ decimal(facet.lift) }}×</span
+          >
+        </dd>
       </template>
     </dl>
   </section>

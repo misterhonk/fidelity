@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { openFidelityDb } from '~~/db/open'
 import type { DiscogsClient } from './discogs/client'
+import type { CatalogueSource } from '#shared/ports'
 import type { CollectionItem, Identified, WantlistItem } from '#shared/types'
 
 /**
@@ -69,13 +70,50 @@ export function looksLikeBarcode(text: string): boolean {
   return trimmed.length > 0 && /^[\d\s-]+$/.test(trimmed)
 }
 
+/**
+ * The catalogue first (M21.6): an index over every identifier in the dump,
+ * no request. Null is "no catalogue"; an empty list is "the build does not
+ * carry this stamp" — a record newer than the dump, or a typo — and both
+ * fall through to the search request that always was. Only exact stamps;
+ * fragments are the search's job, as measured on 2026-09-11.
+ */
+async function fromCatalogue(
+  catalogue: CatalogueSource | null | undefined,
+  code: string,
+  query: { barcode?: string; runout?: string },
+): Promise<Identified | null> {
+  if (!catalogue) return null
+  const ids = await catalogue.identify(query)
+  if (!ids || ids.length === 0) return null
+  const rows = []
+  for (const id of ids.slice(0, MAX_CANDIDATES)) {
+    const release = await catalogue.release(id)
+    if (!release) continue
+    rows.push({
+      id: release.id,
+      title: [release.artists.join(', '), release.title].filter(Boolean).join(' - '),
+      year: release.year ?? undefined,
+      country: release.country,
+      thumb: '',
+      format: release.formats,
+      label: release.labels.map((label) => label.name),
+      catno: release.labels[0]?.catno,
+      master_id: release.masterId || null,
+    })
+  }
+  return rows.length > 0 ? withOwnership(code, rows) : null
+}
+
 export async function identify(
   client: DiscogsClient,
   raw: string,
   signal?: AbortSignal,
+  catalogue?: CatalogueSource | null,
 ): Promise<Identified> {
   const barcode = cleanBarcode(raw)
   if (!barcode) return nothing(raw)
+  const known = await fromCatalogue(catalogue, barcode, { barcode })
+  if (known) return known
 
   const answer = await client.get('/database/search', searchSchema, {
     query: { barcode, type: 'release', per_page: String(MAX_CANDIDATES) },
@@ -107,11 +145,14 @@ export async function identifyByRunout(
   client: DiscogsClient,
   runout: string,
   signal?: AbortSignal,
+  catalogue?: CatalogueSource | null,
 ): Promise<Identified> {
   const text = runout.trim()
   // Shorter than that is not a run-out but a typo — and a search for three
   // characters fetches half the catalogue.
   if (text.length < 6) return nothing(text)
+  const known = await fromCatalogue(catalogue, text, { runout: text })
+  if (known) return known
 
   const answer = await client.get('/database/search', searchSchema, {
     query: { q: text, type: 'release', per_page: String(MAX_CANDIDATES) },

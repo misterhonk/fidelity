@@ -164,3 +164,78 @@ describe('a label’s run and a person’s credits (M21.5)', () => {
     assert.equal((await get('/v1/catalogue/artist/999999999/credits')).status, 404)
   })
 })
+
+describe('the shop and the map (M21.6)', () => {
+  test('identify answers exact stamps, typed with or without the spaces', async () => {
+    const typed = await get(
+      '/v1/catalogue/identify?runout=mpo%20sk%20032%20a1%20g%20phrupmastergeneral%20t2t%20london',
+    )
+    assert.equal(typed.status, 200)
+    assert.deepEqual(await typed.json(), { releaseIds: [1], exact: true })
+    const fragment = await get('/v1/catalogue/identify?runout=MPO%20SK%20032')
+    assert.deepEqual(await fragment.json(), { releaseIds: [], exact: true })
+    assert.equal((await get('/v1/catalogue/identify')).status, 400)
+  })
+
+  test('a release carries what a search row would, from CC0 fields', async () => {
+    const response = await get('/v1/catalogue/release/1')
+    assert.equal(response.status, 200)
+    const release = (await response.json()) as {
+      id: number
+      title: string
+      year: number | null
+      country: string
+      masterId: number
+      artists: string[]
+      labels: { name: string; catno: string }[]
+      formats: string[]
+    }
+    assert.equal(release.title, 'Stockholm')
+    assert.equal(release.year, 1999)
+    assert.equal(release.country, 'Sweden')
+    assert.equal(release.masterId, 1660109)
+    assert.deepEqual(release.artists, ['The Persuader'])
+    assert.deepEqual(release.labels, [{ name: 'Svek', catno: 'SK032' }])
+    assert.equal(release.formats[0], 'Vinyl, 12", 33 ⅓ RPM')
+    assert.equal((await get('/v1/catalogue/release/999999999')).status, 404)
+  })
+
+  test('stats are the catalogue’s own distribution, with the build and the total', async () => {
+    const response = await get('/v1/catalogue/stats/decades')
+    assert.equal(response.status, 200)
+    const stats = (await response.json()) as {
+      build: string
+      total: number
+      rows: [string, number][]
+    }
+    assert.equal(stats.build, '2026-09-01')
+    assert.equal(stats.total, 400)
+    const nineties = stats.rows.find(([key]) => key === '1990')
+    assert.ok(
+      nineties && nineties[1] > 100,
+      'the first four hundred releases are mostly nineties',
+    )
+    const styles = (await (await get('/v1/catalogue/stats/styles')).json()) as {
+      rows: [string, number][]
+    }
+    assert.ok(styles.rows.some(([key]) => key === 'Techno'))
+    assert.equal((await get('/v1/catalogue/stats/prices')).status, 400)
+  })
+
+  test('stats are counted on the spot for a build from before the table', async () => {
+    const { buildCatalogue } = await import('../src/etl/build.ts')
+    const older = await buildCatalogue({
+      dumpDir: new URL('../fixtures/mini-dump/', import.meta.url).pathname,
+      date: '20260901',
+      out: ':memory:',
+    })
+    older.db.exec('DROP TABLE stats')
+    const { createCatalogueApp } = await import('../src/service/app.ts')
+    const legacy = createCatalogueApp({ db: () => older.db })
+    const response = await legacy.request('/v1/catalogue/stats/decades')
+    const stats = (await response.json()) as { total: number; rows: [string, number][] }
+    assert.equal(stats.total, 400)
+    assert.ok(stats.rows.some(([key]) => key === '1990'))
+    older.db.close()
+  })
+})

@@ -49,6 +49,7 @@ describe('the build', () => {
       artist_name: 8669,
       label: 180,
       label_prefix: 164,
+      stats: 78,
     })
   })
 

@@ -2,6 +2,8 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import type { DatabaseSync } from 'node:sqlite'
 
+import { identifierKind, normaliseIdentifier } from '../etl/identifiers.ts'
+
 /**
  * The catalogue service (docs/16 §5): the hub's shape, read-only, no secret.
  *
@@ -48,6 +50,20 @@ export function formatOf(name: string | null, descriptions: string | null): stri
     // A description that is not a list is no description.
   }
   return parts.filter(Boolean).join(', ')
+}
+
+/** The same counts as `deriveStats`, for a build from before the table existed. */
+function statsSql(kind: string): string {
+  switch (kind) {
+    case 'decades':
+      return 'SELECT CAST((year / 10) * 10 AS TEXT) AS key, COUNT(*) AS count FROM release WHERE year IS NOT NULL GROUP BY (year / 10) * 10 ORDER BY count DESC'
+    case 'styles':
+      return "SELECT name AS key, COUNT(*) AS count FROM release_style WHERE kind = 'style' GROUP BY name ORDER BY count DESC"
+    case 'genres':
+      return "SELECT name AS key, COUNT(*) AS count FROM release_style WHERE kind = 'genre' GROUP BY name ORDER BY count DESC"
+    default:
+      return "SELECT country AS key, COUNT(*) AS count FROM release WHERE country != '' GROUP BY country ORDER BY count DESC"
+  }
 }
 
 export function createCatalogueApp({ db }: CatalogueAppOptions) {
@@ -227,6 +243,119 @@ export function createCatalogueApp({ db }: CatalogueAppOptions) {
       total,
       releases: rows.map((row) => [row.id, row.role, row.year]),
     })
+  })
+
+  /**
+   * Which releases carry this barcode or run-out (M21.6): the index over
+   * every identifier in the dump, normalised the way the build normalised
+   * it, answering exact stamps — a fragment is the search request's job,
+   * as `worker/identify.ts` measured.
+   */
+  app.get('/v1/catalogue/identify', (c) => {
+    const barcode = c.req.query('barcode')?.trim()
+    const runout = c.req.query('runout')?.trim()
+    const [type, value] = barcode ? ['barcode', barcode] : runout ? ['matrix', runout] : []
+    if (!type || !value) return c.json({ error: 'barcode or runout' }, 400)
+    if (identifierKind(type) === 'other') return c.json({ error: 'barcode or runout' }, 400)
+
+    const rows = db()
+      .prepare(
+        'SELECT DISTINCT release_id FROM identifier WHERE type = ? AND value_norm = ? ORDER BY release_id LIMIT 50',
+      )
+      .all(type, normaliseIdentifier(value)) as unknown as { release_id: number }[]
+    return c.json({ releaseIds: rows.map((row) => row.release_id), exact: true })
+  })
+
+  /** One release, the CC0 fields the shop screen shows — what a search row would carry. */
+  app.get('/v1/catalogue/release/:id', (c) => {
+    const releaseId = Number(c.req.param('id'))
+    if (!Number.isSafeInteger(releaseId) || releaseId <= 0)
+      return c.json({ error: 'not a release id' }, 400)
+
+    const release = db().prepare('SELECT * FROM release WHERE id = ?').get(releaseId) as
+      | {
+          id: number
+          master_id: number | null
+          title: string
+          year: number | null
+          country: string
+        }
+      | undefined
+    if (!release) return c.json({ error: 'unknown release' }, 404)
+
+    const artists = db()
+      .prepare(
+        `SELECT a.name FROM release_artist ra JOIN artist a ON a.id = ra.artist_id
+         WHERE ra.release_id = ? AND ra.role = 0 AND ra.role_name = '' ORDER BY ra.position`,
+      )
+      .all(releaseId) as unknown as { name: string }[]
+    const labels = db()
+      .prepare(
+        `SELECT l.name, rl.catno FROM release_label rl JOIN label l ON l.id = rl.label_id
+         WHERE rl.release_id = ? ORDER BY rl.rowid`,
+      )
+      .all(releaseId) as unknown as { name: string; catno: string }[]
+    const formats = db()
+      .prepare(
+        'SELECT name, descriptions FROM release_format WHERE release_id = ? ORDER BY rowid',
+      )
+      .all(releaseId) as unknown as { name: string; descriptions: string }[]
+
+    return c.json({
+      id: release.id,
+      title: release.title,
+      year: release.year,
+      country: release.country,
+      masterId: release.master_id ?? 0,
+      artists: artists.map((row) => row.name),
+      labels: labels.map((row) => ({ name: row.name, catno: row.catno })),
+      formats: formats.map((row) => formatOf(row.name, row.descriptions)),
+    })
+  })
+
+  /**
+   * The catalogue's own distribution (M21.6): what share of everything
+   * Discogs knows is from the seventies, is Techno, is British. Counted at
+   * build time into `stats`; a build from before that table has it counted
+   * once here and remembered for the process.
+   */
+  const STATS_KINDS = ['decades', 'styles', 'genres', 'countries'] as const
+  const statsCache = new Map<
+    string,
+    { build: string; total: number; rows: [string, number][] }
+  >()
+
+  app.get('/v1/catalogue/stats/:kind', (c) => {
+    const kind = c.req.param('kind') as (typeof STATS_KINDS)[number]
+    if (!STATS_KINDS.includes(kind))
+      return c.json({ error: 'decades, styles, genres or countries' }, 400)
+    const build = meta('build') ?? 'none'
+    const cached = statsCache.get(`${build}:${kind}`)
+    if (cached) return c.json(cached)
+
+    const hasTable = db()
+      .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'stats'")
+      .get()
+    const rows = (hasTable
+      ? db()
+          .prepare('SELECT key, count FROM stats WHERE kind = ? ORDER BY count DESC')
+          .all(kind)
+      : db().prepare(statsSql(kind)).all()) as unknown as { key: string; count: number }[]
+    const total = hasTable
+      ? Number(
+          (
+            db().prepare("SELECT count FROM stats WHERE kind = 'releases'").get() as
+              { count: number } | undefined
+          )?.count ?? 0,
+        )
+      : Number((db().prepare('SELECT COUNT(*) AS n FROM release').get() as { n: number }).n)
+    const answer = {
+      build,
+      total,
+      rows: rows.map((row) => [row.key, row.count] as [string, number]),
+    }
+    statsCache.set(`${build}:${kind}`, answer)
+    return c.json(answer)
   })
 
   /** A person and every other name they go by — the lexicon's shape (`Kin`). */

@@ -68,9 +68,33 @@ export interface CatalogueSource {
   /** The label's releases with their catalogue numbers, any size — the label chunk. */
   run(labelId: number): Promise<HorizonChunk | null>
   family(masterId: number): Promise<PressingFamilyFacts | null>
-  /** Release ids carrying this barcode or run-out; `exact` when the whole string matched. */
+  /** Release ids carrying this barcode or run-out, exact stamps only; `[]` is "none known". */
   identify(query: { barcode?: string; runout?: string }): Promise<number[] | null>
+  /** One release's CC0 fields, the shape a search row carries — for the shop screen. */
+  release(id: number): Promise<CatalogueRelease | null>
+  /** The catalogue's own distribution, for the map's comparison line. */
+  stats(kind: 'decades' | 'styles' | 'genres' | 'countries'): Promise<CatalogueStats | null>
   resolve(name: string): Promise<number[] | null>
+}
+
+export interface CatalogueRelease {
+  id: number
+  title: string
+  year: number | null
+  country: string
+  /** 0 when Discogs has no master for it. */
+  masterId: number
+  artists: string[]
+  labels: { name: string; catno: string }[]
+  formats: string[]
+}
+
+export interface CatalogueStats {
+  build: string
+  /** Releases in the build — the denominator of every share. */
+  total: number
+  /** key → count, strongest first. Decades are "1970", styles and genres their names. */
+  rows: [string, number][]
 }
 
 /**

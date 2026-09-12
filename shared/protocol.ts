@@ -59,6 +59,7 @@ import type {
   StackShop,
   Stand,
   StockRow,
+  TasteComparison,
   TasteProfile,
   ValuePoint,
   VaultStatus,
@@ -362,6 +363,12 @@ export interface WorkerContract {
   'collection.value': { params: undefined; progress: never; result: CollectionValue | null }
   /** Recomputed after every sync; null until there has been one. */
   'taste.profile': { params: undefined; progress: never; result: TasteProfile | null }
+  /**
+   * The collection's shares against the catalogue's (M21.6): lift per
+   * decade, style and genre, and the build they are measured against. Null
+   * without a catalogue — the map then shows no comparison, not a wrong one.
+   */
+  'taste.compared': { params: undefined; progress: never; result: TasteComparison | null }
 
   /** One request, so the UI can be honest about coverage before committing. */
   'dig.preflight': { params: { dealer: string }; progress: never; result: DigPreflight }

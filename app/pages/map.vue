@@ -2,6 +2,7 @@
 import type {
   CollectionGaps,
   CollectionValue,
+  TasteComparison,
   TasteFacet,
   TasteProfile,
   ValuePoint,
@@ -27,6 +28,9 @@ const history = shallowRef<ValuePoint[]>([])
 const ready = ref(false)
 const error = ref<unknown>(null)
 
+/** The catalogue's side of the map (M21.6): null without one, and nothing changes. */
+const compared = ref<TasteComparison | null>(null)
+
 onMounted(async () => {
   try {
     profile.value = await call('taste.profile', undefined)
@@ -35,6 +39,9 @@ onMounted(async () => {
   } finally {
     ready.value = true
   }
+  void call('taste.compared', undefined)
+    .then((result) => (compared.value = result))
+    .catch(() => undefined)
   try {
     gaps.value = await call('collection.gaps', undefined)
     value.value = await call('collection.value', undefined)
@@ -45,17 +52,28 @@ onMounted(async () => {
 })
 
 /** Strongest first; ties alphabetically so the order never jitters. */
-function top(facets: Record<string, TasteFacet> | undefined, limit: number): TasteFacet[] {
-  return Object.values(facets ?? {})
-    .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name))
+function top(
+  facets: Record<string, TasteFacet> | undefined,
+  limit: number,
+  lift?: Record<string, number>,
+): TasteFacet[] {
+  return Object.entries(facets ?? {})
+    .sort(([, a], [, b]) => b.n - a.n || a.name.localeCompare(b.name))
     .slice(0, limit)
+    .map(([key, facet]) => withLift(key, facet, lift))
+}
+
+/** The catalogue's lift on a facet, where the comparison has one. */
+function withLift(key: string, facet: TasteFacet, lift?: Record<string, number>): TasteFacet {
+  const value = lift?.[key]
+  return value === undefined ? facet : { ...facet, lift: value }
 }
 
 /** Decades read as a timeline, so they stay in chronological order. */
 const decades = computed(() =>
   Object.entries(profile.value?.decades ?? {})
     .sort(([a], [b]) => Number(a) - Number(b))
-    .map(([, facet]) => facet),
+    .map(([key, facet]) => withLift(key, facet, compared.value?.decades)),
 )
 </script>
 
@@ -107,10 +125,27 @@ const decades = computed(() =>
     >
       <FacetBars :title="c.map.artists" signal="artist" :facets="top(profile.artists, 12)" />
       <FacetBars :title="c.map.labels" signal="label" :facets="top(profile.labels, 12)" />
-      <FacetBars :title="c.map.styles" signal="style" :facets="top(profile.styles, 12)" />
-      <FacetBars :title="c.map.genres" signal="catalog" :facets="top(profile.genres, 8)" />
+      <FacetBars
+        :title="c.map.styles"
+        signal="style"
+        :facets="top(profile.styles, 12, compared?.styles)"
+      />
+      <FacetBars
+        :title="c.map.genres"
+        signal="catalog"
+        :facets="top(profile.genres, 8, compared?.genres)"
+      />
       <FacetBars :title="c.map.decades" signal="gap" :facets="decades" :empty="c.map.noYears" />
     </div>
+
+    <!--
+      What the × means, said once under the bars (M21.6). Only with a
+      catalogue: without one there is no denominator, and the bars stand as
+      they always did.
+    -->
+    <p v-if="profile && compared" class="max-w-prose text-fid-sm text-fid-text-muted">
+      {{ c.map.compared(compared.build) }}
+    </p>
 
     <!--
       The estimate over time (M19 #3). Only once there is a second day: a

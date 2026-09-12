@@ -542,12 +542,23 @@ export const handlers: HandlerMap = {
 
   'identify.barcode': async ({ barcode }, { signal }) => {
     const { identify } = await import('./identify')
-    return identify(discogs(), barcode, signal)
+    const { catalogueSource } = await import('./catalogue/client')
+    return identify(discogs(), barcode, signal, await catalogueSource())
   },
 
   'identify.runout': async ({ runout }, { signal }) => {
     const { identifyByRunout } = await import('./identify')
-    return identifyByRunout(discogs(), runout, signal)
+    const { catalogueSource } = await import('./catalogue/client')
+    return identifyByRunout(discogs(), runout, signal, await catalogueSource())
+  },
+
+  'taste.compared': async () => {
+    const { compareWithCatalogue } = await import('./collection/compared')
+    const { catalogueSource } = await import('./catalogue/client')
+    return compareWithCatalogue(
+      (await getMeta('tasteProfile')) ?? null,
+      await catalogueSource(),
+    )
   },
 
   'pressing.family': async ({ releaseId }, { signal }) => {

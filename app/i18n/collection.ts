@@ -208,6 +208,9 @@ const en = {
     genres: 'Genres',
     decades: 'Decades',
     noYears: 'No years recorded in the collection.',
+    /** The catalogue's side of the map (M21.6). */
+    compared: (build: string) =>
+      `The × behind a bar is your share of it divided by the share it has in all of Discogs, as of the catalogue of ${build}. Two and up is collected on purpose.`,
 
     entries: (n: string) => `${n} entries`,
     artistsWhyLabel: 'What the number on the right means',
@@ -618,6 +621,8 @@ const de: typeof en = {
     genres: 'Genres',
     decades: 'Dekaden',
     noYears: 'Keine Jahresangaben in der Sammlung.',
+    compared: (build) =>
+      `Das × hinter einem Balken ist dein Anteil daran geteilt durch den Anteil in ganz Discogs, Stand des Katalogs vom ${build}. Ab zwei ist es Absicht.`,
 
     entries: (n) => `${n} Einträgen`,
     artistsWhyLabel: 'Was die Zahl rechts bedeutet',

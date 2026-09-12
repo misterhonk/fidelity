@@ -54,8 +54,10 @@ The same image, a different command: `node src/service/server.ts` answers on `CA
 (8788) from `CATALOGUE_DATA/current`, read-only, and picks up a new build within a minute
 of the job swapping the symlink. No secret — it is public CC0 data — so put it behind a
 rate limit. Routes so far: `/v1/catalogue/health`, `/v1/catalogue/master/{id}/family`,
-`/v1/catalogue/artist/{id}`, `/v1/catalogue/artist/{id}/credits`, `/v1/catalogue/label/{id}/run`;
-every answer carries the build date as its ETag and may be cached for thirty days.
+`/v1/catalogue/artist/{id}`, `/v1/catalogue/artist/{id}/credits`, `/v1/catalogue/label/{id}/run`,
+`/v1/catalogue/identify?barcode=|runout=`, `/v1/catalogue/release/{id}`,
+`/v1/catalogue/stats/{decades|styles|genres|countries}`; every answer carries the build date as
+its ETag and may be cached for thirty days.
 
 ## Regenerating the golden files
 

@@ -91,6 +91,33 @@ export function createSchema(db: DatabaseSync): void {
       count    INTEGER NOT NULL,
       PRIMARY KEY (label_id, prefix)
     );
+    CREATE TABLE stats (
+      kind  TEXT NOT NULL,
+      key   TEXT NOT NULL,
+      count INTEGER NOT NULL,
+      PRIMARY KEY (kind, key)
+    );
+  `)
+}
+
+/**
+ * The catalogue's own distribution — decades, styles, genres, countries —
+ * counted once at build time (docs/16 §5 `stats`). A GROUP BY over twenty
+ * million rows is seconds on the build and nothing anybody should wait for
+ * on a request. The map compares the collection's shares against these.
+ */
+export function deriveStats(db: DatabaseSync): void {
+  db.exec(`
+    INSERT INTO stats (kind, key, count)
+    SELECT 'decades', CAST((year / 10) * 10 AS TEXT), COUNT(*) FROM release
+    WHERE year IS NOT NULL GROUP BY (year / 10) * 10;
+    INSERT INTO stats (kind, key, count)
+    SELECT 'styles', name, COUNT(*) FROM release_style WHERE kind = 'style' GROUP BY name;
+    INSERT INTO stats (kind, key, count)
+    SELECT 'genres', name, COUNT(*) FROM release_style WHERE kind = 'genre' GROUP BY name;
+    INSERT INTO stats (kind, key, count)
+    SELECT 'countries', country, COUNT(*) FROM release WHERE country != '' GROUP BY country;
+    INSERT INTO stats (kind, key, count) SELECT 'releases', 'all', COUNT(*) FROM release;
   `)
 }
 
@@ -134,6 +161,7 @@ export const TABLES = [
   'artist_name',
   'label',
   'label_prefix',
+  'stats',
 ] as const
 
 export function counts(db: DatabaseSync): Record<(typeof TABLES)[number], number> {

@@ -98,11 +98,25 @@ the end. That removes two tools, a second language and the "ported to SQL" claus
 `parseCatno` and `norm` are the app's own functions, copied, and a test in the root suite
 (`tests/unit/catalogue-twins.spec.ts`) runs both copies over the mini-dump's real values.
 
-Measured on 2026-09-12 on a laptop: the reader streams masters, artists and labels
-(1.2 GB gzip, 9.2 M + 2.3 M + 2.5 M entities) in 2 min 40 s; the mini-dump builds in
-0.26 s. Extrapolated, the releases file is 20–30 minutes of parsing plus the inserts — a
-night at most, and M21.3 measures it on home-deb. If it is more than a night, DuckDB is the
-fallback and only `build.ts` changes.
+**Measured on home-deb, 2026-09-12, the first full build (dump of 2026-09-01):** 5,376 s
+from the first byte to `current` — 89.6 minutes, on four cores with 7 GB free.
+
+```
+fetch      4 files, 11.7 GB              6.5 min   30 MB/s over the home connection
+releases   19,417,067 entities           71.5 min  ~4,000 entities/s, one core busy
+masters    2,589,349                     2.5 min
+artists    10,203,002                    4.5 min
+labels     2,415,476                     0.5 min
+prefixes, stats, indexes, ANALYZE        ~10 min
+file       17.5 GB, 250 M rows           (release_artist 94 M, release_style 55 M, identifier 32 M)
+```
+
+Peak disk during the run: the 10.5 GB releases file beside the growing SQLite, about
+27 GB; the file is deleted the moment its rows are in. The dump had grown to 19.4 M
+releases from the 18.4 M of §3. DuckDB stays the fallback nobody needed: a night was
+the bound, and this is an evening. The service answered on real data within a minute of
+the swap, without a restart: a family 250 ms, a label run 180 ms, a person's credits
+350 ms, all through Cloudflare and Traefik from outside.
 
 **The tables** (all CC0 fields; ids as in Discogs):
 
@@ -186,7 +200,19 @@ whole credit list, a master's versions, for zero requests. The second golden tes
 (`tests/unit/golden-catalogue.spec.ts`) runs the golden dig with every chunk arriving
 through the catalogue and pins the ranking identical to the API-built one, score for score.
 The per-dig lookups for labels and people the horizon does not know wait for `resolve`,
-because a listing carries names and not ids. The other routes come with their consumers.
+because a listing carries names and not ids.
+
+**M21.6 (2026-09-12):** `identify`, `release/{id}` and `stats/{kind}`. `identify` is the
+index over every identifier in the dump, normalised the way the build normalised it,
+answering exact stamps only — a fragment is the search request's job, as `worker/identify.ts`
+measured — and `[]` is "the build does not carry this stamp", which falls through to the
+search: a record newer than the dump is not a miss the app should stop at. `release/{id}`
+is the CC0 fields a search row would carry, so the shop screen's candidates look the same
+either way. `stats/{kind}` — decades, styles, genres, countries — is counted at build time
+into a `stats` table; a build from before the table is counted once on request and kept
+for the process. The map divides each facet's share of the collection by its share in the
+build and shows the lift behind the bar, with one sentence under the bars naming the
+build. `resolve` and the per-dig lookups remain, for when there are users to serve.
 
 Every answer carries `ETag: "2026-09-01"` and `Cache-Control: public, max-age=2592000`.
 The proxy (Traefik, later a CDN) may cache everything; the service has nothing to
@@ -222,8 +248,8 @@ Where each consumer plugs in, and what it does without the catalogue:
 | `horizon/build.ts` | Asks the catalogue for each candidate before the API; a hit is stored as a chunk with `source: 'catalogue'` and never revalidated (the build date is the validity) | As today: hub, then API |
 | `match/index.ts` lexicon | `resolve` for listing artists the map does not know, batched per dig, cached per dig | The lexicon of expanded artists only |
 | `pressing-family.ts` | `family` first, then hub, then API | Hub, then API |
-| `identify.ts` | `identify` first; the API search only when the catalogue has no build | The API search |
-| `collection/review.ts`, the map | `stats` for the comparison line; the section is absent without it | No comparison line |
+| `identify.ts` | `identify` first, then `release/{id}` per candidate; the API search when the catalogue is absent or does not carry the stamp (done, M21.6) | The API search |
+| the map (`taste.compared`) | `stats` for decades, styles and genres; the lift behind each bar and the sentence naming the build (done, M21.6). The year on the shelf can reuse the same handler | No lift, no sentence |
 | Signals S6, S8 | Chunks for labels of any size and for people in the second degree — fetched *per dig* for the listing's labels and credited people, bounded, cached | Only what the collection reaches |
 
 The last row is the one that changes what a dig costs: today a dig makes zero catalogue
@@ -277,10 +303,10 @@ that looks like success.
 | Identify in the shop | 1 request | 0 |
 | Labels above 1,500 releases | not covered | covered |
 | Credits beyond the collection | not covered | covered |
-| Disk on home-deb | 0 | ~16 GB kept, ~30 GB during a build |
+| Disk on home-deb | 0 | 17.5 GB per build, two kept; ~27 GB peak during a build (measured 2026-09-12) |
 | Monthly work | none | one job, unattended, with an alert when it does not run |
 | New dependency in the app | none | none — the port is TypeScript, the wire format exists |
-| New dependency in the build | — | `discogskit` (Python) or `dgtools` (Go), and DuckDB |
+| New dependency in the build | — | `sax` (streaming XML) and `node:sqlite`; no DuckDB, no Python |
 
 ## 9. Phases
 
@@ -290,10 +316,10 @@ Each phase ends green and shippable on its own; none of them changes a score.
 |---|---|---|
 | **M21.1 The seam** · done 2026-09-12 | `CatalogueSource` in `shared/ports.ts`, `catalogueUrl` in the preferences, discovery at `<origin>/catalogue`, the settings line, and a CI run with the URL empty | The existing suites unchanged; a new test that every consumer falls through to today's path with no catalogue |
 | **M21.2 The mini-dump** · done 2026-09-12 | `catalogue/`: the streaming reader, the shaping, the build; `fixtures/mini-dump` — 400 releases, 336 masters, 180 labels, 731 artists cut from the dump of 2026-09-01, 660 kB | The ETL runs on it in CI in 0.3 s (19 tests); golden files for every catalogue number, identifier, credit string and name in it; the twin test in the root suite |
-| **M21.3 The build** · image and job 2026-09-12, full run pending | `fetch.ts`, `run.ts`, the `fidelity-catalogue` image and the compose service: the five steps of §4, the two-generation swap, `status.json` as the health date | A full run on home-deb, timed and sized; the numbers replace the estimates in §4 and §8 |
+| **M21.3 The build** · done 2026-09-12 | `fetch.ts`, `run.ts`, the `fidelity-catalogue` image and the compose service: the five steps of §4, the two-generation swap, `status.json` as the health date | The first full run on home-deb: 89.6 minutes, 17.5 GB, 19.4 M releases; the numbers in §4 and §8 are measured now |
 | **M21.4 Two routes** · done 2026-09-12 | `family` and `artist` in the service; `familyFacts` and the horizon's artist expansion ask the catalogue first; the service in the image beside the job, at `/catalogue` on the home lab | 34 catalogue tests; the app's twin tests; a pressing family and a person's names with zero requests once the URL is set |
 | **M21.5 The signals** · done 2026-09-12 | `credits` and `run` as rows, packed by the app's `packChunk`; the horizon build asks the catalogue per candidate first — labels of any size, a person's whole credit list, a master's versions; the second golden test | 37 catalogue tests; the golden dig through the catalogue ranks identically; per-dig lookups for names the horizon does not know wait for `resolve` |
-| **M21.6 The shop and the map** | `identify`, `stats`, the comparison line in the year on the shelf | Barcode and run-out without a search request; "3× the catalogue's" on the map |
+| **M21.6 The shop and the map** · done 2026-09-12 | `identify`, `release/{id}`, `stats/{kind}` and the `stats` table in the build; identify asks the catalogue first; the map shows the lift against the catalogue behind every bar it has a denominator for | 41 catalogue tests; a barcode or run-out from the index with no search request; the map's × in a routed browser test |
 | later | `resolve` for every listing artist, co-occurrence, shards behind a CDN | when there are users to serve |
 
 M21.1 and M21.2 were a day each and touched no server. M21.3 is the first weekend with the

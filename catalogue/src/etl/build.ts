@@ -9,6 +9,7 @@ import {
   createIndexes,
   createSchema,
   deriveLabelPrefixes,
+  deriveStats,
   openCatalogueDb,
   TABLES,
 } from './db.ts'
@@ -158,6 +159,7 @@ export async function buildCatalogue(options: BuildOptions): Promise<BuildResult
   })
 
   deriveLabelPrefixes(db)
+  deriveStats(db)
   createIndexes(db)
   db.exec('ANALYZE')
 

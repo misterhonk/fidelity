@@ -1,7 +1,12 @@
 import { z } from 'zod'
 
 import { getPreferences } from '~~/db/meta'
-import type { CatalogueArtist, CatalogueSource } from '#shared/ports'
+import type {
+  CatalogueArtist,
+  CatalogueRelease,
+  CatalogueSource,
+  CatalogueStats,
+} from '#shared/ports'
 import type { HorizonChunk, PressingFamilyFacts } from '#shared/types'
 import { chunkIsSound } from '#shared/wire'
 
@@ -94,6 +99,23 @@ const creditsSchema = z.object({
 })
 
 const idsSchema = z.object({ releaseIds: z.array(z.number().int().positive()).max(5000) })
+
+const releaseSchema = z.object({
+  id: z.number().int().positive(),
+  title: z.string(),
+  year: z.number().int().nullable(),
+  country: z.string(),
+  masterId: z.number().int().nonnegative(),
+  artists: z.array(z.string()).max(50),
+  labels: z.array(z.object({ name: z.string(), catno: z.string() })).max(50),
+  formats: z.array(z.string()).max(20),
+})
+
+const statsSchema = z.object({
+  build: z.string(),
+  total: z.number().int().nonnegative(),
+  rows: z.array(z.tuple([z.string(), z.number().int().nonnegative()])).max(5000),
+})
 const artistIdsSchema = z.object({ artistIds: z.array(z.number().int().positive()).max(50) })
 
 export interface CatalogueClientOptions {
@@ -201,6 +223,13 @@ export function createCatalogueClient({
       if (query.runout) params.set('runout', query.runout)
       if ([...params.keys()].length === 0) return null
       return (await ask(`/identify?${params}`, idsSchema))?.releaseIds ?? null
+    },
+    async release(id): Promise<CatalogueRelease | null> {
+      const answer = await ask(`/release/${id}`, releaseSchema)
+      return answer && answer.id === id ? answer : null
+    },
+    async stats(kind): Promise<CatalogueStats | null> {
+      return ask(`/stats/${kind}`, statsSchema)
     },
     async resolve(name) {
       const trimmed = name.trim()
