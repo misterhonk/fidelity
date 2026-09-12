@@ -9,6 +9,14 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.57.0](https://github.com/misterhonk/fidelity/compare/v0.56.1...v0.57.0) (2026-09-12)
+
+
+### Added
+
+* **ui:** one voice, plates instead of boxes — M26.1 ([1480ac4](https://github.com/misterhonk/fidelity/commit/1480ac436d923764526bd23038994acd1cc5dd86))
+* **ui:** the Plate set — Cabinet Grotesk and JetBrains Mono, from Fontshare ([f0fe57d](https://github.com/misterhonk/fidelity/commit/f0fe57d9a5022e12a4e2f941aa819018a642c05a))
+
 ## [0.56.1](https://github.com/misterhonk/fidelity/compare/v0.56.0...v0.56.1) (2026-09-12)
 
 **Every screen starts in the same place, and the Support screen waits for a way to pay.**
