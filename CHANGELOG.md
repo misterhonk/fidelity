@@ -11,6 +11,14 @@ Für eine App bedeutet SemVer:
 
 ## [0.44.1](https://github.com/misterhonk/fidelity/compare/v0.44.0...v0.44.1) (2026-09-12)
 
+**Country names in your language.**
+
+"Aus Germany" on the new origin chip and "aus Germany" on a shop: Discogs writes English,
+and the German screens showed it. The same table the country picker uses now translates the
+name on the way out — "Aus Deutschland", "aus Großbritannien" — and a name it does not know
+stays as written. And the deploy workflow for the retired webspace hub refuses to revive it
+by accident.
+
 
 ### Fixed
 
