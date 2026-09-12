@@ -1043,7 +1043,7 @@ shops are reachable, and there the plan does it).
 > **The road to 1.0 as a whole — M21 to M25, the test rings, the cloud cross-check and the
 > paid comfort tier — is laid out in [`17-ROADMAP-1.0.md`](17-ROADMAP-1.0.md).**
 
-## M21 · The catalogue → planned
+## M21 · The catalogue → in progress
 
 **Decision:** [ADR-013](adr/013-catalogue-service.md) · **Concept:** `docs/16-CATALOGUE-SERVICE.md`
 
@@ -1059,14 +1059,14 @@ behind it, so no feature depends on it and no score moves.
 
 | Phase | Delivers | Cost |
 |---|---|---|
-| M21.1 The seam | `CatalogueSource`, `catalogueUrl`, discovery, a CI run with the URL empty | days, no server |
+| M21.1 The seam · done 2026-09-12 | `CatalogueSource` in `shared/ports.ts`, `catalogueUrl`, the client with two seconds and null for everything, discovery and check, the settings line under the hub; `familyFacts` asks the catalogue before the hub. Eleven tests that every shape of absence falls through to today's path | days, no server |
 | M21.2 The mini-dump | A frozen fixture of ~300 releases; the ETL's golden tests in CI | days |
 | M21.3 The build | The ETL container, six steps, two-generation swap, health date | a weekend with the home lab |
 | M21.4 Two routes | `family` and `artist`: the shop reads a pressing with zero requests | days |
 | M21.5 The signals | `credits`, `run`, per-dig lookups with a bound, the second golden test | a week |
 | M21.6 The shop and the map | `identify`, `stats`, the comparison line in the year on the shelf | days |
 
-Not started. The first two phases touch no server; nothing is bought.
+M21.1 is in 0.45.0 with no catalogue behind it — the port exists, every consumer has the horizon behind it, and the URL is empty on every device. The next phase touches no server either; nothing is bought.
 
 ---
 

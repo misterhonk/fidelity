@@ -221,7 +221,7 @@ Each phase ends green and shippable on its own; none of them changes a score.
 
 | Phase | Delivers | Proof |
 |---|---|---|
-| **M21.1 The seam** | `CatalogueSource` in `shared/ports.ts`, `catalogueUrl` in the preferences, discovery at `<origin>/catalogue`, the settings line, and a CI run with the URL empty | The existing suites unchanged; a new test that every consumer falls through to today's path with no catalogue |
+| **M21.1 The seam** · done 2026-09-12 | `CatalogueSource` in `shared/ports.ts`, `catalogueUrl` in the preferences, discovery at `<origin>/catalogue`, the settings line, and a CI run with the URL empty | The existing suites unchanged; a new test that every consumer falls through to today's path with no catalogue |
 | **M21.2 The mini-dump** | A frozen fixture: ~300 releases, their artists, labels, masters, cut from a real dump, checked in (a few MB) | The ETL runs on it in CI in seconds; golden tests for `parseCatno` in SQL and the identifier normalisation |
 | **M21.3 The build** | The ETL container, the six steps of §4, the two-generation swap, the health date | A full run on home-deb, timed and sized; the numbers replace the estimates in §4 and §8 |
 | **M21.4 Two routes** | `family` and `artist` — the two the app already asks the API for | The shop screen reads a pressing with zero requests; the lexicon covers a listing's artists |
