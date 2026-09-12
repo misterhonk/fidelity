@@ -11,6 +11,23 @@ Für eine App bedeutet SemVer:
 
 ## [0.63.0](https://github.com/misterhonk/fidelity/compare/v0.62.0...v0.63.0) (2026-09-12)
 
+**A shelf sorts itself — when you say so — and a compartment opens beside the wall.**
+
+Every piece of furniture has an order now: by artist, by label, by year, by arrival, or by
+hand. Tap "Sort in" and Fidelity shows what it would do — how many records would move, how
+many would come in from the pile of the unplaced — and nothing happens until you tap
+"Apply". Then the records are dealt evenly across the compartments in reading order, and the
+dividers appear on the wall the way you would pencil them: A–B, M–O, and where two
+neighbours would read the same, a letter more. A record's own sheet reads the dividers and
+suggests the compartment it belongs in, one tap away.
+
+And a compartment no longer opens under the wall: it slides in from the right, like a
+record's sheet, with its address, "Fill", "Move all" and its sleeves. Escape closes it even
+when a button inside has just disabled itself.
+
+**What to do:** Nothing. To try the rule, open Collection › Places, pick an order under a
+piece of furniture and tap "Sort in".
+
 
 ### Added
 
