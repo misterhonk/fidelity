@@ -1,4 +1,5 @@
 import { activeLanguage } from '~/composables/useMessages'
+import { countryName } from '~/utils/countries'
 
 /**
  * The words for the shops: which ones you have walked, how well each one fits,
@@ -144,7 +145,7 @@ const de: typeof en = {
   origin: {
     label: 'Versand aus',
     any: 'Überall',
-    home: (country) => `Aus ${country}`,
+    home: (country) => `Aus ${countryName(country)}`,
     eu: 'Aus der EU',
     none: 'Keiner deiner Läden versendet von dort.',
   },
@@ -159,7 +160,7 @@ const de: typeof en = {
 
   neverScanned: 'Diesen Laden kenne ich nur vom Namen – gescannt wurde er noch nicht.',
   listings: (n) => `${n} Listings`,
-  shipsFrom: (country) => `aus ${country}`,
+  shipsFrom: (country) => `aus ${countryName(country)}`,
   rating: (percent, count) => `${percent} bei ${count} Bewertungen`,
   lastScanned: (when) => `zuletzt gescannt am ${when}`,
 

@@ -14,6 +14,8 @@
  * nothing downstream has to learn a new vocabulary.
  */
 
+import { activeLocale } from '~/composables/useMessages'
+
 /** ISO 3166-1 alpha-2, minus the ones nobody sells records from. */
 const CODES =
   'AD AE AF AG AL AM AO AR AT AU AW AZ BA BB BD BE BF BG BH BI BJ BM BN BO BR BS BT BW BY BZ ' +
@@ -49,4 +51,25 @@ export function localName(code: string, locale: string): string {
   } catch {
     return code
   }
+}
+
+/** English name → code, for the way back: Discogs hands over the name, not the code. */
+const codeByName = new Map(
+  COUNTRIES.map((country) => [country.name.toLowerCase(), country.code]),
+)
+
+/**
+ * A country as Discogs writes it, in the language of the app.
+ *
+ * `ships_from` is an English name, and the app showed it as such in German
+ * too — "aus Germany" on a shop, "Aus Germany" on the chip (seen 2026-09-12).
+ * Same `Intl.DisplayNames` as the picker, so no second list; a name the table
+ * does not know — "Europe", "Worldwide" — stays as written, which is still
+ * right, only English.
+ */
+export function countryName(english: string | null | undefined): string {
+  const name = (english ?? '').trim()
+  if (!name) return ''
+  const code = codeByName.get(name.toLowerCase())
+  return code ? localName(code, activeLocale()) : name
 }

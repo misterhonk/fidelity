@@ -156,5 +156,5 @@ test('sagt es auf Deutsch', async ({ page }) => {
       timeout: 15_000,
     },
   )
-  await expect(page.getByRole('button', { name: 'Aus Germany' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Aus Deutschland' })).toBeVisible()
 })

@@ -1,4 +1,5 @@
 import { activeLanguage } from '~/composables/useMessages'
+import { countryName } from '~/utils/countries'
 
 /**
  * The words for what you already own: the shelf, the map of your taste, the
@@ -693,7 +694,7 @@ const de: typeof en = {
       origin: {
         label: 'Versand aus',
         any: 'Überall',
-        home: (country) => `Aus ${country}`,
+        home: (country) => `Aus ${countryName(country)}`,
         eu: 'Aus der EU',
         leftOut: (shops) => `${shops} anderswo oder ohne Herkunft weggelassen.`,
       },
