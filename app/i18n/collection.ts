@@ -221,8 +221,7 @@ const en = {
       'Discogs files everything under one name: albums, singles, remixes, contributions to compilations. The number is therefore not a collecting target but a statement of how likely a dig is to turn up something else of theirs.',
     labelsWhy:
       'It compares your share of a label with what would be expected if you picked at random from your labels. The comparison is against your own labels — what the rest of the world presses is not something this app can see.',
-    needsHorizon:
-      'Gaps and label lift need the horizon. Once it is built, this says how much you are still missing from which artist.',
+    needsHorizon: 'Gaps and label lift need the horizon — build it in the settings.',
     howMuchLeft: 'How much is still out there',
     yoursFrom: '· yours from',
     nothingByName: 'Nothing by that name on the list.',
@@ -252,7 +251,7 @@ const en = {
       'Your wantlist is empty — or not synced yet. It carries the two strongest signals there are.',
     emptyAction: 'Sync it now',
     lead: (total: string, withPressings: string) =>
-      `${total} records wanted. For ${withPressings} of them the horizon knows every pressing — there a dig recognises a different edition than the one you entered, too.`,
+      `${total} records wanted, ${withPressings} with every pressing known to the horizon.`,
     seenRecently: (n: string) => `${n} turned up at a shop in the last thirty days.`,
     search: 'Artist or title',
     searchLabel: 'Search the wantlist',
@@ -634,8 +633,7 @@ const de: typeof en = {
       'Discogs führt unter einem Namen alles: Alben, Singles, Remixe, Beiträge zu Samplern. Die Zahl ist deshalb kein Sammelziel, sondern eine Auskunft darüber, wie wahrscheinlich ein Dig noch etwas von ihnen zutage fördert.',
     labelsWhy:
       'Er vergleicht deinen Anteil an einem Label mit dem, was bei zufälliger Auswahl aus deinen Labels zu erwarten wäre. Verglichen wird gegen deine eigenen Labels – was der Rest der Welt presst, sieht diese App nicht.',
-    needsHorizon:
-      'Lücken und Label-Lift brauchen den Horizont. Sobald der gebaut ist, steht hier, wie viel dir bei welchem Künstler noch fehlt.',
+    needsHorizon: 'Lücken und Label-Lift brauchen den Horizont – bau ihn in den Einstellungen.',
     howMuchLeft: 'Wie viel es noch gibt',
     yoursFrom: '· deine von',
     nothingByName: 'Nichts mit diesem Namen auf der Liste.',
@@ -658,7 +656,7 @@ const de: typeof en = {
       'Deine Wantlist ist leer – oder noch nicht synchronisiert. Sie trägt die zwei stärksten Signale überhaupt.',
     emptyAction: 'Jetzt synchronisieren',
     lead: (total, withPressings) =>
-      `${total} Platten gesucht. Von ${withPressings} kennt der Horizont alle Pressungen – bei denen erkennt ein Dig auch eine andere Ausgabe als die eingetragene.`,
+      `${total} Platten gesucht, bei ${withPressings} kennt der Horizont alle Pressungen.`,
     seenRecently: (n) => `${n} sind in den letzten dreißig Tagen bei einem Laden aufgetaucht.`,
     search: 'Künstler oder Titel',
     searchLabel: 'Wantlist durchsuchen',

@@ -123,11 +123,11 @@ async function submit() {
         pastes a key into.
       -->
       <p id="token-hint" class="flex flex-col gap-1 text-fid-xs text-fid-text-muted">
-        <span>
-          <span class="text-fid-text">{{ m.token.readsOnly }}</span> {{ m.token.readsOnlyRest }}
-        </span>
+        <span class="text-fid-text">{{ m.token.readsOnly }}</span>
         <span>{{ m.token.staysHere }}</span>
       </p>
+      <!-- The whole of what it may and may not do, one click away (M26.3). -->
+      <WhyNote>{{ m.token.readsOnlyRest }}</WhyNote>
       <div v-if="error" id="token-error">
         <ErrorNote :cause="error" :signed-in="renew === true" />
       </div>

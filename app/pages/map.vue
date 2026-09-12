@@ -162,7 +162,7 @@ const decades = computed(() =>
         <h2 id="value-history" class="text-fid-base font-medium text-fid-text">
           {{ c.map.history.title }}
         </h2>
-        <p class="text-fid-sm text-fid-text-muted">{{ c.map.history.about }}</p>
+        <WhyNote>{{ c.map.history.about }}</WhyNote>
       </div>
       <ValueHistory :points="history" />
     </section>

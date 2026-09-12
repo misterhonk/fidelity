@@ -151,7 +151,7 @@ const number = (value: string) => {
             {{ format }}
           </button>
         </div>
-        <p class="text-fid-xs text-fid-text-muted">{{ f.formatsHint }}</p>
+        <WhyNote>{{ f.formatsHint }}</WhyNote>
       </div>
 
       <div class="grid gap-3 @sm:grid-cols-2">
@@ -205,8 +205,8 @@ const number = (value: string) => {
           :placeholder="f.countryPlaceholder"
           class="fid-field px-3 py-2 text-fid-sm text-fid-text"
         />
-        <span class="text-fid-xs text-fid-text-muted">{{ f.shipsToHint }}</span>
       </label>
+      <WhyNote>{{ f.shipsToHint }}</WhyNote>
 
       <div class="flex flex-col gap-2">
         <span class="text-fid-sm text-fid-text-muted">{{ f.blocked }}</span>

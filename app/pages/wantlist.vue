@@ -199,7 +199,7 @@ function waiting(addedAt: string): string | null {
       -->
       <section
         v-if="plan"
-        class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
+        class="flex flex-col gap-3 border-t border-fid-border pt-4"
         aria-labelledby="want-plan"
         data-testid="want-plan"
       >
@@ -207,7 +207,7 @@ function waiting(addedAt: string): string | null {
           <h2 id="want-plan" class="text-fid-base font-medium text-fid-text">
             {{ c.wantlist.plan.title }}
           </h2>
-          <p class="text-fid-xs text-fid-text-muted">{{ c.wantlist.plan.subset }}</p>
+          <WhyNote>{{ c.wantlist.plan.subset }}</WhyNote>
         </div>
 
         <!--
@@ -387,16 +387,16 @@ function waiting(addedAt: string): string | null {
           class="fid-field px-3 py-2 text-fid-sm text-fid-text"
         />
         <!-- Longest wanted, or wanted most (M20 #1). Two states, in the address. -->
-        <div role="group" :aria-label="c.wantlist.priority.sortLabel" class="flex gap-1">
+        <div role="group" :aria-label="c.wantlist.priority.sortLabel" class="flex gap-4">
           <button
             v-for="key in ['waiting', 'want'] as const"
             :key="key"
             type="button"
-            class="fid-action min-h-11 rounded-fid-sm border px-3 text-fid-xs"
+            class="fid-plate min-h-11 border-b-2 transition-colors"
             :class="
               sort === key
-                ? 'border-fid-text bg-fid-inset text-fid-text'
-                : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+                ? 'border-fid-accent text-fid-text'
+                : 'border-transparent text-fid-text-muted hover:text-fid-text'
             "
             :aria-pressed="sort === key"
             @click="sortBy(key)"

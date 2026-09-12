@@ -40,6 +40,8 @@ const RENAMED: Record<string, string> = {
   '/einstellungen/konto': '/settings/account',
   '/einstellungen/sammlung': '/settings/collection',
   '/einstellungen/suche': '/settings/search',
+  /** Folded into the hub screen on 2026-09-12 (M26.3): one door field. */
+  '/settings/access': '/settings/hub',
 }
 
 export default defineNuxtRouteMiddleware((to) => {

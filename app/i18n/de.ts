@@ -286,7 +286,7 @@ const de: Messages = {
 
     renewTitle: 'Token erneuern',
     renewLead:
-      'Wenn Discogs den Token nicht mehr annimmt, erzeuge einen neuen und trag ihn hier ein. Sammlung, Horizont, Digs und Bewertungen auf diesem Gerät bleiben, wie sie sind; nur der Schlüssel wechselt.',
+      'Wenn Discogs den Token nicht mehr annimmt, trag hier einen neuen ein. Alles auf diesem Gerät bleibt; nur der Schlüssel wechselt.',
     renew: 'Erneuern',
     renewed: 'Der Token funktioniert. Sonst hat sich nichts geändert.',
   },

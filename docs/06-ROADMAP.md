@@ -1142,7 +1142,7 @@ Fontshare, self-hosted as before.
 |---|---|---|
 | M26.1 Plate | The fifth type step `display` (40–72 px, `PageHeader` only, the guard allows it in one file); `.fid-plate` for labels, tabs and terms; the collection and basket tabs as a line with the current one underlined, no frame; fields on a baseline (`.fid-field`), no box; the rhythm 8 · 16 · 32 · 64 with the head at 32/64 px from the bar. No screen changes its content | **Done 2026-09-12**; the font set is Martin's pick from four Fontshare trials |
 | M26.2 Sleeve | The MatchCard with the cover at 40 % and the signals as a plate line, the shelf at six columns with a density switch (eight is the crate), the start rails taller, the wantlist card with a 128 px cover, the release sheet tinted by a blurred copy of its own cover — not by reading pixels, `i.discogs.com` sends no CORS header (docs/02). Golden files untouched: no score moves | **Done 2026-09-12** |
-| M26.3 Sixty | A word budget of sixty per screen above the fold as a guard; sentences moved into plates, `WhyNote`s and Help; settings pages down to a label and one line | 1 weekend |
+| M26.3 Sixty | `tests/e2e/sixty.spec.ts`: sixty words of prose above the fold per screen, measured in a browser with a seeded profile; eight screens were over it (data 109, search 101, account 101, hub 89) and every one is under it now — leads shortened, explanations behind “Why?”, the wantlist plan a hairline instead of a box. And one door: the access key and the shared secret share one field on the hub screen, told apart by the `fk1.` prefix; Settings › Access is folded in and its address redirects | **Done 2026-09-12** |
 
 ## Not on the roadmap
 

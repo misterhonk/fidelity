@@ -59,7 +59,7 @@ const en = {
   back: 'Settings',
 
   account: {
-    lead: 'There is no account with us — only your token, on this device.',
+    lead: 'Only your token, on this device.',
     title: 'Account',
     hint: 'Your Discogs token, and what is kept on this device',
     discogsAccount: 'Discogs account',
@@ -175,7 +175,7 @@ const en = {
       maxPriceHint: 'Anything above is discarded.',
 
       minRating: 'Seller rating at least',
-      minRatingHint: 'Below that, the dig does not start at all.',
+      minRatingHint: 'Below that, no dig starts.',
 
       shipsTo: 'Where it ships to',
       shipsToHint:
@@ -259,15 +259,9 @@ const en = {
   vault: {
     targets: {
       none: { label: 'This device only', hint: 'Nothing leaves the browser.' },
-      hub: {
-        label: 'Your hub',
-        hint: 'Encrypted, on your own server. Works on every device.',
-      },
-      file: {
-        label: 'A file in a sync folder',
-        hint: 'In iCloud, Dropbox or Drive. Their client syncs it, Fidelity does not.',
-      },
-      cloud: { hint: 'Encrypted, with your own app registration.' },
+      hub: { label: 'Your hub', hint: 'Encrypted, on your own server.' },
+      file: { label: 'A file in a sync folder', hint: 'iCloud, Dropbox or Drive carry it.' },
+      cloud: { hint: 'With your own app registration.' },
     },
 
     /** Why the chosen destination cannot be used right now. */
@@ -349,9 +343,10 @@ const en = {
     optional: 'Everything works the same without a hub — it only takes waiting away.',
 
     url: 'Hub URL',
-    secret: 'Shared secret (if the hub asks for one)',
+    door: 'Access key or shared secret',
+    removeDoor: 'Remove',
     notYourToken:
-      'That is not your Discogs token. It never leaves this device, and the hub has nowhere to accept it.',
+      'Not your Discogs token — that never leaves this device. A key starts with “fk1.” and opens a hosted hub and catalogue; anything else is the secret of your own hub.',
 
     save: 'Save',
     test: 'Test the connection',
@@ -392,8 +387,8 @@ const en = {
     shippingTiers: (tiers: number) => counted(tiers, 'postage tier', 'postage tiers'),
     secured: 'secured with a secret',
     open: 'open',
-    showSecret: 'Show the secret',
-    hideSecret: 'Hide the secret',
+    showDoor: 'Show it',
+    hideDoor: 'Hide it',
     secretOk: 'the secret opens it',
     secretWrong: 'the hub refuses this secret — nothing you contribute or fetch gets through',
     secretMissing: 'no secret entered — nothing you contribute or fetch gets through',
@@ -404,22 +399,12 @@ const en = {
   },
 
   /** Settings → Access (docs/17 §6.2). */
+  /** What a key says, on the hub screen (M26.3: the key and the secret share one field). */
   accessPanel: {
-    whyLabel: 'What an access key is',
-    why: 'A hosted hub and catalogue are run by somebody, and the key is how they tell their members apart without knowing who anybody is on Discogs: a signed statement with a tier and an end date, and nothing else. It goes to the hub and the catalogue with every request and nowhere else.',
-    optional:
-      'Your own hub needs none of this — a shared secret is its door. A key only matters for a hosted one.',
-    key: 'Access key',
-    notYourToken:
-      'Not your Discogs token, and not the hub’s secret: a key starts with “fk1.” and comes from whoever runs the hosted hub.',
-    showKey: 'Show the key',
-    hideKey: 'Hide the key',
     notAKey: 'That does not read as an access key.',
     /** Given the tier’s name and a formatted date. */
     reads: (tier: string, until: string) => `${tier} · valid until ${until}`,
     expired: 'expired — ask for a fresh one',
-    save: 'Save',
-    remove: 'Remove the key',
     saved: 'Saved. The hub and the catalogue get it with every request from now on.',
     removed: 'Removed. Your own hub works as before; a hosted one is closed to you now.',
   },
@@ -521,17 +506,14 @@ const en = {
     deleteConfirm: 'Yes, delete everything',
     cancel: 'Cancel',
   },
+  /** The key's end on the index line, beside the hub's host (M26.3: one door). */
   access: {
-    lead: 'The key for a hosted hub and catalogue. Your own hub does not need one.',
-    title: 'Access',
-    hint: 'A key for the hosted comfort tier',
-    notSetUp: 'No key',
     /** Given a formatted date. */
     until: (date: string) => `until ${date}`,
     expired: 'expired',
   },
   hub: {
-    lead: 'A small service on a machine you run yourself. It remembers what Fidelity has already worked out, so the next time is immediate.',
+    lead: 'A helper on your own network. It remembers what was already worked out.',
     title: 'Hub',
     hint: 'An optional helper on your own network',
     notSetUp: 'Not set up',
@@ -541,7 +523,7 @@ const en = {
     unreadable: 'Address unreadable',
   },
   data: {
-    lead: 'Take it with you, or be rid of it. Both complete, both without a detour through a server.',
+    lead: 'Take it with you, or be rid of it.',
     title: 'Your data',
     hint: 'Export it, or delete all of it',
   },
@@ -686,7 +668,7 @@ const de: typeof en = {
   back: 'Einstellungen',
 
   account: {
-    lead: 'Es gibt kein Konto bei uns – nur deinen Token auf diesem Gerät.',
+    lead: 'Nur dein Token, auf diesem Gerät.',
     title: 'Konto',
     hint: 'Dein Discogs-Token und was auf diesem Gerät liegt',
     discogsAccount: 'Discogs-Konto',
@@ -776,7 +758,7 @@ const de: typeof en = {
       maxPriceHint: 'Darüber wird verworfen.',
 
       minRating: 'Verkäuferbewertung mindestens',
-      minRatingHint: 'Darunter wird der Dig gar nicht erst gestartet.',
+      minRatingHint: 'Darunter startet kein Dig.',
 
       shipsTo: 'Wohin geliefert wird',
       shipsToHint:
@@ -844,15 +826,9 @@ const de: typeof en = {
   vault: {
     targets: {
       none: { label: 'Nur dieses Gerät', hint: 'Nichts verlässt den Browser.' },
-      hub: {
-        label: 'Dein Hub',
-        hint: 'Verschlüsselt auf deinem eigenen Server. Funktioniert auf jedem Gerät.',
-      },
-      file: {
-        label: 'Datei im Sync-Ordner',
-        hint: 'In iCloud, Dropbox oder Drive. Deren Client synchronisiert, Fidelity nicht.',
-      },
-      cloud: { hint: 'Verschlüsselt, mit deiner eigenen App-Registrierung.' },
+      hub: { label: 'Dein Hub', hint: 'Verschlüsselt auf deinem eigenen Server.' },
+      file: { label: 'Datei im Sync-Ordner', hint: 'iCloud, Dropbox oder Drive tragen sie.' },
+      cloud: { hint: 'Mit deiner eigenen App-Registrierung.' },
     },
 
     blocked: {
@@ -906,9 +882,10 @@ const de: typeof en = {
     optional: 'Ohne Hub funktioniert alles genauso – er nimmt nur Wartezeit weg.',
 
     url: 'Hub-URL',
-    secret: 'Geteiltes Geheimnis (falls der Hub eins verlangt)',
+    door: 'Zugangsschlüssel oder Shared Secret',
+    removeDoor: 'Entfernen',
     notYourToken:
-      'Das ist nicht dein Discogs-Token. Der verlässt dieses Gerät nie und der Hub hat keine Stelle, an der er ihn annehmen könnte.',
+      'Nicht dein Discogs-Token – der verlässt dieses Gerät nie. Ein Schlüssel beginnt mit „fk1." und öffnet einen gehosteten Hub und Katalog; alles andere ist das Secret deines eigenen Hubs.',
 
     save: 'Speichern',
     test: 'Verbindung testen',
@@ -931,8 +908,8 @@ const de: typeof en = {
     shippingTiers: (tiers) => counted(tiers, 'Versandstaffel', 'Versandstaffeln'),
     secured: 'mit Geheimnis gesichert',
     open: 'offen',
-    showSecret: 'Geheimnis anzeigen',
-    hideSecret: 'Geheimnis verbergen',
+    showDoor: 'Anzeigen',
+    hideDoor: 'Verbergen',
     secretOk: 'das Geheimnis öffnet ihn',
     secretWrong:
       'der Hub weist dieses Geheimnis ab – nichts, was du beisteuerst oder holst, kommt durch',
@@ -1003,20 +980,9 @@ const de: typeof en = {
   },
 
   accessPanel: {
-    whyLabel: 'Was ein Zugangsschlüssel ist',
-    why: 'Einen gehosteten Hub und Katalog betreibt jemand, und der Schlüssel ist, wie er seine Mitglieder auseinanderhält, ohne zu wissen, wer jemand bei Discogs ist: eine signierte Aussage mit Stufe und Enddatum, sonst nichts. Er geht mit jeder Anfrage an Hub und Katalog und nirgendwo sonst hin.',
-    optional:
-      'Dein eigener Hub braucht das nicht – sein Zugang ist das geteilte Geheimnis. Ein Schlüssel zählt nur bei einem gehosteten.',
-    key: 'Zugangsschlüssel',
-    notYourToken:
-      'Nicht dein Discogs-Token und nicht das Hub-Geheimnis: Ein Schlüssel beginnt mit „fk1." und kommt von dem, der den gehosteten Hub betreibt.',
-    showKey: 'Schlüssel anzeigen',
-    hideKey: 'Schlüssel verbergen',
     notAKey: 'Das liest sich nicht wie ein Zugangsschlüssel.',
     reads: (tier, until) => `${tier} · gültig bis ${until}`,
     expired: 'abgelaufen – bitte um einen frischen',
-    save: 'Speichern',
-    remove: 'Schlüssel entfernen',
     saved: 'Gespeichert. Hub und Katalog bekommen ihn ab jetzt mit jeder Anfrage.',
     removed:
       'Entfernt. Dein eigener Hub läuft wie bisher; ein gehosteter ist für dich jetzt zu.',
@@ -1035,15 +1001,11 @@ const de: typeof en = {
   },
 
   access: {
-    lead: 'Der Schlüssel für einen gehosteten Hub und Katalog. Dein eigener Hub braucht keinen.',
-    title: 'Zugang',
-    hint: 'Ein Schlüssel für die gehostete Komfortstufe',
-    notSetUp: 'Kein Schlüssel',
     until: (date) => `bis ${date}`,
     expired: 'abgelaufen',
   },
   hub: {
-    lead: 'Ein kleiner Dienst auf einem Rechner, den du selbst betreibst. Er merkt sich, was Fidelity schon herausgefunden hat – dann geht es beim nächsten Mal sofort.',
+    lead: 'Ein Helfer im eigenen Netz. Er merkt sich, was schon herausgefunden wurde.',
     title: 'Hub',
     hint: 'Optionaler Helfer im eigenen Netz',
     notSetUp: 'Nicht eingerichtet',
@@ -1051,7 +1013,7 @@ const de: typeof en = {
     unreadable: 'Adresse unlesbar',
   },
   data: {
-    lead: 'Mitnehmen oder loswerden. Beides vollständig, beides ohne Umweg über einen Server.',
+    lead: 'Mitnehmen oder loswerden.',
     title: 'Deine Daten',
     hint: 'Exportieren oder alles löschen',
   },

@@ -6,13 +6,28 @@ const st = useSettingsMessages()
 const { call } = useFidelityWorker()
 
 const url = ref('')
-const secret = ref('')
-/** The access key from the preferences (Settings › Access); tried at the door too. */
-const accessKey = ref<string | null>(null)
+/**
+ * One door (M26.3).
+ *
+ * There were two fields — the shared secret of a hub you run, and the access
+ * key of a hub somebody runs for you — and the second confused everybody
+ * who had the first: which of them is mine? The answer is in the value. A
+ * key starts with `fk1.` and is signed; anything else is a secret. So one
+ * field, and the app reads which door it is, stores it in the right place
+ * and sends it the right way: a key to hub and catalogue, a secret to the
+ * hub alone.
+ */
+const door = ref('')
+const isKey = computed(() => door.value.trim().startsWith('fk1.'))
+/** What a key says about itself — tier and validity, read off the string. */
+const claims = computed(() => (isKey.value ? decodeAccessKey(door.value.trim()) : null))
+const expired = computed(() => claims.value !== null && claims.value.validUntil <= Date.now())
+const stored = ref<string | null>(null)
+const saved = ref<'door' | 'gone' | null>(null)
 const busy = ref(false)
 const error = ref<unknown>(null)
-/** Whether the secret is shown in clear — off on every open, never remembered. */
-const secretShown = ref(false)
+/** Whether the door is shown in clear — off on every open, never remembered. */
+const doorShown = ref(false)
 
 const status = ref<{
   ok: boolean
@@ -29,8 +44,8 @@ const hint = ref<string | null>(null)
 onMounted(async () => {
   const preferences = await call('preferences.get', undefined)
   url.value = preferences.hubUrl ?? ''
-  secret.value = preferences.hubSecret ?? ''
-  accessKey.value = preferences.accessKey
+  door.value = preferences.accessKey ?? preferences.hubSecret ?? ''
+  stored.value = door.value || null
   if (url.value) void test()
   else void discover()
 })
@@ -67,7 +82,7 @@ async function discover() {
       }
 
       await call('preferences.set', { hubUrl: found.url, hubSecret: null })
-      secret.value = ''
+      if (!isKey.value) door.value = ''
       hint.value = st.value.hubPanel.foundAndKept
       void test()
       return
@@ -99,10 +114,11 @@ async function test() {
   status.value = null
 
   try {
+    const word = door.value.trim()
     status.value = await call('hub.check', {
       url: url.value,
-      secret: secret.value,
-      accessKey: accessKey.value ?? undefined,
+      secret: isKey.value ? '' : word,
+      accessKey: isKey.value ? word : undefined,
     })
   } catch (cause) {
     error.value = cause
@@ -114,17 +130,27 @@ async function test() {
 async function save() {
   busy.value = true
   error.value = null
+  saved.value = null
   try {
+    const word = door.value.trim() || null
     await call('preferences.set', {
       hubUrl: url.value.trim() || null,
-      hubSecret: secret.value.trim() || null,
+      hubSecret: word && !isKey.value ? word : null,
+      accessKey: word && isKey.value ? word : null,
     })
+    stored.value = word
+    saved.value = word ? 'door' : 'gone'
     if (url.value.trim()) await test()
   } catch (cause) {
     error.value = cause
   } finally {
     busy.value = false
   }
+}
+
+async function remove() {
+  door.value = ''
+  await save()
 }
 </script>
 
@@ -163,8 +189,8 @@ async function save() {
         class="fid-field px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
       />
 
-      <label class="text-fid-sm font-medium text-fid-text" for="hub-secret">
-        {{ st.hubPanel.secret }}
+      <label class="text-fid-sm font-medium text-fid-text" for="hub-door">
+        {{ st.hubPanel.door }}
       </label>
       <!--
         Shown on request. A forty-eight-character word typed on a phone
@@ -174,9 +200,9 @@ async function save() {
       -->
       <div class="flex gap-2">
         <input
-          id="hub-secret"
-          v-model="secret"
-          :type="secretShown ? 'text' : 'password'"
+          id="hub-door"
+          v-model="door"
+          :type="doorShown ? 'text' : 'password'"
           autocomplete="off"
           spellcheck="false"
           autocapitalize="off"
@@ -185,14 +211,26 @@ async function save() {
         <button
           type="button"
           class="fid-action flex min-h-11 min-w-11 items-center justify-center rounded-fid-sm border border-fid-border text-fid-text-muted hover:text-fid-text"
-          :aria-label="secretShown ? st.hubPanel.hideSecret : st.hubPanel.showSecret"
-          :aria-pressed="secretShown"
-          @click="secretShown = !secretShown"
+          :aria-label="doorShown ? st.hubPanel.hideDoor : st.hubPanel.showDoor"
+          :aria-pressed="doorShown"
+          @click="doorShown = !doorShown"
         >
-          <FidIcon :name="secretShown ? 'eye-off' : 'eye'" :size="18" aria-hidden="true" />
+          <FidIcon :name="doorShown ? 'eye-off' : 'eye'" :size="18" aria-hidden="true" />
         </button>
       </div>
-      <p class="text-fid-xs text-fid-text-muted">{{ st.hubPanel.notYourToken }}</p>
+      <!-- What the value is, read before it is saved: a key names its tier, a bad one says so. -->
+      <p v-if="isKey && !claims" class="text-fid-sm text-fid-sig-scarcity" aria-live="polite">
+        {{ st.accessPanel.notAKey }}
+      </p>
+      <p v-else-if="claims" class="text-fid-sm text-fid-text" aria-live="polite">
+        {{
+          st.accessPanel.reads(st.supportPanel.tierName(claims.tier), day(claims.validUntil))
+        }}
+        <span v-if="expired" class="text-fid-sig-scarcity">
+          · {{ st.accessPanel.expired }}</span
+        >
+      </p>
+      <WhyNote>{{ st.hubPanel.notYourToken }}</WhyNote>
     </div>
 
     <div class="flex flex-wrap gap-2">
@@ -220,7 +258,20 @@ async function save() {
       >
         {{ st.hubPanel.discover }}
       </button>
+      <button
+        v-if="stored"
+        type="button"
+        :disabled="busy"
+        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+        @click="remove"
+      >
+        {{ st.hubPanel.removeDoor }}
+      </button>
     </div>
+
+    <p v-if="saved" class="text-fid-sm text-fid-text-muted" aria-live="polite">
+      {{ saved === 'door' ? st.accessPanel.saved : st.accessPanel.removed }}
+    </p>
 
     <p v-if="status" class="text-fid-sm text-fid-text-muted" aria-live="polite">
       {{ st.hubPanel.reachable }} · {{ st.hubPanel.horizonEntries(status.horizon) }} ·

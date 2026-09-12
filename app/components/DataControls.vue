@@ -174,7 +174,7 @@ async function deleteAll() {
       </button>
     </div>
 
-    <p class="text-fid-xs text-fid-text-muted">{{ st.dataPanel.contents }}</p>
+    <WhyNote>{{ st.dataPanel.contents }}</WhyNote>
 
     <!--
       The way back (M24). A file picker behind a button, because the input
@@ -235,7 +235,7 @@ async function deleteAll() {
       </button>
     </div>
 
-    <p class="text-fid-xs text-fid-text-muted">{{ st.dataPanel.csvContents }}</p>
+    <WhyNote>{{ st.dataPanel.csvContents }}</WhyNote>
 
     <div class="flex flex-col gap-2 border-t border-fid-border pt-3">
       <button

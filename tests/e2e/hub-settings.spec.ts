@@ -76,7 +76,7 @@ test('tries the secret at a locked door, and shows it on request', async ({
   // Two panels with the same buttons since M21.1; this test stays in the hub's.
   const panel = page.locator('section').filter({ has: page.getByLabel('Hub URL') })
   await panel.getByLabel('Hub URL').fill('https://hub.test')
-  const secret = panel.getByLabel('Shared secret (if the hub asks for one)')
+  const secret = panel.getByLabel('Access key or shared secret')
   await secret.fill('falsch')
   await panel.getByRole('button', { name: 'Test the connection' }).click()
   await expect(page.getByText('the hub refuses this secret', { exact: false })).toBeVisible({
@@ -85,9 +85,9 @@ test('tries the secret at a locked door, and shows it on request', async ({
 
   // The eye: dots by default, the word on request, and the state is on the button.
   await expect(secret).toHaveAttribute('type', 'password')
-  await page.getByRole('button', { name: 'Show the secret' }).click()
+  await page.getByRole('button', { name: 'Show it' }).click()
   await expect(secret).toHaveAttribute('type', 'text')
-  await expect(page.getByRole('button', { name: 'Hide the secret' })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: 'Hide it' })).toHaveAttribute(
     'aria-pressed',
     'true',
   )

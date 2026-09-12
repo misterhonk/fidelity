@@ -412,7 +412,7 @@ const en = {
      */
     renewTitle: 'Renew the token',
     renewLead:
-      'If Discogs stopped accepting the token, make a new one and enter it here. Collection, horizon, digs and ratings on this device stay as they are; only the key changes.',
+      'If Discogs stopped accepting the token, enter a new one here. Everything on this device stays; only the key changes.',
     renew: 'Renew',
     renewed: 'The token works. Nothing else has changed.',
   },
