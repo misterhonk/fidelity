@@ -9,6 +9,24 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.47.0](https://github.com/misterhonk/fidelity/compare/v0.46.0...v0.47.0) (2026-09-12)
+
+**The catalogue's monthly job, in one image.**
+
+Again nothing in the app changes. `fidelity-catalogue` is a new image beside the app's and
+the hub's: once a day it looks at data.discogs.com, and a new month is fetched with every
+file hashed against the checksum file, built beside the old one, checked against its row
+counts, and made current by an atomic symlink swap — a reader opens the old build or the
+new, never half of either. Two builds stay; each dump file is deleted the moment its rows
+are in, because the home lab's disk is the tight resource. `status.json` says what the last
+run did. Self-hosters find the service in `deploy/compose.homelab.yml`; it needs the open
+internet and real disk, and leaving it out changes nothing else.
+
+
+### Added
+
+* **hub:** the catalogue's monthly job — fetch, build, check, swap, in one image ([125c8a2](https://github.com/misterhonk/fidelity/commit/125c8a2d922720ebb1ad7293962b491bc4b8d941))
+
 ## [0.46.0](https://github.com/misterhonk/fidelity/compare/v0.45.0...v0.46.0) (2026-09-12)
 
 **The catalogue's build, proven on a cut of the real dump.**
