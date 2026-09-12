@@ -11,6 +11,22 @@ Für eine App bedeutet SemVer:
 
 ## [0.55.0](https://github.com/misterhonk/fidelity/compare/v0.54.1...v0.55.0) (2026-09-12)
 
+**A backup can be read back in, the update is quiet, and a stranger's afternoon is tested.**
+
+"Read a backup back in" on the data screen brings the shelf, the wantlist, the shops, the
+basket, the ratings and the places back from the file "Export everything" wrote — merged
+into what is there, not over it. The digs stay out: the file never had their prices, and a
+dig without them is a heading over nothing. The file now says which database version wrote
+it, and a very old one asks for a sync instead of guessing at its rows.
+
+A new version no longer waits behind a banner: it loads by itself the next time the app
+moves between two screens, unless a dig is running — then it waits, and only after a quarter
+of an hour asks. What's-new may carry one "What to do:" line, drawn so it is not lost. And
+the promise this app makes to a stranger — token, collection, first dig, no document read —
+is now a browser test that starts from an empty device.
+
+**What to do:** Nothing. The next update after this one arrives on its own.
+
 
 ### Added
 
