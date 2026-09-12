@@ -9,6 +9,22 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.51.0](https://github.com/misterhonk/fidelity/compare/v0.50.0...v0.51.0) (2026-09-12)
+
+**Hand the basket over to Discogs, one listing at a time.**
+
+The Discogs cart is not in the API — neither to read nor to fill, measured — and the
+website's form is not ours to post to. What can be made short is the way there: "Put these
+in at Discogs" on a shop's basket card opens a panel with the next listing as a link; the
+tap opens its page with the "Add to Cart" button and the next one moves up. Which lines are
+done is remembered on the item itself, so a closed tab or a reload loses nothing, and at the
+end stands the link to the cart. "Still there?" is recommended before it, not forced.
+
+
+### Added
+
+* **basket:** hand the basket over to Discogs, one listing at a time ([c100b6d](https://github.com/misterhonk/fidelity/commit/c100b6d08db9284b0506be69b71ce16a4bb46125))
+
 ## [0.50.0](https://github.com/misterhonk/fidelity/compare/v0.49.0...v0.50.0) (2026-09-12)
 
 **The signals through the catalogue: a label of any size, a person's whole credits.**
