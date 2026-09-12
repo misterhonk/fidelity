@@ -11,6 +11,17 @@ Für eine App bedeutet SemVer:
 
 ## [0.65.0](https://github.com/misterhonk/fidelity/compare/v0.64.0...v0.65.0) (2026-09-12)
 
+**Drag on the wall: a sleeve onto a compartment, a compartment onto another, furniture into a room.**
+
+With a mouse, a sleeve lifts after a few pixels. With a finger, hold it for a moment — the
+phone buzzes once — and then drag; until then a finger is scrolling, and scrolling wins. A
+sleeve from the open compartment lands on any cube of the wall behind it, and if you had
+ticked several, they all go together. Drag a whole compartment onto another and everything in
+it moves. Drag a piece of furniture by its name onto a room, or onto "Furniture without a
+room". Every drop leaves a line at the bottom of the window with "Undo".
+
+**What to do:** Nothing. Open Collection › Places and try it.
+
 
 ### Added
 
