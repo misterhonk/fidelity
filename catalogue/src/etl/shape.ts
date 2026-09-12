@@ -77,22 +77,33 @@ export function shapeRelease(node: XmlNode): ShapedRelease {
   const id = Number(node.attrs.id)
   const master = text(node, 'master_id')
 
+  /*
+   * Only rows that point at something. The full dump of 2026-09-01 carries
+   * labels and artists without an id — a name typed on a release that never
+   * became a database entry — and the build on home-deb died on the first
+   * one, 90 seconds in. A credit with no id is a string, not a join, and
+   * this catalogue answers joins; the name is still on Discogs.
+   */
   const artists: ReleaseArtistRow[] = []
   let position = 0
   for (const artist of children(child(node, 'artists') ?? empty, 'artist')) {
+    const artistId = Number(text(artist, 'id'))
+    if (!(artistId > 0)) continue
     artists.push({
       release_id: id,
-      artist_id: Number(text(artist, 'id')),
+      artist_id: artistId,
       role: 0,
       role_name: '',
       position: position++,
     })
   }
   for (const artist of children(child(node, 'extraartists') ?? empty, 'artist')) {
+    const artistId = Number(text(artist, 'id'))
+    if (!(artistId > 0)) continue
     const roleName = text(artist, 'role')
     artists.push({
       release_id: id,
-      artist_id: Number(text(artist, 'id')),
+      artist_id: artistId,
       role: roleIndex(roleName),
       role_name: roleName,
       position: position++,
@@ -102,6 +113,8 @@ export function shapeRelease(node: XmlNode): ShapedRelease {
   const labels: ReleaseLabelRow[] = []
   const seenLabels = new Set<string>()
   for (const label of children(child(node, 'labels') ?? empty, 'label')) {
+    const labelId = Number(label.attrs.id)
+    if (!(labelId > 0)) continue
     const catno = (label.attrs.catno ?? '').trim()
     // The dump writes a catno twice when the sleeve and the label disagree on
     // a space ("RI 026" and "RI026"); parsed, they are one run entry.
@@ -111,7 +124,7 @@ export function shapeRelease(node: XmlNode): ShapedRelease {
     seenLabels.add(key)
     labels.push({
       release_id: id,
-      label_id: Number(label.attrs.id),
+      label_id: labelId,
       catno,
       catno_prefix: parsed?.prefix ?? null,
       catno_num: parsed?.num ?? null,

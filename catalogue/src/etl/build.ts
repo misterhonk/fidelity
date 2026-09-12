@@ -68,13 +68,30 @@ export async function buildCatalogue(options: BuildOptions): Promise<BuildResult
     return existsSync(plain) ? plain : `${plain}.gz`
   }
 
-  /** Streams one file into the prepared statements, `batch` entities per transaction. */
+  /**
+   * Streams one file into the prepared statements, `batch` entities per
+   * transaction. One entity the shaping or the database refuses is logged
+   * and skipped, not the end of a forty-minute run: eighteen million rows
+   * have shapes nobody has seen, and the row-count check below is where a
+   * build with too many of them is caught.
+   */
   async function load<T>(entity: string, tag: string, insert: (node: T) => void) {
     const path = file(entity)
     let n = 0
+    let skipped = 0
     db.exec('BEGIN')
     for await (const node of entities(openDump(path), tag)) {
-      insert(node as T)
+      try {
+        insert(node as T)
+      } catch (error) {
+        skipped += 1
+        if (skipped <= 10) {
+          const id = (node as { attrs?: { id?: string } }).attrs?.id ?? '?'
+          log(
+            `${entity}: skipped ${id} — ${error instanceof Error ? error.message : String(error)}`,
+          )
+        }
+      }
       n += 1
       if (n % batch === 0) {
         db.exec('COMMIT')
@@ -83,7 +100,12 @@ export async function buildCatalogue(options: BuildOptions): Promise<BuildResult
       }
     }
     db.exec('COMMIT')
-    log(`${entity}: ${n} done`)
+    log(`${entity}: ${n} done${skipped ? `, ${skipped} skipped` : ''}`)
+    if (skipped > n / 1000) {
+      throw new Error(
+        `check: ${entity} — ${skipped} of ${n} entities could not be shaped, which is not a dump but a bug`,
+      )
+    }
     await options.afterFile?.(entity, path)
   }
 

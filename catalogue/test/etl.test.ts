@@ -39,7 +39,7 @@ describe('the build', () => {
   test('reads every row of the four files', () => {
     assert.deepEqual(built.counts, {
       release: 400,
-      release_artist: 1467,
+      release_artist: 1456,
       release_label: 438,
       release_format: 400,
       release_style: 1187,
@@ -282,5 +282,71 @@ describe('the row-count check', () => {
       const { rmSync } = fsSync
       rmSync(previous)
     })
+  })
+})
+
+describe('what the full dump has that the cut did not', () => {
+  test('a label or a credit without an id is a string, not a row', async () => {
+    const { shapeRelease } = await import('../src/etl/shape.ts')
+    const node = {
+      name: 'release',
+      attrs: { id: '99' },
+      text: '',
+      children: [
+        {
+          name: 'title',
+          attrs: {},
+          text: 'Untitled',
+          children: [],
+        },
+        {
+          name: 'artists',
+          attrs: {},
+          text: '',
+          children: [
+            {
+              name: 'artist',
+              attrs: {},
+              text: '',
+              children: [{ name: 'id', attrs: {}, text: '1', children: [] }],
+            },
+            {
+              name: 'artist',
+              attrs: {},
+              text: '',
+              children: [{ name: 'name', attrs: {}, text: 'Nobody', children: [] }],
+            },
+          ],
+        },
+        {
+          name: 'labels',
+          attrs: {},
+          text: '',
+          children: [
+            {
+              name: 'label',
+              attrs: { name: 'Svek', catno: 'SK 001', id: '5' },
+              text: '',
+              children: [],
+            },
+            {
+              name: 'label',
+              attrs: { name: 'Not On Label', catno: 'none' },
+              text: '',
+              children: [],
+            },
+          ],
+        },
+      ],
+    }
+    const shaped = shapeRelease(node)
+    assert.deepEqual(
+      shaped.artists.map((a) => a.artist_id),
+      [1],
+    )
+    assert.deepEqual(
+      shaped.labels.map((l) => l.label_id),
+      [5],
+    )
   })
 })

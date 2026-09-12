@@ -128,6 +128,14 @@ table has no name for is still a row; `release_style` carries genres and styles 
 (kind, name) rows; `artist_name` has a `self` row and the other artist's id, so the lexicon
 is one query. `<master_id>0</master_id>` is "no master".
 
+**What the first full run taught (2026-09-12, home-deb):** the download ran at
+30 MB/s — the four files in six and a half minutes — and the build died 90 seconds into
+the releases file on a `<label>` without an `id`: a name typed on a release that never
+became a database entry. The cut of 400 releases had none. Labels and credits without an
+id are strings, not joins, and are skipped; a single entity the database refuses is logged
+and skipped too, and only more than one in a thousand fails the build. The dump files stay
+in the scratch dir after a failure, hashed, so the next run fetches nothing.
+
 `catno_prefix`/`catno_num` come from `parseCatno`, the app's function copied, and
 `name_norm` from `norm`, likewise — the twin test above holds them together. `value_norm`
 for identifiers strips spaces, hyphens and case, the way the run-out search does — measured
