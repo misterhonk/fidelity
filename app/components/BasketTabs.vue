@@ -20,20 +20,21 @@ const TABS = [
 </script>
 
 <template>
+  <!-- The same line the collection tabs draw (M26.1): plate labels, one underlined. -->
   <nav
     :aria-label="b.tabs.label"
-    class="flex gap-1 self-stretch rounded-fid-sm border border-fid-border p-1 @xl:self-start"
+    class="flex gap-5 self-stretch border-b border-fid-border md:gap-8 md:self-start"
   >
     <NuxtLink
       v-for="tab in TABS"
       :key="tab.to"
       :to="tab.to"
       :aria-current="route.path === tab.to ? 'page' : undefined"
-      class="min-h-9 flex-1 rounded-fid-sm px-3 py-2 text-center text-fid-sm transition-colors @xl:flex-none @xl:px-6"
+      class="fid-plate -mb-px flex min-h-11 shrink-0 items-center border-b-2 py-2 whitespace-nowrap transition-colors"
       :class="
         route.path === tab.to
-          ? 'bg-fid-accent/15 text-fid-text'
-          : 'text-fid-text-muted hover:text-fid-text'
+          ? 'border-fid-accent text-fid-text'
+          : 'border-transparent text-fid-text-muted hover:text-fid-text'
       "
     >
       {{ b.tabs[tab.key] }}

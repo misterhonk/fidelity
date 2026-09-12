@@ -505,7 +505,7 @@ const noHorizon = computed(
           autocomplete="off"
           spellcheck="false"
           :placeholder="d.dealerPlaceholder"
-          class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+          class="fid-field px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
         />
       </div>
       <button
@@ -875,7 +875,7 @@ const noHorizon = computed(
               :value="shareLink.url"
               readonly
               :aria-label="d.share"
-              class="min-w-0 grow rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 font-fid-mono text-fid-xs text-fid-text"
+              class="min-w-0 grow fid-field px-3 py-2 font-fid-mono text-fid-xs text-fid-text"
               @focus="($event.target as HTMLInputElement).select()"
             />
             <button

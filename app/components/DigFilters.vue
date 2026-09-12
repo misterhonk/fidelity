@@ -53,7 +53,7 @@ const DENSITIES = ['comfortable', 'compact'] as const satisfies readonly Density
       spellcheck="false"
       :placeholder="f.searchPlaceholder"
       :aria-label="f.search"
-      class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+      class="fid-field px-3 py-2 text-fid-sm text-fid-text"
       @input="emit('setQuery', ($event.target as HTMLInputElement).value)"
     />
 
@@ -130,7 +130,7 @@ const DENSITIES = ['comfortable', 'compact'] as const satisfies readonly Density
           :value="upTo ?? ''"
           :aria-label="f.upToLabel"
           :title="f.upToLabel"
-          class="fid-num w-20 rounded-fid-sm border border-fid-field bg-fid-surface px-2 py-1 text-fid-xs text-fid-text"
+          class="fid-num w-20 fid-field px-2 py-1 text-fid-xs text-fid-text"
           @change="emit('setUpTo', ($event.target as HTMLInputElement).value)"
         />
       </label>

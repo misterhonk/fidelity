@@ -235,7 +235,7 @@
     "$description": "Die Schriften des Satzes Presswerk. Bis zum 2026-08-11 standen hier andere als in app/assets/css/main.css — 'Geist Mono' gegen 'Chivo Mono' —, und beide waren gleichzeitig in Gebrauch: die Tailwind-Klasse font-fid-mono aus diesen Token an 21 Stellen, var(--fid-font-mono) aus main.css an einer. Die App setzte ihre Zahlen also in zwei verschiedenen Monospace-Schriften, und der Schriftsatz-Umschalter steuerte nur eine davon. Geist Mono und Inter kostete das 40 heruntergeladene Dateien für Schriften, die niemand ausgewählt hatte."
   },
   "text": {
-    "$description": "Vier Stufen, nicht sechs. `lg` und `2xl` sind 2026-08-10 entfallen: `lg` saß mit sechzehn Verwendungen zwischen `base` und `xl`, ohne dass eine davon die Stufe brauchte, und `2xl` machte Seitentitel bei 40px lauter als alles, was darunter stand. Überschriften tragen ihre Hierarchie jetzt über Gewicht und Fläche, was auch billiger ist als eine eigene Größe. $value ist die Obergrenze; die fluid-Erweiterung trägt die clamp()-Terme. Ein rem-Term in der Mitte ist Pflicht — eine reine vw-Schriftgröße bricht den Browser-Zoom und verstößt gegen WCAG 1.4.4, deshalb weigert sich der Build, eine auszugeben.",
+    "$description": "Fünf Stufen seit 2026-09-12, vier davon für Text. `lg` und `2xl` sind 2026-08-10 entfallen: `lg` saß mit sechzehn Verwendungen zwischen `base` und `xl`, ohne dass eine davon die Stufe brauchte, und `2xl` machte Seitentitel bei 40px lauter als alles, was darunter stand. Überschriften tragen ihre Hierarchie über Gewicht und Fläche. `display` ist die eine Oberstimme (M26.1 Plate): 40 bis 72px, nur in der Display-Schrift, nur einmal pro Screen, nur im PageHeader — die Wache in design-restraint.spec.ts hält das. $value ist die Obergrenze; die fluid-Erweiterung trägt die clamp()-Terme. Ein rem-Term in der Mitte ist Pflicht — eine reine vw-Schriftgröße bricht den Browser-Zoom und verstößt gegen WCAG 1.4.4, deshalb weigert sich der Build, eine auszugeben.",
     "$type": "dimension",
     "xs": {
       "$value": {
@@ -286,6 +286,19 @@
           "min": 1.375,
           "grow": 1.24,
           "slope": 0.65
+        }
+      }
+    },
+    "display": {
+      "$value": {
+        "value": 4.5,
+        "unit": "rem"
+      },
+      "$extensions": {
+        "de.fidelity.fluid": {
+          "min": 2.5,
+          "grow": 2.0,
+          "slope": 2.2
         }
       }
     }

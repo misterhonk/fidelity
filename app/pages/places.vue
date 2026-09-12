@@ -177,7 +177,7 @@ const total = computed(() => nodes.value.reduce((sum, node) => sum + node.record
           <input
             :value="node.name"
             :aria-label="c.places.renameLabel(node.name)"
-            class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+            class="fid-field px-3 py-2 text-fid-sm text-fid-text"
             @change="rename(node, ($event.target as HTMLInputElement).value)"
           />
 
@@ -190,7 +190,7 @@ const total = computed(() => nodes.value.reduce((sum, node) => sum + node.record
               v-model="draft"
               :placeholder="c.places.namePlaceholder"
               :aria-label="c.places.addInside"
-              class="min-w-0 grow rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+              class="min-w-0 grow fid-field px-3 py-2 text-fid-sm text-fid-text"
             />
             <!--
                 Outlined, not filled. A screen carries exactly one filled
@@ -212,7 +212,7 @@ const total = computed(() => nodes.value.reduce((sum, node) => sum + node.record
             </label>
             <select
               :id="`move-${node.id}`"
-              class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+              class="fid-field px-3 py-2 text-fid-sm text-fid-text"
               @change="move(node.id, ($event.target as HTMLSelectElement).value)"
             >
               <option value="">—</option>
@@ -260,7 +260,7 @@ const total = computed(() => nodes.value.reduce((sum, node) => sum + node.record
           v-model="draft"
           :placeholder="c.places.namePlaceholder"
           :aria-label="c.places.addTop"
-          class="min-w-0 grow rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+          class="min-w-0 grow fid-field px-3 py-2 text-fid-sm text-fid-text"
         />
         <button
           type="submit"

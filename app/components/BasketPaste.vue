@@ -85,7 +85,7 @@ async function paste() {
         rows="3"
         spellcheck="false"
         placeholder="https://www.discogs.com/sell/item/1260275694"
-        class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+        class="fid-field px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
       />
     </label>
 

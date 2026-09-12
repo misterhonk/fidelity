@@ -384,7 +384,7 @@ function waiting(addedAt: string): string | null {
           spellcheck="false"
           :placeholder="c.wantlist.search"
           :aria-label="c.wantlist.searchLabel"
-          class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+          class="fid-field px-3 py-2 text-fid-sm text-fid-text"
         />
         <!-- Longest wanted, or wanted most (M20 #1). Two states, in the address. -->
         <div role="group" :aria-label="c.wantlist.priority.sortLabel" class="flex gap-1">

@@ -476,7 +476,7 @@ const expired = computed(() => results.value.some((entry) => Date.now() > entry.
           spellcheck="false"
           :placeholder="m.inStore.identifyPlaceholder"
           :aria-label="m.inStore.identifyLabel"
-          class="min-w-0 grow rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+          class="min-w-0 grow fid-field px-3 py-2 text-fid-sm text-fid-text"
         />
         <button
           type="submit"

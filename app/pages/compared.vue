@@ -49,13 +49,13 @@ useSeoMeta({ title: () => c.value.title, description: () => c.value.description 
           </h3>
           <dl class="grid gap-3 @md:grid-cols-2">
             <div class="flex flex-col gap-1">
-              <dt class="text-fid-xs font-medium tracking-wide text-fid-text-muted uppercase">
+              <dt class="fid-plate text-fid-text-muted">
                 {{ c.theyDo }}
               </dt>
               <dd class="text-fid-sm text-fid-text-muted">{{ row.does }}</dd>
             </div>
             <div class="flex flex-col gap-1">
-              <dt class="text-fid-xs font-medium tracking-wide text-fid-text-muted uppercase">
+              <dt class="fid-plate text-fid-text-muted">
                 {{ c.instead }}
               </dt>
               <dd class="text-fid-sm text-fid-text">{{ row.fidelity }}</dd>

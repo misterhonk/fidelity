@@ -401,7 +401,7 @@ function years(entry: { from: number; to: number }): string {
         </div>
 
         <a
-          class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border border-fid-field bg-fid-surface-raised px-4 text-fid-sm font-medium text-fid-text"
+          class="fid-lift inline-flex min-h-11 items-center gap-2 fid-field-raised px-4 text-fid-sm font-medium text-fid-text"
           :href="`https://www.discogs.com/sell/item/${match.listingId}`"
           target="_blank"
           rel="noopener noreferrer"

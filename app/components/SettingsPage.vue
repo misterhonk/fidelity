@@ -26,7 +26,7 @@ onMounted(load)
 </script>
 
 <template>
-  <main class="fid-page py-10">
+  <main class="fid-page py-8 md:py-16">
     <div class="@container flex w-full max-w-3xl flex-col gap-8">
       <div class="flex flex-col gap-3">
         <NuxtLink

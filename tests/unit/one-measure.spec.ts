@@ -54,6 +54,15 @@ const SEITEN = readdirSync('app/pages', { recursive: true, encoding: 'utf8' })
  */
 const OHNE_MASS = ['stack.vue']
 
+/**
+ * The distance from the bar to the head: 32 px on a phone, 64 on a desk.
+ *
+ * The rhythm of M26.1 is 8 · 16 · 32 · 64, and the top of a screen is its
+ * largest interval. One string, so that a frame and a page carrying its own
+ * `<main>` cannot drift apart by a step.
+ */
+const DISTANCE = /\bpy-8 md:py-16\b/
+
 describe('every screen shares one measure', () => {
   it('uses fid-page, or says why not', () => {
     const abweichler = SEITEN.filter(({ datei, quelle }) => {
@@ -78,7 +87,7 @@ describe('every screen shares one measure', () => {
       // the history as a fault.
       const quelle = withoutComments(readFileSync(`app/components/${frame}.vue`, 'utf8'))
       expect(quelle, frame).toMatch(/\bfid-page\b/)
-      expect(quelle, frame).not.toMatch(/\bpy-(?!10\b)\d+\b/)
+      expect(quelle, frame).toMatch(DISTANCE)
     }
   })
 
@@ -95,7 +104,7 @@ describe('every screen shares one measure', () => {
       const auf = quelle.indexOf('<main')
       if (auf === -1) return false
       const tag = quelle.slice(auf, quelle.indexOf('>', auf))
-      return !/\bpy-10\b/.test(tag)
+      return !DISTANCE.test(tag)
     }).map(({ datei }) => datei)
 
     expect(abweichler).toEqual([])

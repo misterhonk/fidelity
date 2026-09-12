@@ -502,7 +502,7 @@ const peak = computed(() =>
           v-model.number="row.minItems"
           type="number"
           min="1"
-          class="w-16 rounded-fid-sm border border-fid-field bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
+          class="w-16 fid-field px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
         />
         <span class="text-fid-sm text-fid-text-muted">{{ m.common.to }}</span>
         <label class="sr-only" :for="`to-${index}`">{{ b.tiersTo }}</label>
@@ -512,7 +512,7 @@ const peak = computed(() =>
           type="number"
           min="1"
           :placeholder="b.tiersOpen"
-          class="w-16 rounded-fid-sm border border-fid-field bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
+          class="w-16 fid-field px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
           @input="
             row.maxItems =
               ($event.target as HTMLInputElement).value === ''
@@ -527,7 +527,7 @@ const peak = computed(() =>
           type="number"
           min="0"
           step="0.01"
-          class="w-24 rounded-fid-sm border border-fid-field bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
+          class="w-24 fid-field px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
         />
         <span class="text-fid-sm text-fid-text-muted">{{ summary.currency }}</span>
       </div>
@@ -565,7 +565,7 @@ const peak = computed(() =>
           min="1"
           step="1"
           placeholder="60"
-          class="w-24 rounded-fid-sm border border-fid-field bg-fid-surface px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
+          class="w-24 fid-field px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
         />
         <span class="text-fid-sm text-fid-text-muted">
           {{ b.budget.including(summary.currency ?? '') }}

@@ -113,6 +113,44 @@ body {
 }
 
 /*
+ * The plate (M26.1, docs/05 §2.5).
+ *
+ * What a field is, set the way a type plate on the back of an amplifier is
+ * set: mono, small, spaced, in capitals. "LAST FULL SYNC 5 H AGO" reads as a
+ * reading, not as an explanation, and takes a third of the room a sentence
+ * does. For labels, tabs, definition terms and the line of facts under a
+ * title — never for a sentence somebody reads.
+ */
+.fid-plate {
+  font-family: var(--fid-font-mono);
+  font-size: var(--fid-text-xs);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'zero' 1;
+}
+
+/*
+ * A field is a baseline, not a box (M26.1).
+ *
+ * Boxes were doing two jobs — a button and a field looked the same — and every
+ * form was a stack of frames inside frames. A field now sits on one line,
+ * which is where somebody writes anyway; the frame stays with the buttons.
+ * The line brightens on focus, so the focus ring stays what it was.
+ */
+.fid-field {
+  border-bottom: 1px solid var(--fid-field);
+  background: transparent;
+  border-radius: 0;
+  transition: border-color 150ms;
+}
+
+.fid-field:focus-visible {
+  border-bottom-color: var(--fid-accent);
+}
+
+/*
  * Any control that reads as a text link but acts as a button.
  *
  * WCAG 2.2 SC 2.5.8 wants 24×24 CSS pixels and docs/05 §6 names it as one of

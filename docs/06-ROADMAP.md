@@ -1128,6 +1128,22 @@ was written on 2026-09-12; what has to be signed, paid for or sent is Martin's.
 | M25.6 The Support screen | Settings › Support with the plans and tips, built in M22.3, is off the settings index and out of the bundle until a provider can take the money — a price list nobody can pay is a promise. Comes back with M25.4 | **Taken out 2026-09-12** |
 | 1.0 | Tag, changelog, the four promises of `docs/17` §2 checked one by one | After M24.6 and M25.1's reply, or its absence |
 
+## M26 · Sleeve → in progress
+
+**Occasion:** the UI review of 2026-09-12 — docs/05 §1 says "record covers are the
+interface" and the screens showed 72 px thumbnails beside eight lines of text, four type
+steps with the largest at 28 px, and a frame around every level. The references are Braun's
+ten principles, Teenage Engineering's store and AIAIAI's product pages: the object large,
+the text small, one voice, plates instead of sentences, a grid instead of boxes. **The rule:
+per screen one large thing, one loud sentence, everything else a plate.** Fonts stay with
+Fontshare, self-hosted as before.
+
+| Phase | Delivers | State |
+|---|---|---|
+| M26.1 Plate | The fifth type step `display` (40–72 px, `PageHeader` only, the guard allows it in one file); `.fid-plate` for labels, tabs and terms; the collection and basket tabs as a line with the current one underlined, no frame; fields on a baseline (`.fid-field`), no box; the rhythm 8 · 16 · 32 · 64 with the head at 32/64 px from the bar. No screen changes its content | **Done 2026-09-12**; the font set is Martin's pick from four Fontshare trials |
+| M26.2 Sleeve | The MatchCard with the cover at 40 %, the shelf at six columns with a density switch, the start rails taller, the wantlist card with the cover full height, the release sheet tinted by the cover's colour on the device. Golden files untouched: no score moves | 2 weekends |
+| M26.3 Sixty | A word budget of sixty per screen above the fold as a guard; sentences moved into plates, `WhyNote`s and Help; settings pages down to a label and one line | 1 weekend |
+
 ## Not on the roadmap
 
 | Idea | Why not |

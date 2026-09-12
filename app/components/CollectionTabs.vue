@@ -64,10 +64,16 @@ const TABS = [
     `overflow-x-auto` stays in reserve for a language with longer words, and
     `scrollIntoView` makes sure the tab you are standing on is then visible.
   -->
+  <!--
+    No frame since M26.1 (docs/05 §3a): the box around the tabs was the most
+    conspicuous box in the head of every screen. The bar is now a line, the
+    labels are plate, and the one you stand on is underlined in the accent —
+    the same grammar as the main bar above it.
+  -->
   <nav
     ref="bar"
     :aria-label="c.tabs.label"
-    class="flex gap-1 self-stretch overflow-x-auto rounded-fid-sm border border-fid-border p-1 md:self-start md:overflow-visible"
+    class="flex gap-5 self-stretch overflow-x-auto border-b border-fid-border md:gap-8 md:self-start md:overflow-visible"
   >
     <NuxtLink
       v-for="tab in TABS"
@@ -75,14 +81,14 @@ const TABS = [
       :to="tab.to"
       :data-current="route.path === tab.to ? 'true' : undefined"
       :aria-current="route.path === tab.to ? 'page' : undefined"
-      class="flex min-h-11 flex-1 shrink-0 flex-col items-center justify-center gap-1 rounded-fid-sm px-3 py-2 text-center text-fid-xs whitespace-nowrap transition-colors md:px-6"
+      class="fid-plate -mb-px flex min-h-11 shrink-0 items-center gap-2 border-b-2 py-2 whitespace-nowrap transition-colors"
       :class="
         route.path === tab.to
-          ? 'bg-fid-accent/15 text-fid-text'
-          : 'text-fid-text-muted hover:text-fid-text'
+          ? 'border-fid-accent text-fid-text'
+          : 'border-transparent text-fid-text-muted hover:text-fid-text'
       "
     >
-      <FidIcon :name="tab.icon" :size="16" />
+      <FidIcon :name="tab.icon" :size="14" />
       {{ c.tabs[tab.key] }}
     </NuxtLink>
   </nav>

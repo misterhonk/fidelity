@@ -84,7 +84,7 @@ async function read() {
         autocomplete="off"
         spellcheck="false"
         :placeholder="b.saved.order.hint"
-        class="fid-num min-w-0 grow rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+        class="fid-num min-w-0 grow fid-field px-3 py-2 text-fid-sm text-fid-text"
       />
       <button
         type="submit"

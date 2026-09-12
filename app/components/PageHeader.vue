@@ -21,15 +21,22 @@ defineProps<{
 </script>
 
 <template>
-  <header class="flex flex-col gap-3">
-    <div class="flex flex-wrap items-baseline justify-between gap-3">
-      <h1 class="fid-display text-fid-xl font-bold text-fid-text">
+  <!--
+    The one voice (docs/05 §2.5): the area's name in the display face at the
+    display size — the only place that size exists. Everything under it is
+    text or plate.
+  -->
+  <header class="flex flex-col gap-4">
+    <div class="flex flex-wrap items-baseline justify-between gap-4">
+      <h1 class="fid-display text-fid-display leading-none font-bold text-fid-text">
         <slot name="title">{{ title }}</slot>
       </h1>
       <slot name="aside" />
     </div>
     <slot name="tabs" />
-    <h2 v-if="heading" class="text-fid-base font-medium text-fid-text">{{ heading }}</h2>
+    <h2 v-if="heading" class="fid-display text-fid-xl font-medium text-fid-text">
+      {{ heading }}
+    </h2>
     <p v-if="lead" class="max-w-prose text-fid-base text-fid-text-muted">{{ lead }}</p>
     <slot />
   </header>

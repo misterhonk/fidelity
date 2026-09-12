@@ -465,7 +465,7 @@ async function remove() {
             <dd class="min-w-0">
               <select
                 :value="record.folderId"
-                class="min-h-11 w-full rounded-fid-sm border border-fid-field bg-fid-surface px-2 text-fid-sm text-fid-text"
+                class="min-h-11 w-full fid-field px-2 text-fid-sm text-fid-text"
                 :aria-label="c.shelf.sheet.facts.folder"
                 @change="move(Number(($event.target as HTMLSelectElement).value))"
               >
@@ -524,7 +524,7 @@ async function remove() {
             <select
               v-if="field.type === 'dropdown'"
               :value="values[field.id] ?? ''"
-              class="min-h-11 rounded-fid-sm border border-fid-field bg-fid-surface px-3 text-fid-sm text-fid-text"
+              class="min-h-11 fid-field px-3 text-fid-sm text-fid-text"
               @change="setField(field, ($event.target as HTMLSelectElement).value)"
             >
               <option value="">{{ c.shelf.sheet.unset }}</option>
@@ -536,7 +536,7 @@ async function remove() {
               v-else
               :value="values[field.id] ?? ''"
               type="text"
-              class="min-h-11 rounded-fid-sm border border-fid-field bg-fid-surface px-3 text-fid-sm text-fid-text"
+              class="min-h-11 fid-field px-3 text-fid-sm text-fid-text"
               @change="setField(field, ($event.target as HTMLInputElement).value)"
             />
           </label>
@@ -726,7 +726,7 @@ async function remove() {
           :href="`https://www.discogs.com/release/${record.releaseId}`"
           target="_blank"
           rel="noopener noreferrer"
-          class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border border-fid-field bg-fid-surface-raised px-4 text-fid-sm font-medium text-fid-text"
+          class="fid-lift inline-flex min-h-11 items-center gap-2 fid-field-raised px-4 text-fid-sm font-medium text-fid-text"
         >
           {{ c.shelf.sheet.atDiscogs }}
           <FidIcon name="external-link" :size="14" />
@@ -741,7 +741,7 @@ async function remove() {
           <span class="text-fid-text-muted">{{ c.places.where }}</span>
           <select
             :value="placeId ?? ''"
-            class="rounded-fid-sm border border-fid-field bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+            class="fid-field px-3 py-2 text-fid-sm text-fid-text"
             @change="setPlace(($event.target as HTMLSelectElement).value)"
           >
             <option value="">{{ c.places.nowhere }}</option>

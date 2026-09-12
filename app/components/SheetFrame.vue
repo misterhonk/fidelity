@@ -98,7 +98,7 @@ function onKeydown(event: KeyboardEvent) {
         <button
           type="button"
           :aria-label="m.close"
-          class="fid-lift flex min-h-11 min-w-11 items-center justify-center rounded-fid-sm border border-fid-field bg-fid-surface-raised text-fid-base text-fid-text"
+          class="fid-lift flex min-h-11 min-w-11 items-center justify-center fid-field-raised text-fid-base text-fid-text"
           @click="emit('close')"
         >
           ✕

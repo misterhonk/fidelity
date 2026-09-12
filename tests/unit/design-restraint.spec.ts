@@ -20,11 +20,36 @@ const screens = readdirSync('app', { recursive: true, encoding: 'utf8' })
   .map((file) => ({ file, source: readFileSync(`app/${file}`, 'utf8') }))
 
 describe('the type scale', () => {
-  it('has four steps and no more', () => {
+  /**
+   * Four steps for text, and one voice above them.
+   *
+   * `display` arrived on 2026-09-12 (M26.1, docs/05 §2.5): the review of that
+   * day found nothing on any screen large enough to carry a stance — the
+   * largest step was 28 px, and the display face was spending its character
+   * on a heading the size of a paragraph. The fifth step is not a fifth
+   * decision per screen, because the test below allows it in one place.
+   */
+  it('has four text steps and one display step, no more', () => {
     const tokens = JSON.parse(readFileSync('tokens/core.json', 'utf8'))
     const steps = Object.keys(tokens.text).filter((key) => !key.startsWith('$'))
 
-    expect(steps).toEqual(['xs', 'sm', 'base', 'xl'])
+    expect(steps).toEqual(['xs', 'sm', 'base', 'xl', 'display'])
+  })
+
+  /**
+   * The voice is one voice.
+   *
+   * `text-fid-display` lives in `PageHeader.vue` and nowhere else: the head of
+   * a screen is the one thing allowed to be that large. A second use — a
+   * number that wants to be a headline, a card title that wants to be a page
+   * — is the way a scale grows a sixth step without anybody adding one.
+   */
+  it('speaks in the display size once, in the head of the screen', () => {
+    const uses = screens.flatMap(({ file, source }) =>
+      [...withoutComments(source).matchAll(/\btext-fid-display\b/g)].map(() => file),
+    )
+
+    expect(uses).toEqual(['components/PageHeader.vue'])
   })
 
   /**

@@ -142,6 +142,7 @@ made twice, and the font module fetched from Google whenever a provider was left
 | UI + body | (default) | Neutral, excellent legibility at small sizes |
 | Catalogue numbers, matrix/runout, prices, scores | `.fid-num` | Codes, not prose — plus `tabular-nums` so columns line up |
 | Headings, the wordmark | `.fid-display` | Twice per screen, otherwise it is no longer emphasis |
+| Labels, tabs, definition terms, the line of facts under a title | `.fid-plate` | Mono, `xs`, spaced capitals — a type plate, not a sentence. "LAST FULL SYNC 5 H AGO" reads as a reading and takes a third of the room (M26.1) |
 
 ```css
 /* A fluid scale – clamp() with a rem term so browser zoom works (WCAG 1.4.4) */
@@ -149,7 +150,14 @@ made twice, and the font module fetched from Google whenever a provider was left
 --fid-text-sm:   clamp(0.875rem, 0.84rem + 0.18vw, 0.9375rem);
 --fid-text-base: clamp(1rem,     0.96rem + 0.20vw, 1.0625rem);
 --fid-text-xl:   clamp(1.375rem, 1.24rem + 0.65vw, 1.75rem);
+--fid-text-display: clamp(2.5rem, 2rem + 2.2vw, 4.5rem);   /* the one voice, PageHeader only */
 ```
+
+**Four text steps and one voice since 2026-09-12.** The review of that day (M26 "Sleeve")
+found nothing on any screen large enough to carry a stance: the largest step was 28 px, and
+Array was spending its character on a heading the size of a paragraph. `display` is 40 to
+72 px, in the display face, and `design-restraint.spec.ts` allows it in exactly one file —
+`PageHeader.vue` — so the fifth step cannot become a fifth decision per screen.
 
 **Four steps since 2026-08-10, instead of six.** `lg` sat between `base` and `xl` with
 sixteen uses, not one of which needed the step — section headings now carry their hierarchy
@@ -355,9 +363,15 @@ right half on a monitor is the price, and it is the smaller one.
 **One head, one distance.** The same stack of screenshots showed four distances from the
 bar to the title — `py-4`, `py-6`, `py-10`, `py-16` — and on two collection views the tabs
 above the title. Both now live in one place each: `AppPage.vue` is the frame (the measure,
-`py-10`, `gap-8`, `narrow` for the reading column) and `PageHeader.vue` the head, in one
+the distance, `gap-8`, `narrow` for the reading column) and `PageHeader.vue` the head, in one
 order everywhere — the area as the `h1`, the area's tabs, the view's own name as the `h2`
 where it has one, the lead. Six views of the collection, six identical heads.
+
+**The rhythm is 8 · 16 · 32 · 64 (M26.1).** The distance from the bar to the head is the
+largest interval: 32 px on a phone, 64 on a desk (`py-8 md:py-16`, held by the guard). The
+head's own gaps are 16, sections stand 32 apart. And two frames went: the tabs are a line
+with the current one underlined in the accent, like the main bar; a field is a baseline
+(`.fid-field`), not a box, so a button and a field no longer look the same.
 
 `tests/unit/one-measure.spec.ts` holds all of it: every page uses the frame or the class,
 no page sets a second width or a second distance beside it, the navigation bar, the footer
