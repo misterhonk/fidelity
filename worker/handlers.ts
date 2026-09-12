@@ -968,6 +968,11 @@ export const handlers: HandlerMap = {
     return what === 'collection' ? collectionCsv() : wantlistCsv()
   },
 
+  'data.importAll': async ({ file }) => {
+    const { importEverything } = await import('./import')
+    return importEverything(file)
+  },
+
   'data.deleteAll': async () => {
     // Same operation as signing out, under the name that says what it does.
     await signOut()

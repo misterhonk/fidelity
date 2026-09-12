@@ -1,0 +1,31 @@
+{
+  "kind": "fidelity-backup",
+  "version": 1,
+  "dbVersion": 11,
+  "exportedAt": 1,
+  "identity": { "username": "mrtnmlchr" },
+  "collection": [],
+  "wantlist": [],
+  "preferences": null,
+  "tasteProfile": null,
+  "credits": null,
+  "dealers": [
+    {
+      "username": "imported-shop",
+      "displayName": "Imported Shop",
+      "avatarUrl": "",
+      "numForSale": 5,
+      "location": "Ghent",
+      "lastScannedAt": null,
+      "shippingTiers": []
+    }
+  ],
+  "digs": [{ "id": "01Z", "dealer": "imported-shop", "status": "done" }],
+  "matches": [],
+  "feedback": [],
+  "basket": [],
+  "places": [],
+  "placements": [],
+  "valueHistory": [],
+  "note": "A fixture for tests/e2e/backup-import.spec.ts — one shop, one dig that stays out."
+}

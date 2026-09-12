@@ -1098,6 +1098,19 @@ M21.1 is in 0.45.0 with no catalogue behind it — the port exists, every consum
 | M23.5 Release channels | The home lab on `latest`; the `Promote` workflow points `stable` at a release's three images; `compose.cloud.yml` runs `stable` by default | **Done 2026-09-12** |
 | M23.6 The cloud rehearsal | `compose.cloud.yml`, `Caddyfile`, `cloud.env.example` and the ten steps in `docs/08` §6.1 are written; a CAX21 for a week is the part that costs money and a decision | Files done; the week is Martin's call |
 
+## M24 · The app to the 1.0 promise → in progress
+
+**Plan:** [`17-ROADMAP-1.0.md`](17-ROADMAP-1.0.md) §2, §8.4
+
+| Phase | Delivers | State |
+|---|---|---|
+| M24.1 The way back | `worker/import.ts`: a backup read back in — rows merged the way the vault merges, the digs left out because the file never had their prices, settings and the taste profile taken when the device has none; the export stamped with the database version, and shelf rows from before v6 skipped with "sync again" — the same path the migration takes. "Read a backup back in" on the data screen with a report line by line | **Done 2026-09-12** |
+| M24.2 The quiet update | A waiting service worker takes over on the next navigation by itself unless a dig is running; after fifteen minutes of waiting the banner comes back, because then the person should decide. `app/utils/quiet-update.ts` is the decision, tested | **Done 2026-09-12** |
+| M24.3 What to do | A changelog lead may carry one "What to do:" paragraph; the what's-new screen draws it as a call-out | **Done 2026-09-12** |
+| M24.4 The stranger's afternoon | `tests/e2e/onboarding.spec.ts`: from an empty device through token, collection and the two optional steps to a first dig with a find — Discogs answered from the test, no document read | **Done 2026-09-12** |
+| M24.5 Every screen since M8 through axe | The settings screens added since M8 in the accessibility run: hub with the catalogue, access, support, account with the renewal, data with the import | **Done 2026-09-12** |
+| M24.6 The clean machine | The self-hosting walk-through done once from nothing: `deploy/compose.cloud.yml` on a fresh VM, the ten steps of `docs/08` §6.1 timed | Open — a VM and an afternoon |
+
 ## Not on the roadmap
 
 | Idea | Why not |

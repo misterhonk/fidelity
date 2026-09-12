@@ -270,6 +270,16 @@ const en = {
         action:
           'Something answered at that address, but not a catalogue. Check the address and port.',
       },
+      'not-a-backup': {
+        title: 'That is not a Fidelity backup.',
+        action:
+          'A backup is the file “Export everything” writes here — fidelity-backup-<date>.json.',
+      },
+      'backup-too-new': {
+        title: 'This backup is from a newer Fidelity.',
+        action:
+          'Update the app first — an older one would read it wrong rather than not at all.',
+      },
       'token-other-account': {
         title: 'This token belongs to another Discogs account.',
         action:
@@ -356,6 +366,8 @@ const en = {
   /** What changed in the version you are running. */
   news: {
     title: 'What is new',
+    /** The call-out a release may add — the one line that asks something of the reader (M24). */
+    whatToDo: 'What to do:',
     /* The line on the start page after the release has changed. */
     updatedTo: (version: string) => `Updated to ${version}`,
     whatChanged: 'What changed?',

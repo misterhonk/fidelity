@@ -6,7 +6,7 @@ import { reasonFor } from '~/i18n/reason'
 
 const st = useSettingsMessages()
 
-const emit = defineEmits<{ deleted: [] }>()
+const emit = defineEmits<{ deleted: []; imported: [] }>()
 
 const { call } = useFidelityWorker()
 
@@ -91,6 +91,49 @@ function withReasons<T>(file: T): T {
   return file
 }
 
+// --- The way back (M24) ------------------------------------------------------
+const picker = ref<HTMLInputElement | null>(null)
+const importing = ref(false)
+const imported = ref<string[] | null>(null)
+
+async function importFile(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file || importing.value) return
+  importing.value = true
+  error.value = null
+  imported.value = null
+  try {
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(await file.text())
+    } catch {
+      parsed = null
+    }
+    const report = await call('data.importAll', { file: parsed })
+    const rows = Object.entries(report.imported)
+      .filter(([, n]) => n > 0)
+      .map(([store, n]) => `${count(n)} ${st.value.dataPanel.importStore[store] ?? store}`)
+    const lines = [
+      rows.length
+        ? st.value.dataPanel.importReport(rows.join(', '))
+        : st.value.dataPanel.importNothing,
+    ]
+    const digs = report.skipped.find((s) => s.store === 'digs')
+    if (digs) lines.push(st.value.dataPanel.importSkippedPrices(count(digs.rows)))
+    if (report.skipped.some((s) => s.reason === 'too-old'))
+      lines.push(st.value.dataPanel.importSkippedOld)
+    if (report.meta.length > 0) lines.push(st.value.dataPanel.importMeta)
+    imported.value = lines
+    emit('imported')
+  } catch (cause) {
+    error.value = cause
+  } finally {
+    importing.value = false
+  }
+}
+
 async function deleteAll() {
   busy.value = true
   try {
@@ -132,6 +175,38 @@ async function deleteAll() {
     </div>
 
     <p class="text-fid-xs text-fid-text-muted">{{ st.dataPanel.contents }}</p>
+
+    <!--
+      The way back (M24). A file picker behind a button, because the input
+      itself is not something to style; the report says, line by line, what
+      came back and what stayed out and why.
+    -->
+    <div class="flex flex-col gap-2 border-t border-fid-border pt-3">
+      <input
+        ref="picker"
+        type="file"
+        accept="application/json,.json"
+        class="sr-only"
+        :aria-label="st.dataPanel.importAll"
+        @change="importFile"
+      />
+      <button
+        type="button"
+        :disabled="busy || importing"
+        class="flex items-center gap-2 self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+        @click="picker?.click()"
+      >
+        <FidIcon name="download" :size="16" class="rotate-180" />
+        {{ importing ? st.dataPanel.importing : st.dataPanel.importAll }}
+      </button>
+      <ul
+        v-if="imported"
+        class="flex flex-col gap-1 text-fid-sm text-fid-text-muted"
+        aria-live="polite"
+      >
+        <li v-for="line in imported" :key="line">{{ line }}</li>
+      </ul>
+    </div>
 
     <!--
       CSV, for a spreadsheet (M19 #5). Two files rather than one with a column

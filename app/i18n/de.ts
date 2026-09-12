@@ -169,6 +169,16 @@ const de: Messages = {
         title: 'Das ist kein Fidelity-Katalog.',
         action: 'Unter der Adresse antwortet etwas, aber kein Katalog. Prüfe Adresse und Port.',
       },
+      'not-a-backup': {
+        title: 'Das ist kein Fidelity-Backup.',
+        action:
+          'Ein Backup ist die Datei, die „Alles exportieren" hier schreibt – fidelity-backup-<Datum>.json.',
+      },
+      'backup-too-new': {
+        title: 'Dieses Backup stammt aus einer neueren Fidelity.',
+        action:
+          'Erst die App aktualisieren – eine ältere würde es falsch lesen statt gar nicht.',
+      },
       'token-other-account': {
         title: 'Dieser Token gehört zu einem anderen Discogs-Konto.',
         action:
@@ -244,6 +254,7 @@ const de: Messages = {
 
   news: {
     title: 'Was neu ist',
+    whatToDo: 'Was zu tun ist:',
     updatedTo: (version) => `Jetzt auf ${version}`,
     whatChanged: 'Was hat sich geändert?',
     dismiss: 'Später',

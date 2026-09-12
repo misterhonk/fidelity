@@ -110,3 +110,12 @@ describe('the release that is about to ship', () => {
     expect(lead.length).toBeGreaterThan(80)
   })
 })
+
+describe('the line that asks something', () => {
+  it('turns a "What to do:" paragraph into an action block', async () => {
+    const { blocks } = await import('~/utils/release-notes')
+    const out = blocks('The news.\n\n**What to do:** Reload once, then sync.\n\nMore news.')
+    expect(out.map((b) => b.kind)).toEqual(['paragraph', 'action', 'paragraph'])
+    expect(out[1]!.pieces.map((p) => p.text).join('')).toBe('Reload once, then sync.')
+  })
+})

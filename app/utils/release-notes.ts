@@ -18,7 +18,14 @@ export type Piece =
   | { kind: 'code'; text: string }
   | { kind: 'link'; text: string; href: string }
 
-export type Block = { kind: 'paragraph' | 'bullet'; pieces: Piece[] }
+/**
+ * `action`: a paragraph that begins "What to do:" — the one line a release
+ * may add that asks something of the reader (M24). Drawn as a call-out on
+ * the what's-new screen, so it is not lost between two paragraphs of news.
+ */
+export type Block = { kind: 'paragraph' | 'bullet' | 'action'; pieces: Piece[] }
+
+const ACTION = /^\*{0,2}What to do:\*{0,2}\s*/i
 
 /**
  * Bold, code and links — in one pass, so that the order comes out right.
@@ -67,7 +74,12 @@ export function blocks(lead: string): Block[] {
 
   const closeParagraph = () => {
     if (paragraph.length > 0) {
-      out.push({ kind: 'paragraph', pieces: pieces(paragraph.join(' ')) })
+      const text = paragraph.join(' ')
+      out.push(
+        ACTION.test(text)
+          ? { kind: 'action', pieces: pieces(text.replace(ACTION, '')) }
+          : { kind: 'paragraph', pieces: pieces(text) },
+      )
       paragraph = []
     }
   }

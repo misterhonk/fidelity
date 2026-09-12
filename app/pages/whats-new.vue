@@ -58,8 +58,17 @@ const nochDeutsch = computed(() => {
         <template v-for="(block, i) in parts" :key="i">
           <p
             class="max-w-prose text-fid-base text-fid-text"
-            :class="block.kind === 'bullet' ? 'border-l-2 border-fid-border pl-4' : ''"
+            :class="
+              block.kind === 'bullet'
+                ? 'border-l-2 border-fid-border pl-4'
+                : block.kind === 'action'
+                  ? 'rounded-fid-sm border border-fid-accent px-4 py-3'
+                  : ''
+            "
           >
+            <span v-if="block.kind === 'action'" class="font-medium"
+              >{{ m.news.whatToDo }}
+            </span>
             <template v-for="(piece, j) in block.pieces" :key="j">
               <strong v-if="piece.kind === 'strong'" class="font-medium">{{
                 piece.text

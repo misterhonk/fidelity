@@ -514,6 +514,31 @@ const en = {
   /** Settings → Your data. */
   dataPanel: {
     exportAll: 'Export everything',
+    /*
+     * The way back (M24). Rows merge into what is here; the digs stay out
+     * because the file never had their prices; a file from before the row
+     * shape settled brings the shops and ratings and asks for a sync.
+     */
+    importAll: 'Read a backup back in',
+    importing: 'Reading …',
+    importReport: (rows: string) => `Read: ${rows}.`,
+    importNothing: 'Nothing in the file to read back.',
+    importStore: {
+      collection: 'collection',
+      wantlist: 'wantlist',
+      dealers: 'shops',
+      feedback: 'ratings',
+      basket: 'basket',
+      places: 'places',
+      placements: 'where records sit',
+      valueHistory: 'the estimate over time',
+    } as Record<string, string>,
+    importSkippedPrices: (digs: string) =>
+      `${digs} digs stayed out: a backup carries no prices, and a dig without them is a heading over nothing.`,
+    importSkippedOld:
+      'The shelf and the wantlist in this file are from before the row shape settled — sync again and they are back.',
+    importMeta:
+      'Settings and the taste profile came from the file, because this device had none.',
     exportDig: 'Last dig as a file',
     // Said before the file exists, not after. Somebody exporting a dig to send
     // to a friend needs to know what is in it *while deciding to send it*.
@@ -967,6 +992,26 @@ const de: typeof en = {
 
   dataPanel: {
     exportAll: 'Alles exportieren',
+    importAll: 'Ein Backup wieder einlesen',
+    importing: 'Lese …',
+    importReport: (rows) => `Eingelesen: ${rows}.`,
+    importNothing: 'Nichts in der Datei, das sich einlesen ließe.',
+    importStore: {
+      collection: 'Sammlung',
+      wantlist: 'Wantlist',
+      dealers: 'Läden',
+      feedback: 'Bewertungen',
+      basket: 'Korb',
+      places: 'Orte',
+      placements: 'Standorte der Platten',
+      valueHistory: 'die Schätzung über die Zeit',
+    } as Record<string, string>,
+    importSkippedPrices: (digs) =>
+      `${digs} Digs blieben draußen: Ein Backup trägt keine Preise, und ein Dig ohne sie ist eine Überschrift über nichts.`,
+    importSkippedOld:
+      'Sammlung und Wantlist in dieser Datei stammen von vor der festen Zeilenform – einmal synchronisieren, dann sind sie wieder da.',
+    importMeta:
+      'Einstellungen und Geschmacksprofil kamen aus der Datei, weil dieses Gerät keine hatte.',
     exportDig: 'Letzten Dig als Datei',
     contents:
       "Beide Dateien enthalten weder deinen Token noch Preise oder Zustände – Marktplatzdaten dürfen laut Discogs' Nutzungsbedingungen nicht weitergegeben werden. Was drinsteht: welche Platten wie gut passen und warum, mit Link zum jeweiligen Angebot.",

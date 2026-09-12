@@ -19,6 +19,7 @@ import type { KeeperProgress, KeeperResult } from '~~/worker/keeper'
 import type { DrainResult } from '~~/worker/outbox'
 import type { CheckProgress, WatchedCheck } from '~~/worker/watched/check'
 import type { DemoProgress, DemoResult } from '~~/worker/demo'
+import type { ImportReport } from '../worker/import'
 import type {
   BasketPlan,
   BasketView,
@@ -641,6 +642,8 @@ export interface WorkerContract {
    */
   'data.exportDig': { params: { digId: string }; progress: never; result: unknown | null }
   'data.exportAll': { params: undefined; progress: never; result: unknown }
+  /** A backup read back in (M24): rows merged, digs left out, the report says what happened. */
+  'data.importAll': { params: { file: unknown }; progress: never; result: ImportReport }
   /**
    * The collection or the wantlist as CSV (M19 #5) — the catalogue columns
    * Discogs' own export leaves out, plus what is yours alone. No prices.
@@ -1268,6 +1271,8 @@ export interface WorkerError {
     | 'no-catalogue'
     | 'not-a-catalogue'
     | 'token-other-account'
+    | 'not-a-backup'
+    | 'backup-too-new'
     | 'vault-too-new'
     | 'vault-unusable'
     | 'passphrase-short'

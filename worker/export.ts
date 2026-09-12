@@ -1,5 +1,6 @@
 import { getMeta } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
+import { DB_VERSION } from '~~/db/schema'
 import type { Match } from '#shared/types'
 
 /**
@@ -96,6 +97,8 @@ export async function exportDig(digId: string, now: number): Promise<DigExport |
 export interface FullExport {
   kind: 'fidelity-backup'
   version: number
+  /** The database version the rows were written by — the import reads it (M24). */
+  dbVersion: number
   exportedAt: number
   identity: { username: string } | null
   collection: unknown[]
@@ -167,6 +170,7 @@ export async function exportEverything(now: number): Promise<FullExport> {
   return {
     kind: 'fidelity-backup',
     version: EXPORT_VERSION,
+    dbVersion: DB_VERSION,
     exportedAt: now,
     // The username, not the token. A token in a file is a credential in a file.
     identity: identity ? { username: identity.username } : null,

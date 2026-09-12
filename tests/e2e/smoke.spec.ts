@@ -198,6 +198,18 @@ const SCREENS = [
    * the wrong level, is created here only at drawing time.
    */
   '/whats-new',
+  /*
+   * Every settings screen added since M8 (M24): the hub with the catalogue
+   * line under it, the key, the plans, the account with its renewal form.
+   * Signed out they show the sign-in note and their chrome — which is
+   * exactly what a stranger sees first, and where a wrong label survives.
+   */
+  '/settings',
+  '/settings/hub',
+  '/settings/access',
+  '/settings/support',
+  '/settings/account',
+  '/settings/data',
 ]
 
 test.describe('accessibility', () => {

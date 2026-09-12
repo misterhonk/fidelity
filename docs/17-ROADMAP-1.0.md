@@ -325,6 +325,12 @@ the Hetzner week, and the offsite copy of the backup volume.
 
 ### 8.4 App (M24)
 
+**Progress, 2026-09-12:** 1 (`tests/e2e/onboarding.spec.ts`, the stranger's afternoon with
+Discogs answered from the test), 2 (`quiet-update.ts` in the update prompt: apply on the
+next navigation, wait for a dig, ask after fifteen minutes), 3 (the "What to do:" call-out
+on what's-new), 4 (`worker/import.ts`, the export stamped with the database version, rows
+from before v6 skipped with "sync again"). Open: 5, the clean machine.
+
 1. Onboarding: a first-run path that a stranger completes — token, sync, first dig — with
    a browser test that starts from an empty profile and never reads a doc.
 2. Updates: the service worker's "new version" as a quiet, automatic step on the next
