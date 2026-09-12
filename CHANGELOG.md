@@ -9,6 +9,27 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.52.0](https://github.com/misterhonk/fidelity/compare/v0.51.0...v0.52.0) (2026-09-12)
+
+**The shop and the map through the catalogue — and the first full build.**
+
+A barcode or a run-out is now answered from the catalogue's index over every identifier in
+the dump, with no search request; what the build does not carry falls through to the
+search that always was, because a record newer than the dump is not a miss to stop at. The
+map shows, behind every decade, style and genre bar the catalogue has a denominator for,
+your share divided by the catalogue's — the lift its bars carried a slot for since the
+first milestone — and one sentence under the bars names the build. Without a catalogue
+nothing changes.
+
+And the catalogue exists now: the first full build ran on the home lab in ninety minutes —
+19.4 million releases, 250 million rows, 17.5 GB — and the service picked it up within a
+minute of the swap, without a restart. A pressing family answers in a quarter of a second.
+
+
+### Added
+
+* **collection:** the shop and the map through the catalogue — identify, release, stats ([2573e61](https://github.com/misterhonk/fidelity/commit/2573e611f1c78d3a45c31bc8e8235dfc5adcee78))
+
 ## [0.51.0](https://github.com/misterhonk/fidelity/compare/v0.50.0...v0.51.0) (2026-09-12)
 
 **Hand the basket over to Discogs, one listing at a time.**
