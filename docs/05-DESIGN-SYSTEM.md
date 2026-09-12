@@ -231,12 +231,20 @@ screen, and the previous scale had two that nobody made.
 └──────────────────────────────────────────────────────────────┘
 ```
 
+**Since M26.2 (2026-09-12) the sleeve carries the card.** The diagram above is the card as
+it was drawn in M1; what ships is: the cover at forty per cent of the card from a tablet up
+and the full width on a phone, the signals as one plate line above the title, the title in
+the display face with the artist over it, the facts as a plate, the sentence at its own
+width, the score and the price on the last line, the actions under the card. No frame — a
+card separates itself from its neighbour by the cover and the gap, the way sleeves do in a
+crate. The colours of the signals live in the sheet's list; the card names them.
+
 The rules:
 
 - **Container queries**, not viewport breakpoints. The same card works in a 3-column grid and
   in a 320 px drawer, without variant components.
-- The score as a ring in the band's colour; the number is set tabularly.
-- Signal chips as `<button>`s, clickable → filters the list down to that signal.
+- The number is set tabularly, the band beside it as a plate.
+- The signals are named on the card and coloured in the sheet.
 - The reason sentence is **never** truncated. It is the product.
 - Covers: `loading="lazy"`, `decoding="async"`, a fixed 1:1 aspect ratio, a skeleton in
   neutral 800, **straight from `i.discogs.com` by the browser** (never server-side — a

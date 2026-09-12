@@ -86,6 +86,37 @@ async function load() {
   }
 }
 
+/**
+ * How many across (M26.2, docs/05 §1 "density is a feature").
+ *
+ * Six columns on a monitor and two on a phone are the sleeve size; eight and
+ * three are the crate. A switch rather than a compromise between them, kept
+ * per device — how big somebody wants their covers is a fact about the
+ * screen in front of them, not about their collection.
+ */
+type ShelfDensity = 'roomy' | 'compact'
+const DENSITY_KEY = 'fidelity:shelf-density'
+const density = ref<ShelfDensity>('roomy')
+const GRIDS: Record<ShelfDensity, string> = {
+  roomy: 'grid-cols-2 @md:grid-cols-3 @2xl:grid-cols-4 @5xl:grid-cols-6',
+  compact: 'grid-cols-3 @md:grid-cols-4 @2xl:grid-cols-6 @5xl:grid-cols-8',
+}
+function setDensity(value: ShelfDensity) {
+  density.value = value
+  try {
+    localStorage.setItem(DENSITY_KEY, value)
+  } catch {
+    // Private mode, or storage refused: the switch still works for this visit.
+  }
+}
+onMounted(() => {
+  try {
+    if (localStorage.getItem(DENSITY_KEY) === 'compact') density.value = 'compact'
+  } catch {
+    // Nothing remembered, nothing lost.
+  }
+})
+
 onMounted(async () => {
   await load()
   readFullyAt.value = await call('collection.readFullyAt', undefined)
@@ -230,13 +261,10 @@ const open = ref<number | null>(null)
           spellcheck="false"
           :placeholder="c.shelf.search"
           :aria-label="c.shelf.searchLabel"
-          class="min-w-56 grow rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-fid-sm text-fid-text"
+          class="fid-field min-w-56 grow px-3 py-2 text-fid-sm text-fid-text"
         />
 
-        <nav
-          :aria-label="c.shelf.sorting"
-          class="flex gap-1 rounded-fid-sm border border-fid-border p-1"
-        >
+        <nav :aria-label="c.shelf.sorting" class="flex gap-4">
           <button
             v-for="key in SORTS"
             :key="key"
@@ -247,11 +275,11 @@ const open = ref<number | null>(null)
                 ? (direction === 'asc' ? c.sortedAsc : c.sortedDesc)(c.shelf.sorts[key].label)
                 : undefined
             "
-            class="min-h-9 rounded-fid-sm px-3 text-fid-sm transition-colors"
+            class="fid-plate min-h-9 border-b-2 transition-colors"
             :class="
               sort === key
-                ? 'bg-fid-accent/15 text-fid-text'
-                : 'text-fid-text-muted hover:text-fid-text'
+                ? 'border-fid-accent text-fid-text'
+                : 'border-transparent text-fid-text-muted hover:text-fid-text'
             "
             :title="c.shelf.sorts[key].about"
             @click="chooseSort(key)"
@@ -262,16 +290,31 @@ const open = ref<number | null>(null)
             }}</span>
           </button>
         </nav>
+
+        <div role="group" :aria-label="c.shelf.density.label" class="flex gap-4">
+          <button
+            v-for="key in ['roomy', 'compact'] as const"
+            :key="key"
+            type="button"
+            :aria-pressed="density === key"
+            class="fid-plate min-h-9 border-b-2 transition-colors"
+            :class="
+              density === key
+                ? 'border-fid-accent text-fid-text'
+                : 'border-transparent text-fid-text-muted hover:text-fid-text'
+            "
+            @click="setDensity(key)"
+          >
+            {{ c.shelf.density[key] }}
+          </button>
+        </div>
       </div>
 
       <p v-if="view.records.length === 0" class="text-fid-base text-fid-text-muted">
         {{ c.shelf.noMatch }}
       </p>
 
-      <ul
-        v-else
-        class="grid grid-cols-3 gap-x-4 gap-y-6 @md:grid-cols-4 @2xl:grid-cols-6 @5xl:grid-cols-8"
-      >
+      <ul v-else class="grid gap-x-4 gap-y-8" :class="GRIDS[density]">
         <li v-for="record in view.records" :key="record.instanceId" class="flex flex-col gap-2">
           <button
             type="button"
@@ -298,7 +341,11 @@ const open = ref<number | null>(null)
                   ? `${record.thumbUrl} 150w, ${record.coverUrl} 600w`
                   : undefined
               "
-              sizes="(min-width: 90rem) 12vw, (min-width: 48rem) 16vw, 30vw"
+              :sizes="
+                density === 'compact'
+                  ? '(min-width: 90rem) 12vw, (min-width: 48rem) 16vw, 30vw'
+                  : '(min-width: 90rem) 16vw, (min-width: 48rem) 25vw, 50vw'
+              "
               alt=""
               loading="lazy"
               decoding="async"
@@ -313,16 +360,23 @@ const open = ref<number | null>(null)
               {{ c.noCover }}
             </span>
 
-            <span class="line-clamp-2 text-fid-sm text-fid-text group-hover:underline">
+            <!-- The title in the display face; the rest is a plate under it (M26.2). -->
+            <span
+              class="fid-display line-clamp-2 text-fid-sm leading-tight font-semibold text-fid-text group-hover:underline"
+            >
               {{ record.title }}
             </span>
           </button>
 
-          <span class="line-clamp-1 text-fid-xs text-fid-text-muted">{{ record.artist }}</span>
-          <span class="flex flex-wrap gap-x-2 text-fid-xs text-fid-text-muted">
-            <span v-if="record.year > 0" class="fid-num">{{ record.year }}</span>
-            <!-- Only when it was actually given. 0 means "never said". -->
-            <span v-if="record.rating > 0" class="fid-num text-fid-sig-wantlist">
+          <span class="fid-plate truncate text-fid-text-muted">{{ record.artist }}</span>
+          <span class="fid-plate flex flex-wrap gap-x-2 text-fid-text-muted">
+            <span v-if="record.year > 0">{{ record.year }}</span>
+            <!--
+              Only when it was actually given. 0 means "never said". Gold, not
+              magenta: magenta is the wantlist's colour, and a rating on the
+              shelf has nothing to do with the wantlist.
+            -->
+            <span v-if="record.rating > 0" class="text-fid-sig-gap">
               {{ '★'.repeat(record.rating) }}
             </span>
           </span>

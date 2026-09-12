@@ -1141,7 +1141,7 @@ Fontshare, self-hosted as before.
 | Phase | Delivers | State |
 |---|---|---|
 | M26.1 Plate | The fifth type step `display` (40–72 px, `PageHeader` only, the guard allows it in one file); `.fid-plate` for labels, tabs and terms; the collection and basket tabs as a line with the current one underlined, no frame; fields on a baseline (`.fid-field`), no box; the rhythm 8 · 16 · 32 · 64 with the head at 32/64 px from the bar. No screen changes its content | **Done 2026-09-12**; the font set is Martin's pick from four Fontshare trials |
-| M26.2 Sleeve | The MatchCard with the cover at 40 %, the shelf at six columns with a density switch, the start rails taller, the wantlist card with the cover full height, the release sheet tinted by the cover's colour on the device. Golden files untouched: no score moves | 2 weekends |
+| M26.2 Sleeve | The MatchCard with the cover at 40 % and the signals as a plate line, the shelf at six columns with a density switch (eight is the crate), the start rails taller, the wantlist card with a 128 px cover, the release sheet tinted by a blurred copy of its own cover — not by reading pixels, `i.discogs.com` sends no CORS header (docs/02). Golden files untouched: no score moves | **Done 2026-09-12** |
 | M26.3 Sixty | A word budget of sixty per screen above the fold as a guard; sentences moved into plates, `WhyNote`s and Help; settings pages down to a label and one line | 1 weekend |
 
 ## Not on the roadmap

@@ -87,7 +87,7 @@ const tag = computed(() =>
 
 <template>
   <li
-    class="fid-tile flex w-36 shrink-0 snap-start flex-col gap-2 @2xl:w-44"
+    class="fid-tile flex w-40 shrink-0 snap-start flex-col gap-2 @2xl:w-52"
     :style="{ '--fid-stagger': index }"
   >
     <component
@@ -107,7 +107,7 @@ const tag = computed(() =>
         v-if="thumbUrl"
         :src="thumbUrl"
         :srcset="coverUrl ? `${thumbUrl} 150w, ${coverUrl} 600w` : undefined"
-        sizes="(min-width: 1024px) 176px, 144px"
+        sizes="(min-width: 1024px) 208px, 160px"
         alt=""
         loading="lazy"
         decoding="async"
@@ -135,13 +135,15 @@ const tag = computed(() =>
     </component>
 
     <div class="flex min-w-0 flex-col">
-      <span class="truncate text-fid-sm text-fid-text" :title="title">{{ title }}</span>
-      <span v-if="subtitle" class="truncate text-fid-xs text-fid-text-muted" :title="subtitle">
+      <span
+        class="fid-display truncate text-fid-sm leading-tight font-semibold text-fid-text"
+        :title="title"
+        >{{ title }}</span
+      >
+      <span v-if="subtitle" class="fid-plate truncate text-fid-text-muted" :title="subtitle">
         {{ subtitle }}
       </span>
-      <span v-if="note" class="fid-num truncate text-fid-xs text-fid-text-muted">{{
-        note
-      }}</span>
+      <span v-if="note" class="fid-plate truncate text-fid-text-muted">{{ note }}</span>
     </div>
   </li>
 </template>

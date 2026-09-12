@@ -157,8 +157,28 @@ function years(entry: { from: number; to: number }): string {
           they slide under the cover instead, as soon as side by side would no
           longer be legible.
         -->
-      <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
-        <!--
+      <!--
+        The colour comes from the sleeve (M26.2).
+
+        Not read off the pixels: `i.discogs.com` sends no CORS header
+        (docs/02), so a canvas that drew the cover would be tainted and refuse
+        to say what it saw. A blurred copy of the same cached thumbnail behind
+        the head does the job without asking — a Saville sleeve tints the
+        sheet blue, a Blue Note one orange, and nothing leaves the device or is
+        fetched twice.
+      -->
+      <div class="relative overflow-hidden rounded-fid-md">
+        <img
+          v-if="cover"
+          :src="cover.thumbUrl || cover.coverUrl"
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          decoding="async"
+          class="pointer-events-none absolute inset-0 size-full scale-150 object-cover opacity-30 blur-3xl"
+        />
+        <div class="relative flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
+          <!--
             The largest cover the app shows — so the one where the 600 px
             version is worth having.
 
@@ -171,47 +191,49 @@ function years(entry: { from: number; to: number }): string {
             No `srcset` — the reasoning is in `ShelfSheet.vue`: the 600w
             candidate did not keep its promise, and the 150 was never picked.
           -->
-        <img
-          v-if="cover"
-          :src="cover.coverUrl || cover.thumbUrl"
-          alt=""
-          loading="lazy"
-          decoding="async"
-          width="600"
-          height="600"
-          class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80"
-        />
-        <div class="flex min-w-0 grow items-start gap-4 sm:basis-52">
-          <div class="flex min-w-0 grow flex-col gap-1">
-            <p v-if="meta" class="font-fid-mono text-fid-xs text-fid-text-muted">
-              {{ meta }}
-            </p>
-            <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">
-              <span v-if="match.condition" class="flex items-center gap-2">
-                <FidIcon name="platte" :size="14" />
-                {{ match.condition }}
-              </span>
-              <!--
+          <img
+            v-if="cover"
+            :src="cover.coverUrl || cover.thumbUrl"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            width="600"
+            height="600"
+            class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80"
+          />
+          <div class="flex min-w-0 grow items-start gap-4 sm:basis-52">
+            <div class="flex min-w-0 grow flex-col gap-1">
+              <p v-if="meta" class="font-fid-mono text-fid-xs text-fid-text-muted">
+                {{ meta }}
+              </p>
+              <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">
+                <span v-if="match.condition" class="flex items-center gap-2">
+                  <FidIcon name="platte" :size="14" />
+                  {{ match.condition }}
+                </span>
+                <!--
                 Two gradings side by side, and which is which decides whether a
                 record is worth buying. "Cover VG" and "VG" read as the same
                 word twice; the disc and the sleeve do not.
               -->
-              <span v-if="match.sleeve" class="flex items-center gap-2">
-                <FidIcon name="huelle" :size="14" />
-                {{ match.sleeve }}
-              </span>
-              <span v-if="price" class="fid-num text-fid-base text-fid-text">{{ price }}</span>
-            </p>
+                <span v-if="match.sleeve" class="flex items-center gap-2">
+                  <FidIcon name="huelle" :size="14" />
+                  {{ match.sleeve }}
+                </span>
+                <span v-if="price" class="fid-num text-fid-base text-fid-text">{{
+                  price
+                }}</span>
+              </p>
+            </div>
+            <span
+              class="fid-num shrink-0 text-fid-xl font-bold text-fid-text"
+              :aria-label="d.match.score(match.score)"
+            >
+              {{ match.score }}
+            </span>
           </div>
-          <span
-            class="fid-num shrink-0 text-fid-xl font-bold text-fid-text"
-            :aria-label="d.match.score(match.score)"
-          >
-            {{ match.score }}
-          </span>
         </div>
       </div>
-
       <p class="text-fid-base text-fid-text">{{ reasonFor(match.signals) }}</p>
 
       <!--

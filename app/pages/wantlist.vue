@@ -452,17 +452,17 @@ function waiting(addedAt: string): string | null {
                 ? `${record.thumbUrl} 150w, ${record.coverUrl} 600w`
                 : undefined
             "
-            sizes="80px"
+            sizes="(min-width: 40rem) 128px, 112px"
             alt=""
             loading="lazy"
             decoding="async"
-            width="80"
-            height="80"
-            class="size-20 shrink-0 rounded-fid-cover bg-fid-inset object-cover"
+            width="128"
+            height="128"
+            class="size-28 shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-32"
           />
           <span
             v-else
-            class="flex size-20 shrink-0 items-center justify-center rounded-fid-cover bg-fid-inset text-center text-fid-xs text-fid-text-muted"
+            class="flex size-28 shrink-0 items-center justify-center rounded-fid-cover bg-fid-inset text-center text-fid-xs text-fid-text-muted sm:size-32"
           >
             {{ c.noCover }}
           </span>

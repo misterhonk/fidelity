@@ -74,14 +74,40 @@ const meta = computed(() => {
     .filter(Boolean)
     .join(' · ')
 })
+
+/**
+ * The signals as one plate line (M26.2), not as coloured chips.
+ *
+ * Three chips in three signal colours were the loudest thing on the card
+ * after the cover, and they said less than the sentence under them. The
+ * names stay, set like a type plate; the colours stay in the sheet's signal
+ * list, where somebody who wants them goes looking.
+ */
+const signalsLine = computed(() =>
+  props.match.signals.map((signal) => signalLabel(signal.type)).join(' · '),
+)
 </script>
 
 <template>
+  <!--
+    The sleeve carries the card (M26.2, docs/05 §3.1).
+
+    Until 2026-09-12 the cover was 72 px beside eight lines of text — a
+    thumbnail on a form. Now it takes forty per cent of the card from a
+    tablet up and the full width on a phone, the title stands in the display
+    face, the facts are a plate, and the sentence keeps its width. Nothing is
+    fetched that was not fetched before: the 600 px address was in the srcset
+    all along, and the browser picks it now because the box is big enough to
+    want it.
+
+    No frame around the card. It separates itself from its neighbour by the
+    cover and the gap, the way sleeves do in a crate.
+  -->
   <article
     ref="root"
-    class="fid-lift @container flex scroll-mt-28 flex-col gap-3 rounded-fid-md border border-fid-border bg-fid-surface p-4"
+    class="fid-lift @container flex scroll-mt-28 flex-col gap-4 rounded-fid-md bg-fid-surface p-4"
   >
-    <div class="flex items-start gap-4">
+    <div class="grid gap-4 @md:grid-cols-[minmax(10rem,40%)_1fr]">
       <!--
         The cover is fetched by the browser, lazily and only in the viewport.
         i.discogs.com has its own Cloudflare limit that has nothing to do with
@@ -90,29 +116,17 @@ const meta = computed(() => {
         Where the address comes from is the interesting part: not from the
         match. `/users/{u}/inventory` returns `release.thumbnail` as an empty
         string — 1.200 of 1.200 rows across four shops, measured 2026-08-10 —
-        so `match.thumbUrl` has been null for every find this app ever made and
-        this card has been drawing the placeholder since it was written. The
-        picture comes from the shared store instead (app/composables/useCovers).
-      -->
-      <!--
+        so `match.thumbUrl` has been null for every find this app ever made.
+        The picture comes from the shared store instead (app/composables/useCovers).
+
         The cover opens the record, because the cover is what a person reaches
-        for.
-
-        For a long time the only way in was the title, on the argument that a
-        whole-card click would swallow the Discogs link and the four verdict
-        buttons — which is still true, and is why this is not a whole-card
-        click. But it left the sleeve, the score and the metadata line inert
-        while the most eye-catching control on the card led *away* to Discogs.
-        The result reads as "the overview is gone": somebody taps the picture,
-        nothing happens, taps the obvious link instead, and lands on a website.
-
-        A cover and a title, both opening the same thing, and the buttons
-        beside them keeping their own jobs.
+        for. Not a whole-card click: that would swallow the Discogs link and
+        the verdict buttons.
       -->
       <button
         v-if="cover"
         type="button"
-        class="fid-cover-button size-18 shrink-0 overflow-hidden rounded-fid-cover bg-fid-inset"
+        class="fid-cover-button aspect-square w-full overflow-hidden rounded-fid-cover bg-fid-inset"
         :aria-label="d.match.open(`${match.artist} – ${match.title}`)"
         @click="show(match.digId, match.listingId)"
       >
@@ -121,12 +135,12 @@ const meta = computed(() => {
           :srcset="
             cover.coverUrl ? `${cover.thumbUrl} 150w, ${cover.coverUrl} 600w` : undefined
           "
-          sizes="72px"
+          sizes="(min-width: 48rem) 20rem, 100vw"
           alt=""
           loading="lazy"
           decoding="async"
-          width="72"
-          height="72"
+          width="600"
+          height="600"
           class="size-full object-cover"
         />
       </button>
@@ -139,169 +153,156 @@ const meta = computed(() => {
       -->
       <div
         v-else
-        class="flex size-18 shrink-0 items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted"
+        class="flex aspect-square w-full items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted"
         aria-hidden="true"
       >
-        <FidIcon name="platte" :size="28" />
+        <FidIcon name="platte" :size="48" />
       </div>
 
-      <div class="flex min-w-0 grow flex-col gap-1">
+      <div class="flex min-w-0 flex-col gap-2">
+        <p v-if="signalsLine" class="fid-plate text-fid-text-muted">{{ signalsLine }}</p>
+
         <!--
-          The title is the way in. A whole-card click would swallow the
-          Discogs link and the four verdict buttons that sit inside it.
-        -->
-        <!--
-          Underlined always, not only on hover. A hover underline is invisible
-          on a phone, which is where this list is mostly read — so on the
-          device that matters the title looked like a heading and the only
-          visible control on the card was the one leading to Discogs.
+          The title is the way in, and it says the artist too — as its own
+          line for the eye, and as "artist – title" for anything that reads
+          the button's name.
         -->
         <button
           type="button"
-          class="truncate text-left text-fid-base font-medium text-fid-text underline decoration-fid-border decoration-1 underline-offset-4 transition-colors hover:decoration-fid-accent"
+          class="flex flex-col items-start gap-1 text-left"
           @click="show(match.digId, match.listingId)"
         >
-          {{ match.artist }} – {{ match.title }}
+          <span class="text-fid-base text-fid-text">{{ match.artist }}</span>
+          <span class="sr-only"> – </span>
+          <span
+            class="fid-display text-fid-xl leading-tight font-bold text-fid-text underline decoration-fid-border decoration-1 underline-offset-4 transition-colors hover:decoration-fid-accent"
+          >
+            {{ match.title }}
+          </span>
         </button>
-        <p v-if="meta" class="truncate font-fid-mono text-fid-xs text-fid-text-muted">
-          {{ meta }}
-        </p>
-      </div>
+        <p v-if="meta" class="fid-plate text-fid-text-muted">{{ meta }}</p>
 
-      <div
-        class="flex shrink-0 flex-col items-center"
-        role="img"
-        :aria-label="d.match.scoreBand(match.score, band.label)"
-      >
-        <span class="fid-num text-fid-xl font-bold text-fid-text">{{ match.score }}</span>
-        <span class="text-fid-xs text-fid-text-muted">{{ band.key }}</span>
+        <!-- Never truncated. The sentence is the product. -->
+        <p class="max-w-prose text-fid-base text-fid-text">{{ reasonFor(match.signals) }}</p>
+
+        <!--
+          Rare, per the catalogue (M20 #6): an album with five pressings or fewer
+          does not come round again the way one with a hundred and sixty does. A
+          hint, not a signal — the score is what the marketplace says is for sale.
+        -->
+        <p
+          v-if="
+            match.pressings !== null &&
+            match.pressings !== undefined &&
+            match.pressings <= FEW_PRESSINGS
+          "
+          class="text-fid-sm text-fid-sig-scarcity"
+        >
+          {{ d.match.fewPressings(match.pressings) }}
+        </p>
+
+        <!--
+          What this pressing is (M7). Never says a reissue is bad — plenty of
+          people want the 180 g remaster — only what the record is, so the price
+          can be judged against the right thing.
+        -->
+        <ul v-if="match.pressingWarnings?.length" class="flex flex-col gap-1">
+          <li
+            v-for="warning in match.pressingWarnings"
+            :key="warning.kind + (warning.facts.special ?? '')"
+            class="text-fid-sm"
+            :class="warning.severity === 'high' ? 'text-fid-sig-scarcity' : 'text-fid-sig-gap'"
+          >
+            {{ pressingText(warning) }}
+          </li>
+        </ul>
+
+        <p v-if="match.pressing?.stamps.length" class="flex flex-wrap gap-x-3 text-fid-xs">
+          <span
+            v-for="stamp in match.pressing.stamps"
+            :key="stamp.key"
+            class="text-fid-text-muted"
+            :title="stampText(stamp).note"
+          >
+            <span class="text-fid-text">{{ stampText(stamp).label }}</span>
+            {{ d.match.inRunOut }}
+          </span>
+        </p>
+
+        <!-- The score and the price, on the card's last line, with the band as a plate. -->
+        <div class="mt-auto flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 pt-2">
+          <div
+            class="flex items-baseline gap-2"
+            role="img"
+            :aria-label="d.match.scoreBand(match.score, band.label)"
+          >
+            <span class="fid-num text-fid-xl font-bold text-fid-text">{{ match.score }}</span>
+            <span class="fid-plate text-fid-text-muted">{{ band.key }}</span>
+          </div>
+          <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">
+            <span v-if="match.condition">{{ match.condition }}</span>
+            <span v-if="price" class="fid-num text-fid-text">{{ price }}</span>
+            <span v-if="landedText" class="fid-num" :title="landedWhy">{{ landedText }}</span>
+            <!--
+              It stays a link here, not a button: a second button beside "add
+              to basket" would compete with it for the same glance. The mark is
+              the same as in the sheet — that it leads out of the app should
+              look the same everywhere.
+            -->
+            <OutwardLink :to="`https://www.discogs.com/sell/item/${match.listingId}`">
+              {{ d.sheet.atDiscogs }}
+            </OutwardLink>
+          </p>
+        </div>
       </div>
     </div>
 
-    <ul class="flex flex-wrap gap-2">
-      <li
-        v-for="signal in match.signals"
-        :key="signal.type"
-        class="rounded-fid-sm border px-2 py-1 text-fid-xs text-fid-text"
-        :style="signalChipStyle(signal.type)"
-      >
-        {{ signalLabel(signal.type) }}
-      </li>
-    </ul>
-
-    <!-- Never truncated. The sentence is the product. -->
-    <!-- A sentence, so it keeps a sentence's width however wide the card gets. -->
-    <p class="max-w-prose text-fid-sm text-fid-text">{{ reasonFor(match.signals) }}</p>
-
     <!--
-      Rare, per the catalogue (M20 #6): an album with five pressings or fewer
-      does not come round again the way one with a hundred and sixty does. A
-      hint, not a signal — the score is what the marketplace says is for sale.
+      The only way Barry ever gets calibrated. Each press stores the signals
+      as they were at the moment of the verdict — the verdict alone would be
+      worthless once the weights move (docs/03 §7).
     -->
-    <p
-      v-if="
-        match.pressings !== null &&
-        match.pressings !== undefined &&
-        match.pressings <= FEW_PRESSINGS
-      "
-      class="text-fid-sm text-fid-sig-scarcity"
-    >
-      {{ d.match.fewPressings(match.pressings) }}
-    </p>
-
-    <!--
-      What this pressing is (M7). Never says a reissue is bad — plenty of
-      people want the 180 g remaster — only what the record is, so the price
-      can be judged against the right thing.
-    -->
-    <ul v-if="match.pressingWarnings?.length" class="flex flex-col gap-1">
-      <li
-        v-for="warning in match.pressingWarnings"
-        :key="warning.kind + (warning.facts.special ?? '')"
-        class="text-fid-sm"
-        :class="warning.severity === 'high' ? 'text-fid-sig-scarcity' : 'text-fid-sig-gap'"
+    <div class="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        :aria-pressed="contains(match.listingId)"
+        class="rounded-fid-sm border px-3 py-1 text-fid-sm transition-colors"
+        :class="
+          contains(match.listingId)
+            ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
+            : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+        "
+        @click="toggle(match.digId, match.listingId)"
       >
-        {{ pressingText(warning) }}
-      </li>
-    </ul>
+        {{ contains(match.listingId) ? d.match.basketIn : d.match.basketAdd }}
+      </button>
 
-    <p v-if="match.pressing?.stamps.length" class="flex flex-wrap gap-x-3 text-fid-xs">
-      <span
-        v-for="stamp in match.pressing.stamps"
-        :key="stamp.key"
-        class="text-fid-text-muted"
-        :title="stampText(stamp).note"
-      >
-        <span class="text-fid-text">{{ stampText(stamp).label }}</span> {{ d.match.inRunOut }}
-      </span>
-    </p>
-
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <p class="flex flex-wrap items-center gap-x-3 text-fid-sm text-fid-text-muted">
-        <span v-if="match.condition">{{ match.condition }}</span>
-        <span v-if="price" class="fid-num text-fid-text">{{ price }}</span>
-        <span v-if="landedText" class="fid-num" :title="landedWhy">{{ landedText }}</span>
+      <div class="flex gap-1" role="group" :aria-label="d.match.feedback">
         <!--
-          It stays a link here, not a button: the card is dense, and a second
-          button beside "add to basket" would compete with it for the same
-          glance. The mark is the same as in the sheet all the same — that it
-          leads out of the app should look the same everywhere.
+          The word stands next to the icon, and it changes: "Save" is the
+          action, "Saved" is the state, and the accessible name is the same
+          text everyone else reads.
         -->
-        <OutwardLink :to="`https://www.discogs.com/sell/item/${match.listingId}`">
-          {{ d.sheet.atDiscogs }}
-        </OutwardLink>
-      </p>
-
-      <!--
-        The only way Barry ever gets calibrated. Each press stores the signals
-        as they were at the moment of the verdict — the verdict alone would be
-        worthless once the weights move (docs/03 §7).
-      -->
-      <div class="flex items-center gap-2">
         <button
+          v-for="option in SHOWN_VERDICTS"
+          :key="option.key"
           type="button"
-          :aria-pressed="contains(match.listingId)"
-          class="rounded-fid-sm border px-3 py-1 text-fid-sm transition-colors"
+          :aria-pressed="verdict === option.key"
+          class="fid-lift inline-flex items-center gap-2 rounded-fid-sm border px-2 py-1 text-fid-xs transition-colors"
           :class="
-            contains(match.listingId)
+            verdict === option.key
               ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
-              : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+              : 'border-fid-field text-fid-text-muted hover:text-fid-text'
           "
-          @click="toggle(match.digId, match.listingId)"
+          @click="judge(match, option.key)"
         >
-          {{ contains(match.listingId) ? d.match.basketIn : d.match.basketAdd }}
+          <FidIcon :name="option.icon" :size="14" />
+          {{
+            verdict === option.key
+              ? d.match.verdictsDone[option.key]
+              : d.match.verdicts[option.key]
+          }}
         </button>
-
-        <div class="flex gap-1" role="group" :aria-label="d.match.feedback">
-          <!--
-            The word stands next to the icon, and it changes.
-            A bookmark glyph on its own says neither what the button does nor
-            whether it is already set — both were left to a border to imply.
-            "Save" is the action, "Saved" is the state, and now the accessible
-            name is the same text everyone else reads instead of a second one
-            running quietly alongside it.
-          -->
-          <button
-            v-for="option in SHOWN_VERDICTS"
-            :key="option.key"
-            type="button"
-            :aria-pressed="verdict === option.key"
-            class="fid-lift inline-flex items-center gap-2 rounded-fid-sm border px-2 py-1 text-fid-xs transition-colors"
-            :class="
-              verdict === option.key
-                ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
-                : 'border-fid-field text-fid-text-muted hover:text-fid-text'
-            "
-            @click="judge(match, option.key)"
-          >
-            <FidIcon :name="option.icon" :size="14" />
-            {{
-              verdict === option.key
-                ? d.match.verdictsDone[option.key]
-                : d.match.verdicts[option.key]
-            }}
-          </button>
-        </div>
       </div>
     </div>
   </article>

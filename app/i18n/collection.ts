@@ -77,6 +77,8 @@ const en = {
     empty: 'No records here yet. Fetch the collection in the settings.',
     emptyAction: 'Fetch the collection',
     noMatch: 'Nothing by that name on the shelf.',
+    /** Six across or eight (M26.2): the sleeve size, or the crate. */
+    density: { label: 'How many across', roomy: 'Larger', compact: 'More' },
     search: 'Artist, title or label',
     searchLabel: 'Search the shelf',
     sorting: 'Sorting',
@@ -535,6 +537,7 @@ const de: typeof en = {
     empty: 'Noch keine Platten hier. Sammlung in den Einstellungen holen.',
     emptyAction: 'Sammlung holen',
     noMatch: 'Nichts mit diesem Namen im Regal.',
+    density: { label: 'Wie viele nebeneinander', roomy: 'Größer', compact: 'Mehr' },
     search: 'Künstler, Titel oder Label',
     searchLabel: 'Regal durchsuchen',
     sorting: 'Sortierung',
