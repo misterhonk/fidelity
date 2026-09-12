@@ -72,6 +72,11 @@
     Header set Cache-Control "no-cache"
   </FilesMatch>
 
+  # Apache kennt das Manifest nicht von selbst und lieferte es ohne Typ
+  # (gemessen 2026-09-12). Browser installieren die App trotzdem, mit einer
+  # Warnung; der Typ ist der aus der Spezifikation.
+  AddType application/manifest+json .webmanifest
+
   # Gehashte Dateinamen: ändert sich der Inhalt, ändert sich der Name. Der
   # Browser muss also nie wieder nachfragen.
   <FilesMatch "^.*\.(js|css|woff2)$">
