@@ -11,6 +11,19 @@ Für eine App bedeutet SemVer:
 
 ## [0.54.0](https://github.com/misterhonk/fidelity/compare/v0.53.0...v0.54.0) (2026-09-12)
 
+**The staging ring: a nightly smoke run, a load test, backups, release channels.**
+
+Nothing in the app changes with this release. Around it: a smoke suite asks the home lab's
+public name every night what a person would every morning — the app loads, the hub names
+its doors, the catalogue answers with a build that is not stale and knows a family, the
+shop identifies a barcode. A load test measured the catalogue on the real build at about
+1,750 requests a second past the proxy, eight times the target. The hub's file is copied
+once a day and a drill proves the copies are worth something. The catalogue's health says
+`stale` after forty days without a build, for a monitor to read. A `Promote` workflow points
+a `stable` channel at a release, and a compose file with Caddy runs the whole stack on one
+cloud box, walked through in ten steps in the deployment doc. The Support screen's prices
+stand in their own column.
+
 
 ### Added
 
