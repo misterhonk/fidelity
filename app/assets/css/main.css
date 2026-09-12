@@ -48,8 +48,8 @@
 :root {
   /* Array is narrow like the stamping on a record spine. */
   --fid-font-sans: 'Switzer', ui-sans-serif, system-ui, sans-serif;
-  --fid-font-mono: 'Chivo Mono', ui-monospace, monospace;
-  --fid-font-display: 'Array', var(--fid-font-sans);
+  --fid-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --fid-font-display: 'Cabinet Grotesk', var(--fid-font-sans);
 }
 
 body {

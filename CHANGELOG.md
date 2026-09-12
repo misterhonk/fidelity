@@ -11,6 +11,20 @@ Für eine App bedeutet SemVer:
 
 ## [0.56.1](https://github.com/misterhonk/fidelity/compare/v0.56.0...v0.56.1) (2026-09-12)
 
+**Every screen starts in the same place, and the Support screen waits for a way to pay.**
+
+Tap through the collection — shelf, map, wantlist, on watch, places, year — and the
+heading used to jump: four different distances from the bar, two widths, and on two of the
+views the tabs above the title instead of under it. Every screen now stands in one frame,
+at one distance from the top, with its title at the same left edge, and every head reads
+the same way down: the area, its tabs, the view's own name, the lead.
+
+Settings › Support listed plans and tips with nothing behind them. A price list nobody can
+pay is a promise the app cannot keep, so the screen is out until there is a way to pay; the
+access key and the beta are unchanged.
+
+**What to do:** Nothing.
+
 
 ### Fixed
 

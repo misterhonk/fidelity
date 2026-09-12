@@ -126,11 +126,20 @@ pinch zoom stays.
 
 One set, **Presswerk**, self-hosted from `app/assets/fonts/` and declared in `fonts.css`.
 No component names a typeface — everything goes through `--fid-font-sans`,
-`--fid-font-mono`, `--fid-font-display`.
+`--fid-font-mono`, `--fid-font-display`. All three come from Fontshare — the licence
+allows the files in an AGPL repository, which the Swiss foundries' webfont licences would
+not (the review of 2026-09-12 says why that is the decision, not the taste).
+
+**Two faces changed on 2026-09-12 (M26.1).** Array became a dot matrix at the new display
+size — a neon sign, not a type plate — and Chivo Mono was the one face not on Fontshare.
+Four sets were tried on the shelf at 2× (Array · Switzer · Chivo, Cabinet · Switzer ·
+JetBrains, Clash Display · General Sans · Azeret, Familjen · Satoshi · JetBrains); Martin
+picked the second: the body stays, the display face gains the weights to carry an `h2`
+too, and the mono is the quietest plate of the three.
 
 | Body | Numbers | Headings |
 |---|---|---|
-| Switzer | Chivo Mono | Array – narrow, like the print on a record spine |
+| Switzer | JetBrains Mono | Cabinet Grotesk – a grotesk with weight, Fontshare's answer to GT America |
 
 Until 2026-08-11 there were three sets (Kontor, Schweiz) and a switch under Settings ›
 Appearance. Removed: the switch cost two font families in the bundle for a choice nobody

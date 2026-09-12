@@ -26,8 +26,8 @@ import { expect, test } from '@playwright/test'
  * with it.
  */
 
-/** Presswerk: the sans, the mono, the display face (ADR — see docs/05). */
-const FAMILIES = ['Switzer', 'Chivo Mono', 'Array']
+/** Presswerk since M26.1: the sans, the mono, the display face (docs/05 §2.5). */
+const FAMILIES = ['Switzer', 'JetBrains Mono', 'Cabinet Grotesk']
 
 test.describe('the typefaces', () => {
   test('all three are loaded, not silently swapped for Arial', async ({ page }) => {
@@ -70,7 +70,7 @@ test.describe('the typefaces', () => {
     await expect(page.locator('main')).toBeVisible()
 
     const widths = await page.evaluate(async () => {
-      await document.fonts.load('48px "Array"')
+      await document.fonts.load('48px "Cabinet Grotesk"')
 
       const measure = (family: string) => {
         const probe = document.createElement('span')
@@ -82,7 +82,7 @@ test.describe('the typefaces', () => {
         return width
       }
 
-      return { real: measure('Array, sans-serif'), fallback: measure('sans-serif') }
+      return { real: measure('"Cabinet Grotesk", sans-serif'), fallback: measure('sans-serif') }
     })
 
     expect(widths.real).toBeGreaterThan(0)
