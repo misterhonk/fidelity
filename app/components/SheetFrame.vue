@@ -37,11 +37,30 @@ let opener: HTMLElement | null = null
 onMounted(() => {
   opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
   panel.value?.focus()
+  document.addEventListener('keydown', onEscapeAnywhere)
 })
 
 onBeforeUnmount(() => {
+  document.removeEventListener('keydown', onEscapeAnywhere)
   if (opener?.isConnected) opener.focus()
 })
+
+/**
+ * Escape closes the sheet even when the focus has fallen out of it.
+ *
+ * Found on 2026-09-12: a button inside the sheet disabled itself after the
+ * click — "put 1 in B1" with nothing left to put — and the focus went to
+ * the body. The panel's own listener never heard the Escape, and the sheet
+ * stood over the wall, taking every tap. Only the topmost sheet answers, so
+ * two stacked sheets close one at a time.
+ */
+function onEscapeAnywhere(event: KeyboardEvent) {
+  if (event.key !== 'Escape' || !panel.value) return
+  if (panel.value.contains(document.activeElement)) return
+  const sheets = document.querySelectorAll('[role="dialog"][aria-modal="true"]')
+  if (sheets[sheets.length - 1] !== panel.value) return
+  emit('close')
+}
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
