@@ -120,9 +120,16 @@ test('a stranger sets up, syncs, and digs a shop without reading a document', as
   await expect(page.getByText('Signed in as stranger')).toBeVisible({ timeout: 15_000 })
   await page.getByRole('button', { name: 'Fetch the collection' }).click()
   // The two optional steps are walked past, as the setup promises.
+  //
+  // Both buttons say "Carry on", and the panels swap with an out-in
+  // transition: on a slow runner the second click can land on the first
+  // button while it is still leaving, and the setup stays on the credits
+  // step forever. So the next heading is awaited between the two clicks —
+  // once it is there, the old panel is gone.
   await page.getByRole('button', { name: 'Carry on' }).click({ timeout: 30_000 })
+  await expect(page.getByRole('heading', { name: 'Who is behind your records' })).toBeVisible()
   await page.getByRole('button', { name: 'Carry on' }).click()
-  await expect(page.getByRole('heading', { name: 'Done.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Done.' })).toBeVisible({ timeout: 15_000 })
 
   // The first dig, from the offer on the last screen.
   await page.getByRole('link', { name: 'To the dig' }).click()
