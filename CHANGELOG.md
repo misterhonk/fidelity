@@ -9,6 +9,23 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.64.0](https://github.com/misterhonk/fidelity/compare/v0.63.0...v0.64.0) (2026-09-12)
+
+**Re-sort a compartment: tick, move, take out — and undo.**
+
+Open a compartment and tap "Select": the sleeves become things to tick. "Move n to …"
+opens the wall small — every piece of furniture as a little grid, a button per
+compartment with its coordinate and its divider, the rooms underneath — and one tap moves
+the ticked records there. "Take n out" empties them onto the pile of the unplaced. Every
+move leaves a line with "Undo" that puts the records back where they were.
+
+**What to do:** Nothing. Open Collection › Places, tap a compartment, then "Select".
+
+
+### Added
+
+* **collection:** select in a compartment, move to the wall, take out, undo (M27.3) ([a4980c1](https://github.com/misterhonk/fidelity/commit/a4980c1e6fed7cbf06c18b1b992521dc184b2106))
+
 ## [0.63.0](https://github.com/misterhonk/fidelity/compare/v0.62.0...v0.63.0) (2026-09-12)
 
 **A shelf sorts itself — when you say so — and a compartment opens beside the wall.**
