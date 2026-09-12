@@ -265,6 +265,11 @@ const en = {
         action:
           'Something answered at that address, but not a catalogue. Check the address and port.',
       },
+      'token-other-account': {
+        title: 'This token belongs to another Discogs account.',
+        action:
+          'What is on this device is the signed-in account’s. To switch accounts, sign out first — that deletes the database — and sign in with the new token.',
+      },
       'vault-too-new': {
         title: 'This backup is from a newer Fidelity.',
         action:
@@ -288,7 +293,7 @@ const en = {
     tokenRevoked: {
       title: 'Discogs no longer accepts the token.',
       action:
-        'It was probably withdrawn at Discogs. A new one from the developer settings is enough — your data here stays where it is.',
+        'It was probably withdrawn at Discogs. Make a new one in the developer settings and enter it under Settings → Account → Renew the token — your data here stays where it is.',
     },
     tokenUnknown: {
       title: 'Discogs does not know this token.',
@@ -381,6 +386,18 @@ const en = {
       'The token stays stored on this device and is passed to nobody — not to us either. There is no server that could receive it.',
     checking: 'Checking …',
     signIn: 'Sign in',
+
+    /*
+     * Renewing, on the account screen. Same field, same rules, one
+     * difference that has to be said: nothing on this device is touched.
+     * Until 2026-09-12 a withdrawn token meant signing out — and signing out
+     * deletes the database.
+     */
+    renewTitle: 'Renew the token',
+    renewLead:
+      'If Discogs stopped accepting the token, make a new one and enter it here. Collection, horizon, digs and ratings on this device stay as they are; only the key changes.',
+    renew: 'Renew',
+    renewed: 'The token works. Nothing else has changed.',
   },
 
   /**

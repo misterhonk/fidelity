@@ -111,6 +111,7 @@ export const handlers: HandlerMap = {
 
   'auth.signIn': async ({ token }) => (await auth()).signIn(token),
   'auth.identity': () => currentIdentity(),
+  'auth.renew': async ({ token }) => (await auth()).renewToken(token),
   'auth.signOut': async () => {
     await signOut()
     return { signedOut: true as const }

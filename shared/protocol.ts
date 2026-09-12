@@ -116,6 +116,8 @@ export interface WorkerContract {
   /** Validates the token against /oauth/identity and only then stores it. */
   'auth.signIn': { params: { token: string }; progress: never; result: Identity }
   'auth.identity': { params: undefined; progress: never; result: Identity | null }
+  /** A new token for the same account; the database stays. Refuses another account. */
+  'auth.renew': { params: { token: string }; progress: never; result: Identity }
   /** Deletes the whole database, not just the token. */
   'auth.signOut': { params: undefined; progress: never; result: { signedOut: true } }
 
@@ -1242,6 +1244,7 @@ export interface WorkerError {
     | 'not-a-hub'
     | 'no-catalogue'
     | 'not-a-catalogue'
+    | 'token-other-account'
     | 'vault-too-new'
     | 'vault-unusable'
     | 'passphrase-short'

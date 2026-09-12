@@ -164,6 +164,11 @@ const de: Messages = {
         title: 'Das ist kein Fidelity-Katalog.',
         action: 'Unter der Adresse antwortet etwas, aber kein Katalog. Prüfe Adresse und Port.',
       },
+      'token-other-account': {
+        title: 'Dieser Token gehört zu einem anderen Discogs-Konto.',
+        action:
+          'Was auf diesem Gerät liegt, gehört dem angemeldeten Konto. Zum Kontowechsel erst abmelden – das löscht die Datenbank – und mit dem neuen Token anmelden.',
+      },
       'vault-too-new': {
         title: 'Diese Sicherung stammt aus einem neueren Fidelity.',
         action: 'Aktualisiere zuerst die App – eine ältere läse sie falsch statt gar nicht.',
@@ -186,7 +191,7 @@ const de: Messages = {
     tokenRevoked: {
       title: 'Discogs nimmt den Token nicht mehr an.',
       action:
-        'Er wurde vermutlich bei Discogs zurückgezogen. Ein neuer aus den Entwickler-Einstellungen reicht – deine Daten hier bleiben, wo sie sind.',
+        'Er wurde vermutlich bei Discogs zurückgezogen. Erzeuge in den Entwickler-Einstellungen einen neuen und trag ihn unter Einstellungen → Konto → Token erneuern ein – deine Daten hier bleiben, wo sie sind.',
     },
     tokenUnknown: {
       title: 'Discogs kennt diesen Token nicht.',
@@ -262,6 +267,12 @@ const de: Messages = {
       'Der Token bleibt auf diesem Gerät gespeichert und wird an niemanden weitergegeben – auch nicht an uns. Es gibt keinen Server, der ihn empfangen könnte.',
     checking: 'Prüfe …',
     signIn: 'Anmelden',
+
+    renewTitle: 'Token erneuern',
+    renewLead:
+      'Wenn Discogs den Token nicht mehr annimmt, erzeuge einen neuen und trag ihn hier ein. Sammlung, Horizont, Digs und Bewertungen auf diesem Gerät bleiben, wie sie sind; nur der Schlüssel wechselt.',
+    renew: 'Erneuern',
+    renewed: 'Der Token funktioniert. Sonst hat sich nichts geändert.',
   },
 
   signals: {

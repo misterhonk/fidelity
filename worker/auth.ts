@@ -114,6 +114,51 @@ export async function requestPersistence(): Promise<boolean> {
   }
 }
 
+/**
+ * A new token for the same account — nothing else changes.
+ *
+ * Discogs withdraws tokens, people regenerate them, and until 2026-09-12 the
+ * only way to enter a new one was to sign out, which deletes the database:
+ * thirteen minutes of horizon, every dig and every rating for a key that
+ * took ten seconds to make. Renewing writes the token and the refreshed
+ * identity, and that is all — the client reads the token per request, so
+ * the next call already uses it.
+ *
+ * The one thing it refuses is a token for *another* account: the collection
+ * on this device is somebody's, and a key that belongs to somebody else must
+ * not quietly take it over. That case is a sign-out and a fresh start, said
+ * so rather than done silently. With nobody signed in, renewing is signing in.
+ */
+export async function renewToken(token: string): Promise<Identity> {
+  const trimmed = token.trim()
+  if (trimmed.length === 0) throw fail('no-token', 'no token given')
+  registerSecret(trimmed)
+
+  const probe = new DiscogsClient({ getToken: () => trimmed })
+  const identity = await probe.get('/oauth/identity', identitySchema)
+
+  const current = await getMeta('identity')
+  if (current && current.userId !== identity.id) {
+    throw fail(
+      'token-other-account',
+      `token belongs to ${identity.username}, not to the signed-in account`,
+    )
+  }
+
+  const profile = await probe.get(
+    `/users/${encodeURIComponent(identity.username)}`,
+    userProfileSchema,
+  )
+  const stored: Identity = {
+    userId: identity.id,
+    username: identity.username,
+    avatarUrl: profile.avatar_url ?? '',
+  }
+  await setMeta('token', trimmed)
+  await setMeta('identity', stored)
+  return stored
+}
+
 export async function currentIdentity(): Promise<Identity | null> {
   const [token, identity] = await Promise.all([getMeta('token'), getMeta('identity')])
   // Either half alone is a broken state, not a signed-in one.

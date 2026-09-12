@@ -4,6 +4,13 @@ import { reasonFor } from '~/i18n/reason'
 
 const m = useMessages()
 
+/**
+ * `renew`: the same form on the account screen, for a token Discogs stopped
+ * accepting. It swaps the key and leaves the database alone — the one thing
+ * signing out cannot do — and says so instead of showing the sample finds.
+ */
+const props = defineProps<{ renew?: boolean }>()
+
 const emit = defineEmits<{ signedIn: [Identity] }>()
 
 const { call } = useFidelityWorker()
@@ -11,14 +18,20 @@ const { call } = useFidelityWorker()
 const token = ref('')
 const busy = ref(false)
 const error = ref<unknown>(null)
+const renewed = ref(false)
 
 async function submit() {
   if (busy.value) return
   busy.value = true
   error.value = null
+  renewed.value = false
 
   try {
-    emit('signedIn', await call('auth.signIn', { token: token.value }))
+    const identity = props.renew
+      ? await call('auth.renew', { token: token.value })
+      : await call('auth.signIn', { token: token.value })
+    emit('signedIn', identity)
+    renewed.value = props.renew === true
     // Not kept a moment longer than the request needs it.
     token.value = ''
   } catch (cause) {
@@ -32,8 +45,12 @@ async function submit() {
 <template>
   <form class="flex max-w-xl flex-col gap-5" @submit.prevent="submit">
     <div class="flex flex-col gap-2">
-      <h2 class="text-fid-xl font-bold text-fid-text">{{ m.token.title }}</h2>
-      <p class="text-fid-base text-fid-text-muted">{{ m.token.lead }}</p>
+      <h2 class="text-fid-xl font-bold text-fid-text">
+        {{ renew ? m.token.renewTitle : m.token.title }}
+      </h2>
+      <p class="text-fid-base text-fid-text-muted">
+        {{ renew ? m.token.renewLead : m.token.lead }}
+      </p>
     </div>
 
     <!--
@@ -48,7 +65,7 @@ async function submit() {
       test, so an example can never quietly become a promise the app no longer
       keeps.
     -->
-    <section class="flex flex-col gap-3 rounded-fid-md bg-fid-inset p-4">
+    <section v-if="!renew" class="flex flex-col gap-3 rounded-fid-md bg-fid-inset p-4">
       <h3 class="text-fid-sm font-medium text-fid-text">{{ m.token.sampleTitle }}</h3>
       <ul class="flex flex-col gap-3">
         <li v-for="(find, i) in SAMPLE_FINDS" :key="i" class="flex items-baseline gap-3">
@@ -112,8 +129,11 @@ async function submit() {
         <span>{{ m.token.staysHere }}</span>
       </p>
       <div v-if="error" id="token-error">
-        <ErrorNote :cause="error" :signed-in="false" />
+        <ErrorNote :cause="error" :signed-in="renew === true" />
       </div>
+      <p v-if="renewed" class="text-fid-sm text-fid-text" aria-live="polite">
+        {{ m.token.renewed }}
+      </p>
     </div>
 
     <button
@@ -121,7 +141,7 @@ async function submit() {
       :disabled="busy || token.length === 0"
       class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
     >
-      {{ busy ? m.token.checking : m.token.signIn }}
+      {{ busy ? m.token.checking : renew ? m.token.renew : m.token.signIn }}
     </button>
   </form>
 </template>

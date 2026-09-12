@@ -161,3 +161,69 @@ describe('signing out', () => {
     expect(await currentIdentity()).toBeNull()
   })
 })
+
+/**
+ * Renewing: a new key, the same database (2026-09-12).
+ *
+ * A withdrawn token used to cost a sign-out, and a sign-out deletes
+ * everything. Now it costs the ten seconds it takes Discogs to make a new
+ * one — and nothing on the device moves, which is what these pin.
+ */
+describe('renewing the token', () => {
+  beforeEach(async () => {
+    await openFidelityDb()
+    await setMeta('token', 'old-token')
+    await setMeta('identity', { userId: 7, username: 'mrtnmlchr', avatarUrl: '' })
+    await setMeta('lastRequestAt', 4242)
+  })
+
+  it('replaces the token for the same account and touches nothing else', async () => {
+    const calls = answers(IDENTITY, PROFILE)
+    const { renewToken } = await import('~~/worker/auth')
+
+    const identity = await renewToken('new-token')
+
+    expect(identity).toEqual({
+      userId: 7,
+      username: 'mrtnmlchr',
+      avatarUrl: 'https://img/av.png',
+    })
+    expect(await getMeta('token')).toBe('new-token')
+    expect(await getMeta('lastRequestAt')).toBe(4242)
+    expect(calls.map((c) => c.auth)).toEqual([
+      'Discogs token=new-token',
+      'Discogs token=new-token',
+    ])
+    expect(await currentIdentity()).toMatchObject({ userId: 7 })
+  })
+
+  it('refuses a token for another account and keeps the old one', async () => {
+    answers({ id: 8, username: 'somebody-else', resource_url: '' }, PROFILE)
+    const { renewToken } = await import('~~/worker/auth')
+
+    await expect(renewToken('their-token')).rejects.toMatchObject({
+      code: 'token-other-account',
+    })
+    expect(await getMeta('token')).toBe('old-token')
+    expect(await currentIdentity()).toMatchObject({ userId: 7, username: 'mrtnmlchr' })
+  })
+
+  it('keeps the old token when Discogs rejects the new one', async () => {
+    answers(new Error('nope'))
+    const { renewToken } = await import('~~/worker/auth')
+
+    await expect(renewToken('bad-token')).rejects.toMatchObject({ code: 'unauthorized' })
+    expect(await getMeta('token')).toBe('old-token')
+  })
+
+  it('is a sign-in when nobody is signed in', async () => {
+    await deleteFidelityDb()
+    await openFidelityDb()
+    answers(IDENTITY, PROFILE)
+    const { renewToken } = await import('~~/worker/auth')
+
+    await renewToken('first-token')
+    expect(await getMeta('token')).toBe('first-token')
+    expect(await currentIdentity()).toMatchObject({ userId: 7 })
+  })
+})

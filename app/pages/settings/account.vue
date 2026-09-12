@@ -5,7 +5,7 @@ const st = useSettingsMessages()
 
 useSeoMeta({ title: () => st.value.account.title })
 
-const { identity, signOut } = useIdentity()
+const { identity, set, signOut } = useIdentity()
 const { call } = useFidelityWorker()
 
 const stats = ref<Awaited<ReturnType<typeof call<'db.stats'>>> | null>(null)
@@ -44,6 +44,13 @@ const usage = computed(() => {
         </dd>
       </template>
     </dl>
+
+    <!--
+      Renewing before signing out, because it is the answer to the question
+      that brings most people here: Discogs stopped accepting the token. The
+      sign-out below is for leaving, and it says what leaving costs.
+    -->
+    <TokenForm renew @signed-in="set($event)" />
 
     <div class="flex flex-col gap-2">
       <button
