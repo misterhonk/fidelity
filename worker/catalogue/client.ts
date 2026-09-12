@@ -3,10 +3,10 @@ import { z } from 'zod'
 import { getPreferences } from '~~/db/meta'
 import type { CatalogueArtist, CatalogueSource } from '#shared/ports'
 import type { HorizonChunk, PressingFamilyFacts } from '#shared/types'
-import { chunkIsSound, decodeChunk, type WireChunk } from '#shared/wire'
+import { chunkIsSound } from '#shared/wire'
 
+import { packChunk, type Edge } from '../horizon/pack'
 import { withTimeout, HUB_TIMEOUT_MS } from '../hub/fallback'
-import { wireChunkSchema } from '../hub/client'
 import { log } from '../log'
 
 /**
@@ -53,6 +53,46 @@ const familySchema = z.object({
     .max(200),
 })
 
+/*
+ * Rows, not chunks: the service hands over what the API would, and the
+ * packing happens here with the app's own `packChunk` — one packer, so a
+ * label run computed from the dump and one computed from the API are the
+ * same bytes for the same rows.
+ */
+const runSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string(),
+  build: z.string().nullable(),
+  total: z.number().int().nonnegative(),
+  prefix: z.string().nullable(),
+  releases: z
+    .array(
+      z.tuple([
+        z.number().int().positive(),
+        z.number().int().nullable(),
+        z.number().int().nullable(),
+        z.string().nullable(),
+      ]),
+    )
+    .max(20_000),
+})
+
+const creditsSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string(),
+  build: z.string().nullable(),
+  total: z.number().int().nonnegative(),
+  releases: z
+    .array(
+      z.tuple([
+        z.number().int().positive(),
+        z.number().int().min(0).max(255),
+        z.number().int().nullable(),
+      ]),
+    )
+    .max(20_000),
+})
+
 const idsSchema = z.object({ releaseIds: z.array(z.number().int().positive()).max(5000) })
 const artistIdsSchema = z.object({ artistIds: z.array(z.number().int().positive()).max(50) })
 
@@ -94,15 +134,16 @@ export function createCatalogueClient({
     }
   }
 
-  async function chunk(path: string): Promise<HorizonChunk | null> {
-    const wire = await ask(path, wireChunkSchema)
-    if (!wire) return null
-    const decoded = decodeChunk(wire as WireChunk)
-    if (!chunkIsSound(decoded)) {
-      log.warn('[catalogue] chunk contradicts itself, discarded', decoded.key)
-      return null
-    }
-    return decoded
+  /** The build's date as the chunk's age: revalidation asks again after a month, for free. */
+  const fetchedAt = (build: string | null) => {
+    const parsed = build ? Date.parse(build) : Number.NaN
+    return Number.isFinite(parsed) ? parsed : Date.now()
+  }
+
+  const sound = (chunk: HorizonChunk): HorizonChunk | null => {
+    if (chunkIsSound(chunk)) return chunk
+    log.warn('[catalogue] chunk contradicts itself, discarded', chunk.key)
+    return null
   }
 
   return {
@@ -112,11 +153,43 @@ export function createCatalogueClient({
     async artist(id): Promise<CatalogueArtist | null> {
       return ask(`/artist/${id}`, artistSchema)
     },
-    credits(id, role) {
-      return chunk(`/artist/${id}/credits?role=${encodeURIComponent(role)}`)
+    async credits(id) {
+      const answer = await ask(`/artist/${id}/credits`, creditsSchema)
+      if (!answer || answer.id !== id) return null
+      const edges: Edge[] = answer.releases.map(([releaseId, role, year]) => ({
+        releaseId,
+        role,
+        year: year ?? 0,
+      }))
+      const chunk = packChunk('artist', id, answer.name, edges, {
+        fetchedAt: fetchedAt(answer.build),
+        complete: answer.releases.length >= answer.total,
+        requests: 0,
+      })
+      chunk.catalogueSize = answer.total
+      // The names come with the person: a chunk without them is the state
+      // the lexicon found, and the build marks it due again (lacksKin).
+      const person = await ask(`/artist/${id}`, artistSchema)
+      if (person) chunk.kin = person.names
+      return sound(chunk)
     },
-    run(labelId, prefix) {
-      return chunk(`/label/${labelId}/run?prefix=${encodeURIComponent(prefix)}`)
+    async run(labelId) {
+      const answer = await ask(`/label/${labelId}/run`, runSchema)
+      if (!answer || answer.id !== labelId) return null
+      const edges: Edge[] = answer.releases.map(([releaseId, year, num, prefix]) => ({
+        releaseId,
+        role: 0,
+        year: year ?? 0,
+        catnoNum: num ?? undefined,
+        catnoPrefix: prefix ?? undefined,
+      }))
+      const chunk = packChunk('label', labelId, answer.name, edges, {
+        fetchedAt: fetchedAt(answer.build),
+        complete: answer.releases.length >= answer.total,
+        requests: 0,
+      })
+      chunk.catalogueSize = answer.total
+      return sound(chunk)
     },
     async family(masterId): Promise<PressingFamilyFacts | null> {
       const facts = await ask(`/master/${masterId}/family`, familySchema)

@@ -106,3 +106,61 @@ describe('the format string', () => {
     assert.equal(formatOf(null, null), '')
   })
 })
+
+describe('a label’s run and a person’s credits (M21.5)', () => {
+  test('a run is the label’s releases with their numbers, the series first', async () => {
+    const response = await get('/v1/catalogue/label/5/run')
+    assert.equal(response.status, 200)
+    const run = (await response.json()) as {
+      id: number
+      name: string
+      build: string
+      total: number
+      prefix: string | null
+      releases: [number, number | null, number | null, string | null][]
+    }
+    assert.equal(run.name, 'Svek')
+    assert.equal(run.build, '2026-09-01')
+    assert.equal(run.prefix, 'SK')
+    assert.equal(run.releases.length, run.total)
+    // Series rows first, by number; the first one is SK 032, Stockholm.
+    const [first] = run.releases
+    assert.equal(first![3], 'SK')
+    assert.ok(run.releases.filter((r) => r[3] === 'SK').length === 18)
+    assert.ok(run.releases.every((r) => r[0] > 0))
+  })
+
+  test('credits are every release a person is on, with the engine’s role index', async () => {
+    const response = await get('/v1/catalogue/artist/239/credits')
+    assert.equal(response.status, 200)
+    const credits = (await response.json()) as {
+      id: number
+      name: string
+      total: number
+      releases: [number, number, number | null][]
+    }
+    assert.equal(credits.name, 'Jesper Dahlbäck')
+    assert.equal(credits.releases.length, credits.total)
+    // Release 1 credits him "Written-By [All Tracks By]" — no table role, so main.
+    assert.deepEqual(
+      credits.releases.find((r) => r[0] === 1),
+      [1, 0, 1999],
+    )
+    assert.ok(
+      credits.releases.some((r) => r[1] === 1),
+      'a producer credit somewhere',
+    )
+    assert.ok(credits.releases.every((r) => r[1] >= 0))
+    // One row per release, ascending.
+    const ids = credits.releases.map((r) => r[0])
+    assert.deepEqual(
+      ids,
+      [...new Set(ids)].sort((a, b) => a - b),
+    )
+  })
+
+  test('are 404s for a label or a person the build does not know', async () => {
+    assert.equal((await get('/v1/catalogue/label/999999999/run')).status, 404)
+    assert.equal((await get('/v1/catalogue/artist/999999999/credits')).status, 404)
+  })
+})

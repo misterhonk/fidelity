@@ -173,7 +173,20 @@ A family is every release with that `master_id`, oldest first, capped at 200, wi
 first label and the first format written the way the API writes them; `fetchedAt` is the
 build date, so the client's month-freshness rule reads it as this month's. A person is
 every `artist_name` row but `self`, variations and aliases both as `alias`, capped at 100
-— `kinOf`'s shape. The other routes come with their consumers.
+— `kinOf`'s shape.
+
+**M21.5 (2026-09-12):** `label/{id}/run` and `artist/{id}/credits`, as rows rather than
+packed chunks: `[releaseId, year, catnoNum, catnoPrefix]` for a label, the series rows first
+and capped at 20,000; `[releaseId, role, year]` for a person, one row per release with the
+strongest table role, a credit the table has no name for counted as main exactly as the API
+path does. The client packs both with the app's own `packChunk` — one packer, so the dump's
+run and the API's run are the same bytes for the same rows — and `horizon/build.ts` asks
+the catalogue per candidate before the hub and the API: a label of any size, a person's
+whole credit list, a master's versions, for zero requests. The second golden test
+(`tests/unit/golden-catalogue.spec.ts`) runs the golden dig with every chunk arriving
+through the catalogue and pins the ranking identical to the API-built one, score for score.
+The per-dig lookups for labels and people the horizon does not know wait for `resolve`,
+because a listing carries names and not ids. The other routes come with their consumers.
 
 Every answer carries `ETag: "2026-09-01"` and `Cache-Control: public, max-age=2592000`.
 The proxy (Traefik, later a CDN) may cache everything; the service has nothing to
@@ -279,7 +292,7 @@ Each phase ends green and shippable on its own; none of them changes a score.
 | **M21.2 The mini-dump** · done 2026-09-12 | `catalogue/`: the streaming reader, the shaping, the build; `fixtures/mini-dump` — 400 releases, 336 masters, 180 labels, 731 artists cut from the dump of 2026-09-01, 660 kB | The ETL runs on it in CI in 0.3 s (19 tests); golden files for every catalogue number, identifier, credit string and name in it; the twin test in the root suite |
 | **M21.3 The build** · image and job 2026-09-12, full run pending | `fetch.ts`, `run.ts`, the `fidelity-catalogue` image and the compose service: the five steps of §4, the two-generation swap, `status.json` as the health date | A full run on home-deb, timed and sized; the numbers replace the estimates in §4 and §8 |
 | **M21.4 Two routes** · done 2026-09-12 | `family` and `artist` in the service; `familyFacts` and the horizon's artist expansion ask the catalogue first; the service in the image beside the job, at `/catalogue` on the home lab | 34 catalogue tests; the app's twin tests; a pressing family and a person's names with zero requests once the URL is set |
-| **M21.5 The signals** | `credits`, `run`, per-dig lookups with the bound, the second golden test | A dig at a Blue Note specialist fires S6; a producer you own nothing by fires S8 |
+| **M21.5 The signals** · done 2026-09-12 | `credits` and `run` as rows, packed by the app's `packChunk`; the horizon build asks the catalogue per candidate first — labels of any size, a person's whole credit list, a master's versions; the second golden test | 37 catalogue tests; the golden dig through the catalogue ranks identically; per-dig lookups for names the horizon does not know wait for `resolve` |
 | **M21.6 The shop and the map** | `identify`, `stats`, the comparison line in the year on the shelf | Barcode and run-out without a search request; "3× the catalogue's" on the map |
 | later | `resolve` for every listing artist, co-occurrence, shards behind a CDN | when there are users to serve |
 

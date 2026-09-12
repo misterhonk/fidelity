@@ -59,10 +59,14 @@ export interface CatalogueSource {
   /** The build date of what answers, e.g. "2026-09-01" — or null when nothing does. */
   build(): Promise<string | null>
   artist(id: number): Promise<CatalogueArtist | null>
-  /** Every release credited to this person in this role, as a horizon chunk. */
-  credits(id: number, role: string): Promise<HorizonChunk | null>
-  /** The label's catalogue series under this prefix, as a horizon chunk. */
-  run(labelId: number, prefix: string): Promise<HorizonChunk | null>
+  /**
+   * Every release credited to this person, with roles and the other names —
+   * the artist chunk the horizon would build from the API, packed by the
+   * app's own `packChunk`, `catalogueSize` set, zero requests.
+   */
+  credits(id: number): Promise<HorizonChunk | null>
+  /** The label's releases with their catalogue numbers, any size — the label chunk. */
+  run(labelId: number): Promise<HorizonChunk | null>
   family(masterId: number): Promise<PressingFamilyFacts | null>
   /** Release ids carrying this barcode or run-out; `exact` when the whole string matched. */
   identify(query: { barcode?: string; runout?: string }): Promise<number[] | null>

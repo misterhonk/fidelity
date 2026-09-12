@@ -32,7 +32,8 @@ describe('the app runs completely without a catalogue', () => {
 
     await expect(catalogue.build()).resolves.toBeNull()
     await expect(catalogue.family(5542)).resolves.toBeNull()
-    await expect(catalogue.credits(1, 'Producer')).resolves.toBeNull()
+    await expect(catalogue.credits(1)).resolves.toBeNull()
+    await expect(catalogue.run(5)).resolves.toBeNull()
     await expect(catalogue.identify({ barcode: '7 24384 56142 3' })).resolves.toBeNull()
     await expect(catalogue.resolve('Portishead')).resolves.toBeNull()
   })

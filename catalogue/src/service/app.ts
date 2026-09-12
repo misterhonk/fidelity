@@ -20,6 +20,14 @@ export interface CatalogueAppOptions {
 
 export const MAX_SIBLINGS = 200
 export const MAX_NAMES = 100
+/**
+ * A label's or a person's whole list, capped. Columbia has 200,000 releases
+ * and a horizon chunk that size is 800 kB packed; as JSON rows over a home
+ * connection it is not. Twenty thousand covers every label the engine's
+ * signals can say something about — the series rows come first, so a cut
+ * label still carries its run.
+ */
+export const MAX_ROWS = 20_000
 
 interface ReleaseRow {
   id: number
@@ -119,6 +127,105 @@ export function createCatalogueApp({ db }: CatalogueAppOptions) {
         catno: row.catno ?? '',
         format: formatOf(row.format, row.descriptions),
       })),
+    })
+  })
+
+  /**
+   * A label's releases with their catalogue numbers, the series first —
+   * what the horizon's label expansion gets from the API, without the
+   * 1,500-release cut (S6, any size). Rows, not a packed chunk: the client
+   * packs with the app's own `packChunk`, so the two paths cannot disagree.
+   */
+  app.get('/v1/catalogue/label/:id/run', (c) => {
+    const labelId = Number(c.req.param('id'))
+    if (!Number.isSafeInteger(labelId) || labelId <= 0)
+      return c.json({ error: 'not a label id' }, 400)
+
+    const label = db().prepare('SELECT id, name FROM label WHERE id = ?').get(labelId) as
+      { id: number; name: string } | undefined
+    if (!label) return c.json({ error: 'unknown label' }, 404)
+
+    const prefix =
+      (
+        db()
+          .prepare(
+            'SELECT prefix FROM label_prefix WHERE label_id = ? ORDER BY count DESC, prefix LIMIT 1',
+          )
+          .get(labelId) as { prefix: string } | undefined
+      )?.prefix ?? null
+    const total = (
+      db()
+        .prepare('SELECT COUNT(DISTINCT release_id) AS n FROM release_label WHERE label_id = ?')
+        .get(labelId) as {
+        n: number
+      }
+    ).n
+    const rows = db()
+      .prepare(
+        `SELECT rl.release_id AS id, r.year, rl.catno_num AS num, rl.catno_prefix AS prefix
+         FROM release_label rl JOIN release r ON r.id = rl.release_id
+         WHERE rl.label_id = ?
+         ORDER BY (rl.catno_prefix IS ?) DESC, rl.catno_num, rl.release_id
+         LIMIT ?`,
+      )
+      .all(labelId, prefix, MAX_ROWS) as unknown as {
+      id: number
+      year: number | null
+      num: number | null
+      prefix: string | null
+    }[]
+
+    return c.json({
+      id: label.id,
+      name: label.name,
+      build: meta('build'),
+      total,
+      prefix,
+      releases: rows.map((row) => [row.id, row.year, row.num, row.prefix]),
+    })
+  })
+
+  /**
+   * Every release a person is credited on, with the role index the engine
+   * uses — what `/artists/{id}/releases` gives the horizon, for anybody
+   * (S8, the second degree). A credit the table has no name for counts as
+   * main, exactly as the API path does, so a score cannot move between them.
+   */
+  app.get('/v1/catalogue/artist/:id/credits', (c) => {
+    const artistId = Number(c.req.param('id'))
+    if (!Number.isSafeInteger(artistId) || artistId <= 0)
+      return c.json({ error: 'not an artist id' }, 400)
+
+    const artist = db().prepare('SELECT id, name FROM artist WHERE id = ?').get(artistId) as
+      { id: number; name: string } | undefined
+    if (!artist) return c.json({ error: 'unknown artist' }, 404)
+
+    const total = (
+      db()
+        .prepare(
+          'SELECT COUNT(DISTINCT release_id) AS n FROM release_artist WHERE artist_id = ?',
+        )
+        .get(artistId) as {
+        n: number
+      }
+    ).n
+    const rows = db()
+      .prepare(
+        `SELECT ra.release_id AS id, MIN(CASE WHEN ra.role < 0 THEN 0 ELSE ra.role END) AS role, r.year
+         FROM release_artist ra JOIN release r ON r.id = ra.release_id
+         WHERE ra.artist_id = ?
+         GROUP BY ra.release_id
+         ORDER BY ra.release_id
+         LIMIT ?`,
+      )
+      .all(artistId, MAX_ROWS) as unknown as { id: number; role: number; year: number | null }[]
+
+    return c.json({
+      id: artist.id,
+      name: artist.name,
+      build: meta('build'),
+      total,
+      releases: rows.map((row) => [row.id, row.role, row.year]),
     })
   })
 
