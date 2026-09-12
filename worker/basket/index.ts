@@ -66,6 +66,21 @@ export async function removeFromBasket(listingId: number): Promise<void> {
   await db.delete('basket', listingId)
 }
 
+/**
+ * The hand-over to Discogs, line by line (M20 #9).
+ *
+ * Discogs' cart is not in the API — `/marketplace/cart` answers 404 where a
+ * real endpoint answers 401 (docs/02) — and the website's form is not ours
+ * to post to. What is ours is the memory: which of the ten links were
+ * opened, so that the next one moves up and a closed tab loses nothing.
+ */
+export async function markHandedOver(listingId: number, at: number | null): Promise<void> {
+  const db = await openFidelityDb()
+  const item = await db.get('basket', listingId)
+  if (!item) return
+  await db.put('basket', { ...item, atDiscogsAt: at })
+}
+
 export async function clearBasket(): Promise<void> {
   const db = await openFidelityDb()
   await db.clear('basket')

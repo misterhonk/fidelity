@@ -100,6 +100,39 @@ async function checkStock() {
   }
 }
 
+// --- The hand-over to Discogs (M20 #9) ---------------------------------------
+//
+// One link at a time, the next one moving up, and the memory of which are
+// done in the basket item itself — so a closed tab or a reload loses nothing.
+// The cart at Discogs cannot be filled from here (docs/02); this is the way
+// there made short.
+const handing = computed({
+  get: () => handingByDealer.has(props.summary.dealer),
+  set: (on: boolean) => {
+    if (on) handingByDealer.add(props.summary.dealer)
+    else handingByDealer.delete(props.summary.dealer)
+  },
+})
+const openLines = computed(() => props.summary.lines.filter((line) => !line.sold))
+const handedLines = computed(() => openLines.value.filter((line) => line.atDiscogsAt))
+const nextToHand = computed(() => openLines.value.find((line) => !line.atDiscogsAt) ?? null)
+const handingShown = computed(() => handing.value || handedLines.value.length > 0)
+
+/** Marks the line on the click that opens it; the link itself opens the tab. */
+async function markHanded(listingId: number) {
+  handing.value = true
+  await call('basket.handedOver', { listingId, at: Date.now() })
+  await refresh()
+}
+
+async function resetHanding() {
+  for (const line of handedLines.value) {
+    await call('basket.handedOver', { listingId: line.listingId, at: null })
+  }
+  handing.value = false
+  await refresh()
+}
+
 // --- Entering a shipping table by hand -------------------------------------
 
 const editing = ref(false)
@@ -302,6 +335,10 @@ const peak = computed(() =>
           -->
             <span v-if="line.sold" class="shrink-0 text-fid-xs text-fid-sig-gap">
               {{ b.line.sold }}
+            </span>
+            <!-- Already opened on the way to the cart: the hand-over's memory, shown. -->
+            <span v-else-if="line.atDiscogsAt" class="shrink-0 text-fid-xs text-fid-text-muted">
+              ✓ {{ b.atDiscogs }}
             </span>
             <!--
             Six hours on the price may not be shown any more — the same rule
@@ -659,6 +696,51 @@ const peak = computed(() =>
       <p class="max-w-prose text-fid-sm text-fid-text-muted">
         {{ b.toBuy(summary.lines.length) }}
       </p>
+
+      <!--
+        The hand-over (M20 #9): the way to the cart made short. Not the cart
+        itself — docs/02 measured that there is no endpoint, and the website's
+        form is not ours — but one link at a time with the next one moving
+        up, and a memory of which are done that survives a closed tab.
+      -->
+      <button
+        v-if="!handingShown && openLines.length > 0"
+        type="button"
+        class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+        @click="handing = true"
+      >
+        {{ b.handOver }}
+      </button>
+
+      <section
+        v-if="handingShown"
+        class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
+        aria-live="polite"
+      >
+        <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ b.handOverLead }}</p>
+        <p class="fid-num text-fid-sm text-fid-text">
+          {{ b.handOverProgress(count(handedLines.length), count(openLines.length)) }}
+        </p>
+        <OutwardLink
+          v-if="nextToHand"
+          class="self-start rounded-fid-sm border border-fid-accent px-4 py-2 text-fid-sm font-medium no-underline"
+          :to="`https://www.discogs.com/sell/item/${nextToHand.listingId}`"
+          @click="markHanded(nextToHand.listingId)"
+          >{{ b.handOverNext(nextToHand.title || b.unknownRecord) }}</OutwardLink
+        >
+        <template v-else>
+          <p class="text-fid-sm text-fid-text">{{ b.handOverDone(handedLines.length) }}</p>
+          <OutwardLink to="https://www.discogs.com/sell/cart">{{ b.toCart }}</OutwardLink>
+        </template>
+        <button
+          v-if="handedLines.length > 0"
+          type="button"
+          class="fid-action self-start text-fid-xs text-fid-text-muted underline underline-offset-4"
+          @click="resetHanding()"
+        >
+          {{ b.handOverReset }}
+        </button>
+      </section>
       <a
         class="fid-action self-start gap-2 text-fid-sm text-fid-text underline underline-offset-4"
         :href="`https://www.discogs.com/seller/${summary.dealer}/profile`"

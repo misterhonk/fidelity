@@ -664,6 +664,12 @@ export const handlers: HandlerMap = {
     return basketView()
   },
 
+  'basket.handedOver': async ({ listingId, at }) => {
+    const { markHandedOver } = await import('./basket')
+    await markHandedOver(listingId, at)
+    return basketView()
+  },
+
   'basket.clear': async () => {
     const { clearBasket } = await import('./basket')
     await clearBasket()

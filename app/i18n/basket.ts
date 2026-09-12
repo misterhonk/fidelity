@@ -142,6 +142,24 @@ const en = {
    */
   stillThere: 'Still there?',
   clearThis: 'Empty this basket',
+
+  /*
+   * The hand-over (M20 #9). The cart itself cannot be filled from here —
+   * no endpoint, and the website's form is off limits — so this is the way
+   * there made short: one link at a time, the next one moving up, and a
+   * memory of which are done that survives a closed tab.
+   */
+  handOver: 'Put these in at Discogs',
+  handOverLead:
+    'Discogs has no cart in its API, so it is one listing at a time: each link opens the page with the "Add to Cart" button, and the next one moves up here. Worth a "Still there?" first if the basket is a day old.',
+  /** Given formatted numbers, as every count on a screen is. */
+  handOverProgress: (done: string, total: string) => `${done} of ${total} at Discogs`,
+  handOverNext: (record: string) => `Open next at Discogs: ${record}`,
+  handOverDone: (records: number) =>
+    `All ${counted(records, 'record is', 'records are')} over there. The cart at Discogs has them now.`,
+  toCart: 'To the cart at Discogs',
+  handOverReset: 'Start the hand-over again',
+  atDiscogs: 'at Discogs',
   tiersTo: 'to how many records',
   tiersOpen: 'open',
   tiersPrice: 'Price',
@@ -329,6 +347,17 @@ const de: typeof en = {
 
   stillThere: 'Noch da?',
   clearThis: 'Diesen Korb leeren',
+
+  handOver: 'Bei Discogs einlegen',
+  handOverLead:
+    'Discogs hat keinen Warenkorb in seiner API, also geht es Angebot für Angebot: Jeder Link öffnet die Seite mit dem „Add to Cart"-Knopf, und hier rückt das nächste nach. Vorher lohnt ein „Noch da?", wenn der Korb einen Tag alt ist.',
+  handOverProgress: (done, total) => `${done} von ${total} bei Discogs`,
+  handOverNext: (record) => `Nächstes bei Discogs öffnen: ${record}`,
+  handOverDone: (records) =>
+    `${counted(records, 'Platte ist', 'Platten sind')} drüben. Der Warenkorb bei Discogs hat sie jetzt.`,
+  toCart: 'Zum Warenkorb bei Discogs',
+  handOverReset: 'Übergabe von vorn beginnen',
+  atDiscogs: 'bei Discogs',
   tiersTo: 'bis wie vielen Platten',
   tiersOpen: 'offen',
   tiersPrice: 'Preis',

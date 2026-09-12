@@ -1621,6 +1621,8 @@ export interface BasketLine {
   soldAt?: number | null
   /** Shown, but not counted: a sold record is not part of the order. */
   sold: boolean
+  /** When this line was opened at Discogs on the way to its cart (M20 #9). */
+  atDiscogsAt?: number | null
 }
 
 export interface BasketSummary {
@@ -1685,6 +1687,12 @@ export interface BasketItem {
    * theirs to make.
    */
   soldAt?: number | null
+  /**
+   * When the listing was opened at Discogs on the way to its cart (M20 #9).
+   * The cart itself is not in the API; this is the memory of which of the
+   * ten links have been tapped, so the hand-over can be picked up again.
+   */
+  atDiscogsAt?: number | null
 }
 
 // ---------------------------------------------------------------------------

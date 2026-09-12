@@ -852,6 +852,12 @@ export interface WorkerContract {
     result: BasketView
   }
   'basket.remove': { params: { listingId: number }; progress: never; result: BasketView }
+  /** The line was opened at Discogs (or, with null, the hand-over starts again). */
+  'basket.handedOver': {
+    params: { listingId: number; at: number | null }
+    progress: never
+    result: BasketView
+  }
   'basket.clear': { params: undefined; progress: never; result: BasketView }
   /**
    * Take listings over from the Discogs cart, by link.

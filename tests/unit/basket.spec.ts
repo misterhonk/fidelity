@@ -535,3 +535,29 @@ describe('what else to put in', () => {
     expect(suggestions.map((item) => item.listingId)).toEqual([2, 1])
   })
 })
+
+/**
+ * The hand-over to Discogs (M20 #9): which links were opened is remembered
+ * on the item itself, survives a fresh summary, and can be taken back.
+ */
+describe('the hand-over to Discogs', () => {
+  it('remembers which line was opened, and forgets on request', async () => {
+    const { markHandedOver } = await import('~~/worker/basket')
+    await addToBasket(match({ listingId: 1, title: 'One' }), 'shop', 1000)
+    await addToBasket(match({ listingId: 2, title: 'Two' }), 'shop', 1000)
+
+    await markHandedOver(1, 5000)
+    let [summary] = await basketSummaries(6000, 'DE')
+    expect(summary!.lines.map((l) => [l.listingId, l.atDiscogsAt ?? null])).toEqual([
+      [1, 5000],
+      [2, null],
+    ])
+
+    await markHandedOver(1, null)
+    ;[summary] = await basketSummaries(6000, 'DE')
+    expect(summary!.lines.every((l) => !l.atDiscogsAt)).toBe(true)
+
+    // A line that is not there is not an error.
+    await markHandedOver(99, 5000)
+  })
+})
