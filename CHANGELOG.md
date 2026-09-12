@@ -11,6 +11,23 @@ Für eine App bedeutet SemVer:
 
 ## [0.53.0](https://github.com/misterhonk/fidelity/compare/v0.52.0...v0.53.0) (2026-09-12)
 
+**The hub's second door — and three things a phone showed.**
+
+A hosted hub needs to tell its members apart without knowing who anybody is on Discogs.
+From this release it takes access keys: signed statements with a tier and an end date,
+verified with a public key and nothing else, one per payer, expiring on their own and
+revocable by a short list. A key opens the member routes and owns its own rows — the vault
+and the push registration answer only for it. A self-hoster's hub keeps its shared secret
+and never sees a key; both doors may be open at once. In the app, Settings › Access takes
+the key and reads its tier and end date, Settings › Support shows the plans and tips —
+nothing is charged while Fidelity is in beta, and every key handed out now is a free beta
+key. A script issues them by hand.
+
+On the phone: the stack's six buttons no longer push the page sideways — two rows below
+640 px; the bottom bar is taller; and the "Start the dig" box goes when a dig is through,
+so a finished list no longer reads as "it did not run". "One at a time" and "Share this
+list" carry an icon and the weight of what they are.
+
 
 ### Added
 
