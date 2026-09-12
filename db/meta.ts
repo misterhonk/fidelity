@@ -65,6 +65,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   // Empty, and empty is the supported configuration. No feature may require it.
   hubUrl: null,
   catalogueUrl: null,
+  accessKey: null,
   hubSecret: null,
 }
 

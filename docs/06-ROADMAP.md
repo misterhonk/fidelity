@@ -1073,6 +1073,18 @@ M21.1 is in 0.45.0 with no catalogue behind it — the port exists, every consum
 
 ---
 
+## M22 · The hub's second door → in progress
+
+**Plan:** [`17-ROADMAP-1.0.md`](17-ROADMAP-1.0.md) §3.2, §6.2, §8.2 · **Decision:** ADR-014
+
+| Phase | Delivers | State |
+|---|---|---|
+| M22.1 The door | `hub/src/access.ts`: keys as `fk1.<payload>.<sig>`, Ed25519, verified with `HUB_ACCESS_PUBLIC_KEY` and no database of people; the revocation list from `HUB_ACCESS_URL/v1/revoked` or `HUB_ACCESS_REVOKED`, refreshed hourly, kept through an outage; a token bucket per key; `doors` in health. Secret only, key only, both, neither — each opens what it should | **Done 2026-09-12.** 79 hub tests |
+| M22.2 Personal rows | `owner` on `vault` and `watchers`, added in place; a key reads, overwrites and deletes only its own rows; a secret-only hub keeps every row as its own | **Done 2026-09-12** |
+| M22.3 The app | `accessKey` in the preferences (rule 6 applies), `x-fidelity-key` on every hub and catalogue call, Settings › Access with the key read for tier and end date, Settings › Support with the plans and tips of §6.3 and the beta note, the key's verdict on the hub check | **Done 2026-09-12** |
+| M22.4 The issuer | `hub/scripts/access-keys.ts generate | issue` for beta keys by hand; the access service with the provider's webhooks and the two pages in the private repository (ADR-014) | Script done; the service waits for the provider decision (M25) |
+| M22.5 Renewal | The keeper asks `/v1/renew` once a day when the key is older than 30 days | Waits for M22.4 |
+
 ## Not on the roadmap
 
 | Idea | Why not |

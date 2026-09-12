@@ -55,3 +55,42 @@ describe('testing the hub connection', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })
+
+/**
+ * The second door (M22): a hub that names `key` among its doors has the key
+ * tried there too, and the verdict stands beside the secret's.
+ */
+describe('the access key at the door', () => {
+  function keyedHub(accepts: string) {
+    return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.endsWith('/v1/health')) {
+        return new Response(
+          JSON.stringify({ ok: true, horizon: 1, shipping: 0, secured: true, doors: ['key'] }),
+          { status: 200 },
+        )
+      }
+      const key = new Headers(init?.headers).get('x-fidelity-key')
+      if (key !== accepts) return new Response('{}', { status: 401 })
+      return new Response(JSON.stringify({ covers: {} }), { status: 200 })
+    })
+  }
+  const checkWith = (accessKey?: string) =>
+    handlers['hub.check']({ url: 'https://hub.test', accessKey }, {} as never)
+
+  it('says the key opens it', async () => {
+    vi.stubGlobal('fetch', keyedHub('fk1.good'))
+    expect(await checkWith('fk1.good')).toMatchObject({ doors: ['key'], key: 'ok' })
+  })
+
+  it('says the hub refuses the key, and that one is missing', async () => {
+    vi.stubGlobal('fetch', keyedHub('fk1.good'))
+    expect(await checkWith('fk1.bad')).toMatchObject({ key: 'wrong' })
+    expect(await checkWith()).toMatchObject({ key: 'missing' })
+  })
+
+  it('checks no key on a hub without that door — an older hub reads as before', async () => {
+    vi.stubGlobal('fetch', hub(true, 'wort'))
+    expect(await checkWith('fk1.good')).toMatchObject({ doors: [], key: 'unchecked' })
+  })
+})

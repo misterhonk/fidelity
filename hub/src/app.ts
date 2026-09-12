@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 
+import { type createKeyLimiter, verifyKey } from './access.ts'
 import { vapidKeys } from './watch.ts'
 import type { DatabaseSync } from 'node:sqlite'
 import { z } from 'zod'
@@ -69,15 +70,29 @@ export const MAX_CHUNK_BYTES = 4 * 1024 * 1024
  */
 export const MAX_VAULT_BYTES = 32 * 1024 * 1024
 
+export interface HubAccess {
+  /** The issuer's public key, 32 raw bytes base64url (`HUB_ACCESS_PUBLIC_KEY`). */
+  publicKey: string
+  /** The revocation list, refreshed by whoever made it; absent means nothing is revoked. */
+  revoked?: () => Promise<ReadonlySet<string>>
+  /** The per-key limiter; absent means none, for tests. */
+  limiter?: ReturnType<typeof createKeyLimiter>
+}
+
 export interface HubOptions {
   db: DatabaseSync
   /** Shared secret. Absent means open — the server says so at startup. */
   secret?: string | null
+  /** The second door (docs/17 §3.2): access keys verified by public key. */
+  access?: HubAccess | null
   now?: () => number
 }
 
-export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
-  const app = new Hono()
+/** What the middleware learns about a request and the routes read back. */
+type Doors = { owner: string; door: 'secret' | 'key' | 'open' }
+
+export function createHubApp({ db, secret, access = null, now = Date.now }: HubOptions) {
+  const app = new Hono<{ Variables: Doors }>()
 
   /*
    * The client is a browser on a different origin, so CORS is not optional.
@@ -96,7 +111,7 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     cors({
       origin: '*',
       allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowHeaders: ['content-type', 'x-hub-secret'],
+      allowHeaders: ['content-type', 'x-hub-secret', 'x-fidelity-key'],
       maxAge: 86_400,
     }),
   )
@@ -125,21 +140,55 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
    */
   const OPEN_READS = /^\/v1\/share\/[^/]+$/
 
+  /*
+   * Two doors (docs/17 §3.2). The secret opens everything and owns nothing —
+   * the self-hoster's hub, where every row is theirs. A key opens the member
+   * routes and owns its own rows: vault and push registration answer only
+   * for the key's subject. No secret and no public key is an open hub, as
+   * today. Health stays open either way so a monitor needs neither.
+   */
   app.use('/v1/*', async (c, next) => {
-    // No secret configured means an open hub, which is a legitimate choice for
-    // something on a home network. Health stays open either way so a monitor
-    // does not need the secret.
-    if (!secret || c.req.path === '/v1/health') return next()
+    c.set('owner', '')
+    c.set('door', 'open')
+    if (c.req.path === '/v1/health') return next()
     if (c.req.method === 'GET' && OPEN_READS.test(c.req.path)) return next()
-    if (c.req.header('x-hub-secret') !== secret) {
-      return c.json({ error: 'wrong or missing x-hub-secret' }, 401)
+    if (!secret && !access) return next()
+
+    if (secret && c.req.header('x-hub-secret') === secret) {
+      c.set('door', 'secret')
+      return next()
     }
-    return next()
+
+    const token = c.req.header('x-fidelity-key')
+    if (access && token) {
+      const verdict = verifyKey(token, {
+        publicKey: access.publicKey,
+        now,
+        revoked: access.revoked ? await access.revoked() : undefined,
+      })
+      if (!verdict.ok) return c.json({ error: `access key ${verdict.reason}` }, 401)
+      const taken = access.limiter?.take(verdict.claims.kid) ?? { ok: true as const }
+      if (!taken.ok) {
+        c.header('retry-after', String(taken.retryAfterSeconds))
+        return c.json({ error: 'too many requests for this key' }, 429)
+      }
+      c.set('owner', verdict.claims.sub)
+      c.set('door', 'key')
+      return next()
+    }
+
+    return c.json(
+      { error: secret ? 'wrong or missing x-hub-secret' : 'missing or wrong x-fidelity-key' },
+      401,
+    )
   })
 
   app.get('/v1/health', (c) =>
     c.json({
       ok: true,
+      // Which doors this hub has: a client tells "enter the secret" from
+      // "enter a key" by this, and a self-hoster sees what they configured.
+      doors: [...(secret ? ['secret'] : []), ...(access ? ['key'] : [])],
       // Counts, not contents. Enough to see the cache is doing something.
       horizon: (db.prepare('SELECT COUNT(*) AS n FROM horizon').get() as { n: number }).n,
       shipping: (db.prepare('SELECT COUNT(*) AS n FROM shipping').get() as { n: number }).n,
@@ -232,6 +281,11 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
        ON CONFLICT(endpoint) DO UPDATE SET
          p256dh = excluded.p256dh, auth = excluded.auth, updated_at = excluded.updated_at`,
     ).run(subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth, at, at)
+    // The registration belongs to whoever registered it (docs/17 §3.2).
+    db.prepare('UPDATE watchers SET owner = ? WHERE endpoint = ?').run(
+      c.get('owner'),
+      subscription.endpoint,
+    )
 
     /*
      * The list is replaced, not added to. It is this device's complete wish —
@@ -257,6 +311,11 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     const parsed = unsubscribeSchema.safeParse(safeJson(await c.req.text()))
     if (!parsed.success) return c.json({ error: 'no endpoint' }, 400)
 
+    // Only one's own registration — a key cannot silence somebody else's phone.
+    const mine = db
+      .prepare('SELECT owner FROM watchers WHERE endpoint = ?')
+      .get(parsed.data.endpoint) as { owner: string } | undefined
+    if (mine && mine.owner !== c.get('owner')) return c.json({ error: 'not yours' }, 403)
     db.prepare('DELETE FROM watchers WHERE endpoint = ?').run(parsed.data.endpoint)
     db.prepare('DELETE FROM watches WHERE endpoint = ?').run(parsed.data.endpoint)
     return c.json({ removed: true })
@@ -441,8 +500,10 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     const id = c.req.param('id')
     if (!VAULT_ID.test(id)) return c.json({ error: 'not a vault id' }, 400)
 
-    const row = db.prepare('SELECT body, updated_at FROM vault WHERE id = ?').get(id) as
-      { body: string; updated_at: number } | undefined
+    // Personal (docs/17 §3.2): a key reads only the rows it wrote.
+    const row = db
+      .prepare('SELECT body, updated_at FROM vault WHERE id = ? AND owner = ?')
+      .get(id, c.get('owner')) as { body: string; updated_at: number } | undefined
 
     // Nothing there yet is the normal first answer, not an error worth a log.
     if (!row) return c.json({ error: 'empty' }, 404)
@@ -464,7 +525,7 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
     const id = c.req.param('id')
     if (!VAULT_ID.test(id)) return c.json({ error: 'not a vault id' }, 400)
 
-    db.prepare('DELETE FROM vault WHERE id = ?').run(id)
+    db.prepare('DELETE FROM vault WHERE id = ? AND owner = ?').run(id, c.get('owner'))
     // Even if nothing was there: "gone" is the state that was asked for.
     return c.json({ gone: true })
   })
@@ -478,14 +539,18 @@ export function createHubApp({ db, secret, now = Date.now }: HubOptions) {
 
     const parsed = sealedSchema.safeParse(safeJson(raw))
     if (!parsed.success) return c.json({ error: 'not a sealed vault' }, 400)
+    // An id somebody else already holds is not overwritten: it is theirs.
+    const holder = db.prepare('SELECT owner FROM vault WHERE id = ?').get(id) as
+      { owner: string } | undefined
+    if (holder && holder.owner !== c.get('owner')) return c.json({ error: 'not yours' }, 403)
 
     db.prepare(
-      `INSERT INTO vault (id, body, updated_at)
-       VALUES (?, ?, ?)
+      `INSERT INTO vault (id, body, updated_at, owner)
+       VALUES (?, ?, ?, ?)
        ON CONFLICT(id) DO UPDATE SET
          body = excluded.body,
          updated_at = excluded.updated_at`,
-    ).run(id, JSON.stringify(parsed.data), now())
+    ).run(id, JSON.stringify(parsed.data), now(), c.get('owner'))
 
     return c.json({ stored: true })
   })

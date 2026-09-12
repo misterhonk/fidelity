@@ -135,6 +135,12 @@ export interface Preferences {
    * and everything works without one. No secret — it is public CC0 data.
    */
   catalogueUrl: string | null
+  /**
+   * The access key for a hosted hub and catalogue (docs/17 §6.2) — a signed
+   * statement that identifies a payer, not a Discogs account. Rule 6 applies
+   * to it as to the token: IndexedDB only, never logged, never in a URL.
+   */
+  accessKey: string | null
   /** Shared secret for that hub, if it asks for one. Never a Discogs token. */
   hubSecret: string | null
 }

@@ -1055,7 +1055,7 @@ export const handlers: HandlerMap = {
     return checkCatalogue(url)
   },
 
-  'hub.check': async ({ url, secret }) => {
+  'hub.check': async ({ url, secret, accessKey }) => {
     const base = url.trim().replace(/\/+$/, '')
     if (!base) throw fail('no-hub', 'hub: no url given')
 
@@ -1095,8 +1095,10 @@ export const handlers: HandlerMap = {
       horizon?: number
       shipping?: number
       secured?: boolean
+      doors?: ('secret' | 'key')[]
     }
     if (body.ok !== true) throw fail('not-a-hub', 'not a fidelity hub')
+    const doors = Array.isArray(body.doors) ? body.doors : []
 
     /*
      * The secret, tried at a door that is actually locked.
@@ -1125,9 +1127,29 @@ export const handlers: HandlerMap = {
       }
     }
 
+    // And the key, at the same door, when the hub has that door (M22).
+    let keyState: 'ok' | 'wrong' | 'missing' | 'unchecked' = 'unchecked'
+    if (doors.includes('key')) {
+      if (!accessKey) {
+        keyState = 'missing'
+      } else {
+        try {
+          const door = await fetch(`${base}/v1/covers?ids=1`, {
+            headers: { 'x-fidelity-key': accessKey },
+            signal: AbortSignal.timeout(5000),
+          })
+          keyState = door.status === 401 ? 'wrong' : door.ok ? 'ok' : 'unchecked'
+        } catch {
+          keyState = 'unchecked'
+        }
+      }
+    }
+
     return {
       ok: true,
       secret: secretState,
+      key: keyState,
+      doors,
       horizon: body.horizon ?? 0,
       shipping: body.shipping ?? 0,
       secured: body.secured ?? false,

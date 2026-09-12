@@ -17,6 +17,8 @@ const SUBPAGES = [
   ['/settings/appearance', 'Appearance'],
   ['/settings/sync', 'Sync devices'],
   ['/settings/hub', 'Hub'],
+  ['/settings/access', 'Access'],
+  ['/settings/support', 'Support'],
   ['/settings/data', 'Your data'],
 ] as const
 

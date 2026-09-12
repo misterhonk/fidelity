@@ -90,6 +90,18 @@ const hub = computed(() => {
   }
 })
 
+/** The key's tier and end date, read off the string — or "no key". */
+const access = computed(() => {
+  const claims = preferences.value?.accessKey
+    ? decodeAccessKey(preferences.value.accessKey)
+    : null
+  if (!claims) return st.value.access.notSetUp
+  const tier = st.value.supportPanel.tierName(claims.tier)
+  return claims.validUntil <= Date.now()
+    ? `${tier} · ${st.value.access.expired}`
+    : `${tier} · ${st.value.access.until(day(claims.validUntil))}`
+})
+
 const appearance = computed(() => {
   // Language and theme. The typeface stood here once too — it was the third
   // thing you could set, and has not been since 2026-08-11.
@@ -118,6 +130,8 @@ const SECTIONS = computed(() => [
   },
   { to: '/settings/sync', ...st.value.sync, status: sync.value },
   { to: '/settings/hub', ...st.value.hub, status: hub.value },
+  { to: '/settings/access', ...st.value.access, status: access.value },
+  { to: '/settings/support', ...st.value.support, status: null },
   { to: '/settings/data', ...st.value.data, status: usage.value },
   /*
    * Right at the bottom, because it is looked for rather than stumbled over.

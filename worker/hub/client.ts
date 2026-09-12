@@ -83,6 +83,8 @@ export interface HubClientOptions {
   /** Empty or absent means no hub, which is the normal case. */
   baseUrl: string | null
   secret?: string | null
+  /** The access key (docs/17 §6.2), sent as `x-fidelity-key` when set. */
+  accessKey?: string | null
   fetchImpl?: typeof fetch
 }
 
@@ -229,6 +231,7 @@ const sealedSchema = z.object({
 export function createHubClient({
   baseUrl,
   secret,
+  accessKey,
   fetchImpl = globalThis.fetch.bind(globalThis),
 }: HubClientOptions): HubClient | null {
   const trimmed = baseUrl?.trim().replace(/\/+$/, '')
@@ -236,6 +239,9 @@ export function createHubClient({
 
   const headers: Record<string, string> = { 'content-type': 'application/json' }
   if (secret) headers['x-hub-secret'] = secret
+  // The second door (docs/17 §3.2). Both may travel: a self-hoster's hub
+  // ignores the key, a hosted one the secret.
+  if (accessKey) headers['x-fidelity-key'] = accessKey
 
   const url = (path: string) => `${trimmed}${path}`
 

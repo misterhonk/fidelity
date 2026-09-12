@@ -260,6 +260,12 @@ async function finish(dig: Dig) {
   // would be the worse trade.
   progress.value = null
   result.value = await call('dig.latest', undefined)
+  /*
+   * The offer to start is taken down once the dig is done (2026-09-12): the
+   * box with "Start the dig" above a finished list read as "it did not run".
+   * Check is one tap away for the next one, and it names the shop again.
+   */
+  preflight.value = null
 
   try {
     await call('dig.enrich', { digId: dig.id }, { onProgress: (p) => (enriching.value = p) })
@@ -833,8 +839,9 @@ const noHorizon = computed(
       -->
       <NuxtLink
         :to="{ path: '/stack' }"
-        class="fid-action self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+        class="fid-action inline-flex items-center gap-2 self-start rounded-fid-sm border border-fid-accent px-5 py-3 text-fid-base font-medium text-fid-accent"
       >
+        <FidIcon name="layers" :size="18" aria-hidden="true" />
         {{ d.stack.title }}
       </NuxtLink>
 
@@ -850,9 +857,10 @@ const noHorizon = computed(
           v-if="hubUrl"
           type="button"
           :disabled="sharing || !online"
-          class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+          class="inline-flex items-center gap-2 self-start rounded-fid-sm border border-fid-border px-5 py-3 text-fid-base text-fid-text disabled:opacity-50"
           @click="share"
         >
+          <FidIcon name="share-2" :size="18" aria-hidden="true" />
           {{ sharing ? d.shareBusy : d.share }}
         </button>
         <p v-else class="text-fid-sm text-fid-text-muted">{{ d.shareNeedsHub }}</p>

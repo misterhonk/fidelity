@@ -7,6 +7,8 @@ const { call } = useFidelityWorker()
 
 const url = ref('')
 const secret = ref('')
+/** The access key from the preferences (Settings › Access); tried at the door too. */
+const accessKey = ref<string | null>(null)
 const busy = ref(false)
 const error = ref<unknown>(null)
 /** Whether the secret is shown in clear — off on every open, never remembered. */
@@ -18,6 +20,8 @@ const status = ref<{
   shipping: number
   secured: boolean
   secret: 'ok' | 'wrong' | 'missing' | 'unchecked'
+  key: 'ok' | 'wrong' | 'missing' | 'unchecked'
+  doors: ('secret' | 'key')[]
 } | null>(null)
 
 const hint = ref<string | null>(null)
@@ -26,6 +30,7 @@ onMounted(async () => {
   const preferences = await call('preferences.get', undefined)
   url.value = preferences.hubUrl ?? ''
   secret.value = preferences.hubSecret ?? ''
+  accessKey.value = preferences.accessKey
   if (url.value) void test()
   else void discover()
 })
@@ -94,7 +99,11 @@ async function test() {
   status.value = null
 
   try {
-    status.value = await call('hub.check', { url: url.value, secret: secret.value })
+    status.value = await call('hub.check', {
+      url: url.value,
+      secret: secret.value,
+      accessKey: accessKey.value ?? undefined,
+    })
   } catch (cause) {
     error.value = cause
   } finally {
@@ -227,6 +236,14 @@ async function save() {
       >
       <span v-else-if="status.secret === 'missing'" class="text-fid-sig-gap">
         · {{ st.hubPanel.secretMissing }}</span
+      >
+      <!-- The second door, when the hub has one (M22). -->
+      <template v-if="status.key === 'ok'"> · {{ st.hubPanel.keyOk }}</template>
+      <span v-else-if="status.key === 'wrong'" class="text-fid-sig-scarcity">
+        · {{ st.hubPanel.keyWrong }}</span
+      >
+      <span v-else-if="status.key === 'missing'" class="text-fid-sig-gap">
+        · {{ st.hubPanel.keyMissing }}</span
       >
     </p>
   </section>

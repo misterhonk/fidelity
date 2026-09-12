@@ -81,3 +81,23 @@ Was er dabei nicht tut:
 
 Die VAPID-Schlüssel werden beim ersten Start erzeugt und liegen in der Datenbank. Sie
 müssen bleiben: der öffentliche Teil steckt in jeder Push-Anmeldung, die je vergeben wurde.
+
+
+## The second door: access keys (M22)
+
+A hub with `HUB_SECRET` has one door, and every row is the self-hoster's. A hosted hub
+takes keys instead: signed statements (`fk1.<payload>.<sig>`, Ed25519) with a subject, a
+tier and an end date, verified with a public key and nothing else.
+
+```
+HUB_ACCESS_PUBLIC_KEY   32 raw bytes, base64url — what `scripts/access-keys.ts generate` prints
+HUB_ACCESS_URL          the access service; `/v1/revoked` is read once an hour (optional)
+HUB_ACCESS_REVOKED      revoked key ids by hand, comma-separated (optional)
+```
+
+Both doors may be open at once. Issue a key by hand — the beta's way — with the private
+half, which never goes on the hub:
+
+```
+HUB_ACCESS_PRIVATE_KEY=./issuer.pem node scripts/access-keys.ts issue <subject> beta 90
+```

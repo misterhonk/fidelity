@@ -58,7 +58,11 @@ export interface ShareCreated {
  */
 export async function createShare(loaded: DigWithMatches): Promise<ShareCreated> {
   const preferences = await getPreferences()
-  const hub = createHubClient({ baseUrl: preferences.hubUrl, secret: preferences.hubSecret })
+  const hub = createHubClient({
+    baseUrl: preferences.hubUrl,
+    secret: preferences.hubSecret,
+    accessKey: preferences.accessKey,
+  })
   if (!hub) throw fail('no-hub', 'no hub configured')
 
   const dig = loaded.dig

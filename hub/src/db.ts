@@ -181,5 +181,16 @@ export function openHubDb(path: string): DatabaseSync {
   // And: "who wants to hear about this shop?"
   db.exec('CREATE INDEX IF NOT EXISTS watches_dealer ON watches (dealer)')
 
+  /*
+   * The owner column (docs/17 §3.2): which access key's subject a personal
+   * row belongs to; '' on a secret-only hub, where every row is the
+   * self-hoster's. Added in place — a hub from before keys keeps its rows.
+   */
+  for (const table of ['vault', 'watchers']) {
+    const columns = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]
+    if (!columns.some((column) => column.name === 'owner')) {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN owner TEXT NOT NULL DEFAULT ''`)
+    }
+  }
   return db
 }

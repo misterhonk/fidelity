@@ -278,6 +278,13 @@ to have something to sell beyond the hub.
 
 ### 8.2 Hub (M22)
 
+**Progress, 2026-09-12:** 1, 2, 3 and 5 are in (`hub/src/access.ts`, the doors in
+`app.ts`, the `owner` column, per-key limits, `accessKey` in the preferences, the header
+on every hub and catalogue call, Settings › Access and Settings › Support, the key's
+verdict on the hub check). `scripts/access-keys.ts` generates a pair and issues keys by
+hand — the beta's issuer. What remains: 4, the access service with the provider glue, in
+the private repository (ADR-014), and 6, the renewal in the keeper, which needs 4.
+
 1. `hub/src/auth.ts`: a middleware that accepts either the secret or a key; key
    verification with `crypto.verify('ed25519')` from Node; the public key from
    `HUB_ACCESS_PUBLIC_KEY`; the revocation list from `HUB_ACCESS_URL/v1/revoked` cached an

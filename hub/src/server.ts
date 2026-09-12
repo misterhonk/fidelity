@@ -1,5 +1,6 @@
 import { serve } from '@hono/node-server'
 
+import { createKeyLimiter, createRevocationList } from './access.ts'
 import { createHubApp } from './app.ts'
 import { openHubDb } from './db.ts'
 import { STALE_AFTER_MS, watchRound } from './watch.ts'
@@ -28,8 +29,28 @@ const discogsKey = process.env.HUB_DISCOGS_KEY
 const discogsSecret = process.env.HUB_DISCOGS_SECRET
 const identity = discogsKey && discogsSecret ? { key: discogsKey, secret: discogsSecret } : null
 
+/*
+ * The second door (docs/17 §3.2): keys signed by the access service. The
+ * public key alone makes keys valid here; the URL keeps the revocation list
+ * fresh; `HUB_ACCESS_REVOKED` is the list by hand. None of it set: no door.
+ */
+const accessPublicKey = process.env.HUB_ACCESS_PUBLIC_KEY ?? null
+const access = accessPublicKey
+  ? {
+      publicKey: accessPublicKey,
+      revoked: createRevocationList({
+        url: process.env.HUB_ACCESS_URL ?? null,
+        fixed: (process.env.HUB_ACCESS_REVOKED ?? '')
+          .split(',')
+          .map((kid) => kid.trim())
+          .filter(Boolean),
+      }).current,
+      limiter: createKeyLimiter(),
+    }
+  : null
+
 const db = openHubDb(dbPath)
-const app = createHubApp({ db, secret })
+const app = createHubApp({ db, secret, access })
 
 serve({ fetch: app.fetch, port, hostname: '0.0.0.0' }, (info) => {
   // A server's startup line belongs on stdout, and this is a server rather
@@ -55,7 +76,11 @@ serve({ fetch: app.fetch, port, hostname: '0.0.0.0' }, (info) => {
         : 'Ohne Discogs-Kennung — 2.400 ms zwischen zwei Abfragen',
     )
   }
-  if (!secret) {
+  if (access) {
+    // eslint-disable-next-line no-console
+    console.log('Zweite Tür: Zugangsschlüssel, geprüft mit HUB_ACCESS_PUBLIC_KEY')
+  }
+  if (!secret && !access) {
     // Said out loud, every start. An open hub on a public IP is somebody
     // else's cache to fill, and silence would let that happen unnoticed.
     console.warn(

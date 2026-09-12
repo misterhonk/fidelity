@@ -397,6 +397,91 @@ const en = {
     secretOk: 'the secret opens it',
     secretWrong: 'the hub refuses this secret — nothing you contribute or fetch gets through',
     secretMissing: 'no secret entered — nothing you contribute or fetch gets through',
+    /** The second door (docs/17 §3.2): a hub that takes access keys. */
+    keyOk: 'your access key opens it',
+    keyWrong: 'the hub refuses your access key — expired, revoked, or not for this hub',
+    keyMissing: 'this hub takes access keys and none is entered',
+  },
+
+  /** Settings → Access (docs/17 §6.2). */
+  accessPanel: {
+    whyLabel: 'What an access key is',
+    why: 'A hosted hub and catalogue are run by somebody, and the key is how they tell their members apart without knowing who anybody is on Discogs: a signed statement with a tier and an end date, and nothing else. It goes to the hub and the catalogue with every request and nowhere else.',
+    optional:
+      'Your own hub needs none of this — a shared secret is its door. A key only matters for a hosted one.',
+    key: 'Access key',
+    notYourToken:
+      'Not your Discogs token, and not the hub’s secret: a key starts with “fk1.” and comes from whoever runs the hosted hub.',
+    showKey: 'Show the key',
+    hideKey: 'Hide the key',
+    notAKey: 'That does not read as an access key.',
+    /** Given the tier’s name and a formatted date. */
+    reads: (tier: string, until: string) => `${tier} · valid until ${until}`,
+    expired: 'expired — ask for a fresh one',
+    save: 'Save',
+    remove: 'Remove the key',
+    saved: 'Saved. The hub and the catalogue get it with every request from now on.',
+    removed: 'Removed. Your own hub works as before; a hosted one is closed to you now.',
+  },
+
+  /** Settings → Support (docs/17 §6.3): the LightMe pattern. */
+  supportPanel: {
+    plansTitle: 'A year of comfort',
+    plansLead:
+      'Every plan unlocks the same: the hosted hub, the watcher with push, the vault and share links on it, and the catalogue’s reach. You choose what the support is worth to you, not what you get.',
+    plans: [
+      {
+        tier: 'seven',
+        name: 'A 7"',
+        line: 'Keep the lights on in the shop.',
+        price: '€9.99 a year',
+      },
+      {
+        tier: 'lp',
+        name: 'An LP',
+        line: 'A proper record for the shelf.',
+        price: '€14.99 a year',
+      },
+      {
+        tier: 'double',
+        name: 'A double album',
+        line: 'Room for the gatefold.',
+        price: '€29.99 a year',
+      },
+      {
+        tier: 'first',
+        name: 'The first pressing',
+        line: 'Help me do this full-time.',
+        price: '€59.99 a year',
+      },
+      {
+        tier: 'test',
+        name: 'The test pressing',
+        line: 'Once, and for good.',
+        price: '€99 once',
+      },
+    ],
+    tipsTitle: 'Or a tip',
+    tipsLead: 'Unlocks nothing. It is a thank-you, and it says so.',
+    tips: [
+      { name: 'A cup of coffee at the counter', price: '€1.99' },
+      { name: 'A new inner sleeve', price: '€4.49' },
+      { name: 'A round of stylus cleaner', price: '€9.99' },
+    ],
+    beta: 'Nothing is charged while Fidelity is in beta: every key handed out now is a beta key, free, so the whole path can be walked before the first euro.',
+    howToGet:
+      'A key comes from whoever runs the hosted hub — during the beta, by asking. It goes in under',
+    toAccess: 'Settings › Access.',
+    /** The tier as a name, for the access screen’s line. */
+    tierName: (tier: string) =>
+      ({
+        beta: 'Beta key',
+        seven: 'A 7"',
+        lp: 'An LP',
+        double: 'A double album',
+        first: 'The first pressing',
+        test: 'The test pressing',
+      })[tier] ?? tier,
   },
 
   /**
@@ -451,6 +536,20 @@ const en = {
       'Deletes the whole database on this device: token, collection, horizon, digs, basket and ratings. There is no copy anywhere else and no way back.',
     deleteConfirm: 'Yes, delete everything',
     cancel: 'Cancel',
+  },
+  access: {
+    lead: 'The key for a hosted hub and catalogue. Your own hub does not need one.',
+    title: 'Access',
+    hint: 'A key for the hosted comfort tier',
+    notSetUp: 'No key',
+    /** Given a formatted date. */
+    until: (date: string) => `until ${date}`,
+    expired: 'expired',
+  },
+  support: {
+    lead: 'What the comfort tier costs, and what it does not: the app works without it.',
+    title: 'Support',
+    hint: 'Plans and tips, the way LightMe does it',
   },
   hub: {
     lead: 'A small service on a machine you run yourself. It remembers what Fidelity has already worked out, so the next time is immediate.',
@@ -860,6 +959,10 @@ const de: typeof en = {
       'der Hub weist dieses Geheimnis ab – nichts, was du beisteuerst oder holst, kommt durch',
     secretMissing:
       'kein Geheimnis eingetragen – nichts, was du beisteuerst oder holst, kommt durch',
+    keyOk: 'dein Zugangsschlüssel öffnet ihn',
+    keyWrong:
+      'der Hub lehnt deinen Zugangsschlüssel ab – abgelaufen, zurückgezogen oder nicht für diesen Hub',
+    keyMissing: 'dieser Hub nimmt Zugangsschlüssel, und keiner ist eingetragen',
   },
 
   dataPanel: {
@@ -898,6 +1001,98 @@ const de: typeof en = {
     reachable: 'Erreichbar',
     build: (date: string) => `Stand ${date}`,
     releases: (count: string) => `${count} Releases`,
+  },
+
+  accessPanel: {
+    whyLabel: 'Was ein Zugangsschlüssel ist',
+    why: 'Einen gehosteten Hub und Katalog betreibt jemand, und der Schlüssel ist, wie er seine Mitglieder auseinanderhält, ohne zu wissen, wer jemand bei Discogs ist: eine signierte Aussage mit Stufe und Enddatum, sonst nichts. Er geht mit jeder Anfrage an Hub und Katalog und nirgendwo sonst hin.',
+    optional:
+      'Dein eigener Hub braucht das nicht – sein Zugang ist das geteilte Geheimnis. Ein Schlüssel zählt nur bei einem gehosteten.',
+    key: 'Zugangsschlüssel',
+    notYourToken:
+      'Nicht dein Discogs-Token und nicht das Hub-Geheimnis: Ein Schlüssel beginnt mit „fk1." und kommt von dem, der den gehosteten Hub betreibt.',
+    showKey: 'Schlüssel anzeigen',
+    hideKey: 'Schlüssel verbergen',
+    notAKey: 'Das liest sich nicht wie ein Zugangsschlüssel.',
+    reads: (tier, until) => `${tier} · gültig bis ${until}`,
+    expired: 'abgelaufen – bitte um einen frischen',
+    save: 'Speichern',
+    remove: 'Schlüssel entfernen',
+    saved: 'Gespeichert. Hub und Katalog bekommen ihn ab jetzt mit jeder Anfrage.',
+    removed:
+      'Entfernt. Dein eigener Hub läuft wie bisher; ein gehosteter ist für dich jetzt zu.',
+  },
+
+  supportPanel: {
+    plansTitle: 'Ein Jahr Komfort',
+    plansLead:
+      'Jeder Plan schaltet dasselbe frei: den gehosteten Hub, den Wächter mit Push, Tresor und Teilen-Links darauf und die Reichweite des Katalogs. Du wählst, was dir die Unterstützung wert ist, nicht, was du bekommst.',
+    plans: [
+      {
+        tier: 'seven',
+        name: 'Eine 7"',
+        line: 'Damit im Laden das Licht anbleibt.',
+        price: '9,99 € im Jahr',
+      },
+      {
+        tier: 'lp',
+        name: 'Eine LP',
+        line: 'Eine richtige Platte fürs Regal.',
+        price: '14,99 € im Jahr',
+      },
+      {
+        tier: 'double',
+        name: 'Ein Doppelalbum',
+        line: 'Platz für das Gatefold.',
+        price: '29,99 € im Jahr',
+      },
+      {
+        tier: 'first',
+        name: 'Die Erstpressung',
+        line: 'Hilf mir, das hauptberuflich zu machen.',
+        price: '59,99 € im Jahr',
+      },
+      {
+        tier: 'test',
+        name: 'Die Testpressung',
+        line: 'Einmal, und für immer.',
+        price: '99 € einmalig',
+      },
+    ],
+    tipsTitle: 'Oder ein Trinkgeld',
+    tipsLead: 'Schaltet nichts frei. Es ist ein Dankeschön, und es sagt das auch.',
+    tips: [
+      { name: 'Ein Kaffee an der Theke', price: '1,99 €' },
+      { name: 'Eine neue Innenhülle', price: '4,49 €' },
+      { name: 'Eine Runde Nadelreiniger', price: '9,99 €' },
+    ],
+    beta: 'Solange Fidelity in der Beta ist, wird nichts berechnet: Jeder Schlüssel, der jetzt herausgegeben wird, ist ein Beta-Schlüssel, kostenlos, damit der ganze Weg vor dem ersten Euro einmal gegangen ist.',
+    howToGet:
+      'Einen Schlüssel gibt es von dem, der den gehosteten Hub betreibt – in der Beta auf Nachfrage. Eingetragen wird er unter',
+    toAccess: 'Einstellungen › Zugang.',
+    tierName: (tier) =>
+      ({
+        beta: 'Beta-Schlüssel',
+        seven: 'Eine 7"',
+        lp: 'Eine LP',
+        double: 'Ein Doppelalbum',
+        first: 'Die Erstpressung',
+        test: 'Die Testpressung',
+      })[tier] ?? tier,
+  },
+
+  access: {
+    lead: 'Der Schlüssel für einen gehosteten Hub und Katalog. Dein eigener Hub braucht keinen.',
+    title: 'Zugang',
+    hint: 'Ein Schlüssel für die gehostete Komfortstufe',
+    notSetUp: 'Kein Schlüssel',
+    until: (date) => `bis ${date}`,
+    expired: 'abgelaufen',
+  },
+  support: {
+    lead: 'Was die Komfortstufe kostet, und was nicht: Die App funktioniert auch ohne.',
+    title: 'Unterstützen',
+    hint: 'Pläne und Trinkgeld, wie LightMe es macht',
   },
   hub: {
     lead: 'Ein kleiner Dienst auf einem Rechner, den du selbst betreibst. Er merkt sich, was Fidelity schon herausgefunden hat – dann geht es beim nächsten Mal sofort.',

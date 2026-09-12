@@ -91,7 +91,11 @@ export async function resolveShipping(
   // somebody's hand-entered table, just not yours. A hub that is slow or off
   // costs two seconds once and then stops existing for this call.
   const preferences = await getPreferences()
-  const hub = createHubClient({ baseUrl: preferences.hubUrl, secret: preferences.hubSecret })
+  const hub = createHubClient({
+    baseUrl: preferences.hubUrl,
+    secret: preferences.hubSecret,
+    accessKey: preferences.accessKey,
+  })
 
   if (hub) {
     try {
@@ -158,7 +162,11 @@ export async function saveUserShipping(
   // Offered to the hub, never awaited: one person types a ladder in and
   // everybody who shares that hub has it. A refusal changes nothing here.
   const preferences = await getPreferences()
-  const hub = createHubClient({ baseUrl: preferences.hubUrl, secret: preferences.hubSecret })
+  const hub = createHubClient({
+    baseUrl: preferences.hubUrl,
+    secret: preferences.hubSecret,
+    accessKey: preferences.accessKey,
+  })
   if (hub) {
     void hub
       .contributeShipping(username, preferences.shipsToCountry, updated.shippingTiers)

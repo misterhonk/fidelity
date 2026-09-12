@@ -126,7 +126,11 @@ export async function runVaultSync(passphrase: string): Promise<SyncReport> {
   const identity = await currentIdentity()
   if (!identity) throw fail('not-signed-in', 'not signed in')
 
-  const client = createHubClient({ baseUrl: prefs.hubUrl, secret: prefs.hubSecret })
+  const client = createHubClient({
+    baseUrl: prefs.hubUrl,
+    secret: prefs.hubSecret,
+    accessKey: prefs.accessKey,
+  })
   if (!client) throw fail('no-hub', 'no hub configured')
 
   const id = await vaultId(identity.userId, passphrase)

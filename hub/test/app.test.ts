@@ -43,6 +43,7 @@ describe('health', () => {
     const body = await (await app.request('/v1/health')).json()
     assert.deepEqual(body, {
       ok: true,
+      doors: ['secret'],
       horizon: 0,
       shipping: 0,
       covers: 0,

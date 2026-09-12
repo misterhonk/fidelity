@@ -115,9 +115,16 @@ export async function buildHorizon({
    * seconds. What it costs when it is broken: two seconds, once per entity.
    */
   const preferences = await getPreferences()
-  const hub = createHubClient({ baseUrl: preferences.hubUrl, secret: preferences.hubSecret })
+  const hub = createHubClient({
+    baseUrl: preferences.hubUrl,
+    secret: preferences.hubSecret,
+    accessKey: preferences.accessKey,
+  })
   // And the catalogue, for the names (M21.4). Null on every device that has none.
-  const catalogue = createCatalogueClient({ baseUrl: preferences.catalogueUrl })
+  const catalogue = createCatalogueClient({
+    baseUrl: preferences.catalogueUrl,
+    accessKey: preferences.accessKey,
+  })
   const existing = new Map((await db.getAll('horizon')).map((chunk) => [chunk.key, chunk]))
 
   let done = 0

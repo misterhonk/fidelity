@@ -36,15 +36,32 @@ async function follow(): Promise<void> {
   console.log(target ? `catalogue: serving ${target}` : 'catalogue: no build yet')
 }
 
-await follow()
-setInterval(() => void follow(), 60_000).unref()
-
 const app = createCatalogueApp({
   db: () => {
     if (!db) throw new Error('no build')
     return db
   },
 })
+
+/*
+ * The four distributions, counted once per build in the background: the
+ * first build measured 25 s for `stats/decades` on a build from before the
+ * `stats` table, and a client waits two seconds — so the first person to
+ * open the map would have seen nothing, and only the second the lift.
+ * Asked from inside, the answers are in the cache before anybody asks.
+ */
+async function warm(): Promise<void> {
+  if (!db) return
+  for (const kind of ['decades', 'styles', 'genres', 'countries']) {
+    await app.request(`/v1/catalogue/stats/${kind}`).catch(() => undefined)
+  }
+}
+
+await follow()
+void warm()
+setInterval(() => {
+  void follow().then(warm)
+}, 60_000).unref()
 // Without a build, every route but health is a 503 rather than a crash.
 app.onError((error, c) =>
   error.message === 'no build'

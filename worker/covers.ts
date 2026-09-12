@@ -84,7 +84,11 @@ export async function fetchCovers(options: {
    * written not to trust.
    */
   const preferences = await getPreferences()
-  const hub = createHubClient({ baseUrl: preferences.hubUrl, secret: preferences.hubSecret })
+  const hub = createHubClient({
+    baseUrl: preferences.hubUrl,
+    secret: preferences.hubSecret,
+    accessKey: preferences.accessKey,
+  })
   let fromHub = 0
 
   if (hub) {

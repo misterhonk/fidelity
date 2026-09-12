@@ -64,6 +64,7 @@ const NEEDED = {
    * jump into a new tab came unannounced.
    */
   'external-link': 'Leads out of the app',
+  layers: 'The stack — the same finds, one at a time (dig screen)',
 
   bookmark: 'Save — enters it on the saved list',
   check: 'Bought — enters it on the bought list',

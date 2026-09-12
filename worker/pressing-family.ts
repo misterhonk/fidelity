@@ -130,6 +130,7 @@ export async function pressingFamily(
               return createHubClient({
                 baseUrl: preferences.hubUrl,
                 secret: preferences.hubSecret,
+                accessKey: preferences.accessKey,
               })
             })()
           : opts.hub

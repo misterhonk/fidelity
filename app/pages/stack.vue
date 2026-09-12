@@ -284,7 +284,7 @@ const verdict = computed(() => (card.value ? verdicts.value[card.value.listingId
  * a direction above the word is no longer one.
  */
 const STACKED =
-  'fid-action flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 rounded-fid-sm border px-3 py-2 text-fid-xs'
+  'fid-action flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-fid-sm border px-2 py-2 text-fid-xs sm:min-w-11 sm:flex-none sm:px-3'
 </script>
 
 <template>
@@ -355,8 +355,13 @@ const STACKED =
         The four middle buttons are two lines (icon above text), back and next
         one line — centred, they then float at different heights in one row.
         Stretched, each takes the height of the row, and the tallest sets it.
+
+        Two rows on a phone (2026-09-12): six buttons in one row were wider
+        than an iPhone, the page scrolled sideways and the whole screen slid
+        under the thumb. The judging buttons take the first row and share its
+        width; back and next take the second, at its two ends.
       -->
-      <div class="flex items-stretch justify-between gap-2">
+      <div class="flex flex-wrap items-stretch justify-between gap-2">
         <button
           type="button"
           :disabled="at === 0"
@@ -367,7 +372,7 @@ const STACKED =
           {{ d.stack.back }}
         </button>
 
-        <div class="flex items-stretch gap-2">
+        <div class="order-first flex w-full items-stretch gap-2 sm:order-none sm:w-auto">
           <button
             type="button"
             :class="[

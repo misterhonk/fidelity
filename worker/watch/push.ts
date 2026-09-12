@@ -27,7 +27,11 @@ import { watchedDealers } from './check'
 
 async function hub() {
   const preferences = await getPreferences()
-  return createHubClient({ baseUrl: preferences.hubUrl, secret: preferences.hubSecret })
+  return createHubClient({
+    baseUrl: preferences.hubUrl,
+    secret: preferences.hubSecret,
+    accessKey: preferences.accessKey,
+  })
 }
 
 /**

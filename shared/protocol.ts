@@ -675,7 +675,7 @@ export interface WorkerContract {
   }
 
   'hub.check': {
-    params: { url: string; secret?: string }
+    params: { url: string; secret?: string; accessKey?: string }
     progress: never
     result: {
       ok: boolean
@@ -689,6 +689,10 @@ export interface WorkerContract {
        * secured" while every real request came back 401.
        */
       secret: 'ok' | 'wrong' | 'missing' | 'unchecked'
+      /** The second door (docs/17 §3.2): whether the access key opens it, when the hub has one. */
+      key: 'ok' | 'wrong' | 'missing' | 'unchecked'
+      /** Which doors the hub reports; an older hub reports none and is read as before. */
+      doors: ('secret' | 'key')[]
     }
   }
 

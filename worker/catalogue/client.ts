@@ -123,12 +123,15 @@ export interface CatalogueClientOptions {
   baseUrl: string | null | undefined
   fetchImpl?: typeof fetch
   timeoutMs?: number
+  /** The access key (docs/17 §6.2), sent as `x-fidelity-key` when set. */
+  accessKey?: string | null
 }
 
 export function createCatalogueClient({
   baseUrl,
   fetchImpl = globalThis.fetch?.bind(globalThis),
   timeoutMs = HUB_TIMEOUT_MS,
+  accessKey,
 }: CatalogueClientOptions): CatalogueSource | null {
   const trimmed = baseUrl?.trim().replace(/\/+$/, '')
   if (!trimmed) return null
@@ -138,7 +141,10 @@ export function createCatalogueClient({
     try {
       const response = await withTimeout(
         fetchImpl(`${trimmed}/v1/catalogue${path}`, {
-          headers: { accept: 'application/json' },
+          headers: {
+            accept: 'application/json',
+            ...(accessKey ? { 'x-fidelity-key': accessKey } : {}),
+          },
         }),
         timeoutMs,
       )
@@ -244,6 +250,6 @@ export function createCatalogueClient({
 
 /** The configured catalogue, or null — read fresh, because the setting can change. */
 export async function catalogueSource(): Promise<CatalogueSource | null> {
-  const { catalogueUrl } = await getPreferences()
-  return createCatalogueClient({ baseUrl: catalogueUrl })
+  const { catalogueUrl, accessKey } = await getPreferences()
+  return createCatalogueClient({ baseUrl: catalogueUrl, accessKey })
 }
