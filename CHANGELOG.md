@@ -11,6 +11,17 @@ Für eine App bedeutet SemVer:
 
 ## [0.62.0](https://github.com/misterhonk/fidelity/compare/v0.61.0...v0.62.0) (2026-09-12)
 
+**Sorting records in, from the wall.**
+
+Open a compartment and tap "Fill": your collection appears as a list, filtered to what has
+no place yet — the pile still to sort in — with a search field and a tick per record. One
+button puts the armful into the compartment, and the list shows what is left, so the next
+armful follows without leaving the wall. Above the rooms, a line says how many records have
+a place and how many are still waiting.
+
+**What to do:** Nothing. To sort in, open Collection › Places, tap a compartment, then
+"Fill".
+
 
 ### Added
 
