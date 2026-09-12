@@ -11,6 +11,14 @@ Für eine App bedeutet SemVer:
 
 ## [0.44.0](https://github.com/misterhonk/fidelity/compare/v0.43.0...v0.44.0) (2026-09-12)
 
+**The hub check tries the secret — and the secret can be shown.**
+
+"Test the connection" only ever asked the hub's health, which is open on purpose, so it
+said "reachable · secured with a secret" to a wrong word just the same; a phone with the
+wrong secret read fine while every real request came back 401. The check knocks at a locked
+door now and says whether the word opens it. An eye beside the field shows the secret on
+request. And the web manifest goes out with its proper type from both nginx and Apache.
+
 
 ### Added
 
