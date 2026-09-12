@@ -11,6 +11,16 @@ Für eine App bedeutet SemVer:
 
 ## [0.49.0](https://github.com/misterhonk/fidelity/compare/v0.48.0...v0.49.0) (2026-09-12)
 
+**The catalogue answers: a master's family and a person's names.**
+
+The service is the hub's shape without the door — read-only on the current build, no
+secret, the build date on every answer as its ETag — and it follows the monthly swap
+without a restart. Two routes to begin with, the two the app already asked the API for:
+every pressing of an album, oldest first, and every other name a person goes by. The shop
+screen's pressing family and the horizon's lexicon ask the catalogue first and spend the
+request only when it does not know; with the address empty, which it is on every device,
+nothing changes. The worker's size ceiling goes from 35 to 40 kB, and docs/12 says why.
+
 
 ### Added
 
