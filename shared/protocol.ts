@@ -646,6 +646,19 @@ export interface WorkerContract {
    * hub is invisible by design (ADR-008) and this is the only place somebody
    * can tell "pointing at nothing" from "working".
    */
+  /**
+   * The catalogue (ADR-013): is one there, and which build answers.
+   *
+   * Same two shapes as the hub's, without a secret — the catalogue is public
+   * CC0 data and has no door to lock.
+   */
+  'catalogue.discover': { params: undefined; progress: never; result: { url: string | null } }
+  'catalogue.check': {
+    params: { url: string }
+    progress: never
+    result: { ok: boolean; build: string; releases: number }
+  }
+
   'hub.check': {
     params: { url: string; secret?: string }
     progress: never
@@ -1227,6 +1240,8 @@ export interface WorkerError {
     | 'match-gone'
     | 'no-hub'
     | 'not-a-hub'
+    | 'no-catalogue'
+    | 'not-a-catalogue'
     | 'vault-too-new'
     | 'vault-unusable'
     | 'passphrase-short'

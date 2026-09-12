@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { familyFacts, pressingFamily, yearOf } from '~~/worker/pressing-family'
 import type { HubClient } from '~~/worker/hub/client'
+import type { CatalogueSource } from '#shared/ports'
 
 /**
  * The pressing in your hand, among all the others (docs/06 M19 #7).
@@ -251,6 +252,44 @@ describe('the family through the hub', () => {
     const facts = await familyFacts(client, 5542, { hub: null, now: () => 5 })
     expect(calls).toHaveLength(1)
     expect(facts).toMatchObject({ masterId: 5542, total: 160, fetchedAt: 5 })
+  })
+})
+
+/**
+ * Through the catalogue first (ADR-013, docs/16 §6): the dump's answer is
+ * good for the month and the same for everybody, so it is taken before the
+ * hub and offered nowhere. A catalogue that does not know is the old path.
+ */
+describe('the family through the catalogue', () => {
+  const catalogueWith = (family: unknown) =>
+    ({ family: async () => family }) as unknown as CatalogueSource
+
+  it('takes the family from the catalogue and asks neither hub nor Discogs', async () => {
+    const { client, calls } = fakeClient({})
+    const hub = { family: vi.fn(async () => null), contributeFamily: vi.fn() }
+    const catalogue = catalogueWith({ masterId: 5542, total: 160, fetchedAt: 0, siblings: [] })
+
+    const facts = await familyFacts(client, 5542, {
+      hub: hub as unknown as HubClient,
+      catalogue,
+      now: () => 5,
+    })
+
+    expect(facts.total).toBe(160)
+    expect(calls).toHaveLength(0)
+    expect(hub.family).not.toHaveBeenCalled()
+    expect(hub.contributeFamily).not.toHaveBeenCalled()
+  })
+
+  it('falls through to Discogs when the catalogue does not know', async () => {
+    const { client, calls } = fakeClient({ '/masters/5542/versions': versions })
+    const facts = await familyFacts(client, 5542, {
+      hub: null,
+      catalogue: catalogueWith(null),
+      now: () => 5,
+    })
+    expect(calls).toHaveLength(1)
+    expect(facts.total).toBe(160)
   })
 })
 

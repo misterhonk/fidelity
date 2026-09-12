@@ -64,6 +64,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   cloudClientIds: {},
   // Empty, and empty is the supported configuration. No feature may require it.
   hubUrl: null,
+  catalogueUrl: null,
   hubSecret: null,
 }
 

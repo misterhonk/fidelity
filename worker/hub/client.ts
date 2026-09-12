@@ -29,7 +29,7 @@ import { fail } from '../fail'
  * The token is not here and never will be. The hub has no route that takes one.
  */
 
-const wireChunkSchema = z.object({
+export const wireChunkSchema = z.object({
   version: z.number().int(),
   key: z.string(),
   kind: z.enum(['artist', 'label', 'master']),

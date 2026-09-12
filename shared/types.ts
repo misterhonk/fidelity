@@ -130,6 +130,11 @@ export interface Preferences {
    * for most users — no feature may depend on it.
    */
   hubUrl: string | null
+  /**
+   * The catalogue service (ADR-013), same shape as the hub: empty means none,
+   * and everything works without one. No secret — it is public CC0 data.
+   */
+  catalogueUrl: string | null
   /** Shared secret for that hub, if it asks for one. Never a Discogs token. */
   hubSecret: string | null
 }

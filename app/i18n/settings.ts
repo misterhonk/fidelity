@@ -399,6 +399,33 @@ const en = {
     secretMissing: 'no secret entered — nothing you contribute or fetch gets through',
   },
 
+  /**
+   * Settings → Hub → Catalogue (ADR-013, docs/16).
+   *
+   * Public data with no door, so no secret and no "kept without asking" —
+   * a found one is filled in and tested, and Save is one tap away.
+   */
+  cataloguePanel: {
+    whyLabel: 'What a catalogue gives you',
+    why: 'Discogs publishes its whole database once a month. A catalogue is that month, read once, answering what the API answers slowly or not at all: every pressing of an album at once, every record a producer touched, a barcode without a single request. Nothing of yours goes there — it only knows the records.',
+    optional: 'Everything works the same without one — it only takes waiting away.',
+
+    url: 'Catalogue URL',
+    save: 'Save',
+    test: 'Test the connection',
+    discover: 'Look here',
+
+    found: 'Found one — address filled in. Save it now.',
+    notFound:
+      'None running on this machine. Enter the address by hand if it is somewhere else.',
+    searchFailed: 'Cannot search.',
+
+    reachable: 'Reachable',
+    build: (date: string) => `built ${date}`,
+    /** Given an already-formatted number, as the note at `summary` says. */
+    releases: (count: string) => `${count} releases`,
+  },
+
   /** Settings → Your data. */
   dataPanel: {
     exportAll: 'Export everything',
@@ -430,6 +457,7 @@ const en = {
     title: 'Hub',
     hint: 'An optional helper on your own network',
     notSetUp: 'Not set up',
+    catalogue: 'Catalogue',
     // A hub address that will not parse is worth showing as such rather than
     // hiding behind "not set up" — the setting is set, it is wrong.
     unreadable: 'Address unreadable',
@@ -852,11 +880,31 @@ const de: typeof en = {
     deleteConfirm: 'Ja, alles löschen',
     cancel: 'Abbrechen',
   },
+  cataloguePanel: {
+    whyLabel: 'Was ein Katalog bringt',
+    why: 'Discogs veröffentlicht einmal im Monat seine ganze Datenbank. Ein Katalog ist dieser Monat, einmal gelesen, und beantwortet, was die API langsam oder gar nicht beantwortet: alle Pressungen eines Albums auf einen Schlag, jede Platte, an der ein Produzent beteiligt war, ein Barcode ohne eine einzige Anfrage. Nichts von dir geht dorthin – er kennt nur die Platten.',
+    optional: 'Ohne Katalog funktioniert alles genauso – er nimmt nur Wartezeit weg.',
+
+    url: 'Katalog-URL',
+    save: 'Speichern',
+    test: 'Verbindung testen',
+    discover: 'Hier suchen',
+
+    found: 'Einer gefunden – Adresse eingetragen. Jetzt speichern.',
+    notFound:
+      'Auf diesem Rechner läuft keiner. Trag die Adresse von Hand ein, wenn er woanders steht.',
+    searchFailed: 'Suche nicht möglich.',
+
+    reachable: 'Erreichbar',
+    build: (date: string) => `Stand ${date}`,
+    releases: (count: string) => `${count} Releases`,
+  },
   hub: {
     lead: 'Ein kleiner Dienst auf einem Rechner, den du selbst betreibst. Er merkt sich, was Fidelity schon herausgefunden hat – dann geht es beim nächsten Mal sofort.',
     title: 'Hub',
     hint: 'Optionaler Helfer im eigenen Netz',
     notSetUp: 'Nicht eingerichtet',
+    catalogue: 'Katalog',
     unreadable: 'Adresse unlesbar',
   },
   data: {

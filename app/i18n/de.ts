@@ -155,6 +155,15 @@ const de: Messages = {
         title: 'Das ist kein Fidelity-Hub.',
         action: 'Unter der Adresse antwortet etwas, aber kein Hub. Prüfe Adresse und Port.',
       },
+      'no-catalogue': {
+        title: 'Kein Katalog eingetragen.',
+        action:
+          'Ein Katalog ist freiwillig – trag in den Einstellungen einen ein oder lass es.',
+      },
+      'not-a-catalogue': {
+        title: 'Das ist kein Fidelity-Katalog.',
+        action: 'Unter der Adresse antwortet etwas, aber kein Katalog. Prüfe Adresse und Port.',
+      },
       'vault-too-new': {
         title: 'Diese Sicherung stammt aus einem neueren Fidelity.',
         action: 'Aktualisiere zuerst die App – eine ältere läse sie falsch statt gar nicht.',

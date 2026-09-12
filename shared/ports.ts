@@ -12,7 +12,14 @@
  * These interfaces exist now, with local implementations behind them, because
  * retrofitting them in M9 would be a refactor across the whole worker.
  */
-import type { HorizonChunk, HorizonKind, ShippingTier, WatchAlert } from './types'
+import type {
+  HorizonChunk,
+  HorizonKind,
+  Kin,
+  PressingFamilyFacts,
+  ShippingTier,
+  WatchAlert,
+} from './types'
 
 export interface HorizonSource {
   /** Edges for one entity. A hub is asked first; the API is the fallback. */
@@ -33,6 +40,34 @@ export interface WatchService {
 }
 
 export type { WatchAlert }
+
+/**
+ * The catalogue service (ADR-013, docs/16 §6): the CC0 dump, built monthly,
+ * answering what the API cannot answer cheaply. Rule 1 of ADR-013 in a type:
+ * every method answers null for "not configured" and "does not know" alike,
+ * and every consumer has the horizon behind it. Nothing here ever throws
+ * upward; a dead catalogue costs two seconds, once per call, and is silent.
+ */
+export interface CatalogueArtist {
+  id: number
+  name: string
+  /** Every other name, the same person first — the lexicon's shape. */
+  names: Kin[]
+}
+
+export interface CatalogueSource {
+  /** The build date of what answers, e.g. "2026-09-01" — or null when nothing does. */
+  build(): Promise<string | null>
+  artist(id: number): Promise<CatalogueArtist | null>
+  /** Every release credited to this person in this role, as a horizon chunk. */
+  credits(id: number, role: string): Promise<HorizonChunk | null>
+  /** The label's catalogue series under this prefix, as a horizon chunk. */
+  run(labelId: number, prefix: string): Promise<HorizonChunk | null>
+  family(masterId: number): Promise<PressingFamilyFacts | null>
+  /** Release ids carrying this barcode or run-out; `exact` when the whole string matched. */
+  identify(query: { barcode?: string; runout?: string }): Promise<number[] | null>
+  resolve(name: string): Promise<number[] | null>
+}
 
 /**
  * Where a device keeps the block that carries it between devices.

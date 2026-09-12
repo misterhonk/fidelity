@@ -1026,6 +1026,16 @@ export const handlers: HandlerMap = {
     return { url: null, secured: false, blockedByMixedContent, tried }
   },
 
+  'catalogue.discover': async () => {
+    const { discoverCatalogue } = await import('./catalogue/probe')
+    return discoverCatalogue()
+  },
+
+  'catalogue.check': async ({ url }) => {
+    const { checkCatalogue } = await import('./catalogue/probe')
+    return checkCatalogue(url)
+  },
+
   'hub.check': async ({ url, secret }) => {
     const base = url.trim().replace(/\/+$/, '')
     if (!base) throw fail('no-hub', 'hub: no url given')

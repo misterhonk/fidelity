@@ -64,15 +64,21 @@ test('tries the secret at a locked door, and shows it on request', async ({
   // The screen looks for a hub on its own when it opens and writes what it
   // finds into the field. Let it finish, or the address typed here is
   // overwritten a moment later.
+  // Two searches on this page since M21.1 — the hub's and the catalogue's —
+  // and both write the same sentence when nothing is there.
   await expect(
-    page.getByText(/Found one|None running on this machine|Not reachable|Cannot search/),
+    page
+      .getByText(/Found one|None running on this machine|Not reachable|Cannot search/)
+      .first(),
   ).toBeVisible({
     timeout: 15_000,
   })
-  await page.getByLabel('Hub URL').fill('https://hub.test')
-  const secret = page.getByLabel('Shared secret (if the hub asks for one)')
+  // Two panels with the same buttons since M21.1; this test stays in the hub's.
+  const panel = page.locator('section').filter({ has: page.getByLabel('Hub URL') })
+  await panel.getByLabel('Hub URL').fill('https://hub.test')
+  const secret = panel.getByLabel('Shared secret (if the hub asks for one)')
   await secret.fill('falsch')
-  await page.getByRole('button', { name: 'Test the connection' }).click()
+  await panel.getByRole('button', { name: 'Test the connection' }).click()
   await expect(page.getByText('the hub refuses this secret', { exact: false })).toBeVisible({
     timeout: 15_000,
   })
@@ -87,8 +93,46 @@ test('tries the secret at a locked door, and shows it on request', async ({
   )
 
   await secret.fill('richtig')
-  await page.getByRole('button', { name: 'Test the connection' }).click()
+  await panel.getByRole('button', { name: 'Test the connection' }).click()
   await expect(page.getByText('the secret opens it', { exact: false })).toBeVisible({
     timeout: 15_000,
   })
+})
+
+/**
+ * The catalogue's seam (M21.1, ADR-013): one field, one test, the build's date
+ * on the status line — and nothing else on the page changes when it is empty.
+ */
+test('tests a catalogue and says which build answers', async ({ page, context }) => {
+  await context.route('https://catalogue.test/**', (route) => {
+    const cors = { 'access-control-allow-origin': '*' }
+    if (new URL(route.request().url()).pathname === '/v1/catalogue/health') {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: cors,
+        body: JSON.stringify({ ok: true, build: '2026-09-01', releases: 4200 }),
+      })
+    }
+    return route.fulfill({ status: 404, headers: cors, body: 'not found' })
+  })
+  await seed(page, 'en')
+  await page.goto('/settings/hub')
+
+  await expect(
+    page
+      .getByText(/Found one|None running on this machine|Not reachable|Cannot search/)
+      .first(),
+  ).toBeVisible({ timeout: 15_000 })
+  const panel = page.locator('section').filter({ has: page.getByLabel('Catalogue URL') })
+  await panel.getByLabel('Catalogue URL').fill('https://catalogue.test')
+  await panel.getByRole('button', { name: 'Save' }).click()
+  await expect(page.getByText('built 2026-09-01', { exact: false })).toBeVisible({
+    timeout: 15_000,
+  })
+  await expect(page.getByText('4,200 releases', { exact: false })).toBeVisible()
+
+  // Saved for real: it survives a reload.
+  await page.reload()
+  await expect(page.getByLabel('Catalogue URL')).toHaveValue('https://catalogue.test')
 })

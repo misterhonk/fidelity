@@ -2,7 +2,9 @@ import { getPreferences } from '~~/db/meta'
 import type { DiscogsClient } from './discogs/client'
 import { masterVersionsSchema } from './discogs/entities'
 import { releaseDetailSchema } from './dig/enrich'
+import { catalogueSource } from './catalogue/client'
 import { createHubClient, type HubClient } from './hub/client'
+import type { CatalogueSource } from '#shared/ports'
 import { preferHub } from './hub/fallback'
 import { pressingWarnings, readPressing } from './match/pressing'
 import type { PressingFamily, PressingFamilyFacts, PressingSibling } from '#shared/types'
@@ -39,6 +41,8 @@ export interface FamilyOptions {
   now?: () => number
   /** Normally read from the preferences; a test hands one in. */
   hub?: HubClient | null
+  /** The catalogue (ADR-013), asked before the hub; a test hands one in. */
+  catalogue?: CatalogueSource | null
 }
 
 /**
@@ -49,8 +53,19 @@ export interface FamilyOptions {
 export async function familyFacts(
   client: DiscogsClient,
   masterId: number,
-  { signal, now = Date.now, hub }: FamilyOptions = {},
+  { signal, now = Date.now, hub, catalogue }: FamilyOptions = {},
 ): Promise<PressingFamilyFacts> {
+  /*
+   * The catalogue first (docs/16 §6): its answer is the dump's, valid for the
+   * build's month and the same for everybody — nothing to contribute back.
+   * Null means "not configured" and "does not know" alike, and both fall
+   * through to the hub and then to Discogs exactly as before.
+   */
+  if (catalogue) {
+    const known = await catalogue.family(masterId)
+    if (known) return known
+  }
+
   const fromDiscogs = async (): Promise<PressingFamilyFacts> => {
     const versions = await client.get(`/masters/${masterId}/versions`, masterVersionsSchema, {
       query: { per_page: PER_PAGE, sort: 'released', sort_order: 'asc' },
@@ -118,7 +133,8 @@ export async function pressingFamily(
               })
             })()
           : opts.hub
-      const facts = await familyFacts(client, masterId, { ...opts, hub })
+      const catalogue = opts.catalogue === undefined ? await catalogueSource() : opts.catalogue
+      const facts = await familyFacts(client, masterId, { ...opts, hub, catalogue })
       total = facts.total
       siblings = facts.siblings
     } catch {

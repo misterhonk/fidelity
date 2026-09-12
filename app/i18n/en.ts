@@ -255,6 +255,16 @@ const en = {
         action:
           'Something answered at that address, but not a hub. Check the address and port.',
       },
+      'no-catalogue': {
+        title: 'No catalogue entered.',
+        action:
+          'A catalogue is optional — enter one in the settings, or leave it and use the rest.',
+      },
+      'not-a-catalogue': {
+        title: 'That is not a Fidelity catalogue.',
+        action:
+          'Something answered at that address, but not a catalogue. Check the address and port.',
+      },
       'vault-too-new': {
         title: 'This backup is from a newer Fidelity.',
         action:
