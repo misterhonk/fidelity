@@ -9,6 +9,37 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.48.0](https://github.com/misterhonk/fidelity/compare/v0.47.0...v0.48.0) (2026-09-12)
+
+**Renew the token without losing the shelf — and the dig page says which shop is scanning.**
+
+Two things a phone taught on the same day. Discogs stopped accepting a token, and the only
+way to enter a new one was to sign out, which deletes the database: thirteen minutes of
+horizon, every dig and every rating for a key that takes ten seconds to make. Now the
+account screen has "Renew the token": it checks the new key the way sign-in does, and if it
+belongs to the same account it replaces the old one and nothing else moves. A key for
+another account is refused and the old one stays.
+
+And "A scan is already running" was the whole message, most often after leaving the dig
+page mid-scan and coming back — the scan had carried on in the background, and the page
+knew nothing of it. It attaches now: the shop's name stands over the bar, the numbers keep
+moving, the buttons wait, and the result appears when it is through. The refusal, where it
+is still one, names the shop.
+
+The catalogue build's first full run on the home lab died 90 seconds in on a label without
+an id; it skips those now and survives a single entity the database refuses.
+
+
+### Added
+
+* **auth:** renew the token without losing the shelf ([bc5cbde](https://github.com/misterhonk/fidelity/commit/bc5cbde6ec92904dad3c481ac145e3fc4b44d2a4))
+* **dig:** the page says which shop is scanning, and attaches to a scan it did not start ([6af2dd8](https://github.com/misterhonk/fidelity/commit/6af2dd841dde02c01ade2a8b585c9e2ead9e5e6e))
+
+
+### Fixed
+
+* **hub:** the catalogue build survives a label without an id ([19a3649](https://github.com/misterhonk/fidelity/commit/19a3649e7d84617a4627497e9edc2b17fc1476b8))
+
 ## [0.47.0](https://github.com/misterhonk/fidelity/compare/v0.46.0...v0.47.0) (2026-09-12)
 
 **The catalogue's monthly job, in one image.**
