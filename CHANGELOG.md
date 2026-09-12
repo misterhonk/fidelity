@@ -9,6 +9,18 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.60.0](https://github.com/misterhonk/fidelity/compare/v0.59.0...v0.60.0) (2026-09-12)
+
+
+### Added
+
+* **collection:** the wall — places with furniture and compartments (M27.1) ([a80312e](https://github.com/misterhonk/fidelity/commit/a80312e52a6a7542f376a41a8e6d634bca48e392))
+
+
+### Fixed
+
+* **pwa:** the worker listens once, even where WebKit runs its entry twice ([9e9270b](https://github.com/misterhonk/fidelity/commit/9e9270b772dd7ef27af72530e6bd6092af331d51))
+
 ## [0.59.0](https://github.com/misterhonk/fidelity/compare/v0.58.0...v0.59.0) (2026-09-12)
 
 **Sixty words, one door, and a find that keeps its name.**
