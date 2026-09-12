@@ -103,4 +103,22 @@ test('a room, a Kallax, and a record in B1', async ({ page }) => {
   await expect(b1.getByText('1 moved to A2')).toBeVisible()
   await b1.getByRole('button', { name: 'Undo' }).click()
   await expect(b1.getByRole('button', { name: /Speak No Evil/ })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(b1).toBeHidden()
+
+  // Drag: the whole compartment B1 onto A2 with the mouse, and the way back.
+  // Both cubes have to be on screen: a pointer cannot drop below the fold.
+  await page.setViewportSize({ width: 1280, height: 1400 })
+  await page.getByRole('grid', { name: 'Kallax' }).scrollIntoViewIfNeeded()
+  const from = await page.getByRole('button', { name: /^B1, 1 records/ }).boundingBox()
+  const onto = await page.getByRole('button', { name: /^A2, 0 records/ }).boundingBox()
+  await page.mouse.move(from!.x + from!.width / 2, from!.y + from!.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(from!.x + 20, from!.y + 20, { steps: 4 })
+  await page.mouse.move(onto!.x + onto!.width / 2, onto!.y + onto!.height / 2, { steps: 8 })
+  await page.mouse.up()
+  await expect(page.getByText('1 moved to A2')).toBeVisible()
+  await expect(page.getByRole('button', { name: /^A2, 1 records/ })).toBeVisible()
+  await page.getByRole('button', { name: 'Undo' }).click()
+  await expect(page.getByRole('button', { name: /^B1, 1 records/ })).toBeVisible()
 })

@@ -643,6 +643,11 @@ export const handlers: HandlerMap = {
     return moveAll(from, to)
   },
 
+  'places.move': async ({ id, parentId }) => {
+    const { movePlace } = await import('./places')
+    return movePlace(id, parentId)
+  },
+
   'watched.list': async () => {
     const { listWatched } = await import('./watched/check')
     return listWatched()

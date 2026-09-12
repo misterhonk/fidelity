@@ -855,6 +855,12 @@ export interface WorkerContract {
   }
   /** "Everything from crate 3 to shelf 2" — the ordinary case after a move. */
   'places.moveAll': { params: { from: string; to: string }; progress: never; result: number }
+  /** Furniture carried into another room, or out of one (M27.4). */
+  'places.move': {
+    params: { id: string; parentId: string | null }
+    progress: never
+    result: boolean
+  }
 
   'watched.list': { params: undefined; progress: never; result: WatchedRelease[] }
   'watched.add': {

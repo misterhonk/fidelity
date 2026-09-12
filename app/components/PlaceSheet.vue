@@ -112,6 +112,21 @@ async function undo() {
   emit('changed')
 }
 
+/** A sleeve lifts on its own — or with everything ticked, when it is one of them. */
+const { grab } = usePlaceDrag()
+function lift(event: PointerEvent, record: CollectionItem) {
+  const ids =
+    selecting.value && selected.value.has(record.instanceId)
+      ? [...selected.value]
+      : [record.instanceId]
+  grab(event, {
+    kind: 'records',
+    instanceIds: ids,
+    from: props.cube.id,
+    label: c.value.places.dragRecords(count(ids.length)),
+  })
+}
+
 const labelFor = (placeId: string | null) => {
   const node = props.nodes.find((n) => n.id === placeId)
   return node ? labelOf(node) : ''
@@ -266,6 +281,7 @@ const labelFor = (placeId: string | null) => {
           @click="
             selecting ? toggleSelect(record.instanceId) : emit('record', record.instanceId)
           "
+          @pointerdown="lift($event, record)"
         >
           <img
             v-if="record.thumbUrl || record.coverUrl"

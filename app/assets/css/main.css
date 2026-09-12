@@ -429,3 +429,15 @@ body {
     view-transition-name: none;
   }
 }
+
+/*
+ * A drag in flight (M27.4): the sheet's scrim stops taking the pointer, so a
+ * sleeve dragged out of the sheet finds the cube on the wall behind it.
+ */
+.fid-dragging .fid-scrim {
+  pointer-events: none;
+}
+.fid-dragging {
+  user-select: none;
+  -webkit-user-select: none;
+}

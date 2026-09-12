@@ -20,6 +20,7 @@ const emit = defineEmits<{ changed: []; record: [instanceId: number] }>()
 
 const c = useCollectionMessages()
 const { call } = useFidelityWorker()
+const { grab } = usePlaceDrag()
 
 const compartments = computed(() =>
   props.nodes.filter((node) => node.parentId === props.unit.id),
@@ -88,7 +89,15 @@ async function dissolve() {
 <template>
   <section class="flex flex-col gap-3" :aria-label="unit.name">
     <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-      <h3 class="fid-display text-fid-base font-semibold text-fid-text">{{ unit.name }}</h3>
+      <!-- The name is the handle: furniture drags into another room by it. -->
+      <h3
+        class="fid-display cursor-grab text-fid-base font-semibold text-fid-text select-none"
+        @pointerdown="
+          grab($event, { kind: 'unit', id: unit.id, label: c.places.dragUnit(unit.name) })
+        "
+      >
+        {{ unit.name }}
+      </h3>
       <div class="flex flex-wrap gap-4">
         <button
           type="button"

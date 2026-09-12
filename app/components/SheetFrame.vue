@@ -97,7 +97,7 @@ function onKeydown(event: KeyboardEvent) {
 
 <template>
   <div
-    class="fixed inset-0 z-40 flex justify-end bg-black/60"
+    class="fid-scrim fixed inset-0 z-40 flex justify-end bg-black/60"
     @click.self="emit('close')"
     @keydown="onKeydown"
   >

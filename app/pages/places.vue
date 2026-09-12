@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { labelOf } from '#shared/places'
 import type { PlaceNode } from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
@@ -17,6 +18,7 @@ useSeoMeta({ title: () => c.value.places.title, description: () => c.value.place
  * wall it is; a room is a heading.
  */
 const { call } = useFidelityWorker()
+const { drag } = usePlaceDrag()
 
 const nodes = shallowRef<PlaceNode[]>([])
 const collection = ref(0)
@@ -108,6 +110,62 @@ async function showRoom(room: PlaceNode) {
 }
 
 const sheet = ref<number | null>(null)
+
+/**
+ * A drop (M27.4): sleeves or a whole compartment onto a cube, furniture onto
+ * a room or onto "without a room". Every drop leaves a line with a way
+ * back, the same line the compartment's sheet writes for its own moves.
+ */
+const last = shallowRef<{ line: string; undo: () => Promise<void> } | null>(null)
+const labelFor = (id: string | null) => {
+  const node = nodes.value.find((n) => n.id === id)
+  return node ? labelOf(node) : ''
+}
+onPlaceDrop(async (payload, targetId) => {
+  const to = targetId === 'top' ? null : targetId
+  if (payload.kind === 'records') {
+    const { instanceIds, from } = payload
+    if (to === null) return
+    await call('places.assignMany', { instanceIds: [...instanceIds], placeId: to })
+    last.value = {
+      line: c.value.places.moved(count(instanceIds.length), labelFor(to)),
+      undo: async () => {
+        await call('places.assignMany', { instanceIds: [...instanceIds], placeId: from })
+      },
+    }
+  } else if (payload.kind === 'compartment') {
+    if (to === null) return
+    const held = (await call('places.contents', { placeId: payload.id })).map(
+      (record) => record.instanceId,
+    )
+    const n = await call('places.moveAll', { from: payload.id, to })
+    last.value = {
+      line: c.value.places.moved(count(n), labelFor(to)),
+      undo: async () => {
+        await call('places.assignMany', { instanceIds: held, placeId: payload.id })
+      },
+    }
+  } else {
+    const unit = nodes.value.find((n) => n.id === payload.id)
+    if (!unit || !(await call('places.move', { id: payload.id, parentId: to }))) return
+    const wasIn = unit.parentId
+    last.value = {
+      line: to
+        ? c.value.places.unitMoved(unit.name, labelFor(to))
+        : c.value.places.unitMovedOut(unit.name),
+      undo: async () => {
+        await call('places.move', { id: payload.id, parentId: wasIn })
+      },
+    }
+  }
+  await load()
+})
+async function undo() {
+  if (!last.value) return
+  await last.value.undo()
+  last.value = null
+  await load()
+}
 </script>
 
 <template>
@@ -127,12 +185,35 @@ const sheet = ref<number | null>(null)
         {{ c.places.counts(count(placed), count(unplaced)) }}
       </p>
 
+      <!--
+        The way back after a drop, for as long as the line stands. Pinned to
+        the bottom of the window: a drop happens wherever the wall is, and
+        the line has to be where the eye is, not where the counts are.
+      -->
+      <p
+        v-if="last"
+        role="status"
+        class="fixed bottom-4 left-4 z-30 flex flex-wrap items-center gap-3 rounded-fid-sm border border-fid-border bg-fid-surface px-4 py-2 text-fid-sm text-fid-text shadow-lg"
+      >
+        {{ last.line }}
+        <button
+          type="button"
+          class="fid-action min-h-11 text-fid-sm text-fid-accent underline underline-offset-4"
+          @click="undo"
+        >
+          {{ c.places.undo }}
+        </button>
+      </p>
+
       <!-- A room is a heading; its furniture stands under it. -->
       <section
         v-for="room in rooms"
         :key="room.id"
-        class="flex flex-col gap-4 border-t border-fid-border pt-4"
+        class="flex flex-col gap-4 border-t pt-4 transition-colors"
+        :class="drag?.over === room.id ? 'border-fid-accent' : 'border-fid-border'"
         :aria-label="room.name"
+        :data-drop="room.id"
+        data-drop-accepts="unit"
       >
         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h2 class="fid-display text-fid-xl font-medium text-fid-text">{{ room.name }}</h2>
@@ -220,9 +301,12 @@ const sheet = ref<number | null>(null)
       </section>
 
       <section
-        v-if="looseUnits.length > 0"
-        class="flex flex-col gap-4 border-t border-fid-border pt-4"
+        v-if="looseUnits.length > 0 || drag?.payload.kind === 'unit'"
+        class="flex flex-col gap-4 border-t pt-4 transition-colors"
+        :class="drag?.over === 'top' ? 'border-fid-accent' : 'border-fid-border'"
         :aria-label="c.places.noRoom"
+        data-drop="top"
+        data-drop-accepts="unit"
       >
         <h2 class="fid-plate text-fid-text-muted">{{ c.places.noRoom }}</h2>
         <PlaceUnit
@@ -272,5 +356,6 @@ const sheet = ref<number | null>(null)
     </template>
 
     <ShelfSheet v-if="sheet !== null" :instance-id="sheet" @close="sheet = null" />
+    <DragGhost />
   </AppPage>
 </template>

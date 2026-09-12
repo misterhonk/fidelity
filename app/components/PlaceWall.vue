@@ -25,6 +25,17 @@ const props = defineProps<{
 const emit = defineEmits<{ open: [id: string] }>()
 
 const c = useCollectionMessages()
+const { drag, grab } = usePlaceDrag()
+
+/** A cube lifts with everything in it; an empty one has nothing to carry. */
+function lift(event: PointerEvent, cube: PlaceNode) {
+  if (cube.records === 0) return
+  grab(event, {
+    kind: 'compartment',
+    id: cube.id,
+    label: c.value.places.dragAll(labelOf(cube)),
+  })
+}
 
 const columns = computed(() => props.unit.grid?.columns ?? 1)
 
@@ -85,7 +96,10 @@ function onKey(event: KeyboardEvent, index: number) {
       v-for="(cube, index) in compartments"
       :key="cube.id"
       role="gridcell"
-      class="min-w-0 bg-fid-surface"
+      class="min-w-0 bg-fid-surface transition-shadow"
+      :class="drag?.over === cube.id ? 'ring-2 ring-fid-accent ring-inset' : ''"
+      :data-drop="cube.id"
+      data-drop-accepts="records compartment"
       :style="{
         gridColumn: (cube.slot?.column ?? 0) + 1,
         gridRow: (cube.slot?.row ?? 0) + 1,
@@ -101,6 +115,7 @@ function onKey(event: KeyboardEvent, index: number) {
         :tabindex="index === 0 ? 0 : -1"
         @click="emit('open', cube.id)"
         @keydown="onKey($event, index)"
+        @pointerdown="lift($event, cube)"
       >
         <span class="flex items-baseline justify-between gap-1">
           <span class="fid-plate" :class="look.face ? 'opacity-80' : 'text-fid-text-muted'">{{

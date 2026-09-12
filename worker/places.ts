@@ -382,6 +382,26 @@ export async function placeContents(placeId: string, deep = true): Promise<Colle
 }
 
 /**
+ * A piece of furniture carried into another room, or out of one (M27.4).
+ *
+ * Only furniture moves: a room is a heading, a compartment is nothing
+ * without its unit. It stands in a room or at the top — never in a unit or
+ * a compartment, and never in a room that is gone.
+ */
+export async function movePlace(id: string, parentId: string | null): Promise<boolean> {
+  const db = await openFidelityDb()
+  const place = await db.get('places', id)
+  if (!place || !alive(place) || place.kind !== 'unit' || place.parentId === parentId)
+    return false
+  if (parentId !== null) {
+    const parent = await db.get('places', parentId)
+    if (!parent || !alive(parent) || (parent.kind && parent.kind !== 'room')) return false
+  }
+  await db.put('places', { ...place, parentId, updatedAt: Date.now() })
+  return true
+}
+
+/**
  * Everything from one place to another — the ordinary case after a move.
  *
  * Not the single copy: somebody moving carries crates, not records.

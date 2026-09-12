@@ -11,6 +11,7 @@ import {
   placeRecords,
   setFinish,
   moveAll,
+  movePlace,
   placeContents,
   placeOf,
   placeRecord,
@@ -439,6 +440,46 @@ describe('a finish', () => {
  * Filling from the wall (M27.1c): the pile still to sort in is what has no
  * living place, and an armful goes into a compartment at once.
  */
+describe('carrying furniture (M27.4)', () => {
+  it('moves a unit into a room, out of one, and nowhere it does not belong', async () => {
+    const room = (await createPlace('Living room', null))!
+    const unit = (await createUnit({
+      name: 'Kallax',
+      parentId: null,
+      shape: 'shelf',
+      columns: 2,
+      rows: 2,
+      capacity: 70,
+      finish: { material: 'oak', thickness: 'medium', colour: null },
+      rule: 'artist',
+    }))!
+    const cube = (await placesOverview()).find((node) => node.parentId === unit.id)!
+
+    expect(await movePlace(unit.id, room.id)).toBe(true)
+    expect((await placesOverview()).find((node) => node.id === unit.id)?.parentId).toBe(room.id)
+    expect(addressOf(cube.id, await placesOverview())).toEqual(['Living room', 'Kallax', 'A1'])
+
+    // The same room again is nothing; a room cannot move; a unit is no room.
+    expect(await movePlace(unit.id, room.id)).toBe(false)
+    expect(await movePlace(room.id, null)).toBe(false)
+    expect(await movePlace(cube.id, null)).toBe(false)
+    const other = (await createUnit({
+      name: 'Box',
+      parentId: null,
+      shape: 'crate',
+      columns: 1,
+      rows: 1,
+      capacity: null,
+      finish: { material: 'oak', thickness: 'medium', colour: null },
+      rule: 'manual',
+    }))!
+    expect(await movePlace(unit.id, other.id)).toBe(false)
+
+    expect(await movePlace(unit.id, null)).toBe(true)
+    expect(addressOf(cube.id, await placesOverview())).toEqual(['Kallax', 'A1'])
+  })
+})
+
 describe('filling a compartment', () => {
   it('lists what has no place yet, and forgets a place that was dissolved', async () => {
     const db = await openFidelityDb()

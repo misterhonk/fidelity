@@ -80,10 +80,13 @@ over the collection with the filter *not placed yet*, "12 records to C1").
 The third way shipped first (M27.1c): a compartment's drawer has "Fill", the collection
 with *not placed yet* on by default, a tick per record and one button.
 
-Re-sorting: select, then "move to …" with the wall as picker — the main road on touch;
-pointer-based drag and drop on top of it, with long-press and haptics on a phone;
-arrow keys over the grid, `M` to move, a letter to jump; every move with an undo line.
-Whole compartments move as one, furniture drags into another room.
+Re-sorting: select, then "move to …" with the wall as picker — the main road on touch
+(M27.3); pointer-based drag and drop on top of it (M27.4): a mouse drags after six pixels, a
+finger has to rest for a moment first and the phone buzzes once — until then a finger is
+scrolling, and scrolling wins. A sleeve from the open compartment lands on a cube of the
+wall behind it, a whole compartment moves as one onto another, furniture drags by its name
+into another room. Every move leaves a line with "Undo". Arrow keys over the grid, `M` to
+move and a letter to jump stay open.
 
 ## 5. What not
 
