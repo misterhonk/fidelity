@@ -262,7 +262,9 @@ lifetime tier ("the test pressing", €99) is worth offering from day one for th
 *Prices are placeholders for the decision, not the decision.*
 
 The screen: Settings › Support, one list, the plan the person has ticked, the rest
-selectable, the tips below. No paywall anywhere else — a comfort feature that is not
+selectable, the tips below. **Built in M22.3 and taken out again on 2026-09-12:** a price
+list with no way to pay is a promise the app cannot keep; the screen returns with the
+provider account (M25.4). The tier names stay in the pack for the access screen's line. No paywall anywhere else — a comfort feature that is not
 available says, in one line, what it would take, and links here.
 
 ## 7. The plan, in milestones

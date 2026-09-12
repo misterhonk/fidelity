@@ -131,7 +131,6 @@ const SECTIONS = computed(() => [
   { to: '/settings/sync', ...st.value.sync, status: sync.value },
   { to: '/settings/hub', ...st.value.hub, status: hub.value },
   { to: '/settings/access', ...st.value.access, status: access.value },
-  { to: '/settings/support', ...st.value.support, status: null },
   { to: '/settings/data', ...st.value.data, status: usage.value },
   /*
    * Right at the bottom, because it is looked for rather than stumbled over.

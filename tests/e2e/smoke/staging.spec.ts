@@ -49,7 +49,6 @@ test('the settings pages are there, signed in', async ({ page }) => {
   for (const [path, title] of [
     ['/settings/hub', 'Hub'],
     ['/settings/access', 'Access'],
-    ['/settings/support', 'Support'],
   ] as const) {
     await page.goto(path)
     await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible()

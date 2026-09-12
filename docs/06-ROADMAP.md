@@ -1125,6 +1125,7 @@ was written on 2026-09-12; what has to be signed, paid for or sent is Martin's.
 | M25.3 The privacy notices | The access service's own notice, drafted in both languages beside the letter; the app's notice extended by the catalogue and the access key — two destinations that existed since M21 and M22 without a heading — with the guard now watching the catalogue client too | **Done 2026-09-12** (the service's notice goes live with the service) |
 | M25.4 Prices and provider | Fees read from the providers' pages (`docs/17` §3.5): Paddle out on its under-$10 rule, Lemon Squeezy and Polar at 5 % + 50 ¢, the €1.99 tip a poor deal at that fee. The numbers in `settings.ts` stay placeholders until decided | Material done; decision and account are Martin's |
 | M25.5 The store shell | Play and App Store wrappers | **Deferred to 1.1**, as planned |
+| M25.6 The Support screen | Settings › Support with the plans and tips, built in M22.3, is off the settings index and out of the bundle until a provider can take the money — a price list nobody can pay is a promise. Comes back with M25.4 | **Taken out 2026-09-12** |
 | 1.0 | Tag, changelog, the four promises of `docs/17` §2 checked one by one | After M24.6 and M25.1's reply, or its absence |
 
 ## Not on the roadmap

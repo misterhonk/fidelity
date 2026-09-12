@@ -207,7 +207,6 @@ const SCREENS = [
   '/settings',
   '/settings/hub',
   '/settings/access',
-  '/settings/support',
   '/settings/account',
   '/settings/data',
 ]
