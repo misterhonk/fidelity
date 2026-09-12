@@ -11,6 +11,23 @@ Für eine App bedeutet SemVer:
 
 ## [0.59.0](https://github.com/misterhonk/fidelity/compare/v0.58.0...v0.59.0) (2026-09-12)
 
+**Sixty words, one door, and a find that keeps its name.**
+
+Every screen now says what it has to say in sixty words above the fold, and a browser
+test holds it there: leads got shorter, explanations moved behind "Why?", and the wantlist's
+plan is a line instead of a box. The hub screen has one field for the way in — an access
+key or the shared secret of your own hub — and the app reads which one you typed: a key
+starts with "fk1." and opens a hosted hub and catalogue, anything else is a secret. The
+Access screen is folded in; its old address leads to the hub.
+
+And a bug from the first month: seven hours after a dig, a find on the start screen read
+"Release 3189681" and its sheet had no title. The six-hour rule stripped the record's
+name with the price. The name is a catalogue fact, not marketplace data, and it stays now —
+condition, price, seller comments and the market statistics still go on time.
+
+**What to do:** Nothing. If you had an access key under Settings › Access, it is on the hub
+screen now, unchanged.
+
 
 ### Added
 
