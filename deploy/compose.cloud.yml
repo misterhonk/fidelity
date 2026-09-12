@@ -52,8 +52,14 @@ services:
       HUB_DB: /data/hub.sqlite
       HUB_BACKUP_DIR: /backup
     volumes:
-      - hub-data:/data:ro
+      # Not read-only: SQLite in WAL mode needs to write the -shm file even to
+      # read (measured 2026-09-12: "unable to open database file" behind :ro).
+      # The copy itself only reads.
+      - hub-data:/data
       - hub-backup:/backup
+    # The hub image's health check asks :8787; nothing listens here.
+    healthcheck:
+      disable: true
     restart: unless-stopped
 
   catalogue:

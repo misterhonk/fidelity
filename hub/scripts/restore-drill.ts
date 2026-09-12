@@ -28,7 +28,15 @@ if (!newest) {
 
 const copy = join(mkdtempSync(join(tmpdir(), 'fidelity-restore-')), newest)
 copyFileSync(join(dir, newest), copy)
-const expected = inspectBackup(copy)
+let expected: ReturnType<typeof inspectBackup>
+try {
+  expected = inspectBackup(copy)
+} catch (error) {
+  console.error(
+    `restore drill: ${newest} is not a hub — ${error instanceof Error ? error.message : String(error)}`,
+  )
+  process.exit(1)
+}
 
 const db = openHubDb(copy)
 const app = createHubApp({ db, secret: null })

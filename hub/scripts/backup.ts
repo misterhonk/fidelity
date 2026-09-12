@@ -39,6 +39,8 @@ for (;;) {
     }
   } catch (error) {
     console.error(`backup: failed — ${error instanceof Error ? error.message : String(error)}`)
+    // A failed copy leaves an empty file behind; the drill would trip on it.
+    rmSync(join(dir, `hub-${new Date().toISOString().slice(0, 10)}.sqlite`), { force: true })
     if (once) process.exit(1)
   }
   if (once) process.exit(0)

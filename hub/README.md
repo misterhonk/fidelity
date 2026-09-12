@@ -110,4 +110,6 @@ online backup — `hub-<date>.sqlite` in `HUB_BACKUP_DIR`, fourteen kept — whi
 writing. The VAPID keys are in every copy; the rest is a cache. `scripts/restore-drill.ts`
 starts a throwaway hub on the newest copy and reads health: exit 0 means the copies are
 worth something. Both run from the hub's image with a different command; see
-`deploy/compose.homelab.yml` (`hub-backup`).
+`deploy/compose.homelab.yml` (`hub-backup`). The hub's volume is mounted writable there on
+purpose: SQLite in WAL mode needs the `-shm` file even to read, and behind `:ro` the copy
+fails with "unable to open database file".
