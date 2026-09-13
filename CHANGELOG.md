@@ -11,6 +11,14 @@ Für eine App bedeutet SemVer:
 
 ## [0.70.1](https://github.com/misterhonk/fidelity/compare/v0.70.0...v0.70.1) (2026-09-13)
 
+**The footer waits at the end of the dig.**
+
+On a long find list the footer stood under the list on every screen, taking a fifth of the
+window for a licence line. The list scrolls with the page now, like everything else, the
+filter bar stays put under the nav, and the footer comes when you have scrolled to the end.
+
+**What to do:** Nothing.
+
 
 ### Fixed
 
