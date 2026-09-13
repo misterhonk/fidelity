@@ -134,7 +134,7 @@ The core of the MVP. The artist is in the collection, this release is not.
 |---|---|---|
 | 0 | **The lexicon.** The map also holds every other name the horizon knows a collected artist by — `namevariations` and `aliases` from `/artists/{id}` as the same person, `members` and `groups` as a related act. "Miss Dinky" is Dinky. | alias: **as the stage that finds it** · member/group: **≤ 0.85** |
 | 1 | `artistMap.get(norm)` – a map lookup, O(1) | **1.00** |
-| 2 | Token containment: `"Kraftwerk / Neu!"` contains `"kraftwerk"` | **0.85** |
+| 2 | Token containment: `"Kraftwerk / Neu!"` contains `"kraftwerk"`. **Own names only — a single token never matches a lexicon name.** | **0.85** |
 | 3 | Trigram similarity ≥ 0.85 – **only for the leftovers**, in JS | **0.70** |
 | — | `artist_norm IN ('various','various artists','v/a','unknown')` | **discard** |
 
@@ -148,6 +148,20 @@ exists only for artists the horizon expanded, which is the same line the horizon
 "Miss Dinky is Dinky" or "Holger Czukay is part of Can" instead of claiming the listing
 said the name on the shelf. Since 2026-09-11 (M19 #6); one request per artist, paid with
 the discography.
+
+**Stage 2 does not see the lexicon (since 2026-09-13).** A lexicon name is Discogs' word
+that this is the same person, not the name the record is under — already the weaker of the
+two claims — and taking one word out of a listing's artist string and looking *that* up
+stacks the two weakest things the cascade does. What it cost: "The Mark & Clark Band"
+normalises to `mark & clark band`, whose tokens are `mark`, `clark`, `band`; Anne Clark
+carries "Clark" among her name variations, so `clark` was a key, and a 1977 CBS band came
+back at 0.85 as "Clark ist Anne Clark — du hast 10 Platten von Anne Clark". A surname is
+not a name. Stages 1 and 3 keep the lexicon, because both compare a *whole* string with a
+whole name: a misspelt alias still reaches the trigram stage, and Jaccard cannot exceed the
+ratio of the two trigram counts, so `mark & clark band` against `clark` is capped at 0.28
+and never approaches the threshold. The line is `via`: an entry that carries one is not
+what the artist is called, and "dinky" — Dinky's own name — carries none, so Miss Dinky is
+still Dinky.
 
 Multiplied additionally by the weight from the taste profile: an artist you own 12 records
 by counts more than one you own a single record by.

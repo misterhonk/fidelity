@@ -90,7 +90,11 @@ export interface MatchIndex {
    *
    * Every name the collection knows an artist by, not only the one on the
    * shelf: the horizon's lexicon adds aliases, members and groups under the
-   * same entry (docs/04 §S3, stage 0), so every stage of the cascade sees them.
+   * same entry (docs/04 §S3, stage 0).
+   *
+   * **One stage does not see them.** A lexicon entry carries `via`, and the
+   * single-token stage skips those: a whole name may be compared with an
+   * alias, a fragment of one may not. See `matchArtist`.
    */
   artistWeight: Map<string, ArtistEntry>
   labelWeight: Map<string, { name: string; weight: number; n: number }>
@@ -239,13 +243,40 @@ function matchArtist(
     if (hit) return found(hit, 0.85)
   }
 
-  // Single tokens catch the rest: "Neu! 2" against "neu".
+  /*
+   * Single tokens catch the rest: "Neu! 2" against "neu".
+   *
+   * **The lexicon is out of reach from here, since 2026-09-13.** A name from
+   * the lexicon is already the weaker claim — Discogs' word that this is the
+   * same person, not the name the record is under — and taking one word out
+   * of a listing's artist string and looking *that* up stacks the two weakest
+   * things the cascade does.
+   *
+   * What it cost: "The Mark & Clark Band" normalises to "mark & clark band",
+   * whose tokens are mark, clark, band. Anne Clark carries "Clark" among her
+   * name variations, so "clark" was a key, and a 1977 CBS band nobody in the
+   * collection has ever heard of came back at 0,85 as "Clark ist Anne Clark —
+   * du hast 10 Platten von Anne Clark". Reported from a real dig.
+   *
+   * A surname is not a name. `hit.via` is exactly the test for "this key is
+   * not what the artist is called", and Miss Dinky still works: "dinky" is
+   * Dinky's own name, so it has no `via`.
+   */
   for (const token of tokens(normalised)) {
     const hit = index.artistWeight.get(token)
-    if (hit) return found(hit, 0.85)
+    if (hit && !hit.via) return found(hit, 0.85)
   }
 
-  // Only what stages one and two missed reaches here.
+  /*
+   * Only what stages one and two missed reaches here.
+   *
+   * The lexicon stays in reach, unlike the stage above, and the difference is
+   * the whole point: this compares a whole string with a whole name. Jaccard
+   * cannot exceed the ratio of the two trigram counts, so "mark & clark band"
+   * against "clark" is capped at 0,28 and never gets near the threshold —
+   * while "Wuppdeckmischmampflo" against "Wuppdeckmischmampflow", one letter
+   * short, is 0,95 and is exactly what this stage is for.
+   */
   const fuzzy = index.artistTrigrams.best(normalised, 0.85)
   if (fuzzy) {
     const hit = index.artistWeight.get(fuzzy.value)
