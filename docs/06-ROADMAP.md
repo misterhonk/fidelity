@@ -1214,6 +1214,79 @@ have something in the basket from, have something on my wantlist from, or added 
 | 5 | **Where you are, and what is near.** `shipsToCountry` decides "from Germany" and it defaults to `Germany` for everybody — a Swiss or British user gets a chip about the wrong country until they find the setting. Derive it on the first run the way the language is derived, and offer a third group beside home and EU: Europe without the customs union, which is exactly what a Swiss, British or Norwegian buyer is asking about | Every user outside Germany, which is most of them | hours | The filter and the country list exist (`shared/countries.ts`); the default and the third group do not |
 | 6 | **Shops other people dug, through the hub.** Which shops exist, what they stock (`fingerprint` — derived, not marketplace content) and what their postage is are all durable and shareable; prices never are (rule 4). A device could ask the hub "which shops do you know that I do not?" and rank them against its own collection | The "which shops suit me" question, without the platzhirsch bias of any curated list — it is whatever the community actually digs | a day | Needs an ADR: it is the first time the hub would carry something about **shops** rather than about records |
 
+## M31 · Hearing it before buying it → partly done
+
+**Where this comes from.** "I want to be able to listen to the music it suggests — Spotify,
+Apple Music, Tidal, Deezer, and let me choose which in the settings."
+
+**What already exists.** ADR-012 put an audio preview in the stack in M15: the `videos[]` a
+release carries, YouTube, off by default, no byte to Google before a deliberate tap. That
+same ADR considered *"only link out — no embed, no Google on our page"*, rejected it for the
+stack because leaving the app for every card ends the swiping, and left it standing as what
+happens without the switch.
+
+**Step one, done 2026-09-13.** A link, at the service somebody picks: the detail sheet and
+the shelf sheet carry "Find it on TIDAL" and it opens that service's search with the artist
+and the title. No request, no key, no account, and nothing leaves the device until it is
+tapped.
+
+### What the research says about going further
+
+Measured 2026-09-13, because the answer decides the whole shape:
+
+| Service | Resolve a record from the browser, no server? | Player embeddable? |
+|---|---|---|
+| **Spotify** | **Yes** — Authorization Code with PKCE, the user's own account. Spotify's own tutorial does the token exchange in browser JavaScript and says no backend is needed. Needs a registered client id, which is public by design in PKCE | Yes: `open.spotify.com/embed/album/{id}` needs no token. The oEmbed *endpoint* sends no CORS headers, but the iframe does not need it |
+| **TIDAL** | **Yes in principle** — OAuth 2.0 with PKCE for user-context flows | Needs an id, so it hangs off the same login |
+| **Apple Music** | **No.** MusicKit needs a developer token: a JWT signed with a private key, which is a secret, which is a server (rule 1). The iTunes Search API has no CORS | Same token, same wall |
+| **Deezer** | **No.** The public API is not CORS-enabled — JSONP or a proxy, and a proxy is a backend | — |
+
+**So the ladder has exactly three rungs**, and the second and third are only ever going to
+carry two of the four services. Anything that promised all four equally would be promising a
+proxy.
+
+### The plan
+
+| # | Rung | What it gives | Cost | Note |
+|---|---|---|---|---|
+| 1 | **The link** | One tap to that service's search, for all four | hours | **Done 2026-09-13.** No request, no key, no account |
+| 2 | **Sign in to Spotify or TIDAL** (PKCE, own app registration — the Dropbox/Drive pattern the vault already uses) | The exact album instead of a search, and "in your library" on a find | a day each | The token lives in IndexedDB and is treated like the Discogs one: never logged, never in a URL |
+| 3 | **The embedded player** | Thirty seconds without leaving the screen | hours on top of 2 | ADR-012's conditions apply unchanged: off by default, nothing loaded before a deliberate tap, its own chunk, its own paragraph on the privacy page |
+
+### How well the data actually matches
+
+What a find carries is an artist string, a title, a catalogue number, a label and a year —
+and what it does *not* carry is anything a streaming service uses as a key. The search is
+`artist + title`, which is what somebody would type.
+
+Where that works: albums. Where it does not, and this is the half of the collection Fidelity
+is best at — 12" singles, white labels, DJ tools, bootlegs, unofficial pressings, anything
+never licensed for streaming. A jazz LP resolves; a Freude-Am-Tanzen 12" often does not
+exist on Spotify at all.
+
+**Which is why rung 1 is a search and not a claim.** A link that lands on a search page and
+finds nothing is honest; a button that says "play" and plays the wrong record is not. Rung 2
+would let the app say *whether* it is there before the tap — that is its real value, more
+than the exactness.
+
+### Where the data protection line runs
+
+| | What reaches the service | Needs consent |
+|---|---|---|
+| **A link** | Nothing, until it is tapped. Then it is the reader's own navigation, like any link on any page | No |
+| **An embed** | The IP address and which record, **before any interaction**, because the iframe loads on sight | Yes, and it is exactly the ADR-012 case |
+| **A sign-in** | Whatever the user deliberately authorises, at the service's own page | It *is* the consent, and the screen names what leaves |
+
+The distinction is the whole design: automatically loaded third-party content makes the site
+a joint controller for what it sends, and a link does not. Rung 1 therefore needs no banner,
+no toggle for privacy's sake and no paragraph — the switch it has is about the screen, not
+about data. Rungs 2 and 3 each get their own sentence on the privacy page before they ship,
+the way the YouTube preview did.
+
+**Not planned:** a proxy for Apple Music or Deezer. That is a backend (rule 1), and it would
+put every user's listening through a machine of ours — the one thing the privacy promise is
+built to avoid.
+
 ## Not on the roadmap
 
 | Idea | Why not |
