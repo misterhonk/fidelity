@@ -218,6 +218,48 @@ describe('reading a shipping table out of free text', () => {
  * Postage is the number the whole basket screen exists to produce. Reading it
  * off the wrong continent is worse than not reading it at all.
  */
+/**
+ * A shop that bills by grams (2026-09-13).
+ *
+ * "Es gibt Händler die haben als Versandstaffel Gewichte hinterlegt" —
+ * Vinylvoorelkaar, measured: `1 bis 1999 Gramm: 14,00 €`. There is no honest
+ * conversion to a table per record, so the parser names the shape instead of
+ * refusing in silence, and the screen puts the shop's own words next to the
+ * form.
+ */
+describe('a shipping table priced by weight', () => {
+  const real = [
+    'Standard - postnl: 3-5 Werktage',
+    '1 bis 1999 Gramm: 14,00 €',
+    '2000 bis 4999 Gramm: 24,50 €',
+    'Ab 5000 Gramm: 34,00 €',
+  ].join('\n')
+
+  it('is recognised as one, and still produces no tiers', () => {
+    const parsed = parseShippingText(real, 'Germany')
+
+    expect(parsed.byWeight).toBe(true)
+    // Recognise or refuse: a weight is not a record count, and picking a
+    // gram figure per LP would be the guess this module exists to avoid.
+    expect(parsed.tiers).toEqual([])
+  })
+
+  it('says so in English too', () => {
+    expect(parseShippingText('1 to 500 g: 6.00 EUR', 'Germany').byWeight).toBe(true)
+  })
+
+  it('does not mistake a heavyweight pressing for a postage table', () => {
+    expect(parseShippingText('180g vinyl. 1 LP: 6,00 €, 2-3 LP: 9,00 €').byWeight).toBe(false)
+  })
+
+  it('leaves an ordinary table alone', () => {
+    const parsed = parseShippingText('1 LP: 6,00 €, 2-3 LP: 9,00 €, ab 4 LP: 12,00 €')
+
+    expect(parsed.byWeight).toBe(false)
+    expect(parsed.tiers.length).toBeGreaterThan(0)
+  })
+})
+
 describe('a shipping text sorted by destination', () => {
   it('reads the domestic rate for a domestic buyer', () => {
     const { tiers, section } = parseShippingText(FATPLASTICS, 'Germany')
@@ -256,7 +298,12 @@ describe('a shipping text sorted by destination', () => {
   it('refuses when no block covers the destination', () => {
     // A dealer who names Germany and Austria has said nothing about Japan.
     const text = 'Germany:\n1 LP: 6 €\n\nAustria:\n1 LP: 9 €'
-    expect(parseShippingText(text, 'Japan')).toEqual({ tiers: [], matched: [], section: null })
+    expect(parseShippingText(text, 'Japan')).toEqual({
+      tiers: [],
+      matched: [],
+      section: null,
+      byWeight: false,
+    })
   })
 
   it('refuses a sorted text when it is not told where the parcel goes', () => {
