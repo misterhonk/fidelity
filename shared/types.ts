@@ -4,6 +4,8 @@
  * objects, arrays and TypedArrays only. No class instances, no functions.
  */
 
+import type { ListenService } from './listen'
+
 // ---------------------------------------------------------------------------
 // Signals
 // ---------------------------------------------------------------------------
@@ -106,6 +108,17 @@ export interface Preferences {
    * drawn.
    */
   audioPreview: boolean
+
+  /**
+   * Which music service a "listen" link goes to, or `none` (M31).
+   *
+   * The other half of what ADR-012 calls "only link out", and the half it left
+   * standing: a link that opens that service's search with the artist and the
+   * title. No request, no key, no account — and nothing leaves the device
+   * until somebody taps it, which is the same standing the "at Discogs" link
+   * has always had.
+   */
+  listenService: ListenService
 
   /**
    * Where this device keeps the block that carries it to the others.

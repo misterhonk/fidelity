@@ -3,6 +3,7 @@ import { MEDIUMS } from '#shared/format'
 import { CONDITIONS, type Condition, type Preferences } from '#shared/types'
 import { useSettingsMessages } from '~/i18n/settings'
 import { COUNTRIES, localName } from '~/utils/countries'
+import { LISTEN_NAMES, LISTEN_SERVICES, type ListenService } from '#shared/listen'
 
 /*
  * A computed, not `useMessages().value.settings.search.filter`.
@@ -17,6 +18,20 @@ const f = computed(() => useSettingsMessages().value.search.filter)
 const { call } = useFidelityWorker()
 
 const prefs = ref<Preferences | null>(null)
+
+/**
+ * The services, with "nowhere" first and named in the reader's language.
+ *
+ * Built here rather than in the template: a quoted word inside a template
+ * expression is text that cannot follow a language switch, and
+ * `tests/unit/template-text.spec.ts` holds the app to that by shape.
+ */
+const listenOptions = computed(() =>
+  LISTEN_SERVICES.map((service) => ({
+    value: service,
+    label: service === 'none' ? f.value.listenNone : LISTEN_NAMES[service],
+  })),
+)
 const saved = ref(false)
 const error = ref<unknown>(null)
 
@@ -283,6 +298,30 @@ const number = (value: string) => {
             </option>
           </select>
           <span class="text-fid-xs text-fid-text-muted">{{ f.conditionHint }}</span>
+        </label>
+
+        <!--
+          Where "listen" goes (M31).
+          A link, not an integration: it opens that service's search with the
+          artist and the title. Nothing is fetched and nothing leaves the
+          device until somebody taps it.
+        -->
+        <label class="flex flex-col gap-1">
+          <span class="text-fid-sm text-fid-text-muted">{{ f.listen }}</span>
+          <select
+            :value="prefs.listenService"
+            class="fid-field px-3 py-2 text-fid-sm text-fid-text"
+            @change="
+              save({
+                listenService: ($event.target as HTMLSelectElement).value as ListenService,
+              })
+            "
+          >
+            <option v-for="option in listenOptions" :key="option.value" :value="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+          <span class="text-fid-xs text-fid-text-muted">{{ f.listenHint }}</span>
         </label>
 
         <label class="flex flex-col gap-1">

@@ -65,6 +65,14 @@ export const DEFAULT_PREFERENCES: Preferences = {
   importFriends: false,
   // ADR-012: aus, bis jemand es will. Siehe `Preferences.audioPreview`.
   audioPreview: false,
+  /*
+   * No listen link until somebody picks a service (M31).
+   *
+   * Not caution about data — nothing is sent either way — but about the
+   * screen: a button to a service somebody does not use is a button in the
+   * way of the one they do.
+   */
+  listenService: 'none' as const,
   // One device needs no vault, so the default configuration is no vault.
   vaultTarget: 'none' as const,
   vaultSyncedAt: null,

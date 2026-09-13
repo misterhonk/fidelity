@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Match, MatchDetail } from '#shared/types'
+import { LISTEN_NAMES, listenUrl, type ListenService } from '#shared/listen'
 import { reasonFor } from '~/i18n/reason'
 import { pressingText, stampText } from '~/i18n/pressing'
 import { useDigMessages } from '~/i18n/dig'
@@ -28,7 +29,30 @@ const detail = ref<MatchDetail | null>(null)
 const state = ref<'loading' | 'ready' | 'gone'>('loading')
 const failed = ref<unknown>(null)
 
+/*
+ * One tap to the music (M31).
+ *
+ * A link, not an integration: it opens the chosen service's search with the
+ * artist and the title. Nothing is fetched and nothing leaves the device until
+ * somebody taps it — the same standing as the "at Discogs" link beside it.
+ *
+ * Absent until a service is chosen, which is the default: a button to a
+ * service somebody does not use is in the way of the one they do.
+ */
+const listen = ref<ListenService>('none')
+
+const listenTo = computed(() =>
+  match.value ? listenUrl(listen.value, match.value.artist, match.value.title) : null,
+)
+
+/** The service's own name, or null where none is chosen — the button's label. */
+const listenName = computed(() => (listen.value === 'none' ? null : LISTEN_NAMES[listen.value]))
+
 onMounted(async () => {
+  // Not awaited together with the detail: the sheet must not wait for a
+  // preference to draw the record it is about.
+  void call('preferences.get', undefined).then((prefs) => (listen.value = prefs.listenService))
+
   try {
     const answer = await call('dig.detail', {
       digId: props.digId,
@@ -454,6 +478,24 @@ function years(entry: { from: number; to: number }): string {
             }}
           </button>
         </div>
+
+        <!--
+          Hearing it, before deciding about it (M31).
+
+          A search at the chosen service, and the label says so: Fidelity
+          cannot know Spotify's id for a record without asking Spotify, and
+          asking needs an account and a key.
+        -->
+        <a
+          v-if="listenTo && listenName"
+          class="fid-lift inline-flex min-h-11 items-center gap-2 fid-field-raised px-4 text-fid-sm font-medium text-fid-text"
+          :href="listenTo"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ d.sheet.listen(listenName) }}
+          <FidIcon name="external-link" :size="14" />
+        </a>
 
         <a
           class="fid-lift inline-flex min-h-11 items-center gap-2 fid-field-raised px-4 text-fid-sm font-medium text-fid-text"
