@@ -1237,9 +1237,25 @@ export const handlers: HandlerMap = {
 
   'dig.stands': async () => (await import('./stands')).recentStands(),
 
+  /*
+   * The newest dig — except the one being scanned this second.
+   *
+   * A running dig is a record in the database like any other, and it is the
+   * newest one there is: the scanner writes it before the first page and
+   * updates it after every page. So a screen asking for "the latest dig" while
+   * a scan ran was handed a row that says `0 Treffer · 0 von 5.551 gescannt`,
+   * and rendered the acquittal for it — "nothing here for you at this shop" —
+   * directly under a progress bar reading `443 von 5.551 · 45 Treffer`.
+   * Reported with exactly that screenshot on 2026-09-13.
+   *
+   * The bar is the truth while a scan runs, and it has its own place on the
+   * screen. This hands back the last dig that is *finished with*, which is the
+   * only thing a result list can honestly show.
+   */
   'dig.latest': async () => {
     const db = await openFidelityDb()
-    const digs = await db.getAll('digs')
+    const live = (await scan()).runningDig()
+    const digs = (await db.getAll('digs')).filter((dig) => dig.id !== live?.digId)
     const newest = digs.sort((a, b) => b.id.localeCompare(a.id))[0]
     return newest ? loadDig(newest.id) : null
   },
