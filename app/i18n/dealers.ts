@@ -37,8 +37,15 @@ const en = {
    * always against your *other* shops — what the market as a whole asks is not
    * something this app can see, so it does not claim to.
    */
-  rateAlone: (rate: string) =>
-    `${rate} finds per thousand listings. Once you have scanned a second shop, this says how that compares.`,
+  /*
+   * One shop, one number, and no promise about the next one.
+   *
+   * This was the loudest line on the screen and half of it was about a
+   * comparison that does not exist yet: "once you have scanned a second shop,
+   * this says how that compares". The other three say the comparison when
+   * there is one, which is when it is worth reading.
+   */
+  rateAlone: (rate: string) => `${rate} finds per thousand listings.`,
   rateAbove: (rate: string, factor: string) =>
     `${rate} finds per thousand — ${factor} times your other shops.`,
   rateSame: (rate: string) =>
@@ -252,8 +259,7 @@ const de: typeof en = {
     none: 'Keiner deiner Läden versendet von dort.',
   },
 
-  rateAlone: (rate) =>
-    `${rate} Treffer je tausend Listings. Sobald du einen zweiten Laden gescannt hast, steht hier, wie sich das vergleicht.`,
+  rateAlone: (rate) => `${rate} Treffer je tausend Listings.`,
   rateAbove: (rate, factor) =>
     `${rate} Treffer je tausend – das ${factor}-Fache deiner übrigen Läden.`,
   rateSame: (rate) => `${rate} Treffer je tausend – etwa so viel wie deine übrigen Läden.`,

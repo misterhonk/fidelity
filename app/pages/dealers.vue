@@ -49,7 +49,19 @@ const shown = computed(() =>
 )
 /** The shops somebody asked never to see again — listed at the foot, so they can come back. */
 const hidden = shallowRef<Dealer[]>([])
-const selected = ref<string | null>(null)
+/*
+ * Which shop is open — in the address, not only in memory (M30).
+ *
+ * A reload used to open whichever shop ranked highest rather than the one
+ * somebody was reading, and the screen could not be linked to at all. The dig
+ * screen has carried its `?id=` since M3 for exactly this reason; found again
+ * here when a test asserted straight through a reload and failed against a
+ * screen showing a different shop.
+ */
+const selected = computed(() => {
+  const wanted = route.query.shop
+  return typeof wanted === 'string' && wanted ? wanted : null
+})
 const profile = ref<DealerProfile | null>(null)
 
 /**
@@ -251,14 +263,20 @@ async function load() {
    * the query picks the one somebody actually tapped — and an unknown one
    * falls through to the default rather than showing an empty profile.
    */
-  const wanted = route.query.dealer
-  const asked =
-    typeof wanted === 'string' && dealers.value.some((dealer) => dealer.username === wanted)
-      ? wanted
+  const known = (name: unknown) =>
+    typeof name === 'string' && dealers.value.some((dealer) => dealer.username === name)
+      ? name
       : null
 
+  /*
+   * `?shop=` first: that is this screen's own address and survives a reload.
+   * `?dealer=` comes from the start page and means the same thing — kept
+   * rather than renamed, because links to it exist.
+   */
+  const asked = known(route.query.shop) ?? known(route.query.dealer)
+
   if (asked) await select(asked)
-  else if (first && !selected.value) await select(first.username)
+  else if (first) await select(first.username)
 }
 
 onMounted(async () => {
@@ -287,7 +305,10 @@ onMounted(async () => {
 })
 
 async function select(username: string) {
-  selected.value = username
+  // Through the address, so a reload and a shared link both land here.
+  if (selected.value !== username) {
+    await router.replace({ query: { ...route.query, shop: username } })
+  }
   grading.value = null
   error.value = null
   try {
@@ -344,11 +365,12 @@ async function setHidden(username: string, hide: boolean) {
   }
 
   if (hide && selected.value === username) {
-    selected.value = null
     profile.value = null
     grading.value = null
     const next = dealers.value[0]
+    // The address goes with it: a hidden shop must not stay in the link.
     if (next) await select(next.username)
+    else await router.replace({ query: { ...route.query, shop: undefined } })
   } else if (!hide) {
     await select(username)
   }
@@ -778,9 +800,16 @@ const scanned = computed(() => {
             >
               {{ profile.dealer.lastScannedAt === null ? h.digNow : h.digAgain }}
             </NuxtLink>
+            <!--
+              And the one that takes something away steps back.
+              Three bordered buttons of the same weight, one of which removes
+              the shop from every list — read side by side they all look like
+              the same kind of offer. A plate action instead: reachable, not
+              proposed.
+            -->
             <button
               type="button"
-              class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+              class="fid-action fid-plate px-1 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
               :title="h.hideWhy"
               @click="setHidden(profile.dealer.username, true)"
             >
@@ -890,6 +919,7 @@ const scanned = computed(() => {
           <FacetBars
             :title="h.decades"
             signal="gap"
+            token="label"
             :facets="decades"
             :empty="h.noYears"
             :open="(facet) => (browsing = { title: facet.name, decade: decadeOf(facet.name) })"

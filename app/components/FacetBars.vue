@@ -7,8 +7,16 @@ const h = useDealerMessages()
 const props = defineProps<{
   title: string
   facets: TasteFacet[]
-  /** Token name for the bar, e.g. 'label' → --fid-sig-label. */
+  /** Token name for the bar, e.g. 'label' → --fid-sig-label. Also the heading id. */
   signal: string
+  /**
+   * The colour, where it should not follow the heading id.
+   *
+   * Two distributions of the same shop's stock — its labels and its decades —
+   * were drawn in two different signal colours, which reads as two different
+   * kinds of number. They are the same kind: how much of this shop is that.
+   */
+  token?: string
   empty?: string
   /**
    * What a click on a row does — if anything at all.
@@ -56,11 +64,19 @@ const peak = computed(() => Math.max(1, ...props.facets.map((facet) => facet.n))
             @click="open?.(facet)"
             >{{ facet.name }}</component
           >
+          <!--
+            A floor in pixels, not per cent.
+
+            Two per cent of a wide column is a dot: one record beside a hundred
+            and fifty was a mark nobody could see, and a row that shows nothing
+            reads as none rather than as few.
+          -->
           <span
             class="mt-1 block h-1.5 rounded-full"
             :style="{
               width: `${Math.max(2, (facet.n / peak) * 100)}%`,
-              backgroundColor: `var(--fid-sig-${signal})`,
+              minWidth: '0.75rem',
+              backgroundColor: `var(--fid-sig-${token ?? signal})`,
             }"
           />
         </dt>

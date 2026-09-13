@@ -652,7 +652,13 @@ const en = {
      * next run knows to leave it out. */
     hide: 'Never suggest',
     hideWhy: 'Never suggest this shop again',
-    nothing: 'Nothing there that looks like a shop.',
+    /*
+     * About the search, not about the screen.
+     *
+     * It read as a verdict on the whole list — reported with a screenshot in
+     * which it stood directly above a shop that was there.
+     */
+    nothing: 'The search found no new shops.',
     whereLabel: 'Where it looks',
     friendsSummary: 'Also read my Discogs friends list?',
     /*

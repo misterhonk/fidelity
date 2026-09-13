@@ -18,6 +18,8 @@ const en = {
   dealerPlaceholder: 'juno_records — or the address of the shop page',
   check: 'Check',
   yourShops: 'Your shops',
+  /** The unit behind the number on a shop chip. */
+  perThousand: (rate: string) => `${rate} finds per thousand listings`,
   offline:
     'No network — a new dig is not possible right now. The last one is below and is complete.',
 
@@ -378,6 +380,7 @@ const de: typeof en = {
   dealerPlaceholder: 'juno_records – oder die Adresse der Ladenseite',
   check: 'Prüfen',
   yourShops: 'Deine Läden',
+  perThousand: (rate) => `${rate} Treffer je tausend Listings`,
   offline:
     'Kein Netz – ein neuer Dig geht gerade nicht. Der letzte steht unten und ist vollständig.',
 
