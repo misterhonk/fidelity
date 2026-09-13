@@ -295,6 +295,7 @@ rules that are not up for negotiation.
 | [`docs/15-COMPARED.md`](docs/15-COMPARED.md) | What Fidelity is and is not, beside Seller Matches, discdogs, WaxTracker, Groovv and the rest |
 | [`docs/16-CATALOGUE-SERVICE.md`](docs/16-CATALOGUE-SERVICE.md) | The catalogue service from the CC0 dump — concept and phases for M21, not built |
 | [`docs/18-PLACES.md`](docs/18-PLACES.md) | Places as a wall: room, furniture, compartment; rules instead of slots; how records are sorted in and re-sorted |
+| [`docs/19-DEMO-ACCOUNT.md`](docs/19-DEMO-ACCOUNT.md) | The demo account at Discogs: what it is for, the script that fills it, where its token lives |
 | [`docs/17-ROADMAP-1.0.md`](docs/17-ROADMAP-1.0.md) | The road to 1.0: app, hub, catalogue, access — technology, the test rings, the Hetzner cross-check, the paid comfort tier with one key per payer |
 | [`docs/adr/`](docs/adr/) | Architecture decision records, including the rejected ones |
 

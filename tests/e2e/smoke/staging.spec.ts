@@ -89,3 +89,36 @@ test('the shop screen identifies a barcode with Discogs answered from here', asy
   // The candidate's label line: the title itself is the cover's caption, not text.
   await expect(page.getByText('SK032', { exact: false })).toBeVisible({ timeout: 20_000 })
 })
+
+/**
+ * The demo account, synced for real (docs/19-DEMO-ACCOUNT.md).
+ *
+ * The only test in the project that talks to Discogs with a token: the
+ * second account's, from the secret, on a fresh device against the live
+ * origin. Sixty records in, the shelf has to show them. Without the secret
+ * the test skips — it is a check on the world, not on the code, and the
+ * code is checked elsewhere without a request.
+ */
+test('the demo account syncs onto a fresh device', async ({ page }) => {
+  // Read off the global: the app's tsconfig knows no `process`, and a type for it is not worth a dependency.
+  const token = (globalThis as { process?: { env: Record<string, string | undefined> } })
+    .process?.env.DISCOGS_DEMO_TOKEN
+  test.skip(!token, 'DISCOGS_DEMO_TOKEN is not set')
+
+  await page.goto('/')
+  await expect(page).toHaveURL(/welcome/)
+  await page.getByRole('button', { name: 'Set it up — with your collection' }).click()
+  await page.getByLabel('Personal access token').fill(token!)
+  await page.getByRole('button', { name: 'Sign in' }).click()
+  await expect(page.getByText(/Signed in as/)).toBeVisible({ timeout: 30_000 })
+  await page.getByRole('button', { name: 'Fetch the collection' }).click()
+  // Sixty records at one request a second: the sync takes a while.
+  await page.getByRole('button', { name: 'Carry on' }).click({ timeout: 180_000 })
+
+  await page.goto('/shelf')
+  await expect(page.locator('li[id^="record-"], main ul li').first()).toBeVisible({
+    timeout: 30_000,
+  })
+  const shown = await page.locator('main ul li').count()
+  expect(shown).toBeGreaterThanOrEqual(40)
+})

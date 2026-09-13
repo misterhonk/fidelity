@@ -28,7 +28,8 @@
     "test:unit:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "size": "size-limit",
-    "test:smoke": "playwright test --config playwright.smoke.config.ts"
+    "test:smoke": "playwright test --config playwright.smoke.config.ts",
+    "demo:fill": "node scripts/demo/fill.mjs"
   },
   "dependencies": {
     "@nuxt/ui": "^4.10.0",

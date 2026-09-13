@@ -39,3 +39,6 @@ jobs:
       - run: pnpm test:smoke
         env:
           SMOKE_BASE_URL: ${{ inputs.origin || 'https://fidelity.mrtnmlchr.de' }}
+          # The demo account's token (docs/19-DEMO-ACCOUNT.md): the one test that
+          # syncs a real collection runs only when it is set, and skips otherwise.
+          DISCOGS_DEMO_TOKEN: ${{ secrets.DISCOGS_DEMO_TOKEN }}
