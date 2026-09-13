@@ -143,8 +143,8 @@ test('a barcode shared by two pressings: pick one, and it is placed among all of
   page,
   context,
 }) => {
-  await answerDiscogs(context, [uk1994, eu2017])
   await seed(page, 'en')
+  await answerDiscogs(context, [uk1994, eu2017])
   await page.goto('/in-store')
 
   await page.getByLabel('Barcode or run-out number').fill('5012394144777')
@@ -178,8 +178,8 @@ test('knows the album from the wantlist, in another pressing (M20 #3)', async ({
   page,
   context,
 }) => {
-  await answerDiscogs(context, [uk1994, eu2017])
   await seed(page, 'en')
+  await answerDiscogs(context, [uk1994, eu2017])
   // A third pressing of Dummy on the wantlist — not one of the two the barcode names.
   await page.evaluate(async () => {
     const open = indexedDB.open('fidelity')
@@ -224,8 +224,8 @@ test('knows the album from the wantlist, in another pressing (M20 #3)', async ({
 })
 
 test('a run-out that names one pressing is read without a tap', async ({ page, context }) => {
-  await answerDiscogs(context, [uk1994])
   await seed(page, 'en')
+  await answerDiscogs(context, [uk1994])
   await page.goto('/in-store')
 
   await page.getByLabel('Barcode or run-out number').fill('828 553-1 A1 TOWNHOUSE')

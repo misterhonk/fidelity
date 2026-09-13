@@ -329,6 +329,39 @@ const STORES = [
 ] as const
 
 /**
+ * Discogs answers 401 here, at once, and nothing else.
+ *
+ * The rule (CLAUDE.md) was always "the Discogs API is mocked in tests" — and
+ * the browser suite never did: every seeded device carried a fake token and
+ * sent it to api.discogs.com for real. The answer *was* a 401, which the
+ * client turns into an error without a retry — until the address sending
+ * it had asked too often. Then Cloudflare's 429 arrives as a rejected fetch,
+ * the client backs off for up to a minute, and a star, a shop's profile or
+ * a sync hangs for exactly as long as a test may run. CI's shared addresses
+ * are limited first; a Mac running the suite six times in a row gets there
+ * too. So the fake token gets the answer it deserves, from here, in a
+ * millisecond. A spec that needs Discogs to say something specific
+ * registers its own route **after** `seed()` — later routes win.
+ */
+const mocked = new WeakSet<object>()
+async function mockDiscogs(page: Page): Promise<void> {
+  const context = page.context()
+  if (mocked.has(context)) return
+  mocked.add(context)
+  await context.route('https://api.discogs.com/**', (route) => {
+    const cors = { 'access-control-allow-origin': '*' }
+    if (route.request().method() === 'OPTIONS')
+      return route.fulfill({ status: 204, headers: cors })
+    return route.fulfill({
+      status: 401,
+      contentType: 'application/json',
+      headers: cors,
+      body: JSON.stringify({ message: 'You must authenticate to access this resource.' }),
+    })
+  })
+}
+
+/**
  * Rows into stores, with a watchdog and a second try.
  *
  * On CI's WebKit (Linux, 2026-09-12) the write behind `seed()` hung in one
@@ -477,6 +510,7 @@ async function waitForStores(page: Page): Promise<void> {
  * identity, and that is here.
  */
 export async function signIn(page: Page): Promise<void> {
+  await mockDiscogs(page)
   await page.goto('/')
   // The same wait as in `seed()`, for the same reason: the app creates the
   // database, not this helper. The long reasoning is there.
@@ -526,6 +560,7 @@ export async function seed(page: Page, language: SeedLanguage = 'en'): Promise<D
    * seed's own transaction waits behind it for ever. Staying on the page
    * keeps the worker awake; the reload at the end reads the rows anyway.
    */
+  await mockDiscogs(page)
   if (!onTheApp(page)) await page.goto('/')
 
   /*

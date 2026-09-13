@@ -29,6 +29,8 @@ test('names the shop being scanned when the page is opened mid-scan', async ({
       release: { id: page * 1000 + i, title: `Record ${i}`, artist: 'Unknown', format: '12"' },
       seller: { username: 'slowshop' },
     }))
+  // After the seed: its default answer for Discogs is a 401, and later routes win.
+  await seed(page, 'en')
   await context.route('https://api.discogs.com/**', async (route) => {
     const url = new URL(route.request().url())
     const cors = { 'access-control-allow-origin': '*' }
@@ -57,7 +59,6 @@ test('names the shop being scanned when the page is opened mid-scan', async ({
     return route.fulfill({ status: 404, headers: cors, body: '{}' })
   })
 
-  await seed(page, 'en')
   await page.goto('/dig')
   await page.getByLabel('Shop — name or link').fill('slowshop')
   await page.getByRole('button', { name: 'Check' }).click()

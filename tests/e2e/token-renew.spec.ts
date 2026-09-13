@@ -16,6 +16,8 @@ test('renews the token on the account screen without losing the shelf', async ({
   page,
   context,
 }) => {
+  // After the seed: its default answer for Discogs is a 401, and later routes win.
+  await seed(page, 'en')
   await context.route('https://api.discogs.com/**', (route) => {
     const path = new URL(route.request().url()).pathname
     const auth = route.request().headers()['authorization'] ?? ''
@@ -37,7 +39,6 @@ test('renews the token on the account screen without losing the shelf', async ({
       headers: { 'access-control-allow-origin': '*' },
     })
   })
-  await seed(page, 'en')
   await page.goto('/settings/account')
 
   await expect(page.getByRole('heading', { name: 'Renew the token' })).toBeVisible()
