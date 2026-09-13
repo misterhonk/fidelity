@@ -4,6 +4,7 @@ import type {
   DigWithMatches,
   EnrichProgress,
   RefreshProgress,
+  RunningHorizon,
   ScanProgress,
 } from '#shared/protocol'
 import type { Dealer, Dig, LandedContext } from '#shared/types'
@@ -461,16 +462,79 @@ const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
  * after 2,863 records had been looked through, while the horizon consisted of
  * a single entry, and sent us hours in the wrong direction.
  *
- * The question is only asked when it arises: a full dig with not one match.
- * After a dig with matches nobody cares, and the query goes over the whole
- * collection.
+ * Asked for every dig since 2026-09-13, not only for an empty one. The
+ * narrow version answered the acquittal and nothing else, so the one case the
+ * screen could speak to was the one where the answer was "there was nothing to
+ * match against" — and a list of twenty finds still stood there with no basis
+ * named. `basis` below is the other half of the same question. It costs no
+ * request either way: the status is a count over what is already on the
+ * device.
  */
 const horizon = ref<Awaited<ReturnType<typeof call<'horizon.status'>>> | null>(null)
 
 watchEffect(async () => {
-  if (!result.value || result.value.matches.length > 0 || kind.value !== 'full') return
-  if (horizon.value) return
+  if (!result.value || horizon.value) return
   horizon.value = await call('horizon.status', undefined)
+})
+
+/**
+ * What this dig was held against — said out loud, on every dig.
+ *
+ * Reported on 2026-09-13, after a first dig came back with nothing: "now I do
+ * not know whether my horizon was used or not." Nothing on the screen could
+ * have said. A nought and a list of twenty are equally unreadable without the
+ * basis they were found against.
+ *
+ * Read after the dig rather than recorded during it. The numbers move by the
+ * handful — `horizon.fillGaps` runs seconds later and adds a few masters —
+ * and a second field on every dig row to be exact about that would be paid for
+ * by every dig for ever.
+ */
+const basis = computed(() => {
+  const h = horizon.value
+  if (!h || h.expanded === 0) return null
+  return d.value.basis(count(h.releaseIds), h.expanded, h.entities)
+})
+
+/** Something is in the horizon, but not all of it — with the way to the rest. */
+const horizonPartial = computed(
+  () => horizon.value !== null && horizon.value.expanded < horizon.value.entities,
+)
+
+/**
+ * A horizon build holding the only lane there is.
+ *
+ * Rule 3: one request at a time, 1.200 ms apart, first come first served. A
+ * build is a few hundred of them, so a dig started while one runs sits in the
+ * queue until it is through — reported as "now, after 10 minutes, the app
+ * starts scanning my first shop. A bit illogical." It is not illogical, but
+ * nothing on this screen said it, and the wait looked like a fault.
+ *
+ * Module state in the worker, so asking costs a `postMessage` and no I/O.
+ */
+const lane = ref<RunningHorizon | null>(null)
+let laneTimer: ReturnType<typeof setInterval> | null = null
+
+async function readLane() {
+  try {
+    const live = await call('horizon.running', undefined)
+    // Only the deliberate build. The daily refresh and the pass after a dig are
+    // twenty lookups apiece — half a minute is not a wait worth a box.
+    lane.value = live?.job === 'build' ? live : null
+  } catch {
+    // Not knowing is the state this screen was in before. It is not an error
+    // worth a box of its own.
+  }
+}
+
+onMounted(() => {
+  void readLane()
+  laneTimer = setInterval(() => void readLane(), 3000)
+})
+
+onBeforeUnmount(() => {
+  if (laneTimer !== null) clearInterval(laneTimer)
+  laneTimer = null
 })
 
 /**
@@ -561,6 +625,30 @@ const noHorizon = computed(
     -->
     <p v-if="!online" role="status" class="text-fid-sm text-fid-sig-gap">
       {{ d.offline }}
+    </p>
+
+    <!--
+      The queue, named.
+
+      One lane to Discogs, first come first served (rule 3) — so a dig started
+      while the horizon is being built waits for it. Reported as "now, after 10
+      minutes, the app starts scanning my first shop. A bit illogical": the
+      order was right and nothing said so, which is what made it look wrong.
+    -->
+    <p
+      v-if="lane"
+      role="status"
+      class="max-w-prose rounded-fid-sm border border-fid-border p-3 text-fid-sm text-fid-text-muted"
+    >
+      {{ d.lane }}
+      <template v-if="lane.progress">
+        <span class="fid-num">
+          {{ m.common.ofTotal(count(lane.progress.done), count(lane.progress.total)) }}
+        </span>
+      </template>
+      <NuxtLink to="/settings/collection" class="text-fid-accent underline underline-offset-4">
+        {{ d.laneWatch }}
+      </NuxtLink>
     </p>
 
     <!--
@@ -827,6 +915,24 @@ const noHorizon = computed(
           <template v-if="result.folded > 0"> · {{ d.folded(result.folded) }}</template>
         </p>
       </div>
+
+      <!--
+        What it was held against. On every dig, not only the empty ones.
+
+        "Now I do not know whether my horizon was used or not" — and the
+        screen had no way to say. A nought and a list of twenty are equally
+        unreadable without the basis they were found against.
+      -->
+      <p v-if="basis" class="max-w-prose text-fid-sm text-fid-text-muted">
+        {{ basis }}
+        <NuxtLink
+          v-if="horizonPartial"
+          to="/settings/collection"
+          class="text-fid-accent underline underline-offset-4"
+        >
+          {{ d.basisMore }}
+        </NuxtLink>
+      </p>
 
       <!--
         The same finds, one after another.
