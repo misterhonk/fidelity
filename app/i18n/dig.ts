@@ -71,6 +71,31 @@ const en = {
     `${done} of ${total} scanned (${percent} %)`,
   folded: (n: number) => `${n} further ${plural(n, 'copy', 'copies')} folded in`,
 
+  /*
+   * The basis, under every result.
+   *
+   * Reported on 2026-09-13 after a first dig came back empty: "now I do not
+   * know whether my horizon was used or not." Nothing said. A nought and a
+   * list of twenty are equally unreadable without it.
+   */
+  basis: (records: string, expanded: number, entities: number) =>
+    `Matched against your horizon: ${records} records, from ${expanded} of ${entities} artists and labels.`,
+  basisMore: 'Build the rest',
+
+  /*
+   * One lane to Discogs, first come first served (rule 3).
+   *
+   * "Now, after 10 minutes, the app starts scanning my first shop. A bit
+   * illogical." The order was right; nothing on the screen said what was in
+   * front of it.
+   *
+   * Only the deliberate build says so. The daily refresh and the pass after a
+   * dig are twenty lookups apiece — half a minute, and a box about half a
+   * minute is more apparatus than event.
+   */
+  lane: 'The horizon is being built. There is one line to Discogs and it is served in order, so a dig started now begins once the build is through.',
+  laneWatch: 'Watch it',
+
   expired:
     'Older than six hours — prices and conditions may no longer be shown. The finds and their reasons stay.',
   refreshPrices: 'Refresh the prices',
@@ -386,6 +411,13 @@ const de: typeof en = {
     `${n} ${one ? 'neues Listing' : 'neue Listings'} seit dem letzten Besuch`,
   scanned: (done, total, percent) => `${done} von ${total} gescannt (${percent} %)`,
   folded: (n) => `${n} weitere ${plural(n, 'Exemplar', 'Exemplare')} zusammengefasst`,
+
+  basis: (records, expanded, entities) =>
+    `Geprüft gegen deinen Horizont: ${records} Platten, aus ${expanded} von ${entities} Künstlern und Labels.`,
+  basisMore: 'Rest bauen',
+
+  lane: 'Der Horizont wird gerade gebaut. Es gibt nur eine Leitung zu Discogs, und sie wird der Reihe nach bedient – ein Dig, den du jetzt startest, beginnt, sobald der Bau durch ist.',
+  laneWatch: 'Zusehen',
 
   expired:
     'Älter als sechs Stunden – Preise und Zustände dürfen nicht mehr angezeigt werden. Die Treffer und ihre Begründungen bleiben.',
