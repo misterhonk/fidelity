@@ -50,6 +50,15 @@ const proposed = computed(() =>
     ? (places.value.find((place) => place.id === proposal.value?.placeId) ?? null)
     : null,
 )
+/** The reason with the coordinate (M28 #6): the divider the rule wrote, and the rule. */
+const proposedBy = computed(() => {
+  const unit = places.value.find((place) => place.id === proposal.value?.unitId)
+  const rule = unit?.rule && unit.rule !== 'manual' ? unit.rule : null
+  return {
+    divider: proposed.value?.range?.label ?? '',
+    rule: rule ? c.value.places.rules[rule].toLowerCase() : '',
+  }
+})
 
 async function setPlace(next: string) {
   const item = record.value
@@ -776,7 +785,13 @@ async function remove() {
           v-if="proposed"
           class="flex flex-wrap items-center gap-3 text-fid-sm text-fid-text-muted"
         >
-          {{ c.places.suggested(addressOf(proposed.id, places).join(' · ')) }}
+          {{
+            c.places.suggested(
+              addressOf(proposed.id, places).join(' · '),
+              proposedBy.divider,
+              proposedBy.rule,
+            )
+          }}
           <button
             type="button"
             class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-sm text-fid-text"

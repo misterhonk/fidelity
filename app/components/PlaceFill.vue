@@ -41,6 +41,26 @@ async function load(more = false) {
 
 watch([query, unplacedOnly], () => void load(), { immediate: true })
 
+/**
+ * "All" means the whole answer, not the page of it (M28 #4). Forty-eight
+ * rows are loaded at a time; the ids of the rest come in one more call, and
+ * the button says the true number: "Put 62 in A1".
+ */
+async function selectAll() {
+  let ids = records.value.map((record) => record.instanceId)
+  if (records.value.length < total.value) {
+    const rest = await call('collection.records', {
+      query: query.value,
+      unplaced: unplacedOnly.value,
+      sort: 'artist',
+      offset: 0,
+      limit: total.value,
+    })
+    ids = rest.records.map((record) => record.instanceId)
+  }
+  selected.value = new Set(ids)
+}
+
 function toggle(instanceId: number) {
   const next = new Set(selected.value)
   if (next.has(instanceId)) next.delete(instanceId)
@@ -94,6 +114,14 @@ async function put() {
           {{ only ? c.places.unplacedOnly : c.places.everything }}
         </button>
       </div>
+      <button
+        v-if="total > 0"
+        type="button"
+        class="fid-plate fid-action min-h-11 text-fid-text-muted hover:text-fid-text"
+        @click="selectAll"
+      >
+        {{ c.places.all }}
+      </button>
     </div>
 
     <p v-if="records.length === 0" class="text-fid-sm text-fid-text-muted">

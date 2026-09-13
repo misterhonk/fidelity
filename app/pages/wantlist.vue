@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { HorizonStatus } from '#shared/protocol'
 import {
   WANT_MOST,
   type WantedRecord,
@@ -19,6 +20,11 @@ const { call } = useFidelityWorker()
 
 // Replaced wholesale, never mutated — Vue has no reason to proxy every row.
 const overview = shallowRef<WantlistOverview | null>(null)
+/** Whether the horizon is built — the first sentence explains it once while it is not (M28 #5). */
+const horizon = shallowRef<HorizonStatus | null>(null)
+const horizonMissing = computed(
+  () => horizon.value !== null && horizon.value.expanded < horizon.value.entities,
+)
 /** Your wants across the shops scanned inside the six hours (M19 #9). */
 const plan = shallowRef<WantPlan | null>(null)
 const loading = ref(true)
@@ -31,6 +37,7 @@ onMounted(async () => {
   try {
     overview.value = await call('collection.wantlist', undefined)
     plan.value = await call('wantlist.plan', { from: origin.value })
+    horizon.value = await call('horizon.status', undefined)
   } catch (cause) {
     error.value = cause
   } finally {
@@ -185,7 +192,18 @@ function waiting(addedAt: string): string | null {
 
     <template v-else>
       <p class="text-fid-base text-fid-text-muted">
-        {{ c.wantlist.lead(count(overview.total), count(overview.withPressings)) }}
+        <template v-if="horizonMissing">
+          {{ c.wantlist.leadNoHorizon(count(overview.total)) }}
+          <NuxtLink
+            class="fid-action text-fid-text underline underline-offset-4"
+            to="/settings/collection#horizon"
+            >{{ c.wantlist.buildHorizon }}</NuxtLink
+          >
+          {{ c.wantlist.buildHorizonTail }}
+        </template>
+        <template v-else>
+          {{ c.wantlist.lead(count(overview.total), count(overview.withPressings)) }}
+        </template>
         <template v-if="overview.seenRecently > 0">
           {{ c.wantlist.seenRecently(count(overview.seenRecently)) }}
         </template>

@@ -252,6 +252,11 @@ const en = {
     emptyAction: 'Sync it now',
     lead: (total: string, withPressings: string) =>
       `${total} records wanted, ${withPressings} with every pressing known to the horizon.`,
+    /* Before the horizon is built (M28 #5): what it does for them, and the way there. */
+    leadNoHorizon: (total: string) =>
+      `${total} records wanted. Fidelity does not know their other pressings yet —`,
+    buildHorizon: 'build the horizon',
+    buildHorizonTail: 'in the settings, two minutes, once.',
     seenRecently: (n: string) => `${n} turned up at a shop in the last thirty days.`,
     search: 'Artist or title',
     searchLabel: 'Search the wantlist',
@@ -429,7 +434,8 @@ const en = {
     planLine: (moves: string, pile: string) => `${moves} would move · ${pile} from the pile`,
     nothingMoves: 'Nothing would move.',
     apply: 'Apply',
-    suggested: (label: string) => `By the rule: ${label}`,
+    suggested: (label: string, divider: string, rule: string) =>
+      `By the rule: ${label}${divider ? ` · ${divider}` : ''}${rule ? `, ${rule}` : ''}`,
     putThere: 'Put it there',
     /* Re-sorting (M27.3): select, then move or take out, with a way back. */
     select: 'Select',
@@ -757,6 +763,10 @@ const de: typeof en = {
     emptyAction: 'Jetzt synchronisieren',
     lead: (total, withPressings) =>
       `${total} Platten gesucht, bei ${withPressings} kennt der Horizont alle Pressungen.`,
+    leadNoHorizon: (total) =>
+      `${total} Platten gesucht. Ihre anderen Pressungen kennt Fidelity noch nicht —`,
+    buildHorizon: 'den Horizont bauen',
+    buildHorizonTail: 'in den Einstellungen, zwei Minuten, einmal.',
     seenRecently: (n) => `${n} sind in den letzten dreißig Tagen bei einem Laden aufgetaucht.`,
     search: 'Künstler oder Titel',
     searchLabel: 'Wantlist durchsuchen',
@@ -888,7 +898,8 @@ const de: typeof en = {
     planLine: (moves, pile) => `${moves} würden wandern · ${pile} vom Stapel`,
     nothingMoves: 'Nichts würde wandern.',
     apply: 'Anwenden',
-    suggested: (label) => `Nach der Regel: ${label}`,
+    suggested: (label, divider, rule) =>
+      `Nach der Regel: ${label}${divider ? ` · ${divider}` : ''}${rule ? `, ${rule}` : ''}`,
     putThere: 'Dorthin',
     select: 'Auswählen',
     done: 'Fertig',
