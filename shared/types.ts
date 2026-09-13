@@ -1687,7 +1687,20 @@ export interface HubShop {
 export interface Dealer {
   username: string
   displayName: string
+  /**
+   * The country, as Discogs writes it in a listing's `ships_from` — an English
+   * name and nothing else (docs/02).
+   *
+   * **Not the profile's `location`.** That is a free-text box: `fatplastics`
+   * has "Schillergäßchen 5, 07745 Jena, Thuringia, Germany - phone:
+   * ++49-3641-35.38.00" in it, and putting that here made the origin filter
+   * compare a postal address against "Germany" and hide every shop. Where only
+   * the profile is known, `countryIn` reads the country out of it and the line
+   * itself goes to `location`.
+   */
   shipsFrom: string
+  /** What the shop wrote about itself, verbatim — shown, never compared. */
+  location?: string
   sellerRating: number
   ratingCount: number
   numForSale: number

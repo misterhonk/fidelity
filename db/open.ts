@@ -2,6 +2,7 @@ import { deleteDB, openDB, type IDBPDatabase } from 'idb'
 
 import { log } from '~~/worker/log'
 
+import { repairShipsFrom } from './dealer'
 import { DB_NAME, DB_VERSION, type FidelityDB } from './schema'
 
 export type FidelityDatabase = IDBPDatabase<FidelityDB>
@@ -221,6 +222,38 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
         if (!stock.indexNames.contains('by-release')) {
           stock.createIndex('by-release', 'releaseId')
         }
+      }
+
+      // Guarded on the store, not only on the version: an upgrade that reaches
+      // for a store a database does not have throws inside the transaction and
+      // takes the whole open down with it.
+      if (oldVersion > 0 && oldVersion < 14 && db.objectStoreNames.contains('dealers')) {
+        /*
+         * v14 repairs `Dealer.shipsFrom`, which held the wrong field.
+         *
+         * A listing's `ships_from` is an English country name (docs/02). A
+         * user profile's `location` is a free-text box, and that is what the
+         * import and the hand-entered shop were writing here: `fatplastics`
+         * carried "Schillergäßchen 5, 07745 Jena, Thuringia, Germany - phone:
+         * ++49-3641-35.38.00". The origin filter compared that against
+         * "Germany" and hid every shop under every filter.
+         *
+         * Code alone does not fix a device that already has the rows, and
+         * waiting for each shop to be dug again would leave the screen broken
+         * for as long as that takes. So the rows are repaired: the country is
+         * read out of the line, and the line moves to `location`, where it is
+         * shown and never compared.
+         *
+         * Nothing is lost — a text that names no country stays in `location`
+         * and only stops being mistaken for one.
+         */
+        const dealers = tx.objectStore('dealers')
+        void dealers.openCursor().then(function walk(cursor): unknown {
+          if (!cursor) return undefined
+          const repaired = repairShipsFrom(cursor.value)
+          if (repaired !== cursor.value) void cursor.update(repaired)
+          return cursor.continue().then(walk)
+        })
       }
 
       // Future versions go here. The rule: never migrate destructively unless

@@ -36,7 +36,7 @@ export const DB_NAME = 'fidelity'
  *
  * 4 — added the `covers` store. Additive: nothing existing is touched.
  */
-export const DB_VERSION = 13
+export const DB_VERSION = 14
 
 /**
  * `meta` is a small key-value store rather than nine one-row stores. The union

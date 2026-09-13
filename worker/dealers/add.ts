@@ -1,3 +1,4 @@
+import { countryIn } from '#shared/countries'
 import { blankDealer } from '~~/db/dealer'
 import { openFidelityDb } from '~~/db/open'
 
@@ -53,7 +54,10 @@ export async function addDealerByHand(
     numForSale: profile.num_for_sale ?? existing?.numForSale ?? 0,
     sellerRating: profile.seller_rating ?? existing?.sellerRating ?? 0,
     ratingCount: profile.seller_num_ratings ?? existing?.ratingCount ?? 0,
-    shipsFrom: profile.location || existing?.shipsFrom || '',
+    // The country out of the free text, and the text itself for the screen —
+    // see `countryIn`. A dig later replaces this with what the rows say.
+    shipsFrom: countryIn(profile.location) ?? existing?.shipsFrom ?? '',
+    location: profile.location || existing?.location,
     avatarUrl: profile.avatar_url || existing?.avatarUrl,
     // Kept where there is one: a shop dug last week and typed in today was
     // still met by digging, and the first reason is the true one.

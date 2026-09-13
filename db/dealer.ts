@@ -1,3 +1,4 @@
+import { countryIn } from '#shared/countries'
 import type { Dealer } from '#shared/types'
 
 /**
@@ -30,4 +31,28 @@ export function blankDealer(username: string): Dealer {
     fingerprint: null,
     shippingTiers: [],
   }
+}
+
+/**
+ * A dealer row whose `shipsFrom` holds the wrong field, put right (v14).
+ *
+ * A listing's `ships_from` is an English country name (docs/02). A user
+ * profile's `location` is a free-text box, and that is what the import and the
+ * hand-entered shop were writing here — `fatplastics` carried "Schillergäßchen
+ * 5, 07745 Jena, Thuringia, Germany - phone: ++49-3641-35.38.00". The origin
+ * filter compared that against "Germany" and hid every shop under every
+ * filter.
+ *
+ * Returns the row unchanged where there is nothing to do, so the migration can
+ * compare and skip. Nothing is lost: a line that names no country keeps its
+ * place in `location` and only stops being mistaken for one.
+ */
+export function repairShipsFrom(dealer: Dealer): Dealer {
+  const written = (dealer.shipsFrom ?? '').trim()
+  if (written.length === 0) return dealer
+
+  const country = countryIn(written)
+  if (country === written) return dealer
+
+  return { ...dealer, shipsFrom: country ?? '', location: dealer.location ?? written }
 }
