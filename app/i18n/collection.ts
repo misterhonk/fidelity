@@ -324,6 +324,8 @@ const en = {
         any: 'Anywhere',
         home: (country: string) => `From ${country}`,
         eu: 'From the EU',
+        /* The continent, which is a different question from the customs union. */
+        europe: 'From Europe',
         leftOut: (shops: string) =>
           `${shops} elsewhere, or with no origin on record, left out.`,
       },
@@ -823,6 +825,7 @@ const de: typeof en = {
         any: 'Überall',
         home: (country) => `Aus ${countryName(country)}`,
         eu: 'Aus der EU',
+        europe: 'Aus Europa',
         leftOut: (shops) => `${shops} anderswo oder ohne Herkunft weggelassen.`,
       },
       shops: (n) => `${n} ${n === 1 ? 'Laden' : 'Läden'}`,
