@@ -73,6 +73,7 @@ import type {
   WatchedRelease,
   UnitShape,
   Finish,
+  PlaceDealing,
   PlaceRule,
   UnitPlan,
 } from './types'
@@ -813,6 +814,12 @@ export interface WorkerContract {
   }
   /** The order inside a piece of furniture (M27.2): a rule proposes, never moves. */
   'places.rule': { params: { id: string; rule: PlaceRule }; progress: never; result: boolean }
+  /** How "sort in" deals (M28 #3): evenly, or from the front. */
+  'places.dealing': {
+    params: { id: string; dealing: PlaceDealing }
+    progress: never
+    result: boolean
+  }
   /** What sorting a unit by its rule would do — the plan, not the deed. */
   'places.plan': {
     params: { unitId: string; includeUnplaced: boolean }

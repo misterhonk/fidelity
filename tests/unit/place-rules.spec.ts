@@ -7,6 +7,7 @@ import {
   planUnit,
   proposePlace,
   rangeLabel,
+  setDealing,
   setRule,
   sortKey,
 } from '~~/worker/place-rules'
@@ -125,6 +126,25 @@ describe('a rule', () => {
     expect(
       (await placeContents(after.find((n) => n.name === 'B2')!.id)).map((r) => r.instanceId),
     ).toEqual([1])
+  })
+
+  it('fills from the front, and leaves the rest of the wall empty', async () => {
+    const db = await openFidelityDb()
+    for (const [i, name] of ['Air', 'Bowie', 'Can', 'Dinky', 'Eno'].entries())
+      await db.put('collection', record(i + 1, name, 'X'))
+    const unit = (await kallax(2, 2))!
+    expect(await setDealing(unit.id, 'front')).toBe(true)
+
+    const plan = (await planUnit(unit.id, true))!
+    expect(plan.dealing).toBe('front')
+    // Five records, seventy per cube: all of them in A1, the divider spans them.
+    expect(plan.ranges.map((r) => r.count)).toEqual([5])
+    expect(plan.ranges[0]!.label).toBe('A–E')
+
+    expect(await applyUnitPlan(unit.id, true)).toBe(5)
+    const after = (await placesOverview()).filter((n) => n.parentId === unit.id)
+    expect(after.filter((n) => n.range).length).toBe(1)
+    expect(after.find((n) => n.name === 'A1')!.records).toBe(5)
   })
 
   it('has no plan for a unit sorted by hand', async () => {

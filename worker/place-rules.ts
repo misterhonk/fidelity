@@ -1,5 +1,5 @@
 import { openFidelityDb } from '~~/db/open'
-import type { CollectionItem, Place, PlaceRule, UnitPlan } from '#shared/types'
+import type { CollectionItem, Place, PlaceDealing, PlaceRule, UnitPlan } from '#shared/types'
 
 import { norm } from './match/normalize'
 
@@ -108,6 +108,17 @@ export async function setRule(unitId: string, rule: PlaceRule): Promise<boolean>
   return true
 }
 
+export async function setDealing(unitId: string, dealing: PlaceDealing): Promise<boolean> {
+  const db = await openFidelityDb()
+  const unit = await db.get('places', unitId)
+  if (!unit || !alive(unit) || unit.kind !== 'unit') return false
+  await db.put('places', { ...unit, dealing, updatedAt: Date.now() })
+  return true
+}
+
+/** How full a compartment is filled "from the front": room left for what comes next. */
+const FRONT_SHARE = 0.8
+
 export async function planUnit(
   unitId: string,
   includeUnplaced: boolean,
@@ -142,16 +153,22 @@ export async function planUnit(
     else if (includeUnplaced && at === null) pile.push(item)
   }
   const all = [...inUnit, ...pile]
-  if (all.length === 0) return { unitId, rule, moves: [], fromPile: 0, total: 0, ranges: [] }
+  const dealing: PlaceDealing = unit.dealing ?? 'even'
+  if (all.length === 0)
+    return { unitId, rule, dealing, moves: [], fromPile: 0, total: 0, ranges: [] }
 
   const keyed = all
     .map((item) => ({ item, key: sortKey(item, rule) }))
     .sort((a, b) => a.key.localeCompare(b.key) || a.item.instanceId - b.item.instanceId)
 
   /*
-   * Dealt evenly, not filled to capacity: a shelf sorted by hand leaves room
-   * in every compartment for what comes next, and so does this. The
-   * remainder goes to the first compartments, where the eye starts.
+   * Two ways to deal (M28 #3). Evenly: every compartment gets its share, the
+   * remainder to the first ones, where the eye starts — a shelf sorted by
+   * hand leaves room everywhere for what comes next. From the front: each
+   * compartment to a comfortable share of its capacity before the next, so
+   * sixty records in a Kallax 4×4 stand in one cube and the rest wait empty,
+   * instead of four per cube with dividers like "A–An". A pile has no edge
+   * to fill to and takes everything that is left.
    */
   const per = Math.floor(keyed.length / compartments.length)
   const extra = keyed.length % compartments.length
@@ -159,7 +176,12 @@ export async function planUnit(
   const ranges: UnitPlan['ranges'] = []
   let cursor = 0
   compartments.forEach((cube, index) => {
-    const take = per + (index < extra ? 1 : 0)
+    const take =
+      dealing === 'front'
+        ? cube.capacity
+          ? Math.max(1, Math.floor(cube.capacity * FRONT_SHARE))
+          : keyed.length
+        : per + (index < extra ? 1 : 0)
     const slice = keyed.slice(cursor, cursor + take)
     cursor += take
     if (slice.length === 0) return
@@ -176,7 +198,7 @@ export async function planUnit(
     range.label = labels[index]!
   })
 
-  return { unitId, rule, moves, fromPile: pile.length, total: keyed.length, ranges }
+  return { unitId, rule, dealing, moves, fromPile: pile.length, total: keyed.length, ranges }
 }
 
 export async function applyUnitPlan(unitId: string, includeUnplaced: boolean): Promise<number> {

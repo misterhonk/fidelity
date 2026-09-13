@@ -79,6 +79,12 @@ test('a room, a Kallax, and a record in B1', async ({ page }) => {
   // The rule proposes, "apply" deals: two records by artist across four
   // compartments — Hancock to A1, Shorter stays in B1 — and the dividers
   // are written on the wall.
+  await page.getByRole('button', { name: 'From the front' }).click()
+  await expect(page.getByRole('button', { name: 'From the front' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await page.getByRole('button', { name: 'Evenly' }).click()
   await page.getByRole('button', { name: 'Sort in' }).click()
   await expect(page.getByText('1 would move · 0 from the pile')).toBeVisible()
   await page.getByRole('button', { name: 'Apply' }).click()

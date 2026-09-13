@@ -596,6 +596,11 @@ export const handlers: HandlerMap = {
     return setRule(id, rule)
   },
 
+  'places.dealing': async ({ id, dealing }) => {
+    const { setDealing } = await import('./place-rules')
+    return setDealing(id, dealing)
+  },
+
   'places.plan': async ({ unitId, includeUnplaced }) => {
     const { planUnit } = await import('./place-rules')
     return planUnit(unitId, includeUnplaced)

@@ -38,6 +38,7 @@ and are rooms.
 | `slot` | compartment | `{ column, row }`, zero-based; A1 is `{0, 0}`, read from the front like a spreadsheet |
 | `capacity` | unit, compartment | An estimate of what fits — 70 for a Kallax cube, 90 for a crate, 150 for a 7" box, `null` for a pile. A fill level, never a lock |
 | `rule` | unit | M27.2: `artist`, `label`, `year`, `added`, `manual`. A rule **proposes** where a record goes and never moves one by itself; an explicit placement always wins |
+| `dealing` | unit | M28 #3: `even` spreads the records across every compartment, `front` fills each to 80 % of its capacity before the next — a small collection stands in two cubes, the rest waits empty. Absent means `even` |
 | `range` | compartment | M27.2: the divider, "A–Bo" |
 
 A unit may stand at the top level: not everybody wants to name the room first. Dissolving

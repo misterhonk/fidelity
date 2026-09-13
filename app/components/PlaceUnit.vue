@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { DEFAULT_FINISH } from '#shared/places'
-import type { Finish, PlaceNode, PlaceRule, UnitPlan } from '#shared/types'
+import type { Finish, PlaceDealing, PlaceNode, PlaceRule, UnitPlan } from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
 
@@ -65,6 +65,13 @@ watch(finish, async (next) => {
  * only "apply" moves anything. A rule proposes, never acts.
  */
 const RULES: PlaceRule[] = ['artist', 'label', 'year', 'added', 'manual']
+/** How "sort in" deals (M28 #3): evenly across the compartments, or from the front. */
+const DEALINGS: PlaceDealing[] = ['even', 'front']
+async function setDealing(dealing: PlaceDealing) {
+  await call('places.dealing', { id: props.unit.id, dealing })
+  plan.value = null
+  emit('changed')
+}
 async function setRule(rule: PlaceRule) {
   await call('places.rule', { id: props.unit.id, rule })
   plan.value = null
@@ -158,6 +165,28 @@ async function dissolve() {
           @click="setRule(rule)"
         >
           {{ c.places.rules[rule] }}
+        </button>
+      </div>
+      <div
+        v-if="(unit.rule ?? 'artist') !== 'manual'"
+        role="group"
+        :aria-label="c.places.dealing.label"
+        class="flex flex-wrap gap-4"
+      >
+        <button
+          v-for="dealing in DEALINGS"
+          :key="dealing"
+          type="button"
+          class="fid-plate min-h-11 border-b-2 transition-colors"
+          :class="
+            (unit.dealing ?? 'even') === dealing
+              ? 'border-fid-accent text-fid-text'
+              : 'border-transparent text-fid-text-muted hover:text-fid-text'
+          "
+          :aria-pressed="(unit.dealing ?? 'even') === dealing"
+          @click="setDealing(dealing)"
+        >
+          {{ c.places.dealing[dealing] }}
         </button>
       </div>
       <button

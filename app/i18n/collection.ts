@@ -435,6 +435,8 @@ const en = {
       manual: 'By hand',
     },
     sortIn: 'Sort in',
+    /* How "sort in" deals (M28 #3). */
+    dealing: { label: 'How to deal', even: 'Evenly', front: 'From the front' },
     /** Given formatted numbers. */
     planLine: (moves: string, pile: string) => `${moves} would move · ${pile} from the pile`,
     nothingMoves: 'Nothing would move.',
@@ -904,6 +906,7 @@ const de: typeof en = {
       manual: 'Von Hand',
     },
     sortIn: 'Einsortieren',
+    dealing: { label: 'Verteilung', even: 'Gleichmäßig', front: 'Von vorne' },
     planLine: (moves, pile) => `${moves} würden wandern · ${pile} vom Stapel`,
     nothingMoves: 'Nichts würde wandern.',
     apply: 'Anwenden',

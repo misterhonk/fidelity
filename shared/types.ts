@@ -1198,6 +1198,13 @@ export interface Place {
   /** On a unit (M27.2): what the compartments are sorted by. */
   rule?: PlaceRule
   /**
+   * On a unit (M28 #3): how "sort in" deals. `even` spreads the records
+   * across every compartment; `front` fills each to a comfortable share of
+   * its capacity before starting the next, so a small collection stands in
+   * two cubes and the rest waits empty. Absent means `even`.
+   */
+  dealing?: PlaceDealing
+  /**
    * On a compartment (M27.2): the divider. `from` and `to` are sort keys the
    * rule can compare, `label` is what the wall shows — "A–Bo", "1965–1972".
    */
@@ -1269,9 +1276,12 @@ export interface PlaceNode extends Place {
  * What sorting a unit by its rule would do (M27.2). A proposal: nothing
  * moves until `places.apply` — an explicit placement always wins until then.
  */
+export type PlaceDealing = 'even' | 'front'
+
 export interface UnitPlan {
   unitId: string
   rule: PlaceRule
+  dealing: PlaceDealing
   /** Every record that would change compartment, with where from and where to. */
   moves: { instanceId: number; from: string | null; to: string }[]
   /** Records that would come in from the pile of the unplaced. */
