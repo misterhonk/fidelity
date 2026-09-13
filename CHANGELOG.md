@@ -11,6 +11,14 @@ Für eine App bedeutet SemVer:
 
 ## [0.70.0](https://github.com/misterhonk/fidelity/compare/v0.69.0...v0.70.0) (2026-09-13)
 
+**The shelf keeps its quiet.**
+
+"Synced 16 hours ago · Sync now" was a sentence and a button at the top right of the shelf,
+competing with the covers. It is one small line now, and "Sync now" is a word in it. Nothing
+else changes — tapping it still syncs.
+
+**What to do:** Nothing.
+
 
 ### Added
 
