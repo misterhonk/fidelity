@@ -107,8 +107,7 @@ const en = {
     placeholder: 'juno_records — or the address of the shop page',
     submit: 'Add',
     busy: 'Looking …',
-    about:
-      'One lookup, to see that it exists and how big it is. It then stands with your other shops — on this screen, in the dig field and on the round — and says it was entered by hand until a dig has been near it.',
+    about: 'It then stands with your other shops — here, in the dig field and on the round.',
   },
 
   /*
@@ -128,11 +127,11 @@ const en = {
 
   suggested: {
     title: 'Shops other people have dug',
-    about:
-      'From your hub, ranked here against your own shelf — the hub never sees your collection and carries no prices. The figure is how much of what was sampled sits on labels you collect.',
+    busy: 'Asking your hub …',
+    /* What the figure means, in one line. The workings are in ADR-014. */
+    about: 'How much of each shop sits on labels you already collect.',
     fit: (percent: number) => `${percent} % yours`,
-    sample:
-      'Each of these was sampled by somebody else’s dig, not catalogued: the shop may have moved on since. Dig one and it joins your own list with its own figures.',
+    sample: 'Dig one and it joins your shops with its own figures.',
   },
 
   round: {
@@ -271,8 +270,7 @@ const de: typeof en = {
     placeholder: 'juno_records – oder die Adresse der Ladenseite',
     submit: 'Hinzufügen',
     busy: 'Sehe nach …',
-    about:
-      'Eine Abfrage, um zu sehen, dass es ihn gibt und wie groß er ist. Danach steht er bei deinen anderen Läden – auf diesem Bildschirm, im Graben-Feld und im Rundgang – und sagt „von Hand eingetragen", bis ein Dig dort war.',
+    about: 'Danach steht er bei deinen anderen Läden – hier, im Graben-Feld und im Rundgang.',
   },
 
   reasons: {
@@ -286,11 +284,10 @@ const de: typeof en = {
 
   suggested: {
     title: 'Läden, die andere gegraben haben',
-    about:
-      'Aus deinem Hub, hier gegen dein eigenes Regal sortiert – der Hub sieht deine Sammlung nie und trägt keine Preise. Die Zahl sagt, wie viel vom Gesehenen auf Labels liegt, die du sammelst.',
+    busy: 'Frage deinen Hub …',
+    about: 'Wie viel von jedem Laden auf Labels liegt, die du schon sammelst.',
     fit: (percent) => `${percent} % deins`,
-    sample:
-      'Jeder davon ist die Stichprobe eines fremden Digs, kein Katalog: der Laden kann sich seitdem verändert haben. Grab einen, dann steht er mit eigenen Zahlen in deiner Liste.',
+    sample: 'Grab einen, dann steht er mit eigenen Zahlen bei deinen Läden.',
   },
 
   round: {

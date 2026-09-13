@@ -12,8 +12,17 @@ import { counted, plural } from '~/utils/plural'
 
 const en = {
   title: 'Basket',
-  description: 'What the postage costs — before Discogs tells you.',
-  lead: 'Discogs shows the combined postage only in its own cart. Here it is beforehand.',
+  description: 'One parcel, as many records as it is worth.',
+  /*
+   * What this screen is *for*, in one sentence.
+   *
+   * It used to open with what Discogs does not do — "Discogs shows the
+   * combined postage only in its own cart" — which is a fact about somebody
+   * else's website and no reason to be here. The reason is the hunt: you found
+   * one record at a shop, and everything else that shop has now travels in the
+   * same parcel for the same postage.
+   */
+  lead: 'You found one. Now look for the rest — everything from the same shop shares one postage, and this screen says how much each extra record really costs.',
 
   tabs: { label: 'Buying', basket: 'Basket', saved: 'Saved' },
 
@@ -100,11 +109,11 @@ const en = {
    */
   compare: {
     start: 'Cheaper at another shop?',
-    busy: 'Looking …',
+    busy: 'Comparing your shops …',
     scope: (shops: number) =>
       shops === 0
-        ? 'No shop of yours has been dug in the last six hours, so there is nothing to compare against — prices older than that may not be shown at all.'
-        : `Compared with ${shops === 1 ? 'the one shop' : `the ${shops} shops`} you dug in the last six hours. Nothing about the rest of the market: Discogs has no way to ask who else sells a record.`,
+        ? 'Dig a shop and its prices join this comparison for six hours.'
+        : `Compared with ${shops === 1 ? 'your one freshly dug shop' : `your ${shops} freshly dug shops`}.`,
     covered: (has: number, of: number) => `has ${has} of your ${of}`,
     saves: (amount: string) => `— ${amount} less`,
     costs: (amount: string) => `— ${amount} more`,
@@ -113,8 +122,8 @@ const en = {
       `${items === 1 ? 'The other one stays' : `The other ${items} stay`} at ${shop}: ${amount} with its own postage.`,
     better: (n: number) => `${n} in better condition`,
     worse: (n: number) => `${n} in worse condition`,
-    noPostage: 'No postage table for this shop, so no total can be claimed.',
-    nothing: 'None of them has any of these records — at the prices they had six hours ago.',
+    noPostage: 'Enter this shop’s postage tiers and you get its total too.',
+    nothing: 'Nothing from this basket at your other shops. Dig one more and look again.',
     tryThese: 'Worth a dig: these stock the same labels',
   },
 
@@ -285,8 +294,8 @@ const en = {
 
 const de: typeof en = {
   title: 'Korb',
-  description: 'Was der Versand kostet – bevor Discogs es dir sagt.',
-  lead: 'Discogs zeigt den kombinierten Versand erst im eigenen Warenkorb. Hier steht er vorher.',
+  description: 'Ein Paket, so viele Platten wie es sich lohnt.',
+  lead: 'Eine hast du gefunden. Jetzt such den Rest – alles vom selben Laden teilt sich ein Porto, und hier steht, was jede weitere Platte wirklich kostet.',
 
   tabs: { label: 'Kaufen', basket: 'Korb', saved: 'Gemerkt' },
 
@@ -353,11 +362,11 @@ const de: typeof en = {
 
   compare: {
     start: 'Woanders billiger?',
-    busy: 'Sehe nach …',
+    busy: 'Vergleiche deine Läden …',
     scope: (shops) =>
       shops === 0
-        ? 'Kein Laden von dir wurde in den letzten sechs Stunden gegraben, es gibt also nichts zu vergleichen – ältere Preise dürfen gar nicht mehr angezeigt werden.'
-        : `Verglichen mit ${shops === 1 ? 'dem einen Laden' : `den ${shops} Läden`}, die du in den letzten sechs Stunden gegraben hast. Nichts über den übrigen Markt: Discogs lässt sich nicht fragen, wer eine Platte sonst noch verkauft.`,
+        ? 'Grab einen Laden, dann sind seine Preise sechs Stunden lang im Vergleich dabei.'
+        : `Verglichen mit ${shops === 1 ? 'deinem einen frisch gegrabenen Laden' : `deinen ${shops} frisch gegrabenen Läden`}.`,
     covered: (has, of) => `hat ${has} von deinen ${of}`,
     saves: (amount) => `– ${amount} weniger`,
     costs: (amount) => `– ${amount} mehr`,
@@ -365,8 +374,9 @@ const de: typeof en = {
       `${items === 1 ? 'Die andere bleibt' : `Die anderen ${items} bleiben`} bei ${shop}: ${amount} mit eigenem Porto.`,
     better: (n) => `${n} in besserem Zustand`,
     worse: (n) => `${n} in schlechterem Zustand`,
-    noPostage: 'Für diesen Laden gibt es keine Versandstaffel, also auch keine Gesamtsumme.',
-    nothing: 'Keiner von ihnen hat eine dieser Platten – zu den Preisen von vor sechs Stunden.',
+    noPostage: 'Trag die Versandstaffel dieses Ladens ein, dann steht hier auch seine Summe.',
+    nothing:
+      'Nichts aus diesem Korb bei deinen anderen Läden. Grab noch einen und sieh nochmal nach.',
     tryThese: 'Einen Dig wert: die führen dieselben Labels',
   },
 
