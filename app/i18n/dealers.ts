@@ -115,7 +115,6 @@ const en = {
     placeholder: 'juno_records — or the address of the shop page',
     submit: 'Add',
     busy: 'Looking …',
-    about: 'It then stands with your other shops — here, in the dig field and on the round.',
   },
 
   /*
@@ -279,7 +278,6 @@ const de: typeof en = {
     placeholder: 'juno_records – oder die Adresse der Ladenseite',
     submit: 'Hinzufügen',
     busy: 'Sehe nach …',
-    about: 'Danach steht er bei deinen anderen Läden – hier, im Graben-Feld und im Rundgang.',
   },
 
   reasons: {

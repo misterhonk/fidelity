@@ -22,7 +22,7 @@ const en = {
    * one record at a shop, and everything else that shop has now travels in the
    * same parcel for the same postage.
    */
-  lead: 'You found one. Now look for the rest — everything from the same shop shares one postage, and this screen says how much each extra record really costs.',
+  lead: 'You found one. Everything else from that shop rides along for the same postage.',
 
   tabs: { label: 'Buying', basket: 'Basket', saved: 'Saved' },
 
@@ -35,7 +35,8 @@ const en = {
   paste: {
     title: 'From the Discogs cart',
     about:
-      'Discogs does not hand its cart out through the interface. Paste the listing links in here — Fidelity fetches them and puts each into the basket of the shop selling it. After that the postage counts along.',
+      /* What to do, not what Discogs will not do. */
+      'Paste listing links here — each lands in the basket of the shop selling it, postage counted in.',
     label: 'Listing links',
     fetching: 'Fetching …',
     take: 'Take them over',
@@ -295,7 +296,7 @@ const en = {
 const de: typeof en = {
   title: 'Korb',
   description: 'Ein Paket, so viele Platten wie es sich lohnt.',
-  lead: 'Eine hast du gefunden. Jetzt such den Rest – alles vom selben Laden teilt sich ein Porto, und hier steht, was jede weitere Platte wirklich kostet.',
+  lead: 'Eine hast du. Alles andere aus dem Laden fährt für dasselbe Porto mit.',
 
   tabs: { label: 'Kaufen', basket: 'Korb', saved: 'Gemerkt' },
 
@@ -308,7 +309,7 @@ const de: typeof en = {
   paste: {
     title: 'Aus dem Discogs-Warenkorb',
     about:
-      'Discogs gibt seinen Warenkorb nicht über die Schnittstelle heraus. Kopier die Links der Angebote hier herein – Fidelity holt sie und legt jedes in den Korb des Ladens, der es verkauft. Danach rechnet der Versand mit.',
+      'Kopier Angebots-Links hier herein – jedes landet im Korb seines Ladens, Porto eingerechnet.',
     label: 'Angebotslinks',
     fetching: 'Hole …',
     take: 'Übernehmen',
