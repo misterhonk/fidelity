@@ -43,13 +43,7 @@ export class FingerprintAccumulator {
 
   /** How much of the dealer's stock is on labels the collection already has. */
   shareOnKnownLabels(knownLabels: Set<string>): number {
-    if (this.#sampled === 0) return 0
-
-    let onKnown = 0
-    for (const [label, count] of this.#labels) {
-      if (knownLabels.has(norm(label))) onKnown += count
-    }
-    return onKnown / this.#sampled
+    return shareOnKnownLabels(Object.fromEntries(this.#labels), this.#sampled, knownLabels)
   }
 
   build(totalItems: number): DealerFingerprint {
@@ -112,4 +106,31 @@ export function affinityFactor(rate: number, otherRates: number[]): number | nul
     sorted.length % 2 === 0 ? (sorted[middle - 1]! + sorted[middle]!) / 2 : sorted[middle]!
 
   return reference > 0 ? rate / reference : null
+}
+
+/**
+ * How much of a sampled inventory sits on labels a collection already has.
+ *
+ * Lifted out of the accumulator on 2026-09-13 so a *stored* fingerprint can be
+ * asked the same question — which is what ranks a shop the hub knows about and
+ * this device has never dug (ADR-014). One implementation, because two would
+ * eventually disagree about what counts, and the two numbers would be drawn on
+ * the same screen.
+ *
+ * A share of the sample, not of the shop. A fingerprint from a hundred rows of
+ * a shop with forty thousand says what those hundred looked like, and every
+ * screen that shows this says so.
+ */
+export function shareOnKnownLabels(
+  labelDist: Record<string, number>,
+  sampledItems: number,
+  knownLabels: Set<string>,
+): number {
+  if (sampledItems <= 0) return 0
+
+  let onKnown = 0
+  for (const [label, count] of Object.entries(labelDist)) {
+    if (knownLabels.has(norm(label))) onKnown += count
+  }
+  return Math.min(1, onKnown / sampledItems)
 }

@@ -194,6 +194,7 @@ export function createHubApp({ db, secret, access = null, now = Date.now }: HubO
       shipping: (db.prepare('SELECT COUNT(*) AS n FROM shipping').get() as { n: number }).n,
       covers: (db.prepare('SELECT COUNT(*) AS n FROM covers').get() as { n: number }).n,
       families: (db.prepare('SELECT COUNT(*) AS n FROM families').get() as { n: number }).n,
+      shops: (db.prepare('SELECT COUNT(*) AS n FROM shops').get() as { n: number }).n,
       watching: (
         db.prepare('SELECT COUNT(DISTINCT dealer) AS n FROM watches').get() as { n: number }
       ).n,
@@ -481,6 +482,87 @@ export function createHubApp({ db, secret, access = null, now = Date.now }: HubO
     return c.json({ stored: true })
   })
 
+  // --- Shops (ADR-014) ------------------------------------------------------
+  //
+  // The one part of the hub that is about a shop rather than about a record.
+  // What travels is the name, where it ships from and what the shop is known
+  // to stock; what never travels is a price, and what never travels is how
+  // well a shop suits a particular person — that is a statement about them,
+  // not about the shop, and it is computed on the device against a collection
+  // this server never sees.
+
+  /** Enough to rank against a collection, few enough to send in one answer. */
+  const SHOPS_LIMIT = 200
+
+  app.get('/v1/shops', (c) => {
+    const rows = db
+      .prepare(
+        `SELECT username, display_name, ships_from, num_for_sale, avatar_url, body, seen_at
+         FROM shops ORDER BY seen_at DESC LIMIT ?`,
+      )
+      .all(SHOPS_LIMIT) as {
+      username: string
+      display_name: string
+      ships_from: string
+      num_for_sale: number
+      avatar_url: string
+      body: string
+      seen_at: number
+    }[]
+
+    return c.json({
+      shops: rows.map((row) => ({
+        username: row.username,
+        displayName: row.display_name,
+        shipsFrom: row.ships_from,
+        numForSale: row.num_for_sale,
+        avatarUrl: row.avatar_url,
+        fingerprint: safeJson(row.body),
+        seenAt: row.seen_at,
+      })),
+    })
+  })
+
+  app.put('/v1/shops/:dealer', async (c) => {
+    const parsed = shopSchema.safeParse(safeJson(await c.req.text()))
+    if (!parsed.success) return c.json({ error: 'not a shop' }, 400)
+
+    const dealer = c.req.param('dealer').toLowerCase()
+    const shop = parsed.data
+    const existing = db.prepare('SELECT seen_at FROM shops WHERE username = ?').get(dealer) as
+      { seen_at: number } | undefined
+
+    // The newer reading wins. An older one changes nothing — a device coming
+    // back from a week offline must not push a fresher row backwards.
+    if (existing && existing.seen_at >= shop.seenAt) {
+      return c.json({ stored: false, reason: 'older than cached' })
+    }
+
+    db.prepare(
+      `INSERT INTO shops (username, display_name, ships_from, num_for_sale, avatar_url, body, seen_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(username) DO UPDATE SET
+         display_name = excluded.display_name,
+         ships_from = excluded.ships_from,
+         num_for_sale = excluded.num_for_sale,
+         avatar_url = excluded.avatar_url,
+         body = excluded.body,
+         seen_at = excluded.seen_at,
+         updated_at = excluded.updated_at`,
+    ).run(
+      dealer,
+      shop.displayName,
+      shop.shipsFrom,
+      shop.numForSale,
+      shop.avatarUrl ?? '',
+      JSON.stringify(shop.fingerprint),
+      shop.seenAt,
+      now(),
+    )
+
+    return c.json({ stored: true })
+  })
+
   // --- Vault ---------------------------------------------------------------
   //
   // One block of ciphertext per person, so their own devices can find each
@@ -646,6 +728,35 @@ function sweepShares(db: DatabaseSync, at: number): void {
  * Like `sealedSchema`, plus the id and the expiry — the hub has to see both,
  * because it files and sweeps by them. The contents it does not see.
  */
+/**
+ * A shop as it may be contributed (ADR-014).
+ *
+ * The distributions are capped rather than trusted: a client that sent ten
+ * thousand labels would fill the table with one row. And there is deliberately
+ * **no** price field anywhere in here — not the fingerprint's median, not a
+ * ladder. Zod drops what the schema does not name, so a client that sent one
+ * anyway would find it gone rather than stored.
+ */
+const distributionSchema = z
+  .record(z.string().max(120), z.number())
+  .refine((value) => Object.keys(value).length <= 60, 'too many entries')
+
+const shopSchema = z.object({
+  displayName: z.string().min(1).max(120),
+  shipsFrom: z.string().max(120),
+  numForSale: z.number().int().min(0).max(10_000_000),
+  avatarUrl: z.string().max(2048).optional(),
+  seenAt: z.number().int().min(0),
+  fingerprint: z.object({
+    sampledItems: z.number().int().min(0),
+    totalItems: z.number().int().min(0),
+    coverage: z.number().min(0).max(1),
+    labelDist: distributionSchema,
+    styleDist: distributionSchema,
+    decadeDist: distributionSchema,
+  }),
+})
+
 const shareSchema = z.object({
   id: z.string().regex(/^[a-f0-9]{32}$/),
   expiresAt: z.number().int().positive(),

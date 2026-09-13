@@ -37,6 +37,93 @@ const put = (app, path, body, headers = {}) =>
     headers: { 'content-type': 'application/json', ...headers },
   })
 
+/**
+ * Shops, and what the hub may know about them (ADR-014).
+ *
+ * The first thing here that is about a shop rather than a record, so the
+ * tests are mostly about the line: a name and a distribution travel, a price
+ * and an affinity do not.
+ */
+describe('shops', () => {
+  const shop = (over: Record<string, unknown> = {}) => ({
+    displayName: 'Plattenkiste',
+    shipsFrom: 'Germany',
+    numForSale: 2_881,
+    avatarUrl: 'https://i.discogs.com/shop.jpg',
+    seenAt: 1_800_000_000_000,
+    fingerprint: {
+      sampledItems: 100,
+      totalItems: 2_881,
+      coverage: 0.03,
+      labelDist: { 'Blue Note': 40 },
+      styleDist: { 'Hard Bop': 30 },
+      decadeDist: { 1960: 50 },
+    },
+    ...over,
+  })
+
+  test('stores a shop and hands it back', async () => {
+    const { app } = hub()
+
+    const stored = await (await put(app, '/v1/shops/Plattenkiste', shop())).json()
+    assert.deepEqual(stored, { stored: true })
+
+    const body = await (await app.request('/v1/shops')).json()
+    assert.equal(body.shops.length, 1)
+    assert.equal(body.shops[0].username, 'plattenkiste')
+    assert.equal(body.shops[0].displayName, 'Plattenkiste')
+    assert.deepEqual(body.shops[0].fingerprint.labelDist, { 'Blue Note': 40 })
+  })
+
+  test('keeps the newer reading and refuses an older one', async () => {
+    const { app } = hub()
+    await put(app, '/v1/shops/plattenkiste', shop({ numForSale: 2_881 }))
+
+    const older = await (
+      await put(
+        app,
+        '/v1/shops/plattenkiste',
+        shop({ numForSale: 1, seenAt: 1_700_000_000_000 }),
+      )
+    ).json()
+    assert.equal(older.stored, false)
+
+    const body = await (await app.request('/v1/shops')).json()
+    assert.equal(body.shops[0].numForSale, 2_881)
+  })
+
+  /*
+   * The line ADR-014 draws, as a test rather than a promise. A client that
+   * sends a price or an affinity finds them gone: zod keeps what the schema
+   * names and drops the rest, and the schema names neither.
+   */
+  test('drops a price and an affinity, whatever a client sends', async () => {
+    const { app } = hub()
+    await put(app, '/v1/shops/plattenkiste', {
+      ...shop(),
+      affinity: 4.2,
+      fingerprint: { ...shop().fingerprint, medianPrice: 22.75 },
+    })
+
+    const body = await (await app.request('/v1/shops')).json()
+    assert.equal(body.shops[0].affinity, undefined)
+    assert.equal(body.shops[0].fingerprint.medianPrice, undefined)
+  })
+
+  test('refuses a distribution with thousands of entries', async () => {
+    const { app } = hub()
+    const labelDist = Object.fromEntries(
+      Array.from({ length: 500 }, (_, i) => [`Label ${i}`, i]),
+    )
+    const response = await put(app, '/v1/shops/plattenkiste', {
+      ...shop(),
+      fingerprint: { ...shop().fingerprint, labelDist },
+    })
+
+    assert.equal(response.status, 400)
+  })
+})
+
 describe('health', () => {
   test('reports counts and whether it is secured', async () => {
     const { app } = hub('geheim')
@@ -48,6 +135,7 @@ describe('health', () => {
       shipping: 0,
       covers: 0,
       families: 0,
+      shops: 0,
       watching: 0,
       secured: true,
     })

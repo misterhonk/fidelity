@@ -22,6 +22,7 @@ import type { DemoProgress, DemoResult } from '~~/worker/demo'
 import type { ImportReport } from '../worker/import'
 import type { ArtistHit } from '~~/worker/followed'
 import type { CompareResult } from '~~/worker/basket/compare'
+import type { SuggestResult } from '~~/worker/dealers/suggest'
 import type {
   BasketPlan,
   BasketView,
@@ -437,6 +438,16 @@ export interface WorkerContract {
    */
   'horizon.status': { params: undefined; progress: never; result: HorizonStatus }
   'horizon.build': { params: undefined; progress: HorizonProgress; result: HorizonResult }
+  /**
+   * Shops other people have dug (ADR-014).
+   *
+   * Hands this device's shops up and asks which ones it does not know. The
+   * ranking happens in the worker against the taste profile — the hub never
+   * sees a collection, and never carries a price. Empty without a hub, and
+   * empty two seconds later with a broken one (rule 8).
+   */
+  'shops.suggest': { params: undefined; progress: never; result: SuggestResult }
+
   /**
    * The same basket, at the other shops you know (M29).
    *

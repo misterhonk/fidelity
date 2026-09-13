@@ -254,6 +254,12 @@ export const handlers: HandlerMap = {
   },
 
   /*
+   * Shops other people have dug (ADR-014). No Discogs request at all — it
+   * talks to the hub, or to nobody.
+   */
+  'shops.suggest': async () => (await import('./dealers/suggest')).suggestShops(),
+
+  /*
    * The same basket at the other shops (M29). No request: it reads the stock
    * rows the digs already wrote, and only the ones still inside six hours.
    */
