@@ -11,6 +11,20 @@ Für eine App bedeutet SemVer:
 
 ## [0.68.0](https://github.com/misterhonk/fidelity/compare/v0.67.0...v0.68.0) (2026-09-13)
 
+**The wantlist is a wall of sleeves now — one per album.**
+
+The wantlist was the last screen made of boxes. Now it looks like the shelf: the cover
+large, the title under it, one small line with the year, how long you have waited, how much
+you want it and how many pressings Fidelity knows — and the stars beneath. Your note stands
+as text; where there is none, one word, "Note", opens the field. "Not any more" is quiet
+now, a small word under each sleeve.
+
+And a want at Discogs is a pressing, so four wants for four pressings of one record used to
+be four cards. They are one sleeve now, "wanted in 4 pressings", with the pressings a tap
+away.
+
+**What to do:** Nothing.
+
 
 ### Added
 
