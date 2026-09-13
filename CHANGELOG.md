@@ -11,6 +11,30 @@ Für eine App bedeutet SemVer:
 
 ## [0.74.0](https://github.com/misterhonk/fidelity/compare/v0.73.0...v0.74.0) (2026-09-13)
 
+**Reinhören, bevor du kaufst — auf dem Blatt, auf dem du über die Platte entscheidest.**
+
+Jedes Fundstück und jede Platte im Regal zeigt jetzt, was Discogs an Tonspuren zu ihr hat,
+mit Namen. Ohne Hörprobe sind das Links, die dich zu YouTube bringen. Mit eingeschalteter
+Hörprobe spielen dieselben Zeilen an Ort und Stelle, ohne dass du den Bildschirm verlässt.
+Der Schalter dafür steht unter Einstellungen › Daten, er ist aus, und solange er aus ist,
+wird nichts von Google geladen — auch kein Bild, auch kein Skript.
+
+Lag ein Treffer unter den besten fünfzig, kam er bisher ohne Tonspuren an. Das Blatt schlägt
+sie jetzt einmal nach, wenn du die Platte öffnest, und behält sie danach.
+
+Dazu die Suche beim Dienst deiner Wahl: Spotify, Apple Music, TIDAL, Deezer oder YouTube
+Music, einmal unter Einstellungen › Suche gewählt, und jede Platte trägt einen Link dorthin.
+Der Ton in der App kommt von YouTube, und der Bildschirm sagt das auch dann, wenn dein Link
+woanders hinführt — die beiden sind zwei verschiedene Dinge.
+
+Und ein Filter, der nicht tat, was draufstand: `fatplastics` sitzt in Jena und galt trotzdem
+als „nicht aus Deutschland", weil im Profil eine Postanschrift steht und im Angebot ein
+englischer Ländername. Beides wird jetzt gelesen, und was schon gespeichert war, wird beim
+ersten Start repariert.
+
+**Was zu tun ist:** Such dir unter Einstellungen › Suche einen Dienst aus. Wer den Ton in der
+App will, schaltet unter Einstellungen › Daten die Hörprobe ein.
+
 
 ### Added
 
