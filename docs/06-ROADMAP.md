@@ -1184,6 +1184,36 @@ prose above them holds); covers on the demo shelf (they load — what looked lik
 in the first walk was a device that had just been signed out); a second furniture type per
 room (the presets cover it).
 
+## M29 · The tester's second session → `v0.72.0`
+
+**Where these come from.** A session sitting next to the tester on 2026-09-13, with his own
+device and his own collection. Everything here is a sentence he said.
+
+| # | What | Serves | Cost | Note |
+|---|---|---|---|---|
+| 1 | **A surname is not a name.** "The Mark & Clark Band" came back at 0.85 as "Clark ist Anne Clark". Stage 2 of the S3 cascade took one token out of the listing's artist string and found it in the lexicon | Every dig — a wrong match at the top of the list costs more than a missed one | an hour | **Done.** Stage 2 skips entries carrying a `via`. Stages 1 and 3 keep the lexicon: both compare a whole string with a whole name (docs/04 §S3b) |
+| 2 | **The round.** "Can I build a favourite-shop list and scan it weekly?" Almost: shops were remembered and could be watched, but watching only says *that* something moved | Anybody with more than two shops | a day | **Done.** One incremental dig per watched shop, ten to twenty requests for ten shops. Not weekly — there is no server (ADR-007) |
+| 3 | **On your radar.** "Exit North, I think they are great, have no record by them, but I would like to be shown one if it turns up" | The gap between the wantlist (per release) and the shelf (what you own) | a day | **Done.** S3b `ARTIST_FOLLOWED`, weight 65, db v12 |
+| 4 | **Shops that bill by grams.** A real shop's table is "1 bis 1999 Gramm: 14,00 €", and no honest conversion to records exists | Every shop outside the LP-count convention | hours | **Done.** The shape is named rather than refused in silence, and the shop's own text — free in every inventory row, thrown away until now — stands next to the form |
+| 5 | **The same basket elsewhere.** "Five records at one shop for €100 — could another have the same five for €80? What if one has four of them, much cheaper? Or in better condition?" | The decision the basket screen exists for | a day | **Done.** A join over the stock rows the digs already wrote — no request, and inside the six hours those rows live anyway. db v13 indexes `stock` by release |
+| 6 | **A vault file you carry.** "Why is there no iCloud option in Safari?" It was never about iCloud: WebKit has no File System Access API, so the destination that would have used iCloud Drive is not offered | Every iPhone, and Safari on every Mac | hours | **Done.** The same round with two taps instead of none: read a file, merge, save one |
+
+## M30 · The shops screen, as a shop list → not scheduled
+
+**Where these come from.** The same session, after the six above. Asked for in as many words:
+"I want to enter dealers myself", "under Shops I want to see every dealer I have bought from,
+have something in the basket from, have something on my wantlist from, or added by hand", and
+"at Dig I only see the shops I have dug — I want mine there too".
+
+| # | Candidate | Serves | Cost | Note |
+|---|---|---|---|---|
+| 1 | **A shop entered by hand.** A username or a shop link, checked once against `/users/{name}`, written down as a dealer row. It then appears everywhere a dug shop appears — the chips on Dig, the shops screen, the round | Somebody who knows where they want to look before they have looked | hours | One request per shop, on a button |
+| 2 | **Why each shop is there.** The list is one list today and it is only ever "shops you dug". It should carry every shop the app has met and say which: bought from (`/marketplace/orders`, already read), something in the basket from, something on the wantlist offered by, dug, entered by hand. A row without a reason is a row nobody trusts | The screen's whole purpose | a day | The sources exist; what is missing is the union and the word on each row |
+| 3 | **The shops on the Dig screen are the same shops.** Today that row is dug shops only, so a shop entered by hand or bought from is invisible exactly where somebody would dig it | Every dig after the first | an hour | Falls out of 2 |
+| 4 | **Watching, for shops that were never dug.** The watch asks `num_for_sale` — one request, no dig needed — so it works for a shop entered by hand from the first minute. What it cannot do is say *what* moved until the shop has been dug once | A favourite-shop list that is useful before it is scanned | hours | Already true of `watch/check.ts`; the screen has to stop implying otherwise |
+| 5 | **Where you are, and what is near.** `shipsToCountry` decides "from Germany" and it defaults to `Germany` for everybody — a Swiss or British user gets a chip about the wrong country until they find the setting. Derive it on the first run the way the language is derived, and offer a third group beside home and EU: Europe without the customs union, which is exactly what a Swiss, British or Norwegian buyer is asking about | Every user outside Germany, which is most of them | hours | The filter and the country list exist (`shared/countries.ts`); the default and the third group do not |
+| 6 | **Shops other people dug, through the hub.** Which shops exist, what they stock (`fingerprint` — derived, not marketplace content) and what their postage is are all durable and shareable; prices never are (rule 4). A device could ask the hub "which shops do you know that I do not?" and rank them against its own collection | The "which shops suit me" question, without the platzhirsch bias of any curated list — it is whatever the community actually digs | a day | Needs an ADR: it is the first time the hub would carry something about **shops** rather than about records |
+
 ## Not on the roadmap
 
 | Idea | Why not |
@@ -1193,7 +1223,7 @@ room (the presets cover it).
 | Collection cataloguing | A solved problem, a dozen apps |
 | A native app | The PWA is entirely sufficient |
 | A paid model | The ToS forbids fees for API-integrated apps without permission |
-| Multi-dealer search | There is **no** listings-by-release endpoint. Only through scraping — out of the question. |
+| Multi-dealer search | There is **no** listings-by-release endpoint. Only through scraping — out of the question. **The basket comparison (M29 #5) is not this** and it is worth saying why: it never asks Discogs who sells a record. It reads the inventories this device has already walked, inside the six hours their prices may be shown, and it says so on the screen — "the shops you know", never "the market". The moment it claimed the second thing it would be this row again. |
 | User accounts with passwords | Nobody needs them. The optional hub (M9) uses a shared secret. |
 | Signal weights per user | Stood in the data model as `signalWeights` and was never read; removed on 2026-08-11. Scores have to stay comparable over time **and between people** — which is why `SCALE` and `SECONDARY` are constants, and why adjusting per user would be the same mistake one level up. |
 | A price archive beyond Discogs' ten sales | Asked for constantly; forbidden just as constantly — the six-hour rule and the storage clause. Popsike lives on it with eBay data. The lawful equivalent exists: your own purchases, with price, condition and how they arrived (`/saved`). |
