@@ -9,6 +9,35 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.71.0](https://github.com/misterhonk/fidelity/compare/v0.70.1...v0.71.0) (2026-09-13)
+
+**The app says what it is doing.**
+
+Building the horizon survives leaving the screen — it always did, but the bar went with the
+page and the button came back to life, so a second build could be started beside the first.
+The panel now picks up a build that is running, keeps the button down, and says out loud that
+leaving is safe. It also says when the horizon was last built all the way through, which
+nothing had ever shown.
+
+While a shop is being scanned, the find list no longer shows the dig that is still running:
+"0 finds · 0 of 5,551 scanned" used to stand under a bar counting 45. And every result now
+names what it was matched against, so a nought can be read as well as a list. If a dig seems
+not to start, the screen says what is in front of it — there is one line to Discogs and it is
+served in order.
+
+**What to do:** Nothing.
+
+
+### Added
+
+* **dig:** the screen says what it matched against, and what it is waiting for ([83dc9c8](https://github.com/misterhonk/fidelity/commit/83dc9c865ce8927cccb2d6eac4c3a2921523467d))
+
+
+### Fixed
+
+* **dig:** the find list is never the dig that is still being scanned ([4566a8c](https://github.com/misterhonk/fidelity/commit/4566a8c814b28e50052088a6c3aa5fe8d7e71fd0))
+* **horizon:** the build survives leaving the screen, and shows it ([b212bdd](https://github.com/misterhonk/fidelity/commit/b212bdd50454a1bcb628514860ae0587019138ff))
+
 ## [0.70.1](https://github.com/misterhonk/fidelity/compare/v0.70.0...v0.70.1) (2026-09-13)
 
 **The footer waits at the end of the dig.**
