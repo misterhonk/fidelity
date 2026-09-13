@@ -17,8 +17,60 @@ async function refresh() {
 
 const stale = ref(0)
 
+/**
+ * A build that was already running when this panel opened.
+ *
+ * The same attachment the dig screen grew on 2026-09-12, for the same report
+ * one screen later: "the horizon build is aborted as soon as I leave the tab,
+ * and I cannot see why". Nothing was aborted. The run lives in the worker and
+ * survives the page; the bar lived in this component's `ref` and went with it,
+ * so coming back showed an idle panel with an enabled button over a run that
+ * was still going — and pressing it started a second one beside the first.
+ *
+ * Not the progress stream itself: that belongs to the call that started the
+ * build, and it may have been made by a copy of this component that no longer
+ * exists. The worker is asked instead, every second and a half.
+ */
+let watching: ReturnType<typeof setInterval> | null = null
+
+async function attach(): Promise<boolean> {
+  const live = await call('horizon.running', undefined)
+  // Only the deliberate build. The daily refresh and the pass after a dig are
+  // twenty requests apiece and have never claimed this bar.
+  if (!live || live.job !== 'build') return false
+
+  running.value = true
+  progress.value = live.progress
+
+  watching ??= setInterval(async () => {
+    const now = await call('horizon.running', undefined)
+    if (now && now.job === 'build') {
+      progress.value = now.progress
+      return
+    }
+    detach()
+    running.value = false
+    progress.value = null
+    await refresh()
+  }, 1500)
+
+  return true
+}
+
+function detach() {
+  if (watching !== null) clearInterval(watching)
+  watching = null
+}
+
+onBeforeUnmount(detach)
+
 onMounted(async () => {
   await refresh()
+
+  // A build already in flight holds the only lane there is (rule 3). Queueing
+  // a day's revalidation behind it would add twenty requests to a wait that is
+  // already minutes long, and the build is the thing somebody is watching.
+  if (await attach()) return
 
   /*
    * The staggered revalidation (docs/11 §3).
@@ -78,6 +130,19 @@ const staleNote = computed(() =>
 const complete = computed(
   () => status.value !== null && status.value.expanded >= status.value.entities,
 )
+
+/**
+ * When it last went through to the end, or that it never has.
+ *
+ * `horizonBuiltAt` is written only by a run that reached the last entity — a
+ * partial run deliberately leaves it alone (worker/horizon/build.ts), which is
+ * what makes this sentence worth anything.
+ */
+const built = computed(() => {
+  const at = status.value?.builtAt ?? null
+  if (at !== null) return st.value.library.horizon.lastBuilt(dayTime(at))
+  return status.value && status.value.expanded > 0 ? st.value.library.horizon.neverBuilt : null
+})
 </script>
 
 <template>
@@ -113,20 +178,37 @@ const complete = computed(
       {{ staleNote }}
     </p>
 
-    <div v-if="progress" class="flex flex-col gap-2" aria-live="polite">
+    <!--
+      Asked for by name: "last successful horizon build on … at …". The two
+      numbers above say how much exists and nothing said whether a run ever
+      finished — a horizon at 312 of 690 looks the same an hour after it stopped
+      and two months after.
+    -->
+    <p v-if="built && !running" class="text-fid-sm text-fid-text-muted">{{ built }}</p>
+
+    <!--
+      Shown from the moment the run is known, not from its first report.
+
+      A build attached to on opening has no progress for a second and a half,
+      and a panel that showed nothing at all in that window would be the same
+      empty screen this whole change is against.
+    -->
+    <div v-if="progress || running" class="flex flex-col gap-2" aria-live="polite">
       <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
         <div
           class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
           :style="{ width: `${percent}%` }"
         />
       </div>
-      <p class="text-fid-sm text-fid-text-muted">
+      <p v-if="progress" class="text-fid-sm text-fid-text-muted">
         {{ st.library.horizon.ofTotal(progress.done, progress.total) }}
         <template v-if="progress.current"> · {{ progress.current }}</template>
         · <span class="fid-num">{{ count(progress.releaseIds) }}</span>
         {{ st.library.horizon.records }}
         <template v-if="eta"> · {{ st.library.horizon.eta(eta) }}</template>
       </p>
+      <!-- Because the opposite was being read into a bar that vanished. -->
+      <p class="text-fid-sm text-fid-text-muted">{{ st.library.horizon.keepsRunning }}</p>
     </div>
 
     <ErrorNote v-if="error" :cause="error" />
