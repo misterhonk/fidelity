@@ -1235,6 +1235,13 @@ same off by default, the same nothing-before-a-tap. With the switch off a clip i
 out; with it on it plays in place. `ListenSection.vue` holds both, and the ADR carries the
 amendment that widened it.
 
+**And the clips a find came without.** A dig fills `videos[]` for the top fifty, because
+those get a `/releases/{id}` anyway; open the fifty-first and there was nothing to hear
+although the record almost certainly has something. The sheet now looks that one up — one
+release, once, for something on the screen, kept for ever after. The same bargain the covers
+and the shelf's own sheet already make, and not a loop (rule 2 is about walking ten thousand
+of them).
+
 ### What the research says about going further
 
 Measured 2026-09-13, because the answer decides the whole shape:
