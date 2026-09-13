@@ -1,6 +1,7 @@
 import { buildLookup, labelLift, type HorizonLookup } from '../horizon/lookup'
 import type {
   CollectionItem,
+  FollowedArtist,
   HorizonChunk,
   Kin,
   Signal,
@@ -78,6 +79,16 @@ export interface ArtistEntry {
    * match may be and what the sentence says.
    */
   via?: Kin
+  /**
+   * On the radar rather than on the shelf (M29).
+   *
+   * `n` is nought for these and the sentence must never count records — which
+   * is why the signal is `ARTIST_FOLLOWED` and not `ARTIST_KNOWN` with a zero
+   * in it. Everything else about the cascade is the same, lexicon included:
+   * somebody who follows Exit North should be found by Exit North's aliases
+   * too.
+   */
+  followed?: true
 }
 
 export interface MatchIndex {
@@ -126,6 +137,7 @@ export function buildIndex(
   wantlist: WantlistItem[],
   taste: TasteProfile | null,
   chunks: HorizonChunk[] = [],
+  followed: FollowedArtist[] = [],
 ): MatchIndex {
   const artistWeight = new Map<string, ArtistEntry>()
   const labelWeight = new Map<string, { name: string; weight: number; n: number }>()
@@ -137,6 +149,25 @@ export function buildIndex(
     }
   }
 
+  /*
+   * And the bands on the radar (M29) — after the shelf, never over it.
+   *
+   * If a followed artist turns out to be on the shelf as well, the shelf wins
+   * and the entry stays an ARTIST_KNOWN: "you have 4 records by them" is the
+   * truer sentence, and following is then a thing somebody can forget about.
+   *
+   * `weight` and `n` are nought, and both are evidence rather than score —
+   * confidence is the cascade stage and nothing else, which is why a followed
+   * artist can carry a weight of zero without scoring as nothing.
+   */
+  const followedById = new Map<number, FollowedArtist>()
+  for (const artist of followed) {
+    followedById.set(artist.artistId, artist)
+    const key = norm(artist.name)
+    if (key.length === 0 || isAnonymousArtist(key) || artistWeight.has(key)) continue
+    artistWeight.set(key, { name: artist.name, weight: 0, n: 0, followed: true })
+  }
+
   // The lexicon, after the names themselves: an alias that spells another
   // collected artist's name stays that artist. "Miss Dinky" is Dinky only
   // because the horizon expanded Dinky — an artist you own once has no chunk
@@ -144,11 +175,19 @@ export function buildIndex(
   for (const chunk of chunks) {
     if (chunk.kind !== 'artist' || !chunk.kin) continue
     const facet = taste?.artists[String(chunk.entityId)]
-    if (!facet) continue
+    // A followed artist is expanded like a collected one, so it has a chunk
+    // and a lexicon of its own — Exit North under any of its spellings.
+    const radar = facet ? null : followedById.get(chunk.entityId)
+    if (!facet && !radar) continue
     for (const kin of chunk.kin) {
       const key = norm(kin.name)
       if (key.length === 0 || isAnonymousArtist(key) || artistWeight.has(key)) continue
-      artistWeight.set(key, { name: facet.name, weight: facet.weight, n: facet.n, via: kin })
+      artistWeight.set(
+        key,
+        facet
+          ? { name: facet.name, weight: facet.weight, n: facet.n, via: kin }
+          : { name: radar!.name, weight: 0, n: 0, via: kin, followed: true },
+      )
     }
   }
   for (const facet of Object.values(taste?.labels ?? {})) {
@@ -314,11 +353,12 @@ export function evaluate(
     })
   }
 
-  // S3 — an artist already in the collection, this release not.
+  // S3 — an artist already in the collection, this release not. Or one on the
+  // radar and nowhere on the shelf, which is a different sentence (M29).
   const artist = matchArtist(listing.artist, index)
   if (artist) {
     signals.push({
-      type: 'ARTIST_KNOWN',
+      type: artist.followed ? 'ARTIST_FOLLOWED' : 'ARTIST_KNOWN',
       // Confidence is the cascade stage and nothing else. An earlier version
       // scaled it by how many records you own of that artist, which sounds
       // reasonable and quietly broke the calibration table: "artist known

@@ -11,6 +11,7 @@ import type {
   Dealer,
   Dig,
   Feedback,
+  FollowedArtist,
   HorizonChunk,
   Identity,
   Match,
@@ -35,7 +36,7 @@ export const DB_NAME = 'fidelity'
  *
  * 4 — added the `covers` store. Additive: nothing existing is touched.
  */
-export const DB_VERSION = 11
+export const DB_VERSION = 12
 
 /**
  * `meta` is a small key-value store rather than nine one-row stores. The union
@@ -199,6 +200,15 @@ export interface FidelityDB extends DBSchema {
   watched: { key: number; value: WatchedRelease }
   /** Discogs' estimate, one row per day (M19 #3). Keyed by the ISO day. */
   valueHistory: { key: string; value: ValuePoint }
+  /**
+   * Bands on the radar that the shelf knows nothing about (v12).
+   *
+   * Keyed by the Discogs artist id, because that is what the horizon expands
+   * and what survives a rename. Small — tens of rows — but its own store
+   * rather than a meta row, so the vault carries it between devices like every
+   * other list somebody built by hand.
+   */
+  followed: { key: number; value: FollowedArtist }
   basket: { key: number; value: BasketItem }
   feedback: { key: number; value: Feedback }
   /**

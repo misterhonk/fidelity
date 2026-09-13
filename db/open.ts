@@ -201,6 +201,15 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
         db.createObjectStore('valueHistory', { keyPath: 'day' })
       }
 
+      if (oldVersion < 12) {
+        /*
+         * v12 keeps the bands somebody has on their radar and owns nothing by
+         * (M29). Additive like v7 to v11: the store starts empty, and an
+         * app with nothing in it behaves exactly as it did.
+         */
+        db.createObjectStore('followed', { keyPath: 'artistId' })
+      }
+
       // Future versions go here. The rule: never migrate destructively unless
       // the state can be rebuilt from the API — which, so far, all of it can.
     },

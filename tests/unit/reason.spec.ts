@@ -25,6 +25,9 @@ const EVIDENCE: Record<SignalType, Record<string, unknown>> = {
   WANTLIST_EXACT: { masterId: 12 },
   WANTLIST_PRESSING: { album: 'Dummy', masterId: 12, wantedYear: 1994, pressingYear: 2017 },
   ARTIST_KNOWN: { artist: 'Robag Wruhme', owned: 5 },
+  // No `owned` at all, and that is the shape: a followed artist has nought of
+  // them, which is why the sentence must never count records (M29).
+  ARTIST_FOLLOWED: { artist: 'Exit North' },
   ARTIST_GAP: { artist: 'Robag Wruhme', owned: 5, total: 12 },
   LABEL_AFFINITY: { label: 'Freude Am Tanzen', owned: 3, lift: 4 },
   CATALOG_RUN: { label: 'Kompakt', prefix: 'KOM', owned: 6, inRun: 9 },

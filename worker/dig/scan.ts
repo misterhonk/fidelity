@@ -182,7 +182,7 @@ async function prepare({
   const db = await openFidelityDb()
   const preferences = await getPreferences()
 
-  const [collection, wantlist, taste, chunks] = await Promise.all([
+  const [collection, wantlist, taste, chunks, followed] = await Promise.all([
     db.getAll('collection'),
     db.getAll('wantlist'),
     db
@@ -191,9 +191,12 @@ async function prepare({
     // The horizon. Empty before it is built, and everything still works —
     // just with three signals instead of eight.
     db.getAll('horizon'),
+    // The bands on the radar (M29). Empty on every device that follows none,
+    // and then nothing about the scan changes.
+    db.getAll('followed'),
   ])
 
-  const index = buildIndex(collection, wantlist, taste, chunks)
+  const index = buildIndex(collection, wantlist, taste, chunks, followed)
 
   return {
     client,

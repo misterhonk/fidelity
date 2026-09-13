@@ -113,6 +113,7 @@ describe('database schema', () => {
       'digs',
       'feedback',
       'fieldValues',
+      'followed',
       'horizon',
       'matches',
       'meta',

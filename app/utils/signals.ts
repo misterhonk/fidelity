@@ -3,7 +3,7 @@ import type { SignalType } from '#shared/types'
 import { useMessages } from '~/composables/useMessages'
 
 /**
- * How the eleven signals are coloured, and where their names come from.
+ * How the twelve signals are coloured, and where their names come from.
  *
  * The names are in the shell pack rather than here — they appear on a dig
  * result, on a basket card and in the detail sheet, so they belong to
@@ -11,11 +11,14 @@ import { useMessages } from '~/composables/useMessages'
  * words.
  */
 
-/** Which token colours a chip. S1 and S2 share one — ten colours for eleven signals. */
+/** Which token colours a chip. Some share one — there are fewer colours than signals. */
 export const SIGNAL_TOKEN: Record<SignalType, string> = {
   WANTLIST_EXACT: 'wantlist',
   WANTLIST_PRESSING: 'wantlist',
   ARTIST_KNOWN: 'artist',
+  // The same colour as the artist it is about: on a card the two never appear
+  // together — you either own something by them or you do not.
+  ARTIST_FOLLOWED: 'artist',
   ARTIST_GAP: 'gap',
   LABEL_AFFINITY: 'label',
   CATALOG_RUN: 'catalog',

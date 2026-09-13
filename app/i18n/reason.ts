@@ -75,6 +75,24 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
         : `${artist} is already on your shelf — this record is not.`
     },
 
+    /*
+     * A band on the radar, and the sentence never counts records.
+     *
+     * ARTIST_KNOWN's sentence is "you have 10 records by Anne Clark"; for a
+     * followed artist the number is nought, and borrowing that wording would
+     * read as certainty the evidence does not carry. The whole point of the
+     * signal is the opposite claim: nothing of theirs is here yet.
+     */
+    ARTIST_FOLLOWED: (evidence) => {
+      const artist = String(evidence.artist ?? '')
+      if (!artist) return null
+
+      const via = String(evidence.via ?? '')
+      return via
+        ? `${via} is ${artist} — you have them on your radar and nothing of theirs yet.`
+        : `${artist} — on your radar, and nothing of theirs here yet.`
+    },
+
     LABEL_AFFINITY: (evidence) => {
       const label = String(evidence.label ?? '')
       const owned = Number(evidence.owned ?? 0)
@@ -165,6 +183,8 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
       const via = evidence.via ? `, as ${String(evidence.via)}` : ''
       return `artist known (${String(evidence.artist)}${via})`
     },
+    ARTIST_FOLLOWED: (evidence) =>
+      evidence.artist ? `${String(evidence.artist)} is on your radar` : null,
     LABEL_AFFINITY: (evidence) => (evidence.label ? `label ${String(evidence.label)}` : null),
     WANTLIST_PRESSING: (evidence) =>
       evidence.album ? `another pressing of ${String(evidence.album)}` : null,
@@ -220,6 +240,16 @@ const de: typeof en = {
       return owned > 1
         ? `Du hast ${count(owned)} Platten von ${artist} – diese nicht.`
         : `${artist} steht schon in deiner Sammlung – diese Platte nicht.`
+    },
+
+    ARTIST_FOLLOWED: (evidence) => {
+      const artist = String(evidence.artist ?? '')
+      if (!artist) return null
+
+      const via = String(evidence.via ?? '')
+      return via
+        ? `${via} ist ${artist} – hast du auf dem Schirm, und noch nichts davon.`
+        : `${artist} – hast du auf dem Schirm, und noch nichts davon hier.`
     },
 
     LABEL_AFFINITY: (evidence) => {
@@ -313,6 +343,8 @@ const de: typeof en = {
       const via = evidence.via ? `, als ${String(evidence.via)}` : ''
       return `Künstler bekannt (${String(evidence.artist)}${via})`
     },
+    ARTIST_FOLLOWED: (evidence) =>
+      evidence.artist ? `${String(evidence.artist)} steht auf deinem Schirm` : null,
     LABEL_AFFINITY: (evidence) => (evidence.label ? `Label ${String(evidence.label)}` : null),
     WANTLIST_PRESSING: (evidence) =>
       evidence.album ? `anderes Pressing von ${String(evidence.album)}` : null,

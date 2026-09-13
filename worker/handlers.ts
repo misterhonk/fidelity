@@ -254,6 +254,29 @@ export const handlers: HandlerMap = {
   },
 
   /*
+   * The radar (M29): bands somebody has an eye on and owns nothing by.
+   *
+   * Its own module and a dynamic import — the entry chunk is for the scan.
+   */
+  'followed.list': async () => (await import('./followed')).listFollowed(),
+  'followed.search': async ({ query }, { signal }) =>
+    (await import('./followed')).searchArtists(discogs(), query, signal),
+  'followed.add': async ({ artistId, name }) => {
+    const { follow } = await import('./followed')
+    const list = await follow(artistId, name)
+    // The detail sheet caches the lookup, and the radar changes what a match
+    // means — the same invalidation a rebuilt horizon does.
+    forgetLookup()
+    return list
+  },
+  'followed.remove': async ({ artistId }) => {
+    const { unfollow } = await import('./followed')
+    const list = await unfollow(artistId)
+    forgetLookup()
+    return list
+  },
+
+  /*
    * The round: every watched shop in one go (`worker/dealers/round.ts`).
    *
    * Its own module and a dynamic import, like every other minutes-long job

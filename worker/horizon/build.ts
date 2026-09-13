@@ -318,7 +318,11 @@ async function allCandidates(
   collection: CollectionItem[],
   wantlist: WantlistItem[],
 ): Promise<Candidate[]> {
-  const base = selectCandidates(collection, wantlist)
+  // The radar (M29) — read here rather than threaded through every caller,
+  // because all three of them (build, status, revalidation plan) need exactly
+  // the same list and would otherwise each have to remember to fetch it.
+  const followed = await (await openFidelityDb()).getAll('followed')
+  const base = selectCandidates(collection, wantlist, followed)
   const selected = new Set(base.filter((c) => c.kind === 'artist').map((c) => c.id))
   return [...base, ...creditCandidates((await getMeta('credits')) ?? null, selected)]
 }

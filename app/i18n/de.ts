@@ -295,6 +295,7 @@ const de: Messages = {
     WANTLIST_EXACT: 'Wantlist',
     WANTLIST_PRESSING: 'Anderes Pressing',
     ARTIST_KNOWN: 'Künstler',
+    ARTIST_FOLLOWED: 'Auf dem Schirm',
     ARTIST_GAP: 'Lücke',
     LABEL_AFFINITY: 'Label',
     CATALOG_RUN: 'Katalogserie',

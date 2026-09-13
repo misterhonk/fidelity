@@ -428,6 +428,7 @@ const en = {
     WANTLIST_EXACT: 'Wantlist',
     WANTLIST_PRESSING: 'Other pressing',
     ARTIST_KNOWN: 'Artist',
+    ARTIST_FOLLOWED: 'On your radar',
     ARTIST_GAP: 'Gap',
     LABEL_AFFINITY: 'Label',
     CATALOG_RUN: 'Catalogue run',
