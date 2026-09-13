@@ -56,6 +56,8 @@ test('the shop screen identifies a barcode with Discogs answered from here', asy
   page,
   context,
 }) => {
+  // After the seed: its default answer for Discogs is a 401, and later routes win.
+  await seed(page, 'en')
   await context.route('https://api.discogs.com/**', (route) => {
     const path = new URL(route.request().url()).pathname
     const cors = { 'access-control-allow-origin': '*' }
@@ -82,7 +84,6 @@ test('the shop screen identifies a barcode with Discogs answered from here', asy
     }
     return route.fulfill({ status: 404, headers: cors, body: '{}' })
   })
-  await seed(page, 'en')
   await page.goto('/in-store')
   await page.getByLabel('Barcode or run-out number').fill('724384561423')
   await page.getByRole('button', { name: 'Look it up' }).click()
