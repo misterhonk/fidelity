@@ -9,6 +9,47 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.74.0](https://github.com/misterhonk/fidelity/compare/v0.73.0...v0.74.0) (2026-09-13)
+
+**Reinhören, bevor du kaufst — auf dem Blatt, auf dem du über die Platte entscheidest.**
+
+Jedes Fundstück und jede Platte im Regal zeigt jetzt, was Discogs an Tonspuren zu ihr hat,
+mit Namen. Ohne Hörprobe sind das Links, die dich zu YouTube bringen. Mit eingeschalteter
+Hörprobe spielen dieselben Zeilen an Ort und Stelle, ohne dass du den Bildschirm verlässt.
+Der Schalter dafür steht unter Einstellungen › Daten, er ist aus, und solange er aus ist,
+wird nichts von Google geladen — auch kein Bild, auch kein Skript.
+
+Lag ein Treffer unter den besten fünfzig, kam er bisher ohne Tonspuren an. Das Blatt schlägt
+sie jetzt einmal nach, wenn du die Platte öffnest, und behält sie danach.
+
+Dazu die Suche beim Dienst deiner Wahl: Spotify, Apple Music, TIDAL, Deezer oder YouTube
+Music, einmal unter Einstellungen › Suche gewählt, und jede Platte trägt einen Link dorthin.
+Der Ton in der App kommt von YouTube, und der Bildschirm sagt das auch dann, wenn dein Link
+woanders hinführt — die beiden sind zwei verschiedene Dinge.
+
+Und ein Filter, der nicht tat, was draufstand: `fatplastics` sitzt in Jena und galt trotzdem
+als „nicht aus Deutschland", weil im Profil eine Postanschrift steht und im Angebot ein
+englischer Ländername. Beides wird jetzt gelesen, und was schon gespeichert war, wird beim
+ersten Start repariert.
+
+**Was zu tun ist:** Such dir unter Einstellungen › Suche einen Dienst aus. Wer den Ton in der
+App will, schaltet unter Einstellungen › Daten die Hörprobe ein.
+
+
+### Added
+
+* **dealers:** a shop known only by name says what it can already do ([271d40b](https://github.com/misterhonk/fidelity/commit/271d40bbd8f482c7c1865db8472d931bb5600c6c))
+* **ui:** a find below the top fifty has something to hear too ([fa8c91c](https://github.com/misterhonk/fidelity/commit/fa8c91c9b325556b0f3e62a4367f094ba75043d7))
+* **ui:** one tap from a record to the music, at the service you choose ([f89d1e9](https://github.com/misterhonk/fidelity/commit/f89d1e9b789131bd206a8f3555c70ce4ff6bc701))
+* **ui:** the sound a record already carries, where you decide about it ([3243ad8](https://github.com/misterhonk/fidelity/commit/3243ad858c23c85974c7633dca8bb5dfd746a24b))
+
+
+### Fixed
+
+* **dealers:** the origin filter compared a postal address against a country ([9c56bbf](https://github.com/misterhonk/fidelity/commit/9c56bbf16ed2a29f04c2f9294731b4ad2a9398ff))
+* **ui:** the shops screen stops promising and starts pointing ([a80be19](https://github.com/misterhonk/fidelity/commit/a80be1975a30751ae3d2291940cc5bd7e15b7ae6))
+* **ui:** the undo on the shelf raced the screen that reads it ([fa8c91c](https://github.com/misterhonk/fidelity/commit/fa8c91c9b325556b0f3e62a4367f094ba75043d7))
+
 ## [0.73.0](https://github.com/misterhonk/fidelity/compare/v0.72.0...v0.73.0) (2026-09-13)
 
 **The shops screen is a list of where to go, not a log of where you have been.**
