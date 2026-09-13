@@ -68,15 +68,26 @@ describe('what the horizon is doing right now', () => {
     let letGo: () => void = () => {}
     const gate = new Promise<void>((resolve) => (letGo = resolve))
 
+    /*
+     * The second entity waits until the test says so — a build in flight. And
+     * the test waits for the run to *reach* it rather than for a stopwatch: a
+     * `setTimeout(20)` here passed alone and failed inside the full suite,
+     * which is a test measuring the machine rather than the code.
+     */
+    let reachedSecond: () => void = () => {}
+    const atSecond = new Promise<void>((resolve) => (reachedSecond = resolve))
+
     const only = [candidate(1), candidate(2)]
     expandEntity.mockImplementation(async (who: Candidate) => {
-      // The second entity waits until the test says so — a build in flight.
-      if (who.id === 2) await gate
+      if (who.id === 2) {
+        reachedSecond()
+        await gate
+      }
       return expansion(who, [who.id * 10])
     })
 
     const run = buildHorizon({ client, only, job: 'build', now: () => NOW })
-    await new Promise((done) => setTimeout(done, 20))
+    await atSecond
 
     const live = runningHorizon()
     expect(live?.job).toBe('build')

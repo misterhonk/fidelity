@@ -146,7 +146,20 @@ export function readOrigin(value: unknown): OriginFilter {
  * Only ever a *default*. `getPreferences` merges what is stored over this, so
  * anybody who has chosen a country keeps it.
  */
+let guessed: string | null = null
+
 export function guessHomeCountry(): string {
+  /*
+   * Worked out once per process, and not before something asks.
+   *
+   * `Intl.DisplayNames` is not free to construct — `app/utils/countries.ts`
+   * says so about its own copy — and the first version of this ran at module
+   * load of `db/meta.ts`, which nearly everything in the worker imports. On a
+   * slow CI container that showed up as a five-second assertion failing in a
+   * spec about shelves, three commits away from anything to do with countries.
+   */
+  if (guessed !== null) return guessed
+
   const tags: string[] = [
     ...(globalThis.navigator?.languages ?? []),
     globalThis.navigator?.language ?? '',
@@ -166,11 +179,20 @@ export function guessHomeCountry(): string {
       const name = new Intl.DisplayNames(['en'], { type: 'region' }).of(region)
       // `of` hands back the code itself for a region it does not know, which
       // is not a country name and must not reach a comparison with Discogs.
-      if (name && name !== region) return name
+      if (name && name !== region) {
+        guessed = name
+        return guessed
+      }
     } catch {
       break
     }
   }
 
-  return 'Germany'
+  guessed = 'Germany'
+  return guessed
+}
+
+/** For the tests, which stub `navigator` between cases. */
+export function forgetHomeCountry(): void {
+  guessed = null
 }

@@ -51,8 +51,16 @@ export const DEFAULT_PREFERENCES: Preferences = {
   shipsFromBlock: [],
   excludeReissues: false,
   currency: 'EUR',
-  // Where this device is, not where the author was — see `guessHomeCountry`.
-  shipsToCountry: guessHomeCountry(),
+  /*
+   * Where this device is, not where the author was — see `guessHomeCountry`.
+   *
+   * A getter, so the work happens when something spreads these defaults rather
+   * than when this module is imported. Nearly everything in the worker imports
+   * it, and `Intl.DisplayNames` is not free to construct.
+   */
+  get shipsToCountry() {
+    return guessHomeCountry()
+  },
   // Off: rule 5 stays the normal case, the exception is switched on by hand.
   importFriends: false,
   // ADR-012: aus, bis jemand es will. Siehe `Preferences.audioPreview`.

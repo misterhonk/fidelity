@@ -83,7 +83,14 @@ test('lists shops from the hub, ranked against your own shelf', async ({ page, c
    */
   await putRows(page, {
     meta: [
-      { key: 'preferences', value: { ...DEFAULT_PREFERENCES, hubUrl: 'https://hub.test' } },
+      {
+        key: 'preferences',
+        value: {
+          ...DEFAULT_PREFERENCES,
+          shipsToCountry: 'Germany',
+          hubUrl: 'https://hub.test',
+        },
+      },
       {
         key: 'tasteProfile',
         value: {

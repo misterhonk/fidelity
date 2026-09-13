@@ -1,6 +1,7 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  forgetHomeCountry,
   guessHomeCountry,
   isEu,
   isEurope,
@@ -59,7 +60,13 @@ describe('where a shop ships from', () => {
  * was already filled in and therefore looked settled.
  */
 describe('the home country, guessed', () => {
-  afterEach(() => vi.unstubAllGlobals())
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    // The answer is memoised per process, so each case starts from nothing.
+    forgetHomeCountry()
+  })
+
+  beforeEach(() => forgetHomeCountry())
 
   const withLanguages = (languages: string[]) =>
     vi.stubGlobal('navigator', { languages, language: languages[0] ?? '' })
