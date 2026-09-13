@@ -122,6 +122,27 @@ const en = {
       eta: (clock: string) => `about ${clock} left`,
       build: 'Build the horizon',
       refresh: 'Refresh the horizon',
+      /*
+       * When it last went through to the end — asked for by name.
+       *
+       * A tester on 2026-09-13: "it would be good if it said *last successful
+       * horizon build on … at …*". He was right, and for a sharper reason than
+       * curiosity: the two numbers above say how much exists, and nothing said
+       * whether a run had ever finished. A horizon at 312 of 690 looks the same
+       * whether it stopped an hour ago or in July.
+       */
+      lastBuilt: (when: string) => `Last built through on ${when}`,
+      neverBuilt:
+        'Never built all the way through yet. What is here came from interrupted runs, from the daily refresh and from what digs turned up.',
+      /*
+       * Said while it runs, because the opposite was being read into it.
+       *
+       * Reported as "the build is aborted as soon as I leave the tab, and I
+       * cannot see why". Nothing was aborted — the run lives in the worker and
+       * the bar lived on the page, so leaving took the bar and left the run.
+       */
+      keepsRunning:
+        'Carries on if you leave this screen — the build runs in the background, not on this page.',
     },
 
     credits: {
@@ -712,6 +733,11 @@ const de: typeof en = {
       eta: (clock) => `noch ca. ${clock}`,
       build: 'Horizont bauen',
       refresh: 'Horizont auffrischen',
+      lastBuilt: (when) => `Zuletzt vollständig gebaut am ${when}`,
+      neverBuilt:
+        'Noch nie ganz durchgelaufen. Was da ist, stammt aus abgebrochenen Läufen, aus der täglichen Auffrischung und aus dem, was Digs gefunden haben.',
+      keepsRunning:
+        'Läuft weiter, wenn du diesen Bildschirm verlässt — der Bau läuft im Hintergrund, nicht auf dieser Seite.',
     },
 
     credits: {

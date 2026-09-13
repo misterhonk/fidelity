@@ -253,6 +253,16 @@ export const handlers: HandlerMap = {
     return horizonStatus()
   },
 
+  /*
+   * Who is expanding, and how far — for a panel that was not there when it
+   * started. Costs nothing: module state in this worker, no database, no
+   * request.
+   */
+  'horizon.running': async () => {
+    const { runningHorizon } = await import('./horizon/running')
+    return runningHorizon()
+  },
+
   'horizon.build': async (_params, { report, signal }) => {
     const { buildHorizon } = await import('./horizon/build')
     const result = await buildHorizon({
@@ -314,6 +324,9 @@ export const handlers: HandlerMap = {
       client: discogs(),
       report: (progress) => report(progress),
       signal,
+      // It passes `only` like the revalidation and is not one: without this
+      // the panel would show "refreshing" for the pass after a dig.
+      job: 'gaps',
       only: misses.map((miss) => ({
         kind: 'master' as const,
         id: miss.masterId,

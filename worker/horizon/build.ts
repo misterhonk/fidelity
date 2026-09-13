@@ -14,6 +14,7 @@ import { expandEntity } from './expand'
 import { creditCandidates } from './credit-select'
 import { lacksKin, planRevalidation, type RevalidationPlan } from './revalidate'
 import { candidateKey, selectCandidates, type Candidate } from './select'
+import { noteHorizonProgress, whileRunningHorizon, type HorizonJob } from './running'
 import { distinctReleases } from '~~/db/collection'
 
 /** Revalidation interval from docs/01 §6. */
@@ -79,6 +80,15 @@ export interface BuildOptions {
    * to spend a day's budget instead of rebuilding everything.
    */
   only?: Candidate[]
+  /**
+   * Which run this is, for the screen that asks what is going on.
+   *
+   * Derived from `only` where it is not given, because that is what already
+   * distinguishes the deliberate build from the day's ration. `gaps` has to
+   * say so itself — it passes `only` like the revalidation and means something
+   * else entirely.
+   */
+  job?: HorizonJob
 }
 
 /**
@@ -91,7 +101,13 @@ export interface BuildOptions {
  * restart skips whatever is already there and fresh. Closing the tab costs one
  * entity, not the run.
  */
-export async function buildHorizon({
+export async function buildHorizon(options: BuildOptions): Promise<HorizonResult> {
+  return whileRunningHorizon(options.job ?? (options.only ? 'revalidate' : 'build'), () =>
+    runBuild(options),
+  )
+}
+
+async function runBuild({
   client,
   report,
   signal,
@@ -141,14 +157,18 @@ export async function buildHorizon({
   )
 
   const emit = (current: string) => {
-    report?.({
+    const progress = {
       done,
       total: candidates.length,
       requests,
       current,
       releaseIds,
       etaMs: Math.round((candidates.length - done) * 2 * MS_PER_REQUEST),
-    })
+    }
+    // Remembered first, reported second: a panel that opens mid-run reads the
+    // remembered one, and it must not be a step behind the one on screen.
+    noteHorizonProgress(progress)
+    report?.(progress)
   }
 
   emit('')

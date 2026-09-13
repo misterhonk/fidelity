@@ -433,6 +433,15 @@ export interface WorkerContract {
   'horizon.status': { params: undefined; progress: never; result: HorizonStatus }
   'horizon.build': { params: undefined; progress: HorizonProgress; result: HorizonResult }
   /**
+   * Whether this worker is expanding the horizon right now, and how far.
+   *
+   * The counterpart to `dig.running`, and it exists for the same report: a
+   * build survives leaving the screen that started it, but until 2026-09-13
+   * nothing could see that it had. The panel asks on opening and every second
+   * and a half while it runs.
+   */
+  'horizon.running': { params: undefined; progress: never; result: RunningHorizon | null }
+  /**
    * A day's worth of revalidation, oldest first. Cheap enough to offer on a
    * visit rather than schedule (docs/11 §3: ~20 Requests/Tag, gestaffelt).
    */
@@ -1074,6 +1083,12 @@ export interface HorizonStatus {
   releaseIds: number
   builtAt: number | null
   estimatedRequests: number
+}
+
+/** What `horizon.running` answers — see `worker/horizon/running.ts`. */
+export interface RunningHorizon {
+  job: 'build' | 'revalidate' | 'gaps'
+  progress: HorizonProgress | null
 }
 
 export interface HorizonProgress {
