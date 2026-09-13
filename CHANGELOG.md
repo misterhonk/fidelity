@@ -11,6 +11,16 @@ Für eine App bedeutet SemVer:
 
 ## [0.67.0](https://github.com/misterhonk/fidelity/compare/v0.66.0...v0.67.0) (2026-09-13)
 
+**Three small things a first quarter of an hour asked for.**
+
+In a compartment's "Fill", "All" now means all: every record the list holds, not just the
+rows on screen, and the button says the true number. A record's sheet says why the rule
+proposes a compartment — "A2 · C–D, by artist" — not just the coordinate. And if you have
+not built the horizon yet, the wantlist tells you what that would do for you and where to do
+it, instead of a sentence about it in the app's own words.
+
+**What to do:** Nothing.
+
 
 ### Added
 
