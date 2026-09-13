@@ -243,6 +243,14 @@ const en = {
 
       condition: 'Condition from',
       conditionHint: 'Anything worse counts for 40 %, but does not disappear.',
+      /*
+       * Where "listen" goes (M31). Named as a search, because that is what it
+       * is: Fidelity cannot know Spotify's id for a record without asking
+       * Spotify, and asking needs an account and a key.
+       */
+      listen: 'Listen at',
+      listenNone: 'Nowhere',
+      listenHint: 'A record then carries a link to that service’s search.',
 
       targetPrice: 'Comfortable price',
       targetPriceAny: 'no preference',
@@ -869,6 +877,9 @@ const de: typeof en = {
 
       condition: 'Zustand ab',
       conditionHint: 'Schlechter zählt nur noch 40 %, verschwindet aber nicht.',
+      listen: 'Reinhören bei',
+      listenNone: 'Nirgends',
+      listenHint: 'Eine Platte trägt dann einen Link zur Suche dieses Dienstes.',
 
       targetPrice: 'Wohlfühlpreis',
       targetPriceAny: 'egal',
