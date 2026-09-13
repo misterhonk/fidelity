@@ -17,6 +17,8 @@ const props = defineProps<{
   cube: PlaceNode
   /** Every node — the address needs the way up, "move all" the rest. */
   nodes: PlaceNode[]
+  /** Opened by `M` on the wall: "move all" is already unfolded. */
+  startMoving?: boolean
 }>()
 
 const emit = defineEmits<{ close: []; changed: []; record: [instanceId: number] }>()
@@ -44,7 +46,7 @@ async function filled() {
   emit('changed')
 }
 
-const moving = ref(false)
+const moving = ref(props.startMoving ?? false)
 async function moveAll(to: string) {
   if (!to) return
   await call('places.moveAll', { from: props.cube.id, to })

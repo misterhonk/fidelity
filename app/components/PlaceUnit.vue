@@ -32,7 +32,15 @@ const openCube = computed(
 )
 
 function show(id: string) {
+  startMoving.value = false
   open.value = open.value === id ? null : id
+}
+
+/** `M` on the wall (M27.5): the compartment's sheet, already on "move all". */
+const startMoving = ref(false)
+function moveFrom(id: string) {
+  startMoving.value = true
+  open.value = id
 }
 
 const renaming = ref(false)
@@ -198,13 +206,20 @@ async function dissolve() {
       </button>
     </div>
 
-    <PlaceWall :unit="unit" :compartments="compartments" :open="open" @open="show" />
+    <PlaceWall
+      :unit="unit"
+      :compartments="compartments"
+      :open="open"
+      @open="show"
+      @move="moveFrom"
+    />
 
     <!-- The open compartment slides in from the right; the wall stays put. -->
     <PlaceSheet
       v-if="openCube"
       :cube="openCube"
       :nodes="nodes"
+      :start-moving="startMoving"
       @close="open = null"
       @changed="emit('changed')"
       @record="emit('record', $event)"

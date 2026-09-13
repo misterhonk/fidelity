@@ -441,6 +441,10 @@ const en = {
     takenOut: (n: string) => `${n} taken out`,
     undo: 'Undo',
     whereTo: 'Where to',
+    /* From the shelf (M27.5): ticked records into a compartment. */
+    putSelected: (n: string) => `Put ${n} in …`,
+    putInto: (n: string, label: string) => `${n} now in ${label}`,
+    keys: 'M moves everything in the compartment · a letter jumps to its divider',
     /* Drag (M27.4): what the ghost says, and the line a drop leaves. */
     dragRecords: (n: string) => `${n} — drop on a compartment`,
     dragAll: (label: string) => `Everything in ${label}`,
@@ -895,6 +899,9 @@ const de: typeof en = {
     takenOut: (n) => `${n} herausgenommen`,
     undo: 'Rückgängig',
     whereTo: 'Wohin',
+    putSelected: (n) => `${n} einräumen nach …`,
+    putInto: (n, label) => `${n} jetzt in ${label}`,
+    keys: 'M verschiebt alles im Fach · ein Buchstabe springt zu seinem Trenner',
     dragRecords: (n) => `${n} — auf ein Fach ziehen`,
     dragAll: (label) => `Alles aus ${label}`,
     dragUnit: (name) => `${name} — auf einen Raum ziehen`,

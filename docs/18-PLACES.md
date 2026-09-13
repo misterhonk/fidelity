@@ -85,8 +85,11 @@ Re-sorting: select, then "move to …" with the wall as picker — the main road
 finger has to rest for a moment first and the phone buzzes once — until then a finger is
 scrolling, and scrolling wins. A sleeve from the open compartment lands on a cube of the
 wall behind it, a whole compartment moves as one onto another, furniture drags by its name
-into another room. Every move leaves a line with "Undo". Arrow keys over the grid, `M` to
-move and a letter to jump stay open.
+into another room. Every move leaves a line with "Undo". Arrow keys walk the grid, `M`
+opens the compartment on "move all", a letter jumps to the compartment whose divider covers
+it (M27.5); and the shelf has "Select" with "Put n in …" over the same small wall. Movable
+divider boundaries stay open: a rule proposes, and a boundary moved by hand would be a
+second rule.
 
 ## 5. What not
 

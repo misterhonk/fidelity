@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { labelOf } from '#shared/places'
 import { DEFAULT_SHELF_DIRECTION } from '#shared/types'
-import type { ShelfSort, ShelfView, SortDirection } from '#shared/types'
+import type { PlaceNode, ShelfSort, ShelfView, SortDirection } from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
 
@@ -63,6 +64,69 @@ const shown = ref(120)
  * direction.
  */
 const SORTS = ['added', 'artist', 'year', 'rating'] as const satisfies readonly ShelfSort[]
+
+/**
+ * From the shelf into a compartment (M27.5, docs/18 §4). "Select" turns the
+ * sleeves into things to tick; "Put n in …" opens the wall small as the
+ * picker, the same one the compartment's sheet uses; the line with "Undo"
+ * puts them back where they were — a compartment, or no place at all.
+ */
+const selecting = ref(false)
+const selected = ref(new Set<number>())
+const picking = ref(false)
+const nodes = shallowRef<PlaceNode[]>([])
+const last = shallowRef<{
+  line: string
+  was: { instanceId: number; placeId: string | null }[]
+} | null>(null)
+function toggleSelect(instanceId: number) {
+  const next = new Set(selected.value)
+  if (next.has(instanceId)) next.delete(instanceId)
+  else next.add(instanceId)
+  selected.value = next
+}
+function selectAll() {
+  selected.value = new Set((view.value?.records ?? []).map((record) => record.instanceId))
+}
+function stopSelecting() {
+  selecting.value = false
+  picking.value = false
+  selected.value = new Set()
+}
+async function openPicker() {
+  picking.value = !picking.value
+  if (picking.value && nodes.value.length === 0)
+    nodes.value = await call('places.overview', undefined)
+}
+async function putIn(placeId: string) {
+  const instanceIds = [...selected.value]
+  if (instanceIds.length === 0) return
+  // Where each one was, for the way back.
+  const was = await Promise.all(
+    instanceIds.map(async (instanceId) => ({
+      instanceId,
+      placeId: await call('places.of', { instanceId }),
+    })),
+  )
+  await call('places.assignMany', { instanceIds, placeId })
+  const node = nodes.value.find((n) => n.id === placeId)
+  last.value = {
+    line: c.value.places.putInto(count(instanceIds.length), node ? labelOf(node) : ''),
+    was,
+  }
+  stopSelecting()
+}
+async function undo() {
+  if (!last.value) return
+  const byPlace = new Map<string | null, number[]>()
+  for (const { instanceId, placeId } of last.value.was) {
+    byPlace.set(placeId, [...(byPlace.get(placeId) ?? []), instanceId])
+  }
+  for (const [placeId, instanceIds] of byPlace) {
+    await call('places.assignMany', { instanceIds, placeId })
+  }
+  last.value = null
+}
 
 let token = 0
 async function load() {
@@ -308,19 +372,96 @@ const open = ref<number | null>(null)
             {{ c.shelf.density[key] }}
           </button>
         </div>
+
+        <button
+          type="button"
+          class="fid-plate min-h-9 border-b-2 transition-colors"
+          :class="
+            selecting
+              ? 'border-fid-accent text-fid-text'
+              : 'border-transparent text-fid-text-muted hover:text-fid-text'
+          "
+          :aria-pressed="selecting"
+          @click="selecting ? stopSelecting() : (selecting = true)"
+        >
+          {{ selecting ? c.places.done : c.places.select }}
+        </button>
       </div>
+
+      <!-- The selection's one action: into a compartment, picked on the small wall. -->
+      <div v-if="selecting" class="flex flex-wrap items-center gap-4">
+        <span class="fid-plate text-fid-text-muted">{{
+          c.places.selected(count(selected.size))
+        }}</span>
+        <button
+          type="button"
+          class="fid-plate fid-action min-h-11 text-fid-text-muted hover:text-fid-text"
+          @click="selectAll"
+        >
+          {{ c.places.all }}
+        </button>
+        <button
+          type="button"
+          :disabled="selected.size === 0"
+          class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-sm text-fid-text disabled:opacity-50"
+          @click="openPicker"
+        >
+          {{ c.places.putSelected(count(selected.size)) }}
+        </button>
+      </div>
+      <div
+        v-if="selecting && picking"
+        class="flex flex-col gap-2 border-t border-fid-border pt-3"
+      >
+        <span class="fid-plate text-fid-text-muted">{{ c.places.whereTo }}</span>
+        <PlacePicker :nodes="nodes" :except="null" @pick="putIn($event)" />
+      </div>
+
+      <!-- The way back, pinned where the eye is. -->
+      <p
+        v-if="last"
+        role="status"
+        class="fixed bottom-4 left-4 z-30 flex flex-wrap items-center gap-3 rounded-fid-sm border border-fid-border bg-fid-surface px-4 py-2 text-fid-sm text-fid-text shadow-lg"
+      >
+        {{ last.line }}
+        <button
+          type="button"
+          class="fid-action min-h-11 text-fid-sm text-fid-accent underline underline-offset-4"
+          @click="undo"
+        >
+          {{ c.places.undo }}
+        </button>
+      </p>
 
       <p v-if="view.records.length === 0" class="text-fid-base text-fid-text-muted">
         {{ c.shelf.noMatch }}
       </p>
 
       <ul v-else class="grid gap-x-4 gap-y-8" :class="GRIDS[density]">
-        <li v-for="record in view.records" :key="record.instanceId" class="flex flex-col gap-2">
+        <li
+          v-for="record in view.records"
+          :key="record.instanceId"
+          class="relative flex flex-col gap-2"
+        >
+          <!-- In select mode the sleeve is a thing to tick, not a door. -->
+          <input
+            v-if="selecting"
+            type="checkbox"
+            class="absolute top-2 left-2 z-10 size-5"
+            :checked="selected.has(record.instanceId)"
+            :aria-label="c.places.pick(record.artist, record.title)"
+            @change="toggleSelect(record.instanceId)"
+          />
           <button
             type="button"
             :aria-label="c.open(record.artist, record.title)"
             class="fid-cover-button group flex flex-col gap-2 rounded-fid-sm text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fid-accent"
-            @click="open = record.instanceId"
+            :class="
+              selecting && selected.has(record.instanceId)
+                ? 'outline-2 outline-offset-2 outline-fid-accent'
+                : ''
+            "
+            @click="selecting ? toggleSelect(record.instanceId) : (open = record.instanceId)"
           >
             <!--
               Lazy, never fetched by hand. i.discogs.com has its own budget of

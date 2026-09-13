@@ -22,7 +22,7 @@ const props = defineProps<{
   open: string | null
 }>()
 
-const emit = defineEmits<{ open: [id: string] }>()
+const emit = defineEmits<{ open: [id: string]; move: [id: string] }>()
 
 const c = useCollectionMessages()
 const { drag, grab } = usePlaceDrag()
@@ -53,19 +53,54 @@ function coordinate(cube: PlaceNode): string {
   return cube.slot ? slotLabel(cube.slot.column, cube.slot.row) : cube.name
 }
 
-/** Arrow keys walk the grid; the focused cube is the one tabbed to. */
+/**
+ * The cube a letter belongs to (M27.5): the one whose divider covers it —
+ * "M" lands in "M–O" — or, without dividers, the first one named with it.
+ */
+function cubeFor(letter: string): number {
+  const l = letter.toLowerCase()
+  const covered = props.compartments.findIndex((cube) => {
+    if (!cube.range) return false
+    const from = cube.range.from.slice(0, 1).toLowerCase()
+    const to = cube.range.to.slice(0, 1).toLowerCase()
+    return from <= l && l <= to
+  })
+  if (covered >= 0) return covered
+  return props.compartments.findIndex((cube) => cube.name.toLowerCase().startsWith(l))
+}
+
+/**
+ * Arrow keys walk the grid; the focused cube is the one tabbed to. `M`
+ * moves everything in it — the sheet opens on "move all" — and a letter
+ * jumps to the compartment whose divider covers it.
+ */
 function onKey(event: KeyboardEvent, index: number) {
-  // The cubes come column by column (A1, A2, …), so a row is one step and a column is `rows` steps.
-  const rows = props.unit.grid?.rows ?? 1
-  const step: Record<string, number> = {
-    ArrowRight: rows,
-    ArrowLeft: -rows,
-    ArrowDown: 1,
-    ArrowUp: -1,
+  if (event.altKey || event.ctrlKey || event.metaKey) return
+  const cube = props.compartments[index]
+  let next = -1
+  if (event.key === 'm' || event.key === 'M') {
+    if (cube && cube.records > 0) {
+      event.preventDefault()
+      emit('move', cube.id)
+    }
+    return
   }
-  const delta = step[event.key]
-  if (delta === undefined) return
-  const next = index + delta
+  if (event.key === 'Home') next = 0
+  else if (event.key === 'End') next = props.compartments.length - 1
+  else if (/^[a-z]$/i.test(event.key)) next = cubeFor(event.key)
+  else {
+    // The cubes come column by column (A1, A2, …), so a row is one step and a column is `rows` steps.
+    const rows = props.unit.grid?.rows ?? 1
+    const step: Record<string, number> = {
+      ArrowRight: rows,
+      ArrowLeft: -rows,
+      ArrowDown: 1,
+      ArrowUp: -1,
+    }
+    const delta = step[event.key]
+    if (delta === undefined) return
+    next = index + delta
+  }
   if (next < 0 || next >= props.compartments.length) return
   event.preventDefault()
   const cells = (event.currentTarget as HTMLElement)
@@ -84,6 +119,7 @@ function onKey(event: KeyboardEvent, index: number) {
   <div
     role="grid"
     :aria-label="unit.name"
+    :aria-description="c.places.keys"
     class="grid w-full max-w-2xl rounded-fid-sm"
     :style="{
       gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,

@@ -121,4 +121,26 @@ test('a room, a Kallax, and a record in B1', async ({ page }) => {
   await expect(page.getByRole('button', { name: /^A2, 1 records/ })).toBeVisible()
   await page.getByRole('button', { name: 'Undo' }).click()
   await expect(page.getByRole('button', { name: /^B1, 1 records/ })).toBeVisible()
+
+  // Keyboard: a letter jumps to the compartment whose divider covers it; M
+  // opens the sheet on "move all".
+  await page.getByRole('button', { name: /^A1/ }).focus()
+  await page.keyboard.press('w')
+  await expect(page.getByRole('button', { name: /^B1, 1 records/ })).toBeFocused()
+  await page.keyboard.press('m')
+  const moving = page.getByRole('dialog', { name: 'Living room · Kallax · B1' })
+  await expect(moving.getByLabel('Everything goes to')).toBeVisible()
+  await page.keyboard.press('Escape')
+
+  // From the shelf: tick a record, put it in B2 on the small wall, and undo.
+  await page.goto('/shelf')
+  await page.getByRole('button', { name: 'Select' }).click()
+  await page.getByRole('checkbox', { name: /Maiden Voyage/ }).check()
+  await page.getByRole('button', { name: 'Put 1 in …' }).click()
+  await page.getByRole('group', { name: 'Kallax' }).getByRole('button', { name: 'B2' }).click()
+  await expect(page.getByText('1 now in B2')).toBeVisible()
+  await page.getByRole('button', { name: 'Undo' }).click()
+  await page.goto('/places')
+  await expect(page.getByRole('button', { name: /^A1( · H)?, 1 records/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^B2, 0 records/ })).toBeVisible()
 })
