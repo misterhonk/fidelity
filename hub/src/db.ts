@@ -51,6 +51,32 @@ export function openHubDb(path: string): DatabaseSync {
     )
   `)
 
+  /*
+   * Shops, and what they stock (ADR-014).
+   *
+   * The first table here that is about a *shop* rather than about a record.
+   * What may be in it and what may not is the whole of that decision: the
+   * name, where it ships from and the label/style/decade distribution of a
+   * sampled inventory — all public or derived — and never a price, never how
+   * well a shop suits a particular person.
+   *
+   * `body` holds the fingerprint as JSON. Kept whole rather than in columns
+   * because the only question asked of it is "hand it over"; the ranking
+   * happens on the device, against a collection the hub never sees.
+   */
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS shops (
+      username     TEXT PRIMARY KEY,
+      display_name TEXT NOT NULL,
+      ships_from   TEXT NOT NULL,
+      num_for_sale INTEGER NOT NULL,
+      avatar_url   TEXT NOT NULL,
+      body         TEXT NOT NULL,
+      seen_at      INTEGER NOT NULL,
+      updated_at   INTEGER NOT NULL
+    )
+  `)
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS vault (
       id         TEXT PRIMARY KEY,

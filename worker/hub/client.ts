@@ -6,11 +6,42 @@ import type {
   HorizonKind,
   PressingFamilyFacts,
   PushRegistration,
+  HubShop,
   ShippingTier,
 } from '#shared/types'
 
 import { log } from '../log'
 import { fail } from '../fail'
+
+/**
+ * What the hub sends back for shops (ADR-014).
+ *
+ * Validated rather than trusted, like every other answer here: a hub is
+ * somebody's own machine, and a shop row that arrived malformed would be
+ * ranked against a collection and drawn on a screen.
+ */
+const distributionSchema = z.record(z.string(), z.number())
+
+const shopsAnswerSchema = z.object({
+  shops: z.array(
+    z.object({
+      username: z.string(),
+      displayName: z.string(),
+      shipsFrom: z.string(),
+      numForSale: z.number(),
+      avatarUrl: z.string().optional(),
+      seenAt: z.number(),
+      fingerprint: z.object({
+        sampledItems: z.number(),
+        totalItems: z.number(),
+        coverage: z.number(),
+        labelDist: distributionSchema,
+        styleDist: distributionSchema,
+        decadeDist: distributionSchema,
+      }),
+    }),
+  ),
+})
 
 /**
  * Talking to a hub, if there is one.
@@ -101,6 +132,20 @@ export interface HubClient {
   contributeHorizon(chunk: HorizonChunk): Promise<boolean>
   shipping(dealer: string, country: string): Promise<ShippingTier[] | null>
   contributeShipping(dealer: string, country: string, tiers: ShippingTier[]): Promise<void>
+
+  /**
+   * Shops, and what they stock (ADR-014).
+   *
+   * The one part of the hub that is about a shop rather than a record. What
+   * comes back is a name, where it ships from and a distribution of labels,
+   * styles and decades — never a price, and never how well a shop suits
+   * somebody, because that is a statement about them and is computed on the
+   * device against a collection the hub never sees.
+   *
+   * An empty list is the ordinary answer on a hub nobody else uses.
+   */
+  shops(): Promise<HubShop[]>
+  contributeShop(shop: HubShop): Promise<boolean>
 
   /**
    * Covers, in one bundle.
@@ -424,6 +469,50 @@ export function createHubClient({
       // Labelled 'bundled', never 'user'. Whatever somebody else typed in is,
       // from here, a shared profile — and the basket says so out loud.
       return parsed.data.tiers.map((tier) => ({ ...tier, source: 'bundled' as const }))
+    },
+
+    async shops() {
+      const response = await fetchImpl(url('/v1/shops'), { headers })
+      if (!response.ok) return []
+
+      const parsed = shopsAnswerSchema.safeParse(await response.json())
+      if (!parsed.success) {
+        log.warn('[hub] shop list does not match the schema')
+        return []
+      }
+      return parsed.data.shops
+    },
+
+    async contributeShop(shop) {
+      const response = await fetchImpl(url(`/v1/shops/${encodeURIComponent(shop.username)}`), {
+        method: 'PUT',
+        headers,
+        /*
+         * Assembled field by field rather than spread.
+         *
+         * ADR-014 draws a line — no price, no affinity — and a spread would
+         * carry over whatever a future `Dealer` field happens to be called.
+         * The hub drops what its schema does not name, but a client that
+         * relies on the other side to forget is a client that has already
+         * sent it.
+         */
+        body: JSON.stringify({
+          displayName: shop.displayName,
+          shipsFrom: shop.shipsFrom,
+          numForSale: shop.numForSale,
+          avatarUrl: shop.avatarUrl ?? '',
+          seenAt: shop.seenAt,
+          fingerprint: {
+            sampledItems: shop.fingerprint.sampledItems,
+            totalItems: shop.fingerprint.totalItems,
+            coverage: shop.fingerprint.coverage,
+            labelDist: shop.fingerprint.labelDist,
+            styleDist: shop.fingerprint.styleDist,
+            decadeDist: shop.fingerprint.decadeDist,
+          },
+        }),
+      })
+      return response.ok
     },
 
     async contributeShipping(dealer, country, tiers) {

@@ -1628,6 +1628,29 @@ export interface DealerFingerprint {
   priceCurrency?: string | null
 }
 
+/**
+ * A shop as the hub knows it (ADR-014).
+ *
+ * Deliberately not a `Dealer`. A `Dealer` carries `affinity`, a postage table
+ * and a watch state — how a shop relates to *one* collection — and none of
+ * that may travel. What may is the name, where it ships from, and what the
+ * shop is known to stock.
+ *
+ * `medianPrice` and its currency are absent from the fingerprint here for the
+ * same reason: they are the only marketplace numbers in it, and rule 4 does
+ * not make an exception for a median.
+ */
+export interface HubShop {
+  username: string
+  displayName: string
+  shipsFrom: string
+  numForSale: number
+  avatarUrl?: string
+  /** When the device that sent this last looked. */
+  seenAt: number
+  fingerprint: Omit<DealerFingerprint, 'medianPrice' | 'priceCurrency'>
+}
+
 export interface Dealer {
   username: string
   displayName: string
@@ -1678,6 +1701,14 @@ export interface Dealer {
   watchCheckedAt?: number | null
   /** Last touched, which is what a merge between two devices compares. */
   updatedAt?: number
+  /**
+   * When this shop was last handed to the hub (ADR-014), or absent.
+   *
+   * Compared against `lastScannedAt`, not against a clock: a shop is worth
+   * sending again once a newer dig has learned something new about it, and
+   * never otherwise.
+   */
+  sharedAt?: number | null
   /**
    * The shop sign, where the shop has set one.
    *

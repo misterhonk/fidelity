@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ORIGIN_FILTERS, passesOrigin, readOrigin, type OriginFilter } from '#shared/countries'
 import type { DealerProfile } from '#shared/protocol'
+import type { SuggestResult } from '~~/worker/dealers/suggest'
 import type {
   Dealer,
   GradingRecord,
@@ -150,6 +151,33 @@ async function watchToggle(username: string) {
   await loadRound()
 }
 
+/*
+ * Shops other people have dug (ADR-014).
+ *
+ * This list has always been a log of what this device happened to try, and
+ * Discogs offers nothing to widen it — no "which shops sell this sort of
+ * record", no list of good sellers. What there is: other devices, digging
+ * other shops, and a hub that already passes on what one learned.
+ *
+ * The ranking happens in the worker against the taste profile. The hub never
+ * sees a collection and never carries a price.
+ */
+const suggested = shallowRef<SuggestResult | null>(null)
+const suggesting = ref(false)
+
+async function loadSuggestions() {
+  if (suggesting.value) return
+  suggesting.value = true
+  try {
+    suggested.value = await call('shops.suggest', undefined)
+  } catch {
+    // Rule 8: a hub that will not answer is not an error on a screen that
+    // works without one. The section simply does not appear.
+  } finally {
+    suggesting.value = false
+  }
+}
+
 async function startRound() {
   if (roundBusy.value) return
   roundBusy.value = true
@@ -199,6 +227,12 @@ onMounted(async () => {
     await loadWatchlist()
     await loadRound()
     void attachRound()
+    /*
+     * Not awaited, and last. It talks to a hub, which is somebody's own
+     * machine — two seconds at worst (rule 8), and the list of shops above
+     * must not wait for it.
+     */
+    void loadSuggestions()
   } catch (cause) {
     error.value = cause
   }
@@ -455,6 +489,61 @@ const scanned = computed(() => {
           </li>
         </ul>
       </div>
+    </section>
+
+    <!--
+      Shops other people have dug (ADR-014).
+
+      Only where there is something to show: without a hub there is no list,
+      and saying so on every device that has none would be a permanent notice
+      about a feature nobody asked for.
+    -->
+    <section
+      v-if="suggested && suggested.shops.length > 0"
+      class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
+      aria-labelledby="suggested"
+    >
+      <h2 id="suggested" class="text-fid-base font-medium text-fid-text">
+        {{ h.suggested.title }}
+      </h2>
+      <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ h.suggested.about }}</p>
+
+      <ul class="flex flex-col gap-2">
+        <li
+          v-for="shop in suggested.shops"
+          :key="shop.username"
+          class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-fid-border pb-2 last:border-0"
+        >
+          <NuxtLink
+            :to="{ path: '/dig', query: { dealer: shop.username } }"
+            class="fid-action flex items-center gap-2 text-fid-base font-medium text-fid-text"
+          >
+            <ShopLogo :dealer="shop.username" :avatar-url="shop.avatarUrl" :size="20" />
+            {{ shop.displayName }}
+          </NuxtLink>
+
+          <!--
+            The number, and the labels behind it. A percentage on its own is a
+            score somebody has to take on trust; the labels are the reason.
+          -->
+          <span class="fid-num text-fid-sm text-fid-accent">
+            {{ h.suggested.fit(Math.round(shop.fit * 100)) }}
+          </span>
+          <span v-if="shop.labels.length > 0" class="text-fid-sm text-fid-text-muted">
+            {{ shop.labels.join(' · ') }}
+          </span>
+          <span v-if="shop.shipsFrom" class="text-fid-xs text-fid-text-muted">
+            {{ shop.shipsFrom }}
+          </span>
+        </li>
+      </ul>
+
+      <!--
+        What the number is a share *of*. A fingerprint from a hundred rows of a
+        forty-thousand-record shop describes those hundred, and a screen that
+        left that out would be quoting a sample as a catalogue.
+      -->
+      <p class="max-w-prose text-fid-xs text-fid-text-muted">{{ h.suggested.sample }}</p>
     </section>
 
     <p v-if="dealers.length === 0" class="text-fid-base text-fid-text-muted">

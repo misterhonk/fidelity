@@ -82,6 +82,27 @@ const en = {
    * not run while it is closed (ADR-007); a button that runs when somebody is
    * there is the honest version of a schedule.
    */
+  /*
+   * Shops other people have dug (ADR-014).
+   *
+   * "How do we maximise the shops I already know?" — and Discogs offers
+   * nothing: no "which shops sell this sort of record", no list of good
+   * sellers, and the undocumented search is rule 5. What there is: other
+   * devices and a hub that passes on what one of them learned.
+   *
+   * Every sentence here says what the number is and what it is a share of. A
+   * fingerprint from a hundred rows of a forty-thousand-record shop describes
+   * those hundred.
+   */
+  suggested: {
+    title: 'Shops other people have dug',
+    about:
+      'From your hub, ranked here against your own shelf — the hub never sees your collection and carries no prices. The figure is how much of what was sampled sits on labels you collect.',
+    fit: (percent: number) => `${percent} % yours`,
+    sample:
+      'Each of these was sampled by somebody else’s dig, not catalogued: the shop may have moved on since. Dig one and it joins your own list with its own figures.',
+  },
+
   round: {
     title: 'The round',
     about: (shops: number, minutes: number) =>
@@ -212,6 +233,15 @@ const de: typeof en = {
     'Beim Öffnen der App wird nachgesehen, ob sich das Sortiment bewegt hat – eine einzige Abfrage, kein neuer Scan.',
   digNow: 'Jetzt graben',
   digAgain: 'Nochmal graben',
+
+  suggested: {
+    title: 'Läden, die andere gegraben haben',
+    about:
+      'Aus deinem Hub, hier gegen dein eigenes Regal sortiert – der Hub sieht deine Sammlung nie und trägt keine Preise. Die Zahl sagt, wie viel vom Gesehenen auf Labels liegt, die du sammelst.',
+    fit: (percent) => `${percent} % deins`,
+    sample:
+      'Jeder davon ist die Stichprobe eines fremden Digs, kein Katalog: der Laden kann sich seitdem verändert haben. Grab einen, dann steht er mit eigenen Zahlen in deiner Liste.',
+  },
 
   round: {
     title: 'Der Rundgang',
