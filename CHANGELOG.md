@@ -11,6 +11,31 @@ Für eine App bedeutet SemVer:
 
 ## [0.72.0](https://github.com/misterhonk/fidelity/compare/v0.71.0...v0.72.0) (2026-09-13)
 
+**Five records at one shop, and the same five somewhere else.**
+
+A basket can now be held against the other shops you know: who has all of them, who has four
+of them much cheaper, who has them in better condition. It costs no lookup at all — a dig
+writes down every listing it reads, not only the finds, so the answer is already on the
+device. Four of five elsewhere counts as a saving only once the fifth has been paid for a
+second time, postage and all, which is the number each line shows. And it says what it
+compared: the shops you know, never "the market" — Discogs cannot be asked who else sells a
+record.
+
+Alongside it: bands you own nothing by can go **on your radar** and will be shown when one of
+their records turns up. **The round** walks every watched shop in one go and fetches only what
+each has put up since the last visit — ten shops in about half a minute. A shop that prices
+postage **by the gram** now says so instead of falling silent, and hands you its own wording
+to copy. And where a browser cannot write to a file on its own — Safari, every iPhone — the
+vault can be carried **by hand**: save a file, put it in iCloud Drive, pick it up on the other
+device.
+
+One wrong match is gone. "The Mark & Clark Band" was coming back as Anne Clark, because
+"Clark" is one of her registered spellings and a single word out of a band's name was enough
+to find it. A surname is not a name.
+
+**What to do:** Nothing. The basket screen has a new question at the bottom, and the radar
+sits in the settings beside the horizon.
+
 
 ### Added
 
