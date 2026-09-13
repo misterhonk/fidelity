@@ -196,6 +196,17 @@ export function seedMatches(digId: string): Match[] {
       thumbUrl: null,
       marketLowestPrice: 29,
       marketNumForSale: 12,
+      /*
+       * What Discogs has to hear (ADR-012).
+       *
+       * Two, because one would not show that the sheet lists them by name
+       * rather than playing the first thing it finds. The addresses are the
+       * two shapes people actually enter — `watch?v=` and `youtu.be`.
+       */
+      videos: [
+        { title: 'Andrew Hill - Refuge', uri: 'https://www.youtube.com/watch?v=MpmbntGDyNE' },
+        { title: 'Andrew Hill - New Monastery', uri: 'https://youtu.be/Cawyll0pOI4' },
+      ],
       expired: false,
     },
     {

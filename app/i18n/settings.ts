@@ -311,9 +311,9 @@ const en = {
    * switchable.
    */
   audio: {
-    label: 'Listen to a find',
+    label: 'Listen to a record',
     off: 'Off. Nothing is loaded from Google.',
-    on: 'On. A player appears in the stack — and only starts talking to Google once you tap it.',
+    on: 'On. Records with clips carry a play button — and it only talks to Google once you tap it.',
     whyLabel: 'What happens then',
     why: 'Discogs has one source of sound: YouTube. So a preview means embedding Google. Your collection, wantlist and token stay on this device — what Google learns is this device’s address and which record is playing. Nothing is loaded until you tap Listen, not even with this switch on.',
   },
@@ -924,9 +924,9 @@ const de: typeof en = {
   },
 
   audio: {
-    label: 'Fundstück anhören',
+    label: 'Platte anhören',
     off: 'Aus. Es wird nichts von Google geladen.',
-    on: 'An. Im Stapel erscheint ein Knopf – und erst beim Tippen spricht er mit Google.',
+    on: 'An. Platten mit Clips bekommen einen Abspielknopf – und erst beim Tippen spricht er mit Google.',
     whyLabel: 'Was dann passiert',
     why: 'Discogs hat genau eine Tonquelle: YouTube. Eine Hörprobe heißt also, Google einzubetten. Sammlung, Wantlist und Token bleiben auf diesem Gerät – was Google erfährt, ist die Adresse dieses Geräts und welche Platte läuft. Vor dem Tippen wird nichts geladen, auch mit eingeschaltetem Schalter nicht.',
   },

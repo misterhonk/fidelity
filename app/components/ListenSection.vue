@@ -1,0 +1,162 @@
+<script setup lang="ts">
+import { LISTEN_NAMES, listenUrl, type ListenService } from '#shared/listen'
+import { useAudioPreview, videoId } from '~/composables/useAudioPreview'
+
+/**
+ * Hearing a record, on the screen where you decide about it (M31).
+ *
+ * Two things that look like one and are not, which is the whole reason this is
+ * a component and not two lines in each sheet:
+ *
+ * - **The clips** are YouTube addresses people entered at Discogs, and they
+ *   come along free with the lookup the top matches get anyway (ADR-012). They
+ *   are the only sound Fidelity has. With the preview switched off they are
+ *   links that leave the app; with it on they play right here — which is
+ *   exactly the difference ADR-012 draws, and the reason the switch exists.
+ * - **The search link** goes to whichever service somebody picked in the
+ *   settings. Fidelity cannot know Spotify's id for a record without asking
+ *   Spotify, and asking needs an account and a key — so it hands over the
+ *   artist and the title, which is what you would type yourself.
+ *
+ * Because those two can disagree — a Deezer listener still hears YouTube here
+ * — the screen says where the sound comes from rather than letting the picker
+ * above answer for it.
+ */
+const m = useMessages()
+const { call } = useFidelityWorker()
+
+const props = defineProps<{
+  artist: string | null | undefined
+  title: string | null | undefined
+  /** The clips to offer. Absent on everything outside the enriched top fifty. */
+  videos?: { title: string; uri: string }[]
+  /** How many the record has in all, where the list above is a cut of them. */
+  total?: number
+}>()
+
+const service = ref<ListenService>('none')
+
+/**
+ * Off until somebody switches it on, and that is not a default anybody may
+ * change: with this false nothing is ever loaded from Google (ADR-012).
+ */
+const preview = ref(false)
+
+onMounted(async () => {
+  const prefs = await call('preferences.get', undefined)
+  service.value = prefs.listenService
+  preview.value = prefs.audioPreview
+})
+
+const clips = computed(() => props.videos ?? [])
+
+const searchAt = computed(() => listenUrl(service.value, props.artist, props.title))
+
+/** The service's own name, or null where none is chosen — the link's label. */
+const serviceName = computed(() =>
+  service.value === 'none' ? null : LISTEN_NAMES[service.value],
+)
+
+/*
+ * The frame's place — and until somebody taps, an empty div is all it is.
+ *
+ * `v-show`, never `v-if`: the element has to exist before the tap, because the
+ * player is built into it *by* the tap. And it is only visible while something
+ * plays — hung off "has anybody ever tapped" it stayed standing after
+ * stopping, showing the last record's still under the next one.
+ */
+const audio = useAudioPreview()
+const mount = useTemplateRef<HTMLElement>('mount')
+
+function playing(uri: string): boolean {
+  return audio.playing.value !== null && audio.playing.value === videoId(uri)
+}
+
+async function hear(video: { title: string; uri: string }) {
+  if (!mount.value) return
+  if (playing(video.uri)) {
+    audio.stop()
+    return
+  }
+  await audio.play(video.uri, mount.value, video.title)
+}
+
+/*
+ * A sheet closes and takes this element with it. The frame goes too — and a
+ * player whose frame has gone plays nothing and stops nothing, which is the
+ * one failure nobody could recover from without reloading the app.
+ */
+onBeforeUnmount(() => audio.release(mount.value))
+</script>
+
+<template>
+  <section v-if="clips.length || searchAt" class="flex flex-col gap-2">
+    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      <h3 class="text-fid-sm font-bold text-fid-text">{{ m.listen.title }}</h3>
+
+      <a
+        v-if="searchAt && serviceName"
+        :href="searchAt"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="fid-action inline-flex items-center gap-1 text-fid-xs text-fid-text-muted hover:text-fid-text"
+      >
+        {{ m.listen.search(serviceName) }}
+        <FidIcon name="external-link" :size="12" />
+      </a>
+    </div>
+
+    <div v-show="audio.playing.value" class="flex flex-col gap-2">
+      <div class="aspect-video w-full overflow-hidden rounded-fid-sm bg-fid-field">
+        <div ref="mount" class="size-full"></div>
+      </div>
+      <p class="text-fid-xs text-fid-text-muted">
+        <!-- YouTube's title, not the record's: under a 12" there is sometimes
+             an album rip, a live take or a different record altogether. -->
+        <span v-if="audio.clip.value">{{ audio.clip.value }} · </span>{{ m.listen.source }}
+      </p>
+    </div>
+
+    <ul v-if="clips.length" class="flex flex-col gap-1">
+      <li v-for="video in clips" :key="video.uri">
+        <button
+          v-if="preview"
+          type="button"
+          class="fid-action inline-flex min-h-11 w-full items-center gap-2 text-left text-fid-sm text-fid-text"
+          @click="hear(video)"
+        >
+          <FidIcon :name="playing(video.uri) ? 'square' : 'play'" :size="14" />
+          <span class="min-w-0 truncate">{{ video.title || video.uri }}</span>
+        </button>
+
+        <!--
+          Without the switch, the same clip is a link that leaves the app —
+          which is what ADR-012 says happens when nobody has asked for an
+          embed, and it reaches Google only when it is tapped.
+        -->
+        <a
+          v-else
+          :href="video.uri"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex min-h-11 items-center gap-1 text-fid-sm underline underline-offset-4 hover:text-fid-accent"
+        >
+          <span class="min-w-0 truncate">{{ video.title || video.uri }}</span>
+          <FidIcon name="external-link" :size="12" />
+        </a>
+      </li>
+    </ul>
+
+    <p v-if="total && total > clips.length" class="fid-num text-fid-xs text-fid-text-muted">
+      {{ m.common.ofTotal(count(clips.length), count(total)) }}
+    </p>
+
+    <!-- What it could do, for somebody who has never been to the settings. -->
+    <p v-if="clips.length && !preview" class="text-fid-xs text-fid-text-muted">
+      {{ m.listen.here.lead }}
+      <NuxtLink to="/settings/data" class="fid-action underline underline-offset-4">{{
+        m.listen.here.link
+      }}</NuxtLink>
+    </p>
+  </section>
+</template>

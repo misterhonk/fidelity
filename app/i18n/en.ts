@@ -101,6 +101,27 @@ const en = {
     etaLeft: (clock: string) => `· about ${clock} left`,
   },
 
+  /**
+   * Hearing a record (M31), on every screen that shows one.
+   *
+   * Two different things under one heading, and the copy has to keep them
+   * apart: the clips are YouTube's, the search link is whichever service
+   * somebody picked. Somebody who chose Deezer and taps a clip still hears
+   * YouTube — so `source` says so rather than letting the picker imply
+   * otherwise.
+   */
+  listen: {
+    title: 'Hear it',
+    search: (service: string) => `Find it on ${service}`,
+    source: 'Playing from YouTube',
+    /*
+     * Split around the link for the same reason `signIn` is: a placeholder
+     * inside an anchor is a placeholder that ends up outside one.
+     */
+    here: { lead: 'Play them here —', link: 'switch the preview on' },
+    stop: 'Stop',
+  },
+
   /** The notices that can appear on any screen. */
   notice: {
     offline: {

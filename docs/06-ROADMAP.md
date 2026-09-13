@@ -1214,7 +1214,7 @@ have something in the basket from, have something on my wantlist from, or added 
 | 5 | **Where you are, and what is near.** `shipsToCountry` decides "from Germany" and it defaults to `Germany` for everybody — a Swiss or British user gets a chip about the wrong country until they find the setting. Derive it on the first run the way the language is derived, and offer a third group beside home and EU: Europe without the customs union, which is exactly what a Swiss, British or Norwegian buyer is asking about | Every user outside Germany, which is most of them | hours | The filter and the country list exist (`shared/countries.ts`); the default and the third group do not |
 | 6 | **Shops other people dug, through the hub.** Which shops exist, what they stock (`fingerprint` — derived, not marketplace content) and what their postage is are all durable and shareable; prices never are (rule 4). A device could ask the hub "which shops do you know that I do not?" and rank them against its own collection | The "which shops suit me" question, without the platzhirsch bias of any curated list — it is whatever the community actually digs | a day | Needs an ADR: it is the first time the hub would carry something about **shops** rather than about records |
 
-## M31 · Hearing it before buying it → partly done
+## M31 · Hearing it before buying it → done, with one rung parked
 
 **Where this comes from.** "I want to be able to listen to the music it suggests — Spotify,
 Apple Music, Tidal, Deezer, and let me choose which in the settings."
@@ -1229,6 +1229,11 @@ happens without the switch.
 the shelf sheet carry "Find it on TIDAL" and it opens that service's search with the artist
 and the title. No request, no key, no account, and nothing leaves the device until it is
 tapped.
+
+**Step two, the same day.** The clips themselves, on both sheets — the same one switch, the
+same off by default, the same nothing-before-a-tap. With the switch off a clip is a link
+out; with it on it plays in place. `ListenSection.vue` holds both, and the ADR carries the
+amendment that widened it.
 
 ### What the research says about going further
 
@@ -1245,13 +1250,36 @@ Measured 2026-09-13, because the answer decides the whole shape:
 carry two of the four services. Anything that promised all four equally would be promising a
 proxy.
 
-### The plan
+### The plan, after checking it against the code
 
-| # | Rung | What it gives | Cost | Note |
+The research above is right about what is *possible* and was wrong about what to build
+next. Reading the app settled it: `videos[]` is **already on every enriched match**
+(`worker/dig/enrich.ts`), and ADR-012 has had a player for it since M15 — on the stack, and
+only there. The screen where somebody actually weighs up a find had a search link and no
+sound, over a match that was carrying the addresses the whole time.
+
+| # | Rung | What it gives | Cost | State |
 |---|---|---|---|---|
 | 1 | **The link** | One tap to that service's search, for all four | hours | **Done 2026-09-13.** No request, no key, no account |
-| 2 | **Sign in to Spotify or TIDAL** (PKCE, own app registration — the Dropbox/Drive pattern the vault already uses) | The exact album instead of a search, and "in your library" on a find | a day each | The token lives in IndexedDB and is treated like the Discogs one: never logged, never in a URL |
-| 3 | **The embedded player** | Thirty seconds without leaving the screen | hours on top of 2 | ADR-012's conditions apply unchanged: off by default, nothing loaded before a deliberate tap, its own chunk, its own paragraph on the privacy page |
+| 2 | **The clips, wherever a record is** | The sound Fidelity already has, on the find's sheet and the shelf's — not just in the stack | hours | **Done 2026-09-13.** No new third party, no new consent: ADR-012's switch, unchanged |
+| 3 | **Sign in to Spotify or TIDAL** (PKCE) | The exact album instead of a search, and "not on there" before the tap | a day each | **Possible, not chosen** — see below |
+
+**Why rung 3 is parked rather than queued.** It is buildable: the research above stands.
+What it costs and what it buys do not meet.
+
+- **The client id cannot be ours.** A Spotify app in development mode serves twenty-five
+  users, each added by hand; more needs a quota review. So every user would register their
+  own app — a developer account, an app, a redirect address, a pasted id — four steps of
+  friction in front of one link.
+- **It buys a link, not sound.** The embedded player needs no token of ours either way;
+  the token only resolves an id. The sound in the app is YouTube's, and rung 2 already has
+  it.
+- **It is weakest where Fidelity is strongest.** A resolver that fails on 12" singles and
+  white labels spends a day per service to answer "no" about the records this app is best
+  at finding.
+
+It stays written down because the measurement was the expensive part. If Spotify's quota
+ever stops being a wall, the plan is three paragraphs up.
 
 ### How well the data actually matches
 

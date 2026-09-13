@@ -350,7 +350,6 @@ const en = {
      * takes for a broken app.
      */
     /* Named for what it opens: a search at that service, not the record. */
-    listen: (service: string) => `Find it on ${service}`,
     goneTitle: 'Gone',
     gone: 'This find is no longer here — a newer dig has taken its place.',
     goneAction: 'Dig the shop again',
@@ -584,7 +583,6 @@ const de: typeof en = {
 
   sheet: {
     loading: 'Wird geladen …',
-    listen: (service) => `Bei ${service} suchen`,
     goneTitle: 'Nicht mehr da',
     gone: 'Diesen Fund gibt es hier nicht mehr – ein neuerer Dig ist an seine Stelle getreten.',
     goneAction: 'Laden nochmal graben',

@@ -83,3 +83,38 @@ and it is paid deliberately.
 **The way out:** switch off — and there is no contact with Google, not less but none.
 Removing it entirely means: delete a chunk, strike a paragraph from the privacy page, take
 `videos[]` out of the schema. None of that touches data anyone already has.
+
+---
+
+## Amendment, 2026-09-13 — the same exception, on more than one screen
+
+M31 asked for a way to hear a suggestion. The preview built here answered that
+already, and only on the stack: the screen where somebody actually weighs up a
+find — the detail sheet — had a search link and no sound, although the `videos[]`
+were sitting on the match it was drawing.
+
+So the button now stands wherever a record does: the find's sheet, a shelf
+record's sheet, and the stack. **Nothing about the decision above changes.** Same
+one switch, same off by default, same nothing-before-a-tap, same
+`youtube-nocookie.com`, same paragraph on the privacy page — no second third
+party, no second transfer, no second consent to obtain.
+
+Two things did have to change in the code, and both are conditions 3 and 4 being
+kept rather than loosened:
+
+- **One player for the whole app.** The state was per call site, which was
+  harmless while the stack was the only caller. With two screens offering the
+  same button it would have meant two frames, one of them unstoppable.
+- **A screen gives the player back when it goes.** A sheet closes and takes the
+  element with it; the frame goes too, and a player whose frame has gone plays
+  nothing and stops nothing. `release()` tears it down at that moment, which also
+  means leaving the screen is a way to stop the sound.
+
+And one thing the wider reach made necessary on screen: **where the sound comes
+from is named.** The service picker from M31 can say Deezer while the clip
+underneath it is YouTube's. They are two different things, and a screen that puts
+them under one heading owes the reader the difference.
+
+The privacy page also now names the third country, which it should have from the
+start: Google LLC is in the United States, and the transfer relies on the EU–US
+Data Privacy Framework.
