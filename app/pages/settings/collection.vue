@@ -32,5 +32,20 @@ useSeoMeta({ title: () => st.value.library.title })
     >
       <CreditHarvest />
     </SettingsCard>
+
+    <!--
+      And the fourth: the bands you own nothing by (M29).
+
+      Here, with the other three, because it is the same subject from the other
+      end — what the engine is allowed to match against. It feeds the horizon
+      two cards up, which is why the card says so.
+    -->
+    <SettingsCard
+      anchor="radar"
+      :title="st.library.radar.title"
+      :description="st.library.radar.about"
+    >
+      <FollowedArtists />
+    </SettingsCard>
   </SettingsPage>
 </template>

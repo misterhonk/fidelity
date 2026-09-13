@@ -175,6 +175,43 @@ by counts more than one you own a single record by.
 
 > *"You have 12 Can records — not this one."*
 
+### S3b · `ARTIST_FOLLOWED` — weight 65 · from M29
+
+The other end of S3: a band somebody has an eye on and owns **nothing** by.
+
+Asked for by a tester on 2026-09-13 — *"Exit North, I think they are great, have no record
+by them, but I would like to be shown one if it turns up"* — and nothing in the engine
+could carry it. The artist map is built from the taste profile, which is computed from the
+collection alone; the horizon expands wantlist **masters** rather than wantlist artists. So
+a band you own nothing by did not exist here at all. Putting one record on the wantlist
+finds that record (S1) and other pressings of that album (S2), and never a different album.
+
+```
+The radar is a list of Discogs artist ids, kept per device (db store `followed`).
+  · They become horizon candidates, so the discography costs 1–2 requests, once.
+  · Their names (and their lexicon) go into the same map the S3 cascade consults.
+  · The signal fires where S3 would have, when the entry came from the radar.
+Confidence = the cascade stage that found it, exactly as in S3.
+```
+
+**A signal of its own, and not S3 with a zero in it.** S3's sentence counts records — "you
+have 10 records by Anne Clark" — and for a followed artist the count is nought. Borrowing
+that wording would claim certainty the evidence does not carry, which is the failure this
+same document warns about two sections up. The sentence here says the opposite out loud:
+nothing of theirs is here yet, and that is why it is worth showing.
+
+**Weight 65.** Between "you own two of theirs" (S3, 55) and "you are nearly complete"
+(S4, 70). Somebody said this band out loud, which is a more direct statement of intent than
+owning a couple of records by accident — and it is not "this exact record is on my
+wantlist" (S1, 100). Level with `CREDIT_GRAPH`, the other signal built on a declared
+interest rather than a counted one. A constant, and it stays one (§4).
+
+**The shelf wins.** If a followed artist turns out to be in the collection as well, the
+entry stays an S3: "you have 4 records by them" is the truer sentence, and following is
+then something somebody can forget about without losing anything.
+
+> *"Exit North — on your radar, and nothing of theirs here yet."*
+
 ### S4 · `ARTIST_GAP` — weight 70 · from M5
 
 Psychologically the strongest card: nearly complete series are irresistible.

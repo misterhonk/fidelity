@@ -1,4 +1,4 @@
-import type { CollectionItem, HorizonKind, WantlistItem } from '#shared/types'
+import type { CollectionItem, FollowedArtist, HorizonKind, WantlistItem } from '#shared/types'
 
 /**
  * Which entities are worth expanding.
@@ -37,6 +37,7 @@ export const LABEL_PAGE_LIMIT = 1500
 export function selectCandidates(
   collection: CollectionItem[],
   wantlist: WantlistItem[],
+  followed: FollowedArtist[] = [],
 ): Candidate[] {
   const artists = new Map<number, Candidate>()
   const labels = new Map<number, Candidate>()
@@ -79,11 +80,36 @@ export function selectCandidates(
     }
   }
 
+  /*
+   * And the bands on the radar (M29).
+   *
+   * High up, and not because they are cheap — one or two requests, like any
+   * artist. Because without the expansion the whole feature is inert: a band
+   * you own nothing by is reachable only by the name on the listing, and the
+   * point of following one is that a *different* record of theirs turns up.
+   * "Two records or more" is the line the horizon draws for the shelf; saying
+   * a name out loud is the other way over it.
+   *
+   * One that is already in the collection is dropped here rather than counted
+   * twice — it is the same entity and the same chunk, and the owned entry
+   * carries the better ordering.
+   */
+  const radar = followed
+    .filter((artist) => !artists.has(artist.artistId))
+    .map((artist): Candidate => ({
+      kind: 'artist',
+      id: artist.artistId,
+      name: artist.name,
+      owned: 0,
+    }))
+
   return [
     // Wantlist masters first: one request each, and they feed the strongest
-    // signal after the exact match. Then the entities you own the most of —
-    // if the run is interrupted, the most valuable part is already done.
+    // signal after the exact match. Then the radar, which is inert without
+    // its expansion. Then the entities you own the most of — if the run is
+    // interrupted, the most valuable part is already done.
     ...masters.values(),
+    ...radar,
     ...[...artists.values()]
       .filter((candidate) => candidate.owned >= MIN_ARTIST_RECORDS)
       .sort((a, b) => b.owned - a.owned),

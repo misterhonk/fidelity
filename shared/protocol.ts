@@ -20,6 +20,7 @@ import type { DrainResult } from '~~/worker/outbox'
 import type { CheckProgress, WatchedCheck } from '~~/worker/watched/check'
 import type { DemoProgress, DemoResult } from '~~/worker/demo'
 import type { ImportReport } from '../worker/import'
+import type { ArtistHit } from '~~/worker/followed'
 import type {
   BasketPlan,
   BasketView,
@@ -36,6 +37,7 @@ import type {
   Dig,
   DiscoveryResult,
   Feedback,
+  FollowedArtist,
   GradingRecord,
   Identified,
   PressingFamily,
@@ -434,6 +436,22 @@ export interface WorkerContract {
    */
   'horizon.status': { params: undefined; progress: never; result: HorizonStatus }
   'horizon.build': { params: undefined; progress: HorizonProgress; result: HorizonResult }
+  /**
+   * The radar: bands on it, and the search that puts them there (M29).
+   *
+   * `followed.search` is the only one that spends anything — one
+   * `/database/search`, which docs/02 already covers. The rest are reads and
+   * writes against this device.
+   */
+  'followed.list': { params: undefined; progress: never; result: FollowedArtist[] }
+  'followed.search': { params: { query: string }; progress: never; result: ArtistHit[] }
+  'followed.add': {
+    params: { artistId: number; name: string }
+    progress: never
+    result: FollowedArtist[]
+  }
+  'followed.remove': { params: { artistId: number }; progress: never; result: FollowedArtist[] }
+
   /**
    * The round: every watched shop, asked what is new since the last visit
    * (`worker/dealers/round.ts`). `round.plan` spends nothing — it counts what

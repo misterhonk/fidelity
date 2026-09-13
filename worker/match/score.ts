@@ -12,6 +12,19 @@ export const WEIGHTS: Record<SignalType, number> = {
   WANTLIST_PRESSING: 75,
   ARTIST_GAP: 70,
   CREDIT_GRAPH: 65,
+  /*
+   * 65 — between "you own two of theirs" and "you are nearly complete".
+   *
+   * Somebody said this band out loud, which is a more direct statement of
+   * intent than owning a couple of records by accident (ARTIST_KNOWN, 55). It
+   * is not "this exact record is on my wantlist" (100), and it is not the
+   * near-complete discography ARTIST_GAP speaks to (70). Level with
+   * CREDIT_GRAPH, which is the other signal built on a declared interest
+   * rather than a counted one.
+   *
+   * A constant, and it stays one (docs/04 §4).
+   */
+  ARTIST_FOLLOWED: 65,
   CATALOG_RUN: 60,
   ARTIST_KNOWN: 55,
   LABEL_AFFINITY: 45,

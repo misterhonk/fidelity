@@ -8,11 +8,20 @@
 // Signals
 // ---------------------------------------------------------------------------
 
-/** The eleven match signals (docs/04-MATCHING-ENGINE.md §3). */
+/** The twelve match signals (docs/04-MATCHING-ENGINE.md §3). */
 export const SIGNAL_TYPES = [
   'WANTLIST_EXACT',
   'WANTLIST_PRESSING',
   'ARTIST_KNOWN',
+  /**
+   * A band on your radar that you own nothing by (M29, 2026-09-13).
+   *
+   * Deliberately not folded into ARTIST_KNOWN. That signal's sentence is "you
+   * have 10 records by Anne Clark — not this one", and for a followed artist
+   * the number is zero: it would read as certainty the evidence does not
+   * carry, which is the same mistake the Clark mis-match made on the same day.
+   */
+  'ARTIST_FOLLOWED',
   'ARTIST_GAP',
   'LABEL_AFFINITY',
   'CATALOG_RUN',
@@ -1529,6 +1538,30 @@ export interface LandedPrice {
   /** Which record in the parcel this would be. */
   items: number
   source: ShippingTier['source'] | null
+}
+
+/**
+ * A band you have on your radar and own nothing by.
+ *
+ * Asked for by a tester on 2026-09-13: "Exit North — I think they are great,
+ * have no record by them, but I would like to be shown one if it turns up."
+ * Nothing in the app could carry that. S3 matches against the taste profile,
+ * which is computed from the collection alone, and the horizon expands
+ * wantlist *masters* rather than wantlist artists — so a band you own nothing
+ * by does not exist for the engine. Putting one record on the wantlist finds
+ * that record and other pressings of that album, and no other album.
+ *
+ * Stored rather than derived, and with the id rather than the name: the name
+ * is what somebody typed, the id is what the horizon expands and what survives
+ * Discogs renaming an act.
+ */
+export interface FollowedArtist {
+  artistId: number
+  /** As Discogs spells it, which is what the horizon and the sentence use. */
+  name: string
+  followedAt: number
+  /** Last touched, which is what a merge between two devices compares. */
+  updatedAt?: number
 }
 
 /**

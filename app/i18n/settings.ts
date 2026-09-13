@@ -145,6 +145,39 @@ const en = {
         'Carries on if you leave this screen — the build runs in the background, not on this page.',
     },
 
+    /*
+     * The radar (M29): bands you own nothing by.
+     *
+     * Asked for as "Exit North — I think they are great, have no record by
+     * them, but I would like to be shown one if it turns up." The word
+     * "follow" is avoided: it means a feed somewhere else. This is a list of
+     * names the matcher is allowed to recognise.
+     */
+    radar: {
+      title: 'On your radar',
+      about: 'Bands you have nothing by — and would like to be shown.',
+      lead: 'A dig matches against what is on your shelf. These are the names it should recognise anyway: nothing of theirs is here yet, and that is the point.',
+      empty: 'Nobody on the radar yet. Search below and add one.',
+      searchLabel: 'Find a band',
+      searchPlaceholder: 'Exit North',
+      search: 'Search',
+      add: 'Put on the radar',
+      onIt: 'On the radar',
+      remove: 'Take off',
+      noHits: 'Nobody of that name at Discogs.',
+      /*
+       * The list is a list of names until the horizon has expanded them.
+       *
+       * Without the expansion the engine knows only the exact spelling on a
+       * listing — no other spelling, no alias, and no idea which records are
+       * theirs. One or two lookups each, and the horizon card is the next one
+       * up this page.
+       */
+      needsHorizon:
+        'Each of these is one or two lookups the next time the horizon is built or refreshed — that is what turns a name into the records behind it.',
+      toHorizon: 'To the horizon',
+    },
+
     credits: {
       title: 'Credits',
       about: 'Who made your favourite records — producers, engineers, remixers.',
@@ -738,6 +771,23 @@ const de: typeof en = {
         'Noch nie ganz durchgelaufen. Was da ist, stammt aus abgebrochenen Läufen, aus der täglichen Auffrischung und aus dem, was Digs gefunden haben.',
       keepsRunning:
         'Läuft weiter, wenn du diesen Bildschirm verlässt — der Bau läuft im Hintergrund, nicht auf dieser Seite.',
+    },
+
+    radar: {
+      title: 'Auf dem Schirm',
+      about: 'Bands, von denen du nichts hast – und die trotzdem vorkommen sollen.',
+      lead: 'Ein Dig prüft gegen das, was im Regal steht. Das hier sind die Namen, die er trotzdem erkennen soll: von denen steht noch nichts da, und genau darum geht es.',
+      empty: 'Noch niemand auf dem Schirm. Such unten jemanden und nimm ihn auf.',
+      searchLabel: 'Band suchen',
+      searchPlaceholder: 'Exit North',
+      search: 'Suchen',
+      add: 'Auf den Schirm',
+      onIt: 'Steht drauf',
+      remove: 'Runter',
+      noHits: 'Niemanden dieses Namens bei Discogs gefunden.',
+      needsHorizon:
+        'Jeder davon kostet ein bis zwei Abfragen, wenn der Horizont das nächste Mal gebaut oder aufgefrischt wird – das ist es, was aus einem Namen die Platten dahinter macht.',
+      toHorizon: 'Zum Horizont',
     },
 
     credits: {
