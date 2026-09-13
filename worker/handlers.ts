@@ -12,6 +12,7 @@ import { allFeedback, clearFeedback, feedbackVerdicts, recordFeedback } from './
 import { bestPerRelease, topFive } from './match/select'
 import { computeTasteProfile } from './match/taste'
 import { fail } from './fail'
+import { withReasons } from './dealers/reasons'
 
 /**
  * The shops, best first — what `dealer.list` answers and what `dealer.hide`
@@ -25,7 +26,14 @@ import { fail } from './fail'
  */
 async function rankedDealers() {
   const { visibleDealers } = await import('./dealers/hide')
-  const { withReasons } = await import('./dealers/reasons')
+  /*
+   * Statically imported, unlike most of what this file reaches for.
+   *
+   * It is sixty lines and one store read, and it sits on the hottest dealer
+   * path there is — both the shops screen and the dig field call `dealer.list`
+   * on mount. A lazy chunk here is a network round-trip on a cold worker
+   * before the first shop can be drawn, which is what it cost on CI.
+   */
   return (await withReasons(await visibleDealers())).sort(
     (a, b) =>
       Number(b.lastScannedAt !== null) - Number(a.lastScannedAt !== null) ||

@@ -464,7 +464,6 @@ const scanned = computed(() => {
         {{ adding ? h.add.busy : h.add.submit }}
       </button>
     </form>
-    <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ h.add.about }}</p>
 
     <DealerDiscovery :first-time="dealers.length === 0" @imported="load()" />
 

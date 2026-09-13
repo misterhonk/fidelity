@@ -119,6 +119,6 @@ test('lists shops from the hub, ranked against your own shelf', async ({ page, c
   // Nothing in common is not a suggestion — that would make this a directory.
   await expect(page.getByText('technoid')).toBeHidden()
 
-  // And what the number is a share *of*, because a fingerprint is a sample.
-  await expect(page.getByText(/sampled by somebody else/)).toBeVisible()
+  // And what to do with it.
+  await expect(page.getByText(/joins your shops with its own figures/)).toBeVisible()
 })
