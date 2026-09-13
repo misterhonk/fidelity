@@ -208,6 +208,10 @@ export async function rememberDealers(candidates: DealerCandidate[]): Promise<nu
       sellerRating: candidate.sellerRating ?? existing?.sellerRating ?? 0,
       ratingCount: candidate.ratingCount || (existing?.ratingCount ?? 0),
       shipsFrom: candidate.location || (existing?.shipsFrom ?? ''),
+      // Where it came from, so the screen can say (M30). Kept if there is
+      // already one: the first reason is the true one, and a shop imported
+      // twice was not discovered twice.
+      addedBy: existing?.addedBy ?? candidate.source,
       // Taking a shop over is asking for it, whatever was said before.
       hiddenAt: null,
       updatedAt: Date.now(),

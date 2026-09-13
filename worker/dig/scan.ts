@@ -834,6 +834,9 @@ async function saveDealer(
     lastScannedAt: dig.finishedAt,
     // The line a later "nur das Neue" visit stops at.
     newestListedAt: newestListedAt ?? existing?.newestListedAt ?? null,
+    // How this shop first came to be on the list (M30). Never overwritten:
+    // a shop entered by hand and dug afterwards was still entered by hand.
+    addedBy: existing?.addedBy ?? 'dig',
     /*
      * And the shop's own postage text (2026-09-13).
      *

@@ -36,6 +36,7 @@ import type {
   CreditPerson,
   Dealer,
   DealerCandidate,
+  DealerWithReasons,
   Dig,
   DiscoveryResult,
   Feedback,
@@ -664,7 +665,22 @@ export interface WorkerContract {
     result: { rows: StockRow[]; total: number; scannedAt: number | null }
   }
 
-  'dealer.list': { params: undefined; progress: never; result: Dealer[] }
+  /**
+   * Every shop this device knows, with the reasons it is on the list (M30).
+   *
+   * Dug, in the basket, watched, bought from, a Discogs friend, entered by
+   * hand. Not "offers something on my wantlist": that needs a
+   * listings-by-release endpoint and there is none that may be used (rule 5).
+   */
+  'dealer.list': { params: undefined; progress: never; result: DealerWithReasons[] }
+  /**
+   * A shop entered by hand — a username or the address of its shop page.
+   *
+   * One request, to find out whether it exists and how big it is. It then
+   * appears everywhere a dug shop appears, and says it was entered by hand
+   * until a dig has been near it.
+   */
+  'dealer.add': { params: { dealer: string }; progress: never; result: DealerWithReasons[] }
   /**
    * "Never show this one again", and its undoing.
    *
@@ -675,7 +691,7 @@ export interface WorkerContract {
   'dealer.hide': {
     params: { dealer: string; hidden: boolean }
     progress: never
-    result: { visible: Dealer[]; hidden: Dealer[] }
+    result: { visible: DealerWithReasons[]; hidden: Dealer[] }
   }
   /** The hidden shops, by name — the one place they can be brought back. */
   'dealer.hidden': { params: undefined; progress: never; result: Dealer[] }

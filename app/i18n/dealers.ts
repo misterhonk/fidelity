@@ -94,6 +94,38 @@ const en = {
    * fingerprint from a hundred rows of a forty-thousand-record shop describes
    * those hundred.
    */
+  /*
+   * A shop entered by hand, and why each one is on the list (M30).
+   *
+   * "I want to enter dealers myself" and "under Shops I want to see every
+   * dealer I have bought from, have something in the basket from, or added by
+   * hand". The screen was a log of what had been dug, and a row without a
+   * reason is a row nobody trusts.
+   */
+  add: {
+    label: 'Add a shop',
+    placeholder: 'juno_records — or the address of the shop page',
+    submit: 'Add',
+    busy: 'Looking …',
+    about:
+      'One lookup, to see that it exists and how big it is. It then stands with your other shops — on this screen, in the dig field and on the round — and says it was entered by hand until a dig has been near it.',
+  },
+
+  /*
+   * There is no "offers something from my wantlist" here, and it is not an
+   * oversight: that needs a listings-by-release endpoint and Discogs has none
+   * that may be used. Where a dig has found such a record the shop is on the
+   * list as dug, and the find list names the record.
+   */
+  reasons: {
+    dug: 'dug',
+    basket: 'in the basket',
+    watched: 'watched',
+    order: 'bought from',
+    friend: 'Discogs friend',
+    manual: 'entered by hand',
+  },
+
   suggested: {
     title: 'Shops other people have dug',
     about:
@@ -233,6 +265,24 @@ const de: typeof en = {
     'Beim Öffnen der App wird nachgesehen, ob sich das Sortiment bewegt hat – eine einzige Abfrage, kein neuer Scan.',
   digNow: 'Jetzt graben',
   digAgain: 'Nochmal graben',
+
+  add: {
+    label: 'Laden hinzufügen',
+    placeholder: 'juno_records – oder die Adresse der Ladenseite',
+    submit: 'Hinzufügen',
+    busy: 'Sehe nach …',
+    about:
+      'Eine Abfrage, um zu sehen, dass es ihn gibt und wie groß er ist. Danach steht er bei deinen anderen Läden – auf diesem Bildschirm, im Graben-Feld und im Rundgang – und sagt „von Hand eingetragen", bis ein Dig dort war.',
+  },
+
+  reasons: {
+    dug: 'gegraben',
+    basket: 'im Korb',
+    watched: 'beobachtet',
+    order: 'hier gekauft',
+    friend: 'Discogs-Freund',
+    manual: 'von Hand eingetragen',
+  },
 
   suggested: {
     title: 'Läden, die andere gegraben haben',
