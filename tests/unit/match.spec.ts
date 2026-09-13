@@ -282,6 +282,39 @@ describe('the lexicon', () => {
     const chunks = [lexicon(555, 'Conny Plank', [{ name: 'Konrad Plank', relation: 'alias' }])]
     expect(known('Konrad Plank', chunks)).toBeUndefined()
   })
+
+  /*
+   * A surname is not a name (2026-09-13).
+   *
+   * Reported from a real dig: "The Mark & Clark Band – Double Take", CBS 1977,
+   * came back at 0,85 as "Clark ist Anne Clark — du hast 10 Platten von Anne
+   * Clark". Anne Clark carries "Clark" among her name variations, so "clark"
+   * was a key in the index, and the single-token stage takes any word out of a
+   * listing's artist string and looks it up. Two different acts, and the band
+   * sat near the top of the find list with a sentence that read as certainty.
+   *
+   * A lexicon name is Discogs' word that this is the same person — already the
+   * weaker of the two claims. Matching a fragment of a string against it puts
+   * the two weakest things the cascade does one on top of the other.
+   */
+  it('will not take one word of a band name for an alias of somebody else', () => {
+    const chunks = [lexicon(100, 'Robag Wruhme', [{ name: 'Robag', relation: 'alias' }])]
+    expect(known('The Mark & Robag Band', chunks)).toBeUndefined()
+  })
+
+  it('still reads a one-word name on the shelf out of a longer string', () => {
+    // The other side of the same line. "dinky" is Dinky's own name and carries
+    // no `via`, so Miss Dinky is still Dinky — which is what the stage is for.
+    const shelf = [...collection, record(7, 'Dinky', 103, 'Horizontal Ground', 502)]
+    const signal = evaluate(
+      listing({ artist: 'Miss Dinky', label: null }),
+      buildIndex(shelf, wantlist, computeTasteProfile(shelf, 0)),
+      filters,
+    )?.signals.find((s) => s.type === 'ARTIST_KNOWN')
+
+    expect(signal?.confidence).toBe(0.85)
+    expect(signal?.evidence).toMatchObject({ artist: 'Dinky' })
+  })
 })
 
 describe('the hard filters', () => {
