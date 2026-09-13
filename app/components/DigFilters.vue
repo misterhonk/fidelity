@@ -39,7 +39,7 @@ const DENSITIES = ['comfortable', 'compact'] as const satisfies readonly Density
     scroll-margin-top matching this bar.
   -->
   <div
-    class="sticky top-0 z-10 -mx-6 flex flex-col gap-3 border-b border-fid-border bg-fid-bg/95 px-6 py-3 backdrop-blur"
+    class="sticky top-0 z-10 -mx-6 flex flex-col gap-3 border-b border-fid-border bg-fid-bg/95 px-6 py-3 backdrop-blur md:top-[45px]"
   >
     <!--
       The text filter. Also where the command palette lands when you pick a

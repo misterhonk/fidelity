@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useVirtualizer } from '@tanstack/vue-virtual'
+import { useWindowVirtualizer } from '@tanstack/vue-virtual'
 
 import type { Match } from '#shared/types'
 import type { Density } from '~/utils/digview'
@@ -43,14 +43,30 @@ const perRow = computed(() =>
  * Measured rather than guessed from the viewport: this list sits inside a page
  * whose width is a container query away from anything the window knows.
  */
+/**
+ * Where the list starts on the page. The page scrolls, not the list (since
+ * 2026-09-13): a list scrolling inside a 70vh box left the footer standing
+ * under it on every screen, taking a fifth of the window for a licence line.
+ * The virtualiser works off the window and subtracts this margin; it is
+ * measured again whenever the list's width changes, which is when the
+ * things above it may have moved.
+ */
+const listTop = ref(0)
+function measureTop() {
+  const el = viewport.value
+  listTop.value = el ? el.getBoundingClientRect().top + window.scrollY : 0
+}
+
 let observer: ResizeObserver | undefined
 onMounted(() => {
   const el = viewport.value
   width.value = el?.clientWidth ?? 0
+  measureTop()
   if (!el || typeof ResizeObserver === 'undefined') return
 
   observer = new ResizeObserver(([entry]) => {
     width.value = entry?.contentRect.width ?? 0
+    measureTop()
   })
   observer.observe(el)
 })
@@ -66,10 +82,10 @@ const rowCount = computed(() => Math.ceil(props.matches.length / perRow.value))
  */
 const estimate = computed(() => (props.density === 'compact' ? 34 : 208))
 
-const rows = useVirtualizer(
+const rows = useWindowVirtualizer(
   computed(() => ({
     count: rowCount.value,
-    getScrollElement: () => viewport.value ?? null,
+    scrollMargin: listTop.value,
     estimateSize: () => estimate.value,
     // Enough rows above and below that a fast flick does not show white.
     overscan: 8,
@@ -119,18 +135,11 @@ const gridStyle = computed(() => ({
     Windowed. A collection scan can produce several hundred matches and the
     comfortable card is not a cheap node — cover, chips, four buttons.
 
-    The viewport scrolls itself rather than the page, because a virtualiser
-    driven by window scroll fights the sticky filter bar above it.
+    The page scrolls, the list does not: rows are placed from the list's own
+    top (`item.start` minus the scroll margin), and the sticky filter bar
+    above keeps clear of the nav with its own offset.
   -->
-  <div
-    v-else
-    ref="viewport"
-    class="max-h-[70vh] overflow-y-auto"
-    style="scrollbar-gutter: stable"
-    tabindex="0"
-    role="region"
-    :aria-label="d.match.allFinds"
-  >
+  <div v-else ref="viewport" role="region" :aria-label="d.match.allFinds">
     <ul class="relative w-full" :style="{ height: `${rows.getTotalSize()}px` }">
       <li
         v-for="item in items"
@@ -138,7 +147,10 @@ const gridStyle = computed(() => ({
         :ref="(el) => rows.measureElement(el as Element)"
         :data-index="item.index"
         class="absolute top-0 left-0 w-full"
-        :style="{ transform: `translateY(${item.start}px)`, ...gridStyle }"
+        :style="{
+          transform: `translateY(${item.start - rows.options.scrollMargin}px)`,
+          ...gridStyle,
+        }"
       >
         <template v-for="match in rowMatches(item.index)" :key="match.listingId">
           <MatchRow v-if="density === 'compact'" :match="match" />
