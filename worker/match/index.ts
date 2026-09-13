@@ -9,7 +9,7 @@ import type {
   WantlistItem,
 } from '#shared/types'
 
-import { matchesFormat } from '#shared/format'
+import { matchesFormat, rankOf } from '#shared/format'
 import {
   artistGap,
   catalogueRun,
@@ -118,17 +118,6 @@ export interface MatchIndex {
   labelIds: Map<string, number>
   /** Label id → records owned, the numerator of the lift. */
   ownedByLabel: Map<number, number>
-}
-
-const CONDITION_RANK: Record<string, number> = {
-  'Mint (M)': 0,
-  'Near Mint (NM or M-)': 1,
-  'Very Good Plus (VG+)': 2,
-  'Very Good (VG)': 3,
-  'Good Plus (G+)': 4,
-  'Good (G)': 5,
-  'Fair (F)': 6,
-  'Poor (P)': 7,
 }
 
 /** Built once per dig, from data that only changes on sync. */
@@ -434,8 +423,8 @@ export function evaluate(
 
 function isBelowPreference(condition: string | null, preference: string): boolean {
   if (!condition) return false
-  const actual = CONDITION_RANK[condition]
-  const wanted = CONDITION_RANK[preference]
-  if (actual === undefined || wanted === undefined) return false
+  const actual = rankOf(condition)
+  const wanted = rankOf(preference)
+  if (actual === null || wanted === null) return false
   return actual > wanted
 }

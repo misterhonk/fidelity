@@ -144,6 +144,7 @@ describe('database schema', () => {
     expect([...db.transaction('stock').objectStore('stock').indexNames].sort()).toEqual([
       'by-dig-decade',
       'by-dig-label',
+      'by-release',
     ])
   })
 })

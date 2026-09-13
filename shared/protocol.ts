@@ -21,6 +21,7 @@ import type { CheckProgress, WatchedCheck } from '~~/worker/watched/check'
 import type { DemoProgress, DemoResult } from '~~/worker/demo'
 import type { ImportReport } from '../worker/import'
 import type { ArtistHit } from '~~/worker/followed'
+import type { CompareResult } from '~~/worker/basket/compare'
 import type {
   BasketPlan,
   BasketView,
@@ -436,6 +437,17 @@ export interface WorkerContract {
    */
   'horizon.status': { params: undefined; progress: never; result: HorizonStatus }
   'horizon.build': { params: undefined; progress: HorizonProgress; result: HorizonResult }
+  /**
+   * The same basket, at the other shops you know (M29).
+   *
+   * Costs nothing: a join over the stock rows every dig already wrote, inside
+   * the six-hour window those rows live in anyway (rule 4). There is no
+   * documented way to ask Discogs who else sells a release, so the question is
+   * answered from the inventories this device has read — which is also why the
+   * screen says "the shops you know" and never "the market".
+   */
+  'compare.basket': { params: { dealer: string }; progress: never; result: CompareResult }
+
   /**
    * The radar: bands on it, and the search that puts them there (M29).
    *

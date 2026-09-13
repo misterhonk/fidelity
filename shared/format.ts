@@ -164,3 +164,33 @@ export function matchesFormat(format: string | null, allowed: string[]): boolean
     return pattern ? pattern.test(format) : format.toLowerCase().includes(name.toLowerCase())
   })
 }
+
+/**
+ * Discogs' grading scale, best first.
+ *
+ * It lived as a private map in `worker/match/index.ts`, where the dampening
+ * for "below the condition you prefer" reads it. The basket comparison needs
+ * the same order to say "three of them come in Near Mint instead of VG+", and
+ * two copies of a scale are two chances to get one of them wrong.
+ *
+ * A lower number is a better record. Anything Discogs has not graded is not on
+ * the scale at all — `rankOf` answers null, and every caller treats that as
+ * "nothing to compare" rather than as the worst grade.
+ */
+export const GRADES = [
+  'Mint (M)',
+  'Near Mint (NM or M-)',
+  'Very Good Plus (VG+)',
+  'Very Good (VG)',
+  'Good Plus (G+)',
+  'Good (G)',
+  'Fair (F)',
+  'Poor (P)',
+] as const
+
+const RANKS = new Map<string, number>(GRADES.map((grade, index) => [grade, index]))
+
+export function rankOf(condition: string | null | undefined): number | null {
+  if (!condition) return null
+  return RANKS.get(condition) ?? null
+}
