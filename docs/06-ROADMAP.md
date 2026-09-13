@@ -1161,7 +1161,7 @@ preset, drawn as the wall it is; inside a compartment a rule, not a slot.
 | M27.4 Drag | `usePlaceDrag`: pointer events, not the HTML drag API — a mouse drags after six pixels, a finger has to rest 400 ms first, then the phone buzzes once; a sleeve from the sheet (or all the ticked ones) onto a cube of the wall behind it, a whole compartment onto another, furniture by its name onto a room or onto "without a room" (`places.move`); every drop leaves the undo line on the page | **Done 2026-09-12** |
 
 
-## M28 · The tester's first quarter of an hour → proposed
+## M28 · The tester's first quarter of an hour → `v0.67.0`–`v0.70.0`
 
 **Where these come from.** The demo account (`docs/19`) walked on 2026-09-13: sixty-six
 records and nineteen wants on a fresh device, then the shelf, the start page, the map, the
@@ -1177,7 +1177,7 @@ not scheduled.
 | 4 | **"All" means all.** In "Fill" the button ticks what is loaded — forty-eight of sixty-two — and "Put 48 in A1" leaves fourteen behind without saying so. "All" should tick the whole answer, and say so: "Put 62 in A1" | The very first fill anybody does | an hour | **Done 2026-09-13.** "All" in the fill sheet ticks the whole answer and the button says the true number. |
 | 5 | **The horizon, explained once.** "19 records wanted, 0 with every pressing known to the horizon" is the first sentence on the wantlist, and it is jargon — a tester does not know what a horizon is. Say what it does for them, once, with the way there: "Fidelity does not know the other pressings of these yet — build the horizon in the settings (two minutes, once)"; gone once it is built | The tester who never opens the settings | an hour | **Done 2026-09-13.** While the horizon is not built, the wantlist's first sentence says what it would do and links to the settings; the old sentence returns once it is. |
 | 6 | **The dividers on the sheet.** A record's sheet proposes its compartment "by the rule" — but the wall's dividers are not on it, so the proposal is a coordinate without a reason. Show the divider with it: "A2 · C–D, by artist" | Whoever files records one at a time from the sheet | an hour | **Done 2026-09-13.** "By the rule: A2 · C–D, by artist" — the divider and the rule next to the coordinate. |
-| 7 | **Sync again is a plate, not a button.** "Synced just now · Sync now" sits at the top right of the shelf as a filled button and a sentence; on a screen whose rule is one loud thing, it competes with the covers. A plate with the time, and "Sync now" as a plate action | The shelf, every day | an hour | The one accent fill per screen is the guard's rule; here it is spent on a maintenance action |
+| 7 | **Sync again is a plate, not a button.** "Synced just now · Sync now" sits at the top right of the shelf as a filled button and a sentence; on a screen whose rule is one loud thing, it competes with the covers. A plate with the time, and "Sync now" as a plate action | The shelf, every day | an hour | **Done 2026-09-13.** The time and "Sync now" as one plate line at the top right, no border, no fill. |
 
 **Checked and left out:** the sixty-word rule for the wantlist (the rows are `li`, and the
 prose above them holds); covers on the demo shelf (they load — what looked like "no cover"

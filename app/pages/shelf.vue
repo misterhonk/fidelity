@@ -277,11 +277,12 @@ const open = ref<number | null>(null)
           }}
         </p>
 
-        <p class="ml-auto flex shrink-0 items-center gap-3 text-fid-sm text-fid-text-muted">
+        <!-- A plate, not a button (M28 #7): maintenance must not compete with the covers. -->
+        <p class="fid-plate ml-auto flex shrink-0 items-center gap-4 text-fid-text-muted">
           <span v-if="readFullyAt">{{ c.shelf.readFully(since(readFullyAt)) }}</span>
           <button
             type="button"
-            class="fid-lift min-h-11 rounded-fid-sm border border-fid-field px-3 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+            class="fid-plate fid-action min-h-11 text-fid-text-muted transition-colors hover:text-fid-text disabled:opacity-50"
             :disabled="rereading"
             @click="reread()"
           >
