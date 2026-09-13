@@ -9,6 +9,21 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.72.0](https://github.com/misterhonk/fidelity/compare/v0.71.0...v0.72.0) (2026-09-13)
+
+
+### Added
+
+* **basket:** a shop that bills by weight says so, and hands over its own words ([003eef4](https://github.com/misterhonk/fidelity/commit/003eef4254df4d62942cc6c7d4fe253c96cb8353))
+* **basket:** the same basket at the other shops, and a vault file you carry ([f672ecb](https://github.com/misterhonk/fidelity/commit/f672ecbad0d3d670dc6ca4a494527148f44df9b0))
+* **dealers:** the round — every watched shop, asked what is new ([227becc](https://github.com/misterhonk/fidelity/commit/227becc698ec975de6c84d8456697c452dabb101))
+* **match:** the radar — bands you own nothing by, S3b at weight 65 ([8b7c05e](https://github.com/misterhonk/fidelity/commit/8b7c05e9fa50b26a7457f49ca45446f115aeadb2))
+
+
+### Fixed
+
+* **match:** a surname is not a name — one token never matches an alias ([51ce364](https://github.com/misterhonk/fidelity/commit/51ce364f8936c4f79ce8bcbd125208ad301e8a3b))
+
 ## [0.71.0](https://github.com/misterhonk/fidelity/compare/v0.70.1...v0.71.0) (2026-09-13)
 
 **The app says what it is doing.**
