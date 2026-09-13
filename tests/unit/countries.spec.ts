@@ -1,6 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { isEu, passesOrigin, readOrigin, sameCountry } from '#shared/countries'
+import {
+  guessHomeCountry,
+  isEu,
+  isEurope,
+  passesOrigin,
+  readOrigin,
+  sameCountry,
+} from '#shared/countries'
 
 /**
  * "Only from Germany / the EU" (docs/06 M20 #2).
@@ -40,5 +47,81 @@ describe('where a shop ships from', () => {
     expect(readOrigin('home')).toBe('home')
     expect(readOrigin('mars')).toBe('any')
     expect(readOrigin(undefined)).toBe('any')
+  })
+})
+
+/**
+ * Where this device is (M30 #5).
+ *
+ * The default used to be the string `'Germany'`, written once by somebody
+ * sitting in Germany — so every other user got a chip about the wrong country
+ * and a postage estimate for the wrong border, until they found a setting that
+ * was already filled in and therefore looked settled.
+ */
+describe('the home country, guessed', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  const withLanguages = (languages: string[]) =>
+    vi.stubGlobal('navigator', { languages, language: languages[0] ?? '' })
+
+  it('reads the region out of the browser’s own preference', () => {
+    withLanguages(['de-CH', 'de'])
+    expect(guessHomeCountry()).toBe('Switzerland')
+  })
+
+  it('skips a tag that carries no region rather than guessing one', () => {
+    // "de" says what somebody reads, not where they are.
+    withLanguages(['de', 'en-GB'])
+    expect(guessHomeCountry()).toBe('United Kingdom')
+  })
+
+  it('falls back rather than leaving the filter matching nothing', () => {
+    withLanguages([])
+    expect(guessHomeCountry()).toBe('Germany')
+  })
+
+  it('survives a language tag the runtime will not parse', () => {
+    withLanguages(['not a tag', 'en-US'])
+    expect(guessHomeCountry()).toBe('United States')
+  })
+})
+
+/**
+ * Europe is not the EU, and the difference is the point (M30 #5).
+ *
+ * "From the EU" is about a customs border. For somebody in Zurich, London or
+ * Oslo that border runs the wrong way round — what they are asking is "near
+ * me", and the EU is the group they pay duty to.
+ */
+describe('Europe beside the EU', () => {
+  it('takes the ones the customs union leaves out', () => {
+    for (const country of ['Switzerland', 'United Kingdom', 'Norway', 'Iceland', 'Serbia']) {
+      expect(isEu(country), country).toBe(false)
+      expect(isEurope(country), country).toBe(true)
+    }
+  })
+
+  it('still takes the members', () => {
+    expect(isEurope('Germany')).toBe(true)
+    expect(isEurope('Portugal')).toBe(true)
+  })
+
+  it('leaves the rest of the world out', () => {
+    for (const country of ['Japan', 'United States', 'Brazil']) {
+      expect(isEurope(country), country).toBe(false)
+    }
+  })
+
+  it('passes the filter through', () => {
+    expect(passesOrigin('Switzerland', 'europe', 'Germany')).toBe(true)
+    expect(passesOrigin('Switzerland', 'eu', 'Germany')).toBe(false)
+    expect(passesOrigin('Japan', 'europe', 'Germany')).toBe(false)
+    // Unknown is out under every filter but "any", as before.
+    expect(passesOrigin(null, 'europe', 'Germany')).toBe(false)
+  })
+
+  it('reads the new filter out of an address', () => {
+    expect(readOrigin('europe')).toBe('europe')
+    expect(readOrigin('nonsense')).toBe('any')
   })
 })

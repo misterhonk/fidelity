@@ -1,3 +1,4 @@
+import { guessHomeCountry } from '#shared/countries'
 import type { Preferences, SyncState } from '#shared/types'
 
 import { openFidelityDb } from './open'
@@ -50,7 +51,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   shipsFromBlock: [],
   excludeReissues: false,
   currency: 'EUR',
-  shipsToCountry: 'Germany',
+  // Where this device is, not where the author was — see `guessHomeCountry`.
+  shipsToCountry: guessHomeCountry(),
   // Off: rule 5 stays the normal case, the exception is switched on by hand.
   importFriends: false,
   // ADR-012: aus, bis jemand es will. Siehe `Preferences.audioPreview`.

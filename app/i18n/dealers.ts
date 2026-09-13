@@ -21,6 +21,14 @@ const en = {
     any: 'Anywhere',
     home: (country: string) => `From ${country}`,
     eu: 'From the EU',
+    /*
+     * Europe, which is a different question from the EU.
+     *
+     * "From the EU" is about a customs border, and for somebody in Zurich,
+     * London or Oslo it runs the wrong way round. What they are asking is
+     * "near me".
+     */
+    europe: 'From Europe',
     none: 'None of your shops ships from there.',
   },
 
@@ -231,6 +239,7 @@ const de: typeof en = {
     any: 'Überall',
     home: (country) => `Aus ${countryName(country)}`,
     eu: 'Aus der EU',
+    europe: 'Aus Europa',
     none: 'Keiner deiner Läden versendet von dort.',
   },
 
