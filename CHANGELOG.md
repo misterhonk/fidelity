@@ -11,6 +11,16 @@ Für eine App bedeutet SemVer:
 
 ## [0.69.0](https://github.com/misterhonk/fidelity/compare/v0.68.0...v0.69.0) (2026-09-13)
 
+**"Sort in" can fill from the front.**
+
+Sixty records in a Kallax 4×4 used to be dealt four per cube, with dividers like "A–An"
+that mean nothing. Next to the rule there is a second choice now: "Evenly", as before, or
+"From the front" — each compartment filled to a comfortable eighty per cent before the next,
+so a small collection stands in one or two cubes and the rest of the wall waits empty. The
+piece of furniture remembers which way you chose.
+
+**What to do:** Nothing. If your wall looks thin, pick "From the front" and tap "Sort in".
+
 
 ### Added
 
