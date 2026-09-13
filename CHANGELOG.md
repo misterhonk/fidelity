@@ -9,6 +9,19 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.71.0](https://github.com/misterhonk/fidelity/compare/v0.70.1...v0.71.0) (2026-09-13)
+
+
+### Added
+
+* **dig:** the screen says what it matched against, and what it is waiting for ([83dc9c8](https://github.com/misterhonk/fidelity/commit/83dc9c865ce8927cccb2d6eac4c3a2921523467d))
+
+
+### Fixed
+
+* **dig:** the find list is never the dig that is still being scanned ([4566a8c](https://github.com/misterhonk/fidelity/commit/4566a8c814b28e50052088a6c3aa5fe8d7e71fd0))
+* **horizon:** the build survives leaving the screen, and shows it ([b212bdd](https://github.com/misterhonk/fidelity/commit/b212bdd50454a1bcb628514860ae0587019138ff))
+
 ## [0.70.1](https://github.com/misterhonk/fidelity/compare/v0.70.0...v0.70.1) (2026-09-13)
 
 **The footer waits at the end of the dig.**
