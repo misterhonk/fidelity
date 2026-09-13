@@ -9,6 +9,22 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.73.0](https://github.com/misterhonk/fidelity/compare/v0.72.0...v0.73.0) (2026-09-13)
+
+
+### Added
+
+* **dealers:** a shop entered by hand, and why each one is on the list ([2c91730](https://github.com/misterhonk/fidelity/commit/2c917304afa34c645a15b578b58bef2e40ed13db))
+* **dealers:** where you are, and the Europe that is not the EU ([1409dda](https://github.com/misterhonk/fidelity/commit/1409dda360756ee7836c9f19c137b00fa760cb57))
+* **hub:** shops other people have dug, ranked against your own shelf ([d81b4b9](https://github.com/misterhonk/fidelity/commit/d81b4b993881a8889b277978ede123fa61e74231))
+
+
+### Fixed
+
+* **dealers:** the guessed country costs nothing until something asks for it ([f7ff99d](https://github.com/misterhonk/fidelity/commit/f7ff99d99129413b01a3360bb28a552df6fed5c8))
+* **ui:** a find whose dig is gone says so, instead of an empty sheet ([1710fe4](https://github.com/misterhonk/fidelity/commit/1710fe41bfbdfb41e057aaa279a334961dcd4f95))
+* **ui:** the sixty-word rule catches the prose this session added ([573aace](https://github.com/misterhonk/fidelity/commit/573aaceabc54b65a5404d10058d3b991474c5a4a))
+
 ## [0.72.0](https://github.com/misterhonk/fidelity/compare/v0.71.0...v0.72.0) (2026-09-13)
 
 **Five records at one shop, and the same five somewhere else.**
