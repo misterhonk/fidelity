@@ -9,6 +9,46 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.72.0](https://github.com/misterhonk/fidelity/compare/v0.71.0...v0.72.0) (2026-09-13)
+
+**Five records at one shop, and the same five somewhere else.**
+
+A basket can now be held against the other shops you know: who has all of them, who has four
+of them much cheaper, who has them in better condition. It costs no lookup at all — a dig
+writes down every listing it reads, not only the finds, so the answer is already on the
+device. Four of five elsewhere counts as a saving only once the fifth has been paid for a
+second time, postage and all, which is the number each line shows. And it says what it
+compared: the shops you know, never "the market" — Discogs cannot be asked who else sells a
+record.
+
+Alongside it: bands you own nothing by can go **on your radar** and will be shown when one of
+their records turns up. **The round** walks every watched shop in one go and fetches only what
+each has put up since the last visit — ten shops in about half a minute. A shop that prices
+postage **by the gram** now says so instead of falling silent, and hands you its own wording
+to copy. And where a browser cannot write to a file on its own — Safari, every iPhone — the
+vault can be carried **by hand**: save a file, put it in iCloud Drive, pick it up on the other
+device.
+
+One wrong match is gone. "The Mark & Clark Band" was coming back as Anne Clark, because
+"Clark" is one of her registered spellings and a single word out of a band's name was enough
+to find it. A surname is not a name.
+
+**What to do:** Nothing. The basket screen has a new question at the bottom, and the radar
+sits in the settings beside the horizon.
+
+
+### Added
+
+* **basket:** a shop that bills by weight says so, and hands over its own words ([003eef4](https://github.com/misterhonk/fidelity/commit/003eef4254df4d62942cc6c7d4fe253c96cb8353))
+* **basket:** the same basket at the other shops, and a vault file you carry ([f672ecb](https://github.com/misterhonk/fidelity/commit/f672ecbad0d3d670dc6ca4a494527148f44df9b0))
+* **dealers:** the round — every watched shop, asked what is new ([227becc](https://github.com/misterhonk/fidelity/commit/227becc698ec975de6c84d8456697c452dabb101))
+* **match:** the radar — bands you own nothing by, S3b at weight 65 ([8b7c05e](https://github.com/misterhonk/fidelity/commit/8b7c05e9fa50b26a7457f49ca45446f115aeadb2))
+
+
+### Fixed
+
+* **match:** a surname is not a name — one token never matches an alias ([51ce364](https://github.com/misterhonk/fidelity/commit/51ce364f8936c4f79ce8bcbd125208ad301e8a3b))
+
 ## [0.71.0](https://github.com/misterhonk/fidelity/compare/v0.70.1...v0.71.0) (2026-09-13)
 
 **The app says what it is doing.**
