@@ -468,7 +468,7 @@ const de: Messages = {
     alreadyThere: 'schon dabei',
     hide: 'Nie vorschlagen',
     hideWhy: 'Diesen Laden nie wieder vorschlagen',
-    nothing: 'Nichts gefunden, was nach einem Laden aussieht.',
+    nothing: 'Die Suche hat keine neuen Läden gefunden.',
     whereLabel: 'Wo gesucht wird',
     friendsSummary: 'Auch meine Discogs-Freundesliste lesen?',
     sources: {

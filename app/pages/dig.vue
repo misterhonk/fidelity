@@ -604,7 +604,17 @@ const noHorizon = computed(
         @click="pick(known.username)"
       >
         {{ known.displayName || known.username }}
-        <span v-if="known.affinity !== null" class="fid-num ml-1.5 text-fid-xs opacity-70">
+        <!--
+          The hit rate, and what it is a rate *of*.
+          It was a bare "13.0" beside a shop's name — a number with no unit,
+          which somebody either ignores or misreads as a rating out of five.
+        -->
+        <span
+          v-if="known.affinity !== null"
+          class="fid-num ml-1.5 text-fid-xs opacity-70"
+          :title="d.perThousand(known.affinity.toFixed(1))"
+          :aria-label="d.perThousand(known.affinity.toFixed(1))"
+        >
           {{ known.affinity.toFixed(1) }}
         </span>
       </button>
