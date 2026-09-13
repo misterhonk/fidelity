@@ -32,6 +32,14 @@ const props = defineProps<{
   videos?: { title: string; uri: string }[]
   /** How many the record has in all, where the list above is a cut of them. */
   total?: number
+  /**
+   * Where to look when the caller has no clips — see `asking` below.
+   *
+   * Left off by a caller that has already looked itself, which is what the
+   * shelf's sheet does: it fetches the whole release detail on open and hands
+   * the clips down from there.
+   */
+  releaseId?: number
 }>()
 
 const service = ref<ListenService>('none')
@@ -42,13 +50,42 @@ const service = ref<ListenService>('none')
  */
 const preview = ref(false)
 
+/*
+ * The clips a record has, for a record that came without any.
+ *
+ * A dig fills `videos[]` for the top fifty and nothing below — those fifty get
+ * a `/releases/{id}` anyway, for styles and market figures, and the addresses
+ * ride along for free (ADR-012). Open the fifty-first and there was nothing to
+ * hear, although the record almost certainly has something.
+ *
+ * So one lookup, for a record somebody deliberately opened, through the same
+ * paced lane and kept for ever after — the bargain the covers and the shelf's
+ * own sheet already make. Not a loop over releases: rule 2 is about walking
+ * ten thousand of them, and this is one, once, per record on the screen.
+ */
+const found = ref<{ title: string; uri: string }[] | null>(null)
+const asking = ref(false)
+
 onMounted(async () => {
   const prefs = await call('preferences.get', undefined)
   service.value = prefs.listenService
   preview.value = prefs.audioPreview
+
+  if (props.videos?.length || !props.releaseId) return
+  asking.value = true
+  try {
+    const detail = await call('release.detail', { releaseId: props.releaseId })
+    found.value = detail?.videos ?? []
+  } catch {
+    // No clips is a section with less in it, not an error on the screen. The
+    // search link beside them is unaffected and is the one that always works.
+    found.value = []
+  } finally {
+    asking.value = false
+  }
 })
 
-const clips = computed(() => props.videos ?? [])
+const clips = computed(() => (props.videos?.length ? props.videos : (found.value ?? [])))
 
 const searchAt = computed(() => listenUrl(service.value, props.artist, props.title))
 
@@ -90,7 +127,7 @@ onBeforeUnmount(() => audio.release(mount.value))
 </script>
 
 <template>
-  <section v-if="clips.length || searchAt" class="flex flex-col gap-2">
+  <section v-if="clips.length || searchAt || asking" class="flex flex-col gap-2">
     <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
       <h3 class="text-fid-sm font-bold text-fid-text">{{ m.listen.title }}</h3>
 
@@ -149,6 +186,11 @@ onBeforeUnmount(() => audio.release(mount.value))
 
     <p v-if="total && total > clips.length" class="fid-num text-fid-xs text-fid-text-muted">
       {{ m.common.ofTotal(count(clips.length), count(total)) }}
+    </p>
+
+    <!-- Something is happening, and the screen says so rather than sitting empty. -->
+    <p v-if="asking" class="text-fid-xs text-fid-text-muted" aria-live="polite">
+      {{ m.common.asking }}
     </p>
 
     <!-- What it could do, for somebody who has never been to the settings. -->

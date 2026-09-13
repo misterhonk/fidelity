@@ -146,6 +146,15 @@ test('a room, a Kallax, and a record in B1', async ({ page }) => {
   await page.getByRole('group', { name: 'Kallax' }).getByRole('button', { name: 'B2' }).click()
   await expect(page.getByText('1 now in B2')).toBeVisible()
   await page.getByRole('button', { name: 'Undo' }).click()
+  /*
+   * The way back writes before the line goes — so the line going is the signal
+   * that it has. Without this wait the navigation raced the write and won on a
+   * loaded runner: /places read the database before the undo reached it, and
+   * then showed a record in the place it had just been taken out of. Failed
+   * twice on CI on 2026-09-13 and never once locally, which is what a missing
+   * wait looks like.
+   */
+  await expect(page.getByText('1 now in B2')).toBeHidden()
   await page.goto('/places')
   await expect(page.getByRole('button', { name: /^A1( · H)?, 1 records/ })).toBeVisible()
   await expect(page.getByRole('button', { name: /^B2, 0 records/ })).toBeVisible()

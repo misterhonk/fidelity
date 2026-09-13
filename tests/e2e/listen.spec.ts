@@ -117,3 +117,40 @@ test('plays a clip in place, and reaches Google only when told to', async ({ pag
   await play.click()
   await expect.poll(() => asked.length, { timeout: 15_000 }).toBeGreaterThan(0)
 })
+
+/**
+ * And a record from below the enriched fifty, which carries no clips at all.
+ *
+ * A dig fills `videos[]` for the top fifty — those get a `/releases/{id}`
+ * anyway and the addresses ride along free. Everything below it arrived with
+ * nothing to hear, although the record itself almost certainly has something.
+ * One lookup for a record somebody deliberately opened closes that gap.
+ */
+test('looks up the clips a find came without', async ({ context, page }) => {
+  await seed(page, 'en')
+
+  // Registered after seed(), so it wins over the blanket 401 (see seed.ts).
+  await context.route('https://api.discogs.com/releases/9912999**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify({
+        id: 9_912_999,
+        videos: [{ title: 'Larry Young - Zoltan', uri: 'https://youtu.be/8FR6P0AsQ1M' }],
+      }),
+    }),
+  )
+
+  await page.goto('/')
+  await page
+    .getByRole('button', { name: /Open .*Unity/i })
+    .first()
+    .click()
+  const sheet = page.getByRole('dialog')
+  await expect(sheet).toBeVisible({ timeout: 15_000 })
+
+  await expect(sheet.getByRole('link', { name: 'Larry Young - Zoltan' })).toBeVisible({
+    timeout: 15_000,
+  })
+})

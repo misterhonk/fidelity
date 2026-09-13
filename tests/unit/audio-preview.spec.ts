@@ -235,3 +235,38 @@ describe('the same exception on the sheets', () => {
     expect(de).toMatch(/source: 'Läuft über YouTube'/)
   })
 })
+
+/**
+ * And the one request this feature is allowed to spend.
+ *
+ * A dig fills `videos[]` for the top fifty and nothing below. Looking one up
+ * is the same bargain the covers make — one release, once, for something on
+ * the screen — and it must stay that: a lookup per row of a list would be rule
+ * 2 by another name.
+ */
+describe('looking up the clips a find came without', () => {
+  const bare = withoutComments(SECTION)
+
+  it('asks only when the caller handed over nothing', () => {
+    const mounted = bare.slice(bare.indexOf('onMounted'))
+    expect(mounted).toMatch(/if \(props\.videos\?\.length \|\| !props\.releaseId\) return/)
+  })
+
+  it('asks for one release, not for a list of them', () => {
+    const calls = [...bare.matchAll(/call\('([^']+)'/g)].map((match) => match[1])
+    expect(calls).toEqual(['preferences.get', 'release.detail'])
+    expect(bare).toMatch(/releaseId: props\.releaseId/)
+  })
+
+  /** And says it is happening, rather than showing an empty block. */
+  it('says that it is asking', () => {
+    expect(bare).toMatch(/v-if="asking"/)
+    expect(bare).toMatch(/aria-live="polite"/)
+  })
+
+  /** A refusal is a shorter section, not an error on the screen. */
+  it('treats a refusal as no clips', () => {
+    const caught = bare.slice(bare.indexOf('} catch {'), bare.indexOf('} finally {'))
+    expect(caught).toMatch(/found\.value = \[\]/)
+  })
+})

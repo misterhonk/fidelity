@@ -439,6 +439,7 @@ function years(entry: { from: number; to: number }): string {
         :artist="match.artist"
         :title="match.title"
         :videos="match.videos"
+        :release-id="match.releaseId"
       />
 
       <div
