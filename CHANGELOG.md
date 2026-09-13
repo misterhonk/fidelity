@@ -11,6 +11,22 @@ Für eine App bedeutet SemVer:
 
 ## [0.66.0](https://github.com/misterhonk/fidelity/compare/v0.65.1...v0.66.0) (2026-09-13)
 
+**From the shelf straight into a compartment, and keys on the wall.**
+
+On the shelf, tap "Select": the sleeves become things to tick. "Put n in …" opens the wall
+small — every piece of furniture as a little grid, a button per compartment — and one tap
+puts the ticked records there. The line at the bottom has "Undo", and it puts each record
+back exactly where it was, in a compartment or in no place at all.
+
+On the wall, the keyboard does more: `M` opens the focused compartment on "move all", a
+letter jumps to the compartment whose divider covers it — press W and you are in W — and
+Home and End go to the corners.
+
+And there is a demo account now: a second Discogs collection that testers can look at without
+showing their own, synced every night against the live app.
+
+**What to do:** Nothing. On the shelf, try "Select".
+
 
 ### Added
 
