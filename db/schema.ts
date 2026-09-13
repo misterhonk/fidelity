@@ -36,7 +36,7 @@ export const DB_NAME = 'fidelity'
  *
  * 4 — added the `covers` store. Additive: nothing existing is touched.
  */
-export const DB_VERSION = 12
+export const DB_VERSION = 13
 
 /**
  * `meta` is a small key-value store rather than nine one-row stores. The union
@@ -168,7 +168,22 @@ export interface FidelityDB extends DBSchema {
   stock: {
     key: [string, number]
     value: StockRow
-    indexes: { 'by-dig-label': [string, string]; 'by-dig-decade': [string, number] }
+    indexes: {
+      'by-dig-label': [string, string]
+      'by-dig-decade': [string, number]
+      /**
+       * Every shop that has this record in stock, across every dig still
+       * inside the six-hour window (v13, M29).
+       *
+       * The basket comparison asks exactly this question five times — once per
+       * record in the basket — and there is no other way to ask it: Discogs
+       * has no documented endpoint for "who else sells release X", and the
+       * undocumented one is rule 5. So the question is answered out of what
+       * the digs already read, and this turns a walk over a hundred thousand
+       * rows into five range reads.
+       */
+      'by-release': number
+    }
   }
   /**
    * Watched records (M11) — by release id.

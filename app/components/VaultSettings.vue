@@ -205,6 +205,58 @@ const canSync = computed(() => {
   return status.value.ready
 })
 
+/*
+ * The vault as a file you carry yourself (M29).
+ *
+ * Reported as "why is there no iCloud option in Safari?" — and the honest
+ * answer is that it was never about iCloud. The automatic file target keeps a
+ * `FileSystemFileHandle`, which is why the file is chosen only once, and WebKit
+ * has no File System Access API at all. So on an iPhone, and in Safari on a
+ * Mac, the one destination that would have used iCloud Drive is not offered.
+ *
+ * This is the same round without the handle: read the file the other device
+ * wrote, merge it, hand back a file to save wherever you like — iCloud Drive
+ * included. Two taps instead of none, in every browser there is.
+ *
+ * Open by default exactly where it matters. On a browser that has the
+ * automatic route this is a one-off transfer and stays folded away; on WebKit
+ * it is *the* file route and folding it would hide the answer.
+ */
+const handoff = useVaultHandoff()
+const handoffFile = ref<File | null>(null)
+const handoffBusy = ref(false)
+const handoffResult = ref<string | null>(null)
+
+function pickHandoffFile(event: Event) {
+  handoffFile.value = (event.target as HTMLInputElement).files?.[0] ?? null
+  handoffResult.value = null
+}
+
+async function handOver() {
+  if (handoffBusy.value) return
+  handoffBusy.value = true
+  error.value = null
+  handoffResult.value = null
+
+  try {
+    const report = await handoff.merge(passphrase.value, handoffFile.value)
+    handoff.save(report.sealed)
+
+    const total = Object.values(report.counts).reduce((sum, n) => sum + n, 0)
+    handoffResult.value = report.hadRemote
+      ? st.value.vault.merged(total)
+      : st.value.vault.firstBackup(total)
+
+    await vaultSync.remember(keepPassphrase.value ? passphrase.value : null)
+    passphrase.value = ''
+    status.value = await call('vault.status', undefined)
+  } catch (cause) {
+    error.value = cause
+  } finally {
+    handoffBusy.value = false
+  }
+}
+
 /** Shown so it can be copied into the provider's form without a typo. */
 const redirectUri = computed(() =>
   typeof window === 'undefined' ? '' : redirectUriFor(window.location.origin),
@@ -346,6 +398,65 @@ const redirectUri = computed(() =>
         {{ st.vault.lastSynced(dayTime(status.lastSyncedAt)) }}
       </p>
     </template>
+
+    <!--
+      The file you carry yourself.
+
+      Open where it is the only file route — WebKit — and folded away where
+      the automatic one exists. It needs no target of its own: a target is a
+      place something syncs *to*, and this is two taps, not a place.
+    -->
+    <details class="border-t border-fid-border pt-4" :open="!vaultFile.available()">
+      <summary
+        class="fid-action cursor-pointer list-none text-fid-sm font-medium text-fid-text"
+      >
+        {{ st.vault.byHand.title }}
+      </summary>
+
+      <div class="mt-3 flex flex-col gap-3">
+        <p class="max-w-prose text-fid-sm text-fid-text-muted">
+          {{ vaultFile.available() ? st.vault.byHand.about : st.vault.byHand.aboutWebkit }}
+        </p>
+
+        <label class="flex flex-col gap-2">
+          <span class="text-fid-sm font-medium text-fid-text">{{ st.vault.byHand.file }}</span>
+          <input
+            type="file"
+            accept="application/json,.json"
+            class="text-fid-sm text-fid-text-muted"
+            @change="pickHandoffFile"
+          />
+          <span class="text-fid-xs text-fid-text-muted">{{ st.vault.byHand.fileHint }}</span>
+        </label>
+
+        <!--
+          The same field as above, and deliberately the same `passphrase`: one
+          word opens one vault, and two inputs for it would invite two words.
+        -->
+        <label class="flex flex-col gap-2">
+          <span class="text-fid-sm font-medium text-fid-text">{{ st.vault.passphrase }}</span>
+          <input
+            v-model="passphrase"
+            type="password"
+            autocomplete="new-password"
+            class="fid-field px-3 py-2 text-fid-sm text-fid-text"
+          />
+        </label>
+
+        <button
+          type="button"
+          :disabled="handoffBusy || passphrase.length < 8"
+          class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+          @click="handOver()"
+        >
+          {{ handoffBusy ? st.vault.syncing : st.vault.byHand.run }}
+        </button>
+
+        <p v-if="handoffResult" class="text-fid-sm text-fid-text-muted" aria-live="polite">
+          {{ handoffResult }} {{ st.vault.byHand.saved }}
+        </p>
+      </div>
+    </details>
 
     <WhyNote :label="st.vault.scopeWhyLabel">{{ st.vault.scopeWhy }}</WhyNote>
   </section>

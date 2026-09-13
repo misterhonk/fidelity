@@ -3,6 +3,7 @@ import type { DeepReadonly } from 'vue'
 import { reasonFor } from '~/i18n/reason'
 
 import type { BasketPlan, BasketSummary } from '#shared/types'
+import type { CompareResult } from '~~/worker/basket/compare'
 
 import { useBasketMessages } from '~/i18n/basket'
 
@@ -31,6 +32,40 @@ const props = defineProps<{ summary: DeepReadonly<BasketSummary> }>()
 
 const { call } = useFidelityWorker()
 const { refresh } = useBasket()
+
+/*
+ * The same basket, at the other shops (M29).
+ *
+ * "Five records at one shop for €100 — could another have the same five for
+ * €80?" There is no documented way to ask Discogs who else sells a release, so
+ * the answer comes out of the stock rows the digs already wrote: free, and
+ * limited to the six hours those rows may live (rule 4).
+ *
+ * On demand rather than on load. A basket page with four shops on it would
+ * otherwise run four joins over every dig before anybody asked a question.
+ */
+const comparison = ref<CompareResult | null>(null)
+const comparing = ref(false)
+const compareFailed = ref<unknown>(null)
+
+async function compare() {
+  if (comparing.value) return
+  comparing.value = true
+  compareFailed.value = null
+
+  try {
+    comparison.value = await call('compare.basket', { dealer: props.summary.dealer })
+  } catch (cause) {
+    compareFailed.value = cause
+  } finally {
+    comparing.value = false
+  }
+}
+
+/** Cheapest first is the order the worker sorts in; this is only the verdict. */
+const cheaperFound = computed(() =>
+  (comparison.value?.offers ?? []).some((offer) => (offer.delta ?? 0) < 0),
+)
 
 /*
  * Every row at once — a basket is short.
@@ -487,6 +522,118 @@ const peak = computed(() =>
       >
         {{ summary.shippingSource === 'user' ? b.editTiers : b.enterTiers }}
       </button>
+    </section>
+
+    <!--
+      The same basket, at the other shops (M29).
+
+      On demand: a page with four shops on it would otherwise run four joins
+      over every dig before anybody asked a question.
+    -->
+    <section class="flex flex-col gap-3 border-t border-fid-border pt-4">
+      <button
+        type="button"
+        :disabled="comparing"
+        class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+        @click="compare"
+      >
+        {{ comparing ? b.compare.busy : b.compare.start }}
+      </button>
+
+      <ErrorNote v-if="compareFailed" :cause="compareFailed" />
+
+      <template v-if="comparison">
+        <!--
+          The denominator, always. An empty answer means "not cheaper at your
+          shops", and letting it read as "not cheaper anywhere" would be the
+          same mistake as an acquittal without a horizon.
+        -->
+        <p class="max-w-prose text-fid-sm text-fid-text-muted">
+          {{ b.compare.scope(comparison.looked) }}
+        </p>
+
+        <ul v-if="comparison.offers.length > 0" class="flex flex-col gap-3">
+          <li
+            v-for="offer in comparison.offers"
+            :key="offer.dealer"
+            class="flex flex-col gap-1 rounded-fid-sm border p-3"
+            :class="(offer.delta ?? 0) < 0 ? 'border-fid-accent/40' : 'border-fid-border'"
+          >
+            <p class="flex flex-wrap items-baseline gap-x-2">
+              <span class="text-fid-base font-medium text-fid-text">
+                {{ offer.displayName }}
+              </span>
+              <span class="fid-num text-fid-sm text-fid-text-muted">
+                {{ b.compare.covered(offer.covered, summary.lines.length) }}
+              </span>
+            </p>
+
+            <!--
+              The combined number, not the shop's own. Four of five somewhere
+              else is a saving only once the fifth has been paid for a second
+              time — a second parcel and a second postage tier.
+            -->
+            <p v-if="offer.combined !== null" class="fid-num text-fid-base text-fid-text">
+              {{ money(offer.combined, offer.currency) }}
+              <span
+                v-if="offer.delta !== null"
+                :class="offer.delta < 0 ? 'text-fid-accent' : 'text-fid-text-muted'"
+              >
+                {{
+                  offer.delta < 0
+                    ? b.compare.saves(money(-offer.delta, offer.currency) ?? '')
+                    : b.compare.costs(money(offer.delta, offer.currency) ?? '')
+                }}
+              </span>
+            </p>
+            <p v-else class="text-fid-sm text-fid-sig-gap">{{ b.compare.noPostage }}</p>
+
+            <p v-if="offer.rest" class="text-fid-sm text-fid-text-muted">
+              {{
+                b.compare.rest(
+                  offer.rest.items,
+                  summary.displayName,
+                  money(offer.rest.total ?? offer.rest.subtotal, offer.currency) ?? '',
+                )
+              }}
+            </p>
+
+            <p
+              v-if="offer.better > 0 || offer.worse > 0"
+              class="text-fid-sm text-fid-text-muted"
+            >
+              <template v-if="offer.better > 0">{{ b.compare.better(offer.better) }}</template>
+              <template v-if="offer.better > 0 && offer.worse > 0"> · </template>
+              <template v-if="offer.worse > 0">{{ b.compare.worse(offer.worse) }}</template>
+            </p>
+          </li>
+        </ul>
+
+        <p v-else class="max-w-prose text-fid-base text-fid-text-muted">
+          {{ cheaperFound ? '' : b.compare.nothing }}
+        </p>
+
+        <!--
+          Where to look next. It ranks; it does not fetch — digging one of
+          these is minutes of somebody's rate limit and stays their decision.
+        -->
+        <div v-if="comparison.candidates.length > 0" class="flex flex-col gap-2">
+          <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ b.compare.tryThese }}</p>
+          <nav class="flex flex-wrap gap-2" :aria-label="b.compare.tryThese">
+            <NuxtLink
+              v-for="candidate in comparison.candidates"
+              :key="candidate.dealer"
+              :to="{ path: '/dig', query: { dealer: candidate.dealer } }"
+              class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted hover:text-fid-text"
+            >
+              {{ candidate.displayName }}
+              <span class="fid-num ml-1.5 text-fid-xs opacity-70">
+                {{ Math.round(candidate.overlap * 100) }} %
+              </span>
+            </NuxtLink>
+          </nav>
+        </div>
+      </template>
     </section>
 
     <!-- Bars are <div>s and the grid is CSS Grid (docs/12 §2). -->

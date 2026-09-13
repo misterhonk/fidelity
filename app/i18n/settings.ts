@@ -385,6 +385,27 @@ const en = {
       `Nothing was there, though this device has synced before — so ${counted(entries, 'entry', 'entries')} went up as a fresh backup. If you changed your passphrase, the older one is still under the old word: enter it again and sync once to bring the two together.`,
     lastSynced: (when: string) => `Last synced on ${when}.`,
 
+    /*
+     * The file you carry yourself (M29).
+     *
+     * Reported as "why is there no iCloud option in Safari?" It was never
+     * about iCloud: the automatic file destination keeps a handle from the
+     * File System Access API, which is what lets the file be chosen once, and
+     * WebKit has none of it. This is the same round with two taps instead of
+     * none — and it works in every browser there is.
+     */
+    byHand: {
+      title: 'Or by hand, as a file',
+      about:
+        'One round without choosing a destination: read the file the other device wrote, and save a fresh one. Useful for a single transfer, or for a device that is not set up.',
+      aboutWebkit:
+        'This browser has no way to write to a file on its own, which is why "file in a sync folder" is not offered above — Safari lacks the API it needs, and that is the whole reason there is no iCloud entry. By hand it works: save the file into iCloud Drive yourself, and pick it here on the other device.',
+      file: 'The file from the other device',
+      fileHint: 'Leave empty on the first device — there is nothing to read yet.',
+      run: 'Merge and save a file',
+      saved: 'The file has been saved — put it where the other device can reach it.',
+    },
+
     scopeWhyLabel: 'What travels and what does not',
     scopeWhy:
       'With: horizon, shortlist, basket, shops with their postage tiers, settings. Not with: your Discogs token — one key on three devices is three times the surface, and each device signs itself in once. And no digs: prices are deleted after six hours anyway and have no business on a server.',
@@ -946,6 +967,18 @@ const de: typeof en = {
     emptySlot: (entries) =>
       `Dort lag nichts, obwohl dieses Gerät schon einmal abgeglichen hat — ${counted(entries, 'Eintrag', 'Einträge')} sind deshalb als frische Sicherung hochgegangen. Falls du die Passphrase geändert hast: die ältere liegt noch unter dem alten Wort. Einmal damit abgleichen führt beide zusammen.`,
     lastSynced: (when) => `Zuletzt abgeglichen am ${when}.`,
+
+    byHand: {
+      title: 'Oder von Hand, als Datei',
+      about:
+        'Eine Runde ohne festes Ziel: die Datei lesen, die das andere Gerät geschrieben hat, und eine frische speichern. Gut für eine einzelne Übertragung oder ein Gerät, das nicht eingerichtet ist.',
+      aboutWebkit:
+        'Dieser Browser kann nicht von sich aus in eine Datei schreiben – deshalb steht „Datei im Sync-Ordner" oben nicht zur Wahl, und deshalb gibt es auch keinen iCloud-Eintrag: Safari fehlt die nötige API, an iCloud liegt es nicht. Von Hand geht es: Datei selbst in iCloud Drive legen und auf dem anderen Gerät hier auswählen.',
+      file: 'Die Datei vom anderen Gerät',
+      fileHint: 'Auf dem ersten Gerät leer lassen – es gibt noch nichts zu lesen.',
+      run: 'Abgleichen und Datei speichern',
+      saved: 'Die Datei ist gespeichert – leg sie dorthin, wo das andere Gerät sie findet.',
+    },
 
     scopeWhyLabel: 'Was mitgeht und was nicht',
     scopeWhy:

@@ -90,6 +90,34 @@ const en = {
     'Its table is in grams, and a record has no fixed weight — a single LP with its sleeve and a mailer is anywhere between 250 and 500 grams, so any conversion would be a guess you would plan a purchase around. Its own words are below: read off what one, two and three records cost you and enter that.',
   noteLabel: 'What the shop says about postage',
 
+  /*
+   * The same basket, at the other shops (M29).
+   *
+   * "Five records at one shop for €100 — could another have the same five for
+   * €80?" Every sentence here names its denominator: there is no documented
+   * way to ask Discogs who else sells a release, so this compares the shops
+   * *you* know, and an empty answer means nothing about the market.
+   */
+  compare: {
+    start: 'Cheaper at another shop?',
+    busy: 'Looking …',
+    scope: (shops: number) =>
+      shops === 0
+        ? 'No shop of yours has been dug in the last six hours, so there is nothing to compare against — prices older than that may not be shown at all.'
+        : `Compared with ${shops === 1 ? 'the one shop' : `the ${shops} shops`} you dug in the last six hours. Nothing about the rest of the market: Discogs has no way to ask who else sells a record.`,
+    covered: (has: number, of: number) => `has ${has} of your ${of}`,
+    saves: (amount: string) => `— ${amount} less`,
+    costs: (amount: string) => `— ${amount} more`,
+    /** The second parcel, which is the whole point of the partial case. */
+    rest: (items: number, shop: string, amount: string) =>
+      `${items === 1 ? 'The other one stays' : `The other ${items} stay`} at ${shop}: ${amount} with its own postage.`,
+    better: (n: number) => `${n} in better condition`,
+    worse: (n: number) => `${n} in worse condition`,
+    noPostage: 'No postage table for this shop, so no total can be claimed.',
+    nothing: 'None of them has any of these records — at the prices they had six hours ago.',
+    tryThese: 'Worth a dig: these stock the same labels',
+  },
+
   editTiers: 'Change the tiers',
   enterTiers: 'Enter the postage tiers',
   tiersTitle: 'Postage tiers',
@@ -322,6 +350,25 @@ const de: typeof en = {
   weightAbout:
     'Seine Staffel steht in Gramm, und eine Platte hat kein festes Gewicht – eine einzelne LP mit Hülle und Versandtasche liegt zwischen 250 und 500 Gramm, jede Umrechnung wäre also geraten, und zwar für eine Zahl, um die herum du einen Kauf planst. Seine eigenen Worte stehen unten: lies ab, was ein, zwei und drei Platten kosten, und trag das ein.',
   noteLabel: 'Was der Laden zum Versand sagt',
+
+  compare: {
+    start: 'Woanders billiger?',
+    busy: 'Sehe nach …',
+    scope: (shops) =>
+      shops === 0
+        ? 'Kein Laden von dir wurde in den letzten sechs Stunden gegraben, es gibt also nichts zu vergleichen – ältere Preise dürfen gar nicht mehr angezeigt werden.'
+        : `Verglichen mit ${shops === 1 ? 'dem einen Laden' : `den ${shops} Läden`}, die du in den letzten sechs Stunden gegraben hast. Nichts über den übrigen Markt: Discogs lässt sich nicht fragen, wer eine Platte sonst noch verkauft.`,
+    covered: (has, of) => `hat ${has} von deinen ${of}`,
+    saves: (amount) => `– ${amount} weniger`,
+    costs: (amount) => `– ${amount} mehr`,
+    rest: (items, shop, amount) =>
+      `${items === 1 ? 'Die andere bleibt' : `Die anderen ${items} bleiben`} bei ${shop}: ${amount} mit eigenem Porto.`,
+    better: (n) => `${n} in besserem Zustand`,
+    worse: (n) => `${n} in schlechterem Zustand`,
+    noPostage: 'Für diesen Laden gibt es keine Versandstaffel, also auch keine Gesamtsumme.',
+    nothing: 'Keiner von ihnen hat eine dieser Platten – zu den Preisen von vor sechs Stunden.',
+    tryThese: 'Einen Dig wert: die führen dieselben Labels',
+  },
 
   editTiers: 'Staffel ändern',
   enterTiers: 'Versandstaffel eintragen',

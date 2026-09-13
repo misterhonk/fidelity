@@ -254,6 +254,13 @@ export const handlers: HandlerMap = {
   },
 
   /*
+   * The same basket at the other shops (M29). No request: it reads the stock
+   * rows the digs already wrote, and only the ones still inside six hours.
+   */
+  'compare.basket': async ({ dealer }) =>
+    (await import('./basket/compare')).compareBasket(dealer),
+
+  /*
    * The radar (M29): bands somebody has an eye on and owns nothing by.
    *
    * Its own module and a dynamic import — the entry chunk is for the scan.

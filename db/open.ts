@@ -210,6 +210,19 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
         db.createObjectStore('followed', { keyPath: 'artistId' })
       }
 
+      if (oldVersion < 13) {
+        /*
+         * v13 indexes the stock by release, so the basket comparison can ask
+         * "who else has this one?" without walking every row of every dig
+         * (M29). Additive, and on a store whose contents are deleted after six
+         * hours anyway — there is nothing here to migrate, only to index.
+         */
+        const stock = tx.objectStore('stock')
+        if (!stock.indexNames.contains('by-release')) {
+          stock.createIndex('by-release', 'releaseId')
+        }
+      }
+
       // Future versions go here. The rule: never migrate destructively unless
       // the state can be rebuilt from the API — which, so far, all of it can.
     },
