@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test'
 
+import { DEFAULT_PREFERENCES } from '~~/db/meta'
 import { DB_NAME } from '~~/db/schema'
 import type {
   BasketItem,
@@ -520,6 +521,19 @@ export async function signIn(page: Page): Promise<void> {
     meta: [
       { key: 'identity', value: seedIdentity },
       { key: 'token', value: 'test-token-not-a-real-one' },
+      /*
+       * And where this device is.
+       *
+       * The default is read from the browser since 2026-09-13 — the region out
+       * of `navigator.languages`, because a hard-coded 'Germany' was the wrong
+       * country for everybody who is not in it. That makes it a property of
+       * the machine the suite runs on: three origin tests went green on a Mac
+       * and red on CI, whose container asks for `en-US`.
+       *
+       * A seeded device is a *known* device. Pinned here rather than in each
+       * spec, so nothing else inherits a fact about the runner.
+       */
+      { key: 'preferences', value: { ...DEFAULT_PREFERENCES, shipsToCountry: 'Germany' } },
     ],
   })
 
@@ -592,6 +606,19 @@ export async function seed(page: Page, language: SeedLanguage = 'en'): Promise<D
     meta: [
       { key: 'identity', value: seedIdentity },
       { key: 'token', value: 'test-token-not-a-real-one' },
+      /*
+       * And where this device is.
+       *
+       * The default is read from the browser since 2026-09-13 — the region out
+       * of `navigator.languages`, because a hard-coded 'Germany' was the wrong
+       * country for everybody who is not in it. That makes it a property of
+       * the machine the suite runs on: three origin tests went green on a Mac
+       * and red on CI, whose container asks for `en-US`.
+       *
+       * A seeded device is a *known* device. Pinned here rather than in each
+       * spec, so nothing else inherits a fact about the runner.
+       */
+      { key: 'preferences', value: { ...DEFAULT_PREFERENCES, shipsToCountry: 'Germany' } },
     ],
     dealers: [seedDealer],
     digs: [dig],

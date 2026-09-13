@@ -100,10 +100,6 @@ test('names a shop that has the same basket for less', async ({ page }) => {
   await expect(page.getByText(/15[.,]00.*less/)).toBeVisible()
   await expect(page.getByText('2 in better condition')).toBeVisible()
 
-  /*
-   * And the denominator, always. An empty answer means "not cheaper at your
-   * shops" — letting it read as "not cheaper anywhere" would be the same
-   * mistake as an acquittal without a horizon.
-   */
-  await expect(page.getByText(/Nothing about the rest of the market/)).toBeVisible()
+  // And what it compared, so an empty answer is never read as "nowhere".
+  await expect(page.getByText(/Compared with your one freshly dug shop/)).toBeVisible()
 })
