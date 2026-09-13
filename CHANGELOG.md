@@ -11,6 +11,29 @@ Für eine App bedeutet SemVer:
 
 ## [0.73.0](https://github.com/misterhonk/fidelity/compare/v0.72.0...v0.73.0) (2026-09-13)
 
+**The shops screen is a list of where to go, not a log of where you have been.**
+
+You can enter a shop by name now, or paste the address of its page, and it stands with the
+others straight away — on this screen, in the dig field and on the round, before any dig has
+been near it. Every shop also says why it is on the list: dug, in the basket, watched, bought
+from, a Discogs friend, entered by hand. A row nobody can place is a row nobody trusts.
+
+And where you keep a hub, it can suggest shops other people have dug, ordered by how much of
+each one sits on labels you already collect. What travels up is a shop's name, where it ships
+from and what it stocks. Never a price, and never how well a shop suits you — that is a fact
+about you, and it is worked out on your own device.
+
+Two things for everybody outside Germany: the app now takes its country from your browser
+instead of assuming, and there is a third filter beside "Anywhere" and "From the EU". "From
+Europe" is the one you want if you are in Zurich, London or Oslo — the EU is a customs
+border, and for you it runs the wrong way round.
+
+Smaller: a record on the start page whose dig has since been replaced now says so instead of
+opening an empty sheet.
+
+**What to do:** Nothing. If you know a shop you have never dug, the field for it is at the
+top of Shops.
+
 
 ### Added
 
