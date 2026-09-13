@@ -1160,6 +1160,30 @@ preset, drawn as the wall it is; inside a compartment a rule, not a slot.
 | M27.5 Keys and the shelf | On the wall `M` opens the focused compartment on "move all", a letter jumps to the compartment whose divider covers it, Home/End to the corners; on the shelf "Select" ticks sleeves and "Put n in …" opens the wall small as the picker, with the undo line that puts each record back where it was. Movable divider boundaries stay open — a rule proposes, and a boundary moved by hand would be a second rule | **Done 2026-09-13** |
 | M27.4 Drag | `usePlaceDrag`: pointer events, not the HTML drag API — a mouse drags after six pixels, a finger has to rest 400 ms first, then the phone buzzes once; a sleeve from the sheet (or all the ticked ones) onto a cube of the wall behind it, a whole compartment onto another, furniture by its name onto a room or onto "without a room" (`places.move`); every drop leaves the undo line on the page | **Done 2026-09-12** |
 
+
+## M28 · The tester's first quarter of an hour → proposed
+
+**Where these come from.** The demo account (`docs/19`) walked on 2026-09-13: sixty-six
+records and nineteen wants on a fresh device, then the shelf, the start page, the map, the
+wantlist, a Kallax 4×4 filled and sorted in, a compartment opened. Checked against the same
+four questions as M19 and M20: no backend, the API terms, the thesis, the cost. Proposed,
+not scheduled.
+
+| # | Candidate | Serves | Cost | Note |
+|---|---|---|---|---|
+| 1 | **The wantlist as sleeves.** The wantlist is the last screen still made of boxed cards: a 128 px cover beside five lines, "Pressings not unfolded yet" in orange and "Which pressing will do?" repeated on every one of nineteen cards, "Not any more" as a button on each. The M26 rule — one large thing, one loud sentence, everything else a plate — applied here: the cover large, the stars and the years as one plate line, the pressing hint once at the top and only while the horizon is not built, "Not any more" inside the record's sheet | The first screen a tester opens after the shelf, and the one that looks like another app | a day | Sixty words above the fold already hold; this is about the rows, not the prose |
+| 2 | **One row per album on the wantlist.** Four of the demo account's wants are pressings of one record — "Sonar System" four times, because Discogs wants are per release. The app knows the master: fold them into one row with "wanted in 4 pressings", unfolded on tap | Anybody who wants an album and has ticked its pressings at Discogs | hours | `masterId` is on every want since M19; the dig already reasons per master |
+| 3 | **Fill from the front.** "Sort in" deals sixty-two records evenly across sixteen compartments — four per cube in a Kallax with room for seventy, and dividers like "A–An" and "Ap–Bj" that mean nothing. A second way to deal: fill each compartment to a comfortable share of its capacity before starting the next, front to back, so a small collection stands in two cubes and the rest waits empty; the plan line says which way it dealt | Every collection smaller than its furniture — most of them | hours | `planUnit` gets a `dealing: 'even' \| 'front'`; the unit remembers it next to its rule; the dividers follow either way |
+| 4 | **"All" means all.** In "Fill" the button ticks what is loaded — forty-eight of sixty-two — and "Put 48 in A1" leaves fourteen behind without saying so. "All" should tick the whole answer, and say so: "Put 62 in A1" | The very first fill anybody does | an hour | `collection.records` answers `total`; the tick set takes ids, not rows |
+| 5 | **The horizon, explained once.** "19 records wanted, 0 with every pressing known to the horizon" is the first sentence on the wantlist, and it is jargon — a tester does not know what a horizon is. Say what it does for them, once, with the way there: "Fidelity does not know the other pressings of these yet — build the horizon in the settings (two minutes, once)"; gone once it is built | The tester who never opens the settings | an hour | The start page already has the "Then: build the horizon" call-out; the same words, the same link |
+| 6 | **The dividers on the sheet.** A record's sheet proposes its compartment "by the rule" — but the wall's dividers are not on it, so the proposal is a coordinate without a reason. Show the divider with it: "A2 · C–D, by artist" | Whoever files records one at a time from the sheet | an hour | `places.propose` already knows the range |
+| 7 | **Sync again is a plate, not a button.** "Synced just now · Sync now" sits at the top right of the shelf as a filled button and a sentence; on a screen whose rule is one loud thing, it competes with the covers. A plate with the time, and "Sync now" as a plate action | The shelf, every day | an hour | The one accent fill per screen is the guard's rule; here it is spent on a maintenance action |
+
+**Checked and left out:** the sixty-word rule for the wantlist (the rows are `li`, and the
+prose above them holds); covers on the demo shelf (they load — what looked like "no cover"
+in the first walk was a device that had just been signed out); a second furniture type per
+room (the presets cover it).
+
 ## Not on the roadmap
 
 | Idea | Why not |
