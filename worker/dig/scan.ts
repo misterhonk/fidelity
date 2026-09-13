@@ -286,6 +286,16 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
    */
   let newestSeen: string | null = null
 
+  /**
+   * The shop's own postage text, taken off the first row that carries one.
+   *
+   * It rides along inside every listing and was thrown away with the rest of
+   * the seller object — so a shop met by digging had no postage text at all,
+   * and the one screen that shows it showed nothing. Reading it costs no
+   * request: it was already in the answer.
+   */
+  let shippingNote: string | null = null
+
   /** Where a "nur das Neue" run stops. Null on every other kind. */
   const anchor = dig.depth === 'neu' ? (ctx.since ?? null) : null
   let reachedKnown = false
@@ -366,6 +376,7 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
         }
 
         scanned += 1
+        shippingNote ??= row.seller?.shipping?.trim() || null
         if (
           row.posted &&
           (newestSeen === null || Date.parse(row.posted) > Date.parse(newestSeen))
@@ -515,7 +526,7 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   dig.finishedAt = now()
   dig.cursor = null
   await db.put('digs', dig)
-  await saveDealer(ctx, dig, fingerprint, newestSeen)
+  await saveDealer(ctx, dig, fingerprint, newestSeen, shippingNote)
   await pruneDigs(db)
 
   // What this dig taught the horizon. Handed back rather than acted on here:
@@ -776,6 +787,7 @@ async function saveDealer(
   dig: Dig,
   fingerprint: FingerprintAccumulator,
   newestListedAt: string | null,
+  shippingNote: string | null,
 ): Promise<void> {
   const { db } = ctx
   const existing = await db.get('dealers', dig.dealer)
@@ -793,6 +805,9 @@ async function saveDealer(
     await db.put('dealers', {
       ...(existing ?? blankDealer(dig.dealer)),
       newestListedAt: newestListedAt ?? existing?.newestListedAt ?? null,
+      // The postage text, though — a shop can change it any day, and an
+      // incremental visit read it for nothing like every other visit does.
+      shippingNote: shippingNote ?? existing?.shippingNote ?? '',
       updatedAt: dig.finishedAt ?? Date.now(),
     })
     return
@@ -819,6 +834,14 @@ async function saveDealer(
     lastScannedAt: dig.finishedAt,
     // The line a later "nur das Neue" visit stops at.
     newestListedAt: newestListedAt ?? existing?.newestListedAt ?? null,
+    /*
+     * And the shop's own postage text (2026-09-13).
+     *
+     * A fifth thing a scan learns, and it was in every inventory row all
+     * along. Falls back rather than blanking: a page that carried none should
+     * not delete what an earlier visit read.
+     */
+    shippingNote: shippingNote ?? existing?.shippingNote ?? '',
     // Stored as the comparable rate; the factor is derived on read, because it
     // changes as soon as another shop is scanned.
     affinity: rate,

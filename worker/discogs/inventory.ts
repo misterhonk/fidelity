@@ -27,6 +27,13 @@ export const dealerSchema = z.object({
  * Only the fields a match needs. The seller object is repeated in full inside
  * every listing — 100 copies of the same ~800-byte blob per page — and is
  * dropped here rather than carried around (docs/02 §3).
+ *
+ * **One field of it survives, since 2026-09-13.** `seller.shipping` is the
+ * shop's own postage text, and it was reachable only by pasting a listing into
+ * the basket — so a shop met by digging had none, and the screen that shows it
+ * showed nothing. Zod keeps what the schema names and throws the rest away, so
+ * this is one string per row rather than the blob: the reason the object was
+ * dropped still holds for everything else in it.
  */
 export const inventoryPageSchema = z.object({
   pagination: paginationSchema,
@@ -48,6 +55,8 @@ export const inventoryPageSchema = z.object({
        * a field the scan can live without.
        */
       posted: z.string().optional(),
+      /** The shop's postage text. The same on every row; read once, at the end. */
+      seller: z.object({ shipping: z.string().optional() }).optional(),
       price: z.object({ value: z.number(), currency: z.string() }).partial().optional(),
       release: z.object({
         id: z.number().int(),

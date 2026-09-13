@@ -7,7 +7,7 @@ import type { Dealer, ShippingTier } from '#shared/types'
 
 import { createHubClient } from '../hub/client'
 import { withTimeout, HUB_TIMEOUT_MS } from '../hub/fallback'
-import { parseShippingText } from './parse-shipping'
+import { billsByWeight, parseShippingText } from './parse-shipping'
 import { sortTiers } from './shipping'
 
 /**
@@ -70,6 +70,25 @@ export interface ShippingResolution {
    * Only set when the text was sorted by destination and one block was picked.
    */
   section?: string | null
+  /**
+   * The shop bills by grams, so no table per record can be read out of it.
+   *
+   * Set whichever way the tiers were found, and `true` alongside tiers of its
+   * own: somebody who typed a table for a shop that bills by weight typed
+   * exactly what the arithmetic needs, and the screen should still be able to
+   * say where the numbers came from.
+   */
+  byWeight?: boolean
+  /**
+   * The shop's own postage text, verbatim.
+   *
+   * Carried through so the screen can put it beside the form. Where the parser
+   * gives up — and a weight table is where it always will — the gap between
+   * "Fidelity cannot read this" and a working table is somebody reading four
+   * lines and typing three numbers. They had to go to Discogs and find the
+   * dialog to do it; the text was already on the device.
+   */
+  note?: string | null
 }
 
 /**
@@ -82,9 +101,18 @@ export async function resolveShipping(
   dealer: Dealer,
   country: string,
 ): Promise<ShippingResolution> {
+  /*
+   * Read once, up front, and attached to every answer below: the shop's own
+   * words and whether they are a weight table are facts about the shop, not
+   * about which of the five routes produced the numbers.
+   */
+  const note = dealer.shippingNote?.trim() ? dealer.shippingNote : null
+  const byWeight = billsByWeight(note)
+  const about = { matched: [] as string[], byWeight, note }
+
   // 1. What somebody typed in. Stored on the dealer, so it survives a rescan.
   const user = dealer.shippingTiers.filter((tier) => tier.source === 'user')
-  if (user.length > 0) return { tiers: sortTiers(user), source: 'user', matched: [] }
+  if (user.length > 0) return { ...about, tiers: sortTiers(user), source: 'user' }
 
   // 2. What a hub knows, when one is configured (M9). Ranked here — above
   // the repository file and below a hand-entered table — because it is
@@ -101,7 +129,7 @@ export async function resolveShipping(
     try {
       const shared = await withTimeout(hub.shipping(dealer.username, country), HUB_TIMEOUT_MS)
       if (shared && shared.length > 0) {
-        return { tiers: sortTiers(shared), source: 'bundled', matched: [] }
+        return { ...about, tiers: sortTiers(shared), source: 'bundled' }
       }
     } catch {
       // Deliberately silent (rule 8). The file below is not a degraded mode.
@@ -113,9 +141,9 @@ export async function resolveShipping(
   const entry = file?.profiles[`${dealer.username}|${country}`]
   if (entry && entry.length > 0) {
     return {
+      ...about,
       tiers: sortTiers(entry.map((tier) => ({ ...tier, source: 'bundled' as const }))),
       source: 'bundled',
-      matched: [],
     }
   }
 
@@ -123,6 +151,7 @@ export async function resolveShipping(
   const parsed = parseShippingText(dealer.shippingNote, country)
   if (parsed.tiers.length > 0) {
     return {
+      ...about,
       tiers: parsed.tiers,
       source: 'parsed',
       matched: parsed.matched,
@@ -131,7 +160,7 @@ export async function resolveShipping(
   }
 
   // 5. Nothing. "Versand unbekannt – trag ihn ein und ich rechne" (docs/00 §7).
-  return { tiers: [], source: null, matched: [] }
+  return { ...about, tiers: [], source: null }
 }
 
 /**

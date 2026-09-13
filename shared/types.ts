@@ -1812,6 +1812,21 @@ export interface BasketSummary {
   shippingMatched: string[]
   /** The destination heading the rates were read under, when the text had one. */
   shippingSection: string | null
+  /**
+   * The shop prices postage by grams, so no table per record can be read.
+   *
+   * Named rather than refused in silence: an LP with sleeve and mailer is
+   * somewhere between 250 and 500 grams, and picking a number would be a guess
+   * somebody plans a purchase around. See `ParsedShipping.byWeight`.
+   */
+  shippingByWeight: boolean
+  /**
+   * The shop's own postage text, verbatim — so it can be read beside the form.
+   *
+   * It has been on the device since the dig that met the shop, and was shown
+   * on one screen the postage table is not entered on.
+   */
+  shippingNote: string | null
   total: number | null
   perItem: number | null
   advice: ShippingAdvice | null

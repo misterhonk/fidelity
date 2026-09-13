@@ -127,6 +127,22 @@ export interface ParsedShipping {
   /** What the parser thought it recognised, for the interface to show. */
   matched: string[]
   /**
+   * The shop bills by weight, not by record.
+   *
+   * Reported from a real shop on 2026-09-13: "1 bis 1999 Gramm: 14,00 €, 2000
+   * bis 4999 Gramm: 24,50 €". There is no honest way to turn that into a table
+   * per record — an LP with its sleeve and a mailer is somewhere between 250
+   * and 500 grams depending on the pressing, the gatefold and the packaging,
+   * and picking a number would be exactly the guess the rule at the top of
+   * this file refuses to make. Somebody plans a purchase around it.
+   *
+   * So it is recognised and named instead of refused in silence: the screen
+   * can say "this shop bills by weight" and put the shop's own words next to
+   * the form, which is what turns an impossible parse into two minutes of
+   * typing.
+   */
+  byWeight: boolean
+  /**
    * The heading whose block the tiers were read from, verbatim — `Germany`,
    * `Europe`, `Rest of World`. `null` when the text had no country headings
    * and was read as one table.
@@ -143,13 +159,43 @@ export interface ParsedShipping {
  */
 export const ADDITIONAL_UP_TO = 12
 
+/**
+ * A table priced by grams rather than by records.
+ *
+ * "1 bis 1999 Gramm: 14,00 €" and "101 bis 500 Gramm: 16,50 €" — a real shop,
+ * measured 2026-09-13. Two numbers, a weight unit between them and a price
+ * after: enough to be sure, and narrow enough that "500g vinyl" in a listing
+ * description does not trip it, because that carries no second number and no
+ * price.
+ *
+ * Deliberately only ever a *label*. Converting grams to records needs a weight
+ * per record, and there is no honest one — see `ParsedShipping.byWeight`.
+ */
+const WEIGHT_RULE = new RegExp(
+  String.raw`\d[\d.,]*\s*(?:-|–|bis|to|until|up to)\s*\d[\d.,]*\s*(?:g|gr|gram|gramm|grams|gramme|kg)\b`,
+  'i',
+)
+
+/** Or the open-ended top of such a table: "ab 5000 Gramm: 34,00 €". */
+const WEIGHT_FROM_RULE = new RegExp(
+  String.raw`(?:ab|from|over|above|\u00fcber)\s*\d[\d.,]*\s*(?:g|gr|gram|gramm|grams|gramme|kg)\b`,
+  'i',
+)
+
+export function billsByWeight(text: string | null | undefined): boolean {
+  if (!text) return false
+  const clean = stripBbCode(text)
+  return WEIGHT_RULE.test(clean) || WEIGHT_FROM_RULE.test(clean)
+}
+
 export function parseShippingText(
   text: string | null | undefined,
   country?: string,
 ): ParsedShipping {
-  const empty: ParsedShipping = { tiers: [], matched: [], section: null }
+  const empty: ParsedShipping = { tiers: [], matched: [], section: null, byWeight: false }
   if (!text || text.trim().length === 0) return empty
 
+  const byWeight = billsByWeight(text)
   const sections = splitByPlace(stripBbCode(text))
 
   /*
@@ -162,7 +208,7 @@ export function parseShippingText(
    */
   const sorted = sections.some((section) => section.place !== null)
   const section = sorted ? (country ? selectSection(sections, country) : null) : sections[0]
-  if (!section) return empty
+  if (!section) return { ...empty, byWeight }
 
   // Newlines and bullets are separators like commas; the rules key off those.
   const normalised = `,${stripAsides(section.text).replace(/[\r\n••]+/g, ',')}`
@@ -227,7 +273,7 @@ export function parseShippingText(
     }
   }
 
-  return { tiers: dedupe(sortTiers(tiers)), matched, section: section.heading }
+  return { tiers: dedupe(sortTiers(tiers)), matched, section: section.heading, byWeight }
 }
 
 // ---------------------------------------------------------------------------

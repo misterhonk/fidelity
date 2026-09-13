@@ -439,11 +439,21 @@ const peak = computed(() =>
         <summary
           class="fid-action cursor-pointer list-none text-fid-sm text-fid-text-muted hover:text-fid-text"
         >
-          {{ b.unknownLabel }}
+          {{ summary.shippingByWeight ? b.weightLabel : b.unknownLabel }}
         </summary>
         <div class="mt-2 flex flex-col gap-2">
-          <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ b.unknownAbout }}</p>
-          <ul class="flex flex-col gap-1">
+          <!--
+            Two different failures, and only one of them is a failure.
+
+            A text the parser could not read is one thing; a shop that prices
+            by grams is another, and no parser will ever read that into a table
+            per record. Naming it turns "Fidelity cannot do this" into "here is
+            what to type", which is the whole difference.
+          -->
+          <p class="max-w-prose text-fid-sm text-fid-text-muted">
+            {{ summary.shippingByWeight ? b.weightAbout : b.unknownAbout }}
+          </p>
+          <ul v-if="!summary.shippingByWeight" class="flex flex-col gap-1">
             <li
               v-for="shape in UNDERSTOOD_SHAPES"
               :key="shape"
@@ -452,6 +462,21 @@ const peak = computed(() =>
               {{ shape }}
             </li>
           </ul>
+
+          <!--
+            The shop's own words, verbatim, next to the form that needs them.
+
+            They have been on the device since the dig that met the shop and
+            were shown on one screen the postage table is not entered on. Asked
+            for in as many words: "can you output the dealer's shipping tiers in
+            Fidelity, so a human can transfer them into the table?"
+          -->
+          <template v-if="summary.shippingNote">
+            <p class="text-fid-xs text-fid-text-muted">{{ b.noteLabel }}</p>
+            <pre
+              class="max-w-prose overflow-x-auto rounded-fid-sm bg-fid-inset p-3 font-fid-mono text-fid-xs whitespace-pre-wrap text-fid-text"
+              >{{ summary.shippingNote }}</pre>
+          </template>
         </div>
       </details>
 

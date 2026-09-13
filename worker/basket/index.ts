@@ -204,6 +204,8 @@ export function summarise(
     shippingSource: shipping.source,
     shippingMatched: shipping.matched,
     shippingSection: shipping.section ?? null,
+    shippingByWeight: shipping.byWeight ?? false,
+    shippingNote: shipping.note ?? null,
     total,
     perItem: total === null || live.length === 0 ? null : total / live.length,
     advice: shippingAdvice(shipping.tiers, live.length),

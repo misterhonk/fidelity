@@ -75,6 +75,21 @@ const en = {
   unknownAbout:
     'The shop text gives no tier I can read with confidence. These are the shapes I recognise — if something like this is on the shop page, entering it here helps:',
 
+  /*
+   * A shop that bills by grams (2026-09-13).
+   *
+   * Reported from a real shop: "1 bis 1999 Gramm: 14,00 €". There is no honest
+   * way to turn that into a table per record — an LP with its sleeve and a
+   * mailer is somewhere between 250 and 500 grams — so the shape is named
+   * instead of refused in silence, and the shop's own words go next to the
+   * form. Reading four lines and typing three numbers is two minutes; going to
+   * Discogs to find the dialog first is what made it feel like more.
+   */
+  weightLabel: 'This shop charges by weight',
+  weightAbout:
+    'Its table is in grams, and a record has no fixed weight — a single LP with its sleeve and a mailer is anywhere between 250 and 500 grams, so any conversion would be a guess you would plan a purchase around. Its own words are below: read off what one, two and three records cost you and enter that.',
+  noteLabel: 'What the shop says about postage',
+
   editTiers: 'Change the tiers',
   enterTiers: 'Enter the postage tiers',
   tiersTitle: 'Postage tiers',
@@ -302,6 +317,11 @@ const de: typeof en = {
   unknownLabel: 'Versand unbekannt – was hätte ich lesen können?',
   unknownAbout:
     'Der Freitext des Ladens gibt keine Staffel her, die ich sicher lesen kann. Diese Formen erkenne ich – steht so etwas auf der Ladenseite, hilft es, sie hier einzutragen:',
+
+  weightLabel: 'Dieser Laden rechnet nach Gewicht',
+  weightAbout:
+    'Seine Staffel steht in Gramm, und eine Platte hat kein festes Gewicht – eine einzelne LP mit Hülle und Versandtasche liegt zwischen 250 und 500 Gramm, jede Umrechnung wäre also geraten, und zwar für eine Zahl, um die herum du einen Kauf planst. Seine eigenen Worte stehen unten: lies ab, was ein, zwei und drei Platten kosten, und trag das ein.',
+  noteLabel: 'Was der Laden zum Versand sagt',
 
   editTiers: 'Staffel ändern',
   enterTiers: 'Versandstaffel eintragen',
