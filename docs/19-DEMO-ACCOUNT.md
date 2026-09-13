@@ -1,6 +1,6 @@
 # The demo account
 
-> **Status:** set up on 2026-09-13 · **Script:** `scripts/demo/fill.mjs` · **Smoke:** `tests/e2e/smoke/staging.spec.ts`
+> **Status:** set up and filled on 2026-09-13, the smoke run syncs it since the same day · **Script:** `scripts/demo/fill.mjs` · **Smoke:** `tests/e2e/smoke/staging.spec.ts`
 
 A second Discogs account, otherwise empty, that carries a collection anybody may look at.
 Martin owns it; its token is a secret, never a line in this repository.
@@ -33,7 +33,7 @@ particular pressing.
 
 | Place | Name | Used by |
 |---|---|---|
-| GitHub Actions secret | `DISCOGS_DEMO_TOKEN` | the Smoke workflow — the sync test skips when it is missing |
+| GitHub environment secret, environment `martinmelcher.de` (next to the deploy keys; the Smoke job names that environment) | `DISCOGS_DEMO_TOKEN` | the Smoke workflow — the sync test skips when it is missing |
 | Martin's shell, for the moment | `DISCOGS_DEMO_TOKEN` | `pnpm demo:fill` |
 
 Never in `.env`, never in a test file, never in a URL. A token that was pasted anywhere else
