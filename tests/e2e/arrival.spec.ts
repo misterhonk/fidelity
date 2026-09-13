@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 
-import { seed, seedDealer } from './seed'
+import { putRows, seed, seedDealer } from './seed'
 
 /**
  * "Did it arrive?" in a browser (M14).
@@ -20,36 +20,23 @@ async function bought(
   page: Page,
   rows: { listingId: number; ageDays: number; arrived?: 'as-described' | 'worse' }[],
 ) {
-  await page.evaluate(
-    async (input) => {
-      const open = indexedDB.open('fidelity')
-      const db: IDBDatabase = await new Promise((resolve, reject) => {
-        open.onsuccess = () => resolve(open.result)
-        open.onerror = () => reject(open.error)
-      })
-
-      const tx = db.transaction('feedback', 'readwrite')
-      for (const row of input.rows) {
-        tx.objectStore('feedback').put({
-          listingId: row.listingId,
-          releaseId: row.listingId * 10,
-          artist: 'Alice Coltrane',
-          title: `Journey ${row.listingId}`,
-          dealer: input.dealer,
-          verdict: 'bought',
-          arrived: row.arrived ?? null,
-          arrivedAt: row.arrived ? input.now : null,
-          signals: [],
-          score: 80,
-          createdAt: input.now - row.ageDays * input.day,
-          updatedAt: input.now,
-        })
-      }
-      await new Promise((done) => (tx.oncomplete = () => done(null)))
-      db.close()
-    },
-    { rows, dealer: seedDealer.username, now: Date.now(), day: TAG },
-  )
+  const now = Date.now()
+  await putRows(page, {
+    feedback: rows.map((row) => ({
+      listingId: row.listingId,
+      releaseId: row.listingId * 10,
+      artist: 'Alice Coltrane',
+      title: `Journey ${row.listingId}`,
+      dealer: seedDealer.username,
+      verdict: 'bought',
+      arrived: row.arrived ?? null,
+      arrivedAt: row.arrived ? now : null,
+      signals: [],
+      score: 80,
+      createdAt: now - row.ageDays * TAG,
+      updatedAt: now,
+    })),
+  })
 }
 
 test.describe('the arrival question', () => {

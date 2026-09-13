@@ -329,6 +329,88 @@ const STORES = [
 ] as const
 
 /**
+ * Rows into stores, with a watchdog and a second try.
+ *
+ * On CI's WebKit (Linux, 2026-09-12) the write behind `seed()` hung in one
+ * test on every run, retry included — thirty seconds in `page.evaluate`,
+ * nothing on macOS. A promise that never settles says nothing about *which*
+ * step it was: the `open()`, or the transaction waiting behind one the
+ * app's worker holds. So every step races a clock, the outcome comes back
+ * as a word, and a hung step is tried again rather than waited on. When
+ * this throws, the message names the step; that is the next clue.
+ */
+export async function putRows(page: Page, rows: Record<string, unknown[]>): Promise<void> {
+  const stores = Object.keys(rows).filter((store) => rows[store]!.length > 0)
+  if (stores.length === 0) return
+  let last = ''
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const outcome = await page.evaluate(
+      async ({ name, rows, stores, patience }) => {
+        const clock = (step: string) =>
+          new Promise<string>((resolve) => setTimeout(() => resolve(`${step} hung`), patience))
+        const open = indexedDB.open(name)
+        const opened = new Promise<string>((resolve) => {
+          open.onsuccess = () => resolve('open')
+          open.onerror = () => resolve(`open failed: ${open.error?.message ?? '?'}`)
+          open.onblocked = () => resolve('open blocked')
+        })
+        const first = await Promise.race([opened, clock('open')])
+        if (first !== 'open') return first
+        const db = open.result
+        try {
+          const tx = db.transaction(stores, 'readwrite')
+          for (const store of stores)
+            for (const row of rows[store]!) tx.objectStore(store).put(row)
+          const done = new Promise<string>((resolve) => {
+            tx.oncomplete = () => resolve('ok')
+            tx.onerror = () => resolve(`transaction failed: ${tx.error?.message ?? '?'}`)
+            tx.onabort = () => resolve('transaction aborted')
+          })
+          return await Promise.race([done, clock('transaction')])
+        } finally {
+          db.close()
+        }
+      },
+      { name: DB_NAME, rows, stores, patience: 8_000 },
+    )
+    if (outcome === 'ok') return
+    last = outcome
+    await page.waitForTimeout(500)
+  }
+  throw new Error(
+    `The seed could not write its rows in three tries — the last try said: ${last}`,
+  )
+}
+
+/**
+ * Reload, and survive the app landing a navigation of its own in the same
+ * moment: "Frame load interrupted" on CI's WebKit, in `signIn()`, now and
+ * then. The reload is tried again once the interrupting load is through.
+ */
+async function reloadSettled(page: Page): Promise<void> {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      await page.reload()
+      break
+    } catch (error) {
+      if (attempt >= 3 || !/interrupted|navigation/i.test(String(error))) throw error
+      await page.waitForLoadState('load')
+    }
+  }
+  await page.waitForLoadState('networkidle')
+}
+
+/** Whether `page` already shows the app — the origin under test, not a blank tab. */
+function onTheApp(page: Page): boolean {
+  try {
+    const url = new URL(page.url())
+    return url.protocol.startsWith('http') && /^(127\.0\.0\.1|localhost)$/.test(url.hostname)
+  } catch {
+    return false
+  }
+}
+
+/**
  * Waits until the app has finished creating its database.
  *
  * Deliberately a poll rather than a signal. There is no event to listen for —
@@ -400,26 +482,12 @@ export async function signIn(page: Page): Promise<void> {
   // database, not this helper. The long reasoning is there.
   await waitForStores(page)
 
-  await page.evaluate(
-    async (rows) => {
-      const open = indexedDB.open(rows.name)
-      const db = await new Promise<IDBDatabase>((resolve, reject) => {
-        open.onsuccess = () => resolve(open.result)
-        open.onerror = () => reject(open.error)
-      })
-
-      const tx = db.transaction('meta', 'readwrite')
-      tx.objectStore('meta').put({ key: 'identity', value: rows.identity })
-      tx.objectStore('meta').put({ key: 'token', value: 'test-token-not-a-real-one' })
-
-      await new Promise<void>((resolve, reject) => {
-        tx.oncomplete = () => resolve()
-        tx.onerror = () => reject(tx.error)
-      })
-      db.close()
-    },
-    { name: DB_NAME, identity: seedIdentity },
-  )
+  await putRows(page, {
+    meta: [
+      { key: 'identity', value: seedIdentity },
+      { key: 'token', value: 'test-token-not-a-real-one' },
+    ],
+  })
 
   /*
    * Reload, and wait for the redirect that is already on its way.
@@ -432,8 +500,7 @@ export async function signIn(page: Page): Promise<void> {
    *
    * The same place, for the same reason, stands at the end of `seed()`.
    */
-  await page.reload()
-  await page.waitForLoadState('networkidle')
+  await reloadSettled(page)
 }
 
 export type SeedLanguage = 'en' | 'de'
@@ -448,8 +515,18 @@ export type SeedLanguage = 'en' | 'de'
  * fail for a reason that has nothing to do with the code it is testing.
  */
 export async function seed(page: Page, language: SeedLanguage = 'en'): Promise<Dig> {
-  // The app's own code creates the database, at whatever version it is on.
-  await page.goto('/')
+  /*
+   * The app's own code creates the database, at whatever version it is on.
+   *
+   * And only when the page is not already showing the app. A second seed in
+   * the same test — English, then German — used to navigate to `/` first,
+   * and on CI's WebKit the write after that hung on every run: the document
+   * left behind goes into the back/forward cache with its worker suspended,
+   * and whatever transaction that worker was in never completes, so the
+   * seed's own transaction waits behind it for ever. Staying on the page
+   * keeps the worker awake; the reload at the end reads the rows anyway.
+   */
+  if (!onTheApp(page)) await page.goto('/')
 
   /*
    * Wait for it, and wait for it *without opening it*.
@@ -476,50 +553,21 @@ export async function seed(page: Page, language: SeedLanguage = 'en'): Promise<D
   const now = Date.now()
   const dig = freshDig(now)
 
-  await page.evaluate(
-    async (rows) => {
-      const open = indexedDB.open(rows.name)
-      const db = await new Promise<IDBDatabase>((resolve, reject) => {
-        open.onsuccess = () => resolve(open.result)
-        open.onerror = () => reject(open.error)
-      })
-
-      const tx = db.transaction(rows.stores, 'readwrite')
-      tx.objectStore('meta').put({ key: 'identity', value: rows.identity })
-      tx.objectStore('meta').put({ key: 'token', value: 'test-token-not-a-real-one' })
-      tx.objectStore('dealers').put(rows.dealer)
-      tx.objectStore('digs').put(rows.dig)
-      for (const item of rows.collection) tx.objectStore('collection').put(item)
-      for (const match of rows.matches) tx.objectStore('matches').put(match)
-      for (const line of rows.basket) tx.objectStore('basket').put(line)
-      for (const want of rows.wantlist) tx.objectStore('wantlist').put(want)
-      for (const point of rows.valueHistory) tx.objectStore('valueHistory').put(point)
-
-      await new Promise<void>((resolve, reject) => {
-        tx.oncomplete = () => resolve()
-        tx.onerror = () => reject(tx.error)
-      })
-      db.close()
-    },
-    {
-      // Passed in rather than written out: `page.evaluate` runs in the browser
-      // and cannot import, and a second copy of the database name is a second
-      // thing to rename.
-      name: DB_NAME,
-      stores: [...STORES],
-      identity: seedIdentity,
-      dealer: seedDealer,
-      dig,
-      collection: seedCollection,
-      matches: seedMatches(dig.id),
-      valueHistory: seedValueHistory(now),
-      basket: seedBasket(now),
-      wantlist: seedWantlist,
-    },
-  )
+  await putRows(page, {
+    meta: [
+      { key: 'identity', value: seedIdentity },
+      { key: 'token', value: 'test-token-not-a-real-one' },
+    ],
+    dealers: [seedDealer],
+    digs: [dig],
+    collection: seedCollection,
+    matches: seedMatches(dig.id),
+    basket: seedBasket(now),
+    wantlist: seedWantlist,
+    valueHistory: seedValueHistory(now),
+  })
 
   await page.evaluate((lang) => localStorage.setItem('fidelity:language', lang), language)
-  await page.reload()
 
   /*
    * Wait for the reload to be finished with, not merely started.
@@ -532,7 +580,7 @@ export async function seed(page: Page, language: SeedLanguage = 'en'): Promise<D
    * not the other, for reasons that have nothing to do with the code under
    * test, is worse than one that fails in both.
    */
-  await page.waitForLoadState('networkidle')
+  await reloadSettled(page)
 
   return dig
 }
