@@ -341,6 +341,15 @@ const en = {
    */
   sheet: {
     loading: 'Loading …',
+    /*
+     * A find whose dig is gone. Five are kept, so a newer dig eventually drops
+     * an older one and the record behind a tile goes with it — which used to
+     * render as an empty sheet under a loading title, the one state a reader
+     * takes for a broken app.
+     */
+    goneTitle: 'Gone',
+    gone: 'This find is no longer here — a newer dig has taken its place.',
+    goneAction: 'Dig the shop again',
     market: 'On the market',
     forSale: (copies: string, one: boolean) =>
       `${copies} ${one ? 'copy' : 'copies'} for sale worldwide`,
@@ -570,6 +579,9 @@ const de: typeof en = {
 
   sheet: {
     loading: 'Wird geladen …',
+    goneTitle: 'Nicht mehr da',
+    gone: 'Diesen Fund gibt es hier nicht mehr – ein neuerer Dig ist an seine Stelle getreten.',
+    goneAction: 'Laden nochmal graben',
     market: 'Marktlage',
     forSale: (copies, one) => `${copies} ${one ? 'Exemplar' : 'Exemplare'} weltweit im Angebot`,
     lowest: 'Tiefstpreis',

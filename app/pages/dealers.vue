@@ -569,6 +569,25 @@ const scanned = computed(() => {
       and saying so on every device that has none would be a permanent notice
       about a feature nobody asked for.
     -->
+    <!--
+      Asking the hub takes a moment — up to twenty shops go up before the list
+      comes back — and it used to take that moment in silence. A screen that
+      shows nothing while it works looks like a screen that is finished.
+    -->
+    <p
+      v-if="suggesting && !suggested"
+      role="status"
+      class="flex items-center gap-2 text-fid-sm text-fid-text-muted"
+    >
+      <!--
+        Muted, not the accent. The accent means "this is the thing to do", and
+        a thing that is happening by itself is not a thing to press — the
+        design-restraint test counts it as a second filled action otherwise.
+      -->
+      <span class="size-2 animate-pulse rounded-full bg-fid-text-muted" aria-hidden="true" />
+      {{ h.suggested.busy }}
+    </p>
+
     <section
       v-if="suggested && suggested.shops.length > 0"
       class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"

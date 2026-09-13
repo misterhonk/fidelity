@@ -15,11 +15,33 @@ const { verdicts, judge } = useFeedback()
 
 const detail = ref<MatchDetail | null>(null)
 
+/**
+ * Loading, there, or gone — three states, because two of them used to look
+ * alike and the one that looked like nothing was the one that mattered.
+ *
+ * Reported from a real device: a record on the start page opened nothing at
+ * all. The sheet *was* opening; `dig.detail` answered null, and the template
+ * had no branch for that, so it sat on its loading title with an empty body
+ * for ever. A find whose dig has been dropped — five are kept — is exactly
+ * that case, and it says so now, with the way to get the record back.
+ */
+const state = ref<'loading' | 'ready' | 'gone'>('loading')
+const failed = ref<unknown>(null)
+
 onMounted(async () => {
-  detail.value = await call('dig.detail', {
-    digId: props.digId,
-    listingId: props.listingId,
-  })
+  try {
+    const answer = await call('dig.detail', {
+      digId: props.digId,
+      listingId: props.listingId,
+    })
+    detail.value = answer
+    state.value = answer ? 'ready' : 'gone'
+  } catch (cause) {
+    // A failure is not the same as a find that is gone, and the sentence for
+    // it is `ErrorNote`'s, which says what broke.
+    failed.value = cause
+    state.value = 'gone'
+  }
 })
 
 const match = computed(() => detail.value?.match ?? null)
@@ -140,12 +162,13 @@ function years(entry: { from: number; to: number }): string {
     without the movement; that opt-out lives in `main.css`, once for every sheet.
   -->
   <SheetFrame
-    :label="match ? nameOf(match) : d.sheet.loading"
+    :label="match ? nameOf(match) : state === 'gone' ? d.sheet.goneTitle : d.sheet.loading"
     transition="release-sheet"
     @close="emit('close')"
   >
     <template #title>
       <template v-if="match">{{ nameOf(match) }}</template>
+      <template v-else-if="state === 'gone'">{{ d.sheet.goneTitle }}</template>
       <template v-else>{{ d.sheet.loading }}</template>
     </template>
 
@@ -464,6 +487,24 @@ function years(entry: { from: number; to: number }): string {
           {{ d.sheet.wanted }}
         </span>
       </div>
+    </template>
+
+    <!--
+      The find is gone, and it says so instead of nothing.
+
+      Five digs are kept, so a newer one eventually drops an older one and the
+      record behind a tile on the start page goes with it. That used to render
+      as an empty sheet under a loading title — the one state the user reads
+      as "the app is broken".
+    -->
+    <template v-else-if="state === 'gone'">
+      <ErrorNote v-if="failed" :cause="failed" />
+      <p v-else class="max-w-prose text-fid-base text-fid-text-muted">
+        {{ d.sheet.gone }}
+        <NuxtLink to="/dig" class="text-fid-accent underline underline-offset-4">
+          {{ d.sheet.goneAction }}
+        </NuxtLink>
+      </p>
     </template>
   </SheetFrame>
 </template>
