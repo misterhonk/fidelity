@@ -144,7 +144,9 @@ describe('the start screen', () => {
    */
   it('lands on a row that is really there', () => {
     const WANTLIST = readFileSync('app/pages/wantlist.vue', 'utf8')
-    expect(WANTLIST).toMatch(/:id="`want-\$\{record\.releaseId\}`"/)
+    // The album's sleeve answers for its lead, a folded pressing for itself (M28 #2).
+    expect(WANTLIST).toMatch(/:id="`want-\$\{group\.lead\.releaseId\}`"/)
+    expect(WANTLIST).toMatch(/:id="`want-\$\{member\.releaseId\}`"/)
     // Under a sticky nav, an anchor without this lands behind it.
     expect(WANTLIST).toMatch(/scroll-mt-\d+/)
   })

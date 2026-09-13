@@ -64,8 +64,9 @@ test.describe('a device that has been used', () => {
     await seed(page, 'en')
     await page.goto('/wantlist')
 
-    await expect(page.getByText('Stereolab – Sound-Dust')).toBeVisible()
-    await expect(page.locator('img[src*="wanted-150"]')).toBeVisible()
+    await expect(page.getByText('Sound-Dust')).toBeVisible()
+    await expect(page.getByText('Stereolab', { exact: true })).toBeVisible()
+    await expect(page.locator('img[src*="wanted-"]').first()).toBeVisible()
   })
 
   test('the shelf shows the records on it', async ({ page }) => {
@@ -213,8 +214,10 @@ test('says how long a record has been wanted in the chosen language', async ({ p
     .innerText()
 
   expect(english).not.toBe(german)
-  expect(english).toMatch(/waiting|noted|yesterday/)
-  expect(german).toMatch(/seit|heute/)
+  // Case-insensitive: the line is a plate since M28 #1, and `innerText`
+  // returns what the reader sees — uppercase.
+  expect(english).toMatch(/waiting|noted|yesterday/i)
+  expect(german).toMatch(/seit|heute/i)
 })
 
 /*

@@ -244,6 +244,7 @@ const en = {
     },
     dropShort: 'Not any more',
     notePlaceholder: 'Which pressing will do?',
+    noteShort: 'Note',
     noteLabel: (artist: string, title: string) => `Your note on ${artist} — ${title}`,
     drop: (artist: string, title: string) => `Take ${artist} — ${title} off the wantlist`,
     description: 'What you are looking for — and how findable it is.',
@@ -280,6 +281,10 @@ const en = {
     },
     notExpanded: 'Pressings not unfolded yet',
     noMaster: 'No master at Discogs — only this exact pressing can be recognised',
+    /* One row per album (M28 #2): wants are per pressing at Discogs, the sleeve is per album. */
+    inPressings: (n: string) => `wanted in ${n} pressings`,
+    showPressings: 'Show them',
+    hidePressings: 'Fold',
 
     /*
      * Your wants across the shops you scanned (M19 #9). Labelled as the
@@ -755,6 +760,7 @@ const de: typeof en = {
     },
     dropShort: 'Doch nicht',
     notePlaceholder: 'Welche Pressung darf es sein?',
+    noteShort: 'Notiz',
     noteLabel: (artist, title) => `Deine Notiz zu ${artist} – ${title}`,
     drop: (artist, title) => `${artist} – ${title} von der Wantlist nehmen`,
     description: 'Was du suchst – und wie auffindbar es ist.',
@@ -781,6 +787,9 @@ const de: typeof en = {
     },
     notExpanded: 'Pressungen noch nicht ausgeklappt',
     noMaster: 'Kein Master bei Discogs – nur genau diese Pressung ist erkennbar',
+    inPressings: (n) => `in ${n} Pressungen gesucht`,
+    showPressings: 'Anzeigen',
+    hidePressings: 'Einklappen',
 
     plan: {
       title: 'Bei den Läden, die du gescannt hast',

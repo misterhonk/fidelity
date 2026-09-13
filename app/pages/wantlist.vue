@@ -54,6 +54,10 @@ onMounted(async () => {
    * tap did nothing" (seen 2026-08-13).
    */
   if (!route.hash) return
+  // A pressing folded under its album is unfolded first, or there is nothing to land on.
+  const wanted = Number(route.hash.replace('#want-', ''))
+  const group = groups.value.find((g) => g.members.some((m) => m.releaseId === wanted))
+  if (group && group.lead.releaseId !== wanted) toggleGroup(group.lead.masterId)
   await nextTick()
   document.querySelector(route.hash)?.scrollIntoView({ block: 'start' })
 })
@@ -150,8 +154,56 @@ const records = computed(() => {
  * A new filter starts at the top — otherwise somebody searches for "Aphex",
  * gets three hits and a "show 120 more" button with nothing more to show.
  */
-const visible = computed(() => records.value.slice(0, shown.value))
-const rest = computed(() => records.value.length - visible.value.length)
+/**
+ * One sleeve per album (M28 #2). A want at Discogs is a pressing; four
+ * wants for four pressings of "Sonar System" are one record somebody is
+ * looking for. Rows with a master fold under the first of them in queue
+ * order; the pressings unfold on tap. A want without a master stands alone.
+ */
+interface WantGroup {
+  lead: WantedRecord
+  members: WantedRecord[]
+}
+const groups = computed<WantGroup[]>(() => {
+  const byMaster = new Map<number, WantGroup>()
+  const out: WantGroup[] = []
+  for (const record of records.value) {
+    const known = record.masterId > 0 ? byMaster.get(record.masterId) : undefined
+    if (known) {
+      known.members.push(record)
+      continue
+    }
+    const group = { lead: record, members: [record] }
+    if (record.masterId > 0) byMaster.set(record.masterId, group)
+    out.push(group)
+  }
+  return out
+})
+/**
+ * The note as text, or one word until there is one (M28 #1): sixteen empty
+ * fields down a page shout for attention none of them has earned. A tap
+ * opens the field; it closes again with the note standing as text.
+ */
+const noting = ref(new Set<number>())
+function openNote(releaseId: number) {
+  noting.value = new Set([...noting.value, releaseId])
+}
+function closeNote(releaseId: number) {
+  const next = new Set(noting.value)
+  next.delete(releaseId)
+  noting.value = next
+}
+
+const expanded = ref(new Set<number>())
+function toggleGroup(masterId: number) {
+  const next = new Set(expanded.value)
+  if (next.has(masterId)) next.delete(masterId)
+  else next.add(masterId)
+  expanded.value = next
+}
+
+const visible = computed(() => groups.value.slice(0, shown.value))
+const rest = computed(() => groups.value.length - visible.value.length)
 
 watch(query, () => {
   shown.value = 60
@@ -433,178 +485,196 @@ function waiting(addedAt: string): string | null {
         record that has been on it for four years is the one worth being
         reminded about.
       -->
-      <ul v-else class="grid gap-2 @4xl:grid-cols-2">
-        <!--
-          Every row is addressable, and there is a reason for that.
-
-          A cover on the start screen is a record, not a category — tapping it
-          and landing at the top of a list of twenty-three is being told "look
-          for it yourself". The anchor lands on the row, `scroll-mt` keeps it
-          out from under the sticky nav, and `:target` says which one for a
-          moment, because a page that jumps without saying where is a page that
-          looks like it did nothing.
-        -->
+      <!--
+        Sleeves, not cards (M28 #1, the M26 rule): the cover large, the title
+        in the display face, everything else a plate. Every album is
+        addressable — a cover on the start page lands on its row, `scroll-mt`
+        keeps it out from under the nav, and `:target` says which one for a
+        moment, because a page that jumps without saying where looks like it
+        did nothing.
+      -->
+      <ul v-else class="grid grid-cols-2 gap-x-4 gap-y-8 @md:grid-cols-3 @2xl:grid-cols-4">
         <li
-          v-for="record in visible"
-          :id="`want-${record.releaseId}`"
-          :key="record.releaseId"
-          class="fid-want flex scroll-mt-24 gap-4 rounded-fid-md border border-fid-border p-3"
+          v-for="group in visible"
+          :id="`want-${group.lead.releaseId}`"
+          :key="group.lead.releaseId"
+          class="fid-want flex scroll-mt-24 flex-col gap-2 rounded-fid-sm"
         >
           <!--
-            The sleeve, which was in the store all along.
-
-            Both sizes arrive with every wantlist sync and never left the
-            worker, so the one screen carrying the two strongest signals in
-            the engine was also the only one made of text. A wantlist is a
-            list of records somebody is looking for — and looking for a record
-            is done by eye long before it is done by name.
-
-            Lazy and never fetched by hand: i.discogs.com has a budget of its
-            own, roughly thirty a minute (docs/02).
+            Outward, and marked as such: Discogs is where you go to buy one.
+            The sleeve is the door, in both sizes the sync already brought and
+            lazily, because i.discogs.com has a budget of its own (docs/02).
           -->
           <img
-            v-if="record.thumbUrl || record.coverUrl"
-            :src="record.thumbUrl || record.coverUrl"
+            v-if="group.lead.thumbUrl || group.lead.coverUrl"
+            :src="group.lead.coverUrl || group.lead.thumbUrl"
             :srcset="
-              record.coverUrl && record.thumbUrl
-                ? `${record.thumbUrl} 150w, ${record.coverUrl} 600w`
+              group.lead.coverUrl && group.lead.thumbUrl
+                ? `${group.lead.thumbUrl} 150w, ${group.lead.coverUrl} 600w`
                 : undefined
             "
-            sizes="(min-width: 40rem) 128px, 112px"
+            sizes="(min-width: 90rem) 16vw, (min-width: 48rem) 25vw, 50vw"
             alt=""
             loading="lazy"
             decoding="async"
-            width="128"
-            height="128"
-            class="size-28 shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-32"
+            width="600"
+            height="600"
+            class="aspect-square w-full rounded-fid-sm bg-fid-surface object-cover"
           />
           <span
             v-else
-            class="flex size-28 shrink-0 items-center justify-center rounded-fid-cover bg-fid-inset text-center text-fid-xs text-fid-text-muted sm:size-32"
+            class="flex aspect-square w-full items-center justify-center rounded-fid-sm bg-fid-surface text-fid-xs text-fid-text-muted"
           >
             {{ c.noCover }}
           </span>
+          <!-- Outward, and marked as such: Discogs is where you go to buy one. -->
+          <OutwardLink
+            tone="inherit"
+            class="fid-display line-clamp-2 text-fid-sm leading-tight font-semibold text-fid-text"
+            :to="`https://www.discogs.com/release/${group.lead.releaseId}`"
+          >
+            {{ group.lead.title }}
+          </OutwardLink>
+          <span class="fid-plate truncate text-fid-text-muted">{{ group.lead.artist }}</span>
 
-          <div class="flex min-w-0 grow flex-col gap-1">
-            <div class="flex flex-wrap items-baseline justify-between gap-x-3">
-              <!--
-                Outward, and marked as such. The row itself is where this app
-                has something to say about a record you want — the note, and
-                the way to stop wanting it. Discogs is where you go to buy one.
-              -->
-              <OutwardLink
-                tone="inherit"
-                class="line-clamp-2 min-w-0 text-fid-base text-fid-text"
-                :to="`https://www.discogs.com/release/${record.releaseId}`"
+          <!-- One plate line: the year, the wait, the priority, the pressings the horizon knows. -->
+          <p class="fid-plate flex flex-wrap gap-x-2 text-fid-text-muted">
+            <span v-if="group.lead.year > 0" class="fid-num">{{ group.lead.year }}</span>
+            <span v-if="waiting(group.lead.addedAt)">{{ waiting(group.lead.addedAt) }}</span>
+            <span v-if="group.lead.want >= WANT_MOST" class="text-fid-sig-wantlist">{{
+              c.wantlist.priority.most
+            }}</span>
+            <span v-if="group.lead.pressings !== null">{{
+              c.wantlist.pressings(count(group.lead.pressings), group.lead.pressings === 1)
+            }}</span>
+            <span v-else-if="group.lead.masterId === 0">{{ c.wantlist.noMaster }}</span>
+          </p>
+
+          <!--
+            How much you want it — Discogs' own 0–5 (M20 #1). The lit star
+            tapped again is "never said": zero is a state, not the absence of one.
+          -->
+          <div role="group" :aria-label="c.wantlist.priority.label" class="-ml-2 flex">
+            <button
+              v-for="star in STARS"
+              :key="star"
+              type="button"
+              :aria-label="c.wantlist.priority.set(star)"
+              :aria-pressed="group.lead.want >= star"
+              class="fid-lift flex min-h-11 min-w-8 items-center justify-center rounded-fid-sm text-fid-sm transition-colors"
+              :class="
+                group.lead.want >= star
+                  ? 'text-fid-sig-wantlist'
+                  : 'text-fid-text-muted hover:text-fid-text'
+              "
+              @click="want(group.lead, star)"
+            >
+              {{ group.lead.want >= star ? '★' : '☆' }}
+            </button>
+          </div>
+
+          <!-- Seen by master, so a different pressing still counts — and a way back to that shop. -->
+          <NuxtLink
+            v-if="group.lead.lastSeen"
+            :to="`/dig?dealer=${encodeURIComponent(group.lead.lastSeen.dealer)}`"
+            class="fid-action fid-plate text-fid-sig-wantlist underline-offset-4 hover:underline"
+          >
+            {{ c.lastSeenAt }}
+            <span class="text-fid-text">{{ group.lead.lastSeen.dealer }}</span>
+            {{ c.onDay(day(group.lead.lastSeen.at)) }}
+          </NuxtLink>
+
+          <!-- The other pressings of the same album, folded under it. -->
+          <template v-if="group.members.length > 1">
+            <button
+              type="button"
+              class="fid-plate fid-action min-h-11 self-start text-fid-text-muted underline decoration-dotted underline-offset-4 hover:text-fid-text"
+              :aria-expanded="expanded.has(group.lead.masterId)"
+              @click="toggleGroup(group.lead.masterId)"
+            >
+              {{ c.wantlist.inPressings(count(group.members.length)) }} ·
+              {{
+                expanded.has(group.lead.masterId)
+                  ? c.wantlist.hidePressings
+                  : c.wantlist.showPressings
+              }}
+            </button>
+            <ul v-if="expanded.has(group.lead.masterId)" class="flex flex-col gap-1">
+              <li
+                v-for="member in group.members"
+                :id="`want-${member.releaseId}`"
+                :key="member.releaseId"
+                class="fid-want flex scroll-mt-24 flex-wrap items-baseline justify-between gap-x-3 rounded-fid-sm text-fid-xs"
               >
-                {{ record.artist }} – {{ record.title }}
-              </OutwardLink>
-              <span class="flex items-center gap-3 text-fid-xs text-fid-text-muted">
-                <span>
-                  <template v-if="record.year > 0"
-                    ><span class="fid-num">{{ record.year }}</span> · </template
-                  >{{ waiting(record.addedAt) }}
-                  <template v-if="record.want >= WANT_MOST">
-                    · <span class="text-fid-sig-wantlist">{{ c.wantlist.priority.most }}</span>
-                  </template>
-                </span>
-                <!--
-                Wanting something is allowed to stop.
-                A wantlist that only ever grows stops being a list of what you
-                are looking for and becomes a record of everything you once
-                considered — and then nobody reads it. No confirmation here:
-                unlike the collection, a want costs nothing to add back.
-              -->
+                <OutwardLink
+                  tone="inherit"
+                  class="min-w-0 text-fid-text"
+                  :to="`https://www.discogs.com/release/${member.releaseId}`"
+                >
+                  {{ member.title
+                  }}<template v-if="member.year > 0"> · {{ member.year }}</template>
+                </OutwardLink>
                 <button
                   type="button"
-                  class="fid-lift min-h-11 shrink-0 rounded-fid-sm border border-fid-field px-3 text-fid-xs text-fid-text-muted transition-colors hover:text-fid-text"
-                  :aria-label="c.wantlist.drop(record.artist, record.title)"
-                  @click="drop(record.releaseId)"
+                  class="fid-plate fid-action min-h-11 text-fid-text-muted hover:text-fid-text"
+                  :aria-label="c.wantlist.drop(member.artist, member.title)"
+                  @click="drop(member.releaseId)"
                 >
                   {{ c.wantlist.dropShort }}
                 </button>
-              </span>
-            </div>
+              </li>
+            </ul>
+          </template>
 
-            <!--
-              How much you want it — Discogs' own 0–5, synced all along and
-              shown nowhere until now (M20 #1). The lit star tapped again is
-              "never said": zero is a state, not the absence of one.
-            -->
-            <div role="group" :aria-label="c.wantlist.priority.label" class="-ml-2 flex">
-              <button
-                v-for="star in STARS"
-                :key="star"
-                type="button"
-                :aria-label="c.wantlist.priority.set(star)"
-                :aria-pressed="record.want >= star"
-                class="fid-lift flex min-h-11 min-w-9 items-center justify-center rounded-fid-sm text-fid-sm transition-colors"
-                :class="
-                  record.want >= star
-                    ? 'text-fid-sig-wantlist'
-                    : 'text-fid-text-muted hover:text-fid-text'
-                "
-                @click="want(record, star)"
-              >
-                {{ record.want >= star ? '★' : '☆' }}
-              </button>
-            </div>
+          <!--
+            Which pressing will do, in your own words — the most useful line
+            on the screen. Drawn without a border until it is wanted: a note
+            is an invitation, not a form field.
+          -->
+          <input
+            v-if="noting.has(group.lead.releaseId)"
+            :value="group.lead.note"
+            type="text"
+            autofocus
+            :placeholder="c.wantlist.notePlaceholder"
+            :aria-label="c.wantlist.noteLabel(group.lead.artist, group.lead.title)"
+            class="fid-field min-h-11 w-full px-2 text-fid-sm text-fid-text placeholder:text-fid-text-muted"
+            @change="note(group.lead, ($event.target as HTMLInputElement).value)"
+            @blur="closeNote(group.lead.releaseId)"
+          />
+          <button
+            v-else-if="group.lead.note"
+            type="button"
+            class="fid-action text-left text-fid-sm text-fid-text"
+            :aria-label="c.wantlist.noteLabel(group.lead.artist, group.lead.title)"
+            @click="openNote(group.lead.releaseId)"
+          >
+            {{ group.lead.note }}
+          </button>
+          <button
+            v-else
+            type="button"
+            class="fid-plate fid-action min-h-11 self-start text-fid-text-muted hover:text-fid-text"
+            :aria-label="c.wantlist.noteLabel(group.lead.artist, group.lead.title)"
+            @click="openNote(group.lead.releaseId)"
+          >
+            {{ c.wantlist.noteShort }}
+          </button>
 
-            <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">
-              <!--
-              The pressing count is what makes a wantlist entry actionable: one
-              of 160 turns up far more often than the only pressing there is.
-            -->
-              <span v-if="record.pressings !== null">
-                {{ c.wantlist.pressings(count(record.pressings), record.pressings === 1) }}
-              </span>
-              <span v-else-if="record.masterId > 0" class="text-fid-sig-gap">
-                {{ c.wantlist.notExpanded }}
-              </span>
-              <span v-else>
-                {{ c.wantlist.noMaster }}
-              </span>
-
-              <!--
-              Seen by master, so a different pressing still counts.
-
-              And it links to a new dig at that shop, because "gesehen bei X"
-              with nothing to click is a fact the reader then has to act on by
-              hand — the shop that had it once is the best guess anybody has
-              about where it turns up again.
-            -->
-              <NuxtLink
-                v-if="record.lastSeen"
-                :to="`/dig?dealer=${encodeURIComponent(record.lastSeen.dealer)}`"
-                class="fid-action text-fid-sig-wantlist underline-offset-4 hover:underline"
-              >
-                {{ c.lastSeenAt }}
-                <span class="text-fid-text">{{ record.lastSeen.dealer }}</span>
-                {{ c.onDay(day(record.lastSeen.at)) }}
-              </NuxtLink>
-            </p>
-
-            <!--
-              Which pressing will do, in your own words.
-
-              The most useful line on the screen and the last to arrive: a dig
-              that does not know "only the German press" offers you the wrong
-              one with a straight face. Discogs has carried this all along.
-
-              Drawn without a border until it is wanted. Twenty-three empty
-              boxes down a page shout for attention none of them has earned —
-              a note is an invitation, not a form field, and the placeholder
-              is enough of one.
-            -->
-            <input
-              :value="record.note"
-              type="text"
-              :placeholder="c.wantlist.notePlaceholder"
-              :aria-label="c.wantlist.noteLabel(record.artist, record.title)"
-              class="-mx-2 min-h-11 w-[calc(100%+1rem)] rounded-fid-sm border border-transparent bg-transparent px-2 text-fid-sm text-fid-text transition-colors placeholder:text-fid-text-muted hover:border-fid-field focus:border-fid-field focus:bg-fid-surface"
-              @change="note(record, ($event.target as HTMLInputElement).value)"
-            />
-          </div>
+          <!--
+            Wanting something is allowed to stop — as a plate, not a button:
+            twenty of them down a page would shout. No confirmation: unlike
+            the collection, a want costs nothing to add back.
+          -->
+          <button
+            v-if="group.members.length === 1"
+            type="button"
+            class="fid-plate fid-action min-h-11 self-start text-fid-text-muted hover:text-fid-text"
+            :aria-label="c.wantlist.drop(group.lead.artist, group.lead.title)"
+            @click="drop(group.lead.releaseId)"
+          >
+            {{ c.wantlist.dropShort }}
+          </button>
         </li>
       </ul>
 
