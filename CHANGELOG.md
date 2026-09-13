@@ -9,6 +9,23 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.67.0](https://github.com/misterhonk/fidelity/compare/v0.66.0...v0.67.0) (2026-09-13)
+
+**Three small things a first quarter of an hour asked for.**
+
+In a compartment's "Fill", "All" now means all: every record the list holds, not just the
+rows on screen, and the button says the true number. A record's sheet says why the rule
+proposes a compartment — "A2 · C–D, by artist" — not just the coordinate. And if you have
+not built the horizon yet, the wantlist tells you what that would do for you and where to do
+it, instead of a sentence about it in the app's own words.
+
+**What to do:** Nothing.
+
+
+### Added
+
+* **collection:** "All" means all, the divider on the sheet, the horizon explained once (M28 [#4](https://github.com/misterhonk/fidelity/issues/4) [#5](https://github.com/misterhonk/fidelity/issues/5) [#6](https://github.com/misterhonk/fidelity/issues/6)) ([6ac368b](https://github.com/misterhonk/fidelity/commit/6ac368b53fcaa3e242bc2f39c1979c84bf3abcdf))
+
 ## [0.66.0](https://github.com/misterhonk/fidelity/compare/v0.65.1...v0.66.0) (2026-09-13)
 
 **From the shelf straight into a compartment, and keys on the wall.**
