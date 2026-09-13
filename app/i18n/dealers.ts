@@ -46,7 +46,16 @@ const en = {
   rateBelow: (rate: string, factor: string) =>
     `${rate} finds per thousand — only ${factor} times your other shops.`,
 
-  neverScanned: 'I only know this shop by name — it has not been scanned yet.',
+  /*
+   * A shop that has never been dug, and what can be done with it anyway.
+   *
+   * It used to say only what was missing — "I only know this shop by name" —
+   * which reads as a dead end beside a "Watch this shop" button nobody could
+   * be sure worked. It does: the watch asks `num_for_sale` off the profile,
+   * one lookup, and needs no dig at all (`worker/watch/check.ts`). What it
+   * cannot do until the shop has been dug once is say *what* moved.
+   */
+  neverScanned: 'Known by name so far. Watching works already — a dig fills in the rest.',
   listings: (n: string) => `${n} listings`,
   shipsFrom: (country: string) => `from ${country}`,
   rating: (percent: string, count: string) => `${percent} on ${count} ratings`,
@@ -145,10 +154,11 @@ const en = {
     title: 'The round',
     about: (shops: number, minutes: number) =>
       `Visits your ${shops === 1 ? 'one watched shop' : `${shops} watched shops`} one after another and fetches only what each has put up since your last visit — about ${minutes === 1 ? 'a minute' : `${minutes} minutes`}. No style or price lookups: those are a hundred more per shop, and a find is one tap from them.`,
+    /* Short, because the round already names each skipped shop in its result. */
     neverDug: (n: number) =>
       n === 1
-        ? 'One watched shop has never been dug, so there is no line for "what is new" to stop at. The round leaves it out — dig it once and it joins.'
-        : `${n} watched shops have never been dug, so there is no line for "what is new" to stop at. The round leaves them out — dig each once and they join.`,
+        ? 'One watched shop has never been dug — the round skips it until it has.'
+        : `${n} watched shops have never been dug — the round skips them until they have.`,
     start: 'Walk the round',
     found: (n: number) => (n === 1 ? '1 find' : `${n} finds`),
     keepsRunning:
@@ -250,7 +260,8 @@ const de: typeof en = {
   rateBelow: (rate, factor) =>
     `${rate} Treffer je tausend – nur das ${factor}-Fache deiner übrigen Läden.`,
 
-  neverScanned: 'Diesen Laden kenne ich nur vom Namen – gescannt wurde er noch nicht.',
+  neverScanned:
+    'Bislang nur dem Namen nach bekannt. Beobachten geht trotzdem schon – ein Dig füllt den Rest.',
   listings: (n) => `${n} Listings`,
   shipsFrom: (country) => `aus ${countryName(country)}`,
   rating: (percent, count) => `${percent} bei ${count} Bewertungen`,
@@ -303,8 +314,8 @@ const de: typeof en = {
       `Geht ${shops === 1 ? 'deinen einen beobachteten Laden' : `deine ${shops} beobachteten Läden`} nacheinander ab und holt nur, was seit deinem letzten Besuch dazugekommen ist – rund ${minutes === 1 ? 'eine Minute' : `${minutes} Minuten`}. Ohne Stil- und Preisabfragen: die wären hundert weitere pro Laden, und ein Treffer ist einen Tipp davon entfernt.`,
     neverDug: (n) =>
       n === 1
-        ? 'Ein beobachteter Laden wurde noch nie gegraben, es gibt also keine Linie, an der „was ist neu" halten könnte. Der Rundgang lässt ihn aus – einmal graben, dann ist er dabei.'
-        : `${n} beobachtete Läden wurden noch nie gegraben, es gibt also keine Linie, an der „was ist neu" halten könnte. Der Rundgang lässt sie aus – einmal graben, dann sind sie dabei.`,
+        ? 'Ein beobachteter Laden wurde noch nie gegraben – der Rundgang lässt ihn aus, bis es soweit ist.'
+        : `${n} beobachtete Läden wurden noch nie gegraben – der Rundgang lässt sie aus, bis es soweit ist.`,
     start: 'Rundgang starten',
     found: (n) => (n === 1 ? '1 Treffer' : `${n} Treffer`),
     keepsRunning:
