@@ -1531,6 +1531,48 @@ export interface LandedPrice {
   source: ShippingTier['source'] | null
 }
 
+/**
+ * The round: one visit to every watched shop, in one go.
+ *
+ * Its own small record rather than a reading over the digs it made, because
+ * those do not survive it: five digs are kept (docs/03 §5), so a round over
+ * ten shops loses the first five find lists before it is finished. This is
+ * what is left — which shop had something, and what the best of it was.
+ */
+export interface RoundStop {
+  dealer: string
+  displayName: string
+  /** The dig this stop made, while it is still one of the five kept. */
+  digId: string | null
+  /** How many listings the shop had put up since the last visit. */
+  newListings: number
+  matches: number
+  /** Named, not referenced: the dig may be gone by the time this is read. */
+  best: { artist: string; title: string; score: number } | null
+  /**
+   * `never-dug` is not a failure. "Only what is new" needs a line to stop at,
+   * and a shop nobody has dug yet has none — a full dig is two hundred
+   * requests and is somebody's decision, not a round's.
+   */
+  status: 'found' | 'nothing' | 'never-dug' | 'failed'
+}
+
+export interface RoundSummary {
+  startedAt: number
+  finishedAt: number | null
+  requests: number
+  stops: RoundStop[]
+}
+
+export interface RoundProgress {
+  done: number
+  total: number
+  /** The shop being visited this second, so the wait has a subject. */
+  dealer: string | null
+  /** Finds so far, across every shop of this round. */
+  found: number
+}
+
 export interface DealerFingerprint {
   sampledItems: number
   totalItems: number

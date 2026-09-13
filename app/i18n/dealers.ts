@@ -71,6 +71,38 @@ const en = {
   digAgain: 'Dig again',
 
   /*
+   * The round (worker/dealers/round.ts).
+   *
+   * Asked for as a question: "so I can build a kind of favourite-shop list and
+   * scan it weekly for new items?" Almost — the shops were remembered and
+   * could be watched, but watching only says *that* something moved. This is
+   * the walk that says what.
+   *
+   * "Weekly" is the one word not used. There is no server and a browser does
+   * not run while it is closed (ADR-007); a button that runs when somebody is
+   * there is the honest version of a schedule.
+   */
+  round: {
+    title: 'The round',
+    about: (shops: number, minutes: number) =>
+      `Visits your ${shops === 1 ? 'one watched shop' : `${shops} watched shops`} one after another and fetches only what each has put up since your last visit — about ${minutes === 1 ? 'a minute' : `${minutes} minutes`}. No style or price lookups: those are a hundred more per shop, and a find is one tap from them.`,
+    neverDug: (n: number) =>
+      n === 1
+        ? 'One watched shop has never been dug, so there is no line for "what is new" to stop at. The round leaves it out — dig it once and it joins.'
+        : `${n} watched shops have never been dug, so there is no line for "what is new" to stop at. The round leaves them out — dig each once and they join.`,
+    start: 'Walk the round',
+    found: (n: number) => (n === 1 ? '1 find' : `${n} finds`),
+    keepsRunning:
+      'Carries on if you leave this screen — the round runs in the background, not on this page.',
+    lastAt: (when: string) => `Last round ${when}`,
+    stopNothing: (listings: string) => `nothing for you among ${listings} new`,
+    stopFound: (matches: number, listings: string) =>
+      `${matches === 1 ? '1 find' : `${matches} finds`} among ${listings} new`,
+    stopNeverDug: 'never dug — left out',
+    stopFailed: 'did not answer this time',
+  },
+
+  /*
    * "Never show this one again." Gone from every list, unwatched — and one
    * sentence on what brings it back, because a switch with no visible way
    * back is a trap, not a setting.
@@ -180,6 +212,26 @@ const de: typeof en = {
     'Beim Öffnen der App wird nachgesehen, ob sich das Sortiment bewegt hat – eine einzige Abfrage, kein neuer Scan.',
   digNow: 'Jetzt graben',
   digAgain: 'Nochmal graben',
+
+  round: {
+    title: 'Der Rundgang',
+    about: (shops, minutes) =>
+      `Geht ${shops === 1 ? 'deinen einen beobachteten Laden' : `deine ${shops} beobachteten Läden`} nacheinander ab und holt nur, was seit deinem letzten Besuch dazugekommen ist – rund ${minutes === 1 ? 'eine Minute' : `${minutes} Minuten`}. Ohne Stil- und Preisabfragen: die wären hundert weitere pro Laden, und ein Treffer ist einen Tipp davon entfernt.`,
+    neverDug: (n) =>
+      n === 1
+        ? 'Ein beobachteter Laden wurde noch nie gegraben, es gibt also keine Linie, an der „was ist neu" halten könnte. Der Rundgang lässt ihn aus – einmal graben, dann ist er dabei.'
+        : `${n} beobachtete Läden wurden noch nie gegraben, es gibt also keine Linie, an der „was ist neu" halten könnte. Der Rundgang lässt sie aus – einmal graben, dann sind sie dabei.`,
+    start: 'Rundgang starten',
+    found: (n) => (n === 1 ? '1 Treffer' : `${n} Treffer`),
+    keepsRunning:
+      'Läuft weiter, wenn du diesen Bildschirm verlässt – der Rundgang läuft im Hintergrund, nicht auf dieser Seite.',
+    lastAt: (when) => `Letzter Rundgang ${when}`,
+    stopNothing: (listings) => `nichts für dich unter ${listings} neuen`,
+    stopFound: (matches, listings) =>
+      `${matches === 1 ? '1 Treffer' : `${matches} Treffer`} unter ${listings} neuen`,
+    stopNeverDug: 'noch nie gegraben – ausgelassen',
+    stopFailed: 'hat diesmal nicht geantwortet',
+  },
 
   hide: 'Diesen Laden ausblenden',
   hideWhy:

@@ -50,6 +50,8 @@ import type {
   Preferences,
   PushRegistration,
   ReleaseDetail,
+  RoundProgress,
+  RoundSummary,
   SharedDig,
   ShelfResult,
   ShelfSort,
@@ -432,6 +434,23 @@ export interface WorkerContract {
    */
   'horizon.status': { params: undefined; progress: never; result: HorizonStatus }
   'horizon.build': { params: undefined; progress: HorizonProgress; result: HorizonResult }
+  /**
+   * The round: every watched shop, asked what is new since the last visit
+   * (`worker/dealers/round.ts`). `round.plan` spends nothing — it counts what
+   * is watched and says what the walk would cost, so the price is on screen
+   * before the button is pressed, as everywhere else that spends the limit.
+   */
+  'round.plan': {
+    params: undefined
+    progress: never
+    result: { shops: number; reachable: number; neverDug: number; requests: number }
+  }
+  'round.run': { params: undefined; progress: RoundProgress; result: RoundSummary }
+  /** What the round is visiting right now — the counterpart to `dig.running`. */
+  'round.running': { params: undefined; progress: never; result: RoundProgress | null }
+  /** The last round, which outlives the digs it made. */
+  'round.last': { params: undefined; progress: never; result: RoundSummary | null }
+
   /**
    * Whether this worker is expanding the horizon right now, and how far.
    *
