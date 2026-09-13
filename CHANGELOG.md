@@ -9,6 +9,30 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.66.0](https://github.com/misterhonk/fidelity/compare/v0.65.1...v0.66.0) (2026-09-13)
+
+**From the shelf straight into a compartment, and keys on the wall.**
+
+On the shelf, tap "Select": the sleeves become things to tick. "Put n in …" opens the wall
+small — every piece of furniture as a little grid, a button per compartment — and one tap
+puts the ticked records there. The line at the bottom has "Undo", and it puts each record
+back exactly where it was, in a compartment or in no place at all.
+
+On the wall, the keyboard does more: `M` opens the focused compartment on "move all", a
+letter jumps to the compartment whose divider covers it — press W and you are in W — and
+Home and End go to the corners.
+
+And there is a demo account now: a second Discogs collection that testers can look at without
+showing their own, synced every night against the live app.
+
+**What to do:** Nothing. On the shelf, try "Select".
+
+
+### Added
+
+* **collection:** keys on the wall, and "put n in …" from the shelf (M27.5) ([76d2d8d](https://github.com/misterhonk/fidelity/commit/76d2d8df178e65f1a77dfd1cd54d8c892c18bdaa))
+* **demo:** the demo account — a script that fills it, and the smoke run that syncs it ([297f9ec](https://github.com/misterhonk/fidelity/commit/297f9ec1f92f1530ede2a48effbefbf8c079b2c5))
+
 ## [0.65.1](https://github.com/misterhonk/fidelity/compare/v0.65.0...v0.65.1) (2026-09-13)
 
 **A shop's profile opens at once, even when Discogs is slow.**
