@@ -1640,6 +1640,26 @@ export interface DealerFingerprint {
  * same reason: they are the only marketplace numbers in it, and rule 4 does
  * not make an exception for a median.
  */
+/**
+ * Why a shop is on the list — as many reasons as apply (M30).
+ *
+ * `dug`, `basket` and `watched` are derived from what is on the device; the
+ * rest come from `Dealer.addedBy`, because nothing afterwards can tell an
+ * order from a friend.
+ *
+ * **There is deliberately no `wantlist`.** "Shops that offer something on my
+ * wantlist" needs a listings-by-release endpoint, and there is none that may
+ * be used (rule 5). Where a dig has found such a record the shop is on the
+ * list as `dug` and the find list says which record; there is no honest way to
+ * add the ones nobody has dug.
+ */
+export type DealerReason = 'dug' | 'basket' | 'watched' | 'order' | 'friend' | 'manual'
+
+/** A shop with the reasons it is on the list, for the screens that say so. */
+export interface DealerWithReasons extends Dealer {
+  reasons: DealerReason[]
+}
+
 export interface HubShop {
   username: string
   displayName: string
@@ -1699,6 +1719,20 @@ export interface Dealer {
   /** `num_for_sale` at the last check — the whole change detector. */
   watchNumForSale?: number | null
   watchCheckedAt?: number | null
+  /**
+   * How this shop first came to be on the list (M30).
+   *
+   * The screen was a log of what had been dug, and a row without a reason is a
+   * row nobody trusts — a tester with nine shops in his Discogs friends list
+   * saw one of them here and could not tell why. Stored, because three of the
+   * four cannot be worked out afterwards: a shop imported from an order looks
+   * exactly like one imported from the friends list.
+   *
+   * `dig` is the implicit answer for every row written before this existed,
+   * and `derive` in `worker/dealers/reasons.ts` says so rather than leaving
+   * the field empty on a screen.
+   */
+  addedBy?: 'dig' | 'order' | 'friend' | 'manual'
   /** Last touched, which is what a merge between two devices compares. */
   updatedAt?: number
   /**

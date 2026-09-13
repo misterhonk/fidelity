@@ -4,6 +4,7 @@ import type { DealerProfile } from '#shared/protocol'
 import type { SuggestResult } from '~~/worker/dealers/suggest'
 import type {
   Dealer,
+  DealerWithReasons,
   GradingRecord,
   RoundProgress,
   RoundSummary,
@@ -30,7 +31,7 @@ const {
 } = usePush()
 const route = useRoute()
 
-const dealers = shallowRef<Dealer[]>([])
+const dealers = shallowRef<DealerWithReasons[]>([])
 
 /*
  * "Only from Germany / the EU" (M20 #2), on the chips. A view, in the
@@ -164,6 +165,45 @@ async function watchToggle(username: string) {
  */
 const suggested = shallowRef<SuggestResult | null>(null)
 const suggesting = ref(false)
+
+/*
+ * A shop entered by hand (M30).
+ *
+ * "I want to enter dealers myself, so they are there for future digs." Until
+ * now a shop reached this list by being dug or by being imported from a
+ * discovery run — so somebody who knows where they want to look before they
+ * have looked had nowhere to put it.
+ *
+ * The same parser the dig field uses reads a name or a pasted shop address,
+ * and it is what disables the button: a typo must not reach the list, where it
+ * would be offered on two screens and walked by every round.
+ */
+const typed = ref('')
+const adding = ref(false)
+const typedName = computed(() => dealerFromInput(typed.value))
+
+async function addByHand() {
+  const name = typedName.value
+  if (!name || adding.value) return
+
+  adding.value = true
+  error.value = null
+
+  try {
+    dealers.value = await call('dealer.add', { dealer: name })
+    typed.value = ''
+    await select(name)
+  } catch (cause) {
+    error.value = cause
+  } finally {
+    adding.value = false
+  }
+}
+
+/** The reasons for one shop, out of the list the worker already handed over. */
+function reasonsFor(username: string) {
+  return dealers.value.find((dealer) => dealer.username === username)?.reasons ?? []
+}
 
 async function loadSuggestions() {
   if (suggesting.value) return
@@ -395,6 +435,37 @@ const scanned = computed(() => {
     -->
     <ErrorNote v-if="error" :cause="error" />
 
+    <!--
+      A shop entered by hand, above the discovery box.
+
+      Above it deliberately: somebody who already knows the name has the
+      shortest path in the app, and the search below is for when they do not.
+    -->
+    <form class="flex flex-wrap items-end gap-3" @submit.prevent="addByHand">
+      <div class="flex min-w-64 grow flex-col gap-2">
+        <label class="text-fid-sm font-medium text-fid-text" for="add-shop">
+          {{ h.add.label }}
+        </label>
+        <input
+          id="add-shop"
+          v-model="typed"
+          type="text"
+          autocomplete="off"
+          spellcheck="false"
+          :placeholder="h.add.placeholder"
+          class="fid-field px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+        />
+      </div>
+      <button
+        type="submit"
+        :disabled="adding || typedName === null"
+        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+      >
+        {{ adding ? h.add.busy : h.add.submit }}
+      </button>
+    </form>
+    <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ h.add.about }}</p>
+
     <DealerDiscovery :first-time="dealers.length === 0" @imported="load()" />
 
     <!--
@@ -595,6 +666,23 @@ const scanned = computed(() => {
 
       <section v-if="profile" class="flex flex-col gap-8">
         <div class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4">
+          <!--
+            Why this shop is here at all (M30).
+
+            A tester with nine shops in his Discogs friends list saw one of
+            them on this screen and could not tell why — and a row without a
+            reason is a row nobody trusts.
+          -->
+          <p v-if="reasonsFor(profile.dealer.username).length > 0" class="flex flex-wrap gap-1">
+            <span
+              v-for="reason in reasonsFor(profile.dealer.username)"
+              :key="reason"
+              class="rounded-fid-sm border border-fid-border px-2 py-1 text-fid-xs text-fid-text-muted"
+            >
+              {{ h.reasons[reason] }}
+            </span>
+          </p>
+
           <p v-if="profile.dealer.lastScannedAt === null" class="text-fid-base text-fid-text">
             {{ h.neverScanned }}
           </p>

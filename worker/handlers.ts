@@ -25,7 +25,8 @@ import { fail } from './fail'
  */
 async function rankedDealers() {
   const { visibleDealers } = await import('./dealers/hide')
-  return (await visibleDealers()).sort(
+  const { withReasons } = await import('./dealers/reasons')
+  return (await withReasons(await visibleDealers())).sort(
     (a, b) =>
       Number(b.lastScannedAt !== null) - Number(a.lastScannedAt !== null) ||
       (b.affinity ?? 0) - (a.affinity ?? 0) ||
@@ -549,6 +550,24 @@ export const handlers: HandlerMap = {
   },
 
   'dealer.list': async () => rankedDealers(),
+
+  /*
+   * A shop entered by hand (M30).
+   *
+   * Reported plainly: "I want to enter dealers myself, so they are there for
+   * future digs." Until now a shop reached this list by being dug or by being
+   * imported from a discovery run — so somebody who knows where they want to
+   * look before they have looked had nowhere to put it.
+   *
+   * One request. `/users/{name}` says whether the shop exists and how big it
+   * is, and refusing to write a row without that would be the difference
+   * between a shop and a typo sitting in the list for ever.
+   */
+  'dealer.add': async ({ dealer }, { signal }) => {
+    const { addDealerByHand } = await import('./dealers/add')
+    await addDealerByHand(discogs(), dealer, signal)
+    return rankedDealers()
+  },
 
   'dealer.hide': async ({ dealer, hidden }) => {
     const { setHidden, hiddenDealers } = await import('./dealers/hide')
