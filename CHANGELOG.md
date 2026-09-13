@@ -11,6 +11,19 @@ Für eine App bedeutet SemVer:
 
 ## [0.65.1](https://github.com/misterhonk/fidelity/compare/v0.65.0...v0.65.1) (2026-09-13)
 
+**A shop's profile opens at once, even when Discogs is slow.**
+
+Opening a shop for the first time fetched its logo from Discogs — and the whole profile
+waited for that one request. When Discogs was rate-limiting, that wait could be a minute
+on a screen that has everything else on your device already. The logo is still fetched, but
+in the background: the profile opens immediately, and the shop's picture appears in the list
+a moment later.
+
+Under the hood, the browser tests no longer talk to Discogs at all; that was the cause of
+most of the red runs on CI.
+
+**What to do:** Nothing.
+
 
 ### Fixed
 
