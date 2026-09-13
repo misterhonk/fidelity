@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { blankDealer, isHidden } from '~~/db/dealer'
+import { countryIn } from '#shared/countries'
 import { openFidelityDb } from '~~/db/open'
 import type { DealerCandidate, DiscoveryResult } from '#shared/types'
 
@@ -207,7 +208,16 @@ export async function rememberDealers(candidates: DealerCandidate[]): Promise<nu
       numForSale: existing?.numForSale || candidate.numForSale,
       sellerRating: candidate.sellerRating ?? existing?.sellerRating ?? 0,
       ratingCount: candidate.ratingCount || (existing?.ratingCount ?? 0),
-      shipsFrom: candidate.location || (existing?.shipsFrom ?? ''),
+      /*
+       * The country, read out of the profile's free-text location.
+       *
+       * `location` is a box people type addresses and phone numbers into;
+       * putting it here made the origin filter compare a postal address
+       * against "Germany" and hide every shop. The line itself is kept, for
+       * the screen rather than for a comparison.
+       */
+      shipsFrom: countryIn(candidate.location) ?? existing?.shipsFrom ?? '',
+      location: candidate.location || existing?.location,
       // Where it came from, so the screen can say (M30). Kept if there is
       // already one: the first reason is the true one, and a shop imported
       // twice was not discovered twice.

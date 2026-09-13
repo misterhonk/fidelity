@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { blankDealer, repairShipsFrom } from '~~/db/dealer'
+import type { Dealer } from '#shared/types'
 import {
+  countryIn,
   forgetHomeCountry,
   guessHomeCountry,
   isEu,
@@ -130,5 +133,108 @@ describe('Europe beside the EU', () => {
   it('reads the new filter out of an address', () => {
     expect(readOrigin('europe')).toBe('europe')
     expect(readOrigin('nonsense')).toBe('any')
+  })
+})
+
+/**
+ * Two fields say where a shop is, and only one of them is a country (M31).
+ *
+ * A **listing** carries `ships_from`, an English country name and nothing else
+ * (docs/02). A **user profile** carries `location`, a free-text box —
+ * `fatplastics` has "Schillergäßchen 5, 07745 Jena, Thuringia, Germany -
+ * phone: ++49-3641-35.38.00" in it. The shops screen compared that whole
+ * string against "Germany" and filtered every shop away.
+ */
+describe('the country inside a line of free text', () => {
+  it('finds it at the end of a postal address', () => {
+    expect(
+      countryIn(
+        'Schillergäßchen 5, 07745 Jena, Thuringia, Germany - phone: ++49-3641-35.38.00',
+      ),
+    ).toBe('Germany')
+  })
+
+  it('reads a multi-word name as one country', () => {
+    expect(countryIn('London, United Kingdom')).toBe('United Kingdom')
+    expect(countryIn('Brooklyn, NY, United States')).toBe('United States')
+  })
+
+  it('will not find a country inside a longer word', () => {
+    // "India" inside "Indiana", "Chad" inside a street name.
+    expect(countryIn('Indianapolis, Indiana')).not.toBe('India')
+    expect(countryIn('Chadwick Street, Leeds')).not.toBe('Chad')
+  })
+
+  /*
+   * Null rather than a guess: a location nobody can place is not a country,
+   * and the filter then leaves the shop out under everything but "anywhere" —
+   * exactly as it does for a shop that said nothing at all.
+   */
+  it('answers nothing where there is no country to find', () => {
+    expect(countryIn('somewhere nice')).toBeNull()
+    expect(countryIn('')).toBeNull()
+    expect(countryIn(null)).toBeNull()
+  })
+
+  it('does not care about the case Discogs wrote it in', () => {
+    expect(countryIn('jena, GERMANY')).toBe('Germany')
+  })
+
+  it('feeds the filter the way the shops screen needs it', () => {
+    const location = 'Schillergäßchen 5, 07745 Jena, Thuringia, Germany'
+    const country = countryIn(location)!
+
+    expect(passesOrigin(country, 'home', 'Germany')).toBe(true)
+    expect(passesOrigin(country, 'eu', 'Germany')).toBe(true)
+    expect(passesOrigin(country, 'europe', 'Germany')).toBe(true)
+    // And the raw line, which is what was being compared before, never did.
+    expect(passesOrigin(location, 'home', 'Germany')).toBe(false)
+  })
+})
+
+/**
+ * And the rows that already hold the wrong field (v14).
+ *
+ * Code alone does not fix a device that has them, and waiting for every shop
+ * to be dug again would leave the screen broken for as long as that takes.
+ */
+describe('repairing a dealer row', () => {
+  const row = (shipsFrom: string, location?: string) =>
+    ({ ...blankDealer('shop'), shipsFrom, location }) as Dealer
+
+  it('pulls the country out and keeps the line it came from', () => {
+    const fixed = repairShipsFrom(
+      row('Schillergäßchen 5, 07745 Jena, Thuringia, Germany - phone: ++49-3641-35.38.00'),
+    )
+
+    expect(fixed.shipsFrom).toBe('Germany')
+    expect(fixed.location).toContain('Schillergäßchen')
+  })
+
+  it('leaves a row that already holds a country untouched', () => {
+    const already = row('United Kingdom')
+    expect(repairShipsFrom(already)).toBe(already)
+  })
+
+  it('leaves an empty row untouched rather than inventing a country', () => {
+    const blank = row('')
+    expect(repairShipsFrom(blank)).toBe(blank)
+  })
+
+  /*
+   * A line nobody can place keeps its place and only stops being mistaken for
+   * a country. The filter then leaves the shop out under everything but
+   * "anywhere", exactly as it does for a shop that said nothing.
+   */
+  it('empties the country where the line names none, and keeps the line', () => {
+    const fixed = repairShipsFrom(row('somewhere nice'))
+
+    expect(fixed.shipsFrom).toBe('')
+    expect(fixed.location).toBe('somewhere nice')
+  })
+
+  it('does not overwrite a location that is already there', () => {
+    const fixed = repairShipsFrom(row('Jena, Germany', 'what the shop wrote'))
+    expect(fixed.location).toBe('what the shop wrote')
   })
 })

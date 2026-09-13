@@ -196,3 +196,73 @@ export function guessHomeCountry(): string {
 export function forgetHomeCountry(): void {
   guessed = null
 }
+
+// ---------------------------------------------------------------------------
+// Country names, and finding one in a line of free text.
+//
+// Two different fields on Discogs say where a shop is, and only one of them is
+// a country. A **listing** carries `ships_from`, an English country name and
+// nothing else (docs/02, measured at two shops). A **user profile** carries
+// `location`, which is a free-text box: `fatplastics` has
+// "Schillergäßchen 5, 07745 Jena, Thuringia, Germany - phone: ++49-3641-35.38.00"
+// in it.
+//
+// The shops screen compared that whole string against "Germany" and therefore
+// filtered every shop away — reported 2026-09-13 with a screenshot of nine
+// shops, most of them in the EU, and "none of your shops ships from there"
+// under every filter.
+
+/** ISO 3166-1 alpha-2, minus the ones nobody sells records from. */
+export const COUNTRY_CODES =
+  'AD AE AF AG AL AM AO AR AT AU AW AZ BA BB BD BE BF BG BH BI BJ BM BN BO BR BS BT BW BY BZ ' +
+  'CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM ' +
+  'FO FR GA GB GD GE GH GI GL GM GN GQ GR GT GW GY HK HN HR HT HU ID IE IL IM IN IQ IR IS IT ' +
+  'JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG ' +
+  'MH MK ML MM MN MO MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL ' +
+  'PR PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG ' +
+  'TH TJ TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VN VU WS YE ZA ZM ZW'
+
+/**
+ * The English names, built once and only when something asks.
+ *
+ * `Intl.DisplayNames` is not free to construct, and this module is imported by
+ * the worker's entry chunk — the same mistake as `guessHomeCountry` made, and
+ * fixed the same way.
+ */
+let names: string[] | null = null
+
+function englishNames(): string[] {
+  if (names) return names
+  const english = new Intl.DisplayNames(['en'], { type: 'region' })
+  names = COUNTRY_CODES.split(' ')
+    .map((code) => english.of(code) ?? code)
+    // Longest first: "United Kingdom" must win over nothing, and a short name
+    // must never be found inside a longer one.
+    .sort((a, b) => b.length - a.length)
+  return names
+}
+
+/**
+ * The country named in a line of free text, or null.
+ *
+ * Whole words only, so "Chad" is not found inside a street name and "India"
+ * not inside "Indiana". Longest match first, so "United States" is not read as
+ * two countries. Null where nothing is recognised — a location nobody can
+ * place is not a guess worth making, and the filter leaves such a shop out
+ * under everything but "anywhere", exactly as it does for a shop that said
+ * nothing at all.
+ */
+export function countryIn(text: string | null | undefined): string | null {
+  const line = (text ?? '').trim()
+  if (line.length === 0) return null
+
+  for (const name of englishNames()) {
+    const pattern = new RegExp(`(^|[^\\p{L}])${escape(name)}([^\\p{L}]|$)`, 'iu')
+    if (pattern.test(line)) return name
+  }
+  return null
+}
+
+function escape(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}

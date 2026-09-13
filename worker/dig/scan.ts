@@ -296,6 +296,16 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
    */
   let shippingNote: string | null = null
 
+  /**
+   * Where the shop ships from — off the rows, not off its profile.
+   *
+   * `ships_from` on a listing is an English country name and nothing else
+   * (docs/02, measured at two shops). The profile's `location` is free text
+   * and was what the dealer row carried, which made the origin filter compare
+   * a postal address against "Germany" and hide every shop.
+   */
+  let shipsFrom: string | null = null
+
   /** Where a "nur das Neue" run stops. Null on every other kind. */
   const anchor = dig.depth === 'neu' ? (ctx.since ?? null) : null
   let reachedKnown = false
@@ -377,6 +387,7 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
 
         scanned += 1
         shippingNote ??= row.seller?.shipping?.trim() || null
+        shipsFrom ??= row.ships_from?.trim() || null
         if (
           row.posted &&
           (newestSeen === null || Date.parse(row.posted) > Date.parse(newestSeen))
@@ -526,7 +537,7 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   dig.finishedAt = now()
   dig.cursor = null
   await db.put('digs', dig)
-  await saveDealer(ctx, dig, fingerprint, newestSeen, shippingNote)
+  await saveDealer(ctx, dig, fingerprint, newestSeen, shippingNote, shipsFrom)
   await pruneDigs(db)
 
   // What this dig taught the horizon. Handed back rather than acted on here:
@@ -788,6 +799,7 @@ async function saveDealer(
   fingerprint: FingerprintAccumulator,
   newestListedAt: string | null,
   shippingNote: string | null,
+  shipsFrom: string | null,
 ): Promise<void> {
   const { db } = ctx
   const existing = await db.get('dealers', dig.dealer)
@@ -808,6 +820,8 @@ async function saveDealer(
       // The postage text, though — a shop can change it any day, and an
       // incremental visit read it for nothing like every other visit does.
       shippingNote: shippingNote ?? existing?.shippingNote ?? '',
+      // The country too: it is on every row and costs nothing to keep.
+      shipsFrom: shipsFrom ?? existing?.shipsFrom ?? '',
       updatedAt: dig.finishedAt ?? Date.now(),
     })
     return
@@ -834,6 +848,13 @@ async function saveDealer(
     lastScannedAt: dig.finishedAt,
     // The line a later "nur das Neue" visit stops at.
     newestListedAt: newestListedAt ?? existing?.newestListedAt ?? null,
+    /*
+     * The country, from the listings rather than from the profile.
+     *
+     * Overwrites what a discovery run derived: a field Discogs itself puts on
+     * every row beats a country read out of somebody's free-text address.
+     */
+    shipsFrom: shipsFrom ?? existing?.shipsFrom ?? '',
     // How this shop first came to be on the list (M30). Never overwritten:
     // a shop entered by hand and dug afterwards was still entered by hand.
     addedBy: existing?.addedBy ?? 'dig',
