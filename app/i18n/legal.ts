@@ -42,7 +42,7 @@ const en = {
      */
     audio: 'The first exception: the audio preview',
     audioBody:
-      'Discogs has one source of sound: YouTube. If you switch the audio preview on in the settings and then tap Listen, a player is loaded from Google. From that moment Google sees this device’s address and which record is playing. Your collection, wantlist and token stay here — none of that is sent. The switch is off to begin with, and with it off nothing is loaded from Google at all.',
+      'Discogs has one source of sound: YouTube. If you switch the audio preview on in the settings and then tap Listen, a player is loaded from Google. From that moment Google sees this device’s address and which record is playing. Your collection, wantlist and token stay here — none of that is sent. The switch is off to begin with, and with it off nothing is loaded from Google at all. Google LLC is in the United States; the transfer relies on the EU–US Data Privacy Framework.',
 
     /*
      * The second exception, and it gets a heading for the same reason the
@@ -132,7 +132,7 @@ const de: typeof en = {
 
     audio: 'Die erste Ausnahme: die Hörprobe',
     audioBody:
-      'Discogs hat genau eine Tonquelle: YouTube. Wer die Hörprobe in den Einstellungen einschaltet und dann auf „Anhören" tippt, lädt einen Spieler von Google. Ab diesem Moment sieht Google die Adresse dieses Geräts und welche Platte läuft. Sammlung, Wantlist und Token bleiben hier – davon wird nichts gesendet. Der Schalter ist zu Anfang aus, und solange er aus ist, wird gar nichts von Google geladen.',
+      'Discogs hat genau eine Tonquelle: YouTube. Wer die Hörprobe in den Einstellungen einschaltet und dann auf „Anhören" tippt, lädt einen Spieler von Google. Ab diesem Moment sieht Google die Adresse dieses Geräts und welche Platte läuft. Sammlung, Wantlist und Token bleiben hier – davon wird nichts gesendet. Der Schalter ist zu Anfang aus, und solange er aus ist, wird gar nichts von Google geladen. Google LLC sitzt in den USA; die Übermittlung stützt sich auf das EU-US Data Privacy Framework.',
 
     hub: 'Die zweite Ausnahme: ein eigener Hub',
     hubBody:

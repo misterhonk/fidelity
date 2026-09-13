@@ -17,7 +17,25 @@
  * browser**, and no line of code changes that. After the first tap one player
  * instance stays standing and gets a `loadVideoById()` per card — the one
  * gesture carries through the stack.
+ *
+ * **One player, wherever it is asked for.** The state below is module scope,
+ * not per component: the stack, a find's sheet and a shelf record's sheet all
+ * offer the same button, and two players would mean two records playing at
+ * once with only one of them stoppable. Whichever screen asks last gets the
+ * player; the one before it is torn down (`release`), which is also what
+ * happens when a sheet closes — a frame whose host element has been unmounted
+ * is a frame nobody can stop.
  */
+
+/*
+ * Imported by name although Nuxt auto-imports both.
+ *
+ * The state below is module scope, so it is built the moment this file is
+ * imported — including by the test that reads this module directly, in a plain
+ * Vitest process where there is no auto-import to build it with. The same
+ * reason `useMessages.ts` names its `shallowRef`.
+ */
+import { readonly, ref } from 'vue'
 
 /** Privacy-enhanced mode: no cookies before playing. Google still sees the
  *  request itself, and the privacy page says so. */
@@ -50,6 +68,38 @@ interface Player {
 
 let player: Player | null = null
 let ready: Promise<Player> | null = null
+
+/** The element the frame was built into, so a screen can take back its own. */
+let host: HTMLElement | null = null
+
+/*
+ * Module scope, so every screen sees the same one playing.
+ *
+ * These used to be per call site, which was harmless while the stack was the
+ * only caller and wrong the moment a sheet offered the same button: the sheet
+ * would have shown "playing" while the stack still showed "play", over a
+ * single frame that only one of them could stop.
+ */
+const armed = ref(false)
+const playing = ref<string | null>(null)
+const clip = ref<string | null>(null)
+const failed = ref(false)
+
+/** Back to before the first tap: no frame, no player, nothing playing. */
+function teardown() {
+  try {
+    player?.destroy()
+  } catch {
+    // The frame can already have gone with the element it lived in. Nothing to
+    // stop, and a throw here would take the screen down with it.
+  }
+  player = null
+  ready = null
+  host = null
+  playing.value = null
+  clip.value = null
+  armed.value = false
+}
 
 /**
  * Only here is the decision made to speak to Google at all.
@@ -114,47 +164,69 @@ function boot(mount: HTMLElement, first: string): Promise<Player> {
 }
 
 export function useAudioPreview() {
-  /** Whether anybody has ever tapped — before that, nothing exists. */
-  const armed = ref(false)
-  const playing = ref<string | null>(null)
-  const failed = ref(false)
-
   /**
    * The first call is the gesture. Every later one only passes an id to the
    * player that is already standing.
    */
-  async function play(uri: string, mount: HTMLElement) {
+  async function play(uri: string, mount: HTMLElement, title?: string | null) {
     const id = videoId(uri)
     if (!id) return
+
+    // Another screen asked for the player. It cannot move — an iframe reloads
+    // when its parent changes — so the old one goes and this one is built.
+    if (host && host !== mount) teardown()
 
     try {
       // The first call builds the player with this id; every later one passes
       // it to the one already standing.
       const fresh = ready === null
       armed.value = true
+      host = mount
       const instance = await boot(mount, id)
       if (!fresh) instance.loadVideoById(id)
       playing.value = id
+      clip.value = title?.trim() || null
       failed.value = false
     } catch {
       // A blocked Google — extension, firewall, network — is not this app's
-      // failure. The stack works completely without sound, so only the button
-      // goes away.
+      // failure. Every screen works completely without sound, so only the
+      // button goes away.
       failed.value = true
       armed.value = false
+      host = null
     }
   }
 
   function stop() {
     player?.stopVideo()
     playing.value = null
+    clip.value = null
+  }
+
+  /**
+   * Give the player back when the screen that hosts it goes away.
+   *
+   * A sheet closes and takes its element with it. The frame goes too, but the
+   * player object does not know that: the next tap would call `loadVideoById`
+   * on a frame that is no longer in the document, and nothing would play —
+   * with no way to stop what was playing before, either.
+   *
+   * Only the host may release: a sheet closing over the stack must not silence
+   * the stack behind it.
+   */
+  function release(mount: HTMLElement | null) {
+    if (!mount || host !== mount) return
+    teardown()
   }
 
   return {
     armed: readonly(armed),
     playing: readonly(playing),
+    /** The title of the clip that is playing — YouTube's, not the record's. */
+    clip: readonly(clip),
     failed: readonly(failed),
     play,
     stop,
+    release,
   }
 }

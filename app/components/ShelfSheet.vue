@@ -7,12 +7,9 @@ import type {
   PlaceNode,
   ReleaseDetail,
 } from '#shared/types'
-import { LISTEN_NAMES, listenUrl, type ListenService } from '#shared/listen'
 import { useCollectionMessages } from '~/i18n/collection'
-import { useDigMessages } from '~/i18n/dig'
 
 const c = useCollectionMessages()
-const d = useDigMessages()
 const m = useMessages()
 
 const props = defineProps<{ instanceId: number }>()
@@ -22,21 +19,6 @@ const { call } = useFidelityWorker()
 const { state: writeState, push } = useWriteBack()
 
 const record = ref<CollectionItem | null>(null)
-
-/*
- * One tap to the music, at the service somebody chose (M31).
- *
- * Beside the `videos[]` links, not instead of them: those are what Discogs has
- * about *this release*, and the search is what the service has about the
- * album. Nothing is fetched and nothing leaves the device until it is tapped.
- */
-const listen = ref<ListenService>('none')
-const listenName = computed(() => (listen.value === 'none' ? null : LISTEN_NAMES[listen.value]))
-const listenTo = computed(() =>
-  record.value
-    ? listenUrl(listen.value, record.value.artistNames[0] ?? null, record.value.title)
-    : null,
-)
 
 /*
  * Keeping an eye on this record (M11).
@@ -240,9 +222,6 @@ const runouts = computed(() =>
 )
 
 onMounted(async () => {
-  // Not awaited with the record: the sheet must not wait for a preference to
-  // draw the thing it is about.
-  void call('preferences.get', undefined).then((prefs) => (listen.value = prefs.listenService))
   record.value = await call('collection.record', { instanceId: props.instanceId })
   if (record.value) {
     const list = await call('watched.list', undefined)
@@ -734,39 +713,20 @@ async function remove() {
         like a record nobody had thought about. A search at the chosen service
         is something to hear either way (M31).
       -->
-      <section v-if="detail?.videos.length || listenTo" class="flex flex-col gap-2">
-        <div class="flex flex-wrap items-baseline justify-between gap-x-4">
-          <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.listen }}</h3>
-          <a
-            v-if="listenTo && listenName"
-            :href="listenTo"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="fid-action inline-flex items-center gap-1 text-fid-xs text-fid-text-muted hover:text-fid-text"
-          >
-            {{ d.sheet.listen(listenName) }}
-            <FidIcon name="external-link" :size="12" />
-          </a>
-          <p
-            v-if="(detail?.videos.length ?? 0) > 6"
-            class="fid-num text-fid-xs text-fid-text-muted"
-          >
-            {{ c.shelf.sheet.someOf(count(detail?.videos.length ?? 0)) }}
-          </p>
-        </div>
-        <ul v-if="detail?.videos.length" class="flex flex-col gap-1">
-          <li v-for="video in detail.videos.slice(0, 6)" :key="video.uri">
-            <a
-              :href="video.uri"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-fid-sm underline underline-offset-4 hover:text-fid-accent"
-            >
-              {{ video.title || video.uri }}
-            </a>
-          </li>
-        </ul>
-      </section>
+      <!--
+        The clips Discogs has for this record, and a search at the chosen
+        service — one block, because from the reader's side they are one
+        question. See ListenSection.vue for the difference that matters.
+
+        Six at most: a single 12" came back with eighty-nine (measured
+        2026-08-12), and a list that long buries the rest of the sheet.
+      -->
+      <ListenSection
+        :artist="record.artistNames[0] ?? null"
+        :title="record.title"
+        :videos="detail?.videos.slice(0, 6)"
+        :total="detail?.videos.length"
+      />
 
       <!--
           Said while the one request is out, and only until it answers.

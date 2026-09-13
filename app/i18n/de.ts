@@ -46,6 +46,14 @@ const de: Messages = {
     etaLeft: (clock: string) => `· noch ca. ${clock}`,
   },
 
+  listen: {
+    title: 'Reinhören',
+    search: (service) => `Bei ${service} suchen`,
+    source: 'Läuft über YouTube',
+    here: { lead: 'Hier abspielen –', link: 'Hörprobe einschalten' },
+    stop: 'Stopp',
+  },
+
   notice: {
     offline: {
       title: 'Kein Netz.',

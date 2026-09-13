@@ -17,6 +17,7 @@ import { videoId } from '~/composables/useAudioPreview'
 const COMPOSABLE = readFileSync('app/composables/useAudioPreview.ts', 'utf8')
 const PAGE = readFileSync('app/pages/stack.vue', 'utf8')
 const CARD = readFileSync('app/components/StackCard.vue', 'utf8')
+const SECTION = readFileSync('app/components/ListenSection.vue', 'utf8')
 const DEFAULTS = readFileSync('db/meta.ts', 'utf8')
 const LEGAL = readFileSync('app/i18n/legal.ts', 'utf8')
 
@@ -44,7 +45,9 @@ describe('nothing reaches Google before somebody asks', () => {
   it('has no iframe in the markup', () => {
     expect(withoutComments(PAGE)).not.toMatch(/<iframe/i)
     expect(withoutComments(CARD)).not.toMatch(/<iframe/i)
+    expect(withoutComments(SECTION)).not.toMatch(/<iframe/i)
     expect(withoutComments(PAGE)).toMatch(/ref="mount"/)
+    expect(withoutComments(SECTION)).toMatch(/ref="mount"/)
   })
 
   /**
@@ -147,5 +150,88 @@ describe('reading a video address', () => {
   it('gives null instead of a guess', () => {
     expect(videoId('not even an address')).toBeNull()
     expect(videoId('https://www.youtube.com/')).toBeNull()
+  })
+})
+
+/**
+ * The same conditions, on the two sheets where a record is actually decided
+ * about (M31).
+ *
+ * The stack had the sound and the sheets had a search link — so the screen
+ * where somebody weighs up a find was the one screen that could not play it.
+ * Moving it there changes nothing about ADR-012, and this says so.
+ */
+describe('the same exception on the sheets', () => {
+  const bare = withoutComments(SECTION)
+
+  /**
+   * The switch decides the *kind of element*, not just whether it works.
+   *
+   * With the preview off the clip is an ordinary link to YouTube — the reader
+   * navigates there themselves, which is what ADR-012 says happens without the
+   * switch. Only with it on is there a button that embeds anything.
+   */
+  it('offers a button only with the switch on, and a link without it', () => {
+    const button = bare.slice(bare.indexOf('<button'), bare.indexOf('</button>'))
+    expect(button).toMatch(/v-if="preview"/)
+
+    const link = bare.slice(bare.indexOf('<a\n          v-else'))
+    expect(link).toMatch(/v-else/)
+    expect(link).toMatch(/:href="video\.uri"/)
+    expect(link).toMatch(/rel="noopener noreferrer"/)
+  })
+
+  /** And that switch is read from the preferences, not assumed. */
+  it('reads the switch rather than assuming it', () => {
+    expect(bare).toMatch(/preview\.value = prefs\.audioPreview/)
+    expect(bare).toMatch(/const preview = ref\(false\)/)
+  })
+
+  it('shows the frame only while something plays', () => {
+    expect(bare).toMatch(/v-show="audio\.playing\.value"/)
+  })
+
+  /**
+   * And hands the player back when the sheet closes.
+   *
+   * A sheet takes its element with it. The frame goes too, but the player
+   * object does not know that — the next tap would load into a frame that is
+   * no longer in the document, and what was playing could never be stopped.
+   */
+  it('releases the player when the sheet goes', () => {
+    expect(bare).toMatch(/onBeforeUnmount\(\(\) => audio\.release\(mount\.value\)\)/)
+    expect(withoutComments(PAGE)).toMatch(
+      /onBeforeUnmount\(\(\) => audio\.release\(mount\.value\)\)/,
+    )
+  })
+
+  /**
+   * One player, not one per screen.
+   *
+   * The state used to be created inside `useAudioPreview()`, so every caller
+   * had its own. Harmless while the stack was the only one — wrong the moment
+   * a sheet offers the same button, because then one screen says "playing"
+   * over a frame the other one thinks it owns.
+   */
+  it('keeps one player for the whole app', () => {
+    const module = withoutComments(COMPOSABLE)
+    const setup = module.slice(module.indexOf('export function useAudioPreview'))
+    expect(setup).not.toMatch(/ref\(false\)|ref<string \| null>/)
+    expect(module).toMatch(/^const playing = ref<string \| null>\(null\)$/m)
+  })
+
+  /**
+   * And it says where the sound comes from.
+   *
+   * The picker above it can say Deezer while the clip below it is YouTube's —
+   * they are two different things, and a screen that shows them together owes
+   * the reader that difference.
+   */
+  it('names YouTube even when the picker says something else', () => {
+    expect(bare).toMatch(/m\.listen\.source/)
+    const en = readFileSync('app/i18n/en.ts', 'utf8')
+    const de = readFileSync('app/i18n/de.ts', 'utf8')
+    expect(en).toMatch(/source: 'Playing from YouTube'/)
+    expect(de).toMatch(/source: 'Läuft über YouTube'/)
   })
 })

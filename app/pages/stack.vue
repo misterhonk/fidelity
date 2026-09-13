@@ -59,8 +59,15 @@ async function follow() {
 async function hear() {
   const uri = card.value?.videos?.[0]?.uri
   if (!uri || !mount.value) return
-  await audio.play(uri, mount.value)
+  await audio.play(uri, mount.value, card.value?.videos?.[0]?.title)
 }
+
+/*
+ * Leaving the stack takes this element with it — and a player whose frame has
+ * gone plays nothing and stops nothing. The same handover a sheet makes when
+ * it closes (ListenSection.vue).
+ */
+onBeforeUnmount(() => audio.release(mount.value))
 
 const shops = shallowRef<StackShop[]>([])
 const loading = ref(true)
