@@ -75,6 +75,18 @@ test('names the shop being scanned when the page is opened mid-scan', async ({
   await expect(page.getByText('Scanning slowshop')).toBeVisible({ timeout: 15_000 })
   await expect(page.getByRole('button', { name: 'Check' })).toBeDisabled()
 
+  /*
+   * And no result list for the dig that is still running.
+   *
+   * Reported on 2026-09-13 as one screenshot: "0 Treffer bei Vinylvoorelkaar ·
+   * 0 von 5.551 gescannt (0 %)" and the acquittal "nothing here for you at
+   * this shop" — directly under a bar reading "443 von 5.551 · 45 Treffer".
+   * The running dig is the newest row in the database, so `dig.latest` handed
+   * it over at whatever it happened to say, which at the start is noughts.
+   */
+  await expect(page.getByText('0 finds at slowshop')).toBeHidden()
+  await expect(page.getByText(/That is a result, not a fault/)).toBeHidden()
+
   // And when it is through, the result is here as if this page had started it.
   await expect(page.getByText('Scanning slowshop')).toBeHidden({ timeout: 60_000 })
   await expect(page.getByText(/finds/)).toBeVisible({ timeout: 15_000 })

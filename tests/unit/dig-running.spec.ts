@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { deleteFidelityDb } from '~~/db/open'
 import type { DiscogsClient } from '~~/worker/discogs/client'
 import { runDig, runningDig } from '~~/worker/dig/scan'
+import { handlers } from '~~/worker/handlers'
 
 afterEach(async () => {
   await deleteFidelityDb()
@@ -83,5 +84,54 @@ describe('what is scanning right now', () => {
     await first
     // After the scan nothing is running and nothing is remembered.
     expect(runningDig()).toBeNull()
+  })
+})
+
+const ctx = { report: () => {}, signal: new AbortController().signal }
+
+/**
+ * "0 Treffer bei Vinylvoorelkaar · 0 von 5.551 gescannt (0 %)" — under a bar
+ * reading "443 von 5.551 · 45 Treffer". One screenshot, 2026-09-13, two
+ * numbers about the same shop at the same second.
+ *
+ * The running dig is a row in the database like any other, and it is the
+ * newest one there is: written before the first page, updated after each. So
+ * `dig.latest` handed it over at whatever it happened to say — and a screen
+ * that opened as a scan began got a row of noughts, with the acquittal
+ * underneath it: "nothing here for you at this shop".
+ *
+ * The bar is what tells the truth while a scan runs. The result list shows the
+ * last dig that is finished with, or nothing at all.
+ */
+describe('the latest dig is never the one being scanned', () => {
+  it('hands back the previous dig while a scan runs, and the new one after', async () => {
+    const done = slowShop('first-shop')
+    done.releasePage()
+    await runDig({ client: done.client, dealer: 'first-shop', digId: '01D' })
+
+    const running = slowShop('second-shop')
+    const scan = runDig({ client: running.client, dealer: 'second-shop', digId: '02D' })
+    await new Promise((tick) => setTimeout(tick, 20))
+
+    expect(runningDig()).toMatchObject({ digId: '02D' })
+    const latest = await handlers['dig.latest'](undefined, ctx)
+    expect(latest?.dig.id).toBe('01D')
+
+    running.releasePage()
+    await scan
+
+    const after = await handlers['dig.latest'](undefined, ctx)
+    expect(after?.dig.id).toBe('02D')
+  })
+
+  it('answers nothing rather than a row of noughts when the first dig is the running one', async () => {
+    const running = slowShop('only-shop')
+    const scan = runDig({ client: running.client, dealer: 'only-shop', digId: '03D' })
+    await new Promise((tick) => setTimeout(tick, 20))
+
+    await expect(handlers['dig.latest'](undefined, ctx)).resolves.toBeNull()
+
+    running.releasePage()
+    await scan
   })
 })
