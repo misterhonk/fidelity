@@ -361,7 +361,7 @@ export const handlers: HandlerMap = {
 
   'dealer.profile': async ({ dealer: username }, { signal }) => {
     const db = await openFidelityDb()
-    let dealer = await db.get('dealers', username)
+    const dealer = await db.get('dealers', username)
     if (!dealer) return null
 
     /*
@@ -377,19 +377,29 @@ export const handlers: HandlerMap = {
      * every single time somebody clicked it.
      */
     if (dealer.avatarUrl === undefined) {
-      try {
-        const { dealerSchema } = await inventory()
-        const profile = await discogs().get(
-          `/users/${encodeURIComponent(username)}`,
-          dealerSchema,
-          { signal },
-        )
-        dealer = { ...dealer, avatarUrl: profile.avatar_url ?? '' }
-        await db.put('dealers', dealer)
-      } catch {
-        // A logo is decoration. Offline, rate-limited or gone — the screen
-        // draws initials and nothing is written, so the next visit tries again.
-      }
+      /*
+       * Started, not awaited. The profile is a screen; the logo is decoration
+       * on it — and until 2026-09-13 the screen waited for the decoration.
+       * Behind a 429 that wait is the client's own backoff, up to a minute,
+       * and the browser tests that open a shop's profile fell over on CI,
+       * whose shared addresses Discogs limits first. The first open starts
+       * the request; the sign is on the list from the next open on.
+       */
+      void (async () => {
+        try {
+          const { dealerSchema } = await inventory()
+          const profile = await discogs().get(
+            `/users/${encodeURIComponent(username)}`,
+            dealerSchema,
+            { signal },
+          )
+          const fresh = await db.get('dealers', username)
+          if (fresh) await db.put('dealers', { ...fresh, avatarUrl: profile.avatar_url ?? '' })
+        } catch {
+          // A logo is decoration. Offline, rate-limited or gone — the screen
+          // draws initials and nothing is written, so the next visit tries again.
+        }
+      })()
     }
 
     const all = await db.getAll('dealers')

@@ -105,18 +105,29 @@ async function select(username: string) {
   }
 
   /*
-   * The list above learns about the sign that was just fetched.
+   * The list above learns about the sign, once it has been fetched.
    *
-   * Opening a shop backfills its logo the first time (worker/handlers.ts), and
-   * without this the row in the nav above would keep its initials until the
-   * next page load — the one place where the picture is actually worth having,
-   * because that is the list somebody scans.
+   * Opening a shop starts the backfill of its logo the first time
+   * (worker/handlers.ts) — starts, since 2026-09-13, and no longer waits for
+   * it: the profile is a screen, the logo is decoration on it. So the sign
+   * is not in the answer yet. The list is asked again a moment later, from
+   * this device and for no request, and the row in the nav above gets its
+   * picture without a page load — the one place where the picture is
+   * actually worth having, because that is the list somebody scans.
    */
   const fetched = profile.value?.dealer
   if (!fetched) return
-  dealers.value = dealers.value.map((dealer) =>
-    dealer.username === username ? { ...dealer, avatarUrl: fetched.avatarUrl } : dealer,
-  )
+  if (fetched.avatarUrl !== undefined) {
+    dealers.value = dealers.value.map((dealer) =>
+      dealer.username === username ? { ...dealer, avatarUrl: fetched.avatarUrl } : dealer,
+    )
+    return
+  }
+  setTimeout(() => {
+    void call('dealer.list', undefined).then((list) => {
+      if (selected.value === username) dealers.value = list
+    })
+  }, 4_000)
 }
 
 /**
