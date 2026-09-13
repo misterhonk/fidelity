@@ -254,6 +254,24 @@ export const handlers: HandlerMap = {
   },
 
   /*
+   * The round: every watched shop in one go (`worker/dealers/round.ts`).
+   *
+   * Its own module and a dynamic import, like every other minutes-long job
+   * here — the entry chunk has no business carrying it.
+   */
+  'round.plan': async () => (await import('./dealers/round')).planRound(),
+  'round.last': async () => (await import('./dealers/round')).lastRound(),
+  'round.running': async () => (await import('./dealers/round')).runningRound(),
+  'round.run': async (_params, { report, signal }) => {
+    const { runRound } = await import('./dealers/round')
+    return runRound({
+      client: discogs(),
+      report: (progress) => report(progress),
+      signal,
+    })
+  },
+
+  /*
    * Who is expanding, and how far — for a panel that was not there when it
    * started. Costs nothing: module state in this worker, no database, no
    * request.

@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import { ORIGIN_FILTERS, passesOrigin, readOrigin, type OriginFilter } from '#shared/countries'
 import type { DealerProfile } from '#shared/protocol'
-import type { Dealer, GradingRecord, TasteFacet } from '#shared/types'
+import type {
+  Dealer,
+  GradingRecord,
+  RoundProgress,
+  RoundSummary,
+  TasteFacet,
+} from '#shared/types'
 
 import { useDealerMessages } from '~/i18n/dealers'
 
 const h = useDealerMessages()
+const m = useMessages()
 useSeoMeta({
   title: () => h.value.title,
   description: () => h.value.description,
@@ -53,6 +60,117 @@ const profile = ref<DealerProfile | null>(null)
 const grading = ref<GradingRecord | null>(null)
 const error = ref<unknown>(null)
 
+/*
+ * The round: every watched shop, asked what is new (worker/dealers/round.ts).
+ *
+ * Reported as a question against 0.70.1: "do I understand this right — the app
+ * remembers the shops I entered, so I can build a kind of favourite-shop list
+ * and scan it weekly for new items?" Almost. Watching asked `num_for_sale` and
+ * said "something moved here"; finding out what meant tapping each shop and
+ * starting a dig by hand.
+ *
+ * Not weekly and not by itself: there is no server and a browser does not run
+ * while it is closed (ADR-007). A button is the honest version of "weekly" —
+ * it runs when somebody is there to read the answer.
+ */
+const plan = ref<{
+  shops: number
+  reachable: number
+  neverDug: number
+  requests: number
+} | null>(null)
+const round = ref<RoundProgress | null>(null)
+const lastRound = shallowRef<RoundSummary | null>(null)
+const roundBusy = ref(false)
+
+/** Roughly one request every 1.2 s, which is what the pacer enforces. */
+const roundMinutes = computed(() =>
+  plan.value ? Math.max(1, Math.ceil((plan.value.requests * 1.2) / 60)) : 0,
+)
+
+const roundPercent = computed(() => {
+  const p = round.value
+  if (!p || p.total === 0) return 0
+  return Math.round((p.done / p.total) * 100)
+})
+
+async function loadRound() {
+  plan.value = await call('round.plan', undefined)
+  lastRound.value = await call('round.last', undefined)
+}
+
+/**
+ * A round that was already walking when this page opened.
+ *
+ * The third screen to grow this, after the dig and the horizon panel, and for
+ * the same reason: the run lives in the worker and outlives the page, so a
+ * page that left in the middle of one has to be able to find its way back.
+ */
+let watchingRound: ReturnType<typeof setInterval> | null = null
+
+async function attachRound(): Promise<boolean> {
+  const live = await call('round.running', undefined)
+  if (!live) return false
+
+  roundBusy.value = true
+  round.value = live
+
+  watchingRound ??= setInterval(async () => {
+    const now = await call('round.running', undefined)
+    if (now) {
+      round.value = now
+      return
+    }
+    detachRound()
+    roundBusy.value = false
+    round.value = null
+    await loadRound()
+    await load()
+  }, 1500)
+
+  return true
+}
+
+function detachRound() {
+  if (watchingRound !== null) clearInterval(watchingRound)
+  watchingRound = null
+}
+
+onBeforeUnmount(detachRound)
+
+/**
+ * Watching a shop changes what the round would walk, so the plan is re-read.
+ *
+ * Without this the section above only appeared after a reload: somebody
+ * watches their first shop, nothing happens on screen, and the feature they
+ * were told about is invisible until they navigate away and back.
+ */
+async function watchToggle(username: string) {
+  await toggle(username)
+  await loadRound()
+}
+
+async function startRound() {
+  if (roundBusy.value) return
+  roundBusy.value = true
+  error.value = null
+  round.value = null
+
+  try {
+    lastRound.value = await call('round.run', undefined, {
+      onProgress: (progress) => (round.value = progress),
+    })
+    // The shops moved: new scan dates, new hit rates, a new order.
+    await Promise.all([load(), loadRound()])
+  } catch (cause) {
+    error.value = cause
+    lastRound.value = await call('round.last', undefined)
+  } finally {
+    roundBusy.value = false
+    round.value = null
+  }
+}
+
 async function load() {
   dealers.value = await call('dealer.list', undefined)
   hidden.value = await call('dealer.hidden', undefined)
@@ -79,6 +197,8 @@ onMounted(async () => {
   try {
     await load()
     await loadWatchlist()
+    await loadRound()
+    void attachRound()
   } catch (cause) {
     error.value = cause
   }
@@ -243,6 +363,100 @@ const scanned = computed(() => {
 
     <DealerDiscovery :first-time="dealers.length === 0" @imported="load()" />
 
+    <!--
+      The round: every watched shop, asked what is new since the last visit.
+
+      Above the list, because it is about all of them at once. Only where there
+      is something to walk — a device with no watched shop gets the sentence
+      that says how one becomes watched, not a button that would do nothing.
+    -->
+    <section
+      v-if="plan && plan.shops > 0"
+      class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
+      aria-labelledby="round"
+    >
+      <h2 id="round" class="text-fid-base font-medium text-fid-text">{{ h.round.title }}</h2>
+
+      <p class="max-w-prose text-fid-sm text-fid-text-muted">
+        {{ h.round.about(plan.reachable, roundMinutes) }}
+      </p>
+      <!--
+        A shop nobody has dug yet has no line to stop at, so "only what is new"
+        has nothing to be new since. Said rather than silently skipped.
+      -->
+      <p v-if="plan.neverDug > 0" class="max-w-prose text-fid-sm text-fid-sig-gap">
+        {{ h.round.neverDug(plan.neverDug) }}
+      </p>
+
+      <button
+        v-if="plan.reachable > 0"
+        type="button"
+        :disabled="roundBusy"
+        class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
+        @click="startRound"
+      >
+        {{ h.round.start }}
+      </button>
+
+      <div v-if="round" class="flex flex-col gap-2" aria-live="polite">
+        <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
+          <div
+            class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
+            :style="{ width: `${roundPercent}%` }"
+          />
+        </div>
+        <p class="text-fid-sm text-fid-text-muted">
+          {{ m.common.ofTotal(count(round.done), count(round.total)) }}
+          <template v-if="round.dealer"> · {{ round.dealer }}</template>
+          · {{ h.round.found(round.found) }}
+        </p>
+        <p class="text-fid-sm text-fid-text-muted">{{ h.round.keepsRunning }}</p>
+      </div>
+
+      <!--
+        What the last one turned up. Its own record and not a reading over the
+        digs, because those do not survive it: five are kept, and a round over
+        ten shops prunes the first five before it ends.
+      -->
+      <div v-if="lastRound && !round" class="flex flex-col gap-2">
+        <p class="text-fid-sm text-fid-text-muted">
+          {{ h.round.lastAt(dayTime(lastRound.startedAt)) }}
+        </p>
+        <ul class="flex flex-col gap-1">
+          <li
+            v-for="stop in lastRound.stops"
+            :key="stop.dealer"
+            class="flex flex-wrap items-baseline gap-x-2 text-fid-sm"
+          >
+            <NuxtLink
+              v-if="stop.digId && stop.matches > 0"
+              :to="{ path: '/dig', query: { id: stop.digId } }"
+              class="font-medium text-fid-accent underline underline-offset-4"
+            >
+              {{ stop.displayName }}
+            </NuxtLink>
+            <span v-else class="font-medium text-fid-text">{{ stop.displayName }}</span>
+
+            <span v-if="stop.status === 'never-dug'" class="text-fid-text-muted">
+              {{ h.round.stopNeverDug }}
+            </span>
+            <span v-else-if="stop.status === 'failed'" class="text-fid-sig-gap">
+              {{ h.round.stopFailed }}
+            </span>
+            <span v-else-if="stop.matches === 0" class="text-fid-text-muted">
+              {{ h.round.stopNothing(count(stop.newListings)) }}
+            </span>
+            <span v-else class="text-fid-text-muted">
+              {{ h.round.stopFound(stop.matches, count(stop.newListings)) }}
+              <template v-if="stop.best">
+                — {{ stop.best.artist }} – {{ stop.best.title }}
+              </template>
+            </span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
     <p v-if="dealers.length === 0" class="text-fid-base text-fid-text-muted">
       {{ h.none }}
     </p>
@@ -353,7 +567,7 @@ const scanned = computed(() => {
                   ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
                   : 'border-fid-border text-fid-text-muted hover:text-fid-text'
               "
-              @click="toggle(profile.dealer.username)"
+              @click="watchToggle(profile.dealer.username)"
             >
               {{ isWatched(profile.dealer.username) ? h.watching : h.watch }}
             </button>

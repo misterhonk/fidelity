@@ -19,6 +19,7 @@ import type {
   Preferences,
   PushRegistration,
   ReleaseDetail,
+  RoundSummary,
   StockRow,
   SyncState,
   TasteProfile,
@@ -57,6 +58,15 @@ export type MetaValue =
   | { key: 'collectionFields'; value: CollectionField[] }
   /** Refreshed with the collection sync, never on its own. */
   | { key: 'collectionValue'; value: CollectionValue }
+  /**
+   * The last round of the watched shops (`worker/dealers/round.ts`).
+   *
+   * A meta row and not a store of its own: there is exactly one of these at a
+   * time, it is a few hundred bytes, and a store would be a schema version for
+   * a single key. It outlives the digs it made on purpose — five are kept, and
+   * a round over ten shops prunes the first five before it ends.
+   */
+  | { key: 'lastRound'; value: RoundSummary }
   /** Folder names, refreshed on a sync that stored something. */
   | { key: 'collectionFolders'; value: CollectionFolder[] }
   /**
