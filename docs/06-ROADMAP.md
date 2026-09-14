@@ -1304,6 +1304,44 @@ finds nothing is honest; a button that says "play" and plays the wrong record is
 would let the app say *whether* it is there before the tap — that is its real value, more
 than the exactness.
 
+### What a second source would add — measured 2026-09-14
+
+The question was whether Fidelity can assemble more than the handful of links Discogs hands
+over. Three routes, and two of them were closed by measuring rather than by arguing.
+
+**Discogs itself is exhausted.** `videos[]` is a *master*-level fact, and Discogs already
+prints it on every release under that master: master 96559 and release 249504 hand back the
+identical set of 17 addresses; master 5542 and five of its pressings 12 each; release
+14251612 has none and neither does its master. **A `/masters/{id}` fallback would spend a
+request to fetch the list we already have.** What M31 shipped — looking the clips up for a
+find below the enriched fifty — is the whole of what this API can give.
+
+**MusicBrainz is open, exact, and almost empty.** It sends `access-control-allow-origin: *`,
+needs no key, and — the elegant part — it indexes Discogs master URLs, so
+`/ws/2/url?resource=https://www.discogs.com/master/5542` lands on the right release group
+with **no fuzzy matching at all**. Streaming links then hang off the *recordings*, one
+browse request for a whole release.
+
+The catch is the coverage, and it is the same catch as everywhere else in M31:
+
+| Record | In MusicBrainz | Streaming links |
+|---|---|---|
+| Portishead — *Dummy* | yes | **9 of 10 tracks** (Spotify, one also YouTube) |
+| Andrew Hill — *Point of Departure* | yes, score 100 | **0** |
+| Marcel Dettmann — *Dettmann* | yes, score 100 | **0** |
+| Kassem Mosse — *Workshop 19* | yes, score 100 | **0** |
+| Skudge — *Convolution* | **no entry** | — |
+
+Three requests per record, a third party with its own paragraph, a second pacer at one
+request a second, and a 503 on the first attempt — for an answer that is there on famous
+albums and absent on exactly the records this app is best at finding.
+
+**So the only route that would actually find something is the user's own key** — the YouTube
+Data API allows CORS and referrer-restricted browser keys, but the free quota is 10,000 units
+a day and a search costs 100, which is a hundred searches for everybody together. That means
+one key per user, the same handgrip as the Discogs token. Written down, not queued: it moves
+work onto the user for a feature that already works without it.
+
 ### Where the data protection line runs
 
 | | What reaches the service | Needs consent |
