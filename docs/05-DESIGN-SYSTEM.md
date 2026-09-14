@@ -310,9 +310,11 @@ Postage to you (DE)             currently 2 records · €9.00 total · €4.50 
 | `CommandPalette` (⌘K) | Searches **data**, not just navigation: artists, labels, shops, saved digs. | `CommandPalette.vue`, hand-rolled. `@nuxt/ui` is installed for its module scaffolding only — its stylesheet is dropped in `main.css` §0 and no `<U…>` component is rendered anywhere. |
 | `DealerFingerprint` | Bars for the label/style/decade distribution + the hit rate | `FacetBars.vue` on `/dealers` and `/map` — the same bars serve both the shop and the collection |
 | `FilterRail` | The filters over a find list | `DigFilters.vue`, inline above the list on every width. No sidebar, no bottom sheet, no drawer library. |
-| `DensityToggle` | comfortable / compact rows | **Not built.** `MatchRow` is the compact row (34 px, `--fid-row-compact`), used above ~200 finds; `MatchCard` is the other. There is no switch. |
+| `DensityToggle` | Three ways to look at one list | Built, in `DigFilters.vue`, and the choice is in the address (`dicht=`). **Detailed** is `MatchCard` and the default — it carries the sentence saying *why* a record is in the list, which is the app's whole product. **Crate** is `MatchTile`: sleeves two across on a phone, title, artist, price, and deliberately no score — a number is something you weigh, and weighing is the other two. **Compact** is `MatchRow` at 34 px (`--fid-row-compact`), a table with named columns that each sort. |
+| `RecordMasthead` | What a record *is*, at the top of every sheet that shows one | `RecordMasthead.vue`. Three voices so the eye sorts without reading: artist in the text face, title in the display face (the largest step outside `PageHeader`), facts in mono. Long names are the design case — two lines for the artist, three for the title, balanced and hyphenated, the sleeve on the baseline so a long name grows upward. `SleeveWash.vue` puts a blurred copy of the cover behind the head with a plinth over it, because a bright sleeve takes the contrast out from under the type. |
 | `EmptyState` | Not "no results" but a sentence with a way out | Inlined per screen: every empty state names the next step as a link (`/shelf`, `/wantlist`, `/basket`, `/saved`, `/watched`, `/stack`). The "but [name] has 12 matches" version needs a second scanned shop and is not built. |
-| `SheetFrame` | The drawer both detail sheets slide in on | `SheetFrame.vue`: focus trap, focus returned to the opener, `@container` on the panel, Escape and scrim close, `view-transition-name` per sheet |
+| `SheetFrame` | The drawer every detail sheet slides in on | `SheetFrame.vue`: focus trap, focus returned to the opener, `@container` on the panel, Escape and scrim close, `view-transition-name` per sheet. Three slots beyond the body: `title` (dropped where a masthead carries the name — the same two words twice is a duplicate, not a heading), `tools` (what this sheet can do with itself, beside the ✕) and `wash` (the sleeve's colour, from the top edge, behind everything). |
+| `useWalkKeys` | Stepping a list from inside the sheet that shows one of its rows | `app/composables/useWalkKeys.ts`. `←`/`→` because that is how a drawer from the right is walked, `k`/`j` because that is how a list is walked in every mail client. The guard is the whole of it: nothing while the focus is in a field, nothing with a modifier held. |
 
 ---
 
@@ -327,6 +329,8 @@ Postage to you (DE)             currently 2 records · €9.00 total · €4.50 
 | **The URL is the state** | Filters, sorting and density in query params. Digs live locally — for sharing there is JSON export. |
 | **`scrollbar-gutter: stable`** | On every list pane. No layout jump when filtering. |
 | **Skeletons** | Only with exactly the dimensions of the real content, or you swap a spinner for CLS. |
+| **`content-visibility: auto`** | On the rows of the two long lists that are *not* virtualised — a dig under two hundred finds and the shelf — with `contain-intrinsic-size` so the scrollbar does not lie. Not above the virtualiser's threshold: there the nodes are gone anyway, and two mechanisms would argue about the same rows. One side effect worth knowing: a full-page screenshot captures the skipped rows blank. |
+| **Three volumes, one hue** | Filled for the one action a screen is for, tonal (`.fid-tonal`, the accent at 16 %) for the reversible companions, outlined for the rest — including the destructive one, because red is a warning and not a button. A second accent colour would talk over the signal colours, which each mean one signal. |
 
 ---
 
