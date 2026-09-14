@@ -163,6 +163,23 @@ function pick(username: string) {
   dealer.value = username
   void check()
 }
+
+/**
+ * Dig the shop on screen again — the question a result left open.
+ *
+ * Asked on 2026-09-14 in front of a six-hour-old dig: "how do I dig a dealer
+ * again?" The way existed — find the shop among the chips at the top, click
+ * it, wait for the check — and nothing on the result said so. This is that
+ * same path with the looking-for-it removed: it fills the field and checks,
+ * so what comes back is the usual choice between the whole shop, only what is
+ * new, and the deep run. Never a dig that starts by itself: a scan costs
+ * somebody's rate limit, and the screen that spends it asks first.
+ */
+function again() {
+  if (!result.value) return
+  pick(result.value.dig.dealer)
+  window.scrollTo({ top: 0 })
+}
 const error = ref<unknown>(null)
 const resumable = ref<Dig | null>(null)
 
@@ -555,7 +572,7 @@ const noHorizon = computed(
       wider one shows more of it at once — which is the whole reason to sit at
       a desk for this. The prose blocks inside keep their own width.
     -->
-    <PageHeader :title="d.title" />
+    <PageHeader :title="d.title" :lead="d.lead" />
 
     <form class="flex flex-wrap items-end gap-3" @submit.prevent="check">
       <div class="flex min-w-64 grow flex-col gap-2">
@@ -590,35 +607,49 @@ const noHorizon = computed(
       Watched shops first: those are the ones somebody said out loud they care
       about.
     -->
-    <nav v-if="knownDealers.length > 0" :aria-label="d.yourShops" class="flex flex-wrap gap-2">
-      <button
-        v-for="known in knownDealers"
-        :key="known.username"
-        type="button"
-        class="fid-action rounded-fid-sm border px-3 py-2 text-fid-sm transition-colors"
-        :class="
-          known.watching
-            ? 'border-fid-accent/40 text-fid-text'
-            : 'border-fid-border text-fid-text-muted hover:text-fid-text'
-        "
-        @click="pick(known.username)"
-      >
-        {{ known.displayName || known.username }}
-        <!--
+    <!--
+      And a heading, because two rows of chips on one screen looked alike.
+
+      Asked outright on 2026-09-14: "what are the buttons of the earlier digs
+      for?" The shops you can dig and the digs you have run were both a
+      `flex-wrap` of bordered buttons with a name and a number in them, and the
+      only thing telling them apart was an `aria-label` — which is to say,
+      nothing at all for anybody looking at the screen.
+    -->
+    <section v-if="knownDealers.length > 0" class="flex flex-col gap-2">
+      <h2 id="your-shops" class="text-fid-xs font-medium text-fid-text-muted">
+        {{ d.yourShops }}
+      </h2>
+      <nav aria-labelledby="your-shops" class="flex flex-wrap gap-2">
+        <button
+          v-for="known in knownDealers"
+          :key="known.username"
+          type="button"
+          class="fid-action rounded-fid-sm border px-3 py-2 text-fid-sm transition-colors"
+          :class="
+            known.watching
+              ? 'border-fid-accent/40 text-fid-text'
+              : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+          "
+          @click="pick(known.username)"
+        >
+          {{ known.displayName || known.username }}
+          <!--
           The hit rate, and what it is a rate *of*.
           It was a bare "13.0" beside a shop's name — a number with no unit,
           which somebody either ignores or misreads as a rating out of five.
         -->
-        <span
-          v-if="known.affinity !== null"
-          class="fid-num ml-1.5 text-fid-xs opacity-70"
-          :title="d.perThousand(known.affinity.toFixed(1))"
-          :aria-label="d.perThousand(known.affinity.toFixed(1))"
-        >
-          {{ known.affinity.toFixed(1) }}
-        </span>
-      </button>
-    </nav>
+          <span
+            v-if="known.affinity !== null"
+            class="fid-num ml-1.5 text-fid-xs opacity-70"
+            :title="d.perThousand(known.affinity.toFixed(1))"
+            :aria-label="d.perThousand(known.affinity.toFixed(1))"
+          >
+            {{ known.affinity.toFixed(1) }}
+          </span>
+        </button>
+      </nav>
+    </section>
 
     <ErrorNote v-if="error" :cause="error" />
     <!--
@@ -861,21 +892,25 @@ const noHorizon = computed(
       Which dig is on screen, and the others. Five are kept (docs/03 §5) and
       until now only the newest could be opened.
     -->
-    <nav v-if="history.length > 1" :aria-label="d.earlierDigs" class="flex flex-wrap gap-2">
-      <button
-        v-for="entry in history"
-        :key="entry.id"
-        type="button"
-        :aria-current="result?.dig.id === entry.id ? 'true' : undefined"
-        class="min-h-9 rounded-fid-sm border px-3 py-1 text-fid-sm transition-colors"
-        :class="
-          result?.dig.id === entry.id
-            ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
-            : 'border-fid-border text-fid-text-muted hover:text-fid-text'
-        "
-        @click="showDig(entry.id)"
-      >
-        <!--
+    <section v-if="history.length > 1" class="flex flex-col gap-2">
+      <h2 id="earlier-digs" class="text-fid-xs font-medium text-fid-text-muted">
+        {{ d.earlierDigs }}
+      </h2>
+      <nav aria-labelledby="earlier-digs" class="flex flex-wrap gap-2">
+        <button
+          v-for="entry in history"
+          :key="entry.id"
+          type="button"
+          :aria-current="result?.dig.id === entry.id ? 'true' : undefined"
+          class="min-h-9 rounded-fid-sm border px-3 py-1 text-fid-sm transition-colors"
+          :class="
+            result?.dig.id === entry.id
+              ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
+              : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+          "
+          @click="showDig(entry.id)"
+        >
+          <!--
           Name, time, kind, match count.
 
           Until 2026-09-11 only the name and the number stood here — so three
@@ -891,18 +926,21 @@ const noHorizon = computed(
           against nothing here for you. `digKind` already carries that
           distinction in two other places.
         -->
-        <span class="flex flex-col items-start gap-1">
-          <span class="flex flex-wrap items-baseline gap-x-2">
-            {{ entry.dealer }}
-            <span class="fid-num text-fid-xs text-fid-text-muted">{{ entry.matchCount }}</span>
+          <span class="flex flex-col items-start gap-1">
+            <span class="flex flex-wrap items-baseline gap-x-2">
+              {{ entry.dealer }}
+              <span class="fid-num text-fid-xs text-fid-text-muted">{{
+                entry.matchCount
+              }}</span>
+            </span>
+            <span class="fid-num text-fid-xs text-fid-text-muted">
+              {{ dayTime(entry.startedAt) }}
+              <template v-if="digKind(entry) !== 'full'"> · {{ d.incremental.short }}</template>
+            </span>
           </span>
-          <span class="fid-num text-fid-xs text-fid-text-muted">
-            {{ dayTime(entry.startedAt) }}
-            <template v-if="digKind(entry) !== 'full'"> · {{ d.incremental.short }}</template>
-          </span>
-        </span>
-      </button>
-    </nav>
+        </button>
+      </nav>
+    </section>
 
     <section v-if="result" class="flex flex-col gap-4">
       <div class="flex flex-wrap items-baseline justify-between gap-2">
@@ -925,6 +963,15 @@ const noHorizon = computed(
           <template v-if="result.folded > 0"> · {{ d.folded(result.folded) }}</template>
         </p>
       </div>
+
+      <button
+        type="button"
+        :disabled="busy || !online"
+        class="fid-action self-start text-fid-sm text-fid-accent underline underline-offset-4 disabled:opacity-50"
+        @click="again()"
+      >
+        {{ d.again(result.dig.dealer) }}
+      </button>
 
       <!--
         What it was held against. On every dig, not only the empty ones.
