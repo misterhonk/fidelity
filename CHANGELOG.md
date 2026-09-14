@@ -9,6 +9,13 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.89.0](https://github.com/misterhonk/fidelity/compare/v0.88.0...v0.89.0) (2026-09-14)
+
+
+### Added
+
+* **dig:** when the lane is not ours, the screen says so ([7377207](https://github.com/misterhonk/fidelity/commit/7377207cdc4f18ee461835ac3b1267903d4a29c0))
+
 ## [0.88.0](https://github.com/misterhonk/fidelity/compare/v0.87.0...v0.88.0) (2026-09-14)
 
 **Wenn Discogs bremst, steht das jetzt auf dem Bildschirm.**
