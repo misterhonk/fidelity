@@ -9,6 +9,24 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.83.0](https://github.com/misterhonk/fidelity/compare/v0.82.0...v0.83.0) (2026-09-14)
+
+**Die Fundliste lässt sich jetzt durchblättern wie eine Kiste.**
+
+Eine Karte mit großem Cover ist auf dem Telefon ein Bildschirm pro Platte — zweihundert Funde
+sind dann zweihundert Wischer. Die neue Dichte „Kiste" zeigt stattdessen Hüllen, zwei
+nebeneinander auf dem Telefon und bis zu sechs am Schreibtisch, mit Titel, Interpret und
+Preis darunter. Der Score fehlt mit Absicht: eine Zahl wägt man ab, und dafür sind die
+anderen beiden Dichten da. Die Kiste ist dafür, dass eine Hülle einen anhält.
+
+„Ausführlich" bleibt die Vorgabe — wer eine Liste zum ersten Mal sieht, soll lesen, *warum*
+etwas darin steht. Die Top Five behalten ihre Karten in jeder Dichte.
+
+
+### Added
+
+* **dig:** a crate to flip through ([b22c8fc](https://github.com/misterhonk/fidelity/commit/b22c8fcb91344604f6fe3d823a30fdd80f744ef8))
+
 ## [0.82.0](https://github.com/misterhonk/fidelity/compare/v0.81.0...v0.82.0) (2026-09-14)
 
 **Eine Platte sieht jetzt überall gleich aus — und die Wantlist öffnet endlich im Haus statt
