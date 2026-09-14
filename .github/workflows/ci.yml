@@ -93,7 +93,7 @@ jobs:
       # Exceeding the budget breaks the build — that is the whole point of it.
       - run: pnpm size
 
-  # Four runners, a quarter of the suite each.
+  # Six runners, a sixth of the suite each.
   #
   # The suite is four hundred browser tests and it ran ten minutes, of which
   # eight were the tests themselves on one four-core box: four workers, each
@@ -109,7 +109,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
@@ -139,7 +139,7 @@ jobs:
       # Includes the @axe-core/playwright pass. The Discogs API is never called
       # here; a real smoke test belongs in a nightly run, not in a per-PR job
       # that would burn the rate limit for merges.
-      - run: pnpm exec playwright test --shard=${{ matrix.shard }}/4
+      - run: pnpm exec playwright test --shard=${{ matrix.shard }}/6
       - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
