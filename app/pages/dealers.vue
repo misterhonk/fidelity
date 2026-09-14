@@ -343,6 +343,15 @@ onMounted(async () => {
   void refreshPush()
 })
 
+/**
+ * Where the open shop is drawn — so a narrow screen can be told to go there.
+ *
+ * On a wide screen the profile sits beside the list and needs no help. Stacked
+ * under a dozen rows it is three screens down, and tapping a shop then looked
+ * like nothing had happened.
+ */
+const profileBox = useTemplateRef<HTMLElement>('profileBox')
+
 async function select(username: string) {
   // Through the address, so a reload and a shared link both land here.
   if (selected.value !== username) {
@@ -356,6 +365,16 @@ async function select(username: string) {
   } catch (cause) {
     error.value = cause
     return
+  }
+
+  /*
+   * Two columns at `lg`, which is where Tailwind puts it — the same 1024 the
+   * class above uses. Wider than that the profile is already on screen and
+   * moving the page would be the app taking over the scroll for no reason.
+   */
+  if (window.matchMedia('(max-width: 1023px)').matches) {
+    await nextTick()
+    profileBox.value?.scrollIntoView({ block: 'start', behavior: 'smooth' })
   }
 
   /*
@@ -501,299 +520,325 @@ const scanned = computed(() => {
     </p>
 
     <template v-else>
-      <div role="group" :aria-label="h.origin.label" class="flex flex-wrap gap-1">
-        <button
-          v-for="key in ORIGIN_FILTERS"
-          :key="key"
-          type="button"
-          class="fid-action min-h-11 rounded-fid-sm border px-3 text-fid-xs"
-          :class="
-            origin === key
-              ? 'border-fid-text bg-fid-inset text-fid-text'
-              : 'border-fid-border text-fid-text-muted hover:text-fid-text'
-          "
-          :aria-pressed="origin === key"
-          @click="originBy(key)"
-        >
-          {{ key === 'home' ? h.origin.home(home) : h.origin[key] }}
-        </button>
-      </div>
-
-      <p v-if="shown.length === 0" class="text-fid-sm text-fid-text-muted">
-        {{ h.origin.none }}
-      </p>
-
       <!--
-        Ranked by hit rate: the only ordering that answers "where first?".
+        The list and the open shop, side by side where there is room.
 
-        A list rather than the wrap of bordered buttons this used to be. Forty
-        shops in a wrapping grid is a keypad — unscannable, and it hides the
-        very ordering that makes the screen worth opening. See DealerRow.vue.
+        Reported on 2026-09-14, and it is a consequence of putting the list
+        first: with a dozen shops the profile — and with it "watch", "dig now"
+        and "hide" — started three screens below the fold. The shop you just
+        tapped was the one thing you could not reach.
+
+        So from `lg` up they are two columns and the profile stays in view
+        while the list scrolls past it: the master–detail shape of every mail
+        client, for the same reason — many things, one of them open. Below
+        that width they stay stacked and `select()` scrolls the profile into
+        view, because on a phone "open" has to mean something visible.
       -->
-      <input
-        v-if="shown.length > 8"
-        v-model="query"
-        type="search"
-        autocomplete="off"
-        spellcheck="false"
-        :placeholder="h.find"
-        :aria-label="h.find"
-        class="fid-field w-full px-3 py-2 text-fid-sm text-fid-text"
-      />
-
-      <p v-if="matching.length === 0" class="text-fid-sm text-fid-text-muted">
-        {{ h.noMatch }}
-      </p>
-
-      <ul
-        v-else
-        class="flex flex-col divide-y divide-fid-border border-y border-fid-border"
-        :aria-label="h.scanned"
-      >
-        <li v-for="dealer in listed" :key="dealer.username">
-          <DealerRow
-            :dealer="dealer"
-            :selected="dealer.username === selected"
-            :peak="peak"
-            @open="select(dealer.username)"
-          />
-        </li>
-      </ul>
-
-      <button
-        v-if="rest > 0"
-        type="button"
-        class="fid-action self-start text-fid-sm text-fid-text-muted underline underline-offset-4 hover:text-fid-text"
-        @click="room += STEP"
-      >
-        {{ h.more(count(rest)) }}
-      </button>
-
-      <section v-if="profile" class="flex flex-col gap-8">
-        <div class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4">
-          <p v-if="profile.dealer.lastScannedAt === null" class="text-fid-base text-fid-text">
-            {{ h.neverScanned }}
-          </p>
-          <p v-else class="text-fid-base text-fid-text">{{ verdict }}</p>
-          <p class="text-fid-sm text-fid-text-muted">
-            {{ h.listings(count(profile.dealer.numForSale)) }}
-            <template v-if="profile.dealer.shipsFrom">
-              · {{ h.shipsFrom(profile.dealer.shipsFrom) }}</template
-            >
-            <template v-if="profile.dealer.ratingCount > 0">
-              ·
-              {{
-                h.rating(`${profile.dealer.sellerRating} %`, count(profile.dealer.ratingCount))
-              }}
-            </template>
-            <template v-if="scanned"> · {{ h.lastScanned(scanned) }}</template>
-          </p>
-
-          <!--
-            And directly below it, the number Discogs does not keep.
-
-            Above the row sits the seller rating: that measures the process —
-            shipped quickly, packed properly — and says nothing about whether
-            the grade was right. Which is exactly why this row is here and not
-            in a section of its own: side by side you read the difference; one
-            above the other they would never meet.
-
-            The promised grade is in none of these numbers. What is stored is
-            only the comparison (worker/grading.ts).
-          -->
-          <div v-if="grading && grading.judged > 0" class="flex flex-col gap-1">
-            <p class="fid-num text-fid-sm text-fid-text">
-              <template v-if="grading.rate !== null">
-                {{
-                  h.grading.rate(`${Math.round(grading.rate * 100)} %`, count(grading.judged))
-                }}
-              </template>
-              <template v-else>
-                {{ h.grading.tooFew(count(grading.judged), grading.judged === 1) }}
-              </template>
-              <template v-if="grading.worse > 0">
-                {{ h.grading.worse(count(grading.worse), grading.worse === 1) }}
-              </template>
-            </p>
-            <WhyNote :label="h.grading.whyLabel">{{ h.grading.why }}</WhyNote>
-          </div>
-
-          <!--
-            Watching costs one request per app start, not a rescan. Worth
-            saying, because "beobachten" usually means somebody is polling.
-          -->
-          <div class="flex flex-wrap items-center gap-3">
+      <div class="grid gap-8 lg:grid-cols-[26rem_1fr] lg:items-start xl:grid-cols-[30rem_1fr]">
+        <div class="flex min-w-0 flex-col gap-4">
+          <div role="group" :aria-label="h.origin.label" class="flex flex-wrap gap-1">
             <button
+              v-for="key in ORIGIN_FILTERS"
+              :key="key"
               type="button"
-              :aria-pressed="isWatched(profile.dealer.username)"
-              class="rounded-fid-sm border px-3 py-2 text-fid-sm transition-colors"
+              class="fid-action min-h-11 rounded-fid-sm border px-3 text-fid-xs"
               :class="
-                isWatched(profile.dealer.username)
-                  ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
+                origin === key
+                  ? 'border-fid-text bg-fid-inset text-fid-text'
                   : 'border-fid-border text-fid-text-muted hover:text-fid-text'
               "
-              @click="watchToggle(profile.dealer.username)"
+              :aria-pressed="origin === key"
+              @click="originBy(key)"
             >
-              {{ isWatched(profile.dealer.username) ? h.watching : h.watch }}
+              {{ key === 'home' ? h.origin.home(home) : h.origin[key] }}
             </button>
-            <!--
-              The shop with the best hit rate sits at the top of this list, and
-              until now there was nothing to do about it from here. Ranking
-              shops and then making somebody retype the name is the ranking
-              doing half its job.
-            -->
-            <NuxtLink
-              :to="`/dig?dealer=${encodeURIComponent(profile.dealer.username)}`"
-              class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
-            >
-              {{ profile.dealer.lastScannedAt === null ? h.digNow : h.digAgain }}
-            </NuxtLink>
-            <!--
-              And the one that takes something away steps back.
-              Three bordered buttons of the same weight, one of which removes
-              the shop from every list — read side by side they all look like
-              the same kind of offer. A plate action instead: reachable, not
-              proposed.
-            -->
-            <button
-              type="button"
-              class="fid-action fid-plate px-1 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
-              :title="h.hideWhy"
-              @click="setHidden(profile.dealer.username, true)"
-            >
-              {{ h.hide }}
-            </button>
-            <span class="text-fid-xs text-fid-text-muted">{{ h.watchCost }}</span>
           </div>
 
+          <p v-if="shown.length === 0" class="text-fid-sm text-fid-text-muted">
+            {{ h.origin.none }}
+          </p>
+
           <!--
-            And the part a browser cannot do alone.
-            Only shown for a shop that is actually watched, and only where it
-            can work: no hub, no support, or a refusal in the browser settings
-            and there is nothing here at all — rather than a switch that would
-            promise something nobody can keep (rule 8).
-          -->
-          <div
-            v-if="
-              isWatched(profile.dealer.username) &&
-              push !== 'no-hub' &&
-              push !== 'unsupported' &&
-              push !== 'denied'
-            "
-            class="flex flex-wrap items-center gap-3"
+          Ranked by hit rate: the only ordering that answers "where first?".
+
+          A list rather than the wrap of bordered buttons this used to be. Forty
+          shops in a wrapping grid is a keypad — unscannable, and it hides the
+          very ordering that makes the screen worth opening. See DealerRow.vue.
+        -->
+          <input
+            v-if="shown.length > 8"
+            v-model="query"
+            type="search"
+            autocomplete="off"
+            spellcheck="false"
+            :placeholder="h.find"
+            :aria-label="h.find"
+            class="fid-field w-full px-3 py-2 text-fid-sm text-fid-text"
+          />
+
+          <p v-if="matching.length === 0" class="text-fid-sm text-fid-text-muted">
+            {{ h.noMatch }}
+          </p>
+
+          <ul
+            v-else
+            class="flex flex-col divide-y divide-fid-border border-y border-fid-border"
+            :aria-label="h.scanned"
           >
-            <button
-              v-if="push === 'off'"
-              type="button"
-              :disabled="pushBusy"
-              class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text disabled:opacity-60"
-              @click="enablePush()"
-            >
-              {{ h.pushOffer }}
-            </button>
-            <template v-else-if="push === 'on'">
-              <span class="text-fid-sm text-fid-text">{{ h.pushOn }}</span>
+            <li v-for="dealer in listed" :key="dealer.username">
+              <DealerRow
+                :dealer="dealer"
+                :selected="dealer.username === selected"
+                :peak="peak"
+                @open="select(dealer.username)"
+              />
+            </li>
+          </ul>
+
+          <button
+            v-if="rest > 0"
+            type="button"
+            class="fid-action self-start text-fid-sm text-fid-text-muted underline underline-offset-4 hover:text-fid-text"
+            @click="room += STEP"
+          >
+            {{ h.more(count(rest)) }}
+          </button>
+        </div>
+        <section
+          v-if="profile"
+          ref="profileBox"
+          class="flex min-w-0 flex-col gap-8 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:pr-1"
+        >
+          <div class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4">
+            <p v-if="profile.dealer.lastScannedAt === null" class="text-fid-base text-fid-text">
+              {{ h.neverScanned }}
+            </p>
+            <p v-else class="text-fid-base text-fid-text">{{ verdict }}</p>
+            <p class="text-fid-sm text-fid-text-muted">
+              {{ h.listings(count(profile.dealer.numForSale)) }}
+              <template v-if="profile.dealer.shipsFrom">
+                · {{ h.shipsFrom(profile.dealer.shipsFrom) }}</template
+              >
+              <template v-if="profile.dealer.ratingCount > 0">
+                ·
+                {{
+                  h.rating(
+                    `${profile.dealer.sellerRating} %`,
+                    count(profile.dealer.ratingCount),
+                  )
+                }}
+              </template>
+              <template v-if="scanned"> · {{ h.lastScanned(scanned) }}</template>
+            </p>
+
+            <!--
+              And directly below it, the number Discogs does not keep.
+
+              Above the row sits the seller rating: that measures the process —
+              shipped quickly, packed properly — and says nothing about whether
+              the grade was right. Which is exactly why this row is here and not
+              in a section of its own: side by side you read the difference; one
+              above the other they would never meet.
+
+              The promised grade is in none of these numbers. What is stored is
+              only the comparison (worker/grading.ts).
+            -->
+            <div v-if="grading && grading.judged > 0" class="flex flex-col gap-1">
+              <p class="fid-num text-fid-sm text-fid-text">
+                <template v-if="grading.rate !== null">
+                  {{
+                    h.grading.rate(`${Math.round(grading.rate * 100)} %`, count(grading.judged))
+                  }}
+                </template>
+                <template v-else>
+                  {{ h.grading.tooFew(count(grading.judged), grading.judged === 1) }}
+                </template>
+                <template v-if="grading.worse > 0">
+                  {{ h.grading.worse(count(grading.worse), grading.worse === 1) }}
+                </template>
+              </p>
+              <WhyNote :label="h.grading.whyLabel">{{ h.grading.why }}</WhyNote>
+            </div>
+
+            <!--
+              Watching costs one request per app start, not a rescan. Worth
+              saying, because "beobachten" usually means somebody is polling.
+            -->
+            <div class="flex flex-wrap items-center gap-3">
               <button
                 type="button"
-                :disabled="pushBusy"
-                class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4 disabled:opacity-60"
-                @click="disablePush()"
+                :aria-pressed="isWatched(profile.dealer.username)"
+                class="rounded-fid-sm border px-3 py-2 text-fid-sm transition-colors"
+                :class="
+                  isWatched(profile.dealer.username)
+                    ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
+                    : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+                "
+                @click="watchToggle(profile.dealer.username)"
               >
-                {{ h.pushStop }}
+                {{ isWatched(profile.dealer.username) ? h.watching : h.watch }}
               </button>
-            </template>
-            <span class="text-fid-xs text-fid-text-muted">
-              {{ push === 'needs-install' ? h.pushInstall : h.pushWhy }}
-            </span>
+              <!--
+                The shop with the best hit rate sits at the top of this list, and
+                until now there was nothing to do about it from here. Ranking
+                shops and then making somebody retype the name is the ranking
+                doing half its job.
+              -->
+              <NuxtLink
+                :to="`/dig?dealer=${encodeURIComponent(profile.dealer.username)}`"
+                class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+              >
+                {{ profile.dealer.lastScannedAt === null ? h.digNow : h.digAgain }}
+              </NuxtLink>
+              <!--
+                And the one that takes something away steps back.
+                Three bordered buttons of the same weight, one of which removes
+                the shop from every list — read side by side they all look like
+                the same kind of offer. A plate action instead: reachable, not
+                proposed.
+              -->
+              <button
+                type="button"
+                class="fid-action fid-plate px-1 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+                :title="h.hideWhy"
+                @click="setHidden(profile.dealer.username, true)"
+              >
+                {{ h.hide }}
+              </button>
+              <span class="text-fid-xs text-fid-text-muted">{{ h.watchCost }}</span>
+            </div>
+
+            <!--
+              And the part a browser cannot do alone.
+              Only shown for a shop that is actually watched, and only where it
+              can work: no hub, no support, or a refusal in the browser settings
+              and there is nothing here at all — rather than a switch that would
+              promise something nobody can keep (rule 8).
+            -->
+            <div
+              v-if="
+                isWatched(profile.dealer.username) &&
+                push !== 'no-hub' &&
+                push !== 'unsupported' &&
+                push !== 'denied'
+              "
+              class="flex flex-wrap items-center gap-3"
+            >
+              <button
+                v-if="push === 'off'"
+                type="button"
+                :disabled="pushBusy"
+                class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text disabled:opacity-60"
+                @click="enablePush()"
+              >
+                {{ h.pushOffer }}
+              </button>
+              <template v-else-if="push === 'on'">
+                <span class="text-fid-sm text-fid-text">{{ h.pushOn }}</span>
+                <button
+                  type="button"
+                  :disabled="pushBusy"
+                  class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4 disabled:opacity-60"
+                  @click="disablePush()"
+                >
+                  {{ h.pushStop }}
+                </button>
+              </template>
+              <span class="text-fid-xs text-fid-text-muted">
+                {{ push === 'needs-install' ? h.pushInstall : h.pushWhy }}
+              </span>
+            </div>
           </div>
-        </div>
 
-        <!--
-          Coverage is stated, not implied. A fingerprint built from 20.000 of
-          36.000 listings describes a bit more than half a shop, and saying so
-          is the difference between a statistic and a claim.
-        -->
-        <p
-          v-if="profile.dealer.fingerprint && profile.dealer.fingerprint.coverage < 0.99"
-          class="text-fid-sm text-fid-sig-gap"
-        >
-          {{
-            h.coverage(
-              count(profile.dealer.fingerprint.sampledItems),
-              count(profile.dealer.fingerprint.totalItems),
-              Math.round(profile.dealer.fingerprint.coverage * 100),
-            )
-          }}
-        </p>
-
-        <div
-          v-if="profile.dealer.fingerprint && profile.dealer.fingerprint.medianPrice > 0"
-          class="flex flex-col gap-1"
-        >
-          <h2 class="text-fid-sm font-medium text-fid-text">{{ h.priceTitle }}</h2>
           <!--
-            A median is a bare number and carries no unit.
-            This printed it with a hard-coded euro sign, so a shop pricing in
-            pounds showed its median as euros — a real number under the wrong
-            symbol, which is worse than no number. Inventory prices always come
-            back in the seller's currency, so the scan records which one it saw
-            and says nothing where a shop mixes them.
+            Coverage is stated, not implied. A fingerprint built from 20.000 of
+            36.000 listings describes a bit more than half a shop, and saying so
+            is the difference between a statistic and a claim.
           -->
-          <p class="text-fid-base text-fid-text">
-            <span class="fid-num">{{
-              h.median(
-                money(
-                  profile.dealer.fingerprint.medianPrice,
-                  profile.dealer.fingerprint.priceCurrency,
-                ) ?? count(profile.dealer.fingerprint.medianPrice),
+          <p
+            v-if="profile.dealer.fingerprint && profile.dealer.fingerprint.coverage < 0.99"
+            class="text-fid-sm text-fid-sig-gap"
+          >
+            {{
+              h.coverage(
+                count(profile.dealer.fingerprint.sampledItems),
+                count(profile.dealer.fingerprint.totalItems),
+                Math.round(profile.dealer.fingerprint.coverage * 100),
               )
-            }}</span>
-            <template v-if="!profile.dealer.fingerprint.priceCurrency">
-              <span class="text-fid-sm text-fid-text-muted"> {{ h.mixedCurrencies }}</span>
-            </template>
-            <template v-if="pricePosition"> – {{ pricePosition }}</template>
+            }}
           </p>
-          <WhyNote :label="h.priceWhyLabel">{{ h.priceWhy }}</WhyNote>
-        </div>
 
-        <div class="grid gap-8 @md:grid-cols-2 @5xl:grid-cols-3">
-          <FacetBars
-            :title="h.labelsInStock"
-            signal="label"
-            :facets="labels"
-            :empty="h.noLabels"
-            :open="(facet) => (browsing = { title: facet.name, label: facet.name })"
+          <div
+            v-if="profile.dealer.fingerprint && profile.dealer.fingerprint.medianPrice > 0"
+            class="flex flex-col gap-1"
+          >
+            <h2 class="text-fid-sm font-medium text-fid-text">{{ h.priceTitle }}</h2>
+            <!--
+              A median is a bare number and carries no unit.
+              This printed it with a hard-coded euro sign, so a shop pricing in
+              pounds showed its median as euros — a real number under the wrong
+              symbol, which is worse than no number. Inventory prices always come
+              back in the seller's currency, so the scan records which one it saw
+              and says nothing where a shop mixes them.
+            -->
+            <p class="text-fid-base text-fid-text">
+              <span class="fid-num">{{
+                h.median(
+                  money(
+                    profile.dealer.fingerprint.medianPrice,
+                    profile.dealer.fingerprint.priceCurrency,
+                  ) ?? count(profile.dealer.fingerprint.medianPrice),
+                )
+              }}</span>
+              <template v-if="!profile.dealer.fingerprint.priceCurrency">
+                <span class="text-fid-sm text-fid-text-muted"> {{ h.mixedCurrencies }}</span>
+              </template>
+              <template v-if="pricePosition"> – {{ pricePosition }}</template>
+            </p>
+            <WhyNote :label="h.priceWhyLabel">{{ h.priceWhy }}</WhyNote>
+          </div>
+
+          <div class="grid gap-8 @md:grid-cols-2 @5xl:grid-cols-3">
+            <FacetBars
+              :title="h.labelsInStock"
+              signal="label"
+              :facets="labels"
+              :empty="h.noLabels"
+              :open="(facet) => (browsing = { title: facet.name, label: facet.name })"
+            />
+            <FacetBars
+              :title="h.decades"
+              signal="gap"
+              token="label"
+              :facets="decades"
+              :empty="h.noYears"
+              :open="
+                (facet) => (browsing = { title: facet.name, decade: decadeOf(facet.name) })
+              "
+            />
+          </div>
+
+          <!--
+            What is behind a bar, underneath the bars. No screen of its own and
+            no dialog: the number above is the context, and somebody going
+            through a row of labels does not want to navigate back after each
+            one.
+          -->
+          <DealerStock
+            v-if="browsing"
+            :key="browsing.title"
+            :dealer="profile.dealer.username"
+            :title="browsing.title"
+            :label="browsing.label ?? null"
+            :decade="browsing.decade ?? null"
+            @close="browsing = null"
           />
-          <FacetBars
-            :title="h.decades"
-            signal="gap"
-            token="label"
-            :facets="decades"
-            :empty="h.noYears"
-            :open="(facet) => (browsing = { title: facet.name, decade: decadeOf(facet.name) })"
-          />
-        </div>
 
-        <!--
-          What is behind a bar, underneath the bars. No screen of its own and
-          no dialog: the number above is the context, and somebody going
-          through a row of labels does not want to navigate back after each
-          one.
-        -->
-        <DealerStock
-          v-if="browsing"
-          :key="browsing.title"
-          :dealer="profile.dealer.username"
-          :title="browsing.title"
-          :label="browsing.label ?? null"
-          :decade="browsing.decade ?? null"
-          @close="browsing = null"
-        />
-
-        <p v-if="profile.dealer.shippingNote" class="text-fid-sm text-fid-text-muted">
-          {{ profile.dealer.shippingNote }}
-        </p>
-      </section>
+          <p v-if="profile.dealer.shippingNote" class="text-fid-sm text-fid-text-muted">
+            {{ profile.dealer.shippingNote }}
+          </p>
+        </section>
+      </div>
     </template>
 
     <!--
