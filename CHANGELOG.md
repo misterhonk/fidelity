@@ -9,6 +9,51 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.78.0](https://github.com/misterhonk/fidelity/compare/v0.77.0...v0.78.0) (2026-09-14)
+
+**Neben den Einstellungen steht jetzt ein feiner Strich, der zeigt, was Fidelity gerade bei
+Discogs anfragt — und was Katalog und Hub ihm abgenommen haben.**
+
+Discogs erlaubt 60 Anfragen pro Minute je Anschluss. Das ist ein Tempo, kein Vorrat: es geht
+nichts aus, es gibt kein Tageslimit, und Dinge dauern eben. Der Strich zeigt darum keinen
+Tankfüllstand, sondern einen Puls — ein Strich je Sekunde der letzten Minute, gefüllt wo eine
+Anfrage rausging. **Hohl dagegen, wo dein Katalog oder dein Hub geantwortet hat.** Die beiden
+sind der Grund, warum die Linie ruhig bleibt, und bisher konnte man ihnen nicht beim Arbeiten
+zusehen. Aufgeklappt steht da, was diese Sitzung gekostet hat, wonach aufgeteilt, und wie
+viele Anfragen dir abgenommen wurden.
+
+In Ruhe ist es ein Haarstrich ohne Zahl. Auf dem Telefon ist es gar nicht da — die Zahlen
+dafür stehen ohnehin in den Einstellungen.
+
+**Eine Platte kostet nur noch eine Anfrage statt zwei.** Cover und Details kamen von derselben
+Adresse, wurden aber getrennt geholt. Jetzt legt das, was zuerst fragt, beides ab — eine
+Liste, die ihre Cover gezeichnet hat, hat damit jede Trackliste und jede Auslaufrille dahinter
+schon bezahlt.
+
+**Auf dem Telefon bleibt „In den Korb" am unteren Rand kleben**, statt unter acht Abschnitten
+zu verschwinden.
+
+Bei den Läden: der Rundgang steht wieder über der Liste statt an ihrem Fuß, jeder Laden hat
+sein Logo, und die Liste lässt sich sortieren — nach Trefferquote, zuletzt gegraben, Größe
+oder Name. Dazu zwei Gruppen, wie man tatsächlich über seine Läden denkt: **deine Läden**
+(beobachtet, gekauft, selbst eingetragen) und **weitere**. Und beim Öffnen stehen vier graue
+Zeilen da, statt dass die Seite springt, sobald die echten ankommen.
+
+**Was zu tun ist:** Nichts.
+
+
+### Added
+
+* **dealers:** the round back on top, and a shop with a face ([e417bb6](https://github.com/misterhonk/fidelity/commit/e417bb6d36fd3fa459b0b772f0e57f5ee6f7f8d3))
+* **dealers:** the shape before the shops ([9c61cc5](https://github.com/misterhonk/fidelity/commit/9c61cc5b360a14a8d5eff1cf7fb43119dbb2b6d9))
+* **discogs:** a pulse for what this device asks, and what it was spared ([8472795](https://github.com/misterhonk/fidelity/commit/8472795377f2498bb664623b31380d615968e689))
+* **ui:** the action stays in reach, and the shops list has an order ([2ec5d4b](https://github.com/misterhonk/fidelity/commit/2ec5d4b1b425ce39ed8c3671434c49e7bf93de91))
+
+
+### Changed
+
+* **discogs:** one address, one request ([3bd32d1](https://github.com/misterhonk/fidelity/commit/3bd32d1faa592ccfa0b106c7391c3be329ea29aa))
+
 ## [0.77.0](https://github.com/misterhonk/fidelity/compare/v0.76.0...v0.77.0) (2026-09-14)
 
 **Eine Platte sieht jetzt gleich aus, egal von wo du sie öffnest — und sie hat eine
