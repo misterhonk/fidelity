@@ -234,7 +234,16 @@ test('says how long a record has been wanted in the chosen language', async ({ p
 test('the home rails say how many, in the language of the app', async ({ page }) => {
   await seed(page, 'en')
   await page.goto('/')
+  /*
+   * Inside `main`, because the header is not the subject.
+   *
+   * Unscoped this reads whatever comes first in the document, and the bar
+   * above the page carries hidden text of its own — a panel behind a
+   * disclosure has an `innerText` of "", which fails an assertion about a
+   * rail that is perfectly fine.
+   */
   const english = await page
+    .locator('main')
     .getByText(/records$/)
     .first()
     .innerText()
@@ -242,6 +251,7 @@ test('the home rails say how many, in the language of the app', async ({ page })
   await seed(page, 'de')
   await page.goto('/')
   const german = await page
+    .locator('main')
     .getByText(/Platten$/)
     .first()
     .innerText()
