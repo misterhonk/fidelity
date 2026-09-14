@@ -132,10 +132,11 @@ jobs:
       # Safari — testing only Chromium means not testing the browser that matters.
       - if: steps.browsers.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium webkit
-      # The browsers are in the cache; the system libraries they link against
-      # are not, and the runner image does not carry all of WebKit's.
+      # On a cache hit, nothing: `install-deps` is 55 s of apt on a runner
+      # image that already carries what these two link against (checked
+      # 2026-09-14 — if WebKit ever fails to launch here, that is this line).
       - if: steps.browsers.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium webkit
+        run: pnpm exec playwright install chromium webkit
       # Includes the @axe-core/playwright pass. The Discogs API is never called
       # here; a real smoke test belongs in a nightly run, not in a per-PR job
       # that would burn the rate limit for merges.
