@@ -9,6 +9,21 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.78.0](https://github.com/misterhonk/fidelity/compare/v0.77.0...v0.78.0) (2026-09-14)
+
+
+### Added
+
+* **dealers:** the round back on top, and a shop with a face ([e417bb6](https://github.com/misterhonk/fidelity/commit/e417bb6d36fd3fa459b0b772f0e57f5ee6f7f8d3))
+* **dealers:** the shape before the shops ([9c61cc5](https://github.com/misterhonk/fidelity/commit/9c61cc5b360a14a8d5eff1cf7fb43119dbb2b6d9))
+* **discogs:** a pulse for what this device asks, and what it was spared ([8472795](https://github.com/misterhonk/fidelity/commit/8472795377f2498bb664623b31380d615968e689))
+* **ui:** the action stays in reach, and the shops list has an order ([2ec5d4b](https://github.com/misterhonk/fidelity/commit/2ec5d4b1b425ce39ed8c3671434c49e7bf93de91))
+
+
+### Changed
+
+* **discogs:** one address, one request ([3bd32d1](https://github.com/misterhonk/fidelity/commit/3bd32d1faa592ccfa0b106c7391c3be329ea29aa))
+
 ## [0.77.0](https://github.com/misterhonk/fidelity/compare/v0.76.0...v0.77.0) (2026-09-14)
 
 **Eine Platte sieht jetzt gleich aus, egal von wo du sie öffnest — und sie hat eine
