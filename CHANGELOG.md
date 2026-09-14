@@ -9,6 +9,24 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.81.0](https://github.com/misterhonk/fidelity/compare/v0.80.1...v0.81.0) (2026-09-14)
+
+**Auch im eigenen Regal führen jetzt zwei Pfeile von einer Platte zur nächsten.**
+
+Durch die eigene Sammlung zu gehen ist dieselbe Bewegung wie durch eine Fundliste zu gehen —
+und es standen dieselben drei Schritte im Weg: schließen, zurückscrollen, die Zeile
+wiederfinden. Die Pfeile neben dem Schließen-Kreuz begehen die Liste so, wie sie auf dem
+Bildschirm steht: gefiltert, sortiert, und so weit, wie du sie hast laden lassen. Die
+Pfeiltasten tun dasselbe, wo gerade niemand tippt.
+
+Die Wand und die Startseite öffnen eine Platte aus etwas heraus, das keine Liste zum
+Herunterlesen ist. Dort gibt es entsprechend keine Pfeile.
+
+
+### Added
+
+* **collection:** the shelf walks too ([03b10b4](https://github.com/misterhonk/fidelity/commit/03b10b4050da25da9f2d5f9fbf3d3074bd7c96be))
+
 ## [0.80.1](https://github.com/misterhonk/fidelity/compare/v0.80.0...v0.80.1) (2026-09-14)
 
 **Zwei Anfragen weniger, ohne dass irgendwo etwas gespeichert wird, das altern könnte.**
