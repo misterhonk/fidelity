@@ -3,6 +3,7 @@ import type { z } from 'zod'
 import { DIG_TTL_MS } from '~~/db/expire'
 import { getPreferences } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
+import { writeCovers } from '~~/db/covers'
 import type { ReleaseDetail } from '#shared/types'
 
 import type { DiscogsClient } from '../discogs/client'
@@ -76,6 +77,23 @@ export async function releaseDetail(
     return null
   }
 
+  return storeReleaseDetail(db, releaseId, answer, currency, now())
+}
+
+/**
+ * Build the row, and file both halves of the answer.
+ *
+ * Exported because `worker/covers.ts` fetches the very same address: whichever
+ * of the two asks first now answers for both, so opening a record whose sleeve
+ * a list already fetched costs nothing at all.
+ */
+export async function storeReleaseDetail(
+  db: Awaited<ReturnType<typeof openFidelityDb>>,
+  releaseId: number,
+  answer: z.infer<typeof releaseDetailSchema>,
+  currency: string,
+  at: number,
+): Promise<ReleaseDetail> {
   const detail: ReleaseDetail = {
     releaseId,
     country: answer.country ?? '',
@@ -134,14 +152,45 @@ export async function releaseDetail(
             priceCents: Math.round(answer.lowest_price * 100),
             currency,
             numForSale: answer.num_for_sale ?? 0,
-            at: now(),
+            at,
           }
         : null,
-    fetchedAt: now(),
+    fetchedAt: at,
   }
 
   await db.put('releaseDetail', detail)
+
+  /*
+   * And the sleeve, out of the same answer.
+   *
+   * `images` rides along in this response; fetching it separately was a second
+   * request for the same address (docs/02). Written through `writeCovers` so a
+   * release Discogs has no picture for is stored as empty and never asked
+   * about again.
+   */
+  await writeCovers([coverOf(releaseId, answer.images)])
+
   return detail
+}
+
+/**
+ * The one image worth keeping, out of a release's list.
+ *
+ * `primary` where there is one, otherwise the first — and an empty pair where
+ * there is none, which is a fact rather than a failure: Discogs has no picture
+ * for plenty of small pressings.
+ */
+export function coverOf(
+  releaseId: number,
+  images: { type?: string; uri?: string; uri150?: string }[] | undefined,
+): { releaseId: number; thumbUrl: string; coverUrl: string } {
+  const all = images ?? []
+  const primary = all.find((image) => image.type === 'primary') ?? all[0]
+  return {
+    releaseId,
+    thumbUrl: primary?.uri150 ?? '',
+    coverUrl: primary?.uri ?? '',
+  }
 }
 
 /** What is already known, without asking Discogs anything. */

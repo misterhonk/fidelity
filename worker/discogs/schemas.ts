@@ -101,6 +101,24 @@ export const releaseDetailSchema = z.object({
    */
   genres: z.array(z.string()).optional(),
   styles: z.array(z.string()).optional(),
+  /*
+   * The sleeve, and the reason this schema is the only one for this endpoint.
+   *
+   * Measured 2026-09-14 in the network log while opening one record:
+   * `/releases/9912345` went out for the cover and
+   * `/releases/9912345?curr_abbr=EUR` for the details — the same address, two
+   * schemas, two slots of a sixty-a-minute budget. Whichever of the two asks
+   * first now answers for both.
+   */
+  images: z
+    .array(
+      z.object({
+        type: z.string().optional(),
+        uri: z.string().optional(),
+        uri150: z.string().optional(),
+      }),
+    )
+    .optional(),
   tracklist: z
     .array(
       z.object({
