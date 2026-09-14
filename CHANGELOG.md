@@ -11,6 +11,19 @@ Für eine App bedeutet SemVer:
 
 ## [0.87.0](https://github.com/misterhonk/fidelity/compare/v0.86.0...v0.87.0) (2026-09-14)
 
+**Der Preis lässt sich jetzt von günstig nach teuer sortieren — oder anders herum.**
+
+Bis hierher hatte jede Sortierung genau eine Richtung: der Pfeil steckte im Wort. Jetzt nimmt
+eine Taste beim Auswählen ihre eigene Richtung, und nochmal gedrückt dreht sie sie um — so,
+wie das Regal es schon macht. Der Spaltenkopf in der kompakten Dichte tut dasselbe.
+
+Was dabei nicht kippt: Platten, deren Preis nach sechs Stunden verschwunden ist, bleiben von
+**beiden** Enden hinten. Die Richtung dreht die Werte, nicht die Leerstellen.
+
+Und die Leiste über der Liste sieht im Dig jetzt aus wie im Regal: ein Akzent-Strich unter
+dem, was gilt, statt einer getönten Pille — und ohne das Wort „Sortieren" davor, das die
+andere Seite auch nie hatte.
+
 
 ### Added
 
