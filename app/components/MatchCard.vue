@@ -10,6 +10,9 @@ const d = useDigMessages()
 const props = defineProps<{ match: Match }>()
 
 const { verdicts, judge } = useFeedback()
+
+/** Saving is what you do while flipping; "bought" belongs where an order is. */
+const CARD_VERDICTS = SHOWN_VERDICTS.filter((option) => option.key === 'interesting')
 const verdict = computed(() => verdicts.value[props.match.listingId])
 
 const { show } = useReleaseSheet()
@@ -67,18 +70,6 @@ const meta = computed(() => {
     .filter(Boolean)
     .join(' · ')
 })
-
-/**
- * The signals as one plate line (M26.2), not as coloured chips.
- *
- * Three chips in three signal colours were the loudest thing on the card
- * after the cover, and they said less than the sentence under them. The
- * names stay, set like a type plate; the colours stay in the sheet's signal
- * list, where somebody who wants them goes looking.
- */
-const signalsLine = computed(() =>
-  props.match.signals.map((signal) => signalLabel(signal.type)).join(' · '),
-)
 </script>
 
 <template>
@@ -153,8 +144,6 @@ const signalsLine = computed(() =>
       </div>
 
       <div class="flex min-w-0 flex-col gap-2">
-        <p v-if="signalsLine" class="fid-plate text-fid-text-muted">{{ signalsLine }}</p>
-
         <!--
           The title is the way in, and it says the artist too — as its own
           line for the eye, and as "artist – title" for anything that reads
@@ -173,10 +162,19 @@ const signalsLine = computed(() =>
             {{ match.title }}
           </span>
         </button>
-        <p v-if="meta" class="fid-plate text-fid-text-muted">{{ meta }}</p>
+        <!--
+          The sentence under the title, the facts under the sentence.
 
-        <!-- Never truncated. The sentence is the product. -->
+          A card is read top to bottom in about a second: the sleeve stops you,
+          the title says what it is, and then comes the one line this app exists
+          to write — *why this record is in front of you*. A mono line of label
+          and catalogue number between the two was a comparison table
+          interrupting a sentence.
+
+          Never truncated. The sentence is the product.
+        -->
         <p class="max-w-prose text-fid-base text-fid-text">{{ reasonFor(match.signals) }}</p>
+        <p v-if="meta" class="fid-plate text-fid-text-muted">{{ meta }}</p>
 
         <!--
           Rare, per the catalogue (M20 #6): an album with five pressings or fewer
@@ -235,15 +233,6 @@ const signalsLine = computed(() =>
             <span v-if="match.condition">{{ match.condition }}</span>
             <span v-if="price" class="fid-num text-fid-text">{{ price }}</span>
             <span v-if="landedText" class="fid-num" :title="landedWhy">{{ landedText }}</span>
-            <!--
-              It stays a link here, not a button: a second button beside "add
-              to basket" would compete with it for the same glance. The mark is
-              the same as in the sheet — that it leads out of the app should
-              look the same everywhere.
-            -->
-            <OutwardLink :to="`https://www.discogs.com/sell/item/${match.listingId}`">
-              {{ d.sheet.atDiscogs }}
-            </OutwardLink>
           </p>
         </div>
       </div>
@@ -255,20 +244,35 @@ const signalsLine = computed(() =>
       worthless once the weights move (docs/03 §7).
     -->
     <div class="flex flex-wrap items-center gap-2">
+      <!--
+        The middle volume (M31.3), not the filled one: in a list of two
+        hundred, twenty filled buttons are the wall the list was built to
+        avoid. The filled one lives on the sheet, once, for the record that is
+        open.
+
+        And the icon stands next to the word at both ends — the word changes,
+        because "in den Korb" is an action and "im Korb" is a state.
+      -->
       <button
         type="button"
         :aria-pressed="contains(match.listingId)"
-        class="rounded-fid-sm border px-3 py-1 text-fid-sm transition-colors"
+        class="fid-action inline-flex items-center gap-2 rounded-fid-sm px-3 py-1 text-fid-sm transition-colors"
         :class="
-          contains(match.listingId)
-            ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
-            : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+          contains(match.listingId) ? 'border border-fid-accent text-fid-text' : 'fid-tonal'
         "
         @click="toggle(match.digId, match.listingId)"
       >
+        <FidIcon :name="contains(match.listingId) ? 'check' : 'shopping-basket'" :size="14" />
         {{ contains(match.listingId) ? d.match.basketIn : d.match.basketAdd }}
       </button>
 
+      <!--
+        One verdict here, both on the sheet.
+
+        Saving is a flip-through movement — you do it without stopping. Marking
+        something bought is not: it happens after an order, and the basket, the
+        saved screen and the sheet all offer it where that actually is.
+      -->
       <div class="flex gap-1" role="group" :aria-label="d.match.feedback">
         <!--
           The word stands next to the icon, and it changes: "Save" is the
@@ -276,7 +280,7 @@ const signalsLine = computed(() =>
           text everyone else reads.
         -->
         <button
-          v-for="option in SHOWN_VERDICTS"
+          v-for="option in CARD_VERDICTS"
           :key="option.key"
           type="button"
           :aria-pressed="verdict === option.key"

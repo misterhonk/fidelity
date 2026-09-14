@@ -999,6 +999,7 @@ const noHorizon = computed(
         the list stands — and not somewhere you would have to go looking.
       -->
       <NuxtLink
+        v-if="result.matches.length > 0"
         :to="{ path: '/stack' }"
         class="fid-action inline-flex items-center gap-2 self-start rounded-fid-sm border border-fid-accent px-5 py-3 text-fid-base font-medium text-fid-accent"
       >
@@ -1057,8 +1058,16 @@ const noHorizon = computed(
       </div>
 
       <!-- The ToS deadline, enforced in the UI and not only in the cleanup job. -->
+      <!--
+        And only where there were prices to lose.
+
+        A dig that found nothing showed the six-hour notice and a button
+        offering to refresh nought prices — three controls that could do
+        nothing, dressed as a result. Reported on 2026-09-14 with exactly that
+        screen in front of it.
+      -->
       <section
-        v-if="expired"
+        v-if="expired && result.matches.length > 0"
         role="status"
         class="flex flex-col gap-2 rounded-fid-sm border border-fid-border p-3"
       >
@@ -1135,13 +1144,43 @@ const noHorizon = computed(
       </p>
 
       <!-- Three different sentences, and why, in `app/i18n/dig.ts`. -->
-      <p v-else-if="result.matches.length === 0" class="text-fid-base text-fid-text-muted">
-        {{
-          kind === 'incremental-empty'
-            ? d.empty['incremental-empty'](result.dig.dealer)
-            : d.empty[kind]
-        }}
-      </p>
+      <template v-else-if="result.matches.length === 0">
+        <p class="text-fid-base text-fid-text-muted">
+          {{
+            kind === 'incremental-empty'
+              ? d.empty['incremental-empty'](result.dig.dealer)
+              : d.empty[kind]
+          }}
+        </p>
+
+        <!--
+          And the two handles that help when nothing was found.
+
+          No result is an answer, not a broken one — but the screen used to
+          answer it with a stack that has no cards and a button offering to
+          refresh nought prices. This is what is actually left to do: read the
+          whole shop rather than only what is new, or put it on the round so it
+          gets asked without anybody starting a dig.
+        -->
+        <div class="flex flex-wrap items-center gap-3">
+          <button
+            v-if="kind !== 'full'"
+            type="button"
+            :disabled="busy || !online"
+            class="fid-action fid-tonal rounded-fid-sm px-4 py-2 text-fid-sm font-medium disabled:opacity-50"
+            @click="again()"
+          >
+            {{ d.empty.wholeShop }}
+          </button>
+          <NuxtLink
+            :to="`/dealers?shop=${encodeURIComponent(result.dig.dealer)}`"
+            class="fid-action inline-flex items-center gap-2 rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+          >
+            <FidIcon name="eye" :size="14" aria-hidden="true" />
+            {{ d.empty.watchIt }}
+          </NuxtLink>
+        </div>
+      </template>
 
       <template v-else>
         <!--
