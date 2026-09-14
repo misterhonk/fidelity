@@ -11,6 +11,34 @@ Für eine App bedeutet SemVer:
 
 ## [0.76.0](https://github.com/misterhonk/fidelity/compare/v0.75.0...v0.76.0) (2026-09-14)
 
+**Der Score sagt jetzt, was er bedeutet — und ein Fundstück verrät seinen Zustand in Worten.**
+
+Neben jeder Zahl steht das Wort, das sie meint: ab 85 „Side One, Track One", ab 70 „Top Five",
+ab 50 „Solide", darunter „Randnotiz". Dazu eine kleine Leiter aus vier Sprossen, an der du
+ohne Legende siehst, wo die Zahl liegt, und ein Fragezeichen, das in drei Sätzen erklärt, was
+überhaupt gezählt wird. Auf dem Blatt steht die Zahl jetzt direkt neben den Signalen, aus
+denen sie entstanden ist.
+
+Kurz zur Zahl selbst, weil sie oft kleiner wirkt, als sie ist: gezählt werden die Gründe, die
+für eine Platte sprechen — der stärkste voll, jeder weitere zu 30 %. Deshalb wird die 100 fast
+nie erreicht; ein perfekter Wantlist-Treffer allein ergibt 87. Eine 48 heißt: genau ein Grund
+hat gefeuert.
+
+**Und die Zustandskürzel sprechen Deutsch.** Unter „Near Mint (NM or M-)" steht jetzt, was das
+fürs Hören heißt — „Sieht neu aus, kaum gespielt. Kein Rauschen, das auffällt." Acht Stufen,
+acht Sätze, direkt unter der Benotung statt beim Überfahren mit der Maus: ein Telefon hat kein
+Hover.
+
+Der Kasten am Kopf des Fundstück-Blattes zeigt jetzt das **Angebot** — Preis, Platte, Hülle,
+jedes beschriftet. Und wo nach sechs Stunden kein Preis mehr stehen darf, steht der Grund
+statt einer Lücke.
+
+Bei den Läden: der geöffnete Laden steht auf breiten Bildschirmen **neben** der Liste statt
+darunter. „Beobachten", „Jetzt graben" und „Ausblenden" lagen bei vielen Läden drei
+Bildschirme unter der Falte — ausgerechnet beim Laden, den du gerade angetippt hattest.
+
+**Was zu tun ist:** Nichts.
+
 
 ### Added
 
