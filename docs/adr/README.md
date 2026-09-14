@@ -26,8 +26,12 @@ What gets easier, what gets harder? What is the way out?
 | ADR | Title | Status |
 |---|---|---|
 | [007](007-client-only-pwa.md) | **Client-only PWA, no backend** | **Accepted** |
+| [016](016-no-pooled-release-details.md) | The hub pools cover addresses and nothing else | Accepted |
 | [013](013-catalogue-service.md) | A stateless catalogue service from the CC0 dump, beside the hub | Proposed (M21) |
+| [015](015-places-as-a-wall.md) | Places as a wall of compartments | Accepted |
 | [014](014-open-core-hosted-comfort.md) | The code stays open; what is paid for is hosting, data and care | Accepted |
+| [014](014-hub-carries-shops.md) | The hub carries the shop list — *the number is taken twice, see the file* | Accepted |
+| [012](012-audio-preview.md) | Audio preview: one named exception to the privacy promise | Accepted |
 | [011](011-fidelity-writes-back.md) | Writing back to your own collection | Accepted |
 | [010](010-english-base-language.md) | English as the base language | Accepted |
 | [009](009-dealer-import.md) | Dealer import via `/friends` | Accepted, off by default |
