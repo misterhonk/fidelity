@@ -11,6 +11,17 @@ Für eine App bedeutet SemVer:
 
 ## [0.85.0](https://github.com/misterhonk/fidelity/compare/v0.84.0...v0.85.0) (2026-09-14)
 
+**`j` und `k` gehen durch die Funde, `/` springt in den Filter.**
+
+Die zwei Gesten aus jedem Mailprogramm und jedem Ticketsystem. In einem offenen Blatt
+gegen dieselbe Reihenfolge, die auch die Pfeile benutzen; ohne offenes Blatt heißt `j`
+„oben anfangen". Im Filter ist `j` wieder der Buchstabe j — nicht, während jemand tippt,
+und nicht mit gehaltener Modifikatortaste.
+
+Dabei fiel ein Fehler auf: Weiterblättern ersetzt jetzt den History-Eintrag, statt jeden
+Schritt zu pushen. „Zurück" schließt damit das Blatt, statt die Platten rückwärts
+durchzugehen.
+
 
 ### Added
 
