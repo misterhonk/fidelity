@@ -272,6 +272,11 @@ const en = {
      * and shown nowhere until now. Zero means "never said", not "not much" —
      * so five hollow stars are an invitation, never a verdict.
      */
+    /** The sheet a wanted record opens in (M31.21). */
+    sheet: {
+      since: (when: string) => `On the wantlist since ${when}`,
+      lastSeen: (dealer: string, when: string) => `Last offered by ${dealer}, ${when}`,
+    },
     priority: {
       label: 'How much you want it',
       set: (stars: number) => (stars === 1 ? 'Want it 1 star' : `Want it ${stars} stars`),
@@ -782,6 +787,10 @@ const de: typeof en = {
     search: 'Künstler oder Titel',
     searchLabel: 'Wantlist durchsuchen',
     pressings: (n, one) => `${n} ${one ? 'Pressung' : 'Pressungen'} bekannt`,
+    sheet: {
+      since: (when) => `Auf der Wantlist seit ${when}`,
+      lastSeen: (dealer, when) => `Zuletzt angeboten bei ${dealer}, ${when}`,
+    },
     priority: {
       label: 'Wie sehr du sie willst',
       set: (stars) => (stars === 1 ? '1 Stern vergeben' : `${stars} Sterne vergeben`),
