@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { LISTEN_NAMES, listenUrl, type ListenService } from '#shared/listen'
+import { clipsOnTracks, LISTEN_NAMES, listenUrl, type ListenService } from '#shared/listen'
+import type { ReleaseTrack } from '#shared/types'
 import { useAudioPreview, videoId } from '~/composables/useAudioPreview'
 
 /**
@@ -38,6 +39,15 @@ const props = defineProps<{
    * the clips down from there.
    */
   releaseId?: number
+  /**
+   * The tracklist, where the caller has one.
+   *
+   * With it, the clips hang on the tracks that name them and the section reads
+   * as a record rather than as a list of links beside one (M31.5). Without it
+   * — a record Discogs has no tracklist for — the clips stand on their own, as
+   * they always did.
+   */
+  tracks?: ReleaseTrack[]
 }>()
 
 const service = ref<ListenService>('none')
@@ -112,7 +122,23 @@ const distinct = computed(() => {
   })
 })
 
-const clips = computed(() => distinct.value.slice(0, LIMIT))
+/*
+ * Which clip belongs to which track, and what is left over.
+ *
+ * Matched against *every* distinct clip rather than the six that are shown:
+ * a record with fourteen clips would otherwise hand the first six to the first
+ * six tracks and call the rest recordings.
+ */
+const onTracks = computed(() => clipsOnTracks(props.tracks ?? [], distinct.value))
+
+/** What no track claimed — offered underneath, cut to six like before. */
+const loose = computed(() =>
+  (props.tracks?.length ? onTracks.value.rest : distinct.value).slice(0, LIMIT),
+)
+
+const looseTotal = computed(() =>
+  props.tracks?.length ? onTracks.value.rest.length : distinct.value.length,
+)
 
 const searchAt = computed(() => listenUrl(service.value, props.artist, props.title))
 
@@ -154,9 +180,93 @@ onBeforeUnmount(() => audio.release(mount.value))
 </script>
 
 <template>
-  <section v-if="clips.length || searchAt || asking" class="flex flex-col gap-2">
+  <!--
+    The frame's place, above both lists — and until somebody taps, an empty div
+    is all it is.
+
+    `v-show`, never `v-if`: the element has to exist before the tap, because
+    the player is built into it *by* the tap. And it is only visible while
+    something plays — hung off "has anybody ever tapped" it stayed standing
+    after stopping, showing the last record's still under the next one.
+  -->
+  <div v-show="audio.playing.value" class="flex flex-col gap-2">
+    <div class="aspect-video w-full overflow-hidden rounded-fid-sm bg-fid-field">
+      <div ref="mount" class="size-full"></div>
+    </div>
+    <p class="text-fid-xs text-fid-text-muted">
+      <!-- YouTube's title, not the record's: under a 12" there is sometimes
+           an album rip, a live take or a different record altogether. -->
+      <span v-if="audio.clip.value">{{ audio.clip.value }} · </span>{{ m.listen.source }}
+    </p>
+  </div>
+
+  <!--
+    What is on the record, with a play control where there is something to
+    hear. This is the section that makes the sheet a record rather than a page
+    of facts about one.
+  -->
+  <section v-if="tracks?.length" class="flex flex-col gap-2">
+    <h3 class="text-fid-sm font-bold text-fid-text">{{ m.listen.onIt }}</h3>
+    <ol class="flex flex-col">
+      <li
+        v-for="(track, index) in tracks"
+        :key="`${track.position}-${index}`"
+        class="flex items-center gap-3 border-b border-fid-border/50 py-2 last:border-0"
+      >
+        <!--
+          Three shapes, one column: a button where the preview is on, a link
+          out where it is off, and an empty box where the record has nothing
+          to hear — so the titles stay in one line down the list.
+        -->
+        <button
+          v-if="onTracks.perTrack[index] && preview"
+          type="button"
+          class="fid-action shrink-0 text-fid-accent"
+          :aria-label="m.listen.play(track.title)"
+          @click="hear(onTracks.perTrack[index]!)"
+        >
+          <FidIcon
+            :name="playing(onTracks.perTrack[index]!.uri) ? 'square' : 'play'"
+            :size="14"
+          />
+        </button>
+        <a
+          v-else-if="onTracks.perTrack[index]"
+          :href="onTracks.perTrack[index]!.uri"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="fid-action shrink-0 text-fid-accent"
+          :aria-label="m.listen.play(track.title)"
+        >
+          <FidIcon name="play" :size="14" />
+        </a>
+        <span v-else class="size-4 shrink-0" aria-hidden="true" />
+
+        <span
+          v-if="track.position"
+          class="fid-num w-8 shrink-0 text-fid-xs text-fid-text-muted"
+        >
+          {{ track.position }}
+        </span>
+        <span class="min-w-0 grow text-fid-sm text-fid-text">{{ track.title }}</span>
+        <!-- Where the sound comes from, per row: the picker above can say
+             Deezer while the clip is YouTube's. -->
+        <span v-if="onTracks.perTrack[index]" class="fid-plate shrink-0 text-fid-text-muted">
+          {{ m.listen.via }}
+        </span>
+        <!-- Very often missing, and an empty column is quieter than a dash. -->
+        <span v-if="track.duration" class="fid-num shrink-0 text-fid-xs text-fid-text-muted">
+          {{ track.duration }}
+        </span>
+      </li>
+    </ol>
+  </section>
+
+  <section v-if="loose.length || searchAt || asking" class="flex flex-col gap-2">
     <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-      <h3 class="text-fid-sm font-bold text-fid-text">{{ m.listen.title }}</h3>
+      <h3 class="text-fid-sm font-bold text-fid-text">
+        {{ tracks?.length ? m.listen.more : m.listen.title }}
+      </h3>
 
       <a
         v-if="searchAt && serviceName"
@@ -170,19 +280,8 @@ onBeforeUnmount(() => audio.release(mount.value))
       </a>
     </div>
 
-    <div v-show="audio.playing.value" class="flex flex-col gap-2">
-      <div class="aspect-video w-full overflow-hidden rounded-fid-sm bg-fid-field">
-        <div ref="mount" class="size-full"></div>
-      </div>
-      <p class="text-fid-xs text-fid-text-muted">
-        <!-- YouTube's title, not the record's: under a 12" there is sometimes
-             an album rip, a live take or a different record altogether. -->
-        <span v-if="audio.clip.value">{{ audio.clip.value }} · </span>{{ m.listen.source }}
-      </p>
-    </div>
-
-    <ul v-if="clips.length" class="flex flex-col gap-1">
-      <li v-for="video in clips" :key="video.uri">
+    <ul v-if="loose.length" class="flex flex-col gap-1">
+      <li v-for="video in loose" :key="video.uri">
         <button
           v-if="preview"
           type="button"
@@ -211,8 +310,8 @@ onBeforeUnmount(() => audio.release(mount.value))
       </li>
     </ul>
 
-    <p v-if="distinct.length > clips.length" class="fid-num text-fid-xs text-fid-text-muted">
-      {{ m.common.ofTotal(count(clips.length), count(distinct.length)) }}
+    <p v-if="looseTotal > loose.length" class="fid-num text-fid-xs text-fid-text-muted">
+      {{ m.common.ofTotal(count(loose.length), count(looseTotal)) }}
     </p>
 
     <!-- Something is happening, and the screen says so rather than sitting empty. -->
@@ -221,7 +320,10 @@ onBeforeUnmount(() => audio.release(mount.value))
     </p>
 
     <!-- What it could do, for somebody who has never been to the settings. -->
-    <p v-if="clips.length && !preview" class="text-fid-xs text-fid-text-muted">
+    <p
+      v-if="(loose.length || onTracks.rest.length) && !preview"
+      class="text-fid-xs text-fid-text-muted"
+    >
       {{ m.listen.here.lead }}
       <NuxtLink to="/settings/data" class="fid-action underline underline-offset-4">{{
         m.listen.here.link

@@ -209,18 +209,6 @@ const lookAgain = () => look(true)
  * pass on rather than paper over: a bare number could be euros, dollars or
  * pounds, and a figure somebody cannot act on is worse than a missing line.
  */
-const marketPrice = computed(() => {
-  const market = detail.value?.market
-  return market ? money(market.priceCents / 100, market.currency) : null
-})
-
-/** A run-out number is the one identifier you read off the record itself. */
-const runouts = computed(() =>
-  (detail.value?.identifiers ?? []).filter((identifier) =>
-    /matrix|runout/i.test(identifier.type),
-  ),
-)
-
 onMounted(async () => {
   record.value = await call('collection.record', { instanceId: props.instanceId })
   if (record.value) {
@@ -562,140 +550,28 @@ async function remove() {
         </div>
       </section>
 
-      <section v-if="tags.length > 0" class="flex flex-col gap-2">
-        <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.sounds }}</h3>
-        <ul class="flex flex-wrap gap-2">
-          <li
-            v-for="tag in tags"
-            :key="tag"
-            class="rounded-fid-sm border border-fid-field px-2 py-1 text-fid-xs text-fid-text-muted"
-          >
-            {{ tag }}
-          </li>
-        </ul>
-      </section>
-
       <!--
-          And what the one lookup brought back.
+        What the record is — the same block the find's sheet draws (M31.5).
 
-          Everything above came out of storage and was on screen immediately;
-          this arrives a paced request later. Each block appears only when
-          there is something in it — an empty "Tracklist" heading over nothing
-          is worse than no heading, and Discogs has no tracklist for plenty of
-          records.
-        -->
-      <section v-if="detail?.tracks.length" class="flex flex-col gap-2">
-        <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.tracklist }}</h3>
-        <ol class="flex flex-col">
-          <li
-            v-for="(track, index) in detail.tracks"
-            :key="`${track.position}-${index}`"
-            class="flex items-baseline gap-3 border-b border-fid-border/50 py-2 last:border-0"
-          >
-            <span
-              v-if="track.position"
-              class="fid-num w-8 shrink-0 text-fid-xs text-fid-text-muted"
-            >
-              {{ track.position }}
-            </span>
-            <span class="min-w-0 grow text-fid-sm text-fid-text">{{ track.title }}</span>
-            <!-- Very often missing, and an empty column is quieter than a dash. -->
-            <span
-              v-if="track.duration"
-              class="fid-num shrink-0 text-fid-xs text-fid-text-muted"
-            >
-              {{ track.duration }}
-            </span>
-          </li>
-        </ol>
-      </section>
+        It used to live here in full while a find's sheet showed none of it,
+        although both fetch the very same release detail. One component, one
+        order of sections, and a record now looks the same whichever screen it
+        is opened from.
+      -->
+      <ListenSection
+        :artist="record.artistNames[0] ?? null"
+        :title="record.title"
+        :videos="detail?.videos"
+        :tracks="detail?.tracks"
+      />
 
-      <section v-if="detail?.credits.length" class="flex flex-col gap-2">
-        <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.credits }}</h3>
-        <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-fid-sm">
-          <template v-for="(credit, index) in detail.credits" :key="`${credit.name}-${index}`">
-            <dt class="text-fid-text-muted">{{ credit.role || '—' }}</dt>
-            <dd class="min-w-0 text-fid-text">{{ credit.name }}</dd>
-          </template>
-        </dl>
-      </section>
-
-      <!--
-          The number in the run-out groove, and what everybody else thinks.
-
-          The matrix is the one identifier you can read off the record itself
-          while standing in a shop — which is exactly the question "is this the
-          pressing I think it is". The barcode and the rest stay on Discogs.
-        -->
-      <section
-        v-if="runouts.length || detail?.community || detail?.country"
-        class="flex flex-col gap-2"
-      >
-        <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.pressing }}</h3>
-        <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-fid-sm">
-          <template v-if="detail?.country">
-            <dt class="text-fid-text-muted">{{ c.shelf.sheet.facts.country }}</dt>
-            <dd class="min-w-0 text-fid-text">
-              {{ detail.country }}
-              <template v-if="detail.released"> · {{ detail.released }}</template>
-            </dd>
-          </template>
-          <template v-for="(runout, index) in runouts" :key="index">
-            <dt class="text-fid-text-muted">{{ runout.description || runout.type }}</dt>
-            <dd class="fid-num min-w-0 text-fid-xs break-all text-fid-text">
-              {{ runout.value }}
-            </dd>
-          </template>
-          <template v-if="detail?.community">
-            <dt class="text-fid-text-muted">{{ c.shelf.sheet.everyone }}</dt>
-            <dd class="min-w-0 text-fid-text">
-              {{
-                c.shelf.sheet.communityRating(
-                  detail.community.rating.toFixed(2),
-                  count(detail.community.votes),
-                )
-              }}
-            </dd>
-          </template>
-
-          <!--
-              What it goes for — the one line here allowed to go stale, and
-              therefore the one that disappears rather than ageing. Rule 4:
-              marketplace data is never shown once it is six hours old. The
-              worker drops it on the way out; this offers to ask again, which
-              is the only thing on this sheet that costs a second request.
-            -->
-          <template v-if="detail?.market && marketPrice">
-            <dt class="text-fid-text-muted">{{ c.shelf.sheet.forSale }}</dt>
-            <dd class="min-w-0 text-fid-text">
-              {{ c.shelf.sheet.cheapest(marketPrice, count(detail.market.numForSale)) }}
-            </dd>
-          </template>
-          <template v-else-if="detail">
-            <dt class="text-fid-text-muted">{{ c.shelf.sheet.forSale }}</dt>
-            <dd class="min-w-0">
-              <button
-                type="button"
-                class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4 disabled:opacity-60"
-                :disabled="looking"
-                @click="lookAgain()"
-              >
-                {{ looking ? c.shelf.sheet.looking : c.shelf.sheet.whatIsItWorth }}
-              </button>
-            </dd>
-          </template>
-        </dl>
-      </section>
-
-      <!--
-          What the people who catalogued it wrote down: which sleeve, which
-          plant, who licensed what. Late in the sheet, because it is prose in a
-          page of facts and reads like a footnote.
-        -->
-      <section v-if="detail?.notes" class="flex flex-col gap-2">
-        <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.aboutIt }}</h3>
-        <p class="text-fid-sm whitespace-pre-line text-fid-text-muted">{{ detail.notes }}</p>
-      </section>
+      <ReleaseFacts
+        :detail="detail"
+        :tags="tags"
+        refreshable
+        :looking="looking"
+        @refresh="lookAgain()"
+      />
 
       <!--
           Six, and it says so when there are more.
@@ -713,19 +589,6 @@ async function remove() {
         like a record nobody had thought about. A search at the chosen service
         is something to hear either way (M31).
       -->
-      <!--
-        The clips Discogs has for this record, and a search at the chosen
-        service — one block, because from the reader's side they are one
-        question. See ListenSection.vue for the difference that matters.
-
-        The cut to six and the count under it live in the component now, so a
-        record looks the same whether it is reached from here or from a find.
-      -->
-      <ListenSection
-        :artist="record.artistNames[0] ?? null"
-        :title="record.title"
-        :videos="detail?.videos"
-      />
 
       <!--
           Said while the one request is out, and only until it answers.

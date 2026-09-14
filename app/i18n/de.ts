@@ -52,6 +52,10 @@ const de: Messages = {
     source: 'Läuft über YouTube',
     here: { lead: 'Hier abspielen –', link: 'Hörprobe einschalten' },
     stop: 'Stopp',
+    onIt: 'Auf der Platte',
+    via: 'YouTube',
+    play: (track) => `${track} abspielen`,
+    more: 'Weitere Aufnahmen',
   },
 
   grades: {

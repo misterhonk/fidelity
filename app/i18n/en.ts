@@ -120,6 +120,13 @@ const en = {
      */
     here: { lead: 'Play them here —', link: 'switch the preview on' },
     stop: 'Stop',
+    /** Over the tracklist, where the clips hang once they are matched. */
+    onIt: 'On the record',
+    /** Beside a track that has one — a brand name, the same in every language. */
+    via: 'YouTube',
+    play: (track: string) => `Play ${track}`,
+    /** What no track claimed: a live take, an album rip, a different pressing. */
+    more: 'More recordings',
   },
 
   /**

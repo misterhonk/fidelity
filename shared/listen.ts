@@ -79,3 +79,82 @@ export function listenUrl(
 
   return SEARCH[service](`${name} ${album}`)
 }
+
+/**
+ * Which clip belongs to which track (M31.5).
+ *
+ * Discogs' video titles almost always carry the track's name — "Caribou -
+ * Can't Do Without You (Extended Mix) [HD]" under the track "Can't Do Without
+ * You". Hanging the clips on the tracklist instead of listing them beside it
+ * is what turns a page of facts into a record: the tracks that have something
+ * to hear get a play control, and the rest of the list still reads as a
+ * tracklist.
+ *
+ * **Whole words, longest title first, each clip used once.** Substring
+ * matching would give "Love" the clip for "Our Love"; going from the longest
+ * title down means the longer name claims its clip before the shorter one can,
+ * and a clip that has been taken is out of the running. What is left over is
+ * handed back rather than dropped — a live take or an album rip is still worth
+ * offering, just not as a track.
+ */
+function plain(text: string): string[] {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .split(' ')
+    .filter(Boolean)
+}
+
+/** `haystack` contains `needle` as a run of whole words. */
+function runs(haystack: string[], needle: string[]): boolean {
+  if (needle.length === 0) return false
+  for (let start = 0; start + needle.length <= haystack.length; start += 1) {
+    if (needle.every((word, offset) => haystack[start + offset] === word)) return true
+  }
+  return false
+}
+
+/**
+ * Four letters at least, across the whole title.
+ *
+ * "A1", "II" and "Intro" are positions and conventions rather than names, and
+ * a two-letter title matches half the clips on any record.
+ */
+const SHORTEST = 4
+
+export interface Clip {
+  title: string
+  uri: string
+}
+
+export interface ClipsOnTracks {
+  /** One entry per track, in the tracklist's order. `null` where nothing fits. */
+  perTrack: (Clip | null)[]
+  /** Everything no track claimed — offered underneath, as recordings. */
+  rest: Clip[]
+}
+
+export function clipsOnTracks(tracks: { title: string }[], clips: Clip[]): ClipsOnTracks {
+  const perTrack: (Clip | null)[] = tracks.map(() => null)
+  const taken = new Set<number>()
+
+  const words = clips.map((clip) => plain(clip.title))
+  const byLength = tracks
+    .map((track, index) => ({ index, needle: plain(track.title) }))
+    .sort((a, b) => b.needle.join(' ').length - a.needle.join(' ').length)
+
+  for (const { index, needle } of byLength) {
+    if (needle.join('').length < SHORTEST) continue
+
+    const found = words.findIndex((clip, at) => !taken.has(at) && runs(clip, needle))
+    if (found < 0) continue
+
+    taken.add(found)
+    perTrack[index] = clips[found] ?? null
+  }
+
+  return { perTrack, rest: clips.filter((_, at) => !taken.has(at)) }
+}

@@ -92,6 +92,15 @@ export const releaseDetailSchema = z.object({
   country: z.string().optional(),
   released: z.string().optional(),
   notes: z.string().optional(),
+  /*
+   * What it sounds like, and it rides along free (M31.5).
+   *
+   * The shelf has these from the collection sync; a find has nothing of the
+   * sort, so the same record looked different depending on which screen it was
+   * opened from. They are in this response either way.
+   */
+  genres: z.array(z.string()).optional(),
+  styles: z.array(z.string()).optional(),
   tracklist: z
     .array(
       z.object({
