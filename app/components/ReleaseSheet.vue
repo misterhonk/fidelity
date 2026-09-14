@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Match, MatchDetail, ReleaseDetail } from '#shared/types'
+import type { LandedContext, Match, MatchDetail, ReleaseDetail } from '#shared/types'
+import { landedPrice } from '#shared/shipping'
 import { gradeKey } from '#shared/format'
 import { reasonFor } from '~/i18n/reason'
 import { pressingText, stampText } from '~/i18n/pressing'
@@ -39,7 +40,10 @@ onMounted(async () => {
     state.value = answer ? 'ready' : 'gone'
     // Not awaited: the record is already on screen, and the lookup fills in
     // underneath it.
-    if (answer) void lookUp(answer.match.releaseId).then(readAhead)
+    if (answer) {
+      void lookUp(answer.match.releaseId).then(readAhead)
+      void postage(answer.dealer)
+    }
   } catch (cause) {
     // A failure is not the same as a find that is gone, and the sentence for
     // it is `ErrorNote`'s, which says what broke.
@@ -49,6 +53,45 @@ onMounted(async () => {
 })
 
 const match = computed(() => detail.value?.match ?? null)
+
+/*
+ * What it actually costs — price plus the postage this record adds.
+ *
+ * The list has had this since the shipping profiles landed, and the sheet has
+ * not: the context is provided by the dig page and the sheet hangs in the
+ * shell, outside that page, so nothing reaches it by injection. It asks for
+ * itself instead, which costs no Discogs request — the tiers are on this
+ * device and the basket count is a count.
+ *
+ * Missing where a shop has no known postage, which is most of them until
+ * somebody has bought there. A missing line is the right answer then; a
+ * guessed number would be worse than none.
+ */
+const landed = ref<LandedContext | null>(null)
+const withPostage = computed(() => {
+  const found = match.value
+  if (!found || !landed.value) return null
+  const total = landedPrice(found, landed.value)
+  /*
+   * Only where it differs from the price.
+   *
+   * The figure is marginal — what *this* record adds to the parcel — so at a
+   * flat rate with something already in the basket it adds nothing, and the
+   * box would print the same number twice under two headings. A second
+   * identical number is not a second fact.
+   */
+  if (!total || total.postage <= 0) return null
+  return money(total.total, total.currency)
+})
+
+async function postage(dealer: string) {
+  try {
+    landed.value = await call('basket.landed', { dealer })
+  } catch {
+    // No postage known is a line that is simply not there.
+    landed.value = null
+  }
+}
 
 /*
  * Walking the list without leaving the sheet (M31.13).
@@ -417,6 +460,16 @@ function years(entry: { from: number; to: number }): string {
               <p v-if="price" class="flex flex-col gap-1">
                 <span class="fid-plate text-fid-text-muted">{{ d.sheet.offer.price }}</span>
                 <span class="fid-num text-fid-base text-fid-text">{{ price }}</span>
+              </p>
+              <!--
+                And what it actually costs. Absent where a shop's postage is
+                not known, which is most of them until somebody has bought
+                there — a missing line is the honest answer, a guessed number
+                would not be.
+              -->
+              <p v-if="withPostage" class="flex min-w-0 flex-col gap-1">
+                <span class="fid-plate text-fid-text-muted">{{ d.sheet.offer.landed }}</span>
+                <span class="fid-num text-fid-base text-fid-text">{{ withPostage }}</span>
               </p>
               <!--
                 Two gradings side by side, and which is which decides whether a

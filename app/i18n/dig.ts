@@ -353,7 +353,7 @@ const en = {
    * by looking at a screenshot of a seeded browser.
    */
   sheet: {
-    offer: { price: 'Price', media: 'Record', sleeve: 'Sleeve' },
+    offer: { price: 'Price', landed: 'With postage', media: 'Record', sleeve: 'Sleeve' },
     loading: 'Loading …',
     /** Walking the list from inside the sheet (M31.13). Arrow keys do it too. */
     previous: 'The find before this one',
@@ -608,7 +608,7 @@ const de: typeof en = {
   },
 
   sheet: {
-    offer: { price: 'Preis', media: 'Platte', sleeve: 'Hülle' },
+    offer: { price: 'Preis', landed: 'Mit Porto', media: 'Platte', sleeve: 'Hülle' },
     previous: 'Der Fund davor',
     next: 'Der nächste Fund',
     loading: 'Wird geladen …',

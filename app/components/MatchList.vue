@@ -125,7 +125,12 @@ const gridStyle = computed(() => ({
     "
     style="scrollbar-gutter: stable"
   >
-    <li v-for="match in matches" :key="match.listingId">
+    <li
+      v-for="match in matches"
+      :key="match.listingId"
+      class="fid-far"
+      :style="{ '--fid-far-height': density === 'compact' ? '2.125rem' : '13rem' }"
+    >
       <MatchRow v-if="density === 'compact'" :match="match" />
       <MatchCard v-else :match="match" />
     </li>

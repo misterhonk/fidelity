@@ -2042,6 +2042,8 @@ export interface DiscographyContext {
 
 export interface MatchDetail {
   match: Match
+  /** The shop this find is at — the dig knows it, a `Match` does not. */
+  dealer: string
   catalogue: CatalogueContext | null
   discography: DiscographyContext[]
   /** Names from the horizon that point at this release, main credits first. */

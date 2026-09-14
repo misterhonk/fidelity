@@ -927,11 +927,20 @@ const noHorizon = computed(
       <p v-if="scanningDealer" class="text-fid-sm font-medium text-fid-text">
         {{ d.scanning(scanningDealer) }}
       </p>
-      <div v-if="progress" class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
-        <div
-          class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
-          :style="{ width: `${percent}%` }"
-        />
+      <div v-if="progress" class="flex items-center gap-3">
+        <div class="h-2 grow overflow-hidden rounded-full bg-fid-inset">
+          <div
+            class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
+            :style="{ width: `${percent}%` }"
+          />
+        </div>
+        <!--
+          The pulse, beside the bar, and only where the bar above the page has
+          none (M31.9): the header strip is hidden on a phone, and a scan is
+          exactly the moment somebody wonders what this is costing. On a desk
+          it would be the same reading twice on one screen.
+        -->
+        <RateMeter class="shrink-0 md:hidden" />
       </div>
       <!--
         Distinct listings, because that is the number that means something.
