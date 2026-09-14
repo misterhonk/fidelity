@@ -103,12 +103,23 @@ let pushedFind = false
 
 watch(
   () => sheet.open.value,
-  (open) => {
+  (open, before) => {
     const want = open ? nameOfFind(open) : null
     const has = typeof route.query.find === 'string' ? route.query.find : null
     if (want === has) return
 
-    if (want) {
+    if (want && before) {
+      /*
+       * Stepping replaces; only opening pushes.
+       *
+       * The sheet is one place and the record in it is a state of that place.
+       * Pushing each step would make Back walk the records backwards one at a
+       * time instead of closing the sheet — measured on 2026-09-14, where
+       * three presses of `j` and then Escape landed on the find before last
+       * rather than on the list.
+       */
+      void router.replace({ query: { ...route.query, find: want } })
+    } else if (want) {
       pushedFind = true
       void router.push({ query: { ...route.query, find: want } })
     } else if (pushedFind) {

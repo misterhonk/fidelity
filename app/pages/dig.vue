@@ -471,6 +471,44 @@ const view = useDigView(rest, landed)
  * a set of arrows pointing at records nobody can see.
  */
 const sheet = useReleaseSheet()
+
+/*
+ * The list, from the keyboard (M31.24).
+ *
+ * `j` and `k` walk the finds the way every mail client and issue tracker
+ * walks a list, and `/` jumps into the filter — the two gestures somebody who
+ * spends an evening in a list of two hundred already has in their fingers.
+ *
+ * Inside an open sheet the same two keys are handled there, against the same
+ * order; this is only for the case where nothing is open yet, so `j` means
+ * "start at the top" rather than nothing at all. The guard is the same one as
+ * everywhere: not while somebody is typing, not with a modifier held.
+ */
+function onListKey(event: KeyboardEvent) {
+  if (event.metaKey || event.ctrlKey || event.altKey) return
+  const on = document.activeElement
+  if (
+    on instanceof HTMLElement &&
+    (on.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(on.tagName))
+  )
+    return
+
+  if (event.key === '/') {
+    event.preventDefault()
+    document.getElementById('dig-search')?.focus()
+    return
+  }
+
+  if (event.key !== 'j' || sheet.open.value || event.shiftKey) return
+  const first = result.value?.topFive[0] ?? view.visible.value[0]
+  if (!first) return
+  event.preventDefault()
+  sheet.show(first.digId, first.listingId)
+}
+
+onMounted(() => document.addEventListener('keydown', onListKey))
+onBeforeUnmount(() => document.removeEventListener('keydown', onListKey))
+
 watchEffect(() => {
   const found = result.value
   if (!found) return sheet.setOrder(null)

@@ -47,6 +47,7 @@ const DENSITIES = ['comfortable', 'crate', 'compact'] as const satisfies readonl
       rather than an unexplained short list.
     -->
     <input
+      id="dig-search"
       :value="query"
       type="search"
       autocomplete="off"
