@@ -65,6 +65,9 @@ const en = {
   neverScanned: 'Known by name so far. Watching works already — a dig fills in the rest.',
   /** The same fact in three words, for a row in the list. */
   notDug: 'not dug yet',
+  /* On the row itself: short, because it repeats down the list. */
+  digShort: 'Dig',
+  digAt: (shop: string) => `Dig ${shop} now`,
   /** What the number beside a shop counts. Spoken, not drawn. */
   perThousand: (rate: string) => `${rate} finds per thousand`,
   /** Above the list, once there are enough shops to be a wall. */
@@ -277,6 +280,8 @@ const de: typeof en = {
   neverScanned:
     'Bislang nur dem Namen nach bekannt. Beobachten geht trotzdem schon – ein Dig füllt den Rest.',
   notDug: 'noch nicht gegraben',
+  digShort: 'Graben',
+  digAt: (shop) => `Jetzt bei ${shop} graben`,
   perThousand: (rate) => `${rate} Treffer je tausend`,
   find: 'Laden finden',
   noMatch: 'Keiner deiner Läden heißt so.',

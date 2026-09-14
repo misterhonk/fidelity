@@ -55,16 +55,22 @@ const from = computed(() =>
 </script>
 
 <template>
-  <button
-    type="button"
-    class="flex w-full items-center gap-3 border-l-2 py-3 pr-2 pl-3 text-left transition-colors"
+  <!--
+    A row, not a button — and that is a correctness point, not a style one.
+
+    The whole row used to be one `<button>`. Putting "dig" inside it would have
+    been a button inside a button: invalid HTML, and unreachable with a
+    keyboard. So the name carries the opening and stretches over the row with a
+    pseudo-element, and the dig action sits above it in the stacking order.
+    One row, two controls, both reachable.
+  -->
+  <div
+    class="relative flex w-full items-center gap-3 border-l-2 py-3 pr-2 pl-3 transition-colors"
     :class="
       selected
         ? 'border-fid-accent bg-fid-accent/10'
-        : 'border-transparent hover:bg-fid-inset focus-visible:bg-fid-inset'
+        : 'border-transparent hover:bg-fid-inset focus-within:bg-fid-inset'
     "
-    :aria-current="selected ? 'true' : undefined"
-    @click="$emit('open')"
   >
     <!-- A shop is a place, not a string. -->
     <ShopLogo
@@ -75,13 +81,27 @@ const from = computed(() =>
     />
 
     <span class="flex min-w-0 flex-1 flex-col gap-1">
-      <span class="truncate text-fid-sm font-medium text-fid-text">
+      <button
+        type="button"
+        class="truncate text-left text-fid-sm font-medium text-fid-text after:absolute after:inset-0 after:content-['']"
+        :aria-current="selected ? 'true' : undefined"
+        @click="$emit('open')"
+      >
         {{ dealer.displayName || dealer.username }}
-      </span>
+      </button>
 
-      <span class="fid-num truncate text-fid-xs text-fid-text-muted">
+      <!--
+        Short on purpose: the row now carries a dig button too, and "40.000 im
+        Angebot · vor 9 Stunden" was being cut off mid-word. The bare figure
+        between a country and a time reads as stock, and the long form is one
+        line down in the profile — and in the title for a pointer.
+      -->
+      <span
+        class="fid-num truncate text-fid-xs text-fid-text-muted"
+        :title="m.home.forSale(count(dealer.numForSale))"
+      >
         <template v-if="from">{{ from }} · </template>
-        {{ m.home.forSale(count(dealer.numForSale)) }}
+        {{ count(dealer.numForSale) }}
         <template v-if="dealer.lastScannedAt"> · {{ since(dealer.lastScannedAt) }}</template>
         <template v-else> · {{ h.notDug }}</template>
       </span>
@@ -106,7 +126,7 @@ const from = computed(() =>
       Neutral on purpose: the signal colours mean one signal each, and a hit
       rate is not one of them.
     -->
-    <span v-if="rate !== null" class="flex w-16 shrink-0 flex-col items-end gap-1">
+    <span v-if="rate !== null" class="flex w-12 shrink-0 flex-col items-end gap-1">
       <span class="fid-num text-fid-sm text-fid-text" :title="h.perThousand(decimal(rate))">
         {{ decimal(rate) }}
       </span>
@@ -114,5 +134,21 @@ const from = computed(() =>
         <span class="block h-1 rounded-full bg-fid-text-muted" :style="{ width }" />
       </span>
     </span>
-  </button>
+
+    <!--
+      And the thing somebody came for, on the row itself.
+
+      The middle volume, not the filled one: twelve filled buttons in a column
+      would be the wall this list was built to replace. The filled one lives in
+      the profile, once, for the shop that is open.
+    -->
+    <NuxtLink
+      :to="`/dig?dealer=${encodeURIComponent(dealer.username)}`"
+      class="fid-action fid-tonal relative shrink-0 gap-2 rounded-fid-sm px-3 text-fid-xs font-medium"
+      :aria-label="h.digAt(dealer.displayName || dealer.username)"
+    >
+      <FidIcon name="search" :size="14" aria-hidden="true" />
+      {{ h.digShort }}
+    </NuxtLink>
+  </div>
 </template>

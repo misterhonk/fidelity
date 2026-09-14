@@ -234,3 +234,46 @@ describe('the basket badge', () => {
     }
   })
 })
+
+/**
+ * Three volumes, one hue (M31.3).
+ *
+ * The app had two — filled, or a border — so "watch this shop" stood exactly
+ * as loud as "dig it". The middle step is the *same* accent at sixteen per
+ * cent, not a second colour: colour is already spoken for here, since every
+ * signal token means one signal and a second accent would argue with them.
+ */
+describe('the middle volume', () => {
+  const CSS = readFileSync('app/assets/css/main.css', 'utf8')
+
+  it('is the accent, quieter — not a second hue', () => {
+    const tonal = CSS.slice(CSS.indexOf('.fid-tonal {'), CSS.indexOf('.fid-tonal:hover'))
+    expect(tonal).toMatch(/var\(--fid-accent\)/)
+    // No literal colour: a hand-written orange here is the second accent this
+    // rule exists to prevent.
+    expect(tonal).not.toMatch(/#[0-9a-f]{3,8}|oklch\(/i)
+  })
+
+  /**
+   * And it never takes the filled one's place.
+   *
+   * One screen, one filled surface — the rule above. The tonal step is what
+   * stands *beside* it, so a screen that uses both still has exactly one
+   * answer to "what do I do here".
+   */
+  it('leaves the one filled surface per screen alone', () => {
+    const uses = screens.filter(({ source }) => /\bfid-tonal\b/.test(source))
+    expect(uses.length, 'nothing uses it yet').toBeGreaterThan(0)
+
+    for (const { file, source } of uses) {
+      const fills = [...source.matchAll(/(?<!:)class="([^"]*)"/gs)]
+        .map((match) => match[1]!)
+        .filter(
+          (attribute) =>
+            /bg-fid-accent(-fill)?(?![/\w-])/.test(attribute) &&
+            !attribute.includes('transition-[width]'),
+        )
+      expect(fills.length, `${file} fills more than one surface`).toBeLessThanOrEqual(1)
+    }
+  })
+})
