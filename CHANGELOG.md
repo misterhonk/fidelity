@@ -11,6 +11,30 @@ Für eine App bedeutet SemVer:
 
 ## [0.82.0](https://github.com/misterhonk/fidelity/compare/v0.81.0...v0.82.0) (2026-09-14)
 
+**Eine Platte sieht jetzt überall gleich aus — und die Wantlist öffnet endlich im Haus statt
+bei Discogs.**
+
+Der Kopf jedes Blattes ist dasselbe Kopfstück: die Hülle groß, der Interpret in der
+Textschrift, der Titel in der Display-Schrift, die Fakten in Mono. Drei Stimmen, damit das
+Auge sortiert, ohne zu lesen. Die Farbe der Hülle liegt verwaschen dahinter, vom oberen Rand
+an. Vorher waren es drei Entwürfe für dieselbe Sache: das Blatt eines Fundes hatte eine graue
+Box, das Regal eine Wertetabelle, und die Wantlist einen Link nach draußen.
+
+Die Tabelle im Regal behält, wofür eine Tabelle hier gut ist: was von **deinem Exemplar**
+gilt — Bewertung, Ordner, Zugang. Interpret und Label führen weiter zurück in dein Regal.
+
+Eine gesuchte Platte hat jetzt ihr eigenes Blatt, mit dem, was nur dort wahr ist: deine
+Notiz zur Pressung und wie sehr du sie willst. Trackliste, Credits und Hörproben kommen mit.
+
+Dazu drei Kleinigkeiten, die lange fällig waren: **„Mit Porto"** steht im Angebot (und nur,
+wenn es sich vom Preis unterscheidet), der **Puls** steht auf dem Telefon neben dem
+Scan-Balken statt nur in den Einstellungen, und lange Listen überspringen, was weit außerhalb
+des Bildschirms liegt.
+
+Und wenn ein Fund älter als sechs Stunden ist, lässt sich **genau diese eine Platte** neu
+erfragen, ohne das Blatt zu verlassen: eine Anfrage statt einer pro Fund. Die Zeile trägt
+danach ihre eigenen sechs Stunden — der Rest der Liste bleibt so alt, wie er ist.
+
 
 ### Added
 
