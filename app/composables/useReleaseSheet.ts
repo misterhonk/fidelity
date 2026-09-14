@@ -1,3 +1,7 @@
+// Named, so a plain Vitest process can import this module without Nuxt's
+// auto-imports — the walk arithmetic below is worth testing on its own.
+import { computed, readonly, ref, shallowRef } from 'vue'
+
 /**
  * Which record's detail sheet is open, and the transition that opens it.
  *
@@ -29,6 +33,11 @@ const order = shallowRef<{ digId: string; ids: number[] } | null>(null)
  * gets, since the transition names are dropped under that media query.
  */
 function transition(change: () => void) {
+  // No document at all in a plain test process — and nothing to animate there.
+  if (typeof document === 'undefined') {
+    change()
+    return
+  }
   const doc = document as Document & {
     startViewTransition?: (cb: () => void) => { finished: Promise<void> }
   }
@@ -54,13 +63,38 @@ const walk = computed(() => {
   }
 })
 
+/**
+ * Whether this sheet was reached by stepping rather than by tapping a card.
+ *
+ * It decides one thing: whether the sheet looks the *next* record up before
+ * anybody asks for it (M31.15). Opening one record is not evidence that
+ * somebody wants a second, and a request spent on a guess is a request spent.
+ * Pressing the arrow once is evidence — from there on the next one is fetched
+ * while the current one is being read, in a slot that would otherwise be idle.
+ */
+const stepped = ref(false)
+
 export function useReleaseSheet() {
   return {
     open: readonly(open),
     walk,
+    stepped: readonly(stepped),
     show: (digId: string, listingId: number) =>
-      transition(() => (open.value = { digId, listingId })),
-    hide: () => transition(() => (open.value = null)),
+      transition(() => {
+        stepped.value = false
+        open.value = { digId, listingId }
+      }),
+    /** The same move, from the arrows — and the app may read ahead from here. */
+    step: (digId: string, listingId: number) =>
+      transition(() => {
+        stepped.value = true
+        open.value = { digId, listingId }
+      }),
+    hide: () =>
+      transition(() => {
+        stepped.value = false
+        open.value = null
+      }),
     /** The reading order of the list on screen. Null while none is shown. */
     setOrder: (found: { digId: string; ids: number[] } | null) => (order.value = found),
   }

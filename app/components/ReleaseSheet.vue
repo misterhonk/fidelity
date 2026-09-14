@@ -39,7 +39,7 @@ onMounted(async () => {
     state.value = answer ? 'ready' : 'gone'
     // Not awaited: the record is already on screen, and the lookup fills in
     // underneath it.
-    if (answer) void lookUp(answer.match.releaseId)
+    if (answer) void lookUp(answer.match.releaseId).then(readAhead)
   } catch (cause) {
     // A failure is not the same as a find that is gone, and the sentence for
     // it is `ErrorNote`'s, which says what broke.
@@ -67,7 +67,36 @@ const walk = sheet.walk
 
 function step(to: number | null) {
   if (to === null) return
-  sheet.show(props.digId, to)
+  sheet.step(props.digId, to)
+}
+
+/**
+ * Reading ahead, once somebody is actually reading along (M31.15).
+ *
+ * A record's detail is kept for ever once fetched, and for the finds whose
+ * covers were fetched it is already there — the cover pass files the whole
+ * answer, not just the picture. Below that window, though, every step costs a
+ * request and 1,2 s of waiting on a screen that has nothing else to do.
+ *
+ * So: after the *first* arrow, the next one is looked up while this one is
+ * being read. Not before — opening one record is no evidence that anybody
+ * wants a second, and a request spent on a guess is a request spent. And not
+ * further than one: reading ahead by five would be exactly the loop rule 2
+ * forbids, dressed up as a courtesy.
+ *
+ * If the arrow is pressed while this is still in the air, the two are one
+ * request and not two — the client joins them by address.
+ */
+async function readAhead() {
+  if (!sheet.stepped.value) return
+  const next = walk.value?.next
+  if (next === null || next === undefined) return
+  try {
+    const found = await call('dig.detail', { digId: props.digId, listingId: next })
+    if (found) await call('release.detail', { releaseId: found.match.releaseId })
+  } catch {
+    // A guess that does not come off is not an event. The arrow still works.
+  }
 }
 
 /**
