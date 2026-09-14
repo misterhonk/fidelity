@@ -11,6 +11,36 @@ Für eine App bedeutet SemVer:
 
 ## [0.78.0](https://github.com/misterhonk/fidelity/compare/v0.77.0...v0.78.0) (2026-09-14)
 
+**Neben den Einstellungen steht jetzt ein feiner Strich, der zeigt, was Fidelity gerade bei
+Discogs anfragt — und was Katalog und Hub ihm abgenommen haben.**
+
+Discogs erlaubt 60 Anfragen pro Minute je Anschluss. Das ist ein Tempo, kein Vorrat: es geht
+nichts aus, es gibt kein Tageslimit, und Dinge dauern eben. Der Strich zeigt darum keinen
+Tankfüllstand, sondern einen Puls — ein Strich je Sekunde der letzten Minute, gefüllt wo eine
+Anfrage rausging. **Hohl dagegen, wo dein Katalog oder dein Hub geantwortet hat.** Die beiden
+sind der Grund, warum die Linie ruhig bleibt, und bisher konnte man ihnen nicht beim Arbeiten
+zusehen. Aufgeklappt steht da, was diese Sitzung gekostet hat, wonach aufgeteilt, und wie
+viele Anfragen dir abgenommen wurden.
+
+In Ruhe ist es ein Haarstrich ohne Zahl. Auf dem Telefon ist es gar nicht da — die Zahlen
+dafür stehen ohnehin in den Einstellungen.
+
+**Eine Platte kostet nur noch eine Anfrage statt zwei.** Cover und Details kamen von derselben
+Adresse, wurden aber getrennt geholt. Jetzt legt das, was zuerst fragt, beides ab — eine
+Liste, die ihre Cover gezeichnet hat, hat damit jede Trackliste und jede Auslaufrille dahinter
+schon bezahlt.
+
+**Auf dem Telefon bleibt „In den Korb" am unteren Rand kleben**, statt unter acht Abschnitten
+zu verschwinden.
+
+Bei den Läden: der Rundgang steht wieder über der Liste statt an ihrem Fuß, jeder Laden hat
+sein Logo, und die Liste lässt sich sortieren — nach Trefferquote, zuletzt gegraben, Größe
+oder Name. Dazu zwei Gruppen, wie man tatsächlich über seine Läden denkt: **deine Läden**
+(beobachtet, gekauft, selbst eingetragen) und **weitere**. Und beim Öffnen stehen vier graue
+Zeilen da, statt dass die Seite springt, sobald die echten ankommen.
+
+**Was zu tun ist:** Nichts.
+
 
 ### Added
 
