@@ -1360,6 +1360,59 @@ the way the YouTube preview did.
 put every user's listening through a machine of ours — the one thing the privacy promise is
 built to avoid.
 
+## M32 · The screens around the record → `v0.75.0`–`v0.86.0`
+
+**Where this comes from.** Four design concepts written on 2026-09-13 and -14 — *Drei
+Sprossen zum Ton*, *Wo grabe ich als Nächstes*, *Vom Laden zur Platte*, *Sechzig pro Minute*
+— and a day of reading them back against the code. The commits carry `M31.x` numbers because
+the sequence ran on from the audio work; the subject is a different one and it is this.
+
+### What shipped
+
+| | What it answers |
+|---|---|
+| **The request ledger and the pulse** | "How much can I still do today?" — which is the wrong question, because Discogs' limit is a tempo and not a stock. A strip of sixty ticks, one per second of the last minute, and a panel that splits them by cause and by whether they cost a slot at all. Never Discogs' own counter: `x-discogs-ratelimit-*` is not exposed and a 429 arrives without CORS headers, so the only honest number is our own |
+| **The next rung** | One line, and only where this device's own numbers make the case: without a token the ceiling is half, with a token and no catalogue the horizon requests already counted are exactly the ones a catalogue would take over |
+| **One masthead for a record** | The same record opened from two screens was two designs. Now one composition, three voices — artist in the text face, title in the display face, facts in mono — with the sleeve's colour washed behind the head of the sheet |
+| **Walking the list from inside the sheet** | A find means something next to its neighbours. Arrows and `k`/`j` step the list as it stands on the screen, on finds, on the shelf and on the wantlist |
+| **The wantlist opens in the app** | It was the one screen where a sleeve led *out* of it. It keeps what is only true there: the note about which pressing will do, and how badly you want it |
+| **The crate** | A card with a big cover is one screen per record on a phone. Two across, sleeves only — the pass where a sleeve stops you, not the one where you weigh a score |
+| **The compact density, named** | It was always a table; now the columns have names and each one sorts |
+| **The head that folds** | Once a result stands under it, the question — field, shops, earlier digs — becomes one line |
+| **The shop as a sheet on a phone** | Three screens down is not "open". The same drawer the records use |
+| **`?find=` in the address** | A reload keeps the record open, a link can point at a find, and Back closes the sheet instead of leaving the dig. Stepping *replaces* that entry; only opening pushes |
+| **Asking one offer again** | Six hours on, the dig-wide refresh costs one request per find. This costs one, from where the record is being read — and the row then carries its own six hours, because its dig has already been swept |
+| **One answer per address** | Two parts of the screen wanting the same record at the same moment were two requests. Coalescing, never caching: a finished request is gone, so rule 4 is untouched |
+| **Reading ahead** | After the *first* arrow, the next record is looked up while this one is read. Not before — opening one record is no evidence that anybody wants a second |
+
+### What was measured and not built
+
+- **A `/masters/{id}` fallback for clips.** Master 96559 and release 249504 hand back the
+  *identical* seventeen addresses; release 14251612 has none and neither does its master.
+  The fallback would spend a request to fetch the list we already have.
+- **MusicBrainz as a bridge.** Open, no key, and it indexes Discogs master URLs — so the
+  resolution needs no fuzzy matching at all. And then: nine of ten tracks for *Dummy*, zero
+  for Andrew Hill, zero for Marcel Dettmann, no entry at all for Skudge. Thin exactly where
+  this app is strong.
+- **Pooling release details in the hub.** ADR-016: the tracklist, the credits, the run-out
+  and the clips are all in the CC0 dump — 400 of 400 mini-dump releases carry a tracklist,
+  362 the videos. There is nothing to pool that Discogs does not already give away.
+- **Blocking the service worker in the test suite.** 145 ms a test in Chromium, 295 in
+  WebKit — and it makes those tests test less, while `usePush` waits on a registration that
+  would never resolve.
+- **Docking the sheet beside the list on a desk.** It was in *Vom Laden zur Platte* and it
+  is the one item not built. What it was for — comparing without losing your place — the
+  arrows, `j`/`k` and `?find=` now do, without making `SheetFrame` conditionally non-modal.
+  Written down rather than dropped: if it comes back, it comes back as focus handling.
+
+### And the suite that runs it
+
+Ten minutes to under three, measured rather than guessed: eight shards instead of one runner,
+four workers instead of the two the default gave, browsers in the image instead of sixty
+seconds of downloading, and a wait in the seed that watched the network fall quiet instead of
+watching for a screen. The diagnosis was wrong twice before it was right — Playwright's
+worker *index* counts restarts, not slots — and both corrections are in the commits.
+
 ## Not on the roadmap
 
 | Idea | Why not |

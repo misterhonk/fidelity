@@ -246,6 +246,14 @@ interface Match {
   marketLowestPrice:  number | null    // from /marketplace/stats/ — NOT a median
   marketNumForSale:   number | null    // the API does not give this
   expired:      boolean
+  // When *this row's* marketplace half stops being showable, where it was
+  // fetched on its own rather than with the dig (M32, 2026-09-14). A listing
+  // refetched from inside the sheet outlives its dig's expiry on purpose — its
+  // own data is new — and the sweep below would otherwise never look at it
+  // again, because the dig it belongs to is already marked expired. Absent on
+  // every row that has never been refreshed alone, which reads as "the dig's
+  // clock applies".
+  freshUntil?:  number
 }
 ```
 
@@ -276,8 +284,23 @@ async function expireDigs(db: IDBPDatabase<FidelityDB>) {
     await tx.objectStore('digs').put(dig)
     await tx.done
   }
+
+  // And a second pass for the rows with a clock of their own: a listing
+  // refetched from inside the sheet is not reached by the loop above, because
+  // the dig it belongs to has already been marked expired. Without it, one
+  // refreshed price would sit on a screen for ever — which is the one thing
+  // rule 4 is about.
+  for (const m of await db.getAll('matches')) {
+    if (m.expired || m.freshUntil === undefined || m.freshUntil > now) continue
+    await db.put('matches', strip(m))
+  }
 }
 ```
+
+> The sketch above is the shape, not the source. What actually runs is
+> `db/expire.ts`, and it keeps the catalogue facts — title, artist, label,
+> catalogue number, format, year — through expiry, for the reason in the
+> comment on `Match` above.
 
 **Only the last 5 digs are kept**, FIFO after that. An expired dig keeps its scores and
 reasoning — so you can still see *that* there were 47 matches there, just not at what price.
