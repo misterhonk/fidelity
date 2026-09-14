@@ -9,6 +9,13 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.84.0](https://github.com/misterhonk/fidelity/compare/v0.83.0...v0.84.0) (2026-09-14)
+
+
+### Added
+
+* **dig:** the open find stands in the address ([8164cd9](https://github.com/misterhonk/fidelity/commit/8164cd93ff6e1adc67ad8c8df36c9e116a827dc3))
+
 ## [0.83.0](https://github.com/misterhonk/fidelity/compare/v0.82.0...v0.83.0) (2026-09-14)
 
 **Die Fundliste lässt sich jetzt durchblättern wie eine Kiste.**
