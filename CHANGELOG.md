@@ -11,6 +11,17 @@ Für eine App bedeutet SemVer:
 
 ## [0.81.0](https://github.com/misterhonk/fidelity/compare/v0.80.1...v0.81.0) (2026-09-14)
 
+**Auch im eigenen Regal führen jetzt zwei Pfeile von einer Platte zur nächsten.**
+
+Durch die eigene Sammlung zu gehen ist dieselbe Bewegung wie durch eine Fundliste zu gehen —
+und es standen dieselben drei Schritte im Weg: schließen, zurückscrollen, die Zeile
+wiederfinden. Die Pfeile neben dem Schließen-Kreuz begehen die Liste so, wie sie auf dem
+Bildschirm steht: gefiltert, sortiert, und so weit, wie du sie hast laden lassen. Die
+Pfeiltasten tun dasselbe, wo gerade niemand tippt.
+
+Die Wand und die Startseite öffnen eine Platte aus etwas heraus, das keine Liste zum
+Herunterlesen ist. Dort gibt es entsprechend keine Pfeile.
+
 
 ### Added
 
