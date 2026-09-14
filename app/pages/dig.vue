@@ -461,6 +461,27 @@ watch(
 // looking at the top five of a subset, which is a different question.
 const view = useDigView(rest, landed)
 
+/*
+ * The reading order of this screen, handed to the sheet (M31.13).
+ *
+ * The shortlist first and then the long list as it actually stands — filtered,
+ * sorted, and cut off where the reader cut it off — so the arrows in the sheet
+ * step through what the eye would step through. It is set while this page is
+ * on screen and cleared when it leaves, because an order without its list is
+ * a set of arrows pointing at records nobody can see.
+ */
+const sheet = useReleaseSheet()
+watchEffect(() => {
+  const found = result.value
+  if (!found) return sheet.setOrder(null)
+  const ids = [
+    ...found.topFive.map((match) => match.listingId),
+    ...view.visible.value.map((match) => match.listingId),
+  ]
+  sheet.setOrder({ digId: found.dig.id, ids })
+})
+onBeforeUnmount(() => sheet.setOrder(null))
+
 const expired = computed(() => {
   const dig = result.value?.dig
   return dig ? Date.now() > dig.expiresAt : false
@@ -585,21 +606,21 @@ const noHorizon = computed(
       changes. Without a result it is a plain block and always open, because
       then the question *is* the screen.
     -->
-    <component
-      :is="result ? 'details' : 'div'"
-      :class="
-        result ? 'rounded-fid-md border border-fid-border px-4 py-3' : 'flex flex-col gap-8'
-      "
-    >
+    <component :is="result ? 'details' : 'div'" :class="result ? '' : 'flex flex-col gap-8'">
+      <!--
+        A chip, not a field. Full width with a magnifier in it, this read as a
+        search box somebody was meant to type in — which is the one thing it
+        is not.
+      -->
       <summary
         v-if="result"
-        class="fid-action flex cursor-pointer list-none items-center gap-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+        class="fid-action inline-flex w-fit cursor-pointer list-none items-center gap-2 rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
       >
-        <FidIcon name="search" :size="16" aria-hidden="true" />
+        <FidIcon name="store" :size="16" aria-hidden="true" />
         {{ d.another }}
       </summary>
 
-      <div :class="result ? 'flex flex-col gap-8 pt-4' : 'contents'">
+      <div :class="result ? 'flex flex-col gap-8 pt-6' : 'contents'">
         <form class="flex flex-wrap items-end gap-3" @submit.prevent="check">
           <div class="flex min-w-64 grow flex-col gap-2">
             <label class="text-fid-sm font-medium text-fid-text" for="dealer">

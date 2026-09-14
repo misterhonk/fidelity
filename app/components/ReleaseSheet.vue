@@ -50,6 +50,49 @@ onMounted(async () => {
 
 const match = computed(() => detail.value?.match ?? null)
 
+/*
+ * Walking the list without leaving the sheet (M31.13).
+ *
+ * A find means something next to its neighbours, and until now comparing two
+ * of them was close, scroll back, find the row, open. The arrows step through
+ * the list exactly as it stands on the screen behind — the filter, the sort
+ * and the shortlist first — and the sheet remounts on each step, because it
+ * is a different record and everything in it has to be fetched again.
+ *
+ * Only where a list said what its order is. From the start page, a credit
+ * graph or a shared dig there is nothing to step through and no arrows.
+ */
+const sheet = useReleaseSheet()
+const walk = sheet.walk
+
+function step(to: number | null) {
+  if (to === null) return
+  sheet.show(props.digId, to)
+}
+
+/**
+ * And from the keyboard, where the arrows are already the gesture.
+ *
+ * Not while somebody is typing — the sheet holds a note field and a search box
+ * of its own, and a left arrow there belongs to the cursor.
+ */
+function onArrow(event: KeyboardEvent) {
+  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+  if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
+  const on = document.activeElement
+  if (
+    on instanceof HTMLElement &&
+    (on.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(on.tagName))
+  )
+    return
+  if (!walk.value) return
+  event.preventDefault()
+  step(event.key === 'ArrowLeft' ? walk.value.previous : walk.value.next)
+}
+
+onMounted(() => document.addEventListener('keydown', onArrow))
+onBeforeUnmount(() => document.removeEventListener('keydown', onArrow))
+
 /**
  * What the record *is* — one lookup, and everything under it (M31.5).
  *
@@ -217,6 +260,37 @@ function years(entry: { from: number; to: number }): string {
     transition="release-sheet"
     @close="emit('close')"
   >
+    <!--
+      Where this record stands in the list, and the two either side of it.
+      Icon-only, because three words beside a title is a second title — with
+      the position spoken in full on each.
+    -->
+    <template v-if="walk" #tools>
+      <button
+        type="button"
+        :disabled="walk.previous === null"
+        :aria-label="d.sheet.previous"
+        :title="d.sheet.previous"
+        class="fid-lift flex min-h-11 min-w-11 items-center justify-center fid-field-raised text-fid-text disabled:opacity-40"
+        @click="step(walk.previous)"
+      >
+        <FidIcon name="arrow-left" :size="18" aria-hidden="true" />
+      </button>
+      <span class="fid-num px-1 text-fid-xs whitespace-nowrap text-fid-text-muted">
+        {{ m.common.ofTotal(String(walk.index + 1), String(walk.total)) }}
+      </span>
+      <button
+        type="button"
+        :disabled="walk.next === null"
+        :aria-label="d.sheet.next"
+        :title="d.sheet.next"
+        class="fid-lift flex min-h-11 min-w-11 items-center justify-center fid-field-raised text-fid-text disabled:opacity-40"
+        @click="step(walk.next)"
+      >
+        <FidIcon name="arrow-right" :size="18" aria-hidden="true" />
+      </button>
+    </template>
+
     <template #title>
       <template v-if="match">{{ nameOf(match) }}</template>
       <template v-else-if="state === 'gone'">{{ d.sheet.goneTitle }}</template>

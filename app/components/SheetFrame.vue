@@ -114,14 +114,18 @@ function onKeydown(event: KeyboardEvent) {
         <h2 class="text-fid-base font-bold text-fid-text">
           <slot name="title" />
         </h2>
-        <button
-          type="button"
-          :aria-label="m.close"
-          class="fid-lift flex min-h-11 min-w-11 items-center justify-center fid-field-raised text-fid-base text-fid-text"
-          @click="emit('close')"
-        >
-          ✕
-        </button>
+        <!-- Whatever this particular sheet can do with itself, beside the ✕. -->
+        <div class="flex shrink-0 items-center gap-1">
+          <slot name="tools" />
+          <button
+            type="button"
+            :aria-label="m.close"
+            class="fid-lift flex min-h-11 min-w-11 items-center justify-center fid-field-raised text-fid-base text-fid-text"
+            @click="emit('close')"
+          >
+            ✕
+          </button>
+        </div>
       </div>
 
       <slot />
