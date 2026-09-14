@@ -331,6 +331,44 @@ body {
 }
 
 /*
+ * The middle volume (M31.3).
+ *
+ * The app had two: filled, or a border. So "watch this shop" stood exactly as
+ * loud as "dig it", and the one action somebody came for was indistinguishable
+ * from the one they set once a year.
+ *
+ * **One hue, three volumes — not a second colour.** Colour is already spoken
+ * for here: the signal tokens each mean one signal, and a second accent would
+ * argue with them. So the middle step is the same accent, quieter: a sixteen
+ * per cent wash with accent lettering and no border. Loud enough to be an
+ * offer, never loud enough to compete with the filled one beside it.
+ *
+ * Used for what is accompanying and reversible — watch, save, add to the
+ * wantlist. The filled `fid-fill` stays the one thing to do; a border stays
+ * what is rare, extra, or on the way out of the app.
+ */
+.fid-tonal {
+  background-color: color-mix(in oklch, var(--fid-accent) 16%, transparent);
+  color: var(--fid-accent);
+  transition:
+    background-color var(--fid-motion-feedback) ease,
+    transform 0.12s ease;
+}
+
+.fid-tonal:hover:not(:disabled) {
+  background-color: color-mix(in oklch, var(--fid-accent) 24%, transparent);
+}
+
+/* The same press as the filled one, so the two feel like one family. */
+.fid-tonal:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.fid-tonal:disabled {
+  opacity: 0.5;
+}
+
+/*
  * A card that responds to the pointer.
  *
  * Only for cards that lead somewhere — a match, a basket, a shop. Two pixels

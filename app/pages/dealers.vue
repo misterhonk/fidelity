@@ -668,11 +668,11 @@ const scanned = computed(() => {
               <button
                 type="button"
                 :aria-pressed="isWatched(profile.dealer.username)"
-                class="rounded-fid-sm border px-3 py-2 text-fid-sm transition-colors"
+                class="fid-action rounded-fid-sm px-3 py-2 text-fid-sm transition-colors"
                 :class="
                   isWatched(profile.dealer.username)
-                    ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
-                    : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+                    ? 'fid-tonal'
+                    : 'border border-fid-border text-fid-text-muted hover:text-fid-text'
                 "
                 @click="watchToggle(profile.dealer.username)"
               >
@@ -684,9 +684,15 @@ const scanned = computed(() => {
                 shops and then making somebody retype the name is the ranking
                 doing half its job.
               -->
+              <!--
+                And this one is filled, because it is the action the screen
+                exists for (M31.3). The round above steps back to the middle
+                volume: walking every watched shop is the second path, and two
+                filled surfaces on one screen mean neither is the answer.
+              -->
               <NuxtLink
                 :to="`/dig?dealer=${encodeURIComponent(profile.dealer.username)}`"
-                class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+                class="fid-action fid-fill rounded-fid-sm bg-fid-accent-fill px-4 py-2 text-fid-sm font-medium text-fid-on-accent"
               >
                 {{ profile.dealer.lastScannedAt === null ? h.digNow : h.digAgain }}
               </NuxtLink>
@@ -877,7 +883,7 @@ const scanned = computed(() => {
         v-if="plan.reachable > 0"
         type="button"
         :disabled="roundBusy"
-        class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
+        class="fid-tonal self-start rounded-fid-sm px-4 py-2 font-medium disabled:opacity-50"
         @click="startRound"
       >
         {{ h.round.start }}
