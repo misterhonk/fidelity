@@ -378,7 +378,10 @@ const en = {
     ownedYears: (from: string, to: string) => `(yours from ${from} to ${to})`,
     connections: 'Links to your collection',
     atDiscogs: 'View at Discogs',
-    want: 'Want it',
+    want: 'Add to your Discogs wantlist',
+    /* Short, because the sheet's foot is one row (M31.11). The full
+       sentence is what a screen reader and a pointer get. */
+    wantShort: 'Want it',
     wanted: 'On your wantlist',
   },
 }
@@ -617,6 +620,7 @@ const de: typeof en = {
     connections: 'Verbindungen zu deiner Sammlung',
     atDiscogs: 'Bei Discogs ansehen',
     want: 'Auf die Wantlist',
+    wantShort: 'Wantlist',
     wanted: 'Auf deiner Wantlist',
   },
 }
