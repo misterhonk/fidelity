@@ -69,6 +69,25 @@ const de: Messages = {
     P: 'Kaputt oder unabspielbar.',
   },
 
+  limit: {
+    session: 'Diese Sitzung',
+    purposes: {
+      dig: 'Digs',
+      horizon: 'Horizont',
+      record: 'Platten',
+      watch: 'Beobachter',
+      sync: 'Sammlung',
+      other: 'Sonstiges',
+    },
+    spoken: (n, ceiling) =>
+      `${n} Anfragen in der letzten Minute, von ${ceiling}, die sich dieses Gerät erlaubt`,
+    saved: (n, minutes) =>
+      `Katalog und Hub haben ${n} Anfragen abgenommen — rund ${minutes === 1 ? 'eine Minute' : `${minutes} Minuten`} Wartezeit.`,
+    ceiling: (n) =>
+      `Discogs erlaubt 60 pro Minute je Adresse. Fidelity fragt ${n} — mit Absicht.`,
+    ours: 'Gezählt wird, was Fidelity gefragt hat. Discogs’ eigenen Zähler kann ein Browser nicht lesen.',
+  },
+
   notice: {
     offline: {
       title: 'Kein Netz.',

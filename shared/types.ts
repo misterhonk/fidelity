@@ -345,6 +345,39 @@ export interface ReleaseDetail {
   fetchedAt: number
 }
 
+/**
+ * What a Discogs request was for (M31.9).
+ *
+ * Derived from the address rather than tagged at the call site — every request
+ * already says what it is for in its path.
+ */
+export const REQUEST_PURPOSES = ['dig', 'horizon', 'record', 'watch', 'sync', 'other'] as const
+
+export type RequestPurpose = (typeof REQUEST_PURPOSES)[number]
+
+/**
+ * This device's own record of what it put on the wire — never Discogs' counter.
+ *
+ * `x-discogs-ratelimit-*` is not exposed to JavaScript and a 429 arrives
+ * without CORS headers (docs/02), so the app cannot read the real budget. What
+ * it can do is count what it asked for, and what the catalogue and the hub
+ * answered instead — and the difference between those two is what those two
+ * are for.
+ */
+export interface RateLedger {
+  /** Every request of the last minute, for the pulse. */
+  minute: { at: number; purpose: RequestPurpose; free: boolean }[]
+  /** This session, by purpose. */
+  spent: Record<RequestPurpose, number>
+  saved: Record<RequestPurpose, number>
+  spentTotal: number
+  savedTotal: number
+  /** When counting started, or null before the first request. */
+  since: number | null
+  /** Requests a minute this device paces itself to — 50 with a token, 25 without. */
+  ceiling: number
+}
+
 export interface WatchAlert {
   dealer: string
   newListings: number

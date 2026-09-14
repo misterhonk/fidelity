@@ -2,6 +2,7 @@ import type { z } from 'zod'
 
 import { DiscogsError, toDiscogsError } from './errors'
 import { createPacer, type Pacer } from './pacer'
+import { note } from './ledger'
 
 export const DISCOGS_API = 'https://api.discogs.com'
 
@@ -124,10 +125,15 @@ export class DiscogsClient {
     for (let attempt = 0; ; attempt++) {
       let response: Response
       try {
-        response = await this.#options.pacer.run(
-          () => this.#send(url, { signal, method, payload }),
-          signal,
-        )
+        response = await this.#options.pacer.run(() => {
+          /*
+           * Counted here and nowhere else: this is the one line every
+           * request in the app passes through, and the only place that
+           * knows a slot was actually taken (M31.9).
+           */
+          note(path)
+          return this.#send(url, { signal, method, payload })
+        }, signal)
       } catch (error) {
         const opaque = error instanceof DiscogsError && error.status === 0 && !signal?.aborted
         if (!opaque) throw error

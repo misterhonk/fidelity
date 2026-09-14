@@ -504,6 +504,23 @@ export const handlers: HandlerMap = {
     }
   },
 
+  /**
+   * What this device has asked Discogs for, and what it was spared (M31.9).
+   *
+   * The ceiling comes from the pacer's own constants rather than from Discogs:
+   * with a token the app paces itself to fifty a minute, without one to
+   * twenty-five — ten under each of Discogs' two limits, on purpose.
+   */
+  'limit.now': async () => {
+    const { ledger } = await import('./discogs/ledger')
+    const { MIN_REQUEST_INTERVAL_MS, ANONYMOUS_REQUEST_INTERVAL_MS } =
+      await import('./discogs/pacer')
+    const identity = await currentIdentity()
+    const gap = identity ? MIN_REQUEST_INTERVAL_MS : ANONYMOUS_REQUEST_INTERVAL_MS
+
+    return { ...ledger(), ceiling: Math.round(60_000 / gap) }
+  },
+
   'watch.set': async ({ dealer, watching }) => {
     const { setWatching, watchedDealers } = await import('./watch/check')
     await setWatching(dealer, watching)

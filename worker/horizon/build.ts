@@ -5,6 +5,7 @@ import type { CollectionItem, WantlistItem } from '#shared/types'
 
 import { log } from '../log'
 import type { DiscogsClient } from '../discogs/client'
+import { noteFree } from '../discogs/ledger'
 
 import { createCatalogueClient } from '../catalogue/client'
 import { chunkFromCatalogue } from '../catalogue/horizon'
@@ -231,6 +232,14 @@ async function runBuild({
        * packs, for zero requests. Null is the hub-then-API path below.
        */
       const fromCatalogue = await chunkFromCatalogue(catalogue, candidate)
+      // What the catalogue answered is what Discogs was not asked (M31.9).
+      /*
+       * Two requests is what one entity costs through Discogs — the
+       * discography page plus the artist lookup (docs/02). Counting the
+       * catalogue's answer as those two is what makes "saved" comparable
+       * with "spent" in the same units.
+       */
+      if (fromCatalogue) noteFree('horizon', 2)
       result = fromCatalogue
         ? { chunk: fromCatalogue, catalogueSize: fromCatalogue.catalogueSize ?? 0, requests: 0 }
         : await preferHub(() => expandEntity(candidate, { client, signal, now, catalogue }), {
