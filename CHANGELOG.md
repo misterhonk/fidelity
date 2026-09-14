@@ -9,6 +9,18 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.76.0](https://github.com/misterhonk/fidelity/compare/v0.75.0...v0.76.0) (2026-09-14)
+
+
+### Added
+
+* **ui:** the score says what it means, and the offer box has a job ([dfb8a17](https://github.com/misterhonk/fidelity/commit/dfb8a17d2b2ffecf8053543b362a4b1bfef6e840))
+
+
+### Fixed
+
+* **dealers:** the open shop stands beside the list, not below it ([c3a321a](https://github.com/misterhonk/fidelity/commit/c3a321a53a591b73fa44d03e6156dd7dff74acde))
+
 ## [0.75.0](https://github.com/misterhonk/fidelity/compare/v0.74.0...v0.75.0) (2026-09-14)
 
 **Die Läden sind eine Liste geworden, und Graben sagt endlich, wofür es da ist.**
