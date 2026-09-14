@@ -37,6 +37,22 @@ export default defineConfig({
   workers: process.env.CI ? 4 : undefined,
 
   /*
+   * And a longer rope per test on CI, because of the line above.
+   *
+   * Four workers on four cores is deliberately oversubscribed, and the price
+   * is that each individual test takes longer even though the suite as a whole
+   * is faster: the average went from 2,1 s to 5,1 s while the throughput went
+   * from two tests at a time to three and a quarter. `places.spec.ts` is a
+   * thirteen-second test in WebKit, and thirteen times that factor walks into
+   * a thirty-second limit — which it did, on 2026-09-14.
+   *
+   * The limit is a stop for a hang, not a measurement of speed. A minute is
+   * still a minute for anything genuinely stuck, and locally it stays at
+   * thirty seconds, where a slow test means something.
+   */
+  timeout: process.env.CI ? 60_000 : 30_000,
+
+  /*
    * Every local run leaves a record, because one did not.
    *
    * On 2026-09-11 a run came back 309 of 310 and the next three came back
