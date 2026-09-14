@@ -228,6 +228,8 @@ const en = {
     shown: (shown: string, total: string | null) =>
       total === null ? `${shown} finds` : `${shown} of ${total} finds`,
     sortBy: 'Sort',
+    /** The head of the compact table: its own name, so it is not a second "Sort". */
+    columns: 'Columns — tap one to sort by it',
     density: 'Density',
     comfortable: 'Detailed',
     /** The sleeves, two across on a phone — the crate you flip through. */
@@ -548,6 +550,7 @@ const de: typeof en = {
     shown: (shown, total) =>
       total === null ? `${shown} Treffer` : `${shown} von ${total} Treffern`,
     sortBy: 'Sortieren',
+    columns: 'Spalten – zum Sortieren antippen',
     density: 'Dichte',
     comfortable: 'Ausführlich',
     crate: 'Kiste',
