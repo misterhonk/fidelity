@@ -20,7 +20,20 @@ The question this settles is whether that is allowed, and whether it is worth an
 
 ## What the CC0 dump actually contains — measured 2026-09-14
 
-Against the real mini-dump in `catalogue/fixtures/mini-dump`, release 1:
+Against the real mini-dump in `catalogue/fixtures/mini-dump` — four hundred releases cut
+from `discogs_20260901_releases.xml.gz`, not a hand-picked one:
+
+| | of 400 |
+|---|---|
+| carry a `<tracklist>` | **400** |
+| carry `<videos>` | **362** |
+| carry `<identifiers>` (run-out, barcode) | **316** |
+
+Every one of them has its tracklist; nine in ten have the clips. For comparison, the sample
+ADR-012 ran against the live API in September was five of seven with videos — the dump is
+not a thinner copy of the API here, it is the same thing.
+
+Field by field, against release 1:
 
 | Field the sheet shows | In `discogs_*_releases.xml.gz` |
 |---|---|
