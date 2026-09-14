@@ -52,6 +52,17 @@ const route = useRoute()
 
 const dealers = shallowRef<DealerWithReasons[]>([])
 
+/**
+ * Until the first answer comes back, the shape rather than a sentence (M31.10).
+ *
+ * The list reads out of IndexedDB, so this is a few dozen milliseconds on a
+ * desktop and noticeably more on a phone that has just woken up. Four grey
+ * rows in the shape of the real ones say "in a moment" without the page
+ * jumping when they are replaced — a loading sentence gets swapped for a list
+ * of a different height, and everything below it moves.
+ */
+const loading = ref(true)
+
 /*
  * "Only from Germany / the EU" (M20 #2), on the chips. A view, in the
  * address; the block list in the preferences stays the hard rule. Your
@@ -357,7 +368,11 @@ async function startRound() {
 }
 
 async function load() {
-  dealers.value = await call('dealer.list', undefined)
+  try {
+    dealers.value = await call('dealer.list', undefined)
+  } finally {
+    loading.value = false
+  }
   hidden.value = await call('dealer.hidden', undefined)
   home.value = (await call('preferences.get', undefined)).shipsToCountry
   const first = dealers.value[0]
@@ -588,7 +603,23 @@ const scanned = computed(() => {
     -->
     <ErrorNote v-if="error" :cause="error" />
 
-    <p v-if="dealers.length === 0" class="text-fid-base text-fid-text-muted">
+    <!-- The shape, while the database is being read. -->
+    <ul
+      v-if="loading && dealers.length === 0"
+      class="flex flex-col divide-y divide-fid-border border-y border-fid-border"
+      aria-hidden="true"
+    >
+      <li v-for="row in 4" :key="row" class="flex items-center gap-3 py-3 pr-2 pl-3">
+        <span class="size-8 shrink-0 rounded-fid-sm bg-fid-inset" />
+        <span class="flex min-w-0 flex-1 flex-col gap-2">
+          <span class="block h-3 w-40 rounded-fid-sm bg-fid-inset" />
+          <span class="block h-2 w-56 rounded-fid-sm bg-fid-inset" />
+        </span>
+        <span class="block h-3 w-8 shrink-0 rounded-fid-sm bg-fid-inset" />
+      </li>
+    </ul>
+
+    <p v-else-if="dealers.length === 0" class="text-fid-base text-fid-text-muted">
       {{ h.none }}
     </p>
 
