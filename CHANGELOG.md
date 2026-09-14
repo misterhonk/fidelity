@@ -11,6 +11,14 @@ Für eine App bedeutet SemVer:
 
 ## [0.84.0](https://github.com/misterhonk/fidelity/compare/v0.83.0...v0.84.0) (2026-09-14)
 
+**„Zurück" schließt jetzt das Blatt, statt den Dig zu verlassen.**
+
+Der offene Fund steht in der Adresse. Drei Dinge folgen daraus: ein Reload behält die Platte
+offen — das Blatt war bisher das eine auf einem Dig, das man durch Neuladen verlieren konnte
+—, ein Link kann auf einen Fund zeigen statt nur auf den Dig, und auf dem Telefon tut die
+Zurück-Geste das, was sie überall sonst tut. Bisher verließ sie die Seite; wer kurz auf eine
+Platte schaute und zurückwischte, verlor die Liste und ihre Scrollposition gleich mit.
+
 
 ### Added
 
