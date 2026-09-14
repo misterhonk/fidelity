@@ -11,6 +11,21 @@ Für eine App bedeutet SemVer:
 
 ## [0.88.0](https://github.com/misterhonk/fidelity/compare/v0.87.0...v0.88.0) (2026-09-14)
 
+**Wenn Discogs bremst, steht das jetzt auf dem Bildschirm.**
+
+Ein sehr großer Laden braucht zweihundert Anfragen über vier Minuten und trifft dabei
+irgendwann auf Discogs' Limit. Ein Browser sieht diese Absage nie — sie kommt ohne
+CORS-Header, `fetch()` lehnt einfach ab — und Fidelity macht das Richtige: es wartet das
+Fenster ab und läuft weiter. Nur sagte das niemand, der Balken stand still, und es sah aus,
+als ginge der Laden nicht zu diggen. Jetzt steht dort, wie lange noch, und dass nichts
+verloren geht.
+
+Dazu zwei Kleinigkeiten, die beide aus dem kommen, was die App längst weiß: **der Laden bei
+Discogs** ist aus dem Profil einen Tipp entfernt — dort steht, was kein Sortiment verrät,
+Porto in Prosa, Urlaubshinweise, Rücknahme —, und der Preflight sagt **„weiterhin 2.881 im
+Angebot, dieselbe Zahl wie beim letzten Dig"**, wenn sich nichts bewegt hat. Das kostet keine
+einzige Anfrage und spart im Zweifel den ganzen Dig.
+
 
 ### Added
 
