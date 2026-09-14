@@ -540,8 +540,17 @@ function years(entry: { from: number; to: number }): string {
 
       <ReleaseFacts :detail="release" :tags="tags" />
 
+      <!--
+        On a phone the sheet is eight sections tall, and the action lived
+        under the eighth (M31.10). It sticks to the bottom edge instead —
+        the most settled pattern in mobile commerce, and here it is one
+        line: the sheet scrolls inside itself, so `sticky` works without
+        any fixed positioning. The negative margin and the padding put its
+        background across the sheet's own inset, or the content would show
+        through underneath it.
+      -->
       <div
-        class="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-fid-border pt-4"
+        class="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-fid-border pt-4 max-md:sticky max-md:bottom-0 max-md:-mx-6 max-md:bg-fid-surface max-md:px-6 max-md:pb-4"
       >
         <div class="flex gap-1" role="group" :aria-label="d.match.feedback">
           <!-- Same pair of words as on the card, see MatchCard.vue. -->

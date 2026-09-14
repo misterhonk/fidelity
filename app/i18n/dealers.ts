@@ -67,6 +67,16 @@ const en = {
   notDug: 'not dug yet',
   /* On the row itself: short, because it repeats down the list. */
   digShort: 'Dig',
+  /* Four orderings, one row above the list (M31.10). */
+  sort: {
+    label: 'Order',
+    rate: 'Hit rate',
+    recent: 'Last dug',
+    size: 'Size',
+    name: 'Name',
+  },
+  /* The mental model, not a filter: yours, and the rest. */
+  groups: { mine: 'Your shops', rest: 'The rest' },
   digAt: (shop: string) => `Dig ${shop} now`,
   /** What the number beside a shop counts. Spoken, not drawn. */
   perThousand: (rate: string) => `${rate} finds per thousand`,
@@ -286,6 +296,14 @@ const de: typeof en = {
     'Bislang nur dem Namen nach bekannt. Beobachten geht trotzdem schon – ein Dig füllt den Rest.',
   notDug: 'noch nicht gegraben',
   digShort: 'Graben',
+  sort: {
+    label: 'Sortieren',
+    rate: 'Trefferquote',
+    recent: 'Zuletzt gegraben',
+    size: 'Größe',
+    name: 'Name',
+  },
+  groups: { mine: 'Deine Läden', rest: 'Weitere' },
   digAt: (shop) => `Jetzt bei ${shop} graben`,
   perThousand: (rate) => `${rate} Treffer je tausend`,
   find: 'Laden finden',
