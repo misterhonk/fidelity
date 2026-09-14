@@ -13,7 +13,7 @@ test('a shop can be hidden, and shown again', async ({ page }) => {
   await seed(page, 'en')
   await page.goto('/dealers')
 
-  const list = page.getByRole('navigation', { name: 'Scanned shops' })
+  const list = page.getByRole('list', { name: 'Scanned shops' })
   await expect(list.getByRole('button', { name: 'plattenkiste' })).toBeVisible({
     timeout: 15_000,
   })
@@ -29,7 +29,7 @@ test('a shop can be hidden, and shown again', async ({ page }) => {
   await hidden.getByRole('button', { name: 'Show again' }).click()
 
   await expect(
-    page.getByRole('navigation', { name: 'Scanned shops' }).getByRole('button', {
+    page.getByRole('list', { name: 'Scanned shops' }).getByRole('button', {
       name: 'plattenkiste',
     }),
   ).toBeVisible()

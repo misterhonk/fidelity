@@ -136,7 +136,7 @@ test('the shops screen keeps only the chips from home', async ({ page }) => {
   await britishShop(page)
   await page.goto('/dealers')
 
-  const shops = page.getByRole('navigation', { name: 'Scanned shops' })
+  const shops = page.getByRole('list', { name: 'Scanned shops' })
   await expect(shops.getByRole('button', { name: /London Wax/ })).toBeVisible({
     timeout: 15_000,
   })

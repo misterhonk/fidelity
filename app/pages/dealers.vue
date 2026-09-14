@@ -47,6 +47,49 @@ function originBy(key: OriginFilter) {
 const shown = computed(() =>
   dealers.value.filter((dealer) => passesOrigin(dealer.shipsFrom, origin.value, home.value)),
 )
+/*
+ * A name to type, and a list that does not arrive all at once.
+ *
+ * Reported on 0.73: with many entries the shops were "one huge wall of
+ * buttons". Three things fix that and only one of them is the row itself —
+ * the other two are that a long list can be searched and that it stops
+ * somewhere. Twelve is about a screen; the rest is one tap away.
+ */
+const query = ref('')
+const STEP = 12
+const room = ref(STEP)
+
+const matching = computed(() => {
+  const needle = query.value.trim().toLowerCase()
+  if (!needle) return shown.value
+  return shown.value.filter((dealer) =>
+    `${dealer.displayName} ${dealer.username}`.toLowerCase().includes(needle),
+  )
+})
+
+/*
+ * The open shop is always in the list, even past the cut.
+ *
+ * Otherwise a link straight to a shop that ranks fortieth draws its profile
+ * under a list in which nothing is marked — and the screen looks like it is
+ * showing somebody else's shop.
+ */
+const listed = computed(() => {
+  const head = matching.value.slice(0, room.value)
+  const open = matching.value.find((dealer) => dealer.username === selected.value)
+  return open && !head.includes(open) ? [...head, open] : head
+})
+
+const rest = computed(() => matching.value.length - listed.value.length)
+
+/** One scale for every bar in the list — see DealerRow.vue. */
+const peak = computed(() =>
+  Math.max(0, ...matching.value.map((dealer) => dealer.affinity ?? 0)),
+)
+
+// A new search or a new origin starts from the top again.
+watch([query, origin], () => (room.value = STEP))
+
 /** The shops somebody asked never to see again — listed at the foot, so they can come back. */
 const hidden = shallowRef<Dealer[]>([])
 /*
@@ -213,10 +256,6 @@ async function addByHand() {
 }
 
 /** The reasons for one shop, out of the list the worker already handed over. */
-function reasonsFor(username: string) {
-  return dealers.value.find((dealer) => dealer.username === username)?.reasons ?? []
-}
-
 async function loadSuggestions() {
   if (suggesting.value) return
   suggesting.value = true
@@ -457,206 +496,6 @@ const scanned = computed(() => {
     -->
     <ErrorNote v-if="error" :cause="error" />
 
-    <!--
-      A shop entered by hand, above the discovery box.
-
-      Above it deliberately: somebody who already knows the name has the
-      shortest path in the app, and the search below is for when they do not.
-    -->
-    <form class="flex flex-wrap items-end gap-3" @submit.prevent="addByHand">
-      <div class="flex min-w-64 grow flex-col gap-2">
-        <label class="text-fid-sm font-medium text-fid-text" for="add-shop">
-          {{ h.add.label }}
-        </label>
-        <input
-          id="add-shop"
-          v-model="typed"
-          type="text"
-          autocomplete="off"
-          spellcheck="false"
-          :placeholder="h.add.placeholder"
-          class="fid-field px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
-        />
-      </div>
-      <button
-        type="submit"
-        :disabled="adding || typedName === null"
-        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
-      >
-        {{ adding ? h.add.busy : h.add.submit }}
-      </button>
-    </form>
-
-    <DealerDiscovery :first-time="dealers.length === 0" @imported="load()" />
-
-    <!--
-      The round: every watched shop, asked what is new since the last visit.
-
-      Above the list, because it is about all of them at once. Only where there
-      is something to walk — a device with no watched shop gets the sentence
-      that says how one becomes watched, not a button that would do nothing.
-    -->
-    <section
-      v-if="plan && plan.shops > 0"
-      class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
-      aria-labelledby="round"
-    >
-      <h2 id="round" class="text-fid-base font-medium text-fid-text">{{ h.round.title }}</h2>
-
-      <p class="max-w-prose text-fid-sm text-fid-text-muted">
-        {{ h.round.about(plan.reachable, roundMinutes) }}
-      </p>
-      <!--
-        A shop nobody has dug yet has no line to stop at, so "only what is new"
-        has nothing to be new since. Said rather than silently skipped.
-      -->
-      <p v-if="plan.neverDug > 0" class="max-w-prose text-fid-sm text-fid-sig-gap">
-        {{ h.round.neverDug(plan.neverDug) }}
-      </p>
-
-      <button
-        v-if="plan.reachable > 0"
-        type="button"
-        :disabled="roundBusy"
-        class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
-        @click="startRound"
-      >
-        {{ h.round.start }}
-      </button>
-
-      <div v-if="round" class="flex flex-col gap-2" aria-live="polite">
-        <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
-          <div
-            class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
-            :style="{ width: `${roundPercent}%` }"
-          />
-        </div>
-        <p class="text-fid-sm text-fid-text-muted">
-          {{ m.common.ofTotal(count(round.done), count(round.total)) }}
-          <template v-if="round.dealer"> · {{ round.dealer }}</template>
-          · {{ h.round.found(round.found) }}
-        </p>
-        <p class="text-fid-sm text-fid-text-muted">{{ h.round.keepsRunning }}</p>
-      </div>
-
-      <!--
-        What the last one turned up. Its own record and not a reading over the
-        digs, because those do not survive it: five are kept, and a round over
-        ten shops prunes the first five before it ends.
-      -->
-      <div v-if="lastRound && !round" class="flex flex-col gap-2">
-        <p class="text-fid-sm text-fid-text-muted">
-          {{ h.round.lastAt(dayTime(lastRound.startedAt)) }}
-        </p>
-        <ul class="flex flex-col gap-1">
-          <li
-            v-for="stop in lastRound.stops"
-            :key="stop.dealer"
-            class="flex flex-wrap items-baseline gap-x-2 text-fid-sm"
-          >
-            <NuxtLink
-              v-if="stop.digId && stop.matches > 0"
-              :to="{ path: '/dig', query: { id: stop.digId } }"
-              class="font-medium text-fid-accent underline underline-offset-4"
-            >
-              {{ stop.displayName }}
-            </NuxtLink>
-            <span v-else class="font-medium text-fid-text">{{ stop.displayName }}</span>
-
-            <span v-if="stop.status === 'never-dug'" class="text-fid-text-muted">
-              {{ h.round.stopNeverDug }}
-            </span>
-            <span v-else-if="stop.status === 'failed'" class="text-fid-sig-gap">
-              {{ h.round.stopFailed }}
-            </span>
-            <span v-else-if="stop.matches === 0" class="text-fid-text-muted">
-              {{ h.round.stopNothing(count(stop.newListings)) }}
-            </span>
-            <span v-else class="text-fid-text-muted">
-              {{ h.round.stopFound(stop.matches, count(stop.newListings)) }}
-              <template v-if="stop.best">
-                — {{ stop.best.artist }} – {{ stop.best.title }}
-              </template>
-            </span>
-          </li>
-        </ul>
-      </div>
-    </section>
-
-    <!--
-      Shops other people have dug (ADR-014).
-
-      Only where there is something to show: without a hub there is no list,
-      and saying so on every device that has none would be a permanent notice
-      about a feature nobody asked for.
-    -->
-    <!--
-      Asking the hub takes a moment — up to twenty shops go up before the list
-      comes back — and it used to take that moment in silence. A screen that
-      shows nothing while it works looks like a screen that is finished.
-    -->
-    <p
-      v-if="suggesting && !suggested"
-      role="status"
-      class="flex items-center gap-2 text-fid-sm text-fid-text-muted"
-    >
-      <!--
-        Muted, not the accent. The accent means "this is the thing to do", and
-        a thing that is happening by itself is not a thing to press — the
-        design-restraint test counts it as a second filled action otherwise.
-      -->
-      <span class="size-2 animate-pulse rounded-full bg-fid-text-muted" aria-hidden="true" />
-      {{ h.suggested.busy }}
-    </p>
-
-    <section
-      v-if="suggested && suggested.shops.length > 0"
-      class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
-      aria-labelledby="suggested"
-    >
-      <h2 id="suggested" class="text-fid-base font-medium text-fid-text">
-        {{ h.suggested.title }}
-      </h2>
-      <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ h.suggested.about }}</p>
-
-      <ul class="flex flex-col gap-2">
-        <li
-          v-for="shop in suggested.shops"
-          :key="shop.username"
-          class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-fid-border pb-2 last:border-0"
-        >
-          <NuxtLink
-            :to="{ path: '/dig', query: { dealer: shop.username } }"
-            class="fid-action flex items-center gap-2 text-fid-base font-medium text-fid-text"
-          >
-            <ShopLogo :dealer="shop.username" :avatar-url="shop.avatarUrl" :size="20" />
-            {{ shop.displayName }}
-          </NuxtLink>
-
-          <!--
-            The number, and the labels behind it. A percentage on its own is a
-            score somebody has to take on trust; the labels are the reason.
-          -->
-          <span class="fid-num text-fid-sm text-fid-accent">
-            {{ h.suggested.fit(Math.round(shop.fit * 100)) }}
-          </span>
-          <span v-if="shop.labels.length > 0" class="text-fid-sm text-fid-text-muted">
-            {{ shop.labels.join(' · ') }}
-          </span>
-          <span v-if="shop.shipsFrom" class="text-fid-xs text-fid-text-muted">
-            {{ shop.shipsFrom }}
-          </span>
-        </li>
-      </ul>
-
-      <!--
-        What the number is a share *of*. A fingerprint from a hundred rows of a
-        forty-thousand-record shop describes those hundred, and a screen that
-        left that out would be quoting a sample as a catalogue.
-      -->
-      <p class="max-w-prose text-fid-xs text-fid-text-muted">{{ h.suggested.sample }}</p>
-    </section>
-
     <p v-if="dealers.length === 0" class="text-fid-base text-fid-text-muted">
       {{ h.none }}
     </p>
@@ -684,45 +523,54 @@ const scanned = computed(() => {
         {{ h.origin.none }}
       </p>
 
-      <!-- Ranked by hit rate: the only ordering that answers "wo zuerst?". -->
-      <nav v-else class="flex flex-wrap gap-2" :aria-label="h.scanned">
-        <button
-          v-for="dealer in shown"
-          :key="dealer.username"
-          type="button"
-          class="flex items-center gap-2 rounded-fid-sm border py-2 pr-3 pl-2 text-fid-sm transition-colors"
-          :class="
-            dealer.username === selected
-              ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
-              : 'border-fid-border text-fid-text-muted hover:text-fid-text'
-          "
-          @click="select(dealer.username)"
-        >
-          <!-- A shop is a place, not a string. -->
-          <ShopLogo :dealer="dealer.username" :avatar-url="dealer.avatarUrl" :size="24" />
-          {{ dealer.displayName || dealer.username }}
-        </button>
-      </nav>
+      <!--
+        Ranked by hit rate: the only ordering that answers "where first?".
+
+        A list rather than the wrap of bordered buttons this used to be. Forty
+        shops in a wrapping grid is a keypad — unscannable, and it hides the
+        very ordering that makes the screen worth opening. See DealerRow.vue.
+      -->
+      <input
+        v-if="shown.length > 8"
+        v-model="query"
+        type="search"
+        autocomplete="off"
+        spellcheck="false"
+        :placeholder="h.find"
+        :aria-label="h.find"
+        class="fid-field w-full px-3 py-2 text-fid-sm text-fid-text"
+      />
+
+      <p v-if="matching.length === 0" class="text-fid-sm text-fid-text-muted">
+        {{ h.noMatch }}
+      </p>
+
+      <ul
+        v-else
+        class="flex flex-col divide-y divide-fid-border border-y border-fid-border"
+        :aria-label="h.scanned"
+      >
+        <li v-for="dealer in listed" :key="dealer.username">
+          <DealerRow
+            :dealer="dealer"
+            :selected="dealer.username === selected"
+            :peak="peak"
+            @open="select(dealer.username)"
+          />
+        </li>
+      </ul>
+
+      <button
+        v-if="rest > 0"
+        type="button"
+        class="fid-action self-start text-fid-sm text-fid-text-muted underline underline-offset-4 hover:text-fid-text"
+        @click="room += STEP"
+      >
+        {{ h.more(count(rest)) }}
+      </button>
 
       <section v-if="profile" class="flex flex-col gap-8">
         <div class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4">
-          <!--
-            Why this shop is here at all (M30).
-
-            A tester with nine shops in his Discogs friends list saw one of
-            them on this screen and could not tell why — and a row without a
-            reason is a row nobody trusts.
-          -->
-          <p v-if="reasonsFor(profile.dealer.username).length > 0" class="flex flex-wrap gap-1">
-            <span
-              v-for="reason in reasonsFor(profile.dealer.username)"
-              :key="reason"
-              class="rounded-fid-sm border border-fid-border px-2 py-1 text-fid-xs text-fid-text-muted"
-            >
-              {{ h.reasons[reason] }}
-            </span>
-          </p>
-
           <p v-if="profile.dealer.lastScannedAt === null" class="text-fid-base text-fid-text">
             {{ h.neverScanned }}
           </p>
@@ -953,6 +801,210 @@ const scanned = computed(() => {
       `v-else` above on purpose: hiding the last shop must not take the one
       place it can be brought back from with it.
     -->
+    <!--
+      The round: every watched shop, asked what is new since the last visit.
+
+      Under the list rather than over it: the screen's own question is "which
+      shop next", and four blocks of tooling used to stand between the heading
+      and the answer. Only where there is something to walk — a device with no
+      watched shop gets the sentence that says how one becomes watched, not a
+      button that would do nothing.
+    -->
+    <section
+      v-if="plan && plan.shops > 0"
+      class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
+      aria-labelledby="round"
+    >
+      <h2 id="round" class="text-fid-base font-medium text-fid-text">{{ h.round.title }}</h2>
+
+      <p class="max-w-prose text-fid-sm text-fid-text-muted">
+        {{ h.round.about(plan.reachable, roundMinutes) }}
+      </p>
+      <!--
+        A shop nobody has dug yet has no line to stop at, so "only what is new"
+        has nothing to be new since. Said rather than silently skipped.
+      -->
+      <p v-if="plan.neverDug > 0" class="max-w-prose text-fid-sm text-fid-sig-gap">
+        {{ h.round.neverDug(plan.neverDug) }}
+      </p>
+
+      <button
+        v-if="plan.reachable > 0"
+        type="button"
+        :disabled="roundBusy"
+        class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
+        @click="startRound"
+      >
+        {{ h.round.start }}
+      </button>
+
+      <div v-if="round" class="flex flex-col gap-2" aria-live="polite">
+        <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
+          <div
+            class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
+            :style="{ width: `${roundPercent}%` }"
+          />
+        </div>
+        <p class="text-fid-sm text-fid-text-muted">
+          {{ m.common.ofTotal(count(round.done), count(round.total)) }}
+          <template v-if="round.dealer"> · {{ round.dealer }}</template>
+          · {{ h.round.found(round.found) }}
+        </p>
+        <p class="text-fid-sm text-fid-text-muted">{{ h.round.keepsRunning }}</p>
+      </div>
+
+      <!--
+        What the last one turned up. Its own record and not a reading over the
+        digs, because those do not survive it: five are kept, and a round over
+        ten shops prunes the first five before it ends.
+      -->
+      <div v-if="lastRound && !round" class="flex flex-col gap-2">
+        <p class="text-fid-sm text-fid-text-muted">
+          {{ h.round.lastAt(dayTime(lastRound.startedAt)) }}
+        </p>
+        <ul class="flex flex-col gap-1">
+          <li
+            v-for="stop in lastRound.stops"
+            :key="stop.dealer"
+            class="flex flex-wrap items-baseline gap-x-2 text-fid-sm"
+          >
+            <NuxtLink
+              v-if="stop.digId && stop.matches > 0"
+              :to="{ path: '/dig', query: { id: stop.digId } }"
+              class="font-medium text-fid-accent underline underline-offset-4"
+            >
+              {{ stop.displayName }}
+            </NuxtLink>
+            <span v-else class="font-medium text-fid-text">{{ stop.displayName }}</span>
+
+            <span v-if="stop.status === 'never-dug'" class="text-fid-text-muted">
+              {{ h.round.stopNeverDug }}
+            </span>
+            <span v-else-if="stop.status === 'failed'" class="text-fid-sig-gap">
+              {{ h.round.stopFailed }}
+            </span>
+            <span v-else-if="stop.matches === 0" class="text-fid-text-muted">
+              {{ h.round.stopNothing(count(stop.newListings)) }}
+            </span>
+            <span v-else class="text-fid-text-muted">
+              {{ h.round.stopFound(stop.matches, count(stop.newListings)) }}
+              <template v-if="stop.best">
+                — {{ stop.best.artist }} – {{ stop.best.title }}
+              </template>
+            </span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!--
+      Shops other people have dug (ADR-014).
+
+      Only where there is something to show: without a hub there is no list,
+      and saying so on every device that has none would be a permanent notice
+      about a feature nobody asked for.
+    -->
+    <!--
+      Asking the hub takes a moment — up to twenty shops go up before the list
+      comes back — and it used to take that moment in silence. A screen that
+      shows nothing while it works looks like a screen that is finished.
+    -->
+    <p
+      v-if="suggesting && !suggested"
+      role="status"
+      class="flex items-center gap-2 text-fid-sm text-fid-text-muted"
+    >
+      <!--
+        Muted, not the accent. The accent means "this is the thing to do", and
+        a thing that is happening by itself is not a thing to press — the
+        design-restraint test counts it as a second filled action otherwise.
+      -->
+      <span class="size-2 animate-pulse rounded-full bg-fid-text-muted" aria-hidden="true" />
+      {{ h.suggested.busy }}
+    </p>
+
+    <section
+      v-if="suggested && suggested.shops.length > 0"
+      class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
+      aria-labelledby="suggested"
+    >
+      <h2 id="suggested" class="text-fid-base font-medium text-fid-text">
+        {{ h.suggested.title }}
+      </h2>
+      <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ h.suggested.about }}</p>
+
+      <ul class="flex flex-col gap-2">
+        <li
+          v-for="shop in suggested.shops"
+          :key="shop.username"
+          class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-fid-border pb-2 last:border-0"
+        >
+          <NuxtLink
+            :to="{ path: '/dig', query: { dealer: shop.username } }"
+            class="fid-action flex items-center gap-2 text-fid-base font-medium text-fid-text"
+          >
+            <ShopLogo :dealer="shop.username" :avatar-url="shop.avatarUrl" :size="20" />
+            {{ shop.displayName }}
+          </NuxtLink>
+
+          <!--
+            The number, and the labels behind it. A percentage on its own is a
+            score somebody has to take on trust; the labels are the reason.
+          -->
+          <span class="fid-num text-fid-sm text-fid-accent">
+            {{ h.suggested.fit(Math.round(shop.fit * 100)) }}
+          </span>
+          <span v-if="shop.labels.length > 0" class="text-fid-sm text-fid-text-muted">
+            {{ shop.labels.join(' · ') }}
+          </span>
+          <span v-if="shop.shipsFrom" class="text-fid-xs text-fid-text-muted">
+            {{ shop.shipsFrom }}
+          </span>
+        </li>
+      </ul>
+
+      <!--
+        What the number is a share *of*. A fingerprint from a hundred rows of a
+        forty-thousand-record shop describes those hundred, and a screen that
+        left that out would be quoting a sample as a catalogue.
+      -->
+      <p class="max-w-prose text-fid-xs text-fid-text-muted">{{ h.suggested.sample }}</p>
+    </section>
+
+    <!--
+      A shop entered by hand, above the discovery box.
+
+      Above it deliberately: somebody who already knows the name has the
+      shortest path in the app, and the search below is for when they do not.
+      Both sit under the list, because adding a shop is what you do *after*
+      looking at the ones you have — and on a device with none, the empty line
+      above points straight down here.
+    -->
+    <form class="flex flex-wrap items-end gap-3" @submit.prevent="addByHand">
+      <div class="flex min-w-64 grow flex-col gap-2">
+        <label class="text-fid-sm font-medium text-fid-text" for="add-shop">
+          {{ h.add.label }}
+        </label>
+        <input
+          id="add-shop"
+          v-model="typed"
+          type="text"
+          autocomplete="off"
+          spellcheck="false"
+          :placeholder="h.add.placeholder"
+          class="fid-field px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+        />
+      </div>
+      <button
+        type="submit"
+        :disabled="adding || typedName === null"
+        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+      >
+        {{ adding ? h.add.busy : h.add.submit }}
+      </button>
+    </form>
+
+    <DealerDiscovery :first-time="dealers.length === 0" @imported="load()" />
     <section
       v-if="hidden.length > 0"
       class="flex flex-col gap-2"

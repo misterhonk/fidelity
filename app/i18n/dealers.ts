@@ -63,6 +63,14 @@ const en = {
    * cannot do until the shop has been dug once is say *what* moved.
    */
   neverScanned: 'Known by name so far. Watching works already — a dig fills in the rest.',
+  /** The same fact in three words, for a row in the list. */
+  notDug: 'not dug yet',
+  /** What the number beside a shop counts. Spoken, not drawn. */
+  perThousand: (rate: string) => `${rate} finds per thousand`,
+  /** Above the list, once there are enough shops to be a wall. */
+  find: 'Find a shop',
+  noMatch: 'No shop of yours goes by that name.',
+  more: (n: string) => `Show ${n} more`,
   listings: (n: string) => `${n} listings`,
   shipsFrom: (country: string) => `from ${country}`,
   rating: (percent: string, count: string) => `${percent} on ${count} ratings`,
@@ -268,6 +276,11 @@ const de: typeof en = {
 
   neverScanned:
     'Bislang nur dem Namen nach bekannt. Beobachten geht trotzdem schon – ein Dig füllt den Rest.',
+  notDug: 'noch nicht gegraben',
+  perThousand: (rate) => `${rate} Treffer je tausend`,
+  find: 'Laden finden',
+  noMatch: 'Keiner deiner Läden heißt so.',
+  more: (n) => `${n} weitere zeigen`,
   listings: (n) => `${n} Listings`,
   shipsFrom: (country) => `aus ${countryName(country)}`,
   rating: (percent, count) => `${percent} bei ${count} Bewertungen`,
