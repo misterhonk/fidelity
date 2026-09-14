@@ -11,6 +11,31 @@ Für eine App bedeutet SemVer:
 
 ## [0.75.0](https://github.com/misterhonk/fidelity/compare/v0.74.0...v0.75.0) (2026-09-14)
 
+**Die Läden sind eine Liste geworden, und Graben sagt endlich, wofür es da ist.**
+
+Wer viele Läden kennt, sah bisher eine Wand aus Knöpfen. Jetzt ist jeder Laden eine Zeile mit
+den vier Dingen, nach denen man auswählt: wie oft er etwas für dich hat (mit Balken, damit du
+die Rangfolge siehst statt sie zu erraten), woher er versendet, wie groß sein Sortiment ist
+und wann du zuletzt dort gegraben hast. Dazu steht an jeder Zeile, warum der Laden auf der
+Liste ist — gegraben, im Korb, beobachtet, gekauft, Discogs-Freund, von Hand eingetragen.
+Bei vielen Einträgen gibt es ein Suchfeld, und die Liste endet nach zwölf Zeilen mit
+„weitere zeigen".
+
+Und die Seite fängt damit an. Bisher standen vier Werkzeugblöcke zwischen der Überschrift und
+der Antwort, und die Liste selbst war unter der Falte.
+
+Auf Graben waren zwei Reihen Knöpfe nicht zu unterscheiden: deine Läden und deine letzten
+Digs sahen gleich aus. Beide tragen jetzt eine Überschrift. Ein Ergebnis bietet außerdem
+„Laden nochmal graben" an — das prüft erst und startet nicht sofort, weil ein Scan dein
+Abfragekontingent kostet.
+
+Kleinigkeit mit großer Wirkung auf Platten mit vielen Clips: In der Hörproben-Liste tauchte
+derselbe Clip doppelt auf, weil Discogs ihn einmal als `youtube.com/watch?v=…` und einmal als
+`youtu.be/…` gespeichert hat. Gezählt werden jetzt Videos statt Adressen, und höchstens sechs
+— genauso wie im Regal.
+
+**Was zu tun ist:** Nichts.
+
 
 ### Added
 
