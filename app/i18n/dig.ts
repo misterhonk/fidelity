@@ -34,13 +34,17 @@ const en = {
   /** Discogs has throttled us and the client is waiting it out (M32.5). */
   throttled: (seconds: number) =>
     `Discogs has asked for a pause — carrying on in about ${seconds} s. Nothing is lost; the scan picks up where it stopped.`,
+  /** Measured, not assumed: what actually went out in the last minute (M32.7). */
+  slowLane: (howMany: number) =>
+    `Only ${howMany} requests went out in the last minute instead of about fifty. That is what a browser does to a tab in the background — keep this one in front and the dig runs at full speed.`,
   scanning: (dealer: string) => `Scanning ${dealer}`,
   matchCount: (n: string) => `${n} finds`,
   allFindsHeading: 'All finds',
   listings: (n: string) => `has ${n} listings`,
   truncated: (reachable: string, percent: number) =>
     `An ordinary dig reaches at most ${reachable} of them — that is ${percent} %.`,
-  takesAbout: (minutes: number) => `Takes about ${counted(minutes, 'minute', 'minutes')}.`,
+  takesAbout: (minutes: number) =>
+    `Takes about ${counted(minutes, 'minute', 'minutes')} — with this tab in front, because a browser slows the clock of one in the background.`,
 
   incremental: {
     /*
@@ -433,13 +437,16 @@ const de: typeof en = {
     `Ein Dig bei ${dealer} wurde unterbrochen – ${scanned} von ${total} waren durch.`,
   throttled: (seconds) =>
     `Discogs bittet um eine Pause – weiter in etwa ${seconds} s. Es geht nichts verloren, der Scan macht dort weiter, wo er stehen geblieben ist.`,
+  slowLane: (howMany) =>
+    `In der letzten Minute gingen nur ${howMany} Anfragen raus statt rund fünfzig. Genau das macht ein Browser mit einem Tab im Hintergrund – lass diesen hier vorne, dann läuft der Dig in voller Geschwindigkeit.`,
   scanning: (dealer: string) => `Scanne ${dealer}`,
   matchCount: (n: string) => `${n} Treffer`,
   allFindsHeading: 'Alle Treffer',
   listings: (n) => `hat ${n} Listings`,
   truncated: (reachable, percent) =>
     `Ein normaler Dig kommt an höchstens ${reachable} davon heran – das sind ${percent} %.`,
-  takesAbout: (minutes) => `Dauert etwa ${counted(minutes, 'Minute', 'Minuten')}.`,
+  takesAbout: (minutes) =>
+    `Dauert etwa ${counted(minutes, 'Minute', 'Minuten')} – mit diesem Tab im Vordergrund, denn im Hintergrund bremst der Browser die Uhr.`,
 
   incremental: {
     short: 'nur das Neue',
