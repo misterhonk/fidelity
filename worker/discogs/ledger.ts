@@ -38,6 +38,8 @@ const HOUR_MS = 60 * 60 * 1000
 const MINUTE_MS = 60 * 1000
 
 let ring: LedgerEntry[] = []
+/** When the client expects to be allowed to ask again, while it is waiting. */
+let waitingUntil: number | null = null
 const spent = blank()
 const saved = blank()
 let since: number | null = null
@@ -91,9 +93,28 @@ function add(entry: LedgerEntry): void {
   if (ring.length > 4000) ring = ring.filter((row) => row.at > entry.at - HOUR_MS)
 }
 
+/**
+ * The client has been told to wait (M32.5).
+ *
+ * A browser never sees the 429 itself — Cloudflare serves it without CORS
+ * headers, so `fetch()` simply rejects (docs/02) — and the client's answer is
+ * to sleep a minute and try again. From the outside that is a progress bar
+ * that stops moving, which reads as "broken" rather than "waiting", and on a
+ * big shop it is the difference between a dig somebody finishes and a dig
+ * somebody gives up on.
+ *
+ * Recorded here because this is already the module both the meter and the
+ * worker read, and it costs one number.
+ */
+export function noteBackoff(until: number): void {
+  waitingUntil = until
+}
+
 export function ledger(now = Date.now()): LedgerSnapshot {
   const from = now - MINUTE_MS
+  if (waitingUntil !== null && waitingUntil <= now) waitingUntil = null
   return {
+    waitingUntil,
     minute: ring.filter((row) => row.at > from),
     spent: { ...spent },
     saved: { ...saved },
@@ -111,6 +132,7 @@ function total(counts: Record<Purpose, number>): number {
 export function forgetLedger(): void {
   ring = []
   since = null
+  waitingUntil = null
   for (const purpose of PURPOSES) {
     spent[purpose] = 0
     saved[purpose] = 0

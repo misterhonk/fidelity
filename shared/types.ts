@@ -365,6 +365,15 @@ export type RequestPurpose = (typeof REQUEST_PURPOSES)[number]
  * are for.
  */
 export interface RateLedger {
+  /**
+   * When the client expects to be allowed to ask again, or null.
+   *
+   * A browser never sees Discogs' 429 — it arrives without CORS headers and
+   * `fetch()` just rejects — so the client waits out the window and tries
+   * again. Without this the only outward sign is a progress bar that stops
+   * moving (M32.5).
+   */
+  waitingUntil: number | null
   /** Every request of the last minute, for the pulse. */
   minute: { at: number; purpose: RequestPurpose; free: boolean }[]
   /** This session, by purpose. */

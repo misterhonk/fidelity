@@ -31,6 +31,9 @@ const en = {
   interrupted: (dealer: string, scanned: string, total: string) =>
     `A dig at ${dealer} was interrupted — ${scanned} of ${total} were through.`,
   /** Above the bar: which shop. A page opened mid-scan shows the same line. */
+  /** Discogs has throttled us and the client is waiting it out (M32.5). */
+  throttled: (seconds: number) =>
+    `Discogs has asked for a pause — carrying on in about ${seconds} s. Nothing is lost; the scan picks up where it stopped.`,
   scanning: (dealer: string) => `Scanning ${dealer}`,
   matchCount: (n: string) => `${n} finds`,
   allFindsHeading: 'All finds',
@@ -428,6 +431,8 @@ const de: typeof en = {
   resume: 'Dig fortsetzen',
   interrupted: (dealer: string, scanned: string, total: string) =>
     `Ein Dig bei ${dealer} wurde unterbrochen – ${scanned} von ${total} waren durch.`,
+  throttled: (seconds) =>
+    `Discogs bittet um eine Pause – weiter in etwa ${seconds} s. Es geht nichts verloren, der Scan macht dort weiter, wo er stehen geblieben ist.`,
   scanning: (dealer: string) => `Scanne ${dealer}`,
   matchCount: (n: string) => `${n} Treffer`,
   allFindsHeading: 'Alle Treffer',
