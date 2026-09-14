@@ -71,8 +71,44 @@ export interface WriteOptions extends RequestOptions {
 
 const defaultSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
+/** One GET in the air, and everybody waiting on it. */
+interface Flight {
+  body: Promise<unknown>
+  waiters: number
+  control: AbortController
+}
+
+/**
+ * Waits on a shared request without handing it your own abort.
+ *
+ * A caller that gives up drops out; the request itself only stops when the
+ * last of them has. That is the difference between "I no longer need this"
+ * and "nobody needs this", and conflating the two would let one closing sheet
+ * cancel the answer another part of the screen is still waiting for.
+ */
+async function join(flight: Flight, signal?: AbortSignal): Promise<unknown> {
+  signal?.throwIfAborted()
+  flight.waiters += 1
+  try {
+    if (!signal) return await flight.body
+    return await new Promise<unknown>((resolve, reject) => {
+      const leave = () => reject(signal.reason)
+      signal.addEventListener('abort', leave, { once: true })
+      flight.body
+        .then(resolve, reject)
+        .finally(() => signal.removeEventListener('abort', leave))
+    })
+  } finally {
+    flight.waiters -= 1
+    if (flight.waiters === 0) flight.control.abort()
+  }
+}
+
 export class DiscogsClient {
   readonly #options: Required<Omit<DiscogsClientOptions, 'pacer'>> & { pacer: Pacer }
+
+  /** GETs in the air, by the address they asked for. Empty between requests. */
+  readonly #flights = new Map<string, Flight>()
 
   constructor(options: DiscogsClientOptions) {
     this.#options = {
@@ -93,9 +129,49 @@ export class DiscogsClient {
    * One GET, validated at the boundary. Every Discogs response crosses a Zod
    * schema here and nowhere else — past this point the data is ours and typed.
    */
+  /**
+   * One answer per address, however many people are asking.
+   *
+   * Two parts of the screen wanting the same record at the same moment is not
+   * hypothetical: the cover pass walks `/releases/{id}` for what is visible
+   * (worker/covers.ts), and tapping the card whose picture has not arrived yet
+   * asks for exactly the release that is already in the queue. The stored copy
+   * does not help — nothing is stored until the first answer comes back — so
+   * that was two requests for one body, which is 2,4 s of a sixty-a-minute
+   * budget spent on a duplicate.
+   *
+   * This is **coalescing and not caching**: the second caller joins a request
+   * that is still in the air. Nothing is ever served from a finished one, so
+   * the six-hour rule (rule 4) is untouched — there is no age to speak of.
+   *
+   * The body is shared, the parsing is not: two callers may hold the same
+   * address to different schemas, and each gets its own parsed shape.
+   */
   async get<T>(path: string, schema: z.ZodType<T>, options: RequestOptions = {}): Promise<T> {
-    const body = await this.#request(path, { ...options, idempotent: true })
-    return schema.parse(body)
+    const key = this.#addressOf(path, options.query).toString()
+    const running = this.#flights.get(key)
+    if (running) return schema.parse(await join(running, options.signal))
+
+    /*
+     * The shared request gets a signal of its own, because the callers' are
+     * theirs: whoever leaves first must not take the answer away from whoever
+     * stayed. It is aborted when the last of them has gone, which is what a
+     * single caller aborting used to do and still does.
+     */
+    const control = new AbortController()
+    const flight: Flight = { waiters: 0, control, body: null as unknown as Promise<unknown> }
+    flight.body = this.#request(path, {
+      ...options,
+      signal: control.signal,
+      idempotent: true,
+    }).finally(() => {
+      if (this.#flights.get(key) === flight) this.#flights.delete(key)
+    })
+    // Nobody is listening to this copy; the waiters below have their own.
+    flight.body.catch(() => {})
+    this.#flights.set(key, flight)
+
+    return schema.parse(await join(flight, options.signal))
   }
 
   /**
@@ -110,15 +186,21 @@ export class DiscogsClient {
     return this.#request(path, options, method)
   }
 
+  /** The address a path and a query add up to — and the key a flight is filed under. */
+  #addressOf(path: string, query: RequestOptions['query']): URL {
+    const url = new URL(path, this.#options.baseUrl)
+    for (const [key, value] of Object.entries(query ?? {})) {
+      if (value !== undefined) url.searchParams.set(key, String(value))
+    }
+    return url
+  }
+
   async #request(
     path: string,
     { query, signal, body: payload, idempotent }: WriteOptions,
     method: WriteMethod | 'GET' = 'GET',
   ): Promise<unknown> {
-    const url = new URL(path, this.#options.baseUrl)
-    for (const [key, value] of Object.entries(query ?? {})) {
-      if (value !== undefined) url.searchParams.set(key, String(value))
-    }
+    const url = this.#addressOf(path, query)
 
     let networkAttempt = 0
 

@@ -259,6 +259,85 @@ describe('the Discogs client', () => {
   }
 
   /*
+   * One answer per address, however many people are asking.
+   *
+   * The cover pass walks `/releases/{id}` for what is on the screen, and
+   * tapping the card whose picture has not arrived yet asks for exactly the
+   * release already in the queue. Nothing is stored until the first answer
+   * comes back, so that was two requests for one body.
+   */
+  describe('coalescing', () => {
+    it('sends one request when two callers ask for the same address at once', async () => {
+      const { client, fetchImpl } = makeClient([jsonResponse({ id: 1, username: 'a' })])
+
+      const [first, second] = await Promise.all([
+        client.get('/users/a', identity),
+        client.get('/users/a', identity),
+      ])
+
+      expect(fetchImpl).toHaveBeenCalledTimes(1)
+      expect(first).toEqual({ id: 1, username: 'a' })
+      expect(second).toEqual(first)
+    })
+
+    it('keeps different queries apart', async () => {
+      const { client, fetchImpl } = makeClient([
+        jsonResponse({ id: 1, username: 'a' }),
+        jsonResponse({ id: 2, username: 'b' }),
+      ])
+
+      await Promise.all([
+        client.get('/users/a', identity, { query: { curr_abbr: 'EUR' } }),
+        client.get('/users/a', identity, { query: { curr_abbr: 'USD' } }),
+      ])
+
+      expect(fetchImpl).toHaveBeenCalledTimes(2)
+    })
+
+    /*
+     * Coalescing, not caching. A finished request is gone — which is what
+     * keeps rule 4 out of this entirely: there is no stored answer to be of
+     * any age.
+     */
+    it('asks again once the first answer has landed', async () => {
+      const { client, fetchImpl } = makeClient([
+        jsonResponse({ id: 1, username: 'a' }),
+        jsonResponse({ id: 1, username: 'a' }),
+      ])
+
+      await client.get('/users/a', identity)
+      await client.get('/users/a', identity)
+
+      expect(fetchImpl).toHaveBeenCalledTimes(2)
+    })
+
+    it('lets one caller give up without taking the answer from the other', async () => {
+      const { client, fetchImpl } = makeClient([jsonResponse({ id: 1, username: 'a' })])
+      const leaving = new AbortController()
+
+      const stays = client.get('/users/a', identity)
+      const goes = client.get('/users/a', identity, { signal: leaving.signal })
+      leaving.abort()
+
+      await expect(goes).rejects.toThrow()
+      await expect(stays).resolves.toEqual({ id: 1, username: 'a' })
+      expect(fetchImpl).toHaveBeenCalledTimes(1)
+    })
+
+    it('stops the request when the last caller gives up', async () => {
+      const { client } = makeClient([jsonResponse({ id: 1, username: 'a' })])
+      const both = new AbortController()
+
+      const one = client.get('/users/a', identity, { signal: both.signal })
+      const two = client.get('/users/a', identity, { signal: both.signal })
+      both.abort()
+
+      await expect(one).rejects.toThrow()
+      await expect(two).rejects.toThrow()
+    })
+  })
+
+  /*
    * Writing, and the one rule that makes it safe.
    *
    * From a browser a failed write is often unreadable: the 429 comes through
