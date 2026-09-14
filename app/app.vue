@@ -69,6 +69,79 @@ const paletteOpen = ref(false)
 // list both open it, and only ever one at a time.
 const sheet = useReleaseSheet()
 
+/**
+ * The open find, in the address (M31.23).
+ *
+ * Three things follow from one line, and the third is why it is worth the
+ * bookkeeping below:
+ *
+ * 1. **A reload keeps the record open.** The shops screen has had this since
+ *    M30; the finds had not, which made the sheet the one thing on a dig you
+ *    could lose by refreshing.
+ * 2. **A link can point at a find**, not just at the dig it came from.
+ * 3. **Back closes the sheet.** On a phone that is the gesture — and until now
+ *    it left the dig entirely, so somebody who glanced at a record and swiped
+ *    back lost the list and its scroll position with it.
+ *
+ * Opening *pushes* a history entry, which is what makes the third one work;
+ * closing goes back where it was this app that pushed, and replaces the query
+ * where it was not — a reload landing on `?find=` has nothing to go back to,
+ * and calling `back()` there would leave the app.
+ *
+ * `digId~listingId` in one parameter because a find is only ever both: the
+ * same listing id in another dig is another row, and the start page opens
+ * finds from several digs at once.
+ */
+const route = useRoute()
+const router = useRouter()
+
+const nameOfFind = (open: { digId: string; listingId: number }) =>
+  `${open.digId}~${open.listingId}`
+
+/** Whether the entry now in the history bar is one this app pushed. */
+let pushedFind = false
+
+watch(
+  () => sheet.open.value,
+  (open) => {
+    const want = open ? nameOfFind(open) : null
+    const has = typeof route.query.find === 'string' ? route.query.find : null
+    if (want === has) return
+
+    if (want) {
+      pushedFind = true
+      void router.push({ query: { ...route.query, find: want } })
+    } else if (pushedFind) {
+      pushedFind = false
+      void router.back()
+    } else {
+      void router.replace({ query: { ...route.query, find: undefined } })
+    }
+  },
+)
+
+watch(
+  () => route.query.find,
+  (value) => {
+    const has = typeof value === 'string' && value ? value : null
+    const open = sheet.open.value
+    if (has === (open ? nameOfFind(open) : null)) return
+
+    if (!has) {
+      // Somebody pressed Back, or a guard changed the address underneath us.
+      pushedFind = false
+      sheet.hide()
+      return
+    }
+
+    const [digId, listingId] = has.split('~')
+    const listing = Number(listingId)
+    if (!digId || !Number.isFinite(listing)) return
+    sheet.show(digId, listing)
+  },
+  { immediate: true },
+)
+
 function onKeydown(event: KeyboardEvent) {
   if (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)) {
     event.preventDefault()
