@@ -9,6 +9,50 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.77.0](https://github.com/misterhonk/fidelity/compare/v0.76.0...v0.77.0) (2026-09-14)
+
+**Eine Platte sieht jetzt gleich aus, egal von wo du sie öffnest — und sie hat eine
+Trackliste zum Anhören.**
+
+Das Regal-Blatt zeigte Trackliste, Mitwirkende, Auslaufrille und Stile; das Fundstück-Blatt
+zeigte einen Satz und einen Score. Ab jetzt zeigen beide dasselbe: was auf der Platte ist, wer
+sie gemacht hat, welche Pressung das genau ist und was drüber notiert wurde. Das kostet keine
+einzige zusätzliche Abfrage — das Fundstück-Blatt hatte diese Daten längst geholt und nur
+nicht ausgepackt.
+
+**Die Hörproben hängen an den Tracks.** Jeder Track, zu dem es eine Aufnahme gibt, bekommt
+einen Abspielknopf und sagt, woher der Ton kommt. Was zu keinem Track gehört — ein Livemitschnitt,
+ein Albumrip — steht darunter als „Weitere Aufnahmen".
+
+**Die Fundkarte liest sich von oben nach unten.** Cover, Künstler, Titel, dann der Satz, der
+sagt warum — und erst darunter Label und Katalognummer. Vorher stand die Vergleichszeile
+mitten im Satz. Zwei Knöpfe statt vier: „Als gekauft" und der Discogs-Link wohnen jetzt auf
+dem Blatt.
+
+**Ein Dig ohne Treffer tut nicht mehr so, als hätte er welche.** Kein leerer Stapel, kein
+Hinweis auf Preise, die es nicht gibt. Stattdessen die zwei Handgriffe, die helfen: den ganzen
+Laden lesen statt nur das Neue, oder ihn in den Rundgang nehmen.
+
+Bei den Läden: jede Zeile kann jetzt selbst graben, und wo der Beobachter etwas gemessen hat,
+steht die Zahl an der Zeile statt in einem Banner am Seitenkopf — „+37" neben einem Laden ist
+der Grund, heute dorthin zu gehen. Dazu vier Cover **aus deinem eigenen Regal** auf den Labels,
+die dieser Laden führt: was ein Balkendiagramm in zehn Sekunden sagt, sagen vier Hüllen in
+einer halben.
+
+Und die Knöpfe haben drei Lautstärken statt zweier. Gefüllt ist, wofür der Bildschirm da ist;
+begleitende Handlungen wie „beobachten" oder „merken" sind leiser; selten Gebrauchtes hat nur
+noch einen Rahmen.
+
+**Was zu tun ist:** Nichts.
+
+
+### Added
+
+* **dealers:** what moved, and four sleeves of your own ([b045211](https://github.com/misterhonk/fidelity/commit/b045211208d86c61e1c603626bfb52c84742d491))
+* **dig:** the card reads top to bottom, and no result is an answer ([f818914](https://github.com/misterhonk/fidelity/commit/f8189148d82233a84474adf128288e328f12421d))
+* **ui:** one sheet for a record, wherever it is opened from ([f325ded](https://github.com/misterhonk/fidelity/commit/f325ded1f40068a185b0cf9e98f5609ab08b00e8))
+* **ui:** three volumes, and a shop row that can dig ([10d663d](https://github.com/misterhonk/fidelity/commit/10d663d3812c2f805cb758a3226f8166c7365c7b))
+
 ## [0.76.0](https://github.com/misterhonk/fidelity/compare/v0.75.0...v0.76.0) (2026-09-14)
 
 **Der Score sagt jetzt, was er bedeutet — und ein Fundstück verrät seinen Zustand in Worten.**
