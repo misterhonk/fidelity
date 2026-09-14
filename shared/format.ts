@@ -188,6 +188,31 @@ export const GRADES = [
   'Poor (P)',
 ] as const
 
+/**
+ * The short handle for a grade, so the packs can gloss it.
+ *
+ * "Very Good Plus (VG+)" is a Discogs vocabulary item, not an answer — and for
+ * somebody three weeks into collecting it is the biggest hurdle on the screen.
+ * The plain sentence lives in the language packs; this says which one.
+ */
+export const GRADE_KEYS = {
+  'Mint (M)': 'M',
+  'Near Mint (NM or M-)': 'NM',
+  'Very Good Plus (VG+)': 'VGP',
+  'Very Good (VG)': 'VG',
+  'Good Plus (G+)': 'GP',
+  'Good (G)': 'G',
+  'Fair (F)': 'F',
+  'Poor (P)': 'P',
+} as const
+
+export type GradeKey = (typeof GRADE_KEYS)[keyof typeof GRADE_KEYS]
+
+export function gradeKey(condition: string | null | undefined): GradeKey | null {
+  if (!condition) return null
+  return GRADE_KEYS[condition as keyof typeof GRADE_KEYS] ?? null
+}
+
 const RANKS = new Map<string, number>(GRADES.map((grade, index) => [grade, index]))
 
 export function rankOf(condition: string | null | undefined): number | null {
