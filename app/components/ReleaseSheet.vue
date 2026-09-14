@@ -411,29 +411,8 @@ function years(entry: { from: number; to: number }): string {
       <template v-else>{{ d.sheet.loading }}</template>
     </template>
 
-    <!--
-      The sleeve, spread out behind the head (M26.2, M31.19).
-
-      Not read off the pixels: `i.discogs.com` sends no CORS header (docs/02),
-      so a canvas that drew the cover would be tainted and refuse to say what
-      it saw. A blurred copy of the same cached thumbnail does the job without
-      asking — a Saville sleeve tints the sheet blue, a Blue Note one orange —
-      and nothing leaves the device or is fetched twice.
-
-      The plinth over it is not decoration either: a bright sleeve takes the
-      contrast out from under the type, and this is the one place where the
-      words have to be the loudest thing on the screen.
-    -->
     <template v-if="cover" #wash>
-      <img
-        :src="cover.thumbUrl || cover.coverUrl"
-        alt=""
-        aria-hidden="true"
-        loading="lazy"
-        decoding="async"
-        class="absolute inset-0 size-full scale-150 object-cover opacity-45 blur-3xl"
-      />
-      <div class="absolute inset-0 bg-linear-to-b from-fid-surface/25 to-fid-surface" />
+      <SleeveWash :src="cover.thumbUrl || cover.coverUrl" />
     </template>
 
     <template v-if="match">
@@ -474,143 +453,62 @@ function years(entry: { from: number; to: number }): string {
         taller, and the head promptly rendered at zero pixels with its content
         clipped, while every sibling kept its size. Measured 2026-09-14.
       -->
-      <div class="relative -mx-6 shrink-0 border-b border-fid-border px-6 pb-6">
-        <div class="flex flex-col gap-5 sm:flex-row sm:flex-wrap sm:items-end">
+      <RecordMasthead :cover="cover ?? null" :title="match.title" :artist="match.artist">
+        <template #facts>
+          <p v-if="meta" class="font-fid-mono text-fid-xs text-fid-text-muted">
+            {{ meta }}
+          </p>
+        </template>
+
+        <div v-if="price || match.condition || match.sleeve" class="flex flex-wrap gap-6">
+          <p v-if="price" class="flex flex-col gap-1">
+            <span class="fid-plate text-fid-text-muted">{{ d.sheet.offer.price }}</span>
+            <span class="fid-num text-fid-base text-fid-text">{{ price }}</span>
+          </p>
           <!--
-            The largest cover the app shows — so the one where the 600 px
-            version is worth having.
-
-            The address comes from the shared store, not from the match: the
-            marketplace returns listings without images, so `match.thumbUrl`
-            has always been null here (worker/covers.ts). At 96 px on a retina
-            screen the 150er is already soft, and this is the one screen
-            somebody opens *because* they want a closer look.
-
-            No `srcset` — the reasoning is in `ShelfSheet.vue`: the 600w
-            candidate did not keep its promise, and the 150 was never picked.
-          -->
-          <img
-            v-if="cover"
-            :src="cover.coverUrl || cover.thumbUrl"
-            alt=""
-            loading="lazy"
-            decoding="async"
-            width="600"
-            height="600"
-            class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80"
-          />
-          <!--
-            And a sleeve-shaped hole where there is no sleeve.
-
-            The masthead is a composition of two things; with one of them
-            simply absent the type floats in a white field and the head reads
-            as broken rather than as bare. The same placeholder the cards use,
-            at the same size as the picture it stands in for.
-          -->
-          <div
-            v-else
-            class="flex aspect-square w-full shrink-0 items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80"
-            aria-hidden="true"
-          >
-            <FidIcon name="platte" :size="56" />
-          </div>
-          <!--
-            What this offer is — labelled values, not a line of loose facts.
-
-            The box used to hold a mono line, a couple of gradings and a large
-            number, and once a dig passed its six hours the marketplace fields
-            were nulled and all that stayed was the mono line beside a floating
-            figure. Reported on 2026-09-14 as "unstyled typography", and it was:
-            the box had no job. It has one now — it is the offer — and where the
-            offer may no longer be shown it says so rather than emptying out.
-          -->
-          <div class="flex min-w-0 grow flex-col gap-4 sm:basis-64">
-            <!--
-              The name of the record, at the size a record's name deserves
-              (M31.19).
-
-              Three voices, so the eye can sort them without reading: the
-              artist in the ordinary text face, the title in the display face
-              at the largest step this app has outside a page head, the facts
-              in mono because catalogue numbers are characters and not words.
-              Before this they were all the same weight in the same face, and
-              the biggest thing on the screen was a grey box.
-
-              The clamps are not decoration. "Hieroglyphic Being & The
-              Configurative Or Modular Me Trio" is a real artist and
-              "Nightmares On Wax Presents Smokers Delight: Twenty Five Years"
-              is a real title; both keep their full text in a `title`
-              attribute and stop at two and three lines on the screen, so a
-              long name never pushes the offer off the first look.
-            -->
-            <div class="flex min-w-0 flex-col gap-1">
-              <p
-                class="line-clamp-2 text-fid-sm font-medium text-fid-text-muted"
-                :title="match.artist ?? undefined"
-              >
-                {{ match.artist }}
-              </p>
-              <h2
-                class="fid-display line-clamp-3 text-fid-xl leading-[1.08] font-bold tracking-tight text-balance hyphens-auto text-fid-text"
-                :title="match.title ?? undefined"
-              >
-                {{ match.title }}
-              </h2>
-            </div>
-
-            <p v-if="meta" class="font-fid-mono text-fid-xs text-fid-text-muted">
-              {{ meta }}
-            </p>
-
-            <div v-if="price || match.condition || match.sleeve" class="flex flex-wrap gap-6">
-              <p v-if="price" class="flex flex-col gap-1">
-                <span class="fid-plate text-fid-text-muted">{{ d.sheet.offer.price }}</span>
-                <span class="fid-num text-fid-base text-fid-text">{{ price }}</span>
-              </p>
-              <!--
                 And what it actually costs. Absent where a shop's postage is
                 not known, which is most of them until somebody has bought
                 there — a missing line is the honest answer, a guessed number
                 would not be.
               -->
-              <p v-if="withPostage" class="flex min-w-0 flex-col gap-1">
-                <span class="fid-plate text-fid-text-muted">{{ d.sheet.offer.landed }}</span>
-                <span class="fid-num text-fid-base text-fid-text">{{ withPostage }}</span>
-              </p>
-              <!--
+          <p v-if="withPostage" class="flex min-w-0 flex-col gap-1">
+            <span class="fid-plate text-fid-text-muted">{{ d.sheet.offer.landed }}</span>
+            <span class="fid-num text-fid-base text-fid-text">{{ withPostage }}</span>
+          </p>
+          <!--
                 Two gradings side by side, and which is which decides whether a
                 record is worth buying. "Cover VG" and "VG" read as the same
                 word twice; the disc and the sleeve do not.
               -->
-              <p v-if="match.condition" class="flex min-w-0 flex-col gap-1">
-                <span class="fid-plate flex items-center gap-2 text-fid-text-muted">
-                  <FidIcon name="platte" :size="12" />
-                  {{ d.sheet.offer.media }}
-                </span>
-                <span class="text-fid-sm text-fid-text">{{ match.condition }}</span>
-                <span
-                  v-if="gradeWord(match.condition)"
-                  class="max-w-64 text-fid-xs text-fid-text-muted"
-                >
-                  {{ gradeWord(match.condition) }}
-                </span>
-              </p>
-              <p v-if="match.sleeve" class="flex min-w-0 flex-col gap-1">
-                <span class="fid-plate flex items-center gap-2 text-fid-text-muted">
-                  <FidIcon name="huelle" :size="12" />
-                  {{ d.sheet.offer.sleeve }}
-                </span>
-                <span class="text-fid-sm text-fid-text">{{ match.sleeve }}</span>
-                <span
-                  v-if="gradeWord(match.sleeve)"
-                  class="max-w-64 text-fid-xs text-fid-text-muted"
-                >
-                  {{ gradeWord(match.sleeve) }}
-                </span>
-              </p>
-            </div>
+          <p v-if="match.condition" class="flex min-w-0 flex-col gap-1">
+            <span class="fid-plate flex items-center gap-2 text-fid-text-muted">
+              <FidIcon name="platte" :size="12" />
+              {{ d.sheet.offer.media }}
+            </span>
+            <span class="text-fid-sm text-fid-text">{{ match.condition }}</span>
+            <span
+              v-if="gradeWord(match.condition)"
+              class="max-w-64 text-fid-xs text-fid-text-muted"
+            >
+              {{ gradeWord(match.condition) }}
+            </span>
+          </p>
+          <p v-if="match.sleeve" class="flex min-w-0 flex-col gap-1">
+            <span class="fid-plate flex items-center gap-2 text-fid-text-muted">
+              <FidIcon name="huelle" :size="12" />
+              {{ d.sheet.offer.sleeve }}
+            </span>
+            <span class="text-fid-sm text-fid-text">{{ match.sleeve }}</span>
+            <span
+              v-if="gradeWord(match.sleeve)"
+              class="max-w-64 text-fid-xs text-fid-text-muted"
+            >
+              {{ gradeWord(match.sleeve) }}
+            </span>
+          </p>
+        </div>
 
-            <!--
+        <!--
               Six hours gone — and the way back, from here (M31.18).
 
               The dig-wide refresh is on the page behind this sheet and costs
@@ -619,25 +517,24 @@ function years(entry: { from: number; to: number }): string {
               about one. This asks about this one: a single listing, 1,2 s,
               and the row carries its own six hours afterwards.
             -->
-            <div v-else-if="match.expired" class="flex max-w-prose flex-col items-start gap-3">
-              <p class="text-fid-sm text-fid-text-muted">{{ d.expired }}</p>
-              <p v-if="again !== null" class="text-fid-sm text-fid-text">
-                {{ d.sheet.againSaid[again] }}
-              </p>
-              <button
-                v-else
-                type="button"
-                :disabled="asking || !online"
-                class="fid-action fid-tonal inline-flex min-h-11 items-center gap-2 rounded-fid-sm px-4 text-fid-sm font-medium disabled:opacity-50"
-                @click="askAgain()"
-              >
-                <FidIcon name="arrow-up" :size="16" aria-hidden="true" />
-                {{ asking ? d.sheet.asking : d.sheet.askAgain }}
-              </button>
-            </div>
-          </div>
+        <div v-else-if="match.expired" class="flex max-w-prose flex-col items-start gap-3">
+          <p class="text-fid-sm text-fid-text-muted">{{ d.expired }}</p>
+          <p v-if="again !== null" class="text-fid-sm text-fid-text">
+            {{ d.sheet.againSaid[again] }}
+          </p>
+          <button
+            v-else
+            type="button"
+            :disabled="asking || !online"
+            class="fid-action fid-tonal inline-flex min-h-11 items-center gap-2 rounded-fid-sm px-4 text-fid-sm font-medium disabled:opacity-50"
+            @click="askAgain()"
+          >
+            <FidIcon name="arrow-up" :size="16" aria-hidden="true" />
+            {{ asking ? d.sheet.asking : d.sheet.askAgain }}
+          </button>
         </div>
-      </div>
+      </RecordMasthead>
+
       <p class="text-fid-base text-fid-text">{{ reasonFor(match.signals) }}</p>
 
       <!--

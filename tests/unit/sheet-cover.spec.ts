@@ -28,15 +28,21 @@ import { withoutComments } from '../helpers/german'
  * The shape is what is checked, because there is no computation here: `srcset`
  * is markup, and what can go wrong with it is a line coming back.
  */
+/*
+ * One file, since 2026-09-14 (M31.20).
+ *
+ * The cover markup used to stand in both sheets and this file checked both
+ * copies. It is a component now — which is the whole point of that change:
+ * there is one place where a sleeve is drawn, and therefore one place to get
+ * it wrong. The two sheets are checked for *using* it and nothing else.
+ */
+const MASTHEAD = readFileSync('app/components/RecordMasthead.vue', 'utf8')
 const SHELF = readFileSync('app/components/ShelfSheet.vue', 'utf8')
 const RELEASE = readFileSync('app/components/ReleaseSheet.vue', 'utf8')
 
 /** Without comments — this file explains what it checks, and so do the sheets. */
 
-describe.each([
-  ['the shelf sheet', SHELF],
-  ['the release sheet', RELEASE],
-])('%s', (_name, source) => {
+describe.each([['the masthead', MASTHEAD]])('%s', (_name, source) => {
   /**
    * No `srcset`, and therefore no promise about width that nobody keeps.
    *
@@ -88,8 +94,12 @@ describe.each([
  */
 describe('the cover sizes', () => {
   it('grows with the sheet instead of staying at the phone size', () => {
-    expect(SHELF).toMatch(/sm:size-56 sm:w-56 lg:size-80 lg:w-80 xl:size-96 xl:w-96/)
-    expect(RELEASE).toMatch(/sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80/)
+    expect(MASTHEAD).toMatch(/sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80/)
+  })
+
+  /** And both sheets take their head from it rather than drawing their own. */
+  it('is the one head both sheets use', () => {
+    for (const source of [SHELF, RELEASE]) expect(source).toMatch(/<RecordMasthead/)
   })
 
   /** And the sheet itself has the room for it — or the cover would be the sheet. */
