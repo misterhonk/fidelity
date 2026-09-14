@@ -220,7 +220,7 @@ const lookAgain = () => look(true)
  * pounds, and a figure somebody cannot act on is worse than a missing line.
  */
 /**
- * Stepping, and the keyboard doing the same where nobody is typing.
+ * Stepping, and the keyboard doing the same.
  *
  * The sheet is re-keyed on the instance id by whoever renders it, so a step
  * builds it again from scratch — which is right: it is a different record and
@@ -231,22 +231,13 @@ function step(to: number | null) {
   emit('step', to)
 }
 
-function onArrow(event: KeyboardEvent) {
-  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
-  if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
-  const on = document.activeElement
-  if (
-    on instanceof HTMLElement &&
-    (on.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(on.tagName))
-  )
-    return
-  if (!props.walk) return
-  event.preventDefault()
-  step(event.key === 'ArrowLeft' ? props.walk.previous : props.walk.next)
-}
-
-onMounted(() => document.addEventListener('keydown', onArrow))
-onBeforeUnmount(() => document.removeEventListener('keydown', onArrow))
+/*
+ * `←`/`→` and `k`/`j`, with the guard that keeps them out of every field on
+ * this sheet (`useWalkKeys`).
+ */
+useWalkKeys((to) =>
+  step(to === 'next' ? (props.walk?.next ?? null) : (props.walk?.previous ?? null)),
+)
 
 onMounted(async () => {
   record.value = await call('collection.record', { instanceId: props.instanceId })

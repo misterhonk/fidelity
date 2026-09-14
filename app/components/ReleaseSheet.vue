@@ -177,28 +177,13 @@ async function readAhead() {
   }
 }
 
-/**
- * And from the keyboard, where the arrows are already the gesture.
- *
- * Not while somebody is typing — the sheet holds a note field and a search box
- * of its own, and a left arrow there belongs to the cursor.
+/*
+ * And from the keyboard: `←`/`→` and `k`/`j`, with the guard that keeps them
+ * out of the note field and the search box (`useWalkKeys`).
  */
-function onArrow(event: KeyboardEvent) {
-  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
-  if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
-  const on = document.activeElement
-  if (
-    on instanceof HTMLElement &&
-    (on.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(on.tagName))
-  )
-    return
-  if (!walk.value) return
-  event.preventDefault()
-  step(event.key === 'ArrowLeft' ? walk.value.previous : walk.value.next)
-}
-
-onMounted(() => document.addEventListener('keydown', onArrow))
-onBeforeUnmount(() => document.removeEventListener('keydown', onArrow))
+useWalkKeys((to) =>
+  step(to === 'next' ? (walk.value?.next ?? null) : (walk.value?.previous ?? null)),
+)
 
 /**
  * What the record *is* — one lookup, and everything under it (M31.5).

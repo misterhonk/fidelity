@@ -70,23 +70,13 @@ function step(to: number | null) {
   emit('step', to)
 }
 
-/** The arrows from the keyboard, where nobody is typing (M31.13). */
-function onArrow(event: KeyboardEvent) {
-  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
-  if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
-  const on = document.activeElement
-  if (
-    on instanceof HTMLElement &&
-    (on.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(on.tagName))
-  )
-    return
-  if (!props.walk) return
-  event.preventDefault()
-  step(event.key === 'ArrowLeft' ? props.walk.previous : props.walk.next)
-}
-
-onMounted(() => document.addEventListener('keydown', onArrow))
-onBeforeUnmount(() => document.removeEventListener('keydown', onArrow))
+/*
+ * `←`/`→` and `k`/`j`, with the guard that keeps them out of every field on
+ * this sheet (`useWalkKeys`).
+ */
+useWalkKeys((to) =>
+  step(to === 'next' ? (props.walk?.next ?? null) : (props.walk?.previous ?? null)),
+)
 </script>
 
 <template>
