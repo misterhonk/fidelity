@@ -23,6 +23,17 @@ import { REQUEST_PURPOSES, type RateLedger } from '#shared/types'
 const m = useMessages()
 const { call } = useFidelityWorker()
 
+defineProps<{
+  /**
+   * Open, full width and without the disclosure — for Settings › Data, where
+   * a phone finds the same numbers the header strip shows on a desktop.
+   */
+  card?: boolean
+}>()
+
+/** Whether the two helpers are set up at all, so the nudge is never wrong. */
+const helpers = ref({ catalogue: false, hub: false })
+
 const now = ref(Date.now())
 const data = shallowRef<RateLedger | null>(null)
 
@@ -67,10 +78,41 @@ const savedMinutes = computed(() => {
   return Math.max(1, Math.round(found.savedTotal / Math.max(1, found.ceiling)))
 })
 
+/**
+ * The next rung, worked out from what actually happened (M31.12).
+ *
+ * Never a banner and never a repetition: one line, only where this device's
+ * own numbers make the case. Without a token the ceiling is half — that is the
+ * first rung. With a token but no catalogue, the horizon requests it spent are
+ * exactly what a catalogue would have taken over. With both, there is nothing
+ * to say and the line is not there.
+ */
+const nudge = computed(() => {
+  const found = data.value
+  if (!found) return null
+
+  if (found.ceiling < 50) return { text: m.value.limit.noToken, to: '/settings/account' }
+
+  if (!helpers.value.catalogue && found.spent.horizon >= 50) {
+    return {
+      text: m.value.limit.tryCatalogue(count(found.spent.horizon)),
+      to: '/settings/collection',
+    }
+  }
+
+  if (!helpers.value.hub && found.spent.record >= 50) {
+    return { text: m.value.limit.tryHub(count(found.spent.record)), to: '/settings/hub' }
+  }
+
+  return null
+})
+
 async function refresh() {
   try {
     data.value = await call('limit.now', undefined)
     now.value = Date.now()
+    const prefs = await call('preferences.get', undefined)
+    helpers.value = { catalogue: !!prefs.catalogueUrl, hub: !!prefs.hubUrl }
   } catch {
     // The worker not answering is not something this corner of the screen
     // reports. It simply stays as it was.
@@ -114,8 +156,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <details v-if="data" class="group relative">
+  <component :is="card ? 'section' : 'details'" v-if="data" class="group relative">
     <summary
+      v-if="!card"
       class="fid-action flex cursor-pointer list-none items-center gap-2 rounded-fid-sm px-2 text-fid-text-muted transition-colors hover:text-fid-text"
       :class="busy ? 'fid-tonal' : ''"
       :aria-label="m.limit.spoken(spentThisMinute, data.ceiling)"
@@ -140,7 +183,12 @@ onBeforeUnmount(() => {
     </summary>
 
     <div
-      class="absolute right-0 z-30 mt-2 flex w-80 flex-col gap-3 rounded-fid-md border border-fid-border bg-fid-surface p-4 shadow-fid-elev-2"
+      class="flex flex-col gap-3"
+      :class="
+        card
+          ? ''
+          : 'absolute right-0 z-30 mt-2 w-80 rounded-fid-md border border-fid-border bg-fid-surface p-4 shadow-fid-elev-2'
+      "
     >
       <p class="fid-plate text-fid-text-muted">{{ m.limit.session }}</p>
 
@@ -160,10 +208,35 @@ onBeforeUnmount(() => {
         {{ m.limit.saved(count(data.savedTotal), savedMinutes) }}
       </p>
 
+      <!--
+        The next rung, and only where this device's own numbers make the case
+        (M31.12). One line, a link, and nothing when there is nothing to say.
+      -->
+      <p v-if="nudge" class="text-fid-sm text-fid-text">
+        {{ nudge.text }}
+        <NuxtLink
+          :to="nudge.to"
+          class="fid-action text-fid-accent underline underline-offset-4"
+        >
+          {{ m.common.to }}
+        </NuxtLink>
+      </p>
+
       <p class="text-fid-xs text-fid-text-muted">{{ m.limit.ceiling(data.ceiling) }}</p>
       <p class="text-fid-xs text-fid-text-muted">{{ m.limit.ours }}</p>
+
+      <!-- Figures, behind a disclosure: nobody reads a price list twice. -->
+      <WhyNote :label="m.limit.costs">
+        <span class="grid grid-cols-[1fr_auto_auto] gap-x-4 gap-y-1">
+          <template v-for="row in m.limit.costRows" :key="row[0]">
+            <span class="min-w-0">{{ row[0] }}</span>
+            <span class="fid-num text-right">{{ row[1] }}</span>
+            <span class="fid-num text-right">{{ row[2] }}</span>
+          </template>
+        </span>
+      </WhyNote>
     </div>
-  </details>
+  </component>
 </template>
 
 <style scoped>
