@@ -106,6 +106,18 @@ jobs:
   e2e:
     if: ${{ !startsWith(github.head_ref, 'release-please--') }}
     runs-on: ubuntu-latest
+    # Browsers and the system libraries they link against, baked in.
+    #
+    # WebKit is not optional — the app is a PWA whose weakest target is iOS
+    # Safari — and WebKit is also the one that needs libraries a runner image
+    # does not carry: measured 2026-09-14, `playwright install-deps` was 55 s
+    # of apt on every shard, and skipping it made WebKit fail to launch on
+    # four of six. The image has them.
+    #
+    # The tag must match the `@playwright/test` in the lock file. Nothing here
+    # enforces that, and nothing has to: a mismatch makes Playwright refuse to
+    # start with the two version numbers in the message.
+    container: mcr.microsoft.com/playwright:v1.62.1-noble
     strategy:
       fail-fast: false
       matrix:
@@ -118,25 +130,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # The binaries are keyed by the version that asks for them, so the cache
-      # is right by construction: a Playwright bump misses it and downloads.
-      - id: playwright
-        run: |
-          echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-      - id: browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
-      # WebKit is not optional. The app is a PWA whose weakest target is iOS
-      # Safari — testing only Chromium means not testing the browser that matters.
-      - if: steps.browsers.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium webkit
-      # On a cache hit, nothing: `install-deps` is 55 s of apt on a runner
-      # image that already carries what these two link against (checked
-      # 2026-09-14 — if WebKit ever fails to launch here, that is this line).
-      - if: steps.browsers.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install chromium webkit
+      # The browsers come with the image (see `container:` above), so there is
+      # no download and no apt here. Playwright refuses to start if the two
+      # versions disagree, which is the check this needs and all it needs.
+      - run: pnpm exec playwright --version
       # Includes the @axe-core/playwright pass. The Discogs API is never called
       # here; a real smoke test belongs in a nightly run, not in a per-PR job
       # that would burn the rate limit for merges.
