@@ -635,6 +635,12 @@ export const handlers: HandlerMap = {
     })
   },
 
+  'dig.refreshOne': async ({ digId, listingId }, { signal }) => {
+    const { refreshListing } = await import('./dig/refresh')
+    const { currency } = await getPreferences()
+    return refreshListing({ client: discogs(), digId, listingId, currency, signal })
+  },
+
   /*
    * Sharing — the one handler that has to manage without a token.
    *

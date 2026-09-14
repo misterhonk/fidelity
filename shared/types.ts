@@ -1526,6 +1526,17 @@ export interface Match {
   pressing?: PressingProfile | null
   pressingWarnings?: PressingWarning[]
   expired: boolean
+  /**
+   * When this row's marketplace half stops being showable, where it was
+   * fetched on its own rather than with the dig (M31.18).
+   *
+   * A dig's whole list expires against `dig.expiresAt`, and the sweep marks
+   * the dig done afterwards so it never looks at it again. A single listing
+   * refetched from inside the sheet has no dig-wide clock to hang on — so it
+   * carries its own, and the sweep honours it. Absent on every row that has
+   * never been refreshed alone, which reads as "the dig's clock applies".
+   */
+  freshUntil?: number
 }
 
 /**

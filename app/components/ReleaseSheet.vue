@@ -13,6 +13,7 @@ const props = defineProps<{ digId: string; listingId: number }>()
 const emit = defineEmits<{ close: [] }>()
 
 const { call } = useFidelityWorker()
+const { online } = useOnline()
 const { verdicts, judge } = useFeedback()
 
 const detail = ref<MatchDetail | null>(null)
@@ -83,6 +84,40 @@ const withPostage = computed(() => {
   if (!total || total.postage <= 0) return null
   return money(total.total, total.currency)
 })
+
+/**
+ * Asking Discogs about this one offer again (M31.18).
+ *
+ * One request, and afterwards the sheet reloads itself from the database so
+ * the price, the two conditions and the seller's own words come back in place
+ * — no navigation, no list to find your way back into.
+ *
+ * Three answers, and the record says which: it is still there, it has sold, or
+ * the listing is gone entirely. The last two are not failures and do not read
+ * as one; they are what somebody went to find out.
+ */
+const asking = ref(false)
+const again = ref<'refreshed' | 'sold' | 'gone' | null>(null)
+
+async function askAgain() {
+  if (asking.value) return
+  asking.value = true
+  try {
+    again.value = await call('dig.refreshOne', {
+      digId: props.digId,
+      listingId: props.listingId,
+    })
+    const answer = await call('dig.detail', {
+      digId: props.digId,
+      listingId: props.listingId,
+    })
+    if (answer) detail.value = answer
+  } catch (cause) {
+    failed.value = cause
+  } finally {
+    asking.value = false
+  }
+}
 
 async function postage(dealer: string) {
   try {
@@ -363,10 +398,42 @@ function years(entry: { from: number; to: number }): string {
       </button>
     </template>
 
-    <template #title>
-      <template v-if="match">{{ nameOf(match) }}</template>
-      <template v-else-if="state === 'gone'">{{ d.sheet.goneTitle }}</template>
+    <!--
+      No title in the chrome once the record is here (M31.19).
+
+      The masthead below carries the name at a size worth reading, and the
+      same two words six millimetres above it in bold are a duplicate, not a
+      heading. While it loads and when the find is gone there is no masthead,
+      so the chrome says it instead.
+    -->
+    <template v-if="!match" #title>
+      <template v-if="state === 'gone'">{{ d.sheet.goneTitle }}</template>
       <template v-else>{{ d.sheet.loading }}</template>
+    </template>
+
+    <!--
+      The sleeve, spread out behind the head (M26.2, M31.19).
+
+      Not read off the pixels: `i.discogs.com` sends no CORS header (docs/02),
+      so a canvas that drew the cover would be tainted and refuse to say what
+      it saw. A blurred copy of the same cached thumbnail does the job without
+      asking — a Saville sleeve tints the sheet blue, a Blue Note one orange —
+      and nothing leaves the device or is fetched twice.
+
+      The plinth over it is not decoration either: a bright sleeve takes the
+      contrast out from under the type, and this is the one place where the
+      words have to be the loudest thing on the screen.
+    -->
+    <template v-if="cover" #wash>
+      <img
+        :src="cover.thumbUrl || cover.coverUrl"
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+        class="absolute inset-0 size-full scale-150 object-cover opacity-45 blur-3xl"
+      />
+      <div class="absolute inset-0 bg-linear-to-b from-fid-surface/25 to-fid-surface" />
     </template>
 
     <template v-if="match">
@@ -407,17 +474,8 @@ function years(entry: { from: number; to: number }): string {
         taller, and the head promptly rendered at zero pixels with its content
         clipped, while every sibling kept its size. Measured 2026-09-14.
       -->
-      <div class="relative shrink-0 overflow-hidden rounded-fid-md">
-        <img
-          v-if="cover"
-          :src="cover.thumbUrl || cover.coverUrl"
-          alt=""
-          aria-hidden="true"
-          loading="lazy"
-          decoding="async"
-          class="pointer-events-none absolute inset-0 size-full scale-150 object-cover opacity-30 blur-3xl"
-        />
-        <div class="relative flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
+      <div class="relative -mx-6 shrink-0 border-b border-fid-border px-6 pb-6">
+        <div class="flex flex-col gap-5 sm:flex-row sm:flex-wrap sm:items-end">
           <!--
             The largest cover the app shows — so the one where the 600 px
             version is worth having.
@@ -442,6 +500,21 @@ function years(entry: { from: number; to: number }): string {
             class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80"
           />
           <!--
+            And a sleeve-shaped hole where there is no sleeve.
+
+            The masthead is a composition of two things; with one of them
+            simply absent the type floats in a white field and the head reads
+            as broken rather than as bare. The same placeholder the cards use,
+            at the same size as the picture it stands in for.
+          -->
+          <div
+            v-else
+            class="flex aspect-square w-full shrink-0 items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80"
+            aria-hidden="true"
+          >
+            <FidIcon name="platte" :size="56" />
+          </div>
+          <!--
             What this offer is — labelled values, not a line of loose facts.
 
             The box used to hold a mono line, a couple of gradings and a large
@@ -451,7 +524,40 @@ function years(entry: { from: number; to: number }): string {
             the box had no job. It has one now — it is the offer — and where the
             offer may no longer be shown it says so rather than emptying out.
           -->
-          <div class="flex min-w-0 grow flex-col gap-3 sm:basis-52">
+          <div class="flex min-w-0 grow flex-col gap-4 sm:basis-64">
+            <!--
+              The name of the record, at the size a record's name deserves
+              (M31.19).
+
+              Three voices, so the eye can sort them without reading: the
+              artist in the ordinary text face, the title in the display face
+              at the largest step this app has outside a page head, the facts
+              in mono because catalogue numbers are characters and not words.
+              Before this they were all the same weight in the same face, and
+              the biggest thing on the screen was a grey box.
+
+              The clamps are not decoration. "Hieroglyphic Being & The
+              Configurative Or Modular Me Trio" is a real artist and
+              "Nightmares On Wax Presents Smokers Delight: Twenty Five Years"
+              is a real title; both keep their full text in a `title`
+              attribute and stop at two and three lines on the screen, so a
+              long name never pushes the offer off the first look.
+            -->
+            <div class="flex min-w-0 flex-col gap-1">
+              <p
+                class="line-clamp-2 text-fid-sm font-medium text-fid-text-muted"
+                :title="match.artist ?? undefined"
+              >
+                {{ match.artist }}
+              </p>
+              <h2
+                class="fid-display line-clamp-3 text-fid-xl leading-[1.08] font-bold tracking-tight text-balance hyphens-auto text-fid-text"
+                :title="match.title ?? undefined"
+              >
+                {{ match.title }}
+              </h2>
+            </div>
+
             <p v-if="meta" class="font-fid-mono text-fid-xs text-fid-text-muted">
               {{ meta }}
             </p>
@@ -504,9 +610,31 @@ function years(entry: { from: number; to: number }): string {
               </p>
             </div>
 
-            <p v-else-if="match.expired" class="max-w-prose text-fid-sm text-fid-text-muted">
-              {{ d.expired }}
-            </p>
+            <!--
+              Six hours gone — and the way back, from here (M31.18).
+
+              The dig-wide refresh is on the page behind this sheet and costs
+              one request per find. For the one record somebody is actually
+              looking at, that is thirty-two requests to answer a question
+              about one. This asks about this one: a single listing, 1,2 s,
+              and the row carries its own six hours afterwards.
+            -->
+            <div v-else-if="match.expired" class="flex max-w-prose flex-col items-start gap-3">
+              <p class="text-fid-sm text-fid-text-muted">{{ d.expired }}</p>
+              <p v-if="again !== null" class="text-fid-sm text-fid-text">
+                {{ d.sheet.againSaid[again] }}
+              </p>
+              <button
+                v-else
+                type="button"
+                :disabled="asking || !online"
+                class="fid-action fid-tonal inline-flex min-h-11 items-center gap-2 rounded-fid-sm px-4 text-fid-sm font-medium disabled:opacity-50"
+                @click="askAgain()"
+              >
+                <FidIcon name="arrow-up" :size="16" aria-hidden="true" />
+                {{ asking ? d.sheet.asking : d.sheet.askAgain }}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -689,7 +817,7 @@ function years(entry: { from: number; to: number }): string {
       <ListenSection
         v-if="match"
         :artist="match.artist"
-        :title="match.title"
+        :title="match.title ?? undefined"
         :videos="release?.videos ?? match.videos"
         :tracks="release?.tracks"
       />
@@ -715,6 +843,15 @@ function years(entry: { from: number; to: number }): string {
       <div
         class="sticky -bottom-6 -mx-6 mt-auto flex items-center justify-between gap-2 border-t border-fid-border bg-fid-surface px-6 pt-4 -mb-6 pb-6"
       >
+        <!--
+          Four controls do not fit across a 390 px phone with German words in
+          them (M31.11 asked for one row; "Als gekauft" was taking two). So
+          below `@md` the two verdicts give up their words and keep everything
+          else: the same 44 px target, the whole action in `aria-label`, the
+          same words under a pointer. That is the one case the icon rule
+          allows — a row that has to stay narrow — and it allows it only like
+          this.
+        -->
         <div class="flex min-w-0 gap-1" role="group" :aria-label="d.match.feedback">
           <!-- Same pair of words as on the card, see MatchCard.vue. -->
           <button
@@ -722,7 +859,17 @@ function years(entry: { from: number; to: number }): string {
             :key="option.key"
             type="button"
             :aria-pressed="verdict === option.key"
-            class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border px-3 text-fid-sm transition-colors"
+            :aria-label="
+              verdict === option.key
+                ? d.match.verdictsDone[option.key]
+                : d.match.verdicts[option.key]
+            "
+            :title="
+              verdict === option.key
+                ? d.match.verdictsDone[option.key]
+                : d.match.verdicts[option.key]
+            "
+            class="fid-lift inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-fid-sm border px-3 text-fid-sm whitespace-nowrap transition-colors"
             :class="
               verdict === option.key
                 ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
@@ -731,11 +878,13 @@ function years(entry: { from: number; to: number }): string {
             @click="judge(match, option.key)"
           >
             <FidIcon :name="option.icon" :size="16" />
-            {{
-              verdict === option.key
-                ? d.match.verdictsDone[option.key]
-                : d.match.verdicts[option.key]
-            }}
+            <span class="hidden @md:inline">
+              {{
+                verdict === option.key
+                  ? d.match.verdictsDone[option.key]
+                  : d.match.verdicts[option.key]
+              }}
+            </span>
           </button>
         </div>
 

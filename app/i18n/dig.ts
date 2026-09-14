@@ -358,6 +358,15 @@ const en = {
     /** Walking the list from inside the sheet (M31.13). Arrow keys do it too. */
     previous: 'The find before this one',
     next: 'The next find',
+    /** Asking about this one offer again, from where it is being read (M31.18). */
+    askAgain: 'Ask this shop again',
+    asking: 'Asking …',
+    againSaid: {
+      refreshed:
+        'Asked again just now — the price and the condition are this shop’s current ones.',
+      sold: 'Sold. It was here and it is not any more.',
+      gone: 'The offer is gone from Discogs entirely.',
+    },
     /*
      * A find whose dig is gone. Five are kept, so a newer dig eventually drops
      * an older one and the record behind a tile goes with it — which used to
@@ -611,6 +620,13 @@ const de: typeof en = {
     offer: { price: 'Preis', landed: 'Mit Porto', media: 'Platte', sleeve: 'Hülle' },
     previous: 'Der Fund davor',
     next: 'Der nächste Fund',
+    askAgain: 'Beim Laden nachfragen',
+    asking: 'Wird gefragt …',
+    againSaid: {
+      refreshed: 'Gerade nachgefragt – Preis und Zustand sind die aktuellen dieses Ladens.',
+      sold: 'Verkauft. Sie war hier und ist es nicht mehr.',
+      gone: 'Das Angebot ist bei Discogs ganz verschwunden.',
+    },
     loading: 'Wird geladen …',
     goneTitle: 'Nicht mehr da',
     gone: 'Diesen Fund gibt es hier nicht mehr – ein neuerer Dig ist an seine Stelle getreten.',

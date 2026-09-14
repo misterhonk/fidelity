@@ -67,6 +67,24 @@ export async function expireDigs(
     await tx.done
   }
 
+  /*
+   * And the rows with a clock of their own (M31.18).
+   *
+   * A listing refetched from inside the sheet outlives its dig's expiry on
+   * purpose — its own data is new — and the loop above would never look at it
+   * again, because the dig it belongs to is already marked expired. Without
+   * this, one refreshed price would sit on a screen for ever, which is the
+   * one thing rule 4 is about.
+   */
+  const tx = database.transaction('matches', 'readwrite')
+  for (const match of await tx.store.getAll()) {
+    if (match.expired || match.freshUntil === undefined) continue
+    if (match.freshUntil > now) continue
+    await tx.store.put(stripMarketplaceData(match))
+    expiredMatches += 1
+  }
+  await tx.done
+
   return expiredMatches
 }
 

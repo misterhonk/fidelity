@@ -409,6 +409,17 @@ export interface WorkerContract {
     progress: RefreshProgress
     result: { refreshed: number; sold: number; requests: number; gone: number }
   }
+  /**
+   * One offer, refetched from the sheet it is open in (M31.18).
+   *
+   * One request against the dig-wide refresh's one per find — the right trade
+   * when the question is about the record on the screen and not the list.
+   */
+  'dig.refreshOne': {
+    params: { digId: string; listingId: number }
+    progress: never
+    result: 'refreshed' | 'sold' | 'gone'
+  }
   'dig.latest': { params: undefined; progress: never; result: DigWithMatches | null }
   /**
    * The stands: the newest dig per shop from the last day, expired or not
