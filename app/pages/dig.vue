@@ -1340,7 +1340,13 @@ const noHorizon = computed(
             {{ d.filters.nothingMatches }}
           </p>
 
-          <MatchList v-else :matches="view.visible.value" :density="view.density.value" />
+          <MatchList
+            v-else
+            :matches="view.visible.value"
+            :density="view.density.value"
+            :sort="view.sort.value"
+            @set-sort="view.setSort"
+          />
         </section>
       </template>
     </section>

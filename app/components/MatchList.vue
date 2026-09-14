@@ -2,12 +2,45 @@
 import { useWindowVirtualizer } from '@tanstack/vue-virtual'
 
 import type { Match } from '#shared/types'
-import type { Density } from '~/utils/digview'
+import type { Density, SortKey } from '~/utils/digview'
 import { useDigMessages } from '~/i18n/dig'
 
 const d = useDigMessages()
 
-const props = defineProps<{ matches: Match[]; density: Density }>()
+const props = defineProps<{
+  matches: Match[]
+  density: Density
+  /** The ordering in force, so the compact head can show which column it is. */
+  sort?: SortKey
+}>()
+const emit = defineEmits<{ setSort: [SortKey] }>()
+
+/**
+ * The head of the table, in the density that is one (M31.25).
+ *
+ * The compact row has been a table since docs/05 §3 — cover, score, record,
+ * price — and it had no column names, so the one persona who asked for it
+ * ("a table instead of cards, columns to sort by") had a table whose columns
+ * were unlabelled and unsortable from where they stand.
+ *
+ * The names carry the same arrows as the bar above the list, because they
+ * select the same orderings: this is a second way to reach them, at the place
+ * where somebody is already looking, not a second mechanism. No direction
+ * toggle for the same reason — "Price ↑" means cheapest first everywhere in
+ * this app, and a header that sometimes meant the other thing would be a
+ * third state to keep in your head.
+ *
+ * Buttons in a labelled group rather than `role="columnheader"`: the list
+ * underneath is a virtualiser, so there is no table for the role to belong
+ * to, and claiming one would promise a structure a screen reader would then
+ * fail to walk.
+ */
+const HEAD = [
+  { key: null, width: '1.75rem' },
+  { key: 'score' as const, width: '2.25rem' },
+  { key: 'artist' as const, width: '1fr' },
+  { key: 'price' as const, width: 'auto' },
+]
 
 /**
  * Below this the list renders whole. Virtualising forty rows costs more in
@@ -126,6 +159,38 @@ const gridStyle = computed(() => ({
 </script>
 
 <template>
+  <!--
+    The column names, in the density that is a table (M31.25). Aligned to the
+    same grid the rows use, and sticky under the filter bar so they are still
+    there three hundred rows in — which is the whole reason somebody picked
+    this density.
+  -->
+  <div
+    v-if="density === 'compact' && matches.length > 0"
+    role="group"
+    :aria-label="d.filters.columns"
+    class="sticky top-0 z-10 grid grid-cols-[1.75rem_2.25rem_1fr_auto] items-center gap-x-2 border-b border-fid-border bg-fid-bg px-2 pb-1"
+  >
+    <template v-for="column in HEAD" :key="column.key ?? 'cover'">
+      <span v-if="!column.key" />
+      <button
+        v-else
+        type="button"
+        :aria-pressed="sort === column.key"
+        :title="d.filters.sorts[column.key].about"
+        class="fid-action truncate text-left text-fid-xs transition-colors"
+        :class="
+          sort === column.key
+            ? 'font-medium text-fid-text'
+            : 'text-fid-text-muted hover:text-fid-text'
+        "
+        @click="emit('setSort', column.key)"
+      >
+        {{ d.filters.sorts[column.key].label }}
+      </button>
+    </template>
+  </div>
+
   <!--
     Whole list. Short digs are the common case and deserve the simpler DOM.
   -->
