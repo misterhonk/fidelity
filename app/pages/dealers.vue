@@ -546,6 +546,110 @@ const scanned = computed(() => {
 
     <template v-else>
       <!--
+      The round: every watched shop, asked what is new since the last visit.
+
+      Back above the list, as one line rather than a block (M31.8): it is the
+      ritual of this screen and it had ended up at the foot behind a paragraph
+      of explanation. The paragraph is still there, one click away — what
+      stands here is what it does, how long it takes, and the button.
+
+      Only where there is something to walk: a device with no watched shop
+      gets the sentence that says how one becomes watched, not a button that
+      would do nothing.
+    -->
+      <section
+        v-if="plan && plan.shops > 0"
+        class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
+        aria-labelledby="round"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h2 id="round" class="text-fid-base font-medium text-fid-text">
+            {{ h.round.title }}
+          </h2>
+          <span class="fid-num text-fid-sm text-fid-text-muted">
+            {{ h.round.line(count(plan.shops), roundMinutes) }}
+          </span>
+        </div>
+
+        <WhyNote>{{ h.round.about(plan.reachable, roundMinutes) }}</WhyNote>
+        <!--
+        A shop nobody has dug yet has no line to stop at, so "only what is new"
+        has nothing to be new since. Said rather than silently skipped.
+      -->
+        <p v-if="plan.neverDug > 0" class="max-w-prose text-fid-sm text-fid-sig-gap">
+          {{ h.round.neverDug(plan.neverDug) }}
+        </p>
+
+        <button
+          v-if="plan.reachable > 0"
+          type="button"
+          :disabled="roundBusy"
+          class="fid-tonal self-start rounded-fid-sm px-4 py-2 font-medium disabled:opacity-50"
+          @click="startRound"
+        >
+          {{ h.round.start }}
+        </button>
+
+        <div v-if="round" class="flex flex-col gap-2" aria-live="polite">
+          <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
+            <div
+              class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
+              :style="{ width: `${roundPercent}%` }"
+            />
+          </div>
+          <p class="text-fid-sm text-fid-text-muted">
+            {{ m.common.ofTotal(count(round.done), count(round.total)) }}
+            <template v-if="round.dealer"> · {{ round.dealer }}</template>
+            · {{ h.round.found(round.found) }}
+          </p>
+          <p class="text-fid-sm text-fid-text-muted">{{ h.round.keepsRunning }}</p>
+        </div>
+
+        <!--
+        What the last one turned up. Its own record and not a reading over the
+        digs, because those do not survive it: five are kept, and a round over
+        ten shops prunes the first five before it ends.
+      -->
+        <div v-if="lastRound && !round" class="flex flex-col gap-2">
+          <p class="text-fid-sm text-fid-text-muted">
+            {{ h.round.lastAt(dayTime(lastRound.startedAt)) }}
+          </p>
+          <ul class="flex flex-col gap-1">
+            <li
+              v-for="stop in lastRound.stops"
+              :key="stop.dealer"
+              class="flex flex-wrap items-baseline gap-x-2 text-fid-sm"
+            >
+              <NuxtLink
+                v-if="stop.digId && stop.matches > 0"
+                :to="{ path: '/dig', query: { id: stop.digId } }"
+                class="font-medium text-fid-accent underline underline-offset-4"
+              >
+                {{ stop.displayName }}
+              </NuxtLink>
+              <span v-else class="font-medium text-fid-text">{{ stop.displayName }}</span>
+
+              <span v-if="stop.status === 'never-dug'" class="text-fid-text-muted">
+                {{ h.round.stopNeverDug }}
+              </span>
+              <span v-else-if="stop.status === 'failed'" class="text-fid-sig-gap">
+                {{ h.round.stopFailed }}
+              </span>
+              <span v-else-if="stop.matches === 0" class="text-fid-text-muted">
+                {{ h.round.stopNothing(count(stop.newListings)) }}
+              </span>
+              <span v-else class="text-fid-text-muted">
+                {{ h.round.stopFound(stop.matches, count(stop.newListings)) }}
+                <template v-if="stop.best">
+                  — {{ stop.best.artist }} – {{ stop.best.title }}
+                </template>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!--
         The list and the open shop, side by side where there is room.
 
         Reported on 2026-09-14, and it is a consequence of putting the list
@@ -635,29 +739,44 @@ const scanned = computed(() => {
           ref="profileBox"
           class="flex min-w-0 flex-col gap-8 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:pr-1"
         >
-          <div class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4">
-            <p v-if="profile.dealer.lastScannedAt === null" class="text-fid-base text-fid-text">
-              {{ h.neverScanned }}
-            </p>
-            <p v-else class="text-fid-base text-fid-text">{{ verdict }}</p>
-            <p class="text-fid-sm text-fid-text-muted">
-              {{ h.listings(count(profile.dealer.numForSale)) }}
-              <template v-if="profile.dealer.shipsFrom">
-                · {{ h.shipsFrom(profile.dealer.shipsFrom) }}</template
-              >
-              <template v-if="profile.dealer.ratingCount > 0">
-                ·
-                {{
-                  h.rating(
-                    `${profile.dealer.sellerRating} %`,
-                    count(profile.dealer.ratingCount),
-                  )
-                }}
-              </template>
-              <template v-if="scanned"> · {{ h.lastScanned(scanned) }}</template>
-            </p>
-
+          <div class="flex gap-4 rounded-fid-md border border-fid-border p-4">
             <!--
+              The shop's own face, at a size that is a face rather than a
+              bullet (M31.8). In the list it is 32 px; here there is room for
+              one that can be recognised across the screen.
+            -->
+            <ShopLogo
+              :dealer="profile.dealer.username"
+              :avatar-url="profile.dealer.avatarUrl"
+              :size="48"
+              class="shrink-0"
+            />
+            <div class="flex min-w-0 grow flex-col gap-3">
+              <p
+                v-if="profile.dealer.lastScannedAt === null"
+                class="text-fid-base text-fid-text"
+              >
+                {{ h.neverScanned }}
+              </p>
+              <p v-else class="text-fid-base text-fid-text">{{ verdict }}</p>
+              <p class="text-fid-sm text-fid-text-muted">
+                {{ h.listings(count(profile.dealer.numForSale)) }}
+                <template v-if="profile.dealer.shipsFrom">
+                  · {{ h.shipsFrom(profile.dealer.shipsFrom) }}</template
+                >
+                <template v-if="profile.dealer.ratingCount > 0">
+                  ·
+                  {{
+                    h.rating(
+                      `${profile.dealer.sellerRating} %`,
+                      count(profile.dealer.ratingCount),
+                    )
+                  }}
+                </template>
+                <template v-if="scanned"> · {{ h.lastScanned(scanned) }}</template>
+              </p>
+
+              <!--
               And directly below it, the number Discogs does not keep.
 
               Above the row sits the seller rating: that measures the process —
@@ -669,116 +788,120 @@ const scanned = computed(() => {
               The promised grade is in none of these numbers. What is stored is
               only the comparison (worker/grading.ts).
             -->
-            <div v-if="grading && grading.judged > 0" class="flex flex-col gap-1">
-              <p class="fid-num text-fid-sm text-fid-text">
-                <template v-if="grading.rate !== null">
-                  {{
-                    h.grading.rate(`${Math.round(grading.rate * 100)} %`, count(grading.judged))
-                  }}
-                </template>
-                <template v-else>
-                  {{ h.grading.tooFew(count(grading.judged), grading.judged === 1) }}
-                </template>
-                <template v-if="grading.worse > 0">
-                  {{ h.grading.worse(count(grading.worse), grading.worse === 1) }}
-                </template>
-              </p>
-              <WhyNote :label="h.grading.whyLabel">{{ h.grading.why }}</WhyNote>
-            </div>
+              <div v-if="grading && grading.judged > 0" class="flex flex-col gap-1">
+                <p class="fid-num text-fid-sm text-fid-text">
+                  <template v-if="grading.rate !== null">
+                    {{
+                      h.grading.rate(
+                        `${Math.round(grading.rate * 100)} %`,
+                        count(grading.judged),
+                      )
+                    }}
+                  </template>
+                  <template v-else>
+                    {{ h.grading.tooFew(count(grading.judged), grading.judged === 1) }}
+                  </template>
+                  <template v-if="grading.worse > 0">
+                    {{ h.grading.worse(count(grading.worse), grading.worse === 1) }}
+                  </template>
+                </p>
+                <WhyNote :label="h.grading.whyLabel">{{ h.grading.why }}</WhyNote>
+              </div>
 
-            <!--
+              <!--
               Watching costs one request per app start, not a rescan. Worth
               saying, because "beobachten" usually means somebody is polling.
             -->
-            <div class="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                :aria-pressed="isWatched(profile.dealer.username)"
-                class="fid-action rounded-fid-sm px-3 py-2 text-fid-sm transition-colors"
-                :class="
-                  isWatched(profile.dealer.username)
-                    ? 'fid-tonal'
-                    : 'border border-fid-border text-fid-text-muted hover:text-fid-text'
-                "
-                @click="watchToggle(profile.dealer.username)"
-              >
-                {{ isWatched(profile.dealer.username) ? h.watching : h.watch }}
-              </button>
-              <!--
+              <div class="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  :aria-pressed="isWatched(profile.dealer.username)"
+                  class="fid-action rounded-fid-sm px-3 py-2 text-fid-sm transition-colors"
+                  :class="
+                    isWatched(profile.dealer.username)
+                      ? 'fid-tonal'
+                      : 'border border-fid-border text-fid-text-muted hover:text-fid-text'
+                  "
+                  @click="watchToggle(profile.dealer.username)"
+                >
+                  {{ isWatched(profile.dealer.username) ? h.watching : h.watch }}
+                </button>
+                <!--
                 The shop with the best hit rate sits at the top of this list, and
                 until now there was nothing to do about it from here. Ranking
                 shops and then making somebody retype the name is the ranking
                 doing half its job.
               -->
-              <!--
+                <!--
                 And this one is filled, because it is the action the screen
                 exists for (M31.3). The round above steps back to the middle
                 volume: walking every watched shop is the second path, and two
                 filled surfaces on one screen mean neither is the answer.
               -->
-              <NuxtLink
-                :to="`/dig?dealer=${encodeURIComponent(profile.dealer.username)}`"
-                class="fid-action fid-fill rounded-fid-sm bg-fid-accent-fill px-4 py-2 text-fid-sm font-medium text-fid-on-accent"
-              >
-                {{ profile.dealer.lastScannedAt === null ? h.digNow : h.digAgain }}
-              </NuxtLink>
-              <!--
+                <NuxtLink
+                  :to="`/dig?dealer=${encodeURIComponent(profile.dealer.username)}`"
+                  class="fid-action fid-fill rounded-fid-sm bg-fid-accent-fill px-4 py-2 text-fid-sm font-medium text-fid-on-accent"
+                >
+                  {{ profile.dealer.lastScannedAt === null ? h.digNow : h.digAgain }}
+                </NuxtLink>
+                <!--
                 And the one that takes something away steps back.
                 Three bordered buttons of the same weight, one of which removes
                 the shop from every list — read side by side they all look like
                 the same kind of offer. A plate action instead: reachable, not
                 proposed.
               -->
-              <button
-                type="button"
-                class="fid-action fid-plate px-1 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
-                :title="h.hideWhy"
-                @click="setHidden(profile.dealer.username, true)"
-              >
-                {{ h.hide }}
-              </button>
-              <span class="text-fid-xs text-fid-text-muted">{{ h.watchCost }}</span>
-            </div>
+                <button
+                  type="button"
+                  class="fid-action fid-plate px-1 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+                  :title="h.hideWhy"
+                  @click="setHidden(profile.dealer.username, true)"
+                >
+                  {{ h.hide }}
+                </button>
+                <span class="text-fid-xs text-fid-text-muted">{{ h.watchCost }}</span>
+              </div>
 
-            <!--
+              <!--
               And the part a browser cannot do alone.
               Only shown for a shop that is actually watched, and only where it
               can work: no hub, no support, or a refusal in the browser settings
               and there is nothing here at all — rather than a switch that would
               promise something nobody can keep (rule 8).
             -->
-            <div
-              v-if="
-                isWatched(profile.dealer.username) &&
-                push !== 'no-hub' &&
-                push !== 'unsupported' &&
-                push !== 'denied'
-              "
-              class="flex flex-wrap items-center gap-3"
-            >
-              <button
-                v-if="push === 'off'"
-                type="button"
-                :disabled="pushBusy"
-                class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text disabled:opacity-60"
-                @click="enablePush()"
+              <div
+                v-if="
+                  isWatched(profile.dealer.username) &&
+                  push !== 'no-hub' &&
+                  push !== 'unsupported' &&
+                  push !== 'denied'
+                "
+                class="flex flex-wrap items-center gap-3"
               >
-                {{ h.pushOffer }}
-              </button>
-              <template v-else-if="push === 'on'">
-                <span class="text-fid-sm text-fid-text">{{ h.pushOn }}</span>
                 <button
+                  v-if="push === 'off'"
                   type="button"
                   :disabled="pushBusy"
-                  class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4 disabled:opacity-60"
-                  @click="disablePush()"
+                  class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text disabled:opacity-60"
+                  @click="enablePush()"
                 >
-                  {{ h.pushStop }}
+                  {{ h.pushOffer }}
                 </button>
-              </template>
-              <span class="text-fid-xs text-fid-text-muted">
-                {{ push === 'needs-install' ? h.pushInstall : h.pushWhy }}
-              </span>
+                <template v-else-if="push === 'on'">
+                  <span class="text-fid-sm text-fid-text">{{ h.pushOn }}</span>
+                  <button
+                    type="button"
+                    :disabled="pushBusy"
+                    class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4 disabled:opacity-60"
+                    @click="disablePush()"
+                  >
+                    {{ h.pushStop }}
+                  </button>
+                </template>
+                <span class="text-fid-xs text-fid-text-muted">
+                  {{ push === 'needs-install' ? h.pushInstall : h.pushWhy }}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -924,101 +1047,6 @@ const scanned = computed(() => {
       `v-else` above on purpose: hiding the last shop must not take the one
       place it can be brought back from with it.
     -->
-    <!--
-      The round: every watched shop, asked what is new since the last visit.
-
-      Under the list rather than over it: the screen's own question is "which
-      shop next", and four blocks of tooling used to stand between the heading
-      and the answer. Only where there is something to walk — a device with no
-      watched shop gets the sentence that says how one becomes watched, not a
-      button that would do nothing.
-    -->
-    <section
-      v-if="plan && plan.shops > 0"
-      class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4"
-      aria-labelledby="round"
-    >
-      <h2 id="round" class="text-fid-base font-medium text-fid-text">{{ h.round.title }}</h2>
-
-      <p class="max-w-prose text-fid-sm text-fid-text-muted">
-        {{ h.round.about(plan.reachable, roundMinutes) }}
-      </p>
-      <!--
-        A shop nobody has dug yet has no line to stop at, so "only what is new"
-        has nothing to be new since. Said rather than silently skipped.
-      -->
-      <p v-if="plan.neverDug > 0" class="max-w-prose text-fid-sm text-fid-sig-gap">
-        {{ h.round.neverDug(plan.neverDug) }}
-      </p>
-
-      <button
-        v-if="plan.reachable > 0"
-        type="button"
-        :disabled="roundBusy"
-        class="fid-tonal self-start rounded-fid-sm px-4 py-2 font-medium disabled:opacity-50"
-        @click="startRound"
-      >
-        {{ h.round.start }}
-      </button>
-
-      <div v-if="round" class="flex flex-col gap-2" aria-live="polite">
-        <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
-          <div
-            class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
-            :style="{ width: `${roundPercent}%` }"
-          />
-        </div>
-        <p class="text-fid-sm text-fid-text-muted">
-          {{ m.common.ofTotal(count(round.done), count(round.total)) }}
-          <template v-if="round.dealer"> · {{ round.dealer }}</template>
-          · {{ h.round.found(round.found) }}
-        </p>
-        <p class="text-fid-sm text-fid-text-muted">{{ h.round.keepsRunning }}</p>
-      </div>
-
-      <!--
-        What the last one turned up. Its own record and not a reading over the
-        digs, because those do not survive it: five are kept, and a round over
-        ten shops prunes the first five before it ends.
-      -->
-      <div v-if="lastRound && !round" class="flex flex-col gap-2">
-        <p class="text-fid-sm text-fid-text-muted">
-          {{ h.round.lastAt(dayTime(lastRound.startedAt)) }}
-        </p>
-        <ul class="flex flex-col gap-1">
-          <li
-            v-for="stop in lastRound.stops"
-            :key="stop.dealer"
-            class="flex flex-wrap items-baseline gap-x-2 text-fid-sm"
-          >
-            <NuxtLink
-              v-if="stop.digId && stop.matches > 0"
-              :to="{ path: '/dig', query: { id: stop.digId } }"
-              class="font-medium text-fid-accent underline underline-offset-4"
-            >
-              {{ stop.displayName }}
-            </NuxtLink>
-            <span v-else class="font-medium text-fid-text">{{ stop.displayName }}</span>
-
-            <span v-if="stop.status === 'never-dug'" class="text-fid-text-muted">
-              {{ h.round.stopNeverDug }}
-            </span>
-            <span v-else-if="stop.status === 'failed'" class="text-fid-sig-gap">
-              {{ h.round.stopFailed }}
-            </span>
-            <span v-else-if="stop.matches === 0" class="text-fid-text-muted">
-              {{ h.round.stopNothing(count(stop.newListings)) }}
-            </span>
-            <span v-else class="text-fid-text-muted">
-              {{ h.round.stopFound(stop.matches, count(stop.newListings)) }}
-              <template v-if="stop.best">
-                — {{ stop.best.artist }} – {{ stop.best.title }}
-              </template>
-            </span>
-          </li>
-        </ul>
-      </div>
-    </section>
 
     <!--
       Shops other people have dug (ADR-014).
