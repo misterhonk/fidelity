@@ -355,6 +355,9 @@ const en = {
   sheet: {
     offer: { price: 'Price', media: 'Record', sleeve: 'Sleeve' },
     loading: 'Loading …',
+    /** Walking the list from inside the sheet (M31.13). Arrow keys do it too. */
+    previous: 'The find before this one',
+    next: 'The next find',
     /*
      * A find whose dig is gone. Five are kept, so a newer dig eventually drops
      * an older one and the record behind a tile goes with it — which used to
@@ -606,6 +609,8 @@ const de: typeof en = {
 
   sheet: {
     offer: { price: 'Preis', media: 'Platte', sleeve: 'Hülle' },
+    previous: 'Der Fund davor',
+    next: 'Der nächste Fund',
     loading: 'Wird geladen …',
     goneTitle: 'Nicht mehr da',
     gone: 'Diesen Fund gibt es hier nicht mehr – ein neuerer Dig ist an seine Stelle getreten.',
