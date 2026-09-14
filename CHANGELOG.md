@@ -9,6 +9,29 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.88.0](https://github.com/misterhonk/fidelity/compare/v0.87.0...v0.88.0) (2026-09-14)
+
+**Wenn Discogs bremst, steht das jetzt auf dem Bildschirm.**
+
+Ein sehr großer Laden braucht zweihundert Anfragen über vier Minuten und trifft dabei
+irgendwann auf Discogs' Limit. Ein Browser sieht diese Absage nie — sie kommt ohne
+CORS-Header, `fetch()` lehnt einfach ab — und Fidelity macht das Richtige: es wartet das
+Fenster ab und läuft weiter. Nur sagte das niemand, der Balken stand still, und es sah aus,
+als ginge der Laden nicht zu diggen. Jetzt steht dort, wie lange noch, und dass nichts
+verloren geht.
+
+Dazu zwei Kleinigkeiten, die beide aus dem kommen, was die App längst weiß: **der Laden bei
+Discogs** ist aus dem Profil einen Tipp entfernt — dort steht, was kein Sortiment verrät,
+Porto in Prosa, Urlaubshinweise, Rücknahme —, und der Preflight sagt **„weiterhin 2.881 im
+Angebot, dieselbe Zahl wie beim letzten Dig"**, wenn sich nichts bewegt hat. Das kostet keine
+einzige Anfrage und spart im Zweifel den ganzen Dig.
+
+
+### Added
+
+* **dealers:** the shop at Discogs, and the dig nobody has to run ([c52cee9](https://github.com/misterhonk/fidelity/commit/c52cee9dd23e7b9ef077540c8919041d3cf44285))
+* **discogs:** waiting is a state, not a silence ([fa2d414](https://github.com/misterhonk/fidelity/commit/fa2d41481279d3d01a69796a591e7bc50aaebe1c))
+
 ## [0.87.0](https://github.com/misterhonk/fidelity/compare/v0.86.0...v0.87.0) (2026-09-14)
 
 **Der Preis lässt sich jetzt von günstig nach teuer sortieren — oder anders herum.**
