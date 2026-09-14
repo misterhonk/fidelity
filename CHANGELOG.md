@@ -9,6 +9,24 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.85.0](https://github.com/misterhonk/fidelity/compare/v0.84.0...v0.85.0) (2026-09-14)
+
+**`j` und `k` gehen durch die Funde, `/` springt in den Filter.**
+
+Die zwei Gesten aus jedem Mailprogramm und jedem Ticketsystem. In einem offenen Blatt
+gegen dieselbe Reihenfolge, die auch die Pfeile benutzen; ohne offenes Blatt heißt `j`
+„oben anfangen". Im Filter ist `j` wieder der Buchstabe j — nicht, während jemand tippt,
+und nicht mit gehaltener Modifikatortaste.
+
+Dabei fiel ein Fehler auf: Weiterblättern ersetzt jetzt den History-Eintrag, statt jeden
+Schritt zu pushen. „Zurück" schließt damit das Blatt, statt die Platten rückwärts
+durchzugehen.
+
+
+### Added
+
+* **dig:** j and k walk the list, / jumps into the filter ([619f363](https://github.com/misterhonk/fidelity/commit/619f363696753855ec2977adfe9639859103ce22))
+
 ## [0.84.0](https://github.com/misterhonk/fidelity/compare/v0.83.0...v0.84.0) (2026-09-14)
 
 **„Zurück" schließt jetzt das Blatt, statt den Dig zu verlassen.**
