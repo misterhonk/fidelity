@@ -28,7 +28,7 @@ const emit = defineEmits<{
 
 const f = computed(() => useDigMessages().value.filters)
 
-const DENSITIES = ['comfortable', 'compact'] as const satisfies readonly Density[]
+const DENSITIES = ['comfortable', 'crate', 'compact'] as const satisfies readonly Density[]
 </script>
 
 <template>

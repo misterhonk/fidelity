@@ -34,10 +34,21 @@ const viewport = useTemplateRef<HTMLElement>('viewport')
  */
 const MIN_CARD = 384
 
+/**
+ * And how wide a spine is in the crate (M31.22).
+ *
+ * 150 px is the thumbnail Discogs hands over, so a tile never upscales; on a
+ * 390 px phone that leaves two across with room for the title under them,
+ * which is the number the shelf settled on for the same reason.
+ */
+const MIN_TILE = 160
+
 const width = ref(0)
-const perRow = computed(() =>
-  props.density === 'compact' ? 1 : Math.max(1, Math.floor(width.value / MIN_CARD)),
-)
+const perRow = computed(() => {
+  if (props.density === 'compact') return 1
+  if (props.density === 'crate') return Math.max(2, Math.floor(width.value / MIN_TILE))
+  return Math.max(1, Math.floor(width.value / MIN_CARD))
+})
 
 /**
  * Measured rather than guessed from the viewport: this list sits inside a page
@@ -80,7 +91,9 @@ const rowCount = computed(() => Math.ceil(props.matches.length / perRow.value))
  * initial scrollbar is not absurd: 34 px is the compact row from docs/05 §3,
  * and a comfortable card runs about 200 with cover, chips and the sentence.
  */
-const estimate = computed(() => (props.density === 'compact' ? 34 : 208))
+const estimate = computed(() =>
+  props.density === 'compact' ? 34 : props.density === 'crate' ? 240 : 208,
+)
 
 const rows = useWindowVirtualizer(
   computed(() => ({
@@ -121,7 +134,9 @@ const gridStyle = computed(() => ({
     :class="
       density === 'compact'
         ? 'flex flex-col gap-0'
-        : 'grid gap-3 @3xl:grid-cols-2 @6xl:grid-cols-3'
+        : density === 'crate'
+          ? 'grid grid-cols-2 gap-x-3 gap-y-5 @lg:grid-cols-3 @3xl:grid-cols-4 @6xl:grid-cols-6'
+          : 'grid gap-3 @3xl:grid-cols-2 @6xl:grid-cols-3'
     "
     style="scrollbar-gutter: stable"
   >
@@ -132,6 +147,7 @@ const gridStyle = computed(() => ({
       :style="{ '--fid-far-height': density === 'compact' ? '2.125rem' : '13rem' }"
     >
       <MatchRow v-if="density === 'compact'" :match="match" />
+      <MatchTile v-else-if="density === 'crate'" :match="match" />
       <MatchCard v-else :match="match" />
     </li>
   </ul>
@@ -159,6 +175,7 @@ const gridStyle = computed(() => ({
       >
         <template v-for="match in rowMatches(item.index)" :key="match.listingId">
           <MatchRow v-if="density === 'compact'" :match="match" />
+          <MatchTile v-else-if="density === 'crate'" :match="match" />
           <MatchCard v-else :match="match" />
         </template>
       </li>

@@ -69,7 +69,9 @@ export function useDigView(
 
   const setSort = (key: SortKey) => apply({ sort: key === 'score' ? undefined : key })
   const setDensity = (value: Density) =>
-    apply({ dicht: value === 'compact' ? 'kompakt' : undefined })
+    apply({
+      dicht: value === 'compact' ? 'kompakt' : value === 'crate' ? 'kiste' : undefined,
+    })
   const setQuery = (value: string) => apply({ q: value.trim() || undefined })
   const setUpTo = (value: string) => {
     const amount = parseUpTo(value)

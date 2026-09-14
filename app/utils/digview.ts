@@ -9,7 +9,18 @@ import { activeLocale } from '~/composables/useMessages'
  */
 
 export type SortKey = 'score' | 'price' | 'landed' | 'year' | 'artist'
-export type Density = 'comfortable' | 'compact'
+/**
+ * Three ways to look at the same finds (M31.22).
+ *
+ * `comfortable` is the default and the only one that carries the sentence
+ * saying *why* a record is in the list — which is the app's whole product, so
+ * it is what somebody sees first. `compact` is a table for comparing two
+ * hundred of them. `crate` is the one a phone needed: a card with a big cover
+ * is one screen per record, and flipping through two hundred and fifty-nine
+ * finds that way is two hundred and fifty-nine swipes. In a real crate you see
+ * twenty spines at once.
+ */
+export type Density = 'comfortable' | 'compact' | 'crate'
 
 /**
  * The orderings, in the order they are offered. Keys only — the labels carry a
@@ -49,7 +60,10 @@ export function parseSort(value: string): SortKey {
 }
 
 export function parseDensity(value: string): Density {
-  return value === 'kompakt' ? 'compact' : 'comfortable'
+  if (value === 'kompakt') return 'compact'
+  // German in the address, like `dicht` itself and `kompakt` beside it.
+  if (value === 'kiste') return 'crate'
+  return 'comfortable'
 }
 
 /**
