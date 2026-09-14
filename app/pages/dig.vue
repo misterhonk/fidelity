@@ -525,6 +525,23 @@ const expired = computed(() => {
   return dig ? Date.now() > dig.expiresAt : false
 })
 
+/**
+ * A shop whose stock has not moved since the last dig (M32.4).
+ *
+ * Both numbers are already here: the current one from the preflight's own
+ * `/users/{u}`, the old one off the shop's row. Only where there *was* a last
+ * dig — "0 of 0" on a shop nobody has walked is not the same statement.
+ */
+const unmoved = computed(() => {
+  const found = preflight.value
+  return (
+    found !== null &&
+    found.since !== null &&
+    found.hadForSale !== null &&
+    found.hadForSale === found.numForSale
+  )
+})
+
 /** What this dig is entitled to say — see `digKind`. */
 const kind = computed(() => (result.value ? digKind(result.value.dig) : 'full'))
 
@@ -890,6 +907,25 @@ const noHorizon = computed(
         default for a shop somebody checks every week, which is why it takes
         the accent and the full dig steps back to an outline.
       -->
+      <!--
+        The dig you do not have to run (M32.4).
+
+        The preflight asks Discogs how many this shop has for sale, and the
+        shop's row has held the number from the last dig all along — so this
+        line costs nothing and is the only answer on the screen that saves the
+        *whole* four minutes rather than shortening them.
+
+        A reason to skip, never a refusal to run: a shop that sold one record
+        and listed another is "unchanged" by a count, and somebody who knows
+        that about their own shop should still be able to press the button.
+      -->
+      <p
+        v-if="unmoved"
+        class="max-w-prose rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
+      >
+        {{ d.incremental.unmoved(count(preflight.numForSale)) }}
+      </p>
+
       <div v-if="preflight.since" class="flex flex-col gap-2">
         <p class="max-w-prose text-fid-sm text-fid-text-muted">
           {{ d.incremental.known(Math.ceil(((preflight.reachable / 100) * 1.2) / 60)) }}
