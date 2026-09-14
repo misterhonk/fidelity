@@ -479,3 +479,21 @@ body {
   user-select: none;
   -webkit-user-select: none;
 }
+
+/*
+ * Rows the browser may skip until they come near the screen.
+ *
+ * `content-visibility: auto` lets the engine drop the layout and paint of
+ * anything well outside the viewport, and `contain-intrinsic-size` tells it
+ * how tall to assume the skipped thing is so the scrollbar does not lie. One
+ * declaration, and it is exactly the case a shelf of two thousand covers or a
+ * dig of three hundred cards is: long, uniform, and mostly off screen.
+ *
+ * Only where the list is *not* virtualised — above that threshold the
+ * virtualiser removes the nodes entirely and this would be two mechanisms
+ * arguing about the same rows.
+ */
+.fid-far {
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--fid-far-height, 13rem);
+}

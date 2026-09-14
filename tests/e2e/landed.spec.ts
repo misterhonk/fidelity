@@ -26,6 +26,28 @@ test.describe('the find list, with postage', () => {
     await expect(page.getByText('Postage for this shop is not known')).toHaveCount(0)
   })
 
+  /*
+   * And in the sheet, where the rule is "only when it differs".
+   *
+   * The seed's find is already the parcel's own record, so it adds no postage
+   * — and a box that printed the same number under "Price" and under "With
+   * postage" would be claiming a second fact it does not have. The heading
+   * appears where the figure is a different one; here it does not.
+   */
+  test('does not print the same number twice in the sheet', async ({ page }) => {
+    const dig = await seed(page, 'en')
+    await page.goto(`/dig?id=${dig.id}`)
+
+    await page
+      .getByRole('button', { name: /Point of Departure/i })
+      .first()
+      .click()
+    const sheet = page.getByRole('dialog')
+    await expect(sheet).toBeVisible({ timeout: 15_000 })
+    await expect(sheet.getByText('Price', { exact: true })).toBeVisible()
+    await expect(sheet.getByText('With postage', { exact: true })).toHaveCount(0)
+  })
+
   test('in German too', async ({ page }) => {
     const dig = await seed(page, 'de')
     await page.goto(`/dig?id=${dig.id}`)

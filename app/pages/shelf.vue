@@ -457,7 +457,8 @@ const walk = computed(() => {
         <li
           v-for="record in view.records"
           :key="record.instanceId"
-          class="relative flex flex-col gap-2"
+          class="fid-far relative flex flex-col gap-2"
+          style="--fid-far-height: 14rem"
         >
           <!-- In select mode the sleeve is a thing to tick, not a door. -->
           <input

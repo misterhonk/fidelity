@@ -63,6 +63,15 @@ export async function matchDetail(
 
   return {
     match,
+    /*
+     * Which shop this find is at.
+     *
+     * A `Match` does not carry it — the dig does, and the list always knew
+     * which dig it was showing. The sheet does not: it hangs in the shell and
+     * gets two ids. One row read, no request, and the sheet can ask for that
+     * shop's postage itself (M31.17).
+     */
+    dealer: (await db.get('digs', digId))?.dealer ?? '',
     catalogue: catalogueContext(horizon, match),
     discography: discographyContext(horizon, hits),
     connections: hits
