@@ -9,6 +9,16 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.77.0](https://github.com/misterhonk/fidelity/compare/v0.76.0...v0.77.0) (2026-09-14)
+
+
+### Added
+
+* **dealers:** what moved, and four sleeves of your own ([b045211](https://github.com/misterhonk/fidelity/commit/b045211208d86c61e1c603626bfb52c84742d491))
+* **dig:** the card reads top to bottom, and no result is an answer ([f818914](https://github.com/misterhonk/fidelity/commit/f8189148d82233a84474adf128288e328f12421d))
+* **ui:** one sheet for a record, wherever it is opened from ([f325ded](https://github.com/misterhonk/fidelity/commit/f325ded1f40068a185b0cf9e98f5609ab08b00e8))
+* **ui:** three volumes, and a shop row that can dig ([10d663d](https://github.com/misterhonk/fidelity/commit/10d663d3812c2f805cb758a3226f8166c7365c7b))
+
 ## [0.76.0](https://github.com/misterhonk/fidelity/compare/v0.75.0...v0.76.0) (2026-09-14)
 
 **Der Score sagt jetzt, was er bedeutet — und ein Fundstück verrät seinen Zustand in Worten.**
