@@ -56,9 +56,16 @@ describe('reading the view out of the URL', () => {
     expect(parseSort('price')).toBe('price')
   })
 
-  it('is comfortable unless the URL asks for compact', () => {
+  /*
+   * Three ways to look at the same finds, and the default is the one that
+   * carries the sentence saying why a record is in the list — the app's whole
+   * product. Anything the address does not recognise lands there.
+   */
+  it('is comfortable unless the URL asks for another density', () => {
     expect(parseDensity('')).toBe('comfortable')
     expect(parseDensity('kompakt')).toBe('compact')
+    expect(parseDensity('kiste')).toBe('crate')
+    expect(parseDensity('crate')).toBe('comfortable')
   })
 })
 

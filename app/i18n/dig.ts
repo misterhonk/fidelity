@@ -230,6 +230,8 @@ const en = {
     sortBy: 'Sort',
     density: 'Density',
     comfortable: 'Detailed',
+    /** The sleeves, two across on a phone — the crate you flip through. */
+    crate: 'Crate',
     compact: 'Compact',
     /*
      * The direction is on the label.
@@ -548,6 +550,7 @@ const de: typeof en = {
     sortBy: 'Sortieren',
     density: 'Dichte',
     comfortable: 'Ausführlich',
+    crate: 'Kiste',
     compact: 'Kompakt',
     sorts: {
       score: { label: 'Score', about: 'Bester Treffer zuerst' },
