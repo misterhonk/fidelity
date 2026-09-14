@@ -156,6 +156,7 @@ const en = {
    * who set the pace, and they say plainly that this is the app's own count.
    */
   limit: {
+    title: 'Requests to Discogs',
     session: 'This session',
     purposes: {
       dig: 'Digs',
@@ -172,6 +173,29 @@ const en = {
     ceiling: (n: number) =>
       `Discogs allows 60 a minute per address. Fidelity asks ${n} — on purpose.`,
     ours: 'Counted here is what Fidelity asked for. Discogs’ own counter cannot be read from a browser.',
+
+    /*
+     * The next rung, and only ever one line of it (M31.12).
+     *
+     * Worked out from what this device actually did, never from a schedule:
+     * the horizon requests a catalogue would have taken over are the ones
+     * already counted above it. No banner, no tile, nothing repeated.
+     */
+    noToken: 'Without a token: 25 a minute instead of 50. A dig takes twice as long.',
+    tryCatalogue: (n: string) =>
+      `A catalogue would have answered ${n} of these without asking Discogs.`,
+    tryHub: (_n: string) =>
+      'A hub shares these between your devices — and with whoever else uses it.',
+    /** What things cost, behind a disclosure: figures, not a lecture. */
+    costs: 'What takes how long',
+    costRows: [
+      ['A dig, 3.000 listings', '~ 130', '~ 2½ min'],
+      ['A dig, 20.000 listings', '~ 300', '~ 6 min'],
+      ['The horizon, 30 artists and labels', '~ 600', '~ 12 min'],
+      ['Fetching a collection of 2.000', '~ 40', '~ 1 min'],
+      ['The round, per watched shop', '~ 20', '~ 25 s'],
+      ['Opening one record', '1', '1,2 s'],
+    ] as [string, string, string][],
   },
 
   /** The notices that can appear on any screen. */

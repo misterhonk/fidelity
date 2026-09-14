@@ -70,6 +70,7 @@ const de: Messages = {
   },
 
   limit: {
+    title: 'Anfragen an Discogs',
     session: 'Diese Sitzung',
     purposes: {
       dig: 'Digs',
@@ -86,6 +87,20 @@ const de: Messages = {
     ceiling: (n) =>
       `Discogs erlaubt 60 pro Minute je Adresse. Fidelity fragt ${n} — mit Absicht.`,
     ours: 'Gezählt wird, was Fidelity gefragt hat. Discogs’ eigenen Zähler kann ein Browser nicht lesen.',
+
+    noToken: 'Ohne Token: 25 pro Minute statt 50. Ein Dig dauert doppelt so lang.',
+    tryCatalogue: (n) => `Ein Katalog hätte ${n} davon beantwortet, ohne Discogs zu fragen.`,
+    tryHub: (_n) =>
+      'Ein Hub teilt diese zwischen deinen Geräten – und mit allen, die ihn mitbenutzen.',
+    costs: 'Was wie lange dauert',
+    costRows: [
+      ['Ein Dig, 3.000 Angebote', '~ 130', '~ 2½ Min'],
+      ['Ein Dig, 20.000 Angebote', '~ 300', '~ 6 Min'],
+      ['Der Horizont, 30 Künstler und Labels', '~ 600', '~ 12 Min'],
+      ['Sammlung holen, 2.000 Platten', '~ 40', '~ 1 Min'],
+      ['Der Rundgang, je beobachtetem Laden', '~ 20', '~ 25 Sek'],
+      ['Eine Platte öffnen', '1', '1,2 Sek'],
+    ] as [string, string, string][],
   },
 
   notice: {
