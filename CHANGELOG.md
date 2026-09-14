@@ -9,6 +9,19 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.75.0](https://github.com/misterhonk/fidelity/compare/v0.74.0...v0.75.0) (2026-09-14)
+
+
+### Added
+
+* **dealers:** the shops are a ranked list, not a wall of buttons ([1852176](https://github.com/misterhonk/fidelity/commit/18521768db4e5d300037357df47dfb82d69ba45d))
+* **dig:** the screen says what it is for, and how to dig a shop again ([766fc0e](https://github.com/misterhonk/fidelity/commit/766fc0e86b9f74d3b7f24c500651c2130bd07592))
+
+
+### Fixed
+
+* **ui:** a clip list counts videos, not addresses ([e6ee01e](https://github.com/misterhonk/fidelity/commit/e6ee01e0cd254c4883c4df9c27989aaa17ef3e59))
+
 ## [0.74.0](https://github.com/misterhonk/fidelity/compare/v0.73.0...v0.74.0) (2026-09-13)
 
 **Reinhören, bevor du kaufst — auf dem Blatt, auf dem du über die Platte entscheidest.**
