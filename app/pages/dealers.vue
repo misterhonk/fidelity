@@ -13,6 +13,7 @@ import type {
 } from '#shared/types'
 
 import { useDealerMessages } from '~/i18n/dealers'
+import SheetFrame from '~/components/SheetFrame.vue'
 
 const h = useDealerMessages()
 const m = useMessages()
@@ -395,8 +396,18 @@ async function load() {
    */
   const asked = known(route.query.shop) ?? known(route.query.dealer)
 
+  /*
+   * A shop somebody asked for opens; the first one only opens where it can
+   * stand beside the list.
+   *
+   * On a wide screen the second column would otherwise be empty, and an empty
+   * half of a screen is the app saying "there is nothing here" about its own
+   * best shop. On a phone the profile is a sheet over the list (M31.14), and
+   * opening one before anybody has tapped anything means arriving at a screen
+   * whose first act is to cover itself up.
+   */
   if (asked) await select(asked)
-  else if (first) await select(first.username)
+  else if (first && !narrow.value) await select(first.username)
 }
 
 onMounted(async () => {
@@ -425,13 +436,46 @@ onMounted(async () => {
 })
 
 /**
- * Where the open shop is drawn — so a narrow screen can be told to go there.
+ * On a phone the open shop is a sheet, not a place further down (M31.14).
  *
- * On a wide screen the profile sits beside the list and needs no help. Stacked
- * under a dozen rows it is three screens down, and tapping a shop then looked
- * like nothing had happened.
+ * From `lg` up the profile sits beside the list and needs nothing: that is the
+ * master–detail shape of every mail client. Stacked under a dozen rows it was
+ * three screens down, and tapping a shop looked like nothing had happened —
+ * which the scroll-into-view of 2026-09-14 papered over rather than solved,
+ * because the list then scrolled away under you and coming back meant finding
+ * your row again.
+ *
+ * A sheet answers both: it opens over the list, it is the whole screen, and
+ * closing it puts you back exactly where you tapped. The same drawer the
+ * record sheets use, with the same focus trap and the same Escape.
+ *
+ * 1023 px is Tailwind's `lg` minus one — the same boundary the grid above
+ * uses, said twice because a media query cannot read a class.
  */
-const profileBox = useTemplateRef<HTMLElement>('profileBox')
+const PHONE = '(max-width: 1023px)'
+
+/*
+ * Read at setup rather than on mount, because `load()` asks it before either
+ * `onMounted` has run — and the answer decides whether the first shop opens
+ * by itself. `ssr: false` means this code only ever runs in a browser, and
+ * the guard is for the prerender of the shell.
+ */
+const narrow = ref(import.meta.client ? window.matchMedia(PHONE).matches : false)
+
+onMounted(() => {
+  const phone = window.matchMedia(PHONE)
+  narrow.value = phone.matches
+  const follow = (event: MediaQueryListEvent) => (narrow.value = event.matches)
+  phone.addEventListener('change', follow)
+  onBeforeUnmount(() => phone.removeEventListener('change', follow))
+})
+
+/** Closing the sheet closes the shop — and the address goes with it. */
+async function close() {
+  profile.value = null
+  grading.value = null
+  await router.replace({ query: { ...route.query, shop: undefined } })
+}
 
 async function select(username: string) {
   // Through the address, so a reload and a shared link both land here.
@@ -453,16 +497,6 @@ async function select(username: string) {
   } catch (cause) {
     error.value = cause
     return
-  }
-
-  /*
-   * Two columns at `lg`, which is where Tailwind puts it — the same 1024 the
-   * class above uses. Wider than that the profile is already on screen and
-   * moving the page would be the app taking over the scroll for no reason.
-   */
-  if (window.matchMedia('(max-width: 1023px)').matches) {
-    await nextTick()
-    profileBox.value?.scrollIntoView({ block: 'start', behavior: 'smooth' })
   }
 
   /*
@@ -837,11 +871,27 @@ const scanned = computed(() => {
             {{ h.more(count(rest)) }}
           </button>
         </div>
-        <section
+        <!--
+          Beside the list on a desk, over it on a phone (M31.14). One block of
+          markup either way: `SheetFrame` renders its children in a slot, and
+          a plain `<section>` renders the same children in place.
+        -->
+        <component
+          :is="narrow ? SheetFrame : 'section'"
           v-if="profile"
-          ref="profileBox"
-          class="flex min-w-0 flex-col gap-8 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:pr-1"
+          v-bind="
+            narrow
+              ? { label: profile.dealer.displayName || profile.dealer.username }
+              : {
+                  class:
+                    'flex min-w-0 flex-col gap-8 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:pr-1',
+                }
+          "
+          @close="close()"
         >
+          <template #title>
+            {{ profile.dealer.displayName || profile.dealer.username }}
+          </template>
           <div class="flex gap-4 rounded-fid-md border border-fid-border p-4">
             <!--
               The shop's own face, at a size that is a face rather than a
@@ -1141,7 +1191,7 @@ const scanned = computed(() => {
           <p v-if="profile.dealer.shippingNote" class="text-fid-sm text-fid-text-muted">
             {{ profile.dealer.shippingNote }}
           </p>
-        </section>
+        </component>
       </div>
     </template>
 
