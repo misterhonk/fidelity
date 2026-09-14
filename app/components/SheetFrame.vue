@@ -107,13 +107,35 @@ function onKeydown(event: KeyboardEvent) {
       aria-modal="true"
       :aria-label="props.label"
       tabindex="-1"
-      class="fid-sheet @container flex h-full w-full max-w-lg flex-col gap-6 overflow-y-auto border-l border-fid-border bg-fid-surface p-6 outline-none lg:max-w-2xl xl:max-w-3xl"
+      class="fid-sheet @container relative isolate flex h-full w-full max-w-lg flex-col gap-6 overflow-y-auto border-l border-fid-border bg-fid-surface p-6 outline-none lg:max-w-2xl xl:max-w-3xl"
       :style="{ scrollbarGutter: 'stable', '--fid-sheet-name': props.transition ?? 'none' }"
     >
-      <div class="flex items-start justify-between gap-4">
-        <h2 class="text-fid-base font-bold text-fid-text">
+      <!--
+        The sleeve's colour, behind everything, from the very top edge.
+
+        It belongs to the frame rather than to the sheet's first block because
+        that is where the top edge is: put on the block, the tint started
+        underneath the close button and left a bare strip above it that read
+        as a mistake. Absolutely positioned inside the scroller, so it moves
+        with the head it belongs to instead of standing still behind it.
+      -->
+      <div
+        v-if="$slots.wash"
+        class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 overflow-hidden"
+      >
+        <slot name="wash" />
+      </div>
+
+      <div class="relative flex items-start justify-between gap-4">
+        <!--
+          Empty where the sheet carries its own masthead (M31.19): the same
+          name twice, six millimetres apart, is a duplicate and not a heading.
+          The dialog's accessible name comes from `aria-label` either way.
+        -->
+        <h2 v-if="$slots.title" class="text-fid-base font-bold text-fid-text">
           <slot name="title" />
         </h2>
+        <span v-else />
         <!-- Whatever this particular sheet can do with itself, beside the ✕. -->
         <div class="flex shrink-0 items-center gap-1">
           <slot name="tools" />

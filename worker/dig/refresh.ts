@@ -68,6 +68,73 @@ export interface RefreshOptions {
   signal?: AbortSignal
 }
 
+/**
+ * One offer, refetched from where somebody is looking at it (M31.18).
+ *
+ * The dig-wide refresh is the right tool for a list — nineteen records,
+ * nineteen requests, and the clock restarts for all of them because all of
+ * them were asked about. It is the wrong tool for *one* record: thirty-two
+ * requests to see the price of the one that is open is a bad trade against a
+ * budget of sixty a minute.
+ *
+ * So: one request, and the row carries its own six hours (`freshUntil`),
+ * because the dig it belongs to has already been swept and will not be looked
+ * at again. `expireDigs` honours that stamp — without it, one refreshed price
+ * would sit on a screen for ever.
+ *
+ * The dig's own clock is deliberately **not** restarted. The other thirty-one
+ * rows were not asked about, and a list that looked fresh because one record
+ * in it is would be exactly the claim rule 4 forbids.
+ */
+export async function refreshListing({
+  client,
+  digId,
+  listingId,
+  currency,
+  now = Date.now(),
+  signal,
+}: {
+  client: DiscogsClient
+  digId: string
+  listingId: number
+  currency: string
+  now?: number
+  signal?: AbortSignal
+}): Promise<'refreshed' | 'sold' | 'gone'> {
+  const db = await openFidelityDb()
+  const match = await db.get('matches', [digId, listingId])
+  if (!match) throw fail('dig-gone', 'no such find')
+
+  let listing
+  try {
+    listing = await client.get(`/marketplace/listings/${listingId}`, listingSchema, {
+      query: { curr_abbr: currency },
+      signal,
+    })
+  } catch (error) {
+    if (signal?.aborted) throw error
+    await db.put('matches', { ...match, ...stripMarketplace(match), expired: true })
+    return 'gone'
+  }
+
+  if ((listing.status ?? FOR_SALE) !== FOR_SALE) {
+    await db.put('matches', { ...match, ...stripMarketplace(match), expired: true })
+    return 'sold'
+  }
+
+  await db.put('matches', {
+    ...match,
+    price: listing.price?.value ?? null,
+    currency: listing.price?.currency ?? null,
+    condition: listing.condition ?? null,
+    sleeve: listing.sleeve_condition ?? null,
+    comments: listing.comments ?? null,
+    expired: false,
+    freshUntil: now + 6 * 60 * 60 * 1000,
+  })
+  return 'refreshed'
+}
+
 export async function refreshDig({
   client,
   digId,
