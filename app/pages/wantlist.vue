@@ -203,6 +203,30 @@ function toggleGroup(masterId: number) {
 }
 
 const visible = computed(() => groups.value.slice(0, shown.value))
+
+/*
+ * Which wanted record is open, and the list it can be walked with (M31.21).
+ *
+ * The lead of each group, in the order the grid shows them — the same rule
+ * every other walk follows: "the list" is what is on the screen.
+ */
+const open = ref<number | null>(null)
+const openRecord = computed(
+  () => visible.value.find((group) => group.lead.releaseId === open.value)?.lead ?? null,
+)
+const walk = computed(() => {
+  const ids = visible.value.map((group) => group.lead.releaseId)
+  const at = open.value
+  if (at === null) return null
+  const index = ids.indexOf(at)
+  if (index < 0) return null
+  return {
+    index,
+    total: ids.length,
+    previous: ids[index - 1] ?? null,
+    next: ids[index + 1] ?? null,
+  }
+})
 const rest = computed(() => groups.value.length - visible.value.length)
 
 watch(query, () => {
@@ -505,36 +529,47 @@ function waiting(addedAt: string): string | null {
             The sleeve is the door, in both sizes the sync already brought and
             lazily, because i.discogs.com has a budget of its own (docs/02).
           -->
-          <img
-            v-if="group.lead.thumbUrl || group.lead.coverUrl"
-            :src="group.lead.coverUrl || group.lead.thumbUrl"
-            :srcset="
-              group.lead.coverUrl && group.lead.thumbUrl
-                ? `${group.lead.thumbUrl} 150w, ${group.lead.coverUrl} 600w`
-                : undefined
-            "
-            sizes="(min-width: 90rem) 16vw, (min-width: 48rem) 25vw, 50vw"
-            alt=""
-            loading="lazy"
-            decoding="async"
-            width="600"
-            height="600"
-            class="aspect-square w-full rounded-fid-sm bg-fid-surface object-cover"
-          />
-          <span
-            v-else
-            class="flex aspect-square w-full items-center justify-center rounded-fid-sm bg-fid-surface text-fid-xs text-fid-text-muted"
+          <!--
+            The sleeve is the door — into the record, not out of the app
+            (M31.21). It led to discogs.com until 2026-09-14, which made the
+            wantlist the one screen where a cover was a way out.
+          -->
+          <button
+            type="button"
+            class="fid-cover-button rounded-fid-sm"
+            :aria-label="c.open(group.lead.artist, group.lead.title)"
+            @click="open = group.lead.releaseId"
           >
-            {{ c.noCover }}
-          </span>
-          <!-- Outward, and marked as such: Discogs is where you go to buy one. -->
-          <OutwardLink
-            tone="inherit"
-            class="fid-display line-clamp-2 text-fid-sm leading-tight font-semibold text-fid-text"
-            :to="`https://www.discogs.com/release/${group.lead.releaseId}`"
+            <img
+              v-if="group.lead.thumbUrl || group.lead.coverUrl"
+              :src="group.lead.coverUrl || group.lead.thumbUrl"
+              :srcset="
+                group.lead.coverUrl && group.lead.thumbUrl
+                  ? `${group.lead.thumbUrl} 150w, ${group.lead.coverUrl} 600w`
+                  : undefined
+              "
+              sizes="(min-width: 90rem) 16vw, (min-width: 48rem) 25vw, 50vw"
+              alt=""
+              loading="lazy"
+              decoding="async"
+              width="600"
+              height="600"
+              class="aspect-square w-full rounded-fid-sm bg-fid-surface object-cover"
+            />
+            <span
+              v-else
+              class="flex aspect-square w-full items-center justify-center rounded-fid-sm bg-fid-surface text-fid-xs text-fid-text-muted"
+            >
+              {{ c.noCover }}
+            </span>
+          </button>
+          <button
+            type="button"
+            class="fid-action fid-display line-clamp-2 text-left text-fid-sm leading-tight font-semibold text-fid-text"
+            @click="open = group.lead.releaseId"
           >
             {{ group.lead.title }}
-          </OutwardLink>
+          </button>
           <span class="fid-plate truncate text-fid-text-muted">{{ group.lead.artist }}</span>
 
           <!-- One plate line: the year, the wait, the priority, the pressings the horizon knows. -->
@@ -687,6 +722,16 @@ function waiting(addedAt: string): string | null {
         {{ c.showMore(count(Math.min(rest, STEP))) }}
       </button>
     </template>
+
+    <WantSheet
+      v-if="openRecord"
+      :key="openRecord.releaseId"
+      :record="openRecord"
+      :walk="walk"
+      @close="open = null"
+      @step="open = $event"
+      @want="want(openRecord, $event)"
+    />
   </AppPage>
 </template>
 
