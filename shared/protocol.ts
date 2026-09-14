@@ -1117,6 +1117,22 @@ export interface DealerProfile {
    */
   priceFactor: number | null
   scannedDealers: number
+  /**
+   * Four records of your own on the labels this shop carries (M31.4).
+   *
+   * A shop described in numbers is a shop nobody pictures. This is the same
+   * fact — "it stocks Kompakt, Ostgut Ton, Dekmantel" — as four sleeves you
+   * already own, and it says in half a second what three lines of text do not:
+   * *this is your kind of shop.*
+   *
+   * Both halves are free and neither expires. The fingerprint is derived
+   * statistics rather than marketplace content, so it outlives the six-hour
+   * rule; the covers are your own collection's, long since stored. Covers out
+   * of the shop's *stock* would be marketplace content and would have to
+   * vanish after six hours — a row of pictures that disappears at lunchtime is
+   * worse than none.
+   */
+  shelf: { releaseId: number; title: string; artist: string; label: string }[]
 }
 
 export interface RefreshProgress {

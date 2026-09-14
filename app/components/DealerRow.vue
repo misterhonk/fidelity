@@ -33,6 +33,15 @@ const props = defineProps<{
    * every shop including the best one.
    */
   peak: number
+  /**
+   * How many listings have appeared here since the last check, or zero.
+   *
+   * The watcher measures this on every app start and has always reported it as
+   * a banner at the top of the screen — "something moved somewhere". Beside
+   * the shop it is an invitation instead: it names which shop, and it stands
+   * where somebody would act on it.
+   */
+  moved?: number
 }>()
 
 const rate = computed(() => props.dealer.affinity)
@@ -132,6 +141,19 @@ const from = computed(() =>
       </span>
       <span class="block h-1 w-full rounded-full bg-fid-inset">
         <span class="block h-1 rounded-full bg-fid-text-muted" :style="{ width }" />
+      </span>
+
+      <!--
+        And the one number on this screen that is an invitation rather than a
+        measurement. It carries the sentence the banner used to carry, so "+37"
+        is never a figure somebody has to take on trust.
+      -->
+      <span
+        v-if="moved && moved > 0"
+        class="fid-tonal fid-num rounded-fid-sm px-2 text-fid-xs"
+        :title="`${dealer.displayName || dealer.username} ${m.watch.moved(count(moved), moved === 1)}`"
+      >
+        +{{ count(moved) }}
       </span>
     </span>
 

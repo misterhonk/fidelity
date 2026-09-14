@@ -229,6 +229,8 @@ const en = {
   priceWhy:
     'Only against your own shops. What the market as a whole asks is not something this app can see, so it does not claim it either.',
 
+  /** Four records of your own on the labels this shop carries (M31.4). */
+  shelfSample: 'From your shelf it stocks',
   labelsInStock: 'Labels in stock',
   noLabels: 'No label information in the stock.',
   decades: 'Decades',
@@ -381,6 +383,7 @@ const de: typeof en = {
   priceWhy:
     'Nur gegen deine eigenen Läden. Was der Markt insgesamt aufruft, kann diese App nicht sehen, und sie behauptet es deshalb auch nicht.',
 
+  shelfSample: 'Aus deinem Regal führt er',
   labelsInStock: 'Labels im Sortiment',
   noLabels: 'Keine Labelangaben im Sortiment.',
   decades: 'Dekaden',

@@ -21,7 +21,25 @@ useSeoMeta({
 })
 
 const { call } = useFidelityWorker()
-const { isWatched, toggle, load: loadWatchlist } = useWatchlist()
+const { alerts, isWatched, toggle, load: loadWatchlist } = useWatchlist()
+
+/*
+ * The sleeves for the shelf sample — whatever is already stored, and nothing
+ * more. `fetch: false` is the point: a picture beside a shop is worth having
+ * and not worth a request, so a record without a cover on hand shows none.
+ */
+const { coverFor, request: requestCovers } = useCovers()
+
+/*
+ * What the watcher found, by shop.
+ *
+ * It runs on every app start and reports "37 more than last time" per watched
+ * shop. Until now that arrived as a banner at the top of the screen; the row
+ * is where somebody would act on it.
+ */
+const moved = computed(
+  () => new Map(alerts.value.map((alert) => [alert.dealer, alert.newListings])),
+)
 const {
   state: push,
   busy: pushBusy,
@@ -360,7 +378,14 @@ async function select(username: string) {
   grading.value = null
   error.value = null
   try {
-    profile.value = await call('dealer.profile', { dealer: username })
+    const answer = await call('dealer.profile', { dealer: username })
+    profile.value = answer
+    if (answer) {
+      void requestCovers(
+        answer.shelf.map((record) => record.releaseId),
+        { fetch: false },
+      )
+    }
     grading.value = await call('grading.forDealer', { dealer: username })
   } catch (cause) {
     error.value = cause
@@ -590,6 +615,7 @@ const scanned = computed(() => {
                 :dealer="dealer"
                 :selected="dealer.username === selected"
                 :peak="peak"
+                :moved="moved.get(dealer.username) ?? 0"
                 @open="select(dealer.username)"
               />
             </li>
@@ -803,6 +829,52 @@ const scanned = computed(() => {
             </p>
             <WhyNote :label="h.priceWhyLabel">{{ h.priceWhy }}</WhyNote>
           </div>
+
+          <!--
+            Four sleeves of your own on the labels this shop carries (M31.4).
+
+            A shop described in numbers is a shop nobody pictures. This is the
+            same fact as the bars below it — "stocks Kompakt, Ostgut Ton,
+            Dekmantel" — as four records you already own, and it says in half a
+            second what the bars say in ten.
+
+            Costs nothing: the covers are asked for with fetching switched off,
+            so what is on hand is shown and the rest simply is not.
+          -->
+          <section v-if="profile.shelf.length > 0" class="flex flex-col gap-3">
+            <h2 class="text-fid-sm font-medium text-fid-text">{{ h.shelfSample }}</h2>
+            <ul class="flex flex-wrap gap-3">
+              <li v-for="record in profile.shelf" :key="record.releaseId">
+                <NuxtLink
+                  :to="`/shelf?release=${record.releaseId}`"
+                  class="fid-cover-button block size-20 overflow-hidden rounded-fid-cover bg-fid-inset"
+                  :title="`${record.artist} – ${record.title} · ${record.label}`"
+                  :aria-label="`${record.artist} – ${record.title} · ${record.label}`"
+                >
+                  <img
+                    v-if="coverFor(record.releaseId, null)"
+                    :src="coverFor(record.releaseId, null)!.thumbUrl"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    width="150"
+                    height="150"
+                    class="size-full object-cover"
+                  />
+                  <span
+                    v-else
+                    class="flex size-full items-center justify-center text-fid-text-muted"
+                    aria-hidden="true"
+                  >
+                    <FidIcon name="platte" :size="28" />
+                  </span>
+                </NuxtLink>
+              </li>
+            </ul>
+            <p class="fid-plate text-fid-text-muted">
+              {{ profile.shelf.map((record) => record.label).join(' · ') }}
+            </p>
+          </section>
 
           <div class="grid gap-8 @md:grid-cols-2 @5xl:grid-cols-3">
             <FacetBars
