@@ -12,8 +12,18 @@ import { useCollectionMessages } from '~/i18n/collection'
 const c = useCollectionMessages()
 const m = useMessages()
 
-const props = defineProps<{ instanceId: number }>()
-const emit = defineEmits<{ close: [] }>()
+const props = defineProps<{
+  instanceId: number
+  /**
+   * The list this record was opened from, so the shelf can be walked without
+   * closing the sheet (M31.16) — the same arrows a find has had since M31.13.
+   *
+   * A screen that passes none has none: the wall and the start page open one
+   * record out of a context that is not a list to read down.
+   */
+  walk?: { index: number; total: number; previous: number | null; next: number | null } | null
+}>()
+const emit = defineEmits<{ close: []; step: [instanceId: number] }>()
 
 const { call } = useFidelityWorker()
 const { state: writeState, push } = useWriteBack()
@@ -209,6 +219,35 @@ const lookAgain = () => look(true)
  * pass on rather than paper over: a bare number could be euros, dollars or
  * pounds, and a figure somebody cannot act on is worse than a missing line.
  */
+/**
+ * Stepping, and the keyboard doing the same where nobody is typing.
+ *
+ * The sheet is re-keyed on the instance id by whoever renders it, so a step
+ * builds it again from scratch — which is right: it is a different record and
+ * everything in it has to be fetched again.
+ */
+function step(to: number | null) {
+  if (to === null) return
+  emit('step', to)
+}
+
+function onArrow(event: KeyboardEvent) {
+  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+  if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
+  const on = document.activeElement
+  if (
+    on instanceof HTMLElement &&
+    (on.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(on.tagName))
+  )
+    return
+  if (!props.walk) return
+  event.preventDefault()
+  step(event.key === 'ArrowLeft' ? props.walk.previous : props.walk.next)
+}
+
+onMounted(() => document.addEventListener('keydown', onArrow))
+onBeforeUnmount(() => document.removeEventListener('keydown', onArrow))
+
 onMounted(async () => {
   record.value = await call('collection.record', { instanceId: props.instanceId })
   if (record.value) {
@@ -346,6 +385,33 @@ async function remove() {
     transition="shelf-sheet"
     @close="emit('close')"
   >
+    <!-- Where this record stands in the list, and the two either side of it. -->
+    <template v-if="walk" #tools>
+      <button
+        type="button"
+        :disabled="walk.previous === null"
+        :aria-label="c.shelf.sheet.previous"
+        :title="c.shelf.sheet.previous"
+        class="fid-lift flex min-h-11 min-w-11 items-center justify-center fid-field-raised text-fid-text disabled:opacity-40"
+        @click="step(walk.previous)"
+      >
+        <FidIcon name="arrow-left" :size="18" aria-hidden="true" />
+      </button>
+      <span class="fid-num px-1 text-fid-xs whitespace-nowrap text-fid-text-muted">
+        {{ m.common.ofTotal(String(walk.index + 1), String(walk.total)) }}
+      </span>
+      <button
+        type="button"
+        :disabled="walk.next === null"
+        :aria-label="c.shelf.sheet.next"
+        :title="c.shelf.sheet.next"
+        class="fid-lift flex min-h-11 min-w-11 items-center justify-center fid-field-raised text-fid-text disabled:opacity-40"
+        @click="step(walk.next)"
+      >
+        <FidIcon name="arrow-right" :size="18" aria-hidden="true" />
+      </button>
+    </template>
+
     <template #title>
       <template v-if="record">{{ artist }} – {{ record.title }}</template>
       <template v-else>{{ c.shelf.sheet.loading }}</template>
