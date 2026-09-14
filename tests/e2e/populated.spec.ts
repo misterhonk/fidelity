@@ -91,9 +91,17 @@ test.describe('a device that has been used', () => {
 
     await page.getByRole('button', { name: /Speak No Evil/ }).click()
 
+    /*
+     * The label, in the masthead's mono line rather than in a named row.
+     *
+     * Since 2026-09-14 the record's own facts — artist, label, catalogue
+     * number, format, year — stand in the same head every sheet has, and the
+     * table that is left holds what is true of *your copy*. The point of the
+     * assertion is unchanged: the worker answered and the value is on screen.
+     */
     const sheet = page.getByRole('dialog')
-    await expect(sheet.getByText('Label', { exact: true })).toBeVisible()
-    await expect(sheet.getByText('Blue Note')).toBeVisible()
+    await expect(sheet.getByRole('heading', { name: 'Speak No Evil' })).toBeVisible()
+    await expect(sheet.getByRole('link', { name: 'Blue Note' })).toBeVisible()
     await expect(sheet.getByRole('link', { name: /View at Discogs/ })).toHaveAttribute(
       'href',
       /discogs\.com\/release\//,

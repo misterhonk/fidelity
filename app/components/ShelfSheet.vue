@@ -338,16 +338,14 @@ const facts = computed<Fact[]>(() => {
   const item = record.value
   if (!item) return []
   return (
-    (
-      [
-        { key: 'artist', links: shelfLinks(item.artistNames, 'artist') },
-        { key: 'label', links: shelfLinks(item.labelNames, 'label') },
-        { key: 'catno', value: item.catnos.join(' · '), mono: true },
-        { key: 'format', value: pressing(item) },
-        { key: 'year', value: item.year > 0 ? String(item.year) : '', mono: true },
-        { key: 'added', value: added.value, mono: true },
-      ] as Fact[]
-    )
+    /*
+     * What is left of the table once the masthead has the record itself
+     * (M31.20): artist, label, catalogue number, format and year are the
+     * *record*, and they now stand where every other sheet puts them. What
+     * stays here is what is true of **your copy** and of nobody else's — the
+     * rating, the folder, and the day it arrived.
+     */
+    ([{ key: 'added', value: added.value, mono: true }] as Fact[])
       // Empty ones are dropped rather than shown blank — a row that says
       // "Catalogue number: —" is a row that wasted a line.
       .filter((fact) => (fact.links?.length ?? 0) > 0 || (fact.value?.length ?? 0) > 0)
@@ -412,9 +410,11 @@ async function remove() {
       </button>
     </template>
 
-    <template #title>
-      <template v-if="record">{{ artist }} – {{ record.title }}</template>
-      <template v-else>{{ c.shelf.sheet.loading }}</template>
+    <!-- The sheet's own name, only while there is no masthead to carry it. -->
+    <template v-if="!record" #title>{{ c.shelf.sheet.loading }}</template>
+
+    <template v-if="record?.coverUrl || record?.thumbUrl" #wash>
+      <SleeveWash :src="record.thumbUrl || record.coverUrl" />
     </template>
 
     <template v-if="record">
@@ -446,47 +446,57 @@ async function remove() {
         {{ c.shelf.sheet.write[writeState] }}
       </p>
 
-      <!-- Same shape as the dig sheet: cover on top on a phone, beside from `sm` up. -->
       <!--
-          Wrap rather than crush.
+        The same masthead as every other sheet (M31.20). What used to stand
+        here was a label-and-value table of the record itself — artist, label,
+        catalogue number, format, year — which made the same record look like
+        two designs depending on which screen it was opened from.
+      -->
+      <RecordMasthead
+        :cover="
+          record.coverUrl || record.thumbUrl
+            ? { thumbUrl: record.thumbUrl, coverUrl: record.coverUrl }
+            : null
+        "
+        :title="record.title"
+      >
+        <template #artist>
+          <template
+            v-for="(link, index) in shelfLinks(record.artistNames, 'artist')"
+            :key="link.to"
+          >
+            <span v-if="index > 0"> · </span>
+            <NuxtLink :to="link.to" class="underline underline-offset-4 hover:text-fid-accent">
+              {{ link.name }}
+            </NuxtLink>
+          </template>
+        </template>
 
-          The cover is `shrink-0` and takes its width; the facts got what was
-          left — with a 512 px sheet and a 320 px cover that is 128, and out of
-          it came "Poker / Flat / Record". With a minimum width and `flex-wrap`
-          they slide under the cover instead, as soon as side by side would no
-          longer be legible.
-        -->
-      <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
         <!--
-              Larger, and the price for it is stated here.
+          One mono line, the same one the find's sheet has — with the labels
+          still leading back to your own shelf, because "who else is on this
+          label" is a question somebody asks with the record in hand.
+        -->
+        <template #facts>
+          <p class="flex flex-wrap gap-x-2 font-fid-mono text-fid-xs text-fid-text-muted">
+            <span
+              v-for="(link, index) in shelfLinks(record.labelNames, 'label')"
+              :key="link.to"
+            >
+              <span v-if="index > 0" class="pr-2">·</span>
+              <NuxtLink
+                :to="link.to"
+                class="underline underline-offset-4 hover:text-fid-accent"
+              >
+                {{ link.name }}
+              </NuxtLink>
+            </span>
+            <span v-if="record.catnos.length">· {{ record.catnos.join(' · ') }}</span>
+            <span v-if="pressing(record)">· {{ pressing(record) }}</span>
+            <span v-if="record.year > 0" class="fid-num">· {{ record.year }}</span>
+          </p>
+        </template>
 
-              Discogs hands out the long edge at 600 at most and often less:
-              `images[0]` from `/releases/{id}` is the same version as
-              `cover_image`, and the CDN path is signed — rewritten to
-              `h:1200/w:1200` it answers 403 (measured 2026-08-14). At 384 px on
-              a 2× screen that is 768 device pixels against 600 available at
-              most, so upscaled by at least 30 %. Chosen deliberately: a record
-              sleeve is what somebody opens this panel for, and a little softer
-              is better than a little too small.
-
-              No `srcset`. It stood here as `thumbUrl 150w, coverUrl 600w`, and
-              both halves were wrong: the 600 is a promise about actual width
-              that nobody keeps — release 512 delivers 313 × 238 — and the 150
-              candidate was never picked. At 320 px of window and 2×, this
-              screen's narrowest case needs 640 device pixels; measured, the
-              browser picks the cover there too. Two candidates, one of which
-              never wins, are a line of choosing without a choice.
-            -->
-        <img
-          v-if="record.coverUrl || record.thumbUrl"
-          :src="record.coverUrl || record.thumbUrl"
-          alt=""
-          loading="lazy"
-          decoding="async"
-          width="600"
-          height="600"
-          class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-80 lg:w-80 xl:size-96 xl:w-96"
-        />
         <dl
           class="grid min-w-0 grow grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-fid-sm sm:basis-52"
         >
@@ -576,7 +586,7 @@ async function remove() {
             </dd>
           </template>
         </dl>
-      </div>
+      </RecordMasthead>
 
       <section v-if="canRate && fields.length > 0" class="flex flex-col gap-3">
         <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.condition }}</h3>
