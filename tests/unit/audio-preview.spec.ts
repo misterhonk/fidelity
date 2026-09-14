@@ -270,3 +270,35 @@ describe('looking up the clips a find came without', () => {
     expect(caught).toMatch(/found\.value = \[\]/)
   })
 })
+
+/**
+ * One row per video, not one per address.
+ *
+ * Discogs stores what people entered, and the same clip gets entered twice —
+ * `youtube.com/watch?v=X` and `youtu.be/X` are one video and were two rows.
+ * Reported on 2026-09-14 as links turning up twice, on a record with fourteen
+ * of them.
+ */
+describe('the clip list', () => {
+  const bare = withoutComments(SECTION)
+
+  it('counts videos rather than addresses', () => {
+    // The two shapes resolve to one id — which is the whole point of the
+    // deduplication, and is checked against the same function the list uses.
+    expect(videoId('https://www.youtube.com/watch?v=Cawyll0pOI4')).toBe(
+      videoId('https://youtu.be/Cawyll0pOI4'),
+    )
+    expect(bare).toMatch(/const id = videoId\(video\.uri\) \?\? video\.uri/)
+    expect(bare).toMatch(/seen\.has\(id\)/)
+  })
+
+  /** And the cut is the component's, so both sheets show the same record. */
+  it('cuts at six wherever it is used, and says so', () => {
+    expect(bare).toMatch(/const LIMIT = 6/)
+    expect(bare).toMatch(/distinct\.value\.slice\(0, LIMIT\)/)
+    expect(bare).toMatch(/v-if="distinct\.length > clips\.length"/)
+
+    const shelf = withoutComments(readFileSync('app/components/ShelfSheet.vue', 'utf8'))
+    expect(shelf).not.toMatch(/videos\.slice\(0, 6\)/)
+  })
+})

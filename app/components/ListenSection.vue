@@ -30,8 +30,6 @@ const props = defineProps<{
   title: string | null | undefined
   /** The clips to offer. Absent on everything outside the enriched top fifty. */
   videos?: { title: string; uri: string }[]
-  /** How many the record has in all, where the list above is a cut of them. */
-  total?: number
   /**
    * Where to look when the caller has no clips — see `asking` below.
    *
@@ -85,7 +83,36 @@ onMounted(async () => {
   }
 })
 
-const clips = computed(() => (props.videos?.length ? props.videos : (found.value ?? [])))
+/**
+ * Six at most, and one row per *video* rather than per address.
+ *
+ * Two things went wrong at once on a record with fourteen clips. Discogs
+ * stores what people entered, and the same video gets entered twice — once as
+ * `youtube.com/watch?v=…` and once as `youtu.be/…`. Counting addresses made
+ * that two rows, which reads as "this record has two of these" and is simply
+ * not true. Reported on 2026-09-14 as links turning up twice.
+ *
+ * And the cut: the shelf's sheet has always shown six of them and said so. The
+ * find's sheet showed all of them, so the same record looked different
+ * depending on which screen you came from — a list of fourteen buries
+ * everything under it either way.
+ */
+const LIMIT = 6
+
+const distinct = computed(() => {
+  const all = props.videos?.length ? props.videos : (found.value ?? [])
+  const seen = new Set<string>()
+  return all.filter((video) => {
+    // An address nobody can read an id out of stands for itself: dropping it
+    // would hide a clip, and keeping it costs one row.
+    const id = videoId(video.uri) ?? video.uri
+    if (seen.has(id)) return false
+    seen.add(id)
+    return true
+  })
+})
+
+const clips = computed(() => distinct.value.slice(0, LIMIT))
 
 const searchAt = computed(() => listenUrl(service.value, props.artist, props.title))
 
@@ -184,8 +211,8 @@ onBeforeUnmount(() => audio.release(mount.value))
       </li>
     </ul>
 
-    <p v-if="total && total > clips.length" class="fid-num text-fid-xs text-fid-text-muted">
-      {{ m.common.ofTotal(count(clips.length), count(total)) }}
+    <p v-if="distinct.length > clips.length" class="fid-num text-fid-xs text-fid-text-muted">
+      {{ m.common.ofTotal(count(clips.length), count(distinct.length)) }}
     </p>
 
     <!-- Something is happening, and the screen says so rather than sitting empty. -->
