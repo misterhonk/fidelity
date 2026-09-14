@@ -1146,9 +1146,19 @@ const noHorizon = computed(
             {{ d.newListings(count(result.dig.listingsTotal), result.dig.listingsTotal === 1) }}
           </template>
           <template v-else>
+            <!--
+              Distinct listings, not rows read (M32.6).
+
+              A shop walked from both ends hands the middle back twice, so
+              `listingsScanned` counts to 20.000 on a shop that holds 19.864 —
+              and the line said "20.000 von 19.864 gescannt (100 %)", which is
+              a number nobody can make sense of. `uniqueSeen` is the numerator
+              `coverage` is already built from; the two now agree. Older digs
+              have no `uniqueSeen` and keep the old number rather than none.
+            -->
             {{
               d.scanned(
-                count(result.dig.listingsScanned),
+                count(result.dig.uniqueSeen ?? result.dig.listingsScanned),
                 count(result.dig.listingsTotal),
                 Math.round(result.dig.coverage * 100),
               )
