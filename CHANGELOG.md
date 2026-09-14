@@ -9,6 +9,27 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.80.0](https://github.com/misterhonk/fidelity/compare/v0.79.0...v0.80.0) (2026-09-14)
+
+**Auf dem Telefon öffnet sich ein Laden jetzt über der Liste, nicht drei Bildschirme
+darunter.**
+
+Auf einem breiten Schirm stand das Profil schon neben der Liste. Gestapelt auf einem Telefon
+lag es unter einem Dutzend Zeilen — und damit auch „Laden merken", „Nochmal graben" und
+„Ausblenden", also genau die drei Dinge, für die man einen Laden aufmacht. Jetzt ist es ein
+Blatt: es öffnet über der Liste, es ist der ganze Bildschirm, und Schließen setzt dich genau
+dorthin zurück, wo du getippt hast.
+
+Dazu öffnet sich der erste Laden auf dem Telefon nicht mehr von selbst. Das hieß vorher:
+ankommen auf einem Bildschirm, dessen erste Handlung ist, sich selbst zuzudecken. Ein Laden,
+nach dem du gefragt hast — ein geteilter Link, ein Tipp auf der Startseite — öffnet
+unverändert.
+
+
+### Added
+
+* **dealers:** on a phone the open shop is a sheet ([00d61c5](https://github.com/misterhonk/fidelity/commit/00d61c511ed9eb0df272c30b4d58e55116a0bb5f))
+
 ## [0.79.0](https://github.com/misterhonk/fidelity/compare/v0.78.0...v0.79.0) (2026-09-14)
 
 **Ein Fund bedeutet etwas neben seinen Nachbarn — also trägt das Blatt die Liste jetzt mit
