@@ -49,6 +49,9 @@ const en = {
      * without this word the difference is invisible.
      */
     short: 'only what was new',
+    /** The dig nobody has to run: the count has not moved (M32.4). */
+    unmoved: (howMany: string) =>
+      `Still ${howMany} for sale — the same number as at your last dig. Nothing may have arrived; a shop that sold one and listed one counts as unchanged here.`,
     known: (minutes: number) =>
       `You know this shop already. Fidelity can fetch only the listings that have arrived since last time — usually one or two lookups instead of ${counted(minutes, 'minute', 'minutes')}.`,
     fetch: 'Fetch only what is new',
@@ -435,6 +438,8 @@ const de: typeof en = {
 
   incremental: {
     short: 'nur das Neue',
+    unmoved: (howMany) =>
+      `Weiterhin ${howMany} im Angebot – dieselbe Zahl wie bei deinem letzten Dig. Neu dazugekommen sein muss trotzdem nichts: ein Laden, der eine verkauft und eine eingestellt hat, zählt hier als unverändert.`,
     known: (minutes) =>
       `Diesen Laden kennst du schon. Fidelity kann nur die Angebote holen, die seit dem letzten Mal dazugekommen sind — meist ein bis zwei Abfragen statt ${counted(minutes, 'Minute', 'Minuten')}.`,
     fetch: 'Nur das Neue holen',

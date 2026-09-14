@@ -208,6 +208,8 @@ const en = {
    * back is a trap, not a setting.
    */
   hide: 'Hide this shop',
+  /** The seller's own page — postage in prose, holidays, returns (M32.3). */
+  atDiscogs: 'The shop at Discogs',
   hideWhy:
     'Gone from the lists, the start page and the suggestions, and no longer watched. A dig you start by name brings it back.',
   hidden: {
@@ -378,6 +380,7 @@ const de: typeof en = {
   },
 
   hide: 'Diesen Laden ausblenden',
+  atDiscogs: 'Der Laden bei Discogs',
   hideWhy:
     'Weg aus den Listen, von der Startseite und aus den Vorschlägen, und nicht mehr beobachtet. Ein Dig, den du mit Namen startest, holt ihn zurück.',
   hidden: {

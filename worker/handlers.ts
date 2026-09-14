@@ -206,6 +206,7 @@ export const handlers: HandlerMap = {
         ? Math.min(numForSale, SCAN_PASSES.length * MAX_PAGES * PER_PAGE)
         : null,
       since: anchorFor(known),
+      hadForSale: known?.numForSale ?? null,
       sellerRating: profile.seller_rating ?? null,
       location: profile.location ?? null,
     }

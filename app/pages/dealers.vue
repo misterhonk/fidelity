@@ -1012,6 +1012,25 @@ const scanned = computed(() => {
                 >
                   {{ h.hide }}
                 </button>
+                <!--
+                And the shop itself, at Discogs (M32.3).
+
+                Everything this screen knows about a shop it worked out from
+                its inventory — the hit rate, the labels, the price band. What
+                it cannot know is what the seller wrote about themselves:
+                postage tables in prose, holiday notices, the return policy.
+                That page is one tap away now instead of a name to retype.
+
+                `/seller/{u}/profile` rather than `/user/{u}`: the first is the
+                shop, the second is the person, and this list is about shops.
+                -->
+                <OutwardLink
+                  tone="inherit"
+                  class="text-fid-sm"
+                  :to="`https://www.discogs.com/seller/${encodeURIComponent(profile.dealer.username)}/profile`"
+                >
+                  {{ h.atDiscogs }}
+                </OutwardLink>
                 <span class="text-fid-xs text-fid-text-muted">{{ h.watchCost }}</span>
               </div>
 

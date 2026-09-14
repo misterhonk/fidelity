@@ -1257,6 +1257,20 @@ export interface DigPreflight {
    * newest-first and stops at the first record it already knows.
    */
   since: string | null
+  /**
+   * How many this shop had at the last dig, or null where there was none
+   * (M32.4).
+   *
+   * The preflight already asks `/users/{u}` for the current count, and the
+   * dealer row has held the old one all along — so "nothing has moved since
+   * your last visit" costs no request at all, and it is the answer that saves
+   * the whole dig rather than shortening it.
+   *
+   * It is a count and not a promise: a shop that sold one and listed one is
+   * unchanged by this measure. Which is why the screen offers it as a reason
+   * to skip, never as a refusal to run.
+   */
+  hadForSale: number | null
   sellerRating: number | null
   location: string | null
 }
