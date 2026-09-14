@@ -304,6 +304,10 @@ const en = {
     },
     score: (score: number) => `Barry Score ${score} out of 100`,
     scoreBand: (score: number, band: string) => `Barry Score ${score} out of 100 – ${band}`,
+    /* The name behind the question mark — spoken, and shown on hover. */
+    scoreWhat: 'How the score works',
+    scoreHow:
+      'The score counts the reasons a record is here: the strongest counts in full, every further one at 30 %. That is why 100 is almost never reached — a perfect wantlist hit on its own makes 87. From 85 it is Side One Track One, from 70 Top Five, from 50 Solid, below that a footnote.',
     /*
      * Two actions, not ratings — and until today they stood in German in
      * `app/composables/useFeedback.ts`. Neither of today's guards looks there:
@@ -344,6 +348,7 @@ const en = {
    * by looking at a screenshot of a seeded browser.
    */
   sheet: {
+    offer: { price: 'Price', media: 'Record', sleeve: 'Sleeve' },
     loading: 'Loading …',
     /*
      * A find whose dig is gone. Five are kept, so a newer dig eventually drops
@@ -563,6 +568,9 @@ const de: typeof en = {
     },
     score: (score: number) => `Barry Score ${score} von 100`,
     scoreBand: (score: number, band: string) => `Barry Score ${score} von 100 – ${band}`,
+    scoreWhat: 'Wie der Score entsteht',
+    scoreHow:
+      'Der Score zählt die Gründe, aus denen eine Platte hier steht: der stärkste zählt voll, jeder weitere zu 30 %. Darum wird die 100 fast nie erreicht – ein perfekter Wantlist-Treffer allein ergibt 87. Ab 85 ist es Side One, Track One, ab 70 Top Five, ab 50 Solide, darunter eine Randnotiz.',
     verdicts: {
       interesting: 'Merken',
       bought: 'Als gekauft',
@@ -586,6 +594,7 @@ const de: typeof en = {
   },
 
   sheet: {
+    offer: { price: 'Preis', media: 'Platte', sleeve: 'Hülle' },
     loading: 'Wird geladen …',
     goneTitle: 'Nicht mehr da',
     gone: 'Diesen Fund gibt es hier nicht mehr – ein neuerer Dig ist an seine Stelle getreten.',

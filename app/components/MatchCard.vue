@@ -27,13 +27,6 @@ const cover = computed(() => coverFor(props.match.releaseId, props.match.thumbUr
 const root = useTemplateRef<HTMLElement>('root')
 onMounted(() => watchCover(root.value, props.match.releaseId))
 
-const band = computed(() => {
-  if (props.match.score >= 85) return { key: 'S', label: d.value.match.band.S }
-  if (props.match.score >= 70) return { key: 'A', label: d.value.match.band.A }
-  if (props.match.score >= 50) return { key: 'B', label: d.value.match.band.B }
-  return { key: 'C', label: d.value.match.band.C }
-})
-
 const price = computed(() => {
   const { price: value, currency } = props.match
   return money(value, currency)
@@ -231,14 +224,13 @@ const signalsLine = computed(() =>
 
         <!-- The score and the price, on the card's last line, with the band as a plate. -->
         <div class="mt-auto flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 pt-2">
-          <div
-            class="flex items-baseline gap-2"
-            role="img"
-            :aria-label="d.match.scoreBand(match.score, band.label)"
-          >
-            <span class="fid-num text-fid-xl font-bold text-fid-text">{{ match.score }}</span>
-            <span class="fid-plate text-fid-text-muted">{{ band.key }}</span>
-          </div>
+          <!--
+            The score, with the word its band actually has and a ladder of
+            four — see ScoreMark.vue. It used to be `48 c`: the number in the
+            same size as the record's title, and a letter whose legend was
+            nowhere on the screen.
+          -->
+          <ScoreMark :score="match.score" />
           <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">
             <span v-if="match.condition">{{ match.condition }}</span>
             <span v-if="price" class="fid-num text-fid-text">{{ price }}</span>

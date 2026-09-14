@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Match, MatchDetail } from '#shared/types'
+import { gradeKey } from '#shared/format'
 import { reasonFor } from '~/i18n/reason'
 import { pressingText, stampText } from '~/i18n/pressing'
 import { useDigMessages } from '~/i18n/dig'
@@ -95,6 +96,18 @@ const price = computed(() => {
   const currency = match.value?.currency
   return money(value, currency)
 })
+
+/**
+ * A grade in words, for somebody who does not yet read Discogs' abbreviations.
+ *
+ * "Very Good Plus (VG+)" is a vocabulary item, not an answer. The sentence
+ * behind it is the single biggest hurdle of the first weeks, and there is room
+ * for it here — this is the screen where the decision is made.
+ */
+function gradeWord(condition: string | null | undefined): string | null {
+  const key = gradeKey(condition)
+  return key ? m.value.grades[key] : null
+}
 
 const marketLowest = computed(() => {
   const value = match.value?.marketLowestPrice
@@ -200,7 +213,17 @@ function years(entry: { from: number; to: number }): string {
         sheet blue, a Blue Note one orange, and nothing leaves the device or is
         fetched twice.
       -->
-      <div class="relative overflow-hidden rounded-fid-md">
+      <!--
+        `shrink-0`, and it is not cosmetic.
+
+        The sheet is a flex column, so its blocks shrink when the content is
+        taller than the screen — and `overflow-hidden` resolves this one's
+        automatic minimum size to zero, which means it can absorb the *whole*
+        shrink and collapse to nothing. It did: the offer block made the head
+        taller, and the head promptly rendered at zero pixels with its content
+        clipped, while every sibling kept its size. Measured 2026-09-14.
+      -->
+      <div class="relative shrink-0 overflow-hidden rounded-fid-md">
         <img
           v-if="cover"
           :src="cover.thumbUrl || cover.coverUrl"
@@ -234,36 +257,62 @@ function years(entry: { from: number; to: number }): string {
             height="600"
             class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80"
           />
-          <div class="flex min-w-0 grow items-start gap-4 sm:basis-52">
-            <div class="flex min-w-0 grow flex-col gap-1">
-              <p v-if="meta" class="font-fid-mono text-fid-xs text-fid-text-muted">
-                {{ meta }}
+          <!--
+            What this offer is — labelled values, not a line of loose facts.
+
+            The box used to hold a mono line, a couple of gradings and a large
+            number, and once a dig passed its six hours the marketplace fields
+            were nulled and all that stayed was the mono line beside a floating
+            figure. Reported on 2026-09-14 as "unstyled typography", and it was:
+            the box had no job. It has one now — it is the offer — and where the
+            offer may no longer be shown it says so rather than emptying out.
+          -->
+          <div class="flex min-w-0 grow flex-col gap-3 sm:basis-52">
+            <p v-if="meta" class="font-fid-mono text-fid-xs text-fid-text-muted">
+              {{ meta }}
+            </p>
+
+            <div v-if="price || match.condition || match.sleeve" class="flex flex-wrap gap-6">
+              <p v-if="price" class="flex flex-col gap-1">
+                <span class="fid-plate text-fid-text-muted">{{ d.sheet.offer.price }}</span>
+                <span class="fid-num text-fid-base text-fid-text">{{ price }}</span>
               </p>
-              <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">
-                <span v-if="match.condition" class="flex items-center gap-2">
-                  <FidIcon name="platte" :size="14" />
-                  {{ match.condition }}
-                </span>
-                <!--
+              <!--
                 Two gradings side by side, and which is which decides whether a
                 record is worth buying. "Cover VG" and "VG" read as the same
                 word twice; the disc and the sleeve do not.
               -->
-                <span v-if="match.sleeve" class="flex items-center gap-2">
-                  <FidIcon name="huelle" :size="14" />
-                  {{ match.sleeve }}
+              <p v-if="match.condition" class="flex min-w-0 flex-col gap-1">
+                <span class="fid-plate flex items-center gap-2 text-fid-text-muted">
+                  <FidIcon name="platte" :size="12" />
+                  {{ d.sheet.offer.media }}
                 </span>
-                <span v-if="price" class="fid-num text-fid-base text-fid-text">{{
-                  price
-                }}</span>
+                <span class="text-fid-sm text-fid-text">{{ match.condition }}</span>
+                <span
+                  v-if="gradeWord(match.condition)"
+                  class="max-w-64 text-fid-xs text-fid-text-muted"
+                >
+                  {{ gradeWord(match.condition) }}
+                </span>
+              </p>
+              <p v-if="match.sleeve" class="flex min-w-0 flex-col gap-1">
+                <span class="fid-plate flex items-center gap-2 text-fid-text-muted">
+                  <FidIcon name="huelle" :size="12" />
+                  {{ d.sheet.offer.sleeve }}
+                </span>
+                <span class="text-fid-sm text-fid-text">{{ match.sleeve }}</span>
+                <span
+                  v-if="gradeWord(match.sleeve)"
+                  class="max-w-64 text-fid-xs text-fid-text-muted"
+                >
+                  {{ gradeWord(match.sleeve) }}
+                </span>
               </p>
             </div>
-            <span
-              class="fid-num shrink-0 text-fid-xl font-bold text-fid-text"
-              :aria-label="d.match.score(match.score)"
-            >
-              {{ match.score }}
-            </span>
+
+            <p v-else-if="match.expired" class="max-w-prose text-fid-sm text-fid-text-muted">
+              {{ d.expired }}
+            </p>
           </div>
         </div>
       </div>
@@ -306,11 +355,20 @@ function years(entry: { from: number; to: number }): string {
         </p>
       </section>
 
-      <!-- Every signal with its evidence — the follow-up to the sentence. -->
-      <section class="flex flex-col gap-2" aria-labelledby="sheet-signals">
-        <h3 id="sheet-signals" class="text-fid-sm font-medium text-fid-text">
-          {{ d.sheet.signals }}
-        </h3>
+      <!--
+        Every signal with its evidence — the follow-up to the sentence, and now
+        with the number they add up to standing at the head of them.
+
+        That is the real explanation of a score: not the formula behind a
+        question mark, but the reasons themselves, immediately underneath.
+      -->
+      <section class="flex flex-col gap-3" aria-labelledby="sheet-signals">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <h3 id="sheet-signals" class="text-fid-sm font-medium text-fid-text">
+            {{ d.sheet.signals }}
+          </h3>
+          <ScoreMark :score="match.score" block />
+        </div>
         <ul class="flex flex-col gap-2">
           <li
             v-for="signal in match.signals"

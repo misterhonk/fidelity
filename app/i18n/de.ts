@@ -54,6 +54,17 @@ const de: Messages = {
     stop: 'Stopp',
   },
 
+  grades: {
+    M: 'Versiegelt oder nie abgespielt.',
+    NM: 'Sieht neu aus, kaum gespielt. Kein Rauschen, das auffällt.',
+    VGP: 'Leichte Gebrauchsspuren. Spielt sauber, vielleicht ein Knacken zwischen den Stücken.',
+    VG: 'Sichtbare Spuren. Rauschen, das man in leisen Passagen hört.',
+    GP: 'Viel gespielt. Durchgehend Rauschen, läuft aber.',
+    G: 'Stark gespielt. Ein Exemplar zum Haben, nicht zum Hören.',
+    F: 'Beschädigt. Läuft bestenfalls durch.',
+    P: 'Kaputt oder unabspielbar.',
+  },
+
   notice: {
     offline: {
       title: 'Kein Netz.',

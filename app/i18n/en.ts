@@ -122,6 +122,25 @@ const en = {
     stop: 'Stop',
   },
 
+  /**
+   * The eight Discogs grades, in words somebody three weeks into collecting
+   * can act on (M26.4, the beginner's hurdle).
+   *
+   * Not a translation of the abbreviation — an answer to the question behind
+   * it: can I play this, and will it annoy me. Discogs' own definitions are
+   * about the object; these are about the evening.
+   */
+  grades: {
+    M: 'Sealed or never played.',
+    NM: 'Looks new, barely played. No noise you would notice.',
+    VGP: 'Light marks from use. Plays clean, maybe a tick between tracks.',
+    VG: 'Visible marks. Surface noise you hear in quiet passages.',
+    GP: 'Well played. Noise throughout, but it plays.',
+    G: 'Heavily played. A copy to have, not to listen to.',
+    F: 'Damaged. Plays through at best.',
+    P: 'Broken or unplayable.',
+  },
+
   /** The notices that can appear on any screen. */
   notice: {
     offline: {
