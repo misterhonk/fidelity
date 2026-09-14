@@ -11,6 +11,20 @@ Für eine App bedeutet SemVer:
 
 ## [0.80.1](https://github.com/misterhonk/fidelity/compare/v0.80.0...v0.80.1) (2026-09-14)
 
+**Zwei Anfragen weniger, ohne dass irgendwo etwas gespeichert wird, das altern könnte.**
+
+Der Cover-Durchgang holt `/releases/{id}` für das, was gerade auf dem Schirm ist. Auf die
+Karte zu tippen, deren Bild noch nicht da ist, fragte bisher nach genau der Platte, die schon
+in der Schlange stand — zwei Anfragen für einen Body, aus einem Budget von sechzig pro
+Minute. Jetzt steigt der zweite Aufrufer beim ersten ein. Das ist ausdrücklich **kein**
+Zwischenspeicher: eine fertige Anfrage ist weg, ausgeliefert wird nie aus einer fertigen, und
+die Sechs-Stunden-Regel bleibt unberührt, weil es gar kein Alter gibt.
+
+Und wer mit den Pfeilen durch eine Fundliste geht, wartet nach dem ersten Pfeil nicht mehr:
+die nächste Platte wird nachgeschlagen, während die aktuelle gelesen wird. Nach dem ersten
+Pfeil, nicht davor — eine Platte zu öffnen ist kein Beleg dafür, dass jemand eine zweite
+will. Und nie weiter als eine.
+
 
 ### Changed
 
