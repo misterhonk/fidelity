@@ -9,6 +9,21 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.86.0](https://github.com/misterhonk/fidelity/compare/v0.85.0...v0.86.0) (2026-09-14)
+
+**Die kompakte Dichte bekommt ihre Spaltennamen.**
+
+Sie war seit jeher eine Tabelle — Cover, Score, Platte, Preis — mit unbenannten Spalten, von
+denen sich keine dort sortieren ließ, wo man hinsieht. Der Kopf steht jetzt da, klebend unter
+der Filterleiste, weil er dreihundert Zeilen später noch da sein muss. Die Namen tragen
+dieselben Pfeile wie die Leiste darüber, weil sie dieselben Sortierungen auswählen: ein
+zweiter Weg dorthin, wo das Auge ohnehin ist — kein zweiter Mechanismus.
+
+
+### Added
+
+* **dig:** the compact density gets its column names back ([a17a500](https://github.com/misterhonk/fidelity/commit/a17a500a585ee38ab70a1f22c2b5382f512e78ee))
+
 ## [0.85.0](https://github.com/misterhonk/fidelity/compare/v0.84.0...v0.85.0) (2026-09-14)
 
 **`j` und `k` gehen durch die Funde, `/` springt in den Filter.**
