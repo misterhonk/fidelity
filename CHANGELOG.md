@@ -11,6 +11,40 @@ Für eine App bedeutet SemVer:
 
 ## [0.77.0](https://github.com/misterhonk/fidelity/compare/v0.76.0...v0.77.0) (2026-09-14)
 
+**Eine Platte sieht jetzt gleich aus, egal von wo du sie öffnest — und sie hat eine
+Trackliste zum Anhören.**
+
+Das Regal-Blatt zeigte Trackliste, Mitwirkende, Auslaufrille und Stile; das Fundstück-Blatt
+zeigte einen Satz und einen Score. Ab jetzt zeigen beide dasselbe: was auf der Platte ist, wer
+sie gemacht hat, welche Pressung das genau ist und was drüber notiert wurde. Das kostet keine
+einzige zusätzliche Abfrage — das Fundstück-Blatt hatte diese Daten längst geholt und nur
+nicht ausgepackt.
+
+**Die Hörproben hängen an den Tracks.** Jeder Track, zu dem es eine Aufnahme gibt, bekommt
+einen Abspielknopf und sagt, woher der Ton kommt. Was zu keinem Track gehört — ein Livemitschnitt,
+ein Albumrip — steht darunter als „Weitere Aufnahmen".
+
+**Die Fundkarte liest sich von oben nach unten.** Cover, Künstler, Titel, dann der Satz, der
+sagt warum — und erst darunter Label und Katalognummer. Vorher stand die Vergleichszeile
+mitten im Satz. Zwei Knöpfe statt vier: „Als gekauft" und der Discogs-Link wohnen jetzt auf
+dem Blatt.
+
+**Ein Dig ohne Treffer tut nicht mehr so, als hätte er welche.** Kein leerer Stapel, kein
+Hinweis auf Preise, die es nicht gibt. Stattdessen die zwei Handgriffe, die helfen: den ganzen
+Laden lesen statt nur das Neue, oder ihn in den Rundgang nehmen.
+
+Bei den Läden: jede Zeile kann jetzt selbst graben, und wo der Beobachter etwas gemessen hat,
+steht die Zahl an der Zeile statt in einem Banner am Seitenkopf — „+37" neben einem Laden ist
+der Grund, heute dorthin zu gehen. Dazu vier Cover **aus deinem eigenen Regal** auf den Labels,
+die dieser Laden führt: was ein Balkendiagramm in zehn Sekunden sagt, sagen vier Hüllen in
+einer halben.
+
+Und die Knöpfe haben drei Lautstärken statt zweier. Gefüllt ist, wofür der Bildschirm da ist;
+begleitende Handlungen wie „beobachten" oder „merken" sind leiser; selten Gebrauchtes hat nur
+noch einen Rahmen.
+
+**Was zu tun ist:** Nichts.
+
 
 ### Added
 
