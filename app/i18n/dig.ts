@@ -12,6 +12,8 @@ import { counted, plural } from '~/utils/plural'
 
 const en = {
   title: 'Dig',
+  lead: 'One shop, one dig — what it has, and what of it is for you.',
+  again: (shop: string) => `Dig ${shop} again`,
   description: 'Scan a Discogs shop and get a scored list of finds.',
 
   dealer: 'Shop — name or link',
@@ -375,6 +377,8 @@ const en = {
 
 const de: typeof en = {
   title: 'Graben',
+  lead: 'Ein Laden, ein Dig – was er hat und was davon zu dir passt.',
+  again: (shop) => `${shop} nochmal graben`,
   description: 'Einen Discogs-Laden scannen und eine bewertete Fundliste bekommen.',
 
   dealer: 'Laden – Name oder Link',
