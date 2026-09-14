@@ -4,6 +4,7 @@ import type { DealerProfile } from '#shared/protocol'
 import type { SuggestResult } from '~~/worker/dealers/suggest'
 import type {
   Dealer,
+  DealerReason,
   DealerWithReasons,
   GradingRecord,
   RoundProgress,
@@ -77,12 +78,44 @@ const query = ref('')
 const STEP = 12
 const room = ref(STEP)
 
+/**
+ * How the list is ordered, and the two groups it falls into (M31.10).
+ *
+ * Hit rate is the default and the only ordering that answers "where next" —
+ * but somebody tidying up looks for *last dug*, and somebody comparing postage
+ * for *where from*. Four orderings, one row above the list.
+ *
+ * The groups are the mental model rather than a filter: the shops you watch,
+ * bought from or entered yourself are *yours*; the ones a dig or a friends
+ * list brought in are the rest. Ranked inside each, so the ordering above
+ * still decides.
+ */
+const SORTS = ['rate', 'recent', 'size', 'name'] as const
+const sort = ref<(typeof SORTS)[number]>('rate')
+
+const MINE: DealerReason[] = ['watched', 'order', 'manual', 'basket']
+const isMine = (dealer: DealerWithReasons) =>
+  dealer.reasons.some((reason) => MINE.includes(reason))
+
 const matching = computed(() => {
   const needle = query.value.trim().toLowerCase()
   if (!needle) return shown.value
   return shown.value.filter((dealer) =>
     `${dealer.displayName} ${dealer.username}`.toLowerCase().includes(needle),
   )
+})
+
+/** The worker already ranks by hit rate, so that one is the list as it came. */
+const ordered = computed(() => {
+  const rows = [...matching.value]
+  if (sort.value === 'recent')
+    return rows.sort((a, b) => (b.lastScannedAt ?? 0) - (a.lastScannedAt ?? 0))
+  if (sort.value === 'size') return rows.sort((a, b) => b.numForSale - a.numForSale)
+  if (sort.value === 'name')
+    return rows.sort((a, b) =>
+      (a.displayName || a.username).localeCompare(b.displayName || b.username),
+    )
+  return rows
 })
 
 /*
@@ -93,20 +126,35 @@ const matching = computed(() => {
  * showing somebody else's shop.
  */
 const listed = computed(() => {
-  const head = matching.value.slice(0, room.value)
-  const open = matching.value.find((dealer) => dealer.username === selected.value)
+  const head = ordered.value.slice(0, room.value)
+  const open = ordered.value.find((dealer) => dealer.username === selected.value)
   return open && !head.includes(open) ? [...head, open] : head
 })
 
 const rest = computed(() => matching.value.length - listed.value.length)
+
+/**
+ * Two groups, and only where both have something in them.
+ *
+ * A single heading over the whole list is a heading that says nothing.
+ */
+const groups = computed(() => {
+  const mine = listed.value.filter(isMine)
+  const others = listed.value.filter((dealer) => !isMine(dealer))
+  if (mine.length === 0 || others.length === 0) return [{ key: null, rows: listed.value }]
+  return [
+    { key: 'mine' as const, rows: mine },
+    { key: 'rest' as const, rows: others },
+  ]
+})
 
 /** One scale for every bar in the list — see DealerRow.vue. */
 const peak = computed(() =>
   Math.max(0, ...matching.value.map((dealer) => dealer.affinity ?? 0)),
 )
 
-// A new search or a new origin starts from the top again.
-watch([query, origin], () => (room.value = STEP))
+// A new search, order or origin starts from the top again.
+watch([query, origin, sort], () => (room.value = STEP))
 
 /** The shops somebody asked never to see again — listed at the foot, so they can come back. */
 const hidden = shallowRef<Dealer[]>([])
@@ -709,20 +757,44 @@ const scanned = computed(() => {
             {{ h.noMatch }}
           </p>
 
+          <!--
+            Four orderings, one row. The default is the only one that answers
+            the screen's own question; the other three are for tidying up and
+            comparing (M31.10).
+          -->
+          <label v-else class="flex items-center gap-2 text-fid-xs text-fid-text-muted">
+            {{ h.sort.label }}
+            <select v-model="sort" class="fid-field px-2 py-1 text-fid-xs text-fid-text">
+              <option v-for="key in SORTS" :key="key" :value="key">{{ h.sort[key] }}</option>
+            </select>
+          </label>
+
+          <!--
+            One list, with the group names as items of it.
+
+            Two lists would each need their own name and the screen would lose
+            the one region that means "the shops" — which is what every test
+            and every screen reader reaches for. A heading between rows is an
+            item of the list it divides.
+          -->
           <ul
-            v-else
             class="flex flex-col divide-y divide-fid-border border-y border-fid-border"
             :aria-label="h.scanned"
           >
-            <li v-for="dealer in listed" :key="dealer.username">
-              <DealerRow
-                :dealer="dealer"
-                :selected="dealer.username === selected"
-                :peak="peak"
-                :moved="moved.get(dealer.username) ?? 0"
-                @open="select(dealer.username)"
-              />
-            </li>
+            <template v-for="group in groups" :key="group.key ?? 'all'">
+              <li v-if="group.key" class="fid-plate px-3 py-2 text-fid-text-muted">
+                {{ h.groups[group.key] }}
+              </li>
+              <li v-for="dealer in group.rows" :key="dealer.username">
+                <DealerRow
+                  :dealer="dealer"
+                  :selected="dealer.username === selected"
+                  :peak="peak"
+                  :moved="moved.get(dealer.username) ?? 0"
+                  @open="select(dealer.username)"
+                />
+              </li>
+            </template>
           </ul>
 
           <button
