@@ -11,6 +11,31 @@ Für eine App bedeutet SemVer:
 
 ## [0.79.0](https://github.com/misterhonk/fidelity/compare/v0.78.0...v0.79.0) (2026-09-14)
 
+**Ein Fund bedeutet etwas neben seinen Nachbarn — also trägt das Blatt die Liste jetzt mit
+sich.**
+
+Zwei Pfeile und „3 von 128" neben dem Schließen-Kreuz, und die Pfeiltasten tun dasselbe, wo
+gerade niemand tippt. Es geht durch die Liste genau so, wie sie hinter dem Blatt steht: Top
+Five zuerst, dann die lange, gefiltert und sortiert und dort abgeschnitten, wo du sie
+abgeschnitten hast. Vergleichen hieß vorher: schließen, zurückscrollen, die Zeile
+wiederfinden, öffnen — und auf einer langen Liste ist die Zeile schwer wiederzufinden.
+
+Dazu faltet sich der Kopf der Dig-Seite zusammen, sobald ein Ergebnis darunter steht. Der
+Titel mit seinem Versprechen, das Feld, die bekannten Läden, die gelaufenen Digs: das ist
+alles die Frage, und sie war auf dem Telefon der größte Teil eines Bildschirms vor der
+Liste, für die es die Seite gibt. Jetzt ist sie eine Zeile — „Ein anderer Laden, oder ein
+früherer Dig" — und ohne Ergebnis ändert sich nichts, denn dann ist die Frage der
+Bildschirm.
+
+Und der Puls neben den Einstellungen sagt nicht mehr nur, was dieses Gerät ausgegeben hat,
+sondern was der nächste Schritt brächte: ohne Token die halbe Decke, mit Token und ohne
+Katalog genau die Horizont-Anfragen, die ein Katalog übernommen hätte. Eine Zeile, nur wo
+die eigenen Zahlen den Fall machen, und nichts, wenn beides steht.
+
+Unter der Haube ist die Testsuite von zehn Minuten auf knapp drei gefallen — acht Runner
+statt einem, Browser im Image statt im Download, und eine Wartestelle im Seed, die auf das
+Stillwerden des Netzes wartete statt darauf, dass ein Bildschirm steht.
+
 
 ### Added
 
