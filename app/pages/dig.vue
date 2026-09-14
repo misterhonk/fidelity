@@ -572,84 +572,164 @@ const noHorizon = computed(
       wider one shows more of it at once — which is the whole reason to sit at
       a desk for this. The prose blocks inside keep their own width.
     -->
-    <PageHeader :title="d.title" :lead="d.lead" />
+    <!-- The promise of the screen, until the screen keeps it. -->
+    <PageHeader :title="d.title" :lead="result ? undefined : d.lead" />
 
-    <form class="flex flex-wrap items-end gap-3" @submit.prevent="check">
-      <div class="flex min-w-64 grow flex-col gap-2">
-        <label class="text-fid-sm font-medium text-fid-text" for="dealer">
-          {{ d.dealer }}
-        </label>
-        <input
-          id="dealer"
-          v-model="dealer"
-          type="text"
-          autocomplete="off"
-          spellcheck="false"
-          :placeholder="d.dealerPlaceholder"
-          class="fid-field px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
-        />
-      </div>
-      <button
-        type="submit"
-        :disabled="busy || !online || dealerName === null"
-        class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+    <!--
+      The head of the screen steps aside once there is something to read.
+
+      A dig is a list somebody reads for minutes, and everything above it —
+      the field, the shops, the earlier runs — is the question, already
+      answered. On a phone that was four blocks and most of a screen before
+      the first find; the disclosure puts them one tap away and nothing else
+      changes. Without a result it is a plain block and always open, because
+      then the question *is* the screen.
+    -->
+    <component
+      :is="result ? 'details' : 'div'"
+      :class="
+        result ? 'rounded-fid-md border border-fid-border px-4 py-3' : 'flex flex-col gap-8'
+      "
+    >
+      <summary
+        v-if="result"
+        class="fid-action flex cursor-pointer list-none items-center gap-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
       >
-        {{ d.check }}
-      </button>
-    </form>
+        <FidIcon name="search" :size="16" aria-hidden="true" />
+        {{ d.another }}
+      </summary>
 
-    <!--
-      The shops you already know, to click instead of type.
-      
-      Every dig writes its dealer down, and until now that list only existed to
-      be read on another screen. Nobody remembers whether it was 430AM_Studio
-      or 430am-studio, and getting it wrong costs a request and a wrong answer.
-      Watched shops first: those are the ones somebody said out loud they care
-      about.
-    -->
-    <!--
-      And a heading, because two rows of chips on one screen looked alike.
-
-      Asked outright on 2026-09-14: "what are the buttons of the earlier digs
-      for?" The shops you can dig and the digs you have run were both a
-      `flex-wrap` of bordered buttons with a name and a number in them, and the
-      only thing telling them apart was an `aria-label` — which is to say,
-      nothing at all for anybody looking at the screen.
-    -->
-    <section v-if="knownDealers.length > 0" class="flex flex-col gap-2">
-      <h2 id="your-shops" class="text-fid-xs font-medium text-fid-text-muted">
-        {{ d.yourShops }}
-      </h2>
-      <nav aria-labelledby="your-shops" class="flex flex-wrap gap-2">
-        <button
-          v-for="known in knownDealers"
-          :key="known.username"
-          type="button"
-          class="fid-action rounded-fid-sm border px-3 py-2 text-fid-sm transition-colors"
-          :class="
-            known.watching
-              ? 'border-fid-accent/40 text-fid-text'
-              : 'border-fid-border text-fid-text-muted hover:text-fid-text'
-          "
-          @click="pick(known.username)"
-        >
-          {{ known.displayName || known.username }}
-          <!--
-          The hit rate, and what it is a rate *of*.
-          It was a bare "13.0" beside a shop's name — a number with no unit,
-          which somebody either ignores or misreads as a rating out of five.
-        -->
-          <span
-            v-if="known.affinity !== null"
-            class="fid-num ml-1.5 text-fid-xs opacity-70"
-            :title="d.perThousand(known.affinity.toFixed(1))"
-            :aria-label="d.perThousand(known.affinity.toFixed(1))"
+      <div :class="result ? 'flex flex-col gap-8 pt-4' : 'contents'">
+        <form class="flex flex-wrap items-end gap-3" @submit.prevent="check">
+          <div class="flex min-w-64 grow flex-col gap-2">
+            <label class="text-fid-sm font-medium text-fid-text" for="dealer">
+              {{ d.dealer }}
+            </label>
+            <input
+              id="dealer"
+              v-model="dealer"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              :placeholder="d.dealerPlaceholder"
+              class="fid-field px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+            />
+          </div>
+          <button
+            type="submit"
+            :disabled="busy || !online || dealerName === null"
+            class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
           >
-            {{ known.affinity.toFixed(1) }}
-          </span>
-        </button>
-      </nav>
-    </section>
+            {{ d.check }}
+          </button>
+        </form>
+
+        <!--
+        The shops you already know, to click instead of type.
+      
+        Every dig writes its dealer down, and until now that list only existed to
+        be read on another screen. Nobody remembers whether it was 430AM_Studio
+        or 430am-studio, and getting it wrong costs a request and a wrong answer.
+        Watched shops first: those are the ones somebody said out loud they care
+        about.
+      -->
+        <!--
+        And a heading, because two rows of chips on one screen looked alike.
+
+        Asked outright on 2026-09-14: "what are the buttons of the earlier digs
+        for?" The shops you can dig and the digs you have run were both a
+        `flex-wrap` of bordered buttons with a name and a number in them, and the
+        only thing telling them apart was an `aria-label` — which is to say,
+        nothing at all for anybody looking at the screen.
+      -->
+        <section v-if="knownDealers.length > 0" class="flex flex-col gap-2">
+          <h2 id="your-shops" class="text-fid-xs font-medium text-fid-text-muted">
+            {{ d.yourShops }}
+          </h2>
+          <nav aria-labelledby="your-shops" class="flex flex-wrap gap-2">
+            <button
+              v-for="known in knownDealers"
+              :key="known.username"
+              type="button"
+              class="fid-action rounded-fid-sm border px-3 py-2 text-fid-sm transition-colors"
+              :class="
+                known.watching
+                  ? 'border-fid-accent/40 text-fid-text'
+                  : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+              "
+              @click="pick(known.username)"
+            >
+              {{ known.displayName || known.username }}
+              <!--
+            The hit rate, and what it is a rate *of*.
+            It was a bare "13.0" beside a shop's name — a number with no unit,
+            which somebody either ignores or misreads as a rating out of five.
+          -->
+              <span
+                v-if="known.affinity !== null"
+                class="fid-num ml-1.5 text-fid-xs opacity-70"
+                :title="d.perThousand(known.affinity.toFixed(1))"
+                :aria-label="d.perThousand(known.affinity.toFixed(1))"
+              >
+                {{ known.affinity.toFixed(1) }}
+              </span>
+            </button>
+          </nav>
+        </section>
+
+        <section v-if="history.length > 1" class="flex flex-col gap-2">
+          <h2 id="earlier-digs" class="text-fid-xs font-medium text-fid-text-muted">
+            {{ d.earlierDigs }}
+          </h2>
+          <nav aria-labelledby="earlier-digs" class="flex flex-wrap gap-2">
+            <button
+              v-for="entry in history"
+              :key="entry.id"
+              type="button"
+              :aria-current="result?.dig.id === entry.id ? 'true' : undefined"
+              class="min-h-9 rounded-fid-sm border px-3 py-1 text-fid-sm transition-colors"
+              :class="
+                result?.dig.id === entry.id
+                  ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
+                  : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+              "
+              @click="showDig(entry.id)"
+            >
+              <!--
+            Name, time, kind, match count.
+
+            Until 2026-09-11 only the name and the number stood here — so three
+            runs of the same shop on the same day were three identical buttons.
+            Reported with exactly that picture: "fatplastics 0" three times over.
+
+            The time of day belongs there and not only the date: two of the three
+            were half an hour apart. `dayTime` says in its own comment what it is
+            for — "for things that happen more than once a day".
+
+            And the kind, because a zero on "only what is new" means something
+            different from a zero after a full run: nothing new has arrived
+            against nothing here for you. `digKind` already carries that
+            distinction in two other places.
+          -->
+              <span class="flex flex-col items-start gap-1">
+                <span class="flex flex-wrap items-baseline gap-x-2">
+                  {{ entry.dealer }}
+                  <span class="fid-num text-fid-xs text-fid-text-muted">{{
+                    entry.matchCount
+                  }}</span>
+                </span>
+                <span class="fid-num text-fid-xs text-fid-text-muted">
+                  {{ dayTime(entry.startedAt) }}
+                  <template v-if="digKind(entry) !== 'full'">
+                    · {{ d.incremental.short }}</template
+                  >
+                </span>
+              </span>
+            </button>
+          </nav>
+        </section>
+      </div>
+    </component>
 
     <ErrorNote v-if="error" :cause="error" />
     <!--
@@ -892,56 +972,6 @@ const noHorizon = computed(
       Which dig is on screen, and the others. Five are kept (docs/03 §5) and
       until now only the newest could be opened.
     -->
-    <section v-if="history.length > 1" class="flex flex-col gap-2">
-      <h2 id="earlier-digs" class="text-fid-xs font-medium text-fid-text-muted">
-        {{ d.earlierDigs }}
-      </h2>
-      <nav aria-labelledby="earlier-digs" class="flex flex-wrap gap-2">
-        <button
-          v-for="entry in history"
-          :key="entry.id"
-          type="button"
-          :aria-current="result?.dig.id === entry.id ? 'true' : undefined"
-          class="min-h-9 rounded-fid-sm border px-3 py-1 text-fid-sm transition-colors"
-          :class="
-            result?.dig.id === entry.id
-              ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
-              : 'border-fid-border text-fid-text-muted hover:text-fid-text'
-          "
-          @click="showDig(entry.id)"
-        >
-          <!--
-          Name, time, kind, match count.
-
-          Until 2026-09-11 only the name and the number stood here — so three
-          runs of the same shop on the same day were three identical buttons.
-          Reported with exactly that picture: "fatplastics 0" three times over.
-
-          The time of day belongs there and not only the date: two of the three
-          were half an hour apart. `dayTime` says in its own comment what it is
-          for — "for things that happen more than once a day".
-
-          And the kind, because a zero on "only what is new" means something
-          different from a zero after a full run: nothing new has arrived
-          against nothing here for you. `digKind` already carries that
-          distinction in two other places.
-        -->
-          <span class="flex flex-col items-start gap-1">
-            <span class="flex flex-wrap items-baseline gap-x-2">
-              {{ entry.dealer }}
-              <span class="fid-num text-fid-xs text-fid-text-muted">{{
-                entry.matchCount
-              }}</span>
-            </span>
-            <span class="fid-num text-fid-xs text-fid-text-muted">
-              {{ dayTime(entry.startedAt) }}
-              <template v-if="digKind(entry) !== 'full'"> · {{ d.incremental.short }}</template>
-            </span>
-          </span>
-        </button>
-      </nav>
-    </section>
-
     <section v-if="result" class="flex flex-col gap-4">
       <div class="flex flex-wrap items-baseline justify-between gap-2">
         <h2 class="text-fid-xl font-bold text-fid-text">
