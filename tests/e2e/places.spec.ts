@@ -72,6 +72,16 @@ test('a room, a Kallax, and a record in B1', async ({ page }) => {
   await again.getByRole('checkbox', { name: /Speak No Evil/ }).check()
   await again.getByRole('button', { name: 'Put 1 in B1' }).click()
   await expect(again.getByText('Everything has a place.')).toBeVisible()
+  /*
+   * And wait for the sheet to hold it, not only for the pile to be empty.
+   *
+   * "Everything has a place" is the fill panel's own state and says nothing
+   * about the write: `filled()` writes, reloads the sheet, and only then tells
+   * the wall to count again. Escaping on the first of those three left the
+   * wall a fraction behind — which chromium always won and WebKit lost on
+   * 2026-09-14, on main, with the compartment still reading "1 records".
+   */
+  await expect(again.getByRole('button', { name: /Speak No Evil/ })).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('button', { name: /^B1, 2 records/ })).toBeVisible()
   await expect(page.getByText('2 placed', { exact: false })).toBeVisible()

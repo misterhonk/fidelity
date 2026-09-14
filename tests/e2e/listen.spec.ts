@@ -126,7 +126,17 @@ test('plays a clip in place, and reaches Google only when told to', async ({ pag
  * nothing to hear, although the record itself almost certainly has something.
  * One lookup for a record somebody deliberately opened closes that gap.
  */
-test('looks up the clips a find came without', async ({ context, page }) => {
+test('looks up the clips a find came without', async ({ browserName, context, page }) => {
+  /*
+   * Chromium only, like every spec that answers Discogs from a worker.
+   *
+   * The lookup this test is about happens where all of them do — in the
+   * worker (rule 3) — and Playwright cannot route a worker's requests in
+   * WebKit. The route below is simply never reached there, so the sheet waits
+   * for an answer nobody gives. It passed on CI once and failed the next two
+   * runs, which is what an unroutable request looks like from the outside.
+   */
+  test.skip(browserName !== 'chromium', "Playwright cannot route a worker's requests in WebKit")
   await seed(page, 'en')
 
   // Registered after seed(), so it wins over the blanket 401 (see seed.ts).
