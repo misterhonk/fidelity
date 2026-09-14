@@ -1,7 +1,9 @@
-import { z } from 'zod'
-
 import { unknownCovers, writeCovers } from '~~/db/covers'
 import { getPreferences } from '~~/db/meta'
+import { openFidelityDb } from '~~/db/open'
+
+import { coverOf, storeReleaseDetail } from './collection/detail'
+import { releaseDetailSchema } from './discogs/schemas'
 
 import type { DiscogsClient } from './discogs/client'
 import { createHubClient } from './hub/client'
@@ -24,18 +26,15 @@ import { HUB_TIMEOUT_MS, withTimeout } from './hub/fallback'
  * (`db/covers.ts`). A sleeve does not change.
  */
 
-const releaseImagesSchema = z.object({
-  id: z.number().int(),
-  images: z
-    .array(
-      z.object({
-        type: z.string().optional(),
-        uri: z.string().optional(),
-        uri150: z.string().optional(),
-      }),
-    )
-    .optional(),
-})
+/*
+ * The same schema the detail lookup uses — deliberately.
+ *
+ * Measured 2026-09-14: opening one record put two requests on the wire,
+ * `/releases/{id}` for the sleeve and `/releases/{id}?curr_abbr=EUR` for the
+ * tracklist. Same address, two schemas, two slots of a sixty-a-minute budget.
+ * Now whichever of the two asks first files both halves, and the second one
+ * costs nothing at all.
+ */
 
 /**
  * How many in one go.
@@ -115,17 +114,24 @@ export async function fetchCovers(options: {
     report?.({ done: index, total: missing.length })
 
     try {
-      const release = await client.get(`/releases/${releaseId}`, releaseImagesSchema, {
+      const release = await client.get(`/releases/${releaseId}`, releaseDetailSchema, {
+        query: { curr_abbr: preferences.currency },
         signal,
       })
-      const images = release.images ?? []
-      const primary = images.find((image) => image.type === 'primary') ?? images[0]
 
-      learned.push({
+      /*
+       * The tracklist, the credits and the run-out groove are in this answer
+       * too, and filing them here means the sheet for this record opens
+       * without asking Discogs anything.
+       */
+      await storeReleaseDetail(
+        await openFidelityDb(),
         releaseId,
-        thumbUrl: primary?.uri150 ?? '',
-        coverUrl: primary?.uri ?? '',
-      })
+        release,
+        preferences.currency,
+        Date.now(),
+      )
+      learned.push(coverOf(releaseId, release.images))
     } catch (cause) {
       /*
        * A cover is decoration, and decoration may not take a screen down with
