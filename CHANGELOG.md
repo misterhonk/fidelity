@@ -9,6 +9,21 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.84.0](https://github.com/misterhonk/fidelity/compare/v0.83.0...v0.84.0) (2026-09-14)
+
+**„Zurück" schließt jetzt das Blatt, statt den Dig zu verlassen.**
+
+Der offene Fund steht in der Adresse. Drei Dinge folgen daraus: ein Reload behält die Platte
+offen — das Blatt war bisher das eine auf einem Dig, das man durch Neuladen verlieren konnte
+—, ein Link kann auf einen Fund zeigen statt nur auf den Dig, und auf dem Telefon tut die
+Zurück-Geste das, was sie überall sonst tut. Bisher verließ sie die Seite; wer kurz auf eine
+Platte schaute und zurückwischte, verlor die Liste und ihre Scrollposition gleich mit.
+
+
+### Added
+
+* **dig:** the open find stands in the address ([8164cd9](https://github.com/misterhonk/fidelity/commit/8164cd93ff6e1adc67ad8c8df36c9e116a827dc3))
+
 ## [0.83.0](https://github.com/misterhonk/fidelity/compare/v0.82.0...v0.83.0) (2026-09-14)
 
 **Die Fundliste lässt sich jetzt durchblättern wie eine Kiste.**
