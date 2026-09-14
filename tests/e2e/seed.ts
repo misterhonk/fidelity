@@ -442,7 +442,27 @@ async function reloadSettled(page: Page): Promise<void> {
       await page.waitForLoadState('load')
     }
   }
-  await page.waitForLoadState('networkidle')
+  await settled(page)
+}
+
+/**
+ * Settled means "a screen is standing", not "the network has fallen quiet".
+ *
+ * This used to be `waitForLoadState('networkidle')`, and it was three quarters
+ * of the cost of seeding: measured 2026-09-14, a seed took 1.010 s of which
+ * 780 ms was that one line — a 500 ms mandatory quiet window plus the service
+ * worker filling its precache, which has nothing to do with whether a screen
+ * is ready. Times four hundred tests, in a suite that ran ten minutes.
+ *
+ * `<main>` is the deterministic signal, and it is exact: `setup.global.ts` is
+ * an *async* middleware that asks the worker who is signed in and redirects
+ * before the route component is ever built. So a `<main>` in the document
+ * means the guard has already decided — which is precisely the race the old
+ * wait was there to avoid. Every screen renders one, through `AppPage` or
+ * `SettingsPage`.
+ */
+export async function settled(page: Page): Promise<void> {
+  await page.locator('main').first().waitFor({ state: 'attached', timeout: 15_000 })
 }
 
 /** Whether `page` already shows the app — the origin under test, not a blank tab. */
@@ -493,7 +513,10 @@ async function waitForStores(page: Page): Promise<void> {
       seen = `version ${state.version} with [${state.stores.join(', ')}]`
     }
 
-    await page.waitForTimeout(100)
+    // Short, because this is the second-biggest cost in the suite after the
+    // wait that used to sit at the end of `reloadSettled`: it is asked once
+    // per test, and the answer usually arrives on the first or second ask.
+    await page.waitForTimeout(25)
   }
 
   throw new Error(
