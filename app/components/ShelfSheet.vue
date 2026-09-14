@@ -614,7 +614,7 @@ async function remove() {
         through underneath it.
       -->
       <div
-        class="mt-auto flex flex-wrap items-center gap-3 border-t border-fid-border pt-4 max-md:sticky max-md:bottom-0 max-md:-mx-6 max-md:bg-fid-surface max-md:px-6 max-md:pb-4"
+        class="sticky -bottom-6 -mx-6 mt-auto flex flex-wrap items-center gap-3 border-t border-fid-border bg-fid-surface px-6 pt-4 -mb-6 pb-6"
       >
         <a
           :href="`https://www.discogs.com/release/${record.releaseId}`"

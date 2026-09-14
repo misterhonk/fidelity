@@ -70,6 +70,16 @@ const NEEDED = {
   check: 'Bought — enters it on the bought list',
 
   /*
+   * The wantlist, and it needed a symbol of its own.
+   *
+   * Saving and wanting sat side by side in the sheet's foot wearing the same
+   * bookmark — two different things under one sign, which is the one thing a
+   * symbol may never do. Reported on 2026-09-14. Saving is this app's own
+   * shortlist; a want is entered at Discogs and everybody there can see it.
+   */
+  heart: 'Wantlist — the want that lives at Discogs',
+
+  /*
    * The two ratings with no consequence. They are stored and read by nothing —
    * the learning they were meant for was never built (worker/match/ does not
    * touch the feedback store). So they are switched off in the interface but

@@ -541,8 +541,15 @@ function years(entry: { from: number; to: number }): string {
       <ReleaseFacts :detail="release" :tags="tags" />
 
       <!--
-        On a phone the sheet is eight sections tall, and the action lived
-        under the eighth (M31.10). It sticks to the bottom edge instead —
+        The row that has to stay reachable, at every width (M31.11).
+
+        `-bottom-6` rather than `bottom-0`: a sticky child pins to its scroll
+        container's *padding* box, and this sheet has a 24 px inset — pinned at
+        zero it floated that far above the edge and the tracklist scrolled
+        through the gap underneath it. Measured, not guessed.
+
+        The sheet is eight sections tall, and the action used to live under the
+        eighth (M31.10). It sticks to the bottom edge instead —
         the most settled pattern in mobile commerce, and here it is one
         line: the sheet scrolls inside itself, so `sticky` works without
         any fixed positioning. The negative margin and the padding put its
@@ -550,9 +557,9 @@ function years(entry: { from: number; to: number }): string {
         through underneath it.
       -->
       <div
-        class="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-fid-border pt-4 max-md:sticky max-md:bottom-0 max-md:-mx-6 max-md:bg-fid-surface max-md:px-6 max-md:pb-4"
+        class="sticky -bottom-6 -mx-6 mt-auto flex items-center justify-between gap-2 border-t border-fid-border bg-fid-surface px-6 pt-4 -mb-6 pb-6"
       >
-        <div class="flex gap-1" role="group" :aria-label="d.match.feedback">
+        <div class="flex min-w-0 gap-1" role="group" :aria-label="d.match.feedback">
           <!-- Same pair of words as on the card, see MatchCard.vue. -->
           <button
             v-for="option in SHOWN_VERDICTS"
@@ -576,35 +583,39 @@ function years(entry: { from: number; to: number }): string {
           </button>
         </div>
 
+        <!--
+          The one control here that is a direction rather than an action, and
+          therefore the one that gives up its words when the row is tight
+          (M31.11). Named for a screen reader and under a pointer — an icon
+          without either is a rebus.
+        -->
         <a
-          class="fid-lift inline-flex min-h-11 items-center gap-2 fid-field-raised px-4 text-fid-sm font-medium text-fid-text"
+          class="fid-lift inline-flex size-11 shrink-0 items-center justify-center fid-field-raised text-fid-text"
           :href="`https://www.discogs.com/sell/item/${match.listingId}`"
           target="_blank"
           rel="noopener noreferrer"
+          :aria-label="d.sheet.atDiscogs"
+          :title="d.sheet.atDiscogs"
         >
-          {{ d.sheet.atDiscogs }}
-          <!--
-              The arrow out of the box. A link that leaves the app and lands in
-              a new tab should say so beforehand — before, it was a text link
-              like any other, and the jump came unannounced.
-            -->
-          <FidIcon name="external-link" :size="14" />
+          <FidIcon name="external-link" :size="16" />
         </a>
 
         <button
           v-if="match && !wanted"
           type="button"
-          class="fid-lift inline-flex min-h-11 items-center gap-2 rounded-fid-sm border border-fid-field px-3 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+          class="fid-lift inline-flex min-h-11 shrink-0 items-center gap-2 rounded-fid-sm border border-fid-field px-3 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+          :aria-label="d.sheet.want"
+          :title="d.sheet.want"
           @click="want()"
         >
-          <FidIcon name="bookmark" :size="14" />
-          {{ d.sheet.want }}
+          <FidIcon name="heart" :size="16" />
+          {{ d.sheet.wantShort }}
         </button>
         <span
           v-else-if="wanted"
           class="inline-flex min-h-11 items-center gap-2 px-3 text-fid-sm text-fid-sig-wantlist"
         >
-          <FidIcon name="bookmark" :size="14" />
+          <FidIcon name="heart" :size="16" />
           {{ d.sheet.wanted }}
         </span>
       </div>
