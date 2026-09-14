@@ -9,6 +9,28 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.80.1](https://github.com/misterhonk/fidelity/compare/v0.80.0...v0.80.1) (2026-09-14)
+
+**Zwei Anfragen weniger, ohne dass irgendwo etwas gespeichert wird, das altern könnte.**
+
+Der Cover-Durchgang holt `/releases/{id}` für das, was gerade auf dem Schirm ist. Auf die
+Karte zu tippen, deren Bild noch nicht da ist, fragte bisher nach genau der Platte, die schon
+in der Schlange stand — zwei Anfragen für einen Body, aus einem Budget von sechzig pro
+Minute. Jetzt steigt der zweite Aufrufer beim ersten ein. Das ist ausdrücklich **kein**
+Zwischenspeicher: eine fertige Anfrage ist weg, ausgeliefert wird nie aus einer fertigen, und
+die Sechs-Stunden-Regel bleibt unberührt, weil es gar kein Alter gibt.
+
+Und wer mit den Pfeilen durch eine Fundliste geht, wartet nach dem ersten Pfeil nicht mehr:
+die nächste Platte wird nachgeschlagen, während die aktuelle gelesen wird. Nach dem ersten
+Pfeil, nicht davor — eine Platte zu öffnen ist kein Beleg dafür, dass jemand eine zweite
+will. Und nie weiter als eine.
+
+
+### Changed
+
+* **dig:** reading ahead, once somebody is reading along ([639f693](https://github.com/misterhonk/fidelity/commit/639f693604b2c7c56145c33f5c6d9b9e60ce304b))
+* **discogs:** one answer per address, however many are asking ([7d75055](https://github.com/misterhonk/fidelity/commit/7d75055da4a48ba1dd8adc5ae6030391a621234c))
+
 ## [0.80.0](https://github.com/misterhonk/fidelity/compare/v0.79.0...v0.80.0) (2026-09-14)
 
 **Auf dem Telefon öffnet sich ein Laden jetzt über der Liste, nicht drei Bildschirme
