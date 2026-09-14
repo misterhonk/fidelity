@@ -7,6 +7,7 @@ import { currentIdentity, discogs, requestPersistence, signOut } from './auth'
 
 import { forgetLookup } from './dig/detail'
 import { affinityFactor } from './dig/fingerprint'
+import { shelfSample } from './dealers/shelf'
 import { allFeedback, clearFeedback, feedbackVerdicts, recordFeedback } from './feedback'
 
 import { bestPerRelease, topFive } from './match/select'
@@ -499,6 +500,7 @@ export const handlers: HandlerMap = {
       ),
       priceFactor: median > 0 ? affinityFactor(median, otherMedians) : null,
       scannedDealers: all.length,
+      shelf: await shelfSample(db, dealer),
     }
   },
 
