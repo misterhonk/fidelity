@@ -9,6 +9,54 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.79.0](https://github.com/misterhonk/fidelity/compare/v0.78.0...v0.79.0) (2026-09-14)
+
+**Ein Fund bedeutet etwas neben seinen Nachbarn — also trägt das Blatt die Liste jetzt mit
+sich.**
+
+Zwei Pfeile und „3 von 128" neben dem Schließen-Kreuz, und die Pfeiltasten tun dasselbe, wo
+gerade niemand tippt. Es geht durch die Liste genau so, wie sie hinter dem Blatt steht: Top
+Five zuerst, dann die lange, gefiltert und sortiert und dort abgeschnitten, wo du sie
+abgeschnitten hast. Vergleichen hieß vorher: schließen, zurückscrollen, die Zeile
+wiederfinden, öffnen — und auf einer langen Liste ist die Zeile schwer wiederzufinden.
+
+Dazu faltet sich der Kopf der Dig-Seite zusammen, sobald ein Ergebnis darunter steht. Der
+Titel mit seinem Versprechen, das Feld, die bekannten Läden, die gelaufenen Digs: das ist
+alles die Frage, und sie war auf dem Telefon der größte Teil eines Bildschirms vor der
+Liste, für die es die Seite gibt. Jetzt ist sie eine Zeile — „Ein anderer Laden, oder ein
+früherer Dig" — und ohne Ergebnis ändert sich nichts, denn dann ist die Frage der
+Bildschirm.
+
+Und der Puls neben den Einstellungen sagt nicht mehr nur, was dieses Gerät ausgegeben hat,
+sondern was der nächste Schritt brächte: ohne Token die halbe Decke, mit Token und ohne
+Katalog genau die Horizont-Anfragen, die ein Katalog übernommen hätte. Eine Zeile, nur wo
+die eigenen Zahlen den Fall machen, und nichts, wenn beides steht.
+
+Unter der Haube ist die Testsuite von zehn Minuten auf knapp drei gefallen — acht Runner
+statt einem, Browser im Image statt im Download, und eine Wartestelle im Seed, die auf das
+Stillwerden des Netzes wartete statt darauf, dass ein Bildschirm steht.
+
+
+### Added
+
+* **dig:** the question steps aside once the answer is there ([3719598](https://github.com/misterhonk/fidelity/commit/371959888ea0aebd783d66cf5b2e3095d955c9d3))
+* **ui:** the list can be walked from inside the sheet ([afffaba](https://github.com/misterhonk/fidelity/commit/afffabacfdea6992678968b92343958147df5d3b))
+* **ui:** the next rung, worked out from what actually happened ([a18e7ee](https://github.com/misterhonk/fidelity/commit/a18e7ee6a3fdf610f39e36b6ba241b14386ca22d))
+
+
+### Fixed
+
+* **ui:** the sheet's foot sits on the edge, in one row, with two symbols ([cc6ce0b](https://github.com/misterhonk/fidelity/commit/cc6ce0baa9d0a5102f2dd59b512ed570aed66054))
+
+
+### Changed
+
+* eight shards ([1964942](https://github.com/misterhonk/fidelity/commit/1964942dcb8dc789bf2ffc9b8d03195a053ccba6))
+* no apt on a cache hit ([1cf4b49](https://github.com/misterhonk/fidelity/commit/1cf4b494852fd96cc519e00d75393d7312bbe230))
+* six runners, four workers each ([ca6ab71](https://github.com/misterhonk/fidelity/commit/ca6ab710058c88da1f3e0fb7780fddb7adf2af33))
+* the browsers come with the image ([8bec04f](https://github.com/misterhonk/fidelity/commit/8bec04f6dcaaf20f20c9a23e7701f5d7de6ba53f))
+* the suite spent three quarters of every seed waiting for nothing ([ce6880a](https://github.com/misterhonk/fidelity/commit/ce6880aaf204179624ebf24990ae5a9f24a6f24a))
+
 ## [0.78.0](https://github.com/misterhonk/fidelity/compare/v0.77.0...v0.78.0) (2026-09-14)
 
 **Neben den Einstellungen steht jetzt ein feiner Strich, der zeigt, was Fidelity gerade bei
