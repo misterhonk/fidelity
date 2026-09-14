@@ -9,6 +9,27 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.89.0](https://github.com/misterhonk/fidelity/compare/v0.88.0...v0.89.0) (2026-09-14)
+
+**Ein Dig, der langsam wird, sagt jetzt warum — auch wenn es nicht an Discogs liegt.**
+
+Ein Tab im Hintergrund bekommt seine Timer vom Browser gedrosselt, und der Takt eines Digs
+besteht aus Timern. Aus vier Minuten wird dann eine Stunde, und an einem Balken, der sich
+einmal pro Minute bewegt, sieht man das nicht. Die Seite misst deshalb, was tatsächlich
+rausgeht: bricht das ein, ohne dass Discogs um eine Pause gebeten hat, steht die gemessene
+Zahl da und daneben die wahrscheinliche Ursache. Und der Satz vor dem Dig sagt es gleich mit:
+„Dauert etwa vier Minuten – mit diesem Tab im Vordergrund."
+
+Nachgetragen aus 0.88.0, wo die Zeile im Changelog fehlte: **die Abdeckungszeile zählt
+Platten statt gelesener Seitenzeilen.** „20.000 von 19.864 gescannt (100 %)" war keine
+Aussage, die stimmen konnte — ein Laden wird von beiden Enden gelaufen, die Mitte kommt
+zweimal zurück.
+
+
+### Added
+
+* **dig:** when the lane is not ours, the screen says so ([7377207](https://github.com/misterhonk/fidelity/commit/7377207cdc4f18ee461835ac3b1267903d4a29c0))
+
 ## [0.88.0](https://github.com/misterhonk/fidelity/compare/v0.87.0...v0.88.0) (2026-09-14)
 
 **Wenn Discogs bremst, steht das jetzt auf dem Bildschirm.**
