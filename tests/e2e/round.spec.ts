@@ -73,8 +73,15 @@ test('watches a shop, walks the round, and says what it found', async ({ page, c
    */
   const round = page.getByRole('heading', { name: 'The round' })
   await expect(round).toBeVisible({ timeout: 15_000 })
-  // The price is on the screen before the button is pressed, as everywhere
-  // else that spends the rate limit.
+  /*
+   * The price is still stated before the button is pressed — it moved behind
+   * "Why?" when the round came back above the list (M31.8). One click, and it
+   * is the same sentence: a screen that spends somebody's rate limit says what
+   * it costs, it just no longer says it in a paragraph nobody reads twice.
+   */
+  const why = page.getByText('Why?', { exact: true })
+  await expect(why).toBeVisible()
+  await why.click()
   await expect(page.getByText(/Visits your one watched shop/)).toBeVisible()
 
   await page.getByRole('button', { name: 'Walk the round' }).click()

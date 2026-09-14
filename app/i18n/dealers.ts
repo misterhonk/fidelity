@@ -170,6 +170,9 @@ const en = {
 
   round: {
     title: 'The round',
+    /* The one line above the list: how many, how long. */
+    line: (shops: string, minutes: number) =>
+      `${shops} watched · about ${minutes === 1 ? 'a minute' : `${minutes} minutes`}`,
     about: (shops: number, minutes: number) =>
       `Visits your ${shops === 1 ? 'one watched shop' : `${shops} watched shops`} one after another and fetches only what each has put up since your last visit — about ${minutes === 1 ? 'a minute' : `${minutes} minutes`}. No style or price lookups: those are a hundred more per shop, and a find is one tap from them.`,
     /* Short, because the round already names each skipped shop in its result. */
@@ -336,6 +339,8 @@ const de: typeof en = {
 
   round: {
     title: 'Der Rundgang',
+    line: (shops, minutes) =>
+      `${shops} beobachtet · rund ${minutes === 1 ? 'eine Minute' : `${minutes} Minuten`}`,
     about: (shops, minutes) =>
       `Geht ${shops === 1 ? 'deinen einen beobachteten Laden' : `deine ${shops} beobachteten Läden`} nacheinander ab und holt nur, was seit deinem letzten Besuch dazugekommen ist – rund ${minutes === 1 ? 'eine Minute' : `${minutes} Minuten`}. Ohne Stil- und Preisabfragen: die wären hundert weitere pro Laden, und ein Treffer ist einen Tipp davon entfernt.`,
     neverDug: (n) =>
