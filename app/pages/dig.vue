@@ -1322,6 +1322,7 @@ const noHorizon = computed(
             :available="view.available.value"
             :active="view.active.value"
             :sort="view.sort.value"
+            :direction="view.direction.value"
             :density="view.density.value"
             :query="view.query.value"
             :shown="view.visible.value.length"
@@ -1345,6 +1346,7 @@ const noHorizon = computed(
             :matches="view.visible.value"
             :density="view.density.value"
             :sort="view.sort.value"
+            :direction="view.direction.value"
             @set-sort="view.setSort"
           />
         </section>

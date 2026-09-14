@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import type { SignalType } from '#shared/types'
+import type { SignalType, SortDirection } from '#shared/types'
 import { SORTS, type Density, type SortKey } from '~/utils/digview'
 import { useDigMessages } from '~/i18n/dig'
 
-defineProps<{
+const props = defineProps<{
   available: { type: SignalType; n: number }[]
   active: SignalType[]
   sort: SortKey
+  /** Which way round the ordering runs — the arrow sits on the key in force. */
+  direction: SortDirection
   density: Density
   query: string
   shown: number
@@ -29,6 +31,28 @@ const emit = defineEmits<{
 const f = computed(() => useDigMessages().value.filters)
 
 const DENSITIES = ['comfortable', 'crate', 'compact'] as const satisfies readonly Density[]
+
+/*
+ * The two rows of choices, in the shape the shelf uses (M32.2).
+ *
+ * Built here rather than in the markup because one of them is conditional:
+ * "with postage" only exists where this shop's postage is known.
+ */
+const sortTabs = computed(() =>
+  SORTS.filter((key) => key !== 'landed' || props.landedKnown).map((key) => ({
+    key,
+    label: f.value.sorts[key].label,
+    about: f.value.sorts[key].about,
+    // The arrow comes from the state now, not from the label: the same key
+    // runs both ways since M32.2.
+    suffix: props.direction === 'asc' ? '↑' : '↓',
+    spoken: (props.direction === 'asc' ? f.value.sortedAsc : f.value.sortedDesc)(
+      f.value.sorts[key].label,
+    ),
+  })),
+)
+
+const densityTabs = computed(() => DENSITIES.map((key) => ({ key, label: f.value[key] })))
 </script>
 
 <template>
@@ -89,32 +113,26 @@ const DENSITIES = ['comfortable', 'crate', 'compact'] as const satisfies readonl
       </button>
     </div>
 
-    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-      <div class="flex items-center gap-1" role="group" :aria-label="f.sorting">
-        <span class="text-fid-xs text-fid-text-muted">{{ f.sortBy }}</span>
-        <!--
-          "With postage" is offered only where the shop's postage is known.
-          A sort key that puts every record last is not a sort, and the line
-          below the bar says why it is missing.
-        -->
-        <template v-for="key in SORTS" :key="key">
-          <button
-            v-if="key !== 'landed' || landedKnown"
-            type="button"
-            :aria-pressed="sort === key"
-            class="min-h-6 rounded-fid-sm px-2 py-1 text-fid-xs transition-colors"
-            :class="
-              sort === key
-                ? 'bg-fid-accent/15 text-fid-text'
-                : 'text-fid-text-muted hover:text-fid-text'
-            "
-            :title="f.sorts[key].about"
-            @click="emit('setSort', key)"
-          >
-            {{ f.sorts[key].label }}
-          </button>
-        </template>
-      </div>
+    <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+      <!--
+        The same row the shelf has (M32.2). "With postage" is offered only
+        where the shop's postage is known: a sort key that puts every record
+        last is not a sort, and the line below the bar says why it is missing.
+      -->
+      <PlateTabs
+        as="nav"
+        :label="f.sorting"
+        :options="sortTabs"
+        :value="sort"
+        @select="emit('setSort', $event as SortKey)"
+      />
+
+      <PlateTabs
+        :label="f.density"
+        :options="densityTabs"
+        :value="density"
+        @select="emit('setDensity', $event as Density)"
+      />
 
       <!--
         A ceiling with postage, in the shop's currency. A `change` rather than
@@ -135,25 +153,6 @@ const DENSITIES = ['comfortable', 'crate', 'compact'] as const satisfies readonl
           @change="emit('setUpTo', ($event.target as HTMLInputElement).value)"
         />
       </label>
-
-      <div class="flex items-center gap-1" role="group" :aria-label="f.density">
-        <span class="text-fid-xs text-fid-text-muted">{{ f.density }}</span>
-        <button
-          v-for="key in DENSITIES"
-          :key="key"
-          type="button"
-          :aria-pressed="density === key"
-          class="min-h-6 rounded-fid-sm px-2 py-1 text-fid-xs transition-colors"
-          :class="
-            density === key
-              ? 'bg-fid-accent/15 text-fid-text'
-              : 'text-fid-text-muted hover:text-fid-text'
-          "
-          @click="emit('setDensity', key)"
-        >
-          {{ f[key] }}
-        </button>
-      </div>
 
       <p class="fid-num ml-auto text-fid-xs text-fid-text-muted" aria-live="polite">
         {{ f.shown(count(shown), shown === total ? null : count(total)) }}

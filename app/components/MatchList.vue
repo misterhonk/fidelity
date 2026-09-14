@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useWindowVirtualizer } from '@tanstack/vue-virtual'
 
-import type { Match } from '#shared/types'
+import type { Match, SortDirection } from '#shared/types'
 import type { Density, SortKey } from '~/utils/digview'
 import { useDigMessages } from '~/i18n/dig'
 
@@ -12,6 +12,8 @@ const props = defineProps<{
   density: Density
   /** The ordering in force, so the compact head can show which column it is. */
   sort?: SortKey
+  /** And which way round it runs, for the arrow on that column. */
+  direction?: SortDirection
 }>()
 const emit = defineEmits<{ setSort: [SortKey] }>()
 
@@ -23,12 +25,11 @@ const emit = defineEmits<{ setSort: [SortKey] }>()
  * ("a table instead of cards, columns to sort by") had a table whose columns
  * were unlabelled and unsortable from where they stand.
  *
- * The names carry the same arrows as the bar above the list, because they
- * select the same orderings: this is a second way to reach them, at the place
- * where somebody is already looking, not a second mechanism. No direction
- * toggle for the same reason — "Price ↑" means cheapest first everywhere in
- * this app, and a header that sometimes meant the other thing would be a
- * third state to keep in your head.
+ * The names do what the bar above the list does, because they select the same
+ * orderings: this is a second way to reach them, at the place where somebody
+ * is already looking, not a second mechanism. That includes turning one round
+ * — clicking the column in force flips it, and the arrow says which way it
+ * runs (M32.2).
  *
  * Buttons in a labelled group rather than `role="columnheader"`: the list
  * underneath is a virtualiser, so there is no table for the role to belong
@@ -186,7 +187,13 @@ const gridStyle = computed(() => ({
         "
         @click="emit('setSort', column.key)"
       >
-        {{ d.filters.sorts[column.key].label }}
+        {{ d.filters.sorts[column.key].label
+        }}<span
+          v-if="sort === column.key"
+          aria-hidden="true"
+          class="ml-1 text-fid-text-muted"
+          >{{ direction === 'asc' ? '↑' : '↓' }}</span
+        >
       </button>
     </template>
   </div>

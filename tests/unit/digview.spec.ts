@@ -4,7 +4,9 @@ import type { Match } from '#shared/types'
 import {
   arrange,
   availableSignals,
+  DEFAULT_DIRECTION,
   parseDensity,
+  parseDirection,
   parseSignals,
   parseSort,
   parseUpTo,
@@ -66,6 +68,49 @@ describe('reading the view out of the URL', () => {
     expect(parseDensity('kompakt')).toBe('compact')
     expect(parseDensity('kiste')).toBe('crate')
     expect(parseDensity('crate')).toBe('comfortable')
+  })
+})
+
+/**
+ * Turning an ordering round (M32.2).
+ *
+ * Every key had exactly one direction until 2026-09-14 — the arrow sat inside
+ * the label — and "I want to sort the price from cheap to expensive or the
+ * other way round" had no other way round to offer.
+ */
+describe('the direction', () => {
+  const priced = [
+    match({ listingId: 1, price: 30, score: 10 }),
+    match({ listingId: 2, price: 10, score: 10 }),
+    match({ listingId: 3, price: 20, score: 10 }),
+  ]
+
+  it('runs the key its own way by default, and the other way when asked', () => {
+    expect(arrange(priced, [], 'price').map((m) => m.listingId)).toEqual([2, 3, 1])
+    expect(arrange(priced, [], 'price', '', null, 'desc').map((m) => m.listingId)).toEqual([
+      1, 3, 2,
+    ])
+  })
+
+  /*
+   * The half that is easy to get wrong: a record whose price expired belongs
+   * at the end of "cheapest first" *and* at the end of "dearest first".
+   * Flipping the whole comparison would float the blanks to the top the
+   * moment somebody turned the arrow, and an expired dig would look like the
+   * cheapest shop in town from the other end.
+   */
+  it('keeps the missing ones last from either end', () => {
+    const mixed = [...priced, match({ listingId: 4, price: null, score: 99 })]
+
+    expect(arrange(mixed, [], 'price').at(-1)?.listingId).toBe(4)
+    expect(arrange(mixed, [], 'price', '', null, 'desc').at(-1)?.listingId).toBe(4)
+  })
+
+  it('reads a direction out of the address, and falls back to the key-s own', () => {
+    expect(parseDirection('', 'price')).toBe('asc')
+    expect(parseDirection('desc', 'price')).toBe('desc')
+    expect(parseDirection('sideways', 'year')).toBe('desc')
+    expect(DEFAULT_DIRECTION.artist).toBe('asc')
   })
 })
 

@@ -1,4 +1,4 @@
-import type { LandedPrice, Match, SignalType } from '#shared/types'
+import type { LandedPrice, Match, SignalType, SortDirection } from '#shared/types'
 
 import { activeLocale } from '~/composables/useMessages'
 
@@ -59,6 +59,30 @@ export function parseSort(value: string): SortKey {
   return SORT_KEYS.has(value) ? (value as SortKey) : 'score'
 }
 
+/**
+ * Which way round each ordering starts (M32.2).
+ *
+ * Every key has one direction that is obviously the right one to offer first
+ * — cheapest, newest, A to Z — and it used to be the *only* one: the arrow sat
+ * inside the label, baked in, and "price ascending" was the whole of what
+ * price sorting meant. Asked for outright on 2026-09-14: "I want to sort the
+ * price from cheap to expensive or the other way round."
+ *
+ * The shelf has had this since M26 (`DEFAULT_SHELF_DIRECTION`), with the same
+ * rule: picking a key takes its default, pressing the key again turns it.
+ */
+export const DEFAULT_DIRECTION = {
+  score: 'desc',
+  price: 'asc',
+  landed: 'asc',
+  year: 'desc',
+  artist: 'asc',
+} as const satisfies Record<SortKey, SortDirection>
+
+export function parseDirection(value: string, sort: SortKey): SortDirection {
+  return value === 'asc' || value === 'desc' ? value : DEFAULT_DIRECTION[sort]
+}
+
 export function parseDensity(value: string): Density {
   if (value === 'kompakt') return 'compact'
   // German in the address, like `dicht` itself and `kompakt` beside it.
@@ -72,6 +96,34 @@ export function parseDensity(value: string): Density {
  * so every key puts the missing ones last rather than letting nulls sort to
  * the front and make an expired dig look like the cheapest shop in town.
  */
+/**
+ * Which of the two lacks the field this ordering reads — or null where both
+ * have it and the real comparison can happen.
+ *
+ * Split out from `compare` so that turning the direction round cannot turn
+ * this round with it: missing belongs last from either end.
+ */
+function missingFor(
+  a: Match,
+  b: Match,
+  key: SortKey,
+  landed: (match: Match) => number | null,
+): number | null {
+  switch (key) {
+    case 'price':
+      return missingLast(a.price, b.price)
+    case 'landed':
+      return missingLast(landed(a), landed(b))
+    case 'year':
+      return missingLast(a.year, b.year)
+    case 'artist':
+      return missingLast(a.artist, b.artist)
+    default:
+      return null
+  }
+}
+
+/** The key's own order, the way round it is offered first. */
 function compare(
   a: Match,
   b: Match,
@@ -80,18 +132,13 @@ function compare(
 ): number {
   switch (key) {
     case 'price':
-      return missingLast(a.price, b.price) ?? a.price! - b.price!
-    case 'landed': {
-      const la = landed(a)
-      const lb = landed(b)
-      return missingLast(la, lb) ?? la! - lb!
-    }
+      return a.price! - b.price!
+    case 'landed':
+      return landed(a)! - landed(b)!
     case 'year':
-      return missingLast(a.year, b.year) ?? b.year! - a.year!
+      return b.year! - a.year!
     case 'artist':
-      return (
-        missingLast(a.artist, b.artist) ?? a.artist!.localeCompare(b.artist!, activeLocale())
-      )
+      return a.artist!.localeCompare(b.artist!, activeLocale())
     default:
       return b.score - a.score
   }
@@ -176,6 +223,7 @@ export function arrange(
   sort: SortKey,
   query = '',
   landed: LandedView | null = null,
+  direction: SortDirection = DEFAULT_DIRECTION[sort],
 ): Match[] {
   const wanted = new Set(active)
   const needle = query.trim()
@@ -207,7 +255,26 @@ export function arrange(
     return true
   })
 
-  // Score is the tiebreaker under every other key, so two records at the same
-  // price come out in the order the engine ranked them.
-  return [...filtered].sort((a, b) => compare(a, b, sort, totalOf) || b.score - a.score)
+  /*
+   * The direction turns the *values*, never the missing ones.
+   *
+   * A record whose price expired belongs at the end of "cheapest first" and at
+   * the end of "dearest first" alike — flipping the whole comparison would
+   * float the blanks to the top the moment somebody turned the arrow round,
+   * and an expired dig would look like the cheapest shop in town from the
+   * other end.
+   */
+  const turn = direction === DEFAULT_DIRECTION[sort] ? 1 : -1
+  return [...filtered].sort((a, b) => {
+    /*
+     * `missingFor` answers null where both have the field, ±1 where one does,
+     * and **0 where neither does** — which is not "equal", it is "nothing left
+     * to compare but the score".
+     */
+    const missing = missingFor(a, b, sort, totalOf)
+    if (missing !== null) return missing || b.score - a.score
+    // Score is the tiebreaker under every other key, so two records at the
+    // same price come out in the order the engine ranked them.
+    return turn * compare(a, b, sort, totalOf) || b.score - a.score
+  })
 }

@@ -228,6 +228,9 @@ const en = {
     shown: (shown: string, total: string | null) =>
       total === null ? `${shown} finds` : `${shown} of ${total} finds`,
     sortBy: 'Sort',
+    /** Spoken on the key in force, because the arrow beside it is decoration. */
+    sortedAsc: (label: string) => `${label}, ascending`,
+    sortedDesc: (label: string) => `${label}, descending`,
     /** The head of the compact table: its own name, so it is not a second "Sort". */
     columns: 'Columns — tap one to sort by it',
     density: 'Density',
@@ -245,12 +248,12 @@ const en = {
      */
     sorts: {
       score: { label: 'Score', about: 'Best find first' },
-      price: { label: 'Price ↑', about: 'Cheapest first' },
+      price: { label: 'Price', about: 'Cheapest first' },
       landed: {
-        label: 'With postage ↑',
+        label: 'With postage',
         about: 'Cheapest first, counting the postage this record would add at this shop',
       },
-      year: { label: 'Year ↓', about: 'Newest first' },
+      year: { label: 'Year', about: 'Newest first' },
       artist: { label: 'Artist', about: 'Alphabetical' },
     },
     nothingMatches: 'Nothing matches this selection.',
@@ -550,6 +553,8 @@ const de: typeof en = {
     shown: (shown, total) =>
       total === null ? `${shown} Treffer` : `${shown} von ${total} Treffern`,
     sortBy: 'Sortieren',
+    sortedAsc: (label) => `${label}, aufsteigend`,
+    sortedDesc: (label) => `${label}, absteigend`,
     columns: 'Spalten – zum Sortieren antippen',
     density: 'Dichte',
     comfortable: 'Ausführlich',
@@ -557,13 +562,13 @@ const de: typeof en = {
     compact: 'Kompakt',
     sorts: {
       score: { label: 'Score', about: 'Bester Treffer zuerst' },
-      price: { label: 'Preis ↑', about: 'Günstigste zuerst' },
+      price: { label: 'Preis', about: 'Günstigste zuerst' },
       landed: {
-        label: 'Mit Porto ↑',
+        label: 'Mit Porto',
         about:
           'Günstigste zuerst, mit dem Porto, das diese Platte bei diesem Laden dazukommen lässt',
       },
-      year: { label: 'Jahr ↓', about: 'Neueste zuerst' },
+      year: { label: 'Jahr', about: 'Neueste zuerst' },
       artist: { label: 'Künstler', about: 'Alphabetisch' },
     },
     nothingMatches: 'Nichts passt zu dieser Auswahl.',

@@ -4,7 +4,9 @@ import { landedPrice } from '#shared/shipping'
 import {
   arrange,
   availableSignals,
+  DEFAULT_DIRECTION,
   parseDensity,
+  parseDirection,
   parseSignals,
   parseSort,
   parseUpTo,
@@ -37,6 +39,7 @@ export function useDigView(
 
   const active = computed(() => parseSignals(param('sig'), matches.value))
   const sort = computed(() => parseSort(param('sort')))
+  const direction = computed(() => parseDirection(param('dir'), sort.value))
   const density = computed(() => parseDensity(param('dicht')))
   const available = computed(() => availableSignals(matches.value))
   const query = computed(() => param('q'))
@@ -44,10 +47,17 @@ export function useDigView(
   /** Whether this shop's postage is known at all — the list only offers the sort when it is. */
   const landedKnown = computed(() => (landed?.value?.tiers.length ?? 0) > 0)
   const visible = computed(() =>
-    arrange(matches.value, active.value, sort.value, query.value, {
-      of: (match) => landedPrice(match, landed?.value ?? null),
-      upTo: landedKnown.value ? upTo.value : null,
-    }),
+    arrange(
+      matches.value,
+      active.value,
+      sort.value,
+      query.value,
+      {
+        of: (match) => landedPrice(match, landed?.value ?? null),
+        upTo: landedKnown.value ? upTo.value : null,
+      },
+      direction.value,
+    ),
   )
 
   function apply(next: Record<string, string | undefined>) {
@@ -67,7 +77,29 @@ export function useDigView(
     apply({ sig: [...set].join(',') })
   }
 
-  const setSort = (key: SortKey) => apply({ sort: key === 'score' ? undefined : key })
+  /**
+   * Picking a key takes its own direction; pressing the key again turns it.
+   *
+   * The same rule the shelf has had since M26, and the answer to "I want to
+   * sort the price from cheap to expensive or the other way round" — which
+   * until 2026-09-14 had no other way round at all, because the arrow was
+   * baked into the label.
+   *
+   * The default direction is left out of the address, so the tidy URL stays
+   * tidy and "cheapest first" has exactly one representation.
+   */
+  const setSort = (key: SortKey) => {
+    const turned =
+      sort.value === key && direction.value === DEFAULT_DIRECTION[key]
+        ? DEFAULT_DIRECTION[key] === 'asc'
+          ? 'desc'
+          : 'asc'
+        : DEFAULT_DIRECTION[key]
+    apply({
+      sort: key === 'score' ? undefined : key,
+      dir: turned === DEFAULT_DIRECTION[key] ? undefined : turned,
+    })
+  }
   const setDensity = (value: Density) =>
     apply({
       dicht: value === 'compact' ? 'kompakt' : value === 'crate' ? 'kiste' : undefined,
@@ -84,6 +116,7 @@ export function useDigView(
     available,
     sort,
     density,
+    direction,
     query,
     upTo,
     landedKnown,
