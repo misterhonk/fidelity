@@ -526,6 +526,45 @@ const expired = computed(() => {
 })
 
 /**
+ * How many seconds Discogs has asked us to wait, while a scan is running.
+ *
+ * Read from the worker's own ledger every three seconds and only while
+ * something is scanning: it is a number in memory, so it costs nothing, and
+ * outside a scan the pulse beside the settings already carries it.
+ */
+const waitingFor = ref<number | null>(null)
+let throttleTimer: ReturnType<typeof setInterval> | null = null
+
+watch(
+  () => progress.value !== null || scanningDealer.value !== null,
+  (running) => {
+    if (throttleTimer !== null) {
+      clearInterval(throttleTimer)
+      throttleTimer = null
+    }
+    waitingFor.value = null
+    if (!running) return
+
+    const look = async () => {
+      try {
+        const now = await call('limit.now', undefined)
+        const left = now.waitingUntil === null ? null : now.waitingUntil - Date.now()
+        waitingFor.value = left !== null && left > 0 ? Math.ceil(left / 1000) : null
+      } catch {
+        // The worker not answering is not something this line reports.
+      }
+    }
+    void look()
+    throttleTimer = setInterval(() => void look(), 3000)
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  if (throttleTimer !== null) clearInterval(throttleTimer)
+})
+
+/**
  * A shop whose stock has not moved since the last dig (M32.4).
  *
  * Both numbers are already here: the current one from the preflight's own
@@ -1001,6 +1040,27 @@ const noHorizon = computed(
       <p v-if="scanningDealer" class="text-fid-sm font-medium text-fid-text">
         {{ d.scanning(scanningDealer) }}
       </p>
+      <!--
+        Discogs has told us to wait (M32.5).
+
+        A browser never sees the 429 — it comes through Cloudflare without CORS
+        headers, so `fetch()` simply rejects — and the client's answer is to
+        sleep out the window and try again. From the outside that is a bar that
+        stops moving, which reads as "broken" rather than "waiting": reported
+        on 2026-09-14 as a large shop that "cannot be dug". It can; it was
+        waiting, and nothing on the screen said so.
+
+        Polled only while a scan is running, and only out of the worker's own
+        memory — no request, and no line at all when nothing is waiting.
+      -->
+      <p
+        v-if="waitingFor !== null"
+        role="status"
+        class="max-w-prose rounded-fid-sm border border-fid-sig-gap/40 bg-fid-sig-gap/10 px-3 py-2 text-fid-sm text-fid-text"
+      >
+        {{ d.throttled(waitingFor) }}
+      </p>
+
       <div v-if="progress" class="flex items-center gap-3">
         <div class="h-2 grow overflow-hidden rounded-full bg-fid-inset">
           <div

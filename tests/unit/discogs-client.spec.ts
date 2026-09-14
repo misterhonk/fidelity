@@ -266,6 +266,42 @@ describe('the Discogs client', () => {
    * release already in the queue. Nothing is stored until the first answer
    * comes back, so that was two requests for one body.
    */
+  /*
+   * Waiting is a state, not a silence (M32.5).
+   *
+   * A browser never sees the 429 — Cloudflare serves it without a CORS header,
+   * so `fetch()` rejects and the status is unreachable (docs/02). The client's
+   * answer is to sleep out the window, and from the outside that is a progress
+   * bar that stops moving. On a shop of twenty thousand listings that is the
+   * difference between a dig somebody finishes and one somebody gives up on,
+   * reported as exactly that on 2026-09-14.
+   */
+  describe('waiting out the limit', () => {
+    it('says until when, so a screen can say it too', async () => {
+      const { forgetLedger, ledger } = await import('~~/worker/discogs/ledger')
+      forgetLedger()
+
+      const clock = fakeClock()
+      const rejects = vi.fn(async () => {
+        throw new DiscogsError('network', 0)
+      })
+      const client = new DiscogsClient({
+        getToken: () => 'a-pat',
+        fetchImpl: rejects as unknown as typeof fetch,
+        pacer: createPacer({ now: clock.now, sleep: clock.sleep }),
+        sleep: clock.sleep,
+        jitter: () => 0,
+      })
+
+      const asked = client.get('/users/a', identity).catch(() => null)
+      // Let the two quick network retries and the first long wait happen.
+      await asked
+
+      expect(ledger().waitingUntil).not.toBeNull()
+      forgetLedger()
+    })
+  })
+
   describe('coalescing', () => {
     it('sends one request when two callers ask for the same address at once', async () => {
       const { client, fetchImpl } = makeClient([jsonResponse({ id: 1, username: 'a' })])

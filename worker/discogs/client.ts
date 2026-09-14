@@ -2,7 +2,7 @@ import type { z } from 'zod'
 
 import { DiscogsError, toDiscogsError } from './errors'
 import { createPacer, type Pacer } from './pacer'
-import { note } from './ledger'
+import { note, noteBackoff } from './ledger'
 
 export const DISCOGS_API = 'https://api.discogs.com'
 
@@ -247,7 +247,11 @@ export class DiscogsClient {
          */
         if (this.#options.isOnline() && attempt < BACKOFF_MS.length) {
           const base = BACKOFF_MS[attempt]!
-          await this.#options.sleep(base + this.#options.jitter() * 0.25 * base)
+          const wait = base + this.#options.jitter() * 0.25 * base
+          // So that a screen can say "waiting" rather than showing a bar that
+          // has simply stopped moving (M32.5).
+          noteBackoff(Date.now() + wait)
+          await this.#options.sleep(wait)
           continue
         }
 
@@ -258,7 +262,9 @@ export class DiscogsClient {
         // Jitter so that two tabs of the same user do not resynchronise on
         // every retry and hammer the same second.
         const base = BACKOFF_MS[attempt]!
-        await this.#options.sleep(base + this.#options.jitter() * 0.25 * base)
+        const wait = base + this.#options.jitter() * 0.25 * base
+        noteBackoff(Date.now() + wait)
+        await this.#options.sleep(wait)
         continue
       }
 
