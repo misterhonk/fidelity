@@ -93,9 +93,23 @@ jobs:
       # Exceeding the budget breaks the build — that is the whole point of it.
       - run: pnpm size
 
+  # Four runners, a quarter of the suite each.
+  #
+  # The suite is four hundred browser tests and it ran ten minutes, of which
+  # eight were the tests themselves on one four-core box: four workers, each
+  # about half busy, because a browser test spends most of its life waiting.
+  # Splitting it by `--shard` is the only thing that adds CPU — and for a
+  # public repository it is free.
+  #
+  # Measured 2026-09-14, before any of this: 590 s for the job, 60 s of it
+  # downloading browsers that never change between runs.
   e2e:
     if: ${{ !startsWith(github.head_ref, 'release-please--') }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
@@ -104,16 +118,31 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The binaries are keyed by the version that asks for them, so the cache
+      # is right by construction: a Playwright bump misses it and downloads.
+      - id: playwright
+        run: |
+          echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - id: browsers
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       # WebKit is not optional. The app is a PWA whose weakest target is iOS
       # Safari — testing only Chromium means not testing the browser that matters.
-      - run: pnpm exec playwright install --with-deps chromium webkit
+      - if: steps.browsers.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium webkit
+      # The browsers are in the cache; the system libraries they link against
+      # are not, and the runner image does not carry all of WebKit's.
+      - if: steps.browsers.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium webkit
       # Includes the @axe-core/playwright pass. The Discogs API is never called
       # here; a real smoke test belongs in a nightly run, not in a per-PR job
       # that would burn the rate limit for merges.
-      - run: pnpm test:e2e
+      - run: pnpm exec playwright test --shard=${{ matrix.shard }}/4
       - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.shard }}
           path: playwright-report/
           retention-days: 7
