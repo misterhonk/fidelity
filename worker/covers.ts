@@ -3,6 +3,7 @@ import { getPreferences } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 
 import { coverOf, storeReleaseDetail } from './collection/detail'
+import { noteFree } from './discogs/ledger'
 import { releaseDetailSchema } from './discogs/schemas'
 
 import type { DiscogsClient } from './discogs/client'
@@ -100,6 +101,8 @@ export async function fetchCovers(options: {
       if (hits.length > 0) {
         await writeCovers(hits)
         fromHub = hits.length
+        // Each of these would have been one request to Discogs (M31.9).
+        noteFree('record', hits.length)
         const known = new Set(hits.map((hit) => hit.releaseId))
         missing = missing.filter((releaseId) => !known.has(releaseId))
       }

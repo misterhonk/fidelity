@@ -83,6 +83,7 @@ import type {
   PlaceDealing,
   PlaceRule,
   UnitPlan,
+  RateLedger,
 } from './types'
 
 export interface PingResult {
@@ -700,6 +701,18 @@ export interface WorkerContract {
    * The watchlist. One request per shop, not a hundred — `num_for_sale` off
    * the profile is the whole change detector (docs/06 M6).
    */
+  /**
+   * What this device has asked Discogs for, and what it was spared (M31.9).
+   *
+   * Never Discogs' own counter — that one is unreadable from a browser
+   * (docs/02). This is the app's record of what it put on the wire, and what
+   * the catalogue and the hub answered instead.
+   */
+  'limit.now': {
+    params: undefined
+    progress: never
+    result: RateLedger
+  }
   'watch.set': {
     params: { dealer: string; watching: boolean }
     progress: never

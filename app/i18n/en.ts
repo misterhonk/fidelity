@@ -148,6 +148,32 @@ const en = {
     P: 'Broken or unplayable.',
   },
 
+  /**
+   * The request meter (M31.9).
+   *
+   * Never "X of Y left": Discogs' limit is a tempo — sixty a minute per
+   * address — and nothing runs out. The words here talk about pace and about
+   * who set the pace, and they say plainly that this is the app's own count.
+   */
+  limit: {
+    session: 'This session',
+    purposes: {
+      dig: 'Digs',
+      horizon: 'Horizon',
+      record: 'Records',
+      watch: 'Watcher',
+      sync: 'Collection',
+      other: 'Other',
+    },
+    spoken: (n: number, ceiling: number) =>
+      `${n} requests in the last minute, of ${ceiling} this device allows itself`,
+    saved: (n: string, minutes: number) =>
+      `The catalogue and the hub took ${n} requests off — about ${minutes === 1 ? 'a minute' : `${minutes} minutes`} of waiting.`,
+    ceiling: (n: number) =>
+      `Discogs allows 60 a minute per address. Fidelity asks ${n} — on purpose.`,
+    ours: 'Counted here is what Fidelity asked for. Discogs’ own counter cannot be read from a browser.',
+  },
+
   /** The notices that can appear on any screen. */
   notice: {
     offline: {

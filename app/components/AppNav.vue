@@ -146,11 +146,18 @@ const basketCount = computed(() => basketIds.value.size)
         `md:ml-auto` stays: on a desktop the settings belong at the far end,
         away from the five things somebody actually came to do.
       -->
+      <!--
+        What this device has asked Discogs for (M31.9). Beside the settings on
+        a desktop, and nowhere on a phone: there is no room in that bar, and
+        the same numbers live in Settings › Data.
+      -->
+      <RateMeter class="max-md:hidden md:ml-auto" />
+
       <NuxtLink
         to="/settings"
         :aria-current="isCurrent({ to: '/settings' }) ? 'page' : undefined"
         :title="m.nav.settings.hint"
-        class="relative flex min-h-11 items-center justify-center gap-2 border-b-2 px-3 text-fid-sm transition-colors md:ml-auto max-md:min-h-16 max-md:flex-1 max-md:flex-col max-md:gap-1 max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0 max-md:px-1 max-md:py-3 max-md:text-fid-xs"
+        class="relative flex min-h-11 items-center justify-center gap-2 border-b-2 px-3 text-fid-sm transition-colors max-md:ml-auto max-md:min-h-16 max-md:flex-1 max-md:flex-col max-md:gap-1 max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0 max-md:px-1 max-md:py-3 max-md:text-fid-xs"
         :class="
           isCurrent({ to: '/settings' })
             ? 'border-fid-accent text-fid-text max-md:bg-fid-accent/15'

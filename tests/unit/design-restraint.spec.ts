@@ -222,7 +222,13 @@ describe('the basket badge', () => {
    * once.
    */
   it('builds the settings tab like the five before it', () => {
-    const first = code.slice(code.indexOf('v-for'), code.indexOf('to="/settings"'))
+    /*
+     * Up to the meter, not up to the settings link: the request meter sits
+     * between the tabs and the gear since M31.9, and it is not a tab — it has
+     * no label, no route and its own `max-md:hidden`. Slicing to it keeps this
+     * about the six things that *are* tabs.
+     */
+    const first = code.slice(code.indexOf('v-for'), code.indexOf('<RateMeter'))
     const gear = code.slice(code.indexOf('to="/settings"'))
 
     const layout = [...first.matchAll(/\b(max-md:[\w-]+|min-h-11|gap-2|px-3)\b/g)].map(
