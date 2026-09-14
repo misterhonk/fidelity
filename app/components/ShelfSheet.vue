@@ -718,14 +718,13 @@ async function remove() {
         service — one block, because from the reader's side they are one
         question. See ListenSection.vue for the difference that matters.
 
-        Six at most: a single 12" came back with eighty-nine (measured
-        2026-08-12), and a list that long buries the rest of the sheet.
+        The cut to six and the count under it live in the component now, so a
+        record looks the same whether it is reached from here or from a find.
       -->
       <ListenSection
         :artist="record.artistNames[0] ?? null"
         :title="record.title"
-        :videos="detail?.videos.slice(0, 6)"
-        :total="detail?.videos.length"
+        :videos="detail?.videos"
       />
 
       <!--
