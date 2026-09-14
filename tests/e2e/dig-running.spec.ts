@@ -60,6 +60,9 @@ test('names the shop being scanned when the page is opened mid-scan', async ({
   })
 
   await page.goto('/dig')
+  // The seed leaves a result on this screen, and a screen with a result folds
+  // the field away (M31.13).
+  await page.getByText('Another shop, or an earlier dig').click()
   await page.getByLabel('Shop — name or link').fill('slowshop')
   await page.getByRole('button', { name: 'Check' }).click()
   await page.getByRole('button', { name: 'Start the dig' }).click()
@@ -73,6 +76,7 @@ test('names the shop being scanned when the page is opened mid-scan', async ({
   await page.getByRole('link', { name: 'Dig', exact: true }).click()
   await expect(page).toHaveURL(/dig/)
   await expect(page.getByText('Scanning slowshop')).toBeVisible({ timeout: 15_000 })
+  await page.getByText('Another shop, or an earlier dig').click()
   await expect(page.getByRole('button', { name: 'Check' })).toBeDisabled()
 
   /*
