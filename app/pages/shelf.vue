@@ -230,6 +230,21 @@ async function reread() {
  * basement with no signal. Discogs is one button away for the rest.
  */
 const open = ref<number | null>(null)
+
+/** Where the open record stands in the list on screen, and what is either side. */
+const walk = computed(() => {
+  const ids = view.value?.records.map((record) => record.instanceId) ?? []
+  const at = open.value
+  if (at === null) return null
+  const index = ids.indexOf(at)
+  if (index < 0) return null
+  return {
+    index,
+    total: ids.length,
+    previous: ids[index - 1] ?? null,
+    next: ids[index + 1] ?? null,
+  }
+})
 </script>
 
 <template>
@@ -535,6 +550,22 @@ const open = ref<number | null>(null)
       </button>
     </template>
 
-    <ShelfSheet v-if="open !== null" :instance-id="open" @close="open = null" />
+    <!--
+      The sheet walks the list it was opened from (M31.16).
+
+      "The list" is what is on the screen — filtered, sorted, and as far down
+      as somebody has asked it to go. A shelf of two thousand loads a hundred
+      and twenty of them; the arrows walk those and stop, and "show more" is
+      where it always was. Re-keyed on the record, because a step is a
+      different record and everything in the sheet has to be fetched again.
+    -->
+    <ShelfSheet
+      v-if="open !== null"
+      :key="open"
+      :instance-id="open"
+      :walk="walk"
+      @close="open = null"
+      @step="open = $event"
+    />
   </AppPage>
 </template>

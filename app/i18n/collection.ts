@@ -118,6 +118,9 @@ const en = {
     rereading: 'Syncing…',
     sheet: {
       loading: 'Opening the record…',
+      /** Walking the shelf from inside the sheet — the same arrows a find has. */
+      previous: 'The record before this one',
+      next: 'The next record',
       facts: {
         rating: 'Rating',
         artist: 'Artist',
@@ -667,6 +670,8 @@ const de: typeof en = {
     rereading: 'Gleicht ab …',
     sheet: {
       loading: 'Platte wird geöffnet…',
+      previous: 'Die Platte davor',
+      next: 'Die nächste Platte',
       facts: {
         rating: 'Bewertung',
         artist: 'Künstler',
