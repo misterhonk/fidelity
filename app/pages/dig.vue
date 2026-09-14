@@ -533,7 +533,35 @@ const expired = computed(() => {
  * outside a scan the pulse beside the settings already carries it.
  */
 const waitingFor = ref<number | null>(null)
+
+/**
+ * How many requests actually went out in the last minute, while scanning.
+ *
+ * A scan with a token runs at fifty a minute. When this number collapses and
+ * Discogs has *not* asked for a pause, something on this side is holding the
+ * clock — and the usual something is the browser: a tab in the background has
+ * its timers throttled, and the pacer is built out of timers. A four-minute
+ * dig then takes an hour, which from the outside is a dig that "hangs".
+ *
+ * Reported as exactly that on 2026-09-14. The line says the measurement and
+ * names the likely cause; it does not claim to know which tab somebody is
+ * looking at.
+ */
+const perMinute = ref<number | null>(null)
+/** Below this, with nothing waiting on Discogs, the lane is not ours. */
+const SLOW_LANE = 8
+
+const crawling = computed(
+  () =>
+    scanningDealer.value !== null &&
+    waitingFor.value === null &&
+    perMinute.value !== null &&
+    perMinute.value < SLOW_LANE,
+)
+
 let throttleTimer: ReturnType<typeof setInterval> | null = null
+/** Nothing is said about a pace before there has been a minute to measure. */
+let scanningSince = 0
 
 watch(
   () => progress.value !== null || scanningDealer.value !== null,
@@ -543,13 +571,19 @@ watch(
       throttleTimer = null
     }
     waitingFor.value = null
+    perMinute.value = null
     if (!running) return
+    scanningSince = Date.now()
 
     const look = async () => {
       try {
         const now = await call('limit.now', undefined)
         const left = now.waitingUntil === null ? null : now.waitingUntil - Date.now()
         waitingFor.value = left !== null && left > 0 ? Math.ceil(left / 1000) : null
+        perMinute.value =
+          Date.now() - scanningSince < 70_000
+            ? null
+            : now.minute.filter((row) => !row.free).length
       } catch {
         // The worker not answering is not something this line reports.
       }
@@ -1059,6 +1093,27 @@ const noHorizon = computed(
         class="max-w-prose rounded-fid-sm border border-fid-sig-gap/40 bg-fid-sig-gap/10 px-3 py-2 text-fid-sm text-fid-text"
       >
         {{ d.throttled(waitingFor) }}
+      </p>
+
+      <!--
+        The lane is not ours (M32.7).
+
+        Fifty a minute is the pace with a token; when what actually goes out
+        collapses and Discogs has not asked for a pause, something on this side
+        is holding the clock. The usual something is the browser: a tab in the
+        background has its timers throttled, and the pacer is built out of
+        timers — a four-minute dig then takes an hour, which from the outside
+        is a dig that "hangs".
+
+        The line says what was measured and names the likely cause. It does not
+        claim to know which tab somebody is looking at.
+      -->
+      <p
+        v-else-if="crawling"
+        role="status"
+        class="max-w-prose rounded-fid-sm border border-fid-sig-gap/40 bg-fid-sig-gap/10 px-3 py-2 text-fid-sm text-fid-text"
+      >
+        {{ d.slowLane(perMinute ?? 0) }}
       </p>
 
       <div v-if="progress" class="flex items-center gap-3">
