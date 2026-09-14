@@ -9,6 +9,14 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.88.0](https://github.com/misterhonk/fidelity/compare/v0.87.0...v0.88.0) (2026-09-14)
+
+
+### Added
+
+* **dealers:** the shop at Discogs, and the dig nobody has to run ([c52cee9](https://github.com/misterhonk/fidelity/commit/c52cee9dd23e7b9ef077540c8919041d3cf44285))
+* **discogs:** waiting is a state, not a silence ([fa2d414](https://github.com/misterhonk/fidelity/commit/fa2d41481279d3d01a69796a591e7bc50aaebe1c))
+
 ## [0.87.0](https://github.com/misterhonk/fidelity/compare/v0.86.0...v0.87.0) (2026-09-14)
 
 **Der Preis lässt sich jetzt von günstig nach teuer sortieren — oder anders herum.**
