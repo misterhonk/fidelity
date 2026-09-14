@@ -68,11 +68,20 @@ test('names the columns and sorts by the one you click', async ({ page }) => {
   const rows = page.locator('section[aria-labelledby="all-matches"] ul > li')
   await expect(rows.first()).toContainText('Probe 3')
 
-  await head.getByRole('button', { name: 'Price ↑' }).click()
-  await expect(head.getByRole('button', { name: 'Price ↑' })).toHaveAttribute(
+  await head.getByRole('button', { name: 'Price' }).click()
+  await expect(head.getByRole('button', { name: 'Price' })).toHaveAttribute(
     'aria-pressed',
     'true',
   )
   await expect(page).toHaveURL(/sort=price/)
   await expect(rows.first()).toContainText('Probe 5')
+
+  /*
+   * And again turns it round (M32.2) — "cheap to expensive or the other way
+   * round", which until then had no other way round because the arrow was
+   * baked into the label.
+   */
+  await head.getByRole('button', { name: 'Price' }).click()
+  await expect(page).toHaveURL(/dir=desc/)
+  await expect(rows.first()).toContainText('Probe 3')
 })
