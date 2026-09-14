@@ -192,6 +192,9 @@ const en = {
    * new ones fit is a claim it never checked.
    */
   empty: {
+    /* What is left to do when a dig found nothing (M31.6). */
+    wholeShop: 'Read the whole shop',
+    watchIt: 'Put it on the round',
     'incremental-empty': (dealer: string) =>
       `${dealer} has put nothing new up since your last visit. The rest of the stock was already here.`,
     incremental:
@@ -502,6 +505,8 @@ const de: typeof en = {
   alreadySold: (n) => `${n} schon verkauft`,
 
   empty: {
+    wholeShop: 'Den ganzen Laden lesen',
+    watchIt: 'In den Rundgang nehmen',
     'incremental-empty': (dealer) =>
       `Seit deinem letzten Besuch hat ${dealer} nichts Neues eingestellt. Der Rest des Sortiments stand hier schon.`,
     incremental:
