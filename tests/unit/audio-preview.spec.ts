@@ -172,13 +172,24 @@ describe('the same exception on the sheets', () => {
    * switch. Only with it on is there a button that embeds anything.
    */
   it('offers a button only with the switch on, and a link without it', () => {
-    const button = bare.slice(bare.indexOf('<button'), bare.indexOf('</button>'))
-    expect(button).toMatch(/v-if="preview"/)
+    /*
+     * Two places now: a play control on a track that has a clip, and the
+     * loose recordings underneath. Both have to make the same promise — a
+     * button that embeds only where the switch is on, and an ordinary link
+     * out where it is not.
+     */
+    expect(bare).toMatch(/v-if="onTracks\.perTrack\[index\] && preview"/)
+    expect(bare).toMatch(/v-else-if="onTracks\.perTrack\[index\]"/)
+    expect(bare).toMatch(/<button\s+v-if="preview"/)
 
-    const link = bare.slice(bare.indexOf('<a\n          v-else'))
-    expect(link).toMatch(/v-else/)
-    expect(link).toMatch(/:href="video\.uri"/)
-    expect(link).toMatch(/rel="noopener noreferrer"/)
+    // Every `v-else` alternative is a link that leaves the app, properly
+    // detached from this window.
+    const links = [...bare.matchAll(/<a\n\s+v-else[^>]*>/gs)]
+    expect(links.length).toBeGreaterThanOrEqual(2)
+    for (const [markup] of links) {
+      expect(markup).toMatch(/rel="noopener noreferrer"/)
+      expect(markup).toMatch(/target="_blank"/)
+    }
   })
 
   /** And that switch is read from the preferences, not assumed. */
@@ -295,10 +306,20 @@ describe('the clip list', () => {
   /** And the cut is the component's, so both sheets show the same record. */
   it('cuts at six wherever it is used, and says so', () => {
     expect(bare).toMatch(/const LIMIT = 6/)
-    expect(bare).toMatch(/distinct\.value\.slice\(0, LIMIT\)/)
-    expect(bare).toMatch(/v-if="distinct\.length > clips\.length"/)
+    expect(bare).toMatch(/\.slice\(0, LIMIT\)/)
+    expect(bare).toMatch(/v-if="looseTotal > loose\.length"/)
 
     const shelf = withoutComments(readFileSync('app/components/ShelfSheet.vue', 'utf8'))
     expect(shelf).not.toMatch(/videos\.slice\(0, 6\)/)
+  })
+
+  /**
+   * And the matching runs over every clip, not over the six that are shown.
+   *
+   * A record with fourteen would otherwise hand the first six to the first six
+   * tracks and call the other eight recordings.
+   */
+  it('matches the tracks against all of them, not against the six on screen', () => {
+    expect(bare).toMatch(/clipsOnTracks\(props\.tracks \?\? \[\], distinct\.value\)/)
   })
 })

@@ -312,6 +312,18 @@ export interface ReleaseDetail {
   identifiers: ReleaseIdentifier[]
   /** What everybody else thinks, beside what you gave it. */
   community: { rating: number; votes: number } | null
+  /**
+   * What it sounds like, as Discogs files it.
+   *
+   * The shelf has these from the collection sync and shows them at once; a
+   * find has nothing of the sort, and the same record therefore looked
+   * different depending on which screen it was opened from. They ride along in
+   * the lookup that fetches the tracklist, so they cost nothing (M31.5).
+   *
+   * Absent on rows stored before this existed, which reads as "not known".
+   */
+  styles?: string[]
+  genres?: string[]
   /** Discogs' own video links, for hearing it before deciding. */
   videos: { title: string; uri: string }[]
   notes: string

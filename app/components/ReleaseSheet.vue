@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Match, MatchDetail } from '#shared/types'
+import type { Match, MatchDetail, ReleaseDetail } from '#shared/types'
 import { gradeKey } from '#shared/format'
 import { reasonFor } from '~/i18n/reason'
 import { pressingText, stampText } from '~/i18n/pressing'
@@ -37,6 +37,9 @@ onMounted(async () => {
     })
     detail.value = answer
     state.value = answer ? 'ready' : 'gone'
+    // Not awaited: the record is already on screen, and the lookup fills in
+    // underneath it.
+    if (answer) void lookUp(answer.match.releaseId)
   } catch (cause) {
     // A failure is not the same as a find that is gone, and the sentence for
     // it is `ErrorNote`'s, which says what broke.
@@ -46,6 +49,41 @@ onMounted(async () => {
 })
 
 const match = computed(() => detail.value?.match ?? null)
+
+/**
+ * What the record *is* — one lookup, and everything under it (M31.5).
+ *
+ * The shelf's sheet has fetched this for a long time: tracklist, credits,
+ * run-out groove, styles, and the clips. A find's sheet fetched the same thing
+ * for the clips alone and then showed none of the rest, so the same record
+ * looked like two different records depending on which screen it was opened
+ * from.
+ *
+ * One release, once, for a record somebody deliberately opened — the bargain
+ * the covers make. Kept for ever after, so the second open costs nothing.
+ */
+const release = ref<ReleaseDetail | null>(null)
+const looking = ref(false)
+
+async function lookUp(releaseId: number) {
+  looking.value = true
+  try {
+    release.value = await call('release.detail', { releaseId })
+  } catch {
+    // A record with less on it, not an error on the screen: everything above
+    // this line came from storage and is already drawn.
+    release.value = null
+  } finally {
+    looking.value = false
+  }
+}
+
+/** What it sounds like — the find carries none of this, the lookup does. */
+const tags = computed(() => {
+  const found = release.value
+  if (!found) return []
+  return [...new Set([...(found.genres ?? []), ...(found.styles ?? [])])]
+})
 
 /*
  * One cover, for the one record that is open.
@@ -496,9 +534,11 @@ function years(entry: { from: number; to: number }): string {
         v-if="match"
         :artist="match.artist"
         :title="match.title"
-        :videos="match.videos"
-        :release-id="match.releaseId"
+        :videos="release?.videos ?? match.videos"
+        :tracks="release?.tracks"
       />
+
+      <ReleaseFacts :detail="release" :tags="tags" />
 
       <div
         class="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-fid-border pt-4"

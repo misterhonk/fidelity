@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { LISTEN_NAMES, LISTEN_SERVICES, listenUrl } from '#shared/listen'
+import { clipsOnTracks, LISTEN_NAMES, LISTEN_SERVICES, listenUrl } from '#shared/listen'
 
 /**
  * One tap from a find to the music (M31).
@@ -67,5 +67,86 @@ describe('a listen link', () => {
       expect(LISTEN_NAMES[service], service).toBeTruthy()
       expect(listenUrl(service, 'Moderat', 'II'), service).toMatch(/^https:\/\//)
     }
+  })
+})
+
+/**
+ * The clips hang on the tracklist (M31.5).
+ *
+ * Discogs' video titles almost always carry the track's name, so the tracks
+ * that have something to hear can carry a play control — which is what turns a
+ * page of facts into a record.
+ */
+describe('clips on tracks', () => {
+  const OUR_LOVE = [
+    { title: "Can't Do Without You" },
+    { title: 'Silver' },
+    { title: 'All I Ever Need' },
+    { title: 'Our Love' },
+    { title: 'Dive' },
+  ]
+
+  it('puts each clip on the track it names', () => {
+    const { perTrack, rest } = clipsOnTracks(OUR_LOVE, [
+      { title: "Caribou - Can't Do Without You (Extended Mix) [HD]", uri: 'a' },
+      { title: 'Caribou - Silver', uri: 'b' },
+      { title: 'CARIBOU - Dive', uri: 'c' },
+    ])
+
+    expect(perTrack.map((clip) => clip?.uri ?? null)).toEqual(['a', 'b', null, null, 'c'])
+    expect(rest).toEqual([])
+  })
+
+  /**
+   * The trap this is built around: "Our Love" contains "Love", and a plain
+   * substring match would hand the album's title track to whichever row asked
+   * first. Longest title first, and a taken clip is out of the running.
+   */
+  it('gives a clip to the longest title that fits it', () => {
+    const { perTrack } = clipsOnTracks(
+      [{ title: 'Love' }, { title: 'Our Love' }],
+      [{ title: 'Caribou - Our Love', uri: 'x' }],
+    )
+
+    expect(perTrack[1]?.uri).toBe('x')
+    expect(perTrack[0]).toBeNull()
+  })
+
+  /** What no track claimed is handed back, not dropped. */
+  it('hands back the recordings that belong to no track', () => {
+    const { perTrack, rest } = clipsOnTracks(OUR_LOVE, [
+      { title: 'Caribou - Silver', uri: 'b' },
+      { title: 'Caribou live at Primavera 2015', uri: 'live' },
+    ])
+
+    expect(perTrack[1]?.uri).toBe('b')
+    expect(rest.map((clip) => clip.uri)).toEqual(['live'])
+  })
+
+  /** Positions and conventions are not names. */
+  it('refuses to match on a title too short to be one', () => {
+    const { perTrack, rest } = clipsOnTracks(
+      [{ title: 'A1' }, { title: 'II' }],
+      [{ title: 'Some Artist - A1 Something', uri: 'a' }],
+    )
+
+    expect(perTrack).toEqual([null, null])
+    expect(rest).toHaveLength(1)
+  })
+
+  it('reads through punctuation and accents', () => {
+    const { perTrack } = clipsOnTracks(
+      [{ title: 'Où est la femme' }],
+      [{ title: 'Various — "Ou est la femme" (1979)', uri: 'u' }],
+    )
+
+    expect(perTrack[0]?.uri).toBe('u')
+  })
+
+  it('has nothing to say about a record with no tracklist', () => {
+    expect(clipsOnTracks([], [{ title: 'x', uri: 'x' }])).toEqual({
+      perTrack: [],
+      rest: [{ title: 'x', uri: 'x' }],
+    })
   })
 })

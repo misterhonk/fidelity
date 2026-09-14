@@ -112,6 +112,8 @@ export async function releaseDetail(
             votes: answer.community.rating.count,
           }
         : null,
+    styles: answer.styles ?? [],
+    genres: answer.genres ?? [],
     videos: (answer.videos ?? []).map((video) => ({
       title: video.title ?? '',
       uri: video.uri,
