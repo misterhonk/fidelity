@@ -9,6 +9,20 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.82.0](https://github.com/misterhonk/fidelity/compare/v0.81.0...v0.82.0) (2026-09-14)
+
+
+### Added
+
+* **collection:** a record you want opens like a record ([dae76f1](https://github.com/misterhonk/fidelity/commit/dae76f1d25d26fc0b40e76be812e33258f97f31a))
+* **dig:** the record gets a masthead, and its price can be asked for again ([7dbd897](https://github.com/misterhonk/fidelity/commit/7dbd897a3d7ae1b3b4c70dc71269edbb56dd93ed))
+* **ui:** three gaps the concepts named and the code had not closed ([ed832af](https://github.com/misterhonk/fidelity/commit/ed832af866663255340876039790c3a7064127a0))
+
+
+### Changed
+
+* **ui:** one head for a record, wherever it is opened ([df6401f](https://github.com/misterhonk/fidelity/commit/df6401f4daca071baeebcc31d6e76614d1fac180))
+
 ## [0.81.0](https://github.com/misterhonk/fidelity/compare/v0.80.1...v0.81.0) (2026-09-14)
 
 **Auch im eigenen Regal führen jetzt zwei Pfeile von einer Platte zur nächsten.**
