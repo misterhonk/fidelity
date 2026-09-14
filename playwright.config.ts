@@ -23,6 +23,20 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
 
   /*
+   * Four workers on a four-core runner, deliberately oversubscribed.
+   *
+   * Playwright's default is half the cores, which on GitHub's standard runner
+   * is two — and measured on 2026-09-14 those two were busy 97 % of the span,
+   * which sounds like a saturated machine and is not one: most of what a
+   * browser test does is wait for a page to boot, for a transition to end, for
+   * a locator to appear. The CPU is idle through all of it. Two more workers
+   * fill those gaps with somebody else's work.
+   *
+   * Locally it stays at the default. A laptop is doing other things.
+   */
+  workers: process.env.CI ? 4 : undefined,
+
+  /*
    * Every local run leaves a record, because one did not.
    *
    * On 2026-09-11 a run came back 309 of 310 and the next three came back
