@@ -167,7 +167,9 @@ export async function homeOverview(): Promise<HomeOverview> {
           startedAt: latest.startedAt,
           expiresAt: latest.expiresAt,
           matches: latest.matchCount,
-          complete: latest.status === 'done',
+          // A dig that finished and then aged out of its six hours is still
+          // complete; the start page said "interrupted" about it (2026-09-16).
+          complete: latest.status === 'done' || latest.status === 'expired',
           scanned: latest.listingsScanned,
           listingsTotal: latest.listingsTotal,
         }

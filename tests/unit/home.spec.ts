@@ -143,6 +143,15 @@ describe('homeOverview', () => {
     expect((await homeOverview()).dig?.dealer).toBe('neu')
   })
 
+  it('does not call a dig that finished and then expired interrupted', async () => {
+    await dig('01J000000000000000000000E', 'alt', 3)
+    const db = await openFidelityDb()
+    const row = (await db.get('digs', '01J000000000000000000000E'))!
+    await db.put('digs', { ...row, status: 'expired' })
+
+    expect((await homeOverview()).dig?.complete).toBe(true)
+  })
+
   it('does not let an empty visit hide a shop that had finds', async () => {
     /*
      * "Nur das Neue" costs one request and often turns up nothing, which is a
