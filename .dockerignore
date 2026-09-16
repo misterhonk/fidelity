@@ -6,6 +6,9 @@ node_modules
 # von außen, statt sie selbst zu bauen. Der Rest von .output — der Server-Teil,
 # den diese App gar nicht hat — bleibt draußen.
 !.output/public
+# Und die nginx-Konfiguration mit der Content-Security-Policy dieses Builds
+# (scripts/csp/write.mjs) — die Zeile hat beim Release 0.91.2 gefehlt.
+!.output/nginx.conf
 .nuxt
 dist
 coverage
