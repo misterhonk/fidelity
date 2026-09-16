@@ -1534,6 +1534,34 @@ rows after weeks. The catalogue has `release_format.qty` and does not serve it.
 | M34.3 Shipping profile v2 | The model (units, format, method, free-over, weight by Discogs' defaults); migration; the read-off field as the main road, the field next to "bought", the pasted cart text, the postage of one's own order (after an ADR); the parser as a proposal to confirm, with the flat-rate rule and the pause rule; the catalogue serving `qty`; the "2x" rule in the app; the Shipping section on the profile; postage on the row as an estimate; basket, comparison and plan lines on it; the strategy switch; "shipping changes when you deselect"; hub routes for profiles with "confirmed by n"; the seller text expiring with its dig | |
 | M34.6 Filling the parcel, the tempo | "For the same postage there is room for …" from the shop's last dig up to the tier's edge; "n % of the finds were gone by the next dig" from the round | after 34.3 |
 
+## M35 · German, second pass → proposed
+
+Asked for on 2026-09-16, twice in one evening, after the shops screen had its German
+rewritten: "wir müssen dringend die deutsche Sprachfassung später überarbeiten … ich möchte, dass
+die Sprache lockerer und bequemer wird. Wörter wie Median sind okay, aber irgendwie steif."
+
+The cause is structural, not a few bad sentences. ADR-010 made English the base, and the German
+came into being as a translation of English house style — "said, not implied", the app talking
+about itself in the third person ("sieht diese App nicht, also behauptet sie es auch nicht"),
+dash chains, nominal phrases. In English that reads as restraint; in German it reads as an
+office letter. The four sentences Martin quoted:
+
+| As it stands | The tone wanted |
+|---|---|
+| Was die Zahl zählt — Treffer auf tausend Listings beim letzten Dig, verglichen mit dem Median deiner anderen Läden. Was der Markt insgesamt hergäbe, sieht diese App nicht. | Wie die Zahl zustande kommt — So viele Treffer auf tausend Angebote hatte der letzte Dig hier. Verglichen wird mit dem Median deiner anderen Läden, nicht mit dem ganzen Markt, den kennt Fidelity nicht. |
+| Womit das verglichen wird — Nur mit deinen eigenen Läden. Was der Markt insgesamt verlangt, sieht diese App nicht, also behauptet sie es auch nicht. | Womit wir vergleichen — Nur mit deinen eigenen Läden. Wie der Markt insgesamt aussieht, weiß Fidelity nicht, und rät auch nicht. |
+| Eine hast du. Alles andere aus dem Laden fährt für dasselbe Porto mit. | Eine Platte ist im Korb. Was du sonst noch bei dem Laden findest, kommt fürs gleiche Porto mit. |
+| Läden, die andere gegraben haben — Wie viel vom Sortiment auf Labels liegt, die du schon sammelst. | Läden, in denen andere schon gegraben haben — Die Zahl sagt, wie viel vom Sortiment auf deinen Labels liegt. |
+
+| Step | What | Status |
+|---|---|---|
+| M35.1 The rules | A short style note in `docs/` for the German packs: think in German, do not translate; short main clauses; "du" and active verbs instead of passive; commas instead of dash chains; "Fidelity" or "wir" instead of "diese App"; everyday words ("Angebote" beside "Listings", "was sich getan hat"); terms of the trade stay (Median, Dig, Listing, Hub). The English packs are untouched | |
+| M35.2 The packs | `de` blocks of `en.ts`/`de.ts` (common), `dig.ts`, `basket.ts`, `collection.ts`, `settings.ts`, `wantlist`, `home`, `places`, `review` — every sentence read aloud once; the shops pack (0.94.0) is the reference. Length must hold: the sixty-words rule and the plate widths were measured on the English | |
+| M35.3 The proof | Martin reads the German screens against the demo collection and marks what still sounds stiff; a second short pass | needs Martin |
+
+Order: after M34.3 unless Martin pulls it forward. It touches no code path, only strings, so it
+can also run between two shop phases.
+
 ## Not on the roadmap
 
 | Idea | Why not |
