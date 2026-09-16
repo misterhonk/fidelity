@@ -11,6 +11,26 @@ Für eine App bedeutet SemVer:
 
 ## [0.94.0](https://github.com/misterhonk/fidelity/compare/v0.93.0...v0.94.0) (2026-09-16)
 
+**Der Rundgang wird eine Zeile, die Läden-Seite wird schneller und lockerer.**
+
+Wer den Rundgang einmal gelaufen war, bekam beim nächsten Besuch zehn Zeilen quer über den
+Bildschirm, acht davon „nichts für dich". Jetzt steht da eine Zeile: wie viele Läden, wie
+lange, der Knopf, und das letzte Ergebnis als „1 Treffer · 6 ohne Neues · 2 übersprungen".
+Die Treffer werden aufgezählt, der Rest steckt in einem Klapp.
+
+Jede Zeile in der Liste trägt zwei Wörter mehr: „mehr Treffer" oder „weniger Treffer",
+„günstiger" oder „teurer", jeweils gemessen an deinen anderen Läden. Im Profil zeigen
+Passung und Preislage dasselbe als Balken mit einem Strich für den Median der anderen.
+Ein Gerät ohne Läden bekommt fünf zum Anfangen, alle groß, gut bewertet und geprüft.
+
+Unter der Haube holt die Seite alles mit einer Nachricht statt sechs nacheinander, die
+Datenbank hat zwei neue Indexe, damit das Profil eines Ladens nicht mehr deine ganze
+Sammlung durchliest, und der Hub wird erst nach dem Zeichnen gefragt. Die deutschen Texte
+der Läden-Seite sind neu geschrieben: kürzere Sätze, weniger Gedankenstriche.
+
+**Was zu tun ist:** Nichts. Die Datenbank hebt sich beim ersten Öffnen selbst auf
+Stand 15, das dauert keinen Wimpernschlag.
+
 
 ### Added
 
