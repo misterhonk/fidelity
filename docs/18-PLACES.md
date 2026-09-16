@@ -40,6 +40,7 @@ and are rooms.
 | `rule` | unit | M27.2: `artist`, `label`, `year`, `added`, `manual`. A rule **proposes** where a record goes and never moves one by itself; an explicit placement always wins |
 | `dealing` | unit | M28 #3: `even` spreads the records across every compartment, `front` fills each to 80 % of its capacity before the next — a small collection stands in two cubes, the rest waits empty. Absent means `even` |
 | `range` | compartment | M27.2: the divider, "A–Bo" |
+| `pin` | compartment | M27.6: where its stretch ends, said by hand — the key, the rule it was said under, and the record it names |
 
 A unit may stand at the top level: not everybody wants to name the room first. Dissolving
 a unit takes its compartments with it; what they held moves to the room, or to nowhere.
@@ -88,9 +89,37 @@ scrolling, and scrolling wins. A sleeve from the open compartment lands on a cub
 wall behind it, a whole compartment moves as one onto another, furniture drags by its name
 into another room. Every move leaves a line with "Undo". Arrow keys walk the grid, `M`
 opens the compartment on "move all", a letter jumps to the compartment whose divider covers
-it (M27.5); and the shelf has "Select" with "Put n in …" over the same small wall. Movable
-divider boundaries stay open: a rule proposes, and a boundary moved by hand would be a
-second rule.
+it (M27.5); and the shelf has "Select" with "Put n in …" over the same small wall.
+
+### The end of a compartment, set by hand (M27.6)
+
+This stood open from M27.3 to 2026-09-16 on a real objection: *a rule proposes, and a
+boundary moved by hand would be a second rule.* It holds only if a rule is one thing.
+
+**It is two.** A rule **orders** the records and it **divides** them into compartments, and
+those are separable. A pin takes over the dividing for one compartment and never the
+ordering — so records stay in the rule's sequence across the whole wall, a pin can never put
+one out of order, and there is no second rule for the first to disagree with. What a pin
+costs is not correctness but the boundary's freedom to move, which is the point of it.
+
+- **Said by pointing, never typed.** The compartment's sheet asks for "the record that
+  should be the last one here", and the sleeves answer. The sort key — `"bowie low"` — is an
+  implementation nobody should meet. For that to be answerable by looking, a compartment of
+  a ruled unit now lists its records **in the rule's order** rather than by title, which is
+  also what is physically in the cube.
+- **The rest deals around it.** Pins are cut points; the unpinned compartments between two
+  of them share their stretch the way they always did. One pin fixes one boundary instead of
+  freezing the wall.
+- **A later boundary never runs backwards.** Ending A2 before A1 ends is not a shelf, so the
+  cut is held where it is and that compartment simply gets nothing. The pin is kept as it
+  was said.
+- **The last compartment keeps the remainder**, pin or no pin — it has no next one to hand
+  to. The plan says how many rather than letting a pin swallow the difference.
+- **Another rule lets every pin go**, because the key is in the old rule's language. Said on
+  the screen before it happens, not discovered afterwards.
+- **The wall marks them**, dotted, and says so to a screen reader: a counted boundary moves
+  on the next "sort in" and a pinned one does not, and a wall that hid the difference would
+  show the result while hiding what will hold.
 
 ## 5. What not
 
