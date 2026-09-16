@@ -970,6 +970,18 @@ moment, when something has already gone wrong.
       variables explicitly. The ones in `worker/` were renamed on the way through; the rest
       are in `app/` and `tests/` and go with those.
 
+      **The `app/` half is done (2026-09-16), and reading for it found something the count
+      had missed.** The five glyphs Lucide does not have were named `platte`, `huelle`,
+      `kiste`, `nadel` and `regal` — and that name is not private: it stands in every
+      template as `<FidIcon name="platte">`. They are now `record`, `sleeve`, `crate`,
+      `stylus`, `shelf`. Beside them, the density was still *written into the address* as
+      `?dicht=kompakt` — the one view setting on that screen that ADR-010's "addresses are
+      English" had never reached, with a comment next to it naming the fact. It writes
+      `?density=` now and reads the German for good, because a dig's address is the thing
+      people send each other. What is left is `tests/`: `docs-links.spec.ts` and
+      `orders.spec.ts` are German throughout, and a handful of specs have German test
+      titles.
+
 > **Neither of those has a guard, and that is the honest state.** The ratchet reads
 > comments; it does not read string literals and it does not read identifiers. A word list
 > over identifiers would be a guess with false positives in a way a word list over prose is
