@@ -1509,6 +1509,31 @@ scheduled; two things were found and fixed on the spot (`v0.91.1`).
 masthead and the walk with arrows and `?find=` (as designed); the compact table (as
 designed); the wantlist's first sentence (M28 #5, holds).
 
+## M34 · Shops → in progress
+
+**Concept:** the artifact *Fidelity Läden* (2026-09-16, fifth version; URL in the session memory) —
+four audits (code, postage, security, market), the third walk with the demo account, the Discogs
+community since 2012, BrickLink / Cardmarket / Reverb / eBay as exemplars, Baymard and Nielsen
+Norman as the yardstick, and a day of probing the API, the hub and the catalogue. The rule of
+the screen: one loud thing, everything else a plate; the question of the screen: *who do I buy
+from, and what does the parcel cost.*
+
+**Measured on 2026-09-16, without a token:** `/users/{u}` carries the whole trust line (rating,
+count, registered, ships-from, listings, suspended); inventory rows carry `min_order_total`,
+`payment` and `seller.shipping` — and `shipping_price {}` with `shipping_is_blocked true` at all
+six shops probed. The parser reads one of six seller texts cleanly (fatplastics → Germany), one
+with a new flat-rate rule (HHV), three carry no rate at all. The hub's `shipping` table held zero
+rows after weeks. The catalogue has `release_format.qty` and does not serve it.
+
+| Phase | Delivers | State |
+|---|---|---|
+| M34.2 The measurement | One `GET /marketplace/listings/{id}` with the token, its verdict as a plate in the account ("Discogs names postage to you: yes/no"); `min_order_total` and `payment` into the inventory schema and onto the dealer; the currency check in `summarise`; Discogs' default weights (230 g LP, 135 g 10", 85 g CD) as constants | needs one second on Martin's device |
+| M34.5 The seven fixes | Hub: the `:dealer` path parameter validated, `seenAt` in the future refused, the key limiter on the secret door too, avatar URLs held to `https://i.discogs.com`; client: bounds on the shops schema, the same avatar check at the Discogs boundary, `error.message` redacted in the worker's envelope; a Content-Security-Policy shipped by `.htaccess` and nginx with `connect-src https:` (the hub origin is the user's), `frame-src` for the two YouTube hosts, `style-src 'unsafe-inline'` for the bound styles; `docs/08` brought to what ships | next |
+| M34.1 Masthead and plates | Profile head with the trust line, count before percentage, negatives spelled out, `location` never shown whole; one filled action, actions with icon *and* word; sections as plates in the order of the buyer's questions with bullet bars and a median tick; "Why?" folds instead of sentences; aria names; the list with plate words as reasons, country codes, "+n new", the verdict pair per row, sort as a word, filters as chips, "load more", return to the same place, a placeholder on the right; swipe from shop to shop in the sheet; five starter shops for an empty device; the foot as one field; discovery from orders removed | |
+| M34.4 One call, three indexes | `dealer.overview`; indexes on `dealers`, `feedback`, `collection`; hub contributions after the read, concurrent and abortable; avatar pending set; the page split into four components; language packs lazy | |
+| M34.3 Shipping profile v2 | The model (units, format, method, free-over, weight by Discogs' defaults); migration; the read-off field as the main road, the field next to "bought", the pasted cart text, the postage of one's own order (after an ADR); the parser as a proposal to confirm, with the flat-rate rule and the pause rule; the catalogue serving `qty`; the "2x" rule in the app; the Shipping section on the profile; postage on the row as an estimate; basket, comparison and plan lines on it; the strategy switch; "shipping changes when you deselect"; hub routes for profiles with "confirmed by n"; the seller text expiring with its dig | |
+| M34.6 Filling the parcel, the tempo | "For the same postage there is room for …" from the shop's last dig up to the tier's edge; "n % of the finds were gone by the next dig" from the round | after 34.3 |
+
 ## Not on the roadmap
 
 | Idea | Why not |
