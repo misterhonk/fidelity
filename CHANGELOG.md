@@ -9,6 +9,22 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.91.3](https://github.com/misterhonk/fidelity/compare/v0.91.2...v0.91.3) (2026-09-16)
+
+**Das App-Image für das Homelab, mit der Schranke aus 0.91.2.**
+
+0.91.2 hat die Content-Security-Policy auf die Website gebracht, das Docker-Image der App aber
+nicht gebaut bekommen: die neue nginx-Konfiguration lag außerhalb dessen, was der Build sehen
+durfte. Jetzt sieht er sie. Wer den Hub und die App selbst betreibt, bekommt beides mit dem
+nächsten Pull.
+
+**Was zu tun ist:** Nichts.
+
+
+### Fixed
+
+* **deploy:** the app image finds this build's nginx.conf ([c5df70a](https://github.com/misterhonk/fidelity/commit/c5df70a57c3b3c34e10971e9a40070e9c23243d1))
+
 ## [0.91.2](https://github.com/misterhonk/fidelity/compare/v0.91.1...v0.91.2) (2026-09-16)
 
 **Eine Schranke im Browser, die seit M6 versprochen war.**
