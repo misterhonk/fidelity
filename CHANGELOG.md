@@ -11,6 +11,15 @@ Für eine App bedeutet SemVer:
 
 ## [0.91.3](https://github.com/misterhonk/fidelity/compare/v0.91.2...v0.91.3) (2026-09-16)
 
+**Das App-Image für das Homelab, mit der Schranke aus 0.91.2.**
+
+0.91.2 hat die Content-Security-Policy auf die Website gebracht, das Docker-Image der App aber
+nicht gebaut bekommen: die neue nginx-Konfiguration lag außerhalb dessen, was der Build sehen
+durfte. Jetzt sieht er sie. Wer den Hub und die App selbst betreibt, bekommt beides mit dem
+nächsten Pull.
+
+**Was zu tun ist:** Nichts.
+
 
 ### Fixed
 
