@@ -378,6 +378,29 @@ export async function placeContents(placeId: string, deep = true): Promise<Colle
     }
   }
 
+  /*
+   * In the order they stand in (M27.6).
+   *
+   * By title everywhere else, because a room or a pile has no order but the
+   * one you read with. A **compartment of a ruled unit does** — "sort in" put
+   * those records in the rule's sequence, and that is what is physically in
+   * the cube. Showing them alphabetically by title contradicted the shelf, and
+   * it made the one question a compartment can be asked — which record should
+   * be the last one in here — impossible to answer by looking.
+   */
+  const place = await db.get('places', placeId)
+  if (place?.kind === 'compartment' && place.parentId) {
+    const unit = await db.get('places', place.parentId)
+    const rule = unit && alive(unit) ? (unit.rule ?? 'artist') : null
+    if (rule && rule !== 'manual') {
+      const { sortKey } = await import('./place-rules')
+      return items.sort(
+        (a, b) =>
+          sortKey(a, rule).localeCompare(sortKey(b, rule)) || a.instanceId - b.instanceId,
+      )
+    }
+  }
+
   return items.sort((a, b) => a.title.localeCompare(b.title))
 }
 

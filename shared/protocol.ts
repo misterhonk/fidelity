@@ -946,6 +946,20 @@ export interface WorkerContract {
   }
   /** The order inside a piece of furniture (M27.2): a rule proposes, never moves. */
   'places.rule': { params: { id: string; rule: PlaceRule }; progress: never; result: boolean }
+  /**
+   * Where a compartment's stretch ends, said by pointing at a record (M27.6).
+   *
+   * By `instanceId` rather than by a key, because the key is an
+   * implementation — `"bowie low"` — and the question a person is answering
+   * is "which record should be the last one in here".
+   */
+  'places.pin': {
+    params: { placeId: string; instanceId: number }
+    progress: never
+    result: boolean
+  }
+  /** And letting go: the next plan divides that boundary by count again. */
+  'places.unpin': { params: { placeId: string }; progress: never; result: boolean }
   /** How "sort in" deals (M28 #3): evenly, or from the front. */
   'places.dealing': {
     params: { id: string; dealing: PlaceDealing }

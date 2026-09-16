@@ -1285,6 +1285,23 @@ export interface Place {
    * rule can compare, `label` is what the wall shows — "A–Bo", "1965–1972".
    */
   range?: { from: string; to: string; label: string }
+  /**
+   * On a compartment (M27.6): where its stretch ends, said by hand.
+   *
+   * **A rule does two jobs** — it *orders* the records and it *divides* them
+   * into compartments — and a pin takes over only the second. The order is
+   * always the rule's, so a pin can never put a record out of order; it says
+   * where one stretch ends, and what is left redistributes around it. That is
+   * why this is not the "second rule" M27.3 worried about: there is nothing
+   * for it to disagree with the first about.
+   *
+   * `rule` is stored beside the key because the key only means something
+   * under the rule that produced it — "bowie low" is not a year. A pin whose
+   * rule no longer matches the unit's is ignored and can be cleaned up;
+   * `setRule` drops them, and this is the belt for the day a vault merge
+   * brings an old row back.
+   */
+  pin?: { to: string; rule: PlaceRule; label: string } | null
   createdAt: number
   /**
    * Last touched — renamed, moved, dissolved.
@@ -1364,8 +1381,23 @@ export interface UnitPlan {
   fromPile: number
   /** How many the unit would hold afterwards. */
   total: number
-  /** The dividers the wall would show. */
-  ranges: { placeId: string; from: string; to: string; label: string; count: number }[]
+  /** The dividers the wall would show. `pinned` where a person set the end. */
+  ranges: {
+    placeId: string
+    from: string
+    to: string
+    label: string
+    count: number
+    pinned?: boolean
+  }[]
+  /**
+   * Records past the last pin that had nowhere else to go (M27.6).
+   *
+   * A pin says where a stretch ends, and the last compartment has no next one
+   * to hand to — so it keeps what is left, and the screen says how many rather
+   * than letting a pin quietly swallow the difference.
+   */
+  overflow?: number
 }
 
 /**

@@ -26,6 +26,13 @@ const compartments = computed(() =>
   props.nodes.filter((node) => node.parentId === props.unit.id),
 )
 
+/** How many compartments carry an end set by hand, under the rule in force. */
+const pinned = computed(
+  () =>
+    compartments.value.filter((cube) => cube.pin?.rule === (props.unit.rule ?? 'artist'))
+      .length,
+)
+
 const open = ref<string | null>(null)
 const openCube = computed(
   () => compartments.value.find((cube) => cube.id === open.value) ?? null,
@@ -167,6 +174,14 @@ async function dissolve() {
           {{ c.places.rules[rule] }}
         </button>
       </div>
+      <!--
+        Said before it happens, not discovered after (M27.6): an end set by
+        hand is a key in its rule's language, so it cannot survive another
+        rule. Only shown where there is one to lose.
+      -->
+      <p v-if="pinned > 0" class="text-fid-xs text-fid-text-muted">
+        {{ c.places.end.lostOnRuleChange }}
+      </p>
       <div
         v-if="(unit.rule ?? 'artist') !== 'manual'"
         role="group"
@@ -206,6 +221,10 @@ async function dissolve() {
             ? c.places.nothingMoves
             : c.places.planLine(count(plan.moves.length), count(plan.fromPile))
         }}
+      </p>
+      <!-- The one thing a pin cannot win, said rather than swallowed. -->
+      <p v-if="plan.overflow" class="text-fid-xs text-fid-text-muted">
+        {{ c.places.end.overflow(count(plan.overflow)) }}
       </p>
       <button
         v-if="plan.moves.length > 0"

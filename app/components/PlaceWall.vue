@@ -146,7 +146,15 @@ function onKey(event: KeyboardEvent, index: number) {
         type="button"
         class="flex aspect-square w-full flex-col items-stretch justify-between gap-1 p-2 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-fid-accent"
         :class="open === cube.id ? 'bg-fid-accent/15' : 'hover:bg-fid-raised'"
-        :aria-label="c.places.cubeLabel(labelOf(cube), count(cube.records))"
+        :aria-label="
+          cube.pin
+            ? c.places.cubeLabelPinned(
+                labelOf(cube),
+                count(cube.records),
+                c.places.end.after(cube.pin.label),
+              )
+            : c.places.cubeLabel(labelOf(cube), count(cube.records))
+        "
         :aria-pressed="open === cube.id"
         :tabindex="index === 0 ? 0 : -1"
         @click="emit('open', cube.id)"
@@ -157,11 +165,23 @@ function onKey(event: KeyboardEvent, index: number) {
           <span class="fid-plate" :class="look.face ? 'opacity-80' : 'text-fid-text-muted'">{{
             coordinate(cube)
           }}</span>
-          <!-- A name if somebody gave one, else the divider the rule wrote (M27.2). -->
+          <!--
+            A name if somebody gave one, else the divider the rule wrote
+            (M27.2) — underlined where the end of it was set by hand (M27.6).
+
+            The mark matters because the two kinds of boundary behave
+            differently on the next "sort in": a counted one moves, a
+            hand-set one does not. Without it the wall shows the result and
+            hides which of them will hold.
+          -->
           <span
             v-if="(cube.name && cube.name !== coordinate(cube)) || cube.range"
             class="fid-display truncate text-fid-xs font-semibold"
-            :class="look.face ? '' : 'text-fid-text'"
+            :class="[
+              look.face ? '' : 'text-fid-text',
+              cube.pin ? 'underline decoration-dotted underline-offset-4' : '',
+            ]"
+            :title="cube.pin ? c.places.end.after(cube.pin.label) : undefined"
           >
             {{ cube.name !== coordinate(cube) ? cube.name : cube.range?.label }}
           </span>

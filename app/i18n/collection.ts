@@ -412,6 +412,33 @@ const en = {
     dissolveConfirm: 'Dissolve it',
     renameLabel: (name: string) => `Rename ${name}`,
     nothingHere: 'Nothing here yet.',
+    /*
+     * The boundary set by hand (M27.6).
+     *
+     * A rule orders the records and divides them; this takes over the
+     * dividing for one compartment and leaves the ordering alone. Said by
+     * pointing at a record, because the sort key is an implementation and
+     * "which record should be last in here" is the actual question.
+     */
+    end: {
+      label: 'The end of this compartment',
+      /* Two plates that must not read as versions of each other next to the action. */
+      by: 'by hand',
+      byRule: 'by count',
+      after: (what: string) => `Ends after ${what}`,
+      set: 'Set the end',
+      move: 'Move the end',
+      pick: 'Tap the record that should be the last one here',
+      pickOne: (artist: string, title: string) =>
+        `End the compartment after ${artist} — ${title}`,
+      stop: 'Never mind',
+      release: 'Let it go',
+      /* The one thing a pin cannot win, said rather than swallowed. */
+      overflow: (n: string) =>
+        `${n} past that end are in here too — there is no compartment after this one to hand them to.`,
+      /* Before the rule changes: a key in one rule's language means nothing in another's. */
+      lostOnRuleChange: 'Changing this also lets go of every end set by hand.',
+    },
     staysHere:
       'Where a record stands is something about your flat, not about Discogs. It is kept on this device and sent nowhere.',
     /* On the copy, not on the release: two pressings sit in two places. */
@@ -421,6 +448,9 @@ const en = {
     counts: (placed: string, unplaced: string) => `${placed} placed · ${unplaced} not yet`,
     inRoom: (n: string) => `${n} here, in no compartment`,
     cubeLabel: (label: string, n: string) => `${label}, ${n} records`,
+    /* The same cube, where its end was set by hand — the dotted underline, spoken. */
+    cubeLabelPinned: (label: string, n: string, ends: string) =>
+      `${label}, ${n} records, ${ends}`,
     of: (n: string, capacity: string) => `${n} / ${capacity}`,
     chooseUnit: 'What is it?',
     presets: {
@@ -904,6 +934,21 @@ const de: typeof en = {
     dissolveConfirm: 'Auflösen',
     renameLabel: (name) => `${name} umbenennen`,
     nothingHere: 'Hier liegt noch nichts.',
+    end: {
+      label: 'Das Ende dieses Fachs',
+      by: 'von Hand',
+      byRule: 'nach Anzahl',
+      after: (what) => `Endet nach ${what}`,
+      set: 'Ende setzen',
+      move: 'Ende verschieben',
+      pick: 'Tippe die Platte an, die hier die letzte sein soll',
+      pickOne: (artist, title) => `Fach nach ${artist} – ${title} enden lassen`,
+      stop: 'Doch nicht',
+      release: 'Wieder freigeben',
+      overflow: (n) =>
+        `${n} hinter diesem Ende liegen auch hier — es gibt kein Fach danach, an das sie gehen könnten.`,
+      lostOnRuleChange: 'Damit werden auch alle von Hand gesetzten Enden freigegeben.',
+    },
     staysHere:
       'Wo eine Platte steht, ist eine Aussage über deine Wohnung, nicht über Discogs. Es bleibt auf diesem Gerät und wird nirgendwohin geschickt.',
     where: 'Wo sie steht',
@@ -911,6 +956,7 @@ const de: typeof en = {
     counts: (placed, unplaced) => `${placed} einsortiert · ${unplaced} noch nicht`,
     inRoom: (n) => `${n} hier, in keinem Fach`,
     cubeLabel: (label, n) => `${label}, ${n} Platten`,
+    cubeLabelPinned: (label, n, ends) => `${label}, ${n} Platten, ${ends}`,
     of: (n, capacity) => `${n} / ${capacity}`,
     chooseUnit: 'Was ist es?',
     presets: {

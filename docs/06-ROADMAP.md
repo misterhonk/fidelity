@@ -11,15 +11,18 @@
 The milestone versions in the headings are planning names from the design period, not the
 actual numbering — that is in `CHANGELOG.md`.
 
-**M0 through M20 are done, and so are M26 through M32.** What is genuinely open is a short
-list and it is worth naming here rather than leaving it to be assembled by reading thirty
-sections: movable divider boundaries in M27 — and that is a design question rather than
-work, since a rule proposes and a boundary moved by hand would be a second rule. M16's
-identifiers came off this list on 2026-09-16, with the guard that entry said could not
-exist. Everything else that is open waits on a decision rather than on code — M22.4/M22.5
-behind the provider choice in M25.4, M23.3's offsite copy, M23.6's rehearsal week, M24.6's
-clean machine and M25.1's letter. M21 through M25 are otherwise done to the line where
-money or a signature starts.
+**M0 through M20 are done, and so are M26 through M32.** For the first time the list of
+what is open contains no code.
+
+Two entries came off it on 2026-09-16, and both had been parked behind an argument rather
+than behind work. M16's identifiers said a guard could not exist — it could, once the word
+list was closed rather than German. M27's movable boundaries said a boundary set by hand
+would be a second rule — it is not, once you notice that a rule does two jobs and only one
+of them is being taken over.
+
+What remains waits on a decision or on money: M22.4/M22.5 behind the provider choice in
+M25.4, M23.3's offsite copy, M23.6's rehearsal week, M24.6's clean machine and M25.1's
+letter. M21 through M25 are otherwise done to the line where a signature starts.
 
 M19 and M20 were the first lists in this file that came from outside the project: from what
 Discogs users ask for, checked against what this architecture can do
@@ -1208,7 +1211,8 @@ preset, drawn as the wall it is; inside a compartment a rule, not a slot.
 | M27.1c Fill | Filling from the wall, pulled forward from M27.3 because it is the first question anybody asks: open a compartment, "Fill" lists the collection with *not placed yet* on by default, a tick per record, one button puts the armful here; `collection.records` learns `unplaced`, `places.assignMany` writes them in one transaction | **Done 2026-09-12** |
 | M27.2 Rule | `worker/place-rules.ts`: a unit's rule (by artist, label, year, arrival, or by hand), "Sort in" shows the plan — how many would move, how many from the pile — and only "Apply" moves them, dealt evenly across the compartments in reading order with the dividers written on them ("A–Bo"); the record's sheet proposes the compartment whose divider covers it, one tap puts it there. A rule proposes, never moves. Movable boundaries wait for M27.3 | **Done 2026-09-12** |
 | M27.3 Selection | In the compartment's sheet: "Select" turns the sleeves into things to tick, "Move n to …" opens the wall small as the picker (`PlacePicker`, a button per compartment with its coordinate and divider, the rooms as a list), "Take n out" empties, and every move leaves a line with "Undo" that puts the records back where they were. Select mode on the shelf and the wantlist, and movable dividers, stay open | **Done 2026-09-12** (compartment); the shelf followed in M27.5, the wantlist in M27.6 |
-| M27.5 Keys and the shelf | On the wall `M` opens the focused compartment on "move all", a letter jumps to the compartment whose divider covers it, Home/End to the corners; on the shelf "Select" ticks sleeves and "Put n in …" opens the wall small as the picker, with the undo line that puts each record back where it was. Movable divider boundaries stay open — a rule proposes, and a boundary moved by hand would be a second rule | **Done 2026-09-13** |
+| M27.5 Keys and the shelf | On the wall `M` opens the focused compartment on "move all", a letter jumps to the compartment whose divider covers it, Home/End to the corners; on the shelf "Select" ticks sleeves and "Put n in …" opens the wall small as the picker, with the undo line that puts each record back where it was. Movable divider boundaries stay open — a rule proposes, and a boundary moved by hand would be a second rule | **Done 2026-09-13**; the boundaries followed in M27.7 |
+| M27.7 The end | The boundary that stayed open from M27.3, and the objection that kept it there — *a boundary moved by hand would be a second rule* — answered by splitting the rule in two: it **orders** the records and it **divides** them, and a pin takes over the dividing alone. The order stays the rule's, so a pin can never put a record out of order and has nothing to disagree with. Said by pointing at the record that should be last, never by typing a key; a compartment of a ruled unit now lists its records in the rule's order, which is what is in the cube. Pins are cut points and the rest deals around them, one pin fixes one boundary rather than freezing the wall. A later boundary never runs backwards, the last compartment keeps the remainder and the plan says how many, another rule lets every pin go and the screen says so first, and the wall marks a hand-set end dotted — because a counted boundary moves on the next "sort in" and a pinned one does not | **Done 2026-09-16** |
 | M27.6 The wantlist | The same control on the last list that lacked one: "Select" ticks sleeves, and the one action is off the list, because a want has no place to be put into. A folded row is an album, so a tick can mean four pressings and the button counts **wants** rather than sleeves (M28 #4 from the other side); "All" takes the whole answer, not the sixty drawn; a changed filter clears the ticks, because a tick on a hidden row is a promise nobody can check. The undo is usually free: a removal is local first and waits in the outbox, so undoing it drops the job rather than writing a second time — and the line says "asked for again at Discogs" only where the drain had already run | **Done 2026-09-16** |
 | M27.4 Drag | `usePlaceDrag`: pointer events, not the HTML drag API — a mouse drags after six pixels, a finger has to rest 400 ms first, then the phone buzzes once; a sleeve from the sheet (or all the ticked ones) onto a cube of the wall behind it, a whole compartment onto another, furniture by its name onto a room or onto "without a room" (`places.move`); every drop leaves the undo line on the page | **Done 2026-09-12** |
 

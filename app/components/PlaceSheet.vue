@@ -77,6 +77,45 @@ const last = shallowRef<{
   to: string | null
 } | null>(null)
 
+/**
+ * The end of this compartment, set by pointing (M27.6).
+ *
+ * A third mode beside `selecting`, and the same gesture: the sleeves stop
+ * being doors and become answers to one question. The question here is
+ * "which record should be the last one in here", which is what somebody
+ * standing in front of a shelf actually decides — never a sort key, and
+ * never a boundary dragged between two cubes that are not next to each other
+ * on screen.
+ *
+ * Only where there is something to divide: a unit sorted by hand has no
+ * stretches, so there is no end to set.
+ */
+const unit = computed(() =>
+  props.nodes.find((node) => node.id === props.cube.parentId && node.kind === 'unit'),
+)
+const divisible = computed(() => {
+  const rule = unit.value?.rule ?? (unit.value ? 'artist' : null)
+  return rule !== null && rule !== 'manual'
+})
+const pin = computed(() =>
+  props.cube.pin && props.cube.pin.rule === (unit.value?.rule ?? 'artist')
+    ? props.cube.pin
+    : null,
+)
+
+const ending = ref(false)
+
+async function endAfter(instanceId: number) {
+  await call('places.pin', { placeId: props.cube.id, instanceId })
+  ending.value = false
+  emit('changed')
+}
+
+async function releaseEnd() {
+  await call('places.unpin', { placeId: props.cube.id })
+  emit('changed')
+}
+
 function toggleSelect(instanceId: number) {
   const next = new Set(selected.value)
   if (next.has(instanceId)) next.delete(instanceId)
@@ -253,6 +292,51 @@ const labelFor = (placeId: string | null) => {
 
     <PlaceFill v-if="filling" :place="cube" @filled="filled" @close="filling = false" />
 
+    <!--
+      The divider, and who decided it.
+
+      A compartment's stretch is normally cut by count; this line is where
+      that can be taken over for one compartment, and where it is given back.
+      The rule still orders every record on the wall either way, so nothing
+      here can put one out of order.
+    -->
+    <div v-if="divisible && cube.range" class="flex flex-col gap-2">
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="fid-plate text-fid-text">{{ cube.range.label }}</span>
+        <span class="fid-plate text-fid-text-muted">
+          {{ pin ? c.places.end.by : c.places.end.byRule }}
+        </span>
+        <button
+          v-if="!ending"
+          type="button"
+          class="fid-plate fid-action min-h-11 text-fid-text-muted hover:text-fid-text"
+          @click="ending = true"
+        >
+          {{ pin ? c.places.end.move : c.places.end.set }}
+        </button>
+        <button
+          v-else
+          type="button"
+          class="fid-plate fid-action min-h-11 border-b-2 border-fid-accent text-fid-text"
+          @click="ending = false"
+        >
+          {{ c.places.end.stop }}
+        </button>
+        <button
+          v-if="pin && !ending"
+          type="button"
+          class="fid-plate fid-action min-h-11 text-fid-text-muted hover:text-fid-text"
+          @click="releaseEnd"
+        >
+          {{ c.places.end.release }}
+        </button>
+      </div>
+      <p v-if="ending" class="text-fid-sm text-fid-text-muted">{{ c.places.end.pick }}</p>
+      <p v-else-if="pin" class="text-fid-sm text-fid-text-muted">
+        {{ c.places.end.after(pin.label) }}
+      </p>
+    </div>
+
     <p v-if="contents.length === 0" class="text-fid-sm text-fid-text-muted">
       {{ c.places.nothingHere }}
     </p>
@@ -274,14 +358,23 @@ const labelFor = (placeId: string | null) => {
         <button
           type="button"
           class="fid-cover-button group flex flex-col gap-1 rounded-fid-sm text-left"
-          :class="
+          :class="[
             selecting && selected.has(record.instanceId)
               ? 'outline-2 outline-offset-2 outline-fid-accent'
-              : ''
+              : '',
+            ending ? 'hover:outline-2 hover:outline-offset-2 hover:outline-fid-accent' : '',
+          ]"
+          :aria-label="
+            ending
+              ? c.places.end.pickOne(record.artistNames.join(' · '), record.title)
+              : c.open(record.artistNames.join(' · '), record.title)
           "
-          :aria-label="c.open(record.artistNames.join(' · '), record.title)"
           @click="
-            selecting ? toggleSelect(record.instanceId) : emit('record', record.instanceId)
+            ending
+              ? endAfter(record.instanceId)
+              : selecting
+                ? toggleSelect(record.instanceId)
+                : emit('record', record.instanceId)
           "
           @pointerdown="lift($event, record)"
         >
