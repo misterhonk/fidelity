@@ -11,6 +11,31 @@ Für eine App bedeutet SemVer:
 
 ## [0.92.0](https://github.com/misterhonk/fidelity/compare/v0.91.3...v0.92.0) (2026-09-16)
 
+**Der Laden stellt sich vor, wie ein Käufer fragt.**
+
+Das Profil eines Ladens war ein Absatz Zahlen und eine Reihe gleich schwerer Knöpfe. Jetzt
+beginnt es mit einem Kopf: Name, Zeichen, und darunter die Vertrauenszeile mit der Zahl vor
+dem Prozent – „7.680 Bewertungen · 99,9 %", seit wann der Laden bei Discogs ist, wie groß er
+ist, woher er versendet, wann du zuletzt gegraben hast. Ein gesperrter Laden sagt das als
+Erstes. Genau ein Knopf ist gefüllt, das Graben; Beobachten, der Laden bei Discogs und
+Ausblenden tragen ihr Wort neben dem Zeichen. Wer ausblendet, bekommt unten links die eine
+Zeile zurück: „Plattenkiste ausgeblendet. Rückgängig".
+
+Darunter Plates in der Reihenfolge der Käuferfragen: Passung, Versand, Preislage, aus deinem
+Regal, Sortiment, Bewegung, deine Käufe. Jede Erklärung ist ein Klapp statt eines Satzes.
+Versand nennt die günstigste bekannte Stufe und ihre Quelle – oder sagt, dass noch nichts
+erfasst ist, und zeigt auf den Warenkorb. Bewegung nennt, was seit dem letzten Blick
+dazukam, das neueste Angebot und die Push-Option.
+
+Die Liste: Gründe als Plate-Wörter statt Chips, das Land als zwei Buchstaben, die Sortierung
+als Plate-Reiter, an jedem Herkunfts-Chip die Zahl, die er übrig ließe. Am Schreibtisch
+wandern j und k durch die Läden, auf dem Telefon hat das Sheet Pfeile zum Nachbarn. Die
+Suche über Bestellungen und Freunde ist zu ihrem Schalter in die Einstellungen gezogen;
+eine importierte Bestellung setzt ihren Verkäufer von selbst auf die Liste.
+
+**Was zu tun ist:** Nichts. Beim ersten Öffnen eines Ladens von früher holt Fidelity
+einmal das Profil nach; ab dem zweiten Öffnen stehen Jahr und Bewertungen in der Kopfzeile.
+
 
 ### Added
 
