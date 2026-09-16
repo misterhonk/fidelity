@@ -3,6 +3,7 @@ import type { HorizonStatus } from '#shared/protocol'
 import {
   WANT_MOST,
   type WantedRecord,
+  type WantlistItem,
   type WantlistOverview,
   type WantPlan,
 } from '#shared/types'
@@ -229,8 +230,87 @@ const walk = computed(() => {
 })
 const rest = computed(() => groups.value.length - visible.value.length)
 
+/**
+ * Selecting several, and the one thing worth doing to an armful (M27).
+ *
+ * The shelf has had this since M27.5 and the wantlist never did, so the way
+ * off a list that goes stale faster than any other — you buy a record and it
+ * is still on it — was one sheet per record. Same control, same words; what
+ * differs is the action, because a want has no place to be put into. There is
+ * exactly one that makes sense on twelve at a time, and it is taking them off.
+ *
+ * The tick is on the **group**, because a folded row is an album: ticking it
+ * means all four pressings of "Sonar System", and the button counts wants
+ * rather than sleeves so it cannot promise nine and remove fourteen (M28 #4).
+ */
+const selecting = ref(false)
+const selected = ref(new Set<number>())
+/**
+ * The way back. `records` is null once there is nothing left to undo — the
+ * line then still says what happened, which is the only moment it is worth
+ * saying that anything was asked for again at Discogs.
+ */
+const last = shallowRef<{ line: string; records: WantlistItem[] | null } | null>(null)
+
+const chosen = computed(() => groups.value.filter((g) => selected.value.has(g.lead.releaseId)))
+/** Wants, not rows: a folded album counts for every pressing under it. */
+const chosenWants = computed(() => chosen.value.reduce((n, g) => n + g.members.length, 0))
+
+function toggleSelect(releaseId: number) {
+  const next = new Set(selected.value)
+  if (next.has(releaseId)) next.delete(releaseId)
+  else next.add(releaseId)
+  selected.value = next
+}
+/** "All" means the whole answer, not the sixty that happen to be drawn (M28 #4). */
+function selectAll() {
+  selected.value = new Set(groups.value.map((g) => g.lead.releaseId))
+}
+function stopSelecting() {
+  selecting.value = false
+  selected.value = new Set()
+}
+
+async function dropSelected() {
+  const releaseIds = chosen.value.flatMap((g) => g.members.map((m) => m.releaseId))
+  if (releaseIds.length === 0) return
+
+  const records = await call('wantlist.removeMany', { releaseIds })
+  stopSelecting()
+  overview.value = await call('collection.wantlist', undefined)
+  last.value = { line: c.value.wantlist.select.dropped(count(records.length)), records }
+}
+
+async function undo() {
+  const records = last.value?.records
+  if (!records) return
+
+  const resent = await call('wantlist.restore', { records })
+  overview.value = await call('collection.wantlist', undefined)
+  /*
+   * Usually nothing was resent: the removal was still sitting in the outbox
+   * and undoing it dropped the job, so Discogs never heard about it. Where it
+   * had already drained, the records are on their way back and saying so is
+   * the difference between a silent wait and an explained one.
+   */
+  last.value =
+    resent > 0
+      ? { line: c.value.wantlist.select.backAtDiscogs(count(resent)), records: null }
+      : null
+}
+
 watch(query, () => {
   shown.value = 60
+  /*
+   * And the selection goes with it.
+   *
+   * A tick on a row the filter has since hidden is a promise nobody can check
+   * — the count would move on its own and the button would remove records
+   * that are not on the screen. That is the failure M28 #4 named from the
+   * other side, and clearing is the honest half of it: the undo line makes a
+   * cleared selection cheap, an invisible one is never cheap.
+   */
+  selected.value = new Set()
 })
 
 /**
@@ -498,7 +578,61 @@ function waiting(addedAt: string): string | null {
             {{ c.wantlist.priority[key] }}
           </button>
         </div>
+
+        <!-- The same control the shelf has, in the same place on the bar. -->
+        <button
+          type="button"
+          class="fid-plate min-h-11 border-b-2 transition-colors"
+          :class="
+            selecting
+              ? 'border-fid-accent text-fid-text'
+              : 'border-transparent text-fid-text-muted hover:text-fid-text'
+          "
+          :aria-pressed="selecting"
+          @click="selecting ? stopSelecting() : (selecting = true)"
+        >
+          {{ selecting ? c.wantlist.select.done : c.wantlist.select.start }}
+        </button>
       </div>
+
+      <!-- The selection's one action: off the list, with the way back below. -->
+      <div v-if="selecting" class="flex flex-wrap items-center gap-4">
+        <span class="fid-plate text-fid-text-muted">{{
+          c.wantlist.select.count(count(chosenWants))
+        }}</span>
+        <button
+          type="button"
+          class="fid-plate fid-action min-h-11 text-fid-text-muted hover:text-fid-text"
+          @click="selectAll"
+        >
+          {{ c.wantlist.select.all }}
+        </button>
+        <button
+          type="button"
+          :disabled="chosenWants === 0"
+          class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-sm text-fid-text disabled:opacity-50"
+          @click="dropSelected"
+        >
+          {{ c.wantlist.select.drop(count(chosenWants)) }}
+        </button>
+      </div>
+
+      <!-- The way back, pinned where the eye is — as on the shelf. -->
+      <p
+        v-if="last"
+        role="status"
+        class="fixed bottom-4 left-4 z-30 flex flex-wrap items-center gap-3 rounded-fid-sm border border-fid-border bg-fid-surface px-4 py-2 text-fid-sm text-fid-text shadow-lg"
+      >
+        {{ last.line }}
+        <button
+          v-if="last.records"
+          type="button"
+          class="fid-action min-h-11 text-fid-sm text-fid-accent underline underline-offset-4"
+          @click="undo"
+        >
+          {{ c.wantlist.select.undo }}
+        </button>
+      </p>
 
       <p v-if="records.length === 0" class="text-fid-sm text-fid-text-muted">
         {{ c.map.nothingByName }}
@@ -522,8 +656,17 @@ function waiting(addedAt: string): string | null {
           v-for="group in visible"
           :id="`want-${group.lead.releaseId}`"
           :key="group.lead.releaseId"
-          class="fid-want flex scroll-mt-24 flex-col gap-2 rounded-fid-sm"
+          class="fid-want relative flex scroll-mt-24 flex-col gap-2 rounded-fid-sm"
         >
+          <!-- In select mode the sleeve is a thing to tick, not a door. -->
+          <input
+            v-if="selecting"
+            type="checkbox"
+            class="absolute top-2 left-2 z-10 size-5"
+            :checked="selected.has(group.lead.releaseId)"
+            :aria-label="c.wantlist.select.pick(group.lead.artist, group.lead.title)"
+            @change="toggleSelect(group.lead.releaseId)"
+          />
           <!--
             Outward, and marked as such: Discogs is where you go to buy one.
             The sleeve is the door, in both sizes the sync already brought and
@@ -537,8 +680,19 @@ function waiting(addedAt: string): string | null {
           <button
             type="button"
             class="fid-cover-button rounded-fid-sm"
-            :aria-label="c.open(group.lead.artist, group.lead.title)"
-            @click="open = group.lead.releaseId"
+            :class="
+              selecting && selected.has(group.lead.releaseId)
+                ? 'outline-2 outline-offset-2 outline-fid-accent'
+                : ''
+            "
+            :aria-label="
+              selecting
+                ? c.wantlist.select.pick(group.lead.artist, group.lead.title)
+                : c.open(group.lead.artist, group.lead.title)
+            "
+            @click="
+              selecting ? toggleSelect(group.lead.releaseId) : (open = group.lead.releaseId)
+            "
           >
             <img
               v-if="group.lead.thumbUrl || group.lead.coverUrl"

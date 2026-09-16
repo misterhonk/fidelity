@@ -942,6 +942,16 @@ export const handlers: HandlerMap = {
     return unwantRecord(releaseId)
   },
 
+  'wantlist.removeMany': async ({ releaseIds }) => {
+    const { unwantRecords } = await import('./collection/want')
+    return unwantRecords(releaseIds)
+  },
+
+  'wantlist.restore': async ({ records }) => {
+    const { rewantRecords } = await import('./collection/want')
+    return rewantRecords(records)
+  },
+
   'outbox.flush': async () => {
     const identity = await currentIdentity()
     if (!identity) return { sent: 0, givenUp: 0, waiting: 0 }

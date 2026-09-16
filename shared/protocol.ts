@@ -73,6 +73,7 @@ import type {
   VaultStatus,
   VaultTarget,
   Verdict,
+  WantlistItem,
   WantlistOverview,
   WantPlan,
   YearReview,
@@ -371,6 +372,28 @@ export interface WorkerContract {
   }
   /** Takes a release off the wantlist. */
   'wantlist.remove': { params: { releaseId: number }; progress: never; result: boolean }
+  /**
+   * Takes a selection off the wantlist, and hands the rows back (M27).
+   *
+   * The rows are the answer rather than a count because they are what the undo
+   * line is built from: once the store row is gone, this is the last moment
+   * anything still holds the cover, the note and how long it had been waited
+   * for. Ids alone would undo into a blank record.
+   */
+  'wantlist.removeMany': {
+    params: { releaseIds: number[] }
+    progress: never
+    result: WantlistItem[]
+  }
+  /**
+   * Puts them back. Returns how many had to be asked for again at Discogs —
+   * usually none, because the removal was still waiting in the outbox.
+   */
+  'wantlist.restore': {
+    params: { records: WantlistItem[] }
+    progress: never
+    result: number
+  }
   /** When the whole collection was last read from Discogs. Null before the first. */
   'collection.readFullyAt': { params: undefined; progress: never; result: number | null }
   /** Discogs' estimate, as of the last sync. Null before the first one. */

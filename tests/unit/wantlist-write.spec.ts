@@ -3,7 +3,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import { pendingJobs } from '~~/db/outbox'
 import type { Match, WantlistItem } from '#shared/types'
-import { noteWant, unwantRecord, wantRecord } from '~~/worker/collection/want'
+import {
+  noteWant,
+  rewantRecords,
+  unwantRecord,
+  unwantRecords,
+  wantRecord,
+} from '~~/worker/collection/want'
 import type { DiscogsClient } from '~~/worker/discogs/client'
 import { DiscogsError } from '~~/worker/discogs/errors'
 import { drainOutbox } from '~~/worker/outbox'
@@ -164,5 +170,111 @@ describe('the wantlist, written to', () => {
 
     expect((await drainOutbox(fake, 'mrtnmlchr')).sent).toBe(1)
     expect(await pendingJobs()).toEqual([])
+  })
+})
+
+/**
+ * An armful at once (M27), and the way back from it.
+ *
+ * The removal is local first and reaches Discogs through the outbox, which is
+ * what makes both halves cheap — and makes the undo's cost depend on *when* it
+ * is pressed. That timing is the whole of what is tested here, because it is
+ * the part that cannot be seen from the screen.
+ */
+describe('the wantlist, by the armful', () => {
+  it('takes several off in one go and hands the rows back', async () => {
+    const db = await openFidelityDb()
+    await db.put('wantlist', want())
+    await db.put('wantlist', want({ releaseId: 32, title: 'Tweez' }))
+    await db.put('wantlist', want({ releaseId: 33, title: 'Untitled' }))
+
+    const removed = await unwantRecords([31, 33])
+
+    expect(removed.map((row) => row.title)).toEqual(['Spiderland', 'Untitled'])
+    expect(await db.get('wantlist', 31)).toBeUndefined()
+    expect(await db.get('wantlist', 33)).toBeUndefined()
+    // The one nobody ticked is untouched.
+    expect((await db.get('wantlist', 32))?.title).toBe('Tweez')
+    expect((await pendingJobs()).map((job) => job.id)).toEqual([
+      'wantlist.remove:31',
+      'wantlist.remove:33',
+    ])
+  })
+
+  it('skips an id that is not on the list rather than queuing a job for it', async () => {
+    const db = await openFidelityDb()
+    await db.put('wantlist', want())
+
+    expect(await unwantRecords([31, 999])).toHaveLength(1)
+    expect((await pendingJobs()).map((job) => job.id)).toEqual(['wantlist.remove:31'])
+  })
+
+  /*
+   * The case worth having a test for: undo before the drain.
+   *
+   * Discogs has not been told anything yet, so the way back is dropping the
+   * job — not a second write. A `wantlist.add` here would spend a request to
+   * undo something that never happened, and the pair would then be drained in
+   * order for no reason at all.
+   */
+  it('undoes a removal for free while it is still waiting in the outbox', async () => {
+    const db = await openFidelityDb()
+    await db.put('wantlist', want())
+
+    const removed = await unwantRecords([31])
+    expect(await rewantRecords(removed)).toBe(0)
+
+    expect((await db.get('wantlist', 31))?.title).toBe('Spiderland')
+    expect(await pendingJobs()).toEqual([])
+
+    // And nothing reaches Discogs, because there is nothing left to send.
+    const fake = client(async () => null)
+    await drainOutbox(fake, 'mrtnmlchr')
+    expect(fake.write).not.toHaveBeenCalled()
+  })
+
+  /*
+   * And the case where it is not free. Once the removal has drained, the want
+   * really is gone over there, and the only honest way back is to ask for it.
+   */
+  it('asks for a record back when the removal has already reached Discogs', async () => {
+    const db = await openFidelityDb()
+    await db.put('wantlist', want())
+
+    const removed = await unwantRecords([31])
+    const fake = client(async () => null)
+    await drainOutbox(fake, 'mrtnmlchr')
+    expect(await pendingJobs()).toEqual([])
+
+    expect(await rewantRecords(removed)).toBe(1)
+    expect((await db.get('wantlist', 31))?.title).toBe('Spiderland')
+
+    const again = client(async () => null)
+    await drainOutbox(again, 'mrtnmlchr')
+    const [method, path] = (again.write as ReturnType<typeof vi.fn>).mock.calls[0] ?? []
+    expect(method).toBe('PUT')
+    expect(path).toBe('/users/mrtnmlchr/wants/31')
+  })
+
+  /*
+   * The row goes back whole, not as an id.
+   *
+   * A wantlist row carries the note, the wish rating and the date it was added
+   * — none of which Discogs hands back, and all of which the screen shows. An
+   * undo that restored a blank record would look like it worked.
+   */
+  it('puts the note, the rating and the waiting time back with it', async () => {
+    const db = await openFidelityDb()
+    await db.put(
+      'wantlist',
+      want({ note: 'Only the 1991 press', want: 5, addedAt: '2019-03-01T00:00:00-00:00' }),
+    )
+
+    await rewantRecords(await unwantRecords([31]))
+
+    const back = await db.get('wantlist', 31)
+    expect(back?.note).toBe('Only the 1991 press')
+    expect(back?.want).toBe(5)
+    expect(back?.addedAt).toBe('2019-03-01T00:00:00-00:00')
   })
 })
