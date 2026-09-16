@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test, describe } from 'node:test'
 
+import { createKeyLimiter } from '../src/access.ts'
 import { createHubApp, MAX_CHUNK_BYTES } from '../src/app.ts'
 import { openHubDb } from '../src/db.ts'
 
@@ -50,7 +51,8 @@ describe('shops', () => {
     shipsFrom: 'Germany',
     numForSale: 2_881,
     avatarUrl: 'https://i.discogs.com/shop.jpg',
-    seenAt: 1_800_000_000_000,
+    // The tests' clock stands at 42; a reading may not come from the future.
+    seenAt: 40,
     fingerprint: {
       sampledItems: 100,
       totalItems: 2_881,
@@ -75,16 +77,54 @@ describe('shops', () => {
     assert.deepEqual(body.shops[0].fingerprint.labelDist, { 'Blue Note': 40 })
   })
 
+  test('refuses a path that is not a dealer name', async () => {
+    const { app } = hub()
+    const answer = await put(
+      app,
+      '/v1/shops/' + encodeURIComponent('<b>not a shop</b> x'.repeat(3)),
+      shop(),
+    )
+    assert.equal(answer.status, 400)
+    const body = await (await app.request('/v1/shops')).json()
+    assert.equal(body.shops.length, 0)
+  })
+
+  test('refuses a reading from the future, which would win for ever', async () => {
+    const { app } = hub()
+    const answer = await put(app, '/v1/shops/plattenkiste', shop({ seenAt: 42 + 60 * 60_000 }))
+    assert.equal(answer.status, 400)
+    assert.deepEqual(await answer.json(), { error: 'seen in the future' })
+  })
+
+  test('keeps a sign only from i.discogs.com', async () => {
+    const { app } = hub()
+    await put(app, '/v1/shops/plattenkiste', shop({ avatarUrl: 'https://evil.test/pixel.gif' }))
+    const body = await (await app.request('/v1/shops')).json()
+    assert.equal(body.shops[0].avatarUrl, '')
+  })
+
+  test('the secret door has a ceiling too', async () => {
+    const db = openHubDb(':memory:')
+    const app = createHubApp({
+      db,
+      secret: 's3cret',
+      limiter: createKeyLimiter({ capacity: 2, perSecond: 0 }),
+      now: () => 42,
+    })
+    const headers = { 'x-hub-secret': 's3cret' }
+    assert.equal((await put(app, '/v1/shops/one', shop(), headers)).status, 200)
+    assert.equal((await put(app, '/v1/shops/two', shop(), headers)).status, 200)
+    const third = await put(app, '/v1/shops/three', shop(), headers)
+    assert.equal(third.status, 429)
+    assert.ok(third.headers.get('retry-after'))
+  })
+
   test('keeps the newer reading and refuses an older one', async () => {
     const { app } = hub()
     await put(app, '/v1/shops/plattenkiste', shop({ numForSale: 2_881 }))
 
     const older = await (
-      await put(
-        app,
-        '/v1/shops/plattenkiste',
-        shop({ numForSale: 1, seenAt: 1_700_000_000_000 }),
-      )
+      await put(app, '/v1/shops/plattenkiste', shop({ numForSale: 1, seenAt: 30 }))
     ).json()
     assert.equal(older.stored, false)
 

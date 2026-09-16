@@ -85,13 +85,32 @@ export interface HubOptions {
   secret?: string | null
   /** The second door (docs/17 §3.2): access keys verified by public key. */
   access?: HubAccess | null
+  /**
+   * A limiter for the secret door. The key door has one per key; the secret
+   * opens everything and used to open it without a ceiling, so one client
+   * with the secret could flood the pools in a minute (2026-09-16).
+   */
+  limiter?: ReturnType<typeof createKeyLimiter> | null
   now?: () => number
 }
+
+/** A Discogs username, and nothing else, may be a path segment. */
+const DEALER_NAME = /^[A-Za-z0-9._-]{1,120}$/
+/** A country the way `ships_from` spells it, or a group name. */
+const COUNTRY_NAME = /^[A-Za-z .'-]{1,80}$/
+/** How far into the future a reading may claim to be: clock skew, not a lock. */
+const SKEW_MS = 5 * 60_000
 
 /** What the middleware learns about a request and the routes read back. */
 type Doors = { owner: string; door: 'secret' | 'key' | 'open' }
 
-export function createHubApp({ db, secret, access = null, now = Date.now }: HubOptions) {
+export function createHubApp({
+  db,
+  secret,
+  access = null,
+  limiter = null,
+  now = Date.now,
+}: HubOptions) {
   const app = new Hono<{ Variables: Doors }>()
 
   /*
@@ -155,6 +174,11 @@ export function createHubApp({ db, secret, access = null, now = Date.now }: HubO
     if (!secret && !access) return next()
 
     if (secret && c.req.header('x-hub-secret') === secret) {
+      const taken = limiter?.take('secret') ?? { ok: true as const }
+      if (!taken.ok) {
+        c.header('retry-after', String(taken.retryAfterSeconds))
+        return c.json({ error: 'too many requests' }, 429)
+      }
       c.set('door', 'secret')
       return next()
     }
@@ -446,6 +470,8 @@ export function createHubApp({ db, secret, access = null, now = Date.now }: HubO
     `${dealer.toLowerCase()}|${country.toLowerCase()}`
 
   app.get('/v1/shipping/:dealer/:country', (c) => {
+    if (!DEALER_NAME.test(c.req.param('dealer')) || !COUNTRY_NAME.test(c.req.param('country')))
+      return c.json({ error: 'not a dealer and a country' }, 400)
     const key = shippingKey(c.req.param('dealer'), c.req.param('country'))
     const row = db.prepare('SELECT body FROM shipping WHERE key = ?').get(key) as
       { body: string } | undefined
@@ -455,11 +481,12 @@ export function createHubApp({ db, secret, access = null, now = Date.now }: HubO
   })
 
   app.put('/v1/shipping/:dealer/:country', async (c) => {
-    const parsed = tiersSchema.safeParse(safeJson(await c.req.text()))
-    if (!parsed.success) return c.json({ error: 'not a shipping ladder' }, 400)
-
     const dealer = c.req.param('dealer')
     const country = c.req.param('country')
+    if (!DEALER_NAME.test(dealer) || !COUNTRY_NAME.test(country))
+      return c.json({ error: 'not a dealer and a country' }, 400)
+    const parsed = tiersSchema.safeParse(safeJson(await c.req.text()))
+    if (!parsed.success) return c.json({ error: 'not a shipping ladder' }, 400)
 
     db.prepare(
       `INSERT INTO shipping (key, dealer, country, body, updated_at)
@@ -524,11 +551,17 @@ export function createHubApp({ db, secret, access = null, now = Date.now }: HubO
   })
 
   app.put('/v1/shops/:dealer', async (c) => {
+    // The path is data too: a username, or the row is not written (2026-09-16).
+    if (!DEALER_NAME.test(c.req.param('dealer')))
+      return c.json({ error: 'not a dealer name' }, 400)
     const parsed = shopSchema.safeParse(safeJson(await c.req.text()))
     if (!parsed.success) return c.json({ error: 'not a shop' }, 400)
 
     const dealer = c.req.param('dealer').toLowerCase()
     const shop = parsed.data
+    // A reading from the future would win every comparison for ever and
+    // evict the genuine shops from the two hundred the answer holds.
+    if (shop.seenAt > now() + SKEW_MS) return c.json({ error: 'seen in the future' }, 400)
     const existing = db.prepare('SELECT seen_at FROM shops WHERE username = ?').get(dealer) as
       { seen_at: number } | undefined
 
@@ -554,7 +587,8 @@ export function createHubApp({ db, secret, access = null, now = Date.now }: HubO
       shop.displayName,
       shop.shipsFrom,
       shop.numForSale,
-      shop.avatarUrl ?? '',
+      // A sign is a Discogs picture or nothing — the same rule the covers have.
+      shop.avatarUrl && isDiscogsImage(shop.avatarUrl) ? shop.avatarUrl : '',
       JSON.stringify(shop.fingerprint),
       shop.seenAt,
       now(),

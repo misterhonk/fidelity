@@ -50,7 +50,7 @@ const access = accessPublicKey
   : null
 
 const db = openHubDb(dbPath)
-const app = createHubApp({ db, secret, access })
+const app = createHubApp({ db, secret, access, limiter: createKeyLimiter() })
 
 serve({ fetch: app.fetch, port, hostname: '0.0.0.0' }, (info) => {
   // A server's startup line belongs on stdout, and this is a server rather
