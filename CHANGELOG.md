@@ -11,6 +11,20 @@ Für eine App bedeutet SemVer:
 
 ## [0.90.2](https://github.com/misterhonk/fidelity/compare/v0.90.1...v0.90.2) (2026-09-16)
 
+**Der Worker startet mit der Hälfte an Code: 39,5 kB → 20,3 kB.**
+
+Zod war 18,9 kB davon — und im Start, weil `worker/auth.ts` zwei Antwort-Schemas oben in
+der Datei benannte. Das Modul ist der Eingang, also wird alles, was dort oben steht,
+bezahlt, bevor die erste Nachricht beantwortet ist. Beide Stellen liegen in einer
+Anmeldung, die gleich 2,4 Sekunden für zwei getaktete Discogs-Anfragen ausgibt; dort
+nachgeladen fällt es nicht auf.
+
+Die Obergrenze geht mit runter, von 40 auf 25 kB — das ist der wichtigere Teil. Eine Grenze
+bei 40 über einem Worker von 20 hält nichts auf: Zod könnte morgen durch irgendeinen
+statischen Import zurückkommen, und der Build bliebe grün.
+
+Zu sehen ist davon nichts. Der Worker lädt neben dem ersten Bild, nicht davor.
+
 
 ### Changed
 
