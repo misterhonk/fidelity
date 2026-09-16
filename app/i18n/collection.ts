@@ -287,6 +287,37 @@ const en = {
     },
     notExpanded: 'Pressings not unfolded yet',
     noMaster: 'No master at Discogs — only this exact pressing can be recognised',
+    /*
+     * Taking several off at once (M27).
+     *
+     * The wantlist is the list that goes stale fastest — you buy a record and
+     * it is still there — and until now the way off it was one sheet per
+     * record. Same control as the shelf's, same words, because it is the same
+     * gesture; what differs is the one action, and here there is only one that
+     * makes sense on an armful.
+     */
+    select: {
+      start: 'Select',
+      done: 'Done',
+      all: 'All',
+      /** Given a formatted number. */
+      count: (n: string) => `${n} selected`,
+      pick: (artist: string, title: string) => `Select ${artist} — ${title}`,
+      /*
+       * A folded row is an album, so ticking it ticks its pressings — and the
+       * button counts wants rather than sleeves, or it would promise to remove
+       * nine and remove fourteen (the lesson of M28 #4).
+       */
+      drop: (n: string) => `Take ${n} off the wantlist`,
+      dropped: (n: string) => `${n} off the wantlist`,
+      undo: 'Undo',
+      /*
+       * Said only when it is true. A removal still waiting in the outbox is
+       * undone by dropping the job, and then Discogs never heard about it —
+       * claiming a re-request there would be inventing a request.
+       */
+      backAtDiscogs: (n: string) => `${n} asked for again at Discogs`,
+    },
     /* One row per album (M28 #2): wants are per pressing at Discogs, the sleeve is per album. */
     inPressings: (n: string) => `wanted in ${n} pressings`,
     showPressings: 'Show them',
@@ -801,6 +832,17 @@ const de: typeof en = {
     },
     notExpanded: 'Pressungen noch nicht ausgeklappt',
     noMaster: 'Kein Master bei Discogs – nur genau diese Pressung ist erkennbar',
+    select: {
+      start: 'Auswählen',
+      done: 'Fertig',
+      all: 'Alle',
+      count: (n) => `${n} ausgewählt`,
+      pick: (artist, title) => `${artist} – ${title} auswählen`,
+      drop: (n) => `${n} von der Wantlist nehmen`,
+      dropped: (n) => `${n} von der Wantlist genommen`,
+      undo: 'Rückgängig',
+      backAtDiscogs: (n) => `${n} bei Discogs neu angefragt`,
+    },
     inPressings: (n) => `in ${n} Pressungen gesucht`,
     showPressings: 'Anzeigen',
     hidePressings: 'Einklappen',
