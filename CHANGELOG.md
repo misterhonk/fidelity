@@ -9,6 +9,25 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.91.2](https://github.com/misterhonk/fidelity/compare/v0.91.1...v0.91.2) (2026-09-16)
+
+**Eine Schranke im Browser, die seit M6 versprochen war.**
+
+Die Seite schickt jetzt eine Content-Security-Policy mit: nur Skripte dieses Builds, Bilder nur
+von Discogs, Verbindungen nur über https. Selbst wenn fremder Code je in die Seite käme, dürfte
+er den Token nirgendwohin schicken. Für dich ändert sich nichts Sichtbares.
+
+Und der Hub prüft strenger, was ihm über Läden gemeldet wird: nur Discogs-Namen, nur Bilder von
+Discogs, keine Meldung aus der Zukunft, und auch mit dem geteilten Secret nicht beliebig viele.
+
+**Was zu tun ist:** Nichts. Wer den Hub selbst betreibt, zieht das neue Image.
+
+
+### Fixed
+
+* **hub:** a shop's path is a username, a reading cannot come from the future, the secret door has a ceiling ([0738d51](https://github.com/misterhonk/fidelity/commit/0738d51680d581ade8af765e9c0bf3819ab2cdf0))
+* **pwa:** a Content-Security-Policy computed from the build, and the hub's answers held to bounds ([08579f3](https://github.com/misterhonk/fidelity/commit/08579f36a949c8a21faae7a41c94fd5dbeb6ed47))
+
 ## [0.91.1](https://github.com/misterhonk/fidelity/compare/v0.91.0...v0.91.1) (2026-09-16)
 
 **Zwei Dinge, die die Demo-Sammlung beim dritten Rundgang gezeigt hat.**
