@@ -1615,7 +1615,28 @@ export interface ShippingTier {
   maxItems: number | null
   price: number
   currency: string
-  source: 'user' | 'bundled' | 'parsed'
+  /** `discogs`: Discogs named it for one listing (`ListingPostage`), no table. */
+  source: 'user' | 'bundled' | 'parsed' | 'discogs'
+}
+
+/**
+ * Discogs' own postage for one listing to the account's address (M34.2).
+ *
+ * Measured on 2026-09-16 (docs/02 §5): `GET /marketplace/listings/{id}` with a
+ * token carries `shipping_price` — converted into the account's currency, the
+ * same way the line's price is — and `original_shipping_price`, the seller's
+ * exact figure in the seller's currency. It answers for *this one record*;
+ * two from the same shop are still the seller's tier text. Marketplace data:
+ * it lives six hours, like the price beside it.
+ */
+export interface ListingPostage {
+  /** As Discogs converted it, in the currency the line's price is in, to the cent. */
+  value: number
+  currency: string
+  /** The seller's own figure, exact, in the seller's currency — when given. */
+  original: { value: number; currency: string } | null
+  /** When it was read. */
+  at: number
 }
 
 /**
@@ -1810,6 +1831,8 @@ export interface Dealer {
   suspended?: boolean
   numForSale: number
   minOrderTotal: number
+  /** How the shop takes money — `seller.payment`, "PayPal Commerce" mostly (M34.2). */
+  payment?: string
   /** Free text from seller.shipping. */
   shippingNote: string
   lastScannedAt: number | null
@@ -1990,6 +2013,9 @@ export interface BasketLine {
   sold: boolean
   /** When this line was opened at Discogs on the way to its cart (M20 #9). */
   atDiscogsAt?: number | null
+  /** Carried over from the item (M34.2): what Discogs named, and whether it ships here. */
+  postage?: ListingPostage | null
+  shipsHere?: boolean | null
 }
 
 export interface BasketSummary {
@@ -2032,6 +2058,14 @@ export interface BasketSummary {
   /** How much is still missing to that minimum, when something is. */
   missingToMinimum: number | null
   /**
+   * The figure Discogs named for one record here, off the newest fresh line
+   * (M34.2). It *is* the postage when the basket holds one record; beside a
+   * table for more it is the floor the table has to agree with.
+   */
+  postageNamed: ListingPostage | null
+  /** `false` when Discogs says this shop does not ship to the account's address. */
+  shipsHere: boolean | null
+  /**
    * The dig the suggestions were read out of, or `null` for a shop nobody has
    * walked yet.
    *
@@ -2063,6 +2097,14 @@ export interface BasketItem {
   currency: string
   addedAt: number
   note: string | null
+  /**
+   * What Discogs named for this record (M34.2), `null` when it named nothing,
+   * absent on a line from before or one added from a dig — the next refresh
+   * reads it.
+   */
+  postage?: ListingPostage | null
+  /** `false` when Discogs says the seller does not ship to the account's address. */
+  shipsHere?: boolean | null
   /**
    * When a refresh found this offer gone. Kept rather than removed: taking
    * somebody's basket entry away behind their back is a decision that is

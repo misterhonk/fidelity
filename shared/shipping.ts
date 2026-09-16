@@ -13,6 +13,13 @@ import type { LandedContext, LandedPrice, Match, ShippingTier } from './types'
  */
 
 /** Cheapest first, so a malformed profile still behaves predictably. */
+/**
+ * What Discogs assumes a record weighs when a seller bills by weight and has
+ * not said otherwise (M34.2): its own defaults, in grams, from the seller's
+ * shipping-policy settings. The shipping profile v2 (M34.3) rates by them.
+ */
+export const DISCOGS_DEFAULT_WEIGHT_G = { lp: 230, ten: 135, cd: 85 } as const
+
 export function sortTiers(tiers: ShippingTier[]): ShippingTier[] {
   return [...tiers].sort((a, b) => a.minItems - b.minItems)
 }

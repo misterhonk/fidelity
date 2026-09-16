@@ -291,6 +291,7 @@ const en = {
       user: 'table entered by you',
       bundled: 'from a shared table',
       parsed: 'estimated from the shop’s text',
+      discogs: 'named by Discogs',
     },
   },
 
@@ -603,6 +604,7 @@ const de: typeof en = {
       user: 'Staffel von dir eingetragen',
       bundled: 'aus einer geteilten Staffel',
       parsed: 'aus dem Text des Ladens geschätzt',
+      discogs: 'von Discogs genannt',
     },
   },
 

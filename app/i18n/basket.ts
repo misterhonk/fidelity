@@ -65,7 +65,17 @@ const en = {
     user: 'entered by you',
     bundled: 'from the bundled profiles',
     parsed: 'estimated from the shop text',
+    /* Discogs' own figure for this one record, to your address (M34.2). */
+    discogs: 'named by Discogs for this record',
   } satisfies Record<ShippingTier['source'], string>,
+  /*
+   * Beside a table for two or more: the one figure that is not a guess. It
+   * is the floor the table has to agree with, said once, with the seller's
+   * own currency first because that is the exact one.
+   */
+  namedForOne: (original: string, converted: string | null) =>
+    `Discogs names ${original}${converted ? ` (${converted})` : ''} for one record.`,
+  noShipping: 'Discogs says this shop does not ship to your address.',
 
   subtotalExpired:
     'At least one price is older than six hours. A partial sum would be a smaller number than the truth — scan the shop again.',
@@ -337,7 +347,11 @@ const de: typeof en = {
     user: 'von dir eingetragen',
     bundled: 'aus den mitgelieferten Profilen',
     parsed: 'geschätzt aus dem Freitext des Ladens',
+    discogs: 'von Discogs für diese Platte genannt',
   },
+  namedForOne: (original, converted) =>
+    `Discogs nennt ${original}${converted ? ` (${converted})` : ''} für eine Platte.`,
+  noShipping: 'Discogs sagt, dieser Laden versendet nicht an deine Adresse.',
 
   subtotalExpired:
     'Mindestens ein Preis ist älter als sechs Stunden. Eine Teilsumme wäre eine kleinere Zahl als die Wahrheit – scanne den Laden neu.',

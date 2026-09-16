@@ -522,6 +522,10 @@ export const handlers: HandlerMap = {
       priceFactor: median > 0 ? affinityFactor(median, otherMedians) : null,
       scannedDealers: all.length,
       shelf: await shelfSample(db, dealer),
+      postageNamed: (await import('./basket/postage')).freshPostage(
+        (await db.getAll('basket')).filter((item) => item.dealer === username),
+        Date.now(),
+      ),
     }
   },
 

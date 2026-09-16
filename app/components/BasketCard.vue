@@ -470,6 +470,31 @@ const peak = computed(() =>
         list of the shapes he reads since he was written, exported and captioned
         "for the interface to show when it fails". No interface ever showed it.
       -->
+      <!--
+        The one figure that is not a guess (M34.2). Discogs names the postage
+        for one record to your address; for a basket of one it is the line
+        above, for more it stands here beside the table as the floor.
+      -->
+      <p v-if="summary.shipsHere === false" class="text-fid-sm text-fid-sig-gap">
+        {{ b.noShipping }}
+      </p>
+      <p
+        v-else-if="summary.postageNamed && summary.shippingSource !== 'discogs'"
+        class="fid-num text-fid-xs text-fid-text-muted"
+      >
+        {{
+          b.namedForOne(
+            money(
+              summary.postageNamed.original?.value ?? summary.postageNamed.value,
+              summary.postageNamed.original?.currency ?? summary.postageNamed.currency,
+            ) ?? '',
+            summary.postageNamed.original
+              ? money(summary.postageNamed.value, summary.postageNamed.currency)
+              : null,
+          )
+        }}
+      </p>
+
       <details v-if="summary.shippingSource === null" class="group">
         <summary
           class="fid-action cursor-pointer list-none text-fid-sm text-fid-text-muted hover:text-fid-text"

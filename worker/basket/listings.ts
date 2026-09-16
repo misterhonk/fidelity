@@ -5,6 +5,7 @@ import { openFidelityDb } from '~~/db/open'
 
 import type { DiscogsClient } from '../discogs/client'
 import { FOR_SALE } from '../dig/refresh'
+import { postageOf, shipsHereOf } from './postage'
 
 /**
  * Putting listings into the basket by hand.
@@ -86,7 +87,24 @@ const pastedListingSchema = z.object({
     username: z.string(),
     min_order_total: z.number().nullable().optional(),
     shipping: z.string().nullable().optional(),
+    payment: z.string().nullable().optional(),
   }),
+  /* Postage for this one record, to the account's address (M34.2, docs/02 §5). */
+  shipping_price: z
+    .object({
+      value: z.number().nullable().optional(),
+      currency: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+  original_shipping_price: z
+    .object({
+      curr_abbr: z.string().nullable().optional(),
+      value: z.number().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+  shipping_is_blocked: z.boolean().nullable().optional(),
   release: z.object({
     id: z.number().int(),
     title: z.string(),
@@ -175,6 +193,7 @@ export async function addPastedListings(options: {
       ...(existing ?? blankDealer(dealer)),
       displayName: existing?.displayName || dealer,
       minOrderTotal: listing.seller.min_order_total ?? existing?.minOrderTotal ?? 0,
+      payment: listing.seller.payment ?? existing?.payment,
       shippingNote: listing.seller.shipping ?? existing?.shippingNote ?? '',
       updatedAt: now,
     })
@@ -191,6 +210,8 @@ export async function addPastedListings(options: {
       addedAt: now,
       note: null,
       soldAt: null,
+      postage: postageOf(listing, now),
+      shipsHere: shipsHereOf(listing),
     })
     added += 1
 

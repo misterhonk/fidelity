@@ -1150,13 +1150,30 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
             <h2 id="plate-postage" class="fid-plate text-fid-text-muted">
               {{ h.plates.postage }}
             </h2>
-            <p v-if="postage" class="text-fid-base text-fid-text">
+            <p v-if="profile.postageNamed" class="text-fid-base text-fid-text">
+              <span class="fid-num">{{
+                h.postage.named(
+                  money(
+                    profile.postageNamed.original?.value ?? profile.postageNamed.value,
+                    profile.postageNamed.original?.currency ?? profile.postageNamed.currency,
+                  ) ?? '',
+                  profile.postageNamed.original
+                    ? money(profile.postageNamed.value, profile.postageNamed.currency)
+                    : null,
+                )
+              }}</span>
+            </p>
+            <p
+              v-if="postage"
+              class="text-fid-base"
+              :class="profile.postageNamed ? 'text-fid-text-muted' : 'text-fid-text'"
+            >
               <span class="fid-num">{{ h.postage.from(postage.amount) }}</span>
               <span class="text-fid-sm text-fid-text-muted">
                 · {{ b.source[postage.source] }}</span
               >
             </p>
-            <p v-else class="text-fid-base text-fid-text-muted">
+            <p v-else-if="!profile.postageNamed" class="text-fid-base text-fid-text-muted">
               {{ h.postage.unknown }}
               <NuxtLink to="/basket" class="text-fid-accent underline underline-offset-4">
                 {{ h.postage.enter }}

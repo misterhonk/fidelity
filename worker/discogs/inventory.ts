@@ -95,7 +95,14 @@ export const inventoryPageSchema = z.object({
        */
       posted: z.string().optional(),
       /** The shop's postage text. The same on every row; read once, at the end. */
-      seller: z.object({ shipping: z.string().optional() }).optional(),
+      seller: z
+        .object({
+          shipping: z.string().optional(),
+          /* Both on every row too (M34.2): the floor an order has to reach, and how the shop is paid. */
+          min_order_total: z.number().nullable().optional(),
+          payment: z.string().nullable().optional(),
+        })
+        .optional(),
       price: z.object({ value: z.number(), currency: z.string() }).partial().optional(),
       release: z.object({
         id: z.number().int(),

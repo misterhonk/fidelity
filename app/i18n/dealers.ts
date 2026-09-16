@@ -303,6 +303,9 @@ const en = {
   rateWhy:
     'Finds per thousand listings on the last dig, set against the median of your other shops. What the market as a whole would find is not something this app can see.',
   postage: {
+    /* Discogs' own figure for one record to your address, off a basket line (M34.2). */
+    named: (original: string, converted: string | null) =>
+      `${original}${converted ? ` (${converted})` : ''} for one record, named by Discogs`,
     from: (amount: string) => `from ${amount} for one record`,
     unknown: 'Not on record yet.',
     enter: 'Enter it in the basket',
@@ -498,6 +501,8 @@ const de: typeof en = {
   rateWhy:
     'Treffer je tausend Listings beim letzten Dig, gemessen am Median deiner übrigen Läden. Was der Markt insgesamt hergäbe, kann diese App nicht sehen.',
   postage: {
+    named: (original, converted) =>
+      `${original}${converted ? ` (${converted})` : ''} für eine Platte, von Discogs genannt`,
     from: (amount) => `ab ${amount} für eine Platte`,
     unknown: 'Noch nicht erfasst.',
     enter: 'Im Warenkorb eintragen',

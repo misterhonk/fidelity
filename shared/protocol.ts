@@ -35,6 +35,7 @@ import type {
   CreditHarvest,
   CreditPerson,
   Dealer,
+  ListingPostage,
   DealerCandidate,
   DealerWithReasons,
   Dig,
@@ -1202,6 +1203,12 @@ export interface DealerProfile {
    * worse than none.
    */
   shelf: { releaseId: number; title: string; artist: string; label: string }[]
+  /**
+   * What Discogs named as postage for one record from here, off a fresh basket
+   * line (M34.2) — the first line of the profile's postage plate, when there
+   * is one.
+   */
+  postageNamed: ListingPostage | null
 }
 
 export interface RefreshProgress {

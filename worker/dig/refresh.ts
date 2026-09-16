@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { postageOf, shipsHereOf } from '../basket/postage'
+
 import { openFidelityDb } from '~~/db/open'
 import type { Dig, Match } from '#shared/types'
 
@@ -38,6 +40,22 @@ export const listingSchema = z.object({
     })
     .nullable()
     .optional(),
+  /* Postage for this one record, to the account's address (M34.2, docs/02 §5). */
+  shipping_price: z
+    .object({
+      value: z.number().nullable().optional(),
+      currency: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+  original_shipping_price: z
+    .object({
+      curr_abbr: z.string().nullable().optional(),
+      value: z.number().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+  shipping_is_blocked: z.boolean().nullable().optional(),
 })
 
 /** Discogs' word for "still buyable". Anything else means gone. */
@@ -293,6 +311,9 @@ export async function refreshBasket({
         // The clock is per line: a refreshed price is six hours young again.
         addedAt: now,
         soldAt: null,
+        // And the postage Discogs names for it, read on the same request.
+        postage: postageOf(listing, now),
+        shipsHere: shipsHereOf(listing),
       })
       refreshed += 1
     } else {

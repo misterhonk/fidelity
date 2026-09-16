@@ -380,8 +380,10 @@ and costs the same request to find out.
 | `genre` / `style` | ❌ | Style matching needs the catalogue DB |
 | `country` | ❌ | Pressing origin only via the catalogue DB |
 
-> ⚠️ **`shipping_price` is often `{}`.** Discogs only calculates postage in the cart.
-> → a dealer shipping profile as user input, see `00-CONCEPT.md` §7.
+> ⚠️ **`shipping_price` is `{}` in the inventory** — for every row, with or without a
+> token (six shops, 2026-09-16). Discogs computes postage for *one* listing to *your*
+> address, and only on `GET /marketplace/listings/{id}` **with a token** — see §5. For a
+> shop's whole table there is still only the seller's text and the profile (`00-CONCEPT.md` §7).
 
 **Payload:** the complete `seller` object is **repeated in every listing** — so at
 `per_page=100` that is 100 copies of the same ~800-byte blob. **250–400 kB per page.**
@@ -577,6 +579,28 @@ which returns **405** (see below): an offer is retrievable through **its own id*
 
 Back come `status`, `condition`, `sleeve_condition`, `comments`, `ships_from`, `posted`,
 `price`, `original_price`.
+
+**And with a token, the postage — measured on 2026-09-16** (a British shop, the account
+in Germany, `curr_abbr=EUR`):
+
+| Field | without a token | with a token |
+|---|---|---|
+| `shipping_price` | `{}` | `{ value: 14.108108…, currency: 'EUR' }` — postage for **this one listing to the account's address**, converted at Discogs' rate, as a float |
+| `original_shipping_price` | — | `{ curr_abbr: 'GBP', value: 12, formatted: '£12.00', converted: { curr_abbr: 'USD', value: 16.22 } }` — the seller's own figure, **exact, in the seller's currency** |
+| `shipping_is_blocked` | `true` | `null` — the seller ships to the account's country |
+| `price` | in USD | `{ value: 5.8666…, currency: 'EUR' }` — converted, a float too |
+| `seller.min_order_total` | present | `9.95` — in the seller's currency (the text says "£10 minimum") |
+| `seller.payment` | present | `'PayPal Commerce'` |
+
+So the figure Discogs shows in its own cart for a single record **is readable, one request
+per listing, before anything is in the cart**. What it does not answer: the postage for
+two or seven records from the same shop — that is still the seller's tier text ("1st LP
+£12.00 + £1.50 per additional LP"). The rate between `shipping_price` and
+`original_shipping_price` (14.108 / 12 = 1.1757) is the same one `price` was converted
+with, so a basket can carry the seller's exact figure and convert once, itself.
+
+> Store `original_shipping_price` (integer cents, seller currency), never the float. And
+> it is marketplace data: it lives six hours like the price beside it.
 
 **Why this is worth a lot:** after six hours, prices and conditions have to be deleted
 (`docs/09` §1.1). Until now "I want to see yesterday's price again" meant a complete rescan

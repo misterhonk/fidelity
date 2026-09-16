@@ -1,6 +1,7 @@
 import { openFidelityDb } from '~~/db/open'
 import type { BasketLine, BasketSummary, Dealer, Match } from '#shared/types'
 
+import { namedPostage } from './postage'
 import { resolveShipping, type ShippingResolution } from './profiles'
 import { shippingAdvice, shippingCurve, shippingFor } from './shipping'
 
@@ -177,8 +178,23 @@ export function summarise(
   const subtotal =
     anyExpired || mixedCurrency ? null : live.reduce((sum, line) => sum + line.price, 0)
 
-  const postage = shippingFor(shipping.tiers, live.length)?.price ?? null
+  /*
+   * What Discogs named for one record here (M34.2). For a basket of one it
+   * *is* the postage — the same figure Discogs' own cart would show, and it
+   * beats any table. For two or more it is the floor; the table says the rest.
+   * Only in the basket's currency: a figure Discogs converted into euros
+   * cannot be added to a subtotal in pounds.
+   */
+  const named = namedPostage(live, currency)
+  const namedFits = named !== null && live.length === 1
+
+  const postage = namedFits
+    ? named.value
+    : (shippingFor(shipping.tiers, live.length)?.price ?? null)
   const total = subtotal === null || postage === null ? null : subtotal + postage
+
+  const saysHere = live.map((line) => line.shipsHere).filter((flag) => flag != null)
+  const shipsHere = saysHere.includes(false) ? false : saysHere.includes(true) ? true : null
   const minOrderTotal = dealer?.minOrderTotal ?? 0
   /*
    * How far under the dealer's floor this basket is. The threshold on its own
@@ -201,7 +217,7 @@ export function summarise(
     subtotal,
     currency,
     shipping: postage,
-    shippingSource: shipping.source,
+    shippingSource: namedFits ? 'discogs' : shipping.source,
     shippingMatched: shipping.matched,
     shippingSection: shipping.section ?? null,
     shippingByWeight: shipping.byWeight ?? false,
@@ -215,5 +231,7 @@ export function summarise(
     minOrderTotal,
     belowMinimum: missingToMinimum !== null,
     missingToMinimum,
+    postageNamed: named,
+    shipsHere,
   }
 }

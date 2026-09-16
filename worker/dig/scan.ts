@@ -295,6 +295,9 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
    * request: it was already in the answer.
    */
   let shippingNote: string | null = null
+  /* The same row carries the shop's order floor and how it is paid (M34.2). */
+  let minOrderTotal: number | null = null
+  let payment: string | null = null
 
   /**
    * Where the shop ships from — off the rows, not off its profile.
@@ -387,6 +390,8 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
 
         scanned += 1
         shippingNote ??= row.seller?.shipping?.trim() || null
+        minOrderTotal ??= row.seller?.min_order_total ?? null
+        payment ??= row.seller?.payment?.trim() || null
         shipsFrom ??= row.ships_from?.trim() || null
         if (
           row.posted &&
@@ -537,7 +542,10 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   dig.finishedAt = now()
   dig.cursor = null
   await db.put('digs', dig)
-  await saveDealer(ctx, dig, fingerprint, newestSeen, shippingNote, shipsFrom)
+  await saveDealer(ctx, dig, fingerprint, newestSeen, shippingNote, shipsFrom, {
+    minOrderTotal,
+    payment,
+  })
   await pruneDigs(db)
 
   // What this dig taught the horizon. Handed back rather than acted on here:
@@ -801,9 +809,18 @@ async function saveDealer(
   newestListedAt: string | null,
   shippingNote: string | null,
   shipsFrom: string | null,
+  seller: { minOrderTotal: number | null; payment: string | null } = {
+    minOrderTotal: null,
+    payment: null,
+  },
 ): Promise<void> {
   const { db } = ctx
   const existing = await db.get('dealers', dig.dealer)
+  /* Like the note: read for nothing on every visit, never blanked by a page without it. */
+  const terms = {
+    minOrderTotal: seller.minOrderTotal ?? existing?.minOrderTotal ?? 0,
+    payment: seller.payment ?? existing?.payment,
+  }
 
   /*
    * A "nur das Neue" visit learns one thing and must not claim the others.
@@ -821,6 +838,7 @@ async function saveDealer(
       // The postage text, though — a shop can change it any day, and an
       // incremental visit read it for nothing like every other visit does.
       shippingNote: shippingNote ?? existing?.shippingNote ?? '',
+      ...terms,
       // The country too: it is on every row and costs nothing to keep.
       shipsFrom: shipsFrom ?? existing?.shipsFrom ?? '',
       updatedAt: dig.finishedAt ?? Date.now(),
@@ -867,6 +885,7 @@ async function saveDealer(
      * not delete what an earlier visit read.
      */
     shippingNote: shippingNote ?? existing?.shippingNote ?? '',
+    ...terms,
     // Stored as the comparable rate; the factor is derived on read, because it
     // changes as soon as another shop is scanned.
     affinity: rate,
