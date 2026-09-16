@@ -140,7 +140,7 @@ const meta = computed(() => {
         class="flex aspect-square w-full items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted"
         aria-hidden="true"
       >
-        <FidIcon name="platte" :size="48" />
+        <FidIcon name="record" :size="48" />
       </div>
 
       <div class="flex min-w-0 flex-col gap-2">

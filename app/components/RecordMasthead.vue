@@ -55,7 +55,7 @@ defineProps<{
         class="flex aspect-square w-full shrink-0 items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80"
         aria-hidden="true"
       >
-        <FidIcon name="platte" :size="56" />
+        <FidIcon name="record" :size="56" />
       </div>
 
       <div class="flex min-w-0 grow flex-col gap-4 sm:basis-64">

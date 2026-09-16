@@ -89,7 +89,7 @@ const landedWhy = computed(() => {
       class="flex size-[26px] shrink-0 items-center justify-center rounded-[3px] bg-fid-inset text-fid-text-muted"
       aria-hidden="true"
     >
-      <FidIcon name="platte" :size="14" />
+      <FidIcon name="record" :size="14" />
     </span>
 
     <span

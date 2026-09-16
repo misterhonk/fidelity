@@ -1161,7 +1161,7 @@ const scanned = computed(() => {
                     class="flex size-full items-center justify-center text-fid-text-muted"
                     aria-hidden="true"
                   >
-                    <FidIcon name="platte" :size="28" />
+                    <FidIcon name="record" :size="28" />
                   </span>
                 </NuxtLink>
               </li>

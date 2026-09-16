@@ -118,7 +118,7 @@ const tag = computed(() =>
         class="flex aspect-square w-full items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted"
         aria-hidden="true"
       >
-        <FidIcon name="platte" :size="36" />
+        <FidIcon name="record" :size="36" />
       </div>
 
       <!--

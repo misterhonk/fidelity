@@ -29,7 +29,7 @@ onMounted(() => {
  * — it stops reading as a switch and starts reading as a header.
  */
 const TABS = [
-  { to: '/shelf', key: 'shelf', icon: 'regal' },
+  { to: '/shelf', key: 'shelf', icon: 'shelf' },
   { to: '/map', key: 'map', icon: 'map' },
   { to: '/wantlist', key: 'wantlist', icon: 'wantlist' },
   /*

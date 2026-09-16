@@ -47,6 +47,11 @@ test('names the columns and sorts by the one you click', async ({ page }) => {
     timeout: 15_000,
   })
   await manyFinds(page, dig.id)
+  /*
+   * Opened with the *German* key on purpose: `?dicht=kompakt` is what this
+   * setting was called until ADR-010 reached it on 2026-09-16, and a dig's
+   * address is the thing people send each other. It has to keep opening.
+   */
   await page.goto(`/dig?id=${dig.id}&dicht=kompakt`)
   await expect(page.getByRole('heading', { name: '8 finds at plattenkiste' })).toBeVisible({
     timeout: 15_000,
@@ -84,4 +89,45 @@ test('names the columns and sorts by the one you click', async ({ page }) => {
   await head.getByRole('button', { name: 'Price' }).click()
   await expect(page).toHaveURL(/dir=desc/)
   await expect(rows.first()).toContainText('Probe 3')
+})
+
+/**
+ * The density in the address, in English (ADR-010).
+ *
+ * Every other view setting on this screen was already English — `sig`, `sort`,
+ * `dir`, `q`, `upto` — and this one wrote `?dicht=kiste` with a comment beside
+ * it noting the fact. Writing has moved to `?density=crate`; reading the old
+ * words never stops, which the test above stands for.
+ */
+test('writes the density in English, and drops the German key it opened with', async ({
+  page,
+}) => {
+  const dig = await seed(page, 'en')
+  await page.goto(`/dig?id=${dig.id}`)
+  await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({
+    timeout: 15_000,
+  })
+  // The tools only stand over a list long enough to need arranging.
+  await manyFinds(page, dig.id)
+  await page.goto(`/dig?id=${dig.id}&dicht=kiste`)
+  await expect(page.getByRole('heading', { name: '8 finds at plattenkiste' })).toBeVisible({
+    timeout: 15_000,
+  })
+
+  // The old address opened the crate — that is the whole point of still reading it.
+  const density = page.getByRole('group', { name: /^Density/ })
+  await expect(density.getByRole('button', { name: 'Crate' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+
+  // Switching writes the English key and takes the German one with it, so the
+  // address never says two things at once.
+  await density.getByRole('button', { name: 'Compact' }).click()
+  await expect(page).toHaveURL(/density=compact/)
+  await expect(page).not.toHaveURL(/dicht=/)
+
+  // And back to the default leaves a clean address rather than `?density=`.
+  await density.getByRole('button', { name: 'Detailed' }).click()
+  await expect(page).not.toHaveURL(/density=/)
 })

@@ -467,7 +467,7 @@ function years(entry: { from: number; to: number }): string {
               -->
           <p v-if="match.condition" class="flex min-w-0 flex-col gap-1">
             <span class="fid-plate flex items-center gap-2 text-fid-text-muted">
-              <FidIcon name="platte" :size="12" />
+              <FidIcon name="record" :size="12" />
               {{ d.sheet.offer.media }}
             </span>
             <span class="text-fid-sm text-fid-text">{{ match.condition }}</span>
@@ -480,7 +480,7 @@ function years(entry: { from: number; to: number }): string {
           </p>
           <p v-if="match.sleeve" class="flex min-w-0 flex-col gap-1">
             <span class="fid-plate flex items-center gap-2 text-fid-text-muted">
-              <FidIcon name="huelle" :size="12" />
+              <FidIcon name="sleeve" :size="12" />
               {{ d.sheet.offer.sleeve }}
             </span>
             <span class="text-fid-sm text-fid-text">{{ match.sleeve }}</span>

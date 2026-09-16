@@ -40,7 +40,11 @@ export function useDigView(
   const active = computed(() => parseSignals(param('sig'), matches.value))
   const sort = computed(() => parseSort(param('sort')))
   const direction = computed(() => parseDirection(param('dir'), sort.value))
-  const density = computed(() => parseDensity(param('dicht')))
+  /*
+   * `density`, or the `dicht` it was called until ADR-010 reached this
+   * setting. The new key wins where both are somehow present.
+   */
+  const density = computed(() => parseDensity(param('density') || param('dicht')))
   const available = computed(() => availableSignals(matches.value))
   const query = computed(() => param('q'))
   const upTo = computed(() => parseUpTo(param('upto')))
@@ -102,7 +106,10 @@ export function useDigView(
   }
   const setDensity = (value: Density) =>
     apply({
-      dicht: value === 'compact' ? 'kompakt' : value === 'crate' ? 'kiste' : undefined,
+      density: value === 'comfortable' ? undefined : value,
+      // And the old key goes, or an address carrying both would say two
+      // things and the reader above would have to pick a winner for ever.
+      dicht: undefined,
     })
   const setQuery = (value: string) => apply({ q: value.trim() || undefined })
   const setUpTo = (value: string) => {
