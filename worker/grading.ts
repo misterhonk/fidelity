@@ -46,9 +46,10 @@ export const ASK_AFTER_MS = 10 * 24 * 60 * 60 * 1000
 
 export async function gradingFor(dealer: string): Promise<GradingRecord> {
   const db = await openFidelityDb()
-  const all = await db.getAll('feedback')
+  // Through the index (M34.4): one shop's rows, not every row this device has judged.
+  const rows = await db.getAllFromIndex('feedback', 'by-dealer', dealer)
 
-  const mine = all.filter((row) => row.dealer === dealer && row.arrived)
+  const mine = rows.filter((row) => row.arrived)
   const asDescribed = mine.filter((row) => row.arrived === 'as-described').length
   const better = mine.filter((row) => row.arrived === 'better').length
   const worse = mine.filter((row) => row.arrived === 'worse').length

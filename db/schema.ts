@@ -36,7 +36,7 @@ export const DB_NAME = 'fidelity'
  *
  * 4 — added the `covers` store. Additive: nothing existing is touched.
  */
-export const DB_VERSION = 14
+export const DB_VERSION = 15
 
 /**
  * `meta` is a small key-value store rather than nine one-row stores. The union
@@ -146,7 +146,7 @@ export interface FidelityDB extends DBSchema {
   collection: {
     key: number
     value: CollectionItem
-    indexes: { 'by-master': number; 'by-release': number }
+    indexes: { 'by-master': number; 'by-release': number; 'by-label': string }
   }
   wantlist: { key: number; value: WantlistItem; indexes: { 'by-master': number } }
   horizon: { key: string; value: HorizonChunk }
@@ -225,7 +225,7 @@ export interface FidelityDB extends DBSchema {
    */
   followed: { key: number; value: FollowedArtist }
   basket: { key: number; value: BasketItem }
-  feedback: { key: number; value: Feedback }
+  feedback: { key: number; value: Feedback; indexes: { 'by-dealer': string } }
   /**
    * Covers, by release id — the one store every screen shares.
    *

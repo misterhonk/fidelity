@@ -22,6 +22,7 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
         const collection = db.createObjectStore('collection', { keyPath: 'instanceId' })
         collection.createIndex('by-master', 'masterId')
         collection.createIndex('by-release', 'releaseId')
+        collection.createIndex('by-label', 'labelNorms', { multiEntry: true })
 
         const wantlist = db.createObjectStore('wantlist', { keyPath: 'releaseId' })
         wantlist.createIndex('by-master', 'masterId')
@@ -34,7 +35,10 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
         matches.createIndex('by-dig-score', ['digId', 'score'])
 
         db.createObjectStore('basket', { keyPath: 'listingId' })
-        db.createObjectStore('feedback', { keyPath: 'listingId' })
+        db.createObjectStore('feedback', { keyPath: 'listingId' }).createIndex(
+          'by-dealer',
+          'dealer',
+        )
       }
 
       if (oldVersion > 0 && oldVersion < 2) {
@@ -254,6 +258,27 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
           if (repaired !== cursor.value) void cursor.update(repaired)
           return cursor.continue().then(walk)
         })
+      }
+
+      /*
+       * Two indexes for the shops screen (M34.4). The grading read every
+       * feedback row to find one shop's, and the shelf sample read the whole
+       * collection to find four records on twelve labels — on every open of
+       * a profile. `labelNorms` is an array, so the index is multi-entry.
+       */
+      if (oldVersion > 0 && oldVersion < 15) {
+        if (db.objectStoreNames.contains('feedback')) {
+          const feedback = tx.objectStore('feedback')
+          if (!feedback.indexNames.contains('by-dealer')) {
+            feedback.createIndex('by-dealer', 'dealer')
+          }
+        }
+        if (db.objectStoreNames.contains('collection')) {
+          const collection = tx.objectStore('collection')
+          if (!collection.indexNames.contains('by-label')) {
+            collection.createIndex('by-label', 'labelNorms', { multiEntry: true })
+          }
+        }
       }
 
       // Future versions go here. The rule: never migrate destructively unless

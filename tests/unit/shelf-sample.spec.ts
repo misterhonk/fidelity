@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { shelfSample } from '~~/worker/dealers/shelf'
 import type { CollectionItem, Dealer } from '#shared/types'
+import { norm } from '~~/worker/match/normalize'
 
 /**
  * Four records of your own on the labels a shop carries (M31.4).
@@ -19,7 +20,7 @@ function shelf(labels: string[]): CollectionItem[] {
     artistNorms: ['someone'],
     artistNames: ['Someone'],
     labelIds: [],
-    labelNorms: [label.toLowerCase()],
+    labelNorms: [norm(label)],
     labelNames: [label],
     catnos: [],
     genres: [],
@@ -57,9 +58,17 @@ function dealer(labelDist: Record<string, number>): Dealer {
   } as Dealer
 }
 
-/** A database stub: the one call this makes is `getAll('collection')`. */
+/**
+ * A database stub: the one call this makes is a read through the `by-label`
+ * index (M34.4) — one label's records, as a multi-entry index answers it.
+ */
 function db(items: CollectionItem[]) {
-  return { getAll: async (store: string) => (store === 'collection' ? items : []) } as never
+  return {
+    getAllFromIndex: async (store: string, index: string, key: string) =>
+      store === 'collection' && index === 'by-label'
+        ? items.filter((item) => item.labelNorms.includes(key))
+        : [],
+  } as never
 }
 
 describe('the shelf sample', () => {

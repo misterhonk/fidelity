@@ -88,5 +88,7 @@ test('watches a shop, walks the round, and says what it found', async ({ page, c
 
   // One shop, one new listing, and the record is by somebody on the shelf.
   await expect(page.getByText(/Last round/)).toBeVisible({ timeout: 30_000 })
+  // A stop with nothing for you is a count and a fold (M34.4), not a line.
+  await page.getByText('The other one', { exact: true }).click()
   await expect(page.getByText(/among 1 new/)).toBeVisible()
 })

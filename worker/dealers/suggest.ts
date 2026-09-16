@@ -66,7 +66,10 @@ const MAX_CONTRIBUTIONS = 20
 /** Labels named per shop. Enough to recognise a shop, short enough for a line. */
 const LABELS_SHOWN = 4
 
-export async function suggestShops(now = Date.now()): Promise<SuggestResult> {
+export async function suggestShops(
+  now = Date.now(),
+  signal?: AbortSignal,
+): Promise<SuggestResult> {
   const preferences = await getPreferences()
   const hub = createHubClient({
     baseUrl: preferences.hubUrl,
@@ -82,7 +85,7 @@ export async function suggestShops(now = Date.now()): Promise<SuggestResult> {
 
   let offered: HubShop[]
   try {
-    offered = await withTimeout(hub.shops(), HUB_TIMEOUT_MS)
+    offered = await withTimeout(hub.shops(signal), HUB_TIMEOUT_MS)
   } catch (error) {
     // A hub that is slow or off costs two seconds and then stops existing for
     // this call (rule 8). It is not an error on a screen nobody asked to fix.

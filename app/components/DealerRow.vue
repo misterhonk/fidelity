@@ -133,10 +133,19 @@ const code = computed(() =>
         plate face. A row without a reason is still a row nobody trusts.
       -->
       <span
-        v-if="dealer.reasons.length > 0"
+        v-if="dealer.reasons.length > 0 || dealer.fit || dealer.priceBand"
         class="fid-plate flex flex-wrap gap-x-3 text-fid-text-muted"
       >
         <span v-for="reason in dealer.reasons" :key="reason">{{ h.reasons[reason] }}</span>
+        <!--
+          The verdict pair (M34.4): the profile's two sentences as two words,
+          against your other shops. Set a shade stronger than the reasons —
+          those say why the row is here, these say what it is worth.
+        -->
+        <span v-if="dealer.fit" class="text-fid-text">{{ h.verdict.fit[dealer.fit] }}</span>
+        <span v-if="dealer.priceBand" class="text-fid-text">{{
+          h.verdict.price[dealer.priceBand]
+        }}</span>
       </span>
     </span>
 

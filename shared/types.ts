@@ -1789,6 +1789,13 @@ export type DealerReason = 'dug' | 'basket' | 'watched' | 'order' | 'friend' | '
 /** A shop with the reasons it is on the list, for the screens that say so. */
 export interface DealerWithReasons extends Dealer {
   reasons: DealerReason[]
+  /**
+   * The verdict pair (M34.4): how this shop's hit rate and its median price
+   * stand against the median of your other shops. `null` until there is a
+   * second shop to stand against, or nothing measured here yet.
+   */
+  fit: 'above' | 'same' | 'below' | null
+  priceBand: 'high' | 'middle' | 'low' | null
 }
 
 export interface HubShop {

@@ -255,8 +255,12 @@ describe('the shops screen', () => {
   const SEARCH = readFileSync('app/pages/settings/search.vue', 'utf8')
 
   it('ends in one field, with no search box under it', () => {
+    // The foot is its own component since M34.4; the page draws it, once.
+    const FOOT = readFileSync('app/components/ShopFoot.vue', 'utf8')
     expect(PAGE).not.toMatch(/<DealerDiscovery/)
-    expect(PAGE).toMatch(/id="add-shop"/)
+    expect(FOOT).not.toMatch(/<DealerDiscovery/)
+    expect(PAGE).toMatch(/<ShopFoot/)
+    expect(FOOT).toMatch(/id="add-shop"/)
   })
 
   it('stands the search beside its switch in the settings', () => {

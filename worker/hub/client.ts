@@ -159,7 +159,7 @@ export interface HubClient {
    *
    * An empty list is the ordinary answer on a hub nobody else uses.
    */
-  shops(): Promise<HubShop[]>
+  shops(signal?: AbortSignal): Promise<HubShop[]>
   contributeShop(shop: HubShop): Promise<boolean>
 
   /**
@@ -467,8 +467,8 @@ export function createHubClient({
       return parsed.data.tiers.map((tier) => ({ ...tier, source: 'bundled' as const }))
     },
 
-    async shops() {
-      const response = await fetchImpl(url('/v1/shops'), { headers })
+    async shops(signal?: AbortSignal) {
+      const response = await fetchImpl(url('/v1/shops'), { headers, signal })
       if (!response.ok) return []
 
       const parsed = shopsAnswerSchema.safeParse(await response.json())

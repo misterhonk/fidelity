@@ -718,6 +718,13 @@ export interface WorkerContract {
    */
   'dealer.list': { params: undefined; progress: never; result: DealerWithReasons[] }
   /**
+   * Everything the shops screen needs before it can draw (M34.4), in one
+   * message: the ranked list, the hidden ones, the home country, the round's
+   * plan and its last result, and whether one is running. Six round trips
+   * used to happen one after another before the first row appeared.
+   */
+  'dealer.overview': { params: undefined; progress: never; result: DealerOverview }
+  /**
    * A shop entered by hand — a username or the address of its shop page.
    *
    * One request, to find out whether it exists and how big it is. It then
@@ -1169,6 +1176,15 @@ export interface EnrichProgress {
   done: number
   total: number
   requests: number
+}
+
+export interface DealerOverview {
+  dealers: DealerWithReasons[]
+  hidden: Dealer[]
+  home: string
+  plan: { shops: number; reachable: number; neverDug: number; requests: number }
+  lastRound: RoundSummary | null
+  running: RoundProgress | null
 }
 
 export interface DealerProfile {

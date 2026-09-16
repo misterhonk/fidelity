@@ -127,12 +127,16 @@ describe('database schema', () => {
       'watched',
     ])
 
-    const tx = db.transaction(['collection', 'matches'])
+    const tx = db.transaction(['collection', 'matches', 'feedback'])
+    // `by-label` and `by-dealer` since schema 15 (M34.4): the shelf sample and
+    // the grading read one label's, one shop's rows instead of every row.
     expect([...tx.objectStore('collection').indexNames].sort()).toEqual([
+      'by-label',
       'by-master',
       'by-release',
     ])
     expect([...tx.objectStore('matches').indexNames]).toEqual(['by-dig-score'])
+    expect([...tx.objectStore('feedback').indexNames]).toEqual(['by-dealer'])
 
     /*
      * The two indexes on the stock store are why the view is affordable: a

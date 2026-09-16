@@ -1,6 +1,8 @@
 import type { FidelityDatabase } from '~~/db/open'
 import type { Dealer } from '#shared/types'
 
+import { norm } from '../match/normalize'
+
 /**
  * Four records of your own on the labels this shop carries (M31.4).
  *
@@ -45,26 +47,18 @@ export async function shelfSample(
     .map(([name]) => name)
   if (labels.length === 0) return []
 
-  const items = await db.getAll('collection')
-  if (items.length === 0) return []
-
   /*
-   * Compared on the plain lowered name, not on the app's normalised form.
-   * `labelDist` is built from inventory rows and `labelNorms` from the
-   * collection sync — two different pipelines, and the only thing they are
-   * guaranteed to agree on is the name as Discogs writes it.
+   * Through the label index (M34.4): one small read per label instead of the
+   * whole collection on every open of a profile. `labelNorms` is written
+   * with the same `norm` the inventory's label goes through here.
    */
   const found: ShelfSample[] = []
   const seen = new Set<number>()
 
   for (const label of labels) {
     if (found.length >= SAMPLE) break
-    const wanted = label.toLowerCase()
-
-    const hit = items.find(
-      (item) =>
-        !seen.has(item.releaseId) &&
-        item.labelNames.some((name) => name.toLowerCase() === wanted),
+    const hit = (await db.getAllFromIndex('collection', 'by-label', norm(label))).find(
+      (item) => !seen.has(item.releaseId),
     )
     if (!hit) continue
 

@@ -1,5 +1,5 @@
 import { openFidelityDb } from '~~/db/open'
-import type { Dealer, DealerReason, DealerWithReasons } from '#shared/types'
+import type { Dealer, DealerReason } from '#shared/types'
 
 /**
  * Why each shop is on the list (M30).
@@ -21,7 +21,10 @@ import type { Dealer, DealerReason, DealerWithReasons } from '#shared/types'
  * ones nobody has dug cannot be found at all, and a screen that implied
  * otherwise would be promising a search that does not exist.
  */
-export async function withReasons(dealers: Dealer[]): Promise<DealerWithReasons[]> {
+/** The reasons only; the verdict pair is added by `dealers/list.ts`. */
+export async function withReasons(
+  dealers: Dealer[],
+): Promise<(Dealer & { reasons: DealerReason[] })[]> {
   const db = await openFidelityDb()
 
   // One read for the lot rather than one per shop: a basket holds a handful of

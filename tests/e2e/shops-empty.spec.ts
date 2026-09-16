@@ -51,8 +51,14 @@ test.describe('the shops screen with nothing on it', () => {
     await signedInWithNoShops(page)
 
     await expect(page.getByText('No shop scanned yet.')).toBeInViewport({ timeout: 15_000 })
-    await expect(page.getByLabel('Add a shop')).toBeInViewport()
+    await expect(page.getByLabel('Add a shop')).toBeVisible()
     await expect(page.getByText('Also read my Discogs friends list?')).toHaveCount(0)
+
+    // And five shops to start with (M34.4), each one lookup away.
+    const starters = page.getByRole('region', { name: 'Five shops to start with' })
+    await expect(starters).toBeInViewport()
+    await expect(starters.getByRole('button', { name: /^Add / })).toHaveCount(5)
+    await expect(starters.getByText('Juno Records')).toBeVisible()
   })
 
   test('keeps the friends question and the search in the settings', async ({ page }) => {

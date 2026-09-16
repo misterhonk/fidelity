@@ -13,7 +13,6 @@ import { allFeedback, clearFeedback, feedbackVerdicts, recordFeedback } from './
 import { bestPerRelease, topFive } from './match/select'
 import { computeTasteProfile } from './match/taste'
 import { fail } from './fail'
-import { withReasons } from './dealers/reasons'
 
 /**
  * The shops, best first — what `dealer.list` answers and what `dealer.hide`
@@ -25,23 +24,17 @@ import { withReasons } from './dealers/reasons'
  * one, and a shop you can compute postage for should not be invisible on the
  * screen about shops. Hidden ones are left out — that is what hiding is.
  */
-async function rankedDealers() {
-  const { visibleDealers } = await import('./dealers/hide')
-  /*
-   * Statically imported, unlike most of what this file reaches for.
-   *
-   * It is sixty lines and one store read, and it sits on the hottest dealer
-   * path there is — both the shops screen and the dig field call `dealer.list`
-   * on mount. A lazy chunk here is a network round-trip on a cold worker
-   * before the first shop can be drawn, which is what it cost on CI.
-   */
-  return (await withReasons(await visibleDealers())).sort(
-    (a, b) =>
-      Number(b.lastScannedAt !== null) - Number(a.lastScannedAt !== null) ||
-      (b.affinity ?? 0) - (a.affinity ?? 0) ||
-      a.username.localeCompare(b.username),
-  )
-}
+const rankedDealers = async () => (await import('./dealers/list')).rankedDealers()
+
+/**
+ * Shops whose profile this session has already asked Discogs for (M34.4).
+ *
+ * The first open of a shop from before fires one `/users/{u}` in the
+ * background. Where that fails — offline, a 401 on a stale token, a 429 —
+ * nothing is written, and every further open fired it again. Once per
+ * session is enough: the next start tries afresh.
+ */
+const askedProfile = new Set<string>()
 
 /**
  * A handler gets its params and a way to report progress, and returns the
@@ -283,7 +276,8 @@ export const handlers: HandlerMap = {
    * Shops other people have dug (ADR-014). No Discogs request at all — it
    * talks to the hub, or to nobody.
    */
-  'shops.suggest': async () => (await import('./dealers/suggest')).suggestShops(),
+  'shops.suggest': async (_params, { signal }) =>
+    (await import('./dealers/suggest')).suggestShops(Date.now(), signal),
 
   /*
    * The same basket at the other shops (M29). No request: it reads the stock
@@ -469,7 +463,11 @@ export const handlers: HandlerMap = {
      * Without that distinction a shop with no picture would cost a request
      * every single time somebody clicked it.
      */
-    if (dealer.avatarUrl === undefined || dealer.registeredAt === undefined) {
+    if (
+      (dealer.avatarUrl === undefined || dealer.registeredAt === undefined) &&
+      !askedProfile.has(username)
+    ) {
+      askedProfile.add(username)
       /*
        * Started, not awaited. The profile is a screen; the logo is decoration
        * on it — and until 2026-09-13 the screen waited for the decoration.
@@ -602,6 +600,22 @@ export const handlers: HandlerMap = {
   },
 
   'dealer.list': async () => rankedDealers(),
+
+  'dealer.overview': async () => {
+    const [{ hiddenDealers }, round] = await Promise.all([
+      import('./dealers/hide'),
+      import('./dealers/round'),
+    ])
+    const [dealers, hidden, preferences, plan, lastRound, running] = await Promise.all([
+      rankedDealers(),
+      hiddenDealers(),
+      getPreferences(),
+      round.planRound(),
+      round.lastRound(),
+      round.runningRound(),
+    ])
+    return { dealers, hidden, home: preferences.shipsToCountry, plan, lastRound, running }
+  },
 
   /*
    * A shop entered by hand (M30).
