@@ -11,12 +11,12 @@ import { dealerFromInput } from '~/utils/dealer-input'
  * name.
  */
 describe('what the dealer field accepts', () => {
-  it('nimmt einen Namen, wie er ist', () => {
+  it('takes a name as it stands', () => {
     expect(dealerFromInput('schoenwettermusik')).toBe('schoenwettermusik')
     expect(dealerFromInput('  fatplastics  ')).toBe('fatplastics')
   })
 
-  it('nimmt Namen mit Punkt, Unterstrich und Bindestrich', () => {
+  it('takes names with a dot, an underscore and a hyphen', () => {
     // All three are real shops. A stricter pattern would reject customers.
     expect(dealerFromInput('spirax.records')).toBe('spirax.records')
     expect(dealerFromInput('430AM_Studio')).toBe('430AM_Studio')
@@ -32,7 +32,7 @@ describe('what the dealer field accepts', () => {
     )
   })
 
-  it('holt den Namen aus einer Nutzerseite', () => {
+  it('takes the name out of a user page', () => {
     expect(dealerFromInput('https://www.discogs.com/user/430AM_Studio')).toBe('430AM_Studio')
     expect(dealerFromInput('https://www.discogs.com/user/430AM_Studio/collection')).toBe(
       '430AM_Studio',
@@ -50,7 +50,7 @@ describe('what the dealer field accepts', () => {
     )
   })
 
-  it('findet den Namen auch als Abfrageparameter', () => {
+  it('finds the name in a query parameter too', () => {
     expect(dealerFromInput('https://www.discogs.com/sell/list?user=fatplastics')).toBe(
       'fatplastics',
     )
@@ -59,7 +59,7 @@ describe('what the dealer field accepts', () => {
     ).toBe('juno_records')
   })
 
-  it('kommt ohne Schema und ohne www aus', () => {
+  it('manages without a scheme and without www', () => {
     expect(dealerFromInput('discogs.com/seller/schoenwettermusik/profile')).toBe(
       'schoenwettermusik',
     )

@@ -167,7 +167,7 @@ async function syncPaged<TPage, TItem>(
    * exists" but about "what was on top", and inferring anything from it would
    * mean deleting the rest. Hence `null` rather than half a truth.
    */
-  const gesehen: Set<number> | null = options.knownSince === null ? new Set() : null
+  const seenKeys: Set<number> | null = options.knownSince === null ? new Set() : null
 
   while (page <= pages && !reachedKnown) {
     signal?.throwIfAborted()
@@ -187,7 +187,7 @@ async function syncPaged<TPage, TItem>(
         break
       }
       fresh.push(item)
-      gesehen?.add(options.key(item))
+      seenKeys?.add(options.key(item))
     }
 
     if (fresh.length > 0) {
@@ -204,7 +204,7 @@ async function syncPaged<TPage, TItem>(
    * or a client error leaves the loop through an exception. So a returned set
    * is either complete or `null`.
    */
-  return { stored, requests, total: items, removed: 0, newest, seen: gesehen }
+  return { stored, requests, total: items, removed: 0, newest, seen: seenKeys }
 }
 
 /**
@@ -227,12 +227,12 @@ async function syncPaged<TPage, TItem>(
  */
 async function sweep<TStore extends 'collection' | 'wantlist'>(
   store: TStore,
-  gesehen: Set<number>,
+  seenKeys: Set<number>,
   /** Rows Discogs cannot know about yet — those always survive. */
-  behalten: (key: number) => boolean = () => false,
+  keep: (key: number) => boolean = () => false,
 ): Promise<number> {
   const db = await openFidelityDb()
-  const vorhanden = (await db.getAllKeys(store)) as number[]
+  const present = (await db.getAllKeys(store)) as number[]
 
   /*
    * An empty pass deletes nothing.
@@ -242,15 +242,15 @@ async function sweep<TStore extends 'collection' | 'wantlist'>(
    * stay lying about, in the other the shelf is gone and the horizon with it.
    * Anyone who really has removed everything clears up through "sign out".
    */
-  if (gesehen.size === 0 && vorhanden.length > 0) return 0
+  if (seenKeys.size === 0 && present.length > 0) return 0
 
-  const weg = vorhanden.filter((key) => !gesehen.has(key) && !behalten(key))
-  if (weg.length === 0) return 0
+  const gone = present.filter((key) => !seenKeys.has(key) && !keep(key))
+  if (gone.length === 0) return 0
 
   const tx = db.transaction(store, 'readwrite')
-  for (const key of weg) await tx.store.delete(key)
+  for (const key of gone) await tx.store.delete(key)
   await tx.done
-  return weg.length
+  return gone.length
 }
 
 /**

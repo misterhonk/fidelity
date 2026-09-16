@@ -73,15 +73,15 @@ const orderSchema = z.object({
  * not to be clever: what gets through is still Discogs' decision.
  */
 export function cleanOrderId(raw: string): string | null {
-  const getrimmt = raw.trim()
+  const trimmed = raw.trim()
   /*
    * A whole address is an input too. Anyone copying the number out of the
    * browser often has `discogs.com/sell/order/259022-32308` on the clipboard,
    * and failing on that would be pettiness.
    */
-  const ausAdresse = getrimmt.match(/(\d+-\d+)\s*$/)
-  const kandidat = ausAdresse ? ausAdresse[1]! : getrimmt
-  return /^\d{1,12}-\d{1,12}$/.test(kandidat) ? kandidat : null
+  const fromAddress = trimmed.match(/(\d+-\d+)\s*$/)
+  const candidate = fromAddress ? fromAddress[1]! : trimmed
+  return /^\d{1,12}-\d{1,12}$/.test(candidate) ? candidate : null
 }
 
 export async function importOrder(
@@ -106,8 +106,8 @@ export async function importOrder(
    * point of the import — being able to ask the question when it is due —
    * would be pushed out by ten days.
    */
-  const gekauftAm = order.created ? Date.parse(order.created) : NaN
-  const at = Number.isNaN(gekauftAm) ? now : gekauftAm
+  const boughtAt = order.created ? Date.parse(order.created) : NaN
+  const at = Number.isNaN(boughtAt) ? now : boughtAt
 
   let added = 0
   let enriched = 0

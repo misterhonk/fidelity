@@ -15,12 +15,12 @@ import { createHubClient, isDiscogsImage } from '~~/worker/hub/client'
  * These are the checks on the way *out*, which is the half that survives the
  * hub being wrong.
  */
-describe('woher ein Cover kommen darf', () => {
-  it('nimmt Discogs’ Bildhost', () => {
+describe('where a cover may come from', () => {
+  it('takes Discogs’ image host', () => {
     expect(isDiscogsImage('https://i.discogs.com/abc/rs:fit/x.jpeg')).toBe(true)
   })
 
-  it('nimmt den leeren String – das heißt „es gibt keins“', () => {
+  it('takes the empty string — which means “there is none”', () => {
     expect(isDiscogsImage('')).toBe(true)
   })
 
@@ -45,13 +45,13 @@ function hubAnswering(body: unknown) {
   return { client: createHubClient({ baseUrl: 'http://hub.test', fetchImpl })!, fetchImpl }
 }
 
-describe('was der Client vom Hub übernimmt', () => {
-  it('übernimmt, was in Ordnung ist', async () => {
+describe('what the client takes from the hub', () => {
+  it('takes what is in order', async () => {
     const { client } = hubAnswering({ covers: { '5': { thumbUrl: REAL, coverUrl: REAL } } })
     expect(await client.covers([5])).toEqual({ 5: { thumbUrl: REAL, coverUrl: REAL } })
   })
 
-  it('wirft eine fremde Adresse weg, auch wenn der Hub sie schickt', async () => {
+  it('throws a foreign address away, even when the hub sends it', async () => {
     const { client } = hubAnswering({
       covers: {
         '5': { thumbUrl: REAL, coverUrl: REAL },
@@ -63,18 +63,18 @@ describe('was der Client vom Hub übernimmt', () => {
     expect(Object.keys(covers)).toEqual(['5'])
   })
 
-  it('nimmt keine Antwort an, die nicht zum Schema passt', async () => {
+  it('accepts no answer that does not match the schema', async () => {
     const { client } = hubAnswering({ covers: { '5': { thumbUrl: 42 } } })
     expect(await client.covers([5])).toEqual({})
   })
 
-  it('fragt gar nicht erst, wenn nichts zu fragen ist', async () => {
+  it('does not ask at all when there is nothing to ask for', async () => {
     const { client, fetchImpl } = hubAnswering({ covers: {} })
     expect(await client.covers([])).toEqual({})
     expect(fetchImpl).not.toHaveBeenCalled()
   })
 
-  it('bündelt alle Ids in einen Aufruf', async () => {
+  it('bundles every id into one call', async () => {
     // A dozen round trips, each with its own two-second ceiling, would cost
     // more than the requests they are meant to save.
     const { client, fetchImpl } = hubAnswering({ covers: {} })

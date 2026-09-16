@@ -86,7 +86,7 @@ describe('the six-hour deadline', () => {
   })
 })
 
-describe('der Kurator', () => {
+describe('the keeper', () => {
   it('does everything overdue when nothing else is running', async () => {
     const result = await runKeeper({ client, username: 'mrtnmlchr', now: NOW })
 

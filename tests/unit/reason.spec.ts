@@ -171,7 +171,7 @@ describe('the words themselves, in English', () => {
 describe('the words themselves, in German', () => {
   beforeEach(() => useLanguage().apply('de'))
 
-  it('sagt, wenn ein Wunsch ganz oben steht', () => {
+  it('says when a want is at the top of the list', () => {
     expect(reasonFor([signal('WANTLIST_EXACT', { want: 5 })])).toBe(
       'Steht genau so auf deiner Wantlist – eine von denen, die du am meisten willst.',
     )
@@ -180,7 +180,7 @@ describe('the words themselves, in German', () => {
     )
   })
 
-  it('sagt, unter welchem Namen ein Künstler gefunden wurde', () => {
+  it('says under which name an artist was found', () => {
     expect(
       reasonFor([
         signal('ARTIST_KNOWN', {

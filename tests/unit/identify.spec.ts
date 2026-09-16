@@ -20,7 +20,7 @@ import type { CollectionItem } from '#shared/types'
  * only becomes one the moment the interface shows a single hit as *the*
  * answer — which is why the last block here holds that it does not.
  */
-const platte = (releaseId: number, instanceId: number): CollectionItem => ({
+const record = (releaseId: number, instanceId: number): CollectionItem => ({
   releaseId,
   instanceId,
   folderId: 1,
@@ -136,7 +136,7 @@ describe('what a barcode answers', () => {
    */
   it('finds a copy that is not the first candidate', async () => {
     const db = await openFidelityDb()
-    await db.put('collection', platte(249504, 1))
+    await db.put('collection', record(249504, 1))
 
     const found = await identify(client, '5012394144777')
     expect(found.owned.map((o) => o.releaseId)).toEqual([249504])
@@ -144,7 +144,7 @@ describe('what a barcode answers', () => {
 
   it('says when it is on the wantlist instead', async () => {
     const db = await openFidelityDb()
-    await db.put('wantlist', { ...platte(1260449, 0), note: '', want: 0 } as never)
+    await db.put('wantlist', { ...record(1260449, 0), note: '', want: 0 } as never)
 
     const found = await identify(client, '5012394144777')
     expect(found.owned).toEqual([])
@@ -159,7 +159,7 @@ describe('what a barcode answers', () => {
    */
   it('finds another pressing of the album on the shelf, and says it apart', async () => {
     const db = await openFidelityDb()
-    await db.put('collection', { ...platte(555_555, 1), masterId: 96559 })
+    await db.put('collection', { ...record(555_555, 1), masterId: 96559 })
 
     const found = await identify(client, '5012394144777')
     expect(found.owned).toEqual([])
@@ -169,7 +169,7 @@ describe('what a barcode answers', () => {
 
   it('finds another pressing of the album on the wantlist', async () => {
     const db = await openFidelityDb()
-    const { rating: _r, instanceId: _i, folderId: _f, ...want } = platte(777_777, 1)
+    const { rating: _r, instanceId: _i, folderId: _f, ...want } = record(777_777, 1)
     await db.put('wantlist', { ...want, masterId: 96559, note: '', want: 0 })
 
     const found = await identify(client, '5012394144777')
@@ -179,7 +179,7 @@ describe('what a barcode answers', () => {
 
   it('does not count an exact hit twice as "another pressing"', async () => {
     const db = await openFidelityDb()
-    await db.put('collection', { ...platte(249504, 1), masterId: 96559 })
+    await db.put('collection', { ...record(249504, 1), masterId: 96559 })
 
     const found = await identify(client, '5012394144777')
     expect(found.owned.map((o) => o.releaseId)).toEqual([249504])
@@ -211,7 +211,7 @@ describe('what a barcode answers', () => {
 describe('reading a run-out', () => {
   it('finds the pressing and checks every candidate against the shelf', async () => {
     const db = await openFidelityDb()
-    await db.put('collection', platte(249504, 1))
+    await db.put('collection', record(249504, 1))
 
     const found = await identifyByRunout(client, 'MPO SK 032 A1 G PHRUPMASTERGENERAL')
     expect(found.candidates).toHaveLength(8)
