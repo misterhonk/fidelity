@@ -26,7 +26,8 @@
 
 FROM nginx:1.29-alpine
 
-COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+# The config with this build's Content-Security-Policy (scripts/csp/write.mjs).
+COPY .output/nginx.conf /etc/nginx/conf.d/default.conf
 COPY .output/public /usr/share/nginx/html
 
 EXPOSE 80

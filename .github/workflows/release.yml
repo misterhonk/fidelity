@@ -127,7 +127,8 @@ jobs:
           # darf jedenfalls nicht mit ausgeliefert werden: eine .htaccess mit
           # `RewriteBase __FIDELITY_BASE__` ist still unwirksam, und still ist
           # die schlechteste Art, kaputt zu sein.
-          sed "s|__FIDELITY_BASE__|/|" deploy/.htaccess > .output/public/.htaccess
+          # .output/htaccess carries this build's Content-Security-Policy (scripts/csp/write.mjs).
+          sed "s|__FIDELITY_BASE__|/|" .output/htaccess > .output/public/.htaccess
           cp deploy/LIESMICH.txt .output/public/LIESMICH.txt
           cd .output/public
           zip -qr "../../fidelity-${{ needs.release-please.outputs.tag }}.zip" . -x '.DS_Store'

@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "pnpm tokens:build && pnpm icons:build && nuxt dev",
-    "build": "pnpm tokens:build && pnpm icons:build && nuxt build",
+    "build": "pnpm tokens:build && pnpm icons:build && nuxt build && node scripts/csp/write.mjs",
     "preview": "nuxt preview",
     "postinstall": "pnpm tokens:build && pnpm icons:build && nuxt prepare",
     "tokens:build": "node scripts/tokens/build.mjs",

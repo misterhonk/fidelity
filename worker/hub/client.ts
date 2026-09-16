@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { discogsImageOrNone, isDiscogsImage } from '#shared/images'
+
 import { chunkIsSound, decodeChunk, encodeChunk, type WireChunk } from '#shared/wire'
 import type {
   HorizonChunk,
@@ -20,27 +22,40 @@ import { fail } from '../fail'
  * somebody's own machine, and a shop row that arrived malformed would be
  * ranked against a collection and drawn on a screen.
  */
-const distributionSchema = z.record(z.string(), z.number())
+/*
+ * The same bounds the hub enforces (hub/src/app.ts), enforced again here: a
+ * hub is somebody else's machine, and what it answers is drawn on this
+ * screen. A username is a Discogs username, a picture is a Discogs picture
+ * or nothing, a distribution has at most sixty entries, an answer at most
+ * two hundred shops.
+ */
+const distributionSchema = z
+  .record(z.string().max(120), z.number())
+  .refine((value) => Object.keys(value).length <= 60, 'too many entries')
+
+const DEALER_NAME = /^[A-Za-z0-9._-]{1,120}$/
 
 const shopsAnswerSchema = z.object({
-  shops: z.array(
-    z.object({
-      username: z.string(),
-      displayName: z.string(),
-      shipsFrom: z.string(),
-      numForSale: z.number(),
-      avatarUrl: z.string().optional(),
-      seenAt: z.number(),
-      fingerprint: z.object({
-        sampledItems: z.number(),
-        totalItems: z.number(),
-        coverage: z.number(),
-        labelDist: distributionSchema,
-        styleDist: distributionSchema,
-        decadeDist: distributionSchema,
+  shops: z
+    .array(
+      z.object({
+        username: z.string().regex(DEALER_NAME),
+        displayName: z.string().max(120),
+        shipsFrom: z.string().max(120),
+        numForSale: z.number().int().min(0).max(10_000_000),
+        avatarUrl: z.string().max(2048).optional().transform(discogsImageOrNone),
+        seenAt: z.number().int().min(0),
+        fingerprint: z.object({
+          sampledItems: z.number().int().min(0),
+          totalItems: z.number().int().min(0),
+          coverage: z.number().min(0).max(1),
+          labelDist: distributionSchema,
+          styleDist: distributionSchema,
+          decadeDist: distributionSchema,
+        }),
       }),
-    }),
-  ),
+    )
+    .max(200),
 })
 
 /**
@@ -219,27 +234,8 @@ export interface HubCover {
   coverUrl: string
 }
 
-/**
- * Checked on the way back too, not only on the way in.
- *
- * These strings become `<img src>`. The hub already refuses anything that is
- * not Discogs' image host — and the hub is exactly the component this client is
- * written not to trust (see the file header). An old hub, a patched one, or
- * somebody else's entirely would otherwise be able to point every screen here
- * at a URL of their choosing.
- *
- * Parsed rather than pattern-matched: `https://i.discogs.com.evil.test/x` and
- * `https://evil.test/?a=https://i.discogs.com` both survive a naive `includes`.
- */
-export function isDiscogsImage(url: string): boolean {
-  if (url === '') return true
-  try {
-    const parsed = new URL(url)
-    return parsed.protocol === 'https:' && parsed.hostname === 'i.discogs.com'
-  } catch {
-    return false
-  }
-}
+/** Re-exported: the guard lives in `#shared/images` since M34.5, the tests import it here. */
+export { isDiscogsImage }
 
 const coversSchema = z.object({
   covers: z.record(z.string(), z.object({ thumbUrl: z.string(), coverUrl: z.string() })),

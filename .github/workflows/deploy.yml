@@ -170,7 +170,8 @@ jobs:
       - if: steps.check.outputs.ready == 'true'
         name: Regeln für Apache, mit demselben Basispfad
         run: |
-          sed "s|__FIDELITY_BASE__|${BASE_URL}|" deploy/.htaccess > .output/public/.htaccess
+          # .output/htaccess carries this build's Content-Security-Policy (scripts/csp/write.mjs).
+          sed "s|__FIDELITY_BASE__|${BASE_URL}|" .output/htaccess > .output/public/.htaccess
           grep RewriteBase .output/public/.htaccess
 
       - if: steps.check.outputs.ready == 'true'

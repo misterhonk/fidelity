@@ -180,15 +180,22 @@ Header set X-Content-Type-Options "nosniff"
 Header set Referrer-Policy "strict-origin-when-cross-origin"
 Header set Strict-Transport-Security "max-age=31536000"
 Header set Content-Security-Policy "default-src 'self'; \
-  connect-src 'self' https://api.discogs.com; \
+  connect-src 'self' https:; \
   img-src 'self' https://i.discogs.com data: blob:; \
-  script-src 'self'; style-src 'self' 'unsafe-inline'; \
-  worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'"
+  script-src 'self' 'sha256-…' 'sha256-…' 'sha256-…'; \
+  style-src 'self' 'unsafe-inline'; font-src 'self'; worker-src 'self' blob:; \
+  frame-src https://www.youtube-nocookie.com https://www.youtube.com; \
+  frame-ancestors 'none'; base-uri 'self'; object-src 'none'; manifest-src 'self'; form-action 'self'"
 ```
 
-> ⚠️ **Restrict `connect-src` to `api.discogs.com`.** That is the most effective protection
-> for the Personal Access Token: even if foreign code ever got into the page, it could not
-> send the token anywhere.
+> **Shipped since M34.5 (2026-09-16), and computed rather than typed.** The three hashes are
+> those of Nuxt's two inline scripts and the import map of *this* build; `scripts/csp/write.mjs`
+> runs after `nuxt build` and writes `.output/htaccess` and `.output/nginx.conf`, which the
+> deploy workflow and the app image copy. `connect-src` is `https:` and not a host list,
+> because the hub and the catalogue are origins the user names and the vault talks to
+> Dropbox and Google — what stays forbidden is any `http:`, `ws:` or `data:` connection, and
+> any script that is not this build's. A tighter `connect-src` would need the hub origin at
+> build time, which a self-hosted app does not have.
 
 ### Deploy
 

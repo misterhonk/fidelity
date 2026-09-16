@@ -26,12 +26,13 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY . .
 
-RUN pnpm tokens:build && pnpm icons:build && pnpm exec nuxt build
+RUN pnpm tokens:build && pnpm icons:build && pnpm exec nuxt build && node scripts/csp/write.mjs
 
 # --- serve ------------------------------------------------------------------
 FROM nginx:1.29-alpine AS serve
 
-COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+# The config with this build's Content-Security-Policy, written after the build.
+COPY --from=build /src/.output/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /src/.output/public /usr/share/nginx/html
 
 # nginx:alpine ships an unprivileged variant of its own entrypoint; this image

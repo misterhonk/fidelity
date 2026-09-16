@@ -92,6 +92,12 @@
   Header set X-Content-Type-Options "nosniff"
   Header set X-Frame-Options "DENY"
   Header set Referrer-Policy "no-referrer"
+
+  # Der Wert entsteht beim Build (scripts/csp/write.mjs): die zwei
+  # Inline-Skripte von Nuxt und die Import-Map sind per Hash erlaubt, sonst
+  # nur Skripte dieses Builds. connect-src https:, weil der Hub-Origin dem
+  # Nutzer gehört; kein http:, kein ws:, kein data: für Verbindungen.
+  Header set Content-Security-Policy "__FIDELITY_CSP__"
 </IfModule>
 
 # --- 3. Komprimierung ---------------------------------------------------------

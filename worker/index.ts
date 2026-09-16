@@ -9,6 +9,7 @@ import type { RequestKind, WorkerError, WorkerInbound, WorkerOutbound } from '#s
 
 import { trackForeground } from './busy'
 import { handlers } from './handlers'
+import { redactString } from './log'
 
 const scope = self as unknown as DedicatedWorkerGlobalScope
 
@@ -78,7 +79,9 @@ async function dispatch(id: string, kind: RequestKind, params: unknown) {
       id,
       type: 'error',
       error: {
-        message: error instanceof Error ? error.message : String(error),
+        // Through the same redaction the log uses: a message that ever carried
+        // the token or a header would otherwise reach ErrorNote unfiltered.
+        message: redactString(error instanceof Error ? error.message : String(error)),
         code: codeOf(error, controller.signal.aborted),
         // The only number a failure carries. It is the hub's own status, and
         // the sentence for it names it.

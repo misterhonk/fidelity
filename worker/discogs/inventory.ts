@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { discogsImageOrNone } from '#shared/images'
+
 import type { Listing } from '../match'
 
 import { paginationSchema } from './schemas'
@@ -18,9 +20,10 @@ export const dealerSchema = z.object({
    * Free — this endpoint is fetched anyway, once per dig, to find out how big
    * the shop is. Most sellers have set one; the ones who have not get Discogs'
    * grey default, which is why the screens fall back to initials rather than
-   * drawing somebody else's placeholder.
+   * drawing somebody else's placeholder. And only from i.discogs.com — the
+   * field becomes an `<img src>`, and an answer is data until it is checked.
    */
-  avatar_url: z.string().optional(),
+  avatar_url: z.string().optional().transform(discogsImageOrNone),
 })
 
 /**
