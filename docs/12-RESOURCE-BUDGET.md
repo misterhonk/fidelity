@@ -31,7 +31,7 @@ concrete shelving.
 |---|---:|---:|
 | HTML + critical CSS | ≤ 8 kB | |
 | App-shell JS (Vue + router + UI core) | ≤ 140 kB | |
-| Matching engine (worker, lazy) | ≤ 40 kB | 34.8 kB (2026-09-12) |
+| Matching engine (worker, lazy) | ≤ 25 kB | 20.3 kB (2026-09-16) |
 | The remaining routes (lazy) | ≤ 30 kB each | 13.9 kB |
 | **First meaningful paint** | **≤ 180 kB** | **118 kB** |
 
@@ -52,6 +52,29 @@ concrete shelving.
 > horizon and matcher stay where they are for now, because the worker loads beside the
 > first paint, not in front of it. The order above still holds the day 40 is reached: that
 > is the day the horizon and matcher become a chunk a dig loads.
+
+> **Why 40 kB became 25 kB (2026-09-16).** The worker reached 39.54 kB — 0.46 from a hard
+> limit that breaks the build — and the escalation above was ready to be spent. It was not
+> needed. **Zod was 18.9 kB of the 39.54**, and the reason it was in the start-up at all was
+> one line: `worker/auth.ts` named two response schemas at the top of the file. That module
+> is the entry — `index.ts` imports `handlers.ts` imports it — so a name at its top is paid
+> before the first message is answered, and both uses sit inside a sign-in that is about to
+> spend 2.4 seconds on two paced requests. Fetched where they are used instead:
+> **39.54 → 20.31 kB.**
+>
+> Which is the M3 note above, arriving at the opposite conclusion by measuring rather than
+> arguing. That note weighed Zod against `zod/mini` and decided the schemas were worth their
+> 16 kB *at start-up*. The choice was never between paying and not paying — it was between
+> paying **before the first message** and paying when somebody signs in.
+>
+> **And the ceiling came down with it, which is the part that matters.** A limit of 40 over
+> a worker of 20 stops nothing: Zod could walk back in tomorrow through any static import
+> and the build would stay green. A budget that is only ever raised is not a budget, and one
+> that is never lowered stops being a measurement — the same thing that had happened to the
+> roadmap. 25 kB leaves room for real growth and still notices 19 kB arriving by accident.
+>
+> The order for the day 25 is genuinely reached is unchanged: the horizon and the matcher
+> become a chunk a dig loads, then `zod/mini`. Both are still ahead of raising the number.
 
 > **Why 120 kB became 180 kB (2026-08-11).** The 120 were tied to a network that no longer
 > exists: "in the basement of a record shop over 3G". 3G was switched off in Germany in

@@ -8,9 +8,26 @@ import {
   createPacer,
   MIN_REQUEST_INTERVAL_MS,
 } from './discogs/pacer'
-import { identitySchema, userProfileSchema } from './discogs/schemas'
 import { forgetSecrets, registerSecret } from './log'
 import { fail } from './fail'
+
+/*
+ * The two schemas this module needs are fetched when it needs them (docs/12 §2).
+ *
+ * `auth.ts` is the worker's *entry* — `index.ts` imports `handlers.ts` imports
+ * this — so anything it names statically is paid for before the first message
+ * is answered. These two named Zod, and Zod was **18.9 kB gzip of the worker's
+ * 39.5 kB ceiling**: nearly half of the start-up cost, loaded so that signing
+ * in could validate two responses.
+ *
+ * Both uses sit inside a function that is about to spend two paced Discogs
+ * requests — 2.4 seconds — on a deliberate, user-initiated action. A module
+ * load in front of that is not a cost anybody can perceive, and it is the
+ * difference between Zod being in the worker's start-up or not.
+ */
+async function discogsSchemas() {
+  return import('./discogs/schemas')
+}
 
 /**
  * The client used for everything after sign-in. It reads the token per request
@@ -74,6 +91,7 @@ export async function signIn(token: string): Promise<Identity> {
   }
   registerSecret(trimmed)
 
+  const { identitySchema, userProfileSchema } = await discogsSchemas()
   const probe = new DiscogsClient({ getToken: () => trimmed })
   const identity = await probe.get('/oauth/identity', identitySchema)
   const profile = await probe.get(
@@ -134,6 +152,7 @@ export async function renewToken(token: string): Promise<Identity> {
   if (trimmed.length === 0) throw fail('no-token', 'no token given')
   registerSecret(trimmed)
 
+  const { identitySchema, userProfileSchema } = await discogsSchemas()
   const probe = new DiscogsClient({ getToken: () => trimmed })
   const identity = await probe.get('/oauth/identity', identitySchema)
 

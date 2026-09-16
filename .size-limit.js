@@ -115,15 +115,26 @@ export default [
     name: 'Worker (lazy, nach dem ersten Paint)',
     path: [...workerChunks],
     /*
-     * 35 → 40 kB on 2026-09-12 (M21.4). The worker stood at 34.8 kB with the
-     * catalogue's client and the token renewal in it, and the two catalogue
-     * routes are the first of six. The worker does not block the first
-     * paint; what the ceiling protects is that nobody puts the horizon and
-     * the matcher there without noticing. Still a hard limit — docs/12 says
-     * what comes first if it is reached again: lazy-load the horizon and
-     * the matcher, then zod/mini.
+     * 35 → 40 kB on 2026-09-12 (M21.4), then **40 → 25 kB on 2026-09-16**,
+     * because the worker had reached 39.54 and the answer turned out to be
+     * one import.
+     *
+     * Zod was 18.9 kB of that 39.54 — nearly half the start-up — and it was
+     * there because `auth.ts` named two response schemas at the top of the
+     * file. `auth.ts` is the entry: `index.ts` imports `handlers.ts` imports
+     * it, so a name at its top is paid before the first message is answered.
+     * Both uses sit inside a sign-in that is about to spend 2.4 seconds on two
+     * paced requests. Fetched there instead: **39.54 → 20.31 kB.**
+     *
+     * The ceiling comes down with it, and that is the point rather than
+     * tidiness. A limit at 40 over a worker at 20 stops nothing — Zod could
+     * walk back in tomorrow through any static import and the build would
+     * stay green. 25 kB leaves room for real growth and still notices that.
+     *
+     * Raising it again is a decision, not a fix. What comes first if it is
+     * reached: the horizon and the matcher, then zod/mini (docs/12 §2).
      */
-    limit: '40 kB',
+    limit: '25 kB',
     gzip: true,
   },
 ]
