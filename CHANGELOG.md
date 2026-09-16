@@ -11,6 +11,28 @@ Für eine App bedeutet SemVer:
 
 ## [0.93.0](https://github.com/misterhonk/fidelity/compare/v0.92.0...v0.93.0) (2026-09-16)
 
+**Discogs nennt das Porto doch – und Fidelity liest es jetzt.**
+
+Ein Jahr lang galt: Discogs rechnet Versandkosten nur im eigenen Warenkorb aus, die API
+schweigt. Das stimmte nur ohne Token. Heute gemessen, mit Token, auf einem echten Konto: das
+einzelne Angebot trägt das Porto für genau diese eine Platte an deine Adresse, umgerechnet in
+deine Währung, und dazu die exakte Zahl des Verkäufers in seiner Währung – „£12.00" bei einem
+britischen Laden, „14,11 €" für dich.
+
+Was das ändert: Wer ein Angebot in den Warenkorb einfügt oder den Korb auffrischt, bekommt
+diese Zahl an die Zeile. Ein Korb mit einer Platte rechnet damit, als Quelle steht „von Discogs
+für diese Platte genannt". Bei zwei oder mehr Platten bleibt die Staffel des Ladens zuständig,
+Discogs' Zahl steht daneben als Boden, unter den keine Staffel fallen darf. Sagt Discogs, dass
+ein Laden nicht an deine Adresse liefert, steht auch das da. Die Versand-Plate im Ladenprofil
+führt mit derselben Zahl, solange eine frische Korbzeile sie trägt – sechs Stunden, wie der
+Preis daneben.
+
+Nebenbei lernt jeder Dig jetzt Mindestbestellwert und Zahlungsweise des Ladens aus den
+Zeilen, die er ohnehin liest.
+
+**Was zu tun ist:** Nichts. Zeilen von früher bekommen die Zahl beim nächsten „Preise
+auffrischen" im Warenkorb.
+
 
 ### Added
 
