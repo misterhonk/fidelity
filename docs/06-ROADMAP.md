@@ -11,9 +11,19 @@
 The milestone versions in the headings are planning names from the design period, not the
 actual numbering — that is in `CHANGELOG.md`.
 
-**M0 through M18 are done. M19 is open** — the first list of candidates in this file that
-came from outside the project: from what Discogs users ask for, checked against what this
-architecture can do (`docs/14-RELAUNCH-CONCEPT.md` has the research behind it).
+**M0 through M20 are done, and so are M26 through M32.** What is genuinely open is a short
+list and it is worth naming here rather than leaving it to be assembled by reading thirty
+sections: the thirty-odd German identifiers in M16, and in M27 the select mode on the
+wantlist (the shelf and the compartment have one) together with movable divider boundaries.
+Everything else that is open waits on a decision rather than on code — M22.4/M22.5
+behind the provider choice in M25.4, M23.3's offsite copy, M23.6's rehearsal week, M24.6's
+clean machine and M25.1's letter. M21 through M25 are otherwise done to the line where money or a signature
+starts.
+
+M19 and M20 were the first lists in this file that came from outside the project: from what
+Discogs users ask for, checked against what this architecture can do
+(`docs/14-RELAUNCH-CONCEPT.md` has the research behind it). M28 to M30 came from a tester
+sitting next to the app with his own collection, which is a better source than either.
 
 `docs/` was still German until 2026-09-11 and was translated then — fourteen numbered
 documents and thirteen ADRs. That was read as ADR-010 being finished. It was not: the rule
@@ -29,6 +39,13 @@ The watcher with Web Push and the hub Dockerfile stood as open in this table unt
 2026-09-10 and had both been built since 14 August. Checked against the code, not struck
 from memory: `app/sw/sw.ts` has `push` and `notificationclick`, `deploy/hub.Dockerfile` is
 there and gets published.
+
+**And it happened again, which is why the warning below is not decoration.** M30 read "not
+scheduled" until 2026-09-16 with all six of its rows shipped since 13 September — the
+commits carried the numbers of the milestone the session had started in, and the heading was
+never revisited. A section's heading is the only part of it most people read. Anybody
+starting work from this file should do what was done on 2026-09-16: open the code for the
+row, not the Note column, which describes the plan as it stood before the work.
 
 Two lines in this file are **superseded rather than open** and are marked as such: the 429
 backoff on the status (not buildable in a browser, `docs/02`) and the Uberspace backend
@@ -1198,21 +1215,36 @@ device and his own collection. Everything here is a sentence he said.
 | 5 | **The same basket elsewhere.** "Five records at one shop for €100 — could another have the same five for €80? What if one has four of them, much cheaper? Or in better condition?" | The decision the basket screen exists for | a day | **Done.** A join over the stock rows the digs already wrote — no request, and inside the six hours those rows live anyway. db v13 indexes `stock` by release |
 | 6 | **A vault file you carry.** "Why is there no iCloud option in Safari?" It was never about iCloud: WebKit has no File System Access API, so the destination that would have used iCloud Drive is not offered | Every iPhone, and Safari on every Mac | hours | **Done.** The same round with two taps instead of none: read a file, merge, save one |
 
-## M30 · The shops screen, as a shop list → not scheduled
+## M30 · The shops screen, as a shop list → `v0.73.0`–`v0.88.0`
 
 **Where these come from.** The same session, after the six above. Asked for in as many words:
 "I want to enter dealers myself", "under Shops I want to see every dealer I have bought from,
 have something in the basket from, have something on my wantlist from, or added by hand", and
 "at Dig I only see the shops I have dug — I want mine there too".
 
+> ⚠️ **This section said "not scheduled" until 2026-09-16, and all six had shipped.** They
+> landed on 13 and 14 September under `M29.x` and `M31.x` commit numbers — the sequence ran
+> on from the session that produced them — and nobody came back to the heading. Read against
+> the code on 2026-09-16, one row at a time; the file it is in opens by saying that every
+> tick here is checked against the code and not set from memory, and this is the row that
+> proves why.
+
 | # | Candidate | Serves | Cost | Note |
 |---|---|---|---|---|
-| 1 | **A shop entered by hand.** A username or a shop link, checked once against `/users/{name}`, written down as a dealer row. It then appears everywhere a dug shop appears — the chips on Dig, the shops screen, the round | Somebody who knows where they want to look before they have looked | hours | One request per shop, on a button |
-| 2 | **Why each shop is there.** The list is one list today and it is only ever "shops you dug". It should carry every shop the app has met and say which: bought from (`/marketplace/orders`, already read), something in the basket from, something on the wantlist offered by, dug, entered by hand. A row without a reason is a row nobody trusts | The screen's whole purpose | a day | The sources exist; what is missing is the union and the word on each row |
-| 3 | **The shops on the Dig screen are the same shops.** Today that row is dug shops only, so a shop entered by hand or bought from is invisible exactly where somebody would dig it | Every dig after the first | an hour | Falls out of 2 |
-| 4 | **Watching, for shops that were never dug.** The watch asks `num_for_sale` — one request, no dig needed — so it works for a shop entered by hand from the first minute. What it cannot do is say *what* moved until the shop has been dug once | A favourite-shop list that is useful before it is scanned | hours | Already true of `watch/check.ts`; the screen has to stop implying otherwise |
-| 5 | **Where you are, and what is near.** `shipsToCountry` decides "from Germany" and it defaults to `Germany` for everybody — a Swiss or British user gets a chip about the wrong country until they find the setting. Derive it on the first run the way the language is derived, and offer a third group beside home and EU: Europe without the customs union, which is exactly what a Swiss, British or Norwegian buyer is asking about | Every user outside Germany, which is most of them | hours | The filter and the country list exist (`shared/countries.ts`); the default and the third group do not |
-| 6 | **Shops other people dug, through the hub.** Which shops exist, what they stock (`fingerprint` — derived, not marketplace content) and what their postage is are all durable and shareable; prices never are (rule 4). A device could ask the hub "which shops do you know that I do not?" and rank them against its own collection | The "which shops suit me" question, without the platzhirsch bias of any curated list — it is whatever the community actually digs | a day | Needs an ADR: it is the first time the hub would carry something about **shops** rather than about records |
+| 1 | **A shop entered by hand.** A username or a shop link, checked once against `/users/{name}`, written down as a dealer row. It then appears everywhere a dug shop appears — the chips on Dig, the shops screen, the round | Somebody who knows where they want to look before they have looked | hours | **Done 2026-09-13**, `v0.73.0`. `worker/dealers/add.ts` behind `dealer.add`; the field on the shops screen parses with the same `dealerFromInput` the dig field uses, so a pasted shop address and a typed name are one control. The request is not optional — writing the row unasked would put a typo in the list for ever, on two screens and in every round. `blankDealer`, so the screens say "known by name so far" rather than showing a hit rate nobody measured. `tests/e2e/add-shop.spec.ts` |
+| 2 | **Why each shop is there.** The list is one list today and it is only ever "shops you dug". It should carry every shop the app has met and say which: bought from (`/marketplace/orders`, already read), something in the basket from, something on the wantlist offered by, dug, entered by hand. A row without a reason is a row nobody trusts | The screen's whole purpose | a day | **Done 2026-09-13**, `v0.73.0`. `worker/dealers/reasons.ts`: three reasons derived (`dug`, `basket`, `watched`), three stored on `addedBy` (`order`, `friend`, `manual`), because nothing afterwards can tell an order import from a friends-list import. One basket read for the whole list, not one per shop. **`wantlist` is not among them and that is not an omission** — "shops that offer something on my wantlist" needs a listings-by-release endpoint and Discogs has none that may be used (rule 5); where a dig found such a record the shop is there as `dug` |
+| 3 | **The shops on the Dig screen are the same shops.** Today that row is dug shops only, so a shop entered by hand or bought from is invisible exactly where somebody would dig it | Every dig after the first | an hour | **Done 2026-09-13**, `v0.73.0`, and it did fall out of 2: `dealer.list` answers every visible shop, never-scanned ones last but never left out, and the dig screen's chips are that list unfiltered. Watched first, then by hit rate |
+| 4 | **Watching, for shops that were never dug.** The watch asks `num_for_sale` — one request, no dig needed — so it works for a shop entered by hand from the first minute. What it cannot do is say *what* moved until the shop has been dug once | A favourite-shop list that is useful before it is scanned | hours | **Done 2026-09-13**, `v0.73.0`. `checkWatched` never asked for a dig — it filters on `watching` alone — so the whole fix was the screen: "Known by name so far. Watching works already — a dig fills in the rest." The round is the honest exception and says so on its own line, because walking a shop for *what* is new needs a previous walk to compare against |
+| 5 | **Where you are, and what is near.** `shipsToCountry` decides "from Germany" and it defaults to `Germany` for everybody — a Swiss or British user gets a chip about the wrong country until they find the setting. Derive it on the first run the way the language is derived, and offer a third group beside home and EU: Europe without the customs union, which is exactly what a Swiss, British or Norwegian buyer is asking about | Every user outside Germany, which is most of them | hours | **Done 2026-09-13**, `v0.73.0`/`v0.74.0`. `guessHomeCountry()` as a **getter** on `DEFAULT_PREFERENCES` — nearly everything in the worker imports that object and `Intl.DisplayNames` is not free to construct, so the guess happens when something spreads the defaults, not at import. `OriginFilter` gained `europe` beside `any`, `home` and `eu`. A follow-up the same day: the filter had been comparing a postal address against a country name |
+| 6 | **Shops other people dug, through the hub.** Which shops exist, what they stock (`fingerprint` — derived, not marketplace content) and what their postage is are all durable and shareable; prices never are (rule 4). A device could ask the hub "which shops do you know that I do not?" and rank them against its own collection | The "which shops suit me" question, without the platzhirsch bias of any curated list — it is whatever the community actually digs | a day | **Done 2026-09-13**, `v0.73.0`, and it did need the ADR: [ADR-014 · The hub carries shops, never their prices](adr/014-hub-carries-shops.md). ⚠️ **The number 014 is taken twice** — this and the open-core decision were written the same week by two threads that each read the folder before the other wrote to it. Both are accepted and both keep their number; the ADR README carries the warning, because renumbering an accepted ADR breaks every reference to it |
+
+**What this cost that the table did not budget for.** Nothing in requests — 1 to 5 are a
+single `/users/{name}` on a button and otherwise reads off the device. What it cost was the
+shops screen itself: once a row could be there for five different reasons, "best first" had
+to mean something for a shop with no hit rate at all, and the screen went from a wall of
+buttons to a ranked list with a profile that opens as a sheet on a phone and a column on a
+desk (`v0.77.0`–`v0.88.0`, M31's numbering). That work is real and it is the reason the
+version range on this heading is wide.
 
 ## M31 · Hearing it before buying it → done, with one rung parked
 
