@@ -27,7 +27,7 @@ describe('the icon set', () => {
 
     for (const { source } of templates()) {
       // <FidIcon name="search" /> and, in the data-driven cases, the entries
-      // the components map over: `icon: 'kiste'`.
+      // the components map over: `icon: 'crate'`.
       for (const match of source.matchAll(/<FidIcon\s+name="([a-z0-9-]+)"/g)) {
         asked.add(match[1]!)
       }

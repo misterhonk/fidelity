@@ -52,7 +52,7 @@ const price = computed(() => money(props.match.price, props.match.currency))
         class="flex aspect-square w-full items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted"
         aria-hidden="true"
       >
-        <FidIcon name="platte" :size="28" />
+        <FidIcon name="record" :size="28" />
       </span>
     </button>
 

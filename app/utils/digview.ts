@@ -83,10 +83,24 @@ export function parseDirection(value: string, sort: SortKey): SortDirection {
   return value === 'asc' || value === 'desc' ? value : DEFAULT_DIRECTION[sort]
 }
 
+/**
+ * The density, out of the address — in English, and in the German it used to
+ * be written in.
+ *
+ * ADR-010 says addresses are English, and every other view setting on this
+ * screen already was: `sig`, `sort`, `dir`, `q`, `upto`. This one stayed
+ * `?dicht=kompakt` and `?dicht=kiste` until 2026-09-16, with a comment beside
+ * it noting the fact rather than fixing it.
+ *
+ * The old words are still read, and that is not politeness: a dig's address is
+ * the thing people send each other — "look what this shop has" — and `?find=`
+ * made a link point at one record. A link sent last week has to open the crate
+ * it was sent about. Writing them is over; reading them is forever, the same
+ * bargain `renamed.global.ts` struck for the eighteen German paths.
+ */
 export function parseDensity(value: string): Density {
-  if (value === 'kompakt') return 'compact'
-  // German in the address, like `dicht` itself and `kompakt` beside it.
-  if (value === 'kiste') return 'crate'
+  if (value === 'compact' || value === 'kompakt') return 'compact'
+  if (value === 'crate' || value === 'kiste') return 'crate'
   return 'comfortable'
 }
 

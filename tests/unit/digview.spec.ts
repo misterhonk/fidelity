@@ -65,9 +65,22 @@ describe('reading the view out of the URL', () => {
    */
   it('is comfortable unless the URL asks for another density', () => {
     expect(parseDensity('')).toBe('comfortable')
+    expect(parseDensity('compact')).toBe('compact')
+    expect(parseDensity('crate')).toBe('crate')
+    expect(parseDensity('sleeve')).toBe('comfortable')
+  })
+
+  /*
+   * And the words it was written in until ADR-010 reached this setting.
+   *
+   * This line used to read `expect(parseDensity('crate')).toBe('comfortable')`
+   * — it pinned that the *English* word meant nothing here, which was true and
+   * is the thing that changed. A dig's address is what people send each other,
+   * so the German stays readable for good; only the writing stopped.
+   */
+  it('still opens a link that was sent with the German words', () => {
     expect(parseDensity('kompakt')).toBe('compact')
     expect(parseDensity('kiste')).toBe('crate')
-    expect(parseDensity('crate')).toBe('comfortable')
   })
 })
 

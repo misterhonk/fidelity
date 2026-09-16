@@ -31,14 +31,14 @@ function ring(cx: number, cy: number, r: number): Shape {
 
 export const GLYPHS = {
   /**
-   * Platte: Rand, zwei Rillen, Label.
+   * Record: rim, two grooves, label.
    *
    * Two rings alone are a bullseye — the first attempt looked like an archery
    * target at every size. The grooves are what make it a record: they break
    * the concentric symmetry, and they are the thing a record has that a target
    * does not.
    */
-  platte: [
+  record: [
     ring(12, 12, 9),
     ['path', { d: 'M12 5.5a6.5 6.5 0 0 1 5.6 3.2' }],
     ['path', { d: 'M12 18.5a6.5 6.5 0 0 1-5.6-3.2' }],
@@ -50,9 +50,9 @@ export const GLYPHS = {
    *
    * The first version put the disc half out of the sleeve, which at 20px is a
    * coffee mug with a handle. A disc squarely inside a square is unmistakable,
-   * and it differs from `platte` by exactly the thing it adds.
+   * and it differs from `record` by exactly the thing it adds.
    */
-  huelle: [
+  sleeve: [
     ['rect', { x: '3', y: '3', width: '18', height: '18', rx: '1' }],
     ring(12, 12, 5),
     ring(12, 12, 1),
@@ -64,7 +64,7 @@ export const GLYPHS = {
    * The verb the whole app is named after. The records stick out above the rim
    * because that is what you see looking down into one.
    */
-  kiste: [
+  crate: [
     ['path', { d: 'M3 10h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' }],
     ['path', { d: 'M7 10V5m5 5V3m5 7V6' }],
   ],
@@ -77,7 +77,7 @@ export const GLYPHS = {
    * headshell sits at an angle to the tube on every turntable ever built, and
    * it is the one detail that survives being drawn at 16 pixels.
    */
-  nadel: [
+  stylus: [
     ['path', { d: 'M3 21a11 11 0 0 1 4.4-8.8' }],
     ring(19, 4.5, 1.5),
     ['path', { d: 'm17.6 5.9l-6.4 6.4' }],
@@ -91,7 +91,7 @@ export const GLYPHS = {
    * edges. The first version boxed them in and came out as a floppy disk: the
    * outer rectangle was doing the work the records should have been doing.
    */
-  regal: [
+  shelf: [
     ['path', { d: 'M3 21h18' }],
     ['path', { d: 'M6 21V6.5m4 14.5V6.5m4 14.5V6.5' }],
     ['path', { d: 'm17.5 21l2-14.2' }],

@@ -303,7 +303,7 @@ const expired = computed(() => results.value.some((entry) => Date.now() > entry.
     <PageHeader>
       <template #title>
         <span class="flex items-center gap-2">
-          <FidIcon name="nadel" :size="22" />
+          <FidIcon name="stylus" :size="22" />
           {{ m.inStore.title }}
         </span>
       </template>

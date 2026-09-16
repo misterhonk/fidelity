@@ -316,7 +316,7 @@ function shapeOf(format: string | null) {
               class="flex aspect-square w-full items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted"
               aria-hidden="true"
             >
-              <FidIcon name="platte" :size="32" />
+              <FidIcon name="record" :size="32" />
             </span>
 
             <span

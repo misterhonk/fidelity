@@ -33,12 +33,12 @@ onMounted(() => {
  */
 const SECTIONS = [
   { to: '/', key: 'start', icon: 'house' },
-  { to: '/dig', key: 'dig', icon: 'kiste', also: ['/stack'] },
+  { to: '/dig', key: 'dig', icon: 'crate', also: ['/stack'] },
   { to: '/basket', key: 'basket', icon: 'shopping-basket', also: ['/saved'] },
   {
     to: '/shelf',
     key: 'shelf',
-    icon: 'regal',
+    icon: 'shelf',
     also: ['/map', '/wantlist', '/watched', '/places', '/review'],
   },
   { to: '/dealers', key: 'dealers', icon: 'store' },

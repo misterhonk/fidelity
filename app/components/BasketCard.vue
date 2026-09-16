@@ -331,7 +331,7 @@ const peak = computed(() =>
             class="flex size-10 shrink-0 items-center justify-center rounded-[4px] bg-fid-inset text-fid-text-muted"
             aria-hidden="true"
           >
-            <FidIcon name="platte" :size="18" />
+            <FidIcon name="record" :size="18" />
           </span>
 
           <div class="flex min-w-0 grow flex-wrap items-baseline gap-x-3 gap-y-1">

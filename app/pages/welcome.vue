@@ -141,9 +141,9 @@ const syncLabel = computed(() => {
 const CAN_DO = computed(
   () =>
     [
-      { icon: 'kiste', to: '/dig', ...w.value.canDo.dig },
-      { icon: 'platte', to: '/in-store', ...w.value.canDo.inStore },
-      { icon: 'regal', to: '/shelf', ...w.value.canDo.collection },
+      { icon: 'crate', to: '/dig', ...w.value.canDo.dig },
+      { icon: 'record', to: '/in-store', ...w.value.canDo.inStore },
+      { icon: 'shelf', to: '/shelf', ...w.value.canDo.collection },
     ] as const,
 )
 </script>
