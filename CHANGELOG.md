@@ -9,6 +9,36 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.91.0](https://github.com/misterhonk/fidelity/compare/v0.90.2...v0.91.0) (2026-09-16)
+
+**Ein Fach darf jetzt enden, wo du sagst — und der Rest verteilt sich darum herum.**
+
+Das stand seit M27.3 offen, mit einem guten Einwand: „Eine Regel schlägt vor, und eine von
+Hand verschobene Grenze wäre eine zweite Regel." Das stimmt nur, wenn eine Regel eine Sache
+ist. Sie sind **zwei**: Eine Regel *ordnet* die Platten und sie *teilt* sie auf Fächer auf.
+Ein gesetztes Ende übernimmt nur das Teilen. Die Reihenfolge bleibt immer die der Regel —
+deshalb kann ein Ende nie eine Platte aus der Ordnung bringen, und es gibt keine zweite
+Regel, mit der sich die erste streiten könnte.
+
+Gesagt wird es durch Antippen, nie getippt: Das Fach fragt „welche Platte soll hier die
+letzte sein", und die Hüllen antworten. Damit man das sehen kann, listet ein Fach seine
+Platten jetzt **in der Reihenfolge der Regel** statt nach Titel — was ohnehin das ist, was
+wirklich im Fach steht.
+
+An einer echten Sammlung gemessen, Kallax 2×2, 66 Platten: Aus `A–C`/`C–J`/`J–M`/`N–Y` mit
+17/17/16/16 wird nach einem Ende hinter Autechre ein Fach **`A`** mit 6 — alle A-Künstler
+beisammen — und die anderen drei teilen sich die restlichen 60 zu je 20. Ein Ende legt eine
+Grenze fest und friert nicht die ganze Wand ein.
+
+Die Wand markiert ein von Hand gesetztes Ende gepunktet, denn beim nächsten „Einsortieren"
+wandert eine gezählte Grenze und eine gesetzte nicht. Eine andere Regel gibt alle Enden
+wieder frei — das sagt der Schirm vorher, nicht hinterher.
+
+
+### Added
+
+* **collection:** the end of a compartment, set by hand ([fb5141c](https://github.com/misterhonk/fidelity/commit/fb5141ce2be45aba55c7a0dfe2e028904e8c14e5))
+
 ## [0.90.2](https://github.com/misterhonk/fidelity/compare/v0.90.1...v0.90.2) (2026-09-16)
 
 **Der Worker startet mit der Hälfte an Code: 39,5 kB → 20,3 kB.**
