@@ -9,6 +9,27 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.91.1](https://github.com/misterhonk/fidelity/compare/v0.91.0...v0.91.1) (2026-09-16)
+
+**Zwei Dinge, die die Demo-Sammlung beim dritten Rundgang gezeigt hat.**
+
+Ein Dig, der fertig war und dann seine sechs Stunden hinter sich hatte, stand auf der
+Startseite als „unterbrochen – 2.871 von 2.871 waren durch". Abgelaufen ist nicht
+abgebrochen; der Satz kommt nur noch, wenn ein Scan wirklich stehen geblieben ist.
+
+Und unter Konto stand „Belegt 3.898 MB" für sechsundsechzig Platten. Das waren keine
+Bytes: Chrome verbucht jedes gecachte Cover mit rund sieben Megabyte, weil die Bilder von
+Discogs ohne CORS-Kopf kommen. Der Cover-Cache hält jetzt dreihundert statt sechstausend,
+und die Zeile sagt, was wirklich da ist — „6 MB Daten · 300 Cover im Cache".
+
+**Was zu tun ist:** Nichts. Der Cache räumt sich beim nächsten Öffnen selbst auf.
+
+
+### Fixed
+
+* **dig:** a dig that finished and then expired is not "interrupted" ([6b16441](https://github.com/misterhonk/fidelity/commit/6b16441e018164b849ca63fc23baff68f627021a))
+* **pwa:** the cover cache holds three hundred, and the settings tell data and cache apart ([440f112](https://github.com/misterhonk/fidelity/commit/440f11272188592f04e81d2c865f5e3df8970fe4))
+
 ## [0.91.0](https://github.com/misterhonk/fidelity/compare/v0.90.2...v0.91.0) (2026-09-16)
 
 **Ein Fach darf jetzt enden, wo du sagst — und der Rest verteilt sich darum herum.**
