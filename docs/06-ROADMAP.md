@@ -13,13 +13,13 @@ actual numbering — that is in `CHANGELOG.md`.
 
 **M0 through M20 are done, and so are M26 through M32.** What is genuinely open is a short
 list and it is worth naming here rather than leaving it to be assembled by reading thirty
-sections: the thirty-odd German identifiers in M16, and movable divider boundaries in M27 —
-a rule proposes, and a boundary moved by hand would be a second rule, which is the design
-question behind it rather than the work. Everything else that is open waits on a decision
-rather than on code — M22.4/M22.5
+sections: movable divider boundaries in M27 — and that is a design question rather than
+work, since a rule proposes and a boundary moved by hand would be a second rule. M16's
+identifiers came off this list on 2026-09-16, with the guard that entry said could not
+exist. Everything else that is open waits on a decision rather than on code — M22.4/M22.5
 behind the provider choice in M25.4, M23.3's offsite copy, M23.6's rehearsal week, M24.6's
-clean machine and M25.1's letter. M21 through M25 are otherwise done to the line where money or a signature
-starts.
+clean machine and M25.1's letter. M21 through M25 are otherwise done to the line where
+money or a signature starts.
 
 M19 and M20 were the first lists in this file that came from outside the project: from what
 Discogs users ask for, checked against what this architecture can do
@@ -965,28 +965,49 @@ moment, when something has already gone wrong.
       kein Fidelity-Hub.", "Diesen Dig gibt es nicht mehr." and two from the hub client.
       They are not in the language packs; they are thrown, and `ErrorNote` shows the raw
       text behind the detail button. So they were on screen. Translated.
-- [ ] **German identifiers**, about thirty of them: `lebt`, `gesehen`, `vorhanden`,
-      `stuecke`, `bloecke`, `gemeldet`, `treffer`, `ergebnis`, `antwort`. ADR-010 names
-      variables explicitly. The ones in `worker/` were renamed on the way through; the rest
-      are in `app/` and `tests/` and go with those.
+- [x] **German identifiers** — done 2026-09-16, and with a guard, which this entry said
+      could not be had.
 
-      **The `app/` half is done (2026-09-16), and reading for it found something the count
-      had missed.** The five glyphs Lucide does not have were named `platte`, `huelle`,
-      `kiste`, `nadel` and `regal` — and that name is not private: it stands in every
-      template as `<FidIcon name="platte">`. They are now `record`, `sleeve`, `crate`,
-      `stylus`, `shelf`. Beside them, the density was still *written into the address* as
-      `?dicht=kompakt` — the one view setting on that screen that ADR-010's "addresses are
-      English" had never reached, with a comment next to it naming the fact. It writes
-      `?density=` now and reads the German for good, because a dig's address is the thing
-      people send each other. What is left is `tests/`: `docs-links.spec.ts` and
-      `orders.spec.ts` are German throughout, and a handful of specs have German test
-      titles.
+      **The count was wrong in a way worth naming.** The line above used to read "the ones
+      in `worker/` were renamed on the way through". They were not: `worker/orders.ts`
+      still had `getrimmt`, `ausAdresse`, `kandidat` and `gekauftAm`, and
+      `worker/sync/library.ts` had `gesehen`, `vorhanden`, `weg` and `behalten` — in the
+      module that decides which collection rows to delete. Counting from memory found
+      thirty; reading found them all.
 
-> **Neither of those has a guard, and that is the honest state.** The ratchet reads
-> comments; it does not read string literals and it does not read identifiers. A word list
-> over identifiers would be a guess with false positives in a way a word list over prose is
-> not — `war`, `rest`, `die`, `man` are all English. So they are counted here and fixed by
-> hand, and if one comes back, nothing will catch it.
+      **Two were in shipped code, not in a test.** The five glyphs Lucide does not have
+      were named `platte`, `huelle`, `kiste`, `nadel`, `regal`, and that name is not
+      private — it stands in every template as `<FidIcon name="platte">`. They are now
+      `record`, `sleeve`, `crate`, `stylus`, `shelf`. And the density was still *written
+      into the address* as `?dicht=kompakt`, the one view setting on that screen ADR-010's
+      "addresses are English" had never reached, with a comment beside it naming the fact.
+      It writes `?density=` now and reads the German for ever, because a dig's address is
+      the thing people send each other.
+
+      The rest: `docs-links.spec.ts` and `orders.spec.ts` were German throughout, `pfad`
+      and `antwort` in the hub's test, `datei` in `one-measure.spec.ts`, locals in two
+      more specs, and 26 German test titles across eight otherwise-English files.
+
+> **And the guard that this entry said could not exist** (`tests/unit/german-identifiers.spec.ts`).
+> The objection was right about a *German* word list — `war`, `rest`, `die` and `man` are
+> English too. It does not apply to a **closed** list: not German, but the German this
+> codebase actually used, read off the tree and then removed from it. A word earns its place
+> by having been a variable here, and the list may grow from a finding, never from invention.
+>
+> The other half is `bareCode` in `tests/helpers/german.ts`: comments **and text** blanked
+> before the search. That is the line between German the app *says* and German the app is
+> *written in*, and this project says a lot of German on purpose — the `de` pack, the
+> eighteen renamed paths, the `?dicht=kiste` an old link still carries, place names in a
+> fixture. None of those is an identifier, and none of them is searched.
+>
+> ⚠️ **Writing it turned up a third bug of the kind `german.ts` already carries two comments
+> about.** `skipDelimited` took the *inner* backtick of a nested template for the outer's
+> close, so everything after `` `${n === 1 ? 'Eine Platte' : `${n} Platten`}` `` resynced one
+> delimiter out of step — and the language pack read as code. Green the whole time. Fixed,
+> and pinned by a test written in the language pack's own shape.
+>
+> String literals are still unwatched, and that stays the honest state: a German string is
+> usually correct here, and telling the two apart is a judgement no list makes.
 
 ---
 
