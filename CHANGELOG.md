@@ -9,6 +9,26 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.90.0](https://github.com/misterhonk/fidelity/compare/v0.89.0...v0.90.0) (2026-09-16)
+
+**Die Wantlist lässt sich jetzt armweise aufräumen — und das Zurücknehmen kostet nichts.**
+
+„Auswählen" gibt es im Regal seit M27.5; auf der Wantlist fehlte es, also ging der Weg von
+der Liste, die am schnellsten veraltet, über ein Blatt pro Platte. Eine zugeklappte Zeile ist
+ein **Album**: ein Haken kann vier Pressungen meinen, und der Knopf zählt deshalb Wünsche und
+nicht Hüllen — sonst verspricht er zwei und nimmt sechs. „Alle" nimmt die ganze Antwort, nicht
+die sechzig, die gerade gezeichnet sind.
+
+Das Zurücknehmen ist in den ersten Sekunden gratis: Die Entfernung wird erst lokal
+geschrieben und wartet in der Outbox, Discogs weiß also noch nichts davon — rückgängig heißt
+dann, den wartenden Auftrag wegzuwerfen. Erst wenn er schon gelaufen ist, wird die Platte
+drüben neu angefragt, und nur dann sagt die Zeile das auch.
+
+
+### Added
+
+* **collection:** the wantlist, an armful at a time ([73c3aff](https://github.com/misterhonk/fidelity/commit/73c3aff87c96c35d8bbcd1174ab73f4b361e4ae1))
+
 ## [0.89.0](https://github.com/misterhonk/fidelity/compare/v0.88.0...v0.89.0) (2026-09-14)
 
 **Ein Dig, der langsam wird, sagt jetzt warum — auch wenn es nicht an Discogs liegt.**
