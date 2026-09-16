@@ -11,6 +11,19 @@ Für eine App bedeutet SemVer:
 
 ## [0.90.1](https://github.com/misterhonk/fidelity/compare/v0.90.0...v0.90.1) (2026-09-16)
 
+**Ein geteilter Dig-Link mit `?dicht=kiste` öffnet weiterhin die Kiste — geschrieben wird
+ab jetzt `?density=crate`.**
+
+ADR-010 sagt: Adressen sind englisch. Auf dem Dig-Schirm war jede Ansichts-Einstellung das
+auch — `sig`, `sort`, `dir`, `q`, `upto` — nur die Dichte nicht, mit einem Kommentar
+daneben, der das feststellte statt es zu ändern. Gelesen werden die deutschen Wörter für
+immer: Die Adresse eines Digs ist das, was man sich schickt, und seit `?find=` zeigt ein
+Link auf eine einzelne Platte.
+
+Dazu die sechs Zeichen, die Lucide nicht hat: `platte`, `huelle`, `kiste`, `nadel` und
+`regal` hießen so in jeder Vorlage und heißen jetzt `record`, `sleeve`, `crate`, `stylus`,
+`shelf`. Nichts davon ist auf dem Schirm zu sehen — es ist dieselbe Zeichnung.
+
 
 ### Fixed
 
