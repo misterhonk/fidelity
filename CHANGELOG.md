@@ -9,6 +9,31 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.90.1](https://github.com/misterhonk/fidelity/compare/v0.90.0...v0.90.1) (2026-09-16)
+
+**Ein geteilter Dig-Link mit `?dicht=kiste` öffnet weiterhin die Kiste — geschrieben wird
+ab jetzt `?density=crate`.**
+
+ADR-010 sagt: Adressen sind englisch. Auf dem Dig-Schirm war jede Ansichts-Einstellung das
+auch — `sig`, `sort`, `dir`, `q`, `upto` — nur die Dichte nicht, mit einem Kommentar
+daneben, der das feststellte statt es zu ändern. Gelesen werden die deutschen Wörter für
+immer: Die Adresse eines Digs ist das, was man sich schickt, und seit `?find=` zeigt ein
+Link auf eine einzelne Platte.
+
+Dazu die sechs Zeichen, die Lucide nicht hat: `platte`, `huelle`, `kiste`, `nadel` und
+`regal` hießen so in jeder Vorlage und heißen jetzt `record`, `sleeve`, `crate`, `stylus`,
+`shelf`. Nichts davon ist auf dem Schirm zu sehen — es ist dieselbe Zeichnung.
+
+
+### Fixed
+
+* **ui:** the icon set and the last German address, in English ([45999d6](https://github.com/misterhonk/fidelity/commit/45999d6f9b72d05a6c6481a631c134dd67622da2))
+
+
+### Changed
+
+* **i18n:** the identifiers ADR-010 never reached, and a guard for them ([01fac54](https://github.com/misterhonk/fidelity/commit/01fac54218a74edcaf40a2df61968dbe94c2803c))
+
 ## [0.90.0](https://github.com/misterhonk/fidelity/compare/v0.89.0...v0.90.0) (2026-09-16)
 
 **Die Wantlist lässt sich jetzt armweise aufräumen — und das Zurücknehmen kostet nichts.**
