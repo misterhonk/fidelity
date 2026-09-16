@@ -1534,33 +1534,36 @@ rows after weeks. The catalogue has `release_format.qty` and does not serve it.
 | M34.3 Shipping profile v2 | The model (units, format, method, free-over, weight by Discogs' defaults); migration; the read-off field as the main road, the field next to "bought", the pasted cart text, the postage of one's own order (after an ADR); the parser as a proposal to confirm, with the flat-rate rule and the pause rule; the catalogue serving `qty`; the "2x" rule in the app; the Shipping section on the profile; postage on the row as an estimate; basket, comparison and plan lines on it; the strategy switch; "shipping changes when you deselect"; hub routes for profiles with "confirmed by n"; the seller text expiring with its dig | |
 | M34.6 Filling the parcel, the tempo | "For the same postage there is room for …" from the shop's last dig up to the tier's edge; "n % of the finds were gone by the next dig" from the round | after 34.3 |
 
-## M35 · German, second pass → proposed
+## M35 · The voice → proposed
 
-Asked for on 2026-09-16, twice in one evening, after the shops screen had its German
-rewritten: "wir müssen dringend die deutsche Sprachfassung später überarbeiten … ich möchte, dass
-die Sprache lockerer und bequemer wird. Wörter wie Median sind okay, aber irgendwie steif."
+Asked for on 2026-09-16, three times in one evening: first "lockerer", then, after the shops
+screen had its German rewritten, "wir müssen dringend die deutsche Sprachfassung überarbeiten",
+and finally the brief that replaces both — *a language concept for the app, English and German,
+understandable, contemporary, not stiff, not technical; it should feel like being in a record shop
+talking with friends while the person behind the counter smiles and pulls the next records for
+you. That is the core idea of Fidelity: we pick out the records you might like.*
 
-The cause is structural, not a few bad sentences. ADR-010 made English the base, and the German
-came into being as a translation of English house style — "said, not implied", the app talking
-about itself in the third person ("sieht diese App nicht, also behauptet sie es auch nicht"),
-dash chains, nominal phrases. In English that reads as restraint; in German it reads as an
-office letter. The four sentences Martin quoted:
+The concept is the artifact **Hinterm Tresen** (2026-09-16): the figure (the person behind the
+counter, "du/you" and "wir/we", never "this app"), seven rules, a word list that decides which
+words may live in sentences (dig, find, shelf, shop, record, pressing, wantlist, basket, postage,
+median as a number) and which may not (listing, scan, horizon, hub, token, window), the patterns
+for leads, empty states, buttons, errors, "why" folds, reasons and number lines, twenty real
+sentences before and after in both languages, the limits (number lines, settings, legal, aria
+names, the sixty-words rule), and the counter test with a lint that catches the relapse.
 
-| As it stands | The tone wanted |
-|---|---|
-| Was die Zahl zählt — Treffer auf tausend Listings beim letzten Dig, verglichen mit dem Median deiner anderen Läden. Was der Markt insgesamt hergäbe, sieht diese App nicht. | Wie die Zahl zustande kommt — So viele Treffer auf tausend Angebote hatte der letzte Dig hier. Verglichen wird mit dem Median deiner anderen Läden, nicht mit dem ganzen Markt, den kennt Fidelity nicht. |
-| Womit das verglichen wird — Nur mit deinen eigenen Läden. Was der Markt insgesamt verlangt, sieht diese App nicht, also behauptet sie es auch nicht. | Womit wir vergleichen — Nur mit deinen eigenen Läden. Wie der Markt insgesamt aussieht, weiß Fidelity nicht, und rät auch nicht. |
-| Eine hast du. Alles andere aus dem Laden fährt für dasselbe Porto mit. | Eine Platte ist im Korb. Was du sonst noch bei dem Laden findest, kommt fürs gleiche Porto mit. |
-| Läden, die andere gegraben haben — Wie viel vom Sortiment auf Labels liegt, die du schon sammelst. | Läden, in denen andere schon gegraben haben — Die Zahl sagt, wie viel vom Sortiment auf deinen Labels liegt. |
+Measured at 0.94.0: 2,922 text lines in the packs, 632 dashes used as sentence structure, 12
+"this app / diese App", 181 text assertions in 63 browser specs.
 
-| Step | What | Status |
+| Step | What | Size |
 |---|---|---|
-| M35.1 The rules | A short style note in `docs/` for the German packs: think in German, do not translate; short main clauses; "du" and active verbs instead of passive; commas instead of dash chains; "Fidelity" or "wir" instead of "diese App"; everyday words ("Angebote" beside "Listings", "was sich getan hat"); terms of the trade stay (Median, Dig, Listing, Hub). The English packs are untouched | |
-| M35.2 The packs | `de` blocks of `en.ts`/`de.ts` (common), `dig.ts`, `basket.ts`, `collection.ts`, `settings.ts`, `wantlist`, `home`, `places`, `review` — every sentence read aloud once; the shops pack (0.94.0) is the reference. Length must hold: the sixty-words rule and the plate widths were measured on the English | |
-| M35.3 The proof | Martin reads the German screens against the demo collection and marks what still sounds stiff; a second short pass | needs Martin |
+| M35.1 The style book | a new document in `docs/`, number 20, "voice" (English, like every doc): the figure, the seven rules, the word list, the patterns. And the relapse test over `app/i18n/*.ts`: no "this app / diese App / the user / der Nutzer", no spaced dash in a sentence over twelve words, no "wurde / erfolgt / ermöglicht / ist erforderlich" in German, no exclamation mark, no "scan" in a sentence | half a day |
+| M35.2 The first screens | Welcome, Start, Dig, the reasons on a find, Shops — both languages, every sentence read aloud; first because everybody sees them and the reasons are the idea itself | two days |
+| M35.3 The rest | Basket, Collection, Wantlist, Places, Settings, errors — both languages | two days |
+| M35.4 The words that are buttons | watch → keep an eye on / im Auge behalten, hide → put away / weglegen, the round → die Runde, scan → dig, listings → Angebote in sentences; the 181 text assertions in 63 specs move in the same change | a day |
+| M35.5 The proof | Martin reads both languages against the demo collection and marks what still sounds like an office; a second short pass | needs Martin |
 
-Order: after M34.3 unless Martin pulls it forward. It touches no code path, only strings, so it
-can also run between two shop phases.
+Order: **before M34.3**. Every line written until then would come out in the old voice. Needs
+Martin's word on the four button words in 35.4 before they change.
 
 ## Not on the roadmap
 
