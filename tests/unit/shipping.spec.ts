@@ -78,7 +78,7 @@ describe('the marginal cost curve', () => {
   })
 })
 
-describe('"eine Platte mehr spart X pro Stück"', () => {
+describe('"one more record saves X each"', () => {
   it('finds the saving at the bottom of a tier', () => {
     // Two records at 4,50 each; three at 3,00 each.
     const advice = shippingAdvice(table, 2)

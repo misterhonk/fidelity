@@ -31,65 +31,65 @@ import { describe, expect, it } from 'vitest'
  * rewrite history every time something is renamed.
  */
 
-const WURZEL = process.cwd()
+const ROOT = process.cwd()
 
 /** Every Markdown file this project wrote itself. */
-function markdownDateien(): string[] {
-  const gefunden: string[] = []
-  const gehen = (verzeichnis: string) => {
-    for (const eintrag of readdirSync(join(WURZEL, verzeichnis), { withFileTypes: true })) {
-      if (eintrag.name.startsWith('.')) continue
-      const pfad = join(verzeichnis, eintrag.name)
-      if (eintrag.isDirectory()) {
-        if (['node_modules', 'coverage', 'dist'].includes(eintrag.name)) continue
-        gehen(pfad)
-      } else if (eintrag.name.endsWith('.md')) {
-        gefunden.push(pfad)
+function markdownFiles(): string[] {
+  const found: string[] = []
+  const walk = (directory: string) => {
+    for (const entry of readdirSync(join(ROOT, directory), { withFileTypes: true })) {
+      if (entry.name.startsWith('.')) continue
+      const path = join(directory, entry.name)
+      if (entry.isDirectory()) {
+        if (['node_modules', 'coverage', 'dist'].includes(entry.name)) continue
+        walk(path)
+      } else if (entry.name.endsWith('.md')) {
+        found.push(path)
       }
     }
   }
   for (const start of ['docs', '.']) {
     if (start === '.') {
-      for (const eintrag of readdirSync(WURZEL, { withFileTypes: true })) {
-        if (!eintrag.isFile() || !eintrag.name.endsWith('.md')) continue
-        if (eintrag.name === 'CHANGELOG.md') continue // siehe oben
-        gefunden.push(eintrag.name)
+      for (const entry of readdirSync(ROOT, { withFileTypes: true })) {
+        if (!entry.isFile() || !entry.name.endsWith('.md')) continue
+        if (entry.name === 'CHANGELOG.md') continue // see above
+        found.push(entry.name)
       }
     } else {
-      gehen(start)
+      walk(start)
     }
   }
-  return [...new Set(gefunden)]
+  return [...new Set(found)]
 }
 
 const LINK = /\[[^\]]*\]\(([^)#\s]+\.md)(?:#[^)]*)?\)/g
-const ERWAEHNUNG = /`((?:docs\/)?(?:adr\/)?[\w][\w./-]*\.md)`/g
+const MENTION = /`((?:docs\/)?(?:adr\/)?[\w][\w./-]*\.md)`/g
 
 describe('the documents point at one another', () => {
   it('has no link or mention that leads nowhere', () => {
-    const tot: string[] = []
+    const dead: string[] = []
 
-    for (const datei of markdownDateien()) {
-      const text = readFileSync(join(WURZEL, datei), 'utf8')
-      const verzeichnis = dirname(datei)
+    for (const file of markdownFiles()) {
+      const text = readFileSync(join(ROOT, file), 'utf8')
+      const directory = dirname(file)
 
-      for (const treffer of [...text.matchAll(LINK), ...text.matchAll(ERWAEHNUNG)]) {
-        const ziel = treffer[1]!
-        if (ziel.startsWith('http') || ziel.startsWith('mailto')) continue
+      for (const match of [...text.matchAll(LINK), ...text.matchAll(MENTION)]) {
+        const target = match[1]!
+        if (target.startsWith('http') || target.startsWith('mailto')) continue
 
         /*
          * Two resolutions, because this project writes both: relative to the
          * file (`adr/010-…md` from inside docs/) and from the root
          * (`docs/02-DISCOGS-API.md` from a comment in the code).
          */
-        const kandidaten = [normalize(join(verzeichnis, ziel)), normalize(ziel)]
-        if (!kandidaten.some((k) => existsSync(join(WURZEL, k)))) {
-          tot.push(`${datei} → ${ziel}`)
+        const candidates = [normalize(join(directory, target)), normalize(target)]
+        if (!candidates.some((k) => existsSync(join(ROOT, k)))) {
+          dead.push(`${file} → ${target}`)
         }
       }
     }
 
-    expect(tot).toEqual([])
+    expect(dead).toEqual([])
   })
 
   /**
@@ -102,9 +102,9 @@ describe('the documents point at one another', () => {
    */
   it('actually finds the references it checks', () => {
     let gezaehlt = 0
-    for (const datei of markdownDateien()) {
-      const text = readFileSync(join(WURZEL, datei), 'utf8')
-      gezaehlt += [...text.matchAll(LINK)].length + [...text.matchAll(ERWAEHNUNG)].length
+    for (const file of markdownFiles()) {
+      const text = readFileSync(join(ROOT, file), 'utf8')
+      gezaehlt += [...text.matchAll(LINK)].length + [...text.matchAll(MENTION)].length
     }
     expect(gezaehlt).toBeGreaterThan(50)
   })

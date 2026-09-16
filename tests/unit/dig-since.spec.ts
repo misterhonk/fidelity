@@ -73,7 +73,7 @@ async function remember(newestListedAt: string | null) {
   await db.put('dealers', { ...blankDealer('stammladen'), numForSale: 4000, newestListedAt })
 }
 
-describe('nur das Neue', () => {
+describe('only what is new', () => {
   it('refuses when no full dig has been run here yet', async () => {
     const { client, asked } = fakeShop(300)
 

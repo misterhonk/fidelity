@@ -87,8 +87,37 @@ export function withoutComments(source: string): string {
   return out + source.slice(at)
 }
 
-function spans(source: string): [number, number][] {
+/**
+ * The same file with its comments **and its text** removed — what is left is
+ * the code's own vocabulary: identifiers, keywords, punctuation.
+ *
+ * Needed because the other half of ADR-010 is the half nothing watched. A
+ * word list over prose is safe; a word list over raw source is not, because
+ * this project legitimately holds German *text*: the `de` language pack, the
+ * eighteen renamed paths in `renamed.global.ts`, the `?dicht=kiste` a shared
+ * link may still carry, and place names somebody typed in a fixture. Every one
+ * of those is a string, so blanking the strings is exactly the line between
+ * "German the app says" and "German the app is written in".
+ *
+ * Spans are blanked rather than cut, so a match's line number is still the
+ * line it is on.
+ */
+export function bareCode(source: string): string {
+  const out = source.split('')
+  for (const [from, to] of spans(source, true)) {
+    for (let i = from; i < to; i += 1) if (out[i] !== '\n') out[i] = ' '
+  }
+  return out.join('')
+}
+
+function spans(source: string, literals = false): [number, number][] {
   const found: [number, number][] = []
+  /*
+   * Comment runs merge with the one above them, and a string in between has to
+   * break that run — so the merge looks at the last *comment*, not at whatever
+   * span happens to be last once literals are being collected too.
+   */
+  let lastComment: [number, number] | undefined
   let i = 0
   let previous = ' '
 
@@ -98,18 +127,23 @@ function spans(source: string): [number, number][] {
     if (two === '//') {
       const end = source.indexOf('\n', i)
       const stop = end === -1 ? source.length : end
-      const last = found.at(-1)
       // Only merge with a run directly above — blank lines and code break it.
-      if (last && source[last[1]] === '\n' && source.slice(last[1], i).trim() === '') {
-        last[1] = stop
+      if (
+        lastComment &&
+        source[lastComment[1]] === '\n' &&
+        source.slice(lastComment[1], i).trim() === ''
+      ) {
+        lastComment[1] = stop
       } else {
-        found.push([i, stop])
+        lastComment = [i, stop]
+        found.push(lastComment)
       }
       i = stop
     } else if (two === '/*') {
       const end = source.indexOf('*/', i + 2)
       const stop = end === -1 ? source.length : end + 2
-      found.push([i, stop])
+      lastComment = [i, stop]
+      found.push(lastComment)
       i = stop
     } else if (source.startsWith('<!--', i) && source.includes('-->', i + 4)) {
       // Unterminated, it is not a comment. `/*` without `*/` means a broken
@@ -117,13 +151,18 @@ function spans(source: string): [number, number][] {
       // the rest of the file for it is the very failure this walk exists to
       // avoid.
       const stop = source.indexOf('-->', i + 4) + 3
-      found.push([i, stop])
+      lastComment = [i, stop]
+      found.push(lastComment)
       i = stop
     } else if (source[i] === "'" || source[i] === '"' || source[i] === '`') {
-      i = skipDelimited(source, i, source[i]!)
+      const stop = skipDelimited(source, i, source[i]!)
+      if (literals) found.push([i, stop])
+      i = stop
       previous = 'x'
     } else if (source[i] === '/' && !DIVIDES.test(previous)) {
-      i = skipRegex(source, i)
+      const stop = skipRegex(source, i)
+      if (literals) found.push([i, stop])
+      i = stop
       previous = 'x'
     } else {
       if (!/\s/.test(source[i]!)) previous = source[i]!
@@ -138,9 +177,47 @@ function spans(source: string): [number, number][] {
 function skipDelimited(source: string, start: number, quote: string): number {
   let i = start + 1
   while (i < source.length) {
-    if (source[i] === '\\') i += 2
-    else if (source[i] === quote) return i + 1
-    else i += 1
+    if (source[i] === '\\') {
+      i += 2
+      continue
+    }
+    if (source[i] === quote) return i + 1
+    /*
+     * A `${…}` holds code, and that code can open another template.
+     *
+     * The language pack is full of them — `` `${n === 1 ? 'Eine Platte' :
+     * `${n} Platten`}` `` — and without this the skip stops at the *inner*
+     * opening backtick, takes it for the outer's close, and everything after
+     * it resyncs one delimiter out of step. German prose then reads as code,
+     * which is exactly backwards: the language pack is the one place German
+     * belongs. The same shape of mistake as the two this walk already carries
+     * comments about, found by `bareCode` reporting the `de` pack.
+     */
+    if (quote === '`' && source[i] === '$' && source[i + 1] === '{') {
+      i = skipBraces(source, i + 1)
+      continue
+    }
+    i += 1
+  }
+  return source.length
+}
+
+/** Past the `}` that closes this `{`, with strings and nested braces skipped. */
+function skipBraces(source: string, start: number): number {
+  let depth = 0
+  let i = start
+  while (i < source.length) {
+    const c = source[i]
+    if (c === "'" || c === '"' || c === '`') {
+      i = skipDelimited(source, i, c)
+      continue
+    }
+    if (c === '{') depth += 1
+    else if (c === '}') {
+      depth -= 1
+      if (depth === 0) return i + 1
+    }
+    i += 1
   }
   return source.length
 }

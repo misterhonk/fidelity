@@ -120,7 +120,7 @@ describe('the pacer', () => {
     expect(clock.time - ANONYMOUS_REQUEST_INTERVAL_MS).toBe(MIN_REQUEST_INTERVAL_MS)
   })
 
-  it('bleibt unter dem Limit, das ohne Token gilt', () => {
+  it('stays under the limit that applies without a token', () => {
     // 25 a minute is one every 2.400 ms. Anything shorter is over.
     expect(60_000 / ANONYMOUS_REQUEST_INTERVAL_MS).toBeLessThanOrEqual(25)
   })

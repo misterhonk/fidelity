@@ -63,13 +63,13 @@ beforeEach(async () => {
 describe('a place', () => {
   it('holds records, and counts the ones below it too', async () => {
     const cellar = (await createPlace('Keller', null))!
-    const kiste = (await createPlace('Kiste 3', cellar.id))!
+    const crate = (await createPlace('Kiste 3', cellar.id))!
 
     const db = await openFidelityDb()
     await db.put('collection', record(1, 'Eins'))
     await db.put('collection', record(2, 'Zwei'))
     await placeRecord(1, cellar.id)
-    await placeRecord(2, kiste.id)
+    await placeRecord(2, crate.id)
 
     const nodes = await placesOverview()
     const cellarNode = nodes.find((n) => n.id === cellar.id)!
@@ -104,7 +104,7 @@ describe('a place', () => {
    */
   it('lets go of its records without losing them', async () => {
     const cellar = (await createPlace('Keller', null))!
-    const kiste = (await createPlace('Kiste', cellar.id))!
+    const crate = (await createPlace('Kiste', cellar.id))!
 
     const db = await openFidelityDb()
     await db.put('collection', record(1, 'Eins'))
@@ -128,7 +128,7 @@ describe('a place', () => {
 
     // And the crate now stands at the top rather than nowhere.
     const nodes = await placesOverview()
-    expect(nodes.find((n) => n.id === kiste.id)?.parentId).toBeNull()
+    expect(nodes.find((n) => n.id === crate.id)?.parentId).toBeNull()
   })
 
   /**
@@ -140,16 +140,16 @@ describe('a place', () => {
    * probe got through exactly here.
    */
   it('writes "nowhere" instead of forgetting the row', async () => {
-    const regal = (await createPlace('Regal', null))!
+    const shelf = (await createPlace('Regal', null))!
     const db = await openFidelityDb()
     await db.put('collection', record(1, 'Eins'))
 
-    await placeRecord(1, regal.id)
+    await placeRecord(1, shelf.id)
     await placeRecord(1, null)
 
     expect(await placeOf(1)).toBeNull()
     expect(await db.get('placements', 1)).toMatchObject({ placeId: null })
-    expect((await placesOverview()).find((n) => n.id === regal.id)?.records).toBe(0)
+    expect((await placesOverview()).find((n) => n.id === shelf.id)?.records).toBe(0)
   })
 
   /**
@@ -160,14 +160,14 @@ describe('a place', () => {
    * whichever was read last.
    */
   it('stamps a rename so the newer name can win elsewhere', async () => {
-    const regal = (await createPlace('Regal', null))!
+    const shelf = (await createPlace('Regal', null))!
     const db = await openFidelityDb()
-    const vorher = (await db.get('places', regal.id))!.updatedAt ?? 0
+    const vorher = (await db.get('places', shelf.id))!.updatedAt ?? 0
 
     await new Promise((done) => setTimeout(done, 2))
-    expect(await renamePlace(regal.id, 'Wohnzimmer')).toBe(true)
+    expect(await renamePlace(shelf.id, 'Wohnzimmer')).toBe(true)
 
-    const nachher = (await db.get('places', regal.id))!
+    const nachher = (await db.get('places', shelf.id))!
     expect(nachher.name).toBe('Wohnzimmer')
     expect(nachher.updatedAt ?? 0).toBeGreaterThan(vorher)
   })
@@ -192,13 +192,13 @@ describe('a place', () => {
 describe('finding things again', () => {
   it('answers what is in the cellar, boxes included', async () => {
     const cellar = (await createPlace('Keller', null))!
-    const kiste = (await createPlace('Kiste', cellar.id))!
+    const crate = (await createPlace('Kiste', cellar.id))!
 
     const db = await openFidelityDb()
     await db.put('collection', record(1, 'Oben'))
     await db.put('collection', record(2, 'In der Kiste'))
     await placeRecord(1, cellar.id)
-    await placeRecord(2, kiste.id)
+    await placeRecord(2, crate.id)
 
     const drin = await placeContents(cellar.id)
     expect(drin.map((r) => r.title).sort()).toEqual(['In der Kiste', 'Oben'])

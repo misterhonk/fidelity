@@ -329,7 +329,7 @@ describe('the daily revalidation', () => {
  *
  * The contribution costs no Discogs request — the chunk is already there.
  */
-describe('den Hub nachträglich füllen', () => {
+describe('filling the hub afterwards', () => {
   /** Every PUT to the horizon, recorded. */
   async function withHub(answer: () => Response) {
     await updatePreferences({ hubUrl: 'https://hub.test', hubSecret: 'wort' })
@@ -350,7 +350,7 @@ describe('den Hub nachträglich füllen', () => {
   const refused = () =>
     ({ ok: false, status: 401, json: async () => ({}) }) as unknown as Response
 
-  it('reicht einen übersprungenen Block nach', async () => {
+  it('hands over a chunk that was skipped', async () => {
     const db = await openFidelityDb()
     await db.put('horizon', expansion(candidate(1), [10, 11]).chunk)
     const seen = await withHub(ok)
@@ -361,7 +361,7 @@ describe('den Hub nachträglich füllen', () => {
     expect(seen).toEqual(['https://hub.test/v1/horizon/artist/1'])
   })
 
-  it('tut es kein zweites Mal', async () => {
+  it('does not do it a second time', async () => {
     const db = await openFidelityDb()
     await db.put('horizon', expansion(candidate(1), [10, 11]).chunk)
     await withHub(ok)
@@ -382,7 +382,7 @@ describe('den Hub nachträglich füllen', () => {
    * that never goes up again — the most expensive failure, because it looks
    * like success.
    */
-  it('merkt sich nichts, was der Hub abgelehnt hat', async () => {
+  it('remembers nothing the hub refused', async () => {
     const db = await openFidelityDb()
     await db.put('horizon', expansion(candidate(1), [10, 11]).chunk)
     await withHub(refused)
@@ -400,7 +400,7 @@ describe('den Hub nachträglich füllen', () => {
    * tomorrow, and fetch the same old chunk from the hub again — a loop that
    * costs no Discogs request and never ends.
    */
-  it('nimmt einen Hub-Block ohne Namen nicht als Treffer', async () => {
+  it('does not count a hub chunk without names as a hit', async () => {
     const { kin: _none, ...stale } = expansion(candidate(1), [10, 11]).chunk
     await updatePreferences({ hubUrl: 'https://hub.test', hubSecret: 'wort' })
     vi.stubGlobal(
@@ -423,7 +423,7 @@ describe('den Hub nachträglich füllen', () => {
   })
 
   /** Without a hub it stays as it was: skipped and silent. */
-  it('lässt es ohne Hub genau so wie vorher', async () => {
+  it('leaves it exactly as it was when there is no hub', async () => {
     const db = await openFidelityDb()
     await db.put('horizon', expansion(candidate(1), [10, 11]).chunk)
 

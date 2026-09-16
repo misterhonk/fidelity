@@ -673,16 +673,16 @@ describe('a shared find list', () => {
   test('is a reading door and not a flap', async () => {
     const { app } = hub('geheim')
     for (const method of ['POST', 'PUT', 'DELETE']) {
-      const antwort = await app.request(`/v1/share/${ID}`, { method })
-      assert.equal(antwort.status, 401, method)
+      const answer = await app.request(`/v1/share/${ID}`, { method })
+      assert.equal(answer.status, 401, method)
     }
   })
 
   /** The open reading door applies to this path and not to the rest. */
   test('does not open any other door with it', async () => {
     const { app } = hub('geheim')
-    for (const pfad of ['/v1/covers', '/v1/vault/' + 'a'.repeat(32), '/v1/watch/key']) {
-      assert.equal((await app.request(pfad)).status, 401, pfad)
+    for (const path of ['/v1/covers', '/v1/vault/' + 'a'.repeat(32), '/v1/watch/key']) {
+      assert.equal((await app.request(path)).status, 401, path)
     }
   })
 
@@ -715,10 +715,10 @@ describe('a shared find list', () => {
    */
   test('shortens an expiry that lies too far in the future', async () => {
     const { app } = hub()
-    const antwort = await post(app, share({ expiresAt: 42 + 72 * STUNDE }))
-    assert.equal(antwort.status, 200)
+    const answer = await post(app, share({ expiresAt: 42 + 72 * STUNDE }))
+    assert.equal(answer.status, 200)
 
-    const { expiresAt } = await antwort.json()
+    const { expiresAt } = await answer.json()
     assert.equal(expiresAt, 42 + 6 * STUNDE)
   })
 

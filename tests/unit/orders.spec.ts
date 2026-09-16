@@ -25,7 +25,7 @@ import type { Feedback } from '#shared/types'
  */
 
 /** The shape a real answer had on 2026-09-11. */
-const ANTWORT = {
+const ANSWER = {
   id: '259022-32308',
   created: '2026-09-11T00:33:31-07:00',
   seller: { username: '430AM_Studio', email: 'shop@example.invalid' },
@@ -50,15 +50,15 @@ const ANTWORT = {
   ],
 }
 
-const GEKAUFT_AM = Date.parse(ANTWORT.created)
+const BOUGHT_AT = Date.parse(ANSWER.created)
 const JETZT = 1_800_000_000_000
 
-function client(antwort: unknown = ANTWORT) {
+function client(answer: unknown = ANSWER) {
   const gefragt: string[] = []
   const fake = {
-    get: async (pfad: string, schema: { parse: (x: unknown) => unknown }) => {
-      gefragt.push(pfad)
-      return schema.parse(antwort)
+    get: async (path: string, schema: { parse: (x: unknown) => unknown }) => {
+      gefragt.push(path)
+      return schema.parse(answer)
     },
   } as unknown as DiscogsClient
   return { fake, gefragt }
@@ -103,8 +103,8 @@ describe('reading an order', () => {
     expect(result).toMatchObject({ ok: true, dealer: '430AM_Studio', added: 2, enriched: 0 })
 
     const db = await openFidelityDb()
-    const zeile = await db.get('feedback', 4240795662)
-    expect(zeile).toMatchObject({
+    const row = await db.get('feedback', 4240795662)
+    expect(row).toMatchObject({
       listingId: 4240795662,
       releaseId: 201068,
       dealer: '430AM_Studio',
@@ -126,7 +126,7 @@ describe('reading an order', () => {
     await importOrder(fake, '259022-32308', JETZT)
 
     const db = await openFidelityDb()
-    expect((await db.get('feedback', 4240795662))?.createdAt).toBe(GEKAUFT_AM)
+    expect((await db.get('feedback', 4240795662))?.createdAt).toBe(BOUGHT_AT)
   })
 
   /**
@@ -154,10 +154,10 @@ describe('reading an order', () => {
     const result = await importOrder(fake, '259022-32308', JETZT)
     expect(result).toMatchObject({ added: 1, enriched: 1 })
 
-    const zeile = await db.get('feedback', 4240795662)
-    expect(zeile?.verdict).toBe('bought')
-    expect(zeile?.score).toBe(71)
-    expect(zeile?.signals).toHaveLength(1)
+    const row = await db.get('feedback', 4240795662)
+    expect(row?.verdict).toBe('bought')
+    expect(row?.score).toBe(71)
+    expect(row?.signals).toHaveLength(1)
   })
 
   /**

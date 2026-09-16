@@ -41,8 +41,8 @@ import { withoutComments } from '../helpers/german'
  */
 
 const SEITEN = readdirSync('app/pages', { recursive: true, encoding: 'utf8' })
-  .filter((datei) => datei.endsWith('.vue'))
-  .map((datei) => ({ datei, quelle: readFileSync(`app/pages/${datei}`, 'utf8') }))
+  .filter((file) => file.endsWith('.vue'))
+  .map((file) => ({ file, quelle: readFileSync(`app/pages/${file}`, 'utf8') }))
 
 /**
  * The screen that is not a container.
@@ -65,8 +65,8 @@ const DISTANCE = /\bpy-8 md:py-16\b/
 
 describe('every screen shares one measure', () => {
   it('uses fid-page, or says why not', () => {
-    const abweichler = SEITEN.filter(({ datei, quelle }) => {
-      if (OHNE_MASS.includes(datei)) return false
+    const abweichler = SEITEN.filter(({ file, quelle }) => {
+      if (OHNE_MASS.includes(file)) return false
       /*
        * Pages with no `<main>` of their own inherit a frame — the settings
        * subpages all live in `SettingsPage.vue`. Demanding one here would mean
@@ -74,7 +74,7 @@ describe('every screen shares one measure', () => {
        */
       if (!quelle.includes('<main')) return false
       return !/class="[^"]*\bfid-page(-flush)?\b/.test(quelle)
-    }).map(({ datei }) => datei)
+    }).map(({ file }) => file)
 
     expect(abweichler).toEqual([])
   })
@@ -99,13 +99,13 @@ describe('every screen shares one measure', () => {
    * is the frame's; a page that needs its own `<main>` uses the same one.
    */
   it('keeps one distance from the bar to the head', () => {
-    const abweichler = SEITEN.filter(({ datei, quelle }) => {
-      if (OHNE_MASS.includes(datei)) return false
+    const abweichler = SEITEN.filter(({ file, quelle }) => {
+      if (OHNE_MASS.includes(file)) return false
       const auf = quelle.indexOf('<main')
       if (auf === -1) return false
       const tag = quelle.slice(auf, quelle.indexOf('>', auf))
       return !DISTANCE.test(tag)
-    }).map(({ datei }) => datei)
+    }).map(({ file }) => file)
 
     expect(abweichler).toEqual([])
   })
@@ -118,13 +118,13 @@ describe('every screen shares one measure', () => {
    * Inside, a `max-w-…` is exactly right — there the content decides.
    */
   it('does not set a second width on the page itself', () => {
-    const doppelt = SEITEN.filter(({ datei, quelle }) => {
-      if (OHNE_MASS.includes(datei)) return false
+    const doppelt = SEITEN.filter(({ file, quelle }) => {
+      if (OHNE_MASS.includes(file)) return false
       const auf = quelle.indexOf('<main')
       if (auf === -1) return false
       const tag = quelle.slice(auf, quelle.indexOf('>', auf))
       return /\bmax-w-/.test(tag)
-    }).map(({ datei }) => datei)
+    }).map(({ file }) => file)
 
     expect(doppelt).toEqual([])
   })
@@ -186,17 +186,17 @@ describe('every screen shares one measure', () => {
      */
 
     const abweichend: string[] = []
-    for (const { datei, quelle } of [
+    for (const { file, quelle } of [
       ...SEITEN.map((s) => ({ ...s })),
       ...['AppPage', 'SettingsPage', 'SiteFooter'].map((name) => ({
-        datei: `components/${name}.vue`,
+        file: `components/${name}.vue`,
         quelle: readFileSync(`app/components/${name}.vue`, 'utf8'),
       })),
     ]) {
-      if (OHNE_MASS.includes(datei)) continue
+      if (OHNE_MASS.includes(file)) continue
 
       // The footer has no <main>; its column is checked from its own root.
-      const auf = quelle.indexOf(datei.endsWith('SiteFooter.vue') ? '<footer' : '<main')
+      const auf = quelle.indexOf(file.endsWith('SiteFooter.vue') ? '<footer' : '<main')
       if (auf === -1) continue
       const nachTag = quelle.indexOf('>', auf) + 1
 
@@ -210,7 +210,7 @@ describe('every screen shares one measure', () => {
 
       const stimmt =
         masse.length === 1 && masse[0] === 'max-w-3xl' && !teile.includes('mx-auto')
-      if (!stimmt) abweichend.push(`${datei}: ${klassen.slice(0, 60)}`)
+      if (!stimmt) abweichend.push(`${file}: ${klassen.slice(0, 60)}`)
     }
 
     expect(abweichend).toEqual([])
@@ -232,10 +232,10 @@ describe('every screen shares one measure', () => {
    */
   it('puts @container on the box the content actually fills', () => {
     const falsch: string[] = []
-    for (const { datei, quelle } of [
+    for (const { file, quelle } of [
       ...SEITEN,
       ...['AppPage', 'SettingsPage'].map((name) => ({
-        datei: `components/${name}.vue`,
+        file: `components/${name}.vue`,
         quelle: readFileSync(`app/components/${name}.vue`, 'utf8'),
       })),
     ]) {
@@ -248,7 +248,7 @@ describe('every screen shares one measure', () => {
       // it — that is, where there is no narrow column below it.
       const nachTag = quelle.indexOf('>', auf) + 1
       const ersterDiv = quelle.slice(nachTag).match(/<div class="([^"]*)"/)
-      if (ersterDiv && /\bmax-w-3xl\b/.test(ersterDiv[1]!)) falsch.push(datei)
+      if (ersterDiv && /\bmax-w-3xl\b/.test(ersterDiv[1]!)) falsch.push(file)
     }
 
     expect(falsch).toEqual([])
