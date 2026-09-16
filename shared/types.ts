@@ -1800,6 +1800,14 @@ export interface Dealer {
   location?: string
   sellerRating: number
   ratingCount: number
+  /**
+   * When the account was opened (ISO 8601) and whether Discogs has suspended
+   * it from selling — both off `/users/{u}` (M34.1). `undefined` means the
+   * profile has not been asked since these existed; `null` means it was and
+   * Discogs said nothing.
+   */
+  registeredAt?: string | null
+  suspended?: boolean
   numForSale: number
   minOrderTotal: number
   /** Free text from seller.shipping. */

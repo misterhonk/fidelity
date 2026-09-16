@@ -27,6 +27,13 @@ useSeoMeta({ title: () => st.value.search.title })
       :description="st.search.dealers.about"
     >
       <FriendImportToggle />
+      <!--
+        The search itself, beside its switch (M34.1). It stood at the foot of
+        the shops screen; measured on 2026-09-11 the orders side finds shops
+        that bought from *you*, so it is the friends half that finds anything,
+        and that half is a setting.
+      -->
+      <DealerDiscovery :with-friends="false" />
     </SettingsCard>
   </SettingsPage>
 </template>

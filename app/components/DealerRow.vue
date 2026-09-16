@@ -61,6 +61,15 @@ const width = computed(() =>
 const from = computed(() =>
   props.dealer.shipsFrom ? countryName(props.dealer.shipsFrom) : null,
 )
+
+/**
+ * And as two letters on the row itself (M34.1): the country is one of four
+ * facts on a line that has to hold "United Kingdom · 44,498 · 3 days ago",
+ * and the full name is in the title for a pointer.
+ */
+const code = computed(() =>
+  props.dealer.shipsFrom ? countryCode(props.dealer.shipsFrom) : null,
+)
 </script>
 
 <template>
@@ -107,26 +116,27 @@ const from = computed(() =>
       -->
       <span
         class="fid-num truncate text-fid-xs text-fid-text-muted"
-        :title="m.home.forSale(count(dealer.numForSale))"
+        :title="[from, m.home.forSale(count(dealer.numForSale))].filter(Boolean).join(' · ')"
       >
-        <template v-if="from">{{ from }} · </template>
+        <template v-if="code"
+          ><abbr class="no-underline" :title="from ?? undefined">{{ code }}</abbr> ·
+        </template>
         {{ count(dealer.numForSale) }}
         <template v-if="dealer.lastScannedAt"> · {{ since(dealer.lastScannedAt) }}</template>
         <template v-else> · {{ h.notDug }}</template>
       </span>
 
       <!--
-        Why this shop is on the list at all (M30) — the same chips the profile
-        carries, because a row without a reason is a row nobody trusts.
+        Why this shop is on the list at all (M30), as plate words (M34.1).
+        Bordered chips read as buttons — twelve rows of things that look
+        pressable and are not. A reason is a fact, and facts are set in the
+        plate face. A row without a reason is still a row nobody trusts.
       -->
-      <span v-if="dealer.reasons.length > 0" class="flex flex-wrap gap-1">
-        <span
-          v-for="reason in dealer.reasons"
-          :key="reason"
-          class="rounded-fid-sm border border-fid-border px-2 text-fid-xs text-fid-text-muted"
-        >
-          {{ h.reasons[reason] }}
-        </span>
+      <span
+        v-if="dealer.reasons.length > 0"
+        class="fid-plate flex flex-wrap gap-x-3 text-fid-text-muted"
+      >
+        <span v-for="reason in dealer.reasons" :key="reason">{{ h.reasons[reason] }}</span>
       </span>
     </span>
 

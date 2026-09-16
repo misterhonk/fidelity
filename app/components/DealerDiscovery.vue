@@ -12,7 +12,11 @@ const emit = defineEmits<{ imported: [] }>()
  * a poor one when the list is empty and the fold is the only thing between
  * somebody and the reason their search comes back with two names.
  */
-const { firstTime = false } = defineProps<{ firstTime?: boolean }>()
+const { firstTime = false, withFriends = true } = defineProps<{
+  firstTime?: boolean
+  /** Off where the friends switch already stands on the same screen (settings). */
+  withFriends?: boolean
+}>()
 
 const { call } = useFidelityWorker()
 
@@ -148,7 +152,7 @@ async function keep() {
       not a move.
     -->
     <details
-      v-if="!found"
+      v-if="!found && withFriends"
       :open="firstTime"
       class="rounded-fid-sm border border-fid-border p-3"
     >

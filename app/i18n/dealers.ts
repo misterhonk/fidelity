@@ -110,6 +110,7 @@ const en = {
   watch: 'Watch this shop',
   /* Watching costs one request per app start, not a rescan. Worth saying,
    * because "watch" usually means somebody is polling. */
+  watchCostLabel: 'What watching costs',
   watchCost:
     'When the app opens, it checks whether the stock has moved — a single lookup, not a new scan.',
   digNow: 'Dig now',
@@ -269,6 +270,57 @@ const en = {
       'The stock list is marketplace data and only lives for six hours. Scan this shop again to see what is on the shelves.',
   },
   nothingYet: 'Nothing here yet.',
+
+  /*
+   * The masthead and the plates (M34.1).
+   *
+   * A shop's profile used to be one paragraph of numbers and a row of
+   * buttons of the same weight. Now it opens the way a buyer asks: who is
+   * this — does it fit me — what will postage cost — what do they charge —
+   * what of mine do they carry — what has moved — what did I buy here. Each
+   * answer under a plate word, and the count before the percentage: "59,539
+   * ratings · 99.9 %" says more than "99.9 %" alone, because a hundred per
+   * cent of three is not a record.
+   */
+  trust: {
+    ratings: (n: string, percent: string) => `${n} ratings · ${percent} %`,
+    noRatings: 'no ratings yet',
+    since: (year: string) => `since ${year}`,
+    dug: (when: string) => `dug ${when}`,
+    /* The one line that makes every other number moot. */
+    suspended: 'Suspended from selling at Discogs.',
+  },
+  plates: {
+    fit: 'Fit',
+    postage: 'Postage',
+    price: 'Price range',
+    shelf: 'From your shelf',
+    range: 'Range',
+    movement: 'Movement',
+    purchases: 'Your purchases',
+  },
+  rateWhyLabel: 'What the number counts',
+  rateWhy:
+    'Finds per thousand listings on the last dig, set against the median of your other shops. What the market as a whole would find is not something this app can see.',
+  postage: {
+    from: (amount: string) => `from ${amount} for one record`,
+    unknown: 'Not on record yet.',
+    enter: 'Enter it in the basket',
+    text: 'What the shop writes',
+  },
+  movement: {
+    newest: (when: string) => `newest listing ${when}`,
+    still: 'Nothing new since the last check.',
+    unwatched: 'Not watched — nothing is checked.',
+  },
+  /** The right-hand column on a desk before any shop is open. */
+  pick: 'Pick a shop on the left.',
+  /** The plate word; the full sentence is its spoken name. */
+  hideShort: 'Hide',
+  hiddenLine: (shop: string) => `${shop} hidden.`,
+  undo: 'Undo',
+  prev: 'Previous shop',
+  next: 'Next shop',
 }
 
 const de: typeof en = {
@@ -328,6 +380,7 @@ const de: typeof en = {
 
   watching: 'Wird beobachtet',
   watch: 'Laden merken',
+  watchCostLabel: 'Was Beobachten kostet',
   watchCost:
     'Beim Öffnen der App wird nachgesehen, ob sich das Sortiment bewegt hat – eine einzige Abfrage, kein neuer Scan.',
   digNow: 'Jetzt graben',
@@ -424,6 +477,43 @@ const de: typeof en = {
       'Das Sortiment ist ein Marktplatzdatum und lebt nur sechs Stunden. Scanne den Laden neu, um zu sehen, was im Regal steht.',
   },
   nothingYet: 'Noch nichts da.',
+
+  trust: {
+    ratings: (n, percent) => `${n} Bewertungen · ${percent} %`,
+    noRatings: 'noch keine Bewertungen',
+    since: (year) => `seit ${year}`,
+    dug: (when) => `gegraben ${when}`,
+    suspended: 'Bei Discogs vom Verkauf gesperrt.',
+  },
+  plates: {
+    fit: 'Passung',
+    postage: 'Versand',
+    price: 'Preislage',
+    shelf: 'Aus deinem Regal',
+    range: 'Sortiment',
+    movement: 'Bewegung',
+    purchases: 'Deine Käufe',
+  },
+  rateWhyLabel: 'Was die Zahl zählt',
+  rateWhy:
+    'Treffer je tausend Listings beim letzten Dig, gemessen am Median deiner übrigen Läden. Was der Markt insgesamt hergäbe, kann diese App nicht sehen.',
+  postage: {
+    from: (amount) => `ab ${amount} für eine Platte`,
+    unknown: 'Noch nicht erfasst.',
+    enter: 'Im Warenkorb eintragen',
+    text: 'Was der Laden schreibt',
+  },
+  movement: {
+    newest: (when) => `neuestes Angebot ${when}`,
+    still: 'Nichts Neues seit dem letzten Blick.',
+    unwatched: 'Nicht beobachtet – es wird nichts nachgesehen.',
+  },
+  pick: 'Wähl links einen Laden.',
+  hideShort: 'Ausblenden',
+  hiddenLine: (shop) => `${shop} ausgeblendet.`,
+  undo: 'Rückgängig',
+  prev: 'Voriger Laden',
+  next: 'Nächster Laden',
 }
 
 export const packs = { en, de }

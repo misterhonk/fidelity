@@ -3,7 +3,7 @@ import { blankDealer } from '~~/db/dealer'
 import { openFidelityDb } from '~~/db/open'
 
 import type { DiscogsClient } from '../discogs/client'
-import { dealerSchema } from '../discogs/inventory'
+import { dealerSchema, trustOf } from '../discogs/inventory'
 
 /**
  * A shop entered by hand (M30).
@@ -52,13 +52,12 @@ export async function addDealerByHand(
     ...(existing ?? blankDealer(profile.username)),
     displayName: existing?.displayName || profile.username,
     numForSale: profile.num_for_sale ?? existing?.numForSale ?? 0,
-    sellerRating: profile.seller_rating ?? existing?.sellerRating ?? 0,
-    ratingCount: profile.seller_num_ratings ?? existing?.ratingCount ?? 0,
     // The country out of the free text, and the text itself for the screen —
     // see `countryIn`. A dig later replaces this with what the rows say.
     shipsFrom: countryIn(profile.location) ?? existing?.shipsFrom ?? '',
     location: profile.location || existing?.location,
     avatarUrl: profile.avatar_url || existing?.avatarUrl,
+    ...trustOf(profile, existing),
     // Kept where there is one: a shop dug last week and typed in today was
     // still met by digging, and the first reason is the true one.
     addedBy: existing?.addedBy ?? 'manual',

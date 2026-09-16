@@ -24,7 +24,43 @@ export const dealerSchema = z.object({
    * field becomes an `<img src>`, and an answer is data until it is checked.
    */
   avatar_url: z.string().optional().transform(discogsImageOrNone),
+  /**
+   * Two more lines of the trust line (M34.1), free on the same request.
+   *
+   * `registered` is when the account was opened — "since 2010" says more
+   * about a shop than a rating does, because a rating is a percentage and
+   * fifteen years is a fact. `marketplace_suspended` is the one flag that
+   * makes every other number on the profile moot, so it is read and said.
+   */
+  registered: z.string().optional(),
+  marketplace_suspended: z.boolean().optional(),
 })
+
+/**
+ * What a `/users/{u}` answer refreshes on the row, in the row's own names.
+ *
+ * The rating and its count as well as the two trust fields: a profile in hand
+ * is the only place they come from, and a shop dug before they were stored
+ * showed "no ratings yet" over fifty thousand of them. Absent fields leave
+ * the row as it was — a profile that says nothing is not a profile that says
+ * zero.
+ */
+export function trustOf(
+  profile: DealerProfile,
+  existing?: { sellerRating: number; ratingCount: number },
+): {
+  registeredAt: string | null
+  suspended: boolean
+  sellerRating: number
+  ratingCount: number
+} {
+  return {
+    registeredAt: profile.registered ?? null,
+    suspended: profile.marketplace_suspended === true,
+    sellerRating: profile.seller_rating ?? existing?.sellerRating ?? 0,
+    ratingCount: profile.seller_num_ratings ?? existing?.ratingCount ?? 0,
+  }
+}
 
 /**
  * Only the fields a match needs. The seller object is repeated in full inside

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { blankDealer } from '~~/db/dealer'
 import { openFidelityDb } from '~~/db/open'
 import type { DiscogsClient } from './discogs/client'
 import type { Feedback, OrderImport } from '#shared/types'
@@ -96,6 +97,21 @@ export async function importOrder(
 
   const db = await openFidelityDb()
   const dealer = order.seller?.username ?? null
+
+  /*
+   * The seller becomes a shop (M34.1).
+   *
+   * "Under Shops I want to see every dealer I have bought from" — and the
+   * order is the one place a purchase is certain. No request: the row is a
+   * name until a dig or the profile fills it in, and a shop hidden on
+   * purpose stays hidden.
+   */
+  if (dealer) {
+    const known = await db.get('dealers', dealer)
+    if (!known) {
+      await db.put('dealers', { ...blankDealer(dealer), addedBy: 'order', updatedAt: now })
+    }
+  }
 
   /*
    * The purchase date comes from the order, not from the clock.

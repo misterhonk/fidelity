@@ -240,31 +240,30 @@ describe('keeping them', () => {
 })
 
 /**
- * And the way in stands where the list is empty.
+ * The way in stands beside its switch (M34.1).
  *
- * Reading the friends list is the difference between an import that finds two
- * shops and one that finds twenty — and it lived in Settings → Search, three
- * taps from the only screen where it does anything. Somebody looking at an
- * empty shop list is exactly who it was built for, so the question is asked
- * there, opened rather than folded while there is nothing on the shelf.
- *
- * It stays in the settings as well: this is a second door, and a setting that
- * can only be reached from one screen is a setting nobody can find again.
+ * The search through orders and friends stood at the foot of the shops
+ * screen with the friends question opened over an empty list. Measured on
+ * 2026-09-11, the orders side finds shops that bought from *you*; a purchase
+ * writes its seller onto the list by itself now (worker/orders.ts), and the
+ * half that finds anything — the friends list — is a setting. So the search
+ * lives where the setting lives, and the shops screen ends in one field.
  */
 describe('the shops screen', () => {
   const DISCOVERY = readFileSync('app/components/DealerDiscovery.vue', 'utf8')
   const PAGE = readFileSync('app/pages/dealers.vue', 'utf8')
+  const SEARCH = readFileSync('app/pages/settings/search.vue', 'utf8')
 
-  it('offers the friends list where the shop list is', () => {
-    expect(DISCOVERY).toMatch(/<FriendImportToggle \/>/)
-    expect(DISCOVERY).toMatch(/:open="firstTime"/)
-    expect(PAGE).toMatch(/:first-time="dealers\.length === 0"/)
+  it('ends in one field, with no search box under it', () => {
+    expect(PAGE).not.toMatch(/<DealerDiscovery/)
+    expect(PAGE).toMatch(/id="add-shop"/)
   })
 
-  /** And the setting keeps its old home — two doors, not a move. */
-  it('leaves it in the settings too', () => {
-    const SEARCH = readFileSync('app/pages/settings/search.vue', 'utf8')
+  it('stands the search beside its switch in the settings', () => {
     expect(SEARCH).toMatch(/<FriendImportToggle/)
+    expect(SEARCH).toMatch(/<DealerDiscovery :with-friends="false"/)
+    // And the search does not draw the switch a second time there.
+    expect(DISCOVERY).toMatch(/v-if="!found && withFriends"/)
   })
 
   /**

@@ -469,7 +469,7 @@ export const handlers: HandlerMap = {
      * Without that distinction a shop with no picture would cost a request
      * every single time somebody clicked it.
      */
-    if (dealer.avatarUrl === undefined) {
+    if (dealer.avatarUrl === undefined || dealer.registeredAt === undefined) {
       /*
        * Started, not awaited. The profile is a screen; the logo is decoration
        * on it — and until 2026-09-13 the screen waited for the decoration.
@@ -480,14 +480,19 @@ export const handlers: HandlerMap = {
        */
       void (async () => {
         try {
-          const { dealerSchema } = await inventory()
+          const { dealerSchema, trustOf } = await inventory()
           const profile = await discogs().get(
             `/users/${encodeURIComponent(username)}`,
             dealerSchema,
             { signal },
           )
           const fresh = await db.get('dealers', username)
-          if (fresh) await db.put('dealers', { ...fresh, avatarUrl: profile.avatar_url ?? '' })
+          if (fresh)
+            await db.put('dealers', {
+              ...fresh,
+              avatarUrl: profile.avatar_url || fresh.avatarUrl || '',
+              ...trustOf(profile, fresh),
+            })
         } catch {
           // A logo is decoration. Offline, rate-limited or gone — the screen
           // draws initials and nothing is written, so the next visit tries again.

@@ -3,33 +3,18 @@ import { expect, test, type Page } from '@playwright/test'
 import { DB_VERSION } from '~~/db/schema'
 
 /**
- * The shops screen with nothing on it yet.
+ * A signed-in device that has never dug, watched or bought anywhere.
  *
- * That is the state somebody is in exactly once, and it is the state in which
- * the friends list matters most: reading it is the difference between an
- * import that finds two shops and one that finds twenty, and it lived in
- * Settings → Search — three taps from the only screen where it does anything.
- *
- * A unit test can read the markup and see the component is there. Only a
- * browser can say whether the question is *open* when the list is empty, which
- * is the whole point: folded, it is a summary line somebody scrolls past on
- * the one visit where they have nothing else to look at.
+ * `seed()` writes a shop, and this is the one screen where that would hide
+ * the case under test. The token is a placeholder: nothing here talks to
+ * Discogs.
  */
-
 async function signedInWithNoShops(page: Page) {
   await page.goto('/')
 
-  /*
-   * Signed out, the app clears the database on its way to the setup. Seeding
-   * before that redirect has happened is seeding into something the app is
-   * about to throw away — measured 2026-08-13 in `start-rails.spec.ts`, and
-   * the same trap sits here.
-   */
+  /* The welcome screen means the stores exist and the guard has run. */
   await page.waitForURL(/\/welcome/, { timeout: 20_000 })
 
-  // Never `indexedDB.open` first: on a name that does not exist yet it
-  // *creates* an empty v1 and the app's migrations then run from the wrong
-  // floor. Wait for the app's own database to reach its version instead.
   await page.waitForFunction(
     async (wanted: number) => {
       const known = await indexedDB.databases()
@@ -46,8 +31,6 @@ async function signedInWithNoShops(page: Page) {
       open.onerror = () => reject(open.error)
     })
 
-    // A token is the gate, not the identity — and nothing here ever reaches
-    // Discogs: the screen under test draws from the empty `dealers` store.
     const meta = db.transaction('meta', 'readwrite').objectStore('meta')
     meta.put({ key: 'token', value: 'not-a-real-token' })
     meta.put({ key: 'identity', value: { username: 'probe', displayName: 'Probe' } })
@@ -59,60 +42,26 @@ async function signedInWithNoShops(page: Page) {
 }
 
 test.describe('the shops screen with nothing on it', () => {
-  test('asks about the friends list, open', async ({ page }) => {
+  /*
+   * One field, in view (M34.1). The screen used to end in a search box and a
+   * folded question about the friends list; both moved to the settings, and
+   * what is left is the shortest path: a name.
+   */
+  test('says so, and offers the one field', async ({ page }) => {
     await signedInWithNoShops(page)
 
-    const question = page.getByText('Also read my Discogs friends list?')
-    await expect(question).toBeInViewport({ timeout: 15_000 })
-
-    // Open, not folded: the checkbox itself has to be on screen, not one tap
-    // behind a summary line.
-    const toggle = page.getByRole('checkbox', { name: /friends list as well/i })
-    await expect(toggle).toBeInViewport()
+    await expect(page.getByText('No shop scanned yet.')).toBeInViewport({ timeout: 15_000 })
+    await expect(page.getByLabel('Add a shop')).toBeInViewport()
+    await expect(page.getByText('Also read my Discogs friends list?')).toHaveCount(0)
   })
 
-  /**
-   * And it folds itself away again once there is a shop list to read.
-   *
-   * On every later visit the question is a footnote, and a footnote that keeps
-   * opening itself is an argument being restated to somebody who already
-   * answered it.
-   */
-  test('folds it away once shops are known', async ({ page }) => {
+  test('keeps the friends question and the search in the settings', async ({ page }) => {
     await signedInWithNoShops(page)
+    await page.goto('/settings/search')
 
-    await page.evaluate(async () => {
-      const open = indexedDB.open('fidelity')
-      const db: IDBDatabase = await new Promise((resolve, reject) => {
-        open.onsuccess = () => resolve(open.result)
-        open.onerror = () => reject(open.error)
-      })
-      const tx = db.transaction('dealers', 'readwrite')
-      tx.objectStore('dealers').put({
-        username: 'plattenkiste',
-        displayName: 'Plattenkiste',
-        shipsFrom: 'Germany',
-        sellerRating: 100,
-        ratingCount: 42,
-        numForSale: 900,
-        minOrderTotal: null,
-        shippingNote: null,
-        lastScannedAt: null,
-        affinity: null,
-        fingerprint: null,
-        shippingTiers: [],
-        watching: false,
-      })
-      await new Promise((done) => (tx.oncomplete = () => done(null)))
-    })
-
-    await page.goto('/dealers')
-    await expect(page.getByRole('button', { name: 'Plattenkiste' })).toBeVisible({
+    await expect(page.getByRole('checkbox', { name: /friends list as well/i })).toBeVisible({
       timeout: 15_000,
     })
-
-    // Still reachable — one tap, not three — but no longer opened for you.
-    await expect(page.getByText('Also read my Discogs friends list?')).toBeVisible()
-    await expect(page.getByRole('checkbox', { name: /friends list as well/i })).toBeHidden()
+    await expect(page.getByRole('button', { name: 'Find shops at Discogs' })).toBeVisible()
   })
 })

@@ -59,6 +59,17 @@ const codeByName = new Map(
  * does not know — "Europe", "Worldwide" — stays as written, which is still
  * right, only English.
  */
+/**
+ * The two letters for a country Discogs names in English — "DE" for
+ * "Germany" — or the name itself where none is known (M34.1). For the rows,
+ * where a country is one fact among four and "United Kingdom" is a line.
+ */
+export function countryCode(english: string | null | undefined): string {
+  const name = (english ?? '').trim()
+  if (!name) return ''
+  return codeByName.get(name.toLowerCase()) ?? name
+}
+
 export function countryName(english: string | null | undefined): string {
   const name = (english ?? '').trim()
   if (!name) return ''

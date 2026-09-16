@@ -5,7 +5,7 @@ import type { Dig, Match, StockRow } from '#shared/types'
 import type { ScanProgress, WorkerError } from '#shared/protocol'
 
 import type { DiscogsClient } from '../discogs/client'
-import { dealerSchema, inventoryPageSchema, toListing } from '../discogs/inventory'
+import { dealerSchema, inventoryPageSchema, toListing, trustOf } from '../discogs/inventory'
 import { pressingsOf } from '../horizon/lookup'
 import { buildIndex, evaluate, type MatchFilters, type MatchIndex } from '../match'
 
@@ -659,11 +659,12 @@ export async function runDig(
      * looks like. Merged onto whatever row exists so a postage table and the
      * watch state survive, same rule as `finishDealer`.
      */
-    if (profile.avatar_url) {
+    {
       const row = await ctx.db.get('dealers', options.dealer)
       await ctx.db.put('dealers', {
         ...(row ?? blankDealer(options.dealer)),
-        avatarUrl: profile.avatar_url,
+        avatarUrl: profile.avatar_url || row?.avatarUrl,
+        ...trustOf(profile, row),
       })
     }
   }

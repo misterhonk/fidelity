@@ -12,6 +12,7 @@ import type {
   TasteFacet,
 } from '#shared/types'
 
+import { useBasketMessages } from '~/i18n/basket'
 import { useDealerMessages } from '~/i18n/dealers'
 import SheetFrame from '~/components/SheetFrame.vue'
 
@@ -621,10 +622,123 @@ const pricePosition = computed(() => {
   return h.value.priceMiddle
 })
 
-const scanned = computed(() => {
-  const at = profile.value?.dealer.lastScannedAt
-  return at ? day(new Date(at)) : null
+/* --- M34.1: the masthead, the plates, the way back, j and k --------------- */
+
+const b = useBasketMessages()
+
+/**
+ * How many shops each origin chip would keep — the count beside the word.
+ * A filter that says what it leaves is a filter nobody has to try.
+ */
+const originCounts = computed(
+  () =>
+    Object.fromEntries(
+      ORIGIN_FILTERS.map((key) => [
+        key,
+        dealers.value.filter((dealer) => passesOrigin(dealer.shipsFrom, key, home.value))
+          .length,
+      ]),
+    ) as Record<OriginFilter, number>,
+)
+
+const sortOptions = computed(() => SORTS.map((key) => ({ key, label: h.value.sort[key] })))
+
+const shopName = computed(
+  () => profile.value?.dealer.displayName || profile.value?.dealer.username || '',
+)
+
+/**
+ * The trust line, count before percentage.
+ *
+ * "59,539 ratings · 99.9 %" and not "99.9 %": a hundred per cent of three is
+ * not a record. Then the year the account was opened, the size, where it
+ * ships from, and when this device last dug it — the five facts a buyer
+ * checks on a seller page before reading anything else.
+ */
+const trust = computed(() => {
+  const d = profile.value?.dealer
+  if (!d) return []
+  const parts: string[] = [
+    d.ratingCount > 0
+      ? h.value.trust.ratings(count(d.ratingCount), decimal(d.sellerRating, 1))
+      : h.value.trust.noRatings,
+  ]
+  const year = d.registeredAt ? new Date(d.registeredAt).getFullYear() : Number.NaN
+  if (!Number.isNaN(year)) parts.push(h.value.trust.since(String(year)))
+  parts.push(h.value.listings(count(d.numForSale)))
+  if (d.shipsFrom) parts.push(h.value.shipsFrom(d.shipsFrom))
+  if (d.lastScannedAt) parts.push(h.value.trust.dug(since(d.lastScannedAt)))
+  return parts
 })
+
+/** The cheapest known postage for one record, and where the figure came from. */
+const postage = computed(() => {
+  const tiers = profile.value?.dealer.shippingTiers ?? []
+  const one =
+    tiers
+      .filter((tier) => tier.minItems <= 1 && (tier.maxItems === null || tier.maxItems >= 1))
+      .sort((a, b) => a.price - b.price)[0] ?? tiers[0]
+  if (!one) return null
+  return { amount: money(one.price, one.currency) ?? decimal(one.price, 2), source: one.source }
+})
+
+const newest = computed(() => {
+  const at = profile.value?.dealer.newestListedAt
+  const when = at ? Date.parse(at) : Number.NaN
+  return Number.isNaN(when) ? null : day(when)
+})
+
+const movedHere = computed(() => (selected.value ? (moved.value.get(selected.value) ?? 0) : 0))
+
+/*
+ * The way back from "hide": one line, pinned where the eye is.
+ *
+ * The foot of the screen still lists the hidden shops, but that is three
+ * screens down from the button that hid one. Undo has to stand where the
+ * hand is.
+ */
+const lastHidden = ref<{ username: string; name: string } | null>(null)
+
+async function hideShop(username: string, name: string) {
+  await setHidden(username, true)
+  if (!error.value) lastHidden.value = { username, name }
+}
+
+async function undoHide() {
+  const was = lastHidden.value
+  if (!was) return
+  lastHidden.value = null
+  await setHidden(was.username, false)
+}
+
+/*
+ * Where the open shop stands in the list, and its two neighbours.
+ *
+ * On a phone the sheet covers the list, so the neighbours are two buttons
+ * in the sheet; on a desk j and k walk the list the way they walk a mailbox.
+ */
+const position = computed(() =>
+  ordered.value.findIndex((dealer) => dealer.username === selected.value),
+)
+
+function step(delta: number) {
+  const rows = ordered.value
+  if (rows.length === 0) return
+  const at = position.value < 0 ? (delta > 0 ? -1 : rows.length) : position.value
+  const next = rows[Math.min(rows.length - 1, Math.max(0, at + delta))]
+  if (next && next.username !== selected.value) void select(next.username)
+}
+
+function onKey(event: KeyboardEvent) {
+  if (event.metaKey || event.ctrlKey || event.altKey) return
+  const target = event.target as HTMLElement | null
+  if (target?.closest('input, textarea, select, [contenteditable="true"]')) return
+  if (event.key === 'j') step(1)
+  else if (event.key === 'k') step(-1)
+}
+
+onMounted(() => window.addEventListener('keydown', onKey))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </script>
 
 <template>
@@ -778,6 +892,10 @@ const scanned = computed(() => {
       -->
       <div class="grid gap-8 lg:grid-cols-[26rem_1fr] lg:items-start xl:grid-cols-[30rem_1fr]">
         <div class="flex min-w-0 flex-col gap-4">
+          <!--
+            Where from, with the count each chip would keep (M34.1). A filter
+            that says what it leaves is a filter nobody has to try.
+          -->
           <div role="group" :aria-label="h.origin.label" class="flex flex-wrap gap-1">
             <button
               v-for="key in ORIGIN_FILTERS"
@@ -793,6 +911,7 @@ const scanned = computed(() => {
               @click="originBy(key)"
             >
               {{ key === 'home' ? h.origin.home(home) : h.origin[key] }}
+              <span class="fid-num ml-1 text-fid-text-muted">{{ originCounts[key] }}</span>
             </button>
           </div>
 
@@ -823,16 +942,18 @@ const scanned = computed(() => {
           </p>
 
           <!--
-            Four orderings, one row. The default is the only one that answers
-            the screen's own question; the other three are for tidying up and
-            comparing (M31.10).
+            Four orderings as plate words (M34.1), not a select. The default is
+            the only one that answers the screen's own question; the other
+            three are for tidying up and comparing (M31.10) — and an order is
+            a fact about the list, so it is set the way facts are set here.
           -->
-          <label v-else class="flex items-center gap-2 text-fid-xs text-fid-text-muted">
-            {{ h.sort.label }}
-            <select v-model="sort" class="fid-field px-2 py-1 text-fid-xs text-fid-text">
-              <option v-for="key in SORTS" :key="key" :value="key">{{ h.sort[key] }}</option>
-            </select>
-          </label>
+          <PlateTabs
+            v-else
+            :label="h.sort.label"
+            :options="sortOptions"
+            :value="sort"
+            @select="sort = $event as (typeof SORTS)[number]"
+          />
 
           <!--
             One list, with the group names as items of it.
@@ -871,17 +992,29 @@ const scanned = computed(() => {
             {{ h.more(count(rest)) }}
           </button>
         </div>
+
+        <!-- On a desk, before anything is open: a plate, not a blank. -->
+        <p v-if="!profile && !narrow" class="fid-plate hidden text-fid-text-muted lg:block">
+          {{ h.pick }}
+        </p>
+
         <!--
           Beside the list on a desk, over it on a phone (M31.14). One block of
           markup either way: `SheetFrame` renders its children in a slot, and
           a plain `<section>` renders the same children in place.
+
+          Inside, the order a buyer asks in (M34.1): who is this — does it fit
+          me — what will postage cost — what do they charge — what of mine do
+          they carry — what has moved — what did I buy here. Each answer under
+          a plate word, and the one filled action is the one the screen exists
+          for.
         -->
         <component
           :is="narrow ? SheetFrame : 'section'"
           v-if="profile"
           v-bind="
             narrow
-              ? { label: profile.dealer.displayName || profile.dealer.username }
+              ? { label: shopName }
               : {
                   class:
                     'flex min-w-0 flex-col gap-8 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:pr-1',
@@ -889,87 +1022,73 @@ const scanned = computed(() => {
           "
           @close="close()"
         >
-          <template #title>
-            {{ profile.dealer.displayName || profile.dealer.username }}
-          </template>
-          <div class="flex gap-4 rounded-fid-md border border-fid-border p-4">
+          <template #title>{{ shopName }}</template>
+
+          <!-- Over the list on a phone, the neighbours are one tap away. -->
+          <div v-if="narrow && ordered.length > 1" class="flex items-center justify-between">
+            <button
+              type="button"
+              class="fid-action fid-plate min-h-11 px-2 text-fid-text-muted hover:text-fid-text disabled:opacity-40"
+              :disabled="position <= 0"
+              :aria-label="h.prev"
+              @click="step(-1)"
+            >
+              <FidIcon name="arrow-left" :size="16" aria-hidden="true" />
+            </button>
+            <span class="fid-plate text-fid-text-muted">
+              {{ m.common.ofTotal(position + 1, ordered.length) }}
+            </span>
+            <button
+              type="button"
+              class="fid-action fid-plate min-h-11 px-2 text-fid-text-muted hover:text-fid-text disabled:opacity-40"
+              :disabled="position >= ordered.length - 1"
+              :aria-label="h.next"
+              @click="step(1)"
+            >
+              <FidIcon name="arrow-right" :size="16" aria-hidden="true" />
+            </button>
+          </div>
+
+          <header class="flex gap-4">
             <!--
               The shop's own face, at a size that is a face rather than a
-              bullet (M31.8). In the list it is 32 px; here there is room for
-              one that can be recognised across the screen.
+              bullet. In the list it is 32 px; here there is room for one that
+              can be recognised across the screen.
             -->
             <ShopLogo
               :dealer="profile.dealer.username"
               :avatar-url="profile.dealer.avatarUrl"
-              :size="48"
+              :size="56"
               class="shrink-0"
             />
             <div class="flex min-w-0 grow flex-col gap-3">
-              <p
-                v-if="profile.dealer.lastScannedAt === null"
-                class="text-fid-base text-fid-text"
-              >
-                {{ h.neverScanned }}
+              <h2 v-if="!narrow" class="fid-display text-fid-xl font-medium text-fid-text">
+                {{ shopName }}
+              </h2>
+              <p class="fid-num text-fid-sm text-fid-text-muted" data-prose="data">
+                {{ trust.join(' · ') }}
               </p>
-              <p v-else class="text-fid-base text-fid-text">{{ verdict }}</p>
-              <p class="text-fid-sm text-fid-text-muted">
-                {{ h.listings(count(profile.dealer.numForSale)) }}
-                <template v-if="profile.dealer.shipsFrom">
-                  · {{ h.shipsFrom(profile.dealer.shipsFrom) }}</template
+              <p v-if="profile.dealer.suspended" class="text-fid-sm text-fid-sig-gap">
+                {{ h.trust.suspended }}
+              </p>
+
+              <!--
+                One filled action, and every other one with its word beside
+                the icon. Filled is the one the screen exists for (M31.3); the
+                round above steps back to the middle volume for the same
+                reason. Hiding is a plate word: reachable, not proposed.
+              -->
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <NuxtLink
+                  :to="`/dig?dealer=${encodeURIComponent(profile.dealer.username)}`"
+                  class="fid-action fid-fill rounded-fid-sm bg-fid-accent-fill px-4 py-2 text-fid-sm font-medium text-fid-on-accent"
                 >
-                <template v-if="profile.dealer.ratingCount > 0">
-                  ·
-                  {{
-                    h.rating(
-                      `${profile.dealer.sellerRating} %`,
-                      count(profile.dealer.ratingCount),
-                    )
-                  }}
-                </template>
-                <template v-if="scanned"> · {{ h.lastScanned(scanned) }}</template>
-              </p>
-
-              <!--
-              And directly below it, the number Discogs does not keep.
-
-              Above the row sits the seller rating: that measures the process —
-              shipped quickly, packed properly — and says nothing about whether
-              the grade was right. Which is exactly why this row is here and not
-              in a section of its own: side by side you read the difference; one
-              above the other they would never meet.
-
-              The promised grade is in none of these numbers. What is stored is
-              only the comparison (worker/grading.ts).
-            -->
-              <div v-if="grading && grading.judged > 0" class="flex flex-col gap-1">
-                <p class="fid-num text-fid-sm text-fid-text">
-                  <template v-if="grading.rate !== null">
-                    {{
-                      h.grading.rate(
-                        `${Math.round(grading.rate * 100)} %`,
-                        count(grading.judged),
-                      )
-                    }}
-                  </template>
-                  <template v-else>
-                    {{ h.grading.tooFew(count(grading.judged), grading.judged === 1) }}
-                  </template>
-                  <template v-if="grading.worse > 0">
-                    {{ h.grading.worse(count(grading.worse), grading.worse === 1) }}
-                  </template>
-                </p>
-                <WhyNote :label="h.grading.whyLabel">{{ h.grading.why }}</WhyNote>
-              </div>
-
-              <!--
-              Watching costs one request per app start, not a rescan. Worth
-              saying, because "beobachten" usually means somebody is polling.
-            -->
-              <div class="flex flex-wrap items-center gap-3">
+                  {{ profile.dealer.lastScannedAt === null ? h.digNow : h.digAgain }}
+                </NuxtLink>
                 <button
                   type="button"
                   :aria-pressed="isWatched(profile.dealer.username)"
-                  class="fid-action rounded-fid-sm px-3 py-2 text-fid-sm transition-colors"
+                  class="fid-action gap-2 rounded-fid-sm px-3 py-2 text-fid-sm transition-colors"
                   :class="
                     isWatched(profile.dealer.username)
                       ? 'fid-tonal'
@@ -977,52 +1096,17 @@ const scanned = computed(() => {
                   "
                   @click="watchToggle(profile.dealer.username)"
                 >
+                  <FidIcon
+                    :name="isWatched(profile.dealer.username) ? 'eye' : 'eye-off'"
+                    :size="14"
+                    aria-hidden="true"
+                  />
                   {{ isWatched(profile.dealer.username) ? h.watching : h.watch }}
                 </button>
                 <!--
-                The shop with the best hit rate sits at the top of this list, and
-                until now there was nothing to do about it from here. Ranking
-                shops and then making somebody retype the name is the ranking
-                doing half its job.
-              -->
-                <!--
-                And this one is filled, because it is the action the screen
-                exists for (M31.3). The round above steps back to the middle
-                volume: walking every watched shop is the second path, and two
-                filled surfaces on one screen mean neither is the answer.
-              -->
-                <NuxtLink
-                  :to="`/dig?dealer=${encodeURIComponent(profile.dealer.username)}`"
-                  class="fid-action fid-fill rounded-fid-sm bg-fid-accent-fill px-4 py-2 text-fid-sm font-medium text-fid-on-accent"
-                >
-                  {{ profile.dealer.lastScannedAt === null ? h.digNow : h.digAgain }}
-                </NuxtLink>
-                <!--
-                And the one that takes something away steps back.
-                Three bordered buttons of the same weight, one of which removes
-                the shop from every list — read side by side they all look like
-                the same kind of offer. A plate action instead: reachable, not
-                proposed.
-              -->
-                <button
-                  type="button"
-                  class="fid-action fid-plate px-1 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
-                  :title="h.hideWhy"
-                  @click="setHidden(profile.dealer.username, true)"
-                >
-                  {{ h.hide }}
-                </button>
-                <!--
-                And the shop itself, at Discogs (M32.3).
-
-                Everything this screen knows about a shop it worked out from
-                its inventory — the hit rate, the labels, the price band. What
-                it cannot know is what the seller wrote about themselves:
-                postage tables in prose, holiday notices, the return policy.
-                That page is one tap away now instead of a name to retype.
-
-                `/seller/{u}/profile` rather than `/user/{u}`: the first is the
-                shop, the second is the person, and this list is about shops.
+                  The seller's own page (M32.3): postage tables in prose,
+                  holiday notices, the return policy. `/seller/{u}/profile`
+                  rather than `/user/{u}`: the first is the shop.
                 -->
                 <OutwardLink
                   tone="inherit"
@@ -1031,82 +1115,68 @@ const scanned = computed(() => {
                 >
                   {{ h.atDiscogs }}
                 </OutwardLink>
-                <span class="text-fid-xs text-fid-text-muted">{{ h.watchCost }}</span>
-              </div>
-
-              <!--
-              And the part a browser cannot do alone.
-              Only shown for a shop that is actually watched, and only where it
-              can work: no hub, no support, or a refusal in the browser settings
-              and there is nothing here at all — rather than a switch that would
-              promise something nobody can keep (rule 8).
-            -->
-              <div
-                v-if="
-                  isWatched(profile.dealer.username) &&
-                  push !== 'no-hub' &&
-                  push !== 'unsupported' &&
-                  push !== 'denied'
-                "
-                class="flex flex-wrap items-center gap-3"
-              >
                 <button
-                  v-if="push === 'off'"
                   type="button"
-                  :disabled="pushBusy"
-                  class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text disabled:opacity-60"
-                  @click="enablePush()"
+                  class="fid-action fid-plate min-h-11 text-fid-text-muted transition-colors hover:text-fid-text"
+                  :aria-label="h.hide"
+                  :title="h.hideWhy"
+                  @click="hideShop(profile.dealer.username, shopName)"
                 >
-                  {{ h.pushOffer }}
+                  {{ h.hideShort }}
                 </button>
-                <template v-else-if="push === 'on'">
-                  <span class="text-fid-sm text-fid-text">{{ h.pushOn }}</span>
-                  <button
-                    type="button"
-                    :disabled="pushBusy"
-                    class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4 disabled:opacity-60"
-                    @click="disablePush()"
-                  >
-                    {{ h.pushStop }}
-                  </button>
-                </template>
-                <span class="text-fid-xs text-fid-text-muted">
-                  {{ push === 'needs-install' ? h.pushInstall : h.pushWhy }}
-                </span>
               </div>
             </div>
-          </div>
+          </header>
+
+          <section aria-labelledby="plate-fit" class="flex flex-col gap-2">
+            <h2 id="plate-fit" class="fid-plate text-fid-text-muted">{{ h.plates.fit }}</h2>
+            <p v-if="profile.dealer.lastScannedAt === null" class="text-fid-base text-fid-text">
+              {{ h.neverScanned }}
+            </p>
+            <template v-else>
+              <p class="text-fid-base text-fid-text">{{ verdict }}</p>
+              <WhyNote :label="h.rateWhyLabel">{{ h.rateWhy }}</WhyNote>
+            </template>
+          </section>
 
           <!--
-            Coverage is stated, not implied. A fingerprint built from 20.000 of
-            36.000 listings describes a bit more than half a shop, and saying so
-            is the difference between a statistic and a claim.
+            What it costs to get a record here. The cheapest tier this device
+            knows for one record and where the figure came from — and where
+            there is none, the honest word and the one place it can be typed.
+            The seller's own prose stays folded: it is the source, not the
+            answer.
           -->
-          <p
-            v-if="profile.dealer.fingerprint && profile.dealer.fingerprint.coverage < 0.99"
-            class="text-fid-sm text-fid-sig-gap"
-          >
-            {{
-              h.coverage(
-                count(profile.dealer.fingerprint.sampledItems),
-                count(profile.dealer.fingerprint.totalItems),
-                Math.round(profile.dealer.fingerprint.coverage * 100),
-              )
-            }}
-          </p>
+          <section aria-labelledby="plate-postage" class="flex flex-col gap-2">
+            <h2 id="plate-postage" class="fid-plate text-fid-text-muted">
+              {{ h.plates.postage }}
+            </h2>
+            <p v-if="postage" class="text-fid-base text-fid-text">
+              <span class="fid-num">{{ h.postage.from(postage.amount) }}</span>
+              <span class="text-fid-sm text-fid-text-muted">
+                · {{ b.source[postage.source] }}</span
+              >
+            </p>
+            <p v-else class="text-fid-base text-fid-text-muted">
+              {{ h.postage.unknown }}
+              <NuxtLink to="/basket" class="text-fid-accent underline underline-offset-4">
+                {{ h.postage.enter }}
+              </NuxtLink>
+            </p>
+            <WhyNote v-if="profile.dealer.shippingNote" :label="h.postage.text">
+              {{ profile.dealer.shippingNote }}
+            </WhyNote>
+          </section>
 
-          <div
+          <section
             v-if="profile.dealer.fingerprint && profile.dealer.fingerprint.medianPrice > 0"
-            class="flex flex-col gap-1"
+            aria-labelledby="plate-price"
+            class="flex flex-col gap-2"
           >
-            <h2 class="text-fid-sm font-medium text-fid-text">{{ h.priceTitle }}</h2>
+            <h2 id="plate-price" class="fid-plate text-fid-text-muted">{{ h.plates.price }}</h2>
             <!--
-              A median is a bare number and carries no unit.
-              This printed it with a hard-coded euro sign, so a shop pricing in
-              pounds showed its median as euros — a real number under the wrong
-              symbol, which is worse than no number. Inventory prices always come
-              back in the seller's currency, so the scan records which one it saw
-              and says nothing where a shop mixes them.
+              A median is a bare number and carries no unit. Inventory prices
+              come back in the seller's currency, so the scan records which one
+              it saw and says nothing where a shop mixes them.
             -->
             <p class="text-fid-base text-fid-text">
               <span class="fid-num">{{
@@ -1123,21 +1193,20 @@ const scanned = computed(() => {
               <template v-if="pricePosition"> – {{ pricePosition }}</template>
             </p>
             <WhyNote :label="h.priceWhyLabel">{{ h.priceWhy }}</WhyNote>
-          </div>
+          </section>
 
           <!--
             Four sleeves of your own on the labels this shop carries (M31.4).
-
-            A shop described in numbers is a shop nobody pictures. This is the
-            same fact as the bars below it — "stocks Kompakt, Ostgut Ton,
-            Dekmantel" — as four records you already own, and it says in half a
-            second what the bars say in ten.
-
-            Costs nothing: the covers are asked for with fetching switched off,
-            so what is on hand is shown and the rest simply is not.
+            The same fact as the bars below — "stocks Kompakt, Ostgut Ton,
+            Dekmantel" — as four records you already own. Costs nothing: the
+            covers are asked for with fetching switched off.
           -->
-          <section v-if="profile.shelf.length > 0" class="flex flex-col gap-3">
-            <h2 class="text-fid-sm font-medium text-fid-text">{{ h.shelfSample }}</h2>
+          <section
+            v-if="profile.shelf.length > 0"
+            aria-labelledby="plate-shelf"
+            class="flex flex-col gap-3"
+          >
+            <h2 id="plate-shelf" class="fid-plate text-fid-text-muted">{{ h.plates.shelf }}</h2>
             <ul class="flex flex-wrap gap-3">
               <li v-for="record in profile.shelf" :key="record.releaseId">
                 <NuxtLink
@@ -1171,45 +1240,159 @@ const scanned = computed(() => {
             </p>
           </section>
 
-          <div class="grid gap-8 @md:grid-cols-2 @5xl:grid-cols-3">
-            <FacetBars
-              :title="h.labelsInStock"
-              signal="label"
-              :facets="labels"
-              :empty="h.noLabels"
-              :open="(facet) => (browsing = { title: facet.name, label: facet.name })"
+          <!--
+            What is on the shelves. Coverage is stated, not implied: a
+            fingerprint built from 20.000 of 36.000 listings describes a bit
+            more than half a shop, and saying so is the difference between a
+            statistic and a claim.
+          -->
+          <section aria-labelledby="plate-range" class="flex flex-col gap-4">
+            <h2 id="plate-range" class="fid-plate text-fid-text-muted">{{ h.plates.range }}</h2>
+            <p
+              v-if="profile.dealer.fingerprint && profile.dealer.fingerprint.coverage < 0.99"
+              class="text-fid-sm text-fid-sig-gap"
+            >
+              {{
+                h.coverage(
+                  count(profile.dealer.fingerprint.sampledItems),
+                  count(profile.dealer.fingerprint.totalItems),
+                  Math.round(profile.dealer.fingerprint.coverage * 100),
+                )
+              }}
+            </p>
+
+            <div class="grid gap-8 @md:grid-cols-2 @5xl:grid-cols-3">
+              <FacetBars
+                :title="h.labelsInStock"
+                signal="label"
+                :facets="labels"
+                :empty="h.noLabels"
+                :open="(facet) => (browsing = { title: facet.name, label: facet.name })"
+              />
+              <FacetBars
+                :title="h.decades"
+                signal="gap"
+                token="label"
+                :facets="decades"
+                :empty="h.noYears"
+                :open="
+                  (facet) => (browsing = { title: facet.name, decade: decadeOf(facet.name) })
+                "
+              />
+            </div>
+
+            <!--
+              What is behind a bar, underneath the bars. No screen of its own
+              and no dialog: the number above is the context.
+            -->
+            <DealerStock
+              v-if="browsing"
+              :key="browsing.title"
+              :dealer="profile.dealer.username"
+              :title="browsing.title"
+              :label="browsing.label ?? null"
+              :decade="browsing.decade ?? null"
+              @close="browsing = null"
             />
-            <FacetBars
-              :title="h.decades"
-              signal="gap"
-              token="label"
-              :facets="decades"
-              :empty="h.noYears"
-              :open="
-                (facet) => (browsing = { title: facet.name, decade: decadeOf(facet.name) })
-              "
-            />
-          </div>
+          </section>
 
           <!--
-            What is behind a bar, underneath the bars. No screen of its own and
-            no dialog: the number above is the context, and somebody going
-            through a row of labels does not want to navigate back after each
-            one.
+            What has moved since you last looked, and the newest thing on the
+            shelf. Watching costs one request per app start, not a rescan —
+            said in the fold, because "watch" usually means somebody is
+            polling.
           -->
-          <DealerStock
-            v-if="browsing"
-            :key="browsing.title"
-            :dealer="profile.dealer.username"
-            :title="browsing.title"
-            :label="browsing.label ?? null"
-            :decade="browsing.decade ?? null"
-            @close="browsing = null"
-          />
+          <section aria-labelledby="plate-movement" class="flex flex-col gap-2">
+            <h2 id="plate-movement" class="fid-plate text-fid-text-muted">
+              {{ h.plates.movement }}
+            </h2>
+            <p v-if="movedHere > 0" class="text-fid-base text-fid-text">
+              <span class="fid-num">+{{ count(movedHere) }}</span> · {{ shopName }}
+              {{ m.watch.moved(count(movedHere), movedHere === 1) }}
+            </p>
+            <p
+              v-else-if="isWatched(profile.dealer.username)"
+              class="text-fid-base text-fid-text-muted"
+            >
+              {{ h.movement.still }}
+            </p>
+            <p v-else class="text-fid-base text-fid-text-muted">{{ h.movement.unwatched }}</p>
+            <p v-if="newest" class="fid-num text-fid-sm text-fid-text-muted" data-prose="data">
+              {{ h.movement.newest(newest) }}
+            </p>
+            <WhyNote :label="h.watchCostLabel">{{ h.watchCost }}</WhyNote>
 
-          <p v-if="profile.dealer.shippingNote" class="text-fid-sm text-fid-text-muted">
-            {{ profile.dealer.shippingNote }}
-          </p>
+            <!--
+              And the part a browser cannot do alone. Only for a shop that is
+              watched, and only where it can work: no hub, no support, or a
+              refusal in the browser settings and there is nothing here at all
+              (rule 8).
+            -->
+            <div
+              v-if="
+                isWatched(profile.dealer.username) &&
+                push !== 'no-hub' &&
+                push !== 'unsupported' &&
+                push !== 'denied'
+              "
+              class="flex flex-wrap items-center gap-3"
+            >
+              <button
+                v-if="push === 'off'"
+                type="button"
+                :disabled="pushBusy"
+                class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text disabled:opacity-60"
+                @click="enablePush()"
+              >
+                {{ h.pushOffer }}
+              </button>
+              <template v-else-if="push === 'on'">
+                <span class="text-fid-sm text-fid-text">{{ h.pushOn }}</span>
+                <button
+                  type="button"
+                  :disabled="pushBusy"
+                  class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4 disabled:opacity-60"
+                  @click="disablePush()"
+                >
+                  {{ h.pushStop }}
+                </button>
+              </template>
+              <span class="text-fid-xs text-fid-text-muted">
+                {{ push === 'needs-install' ? h.pushInstall : h.pushWhy }}
+              </span>
+            </div>
+          </section>
+
+          <!--
+            The number Discogs does not keep (M14). The seller rating above
+            measures the process — shipped quickly, packed properly — and says
+            nothing about whether the grade was right. This one is yours
+            alone. The promised grade is in none of these numbers; what is
+            stored is only the comparison (worker/grading.ts).
+          -->
+          <section
+            v-if="grading && grading.judged > 0"
+            aria-labelledby="plate-purchases"
+            class="flex flex-col gap-2"
+          >
+            <h2 id="plate-purchases" class="fid-plate text-fid-text-muted">
+              {{ h.plates.purchases }}
+            </h2>
+            <p class="fid-num text-fid-base text-fid-text">
+              <template v-if="grading.rate !== null">
+                {{
+                  h.grading.rate(`${Math.round(grading.rate * 100)} %`, count(grading.judged))
+                }}
+              </template>
+              <template v-else>
+                {{ h.grading.tooFew(count(grading.judged), grading.judged === 1) }}
+              </template>
+              <template v-if="grading.worse > 0">
+                {{ h.grading.worse(count(grading.worse), grading.worse === 1) }}
+              </template>
+            </p>
+            <WhyNote :label="h.grading.whyLabel">{{ h.grading.why }}</WhyNote>
+          </section>
         </component>
       </div>
     </template>
@@ -1295,13 +1478,14 @@ const scanned = computed(() => {
     </section>
 
     <!--
-      A shop entered by hand, above the discovery box.
+      A shop entered by hand — the one field at the foot (M34.1).
 
-      Above it deliberately: somebody who already knows the name has the
-      shortest path in the app, and the search below is for when they do not.
-      Both sit under the list, because adding a shop is what you do *after*
-      looking at the ones you have — and on a device with none, the empty line
-      above points straight down here.
+      Under the list, because adding a shop is what you do *after* looking at
+      the ones you have; on a device with none, the empty line above points
+      straight down here. The search through orders and friends that stood
+      below this moved to the settings: measured on 2026-09-11, the orders
+      side finds shops that bought from *you*, and a purchase now writes its
+      seller onto this list by itself (worker/orders.ts).
     -->
     <form class="flex flex-wrap items-end gap-3" @submit.prevent="addByHand">
       <div class="flex min-w-64 grow flex-col gap-2">
@@ -1327,7 +1511,6 @@ const scanned = computed(() => {
       </button>
     </form>
 
-    <DealerDiscovery :first-time="dealers.length === 0" @imported="load()" />
     <section
       v-if="hidden.length > 0"
       class="flex flex-col gap-2"
@@ -1354,5 +1537,21 @@ const scanned = computed(() => {
         </li>
       </ul>
     </section>
+
+    <!-- The way back, pinned where the eye is. -->
+    <p
+      v-if="lastHidden"
+      role="status"
+      class="fixed bottom-4 left-4 z-30 flex flex-wrap items-center gap-3 rounded-fid-sm border border-fid-border bg-fid-surface px-4 py-2 text-fid-sm text-fid-text shadow-lg"
+    >
+      {{ h.hiddenLine(lastHidden.name) }}
+      <button
+        type="button"
+        class="fid-action min-h-11 text-fid-sm text-fid-accent underline underline-offset-4"
+        @click="undoHide"
+      >
+        {{ h.undo }}
+      </button>
+    </p>
   </AppPage>
 </template>
