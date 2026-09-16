@@ -64,11 +64,23 @@ const library = computed(() => {
   return st.value.library.summary(count(counts.collection), count(counts.wantlist ?? 0))
 })
 
+const size = (bytes: number) =>
+  bytes < 1024 * 1024
+    ? `${count(Math.round(bytes / 1024))} KB`
+    : `${decimal(bytes / 1024 / 1024)} MB`
+/*
+ * The data apart from the cover cache, where the browser tells them apart.
+ * On Chrome the total is mostly padding — every cached cover is booked at
+ * about seven megabytes (app/sw/sw.ts) — and "3,898 MB" for sixty-six records
+ * read as a fault. The line names what is actually there.
+ */
 const usage = computed(() => {
-  const bytes = stats.value?.usageBytes
-  if (bytes === null || bytes === undefined) return null
-  if (bytes < 1024 * 1024) return `${count(Math.round(bytes / 1024))} KB`
-  return `${decimal(bytes / 1024 / 1024)} MB`
+  const s = stats.value
+  if (!s) return null
+  if (s.dataBytes !== null && s.coverEntries !== null)
+    return st.value.account.usedLine(size(s.dataBytes), count(s.coverEntries))
+  if (s.usageBytes === null) return null
+  return size(s.usageBytes)
 })
 
 const sync = computed(() => {

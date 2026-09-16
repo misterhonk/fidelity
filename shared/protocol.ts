@@ -116,6 +116,14 @@ export interface DbStats {
   /** From navigator.storage.estimate(); null where the browser withholds it. */
   usageBytes: number | null
   quotaBytes: number | null
+  /**
+   * IndexedDB alone, from Chrome's `usageDetails`; null elsewhere. The total
+   * is mostly the cover cache, and on Chrome that is padding — every opaque
+   * image is booked at about seven megabytes (`app/sw/sw.ts`).
+   */
+  dataBytes: number | null
+  /** Covers in the service worker's cache; null where there is none. */
+  coverEntries: number | null
   /** Whether the browser promised not to evict us after seven idle days. */
   persisted: boolean
 }

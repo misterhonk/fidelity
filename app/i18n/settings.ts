@@ -66,6 +66,8 @@ const en = {
     dataLives: 'Data lives',
     inThisBrowser: 'in this browser, on this device',
     used: 'Used',
+    /* Chrome books every cached cover at ~7 MB; the data and the cache are told apart. */
+    usedLine: (data: string, covers: string) => `${data} of data · ${covers} covers cached`,
     protected: 'protected from being cleared',
     signOut: 'Sign out',
     signOutWarning:
@@ -758,6 +760,7 @@ const de: typeof en = {
     dataLives: 'Daten liegen',
     inThisBrowser: 'in diesem Browser, auf diesem Gerät',
     used: 'Belegt',
+    usedLine: (data, covers) => `${data} Daten · ${covers} Cover im Cache`,
     protected: 'vor Aufräumen geschützt',
     signOut: 'Abmelden',
     signOutWarning:

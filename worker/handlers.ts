@@ -93,15 +93,30 @@ async function dbStats(): Promise<DbStats> {
   // what we get and null out the rest rather than inventing a number.
   let usageBytes: number | null = null
   let quotaBytes: number | null = null
+  let dataBytes: number | null = null
+  let coverEntries: number | null = null
   let persisted = false
   if (typeof navigator !== 'undefined' && navigator.storage) {
     const estimate = await navigator.storage.estimate?.()
     usageBytes = estimate?.usage ?? null
     quotaBytes = estimate?.quota ?? null
+    // Chrome only, and not in the standard: what IndexedDB takes on its own.
+    const details = (estimate as { usageDetails?: { indexedDB?: number } } | undefined)
+      ?.usageDetails
+    dataBytes = details?.indexedDB ?? null
     persisted = (await navigator.storage.persisted?.()) ?? false
   }
+  if (typeof caches !== 'undefined') {
+    try {
+      coverEntries = (await caches.has('fidelity-covers'))
+        ? (await (await caches.open('fidelity-covers')).keys()).length
+        : 0
+    } catch {
+      coverEntries = null
+    }
+  }
 
-  return { counts, usageBytes, quotaBytes, persisted }
+  return { counts, usageBytes, quotaBytes, dataBytes, coverEntries, persisted }
 }
 
 /**

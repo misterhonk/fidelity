@@ -244,13 +244,21 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
  * CacheFirst because a cover never changes: the URLs are content-addressed, so
  * a different image is a different address.
  *
- * docs/06 M6 asks for a 150 MB cap and Workbox counts entries, not bytes. Six
- * thousand is that budget in the unit available, at the ~25 KB a 150px
- * thumbnail weighs; `purgeOnQuotaError` is the real safety net, dropping the
- * cache instead of letting writes fail silently when the estimate is wrong.
+ * docs/06 M6 asked for a 150 MB cap, Workbox counts entries, not bytes, and
+ * six thousand entries was that budget at the ~25 KB a thumbnail weighs.
+ * **The arithmetic was wrong for Chrome.** i.discogs.com sends no CORS
+ * header, so every cover arrives opaque — and Chrome books an opaque
+ * response at roughly seven megabytes of quota, whatever its real size, so
+ * that a page cannot measure a cross-origin body through the cache. Measured
+ * on 2026-09-16 on the demo device: 549 covers, 4,082 MB in the estimate,
+ * six in IndexedDB. Six thousand would be forty gigabytes of accounting on
+ * a fifteen-gigabyte quota, and `purgeOnQuotaError` would throw the whole
+ * cache away every few hundred sleeves. Three hundred entries book at about
+ * two gigabytes and weigh eight; the oldest go first. `purgeOnQuotaError`
+ * stays as the safety net.
  *
- * Status 0 is kept on purpose: a cross-origin image without CORS headers
- * arrives opaque, and refusing those would cache nothing at all.
+ * Status 0 is kept on purpose: the opaque response is the only one there is,
+ * and refusing it would cache nothing at all.
  */
 registerRoute(
   ({ url }) => url.hostname === 'i.discogs.com',
@@ -258,7 +266,7 @@ registerRoute(
     cacheName: 'fidelity-covers',
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 6000,
+        maxEntries: 300,
         maxAgeSeconds: 60 * 60 * 24 * 90,
         purgeOnQuotaError: true,
       }),

@@ -194,7 +194,9 @@ The rate limit is the only resource that is genuinely scarce.
 - **Never `/releases/{id}` in a loop** — the project's most expensive rule
 - `/marketplace/stats/` only for the **top 50** by preliminary score, not for every match
 - **Images do not count against the API budget** but have a Cloudflare limit of their own
-  (~30–40/min) → lazy, viewport only, `CacheStorage` with an LRU cap at 150 MB
+  (~30–40/min) → lazy, viewport only, `CacheStorage` with an LRU cap of 300 entries — not
+  bytes: the covers are opaque responses, and Chrome books each at ~7 MB of quota
+  (`app/sw/sw.ts`, measured 2026-09-16)
 - Interrupted digs are resumable: the page cursor is persisted
 - Horizon expansion runs in small bites and survives reloads
 
