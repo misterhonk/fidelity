@@ -11,6 +11,19 @@ Für eine App bedeutet SemVer:
 
 ## [0.91.1](https://github.com/misterhonk/fidelity/compare/v0.91.0...v0.91.1) (2026-09-16)
 
+**Zwei Dinge, die die Demo-Sammlung beim dritten Rundgang gezeigt hat.**
+
+Ein Dig, der fertig war und dann seine sechs Stunden hinter sich hatte, stand auf der
+Startseite als „unterbrochen – 2.871 von 2.871 waren durch". Abgelaufen ist nicht
+abgebrochen; der Satz kommt nur noch, wenn ein Scan wirklich stehen geblieben ist.
+
+Und unter Konto stand „Belegt 3.898 MB" für sechsundsechzig Platten. Das waren keine
+Bytes: Chrome verbucht jedes gecachte Cover mit rund sieben Megabyte, weil die Bilder von
+Discogs ohne CORS-Kopf kommen. Der Cover-Cache hält jetzt dreihundert statt sechstausend,
+und die Zeile sagt, was wirklich da ist — „6 MB Daten · 300 Cover im Cache".
+
+**Was zu tun ist:** Nichts. Der Cache räumt sich beim nächsten Öffnen selbst auf.
+
 
 ### Fixed
 
