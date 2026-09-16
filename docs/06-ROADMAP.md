@@ -251,10 +251,13 @@ golden dig found a real bug in S9 on its first run (see `docs/04` §S9).
 
 **Notes:**
 
-- **The 150 MB cap became 6,000 entries.** Workbox's `ExpirationPlugin` counts entries and
-  age, not bytes — there is no byte cap there. 6,000 is the same budget in the available
-  unit, computed with the ~25 kB a 150 px thumbnail weighs. `purgeOnQuotaError` is the real
-  safety net should the estimate be off.
+- **The 150 MB cap became 6,000 entries — and then 300.** Workbox's `ExpirationPlugin`
+  counts entries and age, not bytes. 6,000 was the budget at the ~25 kB a thumbnail weighs,
+  and wrong for Chrome: i.discogs.com sends no CORS header, every cover arrives opaque, and
+  Chrome books an opaque response at about seven megabytes of quota whatever its size.
+  Measured 2026-09-16 on the demo device: 549 covers, 4,082 MB in the estimate, six in
+  IndexedDB. 300 entries book at two gigabytes and weigh eight; the settings tell the data
+  and the cache apart.
 - **The banner promises no more than the number supports.** `num_for_sale` moving by 40
   does not mean "40 new records" — sell five and list five and it moves by zero. The text
   says "40 more listings on offer than last time" and explains the caveat underneath.
@@ -1483,6 +1486,28 @@ four workers instead of the two the default gave, browsers in the image instead 
 seconds of downloading, and a wait in the seed that watched the network fall quiet instead of
 watching for a screen. The diagnosis was wrong twice before it was right — Playwright's
 worker *index* counts restarts, not slots — and both corrections are in the commits.
+
+## M33 · The third walk with the demo account → proposed
+
+**Where these come from.** The demo account (`docs/19`) walked on 2026-09-16 through the
+screens M29 to M32 built: the shops list with a profile beside it, a dig of twenty-seven
+finds in all three densities, the masthead and the walk from inside the sheet, the wantlist,
+the settings. Read against the M26 rule — per screen one large thing, one loud sentence,
+everything else a plate — and against what the device actually held. Proposed, not
+scheduled; two things were found and fixed on the spot (`v0.91.1`).
+
+| # | Candidate | Serves | Cost | Note |
+|---|---|---|---|---|
+| 1 | **The reason, once.** Twenty of twenty-seven cards said the same sentence: "*X* steht schon in deiner Sammlung – diese Platte nicht." A reason that repeats is not a reason, it is a category. Where the lead signal is the same across a stretch of finds, the card carries it as a plate — "IM REGAL · Four Tet · 5" — and the sentence stays for the cards that have more to say | Every dig against a shop that stocks what you already collect — most of them | hours | `worker/match/reason.ts` writes the sentence; the card decides what to draw |
+| 2 | **A tie-break that says its name.** Twenty finds at 48: "by score" orders nothing among them, and the list is whatever the scan happened to write first. A second key when scores tie — the price, or the year — and the sort plate saying so: "Score, dann Preis" | The same digs | hours | `digview` sorts; the plate is a string |
+| 3 | **One head, one loud thing.** Above the finds stand "fatplastics nochmal graben", "Rest bauen", "Eine nach der anderen" and a bordered box with "Preise auffrischen (32)" — four calls before the first record. The refresh becomes a plate action in the head's line, the stack mode a plate, the horizon's rest a sentence in the settings | Every dig older than six hours | half a day | The folding head from M32 already carries the field and the shops |
+| 4 | **"Randnotiz ?" once, not per card.** The help mark under every score repeats twenty-seven times; one "Warum?" at the head of the list, the way the plan box does it | Sixty-word rule, in spirit | an hour | |
+| 5 | **Covers for what is on the screen first.** A find's cover costs one `/releases/{id}` at the pace of one per 1.2 s; twenty-seven finds are half a minute of dark tiles, and the crate — sleeves only — is a dark wall until then. The visible rows first (an `IntersectionObserver` on the list), nothing while the tab is hidden, and the hub's cover pool where a hub is connected | The crate, and every list on a slow evening | half a day | `db/covers.ts` queues; the order is the question |
+| 6 | **Found and fixed.** A dig that finished and then aged out of its six hours read "Dieser Dig wurde unterbrochen – 2.871 von 2.871 waren durch." on the start page: `complete` was `status === 'done'`, and an expired dig is not done. And the settings said "Belegt 3.898 MB" for sixty-six records: Chrome books every cached cover — an opaque response, i.discogs.com sends no CORS header — at about seven megabytes of quota; 549 covers were four gigabytes of accounting on a fifteen-gigabyte quota, six thousand would have been forty. The cache holds three hundred now, and the line tells the data and the cache apart | | | `v0.91.1` |
+
+**Checked and left out:** the shops list and the profile beside it (nothing to add); the
+masthead and the walk with arrows and `?find=` (as designed); the compact table (as
+designed); the wantlist's first sentence (M28 #5, holds).
 
 ## Not on the roadmap
 
