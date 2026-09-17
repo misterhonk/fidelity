@@ -9,6 +9,13 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.98.0](https://github.com/misterhonk/fidelity/compare/v0.97.0...v0.98.0) (2026-09-17)
+
+
+### Added
+
+* **i18n:** the errors, the notices and the token screen speak from behind the counter ([8b0bfb3](https://github.com/misterhonk/fidelity/commit/8b0bfb39270a737b93fe2b567bcd1c43383a59c8))
+
 ## [0.97.0](https://github.com/misterhonk/fidelity/compare/v0.96.0...v0.97.0) (2026-09-17)
 
 **Korb und Sammlung sprechen jetzt auch vom Tresen aus.**
