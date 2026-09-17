@@ -11,6 +11,22 @@ Für eine App bedeutet SemVer:
 
 ## [0.102.0](https://github.com/misterhonk/fidelity/compare/v0.101.0...v0.102.0) (2026-09-17)
 
+**Kopier deinen Discogs-Warenkorb in den Korb, und wir wissen, was jeder Laden fürs Porto nimmt.**
+
+Dritte Portion vom Versandprofil. Die Warenkorb-Seite bei Discogs zeigt für jeden Laden, was
+das Porto für genau diese Platten kostet, und die API sagt es für mehr als eine Platte nicht.
+Markier die Seite, kopier sie, füg sie in den Kasten „Aus dem Discogs-Warenkorb" ein. Wir lesen
+daraus pro Laden die Anzahl und das Porto und merken es uns als Staffel, so weit die Seite
+sagt, dass es hält („bis zu 42 weitere ohne Aufpreis"). Dazu die Grenze, ab der der Laden
+portofrei schickt, und den Mindestbestellwert, wenn die Seite sagt, wie viel noch fehlt.
+Kostet keine Anfrage. Links zu Platten gehen weiter wie bisher in denselben Kasten.
+
+Gelesen gegen drei echte Warenkörbe mit sieben Läden, deutsche und englische Oberfläche.
+Die Texte von green_hell, recordsale-de und wheniamfortyfive liegen als Muster für die
+nächste Portion bereit, das Modell mit Einheiten.
+
+**Was zu tun ist:** Nichts. Wer will, kopiert einmal seinen Warenkorb.
+
 
 ### Added
 
