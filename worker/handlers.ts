@@ -1183,9 +1183,11 @@ export const handlers: HandlerMap = {
     const lines = (await db.getAll('basket')).filter(
       (item) => item.dealer === dealer && !item.soldAt,
     )
+    const { tiersForUnit } = await import('#shared/shipping')
     return {
       dealer,
-      tiers: shipping.tiers,
+      // The find list prices records; a singles or CD table is not its business.
+      tiers: tiersForUnit(shipping.tiers, 'record'),
       source: shipping.source,
       section: shipping.section ?? null,
       inBasket: lines.length,

@@ -1,4 +1,4 @@
-import type { LandedContext, LandedPrice, Match, ShippingTier } from './types'
+import type { LandedContext, LandedPrice, Match, ShippingTier, ShippingUnit } from './types'
 
 /**
  * The postage arithmetic both sides of the worker boundary need.
@@ -19,6 +19,41 @@ import type { LandedContext, LandedPrice, Match, ShippingTier } from './types'
  * shipping-policy settings. The shipping profile v2 (M34.3) rates by them.
  */
 export const DISCOGS_DEFAULT_WEIGHT_G = { lp: 230, ten: 135, cd: 85 } as const
+
+/**
+ * What one basket line is, for a shop's table (M34.3): its unit and how many
+ * of it. Read off Discogs' format string — "2 x Vinyl, LP, Album" is two
+ * records, "Vinyl, 7\", 45 RPM, Single" is one single, "CD, Album" one CD.
+ * Anything unreadable is one record, which is what every table meant before
+ * units existed.
+ */
+export function unitsOf(format: string | null | undefined): {
+  unit: ShippingUnit
+  count: number
+} {
+  if (!format) return { unit: 'record', count: 1 }
+  const multiple = /^\s*(\d{1,2})\s*[x×]/i.exec(format)
+  const count = multiple ? Math.max(1, Number(multiple[1])) : 1
+  const seven = /(?:^|[,\s])7\s*(?:"|''|”|in(?:ch)?\b)|\b45\s*RPM\b|\bsingle\b/i.test(format)
+  // A 12" at 45 RPM is a maxi, not a single: the size decides before the speed.
+  const large = /\bLP\b|12\s*(?:"|''|”)|10\s*(?:"|''|”)/i.test(format)
+  const vinyl = large || /vinyl|shellac|flexi/i.test(format)
+  const cd = /\bCDr?\b|\bSACD\b|\bHDCD\b/i.test(format)
+  if (cd && !vinyl) return { unit: 'cd', count }
+  if (seven && !large) return { unit: 'single', count }
+  return { unit: 'record', count }
+}
+
+/**
+ * The tiers that count in `unit`. A table without a unit word counts
+ * records, and stands in for singles and CDs where the shop wrote none of
+ * its own — a shop that says "records" means anything flat and round.
+ */
+export function tiersForUnit(tiers: ShippingTier[], unit: ShippingUnit): ShippingTier[] {
+  const own = tiers.filter((tier) => (tier.unit ?? 'record') === unit)
+  if (own.length > 0 || unit === 'record') return own
+  return tiers.filter((tier) => (tier.unit ?? 'record') === 'record')
+}
 
 export function sortTiers(tiers: ShippingTier[]): ShippingTier[] {
   return [...tiers].sort((a, b) => a.minItems - b.minItems)

@@ -1,5 +1,6 @@
 import { getPreferences } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
+import { tiersForUnit } from '#shared/shipping'
 import type { Dealer, DealerWithReasons, ListingPostage } from '#shared/types'
 
 import { freshPostage } from '../basket/postage'
@@ -92,7 +93,10 @@ export function postageFromFor(
   )
   if (own) return { value: own.price, currency: own.currency, source: 'user' }
 
-  const parsed = shippingFor(parseShippingText(dealer.shippingNote, home).tiers, 1)
+  const parsed = shippingFor(
+    tiersForUnit(parseShippingText(dealer.shippingNote, home).tiers, 'record'),
+    1,
+  )
   return parsed ? { value: parsed.price, currency: parsed.currency, source: 'parsed' } : null
 }
 

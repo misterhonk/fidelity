@@ -1,4 +1,4 @@
-import type { ShippingTier } from '#shared/types'
+import type { ShippingTier, ShippingUnit } from '#shared/types'
 
 import { sortTiers } from './shipping'
 
@@ -24,6 +24,8 @@ export const UNDERSTOOD_SHAPES = [
   '1 record 5 EUR, each additional 1 EUR',
   'Porto: 1-2 LPs 7,50 / 3-5 LPs 10,-',
   'Up to 15 records: 6 EUR',
+  'Base price €2,90 + €2,00 per LP',
+  'Any number of 45s for €6',
 ]
 
 const CURRENCIES: Record<string, string> = {
@@ -75,8 +77,45 @@ function toCurrency(...marks: (string | undefined)[]): string | null {
   return null
 }
 
-/** "LP", "record", "Platte", "item", "disc" — the noun is noise, the number is not. */
-const UNIT = String.raw`(?:x\s*)?(?:lps?|platten?|records?|items?|discs?|st(?:ü|ue)ck|ea)?`
+/**
+ * The unit words, sorted by what they count (M34.3).
+ *
+ * "LP", "record", "Platte", "item", "disc" all count records, and for a year
+ * the noun was noise. Then three shops on one day wrote tables per format:
+ * "1-10 7inches 4,50", "1-10 cd 4,50", "an unlimited number of 45s for €6".
+ * Read as records those would have priced a box of LPs at the singles rate.
+ */
+const RECORD_WORDS = String.raw`lps?|platten?|records?|items?|discs?|st(?:ü|ue)ck|ea|12\s*(?:"|''|”|inch(?:es)?)|vinyls?`
+const SINGLE_WORDS = String.raw`7\s*(?:"|''|”|inch(?:es)?)|45s?|singles?`
+const CD_WORDS = String.raw`cds?`
+const UNIT_WORD = String.raw`(?:${RECORD_WORDS}|${SINGLE_WORDS}|${CD_WORDS})`
+
+/** The noun after a count — optional, and not remembered. */
+const UNIT = String.raw`(?:x\s*)?(?:${UNIT_WORD})?`
+/** The same noun, remembered, so the tier knows what it counts. */
+const UNIT_CAP = String.raw`(?:x\s*)?(${UNIT_WORD})?`
+
+/** Which table a unit word belongs to. Records when there is no word. */
+function unitOf(...words: (string | undefined)[]): ShippingUnit {
+  for (const word of words) {
+    if (!word) continue
+    if (new RegExp(`^(?:${SINGLE_WORDS})$`, 'i').test(word)) return 'single'
+    if (new RegExp(`^(?:${CD_WORDS})$`, 'i').test(word)) return 'cd'
+  }
+  return 'record'
+}
+
+/** A tier, with its unit only written where it is not the default. */
+function tier(
+  minItems: number,
+  maxItems: number | null,
+  price: number,
+  currency: string,
+  unit: ShippingUnit,
+): ShippingTier {
+  const base: ShippingTier = { minItems, maxItems, price, currency, source: 'parsed' }
+  return unit === 'record' ? base : { ...base, unit }
+}
 
 /**
  * `2-3 LP: 9,00 €` and `1 LP 6 €` and `ab 4 Platten 12 EUR`.
@@ -97,7 +136,7 @@ const UNIT = String.raw`(?:x\s*)?(?:lps?|platten?|records?|items?|discs?|st(?:ü
  * before the price must be followed by a space, or it would eat a range.
  */
 const RANGE_RULE = new RegExp(
-  String.raw`(?:^|[,;/:\n·|(])\s*(?:ab\s+)?(\d{1,3})(?:st|nd|rd|th)?\s*(?:\s*(?:[-–—]|to|bis)\s*(\d{1,3})|\s*\+|\s*(?:or more|oder mehr|und mehr))?\s*${UNIT}\s*${UNIT}\s*(?:[:=]|[-–—]\s|\s)\s*\(?\s*${PRICE}`,
+  String.raw`(?:^|[,;/:\n·|(])\s*(?:ab\s+)?(\d{1,3})(?:st|nd|rd|th)?\s*(?:\s*(?:[-–—]|to|bis)\s*(\d{1,3})|\s*\+|\s*(?:or more|oder mehr|und mehr))?\s*${UNIT_CAP}\s*${UNIT_CAP}\s*(?:[:=]|[-–—]\s|\s)\s*\(?\s*${PRICE}`,
   'gi',
 )
 
@@ -108,9 +147,48 @@ const RANGE_RULE = new RegExp(
  * needs a number to start from, and this shape starts from one.
  */
 const UP_TO_RULE = new RegExp(
-  String.raw`(?:^|[,;/:\n·|(])\s*(?:up\s*to|bis(?:\s+zu)?|max\.?|maximal)\s*(\d{1,3})\s*${UNIT}\s*(?:[:=]|[-–—]\s|\s)\s*\(?\s*${PRICE}`,
+  String.raw`(?:^|[,;/:\n·|(])\s*(?:up\s*to|bis(?:\s+zu)?|max\.?|maximal)\s*(\d{1,3})\s*${UNIT_CAP}\s*(?:[:=]|[-–—]\s|\s)\s*\(?\s*${PRICE}`,
   'gi',
 )
+
+/**
+ * One rate for any count: "AN UNLIMITED NUMBER OF 45s FOR €6,-", "beliebig
+ * viele Singles für 6 €" (a Berlin shop, 2026-09-17).
+ */
+const FLAT_ANY_RULE = new RegExp(
+  String.raw`(?:unlimited number of|any number of|any amount of|beliebig viele|egal wie viele)\s*${UNIT_CAP}\s*(?:for|für|:|=)?\s*${PRICE}`,
+  'gi',
+)
+
+/**
+ * A base price and a step per unit, no table: "Base Price: €2,90 / + €1,00
+ * per 7inch/CD / + €2,00 per LP/12inch" (recordsale, 2026-09-17). The step
+ * names its units with a slash, and each gets a table of its own.
+ */
+const BASE_RULE = new RegExp(
+  String.raw`(?:base\s*price|grundpreis|basispreis|grundgeb(?:ü|ue)hr)\s*[:=]?\s*${PRICE}`,
+  'i',
+)
+const PER_UNIT_RULE = new RegExp(
+  String.raw`\+\s*${PRICE}\s*(?:per|pro|je|for each|each)\s+(${UNIT_WORD}(?:\s*/\s*${UNIT_WORD})*)`,
+  'gi',
+)
+
+/**
+ * A ceiling per destination: "3,90 EUR -> Germany", "5,90-9,90 EUR -> Most
+ * EU countries" under "You never pay more shipping than". The upper figure
+ * is the promise. Where the destination has a table, the ceiling caps it;
+ * where it has none, the ceiling is the rate — which is what the same shop's
+ * cart page showed for one record and for two.
+ */
+const CAP_RULE = new RegExp(
+  String.raw`^\s*${PRICE}(?:\s*[-–]\s*${PRICE})?\s*(?:->|→|=>|>|:)\s*(.+?)\s*$`,
+  'i',
+)
+
+/** "Double-LPs are calculated as 2 records", "Doppel-LPs zählen als zwei". */
+const DOUBLE_RULE =
+  /(?:double|doppel)[-\s]?(?:lps?|alben|albums?)?\s*(?:are|is|werden|z(?:ä|ae)hlen|count(?:ed)?|calculated|gerechnet|berechnet)[^.\n]{0,40}?(?:2|two|zwei|double|doppelt)/i
 
 /** `each additional 1,00 €`, `jede weitere 1 €`, `zzgl. 1 € je weitere LP`. */
 /** The same step with the price first: "+ £1.50 PER ADDITIONAL LP" (2026-09-17). */
@@ -168,6 +246,11 @@ export interface ParsedShipping {
    * and was read as one table.
    */
   section: string | null
+  /**
+   * The shop counts a double LP as two (M34.3). Only when it says so; a
+   * table that never mentions it counts items, the way Discogs' cart does.
+   */
+  doubleCounts: boolean
 }
 
 /**
@@ -229,11 +312,15 @@ export function parseShippingText(
     section: null,
     byWeight: false,
     freeOver: null,
+    doubleCounts: false,
   }
   if (!text || text.trim().length === 0) return empty
 
   const byWeight = billsByWeight(text)
-  const sections = splitByPlace(stripBbCode(text))
+  const clean = stripBbCode(text)
+  const sections = splitByPlace(clean)
+  const doubleCounts = DOUBLE_RULE.test(clean)
+  const cap = country ? capFor(clean, country) : null
 
   /*
    * A dealer who writes one table means it for everybody. A dealer who writes
@@ -245,7 +332,11 @@ export function parseShippingText(
    */
   const sorted = sections.some((section) => section.places.length > 0)
   const section = sorted ? (country ? selectSection(sections, country) : null) : sections[0]
-  if (!section) return { ...empty, byWeight }
+  if (!section) {
+    // No block for this destination, but a ceiling named for it is a rate.
+    if (cap) return { ...empty, byWeight, doubleCounts, tiers: [cap.tier], matched: [cap.line] }
+    return { ...empty, byWeight, doubleCounts }
+  }
 
   // Newlines and bullets are separators like commas; the rules key off those.
   const normalised = `,${stripAsides(section.text).replace(/[\r\n••]+/g, ',')}`
@@ -254,18 +345,30 @@ export function parseShippingText(
   const matched: string[] = []
 
   for (const hit of normalised.matchAll(UP_TO_RULE)) {
-    const [whole, to, currencyBefore, amount, currencyAfter] = hit
+    const [whole, to, unitWord, currencyBefore, amount, currencyAfter] = hit
+    if (insidePrice(normalised, hit.index)) continue
     const price = toNumber(amount ?? '')
     const currency = toCurrency(currencyBefore, currencyAfter)
     const maxItems = Number(to)
     if (price === null || !currency || !Number.isFinite(maxItems) || maxItems < 1) continue
 
-    tiers.push({ minItems: 1, maxItems, price, currency, source: 'parsed' })
+    tiers.push(tier(1, maxItems, price, currency, unitOf(unitWord)))
+    matched.push(tidy(whole))
+  }
+
+  for (const hit of normalised.matchAll(FLAT_ANY_RULE)) {
+    const [whole, unitWord, currencyBefore, amount, currencyAfter] = hit
+    const price = toNumber(amount ?? '')
+    const currency = toCurrency(currencyBefore, currencyAfter)
+    if (price === null || !currency) continue
+    tiers.push(tier(1, null, price, currency, unitOf(unitWord)))
     matched.push(tidy(whole))
   }
 
   for (const hit of normalised.matchAll(RANGE_RULE)) {
-    const [whole, from, to, currencyBefore, amount, currencyAfter] = hit
+    const [whole, from, to, unitOne, unitTwo, currencyBefore, amount, currencyAfter] = hit
+    // ", 90" out of "€2,90" is a decimal, not a count (recordsale, 2026-09-17).
+    if (insidePrice(normalised, hit.index)) continue
     const price = toNumber(amount ?? '')
     const currency = toCurrency(currencyBefore, currencyAfter)
     const minItems = Number(from)
@@ -283,8 +386,36 @@ export function parseShippingText(
 
     if (maxItems !== null && maxItems < minItems) continue
 
-    tiers.push({ minItems, maxItems, price, currency, source: 'parsed' })
+    tiers.push(tier(minItems, maxItems, price, currency, unitOf(unitOne, unitTwo)))
     matched.push(rule)
+  }
+
+  // "Base Price: €2,90 + €2,00 per LP/12inch + €1,00 per 7inch/CD": a table
+  // per unit, built out to where the "each additional" rule stops too.
+  const baseHit = tiers.length === 0 ? BASE_RULE.exec(normalised) : null
+  if (baseHit) {
+    const basePrice = toNumber(baseHit[2] ?? '')
+    const baseCurrency = toCurrency(baseHit[1], baseHit[3])
+    if (basePrice !== null && baseCurrency) {
+      let any = false
+      for (const step of normalised.matchAll(PER_UNIT_RULE)) {
+        const [whole, currencyBefore, amount, currencyAfter, words] = step
+        const stepPrice = toNumber(amount ?? '')
+        const currency: string = toCurrency(currencyBefore, currencyAfter) ?? baseCurrency
+        if (stepPrice === null || currency !== baseCurrency || !words) continue
+        const units = new Set(words.split('/').map((word) => unitOf(word.trim())))
+        for (const unit of units) {
+          for (let items = 1; items <= ADDITIONAL_UP_TO; items++) {
+            tiers.push(
+              tier(items, items, round(basePrice + stepPrice * items), baseCurrency, unit),
+            )
+          }
+        }
+        matched.push(tidy(whole))
+        any = true
+      }
+      if (any) matched.unshift(tidy(baseHit[0]))
+    }
   }
 
   // "1 record 5 EUR, each additional 1 EUR" — the second half only means
@@ -298,25 +429,90 @@ export function parseShippingText(
     if (step !== null && currency === base.currency) {
       for (let items = base.maxItems + 1; items <= ADDITIONAL_UP_TO; items++) {
         const extra = items - base.maxItems
-        tiers.push({
-          minItems: items,
-          maxItems: items,
-          price: base.price + step * extra,
-          currency,
-          source: 'parsed',
-        })
+        tiers.push(
+          tier(items, items, round(base.price + step * extra), currency, base.unit ?? 'record'),
+        )
       }
       matched.push(additional[0].trim())
     }
   }
 
+  // A ceiling for this destination caps every tier in its currency; where
+  // the block gave nothing, the ceiling is the rate.
+  let capped = dedupe(sortTiers(tiers))
+  if (cap) {
+    if (capped.length === 0) {
+      capped = [cap.tier]
+      matched.push(cap.line)
+    } else if (capped.every((t) => t.currency === cap.tier.currency)) {
+      capped = capped.map((t) =>
+        t.price > cap.tier.price ? { ...t, price: cap.tier.price } : t,
+      )
+      matched.push(cap.line)
+    }
+  }
+
   return {
-    tiers: dedupe(sortTiers(tiers)),
+    tiers: capped,
     matched,
     section: section.heading,
     byWeight,
-    freeOver: freeOverFor(stripBbCode(text), section),
+    freeOver: freeOverFor(clean, section),
+    doubleCounts,
   }
+}
+
+function round(value: number): number {
+  return Math.round(value * 100) / 100
+}
+
+/**
+ * Whether a rule's separator is the decimal mark of a price: the "," in
+ * "€2,90" followed by "90" looks like a separator and a count.
+ */
+function insidePrice(text: string, index: number | undefined): boolean {
+  if (index === undefined || index === 0) return false
+  const separator = text[index]
+  return (separator === ',' || separator === '.') && /\d/.test(text[index - 1] ?? '')
+}
+
+/**
+ * The ceiling a shop promises for this destination, if it wrote one:
+ * "3,90 EUR -> Germany", "5,90-9,90 EUR -> Most EU countries", "31,90 EUR ->
+ * Most of the world". The country's own line first, then its region, then
+ * the world. The upper figure of a range is the promise.
+ */
+function capFor(text: string, country: string): { tier: ShippingTier; line: string } | null {
+  const want = canonical(fold(country))
+  const region = EUROPE.has(want) ? 'europe' : 'outside-europe'
+  let best: { rank: number; tier: ShippingTier; line: string } | null = null
+
+  for (const raw of text.split(/\r?\n/)) {
+    const hit = CAP_RULE.exec(raw)
+    if (!hit) continue
+    const [, lowCurrencyBefore, low, lowCurrencyAfter, highBefore, high, highAfter, rest] = hit
+    const price = toNumber(high ?? low ?? '')
+    const currency = toCurrency(lowCurrencyBefore, lowCurrencyAfter, highBefore, highAfter)
+    if (price === null || !currency || !rest) continue
+
+    const places = headingPlaces(
+      rest.replace(/\b(?:most|all|of|the|countries|l(?:ä|ae)nder|other|whole)\b/gi, ' '),
+    )
+    const rank = places.some((place) => place.kind === 'country' && place.name === want)
+      ? 3
+      : places.some((place) => place.kind === region)
+        ? 2
+        : places.some((place) => place.kind === 'world')
+          ? 1
+          : 0
+    if (rank === 0 || (best && best.rank >= rank)) continue
+    best = {
+      rank,
+      tier: { minItems: 1, maxItems: null, price, currency, source: 'parsed' },
+      line: raw.trim(),
+    }
+  }
+  return best ? { tier: best.tier, line: best.line } : null
 }
 
 // ---------------------------------------------------------------------------
@@ -643,8 +839,11 @@ function selectSection(sections: Section[], country: string): Section | null {
 
 function dedupe(tiers: ShippingTier[]): ShippingTier[] {
   const out: ShippingTier[] = []
-  for (const tier of tiers) {
-    if (!out.some((kept) => kept.minItems === tier.minItems)) out.push(tier)
+  for (const candidate of tiers) {
+    const same = (kept: ShippingTier) =>
+      kept.minItems === candidate.minItems &&
+      (kept.unit ?? 'record') === (candidate.unit ?? 'record')
+    if (!out.some(same)) out.push(candidate)
   }
   return out
 }

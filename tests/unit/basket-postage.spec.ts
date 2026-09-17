@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import type { BasketLine, Dealer } from '#shared/types'
-import { summarise } from '~~/worker/basket'
+import type { BasketLine, Dealer, ShippingTier } from '#shared/types'
+import { parcelOf, summarise } from '~~/worker/basket'
 import { freshPostage, namedPostage, postageOf, shipsHereOf } from '~~/worker/basket/postage'
 
 /**
@@ -297,5 +297,46 @@ describe('the pasted cart page', () => {
     expect(blank).toEqual([])
     expect(await db.get('dealers', 'nobody')).toBeUndefined()
     await deleteFidelityDb()
+  })
+})
+
+describe('the parcel and its unit (M34.3)', () => {
+  const resolution = (tiers: ShippingTier[], countUnits = false) => ({
+    tiers,
+    source: 'parsed' as const,
+    matched: [],
+    countUnits,
+  })
+  const lp = { minItems: 1, maxItems: 1, price: 6, currency: 'EUR', source: 'parsed' as const }
+  const lps = { minItems: 2, maxItems: 3, price: 9, currency: 'EUR', source: 'parsed' as const }
+  const single = { ...lp, price: 2.5, unit: 'single' as const }
+
+  it('counts items unless the shop counts a double LP as two', () => {
+    const lines = [
+      line({ format: '2 x Vinyl, LP, Album' }),
+      line({ listingId: 2, format: 'Vinyl, LP' }),
+    ]
+    expect(parcelOf(lines, false)).toEqual({ unit: 'record', count: 2 })
+    expect(parcelOf(lines, true)).toEqual({ unit: 'record', count: 3 })
+    expect(summarise(lines, dealer, resolution([lp, lps])).shipping).toBe(9)
+    expect(summarise(lines, dealer, resolution([lp, lps], true)).shipping).toBe(9)
+    expect(summarise([lines[0]!], dealer, resolution([lp, lps], true)).shipping).toBe(9)
+    expect(summarise([lines[0]!], dealer, resolution([lp, lps])).shipping).toBe(6)
+  })
+
+  it('reads the singles table for a parcel of singles, and the records table for a mix', () => {
+    const forty = line({ format: 'Vinyl, 7", 45 RPM, Single' })
+    expect(summarise([forty], dealer, resolution([lp, single])).shipping).toBe(2.5)
+    expect(
+      summarise(
+        [forty, line({ listingId: 2, format: 'Vinyl, LP' })],
+        dealer,
+        resolution([lp, lps, single]),
+      ).shipping,
+    ).toBe(9)
+    // A singles-only text says nothing about a box of LPs.
+    expect(
+      summarise([line({ format: 'Vinyl, LP' })], dealer, resolution([single])).shipping,
+    ).toBeNull()
   })
 })

@@ -1617,7 +1617,16 @@ export interface ShippingTier {
   currency: string
   /** `discogs`: Discogs named it for one listing (`ListingPostage`), no table. */
   source: 'user' | 'bundled' | 'parsed' | 'discogs'
+  /**
+   * What the count counts (M34.3). Absent means records, which is what a
+   * table means unless the shop says otherwise: "1-10 7inches 4,50" and
+   * "1-10 cd 4,50" are tables of their own beside "1-20 LPs 8,00".
+   */
+  unit?: ShippingUnit
 }
+
+/** The unit a shop's table counts in. A 12" is a record; a 7" is a single. */
+export type ShippingUnit = 'record' | 'single' | 'cd'
 
 /**
  * Discogs' own postage for one listing to the account's address (M34.2).
@@ -2035,6 +2044,8 @@ export interface BasketLine {
   /** Carried over from the item (M34.2): what Discogs named, and whether it ships here. */
   postage?: ListingPostage | null
   shipsHere?: boolean | null
+  /** Carried over from the item (M34.3): the format, for the unit and the count. */
+  format?: string | null
 }
 
 export interface BasketSummary {
@@ -2128,6 +2139,12 @@ export interface BasketItem {
   currency: string
   addedAt: number
   note: string | null
+  /**
+   * Discogs' format string for the record — "2 x Vinyl, LP, Album",
+   * "Vinyl, 7\", 45 RPM" — as the listing carries it (M34.3). Absent on lines
+   * from before; read as one record then.
+   */
+  format?: string | null
   /**
    * What Discogs named for this record (M34.2), `null` when it named nothing,
    * absent on a line from before or one added from a dig — the next refresh

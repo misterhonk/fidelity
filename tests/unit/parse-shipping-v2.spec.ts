@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { BRITISH_TIERS } from '../fixtures/shipping-notes'
+import {
+  BRITISH_TIERS,
+  FORTYFIVE_FLAT,
+  GREEN_HELL_BY_FORMAT,
+  RECORDSALE_BASE_PLUS_UNIT,
+} from '../fixtures/shipping-notes'
 import { parseShippingText } from '~~/worker/basket/parse-shipping'
 
 /**
@@ -68,5 +73,88 @@ describe('a British shop with three destination blocks', () => {
       currency: 'EUR',
     })
     expect(parseShippingText('1 LP 6 €, ab 4 LP 12 €', 'Germany').freeOver).toBeNull()
+  })
+})
+
+/**
+ * Three shops from Martin's cart on 2026-09-17, each a shape the parser did
+ * not have: a table per format, a base price with a step per unit under a
+ * ceiling per destination, and one rate for any number of singles.
+ */
+describe('tables per format (M34.3, the model with units)', () => {
+  const by = (unit: string | undefined) => (tier: { unit?: string }) =>
+    (tier.unit ?? 'record') === unit
+
+  it('reads LPs, 7inches and cd as three tables', () => {
+    const home = parseShippingText(GREEN_HELL_BY_FORMAT, 'Germany')
+    expect(home.section).toBe('GERMANY')
+    expect(home.tiers.filter(by('record'))).toEqual([
+      { minItems: 1, maxItems: 20, price: 8, currency: 'EUR', source: 'parsed' },
+    ])
+    expect(home.tiers.filter(by('single'))).toMatchObject([
+      { minItems: 1, maxItems: 10, price: 4.5 },
+    ])
+    expect(home.tiers.filter(by('cd'))).toMatchObject([
+      { minItems: 1, maxItems: 10, price: 4.5 },
+    ])
+    expect(home.doubleCounts).toBe(false)
+
+    const europe = parseShippingText(GREEN_HELL_BY_FORMAT, 'France')
+    expect(
+      europe.tiers.filter(by('record')).map((t) => [t.minItems, t.maxItems, t.price]),
+    ).toEqual([
+      [1, 1, 12],
+      [2, 3, 15],
+      [3, null, 20],
+    ])
+    expect(
+      europe.tiers.filter(by('single')).map((t) => [t.minItems, t.maxItems, t.price]),
+    ).toEqual([
+      [1, 3, 12],
+      [3, null, 15],
+      [8, null, 20],
+    ])
+  })
+
+  it('builds a base price plus a step per unit, under the ceiling for the destination', () => {
+    const home = parseShippingText(RECORDSALE_BASE_PLUS_UNIT, 'Germany')
+    // "You never pay more than 3,90 EUR -> Germany" caps every step: flat.
+    expect(home.tiers.filter(by('record')).every((t) => t.price === 3.9)).toBe(true)
+    expect(home.tiers.filter(by('record'))).toHaveLength(12)
+    expect(home.matched).toContain('3,90 EUR -> Germany')
+    expect(home.doubleCounts).toBe(true)
+
+    const europe = parseShippingText(RECORDSALE_BASE_PLUS_UNIT, 'France')
+    const records = europe.tiers.filter(by('record'))
+    expect(records.slice(0, 4).map((t) => t.price)).toEqual([4.9, 6.9, 8.9, 9.9])
+    expect(records.at(-1)?.price).toBe(9.9)
+    const singles = europe.tiers.filter(by('single'))
+    expect(singles.slice(0, 3).map((t) => t.price)).toEqual([3.9, 4.9, 5.9])
+    expect(europe.matched).toContain('5,90-9,90 EUR -> Most EU countries')
+
+    // No ceiling reached within twelve for the rest of the world.
+    const world = parseShippingText(RECORDSALE_BASE_PLUS_UNIT, 'United States')
+    expect(world.tiers.filter(by('record')).at(-1)?.price).toBe(26.9)
+  })
+
+  it('does not read the decimals of a price as a count', () => {
+    const parsed = parseShippingText('Base Price: €2,90\n+ €2,00 per LP', 'Germany')
+    expect(parsed.tiers.some((t) => t.minItems === 90)).toBe(false)
+    expect(parsed.tiers[0]).toMatchObject({ minItems: 1, price: 4.9 })
+  })
+
+  it('reads one rate for any number of singles', () => {
+    const parsed = parseShippingText(FORTYFIVE_FLAT, 'Germany')
+    expect(parsed.tiers).toEqual([
+      {
+        minItems: 1,
+        maxItems: null,
+        price: 6,
+        currency: 'EUR',
+        source: 'parsed',
+        unit: 'single',
+      },
+    ])
+    expect(parsed.matched).toEqual(['UNLIMITED NUMBER OF 45s FOR €6,-'])
   })
 })

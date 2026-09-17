@@ -20,4 +20,6 @@ export const UNDERSTOOD_SHAPES = [
   '1 record 5 EUR, each additional 1 EUR',
   'Porto: 1-2 LPs 7,50 / 3-5 LPs 10,-',
   'Up to 15 records: 6 EUR',
+  'Base price €2,90 + €2,00 per LP',
+  'Any number of 45s for €6',
 ]

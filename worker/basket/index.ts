@@ -4,6 +4,7 @@ import type { BasketLine, BasketSummary, Dealer, Match } from '#shared/types'
 import { namedPostage } from './postage'
 import { resolveShipping, type ShippingResolution } from './profiles'
 import { shippingAdvice, shippingCurve, shippingFor } from './shipping'
+import { tiersForUnit, unitsOf } from '#shared/shipping'
 
 /**
  * The basket.
@@ -59,6 +60,7 @@ export async function addToBasket(match: Match, dealer: string, now: number): Pr
     currency: match.currency ?? '',
     addedAt: now,
     note: null,
+    format: match.format ?? null,
   })
 }
 
@@ -197,14 +199,22 @@ export function summarise(
    * the euros the subtotal is in. Where no line carries one, the table is
    * not added up: a sum across two currencies is a wrong number.
    */
-  const tierCurrency = shipping.tiers[0]?.currency ?? null
+  /*
+   * What the parcel is, for the table (M34.3). Singles read a shop's singles
+   * table where it wrote one, and a double LP counts as two only where the
+   * shop says so; otherwise a line is an item, the way Discogs' cart counts.
+   */
+  const parcel = parcelOf(live, shipping.countUnits ?? false)
+  const table = tiersForUnit(shipping.tiers, parcel.unit)
+
+  const tierCurrency = table[0]?.currency ?? null
   const rate = conversionRate(live, tierCurrency, currency)
   const converted = tierCurrency !== null && currency !== null && tierCurrency !== currency
   const tiers = !converted
-    ? shipping.tiers
+    ? table
     : rate === null
       ? []
-      : shipping.tiers.map((tier) => ({
+      : table.map((tier) => ({
           ...tier,
           price: Math.round(tier.price * rate * 100) / 100,
           currency: currency!,
@@ -225,7 +235,7 @@ export function summarise(
           missing: Math.max(0, Math.round((threshold - subtotal) * 100) / 100),
         }
 
-  const tabled = shippingFor(tiers, live.length)?.price ?? null
+  const tabled = shippingFor(tiers, parcel.count)?.price ?? null
   const postage = namedFits
     ? named.value
     : freeOver !== null && freeOver.missing === 0 && tabled !== null
@@ -264,10 +274,10 @@ export function summarise(
     shippingNote: shipping.note ?? null,
     total,
     perItem: total === null || live.length === 0 ? null : total / live.length,
-    advice: shippingAdvice(tiers, live.length),
+    advice: shippingAdvice(tiers, parcel.count),
     // Two past the current count is enough to see the next step without
     // turning the panel into a table nobody reads.
-    curve: shippingCurve(tiers, Math.max(6, live.length + 2)),
+    curve: shippingCurve(tiers, Math.max(6, parcel.count + 2)),
     minOrderTotal,
     belowMinimum: missingToMinimum !== null,
     missingToMinimum,
@@ -276,6 +286,22 @@ export function summarise(
     shippingConverted: converted && rate !== null ? { from: tierCurrency!, rate } : null,
     freeOver,
   }
+}
+
+/**
+ * The parcel as a shop's table sees it: one unit when every line agrees,
+ * records otherwise; the count in items, or in units where the shop counts
+ * a double LP as two.
+ */
+export function parcelOf(
+  lines: BasketLine[],
+  countUnits: boolean,
+): { unit: 'record' | 'single' | 'cd'; count: number } {
+  const read = lines.map((line) => unitsOf(line.format))
+  const units = new Set(read.map((each) => each.unit))
+  const unit = units.size === 1 ? [...units][0]! : 'record'
+  const count = countUnits ? read.reduce((sum, each) => sum + each.count, 0) : lines.length
+  return { unit, count }
 }
 
 /**

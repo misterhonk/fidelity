@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { FATPLASTICS, PROSE_WALL } from '../fixtures/shipping-notes'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
+import { tiersForUnit, unitsOf } from '#shared/shipping'
 import type { Dealer, ShippingTier } from '#shared/types'
 import { ADDITIONAL_UP_TO, parseShippingText } from '~~/worker/basket/parse-shipping'
 import { resolveShipping, saveUserShipping } from '~~/worker/basket/profiles'
@@ -304,6 +305,7 @@ describe('a shipping text sorted by destination', () => {
       section: null,
       byWeight: false,
       freeOver: null,
+      doubleCounts: false,
     })
   })
 
@@ -425,5 +427,27 @@ describe("where a dealer's table comes from", () => {
     const stored = await db.get('dealers', 'shop')
     expect(stored?.shippingTiers).toHaveLength(1)
     expect(stored?.shippingTiers[0]?.price).toBe(4)
+  })
+})
+
+describe('the unit of a basket line (M34.3)', () => {
+  it("reads Discogs' format string", () => {
+    expect(unitsOf('2 x Vinyl, LP, Album')).toEqual({ unit: 'record', count: 2 })
+    expect(unitsOf('Vinyl, LP, Album, Reissue')).toEqual({ unit: 'record', count: 1 })
+    expect(unitsOf('Vinyl, 7", 45 RPM, Single')).toEqual({ unit: 'single', count: 1 })
+    expect(unitsOf('Vinyl, 12", 45 RPM')).toEqual({ unit: 'record', count: 1 })
+    expect(unitsOf('CD, Album')).toEqual({ unit: 'cd', count: 1 })
+    expect(unitsOf('3 x CD, Compilation')).toEqual({ unit: 'cd', count: 3 })
+    expect(unitsOf('Vinyl, LP + CD, Album')).toEqual({ unit: 'record', count: 1 })
+    expect(unitsOf(null)).toEqual({ unit: 'record', count: 1 })
+  })
+
+  it('picks the table for the unit, and the records table where the shop wrote none', () => {
+    const singles: ShippingTier = { ...tier(1, null, 6), source: 'parsed', unit: 'single' }
+    const both = [...table, singles]
+    expect(tiersForUnit(both, 'single')).toEqual([singles])
+    expect(tiersForUnit(both, 'record')).toEqual(table)
+    expect(tiersForUnit(both, 'cd')).toEqual(table)
+    expect(tiersForUnit([singles], 'record')).toEqual([])
   })
 })

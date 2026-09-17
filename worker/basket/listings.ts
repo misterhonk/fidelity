@@ -109,6 +109,8 @@ const pastedListingSchema = z.object({
     id: z.number().int(),
     title: z.string(),
     artist: z.string().optional(),
+    /** "2 x Vinyl, LP, Album" — the unit and the count for the table (M34.3). */
+    format: z.string().nullable().optional(),
   }),
 })
 
@@ -212,6 +214,7 @@ export async function addPastedListings(options: {
       soldAt: null,
       postage: postageOf(listing, now),
       shipsHere: shipsHereOf(listing),
+      format: listing.release.format ?? null,
     })
     added += 1
 

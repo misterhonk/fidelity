@@ -71,6 +71,11 @@ export interface ShippingResolution {
   /** What the parser thought it recognised, when that is where this came from. */
   matched: string[]
   /**
+   * The shop counts a double LP as two (M34.3). Only ever `true` off the
+   * shop's own text; a typed table counts items, the way Discogs' cart does.
+   */
+  countUnits?: boolean
+  /**
    * The destination heading the rates were read under — `Germany`, `Europe`.
    * Only set when the text was sorted by destination and one block was picked.
    */
@@ -163,6 +168,7 @@ export async function resolveShipping(
       matched: parsed.matched,
       section: parsed.section,
       freeOver: dealer.freeOver ?? parsed.freeOver,
+      countUnits: parsed.doubleCounts,
     }
   }
 
