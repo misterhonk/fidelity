@@ -169,7 +169,7 @@ describe('the style pass', () => {
     // joins as context. A signal weighing 24 does not get to open a sentence
     // ahead of one weighing 55.
     expect(reasonFor(updated!.signals)).toMatch(/^You have 5 records by Robag Wruhme/)
-    expect(reasonFor(updated!.signals)).toContain('style fits (Minimal)')
+    expect(reasonFor(updated!.signals)).toContain('your kind of Minimal')
   })
 
   it('lets the style lead when nothing stronger is there', async () => {
@@ -185,7 +185,7 @@ describe('the style pass', () => {
     await enrichTopMatches({ client: api, digId: '01A', taste })
 
     expect(reasonFor((await db.get('matches', ['01A', 2]))!.signals)).toMatch(
-      /^Minimal — your home ground/,
+      /^Minimal: your home ground/,
     )
   })
 
@@ -256,7 +256,7 @@ describe('the market pass', () => {
     expect(updated?.signals.map((s) => s.type)).toContain('PRICE_SIGNAL')
     // The artist is the stronger reason and keeps the lead; the price joins
     // as context. A signal weighing 35 does not open a sentence ahead of 55.
-    expect(plain(reasonFor(updated!.signals))).toContain('under market (€20.00)')
+    expect(plain(reasonFor(updated!.signals))).toContain('under the market low of €20.00')
     expect(updated?.marketLowestPrice).toBe(20)
   })
 

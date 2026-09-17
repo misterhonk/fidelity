@@ -45,8 +45,8 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
     // priority changes the sentence, never the score.
     WANTLIST_EXACT: (evidence) =>
       Number(evidence.want ?? 0) >= WANT_MOST
-        ? 'Exactly this is on your wantlist — one of the ones you want most.'
-        : 'Exactly this is on your wantlist.',
+        ? "That's on your wantlist, and one you want most."
+        : "That's on your wantlist.",
 
     ARTIST_KNOWN: (evidence) => {
       const artist = String(evidence.artist ?? '')
@@ -61,36 +61,25 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
         const shelf =
           owned > 1
             ? `you have ${count(owned)} records by ${artist}`
-            : `${artist} is already on your shelf`
-        // A member of a group you collect, or the group of somebody you do:
-        // one shape, and only who is part of whom changes.
+            : `${artist} is on your shelf`
         const [person, group] = relation === 'group' ? [artist, via] : [via, artist]
         return relation === 'alias'
-          ? `${via} is ${artist} — ${shelf}, not this one.`
-          : `${person} is part of ${group} — ${shelf}, not this one.`
+          ? `${via} is ${artist}. ${capital(shelf)}, not this one.`
+          : `${person} is part of ${group}. ${capital(shelf)}, not this one.`
       }
 
       return owned > 1
-        ? `You have ${count(owned)} records by ${artist} — not this one.`
-        : `${artist} is already on your shelf — this record is not.`
+        ? `You have ${count(owned)} records by ${artist}, not this one.`
+        : `${artist} is on your shelf. This record is not.`
     },
 
-    /*
-     * A band on the radar, and the sentence never counts records.
-     *
-     * ARTIST_KNOWN's sentence is "you have 10 records by Anne Clark"; for a
-     * followed artist the number is nought, and borrowing that wording would
-     * read as certainty the evidence does not carry. The whole point of the
-     * signal is the opposite claim: nothing of theirs is here yet.
-     */
     ARTIST_FOLLOWED: (evidence) => {
       const artist = String(evidence.artist ?? '')
       if (!artist) return null
-
       const via = String(evidence.via ?? '')
       return via
-        ? `${via} is ${artist} — you have them on your radar and nothing of theirs yet.`
-        : `${artist} — on your radar, and nothing of theirs here yet.`
+        ? `${via} is ${artist}. On your radar, and nothing of theirs on the shelf yet.`
+        : `${artist} is on your radar, and nothing of theirs is on the shelf yet.`
     },
 
     LABEL_AFFINITY: (evidence) => {
@@ -99,8 +88,8 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
       if (!label) return null
       const lift = typeof evidence.lift === 'number' ? evidence.lift : null
       return lift
-        ? `You collect ${label} on purpose — ${count(owned)} records, ${lift.toFixed(0)}× what would be expected.`
-        : `You collect ${label} — ${count(owned)} records are already there.`
+        ? `You collect ${label} on purpose: ${count(owned)} records, ${lift.toFixed(0)}× what you'd expect.`
+        : `You collect ${label}. ${count(owned)} records are on the shelf already.`
     },
 
     WANTLIST_PRESSING: (evidence) => {
@@ -110,7 +99,7 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
       const pressing = Number(evidence.pressingYear ?? 0)
       const most = Number(evidence.want ?? 0) >= WANT_MOST ? ' One you want most.' : ''
       if (wanted > 0 && pressing > 0 && pressing - wanted >= 15) {
-        return `The same album as on your wantlist — but a pressing from ${pressing}, not the ${wanted} original.${most}`
+        return `The album from your wantlist, but a ${pressing} pressing, not the ${wanted} original.${most}`
       }
       return `Not the pressing from your wantlist, but the same album: ${album}.${most}`
     },
@@ -120,7 +109,7 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
       const owned = Number(evidence.owned ?? 0)
       const total = Number(evidence.total ?? 0)
       if (!artist || total === 0) return null
-      return `You have ${count(owned)} of ${count(total)} records by ${artist} — this one is missing.`
+      return `You have ${count(owned)} of ${count(total)} records by ${artist}. This one is missing.`
     },
 
     CATALOG_RUN: (evidence) => {
@@ -129,7 +118,7 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
       const inRun = Number(evidence.inRun ?? 0)
       const prefix = String(evidence.prefix ?? '')
       if (!label || inRun === 0) return null
-      return `${label} series ${prefix}: of ${count(inRun)} numbers nearby you have ${count(owned)} — not this one.`
+      return `${label} series ${prefix}: you have ${count(owned)} of the ${count(inRun)} numbers around this one, not this one.`
     },
 
     CREDIT_GRAPH: (evidence) => {
@@ -137,14 +126,14 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
       const owned = Number(evidence.owned ?? 0)
       if (!person) return null
       return owned > 1
-        ? `${person} worked on this — you have ${count(owned)} records of theirs.`
+        ? `${person} worked on this. You have ${count(owned)} records of theirs.`
         : `${person} worked on this.`
     },
 
     STYLE_ADJACENT: (evidence) => {
       const styles = Array.isArray(evidence.styles) ? (evidence.styles as string[]) : []
       if (styles.length === 0) return null
-      return `${styles.slice(0, 3).join(', ')} — your home ground.`
+      return `${styles.slice(0, 3).join(', ')}: your home ground.`
     },
 
     FORMAT_UPGRADE: (evidence) => {
@@ -152,12 +141,10 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
       const ownedAs = String(evidence.ownedAs ?? '')
       if (!album) return null
       return ownedAs
-        ? `You have ${album} already — but as ${ownedAs}. Here it is on vinyl.`
+        ? `You have ${album}, but as ${ownedAs}. Here it is on vinyl.`
         : `You have ${album} in another format.`
     },
 
-    // Both numbers named, not the ratio. "0.58×" is arithmetic; "£24 against a
-    // market low of £41" is an argument (docs/04 §S10).
     PRICE_SIGNAL: (evidence) => {
       const paid = price(evidence, 'price')
       const lowest = price(evidence, 'marketLowest')
@@ -173,6 +160,7 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
     },
   },
 
+  /* The supporting reasons, as a list after "Also:". Short, because they are a list. */
   support: {
     WANTLIST_EXACT: (evidence) =>
       Number(evidence.want ?? 0) >= WANT_MOST
@@ -181,34 +169,34 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
     ARTIST_KNOWN: (evidence) => {
       if (!evidence.artist) return null
       const via = evidence.via ? `, as ${String(evidence.via)}` : ''
-      return `artist known (${String(evidence.artist)}${via})`
+      return `${String(evidence.artist)} is on your shelf${via}`
     },
     ARTIST_FOLLOWED: (evidence) =>
       evidence.artist ? `${String(evidence.artist)} is on your radar` : null,
-    LABEL_AFFINITY: (evidence) => (evidence.label ? `label ${String(evidence.label)}` : null),
+    LABEL_AFFINITY: (evidence) =>
+      evidence.label ? `you collect ${String(evidence.label)}` : null,
     WANTLIST_PRESSING: (evidence) =>
       evidence.album ? `another pressing of ${String(evidence.album)}` : null,
     ARTIST_GAP: (evidence) =>
-      evidence.artist ? `discography gap at ${String(evidence.artist)}` : null,
+      evidence.artist ? `a gap in your ${String(evidence.artist)}` : null,
     CATALOG_RUN: (evidence) =>
       evidence.prefix ? `catalogue run ${String(evidence.prefix)}` : null,
     CREDIT_GRAPH: (evidence) => (evidence.person ? `${String(evidence.person)} at work` : null),
-    FORMAT_UPGRADE: () => 'format upgrade',
+    FORMAT_UPGRADE: () => 'you have it in another format',
     STYLE_ADJACENT: (evidence) => {
       const styles = Array.isArray(evidence.styles) ? (evidence.styles as string[]) : []
-      return styles.length > 0 ? `style fits (${styles[0]})` : null
+      return styles.length > 0 ? `your kind of ${styles[0]}` : null
     },
     PRICE_SIGNAL: (evidence) => {
       const lowest = price(evidence, 'marketLowest')
-      return lowest ? `under market (${lowest})` : 'under market'
+      return lowest ? `under the market low of ${lowest}` : 'under the market'
     },
     SCARCITY: (evidence) => {
       const n = Number(evidence.numForSale ?? 0)
       return n > 0 ? `only ${count(n)} for sale` : null
     },
   },
-
-  fallback: 'Fits your collection.',
+  fallback: 'Fits what you collect.',
   also: (rest) => ` Also: ${rest}.`,
 }
 
@@ -216,8 +204,8 @@ const de: typeof en = {
   lead: {
     WANTLIST_EXACT: (evidence) =>
       Number(evidence.want ?? 0) >= WANT_MOST
-        ? 'Steht genau so auf deiner Wantlist – eine von denen, die du am meisten willst.'
-        : 'Steht genau so auf deiner Wantlist.',
+        ? 'Steht auf deiner Wantlist, und zwar ganz oben.'
+        : 'Steht auf deiner Wantlist.',
 
     ARTIST_KNOWN: (evidence) => {
       const artist = String(evidence.artist ?? '')
@@ -230,26 +218,25 @@ const de: typeof en = {
         const shelf =
           owned > 1
             ? `du hast ${count(owned)} Platten von ${artist}`
-            : `${artist} steht schon in deiner Sammlung`
+            : `${artist} steht bei dir im Regal`
         const [person, group] = relation === 'group' ? [artist, via] : [via, artist]
         return relation === 'alias'
-          ? `${via} ist ${artist} – ${shelf}, diese nicht.`
-          : `${person} gehört zu ${group} – ${shelf}, diese nicht.`
+          ? `${via} ist ${artist}. ${capital(shelf)}, diese nicht.`
+          : `${person} gehört zu ${group}. ${capital(shelf)}, diese nicht.`
       }
 
       return owned > 1
-        ? `Du hast ${count(owned)} Platten von ${artist} – diese nicht.`
-        : `${artist} steht schon in deiner Sammlung – diese Platte nicht.`
+        ? `Du hast ${count(owned)} Platten von ${artist}, diese nicht.`
+        : `${artist} steht bei dir im Regal. Diese Platte nicht.`
     },
 
     ARTIST_FOLLOWED: (evidence) => {
       const artist = String(evidence.artist ?? '')
       if (!artist) return null
-
       const via = String(evidence.via ?? '')
       return via
-        ? `${via} ist ${artist} – hast du auf dem Schirm, und noch nichts davon.`
-        : `${artist} – hast du auf dem Schirm, und noch nichts davon hier.`
+        ? `${via} ist ${artist}. Hast du auf dem Schirm, und noch nichts davon im Regal.`
+        : `${artist} hast du auf dem Schirm, und noch nichts davon im Regal.`
     },
 
     LABEL_AFFINITY: (evidence) => {
@@ -258,8 +245,8 @@ const de: typeof en = {
       if (!label) return null
       const lift = typeof evidence.lift === 'number' ? evidence.lift : null
       return lift
-        ? `${label} sammelst du gezielt – ${count(owned)} Platten, ${lift.toFixed(0)}× so viel wie zu erwarten wäre.`
-        : `${label} sammelst du – ${count(owned)} Platten stehen schon da.`
+        ? `${label} sammelst du mit Absicht: ${count(owned)} Platten, ${lift.toFixed(0)}-mal so viel wie erwartet.`
+        : `${label} sammelst du. ${count(owned)} Platten stehen schon da.`
     },
 
     WANTLIST_PRESSING: (evidence) => {
@@ -267,12 +254,9 @@ const de: typeof en = {
       if (!album) return null
       const wanted = Number(evidence.wantedYear ?? 0)
       const pressing = Number(evidence.pressingYear ?? 0)
-      const most =
-        Number(evidence.want ?? 0) >= WANT_MOST
-          ? ' Eine von denen, die du am meisten willst.'
-          : ''
+      const most = Number(evidence.want ?? 0) >= WANT_MOST ? ' Ganz oben auf deiner Liste.' : ''
       if (wanted > 0 && pressing > 0 && pressing - wanted >= 15) {
-        return `Dasselbe Album wie auf deiner Wantlist – aber eine Pressung von ${pressing}, nicht das Original von ${wanted}.${most}`
+        return `Das Album von deiner Wantlist, aber eine Pressung von ${pressing}, nicht das Original von ${wanted}.${most}`
       }
       return `Nicht die Pressung von deiner Wantlist, aber dasselbe Album: ${album}.${most}`
     },
@@ -282,7 +266,7 @@ const de: typeof en = {
       const owned = Number(evidence.owned ?? 0)
       const total = Number(evidence.total ?? 0)
       if (!artist || total === 0) return null
-      return `Du hast ${count(owned)} von ${count(total)} Platten von ${artist} – diese fehlt.`
+      return `Du hast ${count(owned)} von ${count(total)} Platten von ${artist}. Diese fehlt.`
     },
 
     CATALOG_RUN: (evidence) => {
@@ -291,7 +275,7 @@ const de: typeof en = {
       const inRun = Number(evidence.inRun ?? 0)
       const prefix = String(evidence.prefix ?? '')
       if (!label || inRun === 0) return null
-      return `${label}-Serie ${prefix}: von ${count(inRun)} Nummern in der Nähe hast du ${count(owned)} – diese nicht.`
+      return `${label}-Serie ${prefix}: Von den ${count(inRun)} Nummern um diese herum hast du ${count(owned)}, diese nicht.`
     },
 
     CREDIT_GRAPH: (evidence) => {
@@ -299,14 +283,14 @@ const de: typeof en = {
       const owned = Number(evidence.owned ?? 0)
       if (!person) return null
       return owned > 1
-        ? `${person} hat hier mitgewirkt – du hast ${count(owned)} Platten von ihm.`
-        : `${person} hat hier mitgewirkt.`
+        ? `${person} hat hier mitgearbeitet, wie auf ${count(owned)} Platten bei dir.`
+        : `${person} hat hier mitgearbeitet.`
     },
 
     STYLE_ADJACENT: (evidence) => {
       const styles = Array.isArray(evidence.styles) ? (evidence.styles as string[]) : []
       if (styles.length === 0) return null
-      return `${styles.slice(0, 3).join(', ')} – dein Kernrevier.`
+      return `${styles.slice(0, 3).join(', ')}: dein Revier.`
     },
 
     FORMAT_UPGRADE: (evidence) => {
@@ -314,22 +298,22 @@ const de: typeof en = {
       const ownedAs = String(evidence.ownedAs ?? '')
       if (!album) return null
       return ownedAs
-        ? `${album} hast du schon – aber als ${ownedAs}. Hier ist es auf Vinyl.`
+        ? `${album} hast du schon, aber als ${ownedAs}. Hier auf Vinyl.`
         : `${album} hast du in einem anderen Format.`
     },
 
     PRICE_SIGNAL: (evidence) => {
       const paid = price(evidence, 'price')
       const lowest = price(evidence, 'marketLowest')
-      return paid && lowest ? `${paid} bei einem Markt-Tiefstpreis von ${lowest}.` : null
+      return paid && lowest ? `${paid} hier, sonst am Markt ab ${lowest}.` : null
     },
 
     SCARCITY: (evidence) => {
       const n = Number(evidence.numForSale ?? 0)
       if (n <= 0) return null
       return n === 1
-        ? 'Weltweit genau ein Exemplar im Angebot.'
-        : `Nur ${count(n)} Exemplare weltweit im Angebot.`
+        ? 'Weltweit genau eine im Angebot.'
+        : `Weltweit nur ${count(n)} im Angebot.`
     },
   },
 
@@ -341,35 +325,41 @@ const de: typeof en = {
     ARTIST_KNOWN: (evidence) => {
       if (!evidence.artist) return null
       const via = evidence.via ? `, als ${String(evidence.via)}` : ''
-      return `Künstler bekannt (${String(evidence.artist)}${via})`
+      return `${String(evidence.artist)} steht bei dir im Regal${via}`
     },
     ARTIST_FOLLOWED: (evidence) =>
-      evidence.artist ? `${String(evidence.artist)} steht auf deinem Schirm` : null,
-    LABEL_AFFINITY: (evidence) => (evidence.label ? `Label ${String(evidence.label)}` : null),
+      evidence.artist ? `${String(evidence.artist)} hast du auf dem Schirm` : null,
+    LABEL_AFFINITY: (evidence) =>
+      evidence.label ? `${String(evidence.label)} sammelst du` : null,
     WANTLIST_PRESSING: (evidence) =>
-      evidence.album ? `anderes Pressing von ${String(evidence.album)}` : null,
+      evidence.album ? `andere Pressung von ${String(evidence.album)}` : null,
     ARTIST_GAP: (evidence) =>
-      evidence.artist ? `Diskografie-Lücke bei ${String(evidence.artist)}` : null,
+      evidence.artist ? `eine Lücke bei ${String(evidence.artist)}` : null,
     CATALOG_RUN: (evidence) =>
-      evidence.prefix ? `Katalogserie ${String(evidence.prefix)}` : null,
-    CREDIT_GRAPH: (evidence) => (evidence.person ? `${String(evidence.person)} am Werk` : null),
-    FORMAT_UPGRADE: () => 'Format-Upgrade',
+      evidence.prefix ? `Katalogreihe ${String(evidence.prefix)}` : null,
+    CREDIT_GRAPH: (evidence) =>
+      evidence.person ? `${String(evidence.person)} hat mitgearbeitet` : null,
+    FORMAT_UPGRADE: () => 'hast du in einem anderen Format',
     STYLE_ADJACENT: (evidence) => {
       const styles = Array.isArray(evidence.styles) ? (evidence.styles as string[]) : []
-      return styles.length > 0 ? `Stil passt (${styles[0]})` : null
+      return styles.length > 0 ? `dein Revier (${styles[0]})` : null
     },
     PRICE_SIGNAL: (evidence) => {
       const lowest = price(evidence, 'marketLowest')
-      return lowest ? `unter Markt (${lowest})` : 'unter Markt'
+      return lowest ? `unter dem Marktpreis von ${lowest}` : 'unter dem Marktpreis'
     },
     SCARCITY: (evidence) => {
       const n = Number(evidence.numForSale ?? 0)
       return n > 0 ? `nur ${count(n)} im Angebot` : null
     },
   },
-
-  fallback: 'Passt zu deiner Sammlung.',
+  fallback: 'Passt zu dem, was du sammelst.',
   also: (rest) => ` Außerdem: ${rest}.`,
+}
+
+/** "you have 3 records" at the start of a sentence. */
+function capital(phrase: string): string {
+  return phrase.charAt(0).toUpperCase() + phrase.slice(1)
 }
 
 export const packs = { en, de }

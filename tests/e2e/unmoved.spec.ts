@@ -33,7 +33,7 @@ test('says when a shop has not moved since the last dig', async ({ context, page
 
   await page.goto('/dig')
   await page.getByText('Another shop, or an earlier dig').click()
-  await page.getByLabel('Shop — name or link').fill('plattenkiste')
+  await page.getByLabel('Shop name or link').fill('plattenkiste')
   await page.getByRole('button', { name: 'Check' }).click()
 
   await expect(page.getByText(/the same number as at your last dig/)).toBeVisible({

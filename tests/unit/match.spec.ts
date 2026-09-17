@@ -116,9 +116,7 @@ describe('the signals that M2 can actually fire', () => {
     expect(most?.signals[0]?.evidence).toEqual({ releaseId: 900, want: 5 })
     expect(plain?.signals[0]?.evidence).toEqual({ releaseId: 901 })
     expect(most?.score).toBe(plain?.score)
-    expect(reasonFor(most!.signals)).toBe(
-      'Exactly this is on your wantlist — one of the ones you want most.',
-    )
+    expect(reasonFor(most!.signals)).toBe("That's on your wantlist, and one you want most.")
   })
 
   it('S3 — an artist already in the collection, this record not', () => {
@@ -144,7 +142,7 @@ describe('the signals that M2 can actually fire', () => {
     )
 
     expect(result?.signals).toHaveLength(3)
-    expect(reasonFor(result!.signals)).toMatch(/^Exactly this is on your wantlist\./)
+    expect(reasonFor(result!.signals)).toMatch(/^That's on your wantlist\./)
     expect(reasonFor(result!.signals)).toContain('Also:')
   })
 })
@@ -230,7 +228,7 @@ describe('the lexicon', () => {
     // The sentence says under which name it was found, or it would claim the
     // listing said Robag Wruhme.
     expect(reasonFor([signal!])).toBe(
-      'Wuppdeck is Robag Wruhme — you have 3 records by Robag Wruhme, not this one.',
+      'Wuppdeck is Robag Wruhme. You have 3 records by Robag Wruhme, not this one.',
     )
   })
 
@@ -242,7 +240,7 @@ describe('the lexicon', () => {
 
     expect(signal?.confidence).toBe(0.85)
     expect(reasonFor([signal!])).toBe(
-      'Gabor Schablitzki is part of Wighnomy Brothers — Wighnomy Brothers is already on your shelf, not this one.',
+      'Gabor Schablitzki is part of Wighnomy Brothers. Wighnomy Brothers is on your shelf, not this one.',
     )
   })
 
@@ -252,7 +250,7 @@ describe('the lexicon', () => {
 
     expect(signal?.confidence).toBe(0.85)
     expect(reasonFor([signal!])).toBe(
-      'Robag Wruhme is part of Zimt — you have 3 records by Robag Wruhme, not this one.',
+      'Robag Wruhme is part of Zimt. You have 3 records by Robag Wruhme, not this one.',
     )
   })
 

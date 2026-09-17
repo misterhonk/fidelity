@@ -19,7 +19,7 @@ test('folds the question away and walks the list from inside the sheet', async (
 
   // The field, the shops and the earlier digs are one line now, and they come
   // back with one click.
-  const field = page.getByLabel('Shop — name or link')
+  const field = page.getByLabel('Shop name or link')
   await expect(field).toBeHidden()
   await page.getByText('Another shop, or an earlier dig').click()
   await expect(field).toBeVisible()

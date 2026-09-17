@@ -147,7 +147,7 @@ test.describe('smoke', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Dig' })).toBeVisible()
     // Name *or* link: nobody carries a Discogs username around, they carry the
     // address of the page they are standing on.
-    await expect(page.getByLabel('Shop — name or link')).toBeVisible()
+    await expect(page.getByLabel('Shop name or link')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Check' })).toBeDisabled()
 
     const { violations } = await new AxeBuilder({ page })

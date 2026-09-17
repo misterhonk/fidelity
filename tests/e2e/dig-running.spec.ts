@@ -63,10 +63,10 @@ test('names the shop being scanned when the page is opened mid-scan', async ({
   // The seed leaves a result on this screen, and a screen with a result folds
   // the field away (M31.13).
   await page.getByText('Another shop, or an earlier dig').click()
-  await page.getByLabel('Shop — name or link').fill('slowshop')
+  await page.getByLabel('Shop name or link').fill('slowshop')
   await page.getByRole('button', { name: 'Check' }).click()
   await page.getByRole('button', { name: 'Start the dig' }).click()
-  await expect(page.getByText('Scanning slowshop')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('Digging through slowshop')).toBeVisible({ timeout: 15_000 })
 
   // Away, and back — through the app's own navigation, the way a person
   // leaves a page. A full reload would take the worker with it, and that
@@ -75,7 +75,7 @@ test('names the shop being scanned when the page is opened mid-scan', async ({
   await expect(page).toHaveURL(/shelf/)
   await page.getByRole('link', { name: 'Dig', exact: true }).click()
   await expect(page).toHaveURL(/dig/)
-  await expect(page.getByText('Scanning slowshop')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('Digging through slowshop')).toBeVisible({ timeout: 15_000 })
   await page.getByText('Another shop, or an earlier dig').click()
   await expect(page.getByRole('button', { name: 'Check' })).toBeDisabled()
 
@@ -92,6 +92,6 @@ test('names the shop being scanned when the page is opened mid-scan', async ({
   await expect(page.getByText(/That is a result, not a fault/)).toBeHidden()
 
   // And when it is through, the result is here as if this page had started it.
-  await expect(page.getByText('Scanning slowshop')).toBeHidden({ timeout: 60_000 })
+  await expect(page.getByText('Digging through slowshop')).toBeHidden({ timeout: 60_000 })
   await expect(page.getByText(/finds/)).toBeVisible({ timeout: 15_000 })
 })

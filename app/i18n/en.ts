@@ -539,7 +539,7 @@ const en = {
   /** The start screen: what is new, and what is waiting. */
   home: {
     title: 'Start',
-    description: 'Fidelity — the clerk behind the counter for your Discogs digging.',
+    description: 'Fidelity, the person behind the counter for your Discogs digging.',
     counts: {
       collection: 'Collection',
       wantlist: 'Wantlist',
@@ -549,10 +549,10 @@ const en = {
     },
     lastFound: 'Found last time',
     interrupted: (scanned: string, total: string) =>
-      `This dig was interrupted — ${scanned} of ${total} were through.`,
+      `This dig stopped at ${scanned} of ${total}.`,
     carryOn: 'Carry on there',
     pricesGone:
-      'Prices older than six hours may no longer be shown. The finds and their reasons stay.',
+      'These prices are more than six hours old, so we took them down. The finds and their reasons stay.',
     whyThese: 'Why these?',
     newOnShelf: 'New on the shelf',
     lastNoted: 'Noted last',

@@ -365,7 +365,7 @@ const de: Messages = {
 
   home: {
     title: 'Start',
-    description: 'Fidelity – der Verkäufer hinter der Theke für dein Discogs-Sortiment.',
+    description: 'Fidelity, der Mensch hinterm Tresen für dein Graben bei Discogs.',
     counts: {
       collection: 'Sammlung',
       wantlist: 'Wantlist',
@@ -375,10 +375,10 @@ const de: Messages = {
     },
     lastFound: 'Zuletzt gefunden',
     interrupted: (scanned, total) =>
-      `Dieser Dig wurde unterbrochen – ${scanned} von ${total} waren durch.`,
-    carryOn: 'Dort fortsetzen',
+      `Dieser Dig ist bei ${scanned} von ${total} stehen geblieben.`,
+    carryOn: 'Da weitermachen',
     pricesGone:
-      'Preise älter als sechs Stunden, dürfen nicht mehr gezeigt werden. Treffer und Begründungen bleiben.',
+      'Die Preise sind älter als sechs Stunden, die haben wir rausgenommen. Die Funde und ihre Begründungen bleiben.',
     whyThese: 'Warum diese?',
     newOnShelf: 'Neu im Regal',
     lastNoted: 'Zuletzt notiert',

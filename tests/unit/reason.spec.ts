@@ -85,11 +85,9 @@ describe('the words themselves, in English', () => {
 
   it('says when a want is one of the ones you want most, from four stars up', () => {
     expect(reasonFor([signal('WANTLIST_EXACT', { want: 4 })])).toBe(
-      'Exactly this is on your wantlist — one of the ones you want most.',
+      "That's on your wantlist, and one you want most.",
     )
-    expect(reasonFor([signal('WANTLIST_EXACT', { want: 3 })])).toBe(
-      'Exactly this is on your wantlist.',
-    )
+    expect(reasonFor([signal('WANTLIST_EXACT', { want: 3 })])).toBe("That's on your wantlist.")
     expect(reasonFor([signal('WANTLIST_PRESSING', { want: 5 })])).toContain(
       'One you want most.',
     )
@@ -99,10 +97,10 @@ describe('the words themselves, in English', () => {
     // Or the sentence claims the listing said Dinky when it said Miss Dinky.
     const via = { artist: 'Dinky', owned: 4, via: 'Miss Dinky', relation: 'alias' }
     expect(reasonFor([signal('ARTIST_KNOWN', via)])).toBe(
-      'Miss Dinky is Dinky — you have 4 records by Dinky, not this one.',
+      'Miss Dinky is Dinky. You have 4 records by Dinky, not this one.',
     )
     expect(reasonFor([signal('WANTLIST_EXACT'), signal('ARTIST_KNOWN', via)])).toContain(
-      'artist known (Dinky, as Miss Dinky)',
+      'Dinky is on your shelf, as Miss Dinky',
     )
   })
 
@@ -134,9 +132,7 @@ describe('the words themselves, in English', () => {
     expect(reasonFor([signal('SCARCITY', { numForSale: 1 })])).toBe(
       'Exactly one copy for sale worldwide.',
     )
-    expect(reasonFor([signal('ARTIST_KNOWN', { owned: 1 })])).toContain(
-      'is already on your shelf',
-    )
+    expect(reasonFor([signal('ARTIST_KNOWN', { owned: 1 })])).toContain('is on your shelf')
     expect(reasonFor([signal('CREDIT_GRAPH', { owned: 1 })])).toBe(
       'Rudy Van Gelder worked on this.',
     )
@@ -156,7 +152,7 @@ describe('the words themselves, in English', () => {
     const sentence = reasonFor([
       signal('STYLE_ADJACENT', { styles: ['A', 'B', 'C', 'D', 'E'] }),
     ])
-    expect(sentence).toBe('A, B, C — your home ground.')
+    expect(sentence).toBe('A, B, C: your home ground.')
   })
 })
 
@@ -173,10 +169,10 @@ describe('the words themselves, in German', () => {
 
   it('says when a want is at the top of the list', () => {
     expect(reasonFor([signal('WANTLIST_EXACT', { want: 5 })])).toBe(
-      'Steht genau so auf deiner Wantlist – eine von denen, die du am meisten willst.',
+      'Steht auf deiner Wantlist, und zwar ganz oben.',
     )
     expect(reasonFor([signal('WANTLIST_PRESSING', { want: 4 })])).toContain(
-      'Eine von denen, die du am meisten willst.',
+      'Ganz oben auf deiner Liste.',
     )
   })
 
@@ -190,7 +186,7 @@ describe('the words themselves, in German', () => {
           relation: 'member',
         }),
       ]),
-    ).toBe('Holger Czukay gehört zu Can – du hast 5 Platten von Can, diese nicht.')
+    ).toBe('Holger Czukay gehört zu Can. Du hast 5 Platten von Can, diese nicht.')
     expect(
       reasonFor([
         signal('ARTIST_KNOWN', {
@@ -200,7 +196,7 @@ describe('the words themselves, in German', () => {
           relation: 'alias',
         }),
       ]),
-    ).toBe('Miss Dinky ist Dinky – Dinky steht schon in deiner Sammlung, diese nicht.')
+    ).toBe('Miss Dinky ist Dinky. Dinky steht bei dir im Regal, diese nicht.')
   })
 
   it('names both numbers on a price, never the ratio', () => {
@@ -212,13 +208,13 @@ describe('the words themselves, in German', () => {
 
   it('counts in words, not in arithmetic', () => {
     expect(reasonFor([signal('SCARCITY', { numForSale: 1 })])).toBe(
-      'Weltweit genau ein Exemplar im Angebot.',
+      'Weltweit genau eine im Angebot.',
     )
     expect(reasonFor([signal('ARTIST_KNOWN', { owned: 1 })])).toContain(
-      'steht schon in deiner Sammlung',
+      'steht bei dir im Regal',
     )
     expect(reasonFor([signal('CREDIT_GRAPH', { owned: 1 })])).toBe(
-      'Rudy Van Gelder hat hier mitgewirkt.',
+      'Rudy Van Gelder hat hier mitgearbeitet.',
     )
   })
 
@@ -231,7 +227,7 @@ describe('the words themselves, in German', () => {
 
   it('keeps three styles at most', () => {
     expect(reasonFor([signal('STYLE_ADJACENT', { styles: ['A', 'B', 'C', 'D', 'E'] })])).toBe(
-      'A, B, C – dein Kernrevier.',
+      'A, B, C: dein Revier.',
     )
   })
 })

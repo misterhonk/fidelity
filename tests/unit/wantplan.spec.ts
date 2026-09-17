@@ -10,7 +10,7 @@ import {
 } from '~~/worker/collection/wantplan'
 
 /**
- * Your wants across the shops you scanned (docs/06 M19 #9).
+ * Your wants across the shops you dug (docs/06 M19 #9).
  *
  * The number that makes it a plan and not a price list is the postage: a
  * shop that has two wants a euro dearer beats two shops a euro cheaper once

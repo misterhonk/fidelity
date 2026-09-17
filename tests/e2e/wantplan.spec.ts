@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { putRows, seed } from './seed'
 
 /**
- * Your wants across the shops you scanned (docs/06 M19 #9).
+ * Your wants across the shops you dug (docs/06 M19 #9).
  *
  * The seed has one fresh dig at Plattenkiste with a €34 record the signals
  * call a wantlist hit — but the wantlist is the truth, so the record goes on

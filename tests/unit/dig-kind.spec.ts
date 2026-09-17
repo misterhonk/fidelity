@@ -12,7 +12,7 @@ import { digKind } from '~/utils/dig-kind'
  * Found by looking at a real result screen: an incremental visit to a shop
  * holding 35.900 records reported
  *
- *     0 of 0 scanned (100 %)
+ *     0 of 0 dug (100 %)
  *     Nothing here for you at this dealer. That is a result, not a fault.
  *
  * Both numbers are what the record actually holds — an incremental dig's

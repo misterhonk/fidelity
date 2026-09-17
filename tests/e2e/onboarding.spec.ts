@@ -134,7 +134,7 @@ test('a stranger sets up, syncs, and digs a shop without reading a document', as
   // The first dig, from the offer on the last screen.
   await page.getByRole('link', { name: 'To the dig' }).click()
   await expect(page).toHaveURL(/dig/)
-  await page.getByLabel('Shop — name or link').fill('kompaktshop')
+  await page.getByLabel('Shop name or link').fill('kompaktshop')
   await page.getByRole('button', { name: 'Check' }).click()
   await page.getByRole('button', { name: 'Start the dig' }).click()
   await expect(page.getByRole('heading', { name: /finds? at kompaktshop/ })).toBeVisible({
