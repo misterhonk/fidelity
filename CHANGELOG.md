@@ -9,6 +9,23 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.101.0](https://github.com/misterhonk/fidelity/compare/v0.100.0...v0.101.0) (2026-09-17)
+
+**Jede Ladenzeile sagt, was eine Platte von dort im Porto kostet.**
+
+Zweite Portion vom Versandprofil. In der Liste der Läden steht jetzt hinter Land, Größe und
+letztem Dig auch „Porto ab 4,50 €", so weit dein Gerät es weiß: die Zahl, die Discogs für
+eine frische Korbzeile genannt hat, sonst die Staffel, die du eingetragen hast, sonst das,
+was wir aus dem Text des Ladens lesen. In der Währung des Ladens, nicht umgerechnet; die
+Quelle steht als Tooltip dran.
+
+**Was zu tun ist:** Nichts.
+
+
+### Added
+
+* **dealers:** the row says what one record costs to post from here ([525dbb6](https://github.com/misterhonk/fidelity/commit/525dbb62ce926e5927621b10436c5bbc61dbabe8))
+
 ## [0.100.0](https://github.com/misterhonk/fidelity/compare/v0.99.0...v0.100.0) (2026-09-17)
 
 **Der Porto-Text eines Ladens wird ganz gelesen, und die Staffel rechnet in deiner Währung.**
