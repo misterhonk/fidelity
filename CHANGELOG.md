@@ -9,6 +9,28 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.98.0](https://github.com/misterhonk/fidelity/compare/v0.97.0...v0.98.0) (2026-09-17)
+
+**Fehler, Hinweise und der Token-Bildschirm sprechen jetzt vom Tresen aus.**
+
+Die vierte Portion der neuen Stimme, in beiden Sprachen. Fehlermeldungen sagen, was passiert
+ist und was als Nächstes kommt: „Discogs bittet um eine Pause. Alles bis hier ist gespeichert.
+Ein, zwei Minuten, dann graben wir weiter." Aus „Der Sechs-Stunden-Rahmen ist abgelaufen" wird
+„Die Preise sind älter als sechs Stunden", aus jedem „Scan" ein Dig, und auf dem
+Token-Bildschirm redet Fidelity nicht mehr über sich selbst: „Wir reden direkt mit Discogs,
+ohne Server dazwischen."
+
+Die nächsten Schritte auf der Startseite heißen jetzt „Deine Künstler und Labels
+nachschlagen" statt „Horizont bauen". Der Bildschirm im Laden, die Demo und die
+Push-Nachricht („12 Angebote mehr als beim letzten Mal") ziehen mit.
+
+**Was zu tun ist:** Nichts. Es fehlen noch die Einstellungen, dann sind alle Pakete durch.
+
+
+### Added
+
+* **i18n:** the errors, the notices and the token screen speak from behind the counter ([8b0bfb3](https://github.com/misterhonk/fidelity/commit/8b0bfb39270a737b93fe2b567bcd1c43383a59c8))
+
 ## [0.97.0](https://github.com/misterhonk/fidelity/compare/v0.96.0...v0.97.0) (2026-09-17)
 
 **Korb und Sammlung sprechen jetzt auch vom Tresen aus.**
