@@ -131,7 +131,8 @@ export function createCatalogueApp({ db, path, now = Date.now }: CatalogueAppOpt
                   WHERE rl.release_id = r.id ORDER BY rl.rowid LIMIT 1) AS label,
                 (SELECT rl.catno FROM release_label rl WHERE rl.release_id = r.id ORDER BY rl.rowid LIMIT 1) AS catno,
                 (SELECT rf.name FROM release_format rf WHERE rf.release_id = r.id ORDER BY rf.rowid LIMIT 1) AS format,
-                (SELECT rf.descriptions FROM release_format rf WHERE rf.release_id = r.id ORDER BY rf.rowid LIMIT 1) AS descriptions
+                (SELECT rf.descriptions FROM release_format rf WHERE rf.release_id = r.id ORDER BY rf.rowid LIMIT 1) AS descriptions,
+                (SELECT COALESCE(SUM(rf.qty), 1) FROM release_format rf WHERE rf.release_id = r.id) AS discs
          FROM release r
          WHERE r.master_id = ?
          ORDER BY r.year IS NULL, r.year, r.id
@@ -152,6 +153,9 @@ export function createCatalogueApp({ db, path, now = Date.now }: CatalogueAppOpt
         label: row.label ?? '',
         catno: row.catno ?? '',
         format: formatOf(row.format, row.descriptions),
+        // How many discs, summed over the format blocks the way the app's
+        // sync counts them (M34.3): a 2×LP with a bonus 7" is three.
+        discs: Math.max(1, Number(row.discs) || 1),
       })),
     })
   })
@@ -307,9 +311,9 @@ export function createCatalogueApp({ db, path, now = Date.now }: CatalogueAppOpt
       .all(releaseId) as unknown as { name: string; catno: string }[]
     const formats = db()
       .prepare(
-        'SELECT name, descriptions FROM release_format WHERE release_id = ? ORDER BY rowid',
+        'SELECT name, qty, descriptions FROM release_format WHERE release_id = ? ORDER BY rowid',
       )
-      .all(releaseId) as unknown as { name: string; descriptions: string }[]
+      .all(releaseId) as unknown as { name: string; qty: number; descriptions: string }[]
 
     return c.json({
       id: release.id,
@@ -320,6 +324,13 @@ export function createCatalogueApp({ db, path, now = Date.now }: CatalogueAppOpt
       artists: artists.map((row) => row.name),
       labels: labels.map((row) => ({ name: row.name, catno: row.catno })),
       formats: formats.map((row) => formatOf(row.name, row.descriptions)),
+      // The count stays beside the format words, not inside them: the words
+      // are what the matching engine compares, the count is what a parcel
+      // weighs (M34.3, `qty` summed the way the app's sync sums it).
+      discs: Math.max(
+        1,
+        formats.reduce((total, row) => total + (Number(row.qty) || 1), 0),
+      ),
     })
   })
 

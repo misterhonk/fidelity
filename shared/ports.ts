@@ -87,6 +87,12 @@ export interface CatalogueRelease {
   artists: string[]
   labels: { name: string; catno: string }[]
   formats: string[]
+  /**
+   * How many discs, summed over the format blocks the way the sync counts
+   * them (M34.3). Absent from a catalogue built before 2026-09-17, which
+   * reads as one — the same rule as `CollectionRecord.discs`.
+   */
+  discs?: number
 }
 
 export interface CatalogueStats {

@@ -53,6 +53,8 @@ const familySchema = z.object({
         label: z.string(),
         catno: z.string(),
         format: z.string(),
+        /** Since 2026-09-17; a build from before answers without it. */
+        discs: z.number().int().positive().optional(),
       }),
     )
     .max(200),
@@ -109,6 +111,8 @@ const releaseSchema = z.object({
   artists: z.array(z.string()).max(50),
   labels: z.array(z.object({ name: z.string(), catno: z.string() })).max(50),
   formats: z.array(z.string()).max(20),
+  /** Since 2026-09-17; a build from before answers without it. */
+  discs: z.number().int().positive().optional(),
 })
 
 const statsSchema = z.object({

@@ -214,6 +214,13 @@ for the process. The map divides each facet's share of the collection by its sha
 build and shows the lift behind the bar, with one sentence under the bars naming the
 build. `resolve` and the per-dig lookups remain, for when there are users to serve.
 
+**M34.3 (2026-09-17):** `release/{id}` and every family sibling carry `discs`, the format
+blocks' `qty` summed the way `worker/sync/library.ts` sums it for the collection — a 2×LP
+with a bonus 7" is three. The count stays beside the format words rather than inside them:
+the words are what the matching engine compares, the count is what a parcel weighs. Typed
+as optional on the client (`CatalogueRelease.discs`, `PressingSibling.discs`), because a
+build from before this answers without it and that reads as one.
+
 Every answer carries `ETag: "2026-09-01"` and `Cache-Control: public, max-age=2592000`.
 The proxy (Traefik, later a CDN) may cache everything; the service has nothing to
 invalidate — a new build is a new ETag. No secret: it is public data. Rate limit at the

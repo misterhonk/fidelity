@@ -68,6 +68,7 @@ describe('a family', () => {
         label: string
         catno: string
         format: string
+        discs: number
       }[]
     }
     assert.equal(facts.masterId, 1315)
@@ -84,6 +85,7 @@ describe('a family', () => {
     assert.ok(facts.siblings.every((s) => s.label.length > 0))
     assert.equal(facts.siblings[0]!.format, 'Vinyl, 12", 33 ⅓ RPM, 45 RPM, EP')
     assert.equal(facts.siblings[1]!.format, 'CD, EP')
+    assert.ok(facts.siblings.every((s) => Number.isInteger(s.discs) && s.discs >= 1))
   })
 
   test('is a 404 for a master the build does not know, and a 400 for nonsense', async () => {
@@ -214,6 +216,7 @@ describe('the shop and the map (M21.6)', () => {
       artists: string[]
       labels: { name: string; catno: string }[]
       formats: string[]
+      discs: number
     }
     assert.equal(release.title, 'Stockholm')
     assert.equal(release.year, 1999)
@@ -222,6 +225,8 @@ describe('the shop and the map (M21.6)', () => {
     assert.deepEqual(release.artists, ['The Persuader'])
     assert.deepEqual(release.labels, [{ name: 'Svek', catno: 'SK032' }])
     assert.equal(release.formats[0], 'Vinyl, 12", 33 ⅓ RPM')
+    // Two discs, and the count stays out of the format words (M34.3).
+    assert.equal(release.discs, 2)
     assert.equal((await get('/v1/catalogue/release/999999999')).status, 404)
   })
 

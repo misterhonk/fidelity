@@ -1216,6 +1216,11 @@ export interface PressingSibling {
   label: string
   catno: string
   format: string
+  /**
+   * How many discs (M34.3). Only the catalogue says; the API's versions
+   * path carries no count, so a sibling from there has none.
+   */
+  discs?: number
 }
 
 /**
