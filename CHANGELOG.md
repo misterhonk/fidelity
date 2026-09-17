@@ -9,6 +9,25 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.105.0](https://github.com/misterhonk/fidelity/compare/v0.104.0...v0.105.0) (2026-09-17)
+
+**Der Catalogue sagt jetzt, aus wie vielen Scheiben eine Platte besteht.**
+
+Letzte kleine Portion vom Versandprofil. Die Antworten für ein Release und für jede Pressung
+einer Familie tragen jetzt `discs`, so gezählt wie der Sync es für deine Sammlung zählt: eine
+Doppel-LP mit Bonus-7" sind drei. Die Zahl steht neben den Formatwörtern, nicht darin, damit
+die Wörter, die der Abgleich vergleicht, bleiben, was sie waren. In der App liest das noch
+niemand aus, der Korb zählt an der Zeile selbst mit dem Format von Discogs. Die Zahl liegt für
+das Auffüllen des Pakets bereit, das als Nächstes kommt.
+
+**Was zu tun ist:** Nichts in der App. Der Catalogue im Homelab bringt die Zahl mit, sobald
+das Image neu gebaut ist; bis dahin antwortet er ohne sie, und das gilt als eine Scheibe.
+
+
+### Added
+
+* **hub:** the catalogue answers how many discs a release is ([d755a88](https://github.com/misterhonk/fidelity/commit/d755a88b7a8ecc44db6661d0ca07699cdd5e73bc))
+
 ## [0.104.0](https://github.com/misterhonk/fidelity/compare/v0.103.0...v0.104.0) (2026-09-17)
 
 **Liest du eine Bestellung ein, merken wir uns, was der Laden dir fürs Porto berechnet hat.**
