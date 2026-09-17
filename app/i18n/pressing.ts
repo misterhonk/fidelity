@@ -25,12 +25,12 @@ const en: Record<PressingWarningKind, Phrase> = {
     return `${where}reissue${when}${original}.`
   },
   'late-pressing': ({ year, masterYear }) =>
-    `Pressed ${year}, the album is from ${masterYear} — probably not a first pressing.`,
-  special: ({ special }) => `Filed as "${special}" — that is not an ordinary retail pressing.`,
+    `Pressed ${year}, the album is from ${masterYear}. Probably not a first pressing.`,
+  special: ({ special }) => `Filed as "${special}", so not an ordinary retail pressing.`,
   'claims-original-but-reissue': () =>
     'The shop writes "original"; Discogs lists this pressing as a reissue.',
   'claims-original-but-late': ({ year, masterYear }) =>
-    `The shop writes "original", but it was pressed ${year} — the album is from ${masterYear}.`,
+    `The shop writes "original", but it was pressed ${year}. The album is from ${masterYear}.`,
 }
 
 const de: Record<PressingWarningKind, Phrase> = {
@@ -41,13 +41,12 @@ const de: Record<PressingWarningKind, Phrase> = {
     return `${where}Neuauflage${when}${original}.`
   },
   'late-pressing': ({ year, masterYear }) =>
-    `Gepresst ${year}, das Album ist von ${masterYear} – vermutlich keine Erstpressung.`,
-  special: ({ special }) =>
-    `Als „${special}" eingetragen – das ist keine normale Handelspressung.`,
+    `Gepresst ${year}, das Album ist von ${masterYear}. Vermutlich keine Erstpressung.`,
+  special: ({ special }) => `Als „${special}" eingetragen, also keine normale Handelspressung.`,
   'claims-original-but-reissue': () =>
     'Der Laden schreibt „Original", Discogs führt diese Pressung als Neuauflage.',
   'claims-original-but-late': ({ year, masterYear }) =>
-    `Der Laden schreibt „Original", gepresst wurde ${year} – das Album ist von ${masterYear}.`,
+    `Der Laden schreibt „Original", gepresst ist sie ${year}. Das Album ist von ${masterYear}.`,
 }
 
 export const packs = { en, de }
@@ -66,13 +65,13 @@ const stampsEn: Record<PressingStamp['key'], StampText> = {
   RVG: { label: 'RVG', note: 'Rudy Van Gelder cut the lacquer.' },
   PLASTYLITE: {
     label: 'Plastylite ear',
-    note: 'Pressed at Plastylite – on Blue Note, the mark of a first pressing.',
+    note: 'Pressed at Plastylite. On Blue Note, the mark of a first pressing.',
   },
   STERLING: { label: 'Sterling', note: 'Cut at Sterling Sound.' },
   MASTERDISK: { label: 'Masterdisk', note: 'Cut at Masterdisk.' },
   RL: {
     label: 'RL',
-    note: 'Cut by Robert Ludwig – often the louder, more sought-after pressing.',
+    note: 'Cut by Robert Ludwig, often the louder, more sought-after pressing.',
   },
   PORKY: { label: 'Porky / Pecko', note: 'Cut by George Peckham.' },
   KENDUN: { label: 'Kendun', note: 'Cut at Kendun Recorders.' },
@@ -82,13 +81,13 @@ const stampsDe: Record<PressingStamp['key'], StampText> = {
   RVG: { label: 'RVG', note: 'Rudy Van Gelder hat die Lackfolie geschnitten.' },
   PLASTYLITE: {
     label: 'Plastylite-Ohr',
-    note: 'Gepresst bei Plastylite – bei Blue Note das Merkmal der Erstpressung.',
+    note: 'Gepresst bei Plastylite. Bei Blue Note das Merkmal der Erstpressung.',
   },
   STERLING: { label: 'Sterling', note: 'Geschnitten bei Sterling Sound.' },
   MASTERDISK: { label: 'Masterdisk', note: 'Geschnitten bei Masterdisk.' },
   RL: {
     label: 'RL',
-    note: 'Robert Ludwig hat geschnitten – oft die lautere, gesuchtere Pressung.',
+    note: 'Robert Ludwig hat geschnitten, oft die lautere, gesuchtere Pressung.',
   },
   PORKY: { label: 'Porky / Pecko', note: 'George Peckham hat geschnitten.' },
   KENDUN: { label: 'Kendun', note: 'Geschnitten bei Kendun Recorders.' },

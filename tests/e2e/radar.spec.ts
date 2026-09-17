@@ -62,7 +62,9 @@ test('puts a band on the radar and keeps it there', async ({ page, context }) =>
   await expect(page.getByRole('button', { name: 'On the radar', exact: true })).toBeVisible()
   await expect(page.getByText('Nobody on the radar yet')).toBeHidden()
   // And what it is worth is said: a name is a name until the horizon expands it.
-  await expect(page.getByText(/one or two lookups the next time the horizon/)).toBeVisible()
+  await expect(
+    page.getByText(/one or two lookups the next time we refresh your artists/),
+  ).toBeVisible()
 
   // It survives a reload — this is a row in the database, not a screen state.
   await page.reload()

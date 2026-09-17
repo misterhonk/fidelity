@@ -54,7 +54,7 @@ const en = {
   },
 
   title: 'Settings',
-  lead: 'Everything you set up once and then leave alone.',
+  lead: 'What you set up once and then leave alone.',
   /** The way back, on every subpage. */
   back: 'Settings',
 
@@ -71,10 +71,10 @@ const en = {
     protected: 'protected from being cleared',
     signOut: 'Sign out',
     signOutWarning:
-      'Signing out deletes the database with it — token, collection, horizon and digs. There is no copy anywhere else. Export first if you want to keep it.',
+      'Signing out deletes the database with it: token, collection, your artists and labels, digs. There is no copy anywhere else. Export first if you want to keep it.',
   },
   library: {
-    lead: 'What Fidelity knows from Discogs. The ground everything else stands on.',
+    lead: 'What we know about your records, straight from Discogs. Everything else builds on this.',
     title: 'Collection',
     hint: 'Collection, wantlist, horizon and credits',
     /**
@@ -102,7 +102,8 @@ const en = {
 
     horizon: {
       title: 'Horizon',
-      about: 'Your collection, unfolded once. After that no dig costs any extra lookups.',
+      about:
+        'Your artists and labels, looked up once. After that no dig costs any extra lookups.',
       /*
        * "Entities" and "release ids" are words from the inside. A collector
        * has artists and labels, and records. The numbers are the same
@@ -117,7 +118,7 @@ const en = {
        * the first is a unit from inside the machine.
        */
       remaining: (minutes: number) =>
-        `About ${counted(minutes, 'minute', 'minutes')} to go. It runs in small bites and survives a reload — nothing already done is fetched twice.`,
+        `About ${counted(minutes, 'minute', 'minutes')} to go. It runs in small bites and survives a reload; nothing already done is fetched twice.`,
       stale: (entries: number) =>
         `${counted(entries, 'entry is', 'entries are')} older than 30 days. Those get refreshed bit by bit, a small helping each day.`,
       records: 'records',
@@ -135,7 +136,7 @@ const en = {
        */
       lastBuilt: (when: string) => `Last built through on ${when}`,
       neverBuilt:
-        'Never built all the way through yet. What is here came from interrupted runs, from the daily refresh and from what digs turned up.',
+        'Never run all the way through yet. What is here came from runs that stopped early, from the daily refresh and from what digs turned up.',
       /*
        * Said while it runs, because the opposite was being read into it.
        *
@@ -144,7 +145,7 @@ const en = {
        * the bar lived on the page, so leaving took the bar and left the run.
        */
       keepsRunning:
-        'Carries on if you leave this screen — the build runs in the background, not on this page.',
+        'Carries on if you leave this screen. It runs in the background, not on this page.',
     },
 
     /*
@@ -157,8 +158,8 @@ const en = {
      */
     radar: {
       title: 'On your radar',
-      about: 'Bands you have nothing by — and would like to be shown.',
-      lead: 'A dig matches against what is on your shelf. These are the names it should recognise anyway: nothing of theirs is here yet, and that is the point.',
+      about: 'Bands you have nothing by, and would like to be shown.',
+      lead: 'A dig matches against what is on your shelf. These are the names we should recognise anyway: nothing of theirs is here yet, and that is the point.',
       empty: 'Nobody on the radar yet. Search below and add one.',
       searchLabel: 'Find a band',
       searchPlaceholder: 'Exit North',
@@ -176,23 +177,23 @@ const en = {
        * up this page.
        */
       needsHorizon:
-        'Each of these is one or two lookups the next time the horizon is built or refreshed — that is what turns a name into the records behind it.',
+        'Each of these is one or two lookups the next time we refresh your artists. That is what turns a name into the records behind it.',
       toHorizon: 'To the horizon',
     },
 
     credits: {
       title: 'Credits',
-      about: 'Who made your favourite records — producers, engineers, remixers.',
-      lead: 'Who produced, mixed and mastered — read from your favourite records, the four- and five-star ones.',
+      about: 'Who made your favourite records: producers, engineers, remixers.',
+      lead: 'Who produced, mixed and mastered, read off your favourite records, the four- and five-star ones.',
       whyLabel: 'Why only the favourites',
-      why: 'Credits only appear in the per-record lookup. Going through the whole collection would take hours — the rated ones are a fraction of that and say the most about you.',
+      why: 'Credits only appear when we look up one record at a time. Going through the whole collection would take hours. The rated ones are a fraction of that and say the most about you.',
       noFavourites:
-        'No record rated four or five stars yet. Give some ratings on Discogs and I will know where to look.',
+        'No record rated four or five stars yet. Give some ratings on Discogs, and we know where to look.',
       read: (read: string, total: string) => `${read} of ${total} favourites read`,
       worthExpanding: (people: number) =>
         `${people === 1 ? 'person turns' : 'people turn'} up often enough to join the horizon`,
       remaining: (records: number, minutes: number) =>
-        `${counted(records, 'record', 'records')} to go — about ${counted(minutes, 'minute', 'minutes')}. It runs in small bites and survives a reload.`,
+        `${counted(records, 'record', 'records')} to go, about ${counted(minutes, 'minute', 'minutes')}. It runs in small bites and survives a reload.`,
       people: 'people',
       harvest: 'Read the credits',
       continue: 'Keep reading',
@@ -219,23 +220,23 @@ const en = {
        * and "counts for less" are very different promises and somebody setting
        * a maximum price deserves to know which one they just made.
        */
-      hard: 'Hard — what never shows up at all',
-      soft: 'Soft — what still shows up, but further down',
+      hard: 'Hard: what never shows up at all',
+      soft: 'Soft: what still shows up, but further down',
 
       formats: 'Formats',
       formatsHint:
-        'Nothing selected means everything counts. Discogs writes vinyl as 12", 2xLP or 7" — all of those are read.',
+        'Nothing selected means everything counts. Discogs writes vinyl as 12", 2xLP or 7", and we read all of those.',
 
       maxPrice: 'Maximum price',
       noLimit: 'no limit',
-      maxPriceHint: 'Anything above is discarded.',
+      maxPriceHint: 'Anything above that, we leave out.',
 
       minRating: 'Seller rating at least',
       minRatingHint: 'Below that, no dig starts.',
 
       shipsTo: 'Where it ships to',
       shipsToHint:
-        'Decides the postage: shops write their prices by destination ("Germany:", "Europe:", "Non-Europe:"), and only the block that belongs to you is read. In English, the way Discogs writes it.',
+        'Decides the postage: shops write their prices by destination ("Germany:", "Europe:", "Non-Europe:"), and we read only the block that belongs to you. In English, the way Discogs writes it.',
 
       blocked: 'No shipping from these countries',
       blockedPlaceholder: 'Search for a country',
@@ -257,13 +258,13 @@ const en = {
       targetPrice: 'Comfortable price',
       targetPriceAny: 'no preference',
       targetPriceHint:
-        'Above that a find counts for 55 % — and that is also the ceiling up to which the basket makes suggestions.',
+        'Above that a find counts for 55 %, and that is also the ceiling up to which the basket makes suggestions.',
 
       preferOriginals: 'Prefer original pressings',
       preferOriginalsHint: 'Reissues then count for less.',
       preferOriginalsWhyLabel: 'Dampened rather than discarded',
       preferOriginalsWhy:
-        'Whether a record is a reissue is something Discogs only says in the per-record lookup — and that runs after the scan, over the best fifty. So discarding could not discard anything.',
+        'Whether a record is a reissue, Discogs only says when we look it up on its own, and that happens after the dig, for the best fifty. So leaving out could not leave out anything.',
 
       saved: 'Saved. Applies from the next dig.',
       countryPlaceholder: 'Germany',
@@ -273,7 +274,7 @@ const en = {
       title: 'Where the shops come from',
       about: 'Which sources the import may read.',
       ordersAlways:
-        'Orders are always read. Measured on 2026-09-11: that endpoint is the selling side, so for anybody who only buys it finds nothing — the friends list is the half that works.',
+        'We always read your orders. Discogs only shows us the selling side there, so for anybody who only buys it finds nothing. The friends list is the half that works.',
       friends: 'Read the Discogs friends list as well',
       friendsOff: 'Off until you switch it on.',
       /*
@@ -283,9 +284,9 @@ const en = {
        */
       friendsOn: 'On. Friends with records for sale are searched too.',
       whyLabel: 'Why this one is an exception',
-      why: 'Otherwise this app uses only officially documented Discogs interfaces.',
+      why: 'Otherwise we use only officially documented Discogs interfaces.',
       whyAfter:
-        'is not one — it works, but appears in no documentation and can disappear without notice. If it does, the import loses one source and nothing else. Hence: off until you agree.',
+        'is not one. It works, but appears in no documentation and can disappear without notice. If it does, the import loses one source and nothing else. So it stays off until you agree.',
     },
   },
   sync: {
@@ -315,9 +316,9 @@ const en = {
   audio: {
     label: 'Listen to a record',
     off: 'Off. Nothing is loaded from Google.',
-    on: 'On. Records with clips carry a play button — and it only talks to Google once you tap it.',
+    on: 'On. Records with clips carry a play button, and it only talks to Google once you tap it.',
     whyLabel: 'What happens then',
-    why: 'Discogs has one source of sound: YouTube. So a preview means embedding Google. Your collection, wantlist and token stay on this device — what Google learns is this device’s address and which record is playing. Nothing is loaded until you tap Listen, not even with this switch on.',
+    why: 'Discogs has one source of sound: YouTube. So a preview means embedding Google. Your collection, wantlist and token stay on this device. What Google learns is this device’s address and which record is playing. Nothing loads until you tap Listen, not even with this switch on.',
   },
 
   vault: {
@@ -330,7 +331,7 @@ const en = {
 
     /** Why the chosen destination cannot be used right now. */
     blocked: {
-      'no-hub': 'No hub set — the address lives in Settings under Hub.',
+      'no-hub': 'No hub set. The address lives in Settings under Hub.',
       'signed-out': 'Sign in first: the vault belongs to your Discogs account.',
       'not-built': 'This destination does not exist yet.',
       // `satisfies`, so a new reason cannot appear in the worker without a
@@ -357,7 +358,7 @@ const en = {
      * so nobody has to touch a working setup.
      */
     redirectMoved:
-      'Set this up before August 2026? The address then ended in /einstellungen/abgleich. It still works — nothing to change.',
+      'Set this up before August 2026? The address then ended in /einstellungen/abgleich. It still works; nothing to change.',
     connect: (provider: string) => `Connect to ${provider}`,
     connected: 'Connected.',
     connectedTo: (provider: string) => `Connected to ${provider}.`,
@@ -369,12 +370,12 @@ const en = {
     passphrase: 'Passphrase',
     // The one thing nobody can recover for you, said before it matters rather
     // than after.
-    passphraseHint: 'The same on every device. It is stored nowhere — forgotten means gone.',
+    passphraseHint: 'The same on every device. We store it nowhere; forgotten means gone.',
     remember: 'Remember on this device',
-    rememberHint: 'Then Fidelity syncs by itself when you open it.',
+    rememberHint: 'Then we sync by ourselves when you open the app.',
     rememberWhyLabel: 'Is that not the key next to the lock',
     rememberWhy:
-      'No — the lock is on the copy far away. This database here is unencrypted and always was: collection, shortlist and the Discogs token are already in it. Putting the passphrase beside them gives nobody anything that holding the device does not already give. On a shared computer that is a different question — then leave the box unticked and type it each time.',
+      'No. The lock is on the copy far away. This database here is unencrypted and always was: collection, shortlist and the Discogs token are already in it. Putting the passphrase beside them gives nobody anything that holding the device does not already give. On a shared computer that is a different question. Then leave the box unticked and type it each time.',
 
     syncing: 'Syncing …',
     syncNow: 'Sync now',
@@ -392,7 +393,7 @@ const en = {
      * anywhere looking broken.
      */
     emptySlot: (entries: number) =>
-      `Nothing was there, though this device has synced before — so ${counted(entries, 'entry', 'entries')} went up as a fresh backup. If you changed your passphrase, the older one is still under the old word: enter it again and sync once to bring the two together.`,
+      `Nothing was there, though this device has synced before, so ${counted(entries, 'entry', 'entries')} went up as a fresh backup. If you changed your passphrase, the older one is still under the old word: enter it again and sync once to bring the two together.`,
     lastSynced: (when: string) => `Last synced on ${when}.`,
 
     /*
@@ -409,35 +410,35 @@ const en = {
       about:
         'One round without choosing a destination: read the file the other device wrote, and save a fresh one. Useful for a single transfer, or for a device that is not set up.',
       aboutWebkit:
-        'This browser has no way to write to a file on its own, which is why "file in a sync folder" is not offered above — Safari lacks the API it needs, and that is the whole reason there is no iCloud entry. By hand it works: save the file into iCloud Drive yourself, and pick it here on the other device.',
+        'This browser has no way to write to a file on its own, which is why "file in a sync folder" is not offered above. Safari lacks the API it needs, and that is the whole reason there is no iCloud entry. By hand it works: save the file into iCloud Drive yourself, and pick it here on the other device.',
       file: 'The file from the other device',
-      fileHint: 'Leave empty on the first device — there is nothing to read yet.',
+      fileHint: 'Leave empty on the first device; there is nothing to read yet.',
       run: 'Merge and save a file',
-      saved: 'The file has been saved — put it where the other device can reach it.',
+      saved: 'The file has been saved. Put it where the other device can reach it.',
     },
 
     scopeWhyLabel: 'What travels and what does not',
     scopeWhy:
-      'With: horizon, shortlist, basket, shops with their postage tiers, settings. Not with: your Discogs token — one key on three devices is three times the surface, and each device signs itself in once. And no digs: prices are deleted after six hours anyway and have no business on a server.',
+      'With: your artists and labels, shortlist, basket, shops with their postage tiers, settings. Not with: your Discogs token. One key on three devices is three times the surface, and each device signs itself in once. And no digs: prices go after six hours anyway and have no business on a server.',
   },
 
   /** Settings → Hub. */
   hubPanel: {
     whyLabel: 'What a hub gives you',
-    why: 'The horizon — everything Fidelity has worked out about your artists and labels — then does not have to be built again on every device. What is in it once is there immediately on the next device instead of after minutes. The same goes for postage per shop. And if friends use the same hub, you all work for each other.',
-    optional: 'Everything works the same without a hub — it only takes waiting away.',
+    why: 'Everything we have worked out about your artists and labels then does not have to be looked up again on every device. What is in it once is there immediately on the next device instead of after minutes. The same goes for postage per shop. And if friends use the same hub, you all work for each other.',
+    optional: 'Everything works the same without a hub. It only takes waiting away.',
 
     url: 'Hub URL',
     door: 'Access key or shared secret',
     removeDoor: 'Remove',
     notYourToken:
-      'Not your Discogs token — that never leaves this device. A key starts with “fk1.” and opens a hosted hub and catalogue; anything else is the secret of your own hub.',
+      'Not your Discogs token; that never leaves this device. A key starts with “fk1.” and opens a hosted hub and catalogue. Anything else is the secret of your own hub.',
 
     save: 'Save',
     test: 'Test the connection',
     discover: 'Look here',
 
-    found: 'One is running on this machine — address filled in. Save it now.',
+    found: 'One is running on this machine, address filled in. Save it now.',
     /*
      * Two answers, because the two situations ask different things of the
      * reader. An open hub beside the app is finished business — saying it was
@@ -453,7 +454,7 @@ const en = {
      * case. The address is a line further down in the field anyway, and says
      * it more precisely than a sentence could.
      */
-    foundAndKept: 'Found one and kept it — nothing else to do.',
+    foundAndKept: 'Found one and kept it. Nothing else to do.',
     foundSecured:
       'Found one, and it asks for a shared secret: the word whoever set the hub up chose for it. Enter it below, then save.',
     // Measured 2026-08-10: from an https page Chromium reaches http://localhost
@@ -475,11 +476,11 @@ const en = {
     showDoor: 'Show it',
     hideDoor: 'Hide it',
     secretOk: 'the secret opens it',
-    secretWrong: 'the hub refuses this secret — nothing you contribute or fetch gets through',
-    secretMissing: 'no secret entered — nothing you contribute or fetch gets through',
+    secretWrong: 'the hub refuses this secret, so nothing you contribute or fetch gets through',
+    secretMissing: 'no secret entered, so nothing you contribute or fetch gets through',
     /** The second door (docs/17 §3.2): a hub that takes access keys. */
     keyOk: 'your access key opens it',
-    keyWrong: 'the hub refuses your access key — expired, revoked, or not for this hub',
+    keyWrong: 'the hub refuses your access key: expired, revoked, or not for this hub',
     keyMissing: 'this hub takes access keys and none is entered',
   },
 
@@ -489,7 +490,7 @@ const en = {
     notAKey: 'That does not read as an access key.',
     /** Given the tier’s name and a formatted date. */
     reads: (tier: string, until: string) => `${tier} · valid until ${until}`,
-    expired: 'expired — ask for a fresh one',
+    expired: 'expired, ask for a fresh one',
     saved: 'Saved. The hub and the catalogue get it with every request from now on.',
     removed: 'Removed. Your own hub works as before; a hosted one is closed to you now.',
   },
@@ -521,15 +522,15 @@ const en = {
    */
   cataloguePanel: {
     whyLabel: 'What a catalogue gives you',
-    why: 'Discogs publishes its whole database once a month. A catalogue is that month, read once, answering what the API answers slowly or not at all: every pressing of an album at once, every record a producer touched, a barcode without a single request. Nothing of yours goes there — it only knows the records.',
-    optional: 'Everything works the same without one — it only takes waiting away.',
+    why: 'Discogs publishes its whole database once a month. A catalogue is that month, read once, answering what the API answers slowly or not at all: every pressing of an album at once, every record a producer touched, a barcode without a single request. Nothing of yours goes there; it only knows the records.',
+    optional: 'Everything works the same without one. It only takes waiting away.',
 
     url: 'Catalogue URL',
     save: 'Save',
     test: 'Test the connection',
     discover: 'Look here',
 
-    found: 'Found one — address filled in. Save it now.',
+    found: 'Found one, address filled in. Save it now.',
     notFound:
       'None running on this machine. Enter the address by hand if it is somewhere else.',
     searchFailed: 'Cannot search.',
@@ -565,14 +566,14 @@ const en = {
     importSkippedPrices: (digs: string) =>
       `${digs} digs stayed out: a backup carries no prices, and a dig without them is a heading over nothing.`,
     importSkippedOld:
-      'The shelf and the wantlist in this file are from before the row shape settled — sync again and they are back.',
+      'The shelf and the wantlist in this file are from before the row shape settled. Sync again and they are back.',
     importMeta:
       'Settings and the taste profile came from the file, because this device had none.',
     exportDig: 'Last dig as a file',
     // Said before the file exists, not after. Somebody exporting a dig to send
     // to a friend needs to know what is in it *while deciding to send it*.
     contents:
-      "Neither file holds your token, prices or conditions — marketplace data may not be passed on under Discogs' terms. What is in there: which records fit how well and why, with a link to each listing.",
+      "Neither file holds your token, prices or conditions; marketplace data may not be passed on under Discogs' terms. What is in there: which records fit how well and why, with a link to each listing.",
     noDigYet: 'No dig yet that could be exported.',
 
     /*
@@ -583,11 +584,11 @@ const en = {
     exportCollectionCsv: 'Collection as CSV',
     exportWantlistCsv: 'Wantlist as CSV',
     csvContents:
-      'For a spreadsheet. Every column Discogs’ own export leaves out — genres, styles, release and master ids — plus what is yours alone: rating, folder, the condition fields and the place a record sits in. No prices and no estimate: those are marketplace data and stay in the app.',
+      'For a spreadsheet. Every column Discogs’ own export leaves out, genres, styles, release and master ids, plus what is yours alone: rating, folder, the condition fields and the place a record sits in. No prices and no estimate: those are marketplace data and stay in the app.',
 
     deleteAll: 'Delete everything',
     deleteWarning:
-      'Deletes the whole database on this device: token, collection, horizon, digs, basket and ratings. There is no copy anywhere else and no way back.',
+      'Deletes the whole database on this device: token, collection, your artists and labels, digs, basket and ratings. There is no copy anywhere else and no way back.',
     deleteConfirm: 'Yes, delete everything',
     cancel: 'Cancel',
   },
@@ -613,7 +614,7 @@ const en = {
     hint: 'Export it, or delete all of it',
   },
   help: {
-    lead: 'How Fidelity works, what the scores mean, and where your data lives.',
+    lead: 'How this works, what the scores mean, and where your data lives.',
     title: 'Help',
     hint: 'How this works, and what the scores mean',
   },
@@ -629,81 +630,81 @@ const en = {
     {
       title: 'How do I start?',
       body: [
-        'You need a personal access token from Discogs — you make one yourself under "Settings → Developers". After that Fidelity fetches your collection and your wantlist once. That is the ground everything stands on: without it the app does not know what you like.',
-        'Then, under "Dig", you name a shop — their name, or simply the link to their Discogs page. Fidelity reads their stock and tells you what in it fits you.',
+        'You need a personal access token from Discogs; you make one yourself under "Settings → Developers". After that we fetch your collection and your wantlist once. That is the ground everything stands on: without it we do not know what you like.',
+        'Then, under "Dig", you name a shop, by name or simply with the link to their Discogs page. We go through what they have and tell you what in it fits you.',
       ],
     },
     {
       title: 'What does the number next to a record mean?',
       body: [
-        'It says how well that record fits your collection — from 0 to 100. Eleven different signals feed into it: an artist you collect, a wish on your wantlist, a label you follow, a gap in a catalogue run, somebody who appears in the small print of your favourite records.',
-        'The strongest signal counts in full, the rest at 30 per cent each. So a record with one very good reason beats one with three weak ones — the way a person would do it too.',
+        'It says how well that record fits your collection, from 0 to 100. Eleven different signals feed into it: an artist you collect, a wish on your wantlist, a label you follow, a gap in a catalogue run, somebody who appears in the small print of your favourite records.',
+        'The strongest signal counts in full, the rest at 30 per cent each. So a record with one very good reason beats one with three weak ones, the way a person would do it too.',
         'Under each record is a sentence saying why. If the sentence does not convince you, the number is worth nothing either. Tap the record and you see every single signal with its evidence.',
       ],
     },
     {
       title: 'Why does a dig take so long?',
       body: [
-        'Discogs allows only a limited number of lookups per minute, and Fidelity keeps to it — one request after another, with a gap. So a shop with three thousand records is a few minutes.',
-        'You can walk away meanwhile. The progress is kept even if you close the tab: next time you open it, the app offers to carry on from there.',
-        'For shops you have searched before there is "only what is new" — that reads only what has arrived since your last visit, and is usually done in seconds.',
+        'Discogs allows only a limited number of lookups per minute, and we keep to it: one request after another, with a gap. So a shop with three thousand records is a few minutes.',
+        'You can walk away meanwhile. We keep the progress even if you close the tab: next time you open it, we offer to carry on from there.',
+        'For shops you have dug before there is "only what is new". That reads only what has arrived since your last visit, and is usually done in seconds.',
       ],
     },
     {
       title: 'Why do the prices disappear after a few hours?',
       body: [
-        'Because we are not allowed to keep them longer. Discogs permits its marketplace data to be used only for a short time, and Fidelity keeps to that without exception.',
-        'The finds and the reasons stay — we worked those out ourselves. Only the prices and conditions go. In the basket, "Still there?" brings everything up to date.',
+        'Because we are not allowed to keep them longer. Discogs permits its marketplace data to be used only for a short time, and we keep to that without exception.',
+        'The finds and the reasons stay; we worked those out ourselves. Only the prices and conditions go. In the basket, "Still there?" brings everything up to date.',
       ],
     },
     {
       title: 'Why one basket per shop?',
       body: [
         'Because postage is charged per parcel, not per record. Two records at two shops is postage twice; two records at one shop is often postage once.',
-        "So every basket does its own arithmetic: subtotal, postage tier, and what each further record actually costs. Buying happens at Discogs — Fidelity puts nothing in anybody else's cart.",
+        "So every basket does its own arithmetic: subtotal, postage tier, and what each further record actually costs. Buying happens at Discogs; we put nothing in anybody else's cart.",
       ],
     },
     {
       title: 'What is the horizon?',
       body: [
-        'Everything Fidelity has worked out about your artists and labels — not only what is on your shelf. With it the app recognises other pressings of the same record, gaps in catalogue runs, and albums you do not know yet.',
-        'It is built once and only kept up to date afterwards. Everything works without it, but the more interesting finds stay invisible.',
+        'Everything we have worked out about your artists and labels, not only what is on your shelf. With it we recognise other pressings of the same record, gaps in catalogue runs, and albums you do not know yet.',
+        'We build it once and only keep it up to date afterwards. Everything works without it, but the more interesting finds stay invisible.',
       ],
     },
     {
       title: 'And the credits?',
       body: [
-        'From the records you rated four or five stars on Discogs, Fidelity reads out who made them: producers, remixers, studio people.',
-        'When the same person turns up often, the app later finds records their name is not on the front of. That is the difference between "search by artist" and somebody who knows the shop.',
+        'From the records you rated four or five stars on Discogs, we read who made them: producers, remixers, studio people.',
+        'When the same person turns up often, we later find records their name is not on the front of. That is the difference between "search by artist" and somebody who knows the shop.',
       ],
     },
     {
       title: 'Where is my data?',
       body: [
-        "On this device, in your browser's storage. There is no server it could go to — Fidelity is nothing but files running in your browser.",
+        "On this device, in your browser's storage. There is no server it could go to; Fidelity is nothing but files running in your browser.",
         'Your Discogs token stays here as well. It is never written into an address, never logged, and never passed to anybody.',
-        'Fidelity only reads. It changes nothing about your Discogs account, buys nothing and writes nothing back.',
+        'We only read. We change nothing about your Discogs account, buy nothing and write nothing back.',
       ],
     },
     {
       title: 'How do I get all of it onto my phone?',
       body: [
-        'Under "Sync devices". Your data is encrypted on this device and put away as a single block — in your hub, in a sync folder, at Dropbox or at Google Drive, as you prefer. Only your devices can open it again.',
+        'Under "Sync devices". We encrypt your data on this device and put it away as a single block: in your hub, in a sync folder, at Dropbox or at Google Drive, as you prefer. Only your devices can open it again.',
         'Or simply set the phone up afresh. Everything except your own judgements can be fetched from Discogs again.',
       ],
     },
     {
       title: 'Does it work without a network?',
       body: [
-        'For looking things up, yes. Collection, wantlist, map and the last lists of finds are on the device. The "In the shop" screen exists exactly for this: with the record in your hand, check whether you already have it — record shops are basements.',
+        'For looking things up, yes. Collection, wantlist, map and the last lists of finds are on the device. The "In the shop" screen exists exactly for this: with the record in your hand, check whether you already have it. Record shops are basements.',
         'New digs need a network, because the shop has to be read for one.',
       ],
     },
     {
       title: 'Something is wrong',
       body: [
-        'Under "Your data" you can export everything or delete everything. Deleting removes the token too — after that the device is empty and you can start over. Nothing is lost that could not be fetched from Discogs again.',
-        'If the app says Discogs cannot be reached although you are online: usually the lookup budget is spent for the moment. Waiting a few minutes helps.',
+        'Under "Your data" you can export everything or delete everything. Deleting removes the token too; after that the device is empty and you can start over. Nothing is lost that could not be fetched from Discogs again.',
+        'If we say we cannot reach Discogs although you are online, the lookup budget is usually spent for the moment. Waiting a few minutes helps.',
       ],
     },
   ],
@@ -718,7 +719,7 @@ const en = {
    */
   closing: {
     title: 'Still a question open?',
-    body: 'Fidelity is open to read — how it calculates is in the code, and why it calculates that way is in the documents beside it. Anyone who wants to know exactly how a score comes about will find it written down there in full.',
+    body: 'Fidelity is open to read. How it calculates is in the code, and why it calculates that way is in the documents beside it. Anyone who wants to know exactly how a score comes about will find it written down there in full.',
     disclaimer: 'This application uses the Discogs API but is not connected with Discogs.',
   },
 }
@@ -749,7 +750,7 @@ const de: typeof en = {
   },
 
   title: 'Einstellungen',
-  lead: 'Alles, was man einmal einrichtet und danach in Ruhe lässt.',
+  lead: 'Was du einmal einrichtest und danach in Ruhe lässt.',
   back: 'Einstellungen',
 
   account: {
@@ -764,10 +765,10 @@ const de: typeof en = {
     protected: 'vor Aufräumen geschützt',
     signOut: 'Abmelden',
     signOutWarning:
-      'Abmelden löscht die Datenbank mit — Token, Sammlung, Horizont und Digs. Es gibt keine Kopie woanders. Vorher exportieren, wenn du sie behalten willst.',
+      'Abmelden löscht die Datenbank mit: Token, Sammlung, deine Künstler und Labels, Digs. Es gibt keine Kopie woanders. Vorher exportieren, wenn du sie behalten willst.',
   },
   library: {
-    lead: 'Was Fidelity von Discogs weiß. Grundlage für alles Weitere.',
+    lead: 'Was wir über deine Platten wissen, direkt von Discogs. Alles andere baut darauf auf.',
     title: 'Sammlung',
     hint: 'Sammlung, Wantlist, Horizont und Credits',
     summary: (records, wants) => `${records} Platten · ${wants} Wünsche`,
@@ -776,39 +777,39 @@ const de: typeof en = {
       title: 'Sammlung und Wantlist',
       collection: 'Sammlung',
       wantlist: 'Wantlist',
-      lastSynced: 'Zuletzt synchronisiert',
+      lastSynced: 'Zuletzt geholt',
       fetching: 'Wird geholt …',
       progress: (what, stored, total) => `${what}: ${stored} von ${total}`,
-      start: 'Sammlung synchronisieren',
-      again: 'Neu synchronisieren',
+      start: 'Sammlung holen',
+      again: 'Nochmal holen',
     },
 
     horizon: {
       title: 'Horizont',
       about:
-        'Deine Sammlung einmal ausgeklappt. Danach kostet jeder Dig keine zusätzlichen Abfragen.',
+        'Deine Künstler und Labels, einmal nachgeschlagen. Danach kostet kein Dig extra Abfragen.',
       entities: 'Künstler und Labels',
       ofTotal: (done, total) => `${done} von ${total}`,
       knownRecords: 'Bekannte Platten',
       remaining: (minutes) =>
-        `Dauert noch rund ${counted(minutes, 'Minute', 'Minuten')}. Läuft in Häppchen und übersteht ein Neuladen – was schon fertig ist, wird nicht noch einmal geholt.`,
+        `Dauert noch rund ${counted(minutes, 'Minute', 'Minuten')}. Läuft in kleinen Happen und übersteht ein Neuladen; was schon fertig ist, holen wir nicht nochmal.`,
       stale: (entries) =>
-        `${counted(entries, 'Eintrag ist', 'Einträge sind')} älter als 30 Tage. Die werden nach und nach aufgefrischt, ein kleines Kontingent pro Tag.`,
+        `${counted(entries, 'Eintrag ist', 'Einträge sind')} älter als 30 Tage. Die frischen wir nach und nach auf, eine kleine Portion pro Tag.`,
       records: 'Platten',
       eta: (clock) => `noch ca. ${clock}`,
       build: 'Horizont bauen',
       refresh: 'Horizont auffrischen',
       lastBuilt: (when) => `Zuletzt vollständig gebaut am ${when}`,
       neverBuilt:
-        'Noch nie ganz durchgelaufen. Was da ist, stammt aus abgebrochenen Läufen, aus der täglichen Auffrischung und aus dem, was Digs gefunden haben.',
+        'Noch nie ganz durchgelaufen. Was da ist, stammt aus Läufen, die früher aufgehört haben, aus der täglichen Auffrischung und aus dem, was Digs gefunden haben.',
       keepsRunning:
-        'Läuft weiter, wenn du diesen Bildschirm verlässt — der Bau läuft im Hintergrund, nicht auf dieser Seite.',
+        'Läuft weiter, wenn du diesen Bildschirm verlässt. Es läuft im Hintergrund, nicht auf dieser Seite.',
     },
 
     radar: {
       title: 'Auf dem Schirm',
-      about: 'Bands, von denen du nichts hast – und die trotzdem vorkommen sollen.',
-      lead: 'Ein Dig prüft gegen das, was im Regal steht. Das hier sind die Namen, die er trotzdem erkennen soll: von denen steht noch nichts da, und genau darum geht es.',
+      about: 'Bands, von denen du nichts hast, und die trotzdem vorkommen sollen.',
+      lead: 'Ein Dig vergleicht mit dem, was im Regal steht. Das hier sind die Namen, die wir trotzdem erkennen sollen: Von denen steht noch nichts da, und genau darum geht es.',
       empty: 'Noch niemand auf dem Schirm. Such unten jemanden und nimm ihn auf.',
       searchLabel: 'Band suchen',
       searchPlaceholder: 'Exit North',
@@ -818,23 +819,23 @@ const de: typeof en = {
       remove: 'Runter',
       noHits: 'Niemanden dieses Namens bei Discogs gefunden.',
       needsHorizon:
-        'Jeder davon kostet ein bis zwei Abfragen, wenn der Horizont das nächste Mal gebaut oder aufgefrischt wird – das ist es, was aus einem Namen die Platten dahinter macht.',
+        'Jeder davon kostet ein bis zwei Abfragen, wenn wir deine Künstler das nächste Mal auffrischen. Das macht aus einem Namen die Platten dahinter.',
       toHorizon: 'Zum Horizont',
     },
 
     credits: {
       title: 'Credits',
-      about: 'Wer deine Lieblingsplatten gemacht hat – Produzenten, Engineers, Remixer.',
-      lead: 'Wer produziert, gemischt und gemastert hat – gelesen aus deinen Lieblingsplatten, vier und fünf Sterne.',
+      about: 'Wer deine Lieblingsplatten gemacht hat: Produzenten, Engineers, Remixer.',
+      lead: 'Wer produziert, gemischt und gemastert hat, gelesen aus deinen Lieblingsplatten, vier und fünf Sterne.',
       whyLabel: 'Warum nur die Lieblingsplatten',
-      why: 'Credits stehen nur in der Einzelabfrage pro Platte. Die ganze Sammlung durchzugehen wäre stundenlang – die bewerteten sind ein Bruchteil davon und sagen am meisten über dich.',
+      why: 'Credits bekommen wir nur, wenn wir eine Platte einzeln nachschlagen. Die ganze Sammlung durchzugehen würde Stunden dauern. Die bewerteten sind ein Bruchteil davon und sagen am meisten über dich.',
       noFavourites:
-        'Noch keine Platte mit vier oder fünf Sternen bewertet. Vergib die bei Discogs, dann weiß ich, wo ich nachsehen soll.',
+        'Noch keine Platte mit vier oder fünf Sternen bewertet. Vergib die bei Discogs, dann wissen wir, wo wir nachschauen sollen.',
       read: (read, total) => `${read} von ${total} Lieblingsplatten gelesen`,
       worthExpanding: (people) =>
         `${people === 1 ? 'Person taucht' : 'Personen tauchen'} oft genug auf, um in den Horizont zu wandern`,
       remaining: (records, minutes) =>
-        `Noch ${counted(records, 'Platte', 'Platten')} – rund ${counted(minutes, 'Minute', 'Minuten')}. Läuft in Häppchen und übersteht ein Neuladen.`,
+        `Noch ${counted(records, 'Platte', 'Platten')}, rund ${counted(minutes, 'Minute', 'Minuten')}. Läuft in kleinen Happen und übersteht ein Neuladen.`,
       people: 'Personen',
       harvest: 'Credits lesen',
       continue: 'Weiterlesen',
@@ -854,27 +855,27 @@ const de: typeof en = {
       title: 'Wonach gesucht wird',
       about: 'Was gar nicht erst auftaucht, und was nur weiter unten landet.',
 
-      hard: 'Hart — was gar nicht erst auftaucht',
-      soft: 'Weich — was noch auftaucht, aber weiter unten',
+      hard: 'Hart: was gar nicht erst auftaucht',
+      soft: 'Weich: was noch auftaucht, aber weiter unten',
 
       formats: 'Formate',
       formatsHint:
-        'Nichts ausgewählt heißt: alles zählt. Discogs schreibt Vinyl als 12", 2xLP oder 7" – das wird mitgelesen.',
+        'Nichts ausgewählt heißt: Alles zählt. Discogs schreibt Vinyl als 12", 2xLP oder 7", das lesen wir alles mit.',
 
       maxPrice: 'Höchstpreis',
       noLimit: 'kein Limit',
-      maxPriceHint: 'Darüber wird verworfen.',
+      maxPriceHint: 'Was darüber liegt, lassen wir weg.',
 
       minRating: 'Verkäuferbewertung mindestens',
       minRatingHint: 'Darunter startet kein Dig.',
 
       shipsTo: 'Wohin geliefert wird',
       shipsToHint:
-        'Entscheidet den Versand: Läden schreiben ihre Preise nach Zielland gestaffelt („Germany:", „Europe:", „Non-Europe:"), und gelesen wird nur der Block, der zu dir gehört. Auf Englisch, wie Discogs es schreibt — „Deutschland" versteht Fidelity auch.',
+        'Entscheidet über das Porto: Läden schreiben ihre Preise nach Zielland („Germany:", „Europe:", „Non-Europe:"), und wir lesen nur den Block, der zu dir gehört. Auf Englisch, wie Discogs es schreibt; „Deutschland" verstehen wir auch.',
 
       blocked: 'Versand aus diesen Ländern nicht',
       blockedPlaceholder: 'Land suchen',
-      blockedSearch: 'Land suchen, das übersprungen werden soll',
+      blockedSearch: 'Land suchen, das wir überspringen sollen',
       unblock: (country) => `${country} nicht mehr überspringen`,
       blockedHint: 'Nützlich gegen Zoll und drei Wochen Wartezeit.',
 
@@ -887,13 +888,13 @@ const de: typeof en = {
       targetPrice: 'Wohlfühlpreis',
       targetPriceAny: 'egal',
       targetPriceHint:
-        'Darüber zählt ein Treffer 55 % – und das ist auch die Grenze, bis zu der der Korb Vorschläge macht.',
+        'Darüber zählt ein Fund 55 %, und das ist auch die Grenze, bis zu der der Korb Vorschläge macht.',
 
       preferOriginals: 'Originalpressungen bevorzugen',
       preferOriginalsHint: 'Neuauflagen zählen dann weniger.',
       preferOriginalsWhyLabel: 'Gedämpft statt verworfen',
       preferOriginalsWhy:
-        'Ob eine Platte eine Neuauflage ist, weiß Discogs erst in der Einzelabfrage – und die läuft erst nach dem Scan über die besten 50. Verwerfen könnte sie also nichts.',
+        'Ob eine Platte eine Neuauflage ist, sagt Discogs erst, wenn wir sie einzeln nachschlagen, und das passiert nach dem Dig, für die besten 50. Weglassen könnte also nichts weglassen.',
 
       saved: 'Gespeichert. Gilt ab dem nächsten Dig.',
       countryPlaceholder: 'Deutschland',
@@ -903,14 +904,14 @@ const de: typeof en = {
       title: 'Woher die Läden kommen',
       about: 'Welche Quellen der Import lesen darf.',
       ordersAlways:
-        'Bestellungen werden immer gelesen. Am 2026-09-11 gemessen: dieser Endpunkt ist die Verkaufsseite, für jemanden der nur kauft findet er also nichts – die Freundesliste ist die Hälfte, die funktioniert.',
+        'Deine Bestellungen lesen wir immer. Discogs zeigt uns dort nur die Verkaufsseite, für jemanden, der nur kauft, findet das also nichts. Die Freundesliste ist die Hälfte, die funktioniert.',
       friends: 'Auch die Discogs-Freundesliste lesen',
       friendsOff: 'Aus, solange du es nicht einschaltest.',
-      friendsOn: 'An. Freunde, die Platten anbieten, werden mitgesucht.',
+      friendsOn: 'An. Freunde, die Platten anbieten, suchen wir mit.',
       whyLabel: 'Warum das eine Ausnahme ist',
-      why: 'Diese App benutzt sonst ausschließlich offiziell dokumentierte Discogs-Schnittstellen.',
+      why: 'Sonst benutzen wir nur offiziell dokumentierte Discogs-Schnittstellen.',
       whyAfter:
-        'ist keiner – er funktioniert, steht aber in keiner Dokumentation und kann ohne Ankündigung verschwinden. Passiert das, verliert der Import eine Quelle und sonst nichts. Deshalb: aus, bis du zustimmst.',
+        'ist keine. Sie funktioniert, steht aber in keiner Dokumentation und kann ohne Ankündigung verschwinden. Passiert das, verliert der Import eine Quelle und sonst nichts. Deshalb bleibt sie aus, bis du zustimmst.',
     },
   },
   sync: {
@@ -928,10 +929,10 @@ const de: typeof en = {
 
   audio: {
     label: 'Platte anhören',
-    off: 'Aus. Es wird nichts von Google geladen.',
-    on: 'An. Platten mit Clips bekommen einen Abspielknopf – und erst beim Tippen spricht er mit Google.',
+    off: 'Aus. Wir laden nichts von Google.',
+    on: 'An. Platten mit Clips bekommen einen Abspielknopf, und erst beim Tippen redet er mit Google.',
     whyLabel: 'Was dann passiert',
-    why: 'Discogs hat genau eine Tonquelle: YouTube. Eine Hörprobe heißt also, Google einzubetten. Sammlung, Wantlist und Token bleiben auf diesem Gerät – was Google erfährt, ist die Adresse dieses Geräts und welche Platte läuft. Vor dem Tippen wird nichts geladen, auch mit eingeschaltetem Schalter nicht.',
+    why: 'Discogs hat genau eine Tonquelle: YouTube. Eine Hörprobe heißt also, Google einzubetten. Sammlung, Wantlist und Token bleiben auf diesem Gerät. Was Google erfährt, ist die Adresse dieses Geräts und welche Platte läuft. Vor dem Tippen laden wir nichts, auch mit eingeschaltetem Schalter nicht.',
   },
 
   vault: {
@@ -943,7 +944,7 @@ const de: typeof en = {
     },
 
     blocked: {
-      'no-hub': 'Kein Hub eingetragen – die Adresse steht in den Einstellungen unter Hub.',
+      'no-hub': 'Kein Hub eingetragen. Die Adresse steht in den Einstellungen unter Hub.',
       'signed-out': 'Erst anmelden: der Tresor gehört zu deinem Discogs-Konto.',
       'not-built': 'Dieses Ziel ist noch nicht gebaut.',
     },
@@ -955,7 +956,7 @@ const de: typeof en = {
       drive: 'OAuth-Client-ID, Typ „Web application", Drive API aktiviert.',
     },
     redirectMoved:
-      'Vor August 2026 eingerichtet? Die Adresse endete damals auf /einstellungen/abgleich. Sie funktioniert weiter – da ist nichts zu tun.',
+      'Vor August 2026 eingerichtet? Die Adresse endete damals auf /einstellungen/abgleich. Sie funktioniert weiter, da ist nichts zu tun.',
     connect: (provider) => `Mit ${provider} verbinden`,
     connected: 'Verbunden.',
     connectedTo: (provider) => `Mit ${provider} verbunden.`,
@@ -966,20 +967,20 @@ const de: typeof en = {
 
     passphrase: 'Passphrase',
     passphraseHint:
-      'Auf jedem Gerät dieselbe. Sie wird nirgends gespeichert – vergessen heißt weg.',
+      'Auf jedem Gerät dieselbe. Wir speichern sie nirgends; vergessen heißt weg.',
     remember: 'Auf diesem Gerät merken',
-    rememberHint: 'Dann gleicht sich Fidelity beim Öffnen von selbst ab.',
+    rememberHint: 'Dann gleichen wir beim Öffnen von selbst ab.',
     rememberWhyLabel: 'Ist das nicht der Schlüssel neben dem Schloss',
     rememberWhy:
-      'Nein – das Schloss sitzt auf der Kopie in der Ferne. Diese Datenbank hier ist unverschlüsselt und war es immer: Sammlung, Merkliste und der Discogs-Token liegen längst darin. Die Passphrase daneben zu legen gibt niemandem etwas, das der Besitz des Geräts nicht ohnehin gibt. Auf einem geteilten Rechner ist das eine andere Frage – dann Haken weg und jedes Mal tippen.',
+      'Nein. Das Schloss sitzt auf der Kopie in der Ferne. Diese Datenbank hier ist unverschlüsselt und war es immer: Sammlung, Merkliste und der Discogs-Token liegen längst darin. Die Passphrase daneben zu legen gibt niemandem etwas, das der Besitz des Geräts nicht ohnehin gibt. Auf einem geteilten Rechner ist das eine andere Frage. Dann Haken weg und jedes Mal tippen.',
 
-    syncing: 'Gleiche ab …',
+    syncing: 'Gleichen ab …',
     syncNow: 'Jetzt abgleichen',
     setUp: 'Einrichten',
     merged: (entries) => `Zusammengeführt: ${counted(entries, 'Eintrag', 'Einträge')}.`,
     firstBackup: (entries) => `Erstmals gesichert: ${counted(entries, 'Eintrag', 'Einträge')}.`,
     emptySlot: (entries) =>
-      `Dort lag nichts, obwohl dieses Gerät schon einmal abgeglichen hat — ${counted(entries, 'Eintrag', 'Einträge')} sind deshalb als frische Sicherung hochgegangen. Falls du die Passphrase geändert hast: die ältere liegt noch unter dem alten Wort. Einmal damit abgleichen führt beide zusammen.`,
+      `Dort lag nichts, obwohl dieses Gerät schon einmal abgeglichen hat. ${counted(entries, 'Eintrag', 'Einträge')} sind deshalb als frische Sicherung hochgegangen. Falls du die Passphrase geändert hast: die ältere liegt noch unter dem alten Wort. Einmal damit abgleichen führt beide zusammen.`,
     lastSynced: (when) => `Zuletzt abgeglichen am ${when}.`,
 
     byHand: {
@@ -987,36 +988,36 @@ const de: typeof en = {
       about:
         'Eine Runde ohne festes Ziel: die Datei lesen, die das andere Gerät geschrieben hat, und eine frische speichern. Gut für eine einzelne Übertragung oder ein Gerät, das nicht eingerichtet ist.',
       aboutWebkit:
-        'Dieser Browser kann nicht von sich aus in eine Datei schreiben – deshalb steht „Datei im Sync-Ordner" oben nicht zur Wahl, und deshalb gibt es auch keinen iCloud-Eintrag: Safari fehlt die nötige API, an iCloud liegt es nicht. Von Hand geht es: Datei selbst in iCloud Drive legen und auf dem anderen Gerät hier auswählen.',
+        'Dieser Browser kann nicht von sich aus in eine Datei schreiben. Deshalb steht „Datei im Sync-Ordner" oben nicht zur Wahl, und deshalb gibt es auch keinen iCloud-Eintrag: Safari fehlt die nötige API, an iCloud liegt es nicht. Von Hand geht es: Datei selbst in iCloud Drive legen und auf dem anderen Gerät hier auswählen.',
       file: 'Die Datei vom anderen Gerät',
-      fileHint: 'Auf dem ersten Gerät leer lassen – es gibt noch nichts zu lesen.',
+      fileHint: 'Auf dem ersten Gerät leer lassen; es gibt noch nichts zu lesen.',
       run: 'Abgleichen und Datei speichern',
-      saved: 'Die Datei ist gespeichert – leg sie dorthin, wo das andere Gerät sie findet.',
+      saved: 'Die Datei ist gespeichert. Leg sie dorthin, wo das andere Gerät sie findet.',
     },
 
     scopeWhyLabel: 'Was mitgeht und was nicht',
     scopeWhy:
-      'Mit: Horizont, Merkliste, Korb, Läden mit Versandstaffeln, Einstellungen. Nicht mit: dein Discogs-Token – ein Zugangsschlüssel auf drei Geräten ist dreimal so viel Angriffsfläche, jedes Gerät meldet sich einmal selbst an. Und keine Digs: Preise sind nach sechs Stunden ohnehin gelöscht und gehören nicht auf einen Server.',
+      'Mit: deine Künstler und Labels, Merkliste, Korb, Läden mit Versandstaffeln, Einstellungen. Nicht mit: dein Discogs-Token. Ein Schlüssel auf drei Geräten ist dreimal so viel Angriffsfläche, jedes Gerät meldet sich einmal selbst an. Und keine Digs: Preise sind nach sechs Stunden sowieso weg und gehören nicht auf einen Server.',
   },
 
   hubPanel: {
     whyLabel: 'Was ein Hub bringt',
-    why: 'Den Horizont – also alles, was Fidelity über deine Künstler und Labels herausgefunden hat – muss dann nicht jedes Gerät für sich aufbauen. Was einmal drinsteht, ist auf dem nächsten Gerät sofort da statt nach Minuten. Dasselbe gilt für Versandkosten pro Laden. Und wenn Freunde denselben Hub benutzen, arbeitet ihr euch gegenseitig zu.',
-    optional: 'Ohne Hub funktioniert alles genauso – er nimmt nur Wartezeit weg.',
+    why: 'Alles, was wir über deine Künstler und Labels herausgefunden haben, muss dann nicht jedes Gerät für sich nachschlagen. Was einmal drinsteht, ist auf dem nächsten Gerät sofort da statt nach Minuten. Dasselbe gilt für Versandkosten pro Laden. Und wenn Freunde denselben Hub benutzen, arbeitet ihr euch gegenseitig zu.',
+    optional: 'Ohne Hub funktioniert alles genauso. Er nimmt nur Wartezeit weg.',
 
     url: 'Hub-URL',
     door: 'Zugangsschlüssel oder Shared Secret',
     removeDoor: 'Entfernen',
     notYourToken:
-      'Nicht dein Discogs-Token – der verlässt dieses Gerät nie. Ein Schlüssel beginnt mit „fk1." und öffnet einen gehosteten Hub und Katalog; alles andere ist das Secret deines eigenen Hubs.',
+      'Nicht dein Discogs-Token; der verlässt dieses Gerät nie. Ein Schlüssel beginnt mit „fk1." und öffnet einen gehosteten Hub und Katalog. Alles andere ist das Secret deines eigenen Hubs.',
 
     save: 'Speichern',
     test: 'Verbindung testen',
     discover: 'Hier suchen',
 
-    found: 'Auf diesem Rechner läuft einer – Adresse eingetragen. Jetzt speichern.',
+    found: 'Auf diesem Rechner läuft einer, Adresse eingetragen. Jetzt speichern.',
     foundAndKept:
-      'Auf dieser Seite läuft einer – eingetragen und behalten. Mehr ist nicht zu tun.',
+      'Auf dieser Seite läuft einer, eingetragen und behalten. Mehr ist nicht zu tun.',
     foundSecured:
       'Auf dieser Seite läuft einer. Er verlangt ein gemeinsames Geheimnis: das Wort, das derjenige gewählt hat, der den Hub aufgesetzt hat. Unten eintragen, dann speichern.',
     blockedByMixedContent:
@@ -1035,19 +1036,19 @@ const de: typeof en = {
     hideDoor: 'Verbergen',
     secretOk: 'das Geheimnis öffnet ihn',
     secretWrong:
-      'der Hub weist dieses Geheimnis ab – nichts, was du beisteuerst oder holst, kommt durch',
+      'der Hub weist dieses Geheimnis ab, nichts, was du beisteuerst oder holst, kommt durch',
     secretMissing:
-      'kein Geheimnis eingetragen – nichts, was du beisteuerst oder holst, kommt durch',
+      'kein Geheimnis eingetragen, nichts, was du beisteuerst oder holst, kommt durch',
     keyOk: 'dein Zugangsschlüssel öffnet ihn',
     keyWrong:
-      'der Hub lehnt deinen Zugangsschlüssel ab – abgelaufen, zurückgezogen oder nicht für diesen Hub',
+      'der Hub lehnt deinen Zugangsschlüssel ab: abgelaufen, zurückgezogen oder nicht für diesen Hub',
     keyMissing: 'dieser Hub nimmt Zugangsschlüssel, und keiner ist eingetragen',
   },
 
   dataPanel: {
     exportAll: 'Alles exportieren',
     importAll: 'Ein Backup wieder einlesen',
-    importing: 'Lese …',
+    importing: 'Lesen …',
     importReport: (rows) => `Eingelesen: ${rows}.`,
     importNothing: 'Nichts in der Datei, das sich einlesen ließe.',
     importStore: {
@@ -1063,36 +1064,36 @@ const de: typeof en = {
     importSkippedPrices: (digs) =>
       `${digs} Digs blieben draußen: Ein Backup trägt keine Preise, und ein Dig ohne sie ist eine Überschrift über nichts.`,
     importSkippedOld:
-      'Sammlung und Wantlist in dieser Datei stammen von vor der festen Zeilenform – einmal synchronisieren, dann sind sie wieder da.',
+      'Sammlung und Wantlist in dieser Datei stammen von vor der festen Zeilenform. Einmal neu holen, dann sind sie wieder da.',
     importMeta:
       'Einstellungen und Geschmacksprofil kamen aus der Datei, weil dieses Gerät keine hatte.',
     exportDig: 'Letzten Dig als Datei',
     contents:
-      "Beide Dateien enthalten weder deinen Token noch Preise oder Zustände – Marktplatzdaten dürfen laut Discogs' Nutzungsbedingungen nicht weitergegeben werden. Was drinsteht: welche Platten wie gut passen und warum, mit Link zum jeweiligen Angebot.",
+      "Beide Dateien enthalten weder deinen Token noch Preise oder Zustände; Marktplatzdaten dürfen laut Discogs' Nutzungsbedingungen nicht weitergegeben werden. Was drinsteht: welche Platten wie gut passen und warum, mit Link zum jeweiligen Angebot.",
     noDigYet: 'Noch kein Dig da, den man exportieren könnte.',
 
     exportCollectionCsv: 'Sammlung als CSV',
     exportWantlistCsv: 'Wantlist als CSV',
     csvContents:
-      'Für eine Tabelle. Jede Spalte, die Discogs’ eigener Export weglässt – Genres, Stile, Release- und Master-IDs – plus das, was nur deins ist: Bewertung, Ordner, die Zustandsfelder und der Ort, an dem eine Platte steht. Keine Preise und keine Schätzung: das sind Marktplatzdaten und bleiben in der App.',
+      'Für eine Tabelle. Jede Spalte, die Discogs’ eigener Export weglässt, Genres, Stile, Release- und Master-IDs, plus das, was nur deins ist: Bewertung, Ordner, die Zustandsfelder und der Ort, an dem eine Platte steht. Keine Preise und keine Schätzung: das sind Marktplatzdaten und bleiben in der App.',
 
     deleteAll: 'Alles löschen',
     deleteWarning:
-      'Löscht die ganze Datenbank auf diesem Gerät: Token, Sammlung, Horizont, Digs, Korb und Bewertungen. Es gibt keine Kopie woanders und kein Zurück.',
+      'Löscht die ganze Datenbank auf diesem Gerät: Token, Sammlung, deine Künstler und Labels, Digs, Korb und Bewertungen. Es gibt keine Kopie woanders und kein Zurück.',
     deleteConfirm: 'Ja, alles löschen',
     cancel: 'Abbrechen',
   },
   cataloguePanel: {
     whyLabel: 'Was ein Katalog bringt',
-    why: 'Discogs veröffentlicht einmal im Monat seine ganze Datenbank. Ein Katalog ist dieser Monat, einmal gelesen, und beantwortet, was die API langsam oder gar nicht beantwortet: alle Pressungen eines Albums auf einen Schlag, jede Platte, an der ein Produzent beteiligt war, ein Barcode ohne eine einzige Anfrage. Nichts von dir geht dorthin – er kennt nur die Platten.',
-    optional: 'Ohne Katalog funktioniert alles genauso – er nimmt nur Wartezeit weg.',
+    why: 'Discogs veröffentlicht einmal im Monat seine ganze Datenbank. Ein Katalog ist dieser Monat, einmal gelesen, und beantwortet, was die API langsam oder gar nicht beantwortet: alle Pressungen eines Albums auf einen Schlag, jede Platte, an der ein Produzent beteiligt war, ein Barcode ohne eine einzige Anfrage. Nichts von dir geht dorthin; er kennt nur die Platten.',
+    optional: 'Ohne Katalog funktioniert alles genauso. Er nimmt nur Wartezeit weg.',
 
     url: 'Katalog-URL',
     save: 'Speichern',
     test: 'Verbindung testen',
     discover: 'Hier suchen',
 
-    found: 'Einer gefunden – Adresse eingetragen. Jetzt speichern.',
+    found: 'Einer gefunden, Adresse eingetragen. Jetzt speichern.',
     notFound:
       'Auf diesem Rechner läuft keiner. Trag die Adresse von Hand ein, wenn er woanders steht.',
     searchFailed: 'Suche nicht möglich.',
@@ -1105,7 +1106,7 @@ const de: typeof en = {
   accessPanel: {
     notAKey: 'Das liest sich nicht wie ein Zugangsschlüssel.',
     reads: (tier, until) => `${tier} · gültig bis ${until}`,
-    expired: 'abgelaufen – bitte um einen frischen',
+    expired: 'abgelaufen, bitte um einen frischen',
     saved: 'Gespeichert. Hub und Katalog bekommen ihn ab jetzt mit jeder Anfrage.',
     removed:
       'Entfernt. Dein eigener Hub läuft wie bisher; ein gehosteter ist für dich jetzt zu.',
@@ -1128,7 +1129,7 @@ const de: typeof en = {
     expired: 'abgelaufen',
   },
   hub: {
-    lead: 'Ein Helfer im eigenen Netz. Er merkt sich, was schon herausgefunden wurde.',
+    lead: 'Ein Helfer im eigenen Netz. Er merkt sich, was wir schon herausgefunden haben.',
     title: 'Hub',
     hint: 'Optionaler Helfer im eigenen Netz',
     notSetUp: 'Nicht eingerichtet',
@@ -1141,7 +1142,7 @@ const de: typeof en = {
     hint: 'Exportieren oder alles löschen',
   },
   help: {
-    lead: 'Wie Fidelity arbeitet, was die Punktzahlen bedeuten und wo deine Daten liegen.',
+    lead: 'Wie das hier funktioniert, was die Punktzahlen bedeuten und wo deine Daten liegen.',
     title: 'Hilfe',
     hint: 'Wie das hier arbeitet und was die Punktzahlen bedeuten',
   },
@@ -1149,88 +1150,88 @@ const de: typeof en = {
     {
       title: 'Wie fange ich an?',
       body: [
-        'Du brauchst einen Personal Access Token von Discogs – den erzeugst du dir unter „Settings → Developers" selbst. Danach holt Fidelity einmal deine Sammlung und deine Wantlist. Das ist die Grundlage: ohne sie weiß die App nicht, was du magst.',
-        'Dann gibst du unter „Graben" einen Laden an – seinen Namen oder einfach den Link seiner Discogs-Seite. Fidelity liest sein Sortiment und sagt dir, was davon zu dir passt.',
+        'Du brauchst einen Personal Access Token von Discogs; den erzeugst du dir unter „Settings → Developers" selbst. Danach holen wir einmal deine Sammlung und deine Wantlist. Das ist die Grundlage: Ohne sie wissen wir nicht, was du magst.',
+        'Dann nennst du uns unter „Graben" einen Laden, seinen Namen oder einfach den Link zu seiner Discogs-Seite. Wir gehen durch, was er hat, und sagen dir, was davon zu dir passt.',
       ],
     },
     {
       title: 'Was bedeutet die Zahl neben einer Platte?',
       body: [
-        'Sie sagt, wie gut diese Platte zu deiner Sammlung passt – von 0 bis 100. Elf verschiedene Hinweise fließen ein: ein Künstler, den du sammelst, ein Wunsch auf deiner Wantlist, ein Label, dem du folgst, eine Lücke in einer Katalogserie, jemand, der auf deinen Lieblingsplatten im Kleingedruckten steht.',
-        'Der stärkste Hinweis zählt voll, die übrigen zu je 30 Prozent. Eine Platte mit einem sehr guten Grund schlägt also eine mit drei schwachen – so wie ein Mensch es auch machen würde.',
+        'Sie sagt, wie gut diese Platte zu deiner Sammlung passt, von 0 bis 100. Elf verschiedene Hinweise fließen ein: ein Künstler, den du sammelst, ein Wunsch auf deiner Wantlist, ein Label, dem du folgst, eine Lücke in einer Katalogserie, jemand, der auf deinen Lieblingsplatten im Kleingedruckten steht.',
+        'Der stärkste Hinweis zählt voll, die übrigen zu je 30 Prozent. Eine Platte mit einem sehr guten Grund schlägt also eine mit drei schwachen, so wie ein Mensch es auch machen würde.',
         'Unter jeder Platte steht ein Satz, der sagt, warum. Wenn der Satz dich nicht überzeugt, ist die Zahl auch nichts wert. Tippst du die Platte an, siehst du jeden einzelnen Hinweis mit seinem Beleg.',
       ],
     },
     {
       title: 'Warum dauert ein Dig so lange?',
       body: [
-        'Discogs lässt pro Minute nur eine begrenzte Zahl von Abfragen zu, und Fidelity hält sich daran – eine Anfrage nach der anderen, mit Abstand. Ein Laden mit dreitausend Platten sind also ein paar Minuten.',
-        'Du kannst währenddessen weggehen. Der Fortschritt bleibt erhalten, auch wenn du den Tab schließt: beim nächsten Öffnen bietet die App an, dort weiterzumachen.',
-        'Für Läden, die du schon einmal durchsucht hast, gibt es „nur das Neue" – das liest nur, was seit deinem letzten Besuch dazugekommen ist, und ist meist in Sekunden fertig.',
+        'Discogs lässt pro Minute nur eine begrenzte Zahl von Abfragen zu, und wir halten uns daran: eine Anfrage nach der anderen, mit Abstand. Ein Laden mit dreitausend Platten sind also ein paar Minuten.',
+        'Du kannst währenddessen weggehen. Den Fortschritt behalten wir, auch wenn du den Tab schließt: Beim nächsten Öffnen bieten wir an, dort weiterzumachen.',
+        'Für Läden, die du schon einmal durchgegraben hast, gibt es „nur das Neue". Das liest nur, was seit deinem letzten Besuch dazugekommen ist, und ist meist in Sekunden fertig.',
       ],
     },
     {
       title: 'Warum verschwinden die Preise nach ein paar Stunden?',
       body: [
-        'Weil wir sie nicht länger behalten dürfen. Discogs erlaubt die Nutzung seiner Marktplatzdaten nur für kurze Zeit, und daran hält sich Fidelity ohne Ausnahme.',
-        'Die Treffer und die Begründungen bleiben – die haben wir selbst errechnet. Nur die Preise und Zustände gehen. Im Korb bringt „Noch da?" alles auf den neuesten Stand.',
+        'Weil wir sie nicht länger behalten dürfen. Discogs erlaubt die Nutzung seiner Marktplatzdaten nur für kurze Zeit, und daran halten wir uns ohne Ausnahme.',
+        'Die Funde und die Begründungen bleiben; die haben wir selbst errechnet. Nur die Preise und Zustände gehen. Im Korb bringt „Noch da?" alles auf den neuesten Stand.',
       ],
     },
     {
       title: 'Warum ein Korb pro Laden?',
       body: [
         'Weil Porto pro Sendung anfällt und nicht pro Platte. Zwei Platten bei zwei Läden sind zweimal Versand; zwei Platten bei einem Laden oft einmal.',
-        'Deshalb rechnet jeder Korb für sich: Zwischensumme, Versandstaffel, und was jede weitere Platte tatsächlich kostet. Gekauft wird bei Discogs – Fidelity legt nichts in einen fremden Warenkorb.',
+        'Deshalb rechnet jeder Korb für sich: Zwischensumme, Versandstaffel, und was jede weitere Platte tatsächlich kostet. Gekauft wird bei Discogs; wir legen nichts in einen fremden Warenkorb.',
       ],
     },
     {
       title: 'Was ist der Horizont?',
       body: [
-        'Alles, was Fidelity über deine Künstler und Labels herausgefunden hat – nicht nur das, was bei dir im Regal steht. Damit erkennt die App andere Pressungen derselben Platte, Lücken in Katalogserien und Alben, die du noch nicht kennst.',
-        'Er wird einmal aufgebaut und danach nur noch nachgeführt. Ohne ihn funktioniert alles, aber die interessanteren Treffer bleiben unsichtbar.',
+        'Alles, was wir über deine Künstler und Labels herausgefunden haben, nicht nur das, was bei dir im Regal steht. Damit erkennen wir andere Pressungen derselben Platte, Lücken in Katalogreihen und Alben, die du noch nicht kennst.',
+        'Wir bauen ihn einmal auf und führen ihn danach nur noch nach. Ohne ihn funktioniert alles, aber die interessanteren Funde bleiben unsichtbar.',
       ],
     },
     {
       title: 'Und die Credits?',
       body: [
-        'Aus den Platten, die du bei Discogs mit vier oder fünf Sternen bewertet hast, liest Fidelity heraus, wer sie gemacht hat: Produzenten, Remixer, Studioleute.',
-        'Wenn dieselbe Person oft auftaucht, findet die App später auch Platten, auf denen sie nicht vorne draufsteht. Das ist der Unterschied zwischen „nach Künstler suchen" und einem Menschen, der den Laden kennt.',
+        'Aus den Platten, die du bei Discogs mit vier oder fünf Sternen bewertet hast, lesen wir raus, wer sie gemacht hat: Produzenten, Remixer, Studioleute.',
+        'Wenn dieselbe Person oft auftaucht, finden wir später auch Platten, auf denen sie nicht vorne draufsteht. Das ist der Unterschied zwischen „nach Künstler suchen" und einem Menschen, der den Laden kennt.',
       ],
     },
     {
       title: 'Wo liegen meine Daten?',
       body: [
-        'Auf diesem Gerät, im Speicher deines Browsers. Es gibt keinen Server, an den sie gehen könnten – Fidelity besteht nur aus Dateien, die in deinem Browser laufen.',
+        'Auf diesem Gerät, im Speicher deines Browsers. Es gibt keinen Server, an den sie gehen könnten; Fidelity besteht nur aus Dateien, die in deinem Browser laufen.',
         'Dein Discogs-Token bleibt ebenfalls hier. Er wird nie in eine Adresse geschrieben, nie protokolliert und an niemanden weitergegeben.',
-        'Fidelity liest nur. Es ändert nichts an deinem Discogs-Konto, kauft nichts und schreibt nichts zurück.',
+        'Wir lesen nur. Wir ändern nichts an deinem Discogs-Konto, kaufen nichts und schreiben nichts zurück.',
       ],
     },
     {
       title: 'Wie bekomme ich alles auf mein Handy?',
       body: [
-        'Unter „Geräte abgleichen". Deine Daten werden auf diesem Gerät verschlüsselt und als ein einziger Block abgelegt – wahlweise in deinem Hub, in einem Sync-Ordner, bei Dropbox oder Google Drive. Nur deine Geräte können ihn wieder öffnen.',
+        'Unter „Geräte abgleichen". Wir verschlüsseln deine Daten auf diesem Gerät und legen sie als einen einzigen Block ab: in deinem Hub, in einem Sync-Ordner, bei Dropbox oder Google Drive, wie du willst. Nur deine Geräte können ihn wieder öffnen.',
         'Alternativ richtest du das Handy einfach neu ein. Alles außer deinen Urteilen lässt sich von Discogs neu holen.',
       ],
     },
     {
       title: 'Funktioniert das ohne Netz?',
       body: [
-        'Zum Nachschlagen ja. Sammlung, Wantlist, Landkarte und die letzten Fundlisten liegen auf dem Gerät. Der Bildschirm „Im Laden" ist genau dafür da: mit der Platte in der Hand nachsehen, ob du sie schon hast – Plattenläden sind Keller.',
-        'Neue Digs brauchen Netz, denn dafür muss der Laden gelesen werden.',
+        'Zum Nachschlagen ja. Sammlung, Wantlist, Landkarte und die letzten Fundlisten liegen auf dem Gerät. Der Bildschirm „Im Laden" ist genau dafür da: mit der Platte in der Hand nachschauen, ob du sie schon hast. Plattenläden sind Keller.',
+        'Neue Digs brauchen Netz, denn dafür müssen wir den Laden lesen.',
       ],
     },
     {
       title: 'Etwas stimmt nicht',
       body: [
-        'Unter „Deine Daten" kannst du alles ausgeben oder alles löschen. Löschen entfernt auch den Token – danach ist das Gerät leer und du kannst von vorne anfangen. Verloren geht dabei nichts, was sich nicht von Discogs neu holen ließe.',
-        'Sagt die App, Discogs sei nicht erreichbar, obwohl du online bist: meist ist das Anfragebudget für den Moment aufgebraucht. Ein paar Minuten warten hilft.',
+        'Unter „Deine Daten" kannst du alles exportieren oder alles löschen. Löschen entfernt auch den Token; danach ist das Gerät leer und du kannst von vorne anfangen. Verloren geht dabei nichts, was sich nicht von Discogs neu holen ließe.',
+        'Sagen wir, wir kommen nicht an Discogs ran, obwohl du online bist, ist meist das Anfragebudget für den Moment aufgebraucht. Ein paar Minuten warten hilft.',
       ],
     },
   ],
 
   closing: {
     title: 'Noch eine Frage offen?',
-    body: 'Fidelity ist quelloffen einsehbar – wie es rechnet, steht im Code, und warum es so rechnet, in den Unterlagen daneben. Wer genauer wissen will, wie eine Punktzahl zustande kommt, findet es dort vollständig aufgeschrieben.',
+    body: 'Fidelity ist quelloffen. Wie es rechnet, steht im Code, und warum es so rechnet, in den Unterlagen daneben. Wer genauer wissen will, wie eine Punktzahl zustande kommt, findet es dort vollständig aufgeschrieben.',
     disclaimer:
       'Diese Anwendung nutzt die Discogs-API, steht aber in keiner Verbindung zu Discogs.',
   },

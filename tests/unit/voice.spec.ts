@@ -20,6 +20,8 @@ const DONE = [
   'collection.ts',
   'en.ts',
   'de.ts',
+  'settings.ts',
+  'pressing.ts',
 ]
 
 /** Every string literal in a pack, with the line it starts on. */

@@ -140,7 +140,7 @@ describe('the trap warning', () => {
     const [warning] = pressingWarnings(late)
     expect(warning?.kind).toBe('late-pressing')
     expect(warning?.severity).toBe('medium')
-    expect(pressingText(warning!)).toContain('probably not a first pressing')
+    expect(pressingText(warning!)).toContain('Probably not a first pressing')
   })
 
   it('lets a pressing run on a year or two without calling it a reissue', () => {
@@ -245,6 +245,6 @@ describe('the same warnings, in German', () => {
 
   it('stays a suspicion when nothing is stated', () => {
     const late = readPressing({ year: 1975, formats: [{ descriptions: ['LP'] }] }, 1959)
-    expect(pressingText(pressingWarnings(late)[0]!)).toContain('vermutlich')
+    expect(pressingText(pressingWarnings(late)[0]!)).toContain('Vermutlich')
   })
 })
