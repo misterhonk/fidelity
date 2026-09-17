@@ -9,6 +9,19 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.102.0](https://github.com/misterhonk/fidelity/compare/v0.101.0...v0.102.0) (2026-09-17)
+
+
+### Added
+
+* **basket:** the pasted cart page tells each shop's postage for this parcel ([f501075](https://github.com/misterhonk/fidelity/commit/f50107524a6680bcc9f7432b86a7cb61d3f58726))
+
+
+### Fixed
+
+* **basket:** the paste outcome starts like a sentence ([48c7233](https://github.com/misterhonk/fidelity/commit/48c7233af463dd57f157a91089a3f3f831fe9dd4))
+* **i18n:** the paste box explains itself within the sixty words ([84773d7](https://github.com/misterhonk/fidelity/commit/84773d7d69be86f07efc840d1f754c8606db7bce))
+
 ## [0.101.0](https://github.com/misterhonk/fidelity/compare/v0.100.0...v0.101.0) (2026-09-17)
 
 **Jede Ladenzeile sagt, was eine Platte von dort im Porto kostet.**
