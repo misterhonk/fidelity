@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useBasketMessages } from '~/i18n/basket'
+import { money } from '~/utils/money'
 
 /**
  * Reading a Discogs order (M14).
@@ -24,7 +25,7 @@ const nummer = ref('')
 const laeuft = ref(false)
 const failure = ref<unknown>(null)
 const form = ref<string | null>(null)
-const result = ref<{ text: string; dazu: string | null } | null>(null)
+const result = ref<{ text: string; dazu: string | null; postage: string | null } | null>(null)
 
 async function read() {
   if (laeuft.value || !nummer.value.trim()) return
@@ -46,7 +47,7 @@ async function read() {
 
     const count = answer.records.length
     if (count === 0) {
-      result.value = { text: b.value.saved.order.nothing, dazu: null }
+      result.value = { text: b.value.saved.order.nothing, dazu: null, postage: null }
       return
     }
 
@@ -59,6 +60,13 @@ async function read() {
        * always stands there and mostly says zero is read twice by nobody.
        */
       dazu: answer.enriched > 0 ? b.value.saved.order.already(answer.enriched) : null,
+      // What the parcel cost to post, now the shop's tier for that count (ADR-017).
+      postage: answer.postage
+        ? b.value.saved.order.postage(
+            answer.postage.records,
+            money(answer.postage.value, answer.postage.currency) ?? '',
+          )
+        : null,
     }
     nummer.value = ''
     emit('imported')
@@ -100,6 +108,7 @@ async function read() {
     <p v-else-if="result" class="text-fid-sm text-fid-text" aria-live="polite">
       {{ result.text }}
       <template v-if="result.dazu"> {{ result.dazu }}</template>
+      <template v-if="result.postage"> {{ result.postage }}</template>
     </p>
 
     <ErrorNote v-if="failure" :cause="failure" />

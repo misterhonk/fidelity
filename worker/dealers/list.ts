@@ -88,10 +88,10 @@ export function postageFromFor(
       : { value: named.value, currency: named.currency, source: 'discogs' }
   }
   const own = shippingFor(
-    dealer.shippingTiers.filter((tier) => tier.source === 'user'),
+    dealer.shippingTiers.filter((tier) => tier.source === 'user' || tier.source === 'order'),
     1,
   )
-  if (own) return { value: own.price, currency: own.currency, source: 'user' }
+  if (own) return { value: own.price, currency: own.currency, source: own.source }
 
   const parsed = shippingFor(
     tiersForUnit(parseShippingText(dealer.shippingNote, home).tiers, 'record'),

@@ -258,10 +258,22 @@ describe('what a basket costs', () => {
     expect(summary.shippingSource).toBeNull()
   })
 
-  it('carries where the postage table came from', () => {
-    expect(summarise([line()], dealer(), shipping(table, 'parsed')).shippingSource).toBe(
+  it('carries where the postage tier that applies came from', () => {
+    const parsed = table.map((t) => ({ ...t, source: 'parsed' as const }))
+    expect(summarise([line()], dealer(), shipping(parsed, 'parsed')).shippingSource).toBe(
       'parsed',
     )
+    // One figure off an order sits in a typed table (ADR-017): the label
+    // follows the tier for this count, not the table as a whole.
+    const mixed = [
+      tier(1, 1, 6),
+      { ...tier(2, 2, 6.5), source: 'order' as const },
+      tier(3, 6, 12),
+    ]
+    expect(summarise([line()], dealer(), shipping(mixed)).shippingSource).toBe('user')
+    expect(
+      summarise([line(), line({ listingId: 2 })], dealer(), shipping(mixed)).shippingSource,
+    ).toBe('order')
   })
 
   it('flags a basket under the dealer minimum', () => {

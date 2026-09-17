@@ -69,6 +69,7 @@ const en = {
     parsed: 'estimated from the shop text',
     /* Discogs' own figure for this one record, to your address (M34.2). */
     discogs: 'named by Discogs for this record',
+    order: 'from your order',
   } satisfies Record<ShippingTier['source'], string>,
   /*
    * Beside a table for two or more: the one figure that is not a guess. It
@@ -309,9 +310,11 @@ const en = {
       doneNoDealer: (records: number) =>
         `${counted(records, 'record', 'records')} ${records === 1 ? 'is' : 'are'} now on the list.`,
       already: (n: number) => `${n} of them you had already saved.`,
+      postage: (records: number, amount: string) =>
+        `Postage was ${amount} for ${counted(records, 'record', 'records')}, noted for the shop.`,
       nothing: 'That order has no records in it.',
       whyLabel: 'Where do I find it?',
-      why: 'On discogs.com under Marketplace → Purchases, in the first column. You have to type it because Discogs only hands out an order when you name it. The list of what you bought is not something we can fetch, only what you sold. One lookup, and nothing but the records, the shop and the date is kept: not the price, and not the condition you were promised.',
+      why: 'On discogs.com under Marketplace → Purchases, in the first column. You have to type it because Discogs only hands out an order when you name it. The list of what you bought is not something we can fetch, only what you sold. One lookup, and nothing but the records, the shop, the date and what the postage was is kept: not the price, and not the condition you were promised.',
     },
   },
 }
@@ -363,6 +366,7 @@ const de: typeof en = {
     bundled: 'aus den mitgelieferten Profilen',
     parsed: 'geschätzt aus dem Freitext des Ladens',
     discogs: 'von Discogs für diese Platte genannt',
+    order: 'aus deiner Bestellung',
   },
   namedForOne: (original, converted) =>
     `Discogs nennt ${original}${converted ? ` (${converted})` : ''} für eine Platte.`,
@@ -525,9 +529,11 @@ const de: typeof en = {
       doneNoDealer: (records) =>
         `${counted(records, 'Platte', 'Platten')} ${records === 1 ? 'steht' : 'stehen'} jetzt auf der Liste.`,
       already: (n) => `${n} davon hattest du schon gemerkt.`,
+      postage: (records, amount) =>
+        `Das Porto lag bei ${amount} für ${counted(records, 'Platte', 'Platten')}, gemerkt für den Laden.`,
       nothing: 'In dieser Bestellung sind keine Platten.',
       whyLabel: 'Wo finde ich die?',
-      why: 'Auf discogs.com unter Marktplatz → Einkäufe, in der ersten Spalte. Eintippen musst du sie, weil Discogs eine Bestellung nur rausgibt, wenn man sie beim Namen nennt. Die Liste deiner Einkäufe können wir nicht holen, nur die von dem, was du verkauft hast. Eine Abfrage, und behalten wird nichts außer den Platten, dem Laden und dem Datum: nicht der Preis, und nicht der versprochene Zustand.',
+      why: 'Auf discogs.com unter Marktplatz → Einkäufe, in der ersten Spalte. Eintippen musst du sie, weil Discogs eine Bestellung nur rausgibt, wenn man sie beim Namen nennt. Die Liste deiner Einkäufe können wir nicht holen, nur die von dem, was du verkauft hast. Eine Abfrage, und behalten wird nichts außer den Platten, dem Laden, dem Datum und dem Porto: nicht der Preis, und nicht der versprochene Zustand.',
     },
   },
 }

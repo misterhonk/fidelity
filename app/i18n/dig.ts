@@ -180,6 +180,7 @@ const en = {
       bundled: 'from a shared table',
       parsed: 'our guess from the shop’s text',
       discogs: 'named by Discogs',
+      order: 'what your last order here paid',
     },
   },
   match: {
@@ -411,6 +412,7 @@ const de: typeof en = {
       bundled: 'aus einer geteilten Staffel',
       parsed: 'unsere Schätzung aus dem Text des Ladens',
       discogs: 'von Discogs genannt',
+      order: 'was deine letzte Bestellung hier gekostet hat',
     },
   },
   match: {

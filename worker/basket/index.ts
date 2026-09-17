@@ -235,7 +235,8 @@ export function summarise(
           missing: Math.max(0, Math.round((threshold - subtotal) * 100) / 100),
         }
 
-  const tabled = shippingFor(tiers, parcel.count)?.price ?? null
+  const step = shippingFor(tiers, parcel.count)
+  const tabled = step?.price ?? null
   const postage = namedFits
     ? named.value
     : freeOver !== null && freeOver.missing === 0 && tabled !== null
@@ -267,7 +268,9 @@ export function summarise(
     subtotal,
     currency,
     shipping: postage,
-    shippingSource: namedFits ? 'discogs' : shipping.source,
+    // The label names the tier that applies for this count: a table typed
+    // in by hand and one figure off an order can sit in the same list.
+    shippingSource: namedFits ? 'discogs' : (step?.source ?? shipping.source),
     shippingMatched: shipping.matched,
     shippingSection: shipping.section ?? null,
     shippingByWeight: shipping.byWeight ?? false,

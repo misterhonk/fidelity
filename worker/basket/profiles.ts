@@ -121,9 +121,13 @@ export async function resolveShipping(
   // The threshold off a pasted cart page outranks one read out of the text.
   const about = { matched: [] as string[], byWeight, note, freeOver: dealer.freeOver ?? null }
 
-  // 1. What somebody typed in. Stored on the dealer, so it survives a rescan.
-  const user = dealer.shippingTiers.filter((tier) => tier.source === 'user')
-  if (user.length > 0) return { ...about, tiers: sortTiers(user), source: 'user' }
+  // 1. What somebody typed in, or read off their own order (ADR-017). Stored
+  // on the dealer, so it survives a rescan.
+  const user = dealer.shippingTiers.filter((tier) => isOwn(tier))
+  if (user.length > 0) {
+    const source = user.every((tier) => tier.source === 'order') ? 'order' : 'user'
+    return { ...about, tiers: sortTiers(user), source }
+  }
 
   // 2. What a hub knows, when one is configured (M9). Ranked here — above
   // the repository file and below a hand-entered table — because it is
@@ -204,6 +208,8 @@ export async function readOffShipping(
    * here to there, not a point (M34.3).
    */
   upTo: number = items,
+  /** `order` when the figure came off one of your own orders (ADR-017). */
+  source: 'user' | 'order' = 'user',
 ): Promise<Dealer> {
   const db = await openFidelityDb()
   const existing = await db.get('dealers', username)
@@ -215,36 +221,42 @@ export async function readOffShipping(
    * for three becomes "2: €9", "3: the figure", "4 to 5: €9". Nothing the
    * user typed for other counts is touched.
    */
-  const own: Omit<ShippingTier, 'source'>[] = []
+  const own: OwnTier[] = []
   for (const tier of existing?.shippingTiers ?? []) {
-    if (tier.source !== 'user') continue
-    const { minItems, maxItems, price: p, currency: c } = tier
+    if (!isOwn(tier)) continue
+    const { minItems, maxItems, price: p, currency: c, source: s } = tier
     const overlaps = minItems <= last && (maxItems === null || maxItems >= items)
     if (!overlaps) {
-      own.push({ minItems, maxItems, price: p, currency: c })
+      own.push({ minItems, maxItems, price: p, currency: c, source: s })
       continue
     }
-    if (minItems < items) own.push({ minItems, maxItems: items - 1, price: p, currency: c })
+    if (minItems < items)
+      own.push({ minItems, maxItems: items - 1, price: p, currency: c, source: s })
     if (maxItems === null || maxItems > last)
-      own.push({ minItems: last + 1, maxItems, price: p, currency: c })
+      own.push({ minItems: last + 1, maxItems, price: p, currency: c, source: s })
   }
 
   return saveUserShipping(username, [
     ...own,
-    { minItems: items, maxItems: last, price, currency },
+    { minItems: items, maxItems: last, price, currency, source },
   ])
 }
 
-export async function saveUserShipping(
-  username: string,
-  tiers: Omit<ShippingTier, 'source'>[],
-): Promise<Dealer> {
+/** A tier that is the buyer's own knowledge: typed in, or off their own order. */
+function isOwn(tier: ShippingTier): tier is ShippingTier & { source: 'user' | 'order' } {
+  return tier.source === 'user' || tier.source === 'order'
+}
+
+/** What the read-off and the table form hand in: a tier, its source optional. */
+type OwnTier = Omit<ShippingTier, 'source'> & { source?: 'user' | 'order' }
+
+export async function saveUserShipping(username: string, tiers: OwnTier[]): Promise<Dealer> {
   const db = await openFidelityDb()
   const existing = await db.get('dealers', username)
 
   const updated: Dealer = {
     ...(existing ?? blankDealer(username)),
-    shippingTiers: sortTiers(tiers.map((tier) => ({ ...tier, source: 'user' as const }))),
+    shippingTiers: sortTiers(tiers.map((tier) => ({ ...tier, source: tier.source ?? 'user' }))),
     updatedAt: Date.now(),
   }
   await db.put('dealers', updated)

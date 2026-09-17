@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { blankDealer } from '~~/db/dealer'
 import { openFidelityDb } from '~~/db/open'
+import { readOffShipping } from './basket/profiles'
 import type { DiscogsClient } from './discogs/client'
 import type { Feedback, OrderImport } from '#shared/types'
 
@@ -48,11 +49,23 @@ import type { Feedback, OrderImport } from '#shared/types'
  *
  * Title, artist and shop stay: that is catalogue, not a listing, and without
  * them a purchase list is two bare integers (`docs/03` §7).
+ *
+ * **`shipping` stays too (ADR-017).** What this parcel cost to post, for this
+ * many records, to this address: the buyer's own fact, on their purchases
+ * page for good, and the same figure the read-off field and the pasted cart
+ * page already keep. It goes to the shop as a tier, never to the record.
  */
 const orderSchema = z.object({
   id: z.union([z.string(), z.number()]),
   created: z.string().optional(),
   seller: z.object({ username: z.string().min(1) }).optional(),
+  shipping: z
+    .object({
+      value: z.number().nullable().optional(),
+      currency: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
   items: z
     .array(
       z.object({
@@ -161,12 +174,37 @@ export async function importOrder(
     else added += 1
   }
 
+  /*
+   * The postage of this parcel becomes the shop's tier for this many
+   * records (ADR-017). A zero is a fact too: the shop posted free.
+   */
+  const paid = order.shipping
+  const postage =
+    dealer && order.items.length > 0 && typeof paid?.value === 'number' && paid.currency
+      ? {
+          value: Math.round(paid.value * 100) / 100,
+          currency: paid.currency,
+          records: order.items.length,
+        }
+      : null
+  if (postage) {
+    await readOffShipping(
+      dealer!,
+      postage.records,
+      postage.value,
+      postage.currency,
+      postage.records,
+      'order',
+    )
+  }
+
   return {
     ok: true,
     dealer,
     at,
     added,
     enriched,
+    postage,
     records: order.items.map((item) => ({
       listingId: item.id,
       title: item.release.title ?? null,

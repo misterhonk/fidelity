@@ -512,9 +512,10 @@ export function createHubClient({
     },
 
     async contributeShipping(dealer, country, tiers) {
-      // Only hand-entered ladders are worth sharing. A parsed guess passed on
-      // as a shared profile would launder a heuristic into a fact.
-      const own = tiers.filter((tier) => tier.source === 'user')
+      // Only the buyer's own ladders are worth sharing: typed in, or off an
+      // order (ADR-017). A parsed guess passed on as a shared profile would
+      // launder a heuristic into a fact.
+      const own = tiers.filter((tier) => tier.source === 'user' || tier.source === 'order')
       if (own.length === 0) return
 
       await fetchImpl(

@@ -1615,8 +1615,12 @@ export interface ShippingTier {
   maxItems: number | null
   price: number
   currency: string
-  /** `discogs`: Discogs named it for one listing (`ListingPostage`), no table. */
-  source: 'user' | 'bundled' | 'parsed' | 'discogs'
+  /**
+   * `discogs`: Discogs named it for one listing (`ListingPostage`), no table.
+   * `order`: what one of your own orders charged for this many records
+   * (ADR-017) — your own fact, ranked with `user`.
+   */
+  source: 'user' | 'bundled' | 'parsed' | 'discogs' | 'order'
   /**
    * What the count counts (M34.3). Absent means records, which is what a
    * table means unless the shop says otherwise: "1-10 7inches 4,50" and
@@ -2269,6 +2273,8 @@ export type OrderImport =
       added: number
       enriched: number
       records: { listingId: number; title: string | null; artist: string | null }[]
+      /** What the order charged for postage on its records, kept for the shop (ADR-017). */
+      postage: { value: number; currency: string; records: number } | null
     }
 
 export interface Feedback {

@@ -792,6 +792,11 @@ to have the number typed or pasted in.
 *comparison* — "as described / better / worse" — and never the grade that was promised. The
 measurement changes what is *available*, not what is allowed.
 
+**`shipping` is kept, since 2026-09-17 (ADR-017).** What this parcel cost to post, for
+this many records, to this address — the buyer's own fact, on the purchases page for good,
+and the same figure the read-off field and the pasted cart page already store. It becomes
+the shop's tier for that count, labelled `order`; nothing goes to the record.
+
 ---
 
 ## `GET /users/{username}/friends` – **undocumented**

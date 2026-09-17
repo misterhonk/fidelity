@@ -30,6 +30,7 @@ const ANSWER = {
   created: '2026-09-11T00:33:31-07:00',
   seller: { username: '430AM_Studio', email: 'shop@example.invalid' },
   total: { value: 48.97, currency: 'EUR' },
+  shipping: { value: 6.5, currency: 'EUR' },
   items: [
     {
       id: 4240795662,
@@ -219,6 +220,29 @@ describe('what an order never brings along', () => {
     ]) {
       expect(code).not.toContain(verboten)
     }
+  })
+
+  /**
+   * The parcel's postage is the buyer's own fact (ADR-017): it becomes the
+   * shop's tier for that many records, labelled as off an order, and the
+   * import says so. Nothing about the record itself is kept.
+   */
+  it('keeps what the parcel cost to post, for the shop and this many records', async () => {
+    const { fake } = client()
+    const answer = await importOrder(fake, '259022-32308', JETZT)
+    expect(answer.ok && answer.postage).toEqual({ value: 6.5, currency: 'EUR', records: 2 })
+
+    const db = await openFidelityDb()
+    const shop = await db.get('dealers', '430AM_Studio')
+    expect(shop?.shippingTiers).toEqual([
+      { minItems: 2, maxItems: 2, price: 6.5, currency: 'EUR', source: 'order' },
+    ])
+  })
+
+  it('says nothing about postage where the order names none', async () => {
+    const { fake } = client({ ...ANSWER, shipping: null })
+    const answer = await importOrder(fake, '259022-32308', JETZT)
+    expect(answer.ok && answer.postage).toBeNull()
   })
 
   /** And nothing goes out that was not asked for. */
