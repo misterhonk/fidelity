@@ -1129,6 +1129,12 @@ export const handlers: HandlerMap = {
     return basketView()
   },
 
+  'basket.readOff': async ({ dealer, items, price, currency }) => {
+    const { readOffShipping } = await import('./basket/profiles')
+    await readOffShipping(dealer, items, price, currency)
+    return basketView()
+  },
+
   'basket.plan': async ({ dealer, budget }) => {
     const view = await basketView()
     if (!view.baskets.some((basket) => basket.dealer === dealer)) return null

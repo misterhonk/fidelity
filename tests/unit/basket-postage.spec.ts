@@ -150,3 +150,90 @@ describe('the basket with a named figure', () => {
     expect(freshPostage(items, 7 * 60 * 60 * 1000)).toBeNull()
   })
 })
+
+describe('a table in the seller’s currency', () => {
+  const named = postageOf(measured, 1000)
+  const pounds = {
+    tiers: [
+      { minItems: 1, maxItems: 1, price: 12, currency: 'GBP', source: 'parsed' as const },
+      { minItems: 2, maxItems: 2, price: 13.5, currency: 'GBP', source: 'parsed' as const },
+    ],
+    source: 'parsed' as const,
+    matched: [],
+    freeOver: { amount: 300, currency: 'GBP' },
+  }
+
+  it('is turned into the basket’s currency at Discogs’ own rate', () => {
+    // 14.11 / 12 is the rate the measured line carries; 13.5 GBP at it is 15.87 EUR.
+    const summary = summarise(
+      [line({ postage: named }), line({ listingId: 2, price: 10 })],
+      dealer,
+      pounds,
+    )
+    expect(summary.shipping).toBe(15.87)
+    expect(summary.shippingConverted).toEqual({ from: 'GBP', rate: 14.11 / 12 })
+    expect(summary.freeOver).toEqual({ amount: 352.75, missing: 336.88 })
+  })
+
+  it('refuses to add a table it cannot convert', () => {
+    const summary = summarise([line(), line({ listingId: 2 })], dealer, pounds)
+    expect(summary.shipping).toBeNull()
+    expect(summary.shippingConverted).toBeNull()
+  })
+
+  it('makes the postage free once the basket is over the threshold', () => {
+    const euros = {
+      tiers: [
+        { minItems: 1, maxItems: null, price: 5, currency: 'EUR', source: 'user' as const },
+      ],
+      source: 'user' as const,
+      matched: [],
+      freeOver: { amount: 20, currency: 'EUR' },
+    }
+    const under = summarise(
+      [line({ price: 8 }), line({ listingId: 2, price: 8 })],
+      dealer,
+      euros,
+    )
+    expect(under.shipping).toBe(5)
+    expect(under.freeOver).toEqual({ amount: 20, missing: 4 })
+    const over = summarise(
+      [line({ price: 12 }), line({ listingId: 2, price: 9 })],
+      dealer,
+      euros,
+    )
+    expect(over.shipping).toBe(0)
+    expect(over.total).toBe(21)
+    expect(over.freeOver).toEqual({ amount: 20, missing: 0 })
+  })
+})
+
+describe('the read-off field', () => {
+  it('cuts the user’s own tier around the count it was read for', async () => {
+    const { deleteFidelityDb, openFidelityDb } = await import('~~/db/open')
+    const { readOffShipping } = await import('~~/worker/basket/profiles')
+    const db = await openFidelityDb()
+    await db.put('dealers', {
+      ...dealer,
+      shippingTiers: [
+        { minItems: 1, maxItems: 1, price: 6, currency: 'EUR', source: 'user' },
+        { minItems: 2, maxItems: 5, price: 9, currency: 'EUR', source: 'user' },
+        {
+          minItems: 6,
+          maxItems: null,
+          price: 12,
+          currency: 'EUR',
+          source: 'parsed',
+        },
+      ],
+    })
+    const updated = await readOffShipping('londonwax', 3, 9.8, 'EUR')
+    expect(updated.shippingTiers.map((t) => [t.minItems, t.maxItems, t.price])).toEqual([
+      [1, 1, 6],
+      [2, 2, 9],
+      [3, 3, 9.8],
+      [4, 5, 9],
+    ])
+    await deleteFidelityDb()
+  })
+})

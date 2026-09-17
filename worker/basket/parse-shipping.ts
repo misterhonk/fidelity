@@ -88,8 +88,16 @@ const UNIT = String.raw`(?:x\s*)?(?:lps?|platten?|records?|items?|discs?|st(?:ü
  * because what follows a rule's own colon is a price and a price is not a
  * count followed by another price.
  */
+/**
+ * A count, a range or an open end, a unit or two, a separator, a price.
+ *
+ * Grown on 2026-09-16 by the text of a British shop (tests/fixtures): "1st LP
+ * - £12.00" is an ordinal, "8 or more LP discs £8.00" has two unit words, and
+ * "4-7 discs - £5.50" puts a dash between the count and the price. The dash
+ * before the price must be followed by a space, or it would eat a range.
+ */
 const RANGE_RULE = new RegExp(
-  String.raw`(?:^|[,;/:\n·|(])\s*(?:ab\s+)?(\d{1,3})\s*(?:\s*(?:[-–—]|to|bis)\s*(\d{1,3})|\s*\+|\s*(?:or more|oder mehr|und mehr))?\s*${UNIT}\s*(?:[:=]|\s)\s*\(?\s*${PRICE}`,
+  String.raw`(?:^|[,;/:\n·|(])\s*(?:ab\s+)?(\d{1,3})(?:st|nd|rd|th)?\s*(?:\s*(?:[-–—]|to|bis)\s*(\d{1,3})|\s*\+|\s*(?:or more|oder mehr|und mehr))?\s*${UNIT}\s*${UNIT}\s*(?:[:=]|[-–—]\s|\s)\s*\(?\s*${PRICE}`,
   'gi',
 )
 
@@ -100,11 +108,17 @@ const RANGE_RULE = new RegExp(
  * needs a number to start from, and this shape starts from one.
  */
 const UP_TO_RULE = new RegExp(
-  String.raw`(?:^|[,;/:\n·|(])\s*(?:up\s+to|bis(?:\s+zu)?|max\.?|maximal)\s*(\d{1,3})\s*${UNIT}\s*(?:[:=]|\s)\s*\(?\s*${PRICE}`,
+  String.raw`(?:^|[,;/:\n·|(])\s*(?:up\s*to|bis(?:\s+zu)?|max\.?|maximal)\s*(\d{1,3})\s*${UNIT}\s*(?:[:=]|[-–—]\s|\s)\s*\(?\s*${PRICE}`,
   'gi',
 )
 
 /** `each additional 1,00 €`, `jede weitere 1 €`, `zzgl. 1 € je weitere LP`. */
+/** The same step with the price first: "+ £1.50 PER ADDITIONAL LP" (2026-09-17). */
+const ADDITIONAL_BEFORE_RULE = new RegExp(
+  String.raw`\+?\s*${PRICE}\s*(?:per|each|for each|je)\s+(?:additional|extra|further|weitere[nrs]?)\s*${UNIT}`,
+  'i',
+)
+
 const ADDITIONAL_RULE = new RegExp(
   String.raw`(?:each\s+(?:additional|extra)|jede[rs]?\s+weitere[nrs]?|per\s+additional)\s*${UNIT}\s*(?:[:=]|\s)?\s*${PRICE}`,
   'i',
@@ -124,6 +138,12 @@ function tidy(whole: string): string {
 
 export interface ParsedShipping {
   tiers: ShippingTier[]
+  /**
+   * "Free delivery when you spend more than £75" (M34.3): the threshold in
+   * the seller's currency, for the place the tiers were read for. A line
+   * that names another place ("EU buyers: … £300") is not the one.
+   */
+  freeOver: { amount: number; currency: string } | null
   /** What the parser thought it recognised, for the interface to show. */
   matched: string[]
   /**
@@ -160,6 +180,17 @@ export interface ParsedShipping {
 export const ADDITIONAL_UP_TO = 12
 
 /**
+ * Free postage above an order value, in the shapes sellers write it:
+ * "FREE DELIVERY WHEN YOU SPEND MORE THAN £75", "free postage if you spend
+ * £75", "versandkostenfrei ab 100 €", "gratis over €150".
+ */
+const FREE_OVER_RULE = new RegExp(
+  String.raw`(?:free|kostenlos|kostenfrei|gratis|versandkostenfrei|portofrei)[^
+]{0,60}?(?:over|above|from|more than|ab|über|spend(?:ing)?\s+(?:more than\s+|over\s+|at least\s+)?|orders?\s+(?:over|above|of))\s*${PRICE}`,
+  'i',
+)
+
+/**
  * A table priced by grams rather than by records.
  *
  * "1 bis 1999 Gramm: 14,00 €" and "101 bis 500 Gramm: 16,50 €" — a real shop,
@@ -192,7 +223,13 @@ export function parseShippingText(
   text: string | null | undefined,
   country?: string,
 ): ParsedShipping {
-  const empty: ParsedShipping = { tiers: [], matched: [], section: null, byWeight: false }
+  const empty: ParsedShipping = {
+    tiers: [],
+    matched: [],
+    section: null,
+    byWeight: false,
+    freeOver: null,
+  }
   if (!text || text.trim().length === 0) return empty
 
   const byWeight = billsByWeight(text)
@@ -206,7 +243,7 @@ export function parseShippingText(
    * *this* destination may be read — and if none of them is this destination,
    * the answer is nothing (the rule at the top of this file).
    */
-  const sorted = sections.some((section) => section.place !== null)
+  const sorted = sections.some((section) => section.places.length > 0)
   const section = sorted ? (country ? selectSection(sections, country) : null) : sections[0]
   if (!section) return { ...empty, byWeight }
 
@@ -252,7 +289,7 @@ export function parseShippingText(
 
   // "1 record 5 EUR, each additional 1 EUR" — the second half only means
   // something with a first tier to build on.
-  const additional = ADDITIONAL_RULE.exec(normalised)
+  const additional = ADDITIONAL_RULE.exec(normalised) ?? ADDITIONAL_BEFORE_RULE.exec(normalised)
   const base = sortTiers(tiers)[0]
   if (additional && base && base.maxItems !== null) {
     const step = toNumber(additional[2] ?? '')
@@ -273,7 +310,13 @@ export function parseShippingText(
     }
   }
 
-  return { tiers: dedupe(sortTiers(tiers)), matched, section: section.heading, byWeight }
+  return {
+    tiers: dedupe(sortTiers(tiers)),
+    matched,
+    section: section.heading,
+    byWeight,
+    freeOver: freeOverFor(stripBbCode(text), section),
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -284,10 +327,55 @@ export function parseShippingText(
 // costs everywhere else. Read as one table those rates interleave, and the
 // cheapest-looking rule from the wrong continent wins.
 
+/**
+ * The free-over threshold for the section that was read.
+ *
+ * Sellers put these lines above the tables, one per destination: "UK
+ * BUYERS: … £75", "EU BUYERS: … £300". A line counts when its own prefix
+ * names the section's place, or when it names none and stands inside the
+ * section. A line for another place is left alone.
+ */
+function freeOverFor(text: string, section: Section): ParsedShipping['freeOver'] {
+  const inSection = new Set(section.text.split(/\r?\n/).map((line) => line.trim()))
+
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim()
+    const hit = FREE_OVER_RULE.exec(line)
+    if (!hit) continue
+    const amount = toNumber(hit[2] ?? '')
+    const currency = toCurrency(hit[1], hit[3])
+    if (amount === null || !currency) continue
+
+    const colon = line.search(/[:：]/)
+    const prefix = colon > 0 ? line.slice(0, colon) : ''
+    const named = prefix
+      ? headingPlaces(
+          prefix.replace(/\b(?:buyers?|customers?|orders?|k\u00e4ufer|kunden)\b/gi, ''),
+        )
+      : []
+
+    if (named.length > 0) {
+      if (named.some((place) => section.places.some((own) => samePlace(place, own))))
+        return { amount, currency }
+      continue
+    }
+    if (inSection.has(line) || section.places.length === 0) return { amount, currency }
+  }
+  return null
+}
+
+/** A country and its region are the same place for a free-over line. */
+function samePlace(a: Place, b: Place): boolean {
+  if (a.kind === 'country' || b.kind === 'country') {
+    return a.kind === 'country' && b.kind === 'country' && a.name === b.name
+  }
+  return a.kind === b.kind
+}
+
 interface Section {
   /** The heading verbatim, for the interface to show. `null` for the preamble. */
   heading: string | null
-  place: Place | null
+  places: Place[]
   text: string
 }
 
@@ -457,9 +545,20 @@ function stripBbCode(text: string): string {
  * the aside would otherwise be read as a rule of its own. Anything with a
  * currency in it stays, because then the parenthesis *is* the rule.
  */
+/**
+ * Parentheses go, unless what is inside is a price: "1 LP (5 €)" keeps its
+ * price, "1-3 LP discs (over £5 value) - £4.00" loses the aside. Until
+ * 2026-09-17 any aside with a currency mark survived, and that aside sat
+ * between the count and the price and hid a whole tier.
+ */
+const PRICE_ONLY = new RegExp(
+  String.raw`^\s*(?:ca\.?\s*|~\s*)?${PRICE}\s*(?:each|je|pro St(?:ü|ue)ck)?\s*$`,
+  'i',
+)
+
 function stripAsides(text: string): string {
   return text.replace(/\(([^()]*)\)/g, (whole, inner: string) =>
-    /[€£$]|\b(?:eur|gbp|usd|chf)\b/i.test(inner) ? whole : ' ',
+    PRICE_ONLY.test(inner) ? whole : ' ',
   )
 }
 
@@ -470,17 +569,36 @@ function stripAsides(text: string): string {
  * identical in shape and are not destinations — treating them as headings
  * would cut a perfectly readable table into pieces that match nothing.
  */
-function headingPlace(line: string): Place | null {
-  const trimmed = line.trim().replace(/[:：]\s*$/, '')
-  if (trimmed.length === 0 || trimmed.length > 40) return null
-  if (!/^[\p{L} .\-/&]+$/u.test(trimmed)) return null
+/**
+ * The places a heading names — usually one, sometimes two: "USA/ REST OF THE
+ * WORLD:" is both a country and the world, and a buyer from either is meant.
+ *
+ * Grown on 2026-09-17 by a British shop: "UK (INCLUDING NORTHERN IRELAND)"
+ * carries an aside, "THE EUROPEAN UNION:" a leading article, and the third
+ * block names two places with a slash.
+ */
+function headingPlaces(line: string): Place[] {
+  const trimmed = line
+    .trim()
+    .replace(/[:：]\s*$/, '')
+    .replace(/\([^)]*\)/g, ' ')
+    .trim()
+  if (trimmed.length === 0 || trimmed.length > 48) return []
+  if (!/^[\p{L} .\-/&]+$/u.test(trimmed)) return []
 
-  const key = fold(trimmed)
-  const region = REGIONS[key]
-  if (region) return region
-
-  const name = canonical(key)
-  return EUROPE.has(name) || OVERSEAS.has(name) ? { kind: 'country', name } : null
+  const places: Place[] = []
+  for (const part of trimmed.split('/')) {
+    const key = fold(part).replace(/^the /, '')
+    if (!key) continue
+    const region = REGIONS[key]
+    if (region) {
+      places.push(region)
+      continue
+    }
+    const name = canonical(key)
+    if (EUROPE.has(name) || OVERSEAS.has(name)) places.push({ kind: 'country', name })
+  }
+  return places
 }
 
 function canonical(folded: string): string {
@@ -488,51 +606,41 @@ function canonical(folded: string): string {
 }
 
 function splitByPlace(text: string): Section[] {
-  const sections: { heading: string | null; place: Place | null; lines: string[] }[] = [
-    { heading: null, place: null, lines: [] },
+  const sections: { heading: string | null; places: Place[]; lines: string[] }[] = [
+    { heading: null, places: [], lines: [] },
   ]
 
   for (const line of text.split(/\r?\n/)) {
-    const place = headingPlace(line)
-    if (place)
-      sections.push({ heading: line.trim().replace(/[:：]\s*$/, ''), place, lines: [] })
+    const places = headingPlaces(line)
+    if (places.length > 0)
+      sections.push({ heading: line.trim().replace(/[:：]\s*$/, ''), places, lines: [] })
     else sections.at(-1)!.lines.push(line)
   }
 
   return sections
-    .filter((section) => section.place !== null || section.lines.some((line) => line.trim()))
-    .map(({ heading, place, lines }) => ({ heading, place, text: lines.join('\n') }))
+    .filter((section) => section.places.length > 0 || section.lines.some((line) => line.trim()))
+    .map(({ heading, places, lines }) => ({ heading, places, text: lines.join('\n') }))
 }
 
-/**
- * The block that covers this destination, or nothing.
- *
- * Nothing is a real answer: a dealer who lists Germany, Europe and Non-Europe
- * has said nothing about Japan, and the screen saying "Versand unbekannt –
- * trag ihn ein" is worth more than a number taken from the wrong continent.
- */
 function selectSection(sections: Section[], country: string): Section | null {
   const want = canonical(fold(country))
 
-  const named = sections.find(
-    (section) => section.place?.kind === 'country' && section.place.name === want,
+  const named = sections.find((section) =>
+    section.places.some((place) => place.kind === 'country' && place.name === want),
   )
   if (named) return named
 
   const region = EUROPE.has(want) ? 'europe' : 'outside-europe'
-  const regional = sections.find((section) => section.place?.kind === region)
+  const regional = sections.find((section) =>
+    section.places.some((place) => place.kind === region),
+  )
   if (regional) return regional
 
-  return sections.find((section) => section.place?.kind === 'world') ?? null
+  return (
+    sections.find((section) => section.places.some((place) => place.kind === 'world')) ?? null
+  )
 }
 
-// ---------------------------------------------------------------------------
-
-/**
- * Two rules covering the same count is a table the parser misread. The first
- * one wins rather than the cheaper: picking the cheaper would bias every
- * ambiguous table towards an optimistic number.
- */
 function dedupe(tiers: ShippingTier[]): ShippingTier[] {
   const out: ShippingTier[] = []
   for (const tier of tiers) {

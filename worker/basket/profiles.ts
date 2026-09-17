@@ -63,6 +63,8 @@ export function forgetBundled(): void {
 export interface ShippingResolution {
   tiers: ShippingTier[]
   source: ShippingTier['source'] | null
+  /** "Free delivery above £75", read off the shop's text for this destination (M34.3). */
+  freeOver?: { amount: number; currency: string } | null
   /** What the parser thought it recognised, when that is where this came from. */
   matched: string[]
   /**
@@ -156,6 +158,7 @@ export async function resolveShipping(
       source: 'parsed',
       matched: parsed.matched,
       section: parsed.section,
+      freeOver: parsed.freeOver,
     }
   }
 
@@ -174,6 +177,47 @@ export async function resolveShipping(
  * existed never wrote a dealer at all. Refusing here would have been a save
  * button that silently does nothing, which is the worst of the options.
  */
+/**
+ * "Discogs shows for 3 records: €9.80" (M34.3): one figure read off the
+ * Discogs cart, kept as a user tier for exactly that count. Merged into what
+ * the user typed before, never over it: a tier for two records and a tier
+ * for three are two facts, and a table can hold both.
+ */
+export async function readOffShipping(
+  username: string,
+  items: number,
+  price: number,
+  currency: string,
+): Promise<Dealer> {
+  const db = await openFidelityDb()
+  const existing = await db.get('dealers', username)
+
+  /*
+   * The figure is the truth for exactly this count. A tier the user typed
+   * that covers it is cut around it: "2 to 5 records: €9" with a read-off
+   * for three becomes "2: €9", "3: the figure", "4 to 5: €9". Nothing the
+   * user typed for other counts is touched.
+   */
+  const own: Omit<ShippingTier, 'source'>[] = []
+  for (const tier of existing?.shippingTiers ?? []) {
+    if (tier.source !== 'user') continue
+    const { minItems, maxItems, price: p, currency: c } = tier
+    const covers = minItems <= items && (maxItems === null || maxItems >= items)
+    if (!covers) {
+      own.push({ minItems, maxItems, price: p, currency: c })
+      continue
+    }
+    if (minItems < items) own.push({ minItems, maxItems: items - 1, price: p, currency: c })
+    if (maxItems === null || maxItems > items)
+      own.push({ minItems: items + 1, maxItems, price: p, currency: c })
+  }
+
+  return saveUserShipping(username, [
+    ...own,
+    { minItems: items, maxItems: items, price, currency },
+  ])
+}
+
 export async function saveUserShipping(
   username: string,
   tiers: Omit<ShippingTier, 'source'>[],

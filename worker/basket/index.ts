@@ -188,9 +188,49 @@ export function summarise(
   const named = namedPostage(live, currency)
   const namedFits = named !== null && live.length === 1
 
+  /*
+   * A table in the seller's currency against a subtotal in yours (M34.3).
+   *
+   * Discogs converts every price it hands us with the same rate, and a fresh
+   * line carries both figures for its postage: the converted one and the
+   * seller's own. That ratio is the rate, and it turns a £12.00 tier into
+   * the euros the subtotal is in. Where no line carries one, the table is
+   * not added up: a sum across two currencies is a wrong number.
+   */
+  const tierCurrency = shipping.tiers[0]?.currency ?? null
+  const rate = conversionRate(live, tierCurrency, currency)
+  const converted = tierCurrency !== null && currency !== null && tierCurrency !== currency
+  const tiers = !converted
+    ? shipping.tiers
+    : rate === null
+      ? []
+      : shipping.tiers.map((tier) => ({
+          ...tier,
+          price: Math.round(tier.price * rate * 100) / 100,
+          currency: currency!,
+        }))
+
+  const threshold = shipping.freeOver
+    ? shipping.freeOver.currency === currency
+      ? shipping.freeOver.amount
+      : shipping.freeOver.currency === tierCurrency && rate !== null
+        ? Math.round(shipping.freeOver.amount * rate * 100) / 100
+        : null
+    : null
+  const freeOver =
+    threshold === null || subtotal === null
+      ? null
+      : {
+          amount: threshold,
+          missing: Math.max(0, Math.round((threshold - subtotal) * 100) / 100),
+        }
+
+  const tabled = shippingFor(tiers, live.length)?.price ?? null
   const postage = namedFits
     ? named.value
-    : (shippingFor(shipping.tiers, live.length)?.price ?? null)
+    : freeOver !== null && freeOver.missing === 0 && tabled !== null
+      ? 0
+      : tabled
   const total = subtotal === null || postage === null ? null : subtotal + postage
 
   const saysHere = live.map((line) => line.shipsHere).filter((flag) => flag != null)
@@ -224,14 +264,39 @@ export function summarise(
     shippingNote: shipping.note ?? null,
     total,
     perItem: total === null || live.length === 0 ? null : total / live.length,
-    advice: shippingAdvice(shipping.tiers, live.length),
+    advice: shippingAdvice(tiers, live.length),
     // Two past the current count is enough to see the next step without
     // turning the panel into a table nobody reads.
-    curve: shippingCurve(shipping.tiers, Math.max(6, live.length + 2)),
+    curve: shippingCurve(tiers, Math.max(6, live.length + 2)),
     minOrderTotal,
     belowMinimum: missingToMinimum !== null,
     missingToMinimum,
     postageNamed: named,
     shipsHere,
+    shippingConverted: converted && rate !== null ? { from: tierCurrency!, rate } : null,
+    freeOver,
   }
+}
+
+/**
+ * Discogs' own rate between the seller's currency and yours, off the newest
+ * fresh line whose postage carries both figures. `null` when no line does,
+ * or when the two currencies are the same and nothing needs converting.
+ */
+function conversionRate(
+  lines: BasketLine[],
+  from: string | null,
+  to: string | null,
+): number | null {
+  if (from === null || to === null || from === to) return null
+  let newest: { at: number; rate: number } | null = null
+  for (const line of lines) {
+    const postage = line.postage
+    if (!postage || line.sold || line.priceExpired || !postage.original) continue
+    if (postage.original.currency !== from || postage.currency !== to) continue
+    if (postage.original.value <= 0) continue
+    if (!newest || postage.at > newest.at)
+      newest = { at: postage.at, rate: postage.value / postage.original.value }
+  }
+  return newest?.rate ?? null
 }

@@ -1133,6 +1133,12 @@ export interface WorkerContract {
     progress: never
     result: BasketView
   }
+  /** One figure read off the Discogs cart for exactly `items` records (M34.3). */
+  'basket.readOff': {
+    params: { dealer: string; items: number; price: number; currency: string }
+    progress: never
+    result: BasketView
+  }
   /** Greedy plus swap improvement over what this dealer has that you want. */
   /** Per shop, because postage is: filling up at one says nothing about another. */
   'basket.plan': {

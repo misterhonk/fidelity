@@ -170,6 +170,28 @@ async function resetHanding() {
 
 // --- Entering a shipping table by hand -------------------------------------
 
+/* The read-off field (M34.3). */
+const liveCount = computed(() => props.summary.lines.filter((line) => !line.sold).length)
+const readOffPrice = ref<number | null>(null)
+
+async function readOff() {
+  const price = readOffPrice.value
+  if (!price || price <= 0 || liveCount.value === 0) return
+  error.value = null
+  try {
+    await call('basket.readOff', {
+      dealer: props.summary.dealer,
+      items: liveCount.value,
+      price,
+      currency: props.summary.currency || 'EUR',
+    })
+    readOffPrice.value = null
+    await refresh()
+  } catch (cause) {
+    error.value = cause
+  }
+}
+
 const editing = ref(false)
 const rows = ref<{ minItems: number; maxItems: number | null; price: number }[]>([
   { minItems: 1, maxItems: 1, price: 0 },
@@ -417,6 +439,9 @@ const peak = computed(() =>
         </dt>
         <dd class="fid-num text-right text-fid-text">
           {{ money(summary.shipping, summary.currency) ?? b.shippingUnknown }}
+          <span v-if="summary.shippingConverted" class="block text-fid-xs text-fid-text-muted">
+            {{ b.converted(summary.shippingConverted.from) }}
+          </span>
         </dd>
 
         <dt class="font-medium text-fid-text">{{ b.total }}</dt>
@@ -477,6 +502,17 @@ const peak = computed(() =>
       -->
       <p v-if="summary.shipsHere === false" class="text-fid-sm text-fid-sig-gap">
         {{ b.noShipping }}
+      </p>
+      <!-- "Free delivery above £75", read off the shop's text (M34.3): the threshold and the distance to it. -->
+      <p v-if="summary.freeOver" class="fid-num text-fid-xs text-fid-text-muted">
+        {{
+          summary.freeOver.missing === 0
+            ? b.freeOverReached(money(summary.freeOver.amount, summary.currency) ?? '')
+            : b.freeOverMissing(
+                money(summary.freeOver.amount, summary.currency) ?? '',
+                money(summary.freeOver.missing, summary.currency) ?? '',
+              )
+        }}
       </p>
       <p
         v-else-if="summary.postageNamed && summary.shippingSource !== 'discogs'"
@@ -539,6 +575,37 @@ const peak = computed(() =>
           </template>
         </div>
       </details>
+
+      <!--
+        The read-off field (M34.3): the one figure Discogs' own cart shows for
+        exactly this basket, typed in once and kept as a tier for this count.
+        The shortest road to a right number for two or more records.
+      -->
+      <form
+        v-if="liveCount > 0"
+        class="flex flex-wrap items-end gap-2"
+        @submit.prevent="readOff"
+      >
+        <label class="flex min-w-48 flex-col gap-1 text-fid-xs text-fid-text-muted">
+          {{ b.readOff.label(liveCount) }}
+          <input
+            v-model.number="readOffPrice"
+            type="number"
+            inputmode="decimal"
+            step="0.01"
+            min="0"
+            :title="b.readOff.hint"
+            class="fid-field px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
+          />
+        </label>
+        <button
+          type="submit"
+          :disabled="!readOffPrice || readOffPrice <= 0"
+          class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+        >
+          {{ b.readOff.take }}
+        </button>
+      </form>
 
       <button
         type="button"

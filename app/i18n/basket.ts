@@ -76,6 +76,17 @@ const en = {
   namedForOne: (original: string, converted: string | null) =>
     `Discogs names ${original}${converted ? ` (${converted})` : ''} for one record.`,
   noShipping: 'Discogs says this shop does not ship to your address.',
+  /* A table in the seller's currency, turned into yours at the rate Discogs used for the prices (M34.3). */
+  converted: (from: string) => `(${from} table, at Discogs’ rate)`,
+  freeOverMissing: (amount: string, missing: string) =>
+    `Free postage from ${amount}, ${missing} more to go.`,
+  freeOverReached: (amount: string) => `Free postage, the basket is over ${amount}.`,
+  /* The figure off the Discogs cart, for exactly this many records. */
+  readOff: {
+    label: (n: number) => `What Discogs shows for ${counted(n, 'record', 'records')}`,
+    hint: 'The postage line in the cart at Discogs, for exactly this basket.',
+    take: 'Take it',
+  },
 
   subtotalExpired:
     'At least one price is more than six hours old. A sum with a hole in it would be smaller than the truth, so dig the shop again.',
@@ -352,6 +363,14 @@ const de: typeof en = {
   namedForOne: (original, converted) =>
     `Discogs nennt ${original}${converted ? ` (${converted})` : ''} für eine Platte.`,
   noShipping: 'Discogs sagt, dieser Laden versendet nicht an deine Adresse.',
+  converted: (from) => `(Staffel in ${from}, zum Kurs von Discogs)`,
+  freeOverMissing: (amount, missing) => `Porto frei ab ${amount}, noch ${missing} bis dahin.`,
+  freeOverReached: (amount) => `Porto frei, der Korb liegt über ${amount}.`,
+  readOff: {
+    label: (n) => `Was Discogs für ${counted(n, 'Platte', 'Platten')} zeigt`,
+    hint: 'Die Porto-Zeile im Warenkorb bei Discogs, für genau diesen Korb.',
+    take: 'Übernehmen',
+  },
 
   subtotalExpired:
     'Mindestens ein Preis ist älter als sechs Stunden. Eine Summe mit Loch wäre kleiner als die Wahrheit, also grab den Laden nochmal.',

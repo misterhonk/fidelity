@@ -2073,6 +2073,18 @@ export interface BasketSummary {
   /** `false` when Discogs says this shop does not ship to the account's address. */
   shipsHere: boolean | null
   /**
+   * The table was in another currency and Discogs' own rate, read off a
+   * fresh line's postage, converted it (M34.3): "£12.00 at Discogs' rate".
+   * `null` when nothing needed converting.
+   */
+  shippingConverted: { from: string; rate: number } | null
+  /**
+   * Free postage above an order value, in the basket's currency, and how
+   * much is still missing to reach it; 0 once it is reached and the postage
+   * above is 0 for that reason.
+   */
+  freeOver: { amount: number; missing: number } | null
+  /**
    * The dig the suggestions were read out of, or `null` for a shop nobody has
    * walked yet.
    *

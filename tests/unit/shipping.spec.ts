@@ -303,6 +303,7 @@ describe('a shipping text sorted by destination', () => {
       matched: [],
       section: null,
       byWeight: false,
+      freeOver: null,
     })
   })
 
