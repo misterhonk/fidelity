@@ -76,7 +76,7 @@ test('a build survives leaving the screen, and says so where the wait is felt', 
 
   // And here is where the wait was felt: "now, after 10 minutes, the app starts
   // scanning my first shop. A bit illogical."
-  await expect(page.getByText(/The horizon is being built/)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(/still learning your artists and labels/)).toBeVisible({ timeout: 15_000 })
 
   // Back, by the way the sentence itself offers.
   await page.getByRole('link', { name: 'Watch it' }).click()
