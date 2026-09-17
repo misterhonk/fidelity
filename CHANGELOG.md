@@ -11,6 +11,21 @@ Für eine App bedeutet SemVer:
 
 ## [0.99.0](https://github.com/misterhonk/fidelity/compare/v0.98.0...v0.99.0) (2026-09-17)
 
+**Die Einstellungen und die Hilfe sprechen jetzt auch vom Tresen aus. Damit sind alle Pakete durch.**
+
+Die letzte Portion der neuen Stimme, in beiden Sprachen: die Einstellungen mit ihren
+Hilfe-Kapiteln, die Hub- und Katalog-Felder, der Tresor, die Suchfilter und die Hinweise zu
+Pressungen an einem Fund. „Wir lesen nur. Wir ändern nichts an deinem Discogs-Konto, kaufen
+nichts und schreiben nichts zurück." Der Horizont heißt in Sätzen „deine Künstler und Labels"
+und behält seinen Namen auf den Knöpfen. Die Hilfe antwortet wie ein Freund: „Du kannst
+währenddessen weggehen. Den Fortschritt behalten wir, auch wenn du den Tab schließt."
+
+Zehn Sprachpakete stehen jetzt unter dem Test, der Rückfälle meldet. Nur die Vergleichsseite
+bleibt in der dritten Person, weil sie Fidelity neben anderen Produkten nennt.
+
+**Was zu tun ist:** Lesen. Beide Sprachen einmal mit der Demo-Sammlung durchgehen und
+anstreichen, was noch nach Büro klingt.
+
 
 ### Added
 
