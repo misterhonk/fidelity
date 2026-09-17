@@ -68,7 +68,12 @@ async function paste() {
     if (result.dealers.length > 1) parts.push(words.acrossShops(result.dealers.length))
     if (result.cart.length > 0) parts.push(words.noted(result.cart.length))
     const empty = result.added === 0 && result.cart.length === 0 && result.sold === 0
-    outcome.value = empty && result.unknown === 0 ? words.nothing : `${parts.join(' · ')}.`
+    const said = parts.join(' · ')
+    // A sentence, so it starts like one — "3 taken over" already does.
+    outcome.value =
+      empty && result.unknown === 0
+        ? words.nothing
+        : `${said[0]!.toUpperCase()}${said.slice(1)}.`
   } catch (cause) {
     error.value = cause
   } finally {

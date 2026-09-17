@@ -35,7 +35,7 @@ test('takes the postage for this basket off a pasted cart page', async ({ page }
   await field.fill(CART)
   await page.getByRole('button', { name: 'Take them over' }).click()
 
-  await expect(page.getByText('postage noted for 1 shop')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('Postage noted for 1 shop')).toBeVisible({ timeout: 15_000 })
   const card = page.locator('section, article').filter({ hasText: 'Plattenkiste' }).first()
   await expect(card.getByText('€6.50')).toBeVisible()
   await expect(card.getByText('(entered by you)')).toBeVisible()
