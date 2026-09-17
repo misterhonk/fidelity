@@ -11,6 +11,22 @@ Für eine App bedeutet SemVer:
 
 ## [0.95.0](https://github.com/misterhonk/fidelity/compare/v0.94.0...v0.95.0) (2026-09-17)
 
+**Fidelity spricht jetzt wie der Mensch hinterm Tresen. Erst mal auf zwei Bildschirmen.**
+
+Das Produktkonzept sagt seit dem ersten Tag, wer Fidelity ist: die Person hinterm Tresen, die
+dein Regal kennt und dir die nächsten Platten zusammensucht. Die Texte klangen bisher wie ein
+sorgfältiger Ingenieur, der nichts Falsches sagen will. Ab jetzt reden wir mit dir, nicht über
+uns: du und wir, kurze Sätze, keine Gedankenstrich-Ketten, und wo wir etwas nicht wissen, steht
+„wissen wir nicht". Die Wörter des Ladens bleiben, die Wörter der Technik verschwinden aus den
+Sätzen. Das Stilbuch dazu liegt in den Docs, ein Test passt auf, dass es so bleibt.
+
+Den Anfang machen der Willkommen-Bildschirm und die Läden, in beiden Sprachen neu geschrieben.
+Ein paar Wörter, die Knöpfe sind, haben sich dabei geändert: Aus „ausblenden" wird „weglegen"
+und „wieder hervorholen", aus dem „Rundgang" die „Runde", aus „Listings" in Sätzen „Angebote".
+„Beobachten" bleibt. Die übrigen Bildschirme folgen Stück für Stück.
+
+**Was zu tun ist:** Nichts. Wer die Läden-Seite auf Deutsch liest, hört den Unterschied sofort.
+
 
 ### Added
 
