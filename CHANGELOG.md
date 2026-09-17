@@ -9,6 +9,35 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.102.0](https://github.com/misterhonk/fidelity/compare/v0.101.0...v0.102.0) (2026-09-17)
+
+**Kopier deinen Discogs-Warenkorb in den Korb, und wir wissen, was jeder Laden fürs Porto nimmt.**
+
+Dritte Portion vom Versandprofil. Die Warenkorb-Seite bei Discogs zeigt für jeden Laden, was
+das Porto für genau diese Platten kostet, und die API sagt es für mehr als eine Platte nicht.
+Markier die Seite, kopier sie, füg sie in den Kasten „Aus dem Discogs-Warenkorb" ein. Wir lesen
+daraus pro Laden die Anzahl und das Porto und merken es uns als Staffel, so weit die Seite
+sagt, dass es hält („bis zu 42 weitere ohne Aufpreis"). Dazu die Grenze, ab der der Laden
+portofrei schickt, und den Mindestbestellwert, wenn die Seite sagt, wie viel noch fehlt.
+Kostet keine Anfrage. Links zu Platten gehen weiter wie bisher in denselben Kasten.
+
+Gelesen gegen drei echte Warenkörbe mit sieben Läden, deutsche und englische Oberfläche.
+Die Texte von green_hell, recordsale-de und wheniamfortyfive liegen als Muster für die
+nächste Portion bereit, das Modell mit Einheiten.
+
+**Was zu tun ist:** Nichts. Wer will, kopiert einmal seinen Warenkorb.
+
+
+### Added
+
+* **basket:** the pasted cart page tells each shop's postage for this parcel ([f501075](https://github.com/misterhonk/fidelity/commit/f50107524a6680bcc9f7432b86a7cb61d3f58726))
+
+
+### Fixed
+
+* **basket:** the paste outcome starts like a sentence ([48c7233](https://github.com/misterhonk/fidelity/commit/48c7233af463dd57f157a91089a3f3f831fe9dd4))
+* **i18n:** the paste box explains itself within the sixty words ([84773d7](https://github.com/misterhonk/fidelity/commit/84773d7d69be86f07efc840d1f754c8606db7bce))
+
 ## [0.101.0](https://github.com/misterhonk/fidelity/compare/v0.100.0...v0.101.0) (2026-09-17)
 
 **Jede Ladenzeile sagt, was eine Platte von dort im Porto kostet.**
