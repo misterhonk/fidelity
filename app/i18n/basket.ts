@@ -12,7 +12,7 @@ import { counted, plural } from '~/utils/plural'
 
 const en = {
   title: 'Basket',
-  description: 'One parcel, as many records as it is worth.',
+  description: 'One parcel, and as many records in it as make it worth the postage.',
   /*
    * What this screen is *for*, in one sentence.
    *
@@ -22,11 +22,11 @@ const en = {
    * one record at a shop, and everything else that shop has now travels in the
    * same parcel for the same postage.
    */
-  lead: 'You found one. Everything else from that shop rides along for the same postage.',
+  lead: 'One’s in. Anything else you find at that shop rides along for the same postage.',
 
   tabs: { label: 'Buying', basket: 'Basket', saved: 'Saved' },
 
-  empty: 'Nothing here yet. Putting something in from a dig works too — the basket counts it.',
+  empty: 'Nothing in the basket yet. Put a find in from a dig, and we start counting.',
   emptyAction: 'Start a dig',
   shops: (shops: string, records: string) =>
     `${shops} shops · ${records} records. Every shop is its own parcel with its own postage.`,
@@ -36,8 +36,8 @@ const en = {
     title: 'From the Discogs cart',
     about:
       /* What to do, not what Discogs will not do. */
-      'Paste listing links here — each lands in the basket of the shop selling it, postage counted in.',
-    label: 'Listing links',
+      'Paste links to records here. Each one lands in the basket of the shop selling it, postage counted in.',
+    label: 'Links to records',
     fetching: 'Fetching …',
     take: 'Take them over',
     took: (n: number) => `${n} taken over`,
@@ -78,22 +78,22 @@ const en = {
   noShipping: 'Discogs says this shop does not ship to your address.',
 
   subtotalExpired:
-    'At least one price is older than six hours. A partial sum would be a smaller number than the truth — scan the shop again.',
+    'At least one price is more than six hours old. A sum with a hole in it would be smaller than the truth, so dig the shop again.',
   missingToMinimum: (missing: string, minimum: string) =>
-    `${missing} more to reach the minimum order of ${minimum}, otherwise the shop will not ship.`,
+    `${missing} more and you reach the shop's minimum of ${minimum}. Under that, it will not ship.`,
 
   /** The sentence the whole feature exists for (docs/00 §7). */
   advice: (add: number, now: string, then: string) =>
     `${counted(add, 'record', 'records')} more and the postage drops from ${now} to ${then} each.`,
 
-  parsedFrom: 'Guessed from the shop’s free text',
+  parsedFrom: 'Our guess from the shop’s own text',
   parsedSection: (section: string) => `(section "${section}")`,
-  parsedMatched: (matched: string) => `— recognised: ${matched}`,
-  parsedWrong: 'If that is wrong, enter the tiers.',
+  parsedMatched: (matched: string) => `recognised: ${matched}`,
+  parsedWrong: 'If that looks wrong, enter the tiers yourself.',
 
-  unknownLabel: 'Postage unknown — what could I have read?',
+  unknownLabel: 'We could not read the postage. What would we have understood?',
   unknownAbout:
-    'The shop text gives no tier I can read with confidence. These are the shapes I recognise — if something like this is on the shop page, entering it here helps:',
+    'The shop’s text has no table we can read with confidence. These are the shapes we understand. If something like this is on the shop page, entering it here helps:',
 
   /*
    * A shop that bills by grams (2026-09-13).
@@ -107,7 +107,7 @@ const en = {
    */
   weightLabel: 'This shop charges by weight',
   weightAbout:
-    'Its table is in grams, and a record has no fixed weight — a single LP with its sleeve and a mailer is anywhere between 250 and 500 grams, so any conversion would be a guess you would plan a purchase around. Its own words are below: read off what one, two and three records cost you and enter that.',
+    'Its table is in grams, and a record has no fixed weight. One LP with sleeve and mailer is anywhere between 250 and 500 grams, so any conversion would be a guess you would plan a purchase around. Its own words are below: read off what one, two and three records cost you and enter that.',
   noteLabel: 'What the shop says about postage',
 
   /*
@@ -123,25 +123,25 @@ const en = {
     busy: 'Comparing your shops …',
     scope: (shops: number) =>
       shops === 0
-        ? 'Dig a shop and its prices join this comparison for six hours.'
+        ? 'Dig a shop, and its prices join this comparison for six hours.'
         : `Compared with ${shops === 1 ? 'your one freshly dug shop' : `your ${shops} freshly dug shops`}.`,
     covered: (has: number, of: number) => `has ${has} of your ${of}`,
-    saves: (amount: string) => `— ${amount} less`,
-    costs: (amount: string) => `— ${amount} more`,
+    saves: (amount: string) => `${amount} less`,
+    costs: (amount: string) => `${amount} more`,
     /** The second parcel, which is the whole point of the partial case. */
     rest: (items: number, shop: string, amount: string) =>
       `${items === 1 ? 'The other one stays' : `The other ${items} stay`} at ${shop}: ${amount} with its own postage.`,
     better: (n: number) => `${n} in better condition`,
     worse: (n: number) => `${n} in worse condition`,
-    noPostage: 'Enter this shop’s postage tiers and you get its total too.',
-    nothing: 'Nothing from this basket at your other shops. Dig one more and look again.',
+    noPostage: 'Enter this shop’s postage tiers, and you get its total too.',
+    nothing: 'Nothing from this basket at your other shops. Dig one more, and look again.',
     tryThese: 'Worth a dig: these stock the same labels',
   },
 
   editTiers: 'Change the tiers',
   enterTiers: 'Enter the postage tiers',
   tiersTitle: 'Postage tiers',
-  tiersAbout: 'It is on the shop page at Discogs. Entered once, it stays.',
+  tiersAbout: 'It is on the shop page at Discogs. Enter it once, and it stays.',
   tiersFrom: 'from how many records',
   addTier: 'Add a step',
 
@@ -152,13 +152,13 @@ const en = {
     label: 'Budget',
     including: (currency: string) => `${currency} including postage`,
     compute: 'Work out a suggestion',
-    tooSmall: 'Not enough for this shop — the postage alone eats the budget.',
+    tooSmall: 'Not enough for this shop. The postage alone eats the budget.',
     result: (records: number, goods: string, shipping: string, total: string) =>
       `${counted(records, 'record', 'records')} · ${goods} plus ${shipping} postage = ${total}`,
     belowMinimum: (minimum: string) =>
-      `That stays under the minimum order of ${minimum} — the shop will not ship it that way. More budget, or another shop.`,
+      `That stays under the shop's minimum of ${minimum}, so it will not ship. More budget, or another shop.`,
     caveat:
-      'A suggestion, not a proof: filled greedily and then swapped, not optimised exactly. The basket stays as it is — this changes nothing.',
+      'A suggestion, not a proof. We fill greedily and then swap, we do not optimise exactly. The basket stays as it is; this changes nothing.',
   },
 
   /**
@@ -171,15 +171,15 @@ const en = {
   candidates: {
     title: 'Would also be worth it',
     neverDug:
-      'You have not searched this shop yet. A dig tells you what else here fits you — and what of it the postage carries along anyway.',
+      'You have not dug this shop yet. A dig tells you what else here fits you, and what of it rides along for the same postage.',
     expired: (when: string) =>
-      `The last dig was ${when}. Market prices older than six hours I do not show — right now I do not know what is here.`,
+      `The last dig was ${when}. Prices older than six hours are gone, so right now we do not know what is here.`,
     nothing: (when: string) => `At the dig ${when} there was nothing else here that fits you.`,
-    digAgain: 'Search it again',
-    digNow: (dealer: string) => `Search ${dealer}`,
+    digAgain: 'Dig it again',
+    digNow: (dealer: string) => `Dig ${dealer}`,
     closers: (n: number) =>
       `${n} of them ${plural(n, 'lifts', 'lift')} the basket over the minimum order on its own.`,
-    noClosers: 'None of them clears the minimum order alone — two together do.',
+    noClosers: 'None of them clears the minimum alone. Two together do.',
     closesGap: 'closes the gap',
   },
 
@@ -214,7 +214,7 @@ const en = {
    */
   handOver: 'Put these in at Discogs',
   handOverLead:
-    'Discogs has no cart in its API, so it is one listing at a time: each link opens the page with the "Add to Cart" button, and the next one moves up here. Worth a "Still there?" first if the basket is a day old.',
+    'Discogs lets us open one record at a time: each link opens the page with the "Add to Cart" button, and the next one moves up here. Worth a "Still there?" first if the basket is a day old.',
   /** Given formatted numbers, as every count on a screen is. */
   handOverProgress: (done: string, total: string) => `${done} of ${total} at Discogs`,
   handOverNext: (record: string) => `Open next at Discogs: ${record}`,
@@ -227,8 +227,8 @@ const en = {
   tiersOpen: 'open',
   tiersPrice: 'Price',
   allStillThere: (records: number) =>
-    `All still there – ${counted(records, 'record', 'records')}, prices current again.`,
-  someSold: (sold: string) => `${sold} sold in the meantime. The rest is current again.`,
+    `All still there: ${counted(records, 'record', 'records')}, prices fresh again.`,
+  someSold: (sold: string) => `${sold} sold in the meantime. The rest is fresh again.`,
   noDealer: 'No shop',
   forget: (record: string) => `Take ${record} off the saved list`,
   /** For a line whose record has no title left — see worker/basket. */
@@ -275,7 +275,7 @@ const en = {
       undo: 'change',
       nudge: 'Did it arrive?',
       more: (n: string) => `${n} more waiting`,
-      why: 'Stays on this device. Discogs feedback rates the transaction, not whether the grading was right — this is your own record of that, and it is what the honesty figure on a shop is built from.',
+      why: 'Stays on this device. The rating at Discogs says whether the parcel came quickly, not whether the grading was right. This is your own record of that, and the honesty figure on a shop is built from it.',
       whyLabel: 'Where does this go?',
     },
     /*
@@ -298,19 +298,19 @@ const en = {
       already: (n: number) => `${n} of them you had already saved.`,
       nothing: 'That order has no records in it.',
       whyLabel: 'Where do I find it?',
-      why: 'On discogs.com under Marketplace → Purchases, in the first column. It has to be typed because Discogs only hands out an order when you name it — the list of your purchases is not in the API, only the list of what you sold. One lookup, and nothing but the records, the shop and the date is kept: not the price, and not the condition you were promised.',
+      why: 'On discogs.com under Marketplace → Purchases, in the first column. You have to type it because Discogs only hands out an order when you name it. The list of what you bought is not something we can fetch, only what you sold. One lookup, and nothing but the records, the shop and the date is kept: not the price, and not the condition you were promised.',
     },
   },
 }
 
 const de: typeof en = {
   title: 'Korb',
-  description: 'Ein Paket, so viele Platten wie es sich lohnt.',
-  lead: 'Eine hast du. Alles andere aus dem Laden fährt für dasselbe Porto mit.',
+  description: 'Ein Paket, und so viele Platten drin, dass sich das Porto lohnt.',
+  lead: 'Eine Platte ist drin. Was du sonst noch bei dem Laden findest, kommt fürs gleiche Porto mit.',
 
   tabs: { label: 'Kaufen', basket: 'Korb', saved: 'Gemerkt' },
 
-  empty: 'Sonst noch leer. Im Dig etwas hineinlegen geht auch – der Korb rechnet dann mit.',
+  empty: 'Noch nichts drin. Leg aus einem Dig was rein, dann rechnen wir mit.',
   emptyAction: 'Einen Dig starten',
   shops: (shops, records) =>
     `${shops} Läden · ${records} Platten. Jeder Laden ist eine eigene Sendung mit eigenem Porto.`,
@@ -319,9 +319,9 @@ const de: typeof en = {
   paste: {
     title: 'Aus dem Discogs-Warenkorb',
     about:
-      'Kopier Angebots-Links hier herein – jedes landet im Korb seines Ladens, Porto eingerechnet.',
-    label: 'Angebotslinks',
-    fetching: 'Hole …',
+      'Kopier Links zu Platten hier rein. Jede landet im Korb ihres Ladens, Porto eingerechnet.',
+    label: 'Links zu Platten',
+    fetching: 'Holen gerade …',
     take: 'Übernehmen',
     took: (n) => `${n} übernommen`,
     sold: (n) => `${n} schon verkauft`,
@@ -354,51 +354,51 @@ const de: typeof en = {
   noShipping: 'Discogs sagt, dieser Laden versendet nicht an deine Adresse.',
 
   subtotalExpired:
-    'Mindestens ein Preis ist älter als sechs Stunden. Eine Teilsumme wäre eine kleinere Zahl als die Wahrheit – scanne den Laden neu.',
+    'Mindestens ein Preis ist älter als sechs Stunden. Eine Summe mit Loch wäre kleiner als die Wahrheit, also grab den Laden nochmal.',
   missingToMinimum: (missing, minimum) =>
-    `Noch ${missing} bis zum Mindestbestellwert von ${minimum}, sonst verschickt der Laden nicht.`,
+    `Noch ${missing}, dann ist der Mindestbestellwert von ${minimum} erreicht. Darunter verschickt der Laden nicht.`,
 
   advice: (add, now, then) =>
-    `Noch ${counted(add, 'Platte', 'Platten')} und der Versand fällt von ${now} auf ${then} pro Stück.`,
+    `Noch ${counted(add, 'Platte', 'Platten')}, und das Porto fällt von ${now} auf ${then} pro Stück.`,
 
-  parsedFrom: 'Aus dem Freitext des Ladens geraten',
+  parsedFrom: 'Unsere Schätzung aus dem Text des Ladens',
   parsedSection: (section) => `(Abschnitt „${section}“)`,
-  parsedMatched: (matched) => `– erkannt: ${matched}`,
-  parsedWrong: 'Stimmt das nicht, trag die Staffel ein.',
+  parsedMatched: (matched) => `erkannt: ${matched}`,
+  parsedWrong: 'Sieht das falsch aus, trag die Staffel selbst ein.',
 
-  unknownLabel: 'Versand unbekannt – was hätte ich lesen können?',
+  unknownLabel: 'Wir konnten das Porto nicht lesen. Was hätten wir verstanden?',
   unknownAbout:
-    'Der Freitext des Ladens gibt keine Staffel her, die ich sicher lesen kann. Diese Formen erkenne ich – steht so etwas auf der Ladenseite, hilft es, sie hier einzutragen:',
+    'Im Text des Ladens steht keine Staffel, die wir sicher lesen können. Diese Formen verstehen wir. Steht so etwas auf der Ladenseite, hilft es, sie hier einzutragen:',
 
   weightLabel: 'Dieser Laden rechnet nach Gewicht',
   weightAbout:
-    'Seine Staffel steht in Gramm, und eine Platte hat kein festes Gewicht – eine einzelne LP mit Hülle und Versandtasche liegt zwischen 250 und 500 Gramm, jede Umrechnung wäre also geraten, und zwar für eine Zahl, um die herum du einen Kauf planst. Seine eigenen Worte stehen unten: lies ab, was ein, zwei und drei Platten kosten, und trag das ein.',
+    'Seine Staffel steht in Gramm, und eine Platte hat kein festes Gewicht. Eine LP mit Hülle und Versandtasche liegt zwischen 250 und 500 Gramm, jede Umrechnung wäre also geraten, und zwar bei einer Zahl, um die herum du einen Kauf planst. Seine eigenen Worte stehen unten: lies ab, was ein, zwei und drei Platten kosten, und trag das ein.',
   noteLabel: 'Was der Laden zum Versand sagt',
 
   compare: {
     start: 'Woanders billiger?',
-    busy: 'Vergleiche deine Läden …',
+    busy: 'Wir vergleichen deine Läden …',
     scope: (shops) =>
       shops === 0
         ? 'Grab einen Laden, dann sind seine Preise sechs Stunden lang im Vergleich dabei.'
         : `Verglichen mit ${shops === 1 ? 'deinem einen frisch gegrabenen Laden' : `deinen ${shops} frisch gegrabenen Läden`}.`,
     covered: (has, of) => `hat ${has} von deinen ${of}`,
-    saves: (amount) => `– ${amount} weniger`,
-    costs: (amount) => `– ${amount} mehr`,
+    saves: (amount) => `${amount} weniger`,
+    costs: (amount) => `${amount} mehr`,
     rest: (items, shop, amount) =>
       `${items === 1 ? 'Die andere bleibt' : `Die anderen ${items} bleiben`} bei ${shop}: ${amount} mit eigenem Porto.`,
     better: (n) => `${n} in besserem Zustand`,
     worse: (n) => `${n} in schlechterem Zustand`,
     noPostage: 'Trag die Versandstaffel dieses Ladens ein, dann steht hier auch seine Summe.',
     nothing:
-      'Nichts aus diesem Korb bei deinen anderen Läden. Grab noch einen und sieh nochmal nach.',
+      'Nichts aus diesem Korb bei deinen anderen Läden. Grab noch einen, und schau nochmal.',
     tryThese: 'Einen Dig wert: die führen dieselben Labels',
   },
 
   editTiers: 'Staffel ändern',
   enterTiers: 'Versandstaffel eintragen',
   tiersTitle: 'Versandstaffel',
-  tiersAbout: 'Steht auf der Ladenseite bei Discogs. Einmal eingetragen, bleibt sie.',
+  tiersAbout: 'Steht auf der Ladenseite bei Discogs. Einmal eingetragen, und sie bleibt.',
   tiersFrom: 'ab wie vielen Platten',
   addTier: 'Stufe hinzufügen',
 
@@ -409,27 +409,27 @@ const de: typeof en = {
     label: 'Budget',
     including: (currency) => `${currency} inklusive Versand`,
     compute: 'Vorschlag rechnen',
-    tooSmall: 'Dafür reicht es hier nicht – der Versand allein frisst das Budget.',
+    tooSmall: 'Dafür reicht es hier nicht. Das Porto allein frisst das Budget.',
     result: (records, goods, shipping, total) =>
       `${counted(records, 'Platte', 'Platten')} · ${goods} plus ${shipping} Versand = ${total}`,
     belowMinimum: (minimum) =>
-      `Das bleibt unter dem Mindestbestellwert von ${minimum} – der Laden verschickt es so nicht. Mehr Budget oder ein anderer Laden.`,
+      `Das bleibt unter dem Mindestbestellwert von ${minimum}, so verschickt der Laden nicht. Mehr Budget, oder ein anderer Laden.`,
     caveat:
-      'Ein Vorschlag, kein Beweis: gierig gefüllt und dann getauscht, nicht exakt optimiert. Der Korb bleibt, wie er ist – das hier ändert nichts.',
+      'Ein Vorschlag, kein Beweis. Wir füllen gierig auf und tauschen dann, exakt optimiert ist das nicht. Der Korb bleibt, wie er ist, das hier ändert nichts.',
   },
 
   candidates: {
     title: 'Käme auch noch infrage',
     neverDug:
-      'Diesen Laden hast du noch nicht durchsucht. Ein Dig sagt dir, was hier sonst noch zu dir passt – und was davon der Versand ohnehin mitnimmt.',
+      'Diesen Laden hast du noch nicht durchgegraben. Ein Dig sagt dir, was hier sonst noch zu dir passt, und was davon fürs gleiche Porto mitkommt.',
     expired: (when) =>
-      `Der letzte Dig war ${when}. Marktpreise, die älter als sechs Stunden sind, zeige ich nicht – ich weiß gerade nicht, was hier liegt.`,
+      `Der letzte Dig war ${when}. Preise, die älter als sechs Stunden sind, sind weg, also wissen wir gerade nicht, was hier liegt.`,
     nothing: (when) => `Beim Dig ${when} war hier sonst nichts dabei, das zu dir passt.`,
-    digAgain: 'Neu durchsuchen',
-    digNow: (dealer) => `${dealer} durchsuchen`,
+    digAgain: 'Nochmal graben',
+    digNow: (dealer) => `${dealer} graben`,
     closers: (n) =>
       `${n} ${plural(n, 'davon hebt', 'davon heben')} den Korb allein über den Mindestbestellwert.`,
-    noClosers: 'Keine davon reicht allein über den Mindestbestellwert – zwei zusammen schon.',
+    noClosers: 'Keine davon reicht allein über den Mindestbestellwert. Zwei zusammen schon.',
     closesGap: 'schließt die Lücke',
   },
 
@@ -442,7 +442,7 @@ const de: typeof en = {
 
   handOver: 'Bei Discogs einlegen',
   handOverLead:
-    'Discogs hat keinen Warenkorb in seiner API, also geht es Angebot für Angebot: Jeder Link öffnet die Seite mit dem „Add to Cart"-Knopf, und hier rückt das nächste nach. Vorher lohnt ein „Noch da?", wenn der Korb einen Tag alt ist.',
+    'Bei Discogs geht es Platte für Platte: Jeder Link öffnet die Seite mit dem „Add to Cart"-Knopf, und hier rückt die nächste nach. Ist der Korb einen Tag alt, lohnt vorher ein „Noch da?".',
   handOverProgress: (done, total) => `${done} von ${total} bei Discogs`,
   handOverNext: (record) => `Nächstes bei Discogs öffnen: ${record}`,
   handOverDone: (records) =>
@@ -454,8 +454,8 @@ const de: typeof en = {
   tiersOpen: 'offen',
   tiersPrice: 'Preis',
   allStillThere: (records) =>
-    `Alles noch da – ${counted(records, 'Platte', 'Platten')}, Preise wieder aktuell.`,
-  someSold: (sold) => `${sold} inzwischen verkauft. Der Rest ist wieder aktuell.`,
+    `Alles noch da: ${counted(records, 'Platte', 'Platten')}, Preise wieder frisch.`,
+  someSold: (sold) => `${sold} inzwischen verkauft. Der Rest ist wieder frisch.`,
   noDealer: 'Ohne Laden',
   forget: (record) => `${record} von der Merkliste nehmen`,
   unknownRecord: 'Unbekannte Platte',
@@ -463,7 +463,7 @@ const de: typeof en = {
   saved: {
     title: 'Gemerkt',
     stillThere: 'Noch da?',
-    fetching: 'Hole …',
+    fetching: 'Holen gerade …',
     toBasket: 'In den Korb',
     workOutPostage: 'Versand rechnen',
     release: (id: number) => `Release ${id}`,
@@ -487,7 +487,7 @@ const de: typeof en = {
       undo: 'ändern',
       nudge: 'Ist sie angekommen?',
       more: (n) => `${n} weitere offen`,
-      why: 'Bleibt auf diesem Gerät. Das Discogs-Feedback bewertet den Ablauf, nicht die Richtigkeit der Note — das hier ist deine eigene Aufzeichnung davon, und daraus entsteht die Ehrlichkeitszahl bei einem Laden.',
+      why: 'Bleibt auf deinem Gerät. Die Bewertung bei Discogs sagt, ob das Paket schnell kam, nicht ob die Note gestimmt hat. Das hier ist deine eigene Aufzeichnung davon, und daraus entsteht die Ehrlichkeitszahl bei einem Laden.',
       whyLabel: 'Wo landet das?',
     },
     order: {
@@ -504,7 +504,7 @@ const de: typeof en = {
       already: (n) => `${n} davon hattest du schon gemerkt.`,
       nothing: 'In dieser Bestellung sind keine Platten.',
       whyLabel: 'Wo finde ich die?',
-      why: 'Auf discogs.com unter Marktplatz → Einkäufe, in der ersten Spalte. Eintippen muss man sie, weil Discogs eine Bestellung nur herausgibt, wenn man sie benennt — die Liste deiner Einkäufe steht nicht in der API, nur die Liste dessen, was du verkauft hast. Eine Abfrage, und behalten wird nichts außer den Platten, dem Laden und dem Datum: nicht der Preis, und nicht der Zustand, der dir versprochen wurde.',
+      why: 'Auf discogs.com unter Marktplatz → Einkäufe, in der ersten Spalte. Eintippen musst du sie, weil Discogs eine Bestellung nur rausgibt, wenn man sie beim Namen nennt. Die Liste deiner Einkäufe können wir nicht holen, nur die von dem, was du verkauft hast. Eine Abfrage, und behalten wird nichts außer den Platten, dem Laden und dem Datum: nicht der Preis, und nicht der versprochene Zustand.',
     },
   },
 }

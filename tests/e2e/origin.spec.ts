@@ -108,7 +108,7 @@ test('the plan drops the shop across the Channel when asked, and says so', async
   const box = page.getByTestId('want-plan')
   // Anywhere: London Wax has Unity cheaper than Plattenkiste (15 + 9 vs 21.50 + 4.50).
   await expect(box).toContainText(
-    'Cheapest: 1 shop, €15.00 for the records plus €9.00 postage — €24.00.',
+    'Cheapest: 1 shop, €15.00 for the records plus €9.00 postage, €24.00 in all.',
     {
       timeout: 15_000,
     },
@@ -121,14 +121,14 @@ test('the plan drops the shop across the Channel when asked, and says so', async
   await box.getByRole('button', { name: 'From the EU' }).click()
   await expect(page).toHaveURL(/from=eu/)
   await expect(box).toContainText(
-    'Cheapest: 1 shop, €21.50 for the records plus €4.50 postage — €26.00.',
+    'Cheapest: 1 shop, €21.50 for the records plus €4.50 postage, €26.00 in all.',
   )
   await expect(box).toContainText('1 shop elsewhere, or with no origin on record, left out.')
   await expect(box.getByRole('link', { name: 'Plattenkiste' })).toBeVisible()
 
   await box.getByRole('button', { name: 'Anywhere' }).click()
   await expect(page).not.toHaveURL(/from=/)
-  await expect(box).toContainText('€24.00.')
+  await expect(box).toContainText('€24.00 in all.')
 })
 
 test('the shops screen keeps only the chips from home', async ({ page }) => {

@@ -42,7 +42,7 @@ const en = {
     months: 'By month',
     monthsSummary: (peak: string, month: string) => `Most in ${month}: ${peak}.`,
     newArtists: (n: string) => `${n} new to the shelf:`,
-    noNewArtists: 'No artist new to the shelf — every addition was somebody you already had.',
+    noNewArtists: 'No artist new to the shelf. Every addition was somebody you already had.',
     andMore: (n: string) => `and ${n} more`,
     artists: 'Artists',
     labels: 'Labels',
@@ -64,7 +64,7 @@ const en = {
     people: 'Who shaped them',
     peopleWhyLabel: 'Where the names come from',
     peopleWhy:
-      'From the horizon: the people it has expanded — artists you collect, and the producers and engineers read off your favourites — matched against the records that arrived this year. Somebody the horizon has not met yet is not in the list, however often they appear.',
+      'From your artists and labels as we know them, plus the producers and engineers off your favourite records, held against what arrived this year. Somebody the horizon has not met yet is not in the list, however often they appear.',
     runs: (n: number) => `${n} ${n === 1 ? 'dig' : 'digs'}`,
     shops: (n: number) => `${n} ${n === 1 ? 'shop' : 'shops'}`,
     finds: (n: number) => `${n} ${n === 1 ? 'find' : 'finds'}`,
@@ -102,7 +102,7 @@ const en = {
     sorts: {
       added: { label: 'Last added', about: 'Newest arrival first' },
       artist: { label: 'Artist', about: 'Alphabetical' },
-      year: { label: 'Year', about: 'Oldest first — click again to turn it around' },
+      year: { label: 'Year', about: 'Oldest first, tap again to turn it around' },
       rating: { label: 'Rating', about: 'Best first, unrated last' },
     },
     atDiscogs: (artist: string, title: string) => `${artist} — ${title}, view at Discogs`,
@@ -169,7 +169,7 @@ const en = {
         idle: '',
         sending: 'Sending to Discogs…',
         sent: 'Saved at Discogs',
-        queued: 'Saved here — going to Discogs as soon as it can',
+        queued: 'Saved here. It goes to Discogs as soon as it can.',
         failed: 'Not saved. Nothing was changed.',
       },
       remove: 'Take off the shelf',
@@ -182,12 +182,12 @@ const en = {
 
   map: {
     worth: (low: string, high: string, when: string) =>
-      `— Discogs' middle estimate, between ${low} and ${high}, as of ${when}`,
+      `Discogs' middle estimate, between ${low} and ${high}, as of ${when}`,
     description: 'What your collection gives away about your taste.',
     /** Different releases — the shelf counts copies, and two copies of one record are one taste. */
     lead: (releases: string) =>
-      `${releases} different releases. What can be read from that about your taste.`,
-    noProfile: 'No profile yet — sync your collection first on the',
+      `${releases} different records. Here is what they say about your taste.`,
+    noProfile: 'No profile yet. Sync your collection first on the',
     startPage: 'start page',
 
     /*
@@ -198,7 +198,7 @@ const en = {
     history: {
       title: 'Over time',
       about:
-        'Discogs’ middle estimate, kept once a day on this device, with the lowest and highest around it. It moves with the market and with the shelf, and nobody else sees it.',
+        'Discogs’ middle estimate, noted once a day on this device, with the lowest and highest around it. It moves with the market and with your shelf, and nobody else sees it.',
       onePoint: 'One day so far. The line starts with the next.',
       summary: (from: string, first: string, to: string, last: string) =>
         `Middle estimate from ${from} on ${first} to ${to} on ${last}.`,
@@ -219,10 +219,11 @@ const en = {
     artistsWhyLabel: 'What the number on the right means',
     labelsWhyLabel: 'How the lift is worked out',
     artistsWhy:
-      'Discogs files everything under one name: albums, singles, remixes, contributions to compilations. The number is therefore not a collecting target but a statement of how likely a dig is to turn up something else of theirs.',
+      'Discogs files everything under one name: albums, singles, remixes, tracks on compilations. So the number is not a target to collect towards. It says how likely a dig is to turn up something else of theirs.',
     labelsWhy:
-      'It compares your share of a label with what would be expected if you picked at random from your labels. The comparison is against your own labels — what the rest of the world presses is not something this app can see.',
-    needsHorizon: 'Gaps and label lift need the horizon — build it in the settings.',
+      'We compare your share of a label with what you would get picking at random from your labels. Only against your own labels; what the rest of the world presses, we do not know.',
+    needsHorizon:
+      'For gaps and label lift we need to know your artists and labels first. Two minutes in the settings.',
     howMuchLeft: 'How much is still out there',
     yoursFrom: '· yours from',
     nothingByName: 'Nothing by that name on the list.',
@@ -248,16 +249,16 @@ const en = {
     noteShort: 'Note',
     noteLabel: (artist: string, title: string) => `Your note on ${artist} — ${title}`,
     drop: (artist: string, title: string) => `Take ${artist} — ${title} off the wantlist`,
-    description: 'What you are looking for — and how findable it is.',
+    description: 'What you are looking for, and how findable it is.',
     empty:
-      'Your wantlist is empty — or not synced yet. It carries the two strongest signals there are.',
+      'Your wantlist is empty, or not synced yet. It is the strongest hint we have about what to look for.',
     emptyAction: 'Sync it now',
     lead: (total: string, withPressings: string) =>
-      `${total} records wanted, ${withPressings} with every pressing known to the horizon.`,
+      `${total} records wanted, ${withPressings} of them with every pressing known to us.`,
     /* Before the horizon is built (M28 #5): what it does for them, and the way there. */
     leadNoHorizon: (total: string) =>
-      `${total} records wanted. Fidelity does not know their other pressings yet —`,
-    buildHorizon: 'build the horizon',
+      `${total} records wanted. We do not know their other pressings yet;`,
+    buildHorizon: 'look up your artists',
     buildHorizonTail: 'in the settings, two minutes, once.',
     seenRecently: (n: string) => `${n} turned up at a shop in the last thirty days.`,
     search: 'Artist or title',
@@ -286,7 +287,7 @@ const en = {
       want: 'Wanted most',
     },
     notExpanded: 'Pressings not unfolded yet',
-    noMaster: 'No master at Discogs — only this exact pressing can be recognised',
+    noMaster: 'No master at Discogs, so we only recognise this exact pressing',
     /*
      * Taking several off at once (M27).
      *
@@ -329,31 +330,30 @@ const en = {
      * can grant that one. What this adds is the postage.
      */
     plan: {
-      title: 'At the shops you scanned',
+      title: 'At the shops you dug',
       subset:
-        'Only the shops scanned in the last six hours — not all of Discogs, which nobody outside Discogs can search by record. What this adds is the postage.',
-      none: 'None of your wants at a shop scanned in the last six hours.',
+        'Only the shops you dug in the last six hours, not all of Discogs; nobody outside Discogs can search it by record. What we add is the postage.',
+      none: 'None of your wants at a shop you dug in the last six hours.',
       /* Before the first dig (M20 #4): what would fill this, and the way there. */
       empty:
-        'No shop scanned in the last six hours. Scan one and this says which of your wants it has, and what the parcel would cost.',
+        'No shop dug in the last six hours. Dig one, and we say which of your wants it has and what the parcel would cost.',
       emptyAction: 'Start a dig',
       lead: (available: string, wanted: string) =>
         `${available} of your ${wanted} wants are at these shops.`,
       best: (shops: string, goods: string, postage: string, total: string) =>
-        `Cheapest: ${shops}, ${goods} for the records plus ${postage} postage — ${total}.`,
+        `Cheapest: ${shops}, ${goods} for the records plus ${postage} postage, ${total} in all.`,
       naive: (shops: string, postage: string, more: string) =>
-        `Each where it is cheapest would be ${shops} and ${postage} postage — ${more} more.`,
+        `Each where it is cheapest would be ${shops} and ${postage} postage, ${more} more.`,
       sameAsNaive: 'That is also where each of them is cheapest.',
       shopLine: (records: string, goods: string, postage: string) =>
         `${records} · ${goods} + ${postage} postage`,
       otherPressing: 'other pressing',
       belowMinimum: (min: string) =>
-        `Under this shop's minimum of ${min} — the checkout refuses it as it stands.`,
+        `Under this shop's minimum of ${min}. The checkout refuses it as it stands.`,
       unknownPostage: (shops: string) => `Left out, postage unknown: ${shops}.`,
       onlyThere: (n: string) => `${n} of the wants are only there.`,
-      otherCurrencies: (n: string) =>
-        `${n} in another currency left out — nothing here converts.`,
-      expires: (at: string) => `Prices as scanned, good until ${at}.`,
+      otherCurrencies: (n: string) => `${n} in another currency left out; we do not convert.`,
+      expires: (at: string) => `Prices as dug, good until ${at}.`,
       open: 'Open at Discogs',
       /* "Only from Germany / the EU" (M20 #2): a view in the address, not a rule. */
       origin: {
@@ -395,7 +395,7 @@ const en = {
   places: {
     title: 'Where they are',
     lead: 'A collection does not live in a list. It lives in a flat.',
-    empty: 'No places yet. A room, a shelf, a box in the cellar — start with one.',
+    empty: 'No places yet. A room, a shelf, a box in the cellar. Start with one.',
     placed: (records: string) => `${records} records have a place.`,
     withBelow: (here: string, below: string) => `${here} here · ${below} in all`,
     namePlaceholder: 'Cellar, shelf, box 3 …',
@@ -435,7 +435,7 @@ const en = {
       release: 'Let it go',
       /* The one thing a pin cannot win, said rather than swallowed. */
       overflow: (n: string) =>
-        `${n} past that end are in here too — there is no compartment after this one to hand them to.`,
+        `${n} past that end are in here too. There is no compartment after this one to hand them to.`,
       /* Before the rule changes: a key in one rule's language means nothing in another's. */
       lostOnRuleChange: 'Changing this also lets go of every end set by hand.',
     },
@@ -528,9 +528,9 @@ const en = {
     putInto: (n: string, label: string) => `${n} now in ${label}`,
     keys: 'M moves everything in the compartment · a letter jumps to its divider',
     /* Drag (M27.4): what the ghost says, and the line a drop leaves. */
-    dragRecords: (n: string) => `${n} — drop on a compartment`,
+    dragRecords: (n: string) => `${n}, drop on a compartment`,
     dragAll: (label: string) => `Everything in ${label}`,
-    dragUnit: (name: string) => `${name} — drop on a room`,
+    dragUnit: (name: string) => `${name}, drop on a room`,
     unitMoved: (name: string, room: string) => `${name} now stands in ${room}`,
     unitMovedOut: (name: string) => `${name} stands without a room`,
     perCompartment: (n: string) => `${n} each`,
@@ -563,7 +563,7 @@ const en = {
      * quarter of an hour on 2026-09-11, because only half the numbers had been
      * looked at. */
     cost: (records: number, minutes: number) =>
-      `${records} ${records === 1 ? 'record' : 'records'}, one request each — about ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}.`,
+      `${records} ${records === 1 ? 'record' : 'records'}, one lookup each, about ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}.`,
     nothingNew: 'Nothing has moved.',
     notYet: 'not looked yet',
     noneForSale: 'none for sale',
@@ -575,9 +575,9 @@ const en = {
     fromWantlist: 'wanted',
     span: (from: string, to: string, when: string) => `${from} → ${to} since ${when}`,
     rose: (from: string, to: string, percent: string) =>
-      `has gone from ${from} to ${to} — ${percent} % more.`,
+      `has gone from ${from} to ${to}, ${percent} % more.`,
     fell: (to: string) => `is down to ${to}, below your limit.`,
-    appeared: (copies: string) => `is on offer again — ${copies} of them.`,
+    appeared: (copies: string) => `is on offer again, ${copies} of them.`,
     /* "Sold" is not claimed: an offer can also have been withdrawn, and the
      * API does not say which of the two. */
     fewer: (from: string, to: string) => `is down from ${from} copies on offer to ${to}.`,
@@ -585,27 +585,27 @@ const en = {
      * dig on this device saw exactly this offer. Still not "sold" — withdrawn
      * looks the same from outside. */
     gone: (dealer: string, from: string, to: string) =>
-      `is down from ${from} copies on offer to ${to} — the one at ${dealer} is no longer listed.`,
+      `is down from ${from} copies on offer to ${to}. The one at ${dealer} is gone.`,
     dropShort: 'Stop',
     drop: (label: string) => `Stop watching ${label}`,
     watch: 'Keep an eye on it',
     watchingOn: 'Watching',
     /* The limit visible rather than silent: a watcher that stops accepting
      * records without a word is worse than one that says no. */
-    full: 'A hundred is the limit — one request each, and that is two minutes per look.',
+    full: 'A hundred is the limit. One lookup each, and that is two minutes per look.',
     noShops:
-      'No shop is named here: Discogs has no way to list who is selling a given record. What you get is the price, not the address. The one exception is a copy one of your own digs walked past — that one has an address, and it is named.',
+      'No shop is named here: Discogs has no way to tell us who is selling a given record. You get the price, not the address. The one exception is a copy one of your own digs walked past. That one has an address, and we name it.',
   },
 
   saved: {
-    description: 'The records you said yes to — even once the dig is long gone.',
+    description: 'The records you said yes to, even once the dig is long gone.',
     empty:
-      'Nothing saved yet. The thumbs up in a dig puts a record here — and here it stays, even once the dig is long gone.',
+      'Nothing saved yet. A thumbs up in a dig puts a record here, and here it stays, even once the dig is long gone.',
     emptyAction: 'Start a dig',
     /** "at 1 shop" is arithmetic, not language. A number that reads aloud as a word is written as one. */
     lead: (records: number, shops: number) =>
       `${records === 1 ? 'One record' : `${records} records`} earmarked at ${shops === 1 ? 'one shop' : `${shops} shops`}.`,
-    digsGo: 'Digs are cleared away after five — this stays.',
+    digsGo: 'We clear digs away after five. This stays.',
     markBought: (label: string) => `Mark ${label} as bought`,
     remove: (label: string) => `Take ${label} off the shortlist`,
     /*
@@ -683,7 +683,7 @@ const de: typeof en = {
     months: 'Nach Monat',
     monthsSummary: (peak, month) => `Die meisten im ${month}: ${peak}.`,
     newArtists: (n) => `${n} neu im Regal:`,
-    noNewArtists: 'Kein Künstler neu im Regal – jeder Zugang war jemand, den du schon hattest.',
+    noNewArtists: 'Kein Künstler neu im Regal. Jeder Zugang war jemand, den du schon hattest.',
     andMore: (n) => `und ${n} weitere`,
     artists: 'Künstler',
     labels: 'Labels',
@@ -703,10 +703,10 @@ const de: typeof en = {
     people: 'Wer sie gemacht hat',
     peopleWhyLabel: 'Woher die Namen kommen',
     peopleWhy:
-      'Aus dem Horizont: die Leute, die er ausgeklappt hat – Künstler, die du sammelst, und die Produzenten und Engineers aus deinen Lieblingsplatten – gegen die Platten gehalten, die in dem Jahr dazukamen. Wen der Horizont noch nicht kennt, der steht nicht in der Liste, so oft er auch vorkommt.',
+      'Aus deinen Künstlern und Labels, wie wir sie kennen, plus den Produzenten und Engineers von deinen Lieblingsplatten, gehalten gegen das, was in dem Jahr dazukam. Wen der Horizont noch nicht kennt, der steht nicht in der Liste, so oft er auch vorkommt.',
     runs: (n) => `${n} ${n === 1 ? 'Dig' : 'Digs'}`,
     shops: (n) => `${n} ${n === 1 ? 'Laden' : 'Läden'}`,
-    finds: (n) => `${n} ${n === 1 ? 'Treffer' : 'Treffer'}`,
+    finds: (n) => `${n} ${n === 1 ? 'Fund' : 'Funde'}`,
     records: (n) => `${n} ${n === 1 ? 'Platte' : 'Platten'}`,
     artistCount: (n) => `${n} ${n === 1 ? 'Künstler' : 'Künstler'}`,
   },
@@ -725,7 +725,7 @@ const de: typeof en = {
     sorts: {
       added: { label: 'Zuletzt dazu', about: 'Neuester Zugang zuerst' },
       artist: { label: 'Künstler', about: 'Alphabetisch' },
-      year: { label: 'Jahr', about: 'Älteste zuerst — nochmal klicken dreht um' },
+      year: { label: 'Jahr', about: 'Älteste zuerst, nochmal antippen dreht um' },
       rating: { label: 'Bewertung', about: 'Beste zuerst, unbewertete zuletzt' },
     },
     atDiscogs: (artist, title) => `${artist} – ${title}, bei Discogs ansehen`,
@@ -769,8 +769,8 @@ const de: typeof en = {
         idle: '',
         sending: 'Geht an Discogs …',
         sent: 'Bei Discogs gespeichert',
-        queued: 'Hier gespeichert — geht an Discogs, sobald es geht',
-        failed: 'Nicht gespeichert. Es wurde nichts geändert.',
+        queued: 'Hier gespeichert. Geht an Discogs, sobald es geht.',
+        failed: 'Nicht gespeichert. Es hat sich nichts geändert.',
       },
       remove: 'Aus dem Regal nehmen',
       removeSure:
@@ -782,17 +782,17 @@ const de: typeof en = {
 
   map: {
     worth: (low, high, when) =>
-      `— Schätzung von Discogs, Mitte zwischen ${low} und ${high}, Stand ${when}`,
+      `Schätzung von Discogs, Mitte zwischen ${low} und ${high}, Stand ${when}`,
     description: 'Was deine Sammlung über deinen Geschmack verrät.',
     lead: (releases) =>
-      `${releases} verschiedene Releases. Was daraus über deinen Geschmack ablesbar ist.`,
-    noProfile: 'Noch kein Profil – synchronisiere zuerst deine Sammlung auf der',
+      `${releases} verschiedene Platten. Das sagen sie über deinen Geschmack.`,
+    noProfile: 'Noch kein Profil. Hol zuerst deine Sammlung auf der',
     startPage: 'Startseite',
 
     history: {
       title: 'Im Verlauf',
       about:
-        'Die mittlere Schätzung von Discogs, einmal am Tag auf diesem Gerät festgehalten, mit der niedrigsten und der höchsten drumherum. Sie bewegt sich mit dem Markt und mit dem Regal, und niemand sonst sieht sie.',
+        'Die mittlere Schätzung von Discogs, einmal am Tag auf diesem Gerät notiert, mit der niedrigsten und der höchsten drumherum. Sie bewegt sich mit dem Markt und mit deinem Regal, und niemand sonst sieht sie.',
       onePoint: 'Bisher ein Tag. Die Linie beginnt mit dem nächsten.',
       summary: (from, first, to, last) =>
         `Mittlere Schätzung von ${from} am ${first} bis ${to} am ${last}.`,
@@ -812,10 +812,11 @@ const de: typeof en = {
     artistsWhyLabel: 'Was die Zahl rechts bedeutet',
     labelsWhyLabel: 'Wie der Lift gerechnet wird',
     artistsWhy:
-      'Discogs führt unter einem Namen alles: Alben, Singles, Remixe, Beiträge zu Samplern. Die Zahl ist deshalb kein Sammelziel, sondern eine Auskunft darüber, wie wahrscheinlich ein Dig noch etwas von ihnen zutage fördert.',
+      'Discogs führt unter einem Namen alles: Alben, Singles, Remixe, Stücke auf Samplern. Die Zahl ist also kein Sammelziel. Sie sagt, wie wahrscheinlich ein Dig noch etwas von ihnen ausgräbt.',
     labelsWhy:
-      'Er vergleicht deinen Anteil an einem Label mit dem, was bei zufälliger Auswahl aus deinen Labels zu erwarten wäre. Verglichen wird gegen deine eigenen Labels – was der Rest der Welt presst, sieht diese App nicht.',
-    needsHorizon: 'Lücken und Label-Lift brauchen den Horizont – bau ihn in den Einstellungen.',
+      'Wir vergleichen deinen Anteil an einem Label mit dem, was du bei zufälliger Auswahl aus deinen Labels hättest. Nur mit deinen eigenen Labels; was der Rest der Welt presst, wissen wir nicht.',
+    needsHorizon:
+      'Für Lücken und Label-Lift müssen wir erst deine Künstler und Labels kennen. Zwei Minuten in den Einstellungen.',
     howMuchLeft: 'Wie viel es noch gibt',
     yoursFrom: '· deine von',
     nothingByName: 'Nichts mit diesem Namen auf der Liste.',
@@ -834,15 +835,15 @@ const de: typeof en = {
     noteShort: 'Notiz',
     noteLabel: (artist, title) => `Deine Notiz zu ${artist} – ${title}`,
     drop: (artist, title) => `${artist} – ${title} von der Wantlist nehmen`,
-    description: 'Was du suchst – und wie auffindbar es ist.',
+    description: 'Was du suchst, und wie gut es zu finden ist.',
     empty:
-      'Deine Wantlist ist leer – oder noch nicht synchronisiert. Sie trägt die zwei stärksten Signale überhaupt.',
-    emptyAction: 'Jetzt synchronisieren',
+      'Deine Wantlist ist leer, oder noch nicht geholt. Sie ist der stärkste Hinweis, den wir haben, wonach wir suchen sollen.',
+    emptyAction: 'Jetzt holen',
     lead: (total, withPressings) =>
-      `${total} Platten gesucht, bei ${withPressings} kennt der Horizont alle Pressungen.`,
+      `${total} Platten gesucht, bei ${withPressings} kennen wir alle Pressungen.`,
     leadNoHorizon: (total) =>
-      `${total} Platten gesucht. Ihre anderen Pressungen kennt Fidelity noch nicht —`,
-    buildHorizon: 'den Horizont bauen',
+      `${total} Platten gesucht. Ihre anderen Pressungen kennen wir noch nicht;`,
+    buildHorizon: 'deine Künstler nachschlagen',
     buildHorizonTail: 'in den Einstellungen, zwei Minuten, einmal.',
     seenRecently: (n) => `${n} sind in den letzten dreißig Tagen bei einem Laden aufgetaucht.`,
     search: 'Künstler oder Titel',
@@ -861,7 +862,7 @@ const de: typeof en = {
       want: 'Am meisten gewollt',
     },
     notExpanded: 'Pressungen noch nicht ausgeklappt',
-    noMaster: 'Kein Master bei Discogs – nur genau diese Pressung ist erkennbar',
+    noMaster: 'Kein Master bei Discogs, wir erkennen also nur genau diese Pressung',
     select: {
       start: 'Auswählen',
       done: 'Fertig',
@@ -878,29 +879,29 @@ const de: typeof en = {
     hidePressings: 'Einklappen',
 
     plan: {
-      title: 'Bei den Läden, die du gescannt hast',
+      title: 'Bei den Läden, die du gegraben hast',
       subset:
-        'Nur die Läden aus den letzten sechs Stunden – nicht ganz Discogs, das kann außerhalb von Discogs niemand nach Platte durchsuchen. Was hier dazukommt, ist der Versand.',
+        'Nur die Läden, die du in den letzten sechs Stunden gegraben hast, nicht ganz Discogs; das kann außerhalb von Discogs niemand nach Platte durchsuchen. Was wir dazutun, ist das Porto.',
       none: 'Keine deiner gesuchten Platten bei einem Laden aus den letzten sechs Stunden.',
       empty:
-        'Kein Laden aus den letzten sechs Stunden gescannt. Scann einen, und hier steht, welche deiner gesuchten Platten er hat und was das Paket kosten würde.',
+        'Kein Laden in den letzten sechs Stunden gegraben. Grab einen, und wir sagen dir, welche deiner gesuchten Platten er hat und was das Paket kosten würde.',
       emptyAction: 'Dig starten',
       lead: (available, wanted) =>
         `${available} deiner ${wanted} gesuchten Platten sind bei diesen Läden.`,
       best: (shops, goods, postage, total) =>
-        `Am günstigsten: ${shops}, ${goods} für die Platten plus ${postage} Versand – ${total}.`,
+        `Am günstigsten: ${shops}, ${goods} für die Platten plus ${postage} Porto, ${total} zusammen.`,
       naive: (shops, postage, more) =>
-        `Jede dort, wo sie am billigsten ist, wären ${shops} und ${postage} Versand – ${more} mehr.`,
+        `Jede dort, wo sie am billigsten ist, wären ${shops} und ${postage} Porto, ${more} mehr.`,
       sameAsNaive: 'Dort ist auch jede einzelne am billigsten.',
-      shopLine: (records, goods, postage) => `${records} · ${goods} + ${postage} Versand`,
+      shopLine: (records, goods, postage) => `${records} · ${goods} + ${postage} Porto`,
       otherPressing: 'andere Pressung',
       belowMinimum: (min) =>
-        `Unter dem Mindestbestellwert des Ladens von ${min} – so nimmt die Kasse es nicht an.`,
-      unknownPostage: (shops) => `Nicht dabei, Versand unbekannt: ${shops}.`,
+        `Unter dem Mindestbestellwert des Ladens von ${min}. So nimmt die Kasse es nicht an.`,
+      unknownPostage: (shops) => `Nicht dabei, Porto unbekannt: ${shops}.`,
       onlyThere: (n) => `${n} der gesuchten Platten gibt es nur dort.`,
       otherCurrencies: (n) =>
-        `${n} in einer anderen Währung weggelassen – hier rechnet nichts um.`,
-      expires: (at) => `Preise wie gescannt, gültig bis ${at}.`,
+        `${n} in einer anderen Währung weggelassen; wir rechnen nicht um.`,
+      expires: (at) => `Preise wie gegraben, gültig bis ${at}.`,
       open: 'Bei Discogs öffnen',
       origin: {
         label: 'Versand aus',
@@ -919,7 +920,7 @@ const de: typeof en = {
   places: {
     title: 'Wo sie stehen',
     lead: 'Eine Sammlung liegt nicht in einer Liste. Sie liegt in einer Wohnung.',
-    empty: 'Noch keine Orte. Ein Raum, ein Regal, eine Kiste im Keller – fang mit einem an.',
+    empty: 'Noch keine Orte. Ein Raum, ein Regal, eine Kiste im Keller. Fang mit einem an.',
     placed: (records) => `${records} Platten haben einen Platz.`,
     withBelow: (here, below) => `${here} hier · ${below} insgesamt`,
     namePlaceholder: 'Keller, Regal, Kiste 3 …',
@@ -946,11 +947,11 @@ const de: typeof en = {
       stop: 'Doch nicht',
       release: 'Wieder freigeben',
       overflow: (n) =>
-        `${n} hinter diesem Ende liegen auch hier — es gibt kein Fach danach, an das sie gehen könnten.`,
-      lostOnRuleChange: 'Damit werden auch alle von Hand gesetzten Enden freigegeben.',
+        `${n} hinter diesem Ende liegen auch hier. Es gibt kein Fach danach, an das sie gehen könnten.`,
+      lostOnRuleChange: 'Damit lässt du auch alle von Hand gesetzten Enden los.',
     },
     staysHere:
-      'Wo eine Platte steht, ist eine Aussage über deine Wohnung, nicht über Discogs. Es bleibt auf diesem Gerät und wird nirgendwohin geschickt.',
+      'Wo eine Platte steht, sagt etwas über deine Wohnung, nicht über Discogs. Es bleibt auf diesem Gerät, wir schicken es nirgendwohin.',
     where: 'Wo sie steht',
     nowhere: 'Noch kein Platz',
     counts: (placed, unplaced) => `${placed} einsortiert · ${unplaced} noch nicht`,
@@ -1026,9 +1027,9 @@ const de: typeof en = {
     putSelected: (n) => `${n} einräumen nach …`,
     putInto: (n, label) => `${n} jetzt in ${label}`,
     keys: 'M verschiebt alles im Fach · ein Buchstabe springt zu seinem Trenner',
-    dragRecords: (n) => `${n} — auf ein Fach ziehen`,
+    dragRecords: (n) => `${n}, auf ein Fach ziehen`,
     dragAll: (label) => `Alles aus ${label}`,
-    dragUnit: (name) => `${name} — auf einen Raum ziehen`,
+    dragUnit: (name) => `${name}, auf einen Raum ziehen`,
     unitMoved: (name, room) => `${name} steht jetzt in ${room}`,
     unitMovedOut: (name) => `${name} steht ohne Raum`,
     perCompartment: (n) => `je ${n}`,
@@ -1052,13 +1053,13 @@ const de: typeof en = {
 
   watched: {
     title: 'Im Blick',
-    lead: 'Eine Handvoll Platten – und was der Markt mit ihnen macht.',
+    lead: 'Eine Handvoll Platten, und was der Markt mit ihnen macht.',
     empty: 'Noch nichts im Blick. Leg eine Platte aus dem Regal oder der Wantlist hierher.',
     toShelf: 'Zum Regal',
     check: 'Jetzt nachsehen',
-    checking: 'Sehe nach …',
+    checking: 'Schauen nach …',
     cost: (records, minutes) =>
-      `${records} ${records === 1 ? 'Platte' : 'Platten'}, je eine Anfrage – etwa ${minutes} ${minutes === 1 ? 'Minute' : 'Minuten'}.`,
+      `${records} ${records === 1 ? 'Platte' : 'Platten'}, je eine Abfrage, etwa ${minutes} ${minutes === 1 ? 'Minute' : 'Minuten'}.`,
     nothingNew: 'Nichts hat sich bewegt.',
     notYet: 'noch nicht nachgesehen',
     noneForSale: 'niemand bietet sie an',
@@ -1066,29 +1067,29 @@ const de: typeof en = {
     fromShelf: 'deine',
     fromWantlist: 'gesucht',
     span: (from, to, when) => `${from} → ${to} seit ${when}`,
-    rose: (from, to, percent) => `ist von ${from} auf ${to} gestiegen – ${percent} % mehr.`,
+    rose: (from, to, percent) => `ist von ${from} auf ${to} gestiegen, ${percent} % mehr.`,
     fell: (to) => `liegt jetzt bei ${to}, unter deiner Grenze.`,
-    appeared: (copies) => `wird wieder angeboten – ${copies} Stück.`,
+    appeared: (copies) => `wird wieder angeboten, ${copies} Stück.`,
     fewer: (from, to) => `wird statt ${from} nur noch ${to} mal angeboten.`,
     gone: (dealer, from, to) =>
-      `wird statt ${from} nur noch ${to} mal angeboten – die bei ${dealer} steht nicht mehr drin.`,
+      `wird statt ${from} nur noch ${to} mal angeboten. Die bei ${dealer} ist weg.`,
     dropShort: 'Stopp',
     drop: (label) => `${label} nicht mehr beobachten`,
     watch: 'Im Blick behalten',
     watchingOn: 'Im Blick',
-    full: 'Hundert ist die Grenze – je eine Anfrage, das sind zwei Minuten pro Durchgang.',
+    full: 'Hundert ist die Grenze. Je eine Abfrage, das sind zwei Minuten pro Durchgang.',
     noShops:
-      'Hier steht kein Laden: Discogs bietet keinen Weg, die Angebote zu einer Platte aufzulisten. Man bekommt den Preis, nicht die Adresse. Die eine Ausnahme ist ein Exemplar, an dem ein eigener Dig vorbeigekommen ist – das hat eine Adresse, und die steht dann da.',
+      'Hier steht kein Laden: Discogs sagt uns nicht, wer eine bestimmte Platte anbietet. Du bekommst den Preis, nicht die Adresse. Die eine Ausnahme ist ein Exemplar, an dem einer deiner Digs vorbeigekommen ist. Das hat eine Adresse, und die steht dann da.',
   },
 
   saved: {
-    description: 'Die Platten, zu denen du ja gesagt hast – auch wenn der Dig längst weg ist.',
+    description: 'Die Platten, zu denen du ja gesagt hast, auch wenn der Dig längst weg ist.',
     empty:
-      'Noch nichts gemerkt. Der Daumen nach oben im Dig legt eine Platte hier ab – und hier bleibt sie, auch wenn der Dig längst weg ist.',
+      'Noch nichts gemerkt. Ein Daumen hoch im Dig legt eine Platte hier ab, und hier bleibt sie, auch wenn der Dig längst weg ist.',
     emptyAction: 'Einen Dig starten',
     lead: (records, shops) =>
       `${records === 1 ? 'Eine Platte' : `${records} Platten`} vorgemerkt bei ${shops === 1 ? 'einem Laden' : `${shops} Läden`}.`,
-    digsGo: 'Digs werden nach fünf weggeräumt – das hier bleibt.',
+    digsGo: 'Digs räumen wir nach fünf weg. Das hier bleibt.',
     markBought: (label) => `${label} als gekauft eintragen`,
     remove: (label) => `${label} von der Merkliste nehmen`,
     moved: (added, sold, soldText) =>

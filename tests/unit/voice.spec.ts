@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest'
  * code says "scan". A pack goes on the list below once it has been through
  * the rewrite; from then on a line that slips back is named here.
  */
-const DONE = ['welcome.ts', 'dealers.ts', 'reason.ts', 'dig.ts']
+const DONE = ['welcome.ts', 'dealers.ts', 'reason.ts', 'dig.ts', 'basket.ts']
 
 /** Every string literal in a pack, with the line it starts on. */
 function literals(source: string): { line: number; text: string }[] {

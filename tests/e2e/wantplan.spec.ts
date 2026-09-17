@@ -115,13 +115,13 @@ test('one parcel beats two, and the box says by how much', async ({ page }) => {
    * = 64.50, two parcels. One parcel wins by 4.50.
    */
   await expect(box).toContainText(
-    'Cheapest: 1 shop, €55.50 for the records plus €4.50 postage — €60.00.',
+    'Cheapest: 1 shop, €55.50 for the records plus €4.50 postage, €60.00 in all.',
   )
   await expect(box.getByRole('link', { name: 'Plattenkiste' })).toBeVisible()
   await expect(box).toContainText(
-    'Each where it is cheapest would be 2 shops and €10.50 postage — €4.50 more.',
+    'Each where it is cheapest would be 2 shops and €10.50 postage, €4.50 more.',
   )
-  await expect(box).toContainText('Prices as scanned, good until')
+  await expect(box).toContainText('Prices as dug, good until')
 })
 
 test('before the first dig it says what would fill it, with the way there', async ({
@@ -148,7 +148,7 @@ test('before the first dig it says what would fill it, with the way there', asyn
   await page.goto('/wantlist')
 
   const box = page.getByTestId('want-plan')
-  await expect(box).toContainText('No shop scanned in the last six hours.', { timeout: 15_000 })
+  await expect(box).toContainText('No shop dug in the last six hours.', { timeout: 15_000 })
   await expect(box.getByRole('link', { name: 'Start a dig' })).toHaveAttribute('href', '/dig')
   await expect(box.getByRole('group', { name: 'Ships from' })).toHaveCount(0)
 })
