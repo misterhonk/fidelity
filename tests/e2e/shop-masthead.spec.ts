@@ -97,7 +97,7 @@ test('walks from shop to shop with j and k, and with the arrows in the sheet', a
   await expect(page).toHaveURL(/shop=plattenkiste/)
 
   // Not in a field: a name typed into the search box must stay a name.
-  await page.getByRole('button', { name: 'Hide this shop' }).focus()
+  await page.getByRole('button', { name: 'Put this shop away' }).focus()
   await page.getByLabel('Add a shop').fill('jjk')
   await expect(page).toHaveURL(/shop=plattenkiste/)
 

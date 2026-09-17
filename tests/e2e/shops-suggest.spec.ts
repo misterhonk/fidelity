@@ -107,7 +107,7 @@ test('lists shops from the hub, ranked against your own shelf', async ({ page, c
 
   await page.goto('/dealers')
 
-  await expect(page.getByRole('heading', { name: 'Shops other people have dug' })).toBeVisible({
+  await expect(page.getByRole('heading', { name: 'Shops others struck gold in' })).toBeVisible({
     timeout: 20_000,
   })
   await expect(page.getByRole('link', { name: /bluenoteheaven/ })).toBeVisible()
@@ -120,5 +120,5 @@ test('lists shops from the hub, ranked against your own shelf', async ({ page, c
   await expect(page.getByText('technoid')).toBeHidden()
 
   // And what to do with it.
-  await expect(page.getByText(/joins your shops with its own figures/)).toBeVisible()
+  await expect(page.getByText(/joins your shops/)).toBeVisible()
 })

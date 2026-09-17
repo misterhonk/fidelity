@@ -108,7 +108,7 @@ test('the demo account syncs onto a fresh device', async ({ page }) => {
 
   await page.goto('/')
   await expect(page).toHaveURL(/welcome/)
-  await page.getByRole('button', { name: 'Set it up — with your collection' }).click()
+  await page.getByRole('button', { name: 'Set it up with your collection' }).click()
   await page.getByLabel('Personal access token').fill(token!)
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page.getByText(/Signed in as/)).toBeVisible({ timeout: 30_000 })

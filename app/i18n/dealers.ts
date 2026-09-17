@@ -2,72 +2,46 @@ import { activeLanguage } from '~/composables/useMessages'
 import { countryName } from '~/utils/countries'
 
 /**
- * The words for the shops: which ones you have walked, how well each one fits,
- * and where the list of them comes from.
+ * The words for the shops, in the voice of the person behind the counter
+ * (docs/20): which ones you have dug, how well each one is your kind of
+ * shop, and where the list of them comes from.
  *
- * Its own file, both languages together — the reasons are in `settings.ts`.
+ * Its own file, both languages together, both written rather than one
+ * translated from the other. Buttons say what happens; the folds explain
+ * like a friend would; where we do not know something, we say so in three
+ * words. "Hide" is "put away" here, because that is what you do with a
+ * record you are not taking: it is still in the shop.
  */
 
 const en = {
   title: 'Shops',
-  description: 'What a shop actually stocks — and how well they fit you.',
-  lead: 'What a shop actually stocks — and how well it fits you.',
+  description: 'Which shops are your kind of shop, and what they have in the racks.',
+  lead: 'Which shops are your kind of shop, and what they have in the racks.',
 
-  none: 'No shop scanned yet. This fills up with the first dig.',
-  scanned: 'Scanned shops',
-  /* "Only from Germany / the EU" (M20 #2), on the shop chips. */
+  none: 'No shops yet. Dig through one, and it shows up here.',
+  /** The list's name for a screen reader. */
+  scanned: 'Your shops',
   origin: {
     label: 'Ships from',
     any: 'Anywhere',
     home: (country: string) => `From ${country}`,
     eu: 'From the EU',
-    /*
-     * Europe, which is a different question from the EU.
-     *
-     * "From the EU" is about a customs border, and for somebody in Zurich,
-     * London or Oslo it runs the wrong way round. What they are asking is
-     * "near me".
-     */
     europe: 'From Europe',
     none: 'None of your shops ships from there.',
   },
 
-  /*
-   * A hit rate on its own is a number without a denominator. The comparison is
-   * always against your *other* shops — what the market as a whole asks is not
-   * something this app can see, so it does not claim to.
-   */
-  /*
-   * One shop, one number, and no promise about the next one.
-   *
-   * This was the loudest line on the screen and half of it was about a
-   * comparison that does not exist yet: "once you have scanned a second shop,
-   * this says how that compares". The other three say the comparison when
-   * there is one, which is when it is worth reading.
-   */
-  rateAlone: (rate: string) => `${rate} finds per thousand listings.`,
+  /* One shop, one number. The comparison is with your other shops, once there are any. */
+  rateAlone: (rate: string) => `${rate} finds per thousand records.`,
   rateAbove: (rate: string, factor: string) =>
-    `${rate} finds per thousand — ${factor} times your other shops.`,
+    `${rate} finds per thousand records, ${factor} times your other shops.`,
   rateSame: (rate: string) =>
-    `${rate} finds per thousand — about the same as your other shops.`,
+    `${rate} finds per thousand records, about the same as your other shops.`,
   rateBelow: (rate: string, factor: string) =>
-    `${rate} finds per thousand — only ${factor} times your other shops.`,
+    `${rate} finds per thousand records, only ${factor} times your other shops.`,
 
-  /*
-   * A shop that has never been dug, and what can be done with it anyway.
-   *
-   * It used to say only what was missing — "I only know this shop by name" —
-   * which reads as a dead end beside a "Watch this shop" button nobody could
-   * be sure worked. It does: the watch asks `num_for_sale` off the profile,
-   * one lookup, and needs no dig at all (`worker/watch/check.ts`). What it
-   * cannot do until the shop has been dug once is say *what* moved.
-   */
-  neverScanned: 'Known by name so far. Watching works already — a dig fills in the rest.',
-  /** The same fact in three words, for a row in the list. */
+  neverScanned: 'We only know the name so far. Watch it anyway; a dig fills in the rest.',
   notDug: 'not dug yet',
-  /* On the row itself: short, because it repeats down the list. */
   digShort: 'Dig',
-  /* Four orderings, one row above the list (M31.10). */
   sort: {
     label: 'Order',
     rate: 'Hit rate',
@@ -75,92 +49,42 @@ const en = {
     size: 'Size',
     name: 'Name',
   },
-  /* The mental model, not a filter: yours, and the rest. */
   groups: { mine: 'Your shops', rest: 'The rest' },
   digAt: (shop: string) => `Dig ${shop} now`,
-  /** What the number beside a shop counts. Spoken, not drawn. */
   perThousand: (rate: string) => `${rate} finds per thousand`,
-  /** Above the list, once there are enough shops to be a wall. */
   find: 'Find a shop',
-  noMatch: 'No shop of yours goes by that name.',
+  noMatch: 'None of your shops goes by that name.',
   more: (n: string) => `Show ${n} more`,
   listings: (n: string) => `${n} listings`,
   shipsFrom: (country: string) => `from ${country}`,
   rating: (percent: string, count: string) => `${percent} on ${count} ratings`,
-  lastScanned: (when: string) => `last scanned on ${when}`,
+  lastScanned: (when: string) => `last dug on ${when}`,
 
-  /*
-   * How honestly this shop grades — from your own purchases (M14).
-   *
-   * Two shapes on purpose. Below five judged records there is no percentage:
-   * two out of two is 100 % and reads like a verdict on a shop you know
-   * nothing about. The bare count says the same thing without the claim.
-   */
   grading: {
     rate: (percent: string, judged: string) =>
       `${percent} of ${judged} records you bought here arrived as described or better.`,
     tooFew: (judged: string, one: boolean) =>
-      `${judged} ${one ? 'record' : 'records'} judged so far — too few for a figure.`,
+      `${judged} ${one ? 'record' : 'records'} judged so far, too few for a figure.`,
     worse: (n: string, one: boolean) => `${n} ${one ? 'was' : 'were'} worse than described.`,
     whyLabel: 'Why is this not on Discogs?',
-    why: 'Discogs feedback rates the transaction, not whether the grading was right — and a negative rating for overgrading is removed when the seller objects. This figure is yours alone: it counts the records you marked as arrived, and it never leaves this device.',
+    why: 'The rating at Discogs says whether the parcel came quickly. Whether the record was as good as described, it does not say. This figure comes from you: you judged the records as you unpacked them. It stays on your device.',
   },
 
   watching: 'Being watched',
   watch: 'Watch this shop',
-  /* Watching costs one request per app start, not a rescan. Worth saying,
-   * because "watch" usually means somebody is polling. */
   watchCostLabel: 'What watching costs',
   watchCost:
-    'When the app opens, it checks whether the stock has moved — a single lookup, not a new scan.',
+    'Every time you open the app, we glance at the shop for new arrivals. One look, not a new dig.',
   digNow: 'Dig now',
   digAgain: 'Dig again',
 
-  /*
-   * The round (worker/dealers/round.ts).
-   *
-   * Asked for as a question: "so I can build a kind of favourite-shop list and
-   * scan it weekly for new items?" Almost — the shops were remembered and
-   * could be watched, but watching only says *that* something moved. This is
-   * the walk that says what.
-   *
-   * "Weekly" is the one word not used. There is no server and a browser does
-   * not run while it is closed (ADR-007); a button that runs when somebody is
-   * there is the honest version of a schedule.
-   */
-  /*
-   * Shops other people have dug (ADR-014).
-   *
-   * "How do we maximise the shops I already know?" — and Discogs offers
-   * nothing: no "which shops sell this sort of record", no list of good
-   * sellers, and the undocumented search is rule 5. What there is: other
-   * devices and a hub that passes on what one of them learned.
-   *
-   * Every sentence here says what the number is and what it is a share of. A
-   * fingerprint from a hundred rows of a forty-thousand-record shop describes
-   * those hundred.
-   */
-  /*
-   * A shop entered by hand, and why each one is on the list (M30).
-   *
-   * "I want to enter dealers myself" and "under Shops I want to see every
-   * dealer I have bought from, have something in the basket from, or added by
-   * hand". The screen was a log of what had been dug, and a row without a
-   * reason is a row nobody trusts.
-   */
   add: {
     label: 'Add a shop',
-    placeholder: 'juno_records — or the address of the shop page',
+    placeholder: 'juno_records, or the address of the shop page',
     submit: 'Add',
     busy: 'Looking …',
   },
 
-  /*
-   * There is no "offers something from my wantlist" here, and it is not an
-   * oversight: that needs a listings-by-release endpoint and Discogs has none
-   * that may be used. Where a dig has found such a record the shop is on the
-   * list as dug, and the find list names the record.
-   */
   reasons: {
     dug: 'dug',
     basket: 'in the basket',
@@ -171,179 +95,127 @@ const en = {
   },
 
   suggested: {
-    title: 'Shops other people have dug',
+    title: 'Shops others struck gold in',
     busy: 'Asking your hub …',
-    /* What the figure means, in one line. The workings are in ADR-014. */
-    about: 'How much of each shop sits on labels you already collect.',
+    about: 'The number says how much of the shop is on labels you collect.',
     fit: (percent: number) => `${percent} % yours`,
-    sample: 'Dig one and it joins your shops with its own figures.',
+    sample: 'Dig one, and it joins your shops with numbers of its own.',
   },
 
   round: {
     title: 'The round',
-    /* The one line above the list: how many, how long. */
     line: (shops: string, minutes: number) =>
       `${shops} watched · about ${minutes === 1 ? 'a minute' : `${minutes} minutes`}`,
     about: (shops: number, minutes: number) =>
-      `Visits your ${shops === 1 ? 'one watched shop' : `${shops} watched shops`} one after another and fetches only what each has put up since your last visit — about ${minutes === 1 ? 'a minute' : `${minutes} minutes`}. No style or price lookups: those are a hundred more per shop, and a find is one tap from them.`,
-    /* Short, because the round already names each skipped shop in its result. */
+      `We go to ${shops === 1 ? 'your one watched shop' : `your ${shops} watched shops`} one after another and fetch only what is new since your last look. About ${minutes === 1 ? 'a minute' : `${minutes} minutes`}. We skip styles and prices on the way, that would be a hundred more requests per shop, and a find is one tap from them.`,
     neverDug: (n: number) =>
       n === 1
-        ? 'One watched shop has never been dug — the round skips it until it has.'
-        : `${n} watched shops have never been dug — the round skips them until they have.`,
+        ? 'One of your shops you have never dug through. We skip it on the round.'
+        : `${n} of your shops you have never dug through. We skip them on the round.`,
     start: 'Walk the round',
     found: (n: number) => (n === 1 ? '1 find' : `${n} finds`),
-    keepsRunning:
-      'Carries on if you leave this screen — the round runs in the background, not on this page.',
+    keepsRunning: 'Keeps going if you leave this screen.',
     lastAt: (when: string) => `Last round ${when}`,
     stopNothing: (listings: string) => `nothing for you among ${listings} new`,
     stopFound: (matches: number, listings: string) =>
       `${matches === 1 ? '1 find' : `${matches} finds`} among ${listings} new`,
-    stopNeverDug: 'never dug — left out',
+    stopNeverDug: 'never dug, skipped',
     stopFailed: 'did not answer this time',
-    /*
-     * The last round as one line (M34.4). Ten stops used to be ten lines
-     * across the top of the screen, eight of them saying "nothing". The finds
-     * are listed; the quiet stops are a count and a fold.
-     */
     quiet: (n: number) => (n === 1 ? '1 with nothing new' : `${n} with nothing new`),
     skipped: (n: number) => (n === 1 ? '1 never dug, skipped' : `${n} never dug, skipped`),
     others: (n: number) => (n === 1 ? 'The other one' : `The other ${n}`),
   },
 
-  /*
-   * "Never show this one again." Gone from every list, unwatched — and one
-   * sentence on what brings it back, because a switch with no visible way
-   * back is a trap, not a setting.
-   */
-  hide: 'Hide this shop',
-  /** The seller's own page — postage in prose, holidays, returns (M32.3). */
+  /* "Put away", not "hide": the record is still in the shop, you are just not taking it. */
+  hide: 'Put this shop away',
   atDiscogs: 'The shop at Discogs',
   hideWhy:
-    'Gone from the lists, the start page and the suggestions, and no longer watched. A dig you start by name brings it back.',
+    'We take the shop off every list and stop looking at it. Dig it by name, and it is back.',
   hidden: {
-    title: (n: number) => (n === 1 ? 'One shop hidden' : `${n} shops hidden`),
-    restore: 'Show again',
+    title: (n: number) => (n === 1 ? 'One shop put away' : `${n} shops put away`),
+    restore: 'Bring it back',
   },
 
-  /*
-   * Push, worded as what it is: the app is closed, and somebody else is
-   * looking. It says "the shops you watch" because the permission is one per
-   * device — switching it on here covers all of them, and a line that implied
-   * otherwise would be a small lie discovered later.
-   */
   pushOffer: 'Tell me while the app is closed',
-  pushOn: 'You will be told, even with the app closed.',
+  pushOn: 'We will tell you, even with the app closed.',
   pushStop: 'Stop telling me',
-  pushWhy:
-    'The hub asks each watched shop once an hour — one lookup for everybody, not one each.',
+  pushWhy: 'The hub looks at each watched shop once an hour, once for everybody.',
   pushInstall:
-    'On an iPhone this needs Fidelity on the home screen. Share → Add to Home Screen.',
+    'On an iPhone this needs Fidelity on the home screen. Share, then Add to Home Screen.',
 
   coverage: (sampled: string, total: string, percent: number) =>
-    `From ${sampled} of ${total} listings — ${percent} % of the shop.`,
+    `We saw ${sampled} of ${total} records, ${percent} % of the shop.`,
 
   priceTitle: 'Price range',
   median: (amount: string) => `Median ${amount}`,
   mixedCurrencies: '(the shop prices in several currencies)',
-  priceHigh: 'at the top end of your shops',
-  priceLow: 'at the bottom end of your shops',
+  priceHigh: 'on the dear side of your shops',
+  priceLow: 'on the cheap side of your shops',
   priceMiddle: 'in the middle of your shops',
-  priceWhyLabel: 'What it is compared against',
-  priceWhy:
-    'Only against your own shops. What the market as a whole asks is not something this app can see, so it does not claim it either.',
+  priceWhyLabel: 'What we compare with',
+  priceWhy: 'Only with your own shops. What the market at large charges, we do not know.',
 
-  /** Four records of your own on the labels this shop carries (M31.4). */
   shelfSample: 'From your shelf it stocks',
-  labelsInStock: 'Labels in stock',
-  noLabels: 'No label information in the stock.',
+  labelsInStock: 'Labels in the racks',
+  noLabels: 'The shop names no labels.',
   decades: 'Decades',
-  noYears: 'No years recorded in the stock.',
+  noYears: 'The shop names no years.',
   stock: {
-    /*
-     * The bar says "13"; the button has to say what a click does — otherwise a
-     * screen reader reads "button, Kompakt" twenty times over.
-     */
     show: (name: string, n: number) => `Show the ${n} records on ${name}`,
     close: 'Close',
     counted: (shown: string, total: string) => `${shown} of ${total}`,
     more: (n: string) => `Show ${n} more`,
     loading: 'Fetching …',
-    /*
-     * The difference between "he does not have it" and "we do not know right
-     * now". Marketplace data lives six hours; after that these rows are
-     * deleted, not stale — and an empty list would be a false statement.
-     */
     needsDig:
-      'The stock list is marketplace data and only lives for six hours. Scan this shop again to see what is on the shelves.',
+      'What is in the racks is marketplace data and lives six hours. Dig the shop again, and we show you the shelves.',
   },
   nothingYet: 'Nothing here yet.',
 
-  /*
-   * The masthead and the plates (M34.1).
-   *
-   * A shop's profile used to be one paragraph of numbers and a row of
-   * buttons of the same weight. Now it opens the way a buyer asks: who is
-   * this — does it fit me — what will postage cost — what do they charge —
-   * what of mine do they carry — what has moved — what did I buy here. Each
-   * answer under a plate word, and the count before the percentage: "59,539
-   * ratings · 99.9 %" says more than "99.9 %" alone, because a hundred per
-   * cent of three is not a record.
-   */
   trust: {
     ratings: (n: string, percent: string) => `${n} ratings · ${percent} %`,
     noRatings: 'no ratings yet',
     since: (year: string) => `since ${year}`,
     dug: (when: string) => `dug ${when}`,
-    /* The one line that makes every other number moot. */
-    suspended: 'Suspended from selling at Discogs.',
+    suspended: 'Discogs has stopped this shop from selling.',
   },
   plates: {
     fit: 'Fit',
     postage: 'Postage',
     price: 'Price range',
     shelf: 'From your shelf',
-    range: 'Range',
-    movement: 'Movement',
+    range: 'In the racks',
+    movement: 'New arrivals',
     purchases: 'Your purchases',
   },
-  rateWhyLabel: 'What the number counts',
+  rateWhyLabel: 'How we count',
   rateWhy:
-    'Finds per thousand listings on the last dig, set against the median of your other shops. What the market as a whole would find is not something this app can see.',
+    'Finds per thousand records on the last dig here, against the median of your other shops. What the whole market would turn up, we do not know.',
   postage: {
-    /* Discogs' own figure for one record to your address, off a basket line (M34.2). */
     named: (original: string, converted: string | null) =>
-      `${original}${converted ? ` (${converted})` : ''} for one record, named by Discogs`,
+      `${original}${converted ? ` (${converted})` : ''} for one record, says Discogs`,
     from: (amount: string) => `from ${amount} for one record`,
-    unknown: 'Not on record yet.',
+    unknown: 'We do not know the postage yet.',
     enter: 'Enter it in the basket',
     text: 'What the shop writes',
   },
   movement: {
-    newest: (when: string) => `newest listing ${when}`,
-    still: 'Nothing new since the last check.',
-    unwatched: 'Not watched — nothing is checked.',
+    newest: (when: string) => `newest arrival ${when}`,
+    still: 'Nothing new since you last looked.',
+    unwatched: 'Not watched, so we do not look.',
   },
-  /** The right-hand column on a desk before any shop is open. */
   pick: 'Pick a shop on the left.',
-  /*
-   * The verdict pair on a row (M34.4): the profile's two sentences as two
-   * plate words, against your other shops.
-   */
   verdict: {
     fit: { above: 'more finds', same: 'as many finds', below: 'fewer finds' },
-    price: { high: 'pricier', middle: 'mid-priced', low: 'cheaper' },
+    price: { high: 'dearer', middle: 'mid-priced', low: 'cheaper' },
   },
-  /** Five shops for a device with none (M34.4) — large, well rated, verified 2026-09-16. */
   starters: {
     title: 'Five shops to start with',
     about: 'Big, well rated, and they ship across Europe. Adding one costs one lookup.',
     add: 'Add',
     adding: 'Adding …',
   },
-  /** The plate word; the full sentence is its spoken name. */
-  hideShort: 'Hide',
-  hiddenLine: (shop: string) => `${shop} hidden.`,
+  hideShort: 'Put away',
+  hiddenLine: (shop: string) => `${shop} put away.`,
   undo: 'Undo',
   prev: 'Previous shop',
   next: 'Next shop',
@@ -351,28 +223,29 @@ const en = {
 
 const de: typeof en = {
   title: 'Läden',
-  description: 'Welche Läden zu dir passen, und was bei ihnen im Regal steht.',
-  lead: 'Welche Läden zu dir passen, und was bei ihnen im Regal steht.',
+  description: 'Welche Läden dein Ding sind, und was bei ihnen in den Kisten liegt.',
+  lead: 'Welche Läden dein Ding sind, und was bei ihnen in den Kisten liegt.',
 
-  none: 'Noch kein Laden da. Mit dem ersten Dig füllt sich das hier.',
-  scanned: 'Gescannte Läden',
+  none: 'Noch keine Läden. Grab einen durch, dann steht er hier.',
+  scanned: 'Deine Läden',
   origin: {
     label: 'Versand aus',
     any: 'Überall',
     home: (country) => `Aus ${countryName(country)}`,
     eu: 'Aus der EU',
     europe: 'Aus Europa',
-    none: 'Von dort versendet keiner deiner Läden.',
+    none: 'Von dort verschickt keiner deiner Läden.',
   },
 
-  rateAlone: (rate) => `${rate} Treffer auf tausend Listings.`,
+  rateAlone: (rate) => `${rate} Funde auf tausend Platten.`,
   rateAbove: (rate, factor) =>
-    `${rate} Treffer auf tausend, das ${factor}-Fache deiner anderen Läden.`,
-  rateSame: (rate) => `${rate} Treffer auf tausend, ungefähr wie deine anderen Läden.`,
+    `${rate} Funde auf tausend Platten, das ${factor}-Fache deiner anderen Läden.`,
+  rateSame: (rate) => `${rate} Funde auf tausend Platten, ungefähr wie deine anderen Läden.`,
   rateBelow: (rate, factor) =>
-    `${rate} Treffer auf tausend, nur das ${factor}-Fache deiner anderen Läden.`,
+    `${rate} Funde auf tausend Platten, nur das ${factor}-Fache deiner anderen Läden.`,
 
-  neverScanned: 'Bisher nur der Name. Beobachten geht trotzdem schon, ein Dig füllt den Rest.',
+  neverScanned:
+    'Bis jetzt kennen wir nur den Namen. Beobachten geht trotzdem, ein Dig füllt den Rest.',
   notDug: 'noch nicht gegraben',
   digShort: 'Graben',
   sort: {
@@ -384,30 +257,30 @@ const de: typeof en = {
   },
   groups: { mine: 'Deine Läden', rest: 'Weitere' },
   digAt: (shop) => `Jetzt bei ${shop} graben`,
-  perThousand: (rate) => `${rate} Treffer auf tausend`,
+  perThousand: (rate) => `${rate} Funde auf tausend`,
   find: 'Laden finden',
   noMatch: 'So heißt keiner deiner Läden.',
   more: (n) => `${n} weitere zeigen`,
-  listings: (n) => `${n} Listings`,
+  listings: (n) => `${n} Angebote`,
   shipsFrom: (country) => `aus ${countryName(country)}`,
   rating: (percent, count) => `${percent} bei ${count} Bewertungen`,
-  lastScanned: (when) => `zuletzt gescannt am ${when}`,
+  lastScanned: (when) => `zuletzt gegraben am ${when}`,
 
   grading: {
     rate: (percent, judged) =>
       `${percent} von ${judged} Platten, die du hier gekauft hast, kamen wie beschrieben oder besser an.`,
     tooFew: (judged, one) =>
-      `Erst ${judged} ${one ? 'Platte' : 'Platten'} beurteilt, zu wenig für eine Zahl.`,
+      `Erst ${judged} ${one ? 'Platte' : 'Platten'} bewertet, zu wenig für eine Zahl.`,
     worse: (n, one) => `${n} ${one ? 'war' : 'waren'} schlechter als beschrieben.`,
     whyLabel: 'Warum steht das nicht bei Discogs?',
-    why: 'Discogs-Feedback bewertet den Ablauf, nicht ob die Note gestimmt hat. Und eine schlechte Bewertung wegen Übergrading fliegt raus, sobald der Verkäufer sich beschwert. Diese Zahl gehört dir: Sie zählt die Platten, die du als angekommen markiert hast, und bleibt auf diesem Gerät.',
+    why: 'Die Bewertung bei Discogs sagt, ob das Paket schnell kam. Ob die Platte so gut war wie beschrieben, sagt sie nicht. Diese Zahl kommt von dir: Du hast die Platten beim Auspacken bewertet. Sie bleibt auf deinem Gerät.',
   },
 
   watching: 'Wird beobachtet',
   watch: 'Laden beobachten',
   watchCostLabel: 'Was Beobachten kostet',
   watchCost:
-    'Beim Öffnen der App schaut Fidelity kurz nach, ob sich im Sortiment was getan hat. Eine Abfrage, kein neuer Scan.',
+    'Jedes Mal, wenn du die App öffnest, schauen wir kurz, ob der Laden was Neues hat. Ein Blick, kein neuer Dig.',
   digNow: 'Jetzt graben',
   digAgain: 'Nochmal graben',
 
@@ -428,57 +301,57 @@ const de: typeof en = {
   },
 
   suggested: {
-    title: 'Läden, die andere gegraben haben',
-    busy: 'Frage deinen Hub …',
-    about: 'Wie viel vom Sortiment auf Labels liegt, die du schon sammelst.',
+    title: 'Läden, in denen andere fündig wurden',
+    busy: 'Fragen deinen Hub …',
+    about: 'Die Zahl sagt, wie viel vom Laden auf Labels liegt, die du sammelst.',
     fit: (percent) => `${percent} % deins`,
-    sample: 'Grab einen, dann steht er mit eigenen Zahlen bei deinen Läden.',
+    sample: 'Grab einen durch, dann steht er mit eigenen Zahlen bei deinen Läden.',
   },
 
   round: {
-    title: 'Der Rundgang',
+    title: 'Die Runde',
     line: (shops, minutes) =>
       `${shops} beobachtet · rund ${minutes === 1 ? 'eine Minute' : `${minutes} Minuten`}`,
     about: (shops, minutes) =>
-      `Geht ${shops === 1 ? 'deinen einen beobachteten Laden' : `deine ${shops} beobachteten Läden`} nacheinander ab und holt nur, was seit deinem letzten Besuch neu ist. Dauert rund ${minutes === 1 ? 'eine Minute' : `${minutes} Minuten`}. Stil und Preise fragt er nicht ab, das wären hundert Anfragen mehr pro Laden, und ein Treffer ist einen Tipp davon entfernt.`,
+      `Wir gehen ${shops === 1 ? 'deinen einen beobachteten Laden' : `deine ${shops} beobachteten Läden`} nacheinander ab und holen nur, was seit deinem letzten Blick neu ist. Rund ${minutes === 1 ? 'eine Minute' : `${minutes} Minuten`}. Stile und Preise lassen wir dabei aus, das wären hundert Anfragen mehr pro Laden, und ein Fund ist einen Tipp davon entfernt.`,
     neverDug: (n) =>
       n === 1
-        ? 'Einen beobachteten Laden hast du noch nie gegraben, den überspringt der Rundgang.'
-        : `${n} beobachtete Läden hast du noch nie gegraben, die überspringt der Rundgang.`,
-    start: 'Rundgang starten',
-    found: (n) => (n === 1 ? '1 Treffer' : `${n} Treffer`),
-    keepsRunning: 'Läuft im Hintergrund weiter, auch wenn du den Bildschirm verlässt.',
-    lastAt: (when) => `Letzter Rundgang ${when}`,
+        ? 'Einen Laden hast du noch nie durchgegraben. Den lassen wir bei der Runde aus.'
+        : `${n} Läden hast du noch nie durchgegraben. Die lassen wir bei der Runde aus.`,
+    start: 'Runde starten',
+    found: (n) => (n === 1 ? '1 Fund' : `${n} Funde`),
+    keepsRunning: 'Läuft weiter, auch wenn du den Bildschirm verlässt.',
+    lastAt: (when) => `Letzte Runde ${when}`,
     stopNothing: (listings) => `nichts für dich unter ${listings} neuen`,
     stopFound: (matches, listings) =>
-      `${matches === 1 ? '1 Treffer' : `${matches} Treffer`} unter ${listings} neuen`,
-    stopNeverDug: 'noch nie gegraben, übersprungen',
+      `${matches === 1 ? '1 Fund' : `${matches} Funde`} unter ${listings} neuen`,
+    stopNeverDug: 'nie gegraben, ausgelassen',
     stopFailed: 'hat diesmal nicht geantwortet',
     quiet: (n) => (n === 1 ? '1 ohne Neues' : `${n} ohne Neues`),
     skipped: (n) =>
-      n === 1 ? '1 nie gegraben, übersprungen' : `${n} nie gegraben, übersprungen`,
+      n === 1 ? '1 nie gegraben, ausgelassen' : `${n} nie gegraben, ausgelassen`,
     others: (n) => (n === 1 ? 'Der andere' : `Die anderen ${n}`),
   },
 
-  hide: 'Diesen Laden ausblenden',
+  hide: 'Diesen Laden weglegen',
   atDiscogs: 'Der Laden bei Discogs',
   hideWhy:
-    'Verschwindet aus den Listen, von der Startseite und aus den Vorschlägen, und wird nicht mehr beobachtet. Ein Dig mit seinem Namen holt ihn zurück.',
+    'Wir nehmen den Laden aus allen Listen und schauen nicht mehr nach ihm. Grab ihn mit Namen, dann ist er wieder da.',
   hidden: {
-    title: (n) => (n === 1 ? 'Ein Laden ausgeblendet' : `${n} Läden ausgeblendet`),
-    restore: 'Wieder zeigen',
+    title: (n) => (n === 1 ? 'Ein Laden weggelegt' : `${n} Läden weggelegt`),
+    restore: 'Wieder hervorholen',
   },
 
   pushOffer: 'Auch Bescheid sagen, wenn die App zu ist',
-  pushOn: 'Du bekommst Bescheid, auch wenn die App zu ist.',
+  pushOn: 'Wir sagen dir Bescheid, auch wenn die App zu ist.',
   pushStop: 'Nicht mehr Bescheid sagen',
   pushWhy:
-    'Der Hub fragt jeden beobachteten Laden einmal die Stunde. Eine Abfrage für alle, nicht eine pro Person.',
+    'Der Hub schaut einmal die Stunde bei jedem beobachteten Laden vorbei, einmal für alle.',
   pushInstall:
-    'Auf dem iPhone geht das nur mit Fidelity auf dem Home-Bildschirm: Teilen, dann „Zum Home-Bildschirm".',
+    'Auf dem iPhone geht das nur mit Fidelity auf dem Home-Bildschirm. Teilen, dann „Zum Home-Bildschirm".',
 
   coverage: (sampled, total, percent) =>
-    `Aus ${sampled} von ${total} Listings, ${percent} % des Ladens.`,
+    `Wir haben ${sampled} von ${total} Platten gesehen, ${percent} % des Ladens.`,
 
   priceTitle: 'Preislage',
   median: (amount) => `Median ${amount}`,
@@ -486,23 +359,22 @@ const de: typeof en = {
   priceHigh: 'eher teuer unter deinen Läden',
   priceLow: 'eher günstig unter deinen Läden',
   priceMiddle: 'im Mittelfeld deiner Läden',
-  priceWhyLabel: 'Womit das verglichen wird',
-  priceWhy:
-    'Nur mit deinen eigenen Läden. Was der Markt insgesamt verlangt, sieht diese App nicht, also behauptet sie es auch nicht.',
+  priceWhyLabel: 'Womit wir vergleichen',
+  priceWhy: 'Nur mit deinen eigenen Läden. Was der ganze Markt nimmt, wissen wir nicht.',
 
   shelfSample: 'Aus deinem Regal führt er',
-  labelsInStock: 'Labels im Sortiment',
-  noLabels: 'Keine Labelangaben im Sortiment.',
+  labelsInStock: 'Labels in den Kisten',
+  noLabels: 'Der Laden nennt keine Labels.',
   decades: 'Jahrzehnte',
-  noYears: 'Keine Jahresangaben im Sortiment.',
+  noYears: 'Der Laden nennt keine Jahre.',
   stock: {
     show: (name: string, n: number) => `Die ${n} Platten auf ${name} zeigen`,
     close: 'Schließen',
     counted: (shown: string, total: string) => `${shown} von ${total}`,
     more: (n: string) => `${n} weitere zeigen`,
-    loading: 'Wird geholt …',
+    loading: 'Holen gerade …',
     needsDig:
-      'Das Sortiment ist Marktplatzdatum und hält nur sechs Stunden. Scann den Laden neu, dann siehst du wieder, was im Regal steht.',
+      'Was in den Kisten liegt, ist Marktplatzdatum und hält sechs Stunden. Grab den Laden nochmal, dann zeigen wir dir die Regale.',
   },
   nothingYet: 'Noch nichts da.',
 
@@ -511,46 +383,46 @@ const de: typeof en = {
     noRatings: 'noch keine Bewertungen',
     since: (year) => `seit ${year}`,
     dug: (when) => `gegraben ${when}`,
-    suspended: 'Bei Discogs vom Verkauf gesperrt.',
+    suspended: 'Discogs hat diesen Laden vom Verkauf ausgeschlossen.',
   },
   plates: {
     fit: 'Passung',
-    postage: 'Versand',
+    postage: 'Porto',
     price: 'Preislage',
     shelf: 'Aus deinem Regal',
-    range: 'Sortiment',
-    movement: 'Bewegung',
+    range: 'In den Kisten',
+    movement: 'Neu reingekommen',
     purchases: 'Deine Käufe',
   },
-  rateWhyLabel: 'Was die Zahl zählt',
+  rateWhyLabel: 'Wie wir rechnen',
   rateWhy:
-    'Treffer auf tausend Listings beim letzten Dig, verglichen mit dem Median deiner anderen Läden. Was der Markt insgesamt hergäbe, sieht diese App nicht.',
+    'So viele Funde auf tausend Platten hatte der letzte Dig hier. Zum Vergleich nehmen wir den Median deiner anderen Läden. Was der ganze Markt hergibt, wissen wir nicht.',
   postage: {
     named: (original, converted) =>
       `${original}${converted ? ` (${converted})` : ''} für eine Platte, sagt Discogs`,
     from: (amount) => `ab ${amount} für eine Platte`,
-    unknown: 'Noch nicht erfasst.',
-    enter: 'Im Warenkorb eintragen',
+    unknown: 'Das Porto kennen wir noch nicht.',
+    enter: 'Im Korb eintragen',
     text: 'Was der Laden dazu schreibt',
   },
   movement: {
-    newest: (when) => `neuestes Angebot ${when}`,
-    still: 'Nichts Neues seit dem letzten Blick.',
-    unwatched: 'Nicht beobachtet, es wird also nichts nachgesehen.',
+    newest: (when) => `zuletzt reingekommen ${when}`,
+    still: 'Nichts Neues seit deinem letzten Blick.',
+    unwatched: 'Nicht beobachtet, also schauen wir nicht nach.',
   },
-  pick: 'Wähl links einen Laden aus.',
+  pick: 'Such dir links einen Laden aus.',
   verdict: {
-    fit: { above: 'mehr Treffer', same: 'gleich viele Treffer', below: 'weniger Treffer' },
+    fit: { above: 'mehr Funde', same: 'gleich viele Funde', below: 'weniger Funde' },
     price: { high: 'teurer', middle: 'Mittelfeld', low: 'günstiger' },
   },
   starters: {
     title: 'Fünf Läden für den Anfang',
-    about: 'Groß, gut bewertet, und sie versenden in ganz Europa. Einer kostet eine Abfrage.',
+    about: 'Groß, gut bewertet, und sie verschicken in ganz Europa. Einer kostet eine Abfrage.',
     add: 'Hinzufügen',
     adding: 'Kommt …',
   },
-  hideShort: 'Ausblenden',
-  hiddenLine: (shop) => `${shop} ausgeblendet.`,
+  hideShort: 'Weglegen',
+  hiddenLine: (shop) => `${shop} weggelegt.`,
   undo: 'Rückgängig',
   prev: 'Voriger Laden',
   next: 'Nächster Laden',

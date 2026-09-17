@@ -113,7 +113,7 @@ test('a stranger sets up, syncs, and digs a shop without reading a document', as
 
   await page.goto('/')
   await expect(page).toHaveURL(/welcome/)
-  await page.getByRole('button', { name: 'Set it up — with your collection' }).click()
+  await page.getByRole('button', { name: 'Set it up with your collection' }).click()
   await page.getByLabel('Personal access token').fill('a-token-for-the-test')
   await page.getByRole('button', { name: 'Sign in' }).click()
 

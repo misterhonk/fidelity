@@ -50,7 +50,7 @@ test('watches a shop that has never been dug', async ({ page, context }) => {
   })
 
   // What it says about a shop it knows only by name — and what it can do anyway.
-  await expect(page.getByText('Known by name so far')).toBeVisible()
+  await expect(page.getByText('We only know the name so far')).toBeVisible()
 
   const watch = page.getByRole('button', { name: 'Watch this shop' })
   await expect(watch).toBeVisible()

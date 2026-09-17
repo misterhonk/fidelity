@@ -82,7 +82,7 @@ test('watches a shop, walks the round, and says what it found', async ({ page, c
   const why = page.getByText('Why?', { exact: true })
   await expect(why).toBeVisible()
   await why.click()
-  await expect(page.getByText(/Visits your one watched shop/)).toBeVisible()
+  await expect(page.getByText(/your one watched shop/)).toBeVisible()
 
   await page.getByRole('button', { name: 'Walk the round' }).click()
 

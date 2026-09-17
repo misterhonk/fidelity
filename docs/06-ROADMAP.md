@@ -1556,14 +1556,14 @@ Measured at 0.94.0: 2,922 text lines in the packs, 632 dashes used as sentence s
 
 | Step | What | Size |
 |---|---|---|
-| M35.1 The style book | a new document in `docs/`, number 20, "voice" (English, like every doc): the figure, the seven rules, the word list, the patterns. And the relapse test over `app/i18n/*.ts`: no "this app / diese App / the user / der Nutzer", no spaced dash in a sentence over twelve words, no "wurde / erfolgt / ermöglicht / ist erforderlich" in German, no exclamation mark, no "scan" in a sentence | half a day |
-| M35.2 The first screens | Welcome, Start, Dig, the reasons on a find, Shops — both languages, every sentence read aloud; first because everybody sees them and the reasons are the idea itself | two days |
+| M35.1 The style book | `docs/20-VOICE.md`: the figure, the seven rules, the word list, the patterns. And the relapse test `tests/unit/voice.spec.ts` over the packs that have been through the rewrite: no "this app / diese App / the user / der Nutzer", no spaced dash, no "wurde / erfolgt / ermöglicht / ist erforderlich", no exclamation mark, no "scan" | **Done 2026-09-17** |
+| M35.2 The first screens | Welcome, Start, Dig, the reasons on a find, Shops — both languages, every sentence read aloud; first because everybody sees them and the reasons are the idea itself | Welcome and Shops through 2026-09-17 (`v0.95.0`), with "put away / weglegen", "die Runde", "Angebote" and "Your shops" for the list; Start, Dig and the reasons next |
 | M35.3 The rest | Basket, Collection, Wantlist, Places, Settings, errors — both languages | two days |
-| M35.4 The words that are buttons | watch → keep an eye on / im Auge behalten, hide → put away / weglegen, the round → die Runde, scan → dig, listings → Angebote in sentences; the 181 text assertions in 63 specs move in the same change | a day |
+| M35.4 The words that are buttons | hide → put away / weglegen, the round → die Runde, scan → dig, listings → Angebote in sentences; "watch / beobachten" stays (Martin, 2026-09-17); the 181 text assertions in 63 specs move in the same change | a day |
 | M35.5 The proof | Martin reads both languages against the demo collection and marks what still sounds like an office; a second short pass | needs Martin |
 
-Order: **before M34.3**. Every line written until then would come out in the old voice. Needs
-Martin's word on the four button words in 35.4 before they change.
+Order: **before M34.3**. Every line written until then would come out in the old voice. Martin decided the
+button words on 2026-09-17: beobachten stays, weglegen, Runde and Angebote come.
 
 ## Not on the roadmap
 

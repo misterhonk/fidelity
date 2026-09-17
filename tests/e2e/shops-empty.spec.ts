@@ -50,7 +50,7 @@ test.describe('the shops screen with nothing on it', () => {
   test('says so, and offers the one field', async ({ page }) => {
     await signedInWithNoShops(page)
 
-    await expect(page.getByText('No shop scanned yet.')).toBeInViewport({ timeout: 15_000 })
+    await expect(page.getByText('No shops yet.')).toBeInViewport({ timeout: 15_000 })
     await expect(page.getByLabel('Add a shop')).toBeVisible()
     await expect(page.getByText('Also read my Discogs friends list?')).toHaveCount(0)
 

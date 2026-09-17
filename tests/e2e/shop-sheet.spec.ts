@@ -17,7 +17,7 @@ test('opens the shop over the list on a phone, and beside it on a desk', async (
   await page.goto('/dealers')
 
   const row = page
-    .getByRole('list', { name: 'Scanned shops' })
+    .getByRole('list', { name: 'Your shops' })
     .getByRole('button', { name: 'plattenkiste' })
   await expect(row).toBeVisible({ timeout: 15_000 })
   await row.click()

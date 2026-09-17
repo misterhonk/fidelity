@@ -60,7 +60,7 @@ test('the basket and the shop say what Discogs named for one record', async ({ p
   await expect(card.first().getByText('€14.11', { exact: false }).first()).toBeVisible()
 
   await page.goto('/dealers?shop=londonwax')
-  await expect(page.getByText('£12.00 (€14.11) for one record, named by Discogs')).toBeVisible({
+  await expect(page.getByText('£12.00 (€14.11) for one record, says Discogs')).toBeVisible({
     timeout: 15_000,
   })
 })
