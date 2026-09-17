@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DealerWithReasons } from '#shared/types'
 
+import { useBasketMessages } from '~/i18n/basket'
 import { useDealerMessages } from '~/i18n/dealers'
 
 /**
@@ -19,6 +20,7 @@ import { useDealerMessages } from '~/i18n/dealers'
  * as bars a screen further down.
  */
 const h = useDealerMessages()
+const b = useBasketMessages()
 const m = useMessages()
 defineEmits<{ open: [] }>()
 
@@ -124,6 +126,16 @@ const code = computed(() =>
         {{ count(dealer.numForSale) }}
         <template v-if="dealer.lastScannedAt"> · {{ since(dealer.lastScannedAt) }}</template>
         <template v-else> · {{ h.notDug }}</template>
+        <!-- What one record costs to post from here, as far as this device knows (M34.3). -->
+        <template v-if="dealer.postageFrom">
+          ·
+          <span :title="b.source[dealer.postageFrom.source]">{{
+            h.rowPostage(
+              money(dealer.postageFrom.value, dealer.postageFrom.currency) ??
+                decimal(dealer.postageFrom.value, 2),
+            )
+          }}</span>
+        </template>
       </span>
 
       <!--

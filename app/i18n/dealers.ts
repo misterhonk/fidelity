@@ -214,6 +214,8 @@ const en = {
     add: 'Add',
     adding: 'Adding …',
   },
+  /** On the row: what one record costs to post from here (M34.3). */
+  rowPostage: (amount: string) => `from ${amount} postage`,
   hideShort: 'Put away',
   hiddenLine: (shop: string) => `${shop} put away.`,
   undo: 'Undo',
@@ -421,6 +423,7 @@ const de: typeof en = {
     add: 'Hinzufügen',
     adding: 'Kommt …',
   },
+  rowPostage: (amount) => `Porto ab ${amount}`,
   hideShort: 'Weglegen',
   hiddenLine: (shop) => `${shop} weggelegt.`,
   undo: 'Rückgängig',

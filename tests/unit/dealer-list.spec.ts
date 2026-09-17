@@ -79,3 +79,34 @@ describe('the ranked list', () => {
     expect(row!.priceBand).toBeNull()
   })
 })
+
+describe('the postage on a row', () => {
+  it('takes the user’s table before a reading of the text, and Discogs’ figure before both', async () => {
+    const { postageFromFor } = await import('~~/worker/dealers/list')
+    const text = { ...shop('t', 1, 10), shippingNote: '1 LP: 6,00 €, 2-3 LP: 9,00 €' }
+    expect(postageFromFor(text, null, 'Germany')).toEqual({
+      value: 6,
+      currency: 'EUR',
+      source: 'parsed',
+    })
+    const typed = {
+      ...text,
+      shippingTiers: [
+        { minItems: 1, maxItems: 1, price: 5, currency: 'EUR', source: 'user' as const },
+      ],
+    }
+    expect(postageFromFor(typed, null, 'Germany')?.source).toBe('user')
+    const named = {
+      value: 14.11,
+      currency: 'EUR',
+      original: { value: 12, currency: 'GBP' },
+      at: 1,
+    }
+    expect(postageFromFor(typed, named, 'Germany')).toEqual({
+      value: 12,
+      currency: 'GBP',
+      source: 'discogs',
+    })
+    expect(postageFromFor(shop('none', 1, 10), null, 'Germany')).toBeNull()
+  })
+})

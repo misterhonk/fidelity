@@ -1,5 +1,10 @@
-import type { DealerWithReasons } from '#shared/types'
+import { getPreferences } from '~~/db/meta'
+import { openFidelityDb } from '~~/db/open'
+import type { Dealer, DealerWithReasons, ListingPostage } from '#shared/types'
 
+import { freshPostage } from '../basket/postage'
+import { parseShippingText } from '../basket/parse-shipping'
+import { shippingFor } from '../basket/shipping'
 import { affinityFactor } from '../dig/fingerprint'
 
 import { visibleDealers } from './hide'
@@ -17,6 +22,22 @@ import { withReasons } from './reasons'
 export async function rankedDealers(): Promise<DealerWithReasons[]> {
   const dealers = await withReasons(await visibleDealers())
 
+  // One read for the lot: what Discogs named for one record at each shop.
+  const db = await openFidelityDb()
+  const now = Date.now()
+  const items = await db.getAll('basket')
+  const named = new Map<string, ListingPostage | null>()
+  for (const dealer of dealers) {
+    named.set(
+      dealer.username,
+      freshPostage(
+        items.filter((item) => item.dealer === dealer.username),
+        now,
+      ),
+    )
+  }
+  const home = (await getPreferences()).shipsToCountry
+
   const rates = dealers.filter((d) => d.affinity !== null).map((d) => d.affinity!)
   const medians = dealers
     .map((d) => d.fingerprint?.medianPrice ?? 0)
@@ -33,6 +54,7 @@ export async function rankedDealers(): Promise<DealerWithReasons[]> {
       ...dealer,
       fit: rate === null ? null : fitOf(affinityFactor(rate, others(rates, rate))),
       priceBand: median > 0 ? bandOf(affinityFactor(median, others(medians, median))) : null,
+      postageFrom: postageFromFor(dealer, named.get(dealer.username) ?? null, home),
     }
   })
 
@@ -46,6 +68,32 @@ export async function rankedDealers(): Promise<DealerWithReasons[]> {
       (b.affinity ?? 0) - (a.affinity ?? 0) ||
       a.username.localeCompare(b.username),
   )
+}
+
+/**
+ * What one record costs to post from a shop, in order of trust: Discogs'
+ * own figure off a fresh basket line, the table the user typed, a reading
+ * of the shop's text for the home country. No hub and no bundled file here;
+ * a list of forty shops is drawn from what is on the device.
+ */
+export function postageFromFor(
+  dealer: Dealer,
+  named: ListingPostage | null,
+  home: string,
+): DealerWithReasons['postageFrom'] {
+  if (named) {
+    return named.original
+      ? { value: named.original.value, currency: named.original.currency, source: 'discogs' }
+      : { value: named.value, currency: named.currency, source: 'discogs' }
+  }
+  const own = shippingFor(
+    dealer.shippingTiers.filter((tier) => tier.source === 'user'),
+    1,
+  )
+  if (own) return { value: own.price, currency: own.currency, source: 'user' }
+
+  const parsed = shippingFor(parseShippingText(dealer.shippingNote, home).tiers, 1)
+  return parsed ? { value: parsed.price, currency: parsed.currency, source: 'parsed' } : null
 }
 
 /** The profile's thresholds (app/pages/dealers.vue `verdict`). */

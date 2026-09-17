@@ -1796,6 +1796,12 @@ export interface DealerWithReasons extends Dealer {
    */
   fit: 'above' | 'same' | 'below' | null
   priceBand: 'high' | 'middle' | 'low' | null
+  /**
+   * What one record costs to post from here, as far as this device knows
+   * (M34.3): Discogs' own figure off a fresh basket line, the user's table,
+   * or a reading of the shop's text. In the seller's currency, unconverted.
+   */
+  postageFrom: { value: number; currency: string; source: ShippingTier['source'] } | null
 }
 
 export interface HubShop {

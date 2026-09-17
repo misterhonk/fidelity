@@ -26,6 +26,8 @@ test('keeps the open shop across a reload, and in a link', async ({ page }) => {
   await expect(page.getByText('2,881 listings', { exact: false })).toBeVisible({
     timeout: 15_000,
   })
+  // The row says what one record costs to post from here (M34.3), off the seed's table.
+  await expect(page.getByText('from €4.50 postage')).toBeVisible()
 
   // A name nobody knows falls back rather than showing an empty profile.
   await page.goto('/dealers?shop=nobody-of-that-name')
