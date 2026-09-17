@@ -9,6 +9,29 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.97.0](https://github.com/misterhonk/fidelity/compare/v0.96.0...v0.97.0) (2026-09-17)
+
+**Korb und Sammlung sprechen jetzt auch vom Tresen aus.**
+
+Die dritte Portion der neuen Stimme: der Korb mit Vergleich, Budget und Übergabe, und die
+ganze Sammlung mit Regal, Landkarte, Wantlist, Orten, Beobachtung und Merkliste. Beide
+Sprachen, nur die Prosa; Knöpfe, Beschriftungen und Zahlenzeilen bleiben, wie sie waren.
+
+So klingt es jetzt: „Eine Platte ist drin. Was du sonst noch bei dem Laden findest, kommt
+fürs gleiche Porto mit." „Wir konnten das Porto nicht lesen. Was hätten wir verstanden?"
+„Am günstigsten: 1 Laden, 15,00 € für die Platten plus 9,00 € Porto, 24,00 € zusammen." Wo
+„der Horizont" stand, stehen deine Künstler und Labels, aus „gescannt" wird „gegraben", aus
+„Treffer" werden „Funde", und kein Satz klemmt seinen zweiten Gedanken mehr zwischen zwei
+Gedankenstriche.
+
+**Was zu tun ist:** Nichts. Es fehlen noch die Einstellungen und die allgemeinen Texte,
+Fehlermeldungen zum Beispiel.
+
+
+### Added
+
+* **i18n:** the basket and the collection speak from behind the counter ([b934730](https://github.com/misterhonk/fidelity/commit/b93473023caa4920e422c25e1ad5ed0eb3dd5190))
+
 ## [0.96.0](https://github.com/misterhonk/fidelity/compare/v0.95.0...v0.96.0) (2026-09-17)
 
 **Die Startseite, der Dig und jeder Grund an einem Fund sprechen jetzt vom Tresen aus.**
