@@ -112,6 +112,20 @@ export interface PasteResult {
   dealers: string[]
 }
 
+/**
+ * What a pasted cart page said about one shop (M34.3): Discogs' postage for
+ * this many records, how far that figure holds, the free-postage threshold
+ * and the minimum order. Kept on the dealer; this is the receipt.
+ */
+export interface CartNote {
+  dealer: string
+  records: number
+  postage: { value: number; currency: string } | null
+  upTo: number | null
+  freeOver: { value: number; currency: string } | null
+  minOrderTotal: number | null
+}
+
 export interface DbStats {
   counts: Record<string, number>
   /** From navigator.storage.estimate(); null where the browser withholds it. */
@@ -1105,11 +1119,15 @@ export interface WorkerContract {
    * already put aside over there cannot be read. Pasting their links is the
    * other end of the same job: one request each, and every one lands in the
    * basket of the shop that sells it.
+   *
+   * The cart page itself, copied and pasted, carries no links but does carry
+   * what Discogs charges each shop for postage on that parcel. That is read
+   * too, without a request, and kept per shop (`CartNote`, M34.3).
    */
   'basket.paste': {
     params: { input: string }
     progress: PasteProgress
-    result: PasteResult & { view: BasketView }
+    result: PasteResult & { cart: CartNote[]; view: BasketView }
   }
   'basket.get': { params: undefined; progress: never; result: BasketView }
   /**

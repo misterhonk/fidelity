@@ -134,3 +134,77 @@ South America, Australia
 
 
 WE PACK OUR LPs USING STRONG CARDBOARD BOX PACKAGING WITH STIFFENERS FOR EXTRA PROTECTION. THE RECORDS WILL BE PACKED OUTSIDE THE SLEEVES TO PREVENT SEAM SPLITS. `)
+
+/**
+ * Green Hell (Münster), copied from the seller-terms dialog on 2026-09-17:
+ * a table per format and destination, "euro" written out. The unit words
+ * (LPs, 7inches, cd) are the case for the model with units (M34.3).
+ */
+export const GREEN_HELL_BY_FORMAT =
+  crlf(`ALL RECORDS WILL BE SEND OUT IN NEW CARDBOARD MAILERS WITH CARDBOARD STIFFENERS TO IT!
+WILL SEPERATE VINYL/COVER TO PREVENT SEAMSPLITS IF RECORDS ARE NOT SEALED!
+
+GERMANY:
+1-20 LPs 8,00 euro post paket (versichert)
+1-10 7inches 4,50 euro Kleinpaket (versichert)
+1-10 cd 4,50 euro Kleinpaket (versichert)
+EUROPE:
+1 LP 12,00 euro airmail letter (registered)
+2-3 LPs 15,00 euro airmail letter (registered)
+3+ LPs 20,00 euro airmail package (insured)
+1-3 7inches 12,00 euro airmail letter (registered)
+3+ 7 inches 15,00 euro airmail letter (registered)
+8+ 7inches 20,00 euro airmail package (insured)
+1-3 cds 12,00 euro airmail letter (registered)
+3+ 7 cds 15,00 euro airmail letter (registered)
+8+ cds 20,00 euro airmail package (insured)
+USA:`)
+
+/**
+ * recordsale-de, same day: a base price plus a step per unit, capped by a
+ * flat rate per destination, and the rule that a double LP counts as two.
+ * The case for the "2x" rule and the per-unit model (M34.3).
+ */
+export const RECORDSALE_BASE_PLUS_UNIT = crlf(`SHIPPING GLOSSARY
+
+We offer FLATRATE SHIPPING prices to all 6 continents
+if you want to buy a lot you safe a lot of shipping costs
+
+But for Smaller Orders you pay a 4,90 EUR (nontracked) or 7,25 EUR for tracked shipping of 1 LP
+
+For larger orders : You never pay more Shipping than:
+
+3,90 EUR -> Germany
+5,90-9,90 EUR -> Most EU countries
+31,90 EUR -> Most of the world
+39,90 EUR -> The whole world incl. The Bouvet Island
+For orders in between, please check below....
+
+____________EUROPE____________
+
+Base Price: €2,90
++ €1,00 per 7inch/CD
++ €2,00 per LP/12inch
++ €2,35 optional Tracking
+
+Double-LPs are calculated as 2 records, Double-CDs as 2 CDs.
+Box-Sets are calculated according to the number of its insets.
+
+Example
+Order of one LP: €2,90 + €2,00 = €4,90
+Order of one Double-LP: €2,90 + €2,00 + €2,00 = €6,90`)
+
+/**
+ * wheniamfortyfive (Berlin), same day: one flat rate for any number of
+ * singles, the minimum order in the text, the price written "€6,-", and
+ * a German aside for German buyers. The unit word here is "45s".
+ */
+export const FORTYFIVE_FLAT = crlf(`MiNiMuM ORDER VALUE €7.70
+
+WORLDWIDE ECONOMY SHIPPING FOR AN UNLIMITED NUMBER OF 45s FOR €6,-
+
+items ship from berlin, germany
+all 45's are carefully stored in dustfree jackets and shipped in professional mailers, using stiffeners
+uncomplicated refund/return policy
+
+DEUTSCHE KUNDEN: ich verschicke bis zu 6 singles prinzipiell nur per normale briefpost. für alle andere versandarten fallen evt. zusatzkosten an.`)

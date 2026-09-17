@@ -234,18 +234,25 @@ export const handlers: HandlerMap = {
 
   'basket.paste': async ({ input }, { report, signal }) => {
     const { addPastedListings, parseListingIds } = await import('./basket/listings')
+    const { parseCartText } = await import('./basket/parse-cart')
+    const { noteCart } = await import('./basket/cart')
     const preferences = await getPreferences()
+    const now = Date.now()
+
+    // The cart page first: no request, and its postage figures are what the
+    // basket view below adds up with.
+    const cart = await noteCart(parseCartText(input), now)
 
     const result = await addPastedListings({
       client: discogs(),
       ids: parseListingIds(input),
       currency: preferences.currency,
-      now: Date.now(),
+      now,
       report: (progress) => report(progress),
       signal,
     })
 
-    return { ...result, view: await basketView() }
+    return { ...result, cart, view: await basketView() }
   },
 
   'dig.resumable': async () => (await scan()).findResumable(),

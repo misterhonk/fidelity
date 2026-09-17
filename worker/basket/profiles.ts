@@ -63,7 +63,10 @@ export function forgetBundled(): void {
 export interface ShippingResolution {
   tiers: ShippingTier[]
   source: ShippingTier['source'] | null
-  /** "Free delivery above £75", read off the shop's text for this destination (M34.3). */
+  /**
+   * "Free delivery above £75": off a pasted cart page, or read out of the
+   * shop's text for this destination (M34.3).
+   */
   freeOver?: { amount: number; currency: string } | null
   /** What the parser thought it recognised, when that is where this came from. */
   matched: string[]
@@ -110,7 +113,8 @@ export async function resolveShipping(
    */
   const note = dealer.shippingNote?.trim() ? dealer.shippingNote : null
   const byWeight = billsByWeight(note)
-  const about = { matched: [] as string[], byWeight, note }
+  // The threshold off a pasted cart page outranks one read out of the text.
+  const about = { matched: [] as string[], byWeight, note, freeOver: dealer.freeOver ?? null }
 
   // 1. What somebody typed in. Stored on the dealer, so it survives a rescan.
   const user = dealer.shippingTiers.filter((tier) => tier.source === 'user')
@@ -158,7 +162,7 @@ export async function resolveShipping(
       source: 'parsed',
       matched: parsed.matched,
       section: parsed.section,
-      freeOver: parsed.freeOver,
+      freeOver: dealer.freeOver ?? parsed.freeOver,
     }
   }
 
@@ -188,13 +192,20 @@ export async function readOffShipping(
   items: number,
   price: number,
   currency: string,
+  /**
+   * The last count the figure is known to hold for. The cart page says "add
+   * up to 42 more at no additional shipping cost", and that is a tier from
+   * here to there, not a point (M34.3).
+   */
+  upTo: number = items,
 ): Promise<Dealer> {
   const db = await openFidelityDb()
   const existing = await db.get('dealers', username)
+  const last = Math.max(items, upTo)
 
   /*
-   * The figure is the truth for exactly this count. A tier the user typed
-   * that covers it is cut around it: "2 to 5 records: €9" with a read-off
+   * The figure is the truth for exactly these counts. A tier the user typed
+   * that overlaps is cut around it: "2 to 5 records: €9" with a read-off
    * for three becomes "2: €9", "3: the figure", "4 to 5: €9". Nothing the
    * user typed for other counts is touched.
    */
@@ -202,19 +213,19 @@ export async function readOffShipping(
   for (const tier of existing?.shippingTiers ?? []) {
     if (tier.source !== 'user') continue
     const { minItems, maxItems, price: p, currency: c } = tier
-    const covers = minItems <= items && (maxItems === null || maxItems >= items)
-    if (!covers) {
+    const overlaps = minItems <= last && (maxItems === null || maxItems >= items)
+    if (!overlaps) {
       own.push({ minItems, maxItems, price: p, currency: c })
       continue
     }
     if (minItems < items) own.push({ minItems, maxItems: items - 1, price: p, currency: c })
-    if (maxItems === null || maxItems > items)
-      own.push({ minItems: items + 1, maxItems, price: p, currency: c })
+    if (maxItems === null || maxItems > last)
+      own.push({ minItems: last + 1, maxItems, price: p, currency: c })
   }
 
   return saveUserShipping(username, [
     ...own,
-    { minItems: items, maxItems: items, price, currency },
+    { minItems: items, maxItems: last, price, currency },
   ])
 }
 

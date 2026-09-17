@@ -276,6 +276,7 @@ that does not exist, **404**:
 ```
 GET /marketplace/orders    → 401  You must authenticate to access this resource.
 GET /marketplace/cart      → 404  The requested resource was not found.
+                                  (The cart page, copied and pasted, is read by label instead — worker/basket/parse-cart.ts.)
 GET /users/{user}/cart     → 404  The requested resource was not found.
 ```
 

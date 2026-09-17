@@ -36,14 +36,16 @@ const en = {
     title: 'From the Discogs cart',
     about:
       /* What to do, not what Discogs will not do. */
-      'Paste links to records here. Each one lands in the basket of the shop selling it, postage counted in.',
-    label: 'Links to records',
+      'Paste links to records here, or the whole cart page. Each link lands in the basket of the shop selling it. From the cart page we note what each shop charges you for postage.',
+    label: 'Links to records, or the cart page',
     fetching: 'Fetching …',
     take: 'Take them over',
     took: (n: number) => `${n} taken over`,
     sold: (n: number) => `${n} already sold`,
     unknown: (n: number) => `${n} not found`,
     acrossShops: (n: number) => `${counted(n, 'shop', 'shops')}`,
+    noted: (n: number) => `postage noted for ${counted(n, 'shop', 'shops')}`,
+    nothing: 'Nothing here we could read',
   },
 
   line: {
@@ -330,14 +332,16 @@ const de: typeof en = {
   paste: {
     title: 'Aus dem Discogs-Warenkorb',
     about:
-      'Kopier Links zu Platten hier rein. Jede landet im Korb ihres Ladens, Porto eingerechnet.',
-    label: 'Links zu Platten',
+      'Kopier Links zu Platten hier rein, oder gleich die ganze Warenkorb-Seite. Jeder Link landet im Korb seines Ladens. Aus der Warenkorb-Seite merken wir uns, was jeder Laden bei dir fürs Porto nimmt.',
+    label: 'Links zu Platten oder die Warenkorb-Seite',
     fetching: 'Holen gerade …',
     take: 'Übernehmen',
     took: (n) => `${n} übernommen`,
     sold: (n) => `${n} schon verkauft`,
     unknown: (n) => `${n} nicht gefunden`,
     acrossShops: (n) => `${counted(n, 'Laden', 'Läden')}`,
+    noted: (n) => `Porto von ${counted(n, 'Laden', 'Läden')} notiert`,
+    nothing: 'Da konnten wir nichts rauslesen',
   },
 
   line: {

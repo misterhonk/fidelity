@@ -1848,6 +1848,12 @@ export interface Dealer {
   payment?: string
   /** Free text from seller.shipping. */
   shippingNote: string
+  /**
+   * "Free Shipping on orders of €250.00 EUR or more", as the cart page put
+   * it for this buyer (M34.3). Absent where no cart page has been pasted;
+   * the parser's reading of the shop's text stands in then.
+   */
+  freeOver?: { amount: number; currency: string } | null
   lastScannedAt: number | null
   /**
    * The newest listing a dig has seen here — ISO 8601.

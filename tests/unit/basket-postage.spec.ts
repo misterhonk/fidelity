@@ -237,3 +237,65 @@ describe('the read-off field', () => {
     await deleteFidelityDb()
   })
 })
+
+describe('the pasted cart page', () => {
+  it('keeps the figure as a tier as far as the page says it holds', async () => {
+    const { deleteFidelityDb, openFidelityDb } = await import('~~/db/open')
+    const { readOffShipping, resolveShipping } = await import('~~/worker/basket/profiles')
+    const db = await openFidelityDb()
+    await db.put('dealers', {
+      ...dealer,
+      shippingTiers: [
+        { minItems: 1, maxItems: 1, price: 6, currency: 'EUR', source: 'user' },
+        { minItems: 2, maxItems: null, price: 9, currency: 'EUR', source: 'user' },
+      ],
+    })
+    // "8 records: €6.00, add up to 42 more at no additional cost"
+    const updated = await readOffShipping('londonwax', 8, 6, 'EUR', 50)
+    expect(updated.shippingTiers.map((t) => [t.minItems, t.maxItems, t.price])).toEqual([
+      [1, 1, 6],
+      [2, 7, 9],
+      [8, 50, 6],
+      [51, null, 9],
+    ])
+    // The threshold off the page outranks the one read out of the text.
+    const withThreshold = { ...updated, freeOver: { amount: 250, currency: 'EUR' } }
+    const resolved = await resolveShipping(withThreshold, 'Germany')
+    expect(resolved.freeOver).toEqual({ amount: 250, currency: 'EUR' })
+    await deleteFidelityDb()
+  })
+
+  it('notes postage, threshold and minimum order per shop, and nothing for a shop it cannot read', async () => {
+    const { deleteFidelityDb, openFidelityDb } = await import('~~/db/open')
+    const { noteCart } = await import('~~/worker/basket/cart')
+    const { parseCartText } = await import('~~/worker/basket/parse-cart')
+    const { CART_THREE_SHOPS } = await import('../fixtures/cart-text')
+    const db = await openFidelityDb()
+
+    const notes = await noteCart(parseCartText(CART_THREE_SHOPS), 1_000)
+    expect(notes.map((n) => [n.dealer, n.records, n.postage?.value, n.upTo])).toEqual([
+      ['fatplastics', 8, 6, 50],
+      ['MonsieurEdd', 4, 7, 4],
+      ['spirax.records', 1, 6, 3],
+    ])
+
+    const fat = await db.get('dealers', 'fatplastics')
+    expect(fat?.shippingTiers).toEqual([
+      { minItems: 8, maxItems: 50, price: 6, currency: 'EUR', source: 'user' },
+    ])
+    const edd = await db.get('dealers', 'MonsieurEdd')
+    expect(edd?.freeOver).toEqual({ amount: 250, currency: 'EUR' })
+    const spirax = await db.get('dealers', 'spirax.records')
+    expect(spirax?.minOrderTotal).toBe(15)
+    expect(spirax?.freeOver).toEqual({ amount: 150, currency: 'EUR' })
+
+    // A block with no figure teaches nothing and creates no shop.
+    const blank = await noteCart(
+      parseCartText('Bestellung bei nobody\nTonträger: Mint (M)\n€5,00 EUR\n'),
+      1_000,
+    )
+    expect(blank).toEqual([])
+    expect(await db.get('dealers', 'nobody')).toBeUndefined()
+    await deleteFidelityDb()
+  })
+})

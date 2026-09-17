@@ -37,9 +37,15 @@ const error = ref<unknown>(null)
 const count = computed(
   () => (input.value.match(/\/sell\/item\/\d+|^\s*\d{7,}\s*$/gm) ?? []).length,
 )
+/**
+ * A copied cart page carries no links, only "Bestellung bei …" per shop. It
+ * costs no request, so the button is on for it; the worker reads the rest.
+ */
+const looksLikeCart = computed(() => /^\s*(?:Bestellung bei|Order from)\b/m.test(input.value))
+const ready = computed(() => count.value > 0 || looksLikeCart.value)
 
 async function paste() {
-  if (busy.value || count.value === 0) return
+  if (busy.value || !ready.value) return
 
   busy.value = true
   error.value = null
@@ -55,11 +61,14 @@ async function paste() {
     input.value = ''
 
     const words = b.value.paste
-    const parts = [words.took(result.added)]
+    const parts: string[] = []
+    if (result.added > 0 || result.cart.length === 0) parts.push(words.took(result.added))
     if (result.sold > 0) parts.push(words.sold(result.sold))
     if (result.unknown > 0) parts.push(words.unknown(result.unknown))
     if (result.dealers.length > 1) parts.push(words.acrossShops(result.dealers.length))
-    outcome.value = `${parts.join(' · ')}.`
+    if (result.cart.length > 0) parts.push(words.noted(result.cart.length))
+    const empty = result.added === 0 && result.cart.length === 0 && result.sold === 0
+    outcome.value = empty && result.unknown === 0 ? words.nothing : `${parts.join(' · ')}.`
   } catch (cause) {
     error.value = cause
   } finally {
@@ -101,7 +110,7 @@ async function paste() {
 
     <button
       type="button"
-      :disabled="busy || count === 0"
+      :disabled="busy || !ready"
       class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
       @click="paste"
     >
