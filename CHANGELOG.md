@@ -11,6 +11,21 @@ Für eine App bedeutet SemVer:
 
 ## [0.98.0](https://github.com/misterhonk/fidelity/compare/v0.97.0...v0.98.0) (2026-09-17)
 
+**Fehler, Hinweise und der Token-Bildschirm sprechen jetzt vom Tresen aus.**
+
+Die vierte Portion der neuen Stimme, in beiden Sprachen. Fehlermeldungen sagen, was passiert
+ist und was als Nächstes kommt: „Discogs bittet um eine Pause. Alles bis hier ist gespeichert.
+Ein, zwei Minuten, dann graben wir weiter." Aus „Der Sechs-Stunden-Rahmen ist abgelaufen" wird
+„Die Preise sind älter als sechs Stunden", aus jedem „Scan" ein Dig, und auf dem
+Token-Bildschirm redet Fidelity nicht mehr über sich selbst: „Wir reden direkt mit Discogs,
+ohne Server dazwischen."
+
+Die nächsten Schritte auf der Startseite heißen jetzt „Deine Künstler und Labels
+nachschlagen" statt „Horizont bauen". Der Bildschirm im Laden, die Demo und die
+Push-Nachricht („12 Angebote mehr als beim letzten Mal") ziehen mit.
+
+**Was zu tun ist:** Nichts. Es fehlen noch die Einstellungen, dann sind alle Pakete durch.
+
 
 ### Added
 
