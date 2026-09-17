@@ -11,6 +11,21 @@ Für eine App bedeutet SemVer:
 
 ## [0.96.0](https://github.com/misterhonk/fidelity/compare/v0.95.0...v0.96.0) (2026-09-17)
 
+**Die Startseite, der Dig und jeder Grund an einem Fund sprechen jetzt vom Tresen aus.**
+
+Die zweite Portion der neuen Stimme, in beiden Sprachen geschrieben statt übersetzt. Die
+Begründungssätze sind das Herz der App, und sie klingen jetzt so: „Steht auf deiner Wantlist,
+und zwar ganz oben." „Wuppdeck ist Robag Wruhme. Du hast 3 Platten von Robag Wruhme, diese
+nicht." „Kompakt sammelst du mit Absicht: 14 Platten, dreimal so viel wie erwartet." Kein
+Gedankenstrich mehr als Satzbau, keine App, die über sich selbst redet.
+
+Der Dig sagt, was er tut: „Graben bei fatplastics", „12 von 19.864 durch", „Funde" statt
+„Treffer", ein „tiefer Dig" statt „Tiefenscan". Fehler sagen, was als Nächstes passiert:
+„Discogs bittet um eine Pause. In etwa 30 s machen wir weiter, genau da, wo wir waren." Wo
+vorher „der Horizont" stand, stehen jetzt deine Künstler und Labels.
+
+**Was zu tun ist:** Nichts. Als Nächstes kommen Korb, Sammlung, Wantlist und Einstellungen dran.
+
 
 ### Added
 
