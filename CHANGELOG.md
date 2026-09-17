@@ -11,6 +11,26 @@ Für eine App bedeutet SemVer:
 
 ## [0.103.0](https://github.com/misterhonk/fidelity/compare/v0.102.0...v0.103.0) (2026-09-17)
 
+**Singles, CDs und LPs haben jetzt ihre eigene Portotabelle, wenn der Laden es so schreibt.**
+
+Vierte Portion vom Versandprofil, gegen die Texte von green_hell, recordsale-de und
+wheniamfortyfive. Bisher waren „LPs", „7inches" und „cd" für uns dasselbe Wort, und ein Karton
+LPs hätte den Single-Tarif bekommen. Jetzt merkt sich jede Staffel, was sie zählt. Ein Korb
+voller Singles rechnet mit der Single-Tabelle, ein gemischter Korb mit der für Platten. Dazu
+liest der Parser drei neue Formen: Grundpreis plus Aufschlag je Einheit („Base Price €2,90
++ €2,00 per LP"), ein Deckel je Ziel („3,90 EUR -> Germany", und wo der Text sonst nichts
+hergibt, ist der Deckel der Preis, der Warenkorb hat das für eine und zwei Platten
+bestätigt), und ein Preis für beliebig viele („unlimited number of 45s for €6,-"). Die
+Nachkommastellen eines Preises sind keine Stückzahl mehr, das hatte bei recordsale eine
+Staffel „ab 90" erfunden.
+
+Eine Doppel-LP zählt nur dann als zwei, wenn der Laden das selbst schreibt. Sonst zählt eine
+Zeile als ein Stück, so wie der Discogs-Warenkorb auch. Gewichtstabellen bleiben ein Hinweis
+zum Abtippen, weil es kein ehrliches Gramm je Platte gibt.
+
+**Was zu tun ist:** Nichts. Zeilen, die schon im Korb lagen, gelten als eine Platte; neue
+bringen ihr Format mit.
+
 
 ### Added
 
