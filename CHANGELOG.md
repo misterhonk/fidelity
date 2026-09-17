@@ -11,6 +11,16 @@ Für eine App bedeutet SemVer:
 
 ## [0.101.0](https://github.com/misterhonk/fidelity/compare/v0.100.0...v0.101.0) (2026-09-17)
 
+**Jede Ladenzeile sagt, was eine Platte von dort im Porto kostet.**
+
+Zweite Portion vom Versandprofil. In der Liste der Läden steht jetzt hinter Land, Größe und
+letztem Dig auch „Porto ab 4,50 €", so weit dein Gerät es weiß: die Zahl, die Discogs für
+eine frische Korbzeile genannt hat, sonst die Staffel, die du eingetragen hast, sonst das,
+was wir aus dem Text des Ladens lesen. In der Währung des Ladens, nicht umgerechnet; die
+Quelle steht als Tooltip dran.
+
+**Was zu tun ist:** Nichts.
+
 
 ### Added
 
