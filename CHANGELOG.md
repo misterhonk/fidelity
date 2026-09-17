@@ -9,6 +9,26 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.104.0](https://github.com/misterhonk/fidelity/compare/v0.103.0...v0.104.0) (2026-09-17)
+
+**Liest du eine Bestellung ein, merken wir uns, was der Laden dir fürs Porto berechnet hat.**
+
+Fünfte Portion vom Versandprofil, mit einer eigenen Entscheidung dazu (ADR-017). Der Preis
+einer Platte in deiner Bestellung ist der Preis des Angebots, und den behalten wir weiter
+nicht. Das Porto ist etwas anderes: Was dein Paket gekostet hat, für so viele Platten, an
+deine Adresse, steht für immer auf deiner Einkaufsseite und ist deine eigene Zahl. Dieselbe
+Zahl hältst du schon fest, wenn du sie aus dem Warenkorb abliest oder die Seite einfügst.
+Also nimmt der Import sie jetzt mit und trägt sie als Staffel beim Laden ein, beschriftet
+mit „aus deiner Bestellung". Im Korb steht bei der Versandzeile, woher die Staffel kommt,
+die für diese Anzahl greift, nicht mehr nur die Tabelle als Ganzes.
+
+**Was zu tun ist:** Nichts. Wer will, liest unter „Gemerkt" eine alte Bestellnummer ein.
+
+
+### Added
+
+* **basket:** the postage of your own order becomes the shop's tier (ADR-017) ([029b318](https://github.com/misterhonk/fidelity/commit/029b318c79896b60e7409d963773f9f93ce599b5))
+
 ## [0.103.0](https://github.com/misterhonk/fidelity/compare/v0.102.0...v0.103.0) (2026-09-17)
 
 **Singles, CDs und LPs haben jetzt ihre eigene Portotabelle, wenn der Laden es so schreibt.**
