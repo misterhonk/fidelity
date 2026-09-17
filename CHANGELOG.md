@@ -11,6 +11,24 @@ Für eine App bedeutet SemVer:
 
 ## [0.100.0](https://github.com/misterhonk/fidelity/compare/v0.99.0...v0.100.0) (2026-09-17)
 
+**Der Porto-Text eines Ladens wird ganz gelesen, und die Staffel rechnet in deiner Währung.**
+
+Erste Portion vom Versandprofil. Der Verkäufertext hinter dem Angebot, das Martin gestern
+gemessen hat, ist jetzt das erste Muster, und der Leser versteht, was er vorher übersehen hat:
+„1st LP", „LP discs", einen Bindestrich vor dem Preis, „upto" in einem Wort, Überschriften mit
+Klammer oder mit zwei Zielen („USA/ REST OF THE WORLD"), die Zusatzplatte mit dem Preis
+vorneweg („+ £1.50 PER ADDITIONAL LP"). Eine Klammer bleibt nur stehen, wenn ein Preis drin
+steht; „(over £5 value)" hat vorher eine ganze Staffel versteckt. Und er liest, ab welchem
+Bestellwert das Porto wegfällt, je Zielland getrennt.
+
+Im Korb rechnet eine Staffel in Pfund jetzt in Euro, und zwar zu dem Kurs, den Discogs selbst
+für die Preise genommen hat; ohne so einen Kurs rechnen wir lieber gar nicht als falsch. Liegt
+der Korb über der Schwelle, ist das Porto null, und die Karte sagt, wie weit es noch bis dahin
+ist. Neu ist auch das Ablese-Feld: „Was Discogs für 3 Platten zeigt", einmal eintippen, und
+die Zahl gilt für genau diese Anzahl.
+
+**Was zu tun ist:** Nichts. Wer eine Staffel von Hand eingetragen hat, behält sie.
+
 
 ### Added
 
