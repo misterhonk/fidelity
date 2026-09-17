@@ -29,7 +29,7 @@ const de: Messages = {
   },
 
   common: {
-    signIn: { lead: 'Erst anmelden –', link: 'zur Startseite' },
+    signIn: { lead: 'Erst anmelden,', link: 'zur Startseite' },
     atDiscogs: (title) => `${title}, bei Discogs ansehen`,
     openRecord: (title) => `${title} öffnen`,
     toTop: 'Zurück nach oben',
@@ -39,8 +39,8 @@ const de: Messages = {
     never: 'noch nie',
     ofTotal: (done: string | number, total: string | number) => `${done} von ${total}`,
     loading: 'Wird geladen …',
-    asking: 'Frage nach …',
-    searching: 'Suche …',
+    asking: 'Fragen nach …',
+    searching: 'Suchen …',
     save: 'Speichern',
     to: 'bis',
     etaLeft: (clock: string) => `· noch ca. ${clock}`,
@@ -50,7 +50,7 @@ const de: Messages = {
     title: 'Reinhören',
     search: (service) => `Bei ${service} suchen`,
     source: 'Läuft über YouTube',
-    here: { lead: 'Hier abspielen –', link: 'Hörprobe einschalten' },
+    here: { lead: 'Hier abspielen,', link: 'Hörprobe einschalten' },
     stop: 'Stopp',
     onIt: 'Auf der Platte',
     via: 'YouTube',
@@ -83,30 +83,29 @@ const de: Messages = {
     spoken: (n, ceiling) =>
       `${n} Anfragen in der letzten Minute, von ${ceiling}, die sich dieses Gerät erlaubt`,
     saved: (n, minutes) =>
-      `Katalog und Hub haben ${n} Anfragen abgenommen — rund ${minutes === 1 ? 'eine Minute' : `${minutes} Minuten`} Wartezeit.`,
-    ceiling: (n) =>
-      `Discogs erlaubt 60 pro Minute je Adresse. Fidelity fragt ${n} — mit Absicht.`,
-    ours: 'Gezählt wird, was Fidelity gefragt hat. Discogs’ eigenen Zähler kann ein Browser nicht lesen.',
+      `Katalog und Hub haben uns ${n} Abfragen erspart, rund ${minutes === 1 ? 'eine Minute' : `${minutes} Minuten`} Wartezeit.`,
+    ceiling: (n) => `Discogs erlaubt 60 pro Minute je Adresse. Wir fragen ${n}, mit Absicht.`,
+    ours: 'Wir zählen, was wir gefragt haben. Discogs’ eigenen Zähler kann ein Browser nicht lesen.',
 
     noToken: 'Ohne Token: 25 pro Minute statt 50. Ein Dig dauert doppelt so lang.',
     tryCatalogue: (n) => `Ein Katalog hätte ${n} davon beantwortet, ohne Discogs zu fragen.`,
     tryHub: (_n) =>
-      'Ein Hub teilt diese zwischen deinen Geräten – und mit allen, die ihn mitbenutzen.',
+      'Ein Hub teilt sie zwischen deinen Geräten, und mit allen, die ihn mitbenutzen.',
     costs: 'Was wie lange dauert',
     costRows: [
       ['Ein Dig, 3.000 Angebote', '~ 130', '~ 2½ Min'],
       ['Ein Dig, 20.000 Angebote', '~ 300', '~ 6 Min'],
-      ['Der Horizont, 30 Künstler und Labels', '~ 600', '~ 12 Min'],
+      ['Deine Künstler und Labels, 30 Stück', '~ 600', '~ 12 Min'],
       ['Sammlung holen, 2.000 Platten', '~ 40', '~ 1 Min'],
-      ['Der Rundgang, je beobachtetem Laden', '~ 20', '~ 25 Sek'],
+      ['Die Runde, je beobachtetem Laden', '~ 20', '~ 25 Sek'],
       ['Eine Platte öffnen', '1', '1,2 Sek'],
     ] as [string, string, string][],
   },
 
   notice: {
     offline: {
-      title: 'Kein Netz.',
-      body: 'Deine Sammlung, die Landkarte und die letzten Digs liegen auf diesem Gerät und funktionieren weiter. Was nicht geht: neue Digs, Synchronisieren, Marktpreise.',
+      title: 'Du bist offline.',
+      body: 'Dein Regal, die Landkarte und die letzten Digs sind da. Neue Digs, Abgleich und Marktpreise brauchen Netz.',
     },
     install: {
       title: 'Aufs Handy legen',
@@ -116,7 +115,7 @@ const de: Messages = {
       body_middle: 'tippen, dann',
       addToHome: 'Zum Home-Bildschirm',
       body_after:
-        '. Danach startet Fidelity ohne Browserleiste und läuft auch im Keller ohne Empfang.',
+        '. Danach geht es ohne Browserleiste auf und läuft auch im Keller ohne Empfang.',
     },
     update: {
       title: 'Eine neue Version steht bereit.',
@@ -139,13 +138,13 @@ const de: Messages = {
         'Diese Seite läuft über HTTPS und darf deshalb keine unverschlüsselte Adresse aufrufen. In Chrome geht es; dauerhaft hilft nur, den Hub selbst über HTTPS erreichbar zu machen.',
     },
     scanRunning: (dealer: string) => ({
-      title: `Ein Scan von ${dealer} läuft schon.`,
+      title: `Wir graben schon bei ${dealer}.`,
       action:
-        'Nur einer auf einmal – das ist das Rate-Limit, keine Vorliebe. Er läuft im Hintergrund weiter und dieser Bildschirm zeigt ihn; den nächsten startest du, wenn er durch ist.',
+        'Ein Dig auf einmal, mehr lässt Discogs uns nicht. Er läuft im Hintergrund weiter, und dieser Bildschirm zeigt ihn. Den nächsten startest du, wenn er durch ist.',
     }),
     hubHttpError: (status) => ({
       title: `Der Hub antwortete mit HTTP ${status}.`,
-      action: 'Das sagt der Hub, nicht Discogs — sein eigenes Log weiß mehr.',
+      action: 'Das sagt der Hub, nicht Discogs. Sein eigenes Log weiß mehr.',
     }),
 
     oauthMismatch: 'Die Antwort des Anbieters gehört nicht zu dieser Anfrage.',
@@ -157,7 +156,7 @@ const de: Messages = {
     notAVault: 'Diese Datei ist kein Fidelity-Tresor.',
     oauthRejected: (provider) => `${provider} hat den Code abgelehnt.`,
     notConnected: 'Noch nicht verbunden.',
-    connectionExpired: 'Die Verbindung ist abgelaufen – bitte neu verbinden.',
+    connectionExpired: 'Die Verbindung ist abgelaufen. Verbind dich neu.',
     // Previously „liess" — the Swiss spelling in an otherwise German pack.
     refreshFailed: 'Die Verbindung ließ sich nicht erneuern.',
     vaultNotGiven: (provider) => `${provider} hat den Tresor nicht herausgegeben.`,
@@ -173,7 +172,7 @@ const de: Messages = {
       },
       'not-signed-in': {
         title: 'Nicht angemeldet.',
-        action: 'Trag deinen Discogs-Token in den Einstellungen ein – alles hier braucht ihn.',
+        action: 'Trag deinen Discogs-Token in den Einstellungen ein. Alles hier braucht ihn.',
       },
       'no-listing': {
         title: 'Keine Platte angegeben.',
@@ -181,37 +180,36 @@ const de: Messages = {
       },
       'dig-gone': {
         title: 'Diesen Dig gibt es nicht mehr.',
-        action: 'Digs leben sechs Stunden, dann sind ihre Preise weg. Scanne den Laden neu.',
+        action:
+          'Einen Dig behalten wir sechs Stunden, dann sind seine Preise weg. Grab den Laden nochmal.',
       },
       'dig-expired': {
-        title: 'Der Sechs-Stunden-Rahmen ist abgelaufen.',
-        action:
-          'So alte Preise dürfen nicht mehr gezeigt werden. Ein neuer Scan dauert eine Minute.',
+        title: 'Die Preise sind älter als sechs Stunden.',
+        action: 'So alte Preise können wir nicht zeigen. Ein neuer Dig dauert eine Minute.',
       },
       'dig-running': {
-        title: 'Es läuft schon ein Scan.',
-        action:
-          'Nur einer auf einmal – das ist das Rate-Limit, keine Vorliebe. Lass ihn zu Ende laufen.',
+        title: 'Es läuft schon ein Dig.',
+        action: 'Einer auf einmal, mehr lässt Discogs uns nicht. Lass ihn zu Ende laufen.',
       },
       'dig-not-running': {
         title: 'Hier ist nichts fortzusetzen.',
-        action: 'Dieser Dig läuft nicht. Starte einen neuen Scan des Ladens.',
+        action: 'Dieser Dig läuft nicht. Starte einen neuen Dig bei dem Laden.',
       },
       'deep-scan-done': {
-        title: 'Ein Tiefenscan wird nicht fortgesetzt.',
+        title: 'Einen tiefen Dig können wir nicht wieder aufnehmen.',
         action: 'Was er gefunden hat, ist da. Ihn aufzunehmen würde Platten doppelt zählen.',
       },
       'no-anchor': {
         title: 'Es gibt noch nichts zu vergleichen.',
-        action: '„Nur das Neue" braucht einen vollständigen Scan dieses Ladens als Anfang.',
+        action: '„Nur das Neue" braucht einen vollständigen Dig dieses Ladens als Anfang.',
       },
       'match-gone': {
         title: 'Diesen Fund gibt es nicht mehr.',
-        action: 'Er ist nach sechs Stunden mit seinem Dig gegangen. Scanne den Laden neu.',
+        action: 'Er ist nach sechs Stunden mit seinem Dig gegangen. Grab den Laden nochmal.',
       },
       'no-hub': {
         title: 'Kein Hub eingetragen.',
-        action: 'Ein Hub ist freiwillig – trag in den Einstellungen einen ein oder lass es.',
+        action: 'Ein Hub ist freiwillig. Trag in den Einstellungen einen ein, oder lass es.',
       },
       'not-a-hub': {
         title: 'Das ist kein Fidelity-Hub.',
@@ -220,7 +218,7 @@ const de: Messages = {
       'no-catalogue': {
         title: 'Kein Katalog eingetragen.',
         action:
-          'Ein Katalog ist freiwillig – trag in den Einstellungen einen ein oder lass es.',
+          'Ein Katalog ist freiwillig. Trag in den Einstellungen einen ein, oder lass es.',
       },
       'not-a-catalogue': {
         title: 'Das ist kein Fidelity-Katalog.',
@@ -229,25 +227,25 @@ const de: Messages = {
       'not-a-backup': {
         title: 'Das ist kein Fidelity-Backup.',
         action:
-          'Ein Backup ist die Datei, die „Alles exportieren" hier schreibt – fidelity-backup-<Datum>.json.',
+          'Ein Backup ist die Datei, die „Alles exportieren" hier schreibt: fidelity-backup-<Datum>.json.',
       },
       'backup-too-new': {
         title: 'Dieses Backup stammt aus einer neueren Fidelity.',
         action:
-          'Erst die App aktualisieren – eine ältere würde es falsch lesen statt gar nicht.',
+          'Erst die App aktualisieren. Eine ältere würde es falsch lesen statt gar nicht.',
       },
       'token-other-account': {
         title: 'Dieser Token gehört zu einem anderen Discogs-Konto.',
         action:
-          'Was auf diesem Gerät liegt, gehört dem angemeldeten Konto. Zum Kontowechsel erst abmelden – das löscht die Datenbank – und mit dem neuen Token anmelden.',
+          'Was auf diesem Gerät liegt, gehört dem angemeldeten Konto. Zum Kontowechsel erst abmelden, das löscht die Datenbank, und mit dem neuen Token anmelden.',
       },
       'vault-too-new': {
         title: 'Diese Sicherung stammt aus einem neueren Fidelity.',
-        action: 'Aktualisiere zuerst die App – eine ältere läse sie falsch statt gar nicht.',
+        action: 'Aktualisiere zuerst die App. Eine ältere läse sie falsch statt gar nicht.',
       },
       'vault-unusable': {
         title: 'Dieses Sicherungsziel lässt sich nicht benutzen.',
-        action: 'Sieh in den Einstellungen nach dem Ziel.',
+        action: 'Schau in den Einstellungen nach dem Ziel.',
       },
       'passphrase-short': {
         title: 'Die Passphrase ist zu kurz.',
@@ -255,7 +253,7 @@ const de: Messages = {
           'Mindestens acht Zeichen. Sie ist das Einzige zwischen der Sicherung und dem, der sie findet.',
       },
       'asset-missing': {
-        title: 'Ein Teil der App wurde nicht geladen.',
+        title: 'Ein Teil der App ist nicht geladen.',
         action: 'Lade die Seite neu. Passiert es weiter, ist die Auslieferung unvollständig.',
       },
     },
@@ -263,50 +261,49 @@ const de: Messages = {
     tokenRevoked: {
       title: 'Discogs nimmt den Token nicht mehr an.',
       action:
-        'Er wurde vermutlich bei Discogs zurückgezogen. Erzeuge in den Entwickler-Einstellungen einen neuen und trag ihn unter Einstellungen → Konto → Token erneuern ein – deine Daten hier bleiben, wo sie sind.',
+        'Vermutlich ist er bei Discogs zurückgezogen. Erzeug in den Entwickler-Einstellungen einen neuen und trag ihn unter Einstellungen → Konto → Token erneuern ein. Deine Daten hier bleiben, wo sie sind.',
     },
     tokenUnknown: {
       title: 'Discogs kennt diesen Token nicht.',
       action:
-        'Meistens ist beim Kopieren etwas verrutscht – ein Leerzeichen, ein fehlendes Zeichen am Ende. Hol ihn dir noch einmal aus den Entwickler-Einstellungen und füg ihn vollständig ein.',
+        'Meistens ist beim Kopieren etwas verrutscht, ein Leerzeichen oder ein fehlendes Zeichen am Ende. Hol ihn dir nochmal aus den Entwickler-Einstellungen und füg ihn ganz ein.',
     },
     rateLimited: {
-      title: 'Discogs bremst gerade.',
-      action:
-        'Sechzig Abfragen pro Minute, und die teilst du mit nichts und niemandem – ein, zwei Minuten warten reicht. Was schon gescannt war, ist gespeichert.',
+      title: 'Discogs bittet um eine Pause.',
+      action: 'Alles bis hier ist gespeichert. Ein, zwei Minuten, dann graben wir weiter.',
     },
     offline: {
-      title: 'Discogs ist nicht erreichbar.',
+      title: 'Wir kommen nicht an Discogs ran.',
       action:
-        'Sammlung, Landkarte und die letzten Digs liegen auf diesem Gerät und funktionieren weiter. Neue Digs brauchen Netz.',
+        'Dein Regal, die Landkarte und die letzten Digs sind da. Neue Digs brauchen Netz.',
     },
     storageFull: {
       title: 'Kein Platz mehr auf diesem Gerät.',
       action:
-        'Der Browser gibt Fidelity nicht mehr Speicher. Alte Digs laufen ohnehin nach sechs Stunden ab; „Alles löschen" auf der Startseite schafft den Rest.',
+        'Der Browser gibt uns nicht mehr Speicher. Alte Digs gehen ohnehin nach sechs Stunden; „Alles löschen" auf der Startseite schafft den Rest.',
     },
   },
 
   why: 'Warum?',
 
   freshness: {
-    looking: 'Sieht nach …',
+    looking: 'Schauen nach …',
     nothingNew: 'Nichts Neues.',
     added: (records) => `${counted(records, 'Platte', 'Platten')} dazu`,
     alerts: (shops) => `${counted(shops, 'Laden hat', 'Läden haben')} Neues`,
     asOf: (when) => `Stand von ${when}`,
     refreshAll: 'Alles auffrischen',
 
-    updating: 'Deine Daten werden aktualisiert',
+    updating: 'Wir frischen deine Daten auf',
     job: {
       outbox: 'deine Änderungen gehen raus',
       library: 'Sammlung und Wantlist',
       watch: 'die Läden, die du beobachtest',
-      horizon: 'der Horizont',
+      horizon: 'deine Künstler und Labels',
     },
 
     whyLabel: 'Was frischt sich von selbst auf?',
-    why: 'Sammlung, Wantlist, die beobachteten Läden und der Horizont – beim Öffnen, beim Zurückkehren in den Tab und alle zwanzig Minuten. Meistens ist das eine einzige Anfrage, weil Discogs nur gefragt wird, was sich geändert hat. Zwei Dinge bleiben absichtlich draußen: ein Dig dauert zwei bis vier Minuten und hundert und mehr Abfragen, den startest also du und keine Uhr; und deine Bestellungen lassen sich gar nicht abrufen – dieser Endpunkt listet nur, was du verkauft hast, ein Kauf wird deshalb über seine Bestellnummer gelesen.',
+    why: 'Deine Sammlung, deine Wantlist, die beobachteten Läden und deine Künstler und Labels: beim Öffnen, beim Zurückkommen in den Tab und alle zwanzig Minuten. Meistens ist das eine einzige Abfrage, weil wir Discogs nur fragen, was sich geändert hat. Zwei Dinge bleiben absichtlich draußen. Ein Dig dauert zwei bis vier Minuten und hundert Abfragen und mehr, den startest also du und keine Uhr. Und deine Bestellungen können wir gar nicht holen; Discogs listet nur, was du verkauft hast, einen Kauf lesen wir deshalb über seine Bestellnummer.',
   },
 
   news: {
@@ -317,28 +314,27 @@ const de: Messages = {
     dismiss: 'Später',
     inVersion: (version) => `In Version ${version}`,
     none: 'Zu dieser Ausgabe steht nichts geschrieben.',
-    german:
-      'Die Notizen bis 0.26.0 sind deutsch – sie stammen aus den Commits dieses Projekts.',
+    german: 'Die Notizen bis 0.26.0 sind deutsch; sie stammen aus den Commits dieses Projekts.',
     full: 'Alle Versionen, auf GitHub',
     fullHref: 'https://github.com/misterhonk/fidelity/blob/main/CHANGELOG.md',
   },
 
   token: {
     title: 'Token eintragen',
-    lead: 'Fidelity spricht direkt mit Discogs – ohne Server dazwischen. Dafür braucht es einen persönlichen Token, den du dir selbst erzeugst.',
+    lead: 'Wir reden direkt mit Discogs, ohne Server dazwischen. Dafür brauchen wir einen persönlichen Token, den du dir selbst erzeugst.',
     sampleTitle: 'Was dabei herauskommt',
     sampleNote:
-      'Beispiele. Eine Punktzahl, ein Satz, warum – für jede Platte im Sortiment eines Ladens. Mit deiner Sammlung stehen dort deine Künstler und deine Labels.',
+      'Beispiele. Eine Punktzahl und ein Satz, warum, für jede Platte in einem Laden. Sobald deine Sammlung drin ist, stehen da deine Künstler und deine Labels.',
     step1: 'öffnen',
     step2: '„Generate token" klicken',
     step3: 'Den Token hier einfügen',
     field: 'Personal Access Token',
-    readsOnly: 'Fidelity liest nur.',
+    readsOnly: 'Wir lesen nur.',
     readsOnlyRest:
-      'Sammlung, Wantlist und Ladensortimente – mehr nicht. Es ändert nichts an deinem Discogs-Konto, kauft nichts und schreibt nichts zurück. Gekauft wird bei Discogs, von dir.',
+      'Deine Sammlung, deine Wantlist und was die Läden haben, mehr nicht. Wir ändern nichts an deinem Discogs-Konto, kaufen nichts und schreiben nichts zurück. Gekauft wird bei Discogs, von dir.',
     staysHere:
-      'Der Token bleibt auf diesem Gerät gespeichert und wird an niemanden weitergegeben – auch nicht an uns. Es gibt keinen Server, der ihn empfangen könnte.',
-    checking: 'Prüfe …',
+      'Der Token bleibt auf diesem Gerät und geht an niemanden, auch nicht an uns. Es gibt keinen Server, der ihn empfangen könnte.',
+    checking: 'Prüfen …',
     signIn: 'Anmelden',
 
     renewTitle: 'Token erneuern',
@@ -393,18 +389,18 @@ const de: Messages = {
     library: {
       cta: 'Sammlung holen',
       title: 'Als Erstes: deine Sammlung holen',
-      body: 'Ohne sie weiß Fidelity nicht, was du magst. Ein paar Sekunden pro tausend Platten, danach ist sie auf diesem Gerät.',
+      body: 'Ohne sie wissen wir nicht, was du magst. Ein paar Sekunden pro tausend Platten, dann ist sie auf diesem Gerät.',
     },
     horizon: {
-      cta: 'Horizont bauen',
-      title: 'Dann: den Horizont bauen',
+      cta: 'Deine Künstler nachschlagen',
+      title: 'Dann: deine Künstler und Labels nachschlagen',
       body: (minutes) =>
-        `Einmalig rund ${counted(minutes, 'Minute', 'Minuten')}. Danach erkennt jeder Dig auch Produzenten, Katalogserien und andere Pressungen deiner Platten.`,
+        `Einmal rund ${counted(minutes, 'Minute', 'Minuten')}. Danach erkennt jeder Dig auch Produzenten, Katalogreihen und andere Pressungen deiner Platten.`,
     },
     dig: {
       cta: 'Dig starten',
-      title: 'Jetzt: den ersten Laden scannen',
-      body: 'Nimm einen, bei dem du ohnehin kaufst. Zwei bis vier Minuten für zwanzigtausend Listings, und am Ende steht eine Liste mit einem Satz pro Treffer.',
+      title: 'Jetzt: den ersten Laden durchgraben',
+      body: 'Nimm einen, bei dem du sowieso kaufst. Zwei bis vier Minuten für zwanzigtausend Platten, und am Ende hast du eine Liste mit einem Satz zu jedem Fund.',
     },
   },
 
@@ -416,79 +412,79 @@ const de: Messages = {
     digs: 'Digs',
     lastDig: 'Im letzten Dig',
     inStore: 'Im Laden',
-    affinity: (rate) => `${rate} Treffer je tausend`,
-    digHint: (matches, when) => `${matches} Treffer · ${when}`,
+    affinity: (rate) => `${rate} Funde auf tausend`,
+    digHint: (matches, when) => `${matches} Funde · ${when}`,
     label: 'Befehle und Suche',
     search: 'Suchen',
   },
 
   watch: {
     whyLabel: 'Wie gezählt wird',
-    why: 'Die Gesamtzahl des Ladens, nicht wie viele Platten neu sind – wer fünf verkauft und fünf einstellt, bewegt sich um null. Ein Dig sagt, was davon für dich dabei ist.',
+    why: 'Die Gesamtzahl des Ladens, nicht wie viele Platten neu sind. Wer fünf verkauft und fünf einstellt, bewegt sich um null. Ein Dig sagt, was davon für dich dabei ist.',
     sinceLastVisit: 'Seit deinem letzten Besuch',
     moreListings: (n: number, one: boolean) =>
-      `${one ? 'Listing' : 'Listings'} mehr im Angebot als beim letzten Mal.`,
+      `${one ? 'Angebot' : 'Angebote'} mehr als beim letzten Mal.`,
     read: 'Gelesen',
     moved: (n: string, one: boolean) =>
-      `hat ${n} ${one ? 'Listing' : 'Listings'} mehr im Angebot als beim letzten Mal.`,
+      `hat ${n} ${one ? 'Angebot' : 'Angebote'} mehr als beim letzten Mal.`,
   },
 
   catalogRun: 'Ausgefüllt = im Regal. Umrandet = diese Platte.',
   catalogRunEntry: {
-    this: (number) => `${number} – diese Platte`,
-    owned: (number) => `${number} – hast du`,
-    missing: (number) => `${number} – fehlt dir`,
+    this: (number) => `${number}, diese Platte`,
+    owned: (number) => `${number}, hast du`,
+    missing: (number) => `${number}, fehlt dir`,
   },
 
   credits: {
     title: 'Wer hier mitgewirkt hat',
     look: 'Nachsehen',
     about:
-      "Discogs' größter ungenutzter Schatz: wer produziert, gemischt oder gemastert hat. Steht schon im Horizont – die Antwort kommt sofort.",
+      "Discogs' größter ungenutzter Schatz: wer produziert, gemischt oder gemastert hat. Das wissen wir schon, die Antwort kommt sofort.",
     hereOnly: (here) => `${here} hier, von denen du noch nichts hast.`,
-    youHave: (owned, here) => `Du hast ${owned} — dieser Laden hat ${here} mehr.`,
+    youHave: (owned, here) => `Du hast ${owned}. Dieser Laden hat ${here} mehr.`,
     records: (n) => counted(n, 'Platte', 'Platten'),
   },
 
   inStore: {
     title: 'Im Laden',
-    description: 'Die Fundliste für die Hand am Plattenfach – offline, große Ziele.',
+    description: 'Deine Funde für die Hand am Plattenfach. Offline, große Ziele.',
     back: 'Zurück',
     offline: 'offline, alles aus dem Gerät',
     interrupted: (scanned, total) =>
-      `Dieser Dig wurde unterbrochen – ${scanned} von ${total} waren durch. Was hier steht, ist also nicht alles.`,
+      `Dieser Dig ist bei ${scanned} von ${total} stehen geblieben, was hier steht, ist also nicht alles.`,
     noDig:
-      'Noch kein Dig – die Fundliste bleibt also leer. Deine Sammlung und deine Wantlist kannst du trotzdem durchsuchen, auch ohne Empfang.',
+      'Noch kein Dig, die Fundliste bleibt also leer. Deine Sammlung und deine Wantlist kannst du trotzdem durchsuchen, auch ohne Empfang.',
     expired:
-      'Älter als sechs Stunden – Preise und Zustände dürfen nicht mehr angezeigt werden. Die Treffer und ihre Begründungen stehen weiter.',
+      'Älter als sechs Stunden, Preise und Zustände sind darum weg. Die Funde und ihre Begründungen bleiben.',
     search: 'Künstler oder Titel',
     searchLabel: 'Sammlung, Wantlist und die Fundliste durchsuchen',
-    scan: 'Barcode scannen',
+    scan: 'Barcode lesen',
     scanning: 'Wird nachgeschlagen …',
     scanStop: 'Abbrechen',
     scanDenied: 'Die Kamera blieb zu. Tippen geht auch.',
     scanNotHere:
-      'Dieser Browser kann keinen Barcode lesen – Safari bringt keinen Leser mit. Tipp die Ziffern; es findet dasselbe.',
-    scanOwned: (copies) => `Hast du – ${copies} in der Sammlung.`,
+      'Dieser Browser kann keinen Barcode lesen; Safari bringt keinen Leser mit. Tipp die Ziffern ein, das findet dasselbe.',
+    scanOwned: (copies) => `Hast du, ${copies} in der Sammlung.`,
     scanWanted: 'Nicht in der Sammlung. Steht auf deiner Wantlist.',
     scanOwnedAlbum: (copies) =>
-      `Das Album hast du – ${copies} in der Sammlung, in einer anderen Pressung.`,
+      `Das Album hast du, ${copies} in der Sammlung, in einer anderen Pressung.`,
     scanWantedAlbum:
       'Nicht in der Sammlung. Eine andere Pressung dieses Albums steht auf deiner Wantlist.',
     scanNew: 'Weder in der Sammlung noch auf der Wantlist.',
     scanPressings: (n) =>
-      `${n} Pressungen teilen sich diesen Barcode – ein Barcode benennt eine Veröffentlichung, keine Pressung.`,
+      `${n} Pressungen teilen sich diesen Barcode. Ein Barcode benennt eine Veröffentlichung, keine Pressung.`,
     scanNothing: 'Discogs kennt keine Platte mit diesem Barcode.',
     identify: 'Nachschlagen',
     identifyLabel: 'Barcode oder Auslaufrillen-Nummer',
-    identifyPlaceholder: 'Barcode – oder was im Auslauf steht',
+    identifyPlaceholder: 'Barcode, oder was im Auslauf steht',
     pressing: {
       pick: 'Welche hältst du in der Hand? Tipp sie an, dann wird sie gegen alle Pressungen des Albums gelesen.',
       check: 'Welche Pressung ist das?',
       reading: 'Pressung wird gelesen …',
       noAnswer:
-        'Discogs hat nicht geantwortet, die Pressung bleibt ungelesen. Die Liste bleibt.',
-      onlyItself: 'Discogs kennt keine andere Pressung davon – nichts zum Vergleichen.',
+        'Discogs hat nicht geantwortet, die Pressung bleibt ungelesen. Die Liste steht.',
+      onlyItself: 'Discogs kennt keine andere Pressung davon, also nichts zum Vergleichen.',
       among: (total, year) =>
         `Eine von ${total} Pressungen, und eine der ersten: das Album ist von ${year}.`,
       later: (total, year) => `Eine von ${total} Pressungen. Die ersten sind von ${year}:`,
@@ -496,10 +492,10 @@ const de: Messages = {
       you: 'deine',
       onDiscogs: 'Bei Discogs',
     },
-    finds: (n: number) => `${n} Treffer`,
+    finds: (n: number) => `${n} ${n === 1 ? 'Fund' : 'Funde'}`,
     wrong: 'Danebengegriffen',
     notInLibrary: 'Weder in deiner Sammlung noch auf der Wantlist',
-    norLastDig: '– und der letzte Dig kennt sie auch nicht',
+    norLastDig: ', und der letzte Dig kennt sie auch nicht',
     nothingByName: 'Nichts dabei mit diesem Namen.',
     pressings: (n: number) => `${n} Pressungen`,
     youWant: 'Suchst du',
@@ -508,20 +504,20 @@ const de: Messages = {
       all: (n) => `Alle ${n} Stände`,
       chip: (name, finds) => `${name} · ${finds}`,
       line: (stands, finds) => `${stands} Stände · ${finds}`,
-      lead: 'Die Läden, die du im letzten Tag gescannt hast. Eine Liste pro Stand, oder alle auf einmal – jeder Korb bleibt sein eigenes Paket.',
+      lead: 'Die Läden, die du im letzten Tag gegraben hast. Eine Liste pro Stand, oder alle auf einmal. Jeder Korb bleibt sein eigenes Paket.',
       interrupted: (dealer, scanned, total) =>
-        `${dealer}: ${scanned} von ${total} waren durch – was von diesem Stand hier steht, ist nicht alles.`,
+        `${dealer}: bei ${scanned} von ${total} stehen geblieben, was von diesem Stand hier steht, ist also nicht alles.`,
     },
   },
 
   discovery: {
     search: 'Läden bei Discogs suchen',
-    searching: 'Suche …',
+    searching: 'Suchen …',
     about:
-      'In deinen Bestellungen – am 2026-09-11 gemessen ist das die Verkaufsseite: Läden, die bei dir gekauft haben, nicht Läden, bei denen du gekauft hast. Wenn du es in den Einstellungen erlaubst, zusätzlich in deiner Discogs-Freundesliste, und das ist für die meisten die Hälfte, die überhaupt etwas findet. Eine Abfrage je Quelle, dann eine pro Kandidat, um zu sehen wer überhaupt verkauft.',
+      'In deinen Bestellungen, wo Discogs uns nur die Verkaufsseite zeigt: Läden, die bei dir gekauft haben, nicht Läden, bei denen du gekauft hast. Wenn du es in den Einstellungen erlaubst, auch in deiner Discogs-Freundesliste, und das ist für die meisten die Hälfte, die überhaupt was findet. Eine Abfrage je Quelle, dann eine pro Kandidat, um zu sehen, wer überhaupt verkauft.',
     added: (n) => (n === 1 ? 'Ein Laden dazu.' : `${n} Läden dazu.`),
     take: (n) => `${n} übernehmen`,
-    listings: (n: string) => `${n} Listings`,
+    listings: (n: string) => `${n} Angebote`,
     alreadyThere: 'schon dabei',
     hide: 'Nie vorschlagen',
     hideWhy: 'Diesen Laden nie wieder vorschlagen',
@@ -566,21 +562,21 @@ const de: Messages = {
 
   demo: {
     title: 'Erst ansehen',
-    lead: 'Eine Platte aussuchen – Fidelity zeigt, was im selben Laden dazu passt. Ohne Anmeldung.',
-    listing: 'Ein Angebot von Discogs',
+    lead: 'Such dir eine Platte aus. Wir zeigen dir, was im selben Laden dazu passt. Ohne Anmeldung.',
+    listing: 'Eine Platte aus einem Discogs-Laden',
     look: 'Ansehen',
     orOne: 'Oder eine von diesen:',
     moment: 'Einen Moment …',
-    fetching: 'Hole die Platte …',
-    reading: (page, pages) => `Lese das Sortiment – Seite ${page} von ${pages}`,
-    comparing: 'Vergleiche …',
+    fetching: 'Holen die Platte …',
+    reading: (page, pages) => `Lesen das Sortiment, Seite ${page} von ${pages}`,
+    comparing: 'Vergleichen …',
     progress: 'Fortschritt',
     fitsAt: (dealer) => `Bei ${dealer} passt dazu`,
     score: (score) => `Barry Score ${score} von 100`,
     nothing:
-      'In diesem Ausschnitt lag nichts, das dazu passt. Das kommt vor: eine Platte allein ist ein dünner Anhaltspunkt, und gelesen wurde nur ein Teil des Ladens. Mit deiner Sammlung sieht das anders aus.',
+      'In diesem Ausschnitt lag nichts, das dazu passt. Das kommt vor: Eine Platte allein ist ein dünner Anhaltspunkt, und wir haben nur einen Teil des Ladens gelesen. Mit deiner Sammlung sieht das anders aus.',
     coverage: (scanned, total) =>
-      `Gelesen wurden ${scanned} der ${total} Angebote, mit einer Platte als Anhaltspunkt. Ein Dig liest den ganzen Laden und kennt deine Sammlung.`,
+      `Wir haben ${scanned} von ${total} Platten gelesen, mit einer Platte als Anhaltspunkt. Ein Dig liest den ganzen Laden und kennt deine Sammlung.`,
     shopLogo: (dealer: string) => `${dealer}, Ladenschild`,
     takesAMinute: 'Dauert eine knappe Minute.',
   },
@@ -588,11 +584,11 @@ const de: Messages = {
   nav: {
     label: 'Hauptbereiche',
     start: { label: 'Start', hint: 'Was ist neu, was steht an' },
-    dig: { label: 'Graben', hint: 'Einen Laden scannen' },
+    dig: { label: 'Graben', hint: 'Einen Laden durchgraben' },
     basket: { label: 'Korb', hint: 'Was du kaufen willst' },
     shelf: { label: 'Sammlung', hint: 'Was du hast und was du suchst' },
     dealers: { label: 'Läden', hint: 'Bei wem du kaufst' },
-    settings: { label: 'Einstellungen', hint: 'Token, Abgleich, Darstellung' },
+    settings: { label: 'Einstellungen', hint: 'Token, Abgleich, Aussehen' },
     inBasket: (count) => `${count} im Korb`,
     attribution: 'Daten von Discogs',
     disclaimer:

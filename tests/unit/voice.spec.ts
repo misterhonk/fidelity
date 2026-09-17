@@ -11,7 +11,16 @@ import { describe, expect, it } from 'vitest'
  * code says "scan". A pack goes on the list below once it has been through
  * the rewrite; from then on a line that slips back is named here.
  */
-const DONE = ['welcome.ts', 'dealers.ts', 'reason.ts', 'dig.ts', 'basket.ts']
+const DONE = [
+  'welcome.ts',
+  'dealers.ts',
+  'reason.ts',
+  'dig.ts',
+  'basket.ts',
+  'collection.ts',
+  'en.ts',
+  'de.ts',
+]
 
 /** Every string literal in a pack, with the line it starts on. */
 function literals(source: string): { line: number; text: string }[] {
@@ -19,7 +28,10 @@ function literals(source: string): { line: number; text: string }[] {
   const pattern = /'((?:[^'\\\n]|\\.)*)'|`((?:[^`\\]|\\.)*)`/g
   for (const hit of source.matchAll(pattern)) {
     // Template holes are code: `${scanned}` is a variable, not a word.
-    const text = (hit[1] ?? hit[2] ?? '').replace(/\$\{[^}]*\}/g, '')
+    // "${artist} — ${title}" is how a record is written, not a bracketed thought.
+    const text = (hit[1] ?? hit[2] ?? '')
+      .replace(/\$\{[^}]*\}\s[—–]\s\$\{[^}]*\}/g, 'A B')
+      .replace(/\$\{[^}]*\}/g, '')
     const line = source.slice(0, hit.index).split('\n').length
     // Code, not prose: imports, keys, template holes on their own.
     if (/^[~#./@A-Za-z0-9_-]+$/.test(text) && !/\s/.test(text)) continue

@@ -25,7 +25,7 @@ describe('what a watch push says', () => {
 
   it('speaks German when the app does', () => {
     expect(watchNotice({ dealer: 'plattenladen', newListings: 12 }, 'de')?.body).toBe(
-      '12 Listings mehr im Angebot als beim letzten Mal.',
+      '12 Angebote mehr als beim letzten Mal.',
     )
   })
 
@@ -34,7 +34,7 @@ describe('what a watch push says', () => {
       '1 listing more on offer than last time.',
     )
     expect(watchNotice({ dealer: 'a', newListings: 1 }, 'de')?.body).toBe(
-      '1 Listing mehr im Angebot als beim letzten Mal.',
+      '1 Angebot mehr als beim letzten Mal.',
     )
   })
 

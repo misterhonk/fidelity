@@ -169,10 +169,9 @@ const en = {
     spoken: (n: number, ceiling: number) =>
       `${n} requests in the last minute, of ${ceiling} this device allows itself`,
     saved: (n: string, minutes: number) =>
-      `The catalogue and the hub took ${n} requests off — about ${minutes === 1 ? 'a minute' : `${minutes} minutes`} of waiting.`,
-    ceiling: (n: number) =>
-      `Discogs allows 60 a minute per address. Fidelity asks ${n} — on purpose.`,
-    ours: 'Counted here is what Fidelity asked for. Discogs’ own counter cannot be read from a browser.',
+      `The catalogue and the hub spared us ${n} lookups, about ${minutes === 1 ? 'a minute' : `${minutes} minutes`} of waiting.`,
+    ceiling: (n: number) => `Discogs allows 60 a minute per address. We ask ${n}, on purpose.`,
+    ours: 'We count what we asked for. Discogs’ own counter is not something a browser can read.',
 
     /*
      * The next rung, and only ever one line of it (M31.12).
@@ -185,13 +184,13 @@ const en = {
     tryCatalogue: (n: string) =>
       `A catalogue would have answered ${n} of these without asking Discogs.`,
     tryHub: (_n: string) =>
-      'A hub shares these between your devices — and with whoever else uses it.',
+      'A hub shares these between your devices, and with whoever else uses it.',
     /** What things cost, behind a disclosure: figures, not a lecture. */
     costs: 'What takes how long',
     costRows: [
       ['A dig, 3.000 listings', '~ 130', '~ 2½ min'],
       ['A dig, 20.000 listings', '~ 300', '~ 6 min'],
-      ['The horizon, 30 artists and labels', '~ 600', '~ 12 min'],
+      ['Your artists and labels, 30 of them', '~ 600', '~ 12 min'],
       ['Fetching a collection of 2.000', '~ 40', '~ 1 min'],
       ['The round, per watched shop', '~ 20', '~ 25 s'],
       ['Opening one record', '1', '1,2 s'],
@@ -202,7 +201,7 @@ const en = {
   notice: {
     offline: {
       title: 'No network.',
-      body: 'Your collection, the map and the last digs are on this device and keep working. What does not: new digs, syncing, market prices.',
+      body: 'Your shelf, the map and the last digs are still here. New digs, syncing and market prices need the network.',
     },
     install: {
       title: 'Put it on your phone',
@@ -214,7 +213,7 @@ const en = {
       body_middle: 'at the bottom, then',
       addToHome: 'Add to Home Screen',
       body_after:
-        '. After that Fidelity starts without a browser bar and works in a basement with no signal.',
+        '. After that it opens without a browser bar and works in a basement with no signal.',
     },
     update: {
       title: 'A new version is ready.',
@@ -252,13 +251,13 @@ const en = {
         'This page runs over HTTPS, so it may not call an unencrypted address. It works in Chrome; the lasting fix is to make the hub itself reachable over HTTPS.',
     },
     scanRunning: (dealer: string) => ({
-      title: `A scan of ${dealer} is already running.`,
+      title: `We are already digging through ${dealer}.`,
       action:
-        'Only one at a time — that is the rate limit, not a preference. It carries on in the background and this screen follows it; start the next one when it is through.',
+        'One dig at a time; Discogs allows us no more. It carries on in the background and this screen follows it. Start the next one when it is through.',
     }),
     hubHttpError: (status: number) => ({
       title: `The hub answered with HTTP ${status}.`,
-      action: 'That is the hub talking, not Discogs — its own log will say more.',
+      action: 'That is the hub talking, not Discogs. Its own log says more.',
     }),
 
     /*
@@ -285,7 +284,7 @@ const en = {
     notAVault: 'This file is not a Fidelity vault.',
     oauthRejected: (provider: string) => `${provider} rejected the code.`,
     notConnected: 'Not connected yet.',
-    connectionExpired: 'The connection has expired — please connect again.',
+    connectionExpired: 'The connection has expired. Connect again.',
     refreshFailed: 'The connection could not be renewed.',
     vaultNotGiven: (provider: string) => `${provider} did not hand the vault over.`,
     vaultNotTaken: (provider: string) => `${provider} did not accept the vault.`,
@@ -314,7 +313,7 @@ const en = {
       },
       'not-signed-in': {
         title: 'Not signed in.',
-        action: 'Enter your Discogs token in the settings — everything here needs it.',
+        action: 'Enter your Discogs token in the settings. Everything here needs it.',
       },
       'no-listing': {
         title: 'No record given.',
@@ -322,35 +321,35 @@ const en = {
       },
       'dig-gone': {
         title: 'That dig is no longer here.',
-        action: 'Digs are kept for six hours, then their prices go. Scan the shop again.',
+        action: 'We keep a dig for six hours, then its prices go. Dig the shop again.',
       },
       'dig-expired': {
-        title: 'The six-hour window has closed.',
-        action: 'Prices may not be shown once they are that old. A new scan takes a minute.',
+        title: 'Those prices are more than six hours old.',
+        action: 'We cannot show prices that old. A new dig takes a minute.',
       },
       'dig-running': {
-        title: 'A scan is already running.',
-        action: 'Only one at a time — that is the rate limit, not a preference. Let it finish.',
+        title: 'A dig is already running.',
+        action: 'One at a time; Discogs allows us no more. Let it finish.',
       },
       'dig-not-running': {
         title: 'There is nothing here to continue.',
-        action: 'This dig is not running. Start a new scan of the shop.',
+        action: 'This dig is not running. Start a new dig of the shop.',
       },
       'deep-scan-done': {
-        title: 'A deep scan is not continued.',
+        title: 'A deep dig cannot be picked up again.',
         action: 'What it found is here. Picking it up again would count records twice.',
       },
       'no-anchor': {
         title: 'Nothing to compare against yet.',
-        action: '"Only what is new" needs one full scan of this shop to start from.',
+        action: '"Only what is new" needs one full dig of this shop to start from.',
       },
       'match-gone': {
         title: 'That find is no longer here.',
-        action: 'It went with its dig after six hours. Scan the shop again.',
+        action: 'It went with its dig after six hours. Dig the shop again.',
       },
       'no-hub': {
         title: 'No hub entered.',
-        action: 'A hub is optional — enter one in the settings, or leave it and use the rest.',
+        action: 'A hub is optional. Enter one in the settings, or leave it and use the rest.',
       },
       'not-a-hub': {
         title: 'That is not a Fidelity hub.',
@@ -360,7 +359,7 @@ const en = {
       'no-catalogue': {
         title: 'No catalogue entered.',
         action:
-          'A catalogue is optional — enter one in the settings, or leave it and use the rest.',
+          'A catalogue is optional. Enter one in the settings, or leave it and use the rest.',
       },
       'not-a-catalogue': {
         title: 'That is not a Fidelity catalogue.',
@@ -370,22 +369,22 @@ const en = {
       'not-a-backup': {
         title: 'That is not a Fidelity backup.',
         action:
-          'A backup is the file “Export everything” writes here — fidelity-backup-<date>.json.',
+          'A backup is the file “Export everything” writes here: fidelity-backup-<date>.json.',
       },
       'backup-too-new': {
         title: 'This backup is from a newer Fidelity.',
         action:
-          'Update the app first — an older one would read it wrong rather than not at all.',
+          'Update the app first. An older one would read it wrong rather than not at all.',
       },
       'token-other-account': {
         title: 'This token belongs to another Discogs account.',
         action:
-          'What is on this device is the signed-in account’s. To switch accounts, sign out first — that deletes the database — and sign in with the new token.',
+          'What is on this device belongs to the signed-in account. To switch accounts, sign out first, which deletes the database, and sign in with the new token.',
       },
       'vault-too-new': {
         title: 'This backup is from a newer Fidelity.',
         action:
-          'Update the app first — an older one would read it wrong rather than not at all.',
+          'Update the app first. An older one would read it wrong rather than not at all.',
       },
       'vault-unusable': {
         title: 'This backup target cannot be used.',
@@ -405,27 +404,26 @@ const en = {
     tokenRevoked: {
       title: 'Discogs no longer accepts the token.',
       action:
-        'It was probably withdrawn at Discogs. Make a new one in the developer settings and enter it under Settings → Account → Renew the token — your data here stays where it is.',
+        'It was probably withdrawn at Discogs. Make a new one in the developer settings and enter it under Settings → Account → Renew the token. Your data here stays where it is.',
     },
     tokenUnknown: {
       title: 'Discogs does not know this token.',
       action:
-        'Usually something slipped while copying — a space, a missing character at the end. Fetch it again from the developer settings and paste all of it.',
+        'Usually something slipped while copying, a space or a missing character at the end. Fetch it again from the developer settings and paste all of it.',
     },
     rateLimited: {
-      title: 'Discogs is throttling.',
-      action:
-        'Sixty lookups a minute, and you share them with nobody — one or two minutes of waiting is enough. Whatever was scanned is saved.',
+      title: 'Discogs asked us to slow down.',
+      action: 'Everything so far is saved. Give it a minute or two, then dig on.',
     },
     offline: {
-      title: 'Discogs cannot be reached.',
+      title: 'We cannot reach Discogs.',
       action:
-        'Collection, map and the last digs are on this device and keep working. New digs need a network.',
+        'Your shelf, the map and the last digs are still here. New digs need the network.',
     },
     storageFull: {
       title: 'No room left on this device.',
       action:
-        'The browser will not give Fidelity more space. Old digs expire after six hours anyway; "Delete everything" on the start page clears the rest.',
+        'The browser will not give us more space. Old digs go after six hours anyway; "Delete everything" on the start page clears the rest.',
     },
   },
 
@@ -453,11 +451,11 @@ const en = {
       outbox: 'sending your changes',
       library: 'collection and wantlist',
       watch: 'the shops you watch',
-      horizon: 'the horizon',
+      horizon: 'your artists and labels',
     },
 
     whyLabel: 'What refreshes by itself?',
-    why: 'Collection, wantlist, the shops you watch and the horizon — when the app opens, when you come back to the tab, and every twenty minutes. Usually that is a single request, because Discogs is only asked what has changed. Two things stay out on purpose: a dig is two to four minutes and a hundred or more lookups, so it is started by you and never by a clock; and your orders cannot be fetched at all — that endpoint only lists what you sold, so a purchase is read from its order number.',
+    why: 'Your collection, your wantlist, the shops you watch and your artists and labels: when the app opens, when you come back to the tab, and every twenty minutes. Usually that is a single lookup, because we only ask Discogs what has changed. Two things stay out on purpose. A dig is two to four minutes and a hundred lookups or more, so you start it, never a clock. And your orders we cannot fetch at all; Discogs only lists what you sold, so a purchase is read from its order number.',
   },
 
   /** What changed in the version you are running. */
@@ -477,7 +475,7 @@ const en = {
      * they are user-visible text now and therefore fall under ADR-010. This
      * note stands for as long as German entries are still being shown.
      */
-    german: 'Notes up to 0.26.0 are in German — they come from this project’s own commits.',
+    german: 'Notes up to 0.26.0 are in German; they come from this project’s own commits.',
     full: 'Every version, on GitHub',
     fullHref: 'https://github.com/misterhonk/fidelity/blob/main/CHANGELOG.md',
   },
@@ -485,19 +483,19 @@ const en = {
   /** The one form that is on the welcome screen and in the settings. */
   token: {
     title: 'Enter a token',
-    lead: 'Fidelity talks to Discogs directly — with no server in between. For that it needs a personal token, which you make yourself.',
+    lead: 'We talk to Discogs directly, with no server in between. For that we need a personal token, which you make yourself.',
     sampleTitle: 'What comes out of it',
     sampleNote:
-      "Examples. A score and a sentence saying why — for every record in a shop's stock. With your collection in place, those are your artists and your labels.",
+      'Examples. A score and a sentence saying why, for every record in a shop. Once your collection is in, those are your artists and your labels.',
     step1: 'open',
     step2: 'Click "Generate token"',
     step3: 'Paste the token here',
     field: 'Personal access token',
-    readsOnly: 'Fidelity only reads.',
+    readsOnly: 'We only read.',
     readsOnlyRest:
-      'Collection, wantlist and shop stock — nothing more. It changes nothing about your Discogs account, buys nothing and writes nothing back. Buying happens at Discogs, by you.',
+      'Your collection, your wantlist and what the shops have, nothing more. We change nothing about your Discogs account, buy nothing and write nothing back. Buying happens at Discogs, by you.',
     staysHere:
-      'The token stays stored on this device and is passed to nobody — not to us either. There is no server that could receive it.',
+      'The token stays on this device and goes to nobody, not to us either. There is no server that could receive it.',
     checking: 'Checking …',
     signIn: 'Sign in',
 
@@ -576,18 +574,18 @@ const en = {
     library: {
       cta: 'Fetch the collection',
       title: 'First: fetch your collection',
-      body: 'Without it Fidelity does not know what you like. A few seconds per thousand records, and afterwards it is on this device.',
+      body: 'Without it we do not know what you like. A few seconds per thousand records, and then it is on this device.',
     },
     horizon: {
-      cta: 'Build the horizon',
-      title: 'Then: build the horizon',
+      cta: 'Look up your artists',
+      title: 'Then: look up your artists and labels',
       body: (minutes: number) =>
         `Once, about ${counted(minutes, 'minute', 'minutes')}. After that every dig also recognises producers, catalogue runs and other pressings of your records.`,
     },
     dig: {
       cta: 'Start a dig',
-      title: 'Now: scan the first shop',
-      body: 'Take one you buy from anyway. Two to four minutes for twenty thousand listings, and at the end there is a list with a sentence per find.',
+      title: 'Now: dig through the first shop',
+      body: 'Take one you buy from anyway. Two to four minutes for twenty thousand records, and at the end you get a list with a sentence per find.',
     },
   },
 
@@ -608,7 +606,7 @@ const en = {
 
   watch: {
     whyLabel: 'How it is counted',
-    why: "The shop's total, not how many records are new — somebody who sells five and lists five has moved by zero. A dig says what of it is for you.",
+    why: "The shop's total, not how many records are new. Somebody who sells five and lists five has moved by zero. A dig says what of it is for you.",
     sinceLastVisit: 'Since your last visit',
     moreListings: (n: number, one: boolean) =>
       `${one ? 'listing' : 'listings'} more on offer than last time.`,
@@ -626,36 +624,36 @@ const en = {
   catalogRun: 'Filled = on your shelf. Outlined = this record.',
   /** What a screen reader says for one cell of the run — the number, then its state. */
   catalogRunEntry: {
-    this: (number: string) => `${number} – this record`,
-    owned: (number: string) => `${number} – on your shelf`,
-    missing: (number: string) => `${number} – missing`,
+    this: (number: string) => `${number}, this record`,
+    owned: (number: string) => `${number}, on your shelf`,
+    missing: (number: string) => `${number}, missing`,
   },
 
   credits: {
     title: 'Who worked on this',
     look: 'Have a look',
     about:
-      "Discogs' greatest unused treasure: who produced, mixed or mastered. It is already in the horizon — the answer comes at once.",
+      "Discogs' greatest unused treasure: who produced, mixed or mastered. We already know it, so the answer comes at once.",
     hereOnly: (here: string) => `${here} here that you have none of yet.`,
-    youHave: (owned: string, here: string) => `You have ${owned} — this shop has ${here} more.`,
+    youHave: (owned: string, here: string) => `You have ${owned}. This shop has ${here} more.`,
     records: (n: number) => counted(n, 'record', 'records'),
   },
 
   /** The in-store screen: one hand on a record, no signal. */
   inStore: {
     title: 'In the shop',
-    description: 'The list of finds for a hand in the racks — offline, big targets.',
+    description: 'Your finds for a hand in the racks. Offline, big targets.',
     back: 'Back',
     offline: 'offline, all of it from the device',
     /* A dig that was cut short is not a result. Standing in a shop is the worst
      * place to be told three records are all there is, when the scan behind
      * that number stopped halfway. */
     interrupted: (scanned: string, total: string) =>
-      `This dig was interrupted — ${scanned} of ${total} were through. So what is here is not all of it.`,
+      `This dig stopped at ${scanned} of ${total}, so what is here is not all of it.`,
     noDig:
       'No dig yet, so the list of finds stays empty. You can still search your collection and your wantlist, signal or not.',
     expired:
-      'Older than six hours — prices and conditions may no longer be shown. The finds and their reasons stay.',
+      'More than six hours old, so prices and conditions are gone. The finds and their reasons stay.',
     search: 'Artist or title',
     searchLabel: 'Search the collection, the wantlist and the finds',
     /*
@@ -666,22 +664,22 @@ const en = {
      * countries for one. Anyone not reading that takes the first row for *the*
      * record.
      */
-    scan: 'Scan a barcode',
+    scan: 'Read a barcode',
     scanning: 'Looking it up …',
     scanStop: 'Stop',
     scanDenied: 'The camera stayed shut. Typing works too.',
     scanNotHere:
-      'This browser cannot read a barcode — Safari has no reader of its own. Type the digits instead; it finds the same thing.',
-    scanOwned: (copies: string) => `You have it — ${copies} in the collection.`,
+      'This browser cannot read a barcode; Safari has no reader of its own. Type the digits instead, it finds the same thing.',
+    scanOwned: (copies: string) => `You have it, ${copies} in the collection.`,
     scanWanted: 'Not in the collection. It is on your wantlist.',
     /* The album through its master (M20 #3): another pressing than the one in your hand. */
     scanOwnedAlbum: (copies: string) =>
-      `You have this album — ${copies} in the collection, in another pressing.`,
+      `You have this album, ${copies} in the collection, in another pressing.`,
     scanWantedAlbum:
       'Not in the collection. Another pressing of this album is on your wantlist.',
     scanNew: 'Not in your collection and not on your wantlist.',
     scanPressings: (n: string) =>
-      `${n} pressings share this barcode — a barcode names a release, not a pressing.`,
+      `${n} pressings share this barcode. A barcode names a release, not a pressing.`,
     scanNothing: 'Discogs knows no record with this barcode.',
     identify: 'Look it up',
     identifyLabel: 'Barcode or run-out number',
@@ -698,7 +696,7 @@ const en = {
       check: 'Which pressing is this?',
       reading: 'Reading the pressing …',
       noAnswer: 'Discogs did not answer, so this pressing stays unread. The list stands.',
-      onlyItself: 'Discogs knows no other pressing of this — nothing to compare it with.',
+      onlyItself: 'Discogs knows no other pressing of this, so nothing to compare it with.',
       among: (total: string, year: number) =>
         `One of ${total} pressings, and among the first: the album is from ${year}.`,
       later: (total: string, year: number) =>
@@ -710,7 +708,7 @@ const en = {
     finds: (n: number) => `${n} ${n === 1 ? 'find' : 'finds'}`,
     wrong: 'Wrong pick',
     notInLibrary: 'Not in your collection and not on your wantlist',
-    norLastDig: '— and the last dig does not know it either',
+    norLastDig: ', and the last dig does not know it either',
     nothingByName: 'Nothing by that name.',
     pressings: (n: number) => `${n} pressings`,
     /*
@@ -729,9 +727,9 @@ const en = {
       all: (n: number) => `All ${n} stands`,
       chip: (name: string, finds: string) => `${name} · ${finds}`,
       line: (stands: number, finds: string) => `${stands} stands · ${finds}`,
-      lead: 'The shops you scanned in the last day. One list per stand, or all of them at once — every basket stays its own parcel.',
+      lead: 'The shops you dug in the last day. One list per stand, or all of them at once. Every basket stays its own parcel.',
       interrupted: (dealer: string, scanned: string, total: string) =>
-        `${dealer}: ${scanned} of ${total} were through — what is here from that stand is not all of it.`,
+        `${dealer}: stopped at ${scanned} of ${total}, so what is here from that stand is not all of it.`,
     },
   },
 
@@ -740,7 +738,7 @@ const en = {
     search: 'Find shops at Discogs',
     searching: 'Looking …',
     about:
-      'In your orders — measured on 2026-09-11, that is the selling side: shops that bought from you, not shops you bought at. If you allow it in the settings, in your Discogs friends list as well, and that is the half that finds anything for most people. One lookup per source, then one per candidate, to see who sells at all.',
+      'In your orders, where Discogs only shows us the selling side: shops that bought from you, not shops you bought at. If you allow it in the settings, in your Discogs friends list as well, and that is the half that finds anything for most people. One lookup per source, then one per candidate, to see who sells at all.',
     added: (n: number) => (n === 1 ? 'One shop added.' : `${n} shops added.`),
     take: (n: string) => `Take ${n} over`,
     listings: (n: string) => `${n} listings`,
@@ -810,13 +808,13 @@ const en = {
   /** The demonstration, before anybody hands over a key. */
   demo: {
     title: 'Have a look first',
-    lead: 'Pick a record — Fidelity shows what fits it in the same shop. No sign-in.',
-    listing: 'A listing from Discogs',
+    lead: 'Pick a record. We show you what fits it in the same shop. No sign-in.',
+    listing: 'A record from a Discogs shop',
     look: 'Have a look',
     orOne: 'Or one of these:',
     moment: 'One moment …',
     fetching: 'Fetching the record …',
-    reading: (page: number, pages: number) => `Reading the stock — page ${page} of ${pages}`,
+    reading: (page: number, pages: number) => `Reading the stock, page ${page} of ${pages}`,
     comparing: 'Comparing …',
     progress: 'Progress',
     fitsAt: (dealer: string) => `At ${dealer} this fits`,
@@ -826,7 +824,7 @@ const en = {
     /* What the demonstration cannot do, and why. Without this sentence Fidelity
      * looks thinner than it is. */
     coverage: (scanned: string, total: string) =>
-      `${scanned} of ${total} listings were read, with one record as the clue. A dig reads the whole shop and knows your collection.`,
+      `We read ${scanned} of ${total} records, with one record as the clue. A dig reads the whole shop and knows your collection.`,
     shopLogo: (dealer: string) => `${dealer}, shop sign`,
     takesAMinute: 'Takes about a minute.',
   },
@@ -834,7 +832,7 @@ const en = {
   nav: {
     label: 'Main sections',
     start: { label: 'Start', hint: "What's new, what's waiting" },
-    dig: { label: 'Dig', hint: 'Scan a shop' },
+    dig: { label: 'Dig', hint: 'Dig through a shop' },
     basket: { label: 'Basket', hint: 'What you mean to buy' },
     shelf: { label: 'Collection', hint: 'What you own and what you are after' },
     dealers: { label: 'Shops', hint: 'Who you buy from' },
