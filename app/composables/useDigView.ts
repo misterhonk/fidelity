@@ -25,6 +25,9 @@ import {
  * This file is only the binding. Everything that can actually be wrong lives
  * in `~/utils/digview`, where it is a pure function and has tests.
  */
+/** Where this device keeps the density it last chose, beside the shelf's. */
+const DENSITY_KEY = 'fidelity:dig-density'
+
 export function useDigView(
   matches: Ref<Match[]> | ComputedRef<Match[]>,
   landed: Ref<LandedContext | null> | null = null,
@@ -43,8 +46,25 @@ export function useDigView(
   /*
    * `density`, or the `dicht` it was called until ADR-010 reached this
    * setting. The new key wins where both are somehow present.
+   *
+   * And where the address says nothing, what this device last chose. The
+   * address is the view you can paste and come back to; the memory is what
+   * the shelf has had since M26, and what the dig lacked until 2026-09-20 —
+   * Martin picked Compact, went to the start screen, came back to cards.
    */
-  const density = computed(() => parseDensity(param('density') || param('dicht')))
+  const remembered = ref<Density>('comfortable')
+  onMounted(() => {
+    try {
+      remembered.value = parseDensity(localStorage.getItem(DENSITY_KEY) ?? '')
+    } catch {
+      // Private mode, or storage refused: the address still decides.
+    }
+  })
+  const density = computed(() =>
+    param('density') || param('dicht')
+      ? parseDensity(param('density') || param('dicht'))
+      : remembered.value,
+  )
   const available = computed(() => availableSignals(matches.value))
   const query = computed(() => param('q'))
   const upTo = computed(() => parseUpTo(param('upto')))
@@ -104,13 +124,20 @@ export function useDigView(
       dir: turned === DEFAULT_DIRECTION[key] ? undefined : turned,
     })
   }
-  const setDensity = (value: Density) =>
+  const setDensity = (value: Density) => {
+    remembered.value = value
+    try {
+      localStorage.setItem(DENSITY_KEY, value)
+    } catch {
+      // The switch still works for this visit.
+    }
     apply({
       density: value === 'comfortable' ? undefined : value,
       // And the old key goes, or an address carrying both would say two
       // things and the reader above would have to pick a winner for ever.
       dicht: undefined,
     })
+  }
   const setQuery = (value: string) => apply({ q: value.trim() || undefined })
   const setUpTo = (value: string) => {
     const amount = parseUpTo(value)

@@ -131,3 +131,50 @@ test('writes the density in English, and drops the German key it opened with', a
   await density.getByRole('button', { name: 'Detailed' }).click()
   await expect(page).not.toHaveURL(/density=/)
 })
+
+/**
+ * And the density sticks (2026-09-20). It lived in the address alone, so
+ * leaving the screen and coming back — from the start screen, from the nav —
+ * put the cards back every time. The shelf has remembered its density since
+ * M26; the dig does now. The address still wins where it says something.
+ */
+test('remembers the density this device chose', async ({ page }) => {
+  const dig = await seed(page, 'en')
+  await page.goto(`/dig?id=${dig.id}`)
+  await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({
+    timeout: 15_000,
+  })
+  // The density bar stands over the long list, below the top five.
+  await manyFinds(page, dig.id)
+  await page.goto(`/dig?id=${dig.id}`)
+  await expect(page.getByRole('heading', { name: '8 finds at plattenkiste' })).toBeVisible({
+    timeout: 15_000,
+  })
+
+  await page
+    .getByRole('group', { name: 'Density' })
+    .getByRole('button', { name: 'Compact' })
+    .click()
+  await expect(page).toHaveURL(/density=compact/)
+  await expect(page.getByRole('group', { name: /^Columns/ })).toBeVisible()
+
+  // Away and back, with nothing in the address.
+  await page.goto('/')
+  await page.goto(`/dig?id=${dig.id}`)
+  await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({
+    timeout: 15_000,
+  })
+  await expect(page.getByRole('group', { name: /^Columns/ })).toBeVisible()
+
+  // Back to cards, and that sticks too.
+  await page
+    .getByRole('group', { name: 'Density' })
+    .getByRole('button', { name: 'Detailed' })
+    .click()
+  await page.goto('/')
+  await page.goto(`/dig?id=${dig.id}`)
+  await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({
+    timeout: 15_000,
+  })
+  await expect(page.getByRole('group', { name: /^Columns/ })).toHaveCount(0)
+})
