@@ -11,6 +11,14 @@ Für eine App bedeutet SemVer:
 
 ## [0.105.2](https://github.com/misterhonk/fidelity/compare/v0.105.1...v0.105.2) (2026-09-20)
 
+**„Kompakt" im Dig bleibt jetzt stehen.**
+
+Die Dichte lebte nur in der Adresse. Wer Kompakt wählte, zur Startseite ging und zurückkam,
+hatte wieder die ausführlichen Karten vor sich. Jetzt merkt sich das Gerät die letzte Wahl, so
+wie das Regal es seit M26 tut. Steht in der Adresse etwas anderes, gilt die Adresse.
+
+**Was zu tun ist:** Nichts.
+
 
 ### Fixed
 
