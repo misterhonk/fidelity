@@ -7,7 +7,7 @@ import type {
   RunningHorizon,
   ScanProgress,
 } from '#shared/protocol'
-import type { Dealer, Dig, LandedContext } from '#shared/types'
+import type { Dealer, Dig, LandedContext, DigVisit } from '#shared/types'
 
 import { useDigMessages } from '~/i18n/dig'
 
@@ -115,11 +115,41 @@ async function refresh() {
     refreshing.value = null
   }
 }
-const history = shallowRef<Dig[]>([])
+/**
+ * The shops and their visits (M36): the history grouped by shop, the newest
+ * full dig first and what has happened since. It was a flat row of the last
+ * five digs, chips without a bond between them.
+ */
+const visits = shallowRef<DigVisit[]>([])
 
 async function loadHistory() {
-  history.value = await call('dig.list', undefined)
+  visits.value = await call('dig.visits', undefined)
 }
+
+/** Every kept dig, for anything that still counts runs rather than visits. */
+const history = computed(() => visits.value.flatMap((visit) => visit.runs))
+
+/**
+ * An earlier dig, opened: what has happened at this shop since it ran. New
+ * finds off the check-ins after it, and the finds a later full dig no
+ * longer saw. Null while the open dig is the shop's newest run.
+ */
+const sinceThis = computed(() => {
+  const dig = result.value?.dig
+  if (!dig) return null
+  const visit = visits.value.find((v) => v.dealer === dig.dealer)
+  if (!visit) return null
+  const newer = visit.runs.filter((run) => run.id > dig.id)
+  if (newer.length === 0) return null
+  return {
+    newFinds: newer
+      .filter((run) => run.kind === 'new')
+      .reduce((n, run) => n + run.matchCount, 0),
+    gone: result.value?.matches.filter((match) => match.goneAt).length ?? 0,
+    looked: newer.some((run) => run.kind !== 'new'),
+    latest: visit.runs[0]!,
+  }
+})
 
 /** Switching digs is a navigation, so it goes through the URL and back works. */
 async function showDig(digId: string) {
@@ -826,56 +856,94 @@ const noHorizon = computed(
           </nav>
         </section>
 
-        <section v-if="history.length > 1" class="flex flex-col gap-2">
-          <h2 id="earlier-digs" class="text-fid-xs font-medium text-fid-text-muted">
-            {{ d.earlierDigs }}
+        <!--
+          Visits (M36): the history as the shops' story. One line per shop —
+          the newest full dig, what has happened since — and the runs in a
+          fold. It was a flat row of the last five digs; Martin's screen on
+          2026-09-20 showed five chips for one shop, three of them the same
+          empty minute.
+        -->
+        <section v-if="history.length > 0" class="flex flex-col gap-2">
+          <h2 id="visits" class="text-fid-xs font-medium text-fid-text-muted">
+            {{ d.visits.title }}
           </h2>
-          <nav aria-labelledby="earlier-digs" class="flex flex-wrap gap-2">
-            <button
-              v-for="entry in history"
-              :key="entry.id"
-              type="button"
-              :aria-current="result?.dig.id === entry.id ? 'true' : undefined"
-              class="min-h-9 rounded-fid-sm border px-3 py-1 text-fid-sm transition-colors"
-              :class="
-                result?.dig.id === entry.id
-                  ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
-                  : 'border-fid-border text-fid-text-muted hover:text-fid-text'
-              "
-              @click="showDig(entry.id)"
+          <ul aria-labelledby="visits" class="flex flex-col gap-1">
+            <li
+              v-for="visit in visits"
+              :key="visit.dealer"
+              class="rounded-fid-sm border border-fid-border px-3 py-2"
             >
-              <!--
-            Name, time, kind, match count.
-
-            Until 2026-09-11 only the name and the number stood here — so three
-            runs of the same shop on the same day were three identical buttons.
-            Reported with exactly that picture: "fatplastics 0" three times over.
-
-            The time of day belongs there and not only the date: two of the three
-            were half an hour apart. `dayTime` says in its own comment what it is
-            for — "for things that happen more than once a day".
-
-            And the kind, because a zero on "only what is new" means something
-            different from a zero after a full run: nothing new has arrived
-            against nothing here for you. `digKind` already carries that
-            distinction in two other places.
-          -->
-              <span class="flex flex-col items-start gap-1">
-                <span class="flex flex-wrap items-baseline gap-x-2">
-                  {{ entry.dealer }}
-                  <span class="fid-num text-fid-xs text-fid-text-muted">{{
-                    entry.matchCount
-                  }}</span>
-                </span>
-                <span class="fid-num text-fid-xs text-fid-text-muted">
-                  {{ dayTime(entry.startedAt) }}
-                  <template v-if="digKind(entry) !== 'full'">
-                    · {{ d.incremental.short }}</template
+              <details :open="visit.runs.some((run) => run.id === result?.dig.id) || undefined">
+                <summary
+                  class="fid-action flex cursor-pointer list-none flex-wrap items-baseline gap-x-3 gap-y-1"
+                >
+                  <span
+                    class="text-fid-sm"
+                    :class="
+                      visit.runs.some((run) => run.id === result?.dig.id)
+                        ? 'text-fid-accent'
+                        : 'text-fid-text'
+                    "
+                    >{{ visit.displayName }}</span
                   >
-                </span>
-              </span>
-            </button>
-          </nav>
+                  <span v-if="visit.full" class="fid-num text-fid-xs text-fid-text-muted">
+                    {{ d.visits.full(dayTime(visit.full.startedAt), visit.full.matchCount)
+                    }}<template v-if="visit.since.length || visit.quietChecks">
+                      ·
+                      {{
+                        d.visits.since(visit.since.length, visit.newFinds, visit.quietChecks)
+                      }}</template
+                    >
+                  </span>
+                  <span v-else class="fid-num text-fid-xs text-fid-text-muted">
+                    {{ d.visits.onlyChecked(visit.since.length, visit.newFinds) }}
+                  </span>
+                </summary>
+                <ol class="mt-2 flex flex-col border-l border-fid-border pl-3">
+                  <li
+                    v-for="run in visit.runs"
+                    :key="run.id"
+                    class="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-1"
+                  >
+                    <span class="fid-num text-fid-xs text-fid-text-muted">{{
+                      dayTime(run.startedAt)
+                    }}</span>
+                    <span
+                      class="text-fid-xs"
+                      :class="run.id === result?.dig.id ? 'text-fid-accent' : 'text-fid-text'"
+                    >
+                      {{ d.visits.run(run.kind, run.matchCount, run.listingsTotal) }}
+                    </span>
+                    <span v-if="run.gone" class="fid-num text-fid-xs text-fid-text-muted">
+                      {{ d.visits.gone(run.gone, run.matchCount) }}
+                    </span>
+                    <button
+                      v-if="run.id !== result?.dig.id"
+                      type="button"
+                      class="fid-action text-fid-xs text-fid-text-muted underline underline-offset-4 hover:text-fid-text"
+                      @click="showDig(run.id)"
+                    >
+                      {{ d.visits.open }}
+                    </button>
+                    <span v-else class="fid-plate text-fid-text-muted">{{
+                      d.visits.current
+                    }}</span>
+                  </li>
+                  <li
+                    v-if="visit.quietChecks > 0 && visit.checkedAt"
+                    class="flex flex-wrap items-baseline gap-x-3 py-1"
+                  >
+                    <span class="fid-num text-fid-xs text-fid-text-muted">{{
+                      dayTime(visit.checkedAt)
+                    }}</span>
+                    <span class="text-fid-xs text-fid-text-muted">{{
+                      d.visits.quiet(visit.quietChecks)
+                    }}</span>
+                  </li>
+                </ol>
+              </details>
+            </li>
+          </ul>
         </section>
       </div>
     </component>
@@ -1196,6 +1264,21 @@ const noHorizon = computed(
         <h2 class="text-fid-xl font-bold text-fid-text">
           {{ d.hits(result.matches.length, result.dig.dealer) }}
         </h2>
+        <!--
+            An earlier dig, opened (M36): what has happened at this shop since.
+            The finds and their reasons are still here; the prices are not, and
+            the head says what the later visits saw.
+          -->
+        <p v-if="sinceThis" class="fid-num text-fid-sm text-fid-text-muted">
+          {{ d.visits.sinceThis(sinceThis.newFinds, sinceThis.looked ? sinceThis.gone : null) }}
+          <button
+            type="button"
+            class="fid-action underline underline-offset-4 hover:text-fid-text"
+            @click="showDig(sinceThis.latest.id)"
+          >
+            {{ d.visits.latest }}
+          </button>
+        </p>
         <p class="text-fid-sm text-fid-text-muted">
           <template v-if="kind !== 'full'">
             {{ d.newListings(count(result.dig.listingsTotal), result.dig.listingsTotal === 1) }}

@@ -113,6 +113,9 @@ const landedWhy = computed(() => {
     </p>
 
     <span class="flex shrink-0 items-center gap-2">
+      <span v-if="match.goneAt" class="fid-plate shrink-0 text-fid-text-muted">{{
+        d.match.gone
+      }}</span>
       <span v-if="shape" class="fid-num shrink-0 text-fid-xs text-fid-text-muted">
         {{ shape }}
       </span>

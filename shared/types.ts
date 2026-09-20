@@ -1073,6 +1073,48 @@ export interface Dig {
   apiRequests: number
   /** Persisted after every page, so a closed tab does not mean starting over. */
   cursor: { page: number; order: 'asc' | 'desc' } | null
+  /**
+   * This full dig saw the whole shop and marked what the previous full dig
+   * found that it no longer saw (M36, `worker/dig/history.ts`). Absent on
+   * digs from before, and on any dig cut short: those cannot say.
+   */
+  checkedGone?: boolean
+  /**
+   * Handed back, never stored: a "new arrivals" run that saw nothing new is
+   * deleted at the end rather than kept as an empty chip (M36).
+   */
+  discarded?: boolean
+}
+
+/** One dig, as the visits list shows it (M36). */
+export interface DigBrief {
+  id: string
+  startedAt: number
+  kind: 'full' | 'deep' | 'new'
+  status: DigStatus
+  matchCount: number
+  /** For a `new` run: how many listings had arrived. */
+  listingsTotal: number
+  coverage: number
+  /** Finds the next full dig no longer saw; null until one has looked. */
+  gone: number | null
+}
+
+/**
+ * A shop and its visits (M36): the newest full dig, what has happened
+ * since, and every kept run for the fold.
+ */
+export interface DigVisit {
+  dealer: string
+  displayName: string
+  full: DigBrief | null
+  /** Runs newer than the full dig, newest first. */
+  since: DigBrief[]
+  newFinds: number
+  /** Check-ins in a row that saw nothing new, and the last of them. */
+  quietChecks: number
+  checkedAt: number | null
+  runs: DigBrief[]
 }
 
 /**
@@ -1523,6 +1565,13 @@ export interface Match {
    */
   pressings?: number | null
 
+  /**
+   * When a later full dig of the same shop no longer saw this listing (M36).
+   * A fact about a moment, not a price: it survives the six hours. Sold or
+   * taken down cannot be told apart, and this does not claim to.
+   */
+  goneAt?: number | null
+
   // Ours, derived — survives expiry
   score: number
   /**
@@ -1928,6 +1977,12 @@ export interface Dealer {
   /** `num_for_sale` at the last check — the whole change detector. */
   watchNumForSale?: number | null
   watchCheckedAt?: number | null
+  /**
+   * The last "new arrivals" look, and how many in a row saw nothing (M36).
+   * A quiet check-in leaves no dig behind; this is what it leaves.
+   */
+  checkedAt?: number | null
+  quietChecks?: number
   /**
    * How this shop first came to be on the list (M30).
    *

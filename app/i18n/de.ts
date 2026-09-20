@@ -196,6 +196,15 @@ const de: Messages = {
         title: 'Es läuft schon ein Dig.',
         action: 'Einer auf einmal, mehr lässt Discogs uns nicht. Lass ihn zu Ende laufen.',
       },
+      'round-running': {
+        title: 'Die Runde läuft schon.',
+        action:
+          'Eine Runde auf einmal. Sie läuft weiter, auch wenn du den Bildschirm verlässt.',
+      },
+      'round-recent': {
+        title: 'Die Runde ist vor ein paar Minuten gelaufen.',
+        action: 'So schnell kommt in den Läden nichts rein. Gib ihr zehn Minuten.',
+      },
       'dig-not-running': {
         title: 'Hier ist nichts fortzusetzen.',
         action: 'Dieser Dig läuft nicht. Starte einen neuen Dig bei dem Laden.',

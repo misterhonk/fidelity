@@ -31,18 +31,14 @@ export async function tempoOf(dealer: string): Promise<DealerTempo | null> {
   const earlier = digs[digs.length - 2]!
   const later = digs[digs.length - 1]!
 
-  const ids = async (digId: string) =>
-    (
-      await db
-        .transaction('matches')
-        .store.index('by-dig-score')
-        .getAll(IDBKeyRange.bound([digId, -Infinity], [digId, Infinity]))
-    ).map((match) => match.listingId)
-
-  const before = await ids(earlier.id)
+  // Only a later dig that saw the whole shop has marked what left (M36).
+  if (!later.checkedGone) return null
+  const before = await db
+    .transaction('matches')
+    .store.index('by-dig-score')
+    .getAll(IDBKeyRange.bound([earlier.id, -Infinity], [earlier.id, Infinity]))
   if (before.length === 0) return null
-  const after = new Set(await ids(later.id))
-  const gone = before.filter((id) => !after.has(id)).length
+  const gone = before.filter((match) => match.goneAt).length
 
   return {
     of: before.length,

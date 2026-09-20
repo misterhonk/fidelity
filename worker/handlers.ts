@@ -1416,6 +1416,8 @@ export const handlers: HandlerMap = {
     return (await db.getAll('digs')).sort((a, b) => b.id.localeCompare(a.id))
   },
 
+  'dig.visits': async () => (await import('./dig/history')).digVisits(),
+
   'dig.stands': async () => (await import('./stands')).recentStands(),
 
   /*

@@ -1509,6 +1509,27 @@ scheduled; two things were found and fixed on the spot (`v0.91.1`).
 masthead and the walk with arrows and `?find=` (as designed); the compact table (as
 designed); the wantlist's first sentence (M28 #5, holds).
 
+## M36 · Visits → done 2026-09-20
+
+**Concept:** the artifact *Fidelity Besuche* (2026-09-20; URL in the session memory), from
+Martin's screenshot of the dig screen: five chips under "Earlier digs", four of them "only what
+was new", three of them the same empty minute. Checked against the code: the history kept five
+digs over all shops (`pruneDigs`), a round wrote a dig per watched shop whether or not anything
+had arrived, the round had no lock, the list was flat, and nothing said what an old dig's finds
+had done since. The rule: **a dig is a visit; the history is the shop's story.**
+
+| Phase | Delivers | State |
+|---|---|---|
+| 36.1 The ratchet | One round at a time (`round-running`) and not twice within ten minutes (`round-recent`, `ROUND_COOLDOWN_MS`); a check-in that saw nothing new writes no dig — the shop keeps `checkedAt` and `quietChecks` instead (`discardQuietCheck`) | **Done**, `v0.108.0` |
+| 36.2 Visits | `dig.visits` groups the kept runs by shop: the newest full dig, what came since, the quiet checks, and every run in a fold; the dig screen draws it instead of the flat row | **Done**, `v0.108.0` |
+| 36.3 Retention | Per shop the newest two full digs and every check-in after the older one, a ceiling of 24 over everything (`digsToDrop`); a shop only ever checked keeps its two newest check-ins | **Done**, `v0.108.0` |
+| 36.4 Gone and new | A full dig that saw the whole shop marks the previous full dig's finds it no longer saw (`markGone`, `Match.goneAt`, `Dig.checkedGone`), compared against the stock it wrote so a record that stopped matching is not called gone; the plate word "gone" on the card and the row; an earlier dig's head says "since this dig: n new, k of these gone"; the tempo reads the marks instead of comparing finds to finds | **Done**, `v0.108.0` |
+| 36.5 The comparison | Two full visits side by side: new, gone, still there | open — the head line and the plate word cover most of it; a view of its own waits for a reason |
+
+**Checked and corrected against the concept:** no `Dig.extends` field (the full dig a check-in
+continues is the newest full dig before it, derivable); "gone" only from a dig with full coverage
+and no wall, never from a check-in; the start screen already preferred the newest dig with finds.
+
 ## M34 · Shops → in progress
 
 **Concept:** the artifact *Fidelity Läden* (2026-09-16, fifth version; URL in the session memory) —

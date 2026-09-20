@@ -6,7 +6,16 @@ import { openFidelityDb, type FidelityDatabase } from './open'
 export const DIG_TTL_MS = 6 * 60 * 60 * 1000
 
 /** How many digs are kept before the oldest are dropped. */
-export const DIG_HISTORY_LIMIT = 5
+/**
+ * How many digs are kept, all shops together (M36). It was five, all shops
+ * together, and four check-ins at one shop pushed out the last full dig of
+ * another. Now the rule is per shop first — see `pruneDigs` — and this is the
+ * ceiling over everything.
+ */
+export const DIG_HISTORY_LIMIT = 24
+
+/** Full digs kept per shop: the newest, and the one before it for the tempo. */
+export const FULL_DIGS_PER_SHOP = 2
 
 /**
  * Strips every marketplace field but keeps our own derivations. A user still
@@ -92,18 +101,48 @@ export async function expireDigs(
  * Keeps the newest digs and deletes the rest, matches included. Dig ids are
  * ULIDs, so lexicographic order is chronological order.
  */
+/**
+ * What stays (M36): per shop the newest two full digs and every check-in
+ * newer than the older of them, then a ceiling over everything. A shop that
+ * was only ever checked keeps its newest two check-ins. Oldest go first.
+ */
+export function digsToDrop(digs: Dig[], keep: number = DIG_HISTORY_LIMIT): string[] {
+  const newestFirst = [...digs].sort((a, b) => b.id.localeCompare(a.id))
+  const kept: Dig[] = []
+  const byDealer = new Map<string, Dig[]>()
+  for (const dig of newestFirst) {
+    const list = byDealer.get(dig.dealer)
+    if (list) list.push(dig)
+    else byDealer.set(dig.dealer, [dig])
+  }
+  for (const own of byDealer.values()) {
+    const full = own.filter((dig) => (dig.depth ?? 'normal') !== 'neu')
+    const floor = full[FULL_DIGS_PER_SHOP - 1]
+    if (floor) {
+      for (const dig of own) if (dig.id >= floor.id) kept.push(dig)
+    } else if (full.length > 0) {
+      kept.push(...own)
+    } else {
+      kept.push(...own.slice(0, FULL_DIGS_PER_SHOP))
+    }
+  }
+  const keptIds = new Set(
+    kept
+      .sort((a, b) => b.id.localeCompare(a.id))
+      .slice(0, keep)
+      .map((dig) => dig.id),
+  )
+  return newestFirst.filter((dig) => !keptIds.has(dig.id)).map((dig) => dig.id)
+}
+
 export async function pruneDigs(
   db?: FidelityDatabase,
   keep: number = DIG_HISTORY_LIMIT,
 ): Promise<string[]> {
   const database = db ?? (await openFidelityDb())
   const digs = await database.getAll('digs')
-  if (digs.length <= keep) return []
-
-  const doomed = digs
-    .sort((a, b) => b.id.localeCompare(a.id))
-    .slice(keep)
-    .map((dig) => dig.id)
+  const doomed = digsToDrop(digs, keep)
+  if (doomed.length === 0) return []
 
   const tx = database.transaction(['digs', 'matches', 'stock'], 'readwrite')
   const matches = tx.objectStore('matches')

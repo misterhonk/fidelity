@@ -66,7 +66,14 @@ const landedWhy = computed(() => {
 const meta = computed(() => {
   const { medium, kind, size } = describeFormat(props.match.format)
   const format = [size ?? medium, kind].filter(Boolean).join(' ')
-  return [props.match.label, props.match.catno, format || null, props.match.year]
+  return [
+    // A later full dig no longer saw it (M36): said first, in the plate face.
+    props.match.goneAt ? d.value.match.gone : null,
+    props.match.label,
+    props.match.catno,
+    format || null,
+    props.match.year,
+  ]
     .filter(Boolean)
     .join(' · ')
 })

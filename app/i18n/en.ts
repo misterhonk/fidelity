@@ -340,6 +340,14 @@ const en = {
         title: 'A dig is already running.',
         action: 'One at a time; Discogs allows us no more. Let it finish.',
       },
+      'round-running': {
+        title: 'The round is already walking.',
+        action: 'One round at a time. It keeps going if you leave the screen.',
+      },
+      'round-recent': {
+        title: 'The round ran a few minutes ago.',
+        action: 'Shops do not restock that fast. Give it ten minutes.',
+      },
       'dig-not-running': {
         title: 'There is nothing here to continue.',
         action: 'This dig is not running. Start a new dig of the shop.',

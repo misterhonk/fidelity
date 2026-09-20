@@ -87,6 +87,7 @@ import type {
   UnitPlan,
   RateLedger,
   DealerTempo,
+  DigVisit,
 } from './types'
 
 export interface PingResult {
@@ -871,6 +872,8 @@ export interface WorkerContract {
 
   /** Every dig, newest first — what the command palette offers to jump to. */
   'dig.list': { params: undefined; progress: never; result: Dig[] }
+  /** The shops and their visits, for the history on the dig screen (M36). */
+  'dig.visits': { params: undefined; progress: never; result: DigVisit[] }
 
   /**
    * The top row of the stack: which shops have fresh finds.
@@ -1565,6 +1568,9 @@ export interface WorkerError {
     | 'dig-expired'
     | 'dig-running'
     | 'dig-not-running'
+    /** The round (M36): one at a time, and not twice within ten minutes. */
+    | 'round-running'
+    | 'round-recent'
     | 'deep-scan-done'
     | 'no-anchor'
     | 'match-gone'

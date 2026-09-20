@@ -228,19 +228,46 @@ describe('the six-hour rule', () => {
 })
 
 describe('dig history', () => {
-  it('keeps the newest five and drops the rest with their matches', async () => {
+  /*
+   * Per shop, not five over everything (M36): the newest two full digs and
+   * every check-in newer than the older of them; the ceiling over all
+   * shops is the last word. Four check-ins at one shop used to push out the
+   * last full dig of another.
+   */
+  it('keeps two full digs per shop and the check-ins after the older one', async () => {
     const db = await openFidelityDb()
     // ULIDs sort chronologically, so 01A < 01B < … is oldest to newest.
-    for (const id of ['01A', '01B', '01C', '01D', '01E', '01F', '01G']) {
-      await db.put('digs', dig(id))
+    const rows: [string, string, 'normal' | 'neu'][] = [
+      ['01A', 'fat', 'normal'],
+      ['01B', 'fat', 'neu'],
+      ['01C', 'fat', 'normal'],
+      ['01D', 'fat', 'neu'],
+      ['01E', 'fat', 'normal'],
+      ['01F', 'fat', 'neu'],
+      ['01G', 'vinyl', 'normal'],
+    ]
+    for (const [id, dealer, depth] of rows) {
+      await db.put('digs', { ...dig(id), dealer, depth })
       await db.put('matches', match(id, 700))
     }
 
+    // fat keeps 01C, 01D, 01E, 01F; vinyl keeps its one full dig.
     expect(await pruneDigs(db)).toEqual(['01B', '01A'])
-
     expect((await db.getAllKeys('digs')).sort()).toEqual(['01C', '01D', '01E', '01F', '01G'])
     expect(await db.get('matches', ['01A', 700])).toBeUndefined()
     expect(await db.get('matches', ['01G', 700])).toBeDefined()
+  })
+
+  it('keeps the newest two check-ins of a shop that was only ever checked', async () => {
+    const db = await openFidelityDb()
+    for (const id of ['01A', '01B', '01C']) await db.put('digs', { ...dig(id), depth: 'neu' })
+    expect(await pruneDigs(db)).toEqual(['01A'])
+  })
+
+  it('has a ceiling over everything, oldest out first', async () => {
+    const db = await openFidelityDb()
+    for (const id of ['01A', '01B', '01C']) await db.put('digs', { ...dig(id), dealer: id })
+    expect(await pruneDigs(db, 2)).toEqual(['01A'])
   })
 
   it('does nothing while the history still fits', async () => {

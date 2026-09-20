@@ -1,4 +1,5 @@
 import { DIG_TTL_MS, pruneDigs } from '~~/db/expire'
+import { discardQuietCheck, markGone, noteChange } from './history'
 import { getPreferences } from '~~/db/meta'
 import { openFidelityDb, type FidelityDatabase } from '~~/db/open'
 import type { Dig, Match, StockRow } from '#shared/types'
@@ -541,11 +542,27 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   dig.status = 'done'
   dig.finishedAt = now()
   dig.cursor = null
+
+  /*
+   * A check-in that saw nothing new leaves no dig behind (M36). The shop
+   * remembers the look; the list says "3× checked, nothing new" instead of
+   * three empty chips. The anchor does not move: nothing newer was seen.
+   */
+  if (dig.depth === 'neu' && unique === 0) {
+    await discardQuietCheck(db, dig, now())
+    pendingNearMisses = nearMisses.build()
+    emit(passes.length - 1, 'desc')
+    return { ...dig, discarded: true }
+  }
+
   await db.put('digs', dig)
   await saveDealer(ctx, dig, fingerprint, newestSeen, shippingNote, shipsFrom, {
     minOrderTotal,
     payment,
   })
+  await noteChange(db, dig.dealer, now())
+  // What the previous full dig found and this one no longer sees (M36).
+  await markGone(db, dig, now())
   await pruneDigs(db)
 
   // What this dig taught the horizon. Handed back rather than acted on here:

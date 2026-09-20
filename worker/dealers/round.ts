@@ -4,7 +4,16 @@ import type { Dealer, RoundProgress, RoundStop, RoundSummary } from '#shared/typ
 
 import type { DiscogsClient } from '../discogs/client'
 import type { runDig as RunDig } from '../dig/scan'
+import { fail } from '../fail'
 import { log } from '../log'
+
+/**
+ * Not twice within ten minutes (M36). Martin's screen showed three check-in
+ * runs of the same shop in one minute: two tabs, or two taps, and nothing
+ * said no. A round is a request per watched shop; the shops do not restock
+ * in ten minutes.
+ */
+export const ROUND_COOLDOWN_MS = 10 * 60 * 1000
 
 /**
  * The round: every watched shop, asked what is new since the last visit.
@@ -106,6 +115,12 @@ export async function runRound({
   runDig,
 }: RoundOptions): Promise<RoundSummary> {
   const dig = runDig ?? (await import('../dig/scan')).runDig
+
+  if (current) throw fail('round-running', 'a round is already walking')
+  const previous = await lastRound()
+  if (previous && now() - (previous.finishedAt ?? previous.startedAt) < ROUND_COOLDOWN_MS)
+    throw fail('round-recent', 'the last round finished minutes ago')
+
   const watched = await watchedDealers()
 
   const stops: RoundStop[] = []
@@ -146,7 +161,15 @@ export async function runRound({
           now,
         })
         requests += done.apiRequests
-        stops.push(await stopFor(dealer, done.id, done.listingsTotal, done.matchCount))
+        // A check-in that saw nothing left no dig behind (M36).
+        stops.push(
+          await stopFor(
+            dealer,
+            done.discarded ? null : done.id,
+            done.listingsTotal,
+            done.matchCount,
+          ),
+        )
       } catch (error) {
         // Cancellation is the round ending, not a shop failing.
         if (signal?.aborted) throw error
@@ -213,12 +236,12 @@ function blankStop(dealer: Dealer, status: RoundStop['status']): RoundStop {
  */
 async function stopFor(
   dealer: Dealer,
-  digId: string,
+  digId: string | null,
   newListings: number,
   matches: number,
 ): Promise<RoundStop> {
   const db = await openFidelityDb()
-  const best = matches > 0 ? await bestMatch(db, digId) : null
+  const best = matches > 0 && digId ? await bestMatch(db, digId) : null
 
   return {
     dealer: dealer.username,

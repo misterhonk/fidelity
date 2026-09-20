@@ -59,6 +59,34 @@ const en = {
     `We now know ${counted(albums, 'album', 'albums')} more of your artists in all their pressings`,
   horizonCounts: 'The next dig counts that in.',
   earlierDigs: 'Earlier digs',
+  /** The history as the shops' story (M36). */
+  visits: {
+    title: 'Your visits',
+    full: (when: string, finds: number) =>
+      `full dig ${when}, ${counted(finds, 'find', 'finds')}`,
+    since: (checks: number, newFinds: number, quiet: number) =>
+      [
+        checks > 0 ? `${checks}× checked since, ${newFinds} new` : null,
+        quiet > 0 ? `${quiet}× nothing new` : null,
+      ]
+        .filter(Boolean)
+        .join(', '),
+    onlyChecked: (checks: number, newFinds: number) =>
+      checks > 0 ? `only checked, ${checks}×, ${newFinds} new` : 'nothing kept yet',
+    run: (kind: 'full' | 'deep' | 'new', finds: number, listings: number) =>
+      kind === 'new'
+        ? `checked, ${counted(finds, 'find', 'finds')} among ${listings} new`
+        : `${kind === 'deep' ? 'deep dig' : 'full dig'}, ${counted(finds, 'find', 'finds')}`,
+    gone: (gone: number, of: number) => `${gone} of ${of} gone since`,
+    quiet: (n: number) => (n === 1 ? 'checked, nothing new' : `${n}× checked, nothing new`),
+    open: 'open',
+    current: 'open',
+    sinceThis: (newFinds: number, gone: number | null) =>
+      gone === null
+        ? `Since this dig: ${counted(newFinds, 'new find', 'new finds')}.`
+        : `Since this dig: ${newFinds} new, ${gone} of these gone.`,
+    latest: 'The shop today',
+  },
   hits: (n: number, dealer: string) => `${counted(n, 'find', 'finds')} at ${dealer}`,
   newListings: (n: string, one: boolean) =>
     `${n} ${one ? 'new record' : 'new records'} since you last looked`,
@@ -184,6 +212,8 @@ const en = {
     },
   },
   match: {
+    /** A later full dig no longer saw this listing (M36). */
+    gone: 'gone',
     fewPressings: (n: number) =>
       n === 1 ? 'The only pressing of this album.' : `Only ${n} pressings of this album exist.`,
     band: {
@@ -292,6 +322,32 @@ const de: typeof en = {
     `Wir kennen jetzt ${counted(albums, 'Album', 'Alben')} mehr von deinen Künstlern, in allen Pressungen`,
   horizonCounts: 'Beim nächsten Dig zählt das mit.',
   earlierDigs: 'Frühere Digs',
+  visits: {
+    title: 'Deine Besuche',
+    full: (when, finds) => `voll am ${when}, ${counted(finds, 'Fund', 'Funde')}`,
+    since: (checks, newFinds, quiet) =>
+      [
+        checks > 0 ? `seitdem ${checks}× nachgeschaut, ${newFinds} neu` : null,
+        quiet > 0 ? `${quiet}× nichts Neues` : null,
+      ]
+        .filter(Boolean)
+        .join(', '),
+    onlyChecked: (checks, newFinds) =>
+      checks > 0 ? `nur nachgeschaut, ${checks}×, ${newFinds} neu` : 'noch nichts da',
+    run: (kind, finds, listings) =>
+      kind === 'new'
+        ? `nachgeschaut, ${counted(finds, 'Fund', 'Funde')} unter ${listings} neuen`
+        : `${kind === 'deep' ? 'tiefer Dig' : 'voller Dig'}, ${counted(finds, 'Fund', 'Funde')}`,
+    gone: (gone, of) => `${gone} von ${of} seitdem weg`,
+    quiet: (n) => (n === 1 ? 'nachgeschaut, nichts Neues' : `${n}× nachgeschaut, nichts Neues`),
+    open: 'öffnen',
+    current: 'offen',
+    sinceThis: (newFinds, gone) =>
+      gone === null
+        ? `Seit diesem Dig: ${counted(newFinds, 'neuer Fund', 'neue Funde')}.`
+        : `Seit diesem Dig: ${newFinds} neu, ${gone} davon weg.`,
+    latest: 'Der Laden heute',
+  },
   hits: (n, dealer) => `${counted(n, 'Fund', 'Funde')} bei ${dealer}`,
   newListings: (n, one) =>
     `${n} ${one ? 'neue Platte' : 'neue Platten'} seit deinem letzten Blick`,
@@ -416,6 +472,7 @@ const de: typeof en = {
     },
   },
   match: {
+    gone: 'weg',
     fewPressings: (n) =>
       n === 1
         ? 'Die einzige Pressung dieses Albums.'

@@ -93,5 +93,6 @@ test('names the shop being scanned when the page is opened mid-scan', async ({
 
   // And when it is through, the result is here as if this page had started it.
   await expect(page.getByText('Digging through slowshop')).toBeHidden({ timeout: 60_000 })
-  await expect(page.getByText(/finds/)).toBeVisible({ timeout: 15_000 })
+  // The visits list (M36) says "finds" too; the heading is what this asks for.
+  await expect(page.getByText(/finds/).first()).toBeVisible({ timeout: 15_000 })
 })
