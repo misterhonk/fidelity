@@ -11,6 +11,25 @@ Für eine App bedeutet SemVer:
 
 ## [0.108.0](https://github.com/misterhonk/fidelity/compare/v0.107.0...v0.108.0) (2026-09-20)
 
+**Frühere Digs sind jetzt Besuche: je Laden eine Zeile, und ein alter Dig sagt, was seitdem war.**
+
+M36, nach dem Konzept „Fidelity Besuche". Unter dem Suchfeld auf der Dig-Seite stand eine flache
+Reihe der letzten fünf Digs, bei Martin vier davon „nur das Neue" und drei aus derselben Minute.
+Jetzt heißt der Abschnitt „Deine Besuche" und zeigt je Laden eine Zeile: der letzte volle Dig mit
+seinen Funden, dahinter „seitdem 2× nachgeschaut, 1 neu" oder „3× nichts Neues". Zum Aufklappen
+stehen darunter alle Läufe, jeder zum Öffnen. Ein Nachschau-Lauf, der nichts Neues gesehen hat,
+hinterlässt keinen Dig mehr, der Laden merkt sich nur den Blick. Aufbewahrt werden je Laden die
+letzten zwei vollen Digs samt Nachschau, statt fünf über alle Läden.
+
+Ein voller Dig, der den ganzen Laden gesehen hat, markiert die Funde des vorigen vollen Digs, die
+er nicht mehr gesehen hat. Auf der Karte und in der Zeile steht dann „weg", und der Kopf eines
+alten Digs sagt „Seit diesem Dig: 1 neu, 12 davon weg" mit einem Sprung zum Laden heute. Ob
+verkauft oder rausgenommen, wissen wir nicht. Die Runde läuft nur noch eine auf einmal und nicht
+zweimal in zehn Minuten.
+
+**Was zu tun ist:** Nichts. Alte Digs bleiben; „weg" erscheint ab dem nächsten vollen Dig eines
+Ladens, weil erst der sagen kann, was fehlt.
+
 
 ### Added
 
