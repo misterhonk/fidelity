@@ -11,6 +11,19 @@ Für eine App bedeutet SemVer:
 
 ## [0.107.0](https://github.com/misterhonk/fidelity/compare/v0.106.0...v0.107.0) (2026-09-20)
 
+**Der Korb sagt, wie viel für dasselbe Porto noch reinpasst, und der Laden, wie schnell hier was weggeht.**
+
+M34.6, der Abschluss des Läden-Meilensteins. Im Korb steht jetzt unter der Versandzeile „Für
+dasselbe Porto passen noch 3 Platten rein" und dazu, wie viele der letzte Dig hier hat, die dir
+gefallen könnten. Hat die Staffel keine Obergrenze, sagt er das: leg rein, so viel du willst.
+In der Ladenliste steht hinter dem Porto, bis wie viele Platten die Zahl gilt, etwa „Porto ab
+4,50 €, bis 3 Platten". Und auf dem Ladenprofil unter „Neu reingekommen" steht das Tempo:
+„12 von 31 Funden vom 12.09. waren 9 Tage später weg." Das rechnen wir aus den letzten zwei
+vollen Digs, ein Nachschau-Lauf zählt nicht, weil er nie sieht, was gegangen ist. Ob verkauft
+oder rausgenommen, wissen wir nicht, und der Satz behauptet es auch nicht.
+
+**Was zu tun ist:** Nichts.
+
 
 ### Added
 
