@@ -132,6 +132,8 @@ describe('the visits', () => {
     await db.put('digs', dig('01B', 3 * DAY, { depth: 'neu', matchCount: 2, listingsTotal: 9 }))
     await db.put('digs', dig('01C', 4 * DAY, { matchCount: 4, checkedGone: true }))
     await db.put('digs', dig('01D', 5 * DAY, { depth: 'neu', matchCount: 1, listingsTotal: 3 }))
+    // A quiet check-in from before M36, still written as a dig: read as a quiet look.
+    await db.put('digs', dig('01F', 7 * DAY, { depth: 'neu', matchCount: 0, listingsTotal: 0 }))
     for (const id of [1, 2, 3])
       await db.put('matches', { ...match('01A', id), goneAt: 4 * DAY })
     await db.put('matches', match('01A', 4))
@@ -144,7 +146,8 @@ describe('the visits', () => {
     expect(kiste?.full?.id).toBe('01C')
     expect(kiste?.since.map((run) => run.id)).toEqual(['01D'])
     expect(kiste?.newFinds).toBe(1)
-    expect(kiste?.quietChecks).toBe(3)
+    expect(kiste?.quietChecks).toBe(4)
+    expect(kiste?.checkedAt).toBe(7 * DAY)
     expect(kiste?.runs.map((run) => [run.id, run.kind, run.gone])).toEqual([
       ['01D', 'new', null],
       ['01C', 'full', null],

@@ -109,7 +109,16 @@ export async function digVisits(db?: FidelityDatabase): Promise<DigVisit[]> {
   }
 
   const visits: DigVisit[] = []
-  for (const [username, own] of byDealer) {
+  for (const [username, all] of byDealer) {
+    /*
+     * Check-ins from before 2026-09-20 that saw nothing were still written
+     * as digs. Read as what they are — a quiet look — rather than shown as
+     * "0 finds among 0 new" three times over, which is the picture that
+     * started M36.
+     */
+    const quiet = all.filter((dig) => dig.depth === 'neu' && dig.listingsTotal === 0)
+    const own = all.filter((dig) => !quiet.includes(dig))
+
     const runs: DigBrief[] = []
     for (const dig of own) {
       // Marked by the next full dig; until one has looked, nobody knows.
@@ -133,14 +142,16 @@ export async function digVisits(db?: FidelityDatabase): Promise<DigVisit[]> {
     const since = fullIndex === -1 ? runs : runs.slice(0, fullIndex)
     const dealer = dealers.get(username)
 
+    const checkedAt = Math.max(dealer?.checkedAt ?? 0, ...quiet.map((dig) => dig.startedAt))
+
     visits.push({
       dealer: username,
       displayName: dealer?.displayName || username,
       full,
       since,
       newFinds: since.reduce((sum, run) => sum + run.matchCount, 0),
-      quietChecks: dealer?.quietChecks ?? 0,
-      checkedAt: dealer?.checkedAt ?? null,
+      quietChecks: (dealer?.quietChecks ?? 0) + quiet.length,
+      checkedAt: checkedAt > 0 ? checkedAt : null,
       runs,
     })
   }
