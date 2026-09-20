@@ -446,6 +446,17 @@ const STACKED =
       </p>
 
       <!--
+        The consent, on the card that has something to hear (ADR-012, amended
+        2026-09-20). One line and a button here; the sheet has room for the
+        reasons, and the link leads to them.
+      -->
+      <AudioConsent
+        v-if="!audioOn && !audio.failed.value && (card?.videos?.length ?? 0) > 0"
+        compact
+        @allowed="audioOn = true"
+      />
+
+      <!--
         The player is created here — and until somebody taps, this is an empty
         div and nothing else. No script, no frame, no request to Google
         (ADR-012).

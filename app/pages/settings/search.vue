@@ -35,5 +35,14 @@ useSeoMeta({ title: () => st.value.search.title })
       -->
       <DealerDiscovery :with-friends="false" />
     </SettingsCard>
+
+    <!--
+      The audio preview's switch (ADR-012), beside the "listen at" picker it
+      belongs with. It stood under "Your data" until 2026-09-20 — the one
+      place somebody looking at a record with clips on it would never look.
+    -->
+    <SettingsCard anchor="listen" :title="st.audio.title" :description="st.audio.lead">
+      <AudioPreviewToggle />
+    </SettingsCard>
   </SettingsPage>
 </template>

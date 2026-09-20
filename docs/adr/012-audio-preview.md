@@ -118,3 +118,21 @@ them under one heading owes the reader the difference.
 The privacy page also now names the third country, which it should have from the
 start: Google LLC is in the United States, and the transfer relies on the EU–US
 Data Privacy Framework.
+
+## Amended 2026-09-20: the consent stands where the clips are
+
+Two findings from Martin on the same day. **The play buttons had gone.** The
+Content-Security-Policy shipped in M34.5 (`v0.91.2`) allowed the player's frame and
+not its script: `frame-src` named both YouTube hosts, `script-src` did not, and the
+iframe API from `www.youtube.com` was refused. `useAudioPreview` reads a refused script
+as "Google is blocked here" and takes the button away, by design, so nothing said a
+word. `script-src` now names `https://www.youtube.com`; a test holds it to that.
+
+**And the switch was hidden.** It stood under Settings → Your data, and the sheet
+pointed at it in a grey line. Somebody looking at a record with clips on it does not
+go to "Your data" to hear it. So the consent is asked where the decision is made
+(`AudioConsent.vue`): on the sheet, the question, the three sentences of what happens
+and one button; on the stack, one line and the button. The button throws the same
+switch as the settings, and the switch moved to Settings → Search → Hear a record,
+beside the "listen at" picker. Nothing about conditions 1–8 changes: still off by
+default, still nothing before a tap, still `youtube-nocookie.com`.

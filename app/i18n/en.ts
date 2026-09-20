@@ -118,7 +118,16 @@ const en = {
      * Split around the link for the same reason `signIn` is: a placeholder
      * inside an anchor is a placeholder that ends up outside one.
      */
-    here: { lead: 'Play them here —', link: 'switch the preview on' },
+    /*
+     * The consent, where the clips are (ADR-012, amended 2026-09-20). What
+     * happens and what does not, then one button. The links stay either way.
+     */
+    consent: {
+      lead: 'Play the clips right here?',
+      what: 'We fetch the player from YouTube. Google then sees this device’s address and which record is playing. Your collection and your token stay here. Nothing loads before you tap play.',
+      yes: 'Play here',
+      settings: 'You can switch it off again under Settings → Search.',
+    },
     stop: 'Stop',
     /** Over the tracklist, where the clips hang once they are matched. */
     onIt: 'On the record',

@@ -202,7 +202,7 @@ const en = {
   search: {
     lead: 'Applies to every dig.',
     title: 'Search',
-    hint: 'What is looked for, and where the shops come from',
+    hint: 'What is looked for, where the shops come from, and how you hear a record',
     unrestricted: 'No restrictions',
     upTo: (price: string) => `up to ${price}`,
     originalsOnly: 'originals only',
@@ -314,9 +314,11 @@ const en = {
    * switchable.
    */
   audio: {
-    label: 'Listen to a record',
-    off: 'Off. Nothing is loaded from Google.',
-    on: 'On. Records with clips carry a play button, and it only talks to Google once you tap it.',
+    title: 'Hear a record',
+    lead: 'The clips a record carries come from YouTube. Whether they play here or open over there is your call.',
+    label: 'Play clips right here',
+    off: 'Off. A clip opens at YouTube in a new tab. Nothing is loaded from Google.',
+    on: 'On. Records with clips get a play button here, and Google hears from this device only once you tap it.',
     whyLabel: 'What happens then',
     why: 'Discogs has one source of sound: YouTube. So a preview means embedding Google. Your collection, wantlist and token stay on this device. What Google learns is this device’s address and which record is playing. Nothing loads until you tap Listen, not even with this switch on.',
   },
@@ -844,7 +846,7 @@ const de: typeof en = {
   search: {
     lead: 'Gilt für jeden Dig.',
     title: 'Suche',
-    hint: 'Wonach gesucht wird und woher die Läden kommen',
+    hint: 'Wonach gesucht wird, woher die Läden kommen, und wie du reinhörst',
     unrestricted: 'Ohne Einschränkung',
     upTo: (price) => `bis ${price}`,
     originalsOnly: 'nur Originale',
@@ -928,9 +930,11 @@ const de: typeof en = {
   },
 
   audio: {
-    label: 'Platte anhören',
-    off: 'Aus. Wir laden nichts von Google.',
-    on: 'An. Platten mit Clips bekommen einen Abspielknopf, und erst beim Tippen redet er mit Google.',
+    title: 'Reinhören',
+    lead: 'Die Clips einer Platte kommen von YouTube. Ob sie hier laufen oder dort aufgehen, entscheidest du.',
+    label: 'Clips gleich hier abspielen',
+    off: 'Aus. Ein Clip geht bei YouTube in einem neuen Tab auf. Wir laden nichts von Google.',
+    on: 'An. Platten mit Clips bekommen hier einen Abspielknopf, und erst beim Tippen erfährt Google von diesem Gerät.',
     whyLabel: 'Was dann passiert',
     why: 'Discogs hat genau eine Tonquelle: YouTube. Eine Hörprobe heißt also, Google einzubetten. Sammlung, Wantlist und Token bleiben auf diesem Gerät. Was Google erfährt, ist die Adresse dieses Geräts und welche Platte läuft. Vor dem Tippen laden wir nichts, auch mit eingeschaltetem Schalter nicht.',
   },

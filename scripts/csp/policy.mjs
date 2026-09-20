@@ -35,7 +35,13 @@ export function policy(hashes) {
     "default-src 'self'",
     "connect-src 'self' https:",
     "img-src 'self' https://i.discogs.com data: blob:",
-    `script-src 'self' ${hashes.join(' ')}`.trim(),
+    /*
+     * The audio preview's player (ADR-012) is driven by a script from
+     * www.youtube.com — the iframe API, and the widget script it loads in
+     * turn. From v0.91.2 to v0.105.0 the policy allowed the frame and not the
+     * script, and the play button silently went away on every screen.
+     */
+    `script-src 'self' https://www.youtube.com ${hashes.join(' ')}`.trim(),
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
     "worker-src 'self' blob:",

@@ -38,6 +38,16 @@ describe('the content security policy', () => {
     expect(value).not.toContain("script-src 'self' 'unsafe-inline'")
   })
 
+  it('lets the audio preview load its player script, not only its frame', () => {
+    // From v0.91.2 to v0.105.0 the frame was allowed and the script was not,
+    // and every play button went away without a word (ADR-012).
+    const value = policy(inlineHashes(html))
+    expect(value).toMatch(/script-src 'self' https:\/\/www\.youtube\.com 'sha256-/)
+    expect(value).toContain(
+      'frame-src https://www.youtube-nocookie.com https://www.youtube.com',
+    )
+  })
+
   it('is what both servers send', () => {
     for (const file of ['deploy/.htaccess', 'deploy/nginx.conf']) {
       expect(readFileSync(file, 'utf8')).toContain('Content-Security-Policy "__FIDELITY_CSP__"')

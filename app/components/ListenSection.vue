@@ -319,15 +319,11 @@ onBeforeUnmount(() => audio.release(mount.value))
       {{ m.common.asking }}
     </p>
 
-    <!-- What it could do, for somebody who has never been to the settings. -->
-    <p
-      v-if="(loose.length || onTracks.rest.length) && !preview"
-      class="text-fid-xs text-fid-text-muted"
-    >
-      {{ m.listen.here.lead }}
-      <NuxtLink to="/settings/data" class="fid-action underline underline-offset-4">{{
-        m.listen.here.link
-      }}</NuxtLink>
-    </p>
+    <!--
+      The consent, where the clips are (ADR-012, amended 2026-09-20). It used
+      to be a grey line pointing three screens away; now it is the question,
+      the reasons and one button, and the links above stay either way.
+    -->
+    <AudioConsent v-if="distinct.length && !preview" @allowed="preview = true" />
   </section>
 </template>

@@ -22,13 +22,5 @@ useSeoMeta({ title: () => st.value.data.title })
       <h2 class="text-fid-base font-medium text-fid-text">{{ m.limit.title }}</h2>
       <RateMeter card />
     </section>
-
-    <!--
-      Here and not under "appearance": an audio preview is not a question of
-      how things look but the one place where, on request, something leaves
-      this device (ADR-012). On the page called "take with you or get rid of",
-      it stands in the right spot.
-    -->
-    <AudioPreviewToggle />
   </SettingsPage>
 </template>

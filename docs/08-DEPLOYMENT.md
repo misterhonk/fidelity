@@ -182,7 +182,7 @@ Header set Strict-Transport-Security "max-age=31536000"
 Header set Content-Security-Policy "default-src 'self'; \
   connect-src 'self' https:; \
   img-src 'self' https://i.discogs.com data: blob:; \
-  script-src 'self' 'sha256-…' 'sha256-…' 'sha256-…'; \
+  script-src 'self' https://www.youtube.com 'sha256-…' 'sha256-…' 'sha256-…'; \
   style-src 'self' 'unsafe-inline'; font-src 'self'; worker-src 'self' blob:; \
   frame-src https://www.youtube-nocookie.com https://www.youtube.com; \
   frame-ancestors 'none'; base-uri 'self'; object-src 'none'; manifest-src 'self'; form-action 'self'"

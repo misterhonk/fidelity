@@ -50,7 +50,12 @@ const de: Messages = {
     title: 'Reinhören',
     search: (service) => `Bei ${service} suchen`,
     source: 'Läuft über YouTube',
-    here: { lead: 'Hier abspielen,', link: 'Hörprobe einschalten' },
+    consent: {
+      lead: 'Die Clips gleich hier abspielen?',
+      what: 'Den Player holen wir von YouTube. Google sieht dann die Adresse dieses Geräts und welche Platte läuft. Sammlung und Token bleiben hier. Vor dem Tippen laden wir nichts.',
+      yes: 'Hier abspielen',
+      settings: 'Ausschalten kannst du es wieder unter Einstellungen → Suche.',
+    },
     stop: 'Stopp',
     onIt: 'Auf der Platte',
     via: 'YouTube',
