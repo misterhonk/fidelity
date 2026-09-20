@@ -86,6 +86,7 @@ import type {
   PlaceRule,
   UnitPlan,
   RateLedger,
+  DealerTempo,
 } from './types'
 
 export interface PingResult {
@@ -1213,6 +1214,8 @@ export interface DealerOverview {
 
 export interface DealerProfile {
   dealer: Dealer
+  /** How fast the finds go here, off the last two full digs (M34.6). */
+  tempo: DealerTempo | null
   /** Matches per thousand listings — comparable between shops. */
   rate: number
   /**

@@ -1819,7 +1819,25 @@ export interface DealerWithReasons extends Dealer {
    * (M34.3): Discogs' own figure off a fresh basket line, the user's table,
    * or a reading of the shop's text. In the seller's currency, unconverted.
    */
-  postageFrom: { value: number; currency: string; source: ShippingTier['source'] } | null
+  postageFrom: {
+    value: number
+    currency: string
+    source: ShippingTier['source']
+    /** How many records that figure covers, or null where the table does not say (M34.6). */
+    upTo: number | null
+  } | null
+}
+
+/**
+ * How fast a shop's finds go (M34.6): of the finds from one full dig, how
+ * many were gone at the next, and how many days lay between.
+ */
+export interface DealerTempo {
+  of: number
+  gone: number
+  /** When the earlier dig started. */
+  from: number
+  days: number
 }
 
 export interface HubShop {
@@ -2072,6 +2090,12 @@ export interface BasketSummary {
   shippingSource: ShippingTier['source'] | null
   /** With a hub's ladder: how many keys contributed exactly it (M34.3). */
   shippingConfirmedBy: number | null
+  /**
+   * How much more fits at this postage (M34.6): the distance to the edge of
+   * the tier the parcel is in, or `more: null` where the tier has no edge.
+   * Null where no table applies.
+   */
+  room: { more: number | null; upTo: number | null } | null
   shippingMatched: string[]
   /** The destination heading the rates were read under, when the text had one. */
   shippingSection: string | null

@@ -483,6 +483,18 @@ const peak = computed(() =>
         }}
       </p>
 
+      <!--
+        How much more fits at this postage (M34.6), and what the last dig
+        here has to fill it with — the sentence that turns a parcel of two
+        into a parcel of five.
+      -->
+      <p v-if="summary.room" class="fid-num text-fid-sm text-fid-text-muted">
+        {{ summary.room.more === null ? b.roomOpen : b.room(summary.room.more)
+        }}<template v-if="summary.room.more !== 0 && summary.candidates.length > 0">
+          {{ b.roomCandidates(summary.candidates.length) }}</template
+        >
+      </p>
+
       <p v-if="summary.shippingSource === 'parsed'" class="text-fid-xs text-fid-text-muted">
         {{ b.parsedFrom
         }}<template v-if="summary.shippingSection">

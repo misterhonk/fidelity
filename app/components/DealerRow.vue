@@ -129,12 +129,16 @@ const code = computed(() =>
         <!-- What one record costs to post from here, as far as this device knows (M34.3). -->
         <template v-if="dealer.postageFrom">
           ·
-          <span :title="b.source[dealer.postageFrom.source]">{{
-            h.rowPostage(
-              money(dealer.postageFrom.value, dealer.postageFrom.currency) ??
-                decimal(dealer.postageFrom.value, 2),
-            )
-          }}</span>
+          <span :title="b.source[dealer.postageFrom.source]"
+            >{{
+              h.rowPostage(
+                money(dealer.postageFrom.value, dealer.postageFrom.currency) ??
+                  decimal(dealer.postageFrom.value, 2),
+              )
+            }}<template v-if="dealer.postageFrom.upTo && dealer.postageFrom.upTo > 1">{{
+              h.rowPostageUpTo(dealer.postageFrom.upTo)
+            }}</template></span
+          >
         </template>
       </span>
 

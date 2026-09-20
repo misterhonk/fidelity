@@ -272,6 +272,13 @@ export function summarise(
     // in by hand and one figure off an order can sit in the same list.
     shippingSource: namedFits ? 'discogs' : (step?.source ?? shipping.source),
     shippingConfirmedBy: namedFits ? null : (shipping.confirmedBy ?? null),
+    // How much more fits at this postage (M34.6): the tier's edge, or none.
+    room: step
+      ? {
+          more: step.maxItems === null ? null : Math.max(0, step.maxItems - parcel.count),
+          upTo: step.maxItems,
+        }
+      : null,
     shippingMatched: shipping.matched,
     shippingSection: shipping.section ?? null,
     shippingByWeight: shipping.byWeight ?? false,

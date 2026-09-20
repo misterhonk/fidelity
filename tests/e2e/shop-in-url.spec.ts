@@ -27,7 +27,7 @@ test('keeps the open shop across a reload, and in a link', async ({ page }) => {
     timeout: 15_000,
   })
   // The row says what one record costs to post from here (M34.3), off the seed's table.
-  await expect(page.getByText('from €4.50 postage')).toBeVisible()
+  await expect(page.getByText('from €4.50 postage, up to 3 records')).toBeVisible()
 
   // A name nobody knows falls back rather than showing an empty profile.
   await page.goto('/dealers?shop=nobody-of-that-name')

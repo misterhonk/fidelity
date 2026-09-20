@@ -199,6 +199,8 @@ const en = {
     text: 'What the shop writes',
   },
   movement: {
+    tempo: (gone: number, of: number, from: string, days: number) =>
+      `${gone} of the ${counted(of, 'find', 'finds')} from ${from} were gone ${counted(days, 'day', 'days')} later.`,
     newest: (when: string) => `newest arrival ${when}`,
     still: 'Nothing new since you last looked.',
     unwatched: 'Not watched, so we do not look.',
@@ -216,6 +218,7 @@ const en = {
   },
   /** On the row: what one record costs to post from here (M34.3). */
   rowPostage: (amount: string) => `from ${amount} postage`,
+  rowPostageUpTo: (n: number) => `, up to ${n} records`,
   hideShort: 'Put away',
   hiddenLine: (shop: string) => `${shop} put away.`,
   undo: 'Undo',
@@ -408,6 +411,8 @@ const de: typeof en = {
     text: 'Was der Laden dazu schreibt',
   },
   movement: {
+    tempo: (gone, of, from, days) =>
+      `${gone} von ${counted(of, 'Fund', 'Funden')} von ${from} waren ${counted(days, 'Tag', 'Tage')} später weg.`,
     newest: (when) => `zuletzt reingekommen ${when}`,
     still: 'Nichts Neues seit deinem letzten Blick.',
     unwatched: 'Nicht beobachtet, also schauen wir nicht nach.',
@@ -424,6 +429,7 @@ const de: typeof en = {
     adding: 'Kommt …',
   },
   rowPostage: (amount) => `Porto ab ${amount}`,
+  rowPostageUpTo: (n) => `, bis ${n} Platten`,
   hideShort: 'Weglegen',
   hiddenLine: (shop) => `${shop} weggelegt.`,
   undo: 'Rückgängig',

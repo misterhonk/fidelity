@@ -84,20 +84,33 @@ export function postageFromFor(
 ): DealerWithReasons['postageFrom'] {
   if (named) {
     return named.original
-      ? { value: named.original.value, currency: named.original.currency, source: 'discogs' }
-      : { value: named.value, currency: named.currency, source: 'discogs' }
+      ? {
+          value: named.original.value,
+          currency: named.original.currency,
+          source: 'discogs',
+          upTo: null,
+        }
+      : { value: named.value, currency: named.currency, source: 'discogs', upTo: null }
   }
   const own = shippingFor(
     dealer.shippingTiers.filter((tier) => tier.source === 'user' || tier.source === 'order'),
     1,
   )
-  if (own) return { value: own.price, currency: own.currency, source: own.source }
+  if (own)
+    return { value: own.price, currency: own.currency, source: own.source, upTo: own.maxItems }
 
   const parsed = shippingFor(
     tiersForUnit(parseShippingText(dealer.shippingNote, home).tiers, 'record'),
     1,
   )
-  return parsed ? { value: parsed.price, currency: parsed.currency, source: 'parsed' } : null
+  return parsed
+    ? {
+        value: parsed.price,
+        currency: parsed.currency,
+        source: 'parsed',
+        upTo: parsed.maxItems,
+      }
+    : null
 }
 
 /** The profile's thresholds (app/pages/dealers.vue `verdict`). */

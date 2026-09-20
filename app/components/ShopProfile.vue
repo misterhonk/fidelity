@@ -450,6 +450,17 @@ watch(
       <p v-if="newest" class="fid-num text-fid-sm text-fid-text-muted" data-prose="data">
         {{ h.movement.newest(newest) }}
       </p>
+      <!-- The tempo (M34.6): how many of one dig's finds the next one no longer saw. -->
+      <p v-if="profile.tempo" class="fid-num text-fid-sm text-fid-text-muted" data-prose="data">
+        {{
+          h.movement.tempo(
+            profile.tempo.gone,
+            profile.tempo.of,
+            since(profile.tempo.from),
+            profile.tempo.days,
+          )
+        }}
+      </p>
       <WhyNote :label="h.watchCostLabel">{{ h.watchCost }}</WhyNote>
 
       <!--

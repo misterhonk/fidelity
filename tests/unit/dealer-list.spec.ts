@@ -88,6 +88,7 @@ describe('the postage on a row', () => {
       value: 6,
       currency: 'EUR',
       source: 'parsed',
+      upTo: 1,
     })
     const typed = {
       ...text,
@@ -106,6 +107,7 @@ describe('the postage on a row', () => {
       value: 12,
       currency: 'GBP',
       source: 'discogs',
+      upTo: null,
     })
     expect(postageFromFor(shop('none', 1, 10), null, 'Germany')).toBeNull()
   })

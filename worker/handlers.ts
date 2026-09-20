@@ -531,6 +531,7 @@ export const handlers: HandlerMap = {
         (await db.getAll('basket')).filter((item) => item.dealer === username),
         Date.now(),
       ),
+      tempo: await (await import('./dealers/tempo')).tempoOf(username),
     }
   },
 

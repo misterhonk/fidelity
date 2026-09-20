@@ -102,6 +102,13 @@ const en = {
   /** The sentence the whole feature exists for (docs/00 §7). */
   advice: (add: number, now: string, then: string) =>
     `${counted(add, 'record', 'records')} more and the postage drops from ${now} to ${then} each.`,
+  /** How much more fits at this postage (M34.6). */
+  room: (more: number) =>
+    more === 0
+      ? 'The parcel is full at this postage.'
+      : `Room for ${counted(more, 'record', 'records')} more at this postage.`,
+  roomOpen: 'Add as many as you like, the postage stays.',
+  roomCandidates: (n: number) => `The last dig here has ${n} you might like.`,
 
   parsedFrom: 'Our guess from the shop’s own text',
   parsedSection: (section: string) => `(section "${section}")`,
@@ -392,6 +399,12 @@ const de: typeof en = {
 
   advice: (add, now, then) =>
     `Noch ${counted(add, 'Platte', 'Platten')}, und das Porto fällt von ${now} auf ${then} pro Stück.`,
+  room: (more) =>
+    more === 0
+      ? 'Bei diesem Porto ist das Paket voll.'
+      : `Für dasselbe Porto ${more === 1 ? 'passt noch eine Platte' : `passen noch ${more} Platten`} rein.`,
+  roomOpen: 'Leg rein, so viel du willst, das Porto bleibt.',
+  roomCandidates: (n) => `Der letzte Dig hier hat ${n}, die dir gefallen könnten.`,
 
   parsedFrom: 'Unsere Schätzung aus dem Text des Ladens',
   parsedSection: (section) => `(Abschnitt „${section}“)`,
