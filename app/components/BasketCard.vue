@@ -434,7 +434,11 @@ const peak = computed(() =>
         <dt class="text-fid-text-muted">
           {{ b.shipping }}
           <span v-if="summary.shippingSource" class="text-fid-xs">
-            ({{ b.source[summary.shippingSource] }})
+            ({{
+              summary.shippingConfirmedBy
+                ? b.sourceShared(summary.shippingConfirmedBy)
+                : b.source[summary.shippingSource]
+            }})
           </span>
         </dt>
         <dd class="fid-num text-right text-fid-text">

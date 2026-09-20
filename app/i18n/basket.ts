@@ -71,6 +71,9 @@ const en = {
     discogs: 'named by Discogs for this record',
     order: 'from your order',
   } satisfies Record<ShippingTier['source'], string>,
+  /** A hub's ladder, with how many keys stand behind it (M34.3). */
+  sourceShared: (n: number) =>
+    n === 1 ? 'shared by one person' : `shared, ${n} people typed the same`,
   /*
    * Beside a table for two or more: the one figure that is not a guess. It
    * is the floor the table has to agree with, said once, with the seller's
@@ -368,6 +371,8 @@ const de: typeof en = {
     discogs: 'von Discogs für diese Platte genannt',
     order: 'aus deiner Bestellung',
   },
+  sourceShared: (n) =>
+    n === 1 ? 'von einer Person geteilt' : `geteilt, ${n} Leute haben dasselbe eingetragen`,
   namedForOne: (original, converted) =>
     `Discogs nennt ${original}${converted ? ` (${converted})` : ''} für eine Platte.`,
   noShipping: 'Discogs sagt, dieser Laden versendet nicht an deine Adresse.',

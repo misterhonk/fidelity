@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test, describe } from 'node:test'
 
-import { createKeyLimiter } from '../src/access.ts'
+import { createKeyLimiter, generateAccessKeyPair, issueKey } from '../src/access.ts'
 import { createHubApp, MAX_CHUNK_BYTES } from '../src/app.ts'
 import { openHubDb } from '../src/db.ts'
 
@@ -338,7 +338,7 @@ describe('the shipping ladders', () => {
     await put(app, '/v1/shipping/vinyl-tom/germany', tiers)
 
     const body = await (await app.request('/v1/shipping/vinyl-tom/germany')).json()
-    assert.deepEqual(body, { tiers })
+    assert.deepEqual(body, { tiers, confirmedBy: 1 })
   })
 
   test('does not care about capitalisation in the key', async () => {
@@ -363,6 +363,57 @@ describe('the shipping ladders', () => {
 
     const body = await (await app.request('/v1/shipping/x/germany')).json()
     assert.equal('source' in body.tiers[0], false)
+  })
+
+  /*
+   * "Confirmed by n" (M34.3): one vote per key, the ladder most keys agree
+   * on wins, and the count goes out with it. Without keys the hub cannot
+   * tell two people apart, so behind the secret door the count stays one.
+   */
+  test('counts the keys that stand behind a ladder, and hands out the one most agree on', async () => {
+    const pair = generateAccessKeyPair()
+    const db = openHubDb(':memory:')
+    const app = createHubApp({
+      db,
+      secret: null,
+      now: () => 42,
+      access: { publicKey: pair.publicKey },
+    })
+    const keyFor = (sub) =>
+      issueKey({ privateKeyPem: pair.privateKeyPem, sub, tier: 'lp', now: () => 42_000 })
+    const as = (sub) => ({ 'x-fidelity-key': keyFor(sub) })
+    const read = async () =>
+      (await app.request('/v1/shipping/vinyl-tom/germany', { headers: as('reader') })).json()
+
+    await put(app, '/v1/shipping/vinyl-tom/germany', tiers, as('anna'))
+    assert.deepEqual(await read(), { tiers, confirmedBy: 1 })
+
+    // Anna again is still one person.
+    await put(app, '/v1/shipping/vinyl-tom/germany', tiers, as('anna'))
+    assert.equal((await read()).confirmedBy, 1)
+
+    await put(app, '/v1/shipping/vinyl-tom/germany', tiers, as('ben'))
+    assert.equal((await read()).confirmedBy, 2)
+
+    // A third person with another ladder does not displace two who agree.
+    const other = [{ minItems: 1, maxItems: null, price: 4, currency: 'EUR' }]
+    await put(app, '/v1/shipping/vinyl-tom/germany', other, as('carl'))
+    assert.deepEqual(await read(), { tiers, confirmedBy: 2 })
+
+    // Until Ben changes his mind: two to one the other way, and the newer wins a tie.
+    await put(app, '/v1/shipping/vinyl-tom/germany', other, as('ben'))
+    assert.deepEqual(await read(), { tiers: other, confirmedBy: 2 })
+  })
+
+  test('counts one behind the secret door, where everybody is the same owner', async () => {
+    const { app } = hub('hush')
+    const secret = { 'x-hub-secret': 'hush' }
+    await put(app, '/v1/shipping/vinyl-tom/germany', tiers, secret)
+    await put(app, '/v1/shipping/vinyl-tom/germany', tiers, secret)
+    const body = await (
+      await app.request('/v1/shipping/vinyl-tom/germany', { headers: secret })
+    ).json()
+    assert.deepEqual(body, { tiers, confirmedBy: 1 })
   })
 })
 

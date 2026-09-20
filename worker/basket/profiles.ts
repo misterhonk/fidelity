@@ -75,6 +75,8 @@ export interface ShippingResolution {
    * shop's own text; a typed table counts items, the way Discogs' cart does.
    */
   countUnits?: boolean
+  /** How many keys stand behind a hub's ladder (M34.3, "confirmed by n"). */
+  confirmedBy?: number
   /**
    * The destination heading the rates were read under — `Germany`, `Europe`.
    * Only set when the text was sorted by destination and one block was picked.
@@ -143,8 +145,13 @@ export async function resolveShipping(
   if (hub) {
     try {
       const shared = await withTimeout(hub.shipping(dealer.username, country), HUB_TIMEOUT_MS)
-      if (shared && shared.length > 0) {
-        return { ...about, tiers: sortTiers(shared), source: 'bundled' }
+      if (shared && shared.tiers.length > 0) {
+        return {
+          ...about,
+          tiers: sortTiers(shared.tiers),
+          source: 'bundled',
+          confirmedBy: shared.confirmedBy,
+        }
       }
     } catch {
       // Deliberately silent (rule 8). The file below is not a degraded mode.

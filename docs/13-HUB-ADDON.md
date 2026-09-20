@@ -231,8 +231,8 @@ is what makes it one.
 ```
 GET    /v1/horizon/:kind/:id           → HorizonChunk | 404
 PUT    /v1/horizon/:kind/:id           ← contribute a chunk
-GET    /v1/shipping/:dealer/:country   → ShippingTier[] | 404
-PUT    /v1/shipping/:dealer/:country   ← contribute tiers
+GET    /v1/shipping/:dealer/:country   → { tiers, confirmedBy } | 404   (one vote per key, M34.3)
+PUT    /v1/shipping/:dealer/:country   ← contribute tiers; answers { stored, confirmedBy }
 GET    /v1/covers?ids=1,2,3            → { covers: { releaseId: {thumbUrl, coverUrl} } }
 PUT    /v1/covers                      ← contribute { covers: [...] }
 GET    /v1/family/:master              → PressingFamilyFacts | 404   (M20 #7, CC0, 30 days)

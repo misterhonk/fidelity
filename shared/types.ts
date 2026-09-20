@@ -2070,6 +2070,8 @@ export interface BasketSummary {
   currency: string | null
   shipping: number | null
   shippingSource: ShippingTier['source'] | null
+  /** With a hub's ladder: how many keys contributed exactly it (M34.3). */
+  shippingConfirmedBy: number | null
   shippingMatched: string[]
   /** The destination heading the rates were read under, when the text had one. */
   shippingSection: string | null

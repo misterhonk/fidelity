@@ -52,6 +52,26 @@ export function openHubDb(path: string): DatabaseSync {
   `)
 
   /*
+   * Who stands behind a ladder (M34.3, "confirmed by n").
+   *
+   * One vote per key and dealer-country: the ladder that key contributed
+   * last. The ladder with the most votes is the one `shipping` hands out,
+   * and the count goes out with it. Behind the secret door or an open hub
+   * every contributor is the same empty owner, so the count there is one —
+   * honest, since the hub cannot tell two people apart without keys.
+   */
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS shipping_votes (
+      key    TEXT NOT NULL,
+      owner  TEXT NOT NULL,
+      ladder TEXT NOT NULL,
+      body   TEXT NOT NULL,
+      at     INTEGER NOT NULL,
+      PRIMARY KEY (key, owner)
+    )
+  `)
+
+  /*
    * Shops, and what they stock (ADR-014).
    *
    * The first table here that is about a *shop* rather than about a record.

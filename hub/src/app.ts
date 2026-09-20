@@ -469,6 +469,26 @@ export function createHubApp({
   const shippingKey = (dealer: string, country: string) =>
     `${dealer.toLowerCase()}|${country.toLowerCase()}`
 
+  /**
+   * A ladder's identity, for counting who agrees with it: the tiers in
+   * order, nothing else. Two keys typing the same table land on one line.
+   */
+  const ladderOf = (tiers: z.infer<typeof tiersSchema>) =>
+    JSON.stringify(
+      [...tiers]
+        .sort((a, b) => a.minItems - b.minItems)
+        .map((t) => [t.minItems, t.maxItems, t.price, t.currency]),
+    )
+
+  /** How many distinct owners stand behind this exact ladder; one at least. */
+  const confirmedBy = (key: string, body: string): number => {
+    const ladder = ladderOf(tiersSchema.parse(JSON.parse(body)))
+    const row = db
+      .prepare('SELECT COUNT(*) AS n FROM shipping_votes WHERE key = ? AND ladder = ?')
+      .get(key, ladder) as { n: number }
+    return Math.max(1, row.n)
+  }
+
   app.get('/v1/shipping/:dealer/:country', (c) => {
     if (!DEALER_NAME.test(c.req.param('dealer')) || !COUNTRY_NAME.test(c.req.param('country')))
       return c.json({ error: 'not a dealer and a country' }, 400)
@@ -477,7 +497,8 @@ export function createHubApp({
       { body: string } | undefined
 
     if (!row) return c.json({ error: 'not known' }, 404)
-    return c.json({ tiers: JSON.parse(row.body) })
+    // "Confirmed by n" (M34.3): distinct keys that contributed this ladder.
+    return c.json({ tiers: JSON.parse(row.body), confirmedBy: confirmedBy(key, row.body) })
   })
 
   app.put('/v1/shipping/:dealer/:country', async (c) => {
@@ -488,25 +509,44 @@ export function createHubApp({
     const parsed = tiersSchema.safeParse(safeJson(await c.req.text()))
     if (!parsed.success) return c.json({ error: 'not a shipping ladder' }, 400)
 
+    const key = shippingKey(dealer, country)
+    // Stored without the `source` field: on the hub every ladder is
+    // somebody's contribution, and the client labels it 'bundled' when it
+    // arrives. Keeping a claimed source would let one client's guess look
+    // like another's hand-entered table.
+    const body = JSON.stringify(parsed.data)
+
+    /*
+     * One vote per owner (M34.3): this key's latest word on the shop. Then
+     * the ladder most owners agree on is the one handed out — and where they
+     * tie, the one said most recently, which is what the hub did before
+     * anybody counted.
+     */
+    db.prepare(
+      `INSERT INTO shipping_votes (key, owner, ladder, body, at)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(key, owner) DO UPDATE SET
+         ladder = excluded.ladder,
+         body = excluded.body,
+         at = excluded.at`,
+    ).run(key, c.get('owner'), ladderOf(parsed.data), body, now())
+
+    const winner = db
+      .prepare(
+        `SELECT body FROM shipping_votes WHERE key = ?
+         GROUP BY ladder ORDER BY COUNT(*) DESC, MAX(at) DESC LIMIT 1`,
+      )
+      .get(key) as { body: string } | undefined
+
     db.prepare(
       `INSERT INTO shipping (key, dealer, country, body, updated_at)
        VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(key) DO UPDATE SET
          body = excluded.body,
          updated_at = excluded.updated_at`,
-    ).run(
-      shippingKey(dealer, country),
-      dealer.toLowerCase(),
-      country.toLowerCase(),
-      // Stored without the `source` field: on the hub every ladder is
-      // somebody's contribution, and the client labels it 'bundled' when it
-      // arrives. Keeping a claimed source would let one client's guess look
-      // like another's hand-entered table.
-      JSON.stringify(parsed.data),
-      now(),
-    )
+    ).run(key, dealer.toLowerCase(), country.toLowerCase(), winner?.body ?? body, now())
 
-    return c.json({ stored: true })
+    return c.json({ stored: true, confirmedBy: confirmedBy(key, winner?.body ?? body) })
   })
 
   // --- Shops (ADR-014) ------------------------------------------------------

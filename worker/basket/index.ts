@@ -271,6 +271,7 @@ export function summarise(
     // The label names the tier that applies for this count: a table typed
     // in by hand and one figure off an order can sit in the same list.
     shippingSource: namedFits ? 'discogs' : (step?.source ?? shipping.source),
+    shippingConfirmedBy: namedFits ? null : (shipping.confirmedBy ?? null),
     shippingMatched: shipping.matched,
     shippingSection: shipping.section ?? null,
     shippingByWeight: shipping.byWeight ?? false,

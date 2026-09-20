@@ -209,8 +209,10 @@ describe('the hub client', () => {
       fetchImpl: respond({ tiers: [{ minItems: 1, maxItems: 1, price: 6, currency: 'EUR' }] }),
     })!
 
-    const tiers = await hub.shipping('vinyl-tom', 'Germany')
-    expect(tiers?.[0]?.source).toBe('bundled')
+    const shared = await hub.shipping('vinyl-tom', 'Germany')
+    expect(shared?.tiers[0]?.source).toBe('bundled')
+    // A hub from before the count answers without it, which reads as one.
+    expect(shared?.confirmedBy).toBe(1)
   })
 
   it('only contributes ladders somebody actually typed in', async () => {

@@ -123,7 +123,15 @@ const tiersSchema = z.object({
       currency: z.string().length(3),
     }),
   ),
+  /** Since 2026-09-20; a hub from before answers without it. */
+  confirmedBy: z.number().int().positive().optional(),
 })
+
+export interface SharedLadder {
+  tiers: ShippingTier[]
+  /** Distinct keys that contributed exactly this ladder; one where the hub cannot tell. */
+  confirmedBy: number
+}
 
 export interface HubClientOptions {
   /** Empty or absent means no hub, which is the normal case. */
@@ -145,7 +153,8 @@ export interface HubClient {
    * shared, and must not book a rejected contribution as done.
    */
   contributeHorizon(chunk: HorizonChunk): Promise<boolean>
-  shipping(dealer: string, country: string): Promise<ShippingTier[] | null>
+  /** A shared ladder and how many keys stand behind it (M34.3). */
+  shipping(dealer: string, country: string): Promise<SharedLadder | null>
   contributeShipping(dealer: string, country: string, tiers: ShippingTier[]): Promise<void>
 
   /**
@@ -464,7 +473,10 @@ export function createHubClient({
 
       // Labelled 'bundled', never 'user'. Whatever somebody else typed in is,
       // from here, a shared profile — and the basket says so out loud.
-      return parsed.data.tiers.map((tier) => ({ ...tier, source: 'bundled' as const }))
+      return {
+        tiers: parsed.data.tiers.map((tier) => ({ ...tier, source: 'bundled' as const })),
+        confirmedBy: parsed.data.confirmedBy ?? 1,
+      }
     },
 
     async shops(signal?: AbortSignal) {
