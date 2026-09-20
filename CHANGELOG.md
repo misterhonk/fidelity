@@ -9,6 +9,21 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.105.2](https://github.com/misterhonk/fidelity/compare/v0.105.1...v0.105.2) (2026-09-20)
+
+**„Kompakt" im Dig bleibt jetzt stehen.**
+
+Die Dichte lebte nur in der Adresse. Wer Kompakt wählte, zur Startseite ging und zurückkam,
+hatte wieder die ausführlichen Karten vor sich. Jetzt merkt sich das Gerät die letzte Wahl, so
+wie das Regal es seit M26 tut. Steht in der Adresse etwas anderes, gilt die Adresse.
+
+**Was zu tun ist:** Nichts.
+
+
+### Fixed
+
+* **dig:** the density sticks between visits ([aa9ba89](https://github.com/misterhonk/fidelity/commit/aa9ba898321d414cf3da16418632dcbfc05d1ddf))
+
 ## [0.105.1](https://github.com/misterhonk/fidelity/compare/v0.105.0...v0.105.1) (2026-09-20)
 
 **Die Hörprobe geht wieder, und die Frage danach steht jetzt bei den Clips.**
