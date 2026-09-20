@@ -11,6 +11,14 @@ Für eine App bedeutet SemVer:
 
 ## [0.108.1](https://github.com/misterhonk/fidelity/compare/v0.108.0...v0.108.1) (2026-09-20)
 
+**Alte leere Nachschau-Läufe lesen sich jetzt wie neue.**
+
+Nachschau-Läufe von vor 0.108.0, die nichts Neues gesehen hatten, lagen noch als eigene Digs da
+und standen in den Besuchen als „0 Funde unter 0 neuen". Die Liste faltet sie jetzt in die Zeile
+„3× nachgeschaut, nichts Neues", so wie es für neue Läufe seit 0.108.0 gilt.
+
+**Was zu tun ist:** Nichts.
+
 
 ### Fixed
 
