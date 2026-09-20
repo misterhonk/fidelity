@@ -11,6 +11,23 @@ Für eine App bedeutet SemVer:
 
 ## [0.105.1](https://github.com/misterhonk/fidelity/compare/v0.105.0...v0.105.1) (2026-09-20)
 
+**Die Hörprobe geht wieder, und die Frage danach steht jetzt bei den Clips.**
+
+Seit 0.91.2 waren die Abspielknöpfe weg, und zwar leise. Die Content-Security-Policy erlaubte
+den Rahmen des YouTube-Players, aber nicht sein Script von `www.youtube.com`. Die App liest ein
+abgelehntes Script als „Google ist hier blockiert" und nimmt den Knopf weg, ohne ein Wort. Jetzt
+darf das Script laden, und ein Test hält das fest. Die Links zu YouTube bei ausgeschalteter
+Hörprobe waren nie betroffen.
+
+Und der Schalter dafür stand unter Einstellungen → Deine Daten, wo niemand hinschaut, der
+gerade eine Platte mit Clips vor sich hat. Jetzt fragt die Platte selbst: „Die Clips gleich
+hier abspielen?", drei Sätze, was dann passiert, und ein Knopf. Auf dem Stapel eine Zeile und
+der Knopf. Der Knopf legt denselben Schalter um wie die Einstellungen, und der Schalter ist
+unter Suche → Reinhören gezogen, neben „Reinhören bei". Sonst bleibt alles wie in ADR-012:
+aus, bis du es willst, nichts lädt vor dem Tippen.
+
+**Was zu tun ist:** Nichts. Wer die Hörprobe schon an hatte, hat die Knöpfe wieder.
+
 
 ### Fixed
 
