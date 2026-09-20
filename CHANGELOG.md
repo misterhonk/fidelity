@@ -9,6 +9,25 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.106.0](https://github.com/misterhonk/fidelity/compare/v0.105.2...v0.106.0) (2026-09-20)
+
+**Eine geteilte Portostaffel sagt jetzt, wie viele Leute dasselbe eingetragen haben.**
+
+Letzte Portion vom Versandprofil, damit ist M34.3 fertig. Der Hub merkt sich je Schlüssel und
+Laden eine Stimme, gibt die Staffel heraus, auf die sich die meisten einigen, und bei
+Gleichstand die neuere. Im Korb steht bei der Versandzeile dann „geteilt, 3 Leute haben
+dasselbe eingetragen" statt nur „aus den mitgelieferten Profilen". Hinter der Geheimwort-Tür
+und auf einem offenen Hub sind alle dieselbe Person, dort bleibt die Zahl bei eins. Der Hub
+kann ohne Schlüssel zwei Leute nicht auseinanderhalten und sagt das lieber, als zu raten.
+
+**Was zu tun ist:** Nichts in der App. Der Hub im Homelab liefert die Zahl, sobald sein Image
+neu gebaut ist; bis dahin antwortet er ohne sie, und das gilt als eins.
+
+
+### Added
+
+* **hub:** a shared ladder says how many keys stand behind it ([fa4c603](https://github.com/misterhonk/fidelity/commit/fa4c603d5052ce431df35b284d774bd211660dca))
+
 ## [0.105.2](https://github.com/misterhonk/fidelity/compare/v0.105.1...v0.105.2) (2026-09-20)
 
 **„Kompakt" im Dig bleibt jetzt stehen.**
