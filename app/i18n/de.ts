@@ -393,7 +393,7 @@ const de: Messages = {
     newOnShelf: 'Neu im Regal',
     lastNoted: 'Zuletzt notiert',
     owned: (n) => `${n} Platten`,
-    wanted: (n) => `${n} Wünsche`,
+    wanted: (n) => `${n} ${n === '1' ? 'Wunsch' : 'Wünsche'}`,
     yourShops: 'Deine Läden',
     forSale: (n: string) => `${n} im Angebot`,
     whatIsHere: 'Was hier liegt',

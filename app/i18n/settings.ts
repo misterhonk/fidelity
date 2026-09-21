@@ -101,7 +101,8 @@ const en = {
     },
 
     horizon: {
-      title: 'Horizon',
+      /* "Horizon" is the code's word (docs/20): on the screen it is your artists and labels. */
+      title: 'Your artists and labels',
       about:
         'Your artists and labels, looked up once. After that no dig costs any extra lookups.',
       /*
@@ -123,8 +124,8 @@ const en = {
         `${counted(entries, 'entry is', 'entries are')} older than 30 days. Those get refreshed bit by bit, a small helping each day.`,
       records: 'records',
       eta: (clock: string) => `about ${clock} left`,
-      build: 'Build the horizon',
-      refresh: 'Refresh the horizon',
+      build: 'Look up your artists',
+      refresh: 'Refresh your artists',
       /*
        * When it last went through to the end — asked for by name.
        *
@@ -178,7 +179,7 @@ const en = {
        */
       needsHorizon:
         'Each of these is one or two lookups the next time we refresh your artists. That is what turns a name into the records behind it.',
-      toHorizon: 'To the horizon',
+      toHorizon: 'To your artists and labels',
     },
 
     credits: {
@@ -191,7 +192,7 @@ const en = {
         'No record rated four or five stars yet. Give some ratings on Discogs, and we know where to look.',
       read: (read: string, total: string) => `${read} of ${total} favourites read`,
       worthExpanding: (people: number) =>
-        `${people === 1 ? 'person turns' : 'people turn'} up often enough to join the horizon`,
+        `${people === 1 ? 'person turns' : 'people turn'} up often enough to count as one of your artists`,
       remaining: (records: number, minutes: number) =>
         `${counted(records, 'record', 'records')} to go, about ${counted(minutes, 'minute', 'minutes')}. It runs in small bites and survives a reload.`,
       people: 'people',
@@ -471,7 +472,7 @@ const en = {
 
     reachable: 'Reachable',
     horizonEntries: (entries: number) =>
-      `${counted(entries, 'entry', 'entries')} in the shared horizon`,
+      `${counted(entries, 'entry', 'entries')} about artists and labels, shared`,
     shippingTiers: (tiers: number) => counted(tiers, 'postage tier', 'postage tiers'),
     secured: 'secured with a secret',
     open: 'open',
@@ -667,10 +668,10 @@ const en = {
       ],
     },
     {
-      title: 'What is the horizon?',
+      title: 'What does "look up your artists" do?',
       body: [
-        'Everything we have worked out about your artists and labels, not only what is on your shelf. With it we recognise other pressings of the same record, gaps in catalogue runs, and albums you do not know yet.',
-        'We build it once and only keep it up to date afterwards. Everything works without it, but the more interesting finds stay invisible.',
+        'It finds everything about your artists and labels, not only what is on your shelf. With that we recognise other pressings of the same record, gaps in catalogue runs, and albums you do not know yet.',
+        'We look them up once and only keep them fresh afterwards. Everything works without it, but the more interesting finds stay invisible.',
       ],
     },
     {
@@ -772,8 +773,9 @@ const de: typeof en = {
   library: {
     lead: 'Was wir über deine Platten wissen, direkt von Discogs. Alles andere baut darauf auf.',
     title: 'Sammlung',
-    hint: 'Sammlung, Wantlist, Horizont und Credits',
-    summary: (records, wants) => `${records} Platten · ${wants} Wünsche`,
+    hint: 'Sammlung, Wantlist, deine Künstler und Labels, Credits',
+    summary: (records, wants) =>
+      `${records} ${records === '1' ? 'Platte' : 'Platten'} · ${wants} ${wants === '1' ? 'Wunsch' : 'Wünsche'}`,
 
     fetch: {
       title: 'Sammlung und Wantlist',
@@ -787,7 +789,7 @@ const de: typeof en = {
     },
 
     horizon: {
-      title: 'Horizont',
+      title: 'Deine Künstler und Labels',
       about:
         'Deine Künstler und Labels, einmal nachgeschlagen. Danach kostet kein Dig extra Abfragen.',
       entities: 'Künstler und Labels',
@@ -799,8 +801,8 @@ const de: typeof en = {
         `${counted(entries, 'Eintrag ist', 'Einträge sind')} älter als 30 Tage. Die frischen wir nach und nach auf, eine kleine Portion pro Tag.`,
       records: 'Platten',
       eta: (clock) => `noch ca. ${clock}`,
-      build: 'Horizont bauen',
-      refresh: 'Horizont auffrischen',
+      build: 'Künstler und Labels nachschlagen',
+      refresh: 'Künstler und Labels auffrischen',
       lastBuilt: (when) => `Zuletzt vollständig gebaut am ${when}`,
       neverBuilt:
         'Noch nie ganz durchgelaufen. Was da ist, stammt aus Läufen, die früher aufgehört haben, aus der täglichen Auffrischung und aus dem, was Digs gefunden haben.',
@@ -822,7 +824,7 @@ const de: typeof en = {
       noHits: 'Niemanden dieses Namens bei Discogs gefunden.',
       needsHorizon:
         'Jeder davon kostet ein bis zwei Abfragen, wenn wir deine Künstler das nächste Mal auffrischen. Das macht aus einem Namen die Platten dahinter.',
-      toHorizon: 'Zum Horizont',
+      toHorizon: 'Zu deinen Künstlern und Labels',
     },
 
     credits: {
@@ -835,7 +837,7 @@ const de: typeof en = {
         'Noch keine Platte mit vier oder fünf Sternen bewertet. Vergib die bei Discogs, dann wissen wir, wo wir nachschauen sollen.',
       read: (read, total) => `${read} von ${total} Lieblingsplatten gelesen`,
       worthExpanding: (people) =>
-        `${people === 1 ? 'Person taucht' : 'Personen tauchen'} oft genug auf, um in den Horizont zu wandern`,
+        `${people === 1 ? 'Person taucht' : 'Personen tauchen'} oft genug auf, um als deine Künstler zu zählen`,
       remaining: (records, minutes) =>
         `Noch ${counted(records, 'Platte', 'Platten')}, rund ${counted(minutes, 'Minute', 'Minuten')}. Läuft in kleinen Happen und übersteht ein Neuladen.`,
       people: 'Personen',
@@ -976,7 +978,7 @@ const de: typeof en = {
     rememberHint: 'Dann gleichen wir beim Öffnen von selbst ab.',
     rememberWhyLabel: 'Ist das nicht der Schlüssel neben dem Schloss',
     rememberWhy:
-      'Nein. Das Schloss sitzt auf der Kopie in der Ferne. Diese Datenbank hier ist unverschlüsselt und war es immer: Sammlung, Merkliste und der Discogs-Token liegen längst darin. Die Passphrase daneben zu legen gibt niemandem etwas, das der Besitz des Geräts nicht ohnehin gibt. Auf einem geteilten Rechner ist das eine andere Frage. Dann Haken weg und jedes Mal tippen.',
+      'Nein. Das Schloss sitzt auf der Kopie in der Ferne. Diese Datenbank hier ist unverschlüsselt und war es immer: Sammlung, Gemerktes und der Discogs-Token liegen längst darin. Die Passphrase daneben zu legen gibt niemandem etwas, das der Besitz des Geräts nicht ohnehin gibt. Auf einem geteilten Rechner ist das eine andere Frage. Dann Haken weg und jedes Mal tippen.',
 
     syncing: 'Gleichen ab …',
     syncNow: 'Jetzt abgleichen',
@@ -1001,7 +1003,7 @@ const de: typeof en = {
 
     scopeWhyLabel: 'Was mitgeht und was nicht',
     scopeWhy:
-      'Mit: deine Künstler und Labels, Merkliste, Korb, Läden mit Versandstaffeln, Einstellungen. Nicht mit: dein Discogs-Token. Ein Schlüssel auf drei Geräten ist dreimal so viel Angriffsfläche, jedes Gerät meldet sich einmal selbst an. Und keine Digs: Preise sind nach sechs Stunden sowieso weg und gehören nicht auf einen Server.',
+      'Mit: deine Künstler und Labels, Gemerktes, Korb, Läden mit Versandstaffeln, Einstellungen. Nicht mit: dein Discogs-Token. Ein Schlüssel auf drei Geräten ist dreimal so viel Angriffsfläche, jedes Gerät meldet sich einmal selbst an. Und keine Digs: Preise sind nach sechs Stunden sowieso weg und gehören nicht auf einen Server.',
   },
 
   hubPanel: {
@@ -1032,7 +1034,7 @@ const de: typeof en = {
 
     reachable: 'Erreichbar',
     horizonEntries: (entries) =>
-      `${counted(entries, 'Eintrag', 'Einträge')} im geteilten Horizont`,
+      `${counted(entries, 'Eintrag', 'Einträge')} zu Künstlern und Labels, geteilt`,
     shippingTiers: (tiers) => counted(tiers, 'Versandstaffel', 'Versandstaffeln'),
     secured: 'mit Geheimnis gesichert',
     open: 'offen',
@@ -1189,10 +1191,10 @@ const de: typeof en = {
       ],
     },
     {
-      title: 'Was ist der Horizont?',
+      title: 'Was heißt „Künstler und Labels nachschlagen"?',
       body: [
-        'Alles, was wir über deine Künstler und Labels herausgefunden haben, nicht nur das, was bei dir im Regal steht. Damit erkennen wir andere Pressungen derselben Platte, Lücken in Katalogreihen und Alben, die du noch nicht kennst.',
-        'Wir bauen ihn einmal auf und führen ihn danach nur noch nach. Ohne ihn funktioniert alles, aber die interessanteren Funde bleiben unsichtbar.',
+        'Wir suchen alles zu deinen Künstlern und Labels zusammen, nicht nur das, was bei dir im Regal steht. Damit erkennen wir andere Pressungen derselben Platte, Lücken in Katalogreihen und Alben, die du noch nicht kennst.',
+        'Wir schlagen sie einmal nach und halten sie danach nur frisch. Ohne das funktioniert alles, aber die interessanteren Funde bleiben unsichtbar.',
       ],
     },
     {

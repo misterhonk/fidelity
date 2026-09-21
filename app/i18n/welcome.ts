@@ -38,7 +38,7 @@ const en = {
   done: {
     title: 'Done.',
     summary: (records: string, wants: string) =>
-      `${records} records and ${wants} wishes are on this device now. Three things you can do with that:`,
+      `${records} ${records === '1' ? 'record' : 'records'} and ${wants} ${wants === '1' ? 'wish' : 'wishes'} are on this device now. Three things you can do with that:`,
     toStart: 'To the start page',
   },
   canDo: {
@@ -102,7 +102,7 @@ const de: typeof en = {
   done: {
     title: 'Fertig.',
     summary: (records, wants) =>
-      `${records} Platten und ${wants} Wünsche liegen jetzt auf diesem Gerät. Drei Dinge kannst du damit machen:`,
+      `${records} ${records === '1' ? 'Platte' : 'Platten'} und ${wants} ${wants === '1' ? 'Wunsch' : 'Wünsche'} liegen jetzt auf diesem Gerät. Drei Dinge kannst du damit machen:`,
     toStart: 'Zur Startseite',
   },
   canDo: {

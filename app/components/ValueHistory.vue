@@ -69,6 +69,19 @@ const line = computed(() =>
 const last = computed(() => drawn.value.at(-1) ?? null)
 const first = computed(() => drawn.value[0] ?? null)
 
+/**
+ * Today's figure, written the way this app writes prices. `median` is the
+ * string Discogs sent ("€610.00"), and beside "1.220,00 €" on the axis it
+ * read as two currencies (2026-09-21); the cents are there for exactly this.
+ */
+const nowFigure = computed(() => {
+  const point = last.value?.point
+  if (!point) return ''
+  return point.medianCents !== null
+    ? (money(point.medianCents / 100, point.currency) ?? point.median)
+    : point.median
+})
+
 /** The axis, in words: the lowest and the highest the band reaches. */
 const floor = computed(() => {
   const rows = usable.value
@@ -106,7 +119,7 @@ const summary = computed(() => {
       <div class="flex items-baseline justify-between gap-4 text-fid-xs text-fid-text-muted">
         <span class="fid-num">{{ ceiling }}</span>
         <span class="fid-num text-fid-sm text-fid-text">
-          {{ c.map.history.now(last!.point.median) }}
+          {{ c.map.history.now(nowFigure) }}
         </span>
       </div>
 

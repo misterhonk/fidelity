@@ -61,7 +61,7 @@ test('a build survives leaving the screen, and says so where the wait is felt', 
   })
 
   await page.goto('/settings/collection')
-  await page.getByRole('button', { name: 'Build the horizon' }).click()
+  await page.getByRole('button', { name: 'Look up your artists' }).click()
   await expect(page.getByText(/Carries on if you leave this screen/)).toBeVisible({
     timeout: 15_000,
   })
@@ -88,5 +88,5 @@ test('a build survives leaving the screen, and says so where the wait is felt', 
   })
   // The button that used to be live again, and would have started a second
   // build beside the first.
-  await expect(page.getByRole('button', { name: 'Build the horizon' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Look up your artists' })).toBeDisabled()
 })

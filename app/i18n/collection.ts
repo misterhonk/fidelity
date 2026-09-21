@@ -64,7 +64,7 @@ const en = {
     people: 'Who shaped them',
     peopleWhyLabel: 'Where the names come from',
     peopleWhy:
-      'From your artists and labels as we know them, plus the producers and engineers off your favourite records, held against what arrived this year. Somebody the horizon has not met yet is not in the list, however often they appear.',
+      'From your artists and labels as we know them, plus the producers and engineers off your favourite records, held against what arrived this year. Somebody we do not count as one of your artists yet is not in the list, however often they appear.',
     runs: (n: number) => `${n} ${n === 1 ? 'dig' : 'digs'}`,
     shops: (n: number) => `${n} ${n === 1 ? 'shop' : 'shops'}`,
     finds: (n: number) => `${n} ${n === 1 ? 'find' : 'finds'}`,
@@ -254,10 +254,10 @@ const en = {
       'Your wantlist is empty, or not synced yet. It is the strongest hint we have about what to look for.',
     emptyAction: 'Sync it now',
     lead: (total: string, withPressings: string) =>
-      `${total} records wanted, ${withPressings} of them with every pressing known to us.`,
+      `${total} ${total === '1' ? 'record' : 'records'} wanted, ${withPressings} of them with every pressing known to us.`,
     /* Before the horizon is built (M28 #5): what it does for them, and the way there. */
     leadNoHorizon: (total: string) =>
-      `${total} records wanted. We do not know their other pressings yet;`,
+      `${total} ${total === '1' ? 'record' : 'records'} wanted. We do not know their other pressings yet. For that,`,
     buildHorizon: 'look up your artists',
     buildHorizonTail: 'in the settings, two minutes, once.',
     seenRecently: (n: string) => `${n} turned up at a shop in the last thirty days.`,
@@ -703,7 +703,7 @@ const de: typeof en = {
     people: 'Wer sie gemacht hat',
     peopleWhyLabel: 'Woher die Namen kommen',
     peopleWhy:
-      'Aus deinen Künstlern und Labels, wie wir sie kennen, plus den Produzenten und Engineers von deinen Lieblingsplatten, gehalten gegen das, was in dem Jahr dazukam. Wen der Horizont noch nicht kennt, der steht nicht in der Liste, so oft er auch vorkommt.',
+      'Aus deinen Künstlern und Labels, wie wir sie kennen, plus den Produzenten und Engineers von deinen Lieblingsplatten, gehalten gegen das, was in dem Jahr dazukam. Wen wir noch nicht als deinen Künstler kennen, der steht nicht in der Liste, so oft er auch vorkommt.',
     runs: (n) => `${n} ${n === 1 ? 'Dig' : 'Digs'}`,
     shops: (n) => `${n} ${n === 1 ? 'Laden' : 'Läden'}`,
     finds: (n) => `${n} ${n === 1 ? 'Fund' : 'Funde'}`,
@@ -840,11 +840,11 @@ const de: typeof en = {
       'Deine Wantlist ist leer, oder noch nicht geholt. Sie ist der stärkste Hinweis, den wir haben, wonach wir suchen sollen.',
     emptyAction: 'Jetzt holen',
     lead: (total, withPressings) =>
-      `${total} Platten gesucht, bei ${withPressings} kennen wir alle Pressungen.`,
+      `${total} ${total === '1' ? 'Platte' : 'Platten'} gesucht, bei ${withPressings} kennen wir alle Pressungen.`,
     leadNoHorizon: (total) =>
-      `${total} Platten gesucht. Ihre anderen Pressungen kennen wir noch nicht;`,
+      `${total} ${total === '1' ? 'Platte' : 'Platten'} gesucht. Ihre anderen Pressungen kennen wir noch nicht. Dafür musst du einmal`,
     buildHorizon: 'deine Künstler nachschlagen',
-    buildHorizonTail: 'in den Einstellungen, zwei Minuten, einmal.',
+    buildHorizonTail: 'in den Einstellungen. Zwei Minuten.',
     seenRecently: (n) => `${n} sind in den letzten dreißig Tagen bei einem Laden aufgetaucht.`,
     search: 'Künstler oder Titel',
     searchLabel: 'Wantlist durchsuchen',
