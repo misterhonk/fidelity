@@ -12,6 +12,28 @@ Für eine App bedeutet SemVer:
 ## [0.111.0](https://github.com/misterhonk/fidelity/compare/v0.110.0...v0.111.0) (2026-09-21)
 
 
+**Ein Kopf, eine Zeile mit dem, was du hier machen kannst.**
+
+Über den Funden standen vier Aufrufe, bevor die erste Platte kam: „nochmal graben", ein Kasten
+mit „Preise auffrischen", ein umrandeter Knopf „Eine nach der anderen" und „Liste teilen". Jeder
+in seiner eigenen Form und Lautstärke. Jetzt ist es eine Zeile aus Plates, in der Reihenfolge,
+in der man danach fragt: nochmal hinsehen, anders hinsehen, die Preise reparieren, weitergeben.
+Keine Füllung, kein Rahmen, keine Symbole. Was im Kasten sonst noch stand, ist jetzt ein Satz,
+weil es einer ist.
+
+**Und „Wie der Score entsteht" steht einmal da, nicht siebenundzwanzigmal.** Das Fragezeichen
+unter jedem Score öffnete auf jeder Karte denselben Absatz. Es steht jetzt einmal über der
+Liste. Wo ein Score allein steht — in der Top Five, im Blatt, im Stapel, im Korb — bleibt es,
+wo es war.
+
+**Auf der Startseite stehen gleiche Scores jetzt nach Preis.** Fünf Funde auf 48 standen dort
+bei 16 €, 16 €, 15 €, 14,50 €, 11 €: der teuerste zuerst, ohne erkennbaren Grund. Die Fundliste
+selbst hat schon immer nach Preis geordnet, die Startseite ging nie durch denselben Weg. Jetzt
+gibt es die Regel einmal, und alle drei Stellen lesen sie.
+
+**Was zu tun ist:** Nichts.
+
+
 ### Added
 
 * **dig:** one head with one row of plates, the score explained once, and the rail ranked ([70dbd26](https://github.com/misterhonk/fidelity/commit/70dbd260c31ca73493da70b962c0ccabfd5283fa))
