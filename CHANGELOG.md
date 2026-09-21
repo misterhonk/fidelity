@@ -11,6 +11,16 @@ Für eine App bedeutet SemVer:
 
 ## [0.109.1](https://github.com/misterhonk/fidelity/compare/v0.109.0...v0.109.1) (2026-09-21)
 
+**Der Lesedurchgang: jede Seite in beiden Sprachen einmal am Stück gelesen.**
+
+Das war M35.5. Gefunden und geändert: „1 Wünsche" und „1 Platten gesucht" heißen jetzt Wunsch
+und Platte. Auf der Landkarte stand Discogs' eigenes „€610.00" neben „1.220,00 €", jetzt ist
+es eine Schreibweise. „Horizont" als Überschrift, Knopf und Hilfefrage heißt jetzt „Deine
+Künstler und Labels" und „Künstler und Labels nachschlagen", weil das ist, was passiert.
+„Merkliste" heißt wie der Reiter „Gemerkt". Und die Kopfzeile der Wantlist ist ein Satz.
+
+**Was zu tun ist:** Nichts.
+
 
 ### Fixed
 
