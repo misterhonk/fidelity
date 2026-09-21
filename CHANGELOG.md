@@ -9,6 +9,32 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.110.0](https://github.com/misterhonk/fidelity/compare/v0.109.2...v0.110.0) (2026-09-21)
+
+
+**Ein Grund, der zwanzigmal dasteht, ist kein Grund mehr, sondern eine Kategorie.**
+
+Bei einem Dig über einen Laden, der genau das führt, was du sowieso sammelst, sagten zwanzig
+von siebenundzwanzig Karten denselben Satz: „X steht schon in deiner Sammlung – diese Platte
+nicht." Einmal gelesen ist das genau das, wofür es Fidelity gibt. Zwanzigmal gelesen ist es
+eine Spaltenüberschrift, die jemand in jede Zeile geschrieben hat.
+
+Wo ein Grund die Liste beherrscht, steht er jetzt als Plate: „IM REGAL · 5". Kurz, und der
+Künstler steht ohnehin darüber. Der Satz bleibt für die Karten, die noch etwas zu sagen haben
+— „Du sammelst Blue Note, 14 stehen schon im Regal" — und für die Top Five, die nie so lang
+ist, dass ein Grund sich abnutzt.
+
+**Und gleiche Scores stehen jetzt nach Preis.** Zwanzig Funde auf 48: „nach Score" ordnete da
+gar nichts, die Reihenfolge war, was der Dig zufällig zuerst geschrieben hatte. Jetzt
+entscheidet der Preis, und die Sortierleiste sagt es: „SCORE ↓ · DANN PREIS".
+
+**Was zu tun ist:** Nichts.
+
+
+### Added
+
+* **dig:** a reason said twenty times is a plate, and equal scores break on the price ([672bb76](https://github.com/misterhonk/fidelity/commit/672bb7639b52c7f1afe318a252ab4211c35fa7cd))
+
 ## [0.109.2](https://github.com/misterhonk/fidelity/compare/v0.109.1...v0.109.2) (2026-09-21)
 
 **Der Verbindungstest zum Hub sagt in einem Satz, ob es geht.**
