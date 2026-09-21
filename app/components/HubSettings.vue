@@ -41,6 +41,26 @@ const status = ref<{
 
 const hint = ref<string | null>(null)
 
+/**
+ * The test's verdict, one sentence: does it work, and if not, why. The key
+ * or the secret that opens the door decides; a hub that takes keys and got
+ * one does not also complain about a missing secret.
+ */
+const verdict = computed(() => {
+  const s = status.value
+  if (!s) return null
+  const words = st.value.hubPanel.verdict
+  if (s.key === 'ok') return { fine: true, text: words.keyOk }
+  if (s.secret === 'ok') return { fine: true, text: words.secretOk }
+  if (s.key === 'wrong') return { fine: false, text: words.keyWrong }
+  if (s.secret === 'wrong') return { fine: false, text: words.secretWrong }
+  if (!s.secured && !s.doors.includes('key')) return { fine: true, text: words.open }
+  return {
+    fine: false,
+    text: words.locked(s.doors.length > 0 ? s.doors : ['secret']),
+  }
+})
+
 onMounted(async () => {
   const preferences = await call('preferences.get', undefined)
   url.value = preferences.hubUrl ?? ''
@@ -279,34 +299,23 @@ async function remove() {
       {{ saved === 'door' ? st.accessPanel.saved : st.accessPanel.removed }}
     </p>
 
-    <p
-      v-if="status"
-      class="text-fid-sm text-fid-text-muted"
+    <!--
+      The verdict first, in one sentence, then what the hub holds. It was a
+      chain of partial findings with a "·" between them, and on a phone the
+      chain read as three answers to one question.
+    -->
+    <div
+      v-if="status && verdict"
+      class="flex flex-col gap-1"
       aria-live="polite"
       data-prose="data"
     >
-      {{ st.hubPanel.reachable }} · {{ st.hubPanel.horizonEntries(status.horizon) }} ·
-      {{ st.hubPanel.shippingTiers(status.shipping) }} ·
-      {{ status.secured ? st.hubPanel.secured : st.hubPanel.open }}
-      <!--
-        And whether the word opens the door. "Reachable" alone said nothing
-        about that, and a phone with the wrong secret read it as all fine.
-      -->
-      <template v-if="status.secret === 'ok'"> · {{ st.hubPanel.secretOk }}</template>
-      <span v-else-if="status.secret === 'wrong'" class="text-fid-sig-scarcity">
-        · {{ st.hubPanel.secretWrong }}</span
-      >
-      <span v-else-if="status.secret === 'missing'" class="text-fid-sig-gap">
-        · {{ st.hubPanel.secretMissing }}</span
-      >
-      <!-- The second door, when the hub has one (M22). -->
-      <template v-if="status.key === 'ok'"> · {{ st.hubPanel.keyOk }}</template>
-      <span v-else-if="status.key === 'wrong'" class="text-fid-sig-scarcity">
-        · {{ st.hubPanel.keyWrong }}</span
-      >
-      <span v-else-if="status.key === 'missing'" class="text-fid-sig-gap">
-        · {{ st.hubPanel.keyMissing }}</span
-      >
-    </p>
+      <p class="text-fid-sm" :class="verdict.fine ? 'text-fid-text' : 'text-fid-sig-gap'">
+        {{ verdict.text }}
+      </p>
+      <p class="fid-num text-fid-xs text-fid-text-muted">
+        {{ st.hubPanel.holds(status.horizon, status.shipping) }}
+      </p>
+    </div>
   </section>
 </template>

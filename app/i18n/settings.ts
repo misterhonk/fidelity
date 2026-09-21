@@ -470,21 +470,33 @@ const en = {
       'None running on this machine. Enter the address by hand if it is somewhere else.',
     searchFailed: 'Cannot search.',
 
-    reachable: 'Reachable',
-    horizonEntries: (entries: number) =>
-      `${counted(entries, 'entry', 'entries')} about artists and labels, shared`,
-    shippingTiers: (tiers: number) => counted(tiers, 'postage tier', 'postage tiers'),
-    secured: 'secured with a secret',
-    open: 'open',
     showDoor: 'Show it',
     hideDoor: 'Hide it',
-    secretOk: 'the secret opens it',
-    secretWrong: 'the hub refuses this secret, so nothing you contribute or fetch gets through',
-    secretMissing: 'no secret entered, so nothing you contribute or fetch gets through',
-    /** The second door (docs/17 §3.2): a hub that takes access keys. */
-    keyOk: 'your access key opens it',
-    keyWrong: 'the hub refuses your access key: expired, revoked, or not for this hub',
-    keyMissing: 'this hub takes access keys and none is entered',
+    /*
+     * The test's verdict, one sentence (2026-09-21). It used to be a chain of
+     * partial findings — "secured with a secret · no secret entered, nothing
+     * gets through · your access key opens it" — and Martin could not tell
+     * whether the hub worked. First the answer, then the reason.
+     */
+    verdict: {
+      keyOk: 'Reachable. Your access key opens it, everything gets through.',
+      secretOk: 'Reachable. The secret fits, everything gets through.',
+      open: 'Reachable and open, no secret needed. Everything gets through.',
+      keyWrong:
+        'Reachable, but the hub refuses your access key: expired, revoked, or not for this hub. Until that is fixed, nothing gets through.',
+      secretWrong:
+        'Reachable, but the secret does not fit. Until it does, nothing gets through.',
+      locked: (doors: ('secret' | 'key')[]) =>
+        `Reachable, but locked. The hub wants ${
+          Array.isArray(doors) && doors.includes('key') && doors.includes('secret')
+            ? 'a secret or an access key'
+            : Array.isArray(doors) && doors.includes('key')
+              ? 'an access key'
+              : 'a secret'
+        }, and none is entered here. Until then, nothing gets through.`,
+    },
+    holds: (entries: number, tiers: number) =>
+      `In it: ${counted(entries, 'entry', 'entries')} about artists and labels, ${counted(tiers, 'postage tier', 'postage tiers')}.`,
   },
 
   /** Settings → Access (docs/17 §6.2). */
@@ -1032,23 +1044,26 @@ const de: typeof en = {
       'Auf diesem Rechner läuft keiner. Adresse von Hand eintragen, falls er woanders steht.',
     searchFailed: 'Suche nicht möglich.',
 
-    reachable: 'Erreichbar',
-    horizonEntries: (entries) =>
-      `${counted(entries, 'Eintrag', 'Einträge')} zu Künstlern und Labels, geteilt`,
-    shippingTiers: (tiers) => counted(tiers, 'Versandstaffel', 'Versandstaffeln'),
-    secured: 'mit Geheimnis gesichert',
-    open: 'offen',
     showDoor: 'Anzeigen',
     hideDoor: 'Verbergen',
-    secretOk: 'das Geheimnis öffnet ihn',
-    secretWrong:
-      'der Hub weist dieses Geheimnis ab, nichts, was du beisteuerst oder holst, kommt durch',
-    secretMissing:
-      'kein Geheimnis eingetragen, nichts, was du beisteuerst oder holst, kommt durch',
-    keyOk: 'dein Zugangsschlüssel öffnet ihn',
-    keyWrong:
-      'der Hub lehnt deinen Zugangsschlüssel ab: abgelaufen, zurückgezogen oder nicht für diesen Hub',
-    keyMissing: 'dieser Hub nimmt Zugangsschlüssel, und keiner ist eingetragen',
+    verdict: {
+      keyOk: 'Erreichbar. Dein Zugangsschlüssel öffnet ihn, alles kommt durch.',
+      secretOk: 'Erreichbar. Das Geheimnis passt, alles kommt durch.',
+      open: 'Erreichbar und offen, ohne Geheimnis. Alles kommt durch.',
+      keyWrong:
+        'Erreichbar, aber der Hub lehnt deinen Zugangsschlüssel ab: abgelaufen, zurückgezogen oder nicht für diesen Hub. Solange kommt nichts durch.',
+      secretWrong: 'Erreichbar, aber das Geheimnis passt nicht. Solange kommt nichts durch.',
+      locked: (doors) =>
+        `Erreichbar, aber verschlossen. Der Hub will ${
+          Array.isArray(doors) && doors.includes('key') && doors.includes('secret')
+            ? 'ein Geheimnis oder einen Zugangsschlüssel'
+            : Array.isArray(doors) && doors.includes('key')
+              ? 'einen Zugangsschlüssel'
+              : 'ein Geheimnis'
+        }, und hier steht keins. Solange kommt nichts durch.`,
+    },
+    holds: (entries, tiers) =>
+      `Drin: ${counted(entries, 'Eintrag', 'Einträge')} zu Künstlern und Labels, ${counted(tiers, 'Versandstaffel', 'Versandstaffeln')}.`,
   },
 
   dataPanel: {

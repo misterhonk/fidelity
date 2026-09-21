@@ -94,7 +94,9 @@ test('tries the secret at a locked door, and shows it on request', async ({
 
   await secret.fill('richtig')
   await panel.getByRole('button', { name: 'Test the connection' }).click()
-  await expect(page.getByText('the secret opens it', { exact: false })).toBeVisible({
+  await expect(
+    page.getByText('The secret fits, everything gets through', { exact: false }),
+  ).toBeVisible({
     timeout: 15_000,
   })
 })
