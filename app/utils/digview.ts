@@ -1,5 +1,7 @@
 import type { LandedPrice, Match, SignalType, SortDirection } from '#shared/types'
 
+import { byScoreThenPrice } from '#shared/score'
+
 import { byStrength } from '~~/worker/match/reason'
 
 import { activeLocale } from '~/composables/useMessages'
@@ -163,28 +165,19 @@ function compare(
 /**
  * What decides when the ordering in force has nothing left to say (M33 #2).
  *
- * "By score" used to be the whole answer under its own key, and on a real dig
- * that answer runs out: twenty finds sat at 48 on 2026-09-16 and the list was
- * whatever order the scan happened to write them in — a rank with no second
- * opinion, changing between two digs of the same shop for no reason anybody
- * could see.
- *
- * So score first, and then the price, cheaper ahead. Not the year: two records
- * you have the same reason to want are told apart by what they cost, which is
- * the question the next click asks anyway. A record whose price expired goes
- * last here as everywhere (docs/03 §6), and where neither has one this returns
- * zero — `Array.sort` is stable, so those keep the order they arrived in
- * rather than being shuffled by an arithmetic accident.
+ * `byScoreThenPrice` from `shared/score.ts`, which is where the rule lives now
+ * — and which this file had been getting for free without saying so. It sorted
+ * on the score alone; the worker hands its matches over already ranked
+ * (`bestPerRelease`), and `Array.sort` is stable, so the price ordering
+ * survived underneath a comparison that knew nothing about it. It held, and it
+ * held by accident: a change to how the worker loads a dig would have taken it
+ * away silently.
  *
  * Outside the direction, deliberately. Turning "by score" round asks for the
  * weakest find first, not for the dearest one — the same reason the score
  * itself never turns when it breaks a tie under `price`.
  */
-function tieBreak(a: Match, b: Match): number {
-  const byScore = b.score - a.score
-  if (byScore !== 0) return byScore
-  return missingLast(a.price, b.price) ?? a.price! - b.price!
-}
+const tieBreak = byScoreThenPrice
 
 /**
  * Ranks a present value ahead of a missing one, and returns null when both

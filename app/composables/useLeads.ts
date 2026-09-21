@@ -28,6 +28,21 @@ export function useLeads() {
 
   return {
     /**
+     * Whether this card is one of many in a find list at all (M33 #4).
+     *
+     * The same fact the plate is derived from, read the other way round: a
+     * provider exists exactly where `MatchList` is drawing, and nowhere else.
+     * What hangs off it is anything a card should say once per list rather
+     * than once per card — the help mark under the score, which repeated
+     * twenty-seven times on the walk of 2026-09-16 and answers the same
+     * question every time.
+     *
+     * A plain boolean, not a ref: whether a component sits inside a list
+     * cannot change while it is mounted.
+     */
+    inList: repeated !== null,
+
+    /**
      * The signal this find should wear as a plate instead of a sentence, or
      * null to say it as a sentence like always.
      */

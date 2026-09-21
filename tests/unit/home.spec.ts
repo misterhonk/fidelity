@@ -136,6 +136,48 @@ describe('homeOverview', () => {
     expect(home.finds[11]!.score).toBe(288)
   })
 
+  /**
+   * Equal scores, cheapest first (M33 #2).
+   *
+   * The rail read the `by-dig-score` index and reversed it, which puts the
+   * best score first and — among equal ones — whatever order the store kept
+   * them in, backwards. On Martin's start screen on 2026-09-21 that was five
+   * finds at 48 standing at €16, €16, €15, €14.50, €11: dearest first, for no
+   * reason anybody could see. The find list has ranked on the price behind the
+   * score since M2 (`bestPerRelease`); this rail never went through that path.
+   */
+  it('puts the cheaper of two equal scores first', async () => {
+    const db = await openFidelityDb()
+    await dig('01J000000000000000000000A', 'plattenkiste', 3)
+    /*
+     * All three at one score, with the price rising along with the listing id.
+     *
+     * That direction is the whole test. The index hands equal scores back by
+     * listing id ascending, so the old `reverse()` produced the dearest first
+     * — writing them the other way round would pass either way, which is the
+     * shape the first draft of this test had.
+     */
+    for (let index = 0; index < 3; index++) {
+      await db.put('matches', {
+        digId: '01J000000000000000000000A',
+        listingId: 2000 + index,
+        releaseId: 700 + index,
+        score: 48,
+        signals: [],
+        title: `Gleich ${index}`,
+        artist: 'Someone',
+        thumbUrl: null,
+        price: 10 + index * 10,
+        currency: 'EUR',
+        expired: false,
+      } as never)
+    }
+
+    const tied = (await homeOverview()).finds.filter((find) => find.score === 48)
+
+    expect(tied.map((find) => find.price)).toEqual([10, 20, 30])
+  })
+
   it('takes the newest dig when there are several', async () => {
     await dig('01J000000000000000000000A', 'alt', 3)
     await dig('01J000000000000000000000B', 'neu', 3)

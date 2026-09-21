@@ -1,3 +1,4 @@
+import { byScoreThenPrice } from '#shared/score'
 import type { Match } from '#shared/types'
 
 import { norm } from './normalize'
@@ -12,14 +13,15 @@ import { norm } from './normalize'
 
 export const TOP_FIVE = 5
 
-/** Strongest first; cheaper wins a tie, then the lower listing id for stability. */
-function byRank(a: Match, b: Match): number {
-  if (b.score !== a.score) return b.score - a.score
-  const priceA = a.price ?? Infinity
-  const priceB = b.price ?? Infinity
-  if (priceA !== priceB) return priceA - priceB
-  return a.listingId - b.listingId
-}
+/**
+ * Strongest first; cheaper wins a tie, then the lower listing id.
+ *
+ * The rule itself moved to `shared/score.ts` on 2026-09-21 (M33 #2), because
+ * it was written out here, two thirds of it in the basket's optimiser, and
+ * not at all in the view — which inherited this one by accident through a
+ * stable sort. The name stays: this is what ranking is called in this file.
+ */
+const byRank = byScoreThenPrice
 
 /**
  * Folds several copies of the same record into one.

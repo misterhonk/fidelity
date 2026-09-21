@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { Match } from '#shared/types'
+import { bestPerRelease } from '~~/worker/match/select'
 import {
   arrange,
   availableSignals,
@@ -221,8 +222,16 @@ describe('filtering and sorting', () => {
  * What decides when the score has stopped deciding (M33 #2).
  *
  * Twenty finds sat at 48 on 2026-09-16 and "by score" ordered nothing among
- * them — the list was whatever the scan happened to write first, and it moved
- * between two digs of the same shop for no reason a reader could see.
+ * them — the comparison here read the score and nothing else.
+ *
+ * **It came out right anyway, and that is the interesting part.** The worker
+ * hands a dig over already ranked (`bestPerRelease`, which has broken ties on
+ * the price since M2) and `Array.sort` is stable, so the price ordering
+ * survived underneath a comparison that knew nothing about it. These tests
+ * would have passed before the change. They are here because the rule is now
+ * said out loud in one place instead of being inherited from a call two
+ * modules away — and because a list that is right by accident is one refactor
+ * from being wrong in silence.
  */
 describe('the second key under the score', () => {
   it('puts the cheaper of two equal scores first', () => {
@@ -266,6 +275,36 @@ describe('the second key under the score', () => {
     ]
 
     expect(arrange(expired, [], 'score').map((m) => m.listingId)).toEqual([2, 1, 3])
+  })
+
+  /**
+   * The three places that rank finds say the same thing.
+   *
+   * This is the test that should have existed before 2026-09-21. The rule was
+   * written out in `worker/match/select.ts`, two thirds of it in the basket's
+   * optimiser, and not at all here — and it held here anyway, because the
+   * worker hands a dig over already ranked and `Array.sort` is stable. A rule
+   * nobody had written down was holding up a screen, and any change to how a
+   * dig is loaded would have taken it away without a single test going red.
+   *
+   * So: one function, and this pins that nothing has quietly grown a second
+   * opinion. `bestPerRelease` stands for the worker's path because that is
+   * what `loadDig` runs the stored rows through.
+   */
+  it('ranks the same way the worker does, from a shuffled start', () => {
+    const shuffled = [
+      match({ listingId: 3, releaseId: 3, score: 48, price: 70 }),
+      match({ listingId: 1, releaseId: 1, score: 48, price: 80 }),
+      match({ listingId: 4, releaseId: 4, score: 90, price: 99 }),
+      match({ listingId: 2, releaseId: 2, score: 48, price: null }),
+      match({ listingId: 5, releaseId: 5, score: 48, price: 70 }),
+    ]
+
+    const view = arrange(shuffled, [], 'score').map((m) => m.listingId)
+    const worker = bestPerRelease(shuffled).matches.map((m) => m.listingId)
+
+    expect(view).toEqual([4, 3, 5, 1, 2])
+    expect(view).toEqual(worker)
   })
 })
 

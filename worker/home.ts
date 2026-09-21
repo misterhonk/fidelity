@@ -2,6 +2,8 @@ import { isHidden } from '~~/db/dealer'
 import { openFidelityDb } from '~~/db/open'
 import { getSyncState } from '~~/db/meta'
 
+import { byScoreThenPrice } from '#shared/score'
+
 import type { FidelityDB } from '~~/db/schema'
 import type { HomeCover, HomeFind, HomeOverview, HomeShop } from '#shared/protocol'
 import type { IDBPDatabase } from 'idb'
@@ -118,8 +120,19 @@ export async function homeOverview(): Promise<HomeOverview> {
       IDBKeyRange.bound([latest.id, -Infinity], [latest.id, Infinity]),
     )
 
+    /*
+     * Ranked, not merely reversed (M33 #2).
+     *
+     * `by-dig-score` hands the rows back by score ascending, and reversing
+     * them put the best first — but among equal scores it put whatever the
+     * store's own key order happened to be, backwards. Martin's start screen
+     * on 2026-09-21 showed five finds at 48 standing at €16, €16, €15, €14.50,
+     * €11: dearest first, for no reason anybody could see. The find list has
+     * ranked on the price behind the score since M2 (`bestPerRelease`); this
+     * rail never did, because it never went through that path.
+     */
     finds = scored
-      .reverse()
+      .sort(byScoreThenPrice)
       .slice(0, RAIL)
       .map((match) => ({
         digId: match.digId,

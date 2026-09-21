@@ -45,6 +45,23 @@ const props = defineProps<{
 const band = computed(() => bandOf(props.score))
 const lit = computed(() => bandStep(band.value))
 const word = computed(() => d.value.match.band[band.value])
+
+/**
+ * The question mark, once per screen rather than once per card (M33 #4).
+ *
+ * It answers "how does the score work", and the answer is the same on every
+ * card — so twenty-seven cards carried twenty-seven of them on the walk of
+ * 2026-09-16, each one a target you can press to be told the thing you were
+ * told above. The list carries a single "Why?" at its head instead
+ * (`MatchList`), and the mark stands down wherever that head exists.
+ *
+ * Standing down rather than being switched off by a prop: whether this mark
+ * is one of twenty is not something the card knows, and a prop would have to
+ * be threaded through the virtualiser to tell it. `inList` is the same fact
+ * the plate is read from, and it is false everywhere a score stands alone —
+ * the sheet, the top five, the stack, the basket.
+ */
+const { inList } = useLeads()
 </script>
 
 <template>
@@ -80,7 +97,7 @@ const word = computed(() => d.value.match.band[band.value])
         >{{ word }}</span
       >
 
-      <details class="group">
+      <details v-if="!inList" class="group">
         <summary
           class="fid-action flex size-5 cursor-pointer list-none items-center justify-center rounded-full border border-fid-border text-fid-xs text-fid-text-muted hover:text-fid-text"
           :aria-label="d.match.scoreWhat"

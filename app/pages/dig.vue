@@ -1335,14 +1335,90 @@ const noHorizon = computed(
         </p>
       </div>
 
-      <button
-        type="button"
-        :disabled="busy || !online"
-        class="fid-action self-start text-fid-sm text-fid-accent underline underline-offset-4 disabled:opacity-50"
-        @click="again()"
-      >
-        {{ d.again(result.dig.dealer) }}
-      </button>
+      <!--
+        One head, one line of things to do (M33 #3).
+
+        Above the finds stood four separate calls — "dig again", a bordered
+        box offering to refresh prices, a bordered accent link into the stack,
+        and a share button — each in its own shape and its own volume, before
+        the first record. Reported on 2026-09-16 as exactly that: four calls
+        and then, eventually, a shop.
+
+        They are one row of plates now, in the order somebody asks for them:
+        look again, look differently, repair the prices, pass it on. No fills,
+        no frames, no box round any of them. The sentences that used to be
+        stacked between them — what this was matched against, what the six
+        hours did — stand under the row as sentences, which is what they are.
+
+        And no icons. M34.1 put an icon beside every word on the shops screen
+        and that rule holds where it was made, on buttons with frames; a plate
+        is a word, and one glyph among three plates read as a mistake rather
+        than as a system.
+      -->
+      <nav class="flex flex-wrap items-center gap-x-5 gap-y-1" :aria-label="d.actions">
+        <button
+          type="button"
+          :disabled="busy || !online"
+          class="fid-action fid-plate min-h-9 text-fid-text transition-colors hover:text-fid-accent disabled:opacity-50"
+          @click="again()"
+        >
+          {{ d.again(result.dig.dealer) }}
+        </button>
+
+        <!--
+          The same finds, one after another.
+
+          No sixth entry in the navigation bar: on a phone five is already the
+          limit. The stack is a second **view** of this list, so it stands
+          where the list stands — and not somewhere you would have to go
+          looking.
+        -->
+        <NuxtLink
+          v-if="result.matches.length > 0"
+          :to="{ path: '/stack' }"
+          class="fid-action fid-plate min-h-9 text-fid-text transition-colors hover:text-fid-accent"
+        >
+          {{ d.stack.title }}
+        </NuxtLink>
+
+        <!--
+          The way out of an expired dig that is not a four-minute rescan: each
+          match's own listing, one request apiece. What it costs is said in
+          the sentence below rather than hidden in a title, because a minute
+          of somebody's rate limit is not a detail.
+        -->
+        <button
+          v-if="expired && result.matches.length > 0"
+          type="button"
+          :disabled="busy || !online"
+          class="fid-action fid-plate min-h-9 text-fid-text transition-colors hover:text-fid-accent disabled:opacity-50"
+          @click="refresh"
+        >
+          <!--
+            The count hangs on a margin, not on a space. `fid-plate` letters
+            are tracked 0.12em apart, so a word space is no wider than the gap
+            inside a word and the plate read "REFRESH THE PRICES(17)". The
+            filter chips carry their number the same way.
+          -->
+          {{ d.refreshPrices }}<span class="fid-num ml-1">({{ result.matches.length }})</span>
+        </button>
+
+        <!--
+          Sharing, and only where it is possible. Without a hub there is
+          nowhere a find list could live, so the sentence under the row says
+          so instead. After six hours it goes altogether: what may no longer
+          be shown may not be passed on either (rule 4).
+        -->
+        <button
+          v-if="!expired && hubUrl"
+          type="button"
+          :disabled="sharing || !online"
+          class="fid-action fid-plate min-h-9 text-fid-text transition-colors hover:text-fid-accent disabled:opacity-50"
+          @click="share"
+        >
+          {{ sharing ? d.shareBusy : d.share }}
+        </button>
+      </nav>
 
       <!--
         What it was held against. On every dig, not only the empty ones.
@@ -1363,40 +1439,12 @@ const noHorizon = computed(
       </p>
 
       <!--
-        The same finds, one after another.
-
-        No sixth entry in the navigation bar: on a phone five is already the
-        limit. The stack is a second **view** of this list, so it stands where
-        the list stands — and not somewhere you would have to go looking.
-      -->
-      <NuxtLink
-        v-if="result.matches.length > 0"
-        :to="{ path: '/stack' }"
-        class="fid-action inline-flex items-center gap-2 self-start rounded-fid-sm border border-fid-accent px-5 py-3 text-fid-base font-medium text-fid-accent"
-      >
-        <FidIcon name="layers" :size="18" aria-hidden="true" />
-        {{ d.stack.title }}
-      </NuxtLink>
-
-      <!--
-        Sharing, and only where it is possible.
-        Without a hub there is nowhere a find list could live — then a sentence
-        stands here instead of a button that does nothing. After six hours the
-        button disappears altogether: what may no longer be shown may not be
-        passed on either (rule 4).
+        What the share produced, and only then: a link, how long it lives, and
+        what it hands over. The trigger is a plate in the row above; this is
+        the answer, and it appears where an answer belongs.
       -->
       <div v-if="!expired" class="flex flex-col gap-2">
-        <button
-          v-if="hubUrl"
-          type="button"
-          :disabled="sharing || !online"
-          class="inline-flex items-center gap-2 self-start rounded-fid-sm border border-fid-border px-5 py-3 text-fid-base text-fid-text disabled:opacity-50"
-          @click="share"
-        >
-          <FidIcon name="share-2" :size="18" aria-hidden="true" />
-          {{ sharing ? d.shareBusy : d.share }}
-        </button>
-        <p v-else class="text-fid-sm text-fid-text-muted">{{ d.shareNeedsHub }}</p>
+        <p v-if="!hubUrl" class="text-fid-sm text-fid-text-muted">{{ d.shareNeedsHub }}</p>
 
         <div
           v-if="shareLink"
@@ -1428,49 +1476,38 @@ const noHorizon = computed(
         </div>
       </div>
 
-      <!-- The ToS deadline, enforced in the UI and not only in the cleanup job. -->
       <!--
-        And only where there were prices to lose.
+        The ToS deadline, enforced in the UI and not only in the cleanup job —
+        and as a sentence since M33 #3.
 
-        A dig that found nothing showed the six-hour notice and a button
-        offering to refresh nought prices — three controls that could do
-        nothing, dressed as a result. Reported on 2026-09-14 with exactly that
-        screen in front of it.
+        It was a bordered box holding a notice, a button and a cost line — a
+        frame round a thing that is not a choice but a fact about this dig.
+        The button is a plate in the row above now, and what it costs stands
+        here beside the fact, still said out loud: a minute of somebody's rate
+        limit is not a detail to hide in a title.
+
+        `role="status"` stays. The sentence appears when a dig ages past six
+        hours while somebody is looking at it, and that is exactly the kind of
+        change a screen reader should be told about.
+
+        And only where there were prices to lose. A dig that found nothing
+        showed this notice and a button offering to refresh nought prices —
+        three controls that could do nothing, dressed as a result. Reported on
+        2026-09-14 with exactly that screen in front of it.
       -->
-      <section
+      <p
         v-if="expired && result.matches.length > 0"
         role="status"
-        class="flex flex-col gap-2 rounded-fid-sm border border-fid-border p-3"
+        class="max-w-prose text-fid-sm text-fid-text-muted"
       >
-        <p class="text-fid-sm text-fid-text-muted">{{ d.expired }}</p>
-        <!--
-          The way out that is not a four-minute rescan: each match's own
-          listing, one request apiece.
-        -->
-        <!--
-          Outlined, though it was filled. Refreshing prices is a repair on
-          data that is already there, and it sits below a start button that is
-          the actual purpose of the screen — two filled accents at once and
-          neither of them means "do this".
-        -->
-        <button
-          type="button"
-          :disabled="busy || !online"
-          class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
-          @click="refresh"
-        >
-          {{ d.refreshPrices }}
-          <span class="fid-num">({{ result.matches.length }})</span>
-        </button>
-        <p class="text-fid-xs text-fid-text-muted">
-          {{
-            d.refreshCost(
-              result.matches.length,
-              Math.ceil((result.matches.length * 1.2) / 60) || 1,
-            )
-          }}
-        </p>
-      </section>
+        {{ d.expired }}
+        {{
+          d.refreshCost(
+            result.matches.length,
+            Math.ceil((result.matches.length * 1.2) / 60) || 1,
+          )
+        }}
+      </p>
 
       <div v-if="refreshing" class="flex flex-col gap-1" aria-live="polite">
         <div class="h-1.5 w-full overflow-hidden rounded-full bg-fid-inset">

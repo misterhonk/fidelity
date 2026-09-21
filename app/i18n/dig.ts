@@ -13,6 +13,8 @@ const en = {
   title: 'Dig',
   lead: "Pick a shop. We go through the racks and pull what's for you.",
   again: (shop: string) => `Dig ${shop} again`,
+  /** Names the row of plates under the head (M33 #3) for a screen reader. */
+  actions: 'What you can do here',
   description:
     'We go through a Discogs shop and hand you the records that fit, with a reason for each.',
   dealer: 'Shop name or link',
@@ -160,8 +162,13 @@ const en = {
   refreshed: (n: string) => `${n} up to date again`,
   refreshedSold: (n: string) => `${n} sold in the meantime`,
   refreshedGone: (n: string) => `${n} no longer findable`,
+  /**
+   * Said after the six-hour sentence since M33 #3, so it starts with a
+   * subject rather than a bare figure: the cost line used to sit under its own
+   * button inside a box, where "17 lookups" needed no verb.
+   */
   refreshCost: (lookups: number, minutes: number) =>
-    `${counted(lookups, 'lookup', 'lookups')}, so about ${counted(minutes, 'minute', 'minutes')}. Finds nothing new, only what this dig already found, again.`,
+    `Refreshing costs ${counted(lookups, 'lookup', 'lookups')}, about ${counted(minutes, 'minute', 'minutes')}. It finds nothing new, only what this dig already found, again.`,
   checked: (done: string, total: string) => `${done} of ${total} checked`,
   alreadySold: (n: string) => `${n} already sold`,
   empty: {
@@ -295,6 +302,7 @@ const de: typeof en = {
   title: 'Graben',
   lead: 'Such dir einen Laden aus. Wir gehen die Kisten durch und holen raus, was zu dir passt.',
   again: (shop) => `${shop} nochmal graben`,
+  actions: 'Was du hier machen kannst',
   description:
     'Wir gehen einen Discogs-Laden durch und legen dir die Platten hin, die passen, mit einem Grund zu jeder.',
   dealer: 'Laden, Name oder Link',
@@ -439,7 +447,7 @@ const de: typeof en = {
   refreshedSold: (n) => `${n} inzwischen verkauft`,
   refreshedGone: (n) => `${n} nicht mehr auffindbar`,
   refreshCost: (lookups, minutes) =>
-    `${counted(lookups, 'Abfrage', 'Abfragen')}, also rund ${counted(minutes, 'Minute', 'Minuten')}. Findet nichts Neues, nur das nochmal, was dieser Dig schon gefunden hat.`,
+    `Auffrischen kostet ${counted(lookups, 'Abfrage', 'Abfragen')}, also rund ${counted(minutes, 'Minute', 'Minuten')}. Es findet nichts Neues, nur das nochmal, was dieser Dig schon gefunden hat.`,
   checked: (done, total) => `${done} von ${total} nachgesehen`,
   alreadySold: (n) => `${n} schon verkauft`,
   empty: {

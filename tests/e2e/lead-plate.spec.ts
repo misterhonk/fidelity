@@ -124,10 +124,17 @@ test('wears a worn-out reason as a plate, and keeps the sentence for the rest', 
 /**
  * The second key under the score (M33 #2).
  *
- * Twenty finds sat at 48 on the same walk and "by score" ordered nothing among
- * them — the list was whatever order the scan happened to write. The price
- * carries on where the score stops, and the tab says so rather than leaving
- * somebody to work out why two equal finds are in the order they are in.
+ * Twenty finds sat at 48 on the same walk, and nothing on the screen said what
+ * put them in the order they were in. The tab in force names its second key
+ * now, which is the half of this that was actually missing.
+ *
+ * The ordering itself was already right, by a route nobody had written down:
+ * the worker ranks a dig on the price behind the score (`bestPerRelease`) and
+ * the view's sort is stable, so it survived a comparison that read the score
+ * alone. This test would have passed before the change — it stands as a
+ * guarantee about the screen, not as proof of a repair. The repair that was
+ * needed is on the start screen's rail (`tests/unit/home.spec.ts`), which
+ * never went through the worker's ranking at all.
  */
 test('breaks a tie on the price, and says on the tab that it does', async ({ page }) => {
   const dig = await seed(page, 'en')
