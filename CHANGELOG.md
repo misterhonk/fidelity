@@ -9,6 +9,23 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.109.2](https://github.com/misterhonk/fidelity/compare/v0.109.1...v0.109.2) (2026-09-21)
+
+**Der Verbindungstest zum Hub sagt in einem Satz, ob es geht.**
+
+Bisher stand nach dem Test eine Kette aus Teilbefunden: „mit Geheimnis gesichert · kein
+Geheimnis eingetragen, nichts kommt durch · dein Zugangsschlüssel öffnet ihn". Drei Antworten
+auf eine Frage, und Martin konnte nicht sagen, ob der Hub nun geht. Jetzt steht da ein Urteil:
+„Erreichbar. Dein Zugangsschlüssel öffnet ihn, alles kommt durch." Oder, wenn nicht: warum
+nicht, und dass solange nichts durchkommt. Was der Hub drin hat, steht in einer eigenen Zeile.
+
+**Was zu tun ist:** Nichts.
+
+
+### Fixed
+
+* **hub:** the connection test gives one verdict, not a chain of findings ([762a3c0](https://github.com/misterhonk/fidelity/commit/762a3c05cee64cd1a1a61814a52e652467b60561))
+
 ## [0.109.1](https://github.com/misterhonk/fidelity/compare/v0.109.0...v0.109.1) (2026-09-21)
 
 **Der Lesedurchgang: jede Seite in beiden Sprachen einmal am Stück gelesen.**
