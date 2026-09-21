@@ -11,6 +11,16 @@ Für eine App bedeutet SemVer:
 
 ## [0.109.0](https://github.com/misterhonk/fidelity/compare/v0.108.2...v0.109.0) (2026-09-21)
 
+**Zwei Besuche nebeneinander: neu, weg, noch da.**
+
+Der letzte Schritt von M36. Unter den Top Five eines vollen Digs steht jetzt eine zugeklappte
+Zeile „Seit dem Besuch vom 12.09.: 5 neu, 12 weg, 14 noch da". Aufgeklappt liegen drei kompakte
+Listen darunter: was dieser Dig gefunden hat und der vorige nicht, was der vorige fand und
+seitdem weg ist, und was von damals noch da ist. Alles vom Gerät, ohne Anfrage. Hat der Dig
+nicht den ganzen Laden gesehen, sagt er „weg unbekannt", statt zu raten.
+
+**Was zu tun ist:** Nichts. Der Vergleich erscheint, sobald ein Laden zwei volle Digs hat.
+
 
 ### Added
 
