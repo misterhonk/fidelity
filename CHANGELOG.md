@@ -9,6 +9,27 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.108.2](https://github.com/misterhonk/fidelity/compare/v0.108.1...v0.108.2) (2026-09-21)
+
+**Kompakt auf dem Handy zeigt wieder die Platte, und das Sheet hat richtige Pfeile.**
+
+Auf dem iPhone quetschte die Kompaktzeile den Namen der Platte auf zwei Buchstaben, weil daneben
+noch der Grund, das Format, ein „+0,00 €" und vier unsichtbare Urteilsknöpfe standen. Jetzt
+bleiben auf schmalen Schirmen Platte und Preis, der Rest wartet auf mehr Breite, und ein Porto
+von nichts steht nirgends mehr. Dazu waren die Zeilen auf iOS bis zum ersten Scrollen leer, weil
+Safari sie als „weit weg" übersprang; für eine 34-Pixel-Zeile brauchen wir das nicht.
+
+Und im Sheet einer Platte waren Pfeile und Schließen nackte Icons in Grau. Der Stil dafür war in
+vier Sheets benutzt und nirgends definiert. Jetzt sind es Knöpfe mit Rand auf der Fläche, die
+Icons eine Nummer größer, die Zählung „21 von 27" gut lesbar.
+
+**Was zu tun ist:** Nichts.
+
+
+### Fixed
+
+* **ui:** the compact table works on a phone, and the sheet's arrows stand on the surface ([613926b](https://github.com/misterhonk/fidelity/commit/613926bf196f7d537e0c50a8abef1ff3cae2312f))
+
 ## [0.108.1](https://github.com/misterhonk/fidelity/compare/v0.108.0...v0.108.1) (2026-09-20)
 
 **Alte leere Nachschau-Läufe lesen sich jetzt wie neue.**
