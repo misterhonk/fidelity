@@ -1,4 +1,4 @@
-import type { Dig, DigBrief, DigVisit } from '#shared/types'
+import type { Dig, DigBrief, DigComparison, DigVisit } from '#shared/types'
 import { openFidelityDb, type FidelityDatabase } from '~~/db/open'
 
 /**
@@ -78,6 +78,48 @@ export async function markGone(db: FidelityDatabase, dig: Dig, now: number): Pro
 
   await db.put('digs', { ...dig, checkedGone: true })
   return marked
+}
+
+/**
+ * This full dig against the full dig before it (M36.5).
+ *
+ * New is what this dig found that the earlier one had not; gone is what the
+ * earlier one found and this one marked as no longer there; kept is the
+ * rest of the earlier finds. Sorted by score, the way every list here is.
+ * Gone is null where this dig did not see the whole shop, because then it
+ * cannot say.
+ */
+export async function compareDigs(
+  db: FidelityDatabase,
+  digId: string,
+): Promise<DigComparison | null> {
+  const later = await db.get('digs', digId)
+  if (!later || !isFull(later)) return null
+  const earlier = (await db.getAll('digs'))
+    .filter((d) => d.dealer === later.dealer && d.id < later.id && isFull(d) && finished(d))
+    .sort((a, b) => b.id.localeCompare(a.id))[0]
+  if (!earlier) return null
+
+  const index = db.transaction('matches').store.index('by-dig-score')
+  const before = await index.getAll(digRange(earlier.id))
+  const after = await db
+    .transaction('matches')
+    .store.index('by-dig-score')
+    .getAll(digRange(later.id))
+
+  const known = new Set(before.map((match) => match.listingId))
+  const byScore = (a: { score: number }, b: { score: number }) => b.score - a.score
+  const fresh = after.filter((match) => !known.has(match.listingId)).sort(byScore)
+  const gone = later.checkedGone ? before.filter((match) => match.goneAt).sort(byScore) : null
+  const kept = before.filter((match) => !match.goneAt).sort(byScore)
+
+  return {
+    earlier: brief(earlier, gone?.length ?? null),
+    later: brief(later, null),
+    fresh,
+    gone,
+    kept,
+  }
 }
 
 // ---------------------------------------------------------------------------

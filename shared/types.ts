@@ -1101,6 +1101,19 @@ export interface DigBrief {
 }
 
 /**
+ * Two full visits side by side (M36.5): what this dig found that the one
+ * before did not, what the earlier one found that is gone, and what is
+ * still there. `gone` is null where this dig could not see the whole shop.
+ */
+export interface DigComparison {
+  earlier: DigBrief
+  later: DigBrief
+  fresh: Match[]
+  gone: Match[] | null
+  kept: Match[]
+}
+
+/**
  * A shop and its visits (M36): the newest full dig, what has happened
  * since, and every kept run for the fold.
  */

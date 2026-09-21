@@ -7,7 +7,7 @@ import type {
   RunningHorizon,
   ScanProgress,
 } from '#shared/protocol'
-import type { Dealer, Dig, LandedContext, DigVisit } from '#shared/types'
+import type { Dealer, Dig, DigComparison, DigVisit, LandedContext } from '#shared/types'
 
 import { useDigMessages } from '~/i18n/dig'
 
@@ -169,6 +169,35 @@ async function showDig(digId: string) {
  * optimistically, the button lit up and the verdict was silently never saved.
  */
 const result = shallowRef<DigWithMatches | null>(null)
+
+/**
+ * This full dig against the one before it (M36.5): what is new, what is
+ * gone, what is still there. Loaded with the dig, null where there is no
+ * earlier full dig of the shop to stand against.
+ */
+const comparison = shallowRef<DigComparison | null>(null)
+watch(
+  () => result.value?.dig.id ?? null,
+  async (digId) => {
+    comparison.value = null
+    if (!digId) return
+    const answer = await call('dig.compare', { digId })
+    if (result.value?.dig.id === digId) comparison.value = answer
+  },
+  { immediate: true },
+)
+
+/** The three lists of the comparison, in the order somebody reads them. */
+const GONE = 'gone' as const
+const comparisonParts = computed(() => {
+  const c = comparison.value
+  if (!c) return []
+  return [
+    { key: 'fresh' as const, rows: c.fresh },
+    { key: GONE, rows: c.gone ?? [] },
+    { key: 'kept' as const, rows: c.kept },
+  ]
+})
 const busy = ref(false)
 
 /**
@@ -1546,6 +1575,52 @@ const noHorizon = computed(
               <MatchCard :match="match" />
             </li>
           </ul>
+        </section>
+
+        <!--
+          Two visits side by side (M36.5). Folded: it is a comparison, not
+          the list, and somebody who came for the finds reads on.
+        -->
+        <section v-if="comparison" class="flex flex-col gap-3" aria-labelledby="compare">
+          <details>
+            <summary
+              id="compare"
+              class="fid-action cursor-pointer list-none text-fid-sm uppercase tracking-[0.2em] text-fid-text-muted"
+            >
+              {{
+                d.compare.summary(
+                  dayTime(comparison.earlier.startedAt),
+                  comparison.fresh.length,
+                  comparison.gone?.length ?? null,
+                  comparison.kept.length,
+                )
+              }}
+            </summary>
+            <div class="mt-3 flex flex-col gap-4">
+              <div v-for="part in comparisonParts" :key="part.key" class="flex flex-col gap-1">
+                <h4 class="fid-plate text-fid-text-muted">
+                  {{ d.compare.heading(part.key, part.rows.length) }}
+                </h4>
+                <p
+                  v-if="part.key === GONE && comparison.gone === null"
+                  class="text-fid-xs text-fid-text-muted"
+                >
+                  {{ d.compare.goneUnknown }}
+                </p>
+                <p v-else-if="part.rows.length === 0" class="text-fid-xs text-fid-text-muted">
+                  {{ d.compare.none }}
+                </p>
+                <ul v-else class="flex flex-col">
+                  <li v-for="match in part.rows.slice(0, 30)" :key="match.listingId">
+                    <MatchRow :match="match" />
+                  </li>
+                </ul>
+                <p v-if="part.rows.length > 30" class="fid-num text-fid-xs text-fid-text-muted">
+                  {{ d.compare.more(part.rows.length - 30) }}
+                </p>
+              </div>
+            </div>
+          </details>
         </section>
 
         <CreditExplorer :dig-id="result.dig.id" />

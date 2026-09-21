@@ -72,6 +72,13 @@ test('groups the earlier digs by shop, and an old dig says what came since', asy
     timeout: 15_000,
   })
 
+  // The newer dig against the older one (M36.5): two new, one gone, one still there.
+  await page.getByText('Since the visit of', { exact: false }).click()
+  await expect(
+    page.getByText(/Since the visit of .*: 2 new, 1 gone, 1 still there/),
+  ).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Gone · 1' })).toBeVisible()
+
   // The field, the shops and the visits sit behind the folded head (M32).
   await page.getByText('Another shop, or an earlier dig').click()
   const visits = page.getByRole('list', { name: 'Your visits' })

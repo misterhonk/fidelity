@@ -87,6 +87,16 @@ const en = {
         : `Since this dig: ${newFinds} new, ${gone} of these gone.`,
     latest: 'The shop today',
   },
+  /** Two full visits side by side (M36.5). */
+  compare: {
+    summary: (since: string, fresh: number, gone: number | null, kept: number) =>
+      `Since the visit of ${since}: ${fresh} new, ${gone === null ? 'gone unknown' : `${gone} gone`}, ${kept} still there`,
+    heading: (part: 'fresh' | 'gone' | 'kept', n: number) =>
+      `${part === 'fresh' ? 'New' : part === 'gone' ? 'Gone' : 'Still there'} · ${n}`,
+    goneUnknown: 'This dig did not see the whole shop, so it cannot say what left.',
+    none: 'Nothing here.',
+    more: (n: number) => `and ${n} more`,
+  },
   hits: (n: number, dealer: string) => `${counted(n, 'find', 'finds')} at ${dealer}`,
   newListings: (n: string, one: boolean) =>
     `${n} ${one ? 'new record' : 'new records'} since you last looked`,
@@ -347,6 +357,16 @@ const de: typeof en = {
         ? `Seit diesem Dig: ${counted(newFinds, 'neuer Fund', 'neue Funde')}.`
         : `Seit diesem Dig: ${newFinds} neu, ${gone} davon weg.`,
     latest: 'Der Laden heute',
+  },
+  compare: {
+    summary: (since, fresh, gone, kept) =>
+      `Seit dem Besuch vom ${since}: ${fresh} neu, ${gone === null ? 'weg unbekannt' : `${gone} weg`}, ${kept} noch da`,
+    heading: (part, n) =>
+      `${part === 'fresh' ? 'Neu' : part === 'gone' ? 'Weg' : 'Noch da'} · ${n}`,
+    goneUnknown:
+      'Dieser Dig hat nicht den ganzen Laden gesehen, deshalb kann er nicht sagen, was fehlt.',
+    none: 'Hier nichts.',
+    more: (n) => `und ${n} weitere`,
   },
   hits: (n, dealer) => `${counted(n, 'Fund', 'Funde')} bei ${dealer}`,
   newListings: (n, one) =>

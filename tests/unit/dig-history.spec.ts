@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { blankDealer } from '~~/db/dealer'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import type { Dig, Match, StockRow } from '#shared/types'
-import { digVisits, discardQuietCheck, markGone } from '~~/worker/dig/history'
+import { compareDigs, digVisits, discardQuietCheck, markGone } from '~~/worker/dig/history'
 
 /**
  * A dig is a visit (M36): a quiet check-in leaves no dig, a full dig that
@@ -154,5 +154,31 @@ describe('the visits', () => {
       ['01B', 'new', null],
       ['01A', 'full', 3],
     ])
+  })
+})
+
+describe('two visits side by side', () => {
+  it('sorts the finds into new, gone and still there', async () => {
+    const db = await openFidelityDb()
+    await db.put('digs', dig('01A', 1 * DAY, { status: 'expired' }))
+    await db.put('digs', dig('01C', 9 * DAY, { checkedGone: true }))
+    await db.put('matches', { ...match('01A', 1), score: 60 })
+    await db.put('matches', { ...match('01A', 2), score: 40, goneAt: 9 * DAY })
+    await db.put('matches', { ...match('01C', 1), score: 61 })
+    await db.put('matches', { ...match('01C', 5), score: 70 })
+
+    const answer = await compareDigs(db, '01C')
+    expect(answer?.fresh.map((m) => m.listingId)).toEqual([5])
+    expect(answer?.gone?.map((m) => m.listingId)).toEqual([2])
+    expect(answer?.kept.map((m) => m.listingId)).toEqual([1])
+    expect(answer?.earlier.gone).toBe(1)
+
+    // Without the marks the later dig cannot say what left.
+    await db.put('digs', dig('01C', 9 * DAY))
+    expect((await compareDigs(db, '01C'))?.gone).toBeNull()
+    // And a check-in, or a first dig, has nothing to stand against.
+    await db.put('digs', dig('01D', 10 * DAY, { depth: 'neu' }))
+    expect(await compareDigs(db, '01D')).toBeNull()
+    expect(await compareDigs(db, '01A')).toBeNull()
   })
 })

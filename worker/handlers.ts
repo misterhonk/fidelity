@@ -1417,6 +1417,8 @@ export const handlers: HandlerMap = {
   },
 
   'dig.visits': async () => (await import('./dig/history')).digVisits(),
+  'dig.compare': async ({ digId }) =>
+    (await import('./dig/history')).compareDigs(await openFidelityDb(), digId),
 
   'dig.stands': async () => (await import('./stands')).recentStands(),
 

@@ -87,6 +87,7 @@ import type {
   UnitPlan,
   RateLedger,
   DealerTempo,
+  DigComparison,
   DigVisit,
 } from './types'
 
@@ -874,6 +875,8 @@ export interface WorkerContract {
   'dig.list': { params: undefined; progress: never; result: Dig[] }
   /** The shops and their visits, for the history on the dig screen (M36). */
   'dig.visits': { params: undefined; progress: never; result: DigVisit[] }
+  /** This full dig against the full dig before it at the same shop (M36.5). */
+  'dig.compare': { params: { digId: string }; progress: never; result: DigComparison | null }
 
   /**
    * The top row of the stack: which shops have fresh finds.
