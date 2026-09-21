@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { useLanguage, type Language } from '~/composables/useMessages'
 import { SIGNAL_TYPES, type Signal, type SignalType } from '#shared/types'
-import { packs, reasonFor } from '~/i18n/reason'
+import { packs, plateFor, reasonFor } from '~/i18n/reason'
 
 /**
  * The sentence.
@@ -271,5 +271,109 @@ describe.each(LANGUAGES)('which signal gets to lead, in %s', (language) => {
     ])
     // No dangling connector with nothing after it.
     expect(sentence).toBe(packs[language].lead.WANTLIST_EXACT!({}))
+  })
+})
+
+/**
+ * The reason as a plate, for the list that has heard it twenty times (M33 #1).
+ *
+ * Both languages again, and for the same reason as everything else in this
+ * file: the plate table is two hand-written objects, and a signal that names
+ * its evidence in one and returns null in the other looks like nothing at all
+ * from inside the language you happen to be reading.
+ */
+describe.each(LANGUAGES)('the reason as a plate, in %s', (language) => {
+  beforeEach(() => useLanguage().apply(language))
+
+  /*
+   * A plate stands where a sentence was taken away, so every signal has to
+   * have one — a card with a blank there has stopped answering the question
+   * it exists to answer. And it has to hold with no evidence at all, because
+   * evidence arrives from three passes and any of them can be short a field.
+   */
+  it.each(SIGNAL_TYPES)('%s has a plate, with evidence and without', (type) => {
+    expect(plateFor(signal(type))).toBeTruthy()
+
+    const bare = plateFor({ type, confidence: 1, evidence: {} })
+    expect(bare).toBeTruthy()
+    expect(bare).not.toMatch(/undefined|NaN|null/)
+  })
+
+  /*
+   * The artist is the card's own first line and the label is in the facts
+   * under it. Naming them again is how the first attempt at this read on
+   * 2026-09-21: "ARTIST · PROBE 3 · 5" over a card headed "Probe 3", saying
+   * the name twice and the point not at all.
+   */
+  it('says what is the matter, and counts rather than repeating the name', () => {
+    const shelf = language === 'de' ? 'Im Regal · 5' : 'On the shelf · 5'
+    const label = language === 'de' ? 'Dein Label · 3' : 'Your label · 3'
+
+    expect(plateFor(signal('ARTIST_KNOWN'))).toBe(shelf)
+    expect(plateFor(signal('LABEL_AFFINITY'))).toBe(label)
+  })
+
+  it('names what the card does not carry anywhere else', () => {
+    // A producer, a style: nowhere on the card, so the plate says who and what.
+    expect(plateFor(signal('CREDIT_GRAPH'))).toContain('Rudy Van Gelder')
+    expect(plateFor(signal('STYLE_ADJACENT'))).toContain('Minimal')
+    expect(plateFor(signal('FORMAT_UPGRADE'))).toContain('CD')
+  })
+
+  it('leaves off a count of one, which counts nothing', () => {
+    const shelf = language === 'de' ? 'Im Regal' : 'On the shelf'
+    expect(plateFor(signal('ARTIST_KNOWN', { owned: 1 }))).toBe(shelf)
+  })
+
+  it('says a gap and a run as the fraction they are', () => {
+    const of = language === 'de' ? 'von' : 'of'
+    expect(plateFor(signal('ARTIST_GAP'))).toContain(`5 ${of} 12`)
+    expect(plateFor(signal('CATALOG_RUN'))).toContain(`6 ${of} 9`)
+  })
+
+  it('tells a plain want from one you want most', () => {
+    expect(plateFor(signal('WANTLIST_EXACT'))).not.toBe(
+      plateFor(signal('WANTLIST_EXACT', { want: 5 })),
+    )
+  })
+
+  /*
+   * A plate that wraps has turned back into a sentence, which is the thing it
+   * was introduced to stop. Generous, because a producer's name is a name and
+   * this cannot be a rule about people's names — it catches a phrase growing
+   * into prose, not a long one.
+   */
+  it('stays short enough to be a plate', () => {
+    for (const type of SIGNAL_TYPES) {
+      expect(plateFor(signal(type)).length).toBeLessThan(40)
+    }
+  })
+})
+
+/**
+ * And what the card still has to say once the plate has said the lead.
+ */
+describe.each(LANGUAGES)('the sentence with its lead taken away, in %s', (language) => {
+  beforeEach(() => useLanguage().apply(language))
+
+  it('lets the next strongest signal lead instead', () => {
+    const sentence = reasonFor([signal('ARTIST_KNOWN'), signal('CREDIT_GRAPH')], 'ARTIST_KNOWN')
+
+    expect(sentence).toContain('Rudy Van Gelder')
+    expect(sentence).not.toContain('Robag Wruhme')
+  })
+
+  it('says nothing where the plate said everything', () => {
+    // No paragraph at all on the card, rather than a fallback that repeats
+    // in prose what the plate just said in three words.
+    expect(reasonFor([signal('ARTIST_KNOWN')], 'ARTIST_KNOWN')).toBe('')
+    expect(reasonFor([signal('ARTIST_KNOWN')], 'ARTIST_KNOWN')).not.toBe(
+      packs[language].fallback,
+    )
+  })
+
+  it('is the sentence it always was when nothing is taken away', () => {
+    const signals = [signal('WANTLIST_EXACT'), signal('ARTIST_KNOWN')]
+    expect(reasonFor(signals, undefined)).toBe(reasonFor(signals))
   })
 })

@@ -5,11 +5,13 @@ import {
   arrange,
   availableSignals,
   DEFAULT_DIRECTION,
+  leadOf,
   parseDensity,
   parseDirection,
   parseSignals,
   parseSort,
   parseUpTo,
+  repeatedLeads,
 } from '~/utils/digview'
 
 function match(over: Partial<Match> = {}): Match {
@@ -212,6 +214,140 @@ describe('filtering and sorting', () => {
     const order = all.map((m) => m.listingId)
     arrange(all, [], 'price')
     expect(all.map((m) => m.listingId)).toEqual(order)
+  })
+})
+
+/**
+ * What decides when the score has stopped deciding (M33 #2).
+ *
+ * Twenty finds sat at 48 on 2026-09-16 and "by score" ordered nothing among
+ * them — the list was whatever the scan happened to write first, and it moved
+ * between two digs of the same shop for no reason a reader could see.
+ */
+describe('the second key under the score', () => {
+  it('puts the cheaper of two equal scores first', () => {
+    const tied = [
+      match({ listingId: 1, score: 48, price: 30 }),
+      match({ listingId: 2, score: 48, price: 12 }),
+      match({ listingId: 3, score: 48, price: 20 }),
+    ]
+
+    expect(arrange(tied, [], 'score').map((m) => m.listingId)).toEqual([2, 3, 1])
+  })
+
+  it('never lets the price outrank the score', () => {
+    const mixed = [
+      match({ listingId: 1, score: 48, price: 5 }),
+      match({ listingId: 2, score: 90, price: 80 }),
+    ]
+
+    expect(arrange(mixed, [], 'score').map((m) => m.listingId)).toEqual([2, 1])
+  })
+
+  /*
+   * The half that is easy to get wrong. Turning "by score" round asks for the
+   * weakest find first — it does not ask for the dearest one, any more than
+   * turning "by price" round asks for the worst find among two at €5.
+   */
+  it('keeps the cheaper one first from either end', () => {
+    const tied = [
+      match({ listingId: 1, score: 48, price: 30 }),
+      match({ listingId: 2, score: 48, price: 12 }),
+    ]
+
+    expect(arrange(tied, [], 'score', '', null, 'asc').map((m) => m.listingId)).toEqual([2, 1])
+  })
+
+  it('leaves an expired price last, and the rest in the order they came', () => {
+    const expired = [
+      match({ listingId: 1, score: 48, price: null }),
+      match({ listingId: 2, score: 48, price: 20 }),
+      match({ listingId: 3, score: 48, price: null }),
+    ]
+
+    expect(arrange(expired, [], 'score').map((m) => m.listingId)).toEqual([2, 1, 3])
+  })
+})
+
+/**
+ * A reason that repeats is not a reason, it is a category (M33 #1).
+ */
+describe('the reasons a list has worn out', () => {
+  const artists = (n: number, from = 1) =>
+    Array.from({ length: n }, (_, i) => match({ listingId: from + i }))
+
+  it('names a lead that leads a quarter of the list, and at least five finds', () => {
+    // Six of eight say the same thing: a heading printed into every row.
+    const many = [
+      ...artists(6),
+      match({
+        listingId: 7,
+        signals: [{ type: 'WANTLIST_EXACT', confidence: 1, evidence: {} }],
+      }),
+      match({
+        listingId: 8,
+        signals: [{ type: 'SCARCITY', confidence: 1, evidence: {} }],
+      }),
+    ]
+
+    expect([...repeatedLeads(many)]).toEqual(['ARTIST_KNOWN'])
+  })
+
+  it('leaves four of anything alone', () => {
+    // Four is still four things somebody reads one at a time.
+    expect([...repeatedLeads(artists(4))]).toEqual([])
+  })
+
+  it('leaves five discoveries among two hundred alone', () => {
+    const haystack = [
+      ...artists(195),
+      ...Array.from({ length: 5 }, (_, i) =>
+        match({
+          listingId: 500 + i,
+          signals: [{ type: 'CREDIT_GRAPH', confidence: 1, evidence: {} }],
+        }),
+      ),
+    ]
+
+    // The artist still leads the list; five credits among two hundred finds
+    // are five discoveries, which is the opposite of a category.
+    expect([...repeatedLeads(haystack)]).toEqual(['ARTIST_KNOWN'])
+  })
+
+  /*
+   * A quarter rather than a half, so two signals dividing a list between them
+   * can both be categories — which is what a shop full of your labels and
+   * your artists actually looks like.
+   */
+  it('lets two signals share one list', () => {
+    const split = [
+      ...artists(5),
+      ...Array.from({ length: 5 }, (_, i) =>
+        match({
+          listingId: 100 + i,
+          signals: [{ type: 'LABEL_AFFINITY', confidence: 1, evidence: {} }],
+        }),
+      ),
+    ]
+
+    expect([...repeatedLeads(split)].sort()).toEqual(['ARTIST_KNOWN', 'LABEL_AFFINITY'])
+  })
+
+  it('reads the lead off the engine-s own ordering, not off the order they were stored in', () => {
+    // WANTLIST_EXACT outweighs ARTIST_KNOWN, whichever way round they sit.
+    const both = match({
+      signals: [
+        { type: 'ARTIST_KNOWN', confidence: 1, evidence: {} },
+        { type: 'WANTLIST_EXACT', confidence: 1, evidence: {} },
+      ],
+    })
+
+    expect(leadOf(both)).toBe('WANTLIST_EXACT')
+  })
+
+  it('has nothing to say about a find with no signals, or an empty dig', () => {
+    expect(leadOf(match({ signals: [] }))).toBeNull()
+    expect([...repeatedLeads([])]).toEqual([])
   })
 })
 

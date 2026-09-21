@@ -2,7 +2,7 @@
 import { useWindowVirtualizer } from '@tanstack/vue-virtual'
 
 import type { Match, SortDirection } from '#shared/types'
-import type { Density, SortKey } from '~/utils/digview'
+import { repeatedLeads, type Density, type SortKey } from '~/utils/digview'
 import { useDigMessages } from '~/i18n/dig'
 
 const d = useDigMessages()
@@ -16,6 +16,16 @@ const props = defineProps<{
   direction?: SortDirection
 }>()
 const emit = defineEmits<{ setSort: [SortKey] }>()
+
+/**
+ * The reasons this list says so often that they have stopped being reasons
+ * (M33 #1), handed down to the cards.
+ *
+ * Computed over the list as it stands — filtered, not the whole dig. Filtering
+ * to one signal makes every card carry it, which is exactly when the sentence
+ * is worth least and the plate reads as what the chip above already said.
+ */
+provideLeads(computed(() => repeatedLeads(props.matches)))
 
 /**
  * The head of the table, in the density that is one (M31.25).

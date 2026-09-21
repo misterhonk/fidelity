@@ -188,13 +188,22 @@ const en = {
     sortBy: 'Sort',
     sortedAsc: (label: string) => `${label}, ascending`,
     sortedDesc: (label: string) => `${label}, descending`,
+    /**
+     * What the score does when it runs out (M33 #2), shown on the tab only
+     * while the score is the ordering in force — the other keys have no
+     * second half worth the width.
+     */
+    thenPrice: 'then price',
     columns: 'Columns, tap one to sort by it',
     density: 'Density',
     comfortable: 'Detailed',
     crate: 'Crate',
     compact: 'Compact',
     sorts: {
-      score: { label: 'Score', about: 'Best find first' },
+      score: {
+        label: 'Score',
+        about: 'Best find first, and the cheaper one where two finds score the same',
+      },
       price: { label: 'Price', about: 'Cheapest first' },
       landed: {
         label: 'With postage',
@@ -457,13 +466,17 @@ const de: typeof en = {
     sortBy: 'Sortieren',
     sortedAsc: (label) => `${label}, aufsteigend`,
     sortedDesc: (label) => `${label}, absteigend`,
+    thenPrice: 'dann Preis',
     columns: 'Spalten, zum Sortieren antippen',
     density: 'Dichte',
     comfortable: 'Ausführlich',
     crate: 'Kiste',
     compact: 'Kompakt',
     sorts: {
-      score: { label: 'Score', about: 'Bester Fund zuerst' },
+      score: {
+        label: 'Score',
+        about: 'Bester Fund zuerst, und bei gleichem Score der günstigere',
+      },
       price: { label: 'Preis', about: 'Günstigste zuerst' },
       landed: {
         label: 'Mit Porto',

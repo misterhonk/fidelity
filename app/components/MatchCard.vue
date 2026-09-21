@@ -1,13 +1,37 @@
 <script setup lang="ts">
 import { describeFormat } from '#shared/format'
 import { FEW_PRESSINGS, type Match } from '#shared/types'
-import { reasonFor } from '~/i18n/reason'
+import { plateFor, reasonFor } from '~/i18n/reason'
 import { pressingText, stampText } from '~/i18n/pressing'
 import { useDigMessages } from '~/i18n/dig'
 
 const d = useDigMessages()
 
 const props = defineProps<{ match: Match }>()
+
+/**
+ * The reason, as a plate where the list has worn it out (M33 #1).
+ *
+ * Twenty of twenty-seven cards said the same thing on 2026-09-16, and a reason
+ * repeated twenty times is a category. So the list says which of its reasons
+ * have become one; a card carrying such a reason wears it as a plate — what is
+ * the matter with this record, and the figure behind it, "IM REGAL · 5" — and
+ * spends its sentence on whatever it has left. A card whose lead is the only
+ * one of its kind is untouched, and so is every card outside a long list: the
+ * top five, the stack, a shared dig. There nobody provides anything and
+ * `plated` is null.
+ */
+const { plated } = useLeads()
+const plate = computed(() => {
+  const type = plated(props.match)
+  const signal = type && props.match.signals.find((candidate) => candidate.type === type)
+  return signal ? plateFor(signal) : null
+})
+
+/** What is left to say once the plate has said the lead. */
+const sentence = computed(() =>
+  reasonFor(props.match.signals, plated(props.match) ?? undefined),
+)
 
 const { verdicts, judge } = useFeedback()
 
@@ -179,8 +203,15 @@ const meta = computed(() => {
           interrupting a sentence.
 
           Never truncated. The sentence is the product.
+
+          Unless the list has heard it twenty times (M33 #1) — then the lead
+          is a plate above the sentence, and the sentence says what is left.
+          Often that is nothing, and then there is no paragraph at all: a card
+          whose only reason is the one every card here carries has said its
+          piece in three words.
         -->
-        <p class="max-w-prose text-fid-base text-fid-text">{{ reasonFor(match.signals) }}</p>
+        <p v-if="plate" class="fid-plate text-fid-text">{{ plate }}</p>
+        <p v-if="sentence" class="max-w-prose text-fid-base text-fid-text">{{ sentence }}</p>
         <p v-if="meta" class="fid-plate text-fid-text-muted">{{ meta }}</p>
 
         <!--

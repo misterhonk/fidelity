@@ -1,5 +1,7 @@
 import type { LandedPrice, Match, SignalType, SortDirection } from '#shared/types'
 
+import { byStrength } from '~~/worker/match/reason'
+
 import { activeLocale } from '~/composables/useMessages'
 
 /**
@@ -159,6 +161,32 @@ function compare(
 }
 
 /**
+ * What decides when the ordering in force has nothing left to say (M33 #2).
+ *
+ * "By score" used to be the whole answer under its own key, and on a real dig
+ * that answer runs out: twenty finds sat at 48 on 2026-09-16 and the list was
+ * whatever order the scan happened to write them in — a rank with no second
+ * opinion, changing between two digs of the same shop for no reason anybody
+ * could see.
+ *
+ * So score first, and then the price, cheaper ahead. Not the year: two records
+ * you have the same reason to want are told apart by what they cost, which is
+ * the question the next click asks anyway. A record whose price expired goes
+ * last here as everywhere (docs/03 §6), and where neither has one this returns
+ * zero — `Array.sort` is stable, so those keep the order they arrived in
+ * rather than being shuffled by an arithmetic accident.
+ *
+ * Outside the direction, deliberately. Turning "by score" round asks for the
+ * weakest find first, not for the dearest one — the same reason the score
+ * itself never turns when it breaks a tie under `price`.
+ */
+function tieBreak(a: Match, b: Match): number {
+  const byScore = b.score - a.score
+  if (byScore !== 0) return byScore
+  return missingLast(a.price, b.price) ?? a.price! - b.price!
+}
+
+/**
  * Ranks a present value ahead of a missing one, and returns null when both
  * sides have the field so the caller can do the real comparison.
  *
@@ -191,6 +219,46 @@ export function availableSignals(matches: Match[]): { type: SignalType; n: numbe
   return [...counts.entries()]
     .map(([type, n]) => ({ type, n }))
     .sort((a, b) => b.n - a.n || a.type.localeCompare(b.type))
+}
+
+/**
+ * Which signal a find leads with — the one its sentence is built from.
+ *
+ * `byStrength` is the engine's own ordering and reads `WEIGHTS`, the table the
+ * score comes out of. Asking it here rather than re-deciding means the word on
+ * the card can never name a different reason than the sentence would.
+ */
+export function leadOf(match: Match): SignalType | null {
+  return [...match.signals].sort(byStrength)[0]?.type ?? null
+}
+
+/**
+ * A reason that repeats is not a reason, it is a category (M33 #1).
+ *
+ * Twenty of twenty-seven cards said "*X* steht schon in deiner Sammlung —
+ * diese Platte nicht" on 2026-09-16, with a different X each time. Read once
+ * that is the product; read twenty times it is a column heading that somebody
+ * printed into every row. The card carries the repeated one as a plate
+ * instead, and keeps the sentence for what it has left to say.
+ *
+ * Two thresholds, because either alone gets a real list wrong. **Five**,
+ * because four of anything is still four things you read one at a time. **A
+ * quarter of the list**, because five credits among two hundred finds are five
+ * discoveries, not a category — and a quarter rather than a half so that two
+ * signals dividing a list between them can both be one.
+ */
+const REPEATED_AT_LEAST = 5
+const REPEATED_SHARE = 0.25
+
+export function repeatedLeads(matches: Match[]): Set<SignalType> {
+  const leads = new Map<SignalType, number>()
+  for (const match of matches) {
+    const lead = leadOf(match)
+    if (lead) leads.set(lead, (leads.get(lead) ?? 0) + 1)
+  }
+
+  const floor = Math.max(REPEATED_AT_LEAST, matches.length * REPEATED_SHARE)
+  return new Set([...leads.entries()].filter(([, n]) => n >= floor).map(([type]) => type))
 }
 
 /**
@@ -286,9 +354,10 @@ export function arrange(
      * to compare but the score".
      */
     const missing = missingFor(a, b, sort, totalOf)
-    if (missing !== null) return missing || b.score - a.score
+    if (missing !== null) return missing || tieBreak(a, b)
     // Score is the tiebreaker under every other key, so two records at the
-    // same price come out in the order the engine ranked them.
-    return turn * compare(a, b, sort, totalOf) || b.score - a.score
+    // same price come out in the order the engine ranked them — and under
+    // score itself the price carries on where the score stops (M33 #2).
+    return turn * compare(a, b, sort, totalOf) || tieBreak(a, b)
   })
 }

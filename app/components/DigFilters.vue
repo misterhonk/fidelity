@@ -39,17 +39,29 @@ const DENSITIES = ['comfortable', 'crate', 'compact'] as const satisfies readonl
  * "with postage" only exists where this shop's postage is known.
  */
 const sortTabs = computed(() =>
-  SORTS.filter((key) => key !== 'landed' || props.landedKnown).map((key) => ({
-    key,
-    label: f.value.sorts[key].label,
-    about: f.value.sorts[key].about,
-    // The arrow comes from the state now, not from the label: the same key
-    // runs both ways since M32.2.
-    suffix: props.direction === 'asc' ? '↑' : '↓',
-    spoken: (props.direction === 'asc' ? f.value.sortedAsc : f.value.sortedDesc)(
+  SORTS.filter((key) => key !== 'landed' || props.landedKnown).map((key) => {
+    const arrow = props.direction === 'asc' ? '↑' : '↓'
+    /*
+     * The score says its second key, the others do not (M33 #2).
+     *
+     * "By score" ordered nothing among twenty finds sitting at 48, and the
+     * list was whatever the scan wrote first. It breaks the tie on the price
+     * now, and the tab says so — where `suffix` already lives, which is to
+     * say only while this ordering is the one in force. The other keys all
+     * break on the score, which is where a reader would look anyway.
+     */
+    const suffix = key === 'score' ? `${arrow} · ${f.value.thenPrice}` : arrow
+    const spoken = (props.direction === 'asc' ? f.value.sortedAsc : f.value.sortedDesc)(
       f.value.sorts[key].label,
-    ),
-  })),
+    )
+    return {
+      key,
+      label: f.value.sorts[key].label,
+      about: f.value.sorts[key].about,
+      suffix,
+      spoken: key === 'score' ? `${spoken}, ${f.value.thenPrice}` : spoken,
+    }
+  }),
 )
 
 const densityTabs = computed(() => DENSITIES.map((key) => ({ key, label: f.value[key] })))

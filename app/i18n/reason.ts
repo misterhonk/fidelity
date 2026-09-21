@@ -30,6 +30,16 @@ import { count, money } from '~/utils/money'
 
 type Phrase = (evidence: Record<string, unknown>) => string | null
 type Table = Partial<Record<Signal['type'], Phrase>>
+/**
+ * A plate always has something to say, and every signal has one.
+ *
+ * No nulls and no gaps, unlike `lead` and `support`: a plate stands in a list
+ * where the sentence has been taken away, so a signal with nothing here would
+ * leave a card saying nothing at all about why it is in front of somebody.
+ * Falling back to the evidence-free word is a decision each entry makes for
+ * itself — "A gap" without the fraction is still a claim.
+ */
+type Plates = Record<Signal['type'], (evidence: Record<string, unknown>) => string>
 
 /** A price in the sentence carries its currency: a London dealer quotes pounds. */
 const price = (evidence: Record<string, unknown>, key: string): string | null => {
@@ -39,7 +49,26 @@ const price = (evidence: Record<string, unknown>, key: string): string | null =>
   return money(value, currency) ?? `${count(value)} ${currency}`
 }
 
-const en: { lead: Table; support: Table; fallback: string; also: (rest: string) => string } = {
+/**
+ * A plate, with how many are on the shelf behind it.
+ *
+ * The arithmetic is the same in both languages, so it is written once — only
+ * the words in front of it differ. One is left off rather than written: "On
+ * the shelf · 1" counts something nobody was counting, and the sentence it
+ * replaces names no figure at that point either.
+ */
+const shelved = (what: string, owned: unknown): string => {
+  const n = Number(owned ?? 0)
+  return n > 1 ? `${what} · ${count(n)}` : what
+}
+
+const en: {
+  lead: Table
+  support: Table
+  plate: Plates
+  fallback: string
+  also: (rest: string) => string
+} = {
   lead: {
     // "One you want most" only from Discogs' four stars up (M20 #1): the
     // priority changes the sentence, never the score.
@@ -194,6 +223,70 @@ const en: { lead: Table; support: Table; fallback: string; also: (rest: string) 
     SCARCITY: (evidence) => {
       const n = Number(evidence.numForSale ?? 0)
       return n > 0 ? `only ${count(n)} for sale` : null
+    },
+  },
+
+  /**
+   * The reason with the sentence taken away (M33 #1).
+   *
+   * What is left when a reason has become a category: what is the matter with
+   * this record, and the figure behind it. "On the shelf · 5" is the whole of
+   * "You have 5 records by Four Tet, not this one" once the card above has
+   * already said who Four Tet is.
+   *
+   * **Its own words, not the ones the filter chips use.** The chip table in
+   * `app/utils/signals.ts` names a signal so it can be picked — "Artist",
+   * "Label" — and that is the right word for a thing you switch on. A plate
+   * stands where a sentence stood and has to make the claim the sentence made;
+   * "ARTIST · PROBE 3 · 5" over a card headed "Probe 3" says the name twice and
+   * the point not at all, which is what the first attempt at this looked like
+   * on 2026-09-21 before anybody drew it.
+   *
+   * **A name only where the card lacks it.** The artist is the card's own
+   * first line and the label is in the facts under it, so those plates carry
+   * the figure alone. A producer, a style and a format are nowhere else on the
+   * card, so those name what they are about.
+   *
+   * Short enough to stay on one line at `fid-plate`'s letter spacing. A plate
+   * that wraps has turned back into a sentence.
+   */
+  plate: {
+    WANTLIST_EXACT: (evidence) =>
+      Number(evidence.want ?? 0) >= WANT_MOST ? 'Wanted most' : 'On your wantlist',
+    WANTLIST_PRESSING: () => 'Another pressing',
+    ARTIST_KNOWN: (evidence) => shelved('On the shelf', evidence.owned),
+    ARTIST_FOLLOWED: () => 'On your radar',
+    ARTIST_GAP: (evidence) => {
+      const total = Number(evidence.total ?? 0)
+      if (total === 0) return 'A gap'
+      return `A gap · ${count(Number(evidence.owned ?? 0))} of ${count(total)}`
+    },
+    LABEL_AFFINITY: (evidence) => shelved('Your label', evidence.owned),
+    CATALOG_RUN: (evidence) => {
+      const inRun = Number(evidence.inRun ?? 0)
+      if (inRun === 0) return 'A run'
+      return `A run · ${count(Number(evidence.owned ?? 0))} of ${count(inRun)}`
+    },
+    STYLE_ADJACENT: (evidence) => {
+      const styles = Array.isArray(evidence.styles) ? (evidence.styles as string[]) : []
+      return styles[0] ? `Your ground · ${styles[0]}` : 'Your ground'
+    },
+    CREDIT_GRAPH: (evidence) => {
+      const person = String(evidence.person ?? '')
+      if (!person) return 'In the credits'
+      return shelved(`Credits · ${person}`, evidence.owned)
+    },
+    FORMAT_UPGRADE: (evidence) => {
+      const ownedAs = String(evidence.ownedAs ?? '')
+      return ownedAs ? `You have the ${ownedAs}` : 'You have it otherwise'
+    },
+    PRICE_SIGNAL: (evidence) => {
+      const lowest = price(evidence, 'marketLowest')
+      return lowest ? `Under ${lowest}` : 'Under the market'
+    },
+    SCARCITY: (evidence) => {
+      const n = Number(evidence.numForSale ?? 0)
+      return n > 0 ? `${count(n)} for sale` : 'Scarce'
     },
   },
   fallback: 'Fits what you collect.',
@@ -353,6 +446,46 @@ const de: typeof en = {
       return n > 0 ? `nur ${count(n)} im Angebot` : null
     },
   },
+
+  plate: {
+    WANTLIST_EXACT: (evidence) =>
+      Number(evidence.want ?? 0) >= WANT_MOST ? 'Ganz oben' : 'Auf deiner Wantlist',
+    WANTLIST_PRESSING: () => 'Anderes Pressing',
+    ARTIST_KNOWN: (evidence) => shelved('Im Regal', evidence.owned),
+    ARTIST_FOLLOWED: () => 'Auf dem Schirm',
+    ARTIST_GAP: (evidence) => {
+      const total = Number(evidence.total ?? 0)
+      if (total === 0) return 'Eine Lücke'
+      return `Eine Lücke · ${count(Number(evidence.owned ?? 0))} von ${count(total)}`
+    },
+    LABEL_AFFINITY: (evidence) => shelved('Dein Label', evidence.owned),
+    CATALOG_RUN: (evidence) => {
+      const inRun = Number(evidence.inRun ?? 0)
+      if (inRun === 0) return 'Eine Serie'
+      return `Eine Serie · ${count(Number(evidence.owned ?? 0))} von ${count(inRun)}`
+    },
+    STYLE_ADJACENT: (evidence) => {
+      const styles = Array.isArray(evidence.styles) ? (evidence.styles as string[]) : []
+      return styles[0] ? `Dein Revier · ${styles[0]}` : 'Dein Revier'
+    },
+    CREDIT_GRAPH: (evidence) => {
+      const person = String(evidence.person ?? '')
+      if (!person) return 'In den Credits'
+      return shelved(`Credits · ${person}`, evidence.owned)
+    },
+    FORMAT_UPGRADE: (evidence) => {
+      const ownedAs = String(evidence.ownedAs ?? '')
+      return ownedAs ? `Hast du als ${ownedAs}` : 'Hast du anders'
+    },
+    PRICE_SIGNAL: (evidence) => {
+      const lowest = price(evidence, 'marketLowest')
+      return lowest ? `Unter ${lowest}` : 'Unter dem Markt'
+    },
+    SCARCITY: (evidence) => {
+      const n = Number(evidence.numForSale ?? 0)
+      return n > 0 ? `${count(n)} im Angebot` : 'Selten'
+    },
+  },
   fallback: 'Passt zu dem, was du sammelst.',
   also: (rest) => ` Außerdem: ${rest}.`,
 }
@@ -376,9 +509,15 @@ export const packs = { en, de }
  * and this function has no business mutating what it is handed. The copy for
  * sorting was already there.
  */
-export function reasonFor(signals: readonly Signal[]): string {
+export function reasonFor(signals: readonly Signal[], without?: Signal['type']): string {
   const words = packs[activeLanguage()]
-  const ranked = [...signals].sort(byStrength)
+  /*
+   * `without` is how a card that has turned its lead into a plate asks for the
+   * rest (M33 #1): drop that signal and the next strongest one leads, which is
+   * the sentence the card still has to make. Everything with nothing left
+   * comes back empty, and an empty string draws no paragraph.
+   */
+  const ranked = [...signals].filter((signal) => signal.type !== without).sort(byStrength)
   const [lead, ...rest] = ranked
   if (!lead) return ''
 
@@ -389,4 +528,15 @@ export function reasonFor(signals: readonly Signal[]): string {
     .filter((phrase): phrase is string => typeof phrase === 'string' && phrase.length > 0)
 
   return extras.length === 0 ? sentence : `${sentence}${words.also(extras.join(', '))}`
+}
+
+/**
+ * The reason as a plate, for the list that has heard it twenty times (M33 #1).
+ *
+ * Always a string. What a card puts there instead of a sentence has to say
+ * something, or the card has stopped answering the only question it exists to
+ * answer.
+ */
+export function plateFor(signal: Signal): string {
+  return packs[activeLanguage()].plate[signal.type](signal.evidence)
 }

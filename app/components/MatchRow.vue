@@ -1,12 +1,31 @@
 <script setup lang="ts">
 import { describeFormat } from '#shared/format'
 import type { Match } from '#shared/types'
-import { reasonFor } from '~/i18n/reason'
+import { plateFor, reasonFor } from '~/i18n/reason'
 import { useDigMessages } from '~/i18n/dig'
 
 const d = useDigMessages()
 
 const props = defineProps<{ match: Match }>()
+
+/**
+ * The same worn-out reason the card turns into a plate (M33 #1), and this
+ * density needs it more, not less: at 34 px the sentence is already truncated
+ * to a line, so twenty repeats of it are twenty identical stubs — a column of
+ * one value, which is the definition of a heading somebody printed into every
+ * row. The plate is shorter than the stub and says more.
+ */
+const { plated } = useLeads()
+const plate = computed(() => {
+  const type = plated(props.match)
+  const signal = type && props.match.signals.find((candidate) => candidate.type === type)
+  return signal ? plateFor(signal) : null
+})
+
+/** What the row says where the plate has not taken the lead. */
+const sentence = computed(() =>
+  reasonFor(props.match.signals, plated(props.match) ?? undefined),
+)
 
 const { verdicts, judge } = useFeedback()
 const verdict = computed(() => verdicts.value[props.match.listingId])
@@ -113,10 +132,18 @@ const landedWhy = computed(() => {
         cannot show the record is not a table. The reason is in the sheet.
       -->
       <span
-        class="hidden truncate text-fid-xs text-fid-text-muted sm:inline"
-        :title="reasonFor(match.signals)"
+        v-if="plate"
+        class="fid-plate hidden min-w-0 truncate text-fid-text-muted sm:inline"
+        :title="plate"
       >
-        {{ reasonFor(match.signals) }}
+        {{ plate }}
+      </span>
+      <span
+        v-else-if="sentence"
+        class="hidden truncate text-fid-xs text-fid-text-muted sm:inline"
+        :title="sentence"
+      >
+        {{ sentence }}
       </span>
     </p>
 
