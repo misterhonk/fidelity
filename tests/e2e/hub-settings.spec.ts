@@ -79,7 +79,7 @@ test('tries the secret at a locked door, and shows it on request', async ({
   const secret = panel.getByLabel('Access key or shared secret')
   await secret.fill('falsch')
   await panel.getByRole('button', { name: 'Test the connection' }).click()
-  await expect(page.getByText('the hub refuses this secret', { exact: false })).toBeVisible({
+  await expect(page.getByText('the secret does not fit', { exact: false })).toBeVisible({
     timeout: 15_000,
   })
 
