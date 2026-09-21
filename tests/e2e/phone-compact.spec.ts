@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
 import { seed } from './seed'
 
@@ -11,7 +11,7 @@ import { seed } from './seed'
 test.use({ viewport: { width: 390, height: 844 } })
 
 /** Enough finds that the long list below the top five exists (as compact-table.spec does). */
-async function manyFinds(page: import('@playwright/test').Page, digId: string) {
+async function manyFinds(page: Page, digId: string) {
   await page.evaluate(async (dig: string) => {
     const request = indexedDB.open('fidelity')
     const db: IDBDatabase = await new Promise((done) => {
