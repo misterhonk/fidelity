@@ -366,9 +366,9 @@ function years(entry: { from: number; to: number }): string {
         class="fid-lift flex min-h-11 min-w-11 items-center justify-center fid-field-raised text-fid-text disabled:opacity-40"
         @click="step(walk.previous)"
       >
-        <FidIcon name="arrow-left" :size="18" aria-hidden="true" />
+        <FidIcon name="arrow-left" :size="20" aria-hidden="true" />
       </button>
-      <span class="fid-num px-1 text-fid-xs whitespace-nowrap text-fid-text-muted">
+      <span class="fid-num px-2 text-fid-sm whitespace-nowrap text-fid-text">
         {{ m.common.ofTotal(String(walk.index + 1), String(walk.total)) }}
       </span>
       <button
@@ -379,7 +379,7 @@ function years(entry: { from: number; to: number }): string {
         class="fid-lift flex min-h-11 min-w-11 items-center justify-center fid-field-raised text-fid-text disabled:opacity-40"
         @click="step(walk.next)"
       >
-        <FidIcon name="arrow-right" :size="18" aria-hidden="true" />
+        <FidIcon name="arrow-right" :size="20" aria-hidden="true" />
       </button>
     </template>
 

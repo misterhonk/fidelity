@@ -212,10 +212,15 @@ const gridStyle = computed(() => ({
     "
     style="scrollbar-gutter: stable"
   >
+    <!--
+      Far-rendering only for the cards and the crate. A 34 px row is cheap,
+      and on iOS Safari `content-visibility: auto` left the compact list
+      blank until the first scroll (reported 2026-09-21).
+    -->
     <li
       v-for="match in matches"
       :key="match.listingId"
-      class="fid-far"
+      :class="density === 'compact' ? '' : 'fid-far'"
       :style="{ '--fid-far-height': density === 'compact' ? '2.125rem' : '13rem' }"
     >
       <MatchRow v-if="density === 'compact'" :match="match" />

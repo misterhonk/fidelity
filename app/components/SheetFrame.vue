@@ -137,7 +137,7 @@ function onKeydown(event: KeyboardEvent) {
         </h2>
         <span v-else />
         <!-- Whatever this particular sheet can do with itself, beside the ✕. -->
-        <div class="flex shrink-0 items-center gap-1">
+        <div class="flex shrink-0 items-center gap-2">
           <slot name="tools" />
           <button
             type="button"

@@ -107,7 +107,15 @@ const landedWhy = computed(() => {
       >
         {{ match.artist }} – {{ match.title }}
       </button>
-      <span class="truncate text-fid-xs text-fid-text-muted" :title="reasonFor(match.signals)">
+      <!--
+        The reason from `sm` up. On a phone the row is 390 px wide and the
+        title was down to two letters (reported 2026-09-21): a table that
+        cannot show the record is not a table. The reason is in the sheet.
+      -->
+      <span
+        class="hidden truncate text-fid-xs text-fid-text-muted sm:inline"
+        :title="reasonFor(match.signals)"
+      >
         {{ reasonFor(match.signals) }}
       </span>
     </p>
@@ -116,11 +124,18 @@ const landedWhy = computed(() => {
       <span v-if="match.goneAt" class="fid-plate shrink-0 text-fid-text-muted">{{
         d.match.gone
       }}</span>
-      <span v-if="shape" class="fid-num shrink-0 text-fid-xs text-fid-text-muted">
+      <span
+        v-if="shape"
+        class="fid-num hidden shrink-0 text-fid-xs text-fid-text-muted sm:inline"
+      >
         {{ shape }}
       </span>
       <span v-if="price" class="fid-num text-fid-sm text-fid-text-muted">{{ price }}</span>
-      <span v-if="postage" class="fid-num text-fid-xs text-fid-text-muted" :title="landedWhy"
+      <!-- Only postage that this record adds: "+€0.00" on every row said nothing. -->
+      <span
+        v-if="postage && landed && landed.postage > 0"
+        class="fid-num hidden text-fid-xs text-fid-text-muted sm:inline"
+        :title="landedWhy"
         >+{{ postage }}</span
       >
 
@@ -131,7 +146,7 @@ const landedWhy = computed(() => {
         which is what focus-within is here for.
       -->
       <span
-        class="flex gap-1 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
+        class="hidden gap-1 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 sm:flex"
         :class="verdict ? 'opacity-100' : 'opacity-0'"
         role="group"
         :aria-label="d.match.feedback"
