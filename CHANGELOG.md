@@ -12,6 +12,26 @@ Für eine App bedeutet SemVer:
 ## [0.111.1](https://github.com/misterhonk/fidelity/compare/v0.111.0...v0.111.1) (2026-10-21)
 
 
+**Alte Preise verschwinden jetzt auch vom Bildschirm.** Nach sechs Stunden darf kein Preis
+mehr zu sehen sein. Gelöscht wurde er brav, angezeigt aber weiter: Die Fundliste, der Stapel und
+der Laden-Bildschirm haben nur einmal beim Laden auf die Uhr geschaut. Ein offener Tab zeigte die
+Preise also stundenlang weiter. Jetzt wacht die Seite genau zur Frist auf und holt die Liste
+neu, und der Worker gibt gar keinen abgelaufenen Preis mehr heraus.
+
+**Keine doppelten Platten mehr in deiner Sammlung.** Wer einen Fund als gekauft markiert und
+gleich danach zwei Bewertungen tippt, konnte die Platte zweimal bei Discogs landen sehen. Die
+Warteschlange läuft jetzt nur noch einmal zur Zeit, auch über mehrere Tabs.
+
+**Discogs hat Adressen umgebaut, Fidelity zieht nach.** Läden heißen seit September
+`discogs.com/shop/…`. Diese Adresse wird jetzt erkannt, genauso wie Bestellnummern aus dem
+neuen Checkout (`12345-C-1`).
+
+**Ehrlicher beim Einrichten.** Da stand „Wir lesen nur". Stimmt seit Bewertungen, Ordnern und
+Wantlist nicht mehr. Jetzt steht da, was passiert: Was du hier änderst, geht an Discogs. Sonst
+nichts. Außerdem: alle fünf Schritte haben wieder einen Namen, der Laden-Bildschirm ist von der
+Startseite aus erreichbar, das Probieren ohne Anmeldung klappt auch mit altem Token, und im
+Backup stehen keine Hub-Schlüssel mehr.
+
 ### Fixed
 
 * **auth:** the look without signing in needs no token, and checks keep the gap ([1aab227](https://github.com/misterhonk/fidelity/commit/1aab2275b8cb3c8fa954da0eb96099a75f609416))
