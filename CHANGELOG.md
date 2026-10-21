@@ -9,6 +9,15 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.111.3](https://github.com/misterhonk/fidelity/compare/v0.111.2...v0.111.3) (2026-10-21)
+
+
+### Fixed
+
+* **horizon:** a chunk dated in the future is not fresh, it is wrong ([d71784e](https://github.com/misterhonk/fidelity/commit/d71784eab09a896d0a4ce6599700159bb432007c))
+* **hub:** no door, no start — an open hub is HUB_OPEN=1 ([a3ecc45](https://github.com/misterhonk/fidelity/commit/a3ecc45c8e79bc2e47d05e37cc157f31c0502800))
+* **hub:** what one member of a shared hub can no longer do to the others ([983a963](https://github.com/misterhonk/fidelity/commit/983a96344647713a253067ac92f3e7f3a58e4b00))
+
 ## [0.111.2](https://github.com/misterhonk/fidelity/compare/v0.111.1...v0.111.2) (2026-10-21)
 
 
