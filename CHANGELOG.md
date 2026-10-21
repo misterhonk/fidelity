@@ -12,6 +12,15 @@ Für eine App bedeutet SemVer:
 ## [0.112.0](https://github.com/misterhonk/fidelity/compare/v0.111.3...v0.112.0) (2026-10-21)
 
 
+**Schneller zum ersten Fund.** Nach dem Holen der Sammlung hat die Startseite bisher zuerst das
+Nachschlagen der Künstler vorgeschlagen. Das dauert bei einer normalen Sammlung rund zwölf
+Minuten, und erst danach kam der erste Dig. Jetzt ist es andersrum: Erst ein Laden, nach zwei bis
+vier Minuten liegt die Liste da. Danach schlägst du deine Künstler nach, und wenn das fertig ist,
+sagt die Startseite: grab den Laden nochmal, jetzt mit Produzenten, Katalogreihen und Pressungen.
+
+**Und wer noch keinen Laden kennt, bekommt fünf zum Anfangen**, direkt auf der Dig-Seite. Ein
+Tipp, und der Laden steht im Feld.
+
 ### Added
 
 * **dig:** shops to start with, on a dig screen with none of one's own ([08ab2b5](https://github.com/misterhonk/fidelity/commit/08ab2b5c128fb827a6b808dbbeae0778677bff72))
