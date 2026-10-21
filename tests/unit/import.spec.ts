@@ -65,6 +65,32 @@ describe('reading a backup back in', () => {
     expect(await getMeta('preferences')).toEqual({ maxPrice: 40 })
   })
 
+  /*
+   * Found on 2026-10-21: the token never went into the file, the hub's secret
+   * and the access key did, in plain text.
+   */
+  it('keeps the hub keys out of the file, and out of the device when an old file holds them', async () => {
+    await setMeta('preferences', {
+      maxPrice: 40,
+      hubSecret: 'friends-only',
+      accessKey: 'signed.key',
+    } as never)
+    const file = await exportEverything(9000)
+    expect(JSON.stringify(file)).not.toContain('friends-only')
+    expect(JSON.stringify(file)).not.toContain('signed.key')
+    await deleteFidelityDb()
+
+    const old = {
+      ...JSON.parse(JSON.stringify(file)),
+      preferences: { maxPrice: 40, hubSecret: 'friends-only', accessKey: 'signed.key' },
+    }
+    await importEverything(old)
+    const restored = (await getMeta('preferences')) as unknown as Record<string, unknown>
+    expect(restored.maxPrice).toBe(40)
+    expect(restored.hubSecret).toBeUndefined()
+    expect(restored.accessKey).toBeUndefined()
+  })
+
   it('merges into what the device already has, and keeps its own preferences', async () => {
     await seedDevice()
     const file = await exportEverything(9000)

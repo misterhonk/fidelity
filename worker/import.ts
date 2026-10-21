@@ -3,6 +3,7 @@ import { getMeta, setMeta } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 import type { Preferences } from '#shared/types'
 
+import { withoutKeys } from './export'
 import { fail } from './fail'
 
 /**
@@ -115,7 +116,9 @@ export async function importEverything(file: unknown): Promise<ImportReport> {
     typeof backup.preferences === 'object' &&
     !(await getMeta('preferences'))
   ) {
-    await setMeta('preferences', backup.preferences as Preferences)
+    // A file is no place for a hub's key, and one older than 0.112 may hold
+    // them: they stay with whoever entered them on this device.
+    await setMeta('preferences', withoutKeys(backup.preferences as Preferences)!)
     report.meta.push('preferences')
   }
   for (const key of ['tasteProfile', 'credits'] as const) {

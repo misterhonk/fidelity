@@ -176,7 +176,7 @@ export async function exportEverything(now: number): Promise<FullExport> {
     identity: identity ? { username: identity.username } : null,
     collection,
     wantlist,
-    preferences: await getMeta('preferences'),
+    preferences: withoutKeys(await getMeta('preferences')),
     tasteProfile: await getMeta('tasteProfile'),
     credits: await getMeta('credits'),
     dealers,
@@ -192,4 +192,21 @@ export async function exportEverything(now: number): Promise<FullExport> {
       'on purpose — it can be rebuilt at any time and would weigh several times ' +
       'as much as JSON.',
   }
+}
+
+/**
+ * Preferences without the two keys in them.
+ *
+ * The token was kept out of the file from the start; the hub's secret and the
+ * access key sat in it in plain text (found 2026-10-21). They are credentials
+ * for the hub, and a file is where credentials get mailed around.
+ */
+export function withoutKeys<T extends { hubSecret?: unknown; accessKey?: unknown }>(
+  preferences: T | undefined,
+): T | undefined {
+  if (!preferences) return preferences
+  const kept = { ...preferences }
+  delete kept.hubSecret
+  delete kept.accessKey
+  return kept
 }
