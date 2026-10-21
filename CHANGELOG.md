@@ -12,6 +12,17 @@ Für eine App bedeutet SemVer:
 ## [0.113.0](https://github.com/misterhonk/fidelity/compare/v0.112.0...v0.113.0) (2026-10-21)
 
 
+**Was ein Paket von außerhalb der EU wirklich kostet.** Seit dem 1. Juli 2026 kostet jedes Paket
+unter 150 € aus einem Nicht-EU-Land 3 € Zoll pro Warenart. Zwei LPs sind 3 €, eine LP und eine CD
+6 €. Dazu kommt die Einfuhrumsatzsteuer. Discogs zeigt den Zoll nirgends an, und in den Preisen
+der API steckt beides nicht. Ein Laden in Großbritannien, der zwei Euro günstiger aussah, war so
+schnell vier Euro teurer.
+
+Im Korb steht jetzt bei solchen Paketen unter der Summe: der geschätzte Zoll, die Steuer zum Satz
+deines Landes und „Alles zusammen". Darunter ein Satz, wo was bezahlt wird. Über 150 € raten wir
+beim Zoll nicht, dann gelten die normalen Regeln, und das steht auch so da. Gerechnet wird nur in
+Euro, weil der Zoll eine Euro-Regel ist und wir keine Kurse umrechnen.
+
 ### Added
 
 * **basket:** what a parcel from outside the EU costs at the border ([3d75da5](https://github.com/misterhonk/fidelity/commit/3d75da5f124b0c1aec246fe88440cb20923cffb5))
