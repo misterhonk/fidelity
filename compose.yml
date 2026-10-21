@@ -32,9 +32,11 @@ services:
     environment:
       HUB_PORT: 8787
       HUB_DB: /data/hub.sqlite
-      # Empty means open. Fine inside a home network, wrong anywhere a tunnel
-      # can reach — and the tunnel profile below is exactly that.
+      # Empty means the hub does not start (since 0.112). An open hub is a
+      # choice: HUB_OPEN=1, fine inside a home network, wrong anywhere a
+      # tunnel can reach — and the tunnel profile below is exactly that.
       HUB_SECRET: ${HUB_SECRET:-}
+      HUB_OPEN: ${HUB_OPEN:-}
     ports:
       - '${HUB_BIND:-127.0.0.1}:${HUB_PORT:-8787}:8787'
     volumes:

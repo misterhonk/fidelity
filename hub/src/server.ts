@@ -3,6 +3,7 @@ import { serve } from '@hono/node-server'
 import { createKeyLimiter, createRevocationList } from './access.ts'
 import { createHubApp } from './app.ts'
 import { openHubDb } from './db.ts'
+import { hubDoors } from './doors.ts'
 import { STALE_AFTER_MS, watchRound } from './watch.ts'
 
 /**
@@ -14,7 +15,14 @@ import { STALE_AFTER_MS, watchRound } from './watch.ts'
  */
 const port = Number(process.env.HUB_PORT ?? 8787)
 const dbPath = process.env.HUB_DB ?? './hub.sqlite'
-const secret = process.env.HUB_SECRET ?? null
+const doors = hubDoors(process.env)
+if (doors.refusal) {
+  // Refused before a port is opened or the database touched: a hub nobody
+  // locked does not get to run for a minute while somebody reads the log.
+  console.error(doors.refusal)
+  process.exit(1)
+}
+const secret = doors.secret
 const vapidSubject = process.env.HUB_VAPID_SUBJECT ?? 'mailto:hub@fidelity.invalid'
 /** Off until somebody switches it on: it is the only thing here that reaches out by itself. */
 const watching = process.env.HUB_WATCH === '1'
@@ -83,9 +91,7 @@ serve({ fetch: app.fetch, port, hostname: '0.0.0.0' }, (info) => {
   if (!secret && !access) {
     // Said out loud, every start. An open hub on a public IP is somebody
     // else's cache to fill, and silence would let that happen unnoticed.
-    console.warn(
-      'HUB_SECRET ist nicht gesetzt — der Hub ist offen für jeden, der ihn erreicht.',
-    )
+    console.warn('HUB_OPEN=1: this hub is open to anybody who can reach it.')
   }
 })
 

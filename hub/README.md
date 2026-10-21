@@ -53,7 +53,8 @@ ohne. Kein Treiber, keine native Abhängigkeit, keine Kompilierung.
 
 Ein geteiltes Geheimnis, kein Nutzerkonto — für einen Freundeskreis reicht das
 (`docs/13` §2). Setze `HUB_SECRET`; Clients schicken es als `x-hub-secret`.
-Ohne gesetztes Secret startet der Hub im offenen Modus und sagt das beim Start.
+Without a secret or an access key the hub refuses to start (since 0.112). An open hub is
+a choice you write down: `HUB_OPEN=1` — inside a home network only.
 
 ## Der Wächter
 

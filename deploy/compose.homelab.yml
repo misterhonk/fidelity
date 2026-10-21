@@ -44,8 +44,10 @@ services:
     environment:
       HUB_PORT: 8787
       HUB_DB: /data/hub.sqlite
-      # Leer heißt offen. Im Heimnetz in Ordnung, überall sonst falsch.
+      # Empty means the hub does not start. HUB_OPEN=1 runs it open — fine in
+      # a home network, wrong anywhere else.
       HUB_SECRET: ${HUB_SECRET:-}
+      HUB_OPEN: ${HUB_OPEN:-}
       # Der Wächter sieht stündlich nach, ob ein beobachteter Laden Neues hat,
       # und schickt eine Benachrichtigung. Er ist das Einzige hier, das von
       # sich aus nach draußen geht — deshalb aus, bis du ihn einschaltest.

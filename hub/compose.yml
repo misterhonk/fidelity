@@ -9,7 +9,9 @@ services:
       HUB_DB: /data/hub.sqlite
       # Ohne Secret läuft der Hub offen. Für ein Heimnetz in Ordnung,
       # für alles andere hier eintragen.
+      # Empty and no HUB_OPEN=1: the hub refuses to start.
       HUB_SECRET: ${HUB_SECRET:-}
+      HUB_OPEN: ${HUB_OPEN:-}
     ports:
       - '8787:8787'
     volumes:

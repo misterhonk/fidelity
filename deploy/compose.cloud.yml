@@ -32,7 +32,8 @@ services:
       HUB_PORT: 8787
       HUB_DB: /data/hub.sqlite
       # One door or the other (docs/17 §3.2): a secret for a private box,
-      # a public key for one with members. Both may be set.
+      # a public key for one with members. Both may be set. Neither, and the
+      # hub refuses to start: on 443 an open hub is everybody's.
       HUB_SECRET: ${HUB_SECRET:-}
       HUB_ACCESS_PUBLIC_KEY: ${HUB_ACCESS_PUBLIC_KEY:-}
       HUB_ACCESS_URL: ${HUB_ACCESS_URL:-}

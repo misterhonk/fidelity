@@ -78,8 +78,9 @@ docker compose --profile tunnel up -d         # a fixed address, needs TUNNEL_TO
 > What actually *is* shared is the hub — and it deliberately holds nothing personal
 > (ADR-008): horizon chunks and shipping tiers, nothing else.
 
-**The hub belongs behind a tunnel only when `HUB_SECRET` is set.** Empty means open; fine on
-a home network, not on the internet.
+**The hub belongs behind a tunnel only when `HUB_SECRET` is set.** Since 0.112 a hub with
+no secret and no access key does not start at all; `HUB_OPEN=1` runs it open on purpose,
+which is fine on a home network and wrong on the internet.
 
 ---
 
