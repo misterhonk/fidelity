@@ -62,6 +62,19 @@ const en = {
   total: 'Total',
   perRecord: 'per record',
 
+  /*
+   * A parcel from outside the EU (2026-10-21). Estimates, and called that:
+   * the duty is a flat rule, the VAT the destination's standard rate.
+   */
+  customs: 'EU customs, estimated',
+  customsOver: 'ordinary rules',
+  importVat: (rate: string) => `Import VAT ${rate} %`,
+  allIn: 'All in',
+  customsNote: (duty: string) =>
+    `From outside the EU, since 1 July 2026: ${duty} customs per kind of item under €150, which Discogs does not show. It adds the VAT at checkout.`,
+  customsNoteOver:
+    'From outside the EU and over €150: the VAT is paid at import, and ordinary customs rules apply.',
+
   /** Where the postage table came from — said out loud, never implied. */
   source: {
     user: 'entered by you',
@@ -370,6 +383,15 @@ const de: typeof en = {
   shippingUnknown: 'unbekannt',
   total: 'Gesamt',
   perRecord: 'pro Platte',
+
+  customs: 'EU-Zoll, geschätzt',
+  customsOver: 'normale Regeln',
+  importVat: (rate) => `Einfuhrumsatzsteuer ${rate} %`,
+  allIn: 'Alles zusammen',
+  customsNote: (duty) =>
+    `Von außerhalb der EU, seit 1. Juli 2026: ${duty} Zoll pro Warenart unter 150 €. Das zeigt Discogs nicht an. Die Steuer schlägt Discogs an der Kasse drauf.`,
+  customsNoteOver:
+    'Von außerhalb der EU und über 150 €: Die Steuer zahlst du bei der Einfuhr, und es gelten die normalen Zollregeln.',
 
   source: {
     user: 'von dir eingetragen',

@@ -573,3 +573,31 @@ describe('the hand-over to Discogs', () => {
     await markHandedOver(99, 5000)
   })
 })
+
+/*
+ * From outside the EU (2026-10-21): what the parcel costs at the border, on
+ * top of what Discogs' cart adds up.
+ */
+describe('a parcel from outside the EU', () => {
+  it('adds the customs and the import VAT to an all-in figure', () => {
+    const summary = summarise(
+      [
+        line({ price: 20, format: 'Vinyl, LP' }),
+        line({ listingId: 2, price: 20, format: 'Vinyl, LP' }),
+      ],
+      dealer({ shipsFrom: 'United Kingdom' }),
+      shipping([tier(1, null, 12)]),
+      'Germany',
+    )
+    expect(summary.total).toBe(52)
+    expect(summary.importCharges?.duty).toBe(3)
+    expect(summary.importCharges?.vat).toBe(9.88)
+    expect(summary.allIn).toBe(64.88)
+  })
+
+  it('adds nothing inside the EU', () => {
+    const summary = summarise([line()], dealer(), shipping([tier(1, null, 5)]), 'Germany')
+    expect(summary.importCharges).toBeNull()
+    expect(summary.allIn).toBeNull()
+  })
+})

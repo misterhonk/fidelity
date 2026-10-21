@@ -2143,6 +2143,24 @@ export interface BasketLine {
   format?: string | null
 }
 
+/**
+ * What a parcel from outside the EU adds at the border (worker/basket/customs.ts):
+ * the flat customs duty since 1 July 2026 and the import VAT. Estimates.
+ */
+export interface ImportCharges {
+  /** €3 per tariff sub-heading under €150; null over it, where ordinary rules apply. */
+  duty: number | null
+  /** How many sub-headings the parcel holds: vinyl and CDs are two. */
+  dutyLines: number
+  /** Null when the postage is unknown. */
+  vat: number | null
+  /** The destination's standard rate, in per cent. */
+  vatRate: number
+  /** Under €150 Discogs charges the VAT at checkout; over it, it is paid at import. */
+  vatAtCheckout: boolean
+  overThreshold: boolean
+}
+
 export interface BasketSummary {
   dealer: string
   /** What else this shop has that would ride along for less postage. */
@@ -2183,6 +2201,14 @@ export interface BasketSummary {
    */
   shippingNote: string | null
   total: number | null
+  /**
+   * From outside the EU into it: duty and import VAT on top of `total`
+   * (2026-10-21). Null for a parcel that crosses no EU border, or one that
+   * cannot be told (not in euros, the shop's country unknown).
+   */
+  importCharges: ImportCharges | null
+  /** `total` with those charges, where every part of it is known. */
+  allIn: number | null
   perItem: number | null
   advice: ShippingAdvice | null
   curve: ShippingPoint[]

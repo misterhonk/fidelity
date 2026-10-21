@@ -270,6 +270,9 @@ async function makePlan() {
 const peak = computed(() =>
   Math.max(1, ...props.summary.curve.map((point) => point.perItem ?? 0)),
 )
+
+/** The EU's flat duty, a euro figure by law (worker/basket/customs.ts holds the rule). */
+const flatDuty = computed(() => money(3, 'EUR') ?? '')
 </script>
 
 <template>
@@ -457,7 +460,35 @@ const peak = computed(() =>
         <dd class="fid-num text-right text-fid-text-muted">
           {{ money(summary.perItem, summary.currency) ?? '–' }}
         </dd>
+
+        <!--
+          What the border adds, for a parcel from outside the EU (2026-10-21).
+          Under the total rather than in it: "Total" stays what Discogs' cart
+          adds up, and the lines below say what comes on top and where.
+        -->
+        <template v-if="summary.importCharges">
+          <dt class="text-fid-text-muted">{{ b.customs }}</dt>
+          <dd class="fid-num text-right text-fid-text">
+            {{ money(summary.importCharges.duty, summary.currency) ?? b.customsOver }}
+          </dd>
+
+          <dt class="text-fid-text-muted">
+            {{ b.importVat(count(summary.importCharges.vatRate)) }}
+          </dt>
+          <dd class="fid-num text-right text-fid-text">
+            {{ money(summary.importCharges.vat, summary.currency) ?? b.shippingUnknown }}
+          </dd>
+
+          <dt class="font-medium text-fid-text">{{ b.allIn }}</dt>
+          <dd class="fid-num text-right font-bold text-fid-text">
+            {{ money(summary.allIn, summary.currency) ?? '–' }}
+          </dd>
+        </template>
       </dl>
+
+      <p v-if="summary.importCharges" class="text-fid-xs text-fid-text-muted">
+        {{ summary.importCharges.overThreshold ? b.customsNoteOver : b.customsNote(flatDuty) }}
+      </p>
 
       <p v-if="summary.subtotal === null" class="text-fid-sm text-fid-sig-gap">
         {{ b.subtotalExpired }}

@@ -1,6 +1,7 @@
 import { openFidelityDb } from '~~/db/open'
 import type { BasketLine, BasketSummary, Dealer, Match } from '#shared/types'
 
+import { importCharges } from './customs'
 import { namedPostage } from './postage'
 import { resolveShipping, type ShippingResolution } from './profiles'
 import { shippingAdvice, shippingCurve, shippingFor } from './shipping'
@@ -127,7 +128,7 @@ export async function basketSummaries(now: number, country: string): Promise<Bas
     [...byDealer].map(async ([dealerName, lines]) => {
       const dealer = await db.get('dealers', dealerName)
       lines.sort((a, b) => a.addedAt - b.addedAt)
-      return summarise(lines, dealer ?? null, await tiersFor(dealer, country))
+      return summarise(lines, dealer ?? null, await tiersFor(dealer, country), country)
     }),
   )
 
@@ -156,6 +157,7 @@ export function summarise(
   lines: BasketLine[],
   dealer: Dealer | null,
   shipping: ShippingResolution,
+  destination: string | null = null,
 ): BasketSummary {
   /*
    * A sold line is still shown but no longer counted.
@@ -244,6 +246,20 @@ export function summarise(
       : tabled
   const total = subtotal === null || postage === null ? null : subtotal + postage
 
+  // Customs and import VAT, for a parcel that crosses into the EU.
+  const charges = importCharges({
+    from: dealer?.shipsFrom,
+    to: destination,
+    currency,
+    subtotal,
+    shipping: postage,
+    formats: live.map((line) => line.format),
+  })
+  const allIn =
+    charges && total !== null && charges.duty !== null && charges.vat !== null
+      ? Math.round((total + charges.duty + charges.vat) * 100) / 100
+      : null
+
   const saysHere = live.map((line) => line.shipsHere).filter((flag) => flag != null)
   const shipsHere = saysHere.includes(false) ? false : saysHere.includes(true) ? true : null
   const minOrderTotal = dealer?.minOrderTotal ?? 0
@@ -284,6 +300,8 @@ export function summarise(
     shippingByWeight: shipping.byWeight ?? false,
     shippingNote: shipping.note ?? null,
     total,
+    importCharges: charges,
+    allIn,
     perItem: total === null || live.length === 0 ? null : total / live.length,
     advice: shippingAdvice(tiers, parcel.count),
     // Two past the current count is enough to see the next step without
