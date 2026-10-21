@@ -7,6 +7,8 @@ const { call } = useFidelityWorker()
 const library = ref<LibrarySummary | null>(null)
 const horizon = ref<HorizonStatus | null>(null)
 const digs = ref(0)
+/** The newest full dig, for "dig it again" once the lookup has caught up with it. */
+const newest = ref<{ dealer: string; startedAt: number } | null>(null)
 
 async function refresh() {
   const [summary, status, list] = await Promise.all([
@@ -17,6 +19,10 @@ async function refresh() {
   library.value = summary
   horizon.value = status
   digs.value = list.length
+  const full = list
+    .filter((dig) => (dig.depth ?? 'normal') !== 'neu')
+    .sort((a, b) => b.startedAt - a.startedAt)[0]
+  newest.value = full ? { dealer: full.dealer, startedAt: full.startedAt } : null
 }
 
 onMounted(refresh)
@@ -38,6 +44,20 @@ const step = computed(() => {
     return { ...m.value.nextStep.library, to: '/settings/collection#library' }
   }
 
+  /*
+   * The dig first, the lookup second (2026-10-21).
+   *
+   * The order was the other way round, and the lookup is about twelve minutes
+   * for a typical shelf: a stranger's first answer was a quarter of an hour
+   * away, behind a progress bar about somebody else's discographies. A dig
+   * works without it — with the signals the shelf and the wantlist carry —
+   * and is a list in two to four minutes. The lookup then makes the *next*
+   * dig better, and says so.
+   */
+  if (digs.value === 0) {
+    return { ...m.value.nextStep.dig, to: '/dig' }
+  }
+
   if (horizon.value.expanded < horizon.value.entities) {
     const minutes = Math.ceil((horizon.value.estimatedRequests * 1.2) / 60)
     const words = m.value.nextStep.horizon
@@ -49,8 +69,20 @@ const step = computed(() => {
     }
   }
 
-  if (digs.value === 0) {
-    return { ...m.value.nextStep.dig, to: '/dig' }
+  /*
+   * The lookup finished after the newest dig: that dig ran without it.
+   * Only while somebody is starting out — a lookup that fills gaps after a
+   * sync finishes again later, and a standing "dig again" would nag.
+   */
+  const built = horizon.value.builtAt
+  if (digs.value <= 2 && newest.value && built !== null && built > newest.value.startedAt) {
+    const words = m.value.nextStep.again
+    return {
+      cta: words.cta,
+      title: words.title(newest.value.dealer),
+      body: words.body,
+      to: `/dig?dealer=${encodeURIComponent(newest.value.dealer)}`,
+    }
   }
 
   return null

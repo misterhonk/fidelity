@@ -412,14 +412,19 @@ const de: Messages = {
     },
     horizon: {
       cta: 'Deine Künstler nachschlagen',
-      title: 'Dann: deine Künstler und Labels nachschlagen',
+      title: 'Als Nächstes: deine Künstler und Labels nachschlagen',
       body: (minutes) =>
-        `Einmal rund ${counted(minutes, 'Minute', 'Minuten')}. Danach erkennt jeder Dig auch Produzenten, Katalogreihen und andere Pressungen deiner Platten.`,
+        `Einmal rund ${counted(minutes, 'Minute', 'Minuten')}. Dein nächster Dig erkennt dann auch Produzenten, Katalogreihen und andere Pressungen deiner Platten.`,
     },
     dig: {
       cta: 'Dig starten',
       title: 'Jetzt: den ersten Laden durchgraben',
       body: 'Nimm einen, bei dem du sowieso kaufst. Zwei bis vier Minuten für zwanzigtausend Platten, und am Ende hast du eine Liste mit einem Satz zu jedem Fund.',
+    },
+    again: {
+      cta: 'Nochmal graben',
+      title: (dealer) => `Jetzt ${dealer} nochmal durchgraben`,
+      body: 'Dein erster Dig kannte nur dein Regal. Jetzt weiß er auch, wer deine Platten produziert hat, welche Katalogreihen du sammelst und welche anderen Pressungen es gibt.',
     },
   },
 

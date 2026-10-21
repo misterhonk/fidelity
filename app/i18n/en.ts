@@ -601,14 +601,20 @@ const en = {
     },
     horizon: {
       cta: 'Look up your artists',
-      title: 'Then: look up your artists and labels',
+      title: 'Next: look up your artists and labels',
       body: (minutes: number) =>
-        `Once, about ${counted(minutes, 'minute', 'minutes')}. After that every dig also recognises producers, catalogue runs and other pressings of your records.`,
+        `Once, about ${counted(minutes, 'minute', 'minutes')}. Your next dig then also recognises producers, catalogue runs and other pressings of your records.`,
     },
     dig: {
       cta: 'Start a dig',
       title: 'Now: dig through the first shop',
       body: 'Take one you buy from anyway. Two to four minutes for twenty thousand records, and at the end you get a list with a sentence per find.',
+    },
+    /** After the first dig and the lookup: the dig ran without what the lookup knows. */
+    again: {
+      cta: 'Dig it again',
+      title: (dealer: string) => `Now dig ${dealer} again`,
+      body: 'Your first dig only knew your shelf. Now it also knows who produced your records, which catalogue runs you collect and the other pressings.',
     },
   },
 
