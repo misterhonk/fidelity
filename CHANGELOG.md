@@ -12,6 +12,15 @@ Für eine App bedeutet SemVer:
 ## [0.111.2](https://github.com/misterhonk/fidelity/compare/v0.111.1...v0.111.2) (2026-10-21)
 
 
+**Das Probieren ohne Anmeldung geht wieder.** In 0.111.1 stand, es scheitere an einem alten
+Token. Das war falsch. Die Beispiel-Platten auf der Willkommensseite sind feste Angebote, und
+acht von dreizehn waren inzwischen verkauft. Discogs antwortet auf ein verkauftes Angebot ohne
+Token mit „du musst dich anmelden". Daraus wurde bei uns „Discogs kennt diesen Token nicht",
+ausgerechnet auf dem Bildschirm, der „ohne Anmeldung" verspricht. Jetzt kennt jedes Beispiel
+seinen Laden und seine Platte selbst und braucht das Angebot gar nicht mehr. Ein Request
+weniger, und nichts kann ausverkauft sein. Ein eingefügter Link zu einer verkauften Platte
+sagt jetzt genau das.
+
 ### Fixed
 
 * **demo:** the look without signing in survives a sold record ([f4c8cab](https://github.com/misterhonk/fidelity/commit/f4c8cab1ed72e4fbce0f962fcb6770e51647d518))
