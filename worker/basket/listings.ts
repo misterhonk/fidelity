@@ -47,8 +47,9 @@ export function parseListingIds(input: string): number[] {
     found.push(id)
   }
 
-  // Links first: `/sell/item/123`, with or without a language segment.
-  for (const match of input.matchAll(/\/sell\/item\/(\d+)/g)) add(match[1]!)
+  // Links first: `/sell/item/123`, or `/shop/item/123` since Discogs renamed
+  // the marketplace pages (2026-09-10), with or without a language segment.
+  for (const match of input.matchAll(/\/(?:sell|shop)\/item\/(\d+)/g)) add(match[1]!)
 
   /*
    * Then bare numbers, but only from lines that are nothing else. A line that

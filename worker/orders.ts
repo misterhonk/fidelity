@@ -93,9 +93,14 @@ export function cleanOrderId(raw: string): string | null {
    * browser often has `discogs.com/sell/order/259022-32308` on the clipboard,
    * and failing on that would be pettiness.
    */
-  const fromAddress = trimmed.match(/(\d+-\d+)\s*$/)
-  const candidate = fromAddress ? fromAddress[1]! : trimmed
-  return /^\d{1,12}-\d{1,12}$/.test(candidate) ? candidate : null
+  /*
+   * And `12345-C-1` since the new checkout (2026-02-24): an order paid before
+   * the seller confirms it carries a `C` between the two numbers. Without it
+   * every order placed that way was turned away as a typo.
+   */
+  const fromAddress = trimmed.match(/(\d+-(?:C-)?\d+)\s*$/i)
+  const candidate = (fromAddress ? fromAddress[1]! : trimmed).toUpperCase()
+  return /^\d{1,12}-(?:C-)?\d{1,12}$/.test(candidate) ? candidate : null
 }
 
 export async function importOrder(

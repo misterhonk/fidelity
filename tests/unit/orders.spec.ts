@@ -81,9 +81,27 @@ describe('the order number', () => {
     expect(cleanOrderId('https://www.discogs.com/sell/order/259022-32308')).toBe('259022-32308')
   })
 
+  /**
+   * The new checkout (2026-02-24) numbers an order `12345-C-1`. Every one of
+   * those was refused here as a typo.
+   */
+  it('takes an order from the new checkout', () => {
+    expect(cleanOrderId('259022-C-1')).toBe('259022-C-1')
+    expect(cleanOrderId('259022-c-1')).toBe('259022-C-1')
+    expect(cleanOrderId('https://www.discogs.com/sell/order/259022-C-1')).toBe('259022-C-1')
+  })
+
   /** A typo should cost no request. */
   it('refuses what cannot be one', () => {
-    for (const unsinn of ['', '259022', 'abc-def', '259022–32308', 'W.B.*']) {
+    for (const unsinn of [
+      '',
+      '259022',
+      'abc-def',
+      '259022–32308',
+      'W.B.*',
+      '259022-X-1',
+      '259022-C-',
+    ]) {
       expect(cleanOrderId(unsinn)).toBeNull()
     }
   })

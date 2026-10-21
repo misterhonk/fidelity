@@ -34,7 +34,8 @@ const error = ref<unknown>(null)
 
 /** Reads a listing id out of whatever somebody pasted. */
 const pastedId = computed(() => {
-  const match = url.value.match(/\/sell\/item\/(\d+)/) ?? url.value.trim().match(/^(\d{7,})$/)
+  const match =
+    url.value.match(/\/(?:sell|shop)\/item\/(\d+)/) ?? url.value.trim().match(/^(\d{7,})$/)
   return match ? Number(match[1]) : null
 })
 

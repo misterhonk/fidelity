@@ -59,6 +59,17 @@ describe('what the dealer field accepts', () => {
     ).toBe('juno_records')
   })
 
+  // Discogs renamed the marketplace pages on 2026-09-10; this is what a
+  // browser's address bar holds now.
+  it('reads the shop address Discogs uses since September 2026', () => {
+    expect(dealerFromInput('https://www.discogs.com/shop/list?user=fatplastics')).toBe(
+      'fatplastics',
+    )
+    expect(
+      dealerFromInput('https://www.discogs.com/de/shop/list?sort=listed&user=juno_records'),
+    ).toBe('juno_records')
+  })
+
   it('manages without a scheme and without www', () => {
     expect(dealerFromInput('discogs.com/seller/schoenwettermusik/profile')).toBe(
       'schoenwettermusik',

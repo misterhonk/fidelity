@@ -47,9 +47,14 @@ const USERNAME = /^[A-Za-z0-9._-]+$/
 const PROFILE_URL =
   /discogs\.com\/(?:[a-z]{2}(?:[-_][A-Za-z]{2})?\/)?(?:seller|user)\/([^/?#]+)/i
 
-/** The listing form, where the name rides in a query parameter instead. */
+/**
+ * The listing form, where the name rides in a query parameter instead.
+ *
+ * `/shop/list` since 2026-09-10, when Discogs renamed the marketplace pages;
+ * `/sell/list` still redirects there, and links copied before then still work.
+ */
 const SELL_LIST_URL =
-  /discogs\.com\/(?:[a-z]{2}(?:[-_][A-Za-z]{2})?\/)?sell\/list\?[^#]*\buser=([^&#]+)/i
+  /discogs\.com\/(?:[a-z]{2}(?:[-_][A-Za-z]{2})?\/)?(?:sell|shop)\/list\?[^#]*\buser=([^&#]+)/i
 
 /**
  * The dealer name, or null when none can be made of it.

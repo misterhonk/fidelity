@@ -35,7 +35,7 @@ const error = ref<unknown>(null)
  * and what `pnpm typecheck` caught in the same minute.
  */
 const count = computed(
-  () => (input.value.match(/\/sell\/item\/\d+|^\s*\d{7,}\s*$/gm) ?? []).length,
+  () => (input.value.match(/\/(?:sell|shop)\/item\/\d+|^\s*\d{7,}\s*$/gm) ?? []).length,
 )
 /**
  * A copied cart page carries no links, only "Bestellung bei …" per shop. It

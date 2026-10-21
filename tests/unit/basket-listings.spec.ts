@@ -18,6 +18,12 @@ describe('parseListingIds', () => {
     ])
   })
 
+  it('reads the shop address Discogs uses since September 2026', () => {
+    expect(parseListingIds('https://www.discogs.com/shop/item/1260275694')).toEqual([
+      1260275694,
+    ])
+  })
+
   it('survives a language segment and a tracking query', () => {
     expect(
       parseListingIds('https://www.discogs.com/de/sell/item/1260346497?ev=rb&format=Vinyl'),
