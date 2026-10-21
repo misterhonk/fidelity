@@ -108,7 +108,10 @@ const marketPrice = computed(() => {
         <dt class="text-fid-text-muted">{{ r.everyone }}</dt>
         <dd class="min-w-0 text-fid-text">
           {{
-            r.communityRating(detail.community.rating.toFixed(2), count(detail.community.votes))
+            r.communityRating(
+              decimal(detail.community.rating, 2),
+              count(detail.community.votes),
+            )
           }}
         </dd>
       </template>

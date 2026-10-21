@@ -339,7 +339,7 @@ const tiles = computed(() => {
                     {{ shop.displayName }}
                   </span>
                   <span v-if="shop.affinity" class="fid-num shrink-0 text-fid-xs text-fid-text">
-                    {{ shop.affinity.toFixed(1) }}
+                    {{ decimal(shop.affinity) }}
                   </span>
                 </div>
                 <p class="fid-num text-fid-xs text-fid-text-muted">

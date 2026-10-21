@@ -443,7 +443,7 @@ onBeforeUnmount(() => {
     <p
       v-if="lastHidden"
       role="status"
-      class="fixed bottom-4 left-4 z-30 flex flex-wrap items-center gap-3 rounded-fid-sm border border-fid-border bg-fid-surface px-4 py-2 text-fid-sm text-fid-text shadow-lg"
+      class="fixed left-4 z-30 flex flex-wrap items-center gap-3 rounded-fid-sm border border-fid-border bg-fid-surface px-4 py-2 text-fid-sm text-fid-text shadow-lg max-md:right-20 max-md:bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] md:bottom-4"
     >
       {{ h.hiddenLine(lastHidden.name) }}
       <button

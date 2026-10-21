@@ -33,13 +33,14 @@ const en = {
   rows: [
     {
       name: 'Discogs app, Seller Matches',
-      since: 'June 2026',
-      does: 'Ranks sellers by how many items from your wantlist they have. Across all sellers — Discogs owns the marketplace.',
+      since: 'September 2026',
+      does: 'Up to five sellers, ranked by how many items from your wantlist they have, and since October a filter on one seller’s stock. Across all sellers — Discogs owns the marketplace — and by the wantlist alone.',
       fidelity:
         'Ranks one shop’s stock against what you own — eleven signals, a score, a sentence — and plans your wants across the shops you scanned, with the postage. Across all sellers it cannot: there is no listings-by-release endpoint, and it says so.',
     },
     {
       name: 'Wantlister, discdogs',
+      since: 'Wantlister is Discogs’ own since June 2024',
       does: 'Real-time alerts when a wanted record is listed: price, condition, country, seller filters; mail or Telegram. discdogs is free and adds a browser extension.',
       fidelity:
         'No alerts, on purpose. Discogs owns the listing event; a third party can only poll. What Fidelity watches is a shop — has its stock moved since you were there — one lookup for everybody through the hub.',
@@ -58,16 +59,23 @@ const en = {
     },
     {
       name: 'Discogs Enhancer',
-      since: 'browser extension',
+      since: 'browser extension, Premium by subscription',
       does: 'Overlays discogs.com: block sellers, currency conversion, dark mode, “in collection” markers on listings.',
       fidelity:
         'Blocks a shop too, and reads a listing’s price with its postage — but inside its own screens, not on discogs.com. An overlay is a second product with a store review process and no iOS; it is noted, not planned.',
     },
     {
-      name: 'Record Scanner, VinylAI',
-      does: 'Photograph the cover, get the release and a value.',
+      name: 'Record Scanner, VinylAI, RUNOUT., Deadwax',
+      does: 'Photograph the cover, get the release and a value. RUNOUT. and Deadwax read the run-out matrix, free.',
       fidelity:
         'The run-out instead of the cover: the number etched near the label names the pressing, and a full one returns one hit where a barcode returns eight. Then which pressing it is, among all of them. No image leaves the device.',
+    },
+    {
+      name: 'Reccogs',
+      since: 'browser extension, August 2026',
+      does: 'The same question: one seller’s stock against your collection and wantlist, with a reason chip per match. Not in a store, and untouched since its first day.',
+      fidelity:
+        'A score that stays comparable over time, producers and catalogue runs from the horizon, postage across the shops you scanned, and a phone in the racks.',
     },
     {
       name: 'Vizcogs',
@@ -147,13 +155,14 @@ const de: typeof en = {
   rows: [
     {
       name: 'Discogs-App, Seller Matches',
-      since: 'Juni 2026',
-      does: 'Sortiert Verkäufer danach, wie viele Stücke aus deiner Wantlist sie haben. Über alle Verkäufer – Discogs gehört der Marktplatz.',
+      since: 'September 2026',
+      does: 'Bis zu fünf Verkäufer, sortiert danach, wie viel aus deiner Wantlist sie haben, und seit Oktober ein Filter im Bestand eines Verkäufers. Über alle Verkäufer, denn Discogs gehört der Marktplatz. Und nur nach der Wantlist.',
       fidelity:
         'Sortiert das Sortiment eines Ladens gegen das, was du besitzt – elf Signale, ein Score, ein Satz – und plant deine Wünsche über die Läden, die du gescannt hast, mit Porto. Über alle Verkäufer kann es das nicht: Es gibt keinen Endpunkt „Angebote je Release", und das steht dran.',
     },
     {
       name: 'Wantlister, discdogs',
+      since: 'Wantlister gehört seit Juni 2024 Discogs',
       does: 'Alarm in Echtzeit, wenn eine gesuchte Platte eingestellt wird: Preis, Zustand, Land, Verkäuferfilter; Mail oder Telegram. discdogs ist gratis und bringt eine Browser-Erweiterung mit.',
       fidelity:
         'Keine Alarme, mit Absicht. Das Einstellen gehört Discogs; ein Dritter kann nur nachfragen. Was Fidelity beobachtet, ist ein Laden – hat sich sein Bestand bewegt, seit du da warst – eine Abfrage für alle über den Hub.',
@@ -172,16 +181,23 @@ const de: typeof en = {
     },
     {
       name: 'Discogs Enhancer',
-      since: 'Browser-Erweiterung',
+      since: 'Browser-Erweiterung, Premium im Abo',
       does: 'Legt sich über discogs.com: Verkäufer sperren, Währung umrechnen, Dark Mode, „in der Sammlung"-Marken auf Angeboten.',
       fidelity:
         'Sperrt auch einen Laden und liest den Preis eines Angebots mit Porto – aber auf eigenen Bildschirmen, nicht auf discogs.com. Ein Overlay ist ein zweites Produkt mit Store-Prüfung und ohne iOS; notiert, nicht geplant.',
     },
     {
-      name: 'Record Scanner, VinylAI',
-      does: 'Cover fotografieren, Release und Wert bekommen.',
+      name: 'Record Scanner, VinylAI, RUNOUT., Deadwax',
+      does: 'Cover fotografieren, Release und Wert bekommen. RUNOUT. und Deadwax lesen die Matrix in der Auslaufrille, gratis.',
       fidelity:
         'Die Auslaufrille statt des Covers: Die Nummer, die nahe dem Label eingeritzt ist, benennt die Pressung, und eine vollständige liefert einen Treffer, wo ein Barcode acht liefert. Dann, welche Pressung es ist, unter allen. Kein Bild verlässt das Gerät.',
+    },
+    {
+      name: 'Reccogs',
+      since: 'Browser-Erweiterung, August 2026',
+      does: 'Dieselbe Frage: der Bestand eines Verkäufers gegen deine Sammlung und Wantlist, mit einem Grund pro Treffer. In keinem Store, und seit dem ersten Tag unverändert.',
+      fidelity:
+        'Ein Score, der über die Zeit vergleichbar bleibt, Produzenten und Katalogreihen aus dem Horizont, Porto über die Läden, die du gescannt hast, und ein Handy zwischen den Kisten.',
     },
     {
       name: 'Vizcogs',

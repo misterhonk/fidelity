@@ -273,6 +273,13 @@ const peak = computed(() =>
 
 /** The EU's flat duty, a euro figure by law (worker/basket/customs.ts holds the rule). */
 const flatDuty = computed(() => money(3, 'EUR') ?? '')
+
+/*
+ * One prefix per card (2026-10-21). Every card wrote `id="budget"`,
+ * `"curve"` and `"candidates"`, so with two shops in the basket the second
+ * card's labels pointed at the first card's fields.
+ */
+const uid = useId()
 </script>
 
 <template>
@@ -779,9 +786,9 @@ const flatDuty = computed(() => money(3, 'EUR') ?? '')
     <section
       v-if="summary.curve.some((point) => point.perItem !== null)"
       class="flex flex-col gap-2"
-      aria-labelledby="curve"
+      :aria-labelledby="`${uid}-curve`"
     >
-      <h3 id="curve" class="text-fid-sm font-medium text-fid-text">{{ b.curve }}</h3>
+      <h3 :id="`${uid}-curve`" class="text-fid-sm font-medium text-fid-text">{{ b.curve }}</h3>
       <dl class="grid grid-cols-[2.5rem_1fr_auto] items-center gap-x-3 gap-y-1">
         <template v-for="point in summary.curve" :key="point.items">
           <dt class="fid-num text-fid-xs text-fid-text-muted">{{ point.items }}×</dt>
@@ -807,18 +814,18 @@ const flatDuty = computed(() => money(3, 'EUR') ?? '')
       <p class="text-fid-xs text-fid-text-muted">{{ b.tiersAbout }}</p>
 
       <div v-for="(row, index) in rows" :key="index" class="flex flex-wrap items-center gap-2">
-        <label class="sr-only" :for="`from-${index}`">{{ b.tiersFrom }}</label>
+        <label class="sr-only" :for="`${uid}-from-${index}`">{{ b.tiersFrom }}</label>
         <input
-          :id="`from-${index}`"
+          :id="`${uid}-from-${index}`"
           v-model.number="row.minItems"
           type="number"
           min="1"
           class="w-16 fid-field px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
         />
         <span class="text-fid-sm text-fid-text-muted">{{ m.common.to }}</span>
-        <label class="sr-only" :for="`to-${index}`">{{ b.tiersTo }}</label>
+        <label class="sr-only" :for="`${uid}-to-${index}`">{{ b.tiersTo }}</label>
         <input
-          :id="`to-${index}`"
+          :id="`${uid}-to-${index}`"
           :value="row.maxItems ?? ''"
           type="number"
           min="1"
@@ -831,9 +838,9 @@ const flatDuty = computed(() => money(3, 'EUR') ?? '')
                 : Number(($event.target as HTMLInputElement).value)
           "
         />
-        <label class="sr-only" :for="`price-${index}`">{{ b.tiersPrice }}</label>
+        <label class="sr-only" :for="`${uid}-price-${index}`">{{ b.tiersPrice }}</label>
         <input
-          :id="`price-${index}`"
+          :id="`${uid}-price-${index}`"
           v-model.number="row.price"
           type="number"
           min="0"
@@ -868,9 +875,9 @@ const flatDuty = computed(() => money(3, 'EUR') ?? '')
     <section class="flex flex-col gap-3 rounded-fid-md border border-fid-border p-4">
       <h3 class="text-fid-sm font-medium text-fid-text">{{ b.budget.title }}</h3>
       <form class="flex flex-wrap items-center gap-2" @submit.prevent="makePlan">
-        <label class="sr-only" for="budget">{{ b.budget.label }}</label>
+        <label class="sr-only" :for="`${uid}-budget`">{{ b.budget.label }}</label>
         <input
-          id="budget"
+          :id="`${uid}-budget`"
           v-model.number="budget"
           type="number"
           min="1"
@@ -959,8 +966,8 @@ const flatDuty = computed(() => money(3, 'EUR') ?? '')
       </NuxtLink>
     </section>
 
-    <section v-else class="flex flex-col gap-3" aria-labelledby="candidates">
-      <h3 id="candidates" class="text-fid-sm font-medium text-fid-text">
+    <section v-else class="flex flex-col gap-3" :aria-labelledby="`${uid}-candidates`">
+      <h3 :id="`${uid}-candidates`" class="text-fid-sm font-medium text-fid-text">
         {{ b.candidates.title }}
       </h3>
       <p v-if="summary.missingToMinimum !== null" class="text-fid-xs text-fid-text-muted">

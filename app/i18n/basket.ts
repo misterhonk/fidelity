@@ -31,6 +31,7 @@ const en = {
   shops: (shops: string, records: string) =>
     `${shops} shops · ${records} records. Every shop is its own parcel with its own postage.`,
   clearAll: 'Empty all of them',
+  clearAllConfirm: 'Tap again to empty all',
 
   paste: {
     title: 'From the Discogs cart',
@@ -354,6 +355,7 @@ const de: typeof en = {
   shops: (shops, records) =>
     `${shops} Läden · ${records} Platten. Jeder Laden ist eine eigene Sendung mit eigenem Porto.`,
   clearAll: 'Alle leeren',
+  clearAllConfirm: 'Nochmal tippen, dann ist alles leer',
 
   paste: {
     title: 'Aus dem Discogs-Warenkorb',

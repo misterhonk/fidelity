@@ -20,6 +20,25 @@ onMounted(async () => {
 })
 
 const baskets = computed(() => view.value.baskets)
+
+/*
+ * Emptying every basket takes two taps (2026-10-21). It was one, with no
+ * undo, a link's width away from the numbers somebody was reading.
+ */
+const confirming = ref(false)
+let settle: ReturnType<typeof setTimeout> | undefined
+function clearAll() {
+  if (!confirming.value) {
+    confirming.value = true
+    clearTimeout(settle)
+    settle = setTimeout(() => (confirming.value = false), 4000)
+    return
+  }
+  clearTimeout(settle)
+  confirming.value = false
+  void clear()
+}
+onBeforeUnmount(() => clearTimeout(settle))
 const records = computed(() =>
   baskets.value.reduce((sum, basket) => sum + basket.lines.length, 0),
 )
@@ -27,7 +46,8 @@ const records = computed(() =>
 
 <template>
   <AppPage narrow>
-    <PageHeader :title="b.title" :lead="b.lead">
+    <!-- The lead talks about the one that is in; with none in, it is not said. -->
+    <PageHeader :title="b.title" :lead="baskets.length > 0 ? b.lead : undefined">
       <template #tabs><BasketTabs /></template>
     </PageHeader>
 
@@ -66,9 +86,9 @@ const records = computed(() =>
         <button
           type="button"
           class="fid-action text-fid-sm text-fid-text-muted underline underline-offset-4"
-          @click="clear()"
+          @click="clearAll()"
         >
-          {{ b.clearAll }}
+          {{ confirming ? b.clearAllConfirm : b.clearAll }}
         </button>
       </div>
 

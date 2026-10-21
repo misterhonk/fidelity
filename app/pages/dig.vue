@@ -917,10 +917,10 @@ const noHorizon = computed(
               <span
                 v-if="known.affinity !== null"
                 class="fid-num ml-1.5 text-fid-xs opacity-70"
-                :title="d.perThousand(known.affinity.toFixed(1))"
-                :aria-label="d.perThousand(known.affinity.toFixed(1))"
+                :title="d.perThousand(decimal(known.affinity))"
+                :aria-label="d.perThousand(decimal(known.affinity))"
               >
-                {{ known.affinity.toFixed(1) }}
+                {{ decimal(known.affinity) }}
               </span>
             </button>
           </nav>
