@@ -180,6 +180,21 @@ const tiles = computed(() => {
           decision about a view but about a shop.
         -->
         <StackShops v-if="shops.length > 0" :shops="shops" />
+
+        <!--
+          The in-store screen, from where somebody sets out.
+
+          The link here went in August 2026 with the report-style start page,
+          and the screen built for a phone in one hand was left reachable only
+          from the end of the setup and ⌘K — which a phone does not have.
+        -->
+        <NuxtLink
+          to="/in-store"
+          class="fid-action inline-flex w-fit items-center gap-2 rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+        >
+          <FidIcon name="store" :size="16" aria-hidden="true" />
+          {{ m.home.inStore }}
+        </NuxtLink>
       </div>
 
       <!--

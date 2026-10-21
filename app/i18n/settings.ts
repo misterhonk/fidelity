@@ -698,7 +698,7 @@ const en = {
       body: [
         "On this device, in your browser's storage. There is no server it could go to; Fidelity is nothing but files running in your browser.",
         'Your Discogs token stays here as well. It is never written into an address, never logged, and never passed to anybody.',
-        'We only read. We change nothing about your Discogs account, buy nothing and write nothing back.',
+        'We read. We only write back what you change here yourself: ratings, folders, purchases, your wantlist. We buy nothing.',
       ],
     },
     {
@@ -1224,7 +1224,7 @@ const de: typeof en = {
       body: [
         'Auf diesem Gerät, im Speicher deines Browsers. Es gibt keinen Server, an den sie gehen könnten; Fidelity besteht nur aus Dateien, die in deinem Browser laufen.',
         'Dein Discogs-Token bleibt ebenfalls hier. Er wird nie in eine Adresse geschrieben, nie protokolliert und an niemanden weitergegeben.',
-        'Wir lesen nur. Wir ändern nichts an deinem Discogs-Konto, kaufen nichts und schreiben nichts zurück.',
+        'Wir lesen. Zurück schreiben wir nur, was du hier selbst änderst: Bewertungen, Ordner, Käufe, deine Wantlist. Wir kaufen nichts.',
       ],
     },
     {

@@ -5,7 +5,7 @@ import { activeLanguage } from '~/composables/useMessages'
  *
  * Setting up is the moment somebody hands us the keys to their shelf. So the
  * words say what we do with them and what stays where: we read, we change
- * nothing, and all of it lives on this device.
+ * only what somebody taps (ADR-011), and all of it lives on this device.
  */
 const en = {
   title: 'Welcome',
@@ -13,7 +13,7 @@ const en = {
   lead: 'Give us a shop. We hand you the records that fit, and say why for each one.',
   setUp: 'Set it up with your collection',
   setUpAbout:
-    'A key from Discogs, one fetch of your collection and wantlist, and you can start. We only read. Nothing on your account changes, and everything stays on this device.',
+    'A key from Discogs, one fetch of your collection and wantlist, and you can start. We change something on your account only when you tap it, and everything stays on this device.',
   signedInAs: (username: string) => `Signed in as ${username}`,
   syncAbout:
     'Now we fetch your collection and your wantlist. That is how we get to know what you like. A few seconds per thousand records, then all of it is on this device.',
@@ -64,9 +64,9 @@ const en = {
   steps: {
     token: 'Key',
     sync: 'Collection',
-    horizont: 'Artists',
+    horizon: 'Artists',
     credits: 'Credits',
-    fertig: 'Done',
+    done: 'Done',
   },
 }
 
@@ -77,7 +77,7 @@ const de: typeof en = {
   lead: 'Gib uns einen Laden. Wir legen dir die Platten hin, die passen, und sagen zu jeder, warum.',
   setUp: 'Mit deiner Sammlung einrichten',
   setUpAbout:
-    'Ein Schlüssel von Discogs, einmal Sammlung und Wantlist holen, dann kann es losgehen. Wir lesen nur. An deinem Konto ändert sich nichts, und alles bleibt auf diesem Gerät.',
+    'Ein Schlüssel von Discogs, einmal Sammlung und Wantlist holen, dann kann es losgehen. An deinem Konto ändern wir nur, was du selbst antippst. Und alles bleibt auf diesem Gerät.',
   signedInAs: (username) => `Angemeldet als ${username}`,
   syncAbout:
     'Jetzt holen wir deine Sammlung und deine Wantlist. So lernen wir, was du magst. Ein paar Sekunden pro tausend Platten, dann liegt alles auf diesem Gerät.',
@@ -128,9 +128,9 @@ const de: typeof en = {
   steps: {
     token: 'Schlüssel',
     sync: 'Sammlung',
-    horizont: 'Künstler',
+    horizon: 'Künstler',
     credits: 'Credits',
-    fertig: 'Fertig',
+    done: 'Fertig',
   },
 }
 

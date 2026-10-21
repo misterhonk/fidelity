@@ -343,9 +343,9 @@ const de: Messages = {
     step2: '„Generate token" klicken',
     step3: 'Den Token hier einfügen',
     field: 'Personal Access Token',
-    readsOnly: 'Wir lesen nur.',
+    readsOnly: 'Wir lesen. Ändern tust nur du.',
     readsOnlyRest:
-      'Deine Sammlung, deine Wantlist und was die Läden haben, mehr nicht. Wir ändern nichts an deinem Discogs-Konto, kaufen nichts und schreiben nichts zurück. Gekauft wird bei Discogs, von dir.',
+      'Deine Sammlung, deine Wantlist und was die Läden haben. Nur was du hier änderst, geht an Discogs: Bewertungen, Ordner, Käufe, die Wantlist. Gekauft wird dort, von dir.',
     staysHere:
       'Der Token bleibt auf diesem Gerät und geht an niemanden, auch nicht an uns. Es gibt keinen Server, der ihn empfangen könnte.',
     checking: 'Prüfen …',
@@ -376,6 +376,7 @@ const de: Messages = {
   home: {
     title: 'Start',
     description: 'Fidelity, der Mensch hinterm Tresen für dein Graben bei Discogs.',
+    inStore: 'Gerade im Laden',
     counts: {
       collection: 'Sammlung',
       wantlist: 'Wantlist',

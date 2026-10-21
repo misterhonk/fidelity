@@ -508,9 +508,9 @@ const en = {
     step2: 'Click "Generate token"',
     step3: 'Paste the token here',
     field: 'Personal access token',
-    readsOnly: 'We only read.',
+    readsOnly: 'We read. Changes are yours.',
     readsOnlyRest:
-      'Your collection, your wantlist and what the shops have, nothing more. We change nothing about your Discogs account, buy nothing and write nothing back. Buying happens at Discogs, by you.',
+      'Your collection, your wantlist and what the shops have. Only what you change here goes to Discogs: ratings, folders, purchases, your wantlist. Buying happens there, by you.',
     staysHere:
       'The token stays on this device and goes to nobody, not to us either. There is no server that could receive it.',
     checking: 'Checking …',
@@ -555,6 +555,8 @@ const en = {
   home: {
     title: 'Start',
     description: 'Fidelity, the person behind the counter for your Discogs digging.',
+    /** The way into the in-store screen on a phone, where there is no ⌘K. */
+    inStore: 'In a shop right now',
     counts: {
       collection: 'Collection',
       wantlist: 'Wantlist',

@@ -24,8 +24,8 @@ onMounted(() => {
  * plainest fix and the one every phone user already knows.
  *
  * "In the shop" is deliberately not here: it is a *mode* you enter with a
- * record in your hand, not a section you browse, and it is reached from the dig
- * result and from the overview where that decision is actually being made.
+ * record in your hand, not a section you browse. It is reached from the start
+ * page, where somebody sets out, from the end of the setup and from ⌘K.
  *
  * The `key` names the entry in the message pack. What is left here is only what
  * does not change with the language: where it goes, what it looks like, and

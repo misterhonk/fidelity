@@ -72,7 +72,11 @@ const stepIndex = computed(() => STEPS.indexOf(step.value))
  * template needs no cast — a `<` inside a template expression reads as an
  * opening tag to the formatter, which is a strange way to lose a build.
  */
-const STEP_LABEL = computed<Partial<Record<Step, string>>>(() => w.value.steps)
+const STEP_LABEL = computed<Partial<Record<Step, string>>>(
+  // `satisfies` is what the loose type above gave up: two of the five labels
+  // were keyed `horizont` and `fertig`, and the segments stood there empty.
+  () => w.value.steps satisfies Record<Exclude<Step, 'start'>, string>,
+)
 
 const syncing = ref(false)
 const progress = ref<SyncProgress | null>(null)
