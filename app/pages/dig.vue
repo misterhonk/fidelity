@@ -7,6 +7,7 @@ import type {
   RunningHorizon,
   ScanProgress,
 } from '#shared/protocol'
+import { STARTER_SHOPS } from '#shared/starter-shops'
 import type { Dealer, Dig, DigComparison, DigVisit, LandedContext } from '#shared/types'
 
 import { useDigMessages } from '~/i18n/dig'
@@ -864,6 +865,32 @@ const noHorizon = computed(
         only thing telling them apart was an `aria-label` — which is to say,
         nothing at all for anybody looking at the screen.
       -->
+        <!--
+          Shops to start with, while there are none of one's own (2026-10-21).
+
+          The empty dig screen was a text field and nothing else: "which shop?"
+          is the first question a stranger has, and the five starters stood on
+          the shops screen, which a first dig does not pass.
+        -->
+        <section v-if="knownDealers.length === 0" class="flex flex-col gap-2">
+          <h2 id="starter-shops" class="text-fid-xs font-medium text-fid-text-muted">
+            {{ d.starters }}
+          </h2>
+          <nav aria-labelledby="starter-shops" class="flex flex-wrap gap-2">
+            <button
+              v-for="starter in STARTER_SHOPS"
+              :key="starter.username"
+              type="button"
+              class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+              @click="pick(starter.username)"
+            >
+              {{ starter.displayName }}
+              <span class="ml-1.5 text-fid-xs opacity-70">{{ starter.shipsFrom }}</span>
+            </button>
+          </nav>
+          <p class="text-fid-xs text-fid-text-muted">{{ d.startersNote }}</p>
+        </section>
+
         <section v-if="knownDealers.length > 0" class="flex flex-col gap-2">
           <h2 id="your-shops" class="text-fid-xs font-medium text-fid-text-muted">
             {{ d.yourShops }}

@@ -21,6 +21,9 @@ const en = {
   dealerPlaceholder: 'juno_records, or the address of the shop page',
   check: 'Check',
   yourShops: 'Your shops',
+  /** For a device with no shop yet: the same five as on the shops screen. */
+  starters: 'Shops to start with',
+  startersNote: 'Big, well rated, shipping across Europe. Or type any shop above.',
   another: 'Another shop, or an earlier dig',
   perThousand: (rate: string) => `${rate} finds per thousand records`,
   offline:
@@ -309,6 +312,9 @@ const de: typeof en = {
   dealerPlaceholder: 'juno_records, oder die Adresse der Ladenseite',
   check: 'Prüfen',
   yourShops: 'Deine Läden',
+  starters: 'Läden für den Anfang',
+  startersNote:
+    'Groß, gut bewertet, liefern in ganz Europa. Oder tipp oben einen beliebigen Laden ein.',
   another: 'Ein anderer Laden, oder ein früherer Dig',
   perThousand: (rate) => `${rate} Funde auf tausend Platten`,
   offline:
