@@ -9,6 +9,31 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.111.3](https://github.com/misterhonk/fidelity/compare/v0.111.2...v0.111.3) (2026-10-21)
+
+
+**Der Hub ist jetzt für mehr als einen Freundeskreis gebaut.** Bisher konnte ein Mitglied eines
+geteilten Hubs den anderen schaden. Das geht nicht mehr:
+
+- Ein Horizont-Eintrag mit einem Datum in der Zukunft hat jede spätere Aktualisierung
+  ausgestochen, für immer und für alle. Der Hub lehnt solche Einträge jetzt ab, und die App
+  glaubt sie auch nicht mehr.
+- Sechzig erfundene Läden auf der Beobachtungsliste haben den Wächter lahmgelegt. Ein Laden ohne
+  Antwort wartet jetzt, jedes Mal länger, und steht hinten an.
+- Riesige Anfragen werden abgewiesen, bevor sie im Speicher landen.
+- Benachrichtigungen gehen nur noch an echte Push-Dienste, nicht mehr an Adressen im Netz
+  hinter dem Hub.
+
+**Wichtig für alle, die selbst einen Hub betreiben:** Ein Hub ohne Secret und ohne
+Zugangsschlüssel startet nicht mehr. Wer ihn im Heimnetz absichtlich offen laufen lässt, setzt
+`HUB_OPEN=1`.
+
+### Fixed
+
+* **horizon:** a chunk dated in the future is not fresh, it is wrong ([d71784e](https://github.com/misterhonk/fidelity/commit/d71784eab09a896d0a4ce6599700159bb432007c))
+* **hub:** no door, no start — an open hub is HUB_OPEN=1 ([a3ecc45](https://github.com/misterhonk/fidelity/commit/a3ecc45c8e79bc2e47d05e37cc157f31c0502800))
+* **hub:** what one member of a shared hub can no longer do to the others ([983a963](https://github.com/misterhonk/fidelity/commit/983a96344647713a253067ac92f3e7f3a58e4b00))
+
 ## [0.111.2](https://github.com/misterhonk/fidelity/compare/v0.111.1...v0.111.2) (2026-10-21)
 
 
