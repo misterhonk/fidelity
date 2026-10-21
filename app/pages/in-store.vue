@@ -287,7 +287,15 @@ function formats(hit: ShelfHit): string {
  * out of the script through `{{ }}`.
  */
 
-const expired = computed(() => results.value.some((entry) => Date.now() > entry.dig.expiresAt))
+// Asked again when a price runs out (rule 4, useDeadline).
+const { now: clock } = useDeadline(
+  () => {
+    const clocks = results.value.flatMap((entry) => entry.showUntil ?? [])
+    return clocks.length > 0 ? Math.min(...clocks) : null
+  },
+  () => void loadShown(),
+)
+const expired = computed(() => results.value.some((entry) => clock.value > entry.dig.expiresAt))
 </script>
 
 <template>

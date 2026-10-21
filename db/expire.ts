@@ -30,37 +30,68 @@ export function stripMarketplaceData(match: Match): Match {
 }
 
 /**
+ * Until when a match's marketplace half may be shown (rule 4).
+ *
+ * The later of two clocks: the dig's, which every row of a scan shares, and
+ * the row's own, which a refetch gives it (M31.18, and a whole-dig refresh
+ * since 0.112). Whichever is later is the age of what the row actually says.
+ */
+export function showableUntil(match: Match, digExpiresAt: number | undefined): number {
+  return Math.max(match.freshUntil ?? -Infinity, digExpiresAt ?? -Infinity)
+}
+
+/**
+ * The match as it may be shown at `now`: as it is, or stripped.
+ *
+ * The screens read through this, so a price past its six hours is never handed
+ * out — whether or not a sweep has already been round to delete it.
+ */
+export function asShown(match: Match, digExpiresAt: number | undefined, now: number): Match {
+  if (match.expired || showableUntil(match, digExpiresAt) > now) return match
+  return stripMarketplaceData(match)
+}
+
+/**
  * Removes marketplace data that is past six hours (rule 4).
  *
  * Called by the keeper, on arrival and every twenty minutes after — before its
- * own sign-in and busy checks, because a deadline does not wait for either.
+ * own sign-in and busy checks, because a deadline does not wait for either —
+ * and by `sweepIfDue` ahead of every request the worker answers.
  *
- * It is not what *keeps* stale prices off the screen; every surface that shows
- * one checks the age itself, which is the part that has to be right even if
- * this never ran. This is the second line: hiding a price satisfies the terms,
- * deleting it is what we would want done with ours. Which is why it is total
- * rather than sampled — a function that skips some of them would leave exactly
- * the impression it is meant to remove.
+ * Hiding is done where data is read (`asShown`). This is the second line:
+ * hiding a price satisfies the terms, deleting it is what we would want done
+ * with ours. Which is why it is total rather than sampled — and why it no
+ * longer trusts a dig's `expired` status. Three paths set that status without
+ * stripping anything (an interrupted dig retired on open, a resume refused, a
+ * refresh cut off half way), and a dig marked expired was the one place this
+ * loop never looked again. Every row is judged by its own clock now.
  */
 export async function expireDigs(
   db?: FidelityDatabase,
   now: number = Date.now(),
 ): Promise<number> {
+  return (await sweep(db, now)).expired
+}
+
+async function sweep(
+  db: FidelityDatabase | undefined,
+  now: number,
+): Promise<{ expired: number; next: number }> {
   const database = db ?? (await openFidelityDb())
   let expiredMatches = 0
+  let next = Infinity
 
-  for (const dig of await database.getAll('digs')) {
-    if (dig.status === 'expired' || dig.expiresAt > now) continue
+  const tx = database.transaction(['digs', 'matches', 'stock'], 'readwrite')
+  const digs = tx.objectStore('digs')
+  const stock = tx.objectStore('stock')
+  const until = new Map<string, number>()
 
-    const tx = database.transaction(['digs', 'matches', 'stock'], 'readwrite')
-    const matches = tx.objectStore('matches')
-
-    for (const match of await matches.index('by-dig-score').getAll(digRange(dig.id))) {
-      if (match.expired) continue
-      await matches.put(stripMarketplaceData(match))
-      expiredMatches += 1
+  for (const dig of await digs.getAll()) {
+    until.set(dig.id, dig.expiresAt)
+    if (dig.expiresAt > now) {
+      next = Math.min(next, dig.expiresAt)
+      continue
     }
-
     /*
      * Stock is deleted, not thinned out.
      *
@@ -69,32 +100,58 @@ export async function expireDigs(
      * data; after six hours what would be left is an empty shell that is not
      * allowed to say anything (rule 4). So it goes.
      */
-    const stock = tx.objectStore('stock')
     for (const key of await stock.getAllKeys(digRange(dig.id))) await stock.delete(key)
-
-    await tx.objectStore('digs').put({ ...dig, status: 'expired' })
-    await tx.done
+    if (dig.status !== 'expired') await digs.put({ ...dig, status: 'expired' })
   }
 
-  /*
-   * And the rows with a clock of their own (M31.18).
-   *
-   * A listing refetched from inside the sheet outlives its dig's expiry on
-   * purpose — its own data is new — and the loop above would never look at it
-   * again, because the dig it belongs to is already marked expired. Without
-   * this, one refreshed price would sit on a screen for ever, which is the
-   * one thing rule 4 is about.
-   */
-  const tx = database.transaction('matches', 'readwrite')
-  for (const match of await tx.store.getAll()) {
-    if (match.expired || match.freshUntil === undefined) continue
-    if (match.freshUntil > now) continue
-    await tx.store.put(stripMarketplaceData(match))
+  const matches = tx.objectStore('matches')
+  for (const match of await matches.getAll()) {
+    if (match.expired) continue
+    const at = showableUntil(match, until.get(match.digId))
+    if (at > now) {
+      next = Math.min(next, at)
+      continue
+    }
+    await matches.put(stripMarketplaceData(match))
     expiredMatches += 1
   }
   await tx.done
 
-  return expiredMatches
+  return { expired: expiredMatches, next }
+}
+
+/*
+ * The sweep ahead of every answer.
+ *
+ * The keeper's twenty minutes leave a window, and a cold start leaves a race:
+ * a screen asks for its dig before the keeper's first tick has stripped it
+ * (found on 2026-10-21 — /dig showed the old prices beside the "expired"
+ * notice). So the worker sweeps before it answers, but only when a deadline
+ * has passed: between deadlines this is a comparison of two numbers.
+ *
+ * `next` is the earliest clock the last sweep saw still running. Another tab
+ * can add data this worker has not seen, so it is never trusted for longer
+ * than the keeper's own interval — and anything new carries six hours, far
+ * beyond that, so nothing it adds can fall due unseen.
+ */
+const RECHECK_MS = 20 * 60 * 1000
+let due = 0
+let running: Promise<void> | null = null
+
+export function sweepIfDue(now: number = Date.now()): Promise<void> {
+  if (now < due) return Promise.resolve()
+  running ??= sweep(undefined, now)
+    .then(({ next }) => {
+      due = Math.min(next, now + RECHECK_MS)
+    })
+    .catch(() => {
+      // Storage that will not open is its own error elsewhere, and loudly.
+      due = now + 60_000
+    })
+    .finally(() => {
+      running = null
+    })
+  return running
 }
 
 /**

@@ -217,6 +217,14 @@ export async function refreshDig({
           sleeve: listing.sleeve_condition ?? null,
           comments: listing.comments ?? null,
           expired: false,
+          /*
+           * Its own clock, as a single refetch gives it. Two things went wrong
+           * without one: a refresh cut off half way left new prices on a dig
+           * still marked expired, with nothing to say when they ran out; and
+           * an older `freshUntil` from a single refetch stayed on the row and
+           * took the new price down twenty minutes later.
+           */
+          freshUntil: now + 6 * 60 * 60 * 1000,
         }
       : // Sold. The marketplace half goes for the same reason it goes at six
         // hours — it is no longer true — and `expired` says the price is not

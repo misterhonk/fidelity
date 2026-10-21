@@ -154,10 +154,11 @@ export async function runKeeper(options: {
    * still has yesterday's prices sitting on the device, and "I am not signed
    * in" was never an exemption from the terms we display them under.
    *
-   * Until now this was the one rule enforced only at render time. Every screen
-   * checks the age before showing a price — dig, in-store, the home summary,
-   * the basket line by line, and the optimiser skips what has expired — so
-   * nothing stale was ever displayed. But the data stayed on disk indefinitely,
+   * Until now this was the one rule enforced only at render time. The screens
+   * were meant to check the age before showing a price; dig, in-store and the
+   * stack did it once, on load, and never again (found 2026-10-21). Since
+   * 0.112 the worker hands out no price past its clock (`asShown`) and sweeps
+   * ahead of any answer once a deadline has passed (`sweepIfDue`). But the data stayed on disk indefinitely,
    * while `expireDigs` sat next to it fully tested, described in its own
    * comment as running "at app start and hourly", and called by nothing except
    * its tests. A green test for code that never runs is worse than no test: it

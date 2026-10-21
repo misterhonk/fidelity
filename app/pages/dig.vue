@@ -579,9 +579,23 @@ watchEffect(() => {
 })
 onBeforeUnmount(() => sheet.setOrder(null))
 
+/*
+ * Asked again when a price on it runs out: the worker hands out nothing past
+ * its six hours, so the reload is what takes the price off the screen.
+ */
+const { now: clock } = useDeadline(
+  () => result.value?.showUntil,
+  async () => {
+    const shown = result.value
+    if (!shown || scanningDealer.value) return
+    const again = await call('dig.get', { digId: shown.dig.id })
+    if (result.value?.dig.id === shown.dig.id) result.value = again
+  },
+)
+
 const expired = computed(() => {
   const dig = result.value?.dig
-  return dig ? Date.now() > dig.expiresAt : false
+  return dig ? clock.value > dig.expiresAt : false
 })
 
 /**

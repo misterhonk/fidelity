@@ -61,7 +61,9 @@ describe('the four decisions', () => {
   /** Preis weg, Fund bleibt — die Begründung überlebt die sechs Stunden. */
   it('drops the price once the dig is stale, and keeps the find', () => {
     expect(withoutComments(CARD)).toMatch(/v-if="!expired && match\.price !== null"/)
-    expect(withoutComments(PAGE)).toMatch(/Date\.now\(\) >= dig\.value\.dig\.expiresAt/)
+    // A clock that ticks at the deadline, not `Date.now()` read once on load.
+    expect(withoutComments(PAGE)).toMatch(/clock\.value >= dig\.value\.dig\.expiresAt/)
+    expect(withoutComments(PAGE)).toMatch(/useDeadline\(/)
   })
 
   /** And expired digs do not reach the top row at all. */

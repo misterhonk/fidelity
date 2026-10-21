@@ -7,6 +7,8 @@
  */
 import type { RequestKind, WorkerError, WorkerInbound, WorkerOutbound } from '#shared/protocol'
 
+import { sweepIfDue } from '~~/db/expire'
+
 import { trackForeground } from './busy'
 import { handlers } from './handlers'
 import { redactString } from './log'
@@ -71,6 +73,12 @@ async function dispatch(id: string, kind: RequestKind, params: unknown) {
      * counting its own tick as foreground would make it stand aside for itself
      * and never run at all.
      */
+    /*
+     * Past a deadline, the sweep goes first (rule 4, db/expire.ts). Between
+     * deadlines it is a comparison; the keeper sweeps on its own.
+     */
+    if (kind !== 'keeper.tick') await sweepIfDue()
+
     const result = kind === 'keeper.tick' ? await run() : await trackForeground(run)
 
     send({ id, type: 'result', result })

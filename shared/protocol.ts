@@ -1408,6 +1408,11 @@ export interface DigWithMatches {
   topFive: Match[]
   /** Extra copies of the same record that were folded away. */
   folded: number
+  /**
+   * When the next price on it runs out (rule 4), or null when none is left.
+   * A screen kept open past this asks for the dig again.
+   */
+  showUntil: number | null
 }
 
 export interface SyncProgress {

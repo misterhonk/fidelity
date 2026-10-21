@@ -1,3 +1,4 @@
+import { asShown, showableUntil } from '~~/db/expire'
 import { getMeta, getPreferences, getSyncState, setMeta, updatePreferences } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
@@ -1615,8 +1616,28 @@ async function loadDig(digId: string) {
     .store.index('by-dig-score')
     .getAll(IDBKeyRange.bound([digId, -Infinity], [digId, Infinity]))
 
+  /*
+   * Rule 4 at the point of reading. The sweep ahead of every request deletes
+   * what is past six hours; this makes sure nothing is handed out in the
+   * moment between a deadline and that sweep. `showUntil` is the next clock to
+   * run out, so a screen left open knows when to ask again.
+   */
+  const now = Date.now()
+  let showUntil = Infinity
+  const shown = stored.map((match) => {
+    const visible = asShown(match, dig.expiresAt, now)
+    if (!visible.expired) showUntil = Math.min(showUntil, showableUntil(match, dig.expiresAt))
+    return visible
+  })
+
   // Selection happens here rather than in the template: what gets shown first
   // is a product decision, and the main thread only renders.
-  const { matches, folded } = bestPerRelease(stored)
-  return { dig, matches, topFive: topFive(matches), folded }
+  const { matches, folded } = bestPerRelease(shown)
+  return {
+    dig,
+    matches,
+    topFive: topFive(matches),
+    folded,
+    showUntil: Number.isFinite(showUntil) ? showUntil : null,
+  }
 }

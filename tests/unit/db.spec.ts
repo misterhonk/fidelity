@@ -1,7 +1,7 @@
 import { openDB } from 'idb'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { DIG_TTL_MS, expireDigs, pruneDigs } from '~~/db/expire'
+import { DIG_TTL_MS, asShown, expireDigs, pruneDigs, showableUntil } from '~~/db/expire'
 import {
   DEFAULT_PREFERENCES,
   getMeta,
@@ -224,6 +224,54 @@ describe('the six-hour rule', () => {
 
     await expireDigs(db, old.expiresAt + 1)
     expect(await expireDigs(db, old.expiresAt + 1)).toBe(0)
+  })
+
+  /*
+   * Found on 2026-10-21. An interrupted dig opened after its six hours is
+   * retired by `findResumable` with a plain status write — and the sweep
+   * skipped every dig already marked expired, so its prices stayed for good.
+   */
+  it('strips a dig that something else already marked expired', async () => {
+    const db = await openFidelityDb()
+    const retired = dig('01DDD', { status: 'expired' })
+    await db.put('digs', retired)
+    await db.put('matches', match('01DDD', 503))
+    await db.put('stock', {
+      digId: '01DDD',
+      listingId: 503,
+    } as never)
+
+    expect(await expireDigs(db, retired.expiresAt + 1)).toBe(1)
+    expect((await db.get('matches', ['01DDD', 503]))?.price).toBeNull()
+    expect(await db.count('stock')).toBe(0)
+  })
+
+  it('keeps a row on its own clock past the dig, and strips it when that runs out', async () => {
+    const db = await openFidelityDb()
+    const old = dig('01EEE')
+    const ownClock = old.expiresAt + 60_000
+    await db.put('digs', old)
+    await db.put('matches', match('01EEE', 504, { freshUntil: ownClock }))
+
+    expect(await expireDigs(db, old.expiresAt + 1)).toBe(0)
+    expect((await db.get('matches', ['01EEE', 504]))?.price).toBe(24)
+
+    expect(await expireDigs(db, ownClock + 1)).toBe(1)
+    expect((await db.get('matches', ['01EEE', 504]))?.price).toBeNull()
+  })
+
+  it('never hands out a price past its clock, swept or not', () => {
+    const row = match('01FFF', 505)
+    const deadline = dig('01FFF').expiresAt
+
+    expect(asShown(row, deadline, deadline - 1).price).toBe(24)
+    const late = asShown(row, deadline, deadline + 1)
+    expect(late.price).toBeNull()
+    expect(late.expired).toBe(true)
+    // The later clock wins: a refreshed row outlives its dig, and an old
+    // single refetch does not take a whole refresh down with it.
+    expect(showableUntil({ ...row, freshUntil: deadline + 5 }, deadline)).toBe(deadline + 5)
+    expect(showableUntil({ ...row, freshUntil: deadline - 5 }, deadline)).toBe(deadline)
   })
 })
 

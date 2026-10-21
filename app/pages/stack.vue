@@ -80,7 +80,17 @@ const at = ref(0)
 const shop = computed(() => shops.value[shopIndex.value] ?? null)
 const cards = computed(() => dig.value?.matches ?? [])
 const card = computed(() => cards.value[at.value] ?? null)
-const expired = computed(() => (dig.value ? Date.now() >= dig.value.dig.expiresAt : false))
+// Asked again when a price runs out (rule 4, useDeadline).
+const { now: clock } = useDeadline(
+  () => dig.value?.showUntil,
+  async () => {
+    const shown = dig.value
+    if (!shown) return
+    const again = await call('dig.get', { digId: shown.dig.id })
+    if (dig.value?.dig.id === shown.dig.id) dig.value = again
+  },
+)
+const expired = computed(() => (dig.value ? clock.value >= dig.value.dig.expiresAt : false))
 
 onMounted(async () => {
   try {
