@@ -9,6 +9,28 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.113.1](https://github.com/misterhonk/fidelity/compare/v0.113.0...v0.113.1) (2026-10-21)
+
+
+**Kleinigkeiten, die beim Benutzen stören.** Im selben Commit wie der Vergleich, darum steht
+unten nur eine Zeile:
+
+- Mit zwei Läden im Korb zeigten die Beschriftungen der zweiten Karte auf die Felder der
+  ersten. Jede Karte hat jetzt eigene IDs.
+- Trefferquoten und Bewertungen standen im Deutschen als „13.0" da. Jetzt mit Komma.
+- Über einem leeren Korb stand „Eine Platte ist drin". Steht jetzt nur noch da, wenn es stimmt.
+- „Alle leeren" leert erst beim zweiten Tippen.
+- Die Rückgängig-Hinweise bei Läden, Wantlist, Räumen und Regal lagen auf dem Handy über der
+  Tab-Leiste. Jetzt stehen sie darüber.
+
+**Und der Vergleich mit anderen Apps ist auf dem Stand von Oktober:** Seller Matches seit
+September, Wantlister gehört Discogs, RUNOUT. und Deadwax lesen die Auslaufrille, und Reccogs
+stellt dieselbe Frage wie Fidelity.
+
+### Fixed
+
+* **ui:** the comparison page says what changed since September ([8e0e794](https://github.com/misterhonk/fidelity/commit/8e0e79476b8355edc34e98054b228d731237b8ce))
+
 ## [0.113.0](https://github.com/misterhonk/fidelity/compare/v0.112.0...v0.113.0) (2026-10-21)
 
 
