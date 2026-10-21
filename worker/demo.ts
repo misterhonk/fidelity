@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import type { DemoKnown } from '#shared/protocol'
 import type { CollectionItem, Match } from '#shared/types'
 
 import type { DiscogsClient } from './discogs/client'
@@ -147,6 +148,7 @@ function toCollectionItem(release: z.infer<typeof releaseSchema>): CollectionIte
 export async function runDemo(options: {
   client: DiscogsClient
   listingIds: number[]
+  known?: DemoKnown[]
   report?: (progress: DemoProgress) => void
   signal?: AbortSignal
 }): Promise<DemoResult> {
@@ -155,6 +157,34 @@ export async function runDemo(options: {
   if (listingIds.length === 0) throw fail('no-listing', 'no listing given')
 
   let requests = 0
+  const known = options.known ?? []
+
+  /*
+   * A pasted listing: which shop, which record. Sold or taken down, Discogs
+   * answers 404 — or 401 without a token, the same words it uses for a bad
+   * one — and either way the record is not for sale any more.
+   */
+  async function ask(listingId: number): Promise<DemoKnown> {
+    let listing
+    try {
+      listing = await client.get(`/marketplace/listings/${listingId}`, seedListingSchema, {
+        signal,
+      })
+    } catch (error) {
+      const status = (error as { status?: number } | null)?.status
+      if (status === 404 || status === 401) throw fail('listing-gone', 'the listing is gone')
+      throw error
+    } finally {
+      requests += 1
+    }
+    return {
+      listingId: listing.id,
+      releaseId: listing.release.id,
+      dealer: listing.seller.username,
+      title: listing.release.title,
+      artist: listing.release.artist ?? '',
+    }
+  }
 
   // 1 — the seeds, and which shop they belong to.
   const seeds: DemoSeed[] = []
@@ -164,29 +194,26 @@ export async function runDemo(options: {
   for (const [index, listingId] of listingIds.entries()) {
     report?.({ step: 'seeds', done: index, total: listingIds.length })
 
-    const listing = await client.get(`/marketplace/listings/${listingId}`, seedListingSchema, {
-      signal,
-    })
-    requests += 1
+    const seed = known.find((entry) => entry.listingId === listingId) ?? (await ask(listingId))
 
     /*
      * All seeds must come from one shop, because the whole question is what
      * *this* shop has next to it. Two shops would produce a list nobody can
      * buy in one shipment, which is the opposite of the point.
      */
-    if (!dealer) dealer = listing.seller.username
-    else if (listing.seller.username !== dealer) continue
+    if (!dealer) dealer = seed.dealer
+    else if (seed.dealer !== dealer) continue
 
-    const release = await client.get(`/releases/${listing.release.id}`, releaseSchema, {
+    const release = await client.get(`/releases/${seed.releaseId}`, releaseSchema, {
       signal,
     })
     requests += 1
 
     seeds.push({
-      listingId: listing.id,
-      releaseId: listing.release.id,
-      title: listing.release.title,
-      artist: listing.release.artist ?? '',
+      listingId: seed.listingId,
+      releaseId: seed.releaseId,
+      title: seed.title,
+      artist: seed.artist,
     })
     collection.push(toCollectionItem(release))
   }

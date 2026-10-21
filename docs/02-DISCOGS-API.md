@@ -581,6 +581,15 @@ which returns **405** (see below): an offer is retrievable through **its own id*
 Back come `status`, `condition`, `sleeve_condition`, `comments`, `ships_from`, `posted`,
 `price`, `original_price`.
 
+**A listing that is no longer for sale — measured on 2026-10-21**, thirteen known ids
+without a token: five answered 200, three **404**, and five **401** with
+`{"message":"You must authenticate to access this resource."}` — the same words a bad
+token gets. An offer still listed answered 200 without a token on the same afternoon,
+so the 401 is about the listing, not about authentication. Without a token, a 401
+here means *sold or withdrawn* as likely as anything else; nothing that reads it may
+say "your token" (worker/demo.ts says "sold", and asks once more without a token
+first).
+
 **And with a token, the postage — measured on 2026-09-16** (a British shop, the account
 in Germany, `curr_abbr=EUR`):
 

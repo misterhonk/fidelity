@@ -1459,18 +1459,21 @@ export const handlers: HandlerMap = {
    * dynamic import, because somebody who is signed in never runs it and it has
    * no business in the worker's entry chunk.
    */
-  'demo.run': async ({ listingIds }, { report, signal }) => {
+  'demo.run': async ({ listingIds, known }, { report, signal }) => {
     const { runDemo } = await import('./demo')
     const run = (client: ReturnType<typeof discogs>) =>
-      runDemo({ client, listingIds, report: (progress) => report(progress), signal })
+      runDemo({ client, listingIds, known, report: (progress) => report(progress), signal })
     try {
       return await run(discogs())
     } catch (error) {
       /*
        * A stored token Discogs no longer knows. The look needs none, and a
-       * screen that says "No sign-in" must not fail on a sign-in.
+       * screen that says "No sign-in" must not fail on a sign-in. A listing
+       * that answered 401 may have been that token too, so it is asked
+       * once more without one before it counts as sold.
        */
-      if ((error as { status?: number } | null)?.status !== 401) throw error
+      const failed = error as { status?: number; code?: string } | null
+      if (failed?.status !== 401 && failed?.code !== 'listing-gone') throw error
       return run(anonymousDiscogs())
     }
   },

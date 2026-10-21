@@ -138,4 +138,38 @@ describe('the demo', () => {
       code: 'no-listing',
     })
   })
+
+  /*
+   * Found on 2026-10-21: eight of the thirteen seeds on the welcome screen had
+   * sold, and a sold listing answers 401 without a token. The demo fetched the
+   * listing to learn what the seed list already knew.
+   */
+  it('starts from a seed it knows without asking for the listing', async () => {
+    const { client, asked } = fakeShop()
+    const result = await runDemo({
+      client,
+      listingIds: [111],
+      known: [
+        {
+          listingId: 111,
+          releaseId: 900,
+          dealer: 'plattenladen',
+          title: 'Das Model',
+          artist: 'Kraftwerk',
+        },
+      ],
+    })
+    expect(asked.some((path) => path.startsWith('/marketplace/listings/'))).toBe(false)
+    expect(result.finds.map((find) => find.releaseId)).toContain(901)
+  })
+
+  it('says a pasted listing has sold, rather than blaming a token', async () => {
+    const { DiscogsError } = await import('~~/worker/discogs/errors')
+    const get = vi.fn(async () => {
+      throw new DiscogsError(401, 'You must authenticate to access this resource.')
+    })
+    await expect(
+      runDemo({ client: { get } as unknown as DiscogsClient, listingIds: [111] }),
+    ).rejects.toMatchObject({ code: 'listing-gone' })
+  })
 })

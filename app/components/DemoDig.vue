@@ -2,6 +2,7 @@
 import { describeFormat } from '#shared/format'
 import { reasonFor } from '~/i18n/reason'
 
+import type { DemoSeedOption } from '~/utils/demo-seeds'
 import type { DemoProgress, DemoResult } from '~~/worker/demo'
 
 const m = useMessages()
@@ -39,7 +40,7 @@ const pastedId = computed(() => {
   return match ? Number(match[1]) : null
 })
 
-async function run(listingId: number) {
+async function run(listingId: number, seed?: DemoSeedOption) {
   if (running.value) return
 
   running.value = true
@@ -50,7 +51,22 @@ async function run(listingId: number) {
   try {
     result.value = await call(
       'demo.run',
-      { listingIds: [listingId] },
+      {
+        listingIds: [listingId],
+        // One of ours: the shop and the record are known, so a sold listing
+        // does not stop the look.
+        known: seed
+          ? [
+              {
+                listingId,
+                releaseId: seed.releaseId,
+                dealer: seed.dealer,
+                title: seed.title,
+                artist: seed.artist,
+              },
+            ]
+          : undefined,
+      },
       { onProgress: (step) => (progress.value = step) },
     )
 
@@ -180,7 +196,7 @@ function shapeOf(format: string | null) {
           type="button"
           :disabled="running"
           class="group flex w-full flex-col gap-2 text-left disabled:opacity-50"
-          @click="run(seed.listingId)"
+          @click="run(seed.listingId, seed)"
         >
           <span class="relative block">
             <img

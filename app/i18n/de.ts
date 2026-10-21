@@ -183,6 +183,10 @@ const de: Messages = {
         title: 'Keine Platte angegeben.',
         action: 'Füge einen Link zu einer Platte in einem Discogs-Laden ein.',
       },
+      'listing-gone': {
+        title: 'Die Platte ist verkauft.',
+        action: 'Nimm eine andere, oder füg einen Link zu einer ein, die noch zu haben ist.',
+      },
       'dig-gone': {
         title: 'Diesen Dig gibt es nicht mehr.',
         action:

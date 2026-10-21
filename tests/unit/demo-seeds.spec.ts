@@ -61,6 +61,9 @@ describe('the records somebody can start from', () => {
     // they describe the *release*, not the offer, and a sleeve does not change
     // when the record sells. An allow-list rather than a deny-list, so the next
     // field somebody freezes in has to be argued for here first.
+    //
+    // `releaseId` argued for on 2026-10-21: the record, not the offer. Eight
+    // of thirteen listings had sold, and the demo needs only what was sold.
     for (const seed of DEMO_SEEDS) {
       expect(Object.keys(seed).sort()).toEqual(
         [
@@ -70,6 +73,7 @@ describe('the records somebody can start from', () => {
           'label',
           'listingId',
           'promise',
+          'releaseId',
           'thumbUrl',
           'title',
           'year',

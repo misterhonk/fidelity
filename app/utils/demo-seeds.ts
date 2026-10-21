@@ -34,8 +34,8 @@ import type { Language } from '~/composables/useMessages'
  * `MAX_SEEDS` in worker/demo.ts is for and what nothing yet uses.
  *
  * A shop sells records, so one of these will eventually be gone. That is not a
- * failure to prevent but one to survive: the demo says so and offers the
- * others.
+ * failure to prevent but one to survive: each seed carries its shop and its
+ * record, and the demo starts from those rather than from the listing.
  *
  * **The order is the interleaving, not a ranking.** Three are shown at a time
  * and they are taken consecutively, so a list grouped by genre would offer
@@ -46,6 +46,16 @@ import type { Language } from '~/composables/useMessages'
  */
 export interface DemoSeedOption {
   listingId: number
+  /**
+   * The record behind the listing, so a sold one still works.
+   *
+   * Eight of these thirteen had sold or gone by 2026-10-21, and the demo
+   * fetched the listing first to learn what this file already knew — the
+   * shop and the record. A sold listing answers 401 without a token, which
+   * read as "Discogs does not know this token" on the screen that says no
+   * sign-in. Now the listing is not asked for at all.
+   */
+  releaseId: number
   artist: string
   title: string
   label: string
@@ -109,6 +119,7 @@ function cover(thumbHash: string, coverHash: string, size: string, path: string)
 export const DEMO_SEEDS: DemoSeedOption[] = [
   {
     listingId: 4309313268,
+    releaseId: 636159,
     artist: 'Kraftwerk',
     title: 'Das Model',
     label: 'Kling Klang',
@@ -127,6 +138,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
   },
   {
     listingId: 3921870991,
+    releaseId: 6089190,
     artist: 'Joey Beltram',
     title: 'Energy Flash',
     label: 'R & S Records',
@@ -145,6 +157,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
   },
   {
     listingId: 4308995931,
+    releaseId: 3166021,
     artist: 'The Clash',
     title: 'London Calling',
     label: 'Columbia',
@@ -163,6 +176,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
   },
   {
     listingId: 3721514041,
+    releaseId: 31419368,
     artist: 'AIR',
     title: 'Moon Safari',
     label: 'Parlophone',
@@ -181,6 +195,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
   },
   {
     listingId: 4309125996,
+    releaseId: 452416,
     artist: 'Die Toten Hosen',
     title: 'Reich & Sexy',
     label: 'Totenkopf',
@@ -204,6 +219,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
      * record shop. Same artist, same label, same series, and a sleeve.
      */
     listingId: 4224333861,
+    releaseId: 5866006,
     artist: 'Audion',
     title: 'Sky / Motormouth Remixes',
     label: 'Spectral Sound',
@@ -222,6 +238,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
   },
   {
     listingId: 4309286094,
+    releaseId: 2992336,
     artist: 'The Who',
     title: 'My Generation',
     label: 'MCA Records',
@@ -237,6 +254,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
   },
   {
     listingId: 3446612022,
+    releaseId: 151260,
     artist: 'Pet Shop Boys',
     title: 'Suburbia',
     label: 'Parlophone',
@@ -252,6 +270,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
   },
   {
     listingId: 4309359201,
+    releaseId: 3960500,
     artist: 'Deep Purple',
     title: 'Machine Head',
     label: 'Purple Records',
@@ -270,6 +289,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
   },
   {
     listingId: 4274557002,
+    releaseId: 32044362,
     artist: 'not even noticed',
     title: 'Feel EP',
     label: 'eudemonia',
@@ -285,6 +305,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
   },
   {
     listingId: 4309120548,
+    releaseId: 396235,
     artist: 'Bob Dylan',
     title: 'John Wesley Harding',
     label: 'Columbia',
@@ -303,6 +324,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
   },
   {
     listingId: 4218677304,
+    releaseId: 1786435,
     artist: 'Marek Hemmann',
     title: 'Gemini EP',
     label: 'Freude Am Tanzen',
@@ -318,6 +340,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
   },
   {
     listingId: 4309372362,
+    releaseId: 8086889,
     artist: 'Puhdys',
     title: "Hey, Wir Woll'n Die Eisbär'n Sehn!",
     label: 'BuschFunk',

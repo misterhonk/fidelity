@@ -328,6 +328,10 @@ const en = {
         title: 'No record given.',
         action: 'Paste a link to a record in a Discogs shop.',
       },
+      'listing-gone': {
+        title: 'That record has sold.',
+        action: 'Pick another one, or paste a link to a record that is still for sale.',
+      },
       'dig-gone': {
         title: 'That dig is no longer here.',
         action: 'We keep a dig for six hours, then its prices go. Dig the shop again.',

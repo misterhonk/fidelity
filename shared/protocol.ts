@@ -180,7 +180,15 @@ export interface WorkerContract {
    * matcher over a collection of one or two seeds; nothing about it is a
    * mock-up, which is the only reason it is worth showing.
    */
-  'demo.run': { params: { listingIds: number[] }; progress: DemoProgress; result: DemoResult }
+  'demo.run': {
+    /**
+     * `known`: what the welcome screen's own seeds already know — the shop and
+     * the record — so a sold listing does not stop the demo.
+     */
+    params: { listingIds: number[]; known?: DemoKnown[] }
+    progress: DemoProgress
+    result: DemoResult
+  }
   /**
    * Look whether anything wants refreshing — and then do it.
    *
@@ -1400,6 +1408,15 @@ export interface ScanProgress {
   passCount: number
 }
 
+/** A listing whose shop and record are known without asking for it. */
+export interface DemoKnown {
+  listingId: number
+  releaseId: number
+  dealer: string
+  title: string
+  artist: string
+}
+
 export interface DigWithMatches {
   dig: Dig
   /** Best copy per release, strongest first. */
@@ -1572,6 +1589,8 @@ export interface WorkerError {
     | 'no-token'
     | 'not-signed-in'
     | 'no-listing'
+    /** A pasted listing that has sold or been taken down. */
+    | 'listing-gone'
     | 'dig-gone'
     | 'dig-expired'
     | 'dig-running'
