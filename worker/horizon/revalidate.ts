@@ -31,6 +31,21 @@ export const MIN_INTERVAL_MS = 20 * 60 * 60 * 1000
  */
 export const REQUESTS_PER_ENTITY = 2
 
+/** How far ahead of this device's clock a reading may claim to be: skew, not a lock. */
+export const CLOCK_SKEW_MS = 5 * 60_000
+
+/**
+ * Whether a chunk is young enough to stand.
+ *
+ * Age alone said yes to a `fetchedAt` in the future — its age is negative —
+ * and a chunk a hub had been handed with such a clock stayed "fresh" on every
+ * device for good (found 2026-10-21). A reading from the future is not fresh,
+ * it is wrong.
+ */
+export function isFresh(fetchedAt: number, now: number, ttlMs: number): boolean {
+  return fetchedAt <= now + CLOCK_SKEW_MS && now - fetchedAt < ttlMs
+}
+
 /**
  * A chunk that predates the lexicon.
  *
@@ -86,7 +101,7 @@ export function planRevalidation({
     .filter(
       (entry): entry is { candidate: Candidate; chunk: HorizonChunk } =>
         entry.chunk !== undefined &&
-        (now - entry.chunk.fetchedAt >= ttlMs || lacksKin(entry.chunk)),
+        (!isFresh(entry.chunk.fetchedAt, now, ttlMs) || lacksKin(entry.chunk)),
     )
     .sort((a, b) => a.chunk.fetchedAt - b.chunk.fetchedAt)
 

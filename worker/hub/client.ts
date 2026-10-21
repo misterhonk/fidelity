@@ -12,6 +12,7 @@ import type {
   ShippingTier,
 } from '#shared/types'
 
+import { CLOCK_SKEW_MS } from '../horizon/revalidate'
 import { log } from '../log'
 import { fail } from '../fail'
 
@@ -307,6 +308,12 @@ export function createHubClient({
         return null
       }
 
+      // A clock from the future would make it fresh for good (revalidate.ts).
+      if (parsed.data.fetchedAt > Date.now() + CLOCK_SKEW_MS) {
+        log.warn('[hub] chunk dated in the future, discarded', kind, id)
+        return null
+      }
+
       const chunk = decodeChunk(parsed.data as WireChunk)
 
       /*
@@ -365,6 +372,10 @@ export function createHubClient({
       const parsed = familySchema.safeParse(await response.json())
       if (!parsed.success || parsed.data.masterId !== masterId) {
         log.warn('[hub] family answer does not match the schema', masterId)
+        return null
+      }
+      if (parsed.data.fetchedAt > Date.now() + CLOCK_SKEW_MS) {
+        log.warn('[hub] family dated in the future, discarded', masterId)
         return null
       }
       return parsed.data

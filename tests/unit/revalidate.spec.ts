@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { HorizonChunk } from '#shared/types'
 import {
   DAILY_REQUEST_BUDGET,
+  isFresh,
   lacksKin,
   MIN_INTERVAL_MS,
   planRevalidation,
@@ -145,5 +146,22 @@ describe('spreading the revalidation over days', () => {
   it('holds the numbers docs/11 §3 asks for', () => {
     expect(DAILY_REQUEST_BUDGET).toBe(20)
     expect(MIN_INTERVAL_MS).toBeLessThan(24 * 60 * 60 * 1000)
+  })
+})
+
+describe('a reading from the future', () => {
+  // Its age is negative, which "younger than the TTL" took for fresh — for
+  // good (2026-10-21).
+  it('is not fresh, and is due for another look', () => {
+    expect(isFresh(now + DAY, now, TTL)).toBe(false)
+    expect(isFresh(now - DAY, now, TTL)).toBe(true)
+    const plan = planRevalidation({
+      candidates: [candidate(1)],
+      chunks: [chunk(1, now + 365 * DAY)],
+      now,
+      lastRunAt: null,
+      ttlMs: TTL,
+    })
+    expect(plan.due.map((entry) => entry.id)).toEqual([1])
   })
 })

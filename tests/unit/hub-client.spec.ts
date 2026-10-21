@@ -192,6 +192,14 @@ describe('the hub client', () => {
     await expect(hub.horizon('artist', 55)).resolves.toBeNull()
   })
 
+  // A clock from the future made a chunk fresh on every device for good
+  // (2026-10-21): its age was negative.
+  it('refuses a chunk dated in the future', async () => {
+    const future = encodeChunk({ ...chunk, fetchedAt: Date.now() + 60 * 60 * 1000 })
+    const hub = createHubClient({ baseUrl: 'https://hub.test', fetchImpl: respond(future) })!
+    await expect(hub.horizon('artist', 55)).resolves.toBeNull()
+  })
+
   it('refuses a chunk whose arrays contradict each other', async () => {
     // A mismatched chunk would corrupt the horizon quietly and permanently,
     // which is far worse than any amount of slowness.

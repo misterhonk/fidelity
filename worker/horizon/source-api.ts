@@ -4,6 +4,8 @@ import type { HorizonChunk, HorizonKind } from '#shared/types'
 
 import { preferHub } from '../hub/fallback'
 
+import { isFresh } from './revalidate'
+
 /** Revalidation interval from docs/01-ARCHITECTURE.md §6. */
 export const HORIZON_TTL_MS = 30 * 24 * 60 * 60 * 1000
 
@@ -41,7 +43,7 @@ export function createApiHorizonSource(
       const key = horizonKey(kind, id)
 
       const cached = await db.get('horizon', key)
-      if (cached && now() - cached.fetchedAt < ttlMs) return cached
+      if (cached && isFresh(cached.fetchedAt, now(), ttlMs)) return cached
 
       const chunk = await preferHub(() => expand(kind, id), {
         hub: hub ? () => hub(kind, id) : null,

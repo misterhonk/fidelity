@@ -13,7 +13,7 @@ import { createHubClient } from '../hub/client'
 import { preferHub } from '../hub/fallback'
 import { expandEntity } from './expand'
 import { creditCandidates } from './credit-select'
-import { lacksKin, planRevalidation, type RevalidationPlan } from './revalidate'
+import { isFresh, lacksKin, planRevalidation, type RevalidationPlan } from './revalidate'
 import { candidateKey, selectCandidates, type Candidate } from './select'
 import { noteHorizonProgress, whileRunningHorizon, type HorizonJob } from './running'
 import { distinctReleases } from '~~/db/collection'
@@ -180,7 +180,7 @@ async function runBuild({
     const known = existing.get(candidateKey(candidate))
     // Fresh, and whole: an artist chunk without its names is not done, however
     // young it is (revalidate.ts).
-    if (known && now() - known.fetchedAt < ttlMs && !lacksKin(known)) {
+    if (known && isFresh(known.fetchedAt, now(), ttlMs) && !lacksKin(known)) {
       /*
        * Skipped — but no longer passed over in silence.
        *
