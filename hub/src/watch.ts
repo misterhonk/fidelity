@@ -62,6 +62,14 @@ export const STALE_AFTER_MS = 60 * 60 * 1000
 export const MAX_PER_ROUND = 60
 
 /**
+ * How long a shop waits after a failed look: an hour, doubled per miss in a
+ * row, a week at most. A shop that was renamed or closed stops costing
+ * requests; one Discogs was merely slow for comes back within the hour.
+ */
+export const MISS_BACKOFF_MS = STALE_AFTER_MS
+export const MISS_BACKOFF_MAX_MS = 7 * 24 * 60 * 60 * 1000
+
+/**
  * Who is knocking.
  *
  * Discogs answers a request with no User-Agent with a 403 — measured
@@ -104,6 +112,8 @@ export interface WatchDeps {
 
 export interface RoundResult {
   checked: number
+  /** Shops Discogs gave no number for this round; they wait (`watch_misses`). */
+  missed: number
   changed: number
   notified: number
   /** Recipients the push service has reported as permanently gone. */
@@ -184,24 +194,47 @@ export async function watchRound(deps: WatchDeps): Promise<RoundResult> {
   }
   const spacing = identity ? POLL_SPACING_IDENTIFIED_MS : POLL_SPACING_MS
 
-  const result: RoundResult = { checked: 0, changed: 0, notified: 0, dropped: 0, failed: 0 }
+  const result: RoundResult = {
+    checked: 0,
+    missed: 0,
+    changed: 0,
+    notified: 0,
+    dropped: 0,
+    failed: 0,
+  }
   const cutoff = now() - STALE_AFTER_MS
 
   /*
    * Only shops somebody is actually watching — and the longest unlooked-at
    * first. That way everyone gets a turn, even when one round does not stretch
-   * to all of them.
+   * to all of them. A shop that missed last time comes after every shop that
+   * did not: sixty names Discogs does not know cannot fill a round again.
    */
   const due = db
     .prepare(
       `SELECT w.dealer AS dealer, s.num_for_sale AS known, s.checked_at AS checked_at
          FROM (SELECT DISTINCT dealer FROM watches) w
          LEFT JOIN watch_state s ON s.dealer = w.dealer
-        WHERE s.checked_at IS NULL OR s.checked_at < ?
-        ORDER BY COALESCE(s.checked_at, 0) ASC
+         LEFT JOIN watch_misses m ON m.dealer = w.dealer
+        WHERE (s.checked_at IS NULL OR s.checked_at < ?)
+          AND (m.retry_at IS NULL OR m.retry_at <= ?)
+        ORDER BY (m.dealer IS NOT NULL) ASC, COALESCE(s.checked_at, 0) ASC
         LIMIT ?`,
     )
-    .all(cutoff, MAX_PER_ROUND) as { dealer: string; known: number | null }[]
+    .all(cutoff, now(), MAX_PER_ROUND) as { dealer: string; known: number | null }[]
+
+  /* A look that brought back no number: wait, and longer each time in a row. */
+  const missed = (dealer: string) => {
+    const row = db.prepare('SELECT misses FROM watch_misses WHERE dealer = ?').get(dealer) as
+      { misses: number } | undefined
+    const misses = (row?.misses ?? 0) + 1
+    const wait = Math.min(MISS_BACKOFF_MS * 2 ** (misses - 1), MISS_BACKOFF_MAX_MS)
+    db.prepare(
+      `INSERT INTO watch_misses (dealer, misses, retry_at) VALUES (?, ?, ?)
+       ON CONFLICT(dealer) DO UPDATE SET misses = excluded.misses, retry_at = excluded.retry_at`,
+    ).run(dealer, misses, now() + wait)
+    result.missed += 1
+  }
 
   for (const [index, entry] of due.entries()) {
     if (index > 0) await sleep(spacing)
@@ -212,17 +245,25 @@ export async function watchRound(deps: WatchDeps): Promise<RoundResult> {
         `https://api.discogs.com/users/${encodeURIComponent(entry.dealer)}`,
         { headers },
       )
-      if (!response.ok) continue
+      if (!response.ok) {
+        missed(entry.dealer)
+        continue
+      }
       const body = (await response.json()) as { num_for_sale?: number }
-      if (typeof body.num_for_sale !== 'number') continue
+      if (typeof body.num_for_sale !== 'number') {
+        missed(entry.dealer)
+        continue
+      }
       numForSale = body.num_for_sale
     } catch {
-      // Discogs is gone, slow, or has had enough. The next pass tries again;
-      // one missed shop is not a fault.
+      // Discogs is gone, slow, or has had enough. One missed shop is not a
+      // fault — but it goes to the back, or it would lead every round.
+      missed(entry.dealer)
       continue
     }
 
     result.checked += 1
+    db.prepare('DELETE FROM watch_misses WHERE dealer = ?').run(entry.dealer)
     db.prepare(
       `INSERT INTO watch_state (dealer, num_for_sale, checked_at) VALUES (?, ?, ?)
        ON CONFLICT(dealer) DO UPDATE SET num_for_sale = excluded.num_for_sale,

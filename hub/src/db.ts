@@ -222,6 +222,22 @@ export function openHubDb(path: string): DatabaseSync {
     )
   `)
 
+  /*
+   * Shops the watcher asked about and got no number for (2026-10-21).
+   *
+   * A failed look wrote nothing, so the shop kept `checked_at` NULL and stood
+   * at the head of every round for good. Sixty names Discogs does not know
+   * filled a whole round, and no real shop was looked at again. A miss now
+   * has a time and a count, and waits longer each time.
+   */
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS watch_misses (
+      dealer    TEXT PRIMARY KEY,
+      misses    INTEGER NOT NULL,
+      retry_at  INTEGER NOT NULL
+    )
+  `)
+
   // What the hub is asked most: "is this entity already expanded?"
   db.exec('CREATE INDEX IF NOT EXISTS horizon_fetched ON horizon (fetched_at)')
   // And: "who wants to hear about this shop?"

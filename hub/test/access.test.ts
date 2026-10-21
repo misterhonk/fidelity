@@ -188,7 +188,7 @@ describe('personal rows', () => {
   test('a push registration cannot be silenced by another key', async () => {
     const { app } = hub({ keys: true })
     const subscription = {
-      endpoint: 'https://push.example/abc',
+      endpoint: 'https://fcm.googleapis.com/fcm/send/abc',
       keys: { p256dh: 'p', auth: 'a' },
     }
     const post = (path: string, body: unknown, who: ReturnType<typeof withKey>) =>

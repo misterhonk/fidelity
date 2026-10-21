@@ -1,4 +1,7 @@
+import { createHash, timingSafeEqual } from 'node:crypto'
+
 import { Hono } from 'hono'
+import { bodyLimit } from 'hono/body-limit'
 import { cors } from 'hono/cors'
 
 import { type createKeyLimiter, verifyKey } from './access.ts'
@@ -69,6 +72,42 @@ export const MAX_CHUNK_BYTES = 4 * 1024 * 1024
  * enough that a runaway client cannot fill a Raspberry Pi's card overnight.
  */
 export const MAX_VAULT_BYTES = 32 * 1024 * 1024
+
+/** What a subscription, a shipping ladder or a shop row needs, and a little more. */
+export const SMALL_BODY_BYTES = 64 * 1024
+
+/*
+ * The size is checked before the body is read (2026-10-21).
+ *
+ * Every write route did `await c.req.text()` and only then compared the
+ * length, so one request of a few gigabytes was held in memory whole before
+ * it was turned away; three routes had no limit at all. `bodyLimit` counts
+ * while the body arrives and stops at the ceiling.
+ */
+function capped(maxSize: number) {
+  return bodyLimit({ maxSize, onError: (c) => c.json({ error: 'too large' }, 413) })
+}
+
+/** The secret compared in constant time, through hashes so the lengths match. */
+function sameSecret(given: string | undefined, secret: string): boolean {
+  if (given === undefined) return false
+  const a = createHash('sha256').update(given).digest()
+  const b = createHash('sha256').update(secret).digest()
+  return timingSafeEqual(a, b)
+}
+
+/**
+ * A contribution's own clock, as far as it can be believed.
+ *
+ * A reading dated in the future won every later comparison: one chunk with
+ * `fetchedAt: 9e15` made every honest update "older than cached", for good,
+ * for every member (found 2026-10-21). The shops route had this guard; the
+ * horizon and the families did not. And a row stored before the guard, with
+ * a clock past it, is not trusted to keep its place either.
+ */
+function fromTheFuture(at: number, now: number): boolean {
+  return at > now + SKEW_MS
+}
 
 export interface HubAccess {
   /** The issuer's public key, 32 raw bytes base64url (`HUB_ACCESS_PUBLIC_KEY`). */
@@ -173,7 +212,7 @@ export function createHubApp({
     if (c.req.method === 'GET' && OPEN_READS.test(c.req.path)) return next()
     if (!secret && !access) return next()
 
-    if (secret && c.req.header('x-hub-secret') === secret) {
+    if (secret && sameSecret(c.req.header('x-hub-secret'), secret)) {
       const taken = limiter?.take('secret') ?? { ok: true as const }
       if (!taken.ok) {
         c.header('retry-after', String(taken.retryAfterSeconds))
@@ -239,7 +278,7 @@ export function createHubApp({
     return c.json(JSON.parse(row.body))
   })
 
-  app.put('/v1/horizon/:kind/:id', async (c) => {
+  app.put('/v1/horizon/:kind/:id', capped(MAX_CHUNK_BYTES), async (c) => {
     const raw = await c.req.text()
     if (raw.length > MAX_CHUNK_BYTES) return c.json({ error: 'too large' }, 413)
 
@@ -251,6 +290,9 @@ export function createHubApp({
     // The body has to be about the thing the URL names. Otherwise one
     // contribution could quietly overwrite an unrelated entity.
     if (chunk.key !== expected) return c.json({ error: 'key does not match the path' }, 400)
+    if (fromTheFuture(chunk.fetchedAt, now())) {
+      return c.json({ error: 'fetched in the future' }, 400)
+    }
 
     const existing = db
       .prepare('SELECT fetched_at FROM horizon WHERE key = ?')
@@ -258,7 +300,11 @@ export function createHubApp({
 
     // Older than what is already here changes nothing. Contributions arrive
     // out of order from several clients and the newest expansion wins.
-    if (existing && existing.fetched_at >= chunk.fetchedAt) {
+    if (
+      existing &&
+      !fromTheFuture(existing.fetched_at, now()) &&
+      existing.fetched_at >= chunk.fetchedAt
+    ) {
       return c.json({ stored: false, reason: 'older than cached' })
     }
 
@@ -293,12 +339,19 @@ export function createHubApp({
    */
   app.get('/v1/watch/key', (c) => c.json({ publicKey: vapidKeys(db).publicKey }))
 
-  app.post('/v1/watch/subscribe', async (c) => {
+  app.post('/v1/watch/subscribe', capped(SMALL_BODY_BYTES), async (c) => {
     const parsed = subscribeSchema.safeParse(safeJson(await c.req.text()))
     if (!parsed.success) return c.json({ error: 'not a subscription' }, 400)
 
     const { subscription, dealers } = parsed.data
     const at = now()
+
+    // Somebody else's registration is not taken over by sending its endpoint
+    // again — the same rule as unsubscribe (2026-10-21).
+    const held = db
+      .prepare('SELECT owner FROM watchers WHERE endpoint = ?')
+      .get(subscription.endpoint) as { owner: string } | undefined
+    if (held && held.owner !== c.get('owner')) return c.json({ error: 'not yours' }, 403)
 
     db.prepare(
       `INSERT INTO watchers (endpoint, p256dh, auth, created_at, updated_at)
@@ -332,7 +385,7 @@ export function createHubApp({
     return c.json({ watching: [...new Set(dealers)].length })
   })
 
-  app.post('/v1/watch/unsubscribe', async (c) => {
+  app.post('/v1/watch/unsubscribe', capped(SMALL_BODY_BYTES), async (c) => {
     const parsed = unsubscribeSchema.safeParse(safeJson(await c.req.text()))
     if (!parsed.success) return c.json({ error: 'no endpoint' }, 400)
 
@@ -375,7 +428,7 @@ export function createHubApp({
     return c.json({ covers })
   })
 
-  app.put('/v1/covers', async (c) => {
+  app.put('/v1/covers', capped(MAX_COVERS_BYTES), async (c) => {
     const raw = await c.req.text()
     if (raw.length > MAX_COVERS_BYTES) return c.json({ error: 'too large' }, 413)
 
@@ -431,7 +484,7 @@ export function createHubApp({
     return c.json(JSON.parse(row.body))
   })
 
-  app.put('/v1/family/:master', async (c) => {
+  app.put('/v1/family/:master', capped(MAX_FAMILY_BYTES), async (c) => {
     const raw = await c.req.text()
     if (raw.length > MAX_FAMILY_BYTES) return c.json({ error: 'too large' }, 413)
 
@@ -443,12 +496,19 @@ export function createHubApp({
     // The body has to be about the master the URL names.
     if (family.masterId !== masterId)
       return c.json({ error: 'master does not match the path' }, 400)
+    if (fromTheFuture(family.fetchedAt, now())) {
+      return c.json({ error: 'fetched in the future' }, 400)
+    }
 
     const existing = db
       .prepare('SELECT fetched_at FROM families WHERE master_id = ?')
       .get(masterId) as { fetched_at: number } | undefined
     // The newest reading wins; an older one changes nothing.
-    if (existing && existing.fetched_at >= family.fetchedAt) {
+    if (
+      existing &&
+      !fromTheFuture(existing.fetched_at, now()) &&
+      existing.fetched_at >= family.fetchedAt
+    ) {
       return c.json({ stored: false, reason: 'older than cached' })
     }
 
@@ -501,7 +561,7 @@ export function createHubApp({
     return c.json({ tiers: JSON.parse(row.body), confirmedBy: confirmedBy(key, row.body) })
   })
 
-  app.put('/v1/shipping/:dealer/:country', async (c) => {
+  app.put('/v1/shipping/:dealer/:country', capped(SMALL_BODY_BYTES), async (c) => {
     const dealer = c.req.param('dealer')
     const country = c.req.param('country')
     if (!DEALER_NAME.test(dealer) || !COUNTRY_NAME.test(country))
@@ -590,7 +650,7 @@ export function createHubApp({
     })
   })
 
-  app.put('/v1/shops/:dealer', async (c) => {
+  app.put('/v1/shops/:dealer', capped(SMALL_BODY_BYTES), async (c) => {
     // The path is data too: a username, or the row is not written (2026-09-16).
     if (!DEALER_NAME.test(c.req.param('dealer')))
       return c.json({ error: 'not a dealer name' }, 400)
@@ -686,7 +746,7 @@ export function createHubApp({
     return c.json({ gone: true })
   })
 
-  app.put('/v1/vault/:id', async (c) => {
+  app.put('/v1/vault/:id', capped(MAX_VAULT_BYTES), async (c) => {
     const id = c.req.param('id')
     if (!VAULT_ID.test(id)) return c.json({ error: 'not a vault id' }, 400)
 
@@ -720,7 +780,7 @@ export function createHubApp({
    */
   const SHARE_ID = /^[a-f0-9]{32}$/
 
-  app.post('/v1/share', async (c) => {
+  app.post('/v1/share', capped(MAX_SHARE_BYTES), async (c) => {
     const raw = await c.req.text()
     if (raw.length > MAX_SHARE_BYTES) return c.json({ error: 'too large' }, 413)
 
@@ -968,13 +1028,39 @@ function parseIds(raw: string): number[] {
  * field for a name, none for an identity and none for a Discogs token. What is
  * not provided for cannot be stored by accident either.
  */
+/**
+ * Where a browser's push service lives — and nowhere else.
+ *
+ * The hub POSTs to whatever endpoint it was given. Any URL was accepted, so a
+ * member could point it at an address inside the network the hub runs in, and
+ * the next new record in a watched shop sent a request there (found
+ * 2026-10-21). These are the push services the browsers use.
+ */
+const PUSH_HOSTS = [
+  /^fcm\.googleapis\.com$/,
+  /^updates\.push\.services\.mozilla\.com$/,
+  /(^|\.)push\.services\.mozilla\.com$/,
+  /^web\.push\.apple\.com$/,
+  /(^|\.)push\.apple\.com$/,
+  /(^|\.)notify\.windows\.com$/,
+]
+
+const pushEndpoint = z
+  .string()
+  .url()
+  .max(2048)
+  .refine((value) => {
+    const url = new URL(value)
+    return url.protocol === 'https:' && PUSH_HOSTS.some((host) => host.test(url.hostname))
+  }, 'not a push service')
+
 const subscribeSchema = z.object({
   subscription: z.object({
-    endpoint: z.string().url().max(2048),
+    endpoint: pushEndpoint,
     keys: z.object({ p256dh: z.string().min(1).max(256), auth: z.string().min(1).max(256) }),
   }),
   /** A hundred shops at most: a limit against mischief, not a target. */
-  dealers: z.array(z.string().min(1).max(120)).max(100),
+  dealers: z.array(z.string().regex(DEALER_NAME)).max(100),
 })
 
 const unsubscribeSchema = z.object({ endpoint: z.string().url().max(2048) })

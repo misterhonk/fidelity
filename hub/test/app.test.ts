@@ -831,3 +831,94 @@ describe('a shared find list', () => {
     assert.equal((await app.request('/v1/share/keine-kennung')).status, 400)
   })
 })
+
+/**
+ * Hardening, after the review of 2026-10-21.
+ *
+ * Each of these was a way for one member of a shared hub — or anybody, on an
+ * open one — to make the hub worse than no hub for everybody else.
+ */
+describe('what one member cannot do to the others', () => {
+  const FUTURE = 42 + 10 * 60_000
+
+  test('a horizon reading from the future is refused', async () => {
+    const { app } = hub()
+    const response = await put(app, '/v1/horizon/artist/55', chunk({ fetchedAt: FUTURE }))
+    assert.equal(response.status, 400)
+  })
+
+  test('a reading already stored with a clock from the future does not keep its place', async () => {
+    const { app, db } = hub()
+    // As a hub from before this fix may hold one.
+    db.prepare(
+      `INSERT INTO horizon (key, kind, entity_id, fetched_at, release_ids, body, updated_at)
+       VALUES ('artist:55', 'artist', 55, ?, 8, '{}', 1)`,
+    ).run(9e15)
+    const response = await put(app, '/v1/horizon/artist/55', chunk({ fetchedAt: 30 }))
+    assert.deepEqual(await response.json(), { stored: true })
+  })
+
+  test('a pressing family from the future is refused', async () => {
+    const { app } = hub()
+    const family = {
+      masterId: 5542,
+      total: 1,
+      fetchedAt: FUTURE,
+      siblings: [],
+    }
+    assert.equal((await put(app, '/v1/family/5542', family)).status, 400)
+  })
+
+  test('a body is refused by its size before it is read, on the routes that had no limit', async () => {
+    const { app } = hub()
+    const huge = 'x'.repeat(200 * 1024)
+    for (const path of ['/v1/shipping/shop/Germany', '/v1/shops/shop']) {
+      assert.equal((await put(app, path, huge)).status, 413, path)
+    }
+  })
+
+  const subscribe = (app, endpoint: string, dealers: string[], headers = {}) =>
+    app.request('/v1/watch/subscribe', {
+      method: 'POST',
+      body: JSON.stringify({
+        subscription: { endpoint, keys: { p256dh: 'p', auth: 'a' } },
+        dealers,
+      }),
+      headers: { 'content-type': 'application/json', ...headers },
+    })
+
+  test('a push endpoint has to be a push service', async () => {
+    const { app } = hub()
+    for (const endpoint of [
+      'http://192.168.1.1:8080/admin',
+      'https://hub:8787/v1/vault/x',
+      'http://fcm.googleapis.com/fcm/send/abc',
+    ]) {
+      assert.equal((await subscribe(app, endpoint, ['shop'])).status, 400, endpoint)
+    }
+    for (const endpoint of [
+      'https://fcm.googleapis.com/fcm/send/abc',
+      'https://updates.push.services.mozilla.com/wpush/v2/abc',
+      'https://web.push.apple.com/abc',
+      'https://wns2-par02p.notify.windows.com/w/?token=abc',
+    ]) {
+      assert.equal((await subscribe(app, endpoint, ['shop'])).status, 200, endpoint)
+    }
+  })
+
+  test('a shop name has to be a Discogs username', async () => {
+    const { app } = hub()
+    const response = await subscribe(app, 'https://fcm.googleapis.com/fcm/send/abc', [
+      '../../etc',
+    ])
+    assert.equal(response.status, 400)
+  })
+
+  test('a registration somebody else made is not taken over by sending its endpoint again', async () => {
+    const { app, db } = hub()
+    const endpoint = 'https://fcm.googleapis.com/fcm/send/abc'
+    assert.equal((await subscribe(app, endpoint, ['shop'])).status, 200)
+    db.prepare("UPDATE watchers SET owner = 'alice' WHERE endpoint = ?").run(endpoint)
+    assert.equal((await subscribe(app, endpoint, ['other'])).status, 403)
+  })
+})

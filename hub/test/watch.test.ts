@@ -358,3 +358,66 @@ describe('the watcher', () => {
     assert.equal(result.checked, 1, 'der eine gute Laden zählt trotzdem')
   })
 })
+
+/*
+ * Found on 2026-10-21. A look that brought back no number wrote nothing, so
+ * the shop kept `checked_at` NULL and led every round: sixty names Discogs
+ * does not know filled a round, and no real shop was looked at again.
+ */
+describe('a shop that does not answer', () => {
+  const failing = ((url: string) =>
+    String(url).includes('ghost')
+      ? Promise.resolve({
+          ok: false,
+          status: 404,
+          json: async () => ({}),
+        } as unknown as Response)
+      : answering({ fatplastics: 100 })(url as never)) as unknown as typeof fetch
+
+  test('goes to the back, and waits longer each time', async () => {
+    const db = setup(['ghost', 'fatplastics'])
+    let clock = 1_000_000
+
+    const first = await watchRound({ db, fetchImpl: failing, sleep: nothing, now: () => clock })
+    assert.equal(first.missed, 1)
+    assert.equal(first.checked, 1)
+
+    // Within the hour it is not asked again.
+    clock += 30 * 60_000
+    const asked: string[] = []
+    const noting = ((url: string) => {
+      asked.push(String(url))
+      return failing(url as never)
+    }) as unknown as typeof fetch
+    await watchRound({ db, fetchImpl: noting, sleep: nothing, now: () => clock })
+    assert.equal(asked.filter((url) => url.includes('ghost')).length, 0)
+
+    // After it, once more — and then the wait doubles.
+    clock += 31 * 60_000
+    await watchRound({ db, fetchImpl: failing, sleep: nothing, now: () => clock })
+    const row = db
+      .prepare("SELECT misses, retry_at FROM watch_misses WHERE dealer = 'ghost'")
+      .get() as {
+      misses: number
+      retry_at: number
+    }
+    assert.equal(row.misses, 2)
+    assert.equal(row.retry_at, clock + 2 * 60 * 60_000)
+  })
+
+  test('cannot keep sixty real shops from being looked at', async () => {
+    const ghosts = Array.from({ length: 60 }, (_, i) => `ghost${i}`)
+    const db = setup([...ghosts, 'fatplastics'])
+    let clock = 1_000_000
+    await watchRound({ db, fetchImpl: failing, sleep: nothing, now: () => clock })
+    clock += 61 * 60_000
+    // The ghosts are waiting now; the real shop gets its turn.
+    const second = await watchRound({
+      db,
+      fetchImpl: failing,
+      sleep: nothing,
+      now: () => clock,
+    })
+    assert.ok(second.checked >= 1)
+  })
+})
