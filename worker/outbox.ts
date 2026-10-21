@@ -142,7 +142,14 @@ const KINDS: Record<OutboxKind, JobKind> = {
     revert: async (job) => {
       const { releaseId } = job.payload as { releaseId: number }
       const db = await openFidelityDb()
-      await db.delete('collection', releaseId)
+      /*
+       * Under the key it was put there with. The provisional row is filed as
+       * `-releaseId` (collection/add.ts) until a sync brings the real
+       * instance, and the sync keeps keys at or below zero on purpose — so
+       * deleting `releaseId` left a record on the shelf for good, hiding it
+       * from every dig as owned.
+       */
+      await db.delete('collection', -releaseId)
     },
   },
 
@@ -264,6 +271,24 @@ export async function drainOutbox(
   client: DiscogsClient,
   username: string,
 ): Promise<DrainResult> {
+  /*
+   * One drain at a time, across every tab.
+   *
+   * The pacer's lock serialises requests, not jobs. Two drains — the keeper's
+   * and the flush after a write, or two tabs — both read the same queued add
+   * before either had dropped it, and both sent it: a second copy of the
+   * record in somebody's Discogs collection (found 2026-10-21). Behind this
+   * lock the second drain reads the queue after the first has emptied it.
+   */
+  const locks = globalThis.navigator?.locks
+  const run = () => drainOnce(client, username)
+  if (!locks) return run()
+  return locks.request(OUTBOX_LOCK, run)
+}
+
+const OUTBOX_LOCK = 'fidelity:outbox'
+
+async function drainOnce(client: DiscogsClient, username: string): Promise<DrainResult> {
   const jobs = await pendingJobs()
   let sent = 0
   let givenUp = 0
@@ -274,12 +299,12 @@ export async function drainOutbox(
       // Never on the first run: looking costs a paced request, and the first
       // attempt has nothing to look for.
       if (job.attempts > 0 && (await kind.alreadyDone?.(client, job, username))) {
-        await dropJob(job.id)
+        await dropJob(job.id, job)
         sent += 1
         continue
       }
       await kind.send(client, job, username)
-      await dropJob(job.id)
+      await dropJob(job.id, job)
       sent += 1
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error)

@@ -41,9 +41,24 @@ export async function pendingJobs(): Promise<OutboxJob[]> {
   return jobs.sort((a, b) => a.queuedAt - b.queuedAt)
 }
 
-export async function dropJob(id: string): Promise<void> {
+/**
+ * Takes a job off the queue once it has reached Discogs.
+ *
+ * With `sent`, only if the row is still the one that was sent: a rating tapped
+ * again while the first one was on its way replaced it under the same id
+ * (`queueJob`), and deleting that would lose what the collector meant last.
+ */
+export async function dropJob(id: string, sent?: OutboxJob): Promise<void> {
   const db = await openFidelityDb()
-  await db.delete('outbox', id)
+  const tx = db.transaction('outbox', 'readwrite')
+  const stored = await tx.store.get(id)
+  const replaced =
+    sent !== undefined &&
+    stored !== undefined &&
+    (stored.queuedAt !== sent.queuedAt ||
+      JSON.stringify(stored.payload) !== JSON.stringify(sent.payload))
+  if (!replaced) await tx.store.delete(id)
+  await tx.done
 }
 
 /**

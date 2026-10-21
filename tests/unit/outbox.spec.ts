@@ -159,4 +159,93 @@ describe('the outbox', () => {
 
     expect(last.givenUp).toBe(1)
   })
+
+  /*
+   * Found on 2026-10-21. The pacer's lock serialises requests, not jobs: two
+   * drains (the keeper's and a flush after a write, or two tabs) both read
+   * the queued add before either dropped it, and Discogs filed the record
+   * twice. `navigator.locks` is what real tabs share; this stands in for it.
+   */
+  describe('across drains', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals()
+    })
+
+    function oneLock() {
+      let held: Promise<unknown> = Promise.resolve()
+      vi.stubGlobal('navigator', {
+        locks: {
+          request: <T>(_name: string, run: () => Promise<T>): Promise<T> => {
+            const turn = held.then(run, run)
+            held = turn.then(
+              () => undefined,
+              () => undefined,
+            )
+            return turn
+          },
+        },
+      })
+    }
+
+    async function queueAdd() {
+      const db = await openFidelityDb()
+      await db.put('collection', record({ instanceId: -42, folderId: 0, rating: 0 }))
+      await queueJob({
+        id: 'collection.add:42',
+        kind: 'collection.add',
+        payload: { releaseId: 42 },
+        revert: {},
+        queuedAt: 1,
+      })
+    }
+
+    it('files a new record once, however many drains reach for it', async () => {
+      oneLock()
+      await queueAdd()
+      const fake = client(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 5))
+        return null
+      })
+
+      await Promise.all([drainOutbox(fake, 'mrtnmlchr'), drainOutbox(fake, 'mrtnmlchr')])
+
+      expect(fake.write).toHaveBeenCalledTimes(1)
+      expect(await pendingJobs()).toEqual([])
+    })
+
+    it('keeps a rating tapped again while the first was on its way', async () => {
+      await queueRating(4, 3)
+      const fake = client(async () => {
+        // The second tap lands while the first is in flight.
+        await queueJob({
+          id: 'collection.rating:900',
+          kind: 'collection.rating',
+          payload: { releaseId: 42, folderId: 1, instanceId: 900, rating: 5 },
+          revert: { rating: 3 },
+          queuedAt: 2,
+        })
+        return null
+      })
+
+      await drainOutbox(fake, 'mrtnmlchr')
+
+      expect((await pendingJobs()).map((job) => job.payload)).toEqual([
+        { releaseId: 42, folderId: 1, instanceId: 900, rating: 5 },
+      ])
+    })
+
+    it('takes the provisional record off the shelf when it gives up on adding it', async () => {
+      await queueAdd()
+      const fake = client(async () => {
+        throw new DiscogsError(0, 'Discogs is not answering')
+      })
+
+      for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        await drainOutbox(fake, 'mrtnmlchr')
+      }
+
+      const db = await openFidelityDb()
+      expect(await db.get('collection', -42)).toBeUndefined()
+    })
+  })
 })
