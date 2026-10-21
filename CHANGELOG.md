@@ -9,6 +9,18 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.111.1](https://github.com/misterhonk/fidelity/compare/v0.111.0...v0.111.1) (2026-10-21)
+
+
+### Fixed
+
+* **auth:** the look without signing in needs no token, and checks keep the gap ([1aab227](https://github.com/misterhonk/fidelity/commit/1aab2275b8cb3c8fa954da0eb96099a75f609416))
+* **collection:** one drain of the outbox at a time, and undo the right row ([0471655](https://github.com/misterhonk/fidelity/commit/04716558edd9ca6b51101f590c1db2b6f3d46faf))
+* **dig:** no price past its six hours, on the screen as on disk ([972c51d](https://github.com/misterhonk/fidelity/commit/972c51d8a30037c7562996ba2f50560df3703a96))
+* **discogs:** read the shop addresses and order numbers Discogs uses now ([a8a1e7a](https://github.com/misterhonk/fidelity/commit/a8a1e7a084f2fc47156120034617011114f64d17))
+* **hub:** keep the hub's secret and the access key out of the backup ([bdfb4f9](https://github.com/misterhonk/fidelity/commit/bdfb4f9e77bab8730ad51c4be2bb15bf53a685be))
+* **ui:** say that we write what you tap, label every setup step, and show the way into the shop ([cee814d](https://github.com/misterhonk/fidelity/commit/cee814dcf15f25e19eef16b258c69a0612529541))
+
 ## [0.111.0](https://github.com/misterhonk/fidelity/compare/v0.110.0...v0.111.0) (2026-09-21)
 
 
