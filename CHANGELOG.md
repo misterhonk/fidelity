@@ -9,6 +9,38 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.111.1](https://github.com/misterhonk/fidelity/compare/v0.111.0...v0.111.1) (2026-10-21)
+
+
+**Alte Preise verschwinden jetzt auch vom Bildschirm.** Nach sechs Stunden darf kein Preis
+mehr zu sehen sein. Gelöscht wurde er brav, angezeigt aber weiter: Die Fundliste, der Stapel und
+der Laden-Bildschirm haben nur einmal beim Laden auf die Uhr geschaut. Ein offener Tab zeigte die
+Preise also stundenlang weiter. Jetzt wacht die Seite genau zur Frist auf und holt die Liste
+neu, und der Worker gibt gar keinen abgelaufenen Preis mehr heraus.
+
+**Keine doppelten Platten mehr in deiner Sammlung.** Wer einen Fund als gekauft markiert und
+gleich danach zwei Bewertungen tippt, konnte die Platte zweimal bei Discogs landen sehen. Die
+Warteschlange läuft jetzt nur noch einmal zur Zeit, auch über mehrere Tabs.
+
+**Discogs hat Adressen umgebaut, Fidelity zieht nach.** Läden heißen seit September
+`discogs.com/shop/…`. Diese Adresse wird jetzt erkannt, genauso wie Bestellnummern aus dem
+neuen Checkout (`12345-C-1`).
+
+**Ehrlicher beim Einrichten.** Da stand „Wir lesen nur". Stimmt seit Bewertungen, Ordnern und
+Wantlist nicht mehr. Jetzt steht da, was passiert: Was du hier änderst, geht an Discogs. Sonst
+nichts. Außerdem: alle fünf Schritte haben wieder einen Namen, der Laden-Bildschirm ist von der
+Startseite aus erreichbar, das Probieren ohne Anmeldung klappt auch mit altem Token, und im
+Backup stehen keine Hub-Schlüssel mehr.
+
+### Fixed
+
+* **auth:** the look without signing in needs no token, and checks keep the gap ([1aab227](https://github.com/misterhonk/fidelity/commit/1aab2275b8cb3c8fa954da0eb96099a75f609416))
+* **collection:** one drain of the outbox at a time, and undo the right row ([0471655](https://github.com/misterhonk/fidelity/commit/04716558edd9ca6b51101f590c1db2b6f3d46faf))
+* **dig:** no price past its six hours, on the screen as on disk ([972c51d](https://github.com/misterhonk/fidelity/commit/972c51d8a30037c7562996ba2f50560df3703a96))
+* **discogs:** read the shop addresses and order numbers Discogs uses now ([a8a1e7a](https://github.com/misterhonk/fidelity/commit/a8a1e7a084f2fc47156120034617011114f64d17))
+* **hub:** keep the hub's secret and the access key out of the backup ([bdfb4f9](https://github.com/misterhonk/fidelity/commit/bdfb4f9e77bab8730ad51c4be2bb15bf53a685be))
+* **ui:** say that we write what you tap, label every setup step, and show the way into the shop ([cee814d](https://github.com/misterhonk/fidelity/commit/cee814dcf15f25e19eef16b258c69a0612529541))
+
 ## [0.111.0](https://github.com/misterhonk/fidelity/compare/v0.110.0...v0.111.0) (2026-09-21)
 
 
