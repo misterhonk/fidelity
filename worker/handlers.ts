@@ -4,7 +4,7 @@ import { openFidelityDb } from '~~/db/open'
 import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
 import type { BasketCandidate, BasketDig, BasketView } from '#shared/types'
 
-import { currentIdentity, discogs, requestPersistence, signOut } from './auth'
+import { anonymousDiscogs, currentIdentity, discogs, requestPersistence, signOut } from './auth'
 
 import { forgetLookup } from './dig/detail'
 import { affinityFactor } from './dig/fingerprint'
@@ -1461,12 +1461,18 @@ export const handlers: HandlerMap = {
    */
   'demo.run': async ({ listingIds }, { report, signal }) => {
     const { runDemo } = await import('./demo')
-    return runDemo({
-      client: discogs(),
-      listingIds,
-      report: (progress) => report(progress),
-      signal,
-    })
+    const run = (client: ReturnType<typeof discogs>) =>
+      runDemo({ client, listingIds, report: (progress) => report(progress), signal })
+    try {
+      return await run(discogs())
+    } catch (error) {
+      /*
+       * A stored token Discogs no longer knows. The look needs none, and a
+       * screen that says "No sign-in" must not fail on a sign-in.
+       */
+      if ((error as { status?: number } | null)?.status !== 401) throw error
+      return run(anonymousDiscogs())
+    }
   },
 
   'keeper.tick': async ({ force, eager }, { report, signal }) => {

@@ -46,6 +46,12 @@ let shared: DiscogsClient | undefined
  */
 let authenticated = false
 
+/** The last slot, in IndexedDB so every tab and every client reads the same one. */
+const slotClock = {
+  read: async () => (await getMeta('lastRequestAt')) ?? Number.NEGATIVE_INFINITY,
+  write: (startedAt: number) => setMeta('lastRequestAt', startedAt),
+}
+
 export function discogs(): DiscogsClient {
   shared ??= new DiscogsClient({
     getToken: async () => {
@@ -68,13 +74,39 @@ export function discogs(): DiscogsClient {
        */
       minIntervalMs: () =>
         authenticated ? MIN_REQUEST_INTERVAL_MS : ANONYMOUS_REQUEST_INTERVAL_MS,
-      slotClock: {
-        read: async () => (await getMeta('lastRequestAt')) ?? Number.NEGATIVE_INFINITY,
-        write: (startedAt) => setMeta('lastRequestAt', startedAt),
-      },
+      slotClock,
     }),
   })
   return shared
+}
+
+let anonymous: DiscogsClient | undefined
+
+/**
+ * A client that never sends a token, for the look without signing in.
+ *
+ * The demo used the stored token when there was one — and a token that
+ * Discogs had since forgotten turned "No sign-in" into "Discogs does not know
+ * this token" (found 2026-10-21). Same lock, same slot, the slower pace.
+ */
+export function anonymousDiscogs(): DiscogsClient {
+  anonymous ??= new DiscogsClient({
+    getToken: async () => null,
+    pacer: createPacer({ minIntervalMs: () => ANONYMOUS_REQUEST_INTERVAL_MS, slotClock }),
+  })
+  return anonymous
+}
+
+/**
+ * A client for a token that is not stored yet: checking it at sign-in or on
+ * renewal. On the shared slot too — with a pacer of its own it took the lock
+ * but not the gap, and two requests could leave back to back.
+ */
+function probeClient(token: string): DiscogsClient {
+  return new DiscogsClient({
+    getToken: () => token,
+    pacer: createPacer({ minIntervalMs: () => MIN_REQUEST_INTERVAL_MS, slotClock }),
+  })
 }
 
 /**
@@ -92,7 +124,7 @@ export async function signIn(token: string): Promise<Identity> {
   registerSecret(trimmed)
 
   const { identitySchema, userProfileSchema } = await discogsSchemas()
-  const probe = new DiscogsClient({ getToken: () => trimmed })
+  const probe = probeClient(trimmed)
   const identity = await probe.get('/oauth/identity', identitySchema)
   const profile = await probe.get(
     `/users/${encodeURIComponent(identity.username)}`,
@@ -153,7 +185,7 @@ export async function renewToken(token: string): Promise<Identity> {
   registerSecret(trimmed)
 
   const { identitySchema, userProfileSchema } = await discogsSchemas()
-  const probe = new DiscogsClient({ getToken: () => trimmed })
+  const probe = probeClient(trimmed)
   const identity = await probe.get('/oauth/identity', identitySchema)
 
   const current = await getMeta('identity')

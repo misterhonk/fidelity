@@ -189,7 +189,10 @@ describe('renewing the token', () => {
       avatarUrl: 'https://img/av.png',
     })
     expect(await getMeta('token')).toBe('new-token')
-    expect(await getMeta('lastRequestAt')).toBe(4242)
+    // The one thing that does move, on purpose since 0.112: the check spends
+    // the shared request slot like any other request (rule 3), so the next
+    // one from any tab keeps its distance.
+    expect(await getMeta('lastRequestAt')).toBeGreaterThan(4242)
     expect(calls.map((c) => c.auth)).toEqual([
       'Discogs token=new-token',
       'Discogs token=new-token',
