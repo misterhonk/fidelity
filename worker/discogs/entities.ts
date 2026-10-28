@@ -81,7 +81,4 @@ export const artistProfileSchema = z.object({
   groups: z.array(z.object({ id: z.number().int(), name: z.string() })).nullish(),
 })
 
-export type ArtistReleasesPage = z.infer<typeof artistReleasesSchema>
 export type ArtistProfile = z.infer<typeof artistProfileSchema>
-export type LabelReleasesPage = z.infer<typeof labelReleasesSchema>
-export type MasterVersionsPage = z.infer<typeof masterVersionsSchema>

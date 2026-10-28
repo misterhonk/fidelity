@@ -150,7 +150,10 @@ export class DiscogsClient {
   async get<T>(path: string, schema: z.ZodType<T>, options: RequestOptions = {}): Promise<T> {
     const key = this.#addressOf(path, options.query).toString()
     const running = this.#flights.get(key)
-    if (running) return schema.parse(await join(running, options.signal))
+    // An aborted flight is only waiting to reject; joining it would inherit that.
+    if (running && !running.control.signal.aborted) {
+      return schema.parse(await join(running, options.signal))
+    }
 
     /*
      * The shared request gets a signal of its own, because the callers' are
@@ -251,7 +254,7 @@ export class DiscogsClient {
           // So that a screen can say "waiting" rather than showing a bar that
           // has simply stopped moving (M32.5).
           noteBackoff(Date.now() + wait)
-          await this.#options.sleep(wait)
+          await this.#pause(wait, signal)
           continue
         }
 
@@ -264,7 +267,7 @@ export class DiscogsClient {
         const base = BACKOFF_MS[attempt]!
         const wait = base + this.#options.jitter() * 0.25 * base
         noteBackoff(Date.now() + wait)
-        await this.#options.sleep(wait)
+        await this.#pause(wait, signal)
         continue
       }
 
@@ -272,6 +275,20 @@ export class DiscogsClient {
       if (!response.ok) throw toDiscogsError(response.status, parsed)
       return parsed
     }
+  }
+
+  /** A backoff of minutes must not outlive the caller who stopped waiting. */
+  async #pause(ms: number, signal?: AbortSignal): Promise<void> {
+    if (!signal) return this.#options.sleep(ms)
+    signal.throwIfAborted()
+    await new Promise<void>((resolve, reject) => {
+      const stop = () => reject(signal.reason)
+      signal.addEventListener('abort', stop, { once: true })
+      this.#options
+        .sleep(ms)
+        .then(resolve, reject)
+        .finally(() => signal.removeEventListener('abort', stop))
+    })
   }
 
   async #send(

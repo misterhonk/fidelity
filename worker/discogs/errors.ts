@@ -53,7 +53,15 @@ export function toDiscogsError(status: number, body: unknown): DiscogsError {
   }
 
   const { message, detail } = body as { message?: unknown; detail?: unknown }
-  const details = Array.isArray(detail) ? detail.map((entry) => describe(entry ?? {})) : []
+  // FastAPI's own errors carry `detail` as a plain string: {"detail":"Not Found"}.
+  const details =
+    typeof detail === 'string'
+      ? [detail]
+      : Array.isArray(detail)
+        ? detail.map((entry) =>
+            typeof entry === 'string' ? entry : describe((entry ?? {}) as FastApiDetail),
+          )
+        : []
 
   const text =
     typeof message === 'string' && message.length > 0

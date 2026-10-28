@@ -189,5 +189,3 @@ export const wantlistPageSchema = z.object({
 export type BasicInformation = z.infer<typeof basicInformationSchema>
 export type CollectionPage = z.infer<typeof collectionPageSchema>
 export type WantlistPage = z.infer<typeof wantlistPageSchema>
-export type DiscogsIdentity = z.infer<typeof identitySchema>
-export type DiscogsUserProfile = z.infer<typeof userProfileSchema>

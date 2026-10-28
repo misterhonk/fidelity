@@ -220,6 +220,11 @@ describe('the two Discogs error shapes', () => {
     expect(error.message).toBe('page: too large')
   })
 
+  it('reads a FastAPI detail that is a plain string', () => {
+    expect(toDiscogsError(404, { detail: 'Not Found' }).message).toBe('Not Found')
+    expect(toDiscogsError(400, { detail: ['bad page'] }).details).toEqual(['bad page'])
+  })
+
   it('still produces something usable for an unparseable body', () => {
     expect(toDiscogsError(502, 'nope').message).toContain('502')
     expect(toDiscogsError(500, null).message).toContain('500')
@@ -488,6 +493,41 @@ describe('the Discogs client', () => {
 
     const [, init] = fetchImpl.mock.calls[0] as unknown as [URL, RequestInit]
     expect((init.headers as Record<string, string>).Authorization).toBeUndefined()
+  })
+
+  it('stops a backoff wait as soon as the caller aborts', async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse({ message: 'slow down' }, 429))
+    const control = new AbortController()
+    const client = new DiscogsClient({
+      getToken: () => 'a-pat',
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      pacer: createPacer({ now: () => 0, sleep: async () => {} }),
+      // A backoff that would never end on its own.
+      sleep: () => new Promise(() => {}),
+      jitter: () => 0,
+    })
+
+    const pending = client.write('POST', '/x', { idempotent: true, signal: control.signal })
+    await vi.waitFor(() => expect(fetchImpl).toHaveBeenCalledTimes(1))
+    control.abort(new Error('left'))
+
+    await expect(pending).rejects.toThrow('left')
+  })
+
+  it('does not join a flight that was already aborted', async () => {
+    const { client, fetchImpl } = makeClient([
+      jsonResponse({ id: 1, username: 'martin' }),
+      jsonResponse({ id: 2, username: 'martin' }),
+    ])
+    const first = new AbortController()
+    const leaving = client.get('/oauth/identity', identity, { signal: first.signal })
+    first.abort()
+    await leaving.catch(() => {})
+    // Asked again after the last waiter left, before the aborted request has unwound.
+    const again = client.get('/oauth/identity', identity)
+
+    await expect(again).resolves.toMatchObject({ username: 'martin' })
+    expect(fetchImpl).toHaveBeenCalled()
   })
 
   it('backs off exponentially on 429 and then succeeds', async () => {
