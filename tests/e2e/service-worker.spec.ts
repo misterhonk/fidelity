@@ -108,6 +108,40 @@ test.describe('the service worker', () => {
 
     expect(cached).toBe(true)
   })
+
+  // An opaque 429 is cached like a cover; the page drops it once it fails to draw.
+  test('forgets a cover that does not draw', async ({ page, context }) => {
+    await context.route('https://i.discogs.com/**', (route) =>
+      route.fulfill({ status: 200, contentType: 'image/png', body: 'not an image' }),
+    )
+
+    test.skip(!(await underServiceWorker(page, '/')), 'No service worker in this browser')
+
+    const url = 'https://i.discogs.com/fidelity-test-broken.jpg'
+    const gone = await page.evaluate(async (src) => {
+      await fetch(src, { mode: 'no-cors' })
+      const cache = await caches.open('fidelity-covers')
+      for (let attempt = 0; attempt < 20 && !(await cache.match(src)); attempt++) {
+        await new Promise((done) => setTimeout(done, 100))
+      }
+      if (!(await cache.match(src))) return 'never cached'
+
+      const img = document.createElement('img')
+      await new Promise((done) => {
+        img.onerror = done
+        img.onload = done
+        img.src = src
+        document.body.append(img)
+      })
+      for (let attempt = 0; attempt < 20; attempt++) {
+        if (!(await cache.match(src))) return true
+        await new Promise((done) => setTimeout(done, 100))
+      }
+      return false
+    }, url)
+
+    expect(gone).toBe(true)
+  })
 })
 
 /**
