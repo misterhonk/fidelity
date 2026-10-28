@@ -1,8 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
+import type { WantlistItem } from '#shared/types'
 import type { DiscogsClient } from '~~/worker/discogs/client'
-import { MAX_PAGES, NORMAL_PASSES, PER_PAGE, runDig, SCAN_PASSES } from '~~/worker/dig/scan'
+import {
+  MAX_PAGES,
+  NORMAL_PASSES,
+  PER_PAGE,
+  resumeDig,
+  runDig,
+  SCAN_PASSES,
+} from '~~/worker/dig/scan'
 
 afterEach(async () => {
   await deleteFidelityDb()
@@ -28,9 +36,11 @@ interface ShopOptions {
    * and the one the convergence check exists for.
    */
   windowFor?: (sort: string, order: string) => number[]
+  /** A listing's status in a given ordering; 'For Sale' unless said otherwise. */
+  statusFor?: (id: number, order: string) => string
 }
 
-function fakeShop({ total, windowFor }: ShopOptions) {
+function fakeShop({ total, windowFor, statusFor }: ShopOptions) {
   const asked: { sort: string; order: string; page: number }[] = []
 
   const ids = (sort: string, order: string) =>
@@ -54,7 +64,7 @@ function fakeShop({ total, windowFor }: ShopOptions) {
         pagination: { page, pages: Math.ceil(all.length / PER_PAGE), items: total },
         listings: slice.map((id) => ({
           id,
-          status: 'For Sale',
+          status: statusFor?.(id, order) ?? 'For Sale',
           condition: 'Near Mint (NM or M-)',
           price: { value: 12, currency: 'EUR' },
           release: { id, title: `Platte ${id}`, artist: 'Unbekannt', format: '12"' },
@@ -156,4 +166,78 @@ describe('the deep scan', () => {
     const dig = await (await openFidelityDb()).get('digs', '01E')
     expect(dig?.depth).toBe('normal')
   })
+
+  it('counts a find once, however many orderings hand it back', async () => {
+    const db = await openFidelityDb()
+    await db.put('wantlist', want)
+    // Three orderings, the same 300 records each: listing 5 is seen three times.
+    const { client } = fakeShop({ total: WALL + 5000 })
+
+    await runDig({ client, dealer: 'grosser-laden', digId: '01F', depth: 'deep' })
+
+    const dig = await db.get('digs', '01F')
+    const stored = await db.getAllKeys('matches')
+    expect(dig?.matchCount).toBe(stored.length)
+    expect(dig?.matchCount).toBeGreaterThan(0)
+  })
+
+  it('counts a find first seen while it was not for sale', async () => {
+    const db = await openFidelityDb()
+    await db.put('wantlist', want)
+    const { client } = fakeShop({
+      total: WALL + 5000,
+      statusFor: (id, order) => (id === 5 && order === 'asc' ? 'Draft' : 'For Sale'),
+    })
+
+    await runDig({ client, dealer: 'grosser-laden', digId: '01G' })
+
+    const dig = await db.get('digs', '01G')
+    expect(await db.getAllKeys('matches')).toHaveLength(1)
+    expect(dig?.matchCount).toBe(1)
+  })
+
+  it('does not count a find again when a resumed dig meets it a second time', async () => {
+    const db = await openFidelityDb()
+    await db.put('wantlist', want)
+    const shop = fakeShop({ total: WALL + 5000 })
+    const get = shop.client.get as unknown as ReturnType<typeof vi.fn>
+    const cut = vi.fn(async (...args: Parameters<typeof shop.client.get>) => {
+      if (args[2]?.query?.sort_order === 'desc') throw new Error('connection lost')
+      return get(...args)
+    })
+
+    await runDig({
+      client: { get: cut } as unknown as DiscogsClient,
+      dealer: 'grosser-laden',
+      digId: '01H',
+    }).catch(() => undefined)
+    // The desc pass hands listing 5 back after the resume.
+    await resumeDig({ client: fakeShop({ total: WALL + 5000 }).client, digId: '01H' })
+
+    const dig = await db.get('digs', '01H')
+    expect(await db.getAllKeys('matches')).toHaveLength(1)
+    expect(dig?.matchCount).toBe(1)
+  })
 })
+
+const want: WantlistItem = {
+  releaseId: 5,
+  masterId: 0,
+  title: 'Platte 5',
+  artistIds: [],
+  artistNorms: ['unbekannt'],
+  artistNames: ['Unbekannt'],
+  labelIds: [],
+  labelNorms: [],
+  labelNames: [],
+  catnos: [],
+  genres: [],
+  styles: [],
+  formats: [],
+  year: 0,
+  thumbUrl: '',
+  coverUrl: '',
+  addedAt: '2024-02-02T00:00:00-00:00',
+  note: '',
+  want: 0,
+}

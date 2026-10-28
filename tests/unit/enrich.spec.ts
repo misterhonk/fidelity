@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { reasonFor } from '~/i18n/reason'
 
+import { updatePreferences } from '~~/db/meta'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import type { Match, TasteProfile } from '#shared/types'
 import type { DiscogsClient } from '~~/worker/discogs/client'
@@ -200,6 +201,18 @@ describe('the style pass', () => {
     expect(untouched?.score).toBe(48)
     expect(untouched?.signals).toHaveLength(1)
     expect(STYLE_THRESHOLD).toBe(0.6)
+  })
+
+  it('keeps the condition and price dampeners when it rescores', async () => {
+    await updatePreferences({ prefMediaCondition: 'Very Good Plus (VG+)', targetPrice: 5 })
+    const db = await openFidelityDb()
+    // Artist-only 48, worn (× 0.40) and over the target price (× 0.55): 11.
+    await db.put('matches', { ...match(1, 11), condition: 'Good (G)' })
+
+    const { client: api } = client({ 1: ['Bluegrass'] })
+    await enrichTopMatches({ client: api, digId: '01A', taste })
+
+    expect((await db.get('matches', ['01A', 1]))?.score).toBe(11)
   })
 
   it('still reads the release without a centroid, for the pressing advice', async () => {

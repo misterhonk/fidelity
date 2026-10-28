@@ -5,6 +5,7 @@ import { openFidelityDb } from '~~/db/open'
 import type { Match, Signal, TasteProfile } from '#shared/types'
 
 import type { DiscogsClient } from '../discogs/client'
+import { listingDampeners } from '../match'
 import { priceSignal, scarcitySignal, type MarketStats } from '../match/market'
 import { pressingContradictions, pressingWarnings, readPressing } from '../match/pressing'
 import { barryScore, type ScoreContext } from '../match/score'
@@ -157,7 +158,8 @@ export async function enrichTopMatches({
   // nothing would be worse than not running — but the market lookups are
   // still worth doing, so this only skips the style half.
   const wantStyles = Object.keys(centroid).length > 0
-  const { excludeReissues } = await getPreferences()
+  const preferences = await getPreferences()
+  const { excludeReissues } = preferences
 
   // The album's own first year, per master. What turns "pressed 2015" into
   // "a 2015 pressing of a 1959 album" — a year on its own says nothing.
@@ -184,7 +186,8 @@ export async function enrichTopMatches({
     signal?.throwIfAborted()
 
     const signals: Signal[] = [...match.signals]
-    let context = scoreContext
+    // Rescoring from scratch: the scan's condition and price dampeners go back in.
+    let context: ScoreContext = { ...scoreContext, ...listingDampeners(match, preferences) }
     let added = false
 
     /*

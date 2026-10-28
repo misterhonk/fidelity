@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import type { Dig, Match } from '#shared/types'
 import type { DiscogsClient } from '~~/worker/discogs/client'
+import { DiscogsError } from '~~/worker/discogs/errors'
 import {
   basketFromMarked,
   FOR_SALE,
@@ -64,7 +65,7 @@ function client(listings: Record<number, unknown>) {
   const get = vi.fn(async (path: string, schema: { parse: (v: unknown) => unknown }) => {
     const id = Number(/\/marketplace\/listings\/(\d+)/.exec(path)?.[1] ?? 0)
     const body = listings[id]
-    if (body === undefined) throw new Error('404')
+    if (body === undefined) throw new DiscogsError(404, 'The requested resource was not found.')
     return schema.parse(body)
   })
   return { client: { get } as unknown as DiscogsClient, get }
@@ -146,6 +147,16 @@ describe('bringing an expired dig back', () => {
     expect((await db.get('digs', '01A'))?.expiresAt).toBe(NOW + 6 * 3600_000)
   })
 
+  it("drops the old scan's stock rows when it restarts the clock", async () => {
+    const db = await seed(match())
+    await db.put('stock', { digId: '01A', listingId: 7, releaseId: 70, price: 5 } as never)
+    const { client: api } = client({ 1: forSale(1, 10) })
+
+    await refreshDig({ client: api, digId: '01A', currency: 'EUR', now: NOW })
+    // Those prices were not refetched; the new six hours must not cover them.
+    expect(await db.get('stock', ['01A', 7])).toBeUndefined()
+  })
+
   it('leaves the clock alone when everything sold', async () => {
     // A dig with nothing still for sale has nothing to show and should not
     // look fresh.
@@ -216,8 +227,21 @@ describe('checking whether the basket is still there', () => {
     const fresh = await db.get('basket', 1)
     expect(fresh?.price).toBe(29.99)
     // Six hours young again, which is the other half of what the check buys.
-    expect(fresh?.addedAt).toBe(NOW)
+    expect(fresh?.pricedAt).toBe(NOW)
     expect(fresh?.soldAt).toBeNull()
+  })
+
+  it('does not pass the old price off as fresh when Discogs names none', async () => {
+    const db = await openFidelityDb()
+    await db.put('basket', line({ listingId: 5, pricedAt: NOW - 7 * 3600_000 }) as never)
+    const { client: api } = client({ 5: { ...forSale(5, 10), price: { value: null } } })
+
+    await refreshBasket({ client: api, currency: 'EUR', now: NOW })
+
+    expect(await db.get('basket', 5)).toMatchObject({
+      price: 33.99,
+      pricedAt: NOW - 7 * 3600_000,
+    })
   })
 
   it('marks a sold line instead of removing it', async () => {
@@ -231,6 +255,19 @@ describe('checking whether the basket is still there', () => {
     // Taking somebody's basket entry away behind their back is a decision that
     // is theirs — the line says "verkauft" and they take it out.
     expect(await db.get('basket', 2)).toMatchObject({ soldAt: NOW })
+  })
+
+  it('does not mark a line sold because the network failed', async () => {
+    const db = await openFidelityDb()
+    await db.put('basket', line({ listingId: 4, soldAt: null }) as never)
+    const get = vi.fn(async () => {
+      throw new DiscogsError(0, 'Discogs is not answering')
+    })
+
+    await expect(
+      refreshBasket({ client: { get } as unknown as DiscogsClient, currency: 'EUR', now: NOW }),
+    ).rejects.toThrow()
+    expect((await db.get('basket', 4))?.soldAt).toBeNull()
   })
 
   it('does not spend a second request on a line already known sold', async () => {
@@ -374,6 +411,40 @@ describe('from the shortlist into the basket', () => {
     expect(await db.get('basket', 2)).toBeUndefined()
     // And it is written down, so the next check does not ask again.
     expect(await db.get('feedback', 2)).toMatchObject({ soldAt: NOW })
+  })
+
+  it('does not put a line at €0 in the basket when Discogs names no price', async () => {
+    const db = await marked(3)
+    const { client: api } = client({ 3: { ...forSale(3, 10), price: undefined } })
+
+    const result = await basketFromMarked({
+      client: api,
+      listingIds: [3],
+      currency: 'EUR',
+      now: NOW,
+    })
+
+    expect(result).toMatchObject({ added: 0, sold: 0, requests: 1 })
+    expect(await db.get('basket', 3)).toBeUndefined()
+  })
+
+  it('skips a listing whose price comes back empty instead of stopping the run', async () => {
+    const db = await marked(4)
+    await marked(5)
+    const { client: api } = client({
+      4: { ...forSale(4, 10), price: { value: null, currency: 'EUR' } },
+      5: forSale(5, 12),
+    })
+
+    const result = await basketFromMarked({
+      client: api,
+      listingIds: [4, 5],
+      currency: 'EUR',
+      now: NOW,
+    })
+
+    expect(result).toMatchObject({ added: 1, requests: 2 })
+    expect(await db.get('basket', 4)).toBeUndefined()
   })
 
   it('ignores a listing that is not on the shortlist at all', async () => {

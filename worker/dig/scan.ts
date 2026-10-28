@@ -212,6 +212,7 @@ async function prepare({
       shipsFromBlock: preferences.shipsFromBlock,
       prefMediaCondition: preferences.prefMediaCondition,
       targetPrice: preferences.targetPrice,
+      currency: preferences.currency,
     },
     // Remembered as it goes past, so `runningDig()` can say how far.
     report: (progress) => {
@@ -273,6 +274,13 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
    */
   const seen = new Set<number>()
   let unique = dig.uniqueSeen ?? 0
+  // Counted by match, not by first sight: a listing not for sale in one pass can be in the next.
+  // Seeded from what is already stored, or a resume counts the overlap with the earlier run twice.
+  const matched = new Set<number>(
+    (
+      await db.getAllKeys('matches', IDBKeyRange.bound([dig.id, -Infinity], [dig.id, Infinity]))
+    ).map(([, listingId]) => listingId),
+  )
 
   const passes =
     dig.depth === 'deep' ? SCAN_PASSES : dig.depth === 'neu' ? SINCE_PASSES : NORMAL_PASSES
@@ -369,6 +377,8 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
       requests += 1
 
       const fresh: Match[] = []
+      // Overlapping passes see a listing twice; it is one find, counted once.
+      let firstFinds = 0
       /** Every row seen on this page — the reasoning is below. */
       const stockRows: StockRow[] = []
       for (const row of response.listings) {
@@ -400,7 +410,8 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
         )
           newestSeen = row.posted
 
-        if (!seen.has(row.id)) {
+        const firstSight = !seen.has(row.id)
+        if (firstSight) {
           seen.add(row.id)
           unique += 1
           freshThisPass += 1
@@ -448,6 +459,10 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
 
         const result = evaluate(listing, index, filters)
         if (!result) continue
+        if (!matched.has(row.id)) {
+          matched.add(row.id)
+          firstFinds += 1
+        }
 
         fresh.push({
           digId: dig.id,
@@ -480,7 +495,7 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
         const tx = db.transaction('matches', 'readwrite')
         for (const match of fresh) await tx.store.put(match)
         await tx.done
-        matches += fresh.length
+        matches += firstFinds
       }
 
       // A page at a time, like the matches: an interruption costs a page and
@@ -776,6 +791,14 @@ export async function resumeDig(options: ScanOptions & { digId: string }): Promi
       dig.status = 'done'
       await ctx.db.put('digs', dig)
       throw new DigNotResumable('deep-scan-done', 'a deep scan is not resumed')
+    }
+
+    // Nor a check-in: its stop line (`since`) is not kept, so a resume would
+    // walk the whole shop as if it were all new. It is a request or two to redo.
+    if (dig.depth === 'neu') {
+      dig.status = 'done'
+      await ctx.db.put('digs', dig)
+      throw new DigNotResumable('dig-not-running', 'a check-in is not resumed')
     }
 
     if (ctx.now() > dig.expiresAt) {

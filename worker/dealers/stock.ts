@@ -1,3 +1,4 @@
+import { DIG_TTL_MS } from '~~/db/expire'
 import { openFidelityDb } from '~~/db/open'
 
 import type { StockRow } from '#shared/types'
@@ -58,11 +59,21 @@ export async function dealerStock({
    *
    * Dig ids are ULIDs, so lexicographic order is chronological order. An
    * expired one does not count: its rows are gone, and an empty result from it
-   * would wrongly mean "the shop does not carry that".
+   * would wrongly mean "the shop does not carry that". Nor does a check-in or
+   * an unfinished dig — both saw only part of the shop — and the clock is the
+   * scan's own: a refresh moves `expiresAt` but refetches no stock row.
    */
   const now = Date.now()
   const fresh = (await db.getAll('digs'))
-    .filter((dig) => dig.dealer === dealer && dig.status !== 'expired' && dig.expiresAt > now)
+    .filter(
+      (dig) =>
+        dig.dealer === dealer &&
+        dig.status === 'done' &&
+        (dig.depth ?? 'normal') !== 'neu' &&
+        dig.startedAt + DIG_TTL_MS > now &&
+        // Only a refresh moves `expiresAt`, and a refresh deletes the stock rows.
+        dig.expiresAt === dig.startedAt + DIG_TTL_MS,
+    )
     .sort((a, b) => b.id.localeCompare(a.id))[0]
 
   if (!fresh) return { rows: [], total: 0, scannedAt: null }

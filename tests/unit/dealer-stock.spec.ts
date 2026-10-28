@@ -125,6 +125,28 @@ describe('the stock behind a bar', () => {
     expect(page.rows.map((r) => r.listingId)).toEqual([2])
   })
 
+  it('passes over a newer check-in or an unfinished dig, which saw part of the shop', async () => {
+    await seed(
+      [row('01J', 1), row('01K', 2), row('01L', 3)],
+      [dig('01J'), dig('01K', { depth: 'neu' }), dig('01L', { status: 'scanning' })],
+    )
+
+    const page = await dealerStock({ dealer: 'fatplastics', label: 'Warp Records' })
+
+    expect(page.rows.map((r) => r.listingId)).toEqual([1])
+  })
+
+  it('passes over a refreshed dig, whose clock no longer matches its stock', async () => {
+    await seed(
+      [row('01J', 1), row('01K', 2)],
+      [dig('01J'), dig('01K', { expiresAt: NOW + 7 * 60 * 60 * 1000 })],
+    )
+
+    const page = await dealerStock({ dealer: 'fatplastics', label: 'Warp Records' })
+
+    expect(page.rows.map((r) => r.listingId)).toEqual([1])
+  })
+
   /**
    * In portions — the whole reason a large shop stays affordable.
    *

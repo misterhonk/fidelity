@@ -175,6 +175,24 @@ describe('what may be resumed at all', () => {
     ).rejects.toBeInstanceOf(DigNotResumable)
   })
 
+  it('refuses a check-in, whose stop line is not kept, and closes it', async () => {
+    await runDig({
+      client: fakeClient({ failFromPage: 3 }).client,
+      dealer: 'vinyl-tom',
+      digId: '01A',
+    }).catch(() => undefined)
+    const db = await openFidelityDb()
+    const dig = await db.get('digs', '01A')
+    await db.put('digs', { ...dig!, depth: 'neu' })
+
+    const second = fakeClient()
+    await expect(resumeDig({ client: second.client, digId: '01A' })).rejects.toMatchObject({
+      code: 'dig-not-running',
+    })
+    expect(second.get).not.toHaveBeenCalled()
+    expect((await db.get('digs', '01A'))?.status).toBe('done')
+  })
+
   it('refuses a dig that does not exist', async () => {
     await expect(
       resumeDig({ client: fakeClient().client, digId: 'nope' }),

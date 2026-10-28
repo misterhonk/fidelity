@@ -6,6 +6,7 @@ import { openFidelityDb } from '~~/db/open'
 import type { Dig, Match } from '#shared/types'
 
 import type { DiscogsClient } from '../discogs/client'
+import { DiscogsError } from '../discogs/errors'
 import { fail } from '../fail'
 
 /**
@@ -130,7 +131,7 @@ export async function refreshListing({
       signal,
     })
   } catch (error) {
-    if (signal?.aborted) throw error
+    rethrowUnlessGone(error, signal)
     await db.put('matches', { ...match, ...stripMarketplace(match), expired: true })
     return 'gone'
   }
@@ -192,7 +193,7 @@ export async function refreshDig({
       })
       requests += 1
     } catch (error) {
-      if (signal?.aborted) throw error
+      rethrowUnlessGone(error, signal)
       /*
        * A listing that will not load is almost always one that was taken down.
        * It is marked expired rather than deleted: the score, the signals and
@@ -251,7 +252,13 @@ export async function refreshDig({
       status: 'done',
       expiresAt: now + 6 * 60 * 60 * 1000,
     }
-    await db.put('digs', refreshedDig)
+    const tx = db.transaction(['digs', 'stock'], 'readwrite')
+    // Stock rows still carry the old scan's prices; the new clock must not cover them.
+    const stock = tx.objectStore('stock')
+    const range = IDBKeyRange.bound([digId, -Infinity], [digId, Infinity])
+    for (const key of await stock.getAllKeys(range)) await stock.delete(key)
+    await tx.objectStore('digs').put(refreshedDig)
+    await tx.done
   }
 
   return { refreshed, sold, requests, gone }
@@ -303,21 +310,23 @@ export async function refreshBasket({
       })
       requests += 1
     } catch (error) {
-      if (signal?.aborted) throw error
-      await db.put('basket', { ...item, soldAt: now })
+      rethrowUnlessGone(error, signal)
+      await db.put('basket', { ...item, soldAt: now, updatedAt: now })
       gone += 1
       done += 1
       report?.({ done, total: items.length, requests, sold })
       continue
     }
 
-    if ((listing.status ?? FOR_SALE) === FOR_SALE) {
+    if ((listing.status ?? FOR_SALE) === FOR_SALE && listing.price?.value == null) {
+      // For sale but no price named: the old price keeps its old clock rather than pass as fresh.
+    } else if ((listing.status ?? FOR_SALE) === FOR_SALE) {
       await db.put('basket', {
         ...item,
-        price: listing.price?.value ?? item.price,
-        currency: listing.price?.currency ?? item.currency,
+        price: listing.price!.value!,
+        currency: listing.price!.currency ?? item.currency,
         // The clock is per line: a refreshed price is six hours young again.
-        addedAt: now,
+        pricedAt: now,
         soldAt: null,
         // And the postage Discogs names for it, read on the same request.
         postage: postageOf(listing, now),
@@ -325,7 +334,7 @@ export async function refreshBasket({
       })
       refreshed += 1
     } else {
-      await db.put('basket', { ...item, soldAt: now })
+      await db.put('basket', { ...item, soldAt: now, updatedAt: now })
       sold += 1
     }
 
@@ -334,6 +343,14 @@ export async function refreshBasket({
   }
 
   return { refreshed, sold, requests, gone }
+}
+
+/**
+ * Only a 404 says a listing is gone. Offline, a 5xx or a schema miss is not
+ * an answer about the listing, and marking it sold would be for ever.
+ */
+function rethrowUnlessGone(error: unknown, signal?: AbortSignal): void {
+  if (signal?.aborted || !(error instanceof DiscogsError && error.status === 404)) throw error
 }
 
 /** Everything the six-hour rule deletes, in one place (docs/03 §5). */
@@ -400,7 +417,7 @@ export async function refreshMarked({
       })
       requests += 1
     } catch (error) {
-      if (signal?.aborted) throw error
+      rethrowUnlessGone(error, signal)
       await db.put('feedback', { ...entry, soldAt: now })
       sold += 1
       done += 1
@@ -477,7 +494,7 @@ export async function basketFromMarked({
       })
       requests += 1
     } catch (error) {
-      if (signal?.aborted) throw error
+      rethrowUnlessGone(error, signal)
       await db.put('feedback', { ...marked, soldAt: now })
       sold += 1
       done += 1
@@ -488,6 +505,8 @@ export async function basketFromMarked({
     if ((listing.status ?? FOR_SALE) !== FOR_SALE) {
       await db.put('feedback', { ...marked, soldAt: now })
       sold += 1
+    } else if (listing.price?.value == null) {
+      // For sale but no price named: a €0 line would be a lie, so this one waits for the next run.
     } else {
       await addToBasket(
         {
@@ -495,8 +514,8 @@ export async function basketFromMarked({
           releaseId: marked.releaseId,
           artist: marked.artist ?? '',
           title: marked.title ?? '',
-          price: listing.price?.value ?? 0,
-          currency: listing.price?.currency ?? currency,
+          price: listing.price.value,
+          currency: listing.price.currency ?? currency,
         } as Match,
         marked.dealer ?? '',
         now,
