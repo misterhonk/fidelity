@@ -618,11 +618,7 @@ function waiting(addedAt: string): string | null {
       </div>
 
       <!-- The way back, pinned where the eye is — as on the shelf. -->
-      <p
-        v-if="last"
-        role="status"
-        class="fixed left-4 z-30 flex flex-wrap items-center gap-3 rounded-fid-sm border border-fid-border bg-fid-surface px-4 py-2 text-fid-sm text-fid-text shadow-lg max-md:right-20 max-md:bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] md:bottom-4"
-      >
+      <p v-if="last" role="status" class="fid-toast">
         {{ last.line }}
         <button
           v-if="last.records"
