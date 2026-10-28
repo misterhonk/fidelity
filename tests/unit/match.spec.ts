@@ -68,6 +68,7 @@ const filters: MatchFilters = {
   shipsFromBlock: [],
   prefMediaCondition: 'Very Good Plus (VG+)',
   targetPrice: null,
+  currency: 'EUR',
 }
 
 function listing(overrides: Partial<Listing> = {}): Listing {
@@ -332,6 +333,18 @@ describe('the hard filters', () => {
 
   it('drops anything over budget', () => {
     expect(evaluate(listing({ price: 99 }), index, { ...filters, maxPrice: 30 })).toBeNull()
+  })
+
+  it('does not hold a price in another currency against the budget', () => {
+    // 99 yen is not over a 30 euro budget; without a rate, it is not compared.
+    const yen = listing({ releaseId: 900, price: 99, currency: 'JPY' })
+    expect(evaluate(yen, index, { ...filters, maxPrice: 30 })).not.toBeNull()
+    const target = { ...filters, targetPrice: 10 }
+    expect(evaluate(yen, index, target)?.score).toBe(evaluate(yen, index, filters)?.score)
+    const euros = listing({ releaseId: 900, price: 99 })
+    expect(evaluate(euros, index, target)!.score).toBeLessThan(
+      evaluate(euros, index, filters)!.score,
+    )
   })
 
   it('drops a blocked shipping origin', () => {

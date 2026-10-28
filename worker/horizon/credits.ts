@@ -4,6 +4,7 @@ import { getMeta, setMeta } from '~~/db/meta'
 import type { CreditHarvest } from '#shared/types'
 
 import type { DiscogsClient } from '../discogs/client'
+import { DiscogsError } from '../discogs/errors'
 import { isAnonymousArtist, norm } from '../match/normalize'
 import { distinctReleases } from '~~/db/collection'
 
@@ -125,8 +126,9 @@ export async function harvestCredits({
       })
     } catch (error) {
       if (signal?.aborted) throw error
-      // A release that will not load is one record's worth of credits, not the
-      // run. It is marked seen so the next run does not stall on it forever.
+      // Only a release that does not exist is skipped for good; a network blip
+      // or a 5xx must not cost a favourite its credits forever.
+      if (!(error instanceof DiscogsError && error.status === 404)) throw error
       seen.add(item.releaseId)
       requests += 1
       done += 1

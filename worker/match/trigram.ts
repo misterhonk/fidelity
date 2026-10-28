@@ -74,6 +74,9 @@ export function similarity(a: string, b: string): number {
  */
 export class TrigramIndex<T> {
   readonly #entries: { value: T; key: string; grams: Set<string> }[]
+  // Gram → entries holding it, so a listing is only compared with names it shares a gram with.
+  readonly #postings = new Map<string, number[]>()
+  readonly #shared: Uint16Array
 
   constructor(entries: Iterable<{ value: T; key: string }>) {
     this.#entries = [...entries].map(({ value, key }) => ({
@@ -81,6 +84,14 @@ export class TrigramIndex<T> {
       key,
       grams: trigrams(key),
     }))
+    this.#entries.forEach((entry, at) => {
+      for (const gram of entry.grams) {
+        const list = this.#postings.get(gram)
+        if (list) list.push(at)
+        else this.#postings.set(gram, [at])
+      }
+    })
+    this.#shared = new Uint16Array(this.#entries.length)
   }
 
   /** Best match at or above the threshold, or null. */
@@ -88,28 +99,31 @@ export class TrigramIndex<T> {
     const grams = trigrams(candidate)
     if (grams.size === 0) return null
 
-    let bestValue: T | null = null
-    let bestScore = threshold
-
-    for (const entry of this.#entries) {
-      // Jaccard can never exceed the size ratio, so entries of a very
-      // different length are skipped before their grams are touched.
-      const ceiling =
-        Math.min(grams.size, entry.grams.size) / Math.max(grams.size, entry.grams.size)
-      if (ceiling < bestScore) continue
-
-      let shared = 0
-      for (const gram of grams) {
-        if (entry.grams.has(gram)) shared += 1
-      }
-      const score = shared / (grams.size + entry.grams.size - shared)
-
-      if (score >= bestScore) {
-        bestScore = score
-        bestValue = entry.value
+    // Count shared grams per entry; an entry sharing none scores 0 and is never touched.
+    const shared = this.#shared
+    const touched: number[] = []
+    for (const gram of grams) {
+      for (const at of this.#postings.get(gram) ?? []) {
+        if (shared[at] === 0) touched.push(at)
+        shared[at]! += 1
       }
     }
 
-    return bestValue === null ? null : { value: bestValue, similarity: bestScore }
+    let bestAt = -1
+    let bestScore = threshold
+
+    for (const at of touched) {
+      const common = shared[at]!
+      shared[at] = 0
+      const size = this.#entries[at]!.grams.size
+      const score = common / (grams.size + size - common)
+      // Ties go to the later entry, as the linear scan this replaced did.
+      if (score > bestScore || (score === bestScore && at > bestAt)) {
+        bestScore = score
+        bestAt = at
+      }
+    }
+
+    return bestAt === -1 ? null : { value: this.#entries[bestAt]!.value, similarity: bestScore }
   }
 }

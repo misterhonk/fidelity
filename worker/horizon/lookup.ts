@@ -217,10 +217,29 @@ export function labelLift(
   lookup: HorizonLookup,
   labelId: number,
   ownedCounts: Map<number, number>,
+  // Pass `liftTotals` once per index; recomputing them per listing is a loop over every label.
+  { ownedTotal, sizeTotal }: LiftTotals = liftTotals(lookup, ownedCounts),
 ): number | null {
   const size = lookup.catalogueSizes.get(labelId)
   if (!size || size <= 0) return null
 
+  if (ownedTotal === 0 || sizeTotal === 0) return null
+
+  const actual = (ownedCounts.get(labelId) ?? 0) / ownedTotal
+  const expected = size / sizeTotal
+  return expected > 0 ? actual / expected : null
+}
+
+export interface LiftTotals {
+  ownedTotal: number
+  sizeTotal: number
+}
+
+/** The lift's denominators: owned records and catalogue sizes over labels of known size. */
+export function liftTotals(
+  lookup: HorizonLookup,
+  ownedCounts: Map<number, number>,
+): LiftTotals {
   let ownedTotal = 0
   let sizeTotal = 0
   for (const [id, owned] of ownedCounts) {
@@ -229,10 +248,5 @@ export function labelLift(
     ownedTotal += owned
     sizeTotal += other
   }
-
-  if (ownedTotal === 0 || sizeTotal === 0) return null
-
-  const actual = (ownedCounts.get(labelId) ?? 0) / ownedTotal
-  const expected = size / sizeTotal
-  return expected > 0 ? actual / expected : null
+  return { ownedTotal, sizeTotal }
 }

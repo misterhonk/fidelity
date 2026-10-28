@@ -34,7 +34,8 @@ export function wantlistPressing(
 
     // A pressing much younger than the one on the wantlist is probably a
     // reissue, and a reissue is not what was asked for (docs/04 §S2).
-    const listingYear = listing.year ?? hit.year
+    // Inventory sends 0 for an unknown year, not null.
+    const listingYear = listing.year || hit.year
     const suspiciouslyLate =
       wanted.year > 0 && listingYear > 0 && listingYear - wanted.year >= 15
 
@@ -94,7 +95,7 @@ export function artistGap(listing: SignalInput, lookup: HorizonLookup): Signal |
     const discography = lookup.discography.get(hit.entityId)
     if (!discography || discography.owned < MIN_GAP_OWNED || discography.total === 0) continue
 
-    const year = listing.year ?? hit.year
+    const year = listing.year || hit.year
     const inWindow =
       discography.from === 0 ||
       year === 0 ||

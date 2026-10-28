@@ -10,7 +10,7 @@ import { noteFree } from '../discogs/ledger'
 import { createCatalogueClient } from '../catalogue/client'
 import { chunkFromCatalogue } from '../catalogue/horizon'
 import { createHubClient } from '../hub/client'
-import { preferHub } from '../hub/fallback'
+import { HUB_TIMEOUT_MS, preferHub, withTimeout } from '../hub/fallback'
 import { expandEntity } from './expand'
 import { creditCandidates } from './credit-select'
 import { isFresh, lacksKin, planRevalidation, type RevalidationPlan } from './revalidate'
@@ -196,7 +196,8 @@ async function runBuild({
        */
       if (hub && !known.sharedAt && shared < MAX_CATCH_UP_PER_RUN) {
         try {
-          if (await hub.contributeHorizon(known)) {
+          // Bounded like every hub call: a hung hub must not stall the build.
+          if (await withTimeout(hub.contributeHorizon(known), HUB_TIMEOUT_MS)) {
             await db.put('horizon', { ...known, sharedAt: now() })
             shared += 1
           }

@@ -1,4 +1,10 @@
-import { buildLookup, labelLift, type HorizonLookup } from '../horizon/lookup'
+import {
+  buildLookup,
+  labelLift,
+  liftTotals,
+  type HorizonLookup,
+  type LiftTotals,
+} from '../horizon/lookup'
 import type {
   CollectionItem,
   FollowedArtist,
@@ -65,6 +71,8 @@ export interface MatchFilters {
   /** Below this the score is dampened, not discarded. */
   prefMediaCondition: string
   targetPrice: number | null
+  /** The currency `maxPrice` and `targetPrice` are in; other prices are not compared. */
+  currency: string
 }
 
 /** An artist the collection knows, under one of the names it knows them by. */
@@ -118,6 +126,8 @@ export interface MatchIndex {
   labelIds: Map<string, number>
   /** Label id → records owned, the numerator of the lift. */
   ownedByLabel: Map<number, number>
+  /** The lift's denominators, summed once per index instead of per listing. */
+  liftTotals: LiftTotals
 }
 
 /** Built once per dig, from data that only changes on sync. */
@@ -198,6 +208,8 @@ export function buildIndex(
     }
   }
 
+  const horizon = buildLookup(chunks, collection, wantlist)
+
   return {
     wantlistReleaseIds: new Set(wantlist.map((item) => item.releaseId)),
     wantPriority: new Map(
@@ -210,9 +222,10 @@ export function buildIndex(
       [...artistWeight.keys()].map((key) => ({ key, value: key })),
     ),
     releaseCount: taste?.releaseCount ?? collection.length,
-    horizon: buildLookup(chunks, collection, wantlist),
+    horizon,
     labelIds,
     ownedByLabel,
+    liftTotals: liftTotals(horizon, ownedByLabel),
   }
 }
 
@@ -231,9 +244,8 @@ export function passesFilters(
 
   if (!matchesFormat(listing.format, filters.formatsAllow)) return false
 
-  if (filters.maxPrice !== null && listing.price !== null && listing.price > filters.maxPrice) {
-    return false
-  }
+  const price = comparablePrice(listing, filters)
+  if (filters.maxPrice !== null && price !== null && price > filters.maxPrice) return false
 
   if (listing.shipsFrom && filters.shipsFromBlock.includes(listing.shipsFrom)) return false
 
@@ -376,7 +388,9 @@ export function evaluate(
   if (label && label.n >= 2) {
     const labelId = index.labelIds.get(normalisedLabel)
     const lift =
-      labelId === undefined ? null : labelLift(index.horizon, labelId, index.ownedByLabel)
+      labelId === undefined
+        ? null
+        : labelLift(index.horizon, labelId, index.ownedByLabel, index.liftTotals)
 
     if (lift !== null) {
       if (lift >= 2) {
@@ -409,16 +423,33 @@ export function evaluate(
 
   if (signals.length === 0) return null
 
-  const score = barryScore(signals, {
-    ...scoreContext,
-    conditionBelowPreference: isBelowPreference(listing.condition, filters.prefMediaCondition),
-    priceAboveTarget:
-      filters.targetPrice !== null &&
-      listing.price !== null &&
-      listing.price > filters.targetPrice,
-  })
+  const score = barryScore(signals, { ...scoreContext, ...listingDampeners(listing, filters) })
 
   return score >= MIN_STORED_SCORE ? { signals, score } : null
+}
+
+/**
+ * The two dampeners a listing carries on its own: condition and price. Shared
+ * with the enrichment pass, which rescores and must not drop them.
+ */
+export function listingDampeners(
+  listing: Pick<Listing, 'condition' | 'price' | 'currency'>,
+  filters: Pick<MatchFilters, 'prefMediaCondition' | 'targetPrice' | 'currency'>,
+): Pick<ScoreContext, 'conditionBelowPreference' | 'priceAboveTarget'> {
+  const price = comparablePrice(listing, filters)
+  return {
+    conditionBelowPreference: isBelowPreference(listing.condition, filters.prefMediaCondition),
+    priceAboveTarget:
+      filters.targetPrice !== null && price !== null && price > filters.targetPrice,
+  }
+}
+
+/** The price, only when it is in the filters' currency: no exchange rate to trust (as S10). */
+function comparablePrice(
+  listing: Pick<Listing, 'price' | 'currency'>,
+  filters: Pick<MatchFilters, 'currency'>,
+): number | null {
+  return listing.currency === filters.currency ? listing.price : null
 }
 
 function isBelowPreference(condition: string | null, preference: string): boolean {

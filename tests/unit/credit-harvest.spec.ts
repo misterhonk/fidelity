@@ -4,6 +4,7 @@ import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import { getMeta } from '~~/db/meta'
 import type { CollectionItem, CreditHarvest } from '#shared/types'
 import type { DiscogsClient } from '~~/worker/discogs/client'
+import { DiscogsError } from '~~/worker/discogs/errors'
 import {
   creditCandidates,
   harvestCredits,
@@ -138,13 +139,25 @@ describe('harvesting credits off the favourites', () => {
     await seed([record({ releaseId: 1 }), record({ releaseId: 2 })])
 
     const get = vi.fn(async (path: string, schema: { parse: (v: unknown) => unknown }) => {
-      if (path.includes('/releases/1')) throw new Error('404')
+      if (path.includes('/releases/1')) throw new DiscogsError(404, 'not found')
       return schema.parse({ id: 2, extraartists: [plank()] })
     })
     await harvestCredits({ client: { get } as unknown as DiscogsClient })
 
     const stored = await getMeta('credits')
     expect(stored?.harvestedReleaseIds.sort()).toEqual([1, 2])
+  })
+
+  it('does not skip a favourite for good because the network failed', async () => {
+    await seed([record({ releaseId: 1 })])
+
+    const get = vi.fn(async () => {
+      throw new DiscogsError(0, 'Discogs is not answering')
+    })
+    await expect(
+      harvestCredits({ client: { get } as unknown as DiscogsClient }),
+    ).rejects.toThrow()
+    expect((await getMeta('credits'))?.harvestedReleaseIds ?? []).toEqual([])
   })
 
   it('reports progress with a subject', async () => {

@@ -93,6 +93,12 @@ describe('S2 — same album, different pressing', () => {
     ).toBe(0.6)
   })
 
+  it('reads the inventory year 0 as unknown and asks the horizon', () => {
+    const signal = wantlistPressing(listing({ releaseId: 501, year: 0 }), lookup, false)
+    expect(signal?.confidence).toBe(0.6)
+    expect(signal?.evidence).toMatchObject({ pressingYear: 2017 })
+  })
+
   it('stays out of the way when the exact release is already a match', () => {
     expect(wantlistPressing(listing(), lookup, true)).toBeNull()
   })
@@ -126,6 +132,8 @@ describe('S4 — the discography gap', () => {
   it('ignores a record far outside the years you actually collect', () => {
     // Somebody who only owns early Robag does not want the 2020 record.
     expect(artistGap(listing({ releaseId: 600, year: 2020 }), lookup)).toBeNull()
+    // Year 0 from the inventory is unknown; the horizon's 2020 still rules it out.
+    expect(artistGap(listing({ releaseId: 600, year: 0 }), lookup)).toBeNull()
   })
 
   it('needs more than a couple of records before it calls anything a run', () => {

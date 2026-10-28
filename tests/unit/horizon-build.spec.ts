@@ -422,6 +422,22 @@ describe('filling the hub afterwards', () => {
     })
   })
 
+  /** A hub that never answers costs two seconds, not the whole build. */
+  it('gives up on a hub that hangs, and remembers nothing', async () => {
+    const db = await openFidelityDb()
+    await db.put('horizon', expansion(candidate(1), [10, 11]).chunk)
+    await updatePreferences({ hubUrl: 'https://hub.test', hubSecret: 'wort' })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise<Response>(() => {})),
+    )
+
+    const result = await build([candidate(1)])
+
+    expect(result).toMatchObject({ skipped: 1, shared: 0 })
+    expect((await db.get('horizon', 'artist:1'))?.sharedAt).toBeUndefined()
+  }, 10_000)
+
   /** Without a hub it stays as it was: skipped and silent. */
   it('leaves it exactly as it was when there is no hub', async () => {
     const db = await openFidelityDb()

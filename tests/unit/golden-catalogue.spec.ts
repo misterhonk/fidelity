@@ -120,6 +120,7 @@ const filters = {
   shipsFromBlock: [],
   prefMediaCondition: 'Very Good (VG)' as const,
   targetPrice: null,
+  currency: 'EUR',
 }
 
 function rank(chunks: HorizonChunk[]) {

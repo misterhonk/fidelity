@@ -54,6 +54,7 @@ const filters: MatchFilters = {
   shipsFromBlock: [],
   prefMediaCondition: 'Very Good Plus (VG+)',
   targetPrice: null,
+  currency: 'EUR',
 }
 
 const listing = (artist: string): Listing => ({
