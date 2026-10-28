@@ -3,7 +3,7 @@ import { test, describe } from 'node:test'
 
 import { createKeyLimiter, generateAccessKeyPair, issueKey } from '../src/access.ts'
 import { createHubApp, MAX_CHUNK_BYTES } from '../src/app.ts'
-import { openHubDb } from '../src/db.ts'
+import { CATALOGUE_TTL_MS, openHubDb, sweepStale } from '../src/db.ts'
 
 /**
  * The hub, tested against the rule that shapes it: a hub that is wrong must be
@@ -287,6 +287,12 @@ describe('the horizon cache', () => {
     // Otherwise one contribution could quietly overwrite an unrelated entity.
     const { app } = hub()
     const res = await put(app, '/v1/horizon/artist/99', chunk({ key: 'artist:55' }))
+    assert.equal(res.status, 400)
+  })
+
+  test('refuses a kind that is not artist, label or master', async () => {
+    const { app } = hub()
+    const res = await put(app, '/v1/horizon/blob/55', chunk({ key: 'blob:55' }))
     assert.equal(res.status, 400)
   })
 
@@ -825,6 +831,15 @@ describe('a shared find list', () => {
     assert.equal((await post(app, share({ id: 'zu-kurz' }))).status, 400)
   })
 
+  test('does not overwrite a list somebody already shared under that id', async () => {
+    const { app } = hub()
+    assert.equal((await post(app, share())).status, 200)
+    const other = { ...sealed(), cipher: 'b3RoZXI=' }
+    assert.equal((await post(app, share({ sealed: other }))).status, 409)
+    const body = await (await app.request(`/v1/share/${ID}`)).json()
+    assert.deepEqual(body.sealed, sealed())
+  })
+
   test('treats an id that does not exist as gone', async () => {
     const { app } = hub()
     assert.equal((await app.request(`/v1/share/${'c'.repeat(32)}`)).status, 404)
@@ -920,5 +935,41 @@ describe('what one member cannot do to the others', () => {
     assert.equal((await subscribe(app, endpoint, ['shop'])).status, 200)
     db.prepare("UPDATE watchers SET owner = 'alice' WHERE endpoint = ?").run(endpoint)
     assert.equal((await subscribe(app, endpoint, ['other'])).status, 403)
+  })
+})
+
+describe('the hourly sweep', () => {
+  test('clears what has expired and keeps what has not', () => {
+    const { db } = hub()
+    const NOW = 100 * CATALOGUE_TTL_MS
+    const old = NOW - CATALOGUE_TTL_MS - 1
+    db.prepare(
+      `INSERT INTO horizon (key, kind, entity_id, fetched_at, release_ids, body, updated_at)
+       VALUES ('artist:1', 'artist', 1, ?, 0, '{}', 0), ('artist:2', 'artist', 2, ?, 0, '{}', 0)`,
+    ).run(old, NOW)
+    db.prepare(
+      `INSERT INTO families (master_id, fetched_at, body, updated_at) VALUES (1, ?, '{}', 0)`,
+    ).run(old)
+    db.prepare(`INSERT INTO watches (endpoint, dealer) VALUES ('e', 'watched')`).run()
+    db.prepare(
+      `INSERT INTO watch_state (dealer, num_for_sale, checked_at) VALUES ('watched', 1, 0), ('gone', 1, 0)`,
+    ).run()
+    db.prepare(
+      `INSERT INTO watch_misses (dealer, misses, retry_at) VALUES ('gone', 1, 0)`,
+    ).run()
+
+    sweepStale(db, NOW)
+
+    const count = (sql: string) => (db.prepare(sql).get() as { n: number }).n
+    assert.deepEqual(
+      db
+        .prepare('SELECT key FROM horizon')
+        .all()
+        .map((row) => (row as { key: string }).key),
+      ['artist:2'],
+    )
+    assert.equal(count('SELECT COUNT(*) AS n FROM families'), 0)
+    assert.equal(count('SELECT COUNT(*) AS n FROM watch_state'), 1)
+    assert.equal(count('SELECT COUNT(*) AS n FROM watch_misses'), 0)
   })
 })

@@ -2,9 +2,9 @@ import { serve } from '@hono/node-server'
 
 import { createKeyLimiter, createRevocationList } from './access.ts'
 import { createHubApp } from './app.ts'
-import { openHubDb } from './db.ts'
+import { openHubDb, sweepStale } from './db.ts'
 import { hubDoors } from './doors.ts'
-import { STALE_AFTER_MS, watchRound } from './watch.ts'
+import { oneRoundAtATime, STALE_AFTER_MS, watchRound } from './watch.ts'
 
 /**
  * Starting the hub.
@@ -105,8 +105,10 @@ serve({ fetch: app.fetch, port, hostname: '0.0.0.0' }, (info) => {
  * `unref()`, so this timer does not keep the process from ending.
  */
 if (watching) {
+  // Skipped while a round still runs: a slow round must not overlap the next one.
+  const round = oneRoundAtATime(() => watchRound({ db, subject: vapidSubject, identity }))
   const tick = () => {
-    void watchRound({ db, subject: vapidSubject, identity }).catch((error: unknown) => {
+    void round().catch((error: unknown) => {
       // A pass that fails is no reason to end the service.
       console.warn('[watch] Durchgang fehlgeschlagen:', String(error))
     })
@@ -114,6 +116,19 @@ if (watching) {
   setTimeout(tick, 10_000).unref()
   setInterval(tick, 10 * 60 * 1000).unref()
 }
+
+// Hourly, rows past their expiry go; `unref()` for the same reason as the watcher.
+setInterval(
+  () => {
+    try {
+      sweepStale(db, Date.now())
+    } catch (e) {
+      // A failed sweep (locked or full disk) is no reason to end the service.
+      console.warn('[sweep]', String(e))
+    }
+  },
+  60 * 60 * 1000,
+).unref()
 
 const shutdown = () => {
   db.close()

@@ -177,6 +177,8 @@ export interface RevocationOptions {
   now?: () => number
 }
 
+const RETRY_AFTER_FAILURE_MS = 60_000
+
 export function createRevocationList({
   url,
   fixed = [],
@@ -187,10 +189,13 @@ export function createRevocationList({
   const base = new Set(fixed)
   let fetched = new Set<string>()
   let fetchedAt = Number.NEGATIVE_INFINITY
+  let loaded = false
   let inFlight: Promise<void> | null = null
 
   async function refresh(): Promise<void> {
     if (!url) return
+    // A failure waits a minute before the next try, so a hung service is not asked on every request.
+    fetchedAt = now() - ttlMs + RETRY_AFTER_FAILURE_MS
     try {
       const response = await fetchImpl(`${url.replace(/\/+$/, '')}/v1/revoked`, {
         signal: AbortSignal.timeout(3000),
@@ -200,6 +205,7 @@ export function createRevocationList({
       if (Array.isArray(body.kids)) {
         fetched = new Set(body.kids.filter((kid): kid is string => typeof kid === 'string'))
         fetchedAt = now()
+        loaded = true
       }
     } catch {
       // The list from last time stands.
@@ -210,7 +216,8 @@ export function createRevocationList({
     async current(): Promise<ReadonlySet<string>> {
       if (url && now() - fetchedAt >= ttlMs) {
         inFlight ??= refresh().finally(() => (inFlight = null))
-        await inFlight
+        // Once a list is known, members are served it while the refresh runs behind them.
+        if (!loaded) await inFlight
       }
       return new Set([...base, ...fetched])
     },

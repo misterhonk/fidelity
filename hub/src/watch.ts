@@ -178,7 +178,9 @@ export async function watchRound(deps: WatchDeps): Promise<RoundResult> {
   if (!send) {
     const keys = vapidKeys(db)
     webpush.setVapidDetails(subject, keys.publicKey, keys.privateKey)
-    send = (subscription, payload) => webpush.sendNotification(subscription, payload)
+    // A push service that never answers would otherwise hold the round, and the round guard skips every later one.
+    send = (subscription, payload) =>
+      webpush.sendNotification(subscription, payload, { timeout: 10_000 })
   }
 
   /*
@@ -243,7 +245,8 @@ export async function watchRound(deps: WatchDeps): Promise<RoundResult> {
     try {
       const response = await fetchImpl(
         `https://api.discogs.com/users/${encodeURIComponent(entry.dealer)}`,
-        { headers },
+        // A Discogs that hangs must not hold the round, and the next tick, for good.
+        { headers, signal: AbortSignal.timeout(10_000) },
       )
       if (!response.ok) {
         missed(entry.dealer)
@@ -349,4 +352,18 @@ async function notify(
   }
 
   return sent
+}
+
+/** Wraps a round so a tick that comes while one still runs is skipped, not stacked. */
+export function oneRoundAtATime<T>(round: () => Promise<T>): () => Promise<T | null> {
+  let running = false
+  return async () => {
+    if (running) return null
+    running = true
+    try {
+      return await round()
+    } finally {
+      running = false
+    }
+  }
 }

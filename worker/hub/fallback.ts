@@ -10,6 +10,12 @@
  */
 export const HUB_TIMEOUT_MS = 2000
 
+/**
+ * For the calls somebody started and waits on — vault and shared lists —
+ * whose bodies run to megabytes: longer than two seconds, but never unbounded.
+ */
+export const HUB_BULK_TIMEOUT_MS = 120_000
+
 export class TimeoutError extends Error {
   constructor(ms: number) {
     super(`timed out after ${ms} ms`)

@@ -1,10 +1,11 @@
 import { createHash, timingSafeEqual } from 'node:crypto'
 
-import { Hono } from 'hono'
+import { Hono, type MiddlewareHandler } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 import { cors } from 'hono/cors'
 
 import { type createKeyLimiter, verifyKey } from './access.ts'
+import { CATALOGUE_TTL_MS } from './db.ts'
 import { vapidKeys } from './watch.ts'
 import type { DatabaseSync } from 'node:sqlite'
 import { z } from 'zod'
@@ -143,6 +144,19 @@ const SKEW_MS = 5 * 60_000
 /** What the middleware learns about a request and the routes read back. */
 type Doors = { owner: string; door: 'secret' | 'key' | 'open' }
 
+/** Per-key ceilings, so one member cannot fill the disk for everybody (2026-10-22). */
+export const MAX_VAULTS_PER_OWNER = 3
+export const MAX_SHARES_PER_OWNER = 50
+export const MAX_WATCHERS_PER_OWNER = 5
+/** Below the 200 `GET /v1/shops` hands out, so one key cannot evict every other shop. */
+export const MAX_SHOPS_PER_OWNER = 50
+/** How long a cover stays its contributor's before another member may replace it. */
+export const COVER_HOLD_MS = 30 * 24 * 60 * 60 * 1000
+/** Only rows touched this recently count against a ceiling; older ones are orphans the client cannot reach. */
+export const CEILING_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
+
+const HORIZON_KINDS = new Set(['artist', 'label', 'master'])
+
 export function createHubApp({
   db,
   secret,
@@ -151,6 +165,51 @@ export function createHubApp({
   now = Date.now,
 }: HubOptions) {
   const app = new Hono<{ Variables: Doors }>()
+
+  /** Whether a key has reached a ceiling; the secret and an open hub have no identity to count. */
+  const atCeiling = (
+    owner: string,
+    door: Doors['door'],
+    sql: string,
+    max: number,
+    ...args: (number | string)[]
+  ) => door === 'key' && (db.prepare(sql).get(owner, ...args) as { n: number }).n >= max
+
+  /** Whether a row is another member's and still young enough to keep its place. */
+  const heldByOther = (
+    row: { owner: string; updated_at: number } | undefined,
+    owner: string,
+    holdMs: number,
+  ) =>
+    row !== undefined &&
+    // '' is a row from before owners, or the secret's: nobody's to hold.
+    row.owner !== '' &&
+    row.owner !== owner &&
+    now() - row.updated_at < holdMs
+
+  // A holder's rewrite keeps the first write's time, so the hold cannot be renewed for ever.
+  const HELD_SINCE = `updated_at = CASE WHEN owner = excluded.owner THEN updated_at ELSE excluded.updated_at END`
+
+  /*
+   * One large body per key at a time: the burst of 120 requests would
+   * otherwise let one key hold 120 bodies of up to 32 MB in memory at once.
+   */
+  const writing = new Set<string>()
+  const oneAtATime: MiddlewareHandler<{ Variables: Doors }> = async (c, next) => {
+    if (c.get('door') !== 'key') return next()
+    const owner = c.get('owner')
+    // One lane per route, so a horizon upload does not hold up a vault save.
+    const lane = `${owner}:${c.req.routePath}`
+    if (writing.has(lane)) {
+      return c.json({ error: 'one large write at a time' }, 429, { 'retry-after': '1' })
+    }
+    writing.add(lane)
+    try {
+      await next()
+    } finally {
+      writing.delete(lane)
+    }
+  }
 
   /*
    * The client is a browser on a different origin, so CORS is not optional.
@@ -278,7 +337,9 @@ export function createHubApp({
     return c.json(JSON.parse(row.body))
   })
 
-  app.put('/v1/horizon/:kind/:id', capped(MAX_CHUNK_BYTES), async (c) => {
+  app.put('/v1/horizon/:kind/:id', oneAtATime, capped(MAX_CHUNK_BYTES), async (c) => {
+    if (!HORIZON_KINDS.has(c.req.param('kind')))
+      return c.json({ error: 'not a horizon kind' }, 400)
     const raw = await c.req.text()
     if (raw.length > MAX_CHUNK_BYTES) return c.json({ error: 'too large' }, 413)
 
@@ -295,8 +356,13 @@ export function createHubApp({
     }
 
     const existing = db
-      .prepare('SELECT fetched_at FROM horizon WHERE key = ?')
-      .get(expected) as { fetched_at: number } | undefined
+      .prepare('SELECT fetched_at, owner, updated_at FROM horizon WHERE key = ?')
+      .get(expected) as { fetched_at: number; owner: string; updated_at: number } | undefined
+
+    // Another member's fresh chunk is not replaced: one key cannot poison everybody's cache.
+    if (heldByOther(existing, c.get('owner'), CATALOGUE_TTL_MS)) {
+      return c.json({ stored: false, reason: 'held by another member' })
+    }
 
     // Older than what is already here changes nothing. Contributions arrive
     // out of order from several clients and the newest expansion wins.
@@ -309,13 +375,14 @@ export function createHubApp({
     }
 
     db.prepare(
-      `INSERT INTO horizon (key, kind, entity_id, fetched_at, release_ids, body, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO horizon (key, kind, entity_id, fetched_at, release_ids, body, updated_at, owner)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(key) DO UPDATE SET
          fetched_at = excluded.fetched_at,
          release_ids = excluded.release_ids,
          body = excluded.body,
-         updated_at = excluded.updated_at`,
+         ${HELD_SINCE},
+         owner = excluded.owner`,
     ).run(
       expected,
       chunk.kind,
@@ -326,6 +393,7 @@ export function createHubApp({
       chunk.releaseIds.length,
       JSON.stringify(chunk),
       now(),
+      c.get('owner'),
     )
 
     return c.json({ stored: true })
@@ -352,6 +420,17 @@ export function createHubApp({
       .prepare('SELECT owner FROM watchers WHERE endpoint = ?')
       .get(subscription.endpoint) as { owner: string } | undefined
     if (held && held.owner !== c.get('owner')) return c.json({ error: 'not yours' }, 403)
+    if (
+      !held &&
+      atCeiling(
+        c.get('owner'),
+        c.get('door'),
+        'SELECT COUNT(*) AS n FROM watchers WHERE owner = ?',
+        MAX_WATCHERS_PER_OWNER,
+      )
+    ) {
+      return c.json({ error: 'too many devices for this key' }, 403)
+    }
 
     db.prepare(
       `INSERT INTO watchers (endpoint, p256dh, auth, created_at, updated_at)
@@ -436,13 +515,15 @@ export function createHubApp({
     if (!parsed.success) return c.json({ error: 'not a cover list' }, 400)
 
     const statement = db.prepare(
-      `INSERT INTO covers (release_id, thumb_url, cover_url, updated_at)
-       VALUES (?, ?, ?, ?)
+      `INSERT INTO covers (release_id, thumb_url, cover_url, updated_at, owner)
+       VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(release_id) DO UPDATE SET
          thumb_url = excluded.thumb_url,
          cover_url = excluded.cover_url,
-         updated_at = excluded.updated_at`,
+         ${HELD_SINCE},
+         owner = excluded.owner`,
     )
+    const holder = db.prepare('SELECT owner, updated_at FROM covers WHERE release_id = ?')
 
     let stored = 0
     let rejected = 0
@@ -463,7 +544,11 @@ export function createHubApp({
         rejected += 1
         continue
       }
-      statement.run(cover.releaseId, cover.thumbUrl, cover.coverUrl, now())
+      // Another member's recent answer stands; neither stored nor refused.
+      const row = holder.get(cover.releaseId) as
+        { owner: string; updated_at: number } | undefined
+      if (heldByOther(row, c.get('owner'), COVER_HOLD_MS)) continue
+      statement.run(cover.releaseId, cover.thumbUrl, cover.coverUrl, now(), c.get('owner'))
       stored += 1
     }
 
@@ -501,8 +586,11 @@ export function createHubApp({
     }
 
     const existing = db
-      .prepare('SELECT fetched_at FROM families WHERE master_id = ?')
-      .get(masterId) as { fetched_at: number } | undefined
+      .prepare('SELECT fetched_at, owner, updated_at FROM families WHERE master_id = ?')
+      .get(masterId) as { fetched_at: number; owner: string; updated_at: number } | undefined
+    if (heldByOther(existing, c.get('owner'), CATALOGUE_TTL_MS)) {
+      return c.json({ stored: false, reason: 'held by another member' })
+    }
     // The newest reading wins; an older one changes nothing.
     if (
       existing &&
@@ -513,13 +601,14 @@ export function createHubApp({
     }
 
     db.prepare(
-      `INSERT INTO families (master_id, fetched_at, body, updated_at)
-       VALUES (?, ?, ?, ?)
+      `INSERT INTO families (master_id, fetched_at, body, updated_at, owner)
+       VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(master_id) DO UPDATE SET
          fetched_at = excluded.fetched_at,
          body = excluded.body,
-         updated_at = excluded.updated_at`,
-    ).run(masterId, family.fetchedAt, JSON.stringify(family), now())
+         ${HELD_SINCE},
+         owner = excluded.owner`,
+    ).run(masterId, family.fetchedAt, JSON.stringify(family), now(), c.get('owner'))
 
     return c.json({ stored: true })
   })
@@ -662,18 +751,33 @@ export function createHubApp({
     // A reading from the future would win every comparison for ever and
     // evict the genuine shops from the two hundred the answer holds.
     if (shop.seenAt > now() + SKEW_MS) return c.json({ error: 'seen in the future' }, 400)
-    const existing = db.prepare('SELECT seen_at FROM shops WHERE username = ?').get(dealer) as
-      { seen_at: number } | undefined
-
+    const existing = db
+      .prepare('SELECT seen_at, owner, updated_at FROM shops WHERE username = ?')
+      .get(dealer) as { seen_at: number; owner: string; updated_at: number } | undefined
     // The newer reading wins. An older one changes nothing — a device coming
     // back from a week offline must not push a fresher row backwards.
     if (existing && existing.seen_at >= shop.seenAt) {
       return c.json({ stored: false, reason: 'older than cached' })
     }
 
+    // Counted by server time: `seenAt` is the client's, and a back-dated one would never count.
+    // An own row past the window counts as new, or rewriting old rows would revive the ceiling.
+    if (
+      (existing?.owner !== c.get('owner') || existing.updated_at < now() - CEILING_WINDOW_MS) &&
+      atCeiling(
+        c.get('owner'),
+        c.get('door'),
+        'SELECT COUNT(*) AS n FROM shops WHERE owner = ? AND updated_at >= ?',
+        MAX_SHOPS_PER_OWNER,
+        now() - CEILING_WINDOW_MS,
+      )
+    ) {
+      return c.json({ error: 'too many shops from this key' }, 403)
+    }
+
     db.prepare(
-      `INSERT INTO shops (username, display_name, ships_from, num_for_sale, avatar_url, body, seen_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO shops (username, display_name, ships_from, num_for_sale, avatar_url, body, seen_at, updated_at, owner)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(username) DO UPDATE SET
          display_name = excluded.display_name,
          ships_from = excluded.ships_from,
@@ -681,7 +785,8 @@ export function createHubApp({
          avatar_url = excluded.avatar_url,
          body = excluded.body,
          seen_at = excluded.seen_at,
-         updated_at = excluded.updated_at`,
+         updated_at = excluded.updated_at,
+         owner = excluded.owner`,
     ).run(
       dealer,
       shop.displayName,
@@ -692,6 +797,7 @@ export function createHubApp({
       JSON.stringify(shop.fingerprint),
       shop.seenAt,
       now(),
+      c.get('owner'),
     )
 
     return c.json({ stored: true })
@@ -746,7 +852,7 @@ export function createHubApp({
     return c.json({ gone: true })
   })
 
-  app.put('/v1/vault/:id', capped(MAX_VAULT_BYTES), async (c) => {
+  app.put('/v1/vault/:id', oneAtATime, capped(MAX_VAULT_BYTES), async (c) => {
     const id = c.req.param('id')
     if (!VAULT_ID.test(id)) return c.json({ error: 'not a vault id' }, 400)
 
@@ -756,9 +862,23 @@ export function createHubApp({
     const parsed = sealedSchema.safeParse(safeJson(raw))
     if (!parsed.success) return c.json({ error: 'not a sealed vault' }, 400)
     // An id somebody else already holds is not overwritten: it is theirs.
-    const holder = db.prepare('SELECT owner FROM vault WHERE id = ?').get(id) as
-      { owner: string } | undefined
+    const holder = db.prepare('SELECT owner, updated_at FROM vault WHERE id = ?').get(id) as
+      { owner: string; updated_at: number } | undefined
     if (holder && holder.owner !== c.get('owner')) return c.json({ error: 'not yours' }, 403)
+    // An own row past the window counts as new, or rewriting old rows would revive the ceiling.
+    if (
+      (!holder || holder.updated_at < now() - CEILING_WINDOW_MS) &&
+      atCeiling(
+        c.get('owner'),
+        c.get('door'),
+        'SELECT COUNT(*) AS n FROM vault WHERE owner = ? AND updated_at >= ? AND id != ?',
+        MAX_VAULTS_PER_OWNER,
+        now() - CEILING_WINDOW_MS,
+        id,
+      )
+    ) {
+      return c.json({ error: 'too many vaults for this key' }, 403)
+    }
 
     db.prepare(
       `INSERT INTO vault (id, body, updated_at, owner)
@@ -780,7 +900,7 @@ export function createHubApp({
    */
   const SHARE_ID = /^[a-f0-9]{32}$/
 
-  app.post('/v1/share', capped(MAX_SHARE_BYTES), async (c) => {
+  app.post('/v1/share', oneAtATime, capped(MAX_SHARE_BYTES), async (c) => {
     const raw = await c.req.text()
     if (raw.length > MAX_SHARE_BYTES) return c.json({ error: 'too large' }, 413)
 
@@ -803,15 +923,29 @@ export function createHubApp({
     const latest = at + MAX_SHARE_LIFETIME_MS
     const expiresAt = Math.min(parsed.data.expiresAt, latest)
 
-    db.prepare(
-      `INSERT INTO shares (id, body, expires_at, created_at)
-       VALUES (?, ?, ?, ?)
-       ON CONFLICT(id) DO UPDATE SET
-         body = excluded.body,
-         expires_at = excluded.expires_at`,
-    ).run(parsed.data.id, JSON.stringify(parsed.data.sealed), expiresAt, at)
-
     sweepShares(db, at)
+    if (
+      atCeiling(
+        c.get('owner'),
+        c.get('door'),
+        'SELECT COUNT(*) AS n FROM shares WHERE owner = ? AND expires_at > ?',
+        MAX_SHARES_PER_OWNER,
+        at,
+      )
+    ) {
+      return c.json({ error: 'too many shared lists for this key' }, 403)
+    }
+
+    // An id already taken is not overwritten: whoever holds its link keeps what it showed.
+    const inserted = db
+      .prepare(
+        `INSERT INTO shares (id, body, expires_at, created_at, owner)
+         VALUES (?, ?, ?, ?, ?)
+         ON CONFLICT(id) DO NOTHING`,
+      )
+      .run(parsed.data.id, JSON.stringify(parsed.data.sealed), expiresAt, at, c.get('owner'))
+    if (inserted.changes === 0) return c.json({ error: 'id taken' }, 409)
+
     return c.json({ stored: true, expiresAt })
   })
 

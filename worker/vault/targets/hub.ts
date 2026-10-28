@@ -1,6 +1,7 @@
 import type { VaultTargetPort } from '#shared/ports'
 
 import type { HubClient } from '../../hub/client'
+import { HUB_BULK_TIMEOUT_MS, withTimeout } from '../../hub/fallback'
 import { KDF_ITERATIONS, type SealedVault } from '../crypto'
 
 /**
@@ -87,12 +88,13 @@ export function hubTarget(client: HubClient, id: string, where: string): VaultTa
   return {
     available: () => true,
 
+    // Bounded: a hub that never answers must not leave the sync hanging.
     async read() {
-      return client.vaultRead(id)
+      return withTimeout(client.vaultRead(id), HUB_BULK_TIMEOUT_MS)
     },
 
     async write(sealed) {
-      await client.vaultWrite(id, sealed as SealedVault)
+      await withTimeout(client.vaultWrite(id, sealed as SealedVault), HUB_BULK_TIMEOUT_MS)
     },
 
     describe: () => where,

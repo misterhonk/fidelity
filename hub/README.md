@@ -103,6 +103,19 @@ half, which never goes on the hub:
 HUB_ACCESS_PRIVATE_KEY=./issuer.pem node scripts/access-keys.ts issue <subject> beta 90
 ```
 
+A key holder shares the hub with people they don't know, so a key gets limits the secret
+does not (constants in `src/app.ts`):
+
+| Answer | When |
+|---|---|
+| `403` | more than 3 vaults, 50 live shares, 5 push endpoints or 50 shops — counting only vaults and shops the hub wrote in the last 30 days, by its own clock (a client's `seenAt` does not count). Rewriting one's own vault or shop last written longer ago counts as a new one |
+| `429` + `retry-after: 1` | a second large upload (vault, share, horizon) on the same route while the first is still sending |
+| `409` | a share id that already exists — shares are never overwritten (on every door) |
+| `stored: false` | a horizon chunk or family another key wrote less than 30 days ago (counted from its first write). Such a cover is not refused either: it is silently left out of the `stored` count. The hold binds every other writer, the secret door included; rows from the secret door or from before the owner column have no owner and are open to everyone |
+
+The hub deletes expired shares, horizon chunks and families past the 30-day client TTL,
+and watch state for shops nobody watches, once an hour.
+
 
 ## Backups and the drill (M23)
 

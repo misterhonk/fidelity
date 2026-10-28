@@ -255,6 +255,11 @@ because the subscription then went through `curl`, and curl asks nobody for perm
 **Auth:** a shared secret in the `Authorization` header, generated once at setup. Entirely
 sufficient for a circle of friends. No user accounts, no passwords, no sessions.
 
+Access keys (M22) add per-key limits — `403` over a ceiling, `429` for a second large
+upload on one route, `stored: false` for a row another key holds. The table is in
+`hub/README.md`. Cache reads and contributions fall back silently; a refused vault save or share shows as an
+error, because somebody pressed a button for it.
+
 ### Covers — the cheapest win in the whole add-on
 
 The inventory endpoint delivers **no images at all**: `release.thumbnail` is empty, in 1,200

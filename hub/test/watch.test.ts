@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict'
-import { describe, test } from 'node:test'
+import { describe, mock, test } from 'node:test'
+
+import webpush from 'web-push'
 
 import { openHubDb } from '../src/db.ts'
 import {
   POLL_SPACING_IDENTIFIED_MS,
   POLL_SPACING_MS,
+  oneRoundAtATime,
   USER_AGENT,
   watchRound,
 } from '../src/watch.ts'
@@ -419,5 +422,57 @@ describe('a shop that does not answer', () => {
       now: () => clock,
     })
     assert.ok(second.checked >= 1)
+  })
+})
+
+describe('a slow round', () => {
+  test('gives up on a Discogs that hangs', async () => {
+    const db = setup()
+    const signals: (AbortSignal | null | undefined)[] = []
+    const noting = ((_url: string, init?: RequestInit) => {
+      signals.push(init?.signal)
+      return Promise.reject(new Error('aborted'))
+    }) as unknown as typeof fetch
+    await watchRound({ db, fetchImpl: noting, send: nothing, sleep: nothing })
+    assert.equal(signals.length, 1)
+    assert.ok(signals[0] instanceof AbortSignal)
+  })
+
+  test('gives up on a push service that hangs', async () => {
+    const db = setup()
+    const options: unknown[] = []
+    const sending = mock.method(
+      webpush,
+      'sendNotification',
+      (_s: unknown, _p: unknown, o: unknown) => {
+        options.push(o)
+        return Promise.resolve({ statusCode: 201, body: '', headers: {} })
+      },
+    )
+    try {
+      await watchRound({ db, fetchImpl: answering({ fatplastics: 100 }), sleep: nothing })
+      db.prepare('UPDATE watch_state SET checked_at = 0').run()
+      await watchRound({ db, fetchImpl: answering({ fatplastics: 112 }), sleep: nothing })
+    } finally {
+      sending.mock.restore()
+    }
+    assert.deepEqual(options, [{ timeout: 10_000 }])
+  })
+
+  test('a tick while a round still runs is skipped, not stacked', async () => {
+    let rounds = 0
+    let finish!: () => void
+    const tick = oneRoundAtATime(() => {
+      rounds += 1
+      return new Promise<void>((resolve) => (finish = resolve))
+    })
+    const first = tick()
+    assert.equal(await tick(), null)
+    assert.equal(rounds, 1)
+    finish()
+    await first
+    void tick()
+    assert.equal(rounds, 2, 'the next one runs once the first is done')
+    finish()
   })
 })

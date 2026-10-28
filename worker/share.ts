@@ -1,5 +1,6 @@
 import { seal, open } from './vault/crypto'
 import { createHubClient } from './hub/client'
+import { HUB_BULK_TIMEOUT_MS, withTimeout } from './hub/fallback'
 import { getPreferences } from '~~/db/meta'
 import type { DigWithMatches } from '#shared/protocol'
 import type { SharedDig } from '#shared/types'
@@ -92,7 +93,7 @@ export async function createShare(loaded: DigWithMatches): Promise<ShareCreated>
   const key = randomHex(16)
   const sealed = await seal(snapshot, key)
 
-  await hub.shareWrite(id, sealed, dig.expiresAt)
+  await withTimeout(hub.shareWrite(id, sealed, dig.expiresAt), HUB_BULK_TIMEOUT_MS)
   return { id, key, expiresAt: dig.expiresAt, matches: snapshot.matches.length }
 }
 
@@ -118,7 +119,7 @@ export async function readShare(
   const hub = createHubClient({ baseUrl: hubUrl, secret: null })
   if (!hub) return null
 
-  const found = await hub.shareRead(id)
+  const found = await withTimeout(hub.shareRead(id), HUB_BULK_TIMEOUT_MS)
   if (!found) return null
 
   const snapshot = await open<SharedDig>(found.sealed, key)

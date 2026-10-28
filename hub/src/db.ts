@@ -248,11 +248,38 @@ export function openHubDb(path: string): DatabaseSync {
    * row belongs to; '' on a secret-only hub, where every row is the
    * self-hoster's. Added in place — a hub from before keys keeps its rows.
    */
-  for (const table of ['vault', 'watchers']) {
+  // Shared rows carry their writer too, so one member's rows can be counted and
+  // kept from replacing another's (2026-10-22).
+  for (const table of [
+    'vault',
+    'watchers',
+    'shares',
+    'horizon',
+    'families',
+    'covers',
+    'shops',
+  ]) {
     const columns = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]
     if (!columns.some((column) => column.name === 'owner')) {
       db.exec(`ALTER TABLE ${table} ADD COLUMN owner TEXT NOT NULL DEFAULT ''`)
     }
   }
   return db
+}
+
+/** How long a horizon chunk or pressing family is worth keeping: the clients' 30-day TTL. */
+export const CATALOGUE_TTL_MS = 30 * 24 * 60 * 60 * 1000
+
+/**
+ * Rows that are never deleted otherwise, cleared where an expiry is clear:
+ * horizon and families past the clients' TTL, expired shares, and watcher
+ * state for shops nobody watches any more. Covers and shops have no expiry
+ * rule and stay.
+ */
+export function sweepStale(db: DatabaseSync, now: number): void {
+  db.prepare('DELETE FROM horizon WHERE fetched_at < ?').run(now - CATALOGUE_TTL_MS)
+  db.prepare('DELETE FROM families WHERE fetched_at < ?').run(now - CATALOGUE_TTL_MS)
+  db.prepare('DELETE FROM shares WHERE expires_at <= ?').run(now)
+  db.prepare('DELETE FROM watch_state WHERE dealer NOT IN (SELECT dealer FROM watches)').run()
+  db.prepare('DELETE FROM watch_misses WHERE dealer NOT IN (SELECT dealer FROM watches)').run()
 }
