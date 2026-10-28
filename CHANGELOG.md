@@ -12,6 +12,17 @@ Für eine App bedeutet SemVer:
 ## [0.113.2](https://github.com/misterhonk/fidelity/compare/v0.113.1...v0.113.2) (2026-10-28)
 
 
+**Aufgeräumt nach einer gründlichen Durchsicht.** Nichts Neues zu sehen, aber weniger, das
+heimlich schiefgeht:
+
+- Abmelden löscht keine Änderungen mehr, die noch nicht bei Discogs sind. Es fragt erst.
+- Ein abgebrochener Abgleich legt eine Platte nicht mehr doppelt in die Sammlung.
+- Ein Preis ohne Wert gilt nicht mehr als frisch, und im Korb steht keine 0-€-Zeile mehr.
+  Der Vergleich mit anderen Läden wartet, bis die Preise im Korb aktualisiert sind.
+- Der Korb wandert nicht mehr über den Tresor: eine entfernte Zeile kam sonst vom anderen
+  Gerät zurück. Die Sicherungsdatei behält ihn.
+- Ein Cover, das nicht lädt, wird vergessen statt 90 Tage lang kaputt gezeigt.
+
 ### Fixed
 
 * **basket:** no €0 lines priced now, and no comparison against an expired price ([adf77ab](https://github.com/misterhonk/fidelity/commit/adf77abc6907095e846621c6cb932cec6bbc753b))
