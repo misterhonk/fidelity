@@ -676,7 +676,11 @@ const uid = useId()
       On demand: a page with four shops on it would otherwise run four joins
       over every dig before anybody asked a question.
     -->
-    <section class="flex flex-col gap-3 border-t border-fid-border pt-4">
+    <!-- An expired price compares nothing; the line already says to refresh, not to dig. -->
+    <section
+      v-if="!summary.lines.some((line) => line.priceExpired && !line.sold)"
+      class="flex flex-col gap-3 border-t border-fid-border pt-4"
+    >
       <button
         type="button"
         :disabled="comparing"

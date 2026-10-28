@@ -84,7 +84,7 @@ function money(digits: string, currency: string | undefined): Money | null {
   return value === null ? null : { value, currency }
 }
 
-function readNumber(digits: string): number | null {
+export function readNumber(digits: string): number | null {
   const last = Math.max(digits.lastIndexOf('.'), digits.lastIndexOf(','))
   if (last === -1) return Number(digits)
   const tail = digits.length - last - 1

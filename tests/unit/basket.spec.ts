@@ -166,6 +166,46 @@ describe('holding a basket', () => {
     const db = await openFidelityDb()
     expect((await db.get('basket', 7))?.title).toBe('A – B')
   })
+
+  it('ages a line from when its price was fetched, not from the click', async () => {
+    // Dig scanned at 0, expires at 6 h; added at 5 h — one hour of price left.
+    await addToBasket(match({ listingId: 1 }), 'shop', 5 * 3600_000, PRICE_TTL_MS)
+    const db = await openFidelityDb()
+    expect((await db.get('basket', 1))?.pricedAt).toBe(0)
+
+    // A row refetched later carries its own, later clock.
+    await addToBasket(
+      match({ listingId: 2, freshUntil: PRICE_TTL_MS + 3600_000 }),
+      'shop',
+      5 * 3600_000,
+      PRICE_TTL_MS,
+    )
+    expect((await db.get('basket', 2))?.pricedAt).toBe(3600_000)
+  })
+
+  it('sorts a line by when it was added, even from an older dig', async () => {
+    const hour = 3600_000
+    // A fresh dig at 4 h, then a record from a dig scanned at 0, added at 5 h.
+    await addToBasket(match({ listingId: 1 }), 'shop-a', 4 * hour, 4 * hour + PRICE_TTL_MS)
+    await addToBasket(match({ listingId: 2 }), 'shop-b', 5 * hour, PRICE_TTL_MS)
+    await addToBasket(match({ listingId: 3 }), 'shop-b', 5 * hour - 1, 4 * hour + PRICE_TTL_MS)
+
+    const baskets = await basketSummaries(PRICE_TTL_MS + 1, 'Germany')
+    expect(baskets.map((basket) => basket.dealer)).toEqual(['shop-b', 'shop-a'])
+    expect(baskets[0]?.lines.map((line) => line.listingId)).toEqual([3, 2])
+    // The clock still runs from the older dig's price.
+    expect(baskets[0]?.lines.map((line) => line.priceExpired)).toEqual([false, true])
+  })
+
+  it('refuses a match without a showable price', async () => {
+    await expect(
+      addToBasket(match({ listingId: 1, price: null }), 'shop', 1000, PRICE_TTL_MS),
+    ).rejects.toMatchObject({ code: 'dig-expired' })
+    await expect(
+      addToBasket(match({ listingId: 2 }), 'shop', PRICE_TTL_MS + 1, PRICE_TTL_MS),
+    ).rejects.toMatchObject({ code: 'dig-expired' })
+    expect(await basketListingIds()).toEqual([])
+  })
 })
 
 describe('what a basket costs', () => {
@@ -179,6 +219,21 @@ describe('what a basket costs', () => {
     expect(summary.shipping).toBe(9)
     expect(summary.total).toBe(33)
     expect(summary.perItem).toBe(16.5)
+  })
+
+  it('adds up in cents, so 1.02 + 20.08 + 3.90 meets a 25 minimum', () => {
+    const summary = summarise(
+      [
+        line({ listingId: 1, price: 1.02 }),
+        line({ listingId: 2, price: 20.08 }),
+        line({ listingId: 3, price: 3.9 }),
+      ],
+      dealer({ minOrderTotal: 25 }),
+      shipping(table),
+    )
+    expect(summary.subtotal).toBe(25)
+    expect(summary.belowMinimum).toBe(false)
+    expect(summary.missingToMinimum).toBeNull()
   })
 
   it('refuses to total a basket whose prices have aged out', () => {

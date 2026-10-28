@@ -1,3 +1,4 @@
+import { showableUntil } from '~~/db/expire'
 import { openFidelityDb } from '~~/db/open'
 import type { BasketLine, BasketSummary, Dealer, Match } from '#shared/types'
 
@@ -6,6 +7,8 @@ import { namedPostage } from './postage'
 import { resolveShipping, type ShippingResolution } from './profiles'
 import { shippingAdvice, shippingCurve, shippingFor } from './shipping'
 import { tiersForUnit, unitsOf } from '#shared/shipping'
+
+import { fail } from '../fail'
 
 /**
  * The basket.
@@ -24,7 +27,23 @@ export const PRICE_TTL_MS = 6 * 60 * 60 * 1000
 
 export type { BasketLine, BasketSummary }
 
-export async function addToBasket(match: Match, dealer: string, now: number): Promise<void> {
+/**
+ * `digExpiresAt` is the clock of the dig the match came from; without one the
+ * price is taken as fetched at `now` (a refetch seconds ago).
+ */
+export async function addToBasket(
+  match: Match,
+  dealer: string,
+  now: number,
+  digExpiresAt?: number,
+): Promise<void> {
+  // The line ages from when the price was fetched, not from the click.
+  const pricedAt =
+    digExpiresAt === undefined ? now : showableUntil(match, digExpiresAt) - PRICE_TTL_MS
+  if (match.price == null || pricedAt + PRICE_TTL_MS <= now) {
+    throw fail('dig-expired', 'no showable price')
+  }
+
   const db = await openFidelityDb()
 
   /*
@@ -57,9 +76,10 @@ export async function addToBasket(match: Match, dealer: string, now: number): Pr
      * same way it now writes the reason sentence rather than the worker.
      */
     title: [match.artist, match.title].filter(Boolean).join(' – '),
-    price: match.price ?? 0,
+    price: match.price,
     currency: match.currency ?? '',
     addedAt: now,
+    pricedAt,
     note: null,
     format: match.format ?? null,
   })
@@ -82,7 +102,7 @@ export async function markHandedOver(listingId: number, at: number | null): Prom
   const db = await openFidelityDb()
   const item = await db.get('basket', listingId)
   if (!item) return
-  await db.put('basket', { ...item, atDiscogsAt: at })
+  await db.put('basket', { ...item, atDiscogsAt: at, updatedAt: Date.now() })
 }
 
 export async function clearBasket(): Promise<void> {
@@ -116,7 +136,7 @@ export async function basketSummaries(now: number, country: string): Promise<Bas
   for (const item of items) {
     const line: BasketLine = {
       ...item,
-      priceExpired: now - item.addedAt > PRICE_TTL_MS,
+      priceExpired: now - (item.pricedAt ?? item.addedAt) > PRICE_TTL_MS,
       sold: Boolean(item.soldAt),
     }
     const lines = byDealer.get(item.dealer)
@@ -179,8 +199,10 @@ export function summarise(
   // exchange rate it can trust (same reason S10 refuses to convert).
   const mixedCurrency = new Set(live.map((line) => line.currency).filter(Boolean)).size > 1
 
-  const subtotal =
-    anyExpired || mixedCurrency ? null : live.reduce((sum, line) => sum + line.price, 0)
+  // Summed in cents: 1.02 + 20.08 + 3.90 in floats is 24.999…, "below a €25 minimum".
+  const subtotalCents =
+    anyExpired || mixedCurrency ? null : live.reduce((sum, line) => sum + cents(line.price), 0)
+  const subtotal = subtotalCents === null ? null : subtotalCents / 100
 
   /*
    * What Discogs named for one record here (M34.2). For a basket of one it
@@ -209,24 +231,32 @@ export function summarise(
   const parcel = parcelOf(live, shipping.countUnits ?? false)
   const table = tiersForUnit(shipping.tiers, parcel.unit)
 
-  const tierCurrency = table[0]?.currency ?? null
-  const rate = conversionRate(live, tierCurrency, currency)
-  const converted = tierCurrency !== null && currency !== null && tierCurrency !== currency
+  // Each tier by its own currency: a typed-in euro tier can sit beside a parsed pound table.
+  const foreign =
+    currency === null
+      ? []
+      : [...new Set(table.map((tier) => tier.currency).filter((c) => c !== currency))]
+  const rates = new Map(foreign.map((c) => [c, conversionRate(live, c, currency)]))
+  const tierCurrency = foreign[0] ?? table[0]?.currency ?? null
+  const rate = (tierCurrency !== null && rates.get(tierCurrency)) || null
+  const converted = foreign.length > 0
   const tiers = !converted
     ? table
-    : rate === null
+    : foreign.some((c) => !rates.get(c))
       ? []
-      : table.map((tier) => ({
-          ...tier,
-          price: Math.round(tier.price * rate * 100) / 100,
-          currency: currency!,
-        }))
+      : table.map((tier) => {
+          const own = rates.get(tier.currency)
+          return own
+            ? { ...tier, price: Math.round(tier.price * own * 100) / 100, currency: currency! }
+            : tier
+        })
 
+  const freeRate = shipping.freeOver ? rates.get(shipping.freeOver.currency) : undefined
   const threshold = shipping.freeOver
     ? shipping.freeOver.currency === currency
       ? shipping.freeOver.amount
-      : shipping.freeOver.currency === tierCurrency && rate !== null
-        ? Math.round(shipping.freeOver.amount * rate * 100) / 100
+      : freeRate
+        ? Math.round(shipping.freeOver.amount * freeRate * 100) / 100
         : null
     : null
   const freeOver =
@@ -244,7 +274,8 @@ export function summarise(
     : freeOver !== null && freeOver.missing === 0 && tabled !== null
       ? 0
       : tabled
-  const total = subtotal === null || postage === null ? null : subtotal + postage
+  const total =
+    subtotalCents === null || postage === null ? null : (subtotalCents + cents(postage)) / 100
 
   // Customs and import VAT, for a parcel that crosses into the EU.
   const charges = importCharges({
@@ -268,9 +299,10 @@ export function summarise(
    * is a fact about the shop; the difference is the only part that is about
    * the decision in front of somebody.
    */
+  const minimumCents = cents(minOrderTotal)
   const missingToMinimum =
-    subtotal !== null && minOrderTotal > 0 && subtotal < minOrderTotal
-      ? minOrderTotal - subtotal
+    subtotalCents !== null && minimumCents > 0 && subtotalCents < minimumCents
+      ? (minimumCents - subtotalCents) / 100
       : null
 
   return {
@@ -316,6 +348,8 @@ export function summarise(
     freeOver,
   }
 }
+
+const cents = (amount: number) => Math.round(amount * 100)
 
 /**
  * The parcel as a shop's table sees it: one unit when every line agrees,

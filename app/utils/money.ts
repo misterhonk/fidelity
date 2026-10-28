@@ -52,5 +52,9 @@ export function count(value: number): string {
  * others rather than being fixed six times.
  */
 export function decimal(value: number, digits = 1): string {
-  return new Intl.NumberFormat(activeLocale(), { maximumFractionDigits: digits }).format(value)
+  // Fixed digits, like the toFixed() it replaced: 13 reads "13.0", so a column lines up.
+  return new Intl.NumberFormat(activeLocale(), {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(value)
 }

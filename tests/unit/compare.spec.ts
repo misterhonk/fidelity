@@ -155,6 +155,23 @@ describe('the same basket at another shop', () => {
     })
   })
 
+  it('compares nothing while a basket price is past six hours', async () => {
+    await fiveAtHome()
+    const db = await openFidelityDb()
+    const line = (await db.getAll('basket'))[0]!
+    await db.put('basket', { ...line, pricedAt: NOW - 7 * HOUR })
+    await shop('cheaper', 6)
+    await dig('02CHEAP', 'cheaper')
+    for (const releaseId of [1, 2, 3, 4, 5]) {
+      await stock('02CHEAP', releaseId, 14, 'Very Good Plus (VG+)')
+    }
+
+    const result = await compareBasket('home', NOW)
+
+    expect(result.offers).toEqual([])
+    expect(result.baseline.total).toBeNull()
+  })
+
   /*
    * The case the whole thing turns on.
    *

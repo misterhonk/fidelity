@@ -3,7 +3,7 @@ import { globSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import { useLanguage } from '~/composables/useMessages'
-import { money } from '~/utils/money'
+import { decimal, money } from '~/utils/money'
 import { UNDERSTOOD_SHAPES as SHOWN } from '~/utils/shipping-shapes'
 import { UNDERSTOOD_SHAPES as PARSED } from '~~/worker/basket/parse-shipping'
 
@@ -76,6 +76,17 @@ describe('a price', () => {
  * dates until it is reloaded. Both helper modules build theirs per call for
  * exactly that reason.
  */
+describe('a decimal', () => {
+  it('keeps its digits and follows the interface language', async () => {
+    const { apply } = useLanguage()
+    expect(decimal(13)).toBe('13.0')
+    expect(decimal(4, 2)).toBe('4.00')
+    await apply('de')
+    expect(decimal(13)).toBe('13,0')
+    await apply('en')
+  })
+})
+
 describe('no screen formats a number or a date on its own', () => {
   const HELPERS = ['app/utils/money.ts', 'app/utils/when.ts']
   const FILES = [...globSync('app/**/*.vue'), ...globSync('app/**/*.ts')].filter(

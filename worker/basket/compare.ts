@@ -4,6 +4,7 @@ import { openFidelityDb } from '~~/db/open'
 import { getPreferences } from '~~/db/meta'
 import type { BasketItem, Dealer, StockRow } from '#shared/types'
 
+import { PRICE_TTL_MS } from './index'
 import { resolveShipping } from './profiles'
 
 /**
@@ -122,10 +123,12 @@ export async function compareBasket(dealer: string, now = Date.now()): Promise<C
     (item) => item.dealer === dealer && !item.soldAt,
   )
   const here = await db.get('dealers', dealer)
+  // Same rule as the basket's total: one price past six hours and there is nothing honest to compare against.
+  const expired = items.some((item) => now - (item.pricedAt ?? item.addedAt) > PRICE_TTL_MS)
 
   const baseline = await priceAt(
     here ?? null,
-    items.map((item) => item.price),
+    expired ? [] : items.map((item) => item.price),
     items[0]?.currency ?? null,
     country,
   )
@@ -137,7 +140,7 @@ export async function compareBasket(dealer: string, now = Date.now()): Promise<C
     looked: 0,
     candidates: [],
   }
-  if (items.length === 0) return empty
+  if (items.length === 0 || expired) return empty
 
   /*
    * Which digs are still allowed to speak. Their own shop is left out — a

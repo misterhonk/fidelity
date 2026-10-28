@@ -1,5 +1,6 @@
 import type { ShippingTier, ShippingUnit } from '#shared/types'
 
+import { readNumber } from './parse-cart'
 import { sortTiers } from './shipping'
 
 /**
@@ -43,29 +44,15 @@ const CURRENCIES: Record<string, string> = {
  * A price with its currency. Handles "6,00 €", "€6.00", "7,-", "EUR 12".
  *
  * German writes 1.234,56 and English 1,234.56, so the decimal separator is
- * decided by which one comes last rather than assumed.
+ * decided by which one comes last, and by the digits after it, rather than assumed.
  */
 const PRICE = String.raw`(?:(€|£|\$|EUR|GBP|USD|CHF)\s*)?(\d{1,4}(?:[.,]\d{1,3})*(?:[.,]-)?)\s*(€|£|\$|EUR|GBP|USD|CHF)?`
 
 function toNumber(raw: string): number | null {
-  // "7,-" and "7.-" are German shorthand for a round amount.
-  const trimmed = raw.replace(/[.,]-$/, '')
-
-  const lastComma = trimmed.lastIndexOf(',')
-  const lastDot = trimmed.lastIndexOf('.')
-
-  let normalised: string
-  if (lastComma === -1 && lastDot === -1) {
-    normalised = trimmed
-  } else if (lastComma > lastDot) {
-    // German: dots group, the comma decides.
-    normalised = trimmed.replace(/\./g, '').replace(',', '.')
-  } else {
-    normalised = trimmed.replace(/,/g, '')
-  }
-
-  const value = Number(normalised)
-  return Number.isFinite(value) && value >= 0 ? value : null
+  // "7,-" and "7.-" are German shorthand for a round amount. The rest is the
+  // cart's rule, so "1.000 €" is a thousand here too, not one.
+  const value = readNumber(raw.replace(/[.,]-$/, ''))
+  return value !== null && value >= 0 ? value : null
 }
 
 function toCurrency(...marks: (string | undefined)[]): string | null {

@@ -235,6 +235,8 @@ export async function runDemo(options: {
     shipsFromBlock: [],
     prefMediaCondition: 'Poor (P)',
     targetPrice: null,
+    // No price filters, so nothing is compared in it.
+    currency: '',
   }
 
   // 3 — a slice of the shop, newest first.

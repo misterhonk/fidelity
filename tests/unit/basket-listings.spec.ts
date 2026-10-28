@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { parseListingIds } from '~~/worker/basket/listings'
+import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
+import type { DiscogsClient } from '~~/worker/discogs/client'
+import { addPastedListings, parseListingIds } from '~~/worker/basket/listings'
 
 /**
  * Was Leute wirklich einfügen.
@@ -67,5 +69,33 @@ describe('parseListingIds', () => {
 
   it('says nothing about an empty paste', () => {
     expect(parseListingIds('   \n  ')).toEqual([])
+  })
+})
+
+describe('addPastedListings', () => {
+  afterEach(async () => {
+    await deleteFidelityDb()
+  })
+
+  it('does not file a for-sale listing with no price as a fresh €0 line', async () => {
+    const get = vi.fn(async (_path: string, schema: { parse: (v: unknown) => unknown }) =>
+      schema.parse({
+        id: 7,
+        status: 'For Sale',
+        price: { value: null, currency: 'EUR' },
+        seller: { username: '430AM_Studio' },
+        release: { id: 70, title: 'Dummy', artist: 'Portishead' },
+      }),
+    )
+
+    const result = await addPastedListings({
+      client: { get } as unknown as DiscogsClient,
+      ids: [7],
+      currency: 'EUR',
+      now: 1_800_000_000_000,
+    })
+
+    expect(result).toMatchObject({ added: 0, unknown: 1 })
+    expect(await (await openFidelityDb()).get('basket', 7)).toBeUndefined()
   })
 })

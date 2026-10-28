@@ -77,7 +77,8 @@ export function freshPostage(items: BasketItem[], now: number): ListingPostage |
   let newest: ListingPostage | null = null
   for (const item of items) {
     const postage = item.postage
-    if (!postage || item.soldAt || now - item.addedAt > POSTAGE_TTL_MS) continue
+    if (!postage || item.soldAt || now - (item.pricedAt ?? item.addedAt) > POSTAGE_TTL_MS)
+      continue
     if (!newest || postage.at > newest.at) newest = postage
   }
   return newest

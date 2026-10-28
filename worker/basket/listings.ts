@@ -183,6 +183,13 @@ export async function addPastedListings(options: {
       continue
     }
 
+    if (listing.price?.value == null) {
+      // For sale with no price named: a €0 line priced "now" would be a lie.
+      unknown += 1
+      report?.({ done: index + 1, total: ids.length, requests, added })
+      continue
+    }
+
     const dealer = listing.seller.username
     dealers.add(dealer)
 
@@ -208,9 +215,10 @@ export async function addPastedListings(options: {
       title:
         [listing.release.artist, listing.release.title].filter(Boolean).join(' – ') ||
         'Unbekannt',
-      price: listing.price?.value ?? 0,
+      price: listing.price.value,
       currency: listing.price?.currency ?? currency,
       addedAt: now,
+      pricedAt: now,
       note: null,
       soldAt: null,
       postage: postageOf(listing, now),

@@ -74,6 +74,13 @@ describe('a British shop with three destination blocks', () => {
     })
     expect(parseShippingText('1 LP 6 €, ab 4 LP 12 €', 'Germany').freeOver).toBeNull()
   })
+
+  it('reads a dot before three digits as thousands, the way the cart does', () => {
+    expect(
+      parseShippingText('1 LP 6 €\nVersandkostenfrei ab 1.000 €', 'Germany').freeOver,
+    ).toEqual({ amount: 1000, currency: 'EUR' })
+    expect(parseShippingText('1-2 LP 1.234 €', 'Germany').tiers[0]?.price).toBe(1234)
+  })
 })
 
 /**

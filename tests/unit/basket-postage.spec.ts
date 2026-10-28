@@ -175,6 +175,24 @@ describe('a table in the seller’s currency', () => {
     expect(summary.freeOver).toEqual({ amount: 352.75, missing: 336.88 })
   })
 
+  it('converts each tier by its own currency and leaves euro tiers alone', () => {
+    // A read-off for three in euros merged into the parsed pound table.
+    const mixed = {
+      ...pounds,
+      tiers: [
+        ...pounds.tiers,
+        { minItems: 3, maxItems: 3, price: 9.8, currency: 'EUR', source: 'user' as const },
+      ],
+    }
+    const summary = summarise(
+      [line({ postage: named }), line({ listingId: 2 }), line({ listingId: 3 })],
+      dealer,
+      mixed,
+    )
+    expect(summary.shipping).toBe(9.8)
+    expect(summary.curve.find((point) => point.items === 2)?.total).toBe(15.87)
+  })
+
   it('refuses to add a table it cannot convert', () => {
     const summary = summarise([line(), line({ listingId: 2 })], dealer, pounds)
     expect(summary.shipping).toBeNull()
