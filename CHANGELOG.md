@@ -9,6 +9,25 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.113.2](https://github.com/misterhonk/fidelity/compare/v0.113.1...v0.113.2) (2026-10-28)
+
+
+### Fixed
+
+* **basket:** no €0 lines priced now, and no comparison against an expired price ([adf77ab](https://github.com/misterhonk/fidelity/commit/adf77abc6907095e846621c6cb932cec6bbc753b))
+* **dig:** count a resumed scan once and never stamp an old price as fresh ([ce28004](https://github.com/misterhonk/fidelity/commit/ce280042ba5a9af2b98b12b1381ecb02d8f133b9))
+* **discogs:** read FastAPI string errors, and let a cancel end a backoff ([cfce5e9](https://github.com/misterhonk/fidelity/commit/cfce5e92ef3e1061a8d5dbc20cf2d17315b8be57))
+* **hub:** cap what one key may store, and give every slow call a timeout ([ca224be](https://github.com/misterhonk/fidelity/commit/ca224be61530e8fee9ce6d82d8c9be470edb34b4))
+* **match:** read year 0 as unknown, and keep credits through a passing network error ([899caaf](https://github.com/misterhonk/fidelity/commit/899caafb9eb6a1fd17f81968d875ed80bd13c335))
+* **pwa:** forget a cover that failed to draw instead of serving it for 90 days ([4f20d3a](https://github.com/misterhonk/fidelity/commit/4f20d3a26661520bfbef566ba56da6affd8ea482))
+* **sync:** keep changes not yet sent safe through sign-out, sync and cancel ([c630470](https://github.com/misterhonk/fidelity/commit/c630470d71a99dac096158333938952b0fc8f7c0))
+* **sync:** take the basket out of the vault, and import a backup in one transaction ([16b7223](https://github.com/misterhonk/fidelity/commit/16b7223d49999249de0e802573b4f10d083a3138))
+
+
+### Changed
+
+* **ui:** one fid-toast utility for the undo line on four pages ([aa07e50](https://github.com/misterhonk/fidelity/commit/aa07e50f6ccca9500afbc2703c33392375015359))
+
 ## [0.113.1](https://github.com/misterhonk/fidelity/compare/v0.113.0...v0.113.1) (2026-10-21)
 
 
