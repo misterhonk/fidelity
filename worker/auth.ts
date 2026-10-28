@@ -221,7 +221,14 @@ export async function currentIdentity(): Promise<Identity | null> {
  * is reproducible from the API, so this costs a resync and nothing else — and
  * it is the only version of "sign out" that is actually true.
  */
-export async function signOut(): Promise<void> {
+export async function signOut({ force = false }: { force?: boolean } = {}): Promise<void> {
+  // The one thing here that is not reproducible: changes not yet at Discogs.
+  if (!force) {
+    const { pendingJobs } = await import('~~/db/outbox')
+    // A database that will not open holds no outbox to protect — and would otherwise make sign-out impossible.
+    const waiting = (await pendingJobs().catch(() => [])).length
+    if (waiting > 0) throw fail('outbox-pending', `${waiting} changes not yet sent`)
+  }
   await deleteFidelityDb()
   forgetSecrets()
   shared = undefined

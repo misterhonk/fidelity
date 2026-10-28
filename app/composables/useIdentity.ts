@@ -31,8 +31,8 @@ export function useIdentity() {
     ready.value = true
   }
 
-  async function signOut() {
-    await call('auth.signOut', undefined)
+  async function signOut(force = false) {
+    await call('auth.signOut', { force })
     set(null)
   }
 

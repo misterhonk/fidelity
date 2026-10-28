@@ -24,12 +24,14 @@ const syncState = {
 }
 
 const expireDigs = vi.fn()
+const drainOutbox = vi.fn()
 
 vi.mock('~~/db/meta', () => ({ getSyncState: () => Promise.resolve(syncState.value) }))
 vi.mock('~~/db/expire', () => ({ expireDigs }))
 vi.mock('~~/worker/sync/library', () => ({ syncLibrary }))
 vi.mock('~~/worker/watch/check', () => ({ checkWatched }))
 vi.mock('~~/worker/horizon/build', () => ({ revalidateHorizon }))
+vi.mock('~~/worker/outbox', () => ({ drainOutbox }))
 
 const { runKeeper } = await import('~~/worker/keeper')
 
@@ -46,6 +48,7 @@ beforeEach(() => {
   checkWatched.mockReset().mockResolvedValue({ checked: 1, alerts: [{ dealer: 'x' }] })
   revalidateHorizon.mockReset().mockResolvedValue({ expanded: 3 })
   expireDigs.mockReset().mockResolvedValue(0)
+  drainOutbox.mockReset().mockResolvedValue({ sent: 0, givenUp: 0, waiting: 0 })
 })
 
 /**
@@ -185,6 +188,15 @@ describe('the keeper', () => {
 
     expect(result.did).toEqual([])
     expect(syncLibrary).not.toHaveBeenCalled()
+  })
+
+  // Pending rows are protected inside syncLibrary (pendingKeys); skipping here stalled the sync for hours.
+  it('syncs the library even while outbox changes are still waiting', async () => {
+    drainOutbox.mockResolvedValue({ sent: 0, givenUp: 0, waiting: 3 })
+    const result = await runKeeper({ client, username: 'mrtnmlchr', now: NOW })
+
+    expect(syncLibrary).toHaveBeenCalled()
+    expect(result.did).toContain('library')
   })
 
   it('does not let one failure stop the rest', async () => {

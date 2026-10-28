@@ -104,6 +104,9 @@ export async function getPreferences(): Promise<Preferences> {
 
 export async function updatePreferences(patch: Partial<Preferences>): Promise<Preferences> {
   const next = { ...(await getPreferences()), ...patch }
+  // Recording a sync is not a change of mind; stamping it would let the device
+  // that synced last win the vault merge with settings nobody touched.
+  if (Object.keys(patch).some((key) => key !== 'vaultSyncedAt')) next.updatedAt = Date.now()
   await setMeta('preferences', next)
   return next
 }
@@ -113,7 +116,12 @@ export async function getSyncState(): Promise<SyncState> {
 }
 
 export async function updateSyncState(patch: Partial<SyncState>): Promise<SyncState> {
-  const next = { ...(await getSyncState()), ...patch }
-  await setMeta('syncState', next)
+  // One transaction, so two patches racing each other cannot drop one.
+  const db = await openFidelityDb()
+  const tx = db.transaction('meta', 'readwrite')
+  const row = await tx.store.get('syncState')
+  const next = { ...DEFAULT_SYNC_STATE, ...(row?.value as SyncState | undefined), ...patch }
+  await tx.store.put({ key: 'syncState', value: next } as MetaValue)
+  await tx.done
   return next
 }

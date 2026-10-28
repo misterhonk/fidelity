@@ -161,7 +161,12 @@ export interface WorkerContract {
   /** A new token for the same account; the database stays. Refuses another account. */
   'auth.renew': { params: { token: string }; progress: never; result: Identity }
   /** Deletes the whole database, not just the token. */
-  'auth.signOut': { params: undefined; progress: never; result: { signedOut: true } }
+  /** Refused with `outbox-pending` while changes wait to be sent, unless forced. */
+  'auth.signOut': {
+    params: { force?: boolean } | undefined
+    progress: never
+    result: { signedOut: true }
+  }
 
   /**
    * Mirrors collection and wantlist. Reports per page, because the first run
@@ -1588,6 +1593,8 @@ export interface WorkerError {
      */
     | 'no-token'
     | 'not-signed-in'
+    /** Signing out would delete changes that have not reached Discogs yet. */
+    | 'outbox-pending'
     | 'no-listing'
     /** A pasted listing that has sold or been taken down. */
     | 'listing-gone'

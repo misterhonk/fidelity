@@ -2,6 +2,7 @@ import type { ZodType } from 'zod'
 
 import { getMeta, updateSyncState } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
+import type { OutboxJob } from '~~/db/schema'
 import type { CollectionItem, WantlistItem } from '#shared/types'
 
 import type { DiscogsClient } from '../discogs/client'
@@ -12,6 +13,7 @@ import {
   type CollectionPage,
   type WantlistPage,
 } from '../discogs/schemas'
+import { fail } from '../fail'
 import { norm } from '../match/normalize'
 
 /** How old the kept estimate may get before a sync fetches it again regardless. */
@@ -123,6 +125,23 @@ export interface SyncContext {
   username: string
   report?: (progress: SyncProgress) => void
   signal?: AbortSignal
+  /** The account the sync started under; see `syncPaged`. Read there when absent. */
+  owner?: string
+}
+
+/**
+ * Rows with a change still on its way to Discogs — its answer is older than ours.
+ *
+ * Collection jobs address the entry, wantlist jobs the release: the stores' keys.
+ */
+function pendingKeys(store: 'collection' | 'wantlist', jobs: OutboxJob[]): Set<number> {
+  return new Set(
+    jobs
+      .filter((job) => job.kind.startsWith(`${store}.`))
+      .map((job) =>
+        Number(store === 'collection' ? job.payload.instanceId : job.payload.releaseId),
+      ),
+  )
 }
 
 interface PagedOptions<TPage, TItem> {
@@ -148,9 +167,10 @@ interface PagedOptions<TPage, TItem> {
  * sync into a single request; a full walk only happens the first time.
  */
 async function syncPaged<TPage, TItem>(
-  { report, signal, client }: SyncContext,
+  { report, signal, client, owner: started }: SyncContext,
   options: PagedOptions<TPage, TItem>,
 ): Promise<SyncSummary & { newest: string | null; seen: Set<number> | null }> {
+  const owner = started ?? (await getMeta('identity'))?.username
   let page = 1
   let pages = 1
   let items = 0
@@ -191,6 +211,7 @@ async function syncPaged<TPage, TItem>(
     }
 
     if (fresh.length > 0) {
+      await assertOwner(owner)
       await options.write(fresh)
       stored += fresh.length
     }
@@ -205,6 +226,13 @@ async function syncPaged<TPage, TItem>(
    * is either complete or `null`.
    */
   return { stored, requests, total: items, removed: 0, newest, seen: seenKeys }
+}
+
+/** Signing out in another tab recreates the database; the old account's writes must not land in it. */
+async function assertOwner(owner: string | undefined): Promise<void> {
+  if (owner !== undefined && (await getMeta('identity'))?.username !== owner) {
+    throw fail('not-signed-in', 'signed out during sync')
+  }
 }
 
 /**
@@ -225,14 +253,17 @@ async function syncPaged<TPage, TItem>(
  * null`) and returned without an exception. Anything else does not know the
  * shelf completely and may infer nothing from it.
  */
-async function sweep<TStore extends 'collection' | 'wantlist'>(
-  store: TStore,
+async function sweep(
+  store: 'collection' | 'wantlist',
   seenKeys: Set<number>,
-  /** Rows Discogs cannot know about yet — those always survive. */
-  keep: (key: number) => boolean = () => false,
+  /** Rows Discogs cannot know about yet — those always survive, as do rows with a job queued. */
+  keep: (key: number, row: CollectionItem | WantlistItem | undefined) => boolean,
 ): Promise<number> {
   const db = await openFidelityDb()
-  const present = (await db.getAllKeys(store)) as number[]
+  // With the outbox in the same transaction, a change queued in between cannot be swept.
+  const tx = db.transaction([store, 'outbox'], 'readwrite')
+  const rows = tx.objectStore(store)
+  const present = (await rows.getAllKeys()) as number[]
 
   /*
    * An empty pass deletes nothing.
@@ -242,15 +273,20 @@ async function sweep<TStore extends 'collection' | 'wantlist'>(
    * stay lying about, in the other the shelf is gone and the horizon with it.
    * Anyone who really has removed everything clears up through "sign out".
    */
-  if (seenKeys.size === 0 && present.length > 0) return 0
+  if (seenKeys.size === 0 && present.length > 0) {
+    await tx.done
+    return 0
+  }
 
-  const gone = present.filter((key) => !seenKeys.has(key) && !keep(key))
-  if (gone.length === 0) return 0
-
-  const tx = db.transaction(store, 'readwrite')
-  for (const key of gone) await tx.store.delete(key)
+  const pending = pendingKeys(store, await tx.objectStore('outbox').getAll())
+  let removed = 0
+  for (const key of present) {
+    if (seenKeys.has(key) || pending.has(key) || keep(key, await rows.get(key))) continue
+    await rows.delete(key)
+    removed += 1
+  }
   await tx.done
-  return gone.length
+  return removed
 }
 
 /**
@@ -275,6 +311,7 @@ export async function syncCollection(
   context: SyncContext,
   { full = false }: { full?: boolean } = {},
 ): Promise<SyncSummary> {
+  context = { ...context, owner: context.owner ?? (await getMeta('identity'))?.username }
   const syncState = await getMeta('syncState')
   const db = await openFidelityDb()
 
@@ -306,9 +343,13 @@ export async function syncCollection(
         },
       })),
     write: async (items) => {
-      const tx = db.transaction('collection', 'readwrite')
+      // One transaction with the outbox: a rating queued between reading it and writing must win.
+      const tx = db.transaction(['collection', 'outbox'], 'readwrite')
+      const pending = pendingKeys('collection', await tx.objectStore('outbox').getAll())
+      const store = tx.objectStore('collection')
       for (const item of items) {
-        await tx.store.put(item)
+        if (pending.has(item.instanceId)) continue
+        await store.put(item)
         /*
          * And the provisional row this replaces, if there was one.
          *
@@ -317,7 +358,7 @@ export async function syncCollection(
          * otherwise stand beside it — the same record twice, one of them
          * un-writable, which is exactly the bug this whole change is about.
          */
-        if (item.instanceId > 0) await tx.store.delete(-item.releaseId)
+        if (item.instanceId > 0) await store.delete(-item.releaseId)
       }
       await tx.done
       await mirrorCovers(items)
@@ -335,6 +376,7 @@ export async function syncCollection(
    * evidence of nothing — clearing them away here would take back an entry
    * somebody has just made.
    */
+  if (result.seen) await assertOwner(context.owner)
   result.removed = result.seen ? await sweep('collection', result.seen, (key) => key <= 0) : 0
 
   /*
@@ -361,6 +403,7 @@ export async function syncCollection(
   const valueStale = Date.now() - lastTried > VALUE_EVERY_MS
 
   if (result.stored > 0 || valueStale) {
+    await assertOwner(context.owner)
     const [{ refreshCollectionValue }, { refreshFolders }] = await Promise.all([
       import('../collection/value'),
       import('../collection/folders'),
@@ -374,6 +417,7 @@ export async function syncCollection(
     if (result.stored > 0) await refreshFolders(context.client, context.username)
   }
 
+  await assertOwner(context.owner)
   await updateSyncState({
     collectionSyncedAt: Date.now(),
     // Only a full walk can claim to have seen everything, so only a full walk
@@ -387,7 +431,15 @@ export async function syncCollection(
 }
 
 export async function syncWantlist(context: SyncContext): Promise<SyncSummary> {
+  context = { ...context, owner: context.owner ?? (await getMeta('identity'))?.username }
   const db = await openFidelityDb()
+  /*
+   * A want added and sent while the walk is under way is neither seen nor
+   * pending by the time of the sweep. Whatever was queued when it started, or
+   * added locally since, therefore survives this one.
+   */
+  const startedAt = Date.now()
+  const pendingAtStart = pendingKeys('wantlist', await db.getAll('outbox'))
 
   const result = await syncPaged<WantlistPage, WantlistItem>(context, {
     kind: 'wantlist',
@@ -408,8 +460,11 @@ export async function syncWantlist(context: SyncContext): Promise<SyncSummary> {
         }
       }),
     write: async (items) => {
-      const tx = db.transaction('wantlist', 'readwrite')
-      for (const item of items) await tx.store.put(item)
+      // One transaction with the outbox: a note queued between reading it and writing must win.
+      const tx = db.transaction(['wantlist', 'outbox'], 'readwrite')
+      const pending = pendingKeys('wantlist', await tx.objectStore('outbox').getAll())
+      const store = tx.objectStore('wantlist')
+      for (const item of items) if (!pending.has(item.releaseId)) await store.put(item)
       await tx.done
       await mirrorCovers(items)
     },
@@ -426,8 +481,18 @@ export async function syncWantlist(context: SyncContext): Promise<SyncSummary> {
    * all along and simply never carried out. Measured 2026-09-11: 26 locally,
    * 24 at Discogs.
    */
-  result.removed = result.seen ? await sweep('wantlist', result.seen) : 0
+  if (result.seen) await assertOwner(context.owner)
+  result.removed = result.seen
+    ? await sweep(
+        'wantlist',
+        result.seen,
+        (key, row) =>
+          pendingAtStart.has(key) ||
+          (row !== undefined && Date.parse(row.addedAt) >= startedAt),
+      )
+    : 0
 
+  await assertOwner(context.owner)
   await updateSyncState({ wantlistSyncedAt: Date.now() })
   return result
 }
@@ -441,8 +506,9 @@ export async function syncLibrary(
   context: SyncContext,
   options: { full?: boolean } = {},
 ): Promise<SyncResult> {
+  const owned = { ...context, owner: context.owner ?? (await getMeta('identity'))?.username }
   return {
-    collection: await syncCollection(context, options),
-    wantlist: await syncWantlist(context),
+    collection: await syncCollection(owned, options),
+    wantlist: await syncWantlist(owned),
   }
 }

@@ -131,8 +131,8 @@ export const handlers: HandlerMap = {
   'auth.signIn': async ({ token }) => (await auth()).signIn(token),
   'auth.identity': () => currentIdentity(),
   'auth.renew': async ({ token }) => (await auth()).renewToken(token),
-  'auth.signOut': async () => {
-    await signOut()
+  'auth.signOut': async (params) => {
+    await signOut({ force: params?.force === true })
     return { signedOut: true as const }
   },
 
@@ -141,6 +141,9 @@ export const handlers: HandlerMap = {
     if (!identity) throw fail('not-signed-in', 'not signed in')
 
     await requestPersistence()
+    // Out before in: what Discogs answers is older than a change still waiting here.
+    const { drainOutbox } = await import('./outbox')
+    await drainOutbox(discogs(), identity.username, signal)
     const { syncLibrary } = await library()
     const result = await syncLibrary({
       client: discogs(),
@@ -897,7 +900,7 @@ export const handlers: HandlerMap = {
     const dig = await db.get('digs', digId)
     if (!match || !dig) throw fail('match-gone', 'no such match')
 
-    await addToBasket(match, dig.dealer, Date.now())
+    await addToBasket(match, dig.dealer, Date.now(), dig.expiresAt)
     return basketView()
   },
 
@@ -1225,7 +1228,7 @@ export const handlers: HandlerMap = {
 
   'data.deleteAll': async () => {
     // Same operation as signing out, under the name that says what it does.
-    await signOut()
+    await signOut({ force: true })
     return { deleted: true as const }
   },
 

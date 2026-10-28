@@ -179,6 +179,11 @@ const de: Messages = {
         title: 'Nicht angemeldet.',
         action: 'Trag deinen Discogs-Token in den Einstellungen ein. Alles hier braucht ihn.',
       },
+      'outbox-pending': {
+        title: 'Einige Änderungen sind noch nicht bei Discogs.',
+        action:
+          'Abmelden löscht sie jetzt endgültig. Geh online und warte kurz, oder melde dich trotzdem ab.',
+      },
       'no-listing': {
         title: 'Keine Platte angegeben.',
         action: 'Füge einen Link zu einer Platte in einem Discogs-Laden ein.',

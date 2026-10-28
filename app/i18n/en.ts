@@ -324,6 +324,11 @@ const en = {
         title: 'Not signed in.',
         action: 'Enter your Discogs token in the settings. Everything here needs it.',
       },
+      'outbox-pending': {
+        title: 'Some changes have not reached Discogs yet.',
+        action:
+          'Signing out now deletes them for good. Go online and wait a moment, or sign out anyway.',
+      },
       'no-listing': {
         title: 'No record given.',
         action: 'Paste a link to a record in a Discogs shop.',

@@ -25,12 +25,18 @@ export async function queueJob(job: Omit<OutboxJob, 'attempts'>): Promise<void> 
    * `revert` survives that replacement deliberately: it holds what Discogs
    * still believes, not what the app showed a second ago.
    */
-  const existing = await db.get('outbox', job.id)
-  await db.put('outbox', {
+  // One transaction: a drain dropping or failing the job in between must not be undone.
+  const tx = db.transaction('outbox', 'readwrite')
+  const existing = await tx.store.get(job.id)
+  // A pending move still sits in its old folder at Discogs, so that stays the address.
+  const from = existing?.kind === 'collection.folder' ? existing.payload.folderId : undefined
+  await tx.store.put({
     ...job,
+    payload: from === undefined ? job.payload : { ...job.payload, folderId: from },
     revert: existing?.revert ?? job.revert,
     attempts: 0,
   })
+  await tx.done
 }
 
 export async function pendingJobs(): Promise<OutboxJob[]> {
@@ -58,6 +64,12 @@ export async function dropJob(id: string, sent?: OutboxJob): Promise<void> {
     (stored.queuedAt !== sent.queuedAt ||
       JSON.stringify(stored.payload) !== JSON.stringify(sent.payload))
   if (!replaced) await tx.store.delete(id)
+  // The sent move has landed, so the replacement now starts where it put the record.
+  else if (stored.kind === 'collection.folder' && sent.kind === 'collection.folder')
+    await tx.store.put({
+      ...stored,
+      payload: { ...stored.payload, folderId: Number(sent.payload.moveTo) },
+    })
   await tx.done
 }
 
@@ -67,15 +79,21 @@ export async function dropJob(id: string, sent?: OutboxJob): Promise<void> {
  */
 export async function noteFailure(id: string, reason: string): Promise<OutboxJob | null> {
   const db = await openFidelityDb()
-  const job = await db.get('outbox', id)
-  if (!job) return null
+  const tx = db.transaction('outbox', 'readwrite')
+  const job = await tx.store.get(id)
+  if (!job) {
+    await tx.done
+    return null
+  }
 
   const attempts = job.attempts + 1
   if (attempts >= MAX_ATTEMPTS) {
-    await db.delete('outbox', id)
+    await tx.store.delete(id)
+    await tx.done
     return { ...job, attempts, lastError: reason }
   }
 
-  await db.put('outbox', { ...job, attempts, lastError: reason })
+  await tx.store.put({ ...job, attempts, lastError: reason })
+  await tx.done
   return null
 }

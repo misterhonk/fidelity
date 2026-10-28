@@ -111,6 +111,40 @@ describe('the outbox', () => {
     expect((await pendingJobs())[0]?.revert.rating).toBe(3)
   })
 
+  it('leaves the queue as it was when the drain is cancelled', async () => {
+    await queueRating(5, 3)
+    const fake = client(async () => null)
+
+    await expect(drainOutbox(fake, 'mrtnmlchr', AbortSignal.abort())).rejects.toMatchObject({
+      name: 'AbortError',
+    })
+
+    expect(fake.write).not.toHaveBeenCalled()
+    expect((await pendingJobs()).map((job) => job.attempts)).toEqual([0])
+  })
+
+  it('counts a failed add that was cut off mid-send, so the next drain looks before sending', async () => {
+    await queueJob({
+      id: 'collection.add:42',
+      kind: 'collection.add',
+      payload: { releaseId: 42 },
+      revert: {},
+      queuedAt: 1,
+    })
+    const control = new AbortController()
+    const fake = client(async () => {
+      // The add never sees the signal; the opaque failure is its own.
+      control.abort()
+      throw new DiscogsError(0, 'Discogs is not answering')
+    })
+
+    await expect(drainOutbox(fake, 'mrtnmlchr', control.signal)).rejects.toMatchObject({
+      name: 'AbortError',
+    })
+
+    expect((await pendingJobs()).map((job) => job.attempts)).toEqual([1])
+  })
+
   it('stops the round at the first failure instead of burning the rest', async () => {
     await queueRating(5, 3)
     const fake = client(async () => {
@@ -247,5 +281,82 @@ describe('the outbox', () => {
       const db = await openFidelityDb()
       expect(await db.get('collection', -42)).toBeUndefined()
     })
+  })
+})
+
+describe('a job that fails on its own', () => {
+  it('does not hold up the job behind it', async () => {
+    await queueJob({
+      id: 'wantlist.note:7',
+      kind: 'wantlist.note',
+      payload: { releaseId: 7, note: 'x', want: 0 },
+      revert: { note: '', want: 0 },
+      queuedAt: 0,
+    })
+    await queueRating(5, 3)
+    const fake = client(async () => {
+      if (fake.write.mock.calls.length === 1) throw new DiscogsError(404, 'Not Found')
+      return null
+    })
+
+    const result = await drainOutbox(fake, 'mrtnmlchr')
+
+    expect(result).toEqual({ sent: 1, givenUp: 0, waiting: 1 })
+    expect((await pendingJobs()).map((job) => job.id)).toEqual(['wantlist.note:7'])
+  })
+})
+
+describe('a move that has not been sent yet', () => {
+  const move = (from: number, to: number, queuedAt: number) =>
+    queueJob({
+      id: 'collection.folder:900',
+      kind: 'collection.folder',
+      payload: { releaseId: 42, folderId: from, instanceId: 900, moveTo: to },
+      revert: { folderId: from },
+      queuedAt,
+    })
+
+  it('keeps the folder Discogs still has it in when moved again', async () => {
+    await move(1, 2, 1)
+    await move(2, 3, 2)
+
+    const [job] = await pendingJobs()
+    expect(job?.payload).toMatchObject({ folderId: 1, moveTo: 3 })
+  })
+
+  it('sends a second move from where the first one landed', async () => {
+    await move(1, 2, 1)
+    const fake = client(async () => {
+      // Moved on again while the first move is in flight.
+      if (fake.write.mock.calls.length === 1) await move(2, 3, 2)
+      return null
+    })
+
+    await drainOutbox(fake, 'mrtnmlchr')
+    await drainOutbox(fake, 'mrtnmlchr')
+
+    const [, path, options] = fake.write.mock.calls[1] ?? []
+    expect(path).toBe('/users/mrtnmlchr/collection/folders/2/releases/42/instances/900')
+    expect(options).toMatchObject({ body: { folder_id: 3 } })
+    expect(await pendingJobs()).toEqual([])
+  })
+
+  it('addresses a rating sent before it by the old folder', async () => {
+    const db = await openFidelityDb()
+    await db.put('collection', record({ folderId: 2, rating: 5 }))
+    await queueJob({
+      id: 'collection.rating:900',
+      kind: 'collection.rating',
+      payload: { releaseId: 42, folderId: 2, instanceId: 900, rating: 5 },
+      revert: { rating: 3 },
+      queuedAt: 1,
+    })
+    await move(1, 2, 2)
+    const fake = client(async () => null)
+
+    await drainOutbox(fake, 'mrtnmlchr')
+
+    const [, path] = fake.write.mock.calls[0] ?? []
+    expect(path).toBe('/users/mrtnmlchr/collection/folders/1/releases/42/instances/900')
   })
 })

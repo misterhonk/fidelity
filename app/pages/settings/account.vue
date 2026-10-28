@@ -8,6 +8,17 @@ useSeoMeta({ title: () => st.value.account.title })
 const { identity, set, signOut } = useIdentity()
 const { call } = useFidelityWorker()
 
+/** Unsent changes die with the database, so that needs a second yes. */
+async function leave() {
+  try {
+    await signOut()
+  } catch (error) {
+    if ((error as { code?: string } | null)?.code !== 'outbox-pending') throw error
+    const { title, action } = explain(error)
+    if (window.confirm(`${title} ${action ?? ''}`)) await signOut(true)
+  }
+}
+
 const stats = ref<Awaited<ReturnType<typeof call<'db.stats'>>> | null>(null)
 
 onMounted(async () => {
@@ -68,7 +79,7 @@ const usage = computed(() => {
       <button
         type="button"
         class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
-        @click="signOut"
+        @click="leave"
       >
         {{ st.account.signOut }}
       </button>

@@ -17,7 +17,13 @@ import type { DiscogsClient } from './discogs/client'
 
 interface JobKind {
   /** Where it goes, and whether repeating it is harmless. See WriteOptions. */
-  send: (client: DiscogsClient, job: OutboxJob, username: string) => Promise<void>
+  /** `signal` goes only to idempotent writes: one cut off in flight may simply be sent again. */
+  send: (
+    client: DiscogsClient,
+    job: OutboxJob,
+    username: string,
+    signal?: AbortSignal,
+  ) => Promise<void>
   /** Put the old value back locally, after the job has been given up on. */
   revert: (job: OutboxJob) => Promise<void>
   /**
@@ -31,9 +37,22 @@ interface JobKind {
   alreadyDone?: (client: DiscogsClient, job: OutboxJob, username: string) => Promise<boolean>
 }
 
+/**
+ * The folder Discogs has an entry in right now, which is part of its address.
+ *
+ * Resolved when sending, not when queuing: a move still waiting has not
+ * happened over there, and one that has landed is already in the local row.
+ */
+async function folderNow(instanceId: number, queued: number): Promise<number> {
+  const db = await openFidelityDb()
+  const move = await db.get('outbox', `collection.folder:${instanceId}`)
+  if (move) return Number(move.payload.folderId)
+  return (await db.get('collection', instanceId))?.folderId ?? queued
+}
+
 const KINDS: Record<OutboxKind, JobKind> = {
   'collection.rating': {
-    send: async (client, job, username) => {
+    send: async (client, job, username, signal) => {
       const { releaseId, folderId, instanceId, rating } = job.payload as {
         releaseId: number
         folderId: number
@@ -42,11 +61,11 @@ const KINDS: Record<OutboxKind, JobKind> = {
       }
       await client.write(
         'POST',
-        `/users/${encodeURIComponent(username)}/collection/folders/${folderId}` +
+        `/users/${encodeURIComponent(username)}/collection/folders/${await folderNow(instanceId, folderId)}` +
           `/releases/${releaseId}/instances/${instanceId}`,
         // Sending the same rating twice leaves the same rating, so an
         // unreadable failure may simply be tried again.
-        { body: { rating }, idempotent: true },
+        { body: { rating }, idempotent: true, signal },
       )
     },
     revert: async (job) => {
@@ -59,7 +78,7 @@ const KINDS: Record<OutboxKind, JobKind> = {
   },
 
   'collection.field': {
-    send: async (client, job, username) => {
+    send: async (client, job, username, signal) => {
       const { releaseId, folderId, instanceId, fieldId, value } = job.payload as {
         releaseId: number
         folderId: number
@@ -69,11 +88,11 @@ const KINDS: Record<OutboxKind, JobKind> = {
       }
       await client.write(
         'POST',
-        `/users/${encodeURIComponent(username)}/collection/folders/${folderId}` +
+        `/users/${encodeURIComponent(username)}/collection/folders/${await folderNow(instanceId, folderId)}` +
           `/releases/${releaseId}/instances/${instanceId}/fields/${fieldId}`,
         // Setting a field to a value it already has is the same field with the
         // same value, so an unreadable failure may simply be tried again.
-        { query: { value }, idempotent: true },
+        { query: { value }, idempotent: true, signal },
       )
     },
     revert: async (job) => {
@@ -85,7 +104,7 @@ const KINDS: Record<OutboxKind, JobKind> = {
   },
 
   'collection.remove': {
-    send: async (client, job, username) => {
+    send: async (client, job, username, signal) => {
       const { releaseId, folderId, instanceId } = job.payload as {
         releaseId: number
         folderId: number
@@ -94,10 +113,10 @@ const KINDS: Record<OutboxKind, JobKind> = {
       try {
         await client.write(
           'DELETE',
-          `/users/${encodeURIComponent(username)}/collection/folders/${folderId}` +
+          `/users/${encodeURIComponent(username)}/collection/folders/${await folderNow(instanceId, folderId)}` +
             `/releases/${releaseId}/instances/${instanceId}`,
           // Deleting what is already gone is the state we wanted either way.
-          { idempotent: true },
+          { idempotent: true, signal },
         )
       } catch (error) {
         // 404 means somebody — this app on another device, or Discogs' own
@@ -154,7 +173,7 @@ const KINDS: Record<OutboxKind, JobKind> = {
   },
 
   'wantlist.add': {
-    send: async (client, job, username) => {
+    send: async (client, job, username, signal) => {
       const { releaseId } = job.payload as { releaseId: number }
       await client.write(
         'PUT',
@@ -166,7 +185,7 @@ const KINDS: Record<OutboxKind, JobKind> = {
          * release alone — there is no second instance to create, so there is
          * nothing a repeat can duplicate.
          */
-        { idempotent: true },
+        { idempotent: true, signal },
       )
     },
     revert: async (job) => {
@@ -177,7 +196,7 @@ const KINDS: Record<OutboxKind, JobKind> = {
   },
 
   'collection.folder': {
-    send: async (client, job, username) => {
+    send: async (client, job, username, signal) => {
       const { releaseId, folderId, instanceId, moveTo } = job.payload as {
         releaseId: number
         folderId: number
@@ -189,7 +208,7 @@ const KINDS: Record<OutboxKind, JobKind> = {
         `/users/${encodeURIComponent(username)}/collection/folders/${folderId}` +
           `/releases/${releaseId}/instances/${instanceId}`,
         // Moving a record where it already is leaves it where it is.
-        { body: { folder_id: moveTo }, idempotent: true },
+        { body: { folder_id: moveTo }, idempotent: true, signal },
       )
     },
     revert: async (job) => {
@@ -202,7 +221,7 @@ const KINDS: Record<OutboxKind, JobKind> = {
   },
 
   'wantlist.note': {
-    send: async (client, job, username) => {
+    send: async (client, job, username, signal) => {
       const { releaseId, note, want } = job.payload as {
         releaseId: number
         note: string
@@ -214,7 +233,7 @@ const KINDS: Record<OutboxKind, JobKind> = {
         // Setting the same note twice leaves the same note. Both fields go
         // together because the endpoint takes them together — sending only one
         // would clear the other.
-        { body: { notes: note, rating: want }, idempotent: true },
+        { body: { notes: note, rating: want }, idempotent: true, signal },
       )
     },
     revert: async (job) => {
@@ -227,15 +246,13 @@ const KINDS: Record<OutboxKind, JobKind> = {
   },
 
   'wantlist.remove': {
-    send: async (client, job, username) => {
+    send: async (client, job, username, signal) => {
       const { releaseId } = job.payload as { releaseId: number }
       try {
         await client.write(
           'DELETE',
           `/users/${encodeURIComponent(username)}/wants/${releaseId}`,
-          {
-            idempotent: true,
-          },
+          { idempotent: true, signal },
         )
       } catch (error) {
         if (error instanceof DiscogsError && error.status === 404) return
@@ -270,6 +287,7 @@ export interface DrainResult {
 export async function drainOutbox(
   client: DiscogsClient,
   username: string,
+  signal?: AbortSignal,
 ): Promise<DrainResult> {
   /*
    * One drain at a time, across every tab.
@@ -281,19 +299,25 @@ export async function drainOutbox(
    * lock the second drain reads the queue after the first has emptied it.
    */
   const locks = globalThis.navigator?.locks
-  const run = () => drainOnce(client, username)
+  const run = () => drainOnce(client, username, signal)
   if (!locks) return run()
-  return locks.request(OUTBOX_LOCK, run)
+  return signal ? locks.request(OUTBOX_LOCK, { signal }, run) : locks.request(OUTBOX_LOCK, run)
 }
 
 const OUTBOX_LOCK = 'fidelity:outbox'
 
-async function drainOnce(client: DiscogsClient, username: string): Promise<DrainResult> {
+async function drainOnce(
+  client: DiscogsClient,
+  username: string,
+  signal?: AbortSignal,
+): Promise<DrainResult> {
   const jobs = await pendingJobs()
   let sent = 0
   let givenUp = 0
+  let waiting = 0
 
   for (const [index, job] of jobs.entries()) {
+    signal?.throwIfAborted()
     try {
       const kind = KINDS[job.kind]
       // Never on the first run: looking costs a paced request, and the first
@@ -303,19 +327,28 @@ async function drainOnce(client: DiscogsClient, username: string): Promise<Drain
         sent += 1
         continue
       }
-      await kind.send(client, job, username)
+      await kind.send(client, job, username, signal)
       await dropJob(job.id, job)
       sent += 1
     } catch (error) {
+      // Cut off, not failed: the job stays as it was, and only idempotent writes ever see the signal.
+      if (signal?.aborted && error instanceof Error && error.name === 'AbortError') throw error
       const reason = error instanceof Error ? error.message : String(error)
       const exhausted = await noteFailure(job.id, reason)
       if (exhausted) {
         await KINDS[exhausted.kind].revert(exhausted)
         givenUp += 1
+      } else {
+        waiting += 1
       }
-      return { sent, givenUp, waiting: jobs.length - index - (exhausted ? 1 : 0) }
+      // A real failure of a write sent without the signal is counted first, so the next drain looks before resending.
+      signal?.throwIfAborted()
+      // Offline, limited or unauthorised hits every job alike; anything else is this job's own.
+      if (!(error instanceof DiscogsError) || error.code !== undefined) {
+        return { sent, givenUp, waiting: waiting + jobs.length - index - 1 }
+      }
     }
   }
 
-  return { sent, givenUp, waiting: 0 }
+  return { sent, givenUp, waiting }
 }

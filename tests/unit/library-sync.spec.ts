@@ -1,9 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { getSyncState, updateSyncState } from '~~/db/meta'
+import { deleteMeta, getSyncState, setMeta, updateSyncState } from '~~/db/meta'
+import { queueJob } from '~~/db/outbox'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import type { DiscogsClient } from '~~/worker/discogs/client'
-import { syncCollection, syncWantlist, type SyncProgress } from '~~/worker/sync/library'
+import {
+  syncCollection,
+  syncLibrary,
+  syncWantlist,
+  type SyncProgress,
+} from '~~/worker/sync/library'
 
 afterEach(async () => {
   await deleteFidelityDb()
@@ -360,5 +366,105 @@ describe('what disappears at Discogs', () => {
     await syncCollection(context(client), { full: true })
 
     expect((await db.getAllKeys('collection')) as number[]).toContain(-42)
+  })
+})
+
+describe('changes still on their way to Discogs', () => {
+  const rows = [
+    { id: 2, date_added: '2026-08-02T10:00:00-07:00' },
+    { id: 1, date_added: '2026-08-01T10:00:00-07:00' },
+  ]
+
+  it('keeps a rating that has not been sent through a full sync', async () => {
+    await syncCollection(context(fakeClient([rows]).client))
+    const db = await openFidelityDb()
+    const stored = await db.get('collection', 501)
+    await db.put('collection', { ...stored!, rating: 5 })
+    await queueJob({
+      id: 'collection.rating:501',
+      kind: 'collection.rating',
+      payload: { releaseId: 1, folderId: 1, instanceId: 501, rating: 5 },
+      revert: { rating: 0 },
+      queuedAt: 1,
+    })
+
+    await syncCollection(context(fakeClient([rows]).client), { full: true })
+
+    expect((await db.get('collection', 501))?.rating).toBe(5)
+  })
+
+  it('does not sweep a want whose add has not been sent', async () => {
+    const db = await openFidelityDb()
+    await syncWantlist(context(fakeClient([rows], 'wants').client))
+    const want = await db.get('wantlist', 1)
+    await db.put('wantlist', { ...want!, releaseId: 99 })
+    await queueJob({
+      id: 'wantlist.add:99',
+      kind: 'wantlist.add',
+      payload: { releaseId: 99 },
+      revert: {},
+      queuedAt: 1,
+    })
+
+    await syncWantlist(context(fakeClient([rows], 'wants').client))
+
+    expect(await db.get('wantlist', 99)).toBeDefined()
+  })
+
+  it('does not sweep a want added and sent while the walk was under way', async () => {
+    const db = await openFidelityDb()
+    const { client, get } = fakeClient([[rows[0]!], [rows[1]!]], 'wants')
+    const first = get.getMockImplementation()!
+    get.mockImplementation(async (path, schema, options) => {
+      // Added after page 1 was read; its job has already been sent and dropped.
+      if (options?.query?.page === 2) {
+        const want = await db.get('wantlist', 2)
+        await db.put('wantlist', { ...want!, releaseId: 99, addedAt: new Date().toISOString() })
+      }
+      return first(path, schema, options)
+    })
+
+    await syncWantlist(context(client))
+
+    expect(await db.get('wantlist', 99)).toBeDefined()
+  })
+})
+
+describe('signing out in another tab', () => {
+  it('does not mark a sync done after signing out behind its last page', async () => {
+    await setMeta('identity', { userId: 1, username: 'mrtnmlchr', avatarUrl: '' })
+    const { client } = fakeClient(
+      [[{ id: 1, date_added: '2026-08-01T10:00:00-07:00' }]],
+      'wants',
+    )
+
+    await expect(
+      syncWantlist(context(client, () => void deleteMeta('identity'))),
+    ).rejects.toThrow()
+
+    expect((await getSyncState()).wantlistSyncedAt).toBeFalsy()
+  })
+
+  it('writes nothing of the old account into the new database', async () => {
+    await setMeta('identity', { userId: 1, username: 'mrtnmlchr', avatarUrl: '' })
+    const rows = [{ id: 1, date_added: '2026-08-01T10:00:00-07:00' }]
+    const get = vi.fn(async (path: string, schema: { parse: (v: unknown) => unknown }) => {
+      // The other tab signs out between the collection and the wantlist.
+      if (path.endsWith('/collection/value')) {
+        await deleteFidelityDb()
+        throw new Error('offline')
+      }
+      const key = path.endsWith('/wants') ? 'wants' : 'releases'
+      if (!path.endsWith('/wants') && !path.endsWith('/releases')) throw new Error('offline')
+      return schema.parse({
+        pagination: { page: 1, pages: 1, items: 1 },
+        [key]: rows.map(release),
+      })
+    })
+
+    await expect(syncLibrary(context({ get } as unknown as DiscogsClient))).rejects.toThrow()
+
+    const db = await openFidelityDb()
+    expect(await db.count('wantlist')).toBe(0)
   })
 })

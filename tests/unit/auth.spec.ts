@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getMeta, setMeta } from '~~/db/meta'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
+import { queueJob } from '~~/db/outbox'
 import { currentIdentity, signIn, signOut } from '~~/worker/auth'
 
 /**
@@ -228,5 +229,37 @@ describe('renewing the token', () => {
     await renewToken('first-token')
     expect(await getMeta('token')).toBe('first-token')
     expect(await currentIdentity()).toMatchObject({ userId: 7 })
+  })
+})
+
+describe('signing out with changes not yet sent', () => {
+  it('refuses unless told to go ahead anyway', async () => {
+    await setMeta('token', 'a-pat')
+    await queueJob({
+      id: 'collection.rating:900',
+      kind: 'collection.rating',
+      payload: { releaseId: 42, folderId: 1, instanceId: 900, rating: 5 },
+      revert: { rating: 3 },
+      queuedAt: 1,
+    })
+
+    await expect(signOut()).rejects.toMatchObject({ code: 'outbox-pending' })
+    expect(await getMeta('token')).toBe('a-pat')
+
+    await signOut({ force: true })
+    expect(await getMeta('token')).toBeUndefined()
+  })
+
+  it('still signs out when the database will not open', async () => {
+    const outbox = await import('~~/db/outbox')
+    const spy = vi
+      .spyOn(outbox, 'pendingJobs')
+      .mockRejectedValueOnce(new Error('QuotaExceededError'))
+    await setMeta('token', 'a-pat')
+
+    await signOut()
+
+    expect(await getMeta('token')).toBeUndefined()
+    spy.mockRestore()
   })
 })
