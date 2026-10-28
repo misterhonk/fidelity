@@ -1,6 +1,5 @@
-import { DB_VERSION } from '~~/db/schema'
-import { getMeta, setMeta } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
+import type { MetaValue } from '~~/db/schema'
 import type { Preferences } from '#shared/types'
 
 import { withoutKeys } from './export'
@@ -30,16 +29,20 @@ import { fail } from './fail'
  */
 export const OLDEST_ROW_VERSION = 6
 
-const STORES = [
-  'collection',
-  'wantlist',
-  'dealers',
-  'feedback',
-  'basket',
-  'places',
-  'placements',
-  'valueHistory',
-] as const
+/** Each store with its key path — a row without that value cannot be put. */
+const KEY_PATH = {
+  collection: 'instanceId',
+  wantlist: 'releaseId',
+  dealers: 'username',
+  feedback: 'listingId',
+  basket: 'listingId',
+  places: 'id',
+  placements: 'instanceId',
+  valueHistory: 'day',
+  followed: 'artistId',
+  watched: 'releaseId',
+} as const
+const STORES = Object.keys(KEY_PATH) as (keyof typeof KEY_PATH)[]
 type Store = (typeof STORES)[number]
 
 export interface ImportReport {
@@ -49,7 +52,7 @@ export interface ImportReport {
   /** Rows put, per store. */
   imported: Partial<Record<Store, number>>
   /** What the file had that did not come back, and why. */
-  skipped: { store: string; rows: number; reason: 'no-prices' | 'too-old' }[]
+  skipped: { store: string; rows: number; reason: 'no-prices' | 'too-old' | 'invalid' }[]
   /** Which meta came from the file because the device had none. */
   meta: ('preferences' | 'tasteProfile' | 'credits')[]
 }
@@ -86,51 +89,91 @@ export async function importEverything(file: unknown): Promise<ImportReport> {
     meta: [],
   }
 
-  for (const store of STORES) {
-    const rows = backup[store]
-    if (!Array.isArray(rows) || rows.length === 0) continue
-    if (tooOld && (store === 'collection' || store === 'wantlist')) {
-      report.skipped.push({ store, rows: rows.length, reason: 'too-old' })
-      continue
+  // One transaction: a file the database refuses halfway leaves nothing behind.
+  const tx = db.transaction([...STORES, 'meta'], 'readwrite')
+  try {
+    for (const store of STORES) {
+      const rows = backup[store]
+      if (!Array.isArray(rows) || rows.length === 0) continue
+      if (tooOld && (store === 'collection' || store === 'wantlist')) {
+        report.skipped.push({ store, rows: rows.length, reason: 'too-old' })
+        continue
+      }
+      const target = tx.objectStore(store)
+      let put = 0
+      let invalid = 0
+      for (const row of rows) {
+        if (!isValidRow(store, row)) {
+          invalid += 1
+          continue
+        }
+        // A backup's basket line and watched record carry no prices; they must not replace ones that do.
+        if (store === 'basket' && (await target.count(row.listingId as number)) > 0) continue
+        if (store === 'watched' && (await target.count(row.releaseId as number)) > 0) continue
+        await target.put(row as never)
+        put += 1
+      }
+      report.imported[store] = put
+      if (invalid > 0) report.skipped.push({ store, rows: invalid, reason: 'invalid' })
     }
-    const tx = db.transaction(store, 'readwrite')
-    let put = 0
-    for (const row of rows) {
-      if (!row || typeof row !== 'object') continue
-      await tx.store.put(row as never)
-      put += 1
+
+    for (const store of ['digs', 'matches'] as const) {
+      const rows = backup[store]
+      if (Array.isArray(rows) && rows.length > 0) {
+        report.skipped.push({ store, rows: rows.length, reason: 'no-prices' })
+      }
     }
+
+    const meta = tx.objectStore('meta')
+    if (
+      backup.preferences &&
+      typeof backup.preferences === 'object' &&
+      !(await meta.get('preferences'))
+    ) {
+      // A file is no place for a hub's key, and one older than 0.112 may hold
+      // them: they stay with whoever entered them on this device.
+      await meta.put({
+        key: 'preferences',
+        value: withoutKeys(backup.preferences as Preferences)!,
+      })
+      report.meta.push('preferences')
+    }
+    for (const key of ['tasteProfile', 'credits'] as const) {
+      const value = backup[key]
+      if (value && typeof value === 'object' && !(await meta.get(key))) {
+        await meta.put({ key, value } as MetaValue)
+        report.meta.push(key)
+      }
+    }
+
     await tx.done
-    report.imported[store] = put
-  }
-
-  for (const store of ['digs', 'matches'] as const) {
-    const rows = backup[store]
-    if (Array.isArray(rows) && rows.length > 0) {
-      report.skipped.push({ store, rows: rows.length, reason: 'no-prices' })
+  } catch (cause) {
+    // A put that throws synchronously (DataCloneError) does not abort by itself.
+    try {
+      tx.abort()
+    } catch {
+      // Already aborted by the failed request.
     }
-  }
-
-  if (
-    backup.preferences &&
-    typeof backup.preferences === 'object' &&
-    !(await getMeta('preferences'))
-  ) {
-    // A file is no place for a hub's key, and one older than 0.112 may hold
-    // them: they stay with whoever entered them on this device.
-    await setMeta('preferences', withoutKeys(backup.preferences as Preferences)!)
-    report.meta.push('preferences')
-  }
-  for (const key of ['tasteProfile', 'credits'] as const) {
-    const value = backup[key]
-    if (value && typeof value === 'object' && !(await getMeta(key))) {
-      await setMeta(key, value as never)
-      report.meta.push(key)
-    }
+    tx.done.catch(() => undefined)
+    throw cause
   }
 
   return report
 }
 
-/** What the export stamps itself with, so a later app can read it back. */
-export const CURRENT_DB_VERSION = DB_VERSION
+/** The fields later code reads without checking; a row missing them is skipped. */
+function isValidRow(
+  store: keyof typeof KEY_PATH,
+  row: unknown,
+): row is Record<string, unknown> {
+  if (!row || typeof row !== 'object') return false
+  const record = row as Record<string, unknown>
+  const key = record[KEY_PATH[store]]
+  const keyOk =
+    (typeof key === 'number' && Number.isFinite(key)) || (typeof key === 'string' && key !== '')
+  if (!keyOk) return false
+  if (store === 'collection' && typeof key !== 'number') return false
+  if (store === 'dealers' && !Array.isArray(record.shippingTiers)) return false
+  if (store === 'watched' && !Array.isArray(record.points)) return false
+  return true
+}

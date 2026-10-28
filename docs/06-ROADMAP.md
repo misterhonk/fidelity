@@ -397,7 +397,8 @@ requiring it. The full concept: `docs/13-HUB-ADDON.md`.
       **403**. Both looked from the outside like "nothing arrives, then", until `watch.ts`
       started counting failed deliveries.
 - [x] Device sync for the basket and the shortlist — **through the vault, not the hub**
-      (M8/ADR-007): encrypted, with a freely chosen target, and it works without a hub too
+      (M8/ADR-007): encrypted, with a freely chosen target, and it works without a hub too.
+      The basket left the vault again: a removed line came back from the other device
 - [x] Sharing a dig by link (TTL 6 h, ToS-compliant) — the hub carries ciphertext under a
       random identifier, the key sits in the `#` fragment and reaches no server.
       `GET /v1/share/:id` is the only door at the hub without a secret, because the

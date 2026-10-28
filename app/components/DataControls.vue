@@ -124,6 +124,10 @@ async function importFile(event: Event) {
     if (digs) lines.push(st.value.dataPanel.importSkippedPrices(count(digs.rows)))
     if (report.skipped.some((s) => s.reason === 'too-old'))
       lines.push(st.value.dataPanel.importSkippedOld)
+    const invalid = report.skipped
+      .filter((s) => s.reason === 'invalid')
+      .reduce((sum, s) => sum + s.rows, 0)
+    if (invalid > 0) lines.push(st.value.dataPanel.importSkippedInvalid(count(invalid)))
     if (report.meta.length > 0) lines.push(st.value.dataPanel.importMeta)
     imported.value = lines
     emit('imported')

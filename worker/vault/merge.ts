@@ -29,7 +29,6 @@ const STAMP = {
   horizon: (row: { fetchedAt?: number }) => row.fetchedAt ?? 0,
   feedback: (row: { updatedAt?: number; createdAt?: number }) =>
     row.updatedAt ?? row.createdAt ?? 0,
-  basket: (row: { addedAt?: number }) => row.addedAt ?? 0,
   dealers: (row: { updatedAt?: number; lastScannedAt?: number | null }) =>
     row.updatedAt ?? row.lastScannedAt ?? 0,
   collection: (row: { syncedAt?: number }) => row.syncedAt ?? 0,
@@ -49,14 +48,15 @@ const STAMP = {
   places: (row: { updatedAt?: number; createdAt?: number }) =>
     row.updatedAt ?? row.createdAt ?? 0,
   placements: (row: { at?: number }) => row.at ?? 0,
+  // Not `followed` / `watched` / `basket`: unfollow, unwatch and remove delete the row, and a gap is refilled here.
 } as const
 
 const KEY = {
   horizon: 'key',
   feedback: 'listingId',
-  basket: 'listingId',
   dealers: 'username',
-  collection: 'releaseId',
+  // The store's keyPath: two copies of one release are two rows.
+  collection: 'instanceId',
   wantlist: 'releaseId',
   places: 'id',
   placements: 'instanceId',
@@ -81,7 +81,11 @@ export function mergeSnapshots(mine: VaultSnapshot, theirs: VaultSnapshot): Vaul
     // Whichever preferences object was written last. It is one small record
     // and splitting it per field would make "ich habe das abgeschaltet" a
     // question of which knob, on which device, in which order.
-    preferences: theirs.savedAt > mine.savedAt ? theirs.preferences : mine.preferences,
+    // Their own stamp, not `savedAt`: a local snapshot is always stamped "now".
+    preferences:
+      (theirs.preferences?.updatedAt ?? 0) > (mine.preferences?.updatedAt ?? 0)
+        ? theirs.preferences
+        : mine.preferences,
     stores: {},
   }
 
@@ -112,7 +116,9 @@ function mergeRows(store: SyncableStore, here: Row[], there: Row[]): Row[] {
      * timestamp are almost always the same write seen twice, and preferring
      * the remote one would make every sync rewrite rows for nothing.
      */
-    if (!existing || stampOf(row) > stampOf(existing)) byKey.set(key, row)
+    if (!existing || stampOf(row) > stampOf(existing)) {
+      byKey.set(key, row)
+    }
   }
 
   return [...byKey.values()]

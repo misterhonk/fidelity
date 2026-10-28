@@ -422,7 +422,7 @@ const en = {
 
     scopeWhyLabel: 'What travels and what does not',
     scopeWhy:
-      'With: your artists and labels, shortlist, basket, shops with their postage tiers, settings. Not with: your Discogs token. One key on three devices is three times the surface, and each device signs itself in once. And no digs: prices go after six hours anyway and have no business on a server.',
+      'With: your artists and labels, shortlist, shops with their postage tiers, settings. Not with: your Discogs token, or the basket. Its prices go stale, and a line removed here would come back. One key on three devices is three times the surface, and each device signs itself in once. And no digs: prices go after six hours anyway and have no business on a server.',
   },
 
   /** Settings → Hub. */
@@ -577,9 +577,13 @@ const en = {
       places: 'places',
       placements: 'where records sit',
       valueHistory: 'the estimate over time',
+      followed: 'followed artists',
+      watched: 'watched records',
     } as Record<string, string>,
     importSkippedPrices: (digs: string) =>
       `${digs} digs stayed out: a backup carries no prices, and a dig without them is a heading over nothing.`,
+    importSkippedInvalid: (rows: string) =>
+      `${rows} rows in the file were incomplete and stayed out.`,
     importSkippedOld:
       'The shelf and the wantlist in this file are from before the row shape settled. Sync again and they are back.',
     importMeta:
@@ -1015,7 +1019,7 @@ const de: typeof en = {
 
     scopeWhyLabel: 'Was mitgeht und was nicht',
     scopeWhy:
-      'Mit: deine Künstler und Labels, Gemerktes, Korb, Läden mit Versandstaffeln, Einstellungen. Nicht mit: dein Discogs-Token. Ein Schlüssel auf drei Geräten ist dreimal so viel Angriffsfläche, jedes Gerät meldet sich einmal selbst an. Und keine Digs: Preise sind nach sechs Stunden sowieso weg und gehören nicht auf einen Server.',
+      'Mit: deine Künstler und Labels, Gemerktes, Läden mit Versandstaffeln, Einstellungen. Nicht mit: dein Discogs-Token und der Korb. Seine Preise veralten, und eine hier entfernte Zeile käme zurück. Ein Schlüssel auf drei Geräten ist dreimal so viel Angriffsfläche, jedes Gerät meldet sich einmal selbst an. Und keine Digs: Preise sind nach sechs Stunden sowieso weg und gehören nicht auf einen Server.',
   },
 
   hubPanel: {
@@ -1081,9 +1085,13 @@ const de: typeof en = {
       places: 'Orte',
       placements: 'Standorte der Platten',
       valueHistory: 'die Schätzung über die Zeit',
+      followed: 'gefolgte Künstler',
+      watched: 'beobachtete Platten',
     } as Record<string, string>,
     importSkippedPrices: (digs) =>
       `${digs} Digs blieben draußen: Ein Backup trägt keine Preise, und ein Dig ohne sie ist eine Überschrift über nichts.`,
+    importSkippedInvalid: (rows) =>
+      `${rows} Zeilen in der Datei waren unvollständig und blieben draußen.`,
     importSkippedOld:
       'Sammlung und Wantlist in dieser Datei stammen von vor der festen Zeilenform. Einmal neu holen, dann sind sie wieder da.',
     importMeta:

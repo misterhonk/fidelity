@@ -1,7 +1,12 @@
 import { getMeta } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 import { DB_VERSION } from '~~/db/schema'
-import type { Match } from '#shared/types'
+import {
+  MARKETPLACE_FIELDS,
+  type BasketItem,
+  type Match,
+  type WatchedRelease,
+} from '#shared/types'
 
 /**
  * Taking your data with you (docs/06 M8).
@@ -127,6 +132,9 @@ export interface FullExport {
    * exists nowhere else: Discogs keeps no history of that number.
    */
   valueHistory: unknown[]
+  followed: unknown[]
+  /** Without the measured prices — those are marketplace data (rule 4). */
+  watched: unknown[]
   note: string
 }
 
@@ -152,6 +160,8 @@ export async function exportEverything(now: number): Promise<FullExport> {
     places,
     placements,
     valueHistory,
+    followed,
+    watched,
   ] = await Promise.all([
     db.getAll('collection'),
     db.getAll('wantlist'),
@@ -163,6 +173,8 @@ export async function exportEverything(now: number): Promise<FullExport> {
     db.getAll('places'),
     db.getAll('placements'),
     db.getAll('valueHistory'),
+    db.getAll('followed'),
+    db.getAll('watched'),
   ])
 
   const identity = await getMeta('identity')
@@ -183,10 +195,12 @@ export async function exportEverything(now: number): Promise<FullExport> {
     digs,
     matches: matches.map(strip),
     feedback,
-    basket,
+    basket: basket.map(basketWithoutPrices),
     places,
     placements,
     valueHistory,
+    followed,
+    watched: watched.map(watchedWithoutPrices),
     note:
       'Without the token and without marketplace data. The horizon is left out ' +
       'on purpose — it can be rebuilt at any time and would weigh several times ' +
@@ -209,4 +223,25 @@ export function withoutKeys<T extends { hubSecret?: unknown; accessKey?: unknown
   delete kept.hubSecret
   delete kept.accessKey
   return kept
+}
+
+/**
+ * A basket line without what the listing said: price, condition, postage.
+ *
+ * `pricedAt: 0` makes the line read as expired wherever it lands (PRICE_TTL_MS
+ * counts from it) — a zero price that looked fresh would be a lie. `addedAt`
+ * stays real, because the basket sorts by it.
+ */
+const DROPPED_FROM_BASKET = new Set<string>([...MARKETPLACE_FIELDS, 'postage', 'pricedAt'])
+
+function basketWithoutPrices(item: BasketItem): Partial<BasketItem> {
+  const kept = Object.fromEntries(
+    Object.entries(item).filter(([field]) => !DROPPED_FROM_BASKET.has(field)),
+  ) as Partial<BasketItem>
+  return { ...kept, price: 0, pricedAt: 0 }
+}
+
+/** A watched record without its price history; the receiving device starts its own. */
+export function watchedWithoutPrices(row: WatchedRelease): WatchedRelease {
+  return { ...row, points: [], checkedAt: null, notifiedAt: null }
 }

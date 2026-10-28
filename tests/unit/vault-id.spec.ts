@@ -95,8 +95,8 @@ describe('the sync that uses it', () => {
    */
   it('moves an old block across and clears the old address', () => {
     expect(STATUS).toMatch(/await legacyVaultId\(identity\.userId\)/)
-    expect(STATUS).toMatch(/await client\.vaultWrite\(id, old\)/)
-    expect(STATUS).toMatch(/await client\.vaultForget\(legacy\)/)
+    expect(STATUS).toMatch(/await bounded\(client\.vaultWrite\(id, old\)\)/)
+    expect(STATUS).toMatch(/await bounded\(client\.vaultForget\(legacy\)\)/)
   })
 
   /** And never written there again. */

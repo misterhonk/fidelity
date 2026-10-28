@@ -165,6 +165,8 @@ export interface Preferences {
   accessKey: string | null
   /** Shared secret for that hub, if it asks for one. Never a Discogs token. */
   hubSecret: string | null
+  /** When somebody last changed a setting — what the vault merge compares. */
+  updatedAt?: number
 }
 
 export interface SyncState {
@@ -2266,7 +2268,10 @@ export interface BasketItem {
   title: string
   price: number
   currency: string
+  /** When the line was put in the basket — what basket order reads. */
   addedAt: number
+  /** When the price was fetched — the six-hour clock. Absent on older lines, where `addedAt` was both. */
+  pricedAt?: number
   note: string | null
   /**
    * Discogs' format string for the record — "2 x Vinyl, LP, Album",
@@ -2294,6 +2299,8 @@ export interface BasketItem {
    * ten links have been tapped, so the hand-over can be picked up again.
    */
   atDiscogsAt?: number | null
+  /** Last change to note, hand-over or sold state — the vault merge stamp. */
+  updatedAt?: number
 }
 
 // ---------------------------------------------------------------------------

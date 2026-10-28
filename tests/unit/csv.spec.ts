@@ -54,6 +54,14 @@ describe('a cell', () => {
     expect(cell(0)).toBe('"0"')
   })
 
+  it('defuses text that a spreadsheet would run as a formula, not numbers', () => {
+    expect(cell('=HYPERLINK("x")')).toBe(`"'=HYPERLINK(""x"")"`)
+    for (const start of ['+', '-', '@', '\t', '\r']) {
+      expect(cell(`${start}1`)).toBe(`"'${start}1"`)
+    }
+    expect(cell(-5)).toBe('"-5"')
+  })
+
   it('makes rows a sheet can read back', () => {
     const csv = toCsv(['a', 'b'], [['x, y', 'say "hi"']])
     expect(csv.startsWith('﻿')).toBe(true)

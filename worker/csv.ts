@@ -28,7 +28,10 @@ const LIST = '; '
 /** One cell: always quoted, quotes doubled. `null` and `undefined` are empty. */
 export function cell(value: unknown): string {
   if (value === null || value === undefined) return '""'
-  return `"${String(value).replace(/"/g, '""')}"`
+  // A text cell starting like a formula runs as one in Excel; numbers stay numbers.
+  const text =
+    typeof value === 'string' && /^[=+\-@\t\r]/.test(value) ? `'${value}` : String(value)
+  return `"${text.replace(/"/g, '""')}"`
 }
 
 export function toCsv(header: string[], rows: unknown[][]): string {

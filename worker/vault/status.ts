@@ -3,6 +3,7 @@ import type { VaultBlocked, VaultSnapshot, VaultStatus } from '#shared/types'
 
 import { currentIdentity } from '../auth'
 import { createHubClient } from '../hub/client'
+import { HUB_BULK_TIMEOUT_MS, withTimeout } from '../hub/fallback'
 
 import type { SealedVault } from './crypto'
 import { syncVault, type SyncReport } from './sync'
@@ -148,11 +149,13 @@ export async function runVaultSync(passphrase: string): Promise<SyncReport> {
    * computable address is exactly what is being stopped here.
    */
   const legacy = await legacyVaultId(identity.userId)
-  if (legacy !== id && !(await client.vaultRead(id))) {
-    const old = await client.vaultRead(legacy)
+  // Bounded: a hub that never answers must not leave the sync hanging.
+  const bounded = <T>(call: Promise<T>) => withTimeout(call, HUB_BULK_TIMEOUT_MS)
+  if (legacy !== id && !(await bounded(client.vaultRead(id)))) {
+    const old = await bounded(client.vaultRead(legacy))
     if (old) {
-      await client.vaultWrite(id, old)
-      await client.vaultForget(legacy)
+      await bounded(client.vaultWrite(id, old))
+      await bounded(client.vaultForget(legacy)).catch(() => {})
     }
   }
 

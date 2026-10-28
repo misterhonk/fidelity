@@ -123,22 +123,64 @@ describe('two devices, one truth', () => {
     // Two writes with the same stamp are almost always the same write seen
     // twice; preferring the remote one would rewrite rows on every sync.
     const hier = snapshot({
-      stores: { basket: [{ listingId: 1, note: 'hier', addedAt: 100 }] },
+      stores: { dealers: [{ username: 'a', note: 'hier', updatedAt: 100 }] },
     })
     const dort = snapshot({
-      stores: { basket: [{ listingId: 1, note: 'dort', addedAt: 100 }] },
+      stores: { dealers: [{ username: 'a', note: 'dort', updatedAt: 100 }] },
     })
 
-    expect((mergeSnapshots(hier, dort).stores.basket as { note: string }[])[0]?.note).toBe(
+    expect((mergeSnapshots(hier, dort).stores.dealers as { note: string }[])[0]?.note).toBe(
       'hier',
     )
   })
 
-  it('takes the preferences from whichever snapshot is newer', () => {
-    const a = snapshot({ savedAt: 100, preferences: { currency: 'EUR' } as never })
-    const b = snapshot({ savedAt: 200, preferences: { currency: 'GBP' } as never })
-    expect(mergeSnapshots(a, b).preferences).toMatchObject({ currency: 'GBP' })
-    expect(mergeSnapshots(b, a).preferences).toMatchObject({ currency: 'GBP' })
+  it('takes the preferences that were changed last, not the snapshot taken last', () => {
+    // The local snapshot is always stamped "now", so `savedAt` cannot decide this.
+    const here = snapshot({
+      savedAt: 9000,
+      preferences: { currency: 'EUR', updatedAt: 100 } as never,
+    })
+    const there = snapshot({
+      savedAt: 200,
+      preferences: { currency: 'GBP', updatedAt: 200 } as never,
+    })
+    expect(mergeSnapshots(here, there).preferences).toMatchObject({ currency: 'GBP' })
+    expect(mergeSnapshots(there, here).preferences).toMatchObject({ currency: 'GBP' })
+  })
+
+  it('keeps two copies of the same release apart', () => {
+    const here = snapshot({
+      stores: { collection: [{ instanceId: 1, releaseId: 42, syncedAt: 100 }] },
+    })
+    const there = snapshot({
+      stores: { collection: [{ instanceId: 2, releaseId: 42, syncedAt: 100 }] },
+    })
+    expect(mergeSnapshots(here, there).stores.collection).toHaveLength(2)
+  })
+
+  it('leaves followed artists and watched records out — their deletions would come back', () => {
+    // Unfollow deletes the row; a merge sees a gap and refills it from the other device.
+    const here = snapshot({ stores: {} })
+    const there = snapshot({
+      stores: {
+        followed: [{ artistId: 7, followedAt: 100 }],
+        watched: [{ releaseId: 2, since: 5, points: [] }],
+      },
+    })
+    const merged = mergeSnapshots(here, there)
+    expect(merged.stores.followed).toBeUndefined()
+    expect(merged.stores.watched).toBeUndefined()
+    expect(SYNCABLE_STORES).not.toContain('followed')
+    expect(SYNCABLE_STORES).not.toContain('watched')
+  })
+
+  it('leaves the basket out — a removed line would come back with no price', () => {
+    const merged = mergeSnapshots(
+      snapshot({}),
+      snapshot({ stores: { basket: [{ listingId: 1, price: 0, addedAt: 100 }] } }),
+    )
+    expect(merged.stores.basket).toBeUndefined()
+    expect(SYNCABLE_STORES).not.toContain('basket')
   })
 
   /**
@@ -239,5 +281,17 @@ describe('two devices, one truth', () => {
     expect(SYNCABLE_STORES).not.toContain('digs')
     expect(SYNCABLE_STORES).not.toContain('matches')
     expect(SYNCABLE_STORES).not.toContain('meta')
+  })
+})
+
+describe('the preferences stamp', () => {
+  it('moves when a setting changes, not when a sync is recorded', async () => {
+    const { updatePreferences } = await import('~~/db/meta')
+    const { deleteFidelityDb } = await import('~~/db/open')
+    const changed = await updatePreferences({ currency: 'GBP' })
+    expect(changed.updatedAt).toBeTypeOf('number')
+    const synced = await updatePreferences({ vaultSyncedAt: changed.updatedAt! + 5000 })
+    expect(synced.updatedAt).toBe(changed.updatedAt)
+    await deleteFidelityDb()
   })
 })
