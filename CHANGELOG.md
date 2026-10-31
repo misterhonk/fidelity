@@ -9,6 +9,16 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.113.3](https://github.com/misterhonk/fidelity/compare/v0.113.2...v0.113.3) (2026-10-31)
+
+
+### Fixed
+
+* **basket:** take basket and shared-link prices down at six hours ([981ff82](https://github.com/misterhonk/fidelity/commit/981ff8208148868ce45dc5a6a30f49bf1c16087a))
+* **collection:** let a wantlist undo wait for a running drain ([6ec769c](https://github.com/misterhonk/fidelity/commit/6ec769c471ca03f3c6974b1f5549a679cc0efbf1))
+* **sync:** clear a verdict with a tombstone so the vault cannot bring it back ([99295d1](https://github.com/misterhonk/fidelity/commit/99295d106cca30b2e049b7b8d709971ffb9cad8d))
+* **sync:** keep the collection, wantlist and horizon out of the vault ([db48ea9](https://github.com/misterhonk/fidelity/commit/db48ea9732f759f1aca610ee5925db377217c316))
+
 ## [0.113.2](https://github.com/misterhonk/fidelity/compare/v0.113.1...v0.113.2) (2026-10-28)
 
 
