@@ -3,6 +3,7 @@ import { deleteDB, openDB, type IDBPDatabase } from 'idb'
 import { log } from '~~/worker/log'
 
 import { repairShipsFrom } from './dealer'
+import { repairHorizonChunk } from './horizon'
 import { DB_NAME, DB_VERSION, type FidelityDB } from './schema'
 
 export type FidelityDatabase = IDBPDatabase<FidelityDB>
@@ -279,6 +280,17 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
             collection.createIndex('by-label', 'labelNorms', { multiEntry: true })
           }
         }
+      }
+
+      // v16 repairs horizon chunks a vault round had flattened (db/horizon.ts).
+      if (oldVersion > 0 && oldVersion < 16 && db.objectStoreNames.contains('horizon')) {
+        const horizon = tx.objectStore('horizon')
+        void horizon.openCursor().then(function walk(cursor): unknown {
+          if (!cursor) return undefined
+          const repaired = repairHorizonChunk(cursor.value)
+          if (repaired !== cursor.value) void cursor.update(repaired)
+          return cursor.continue().then(walk)
+        })
       }
 
       // Future versions go here. The rule: never migrate destructively unless

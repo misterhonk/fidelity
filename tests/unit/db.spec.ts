@@ -102,6 +102,43 @@ describe('database schema', () => {
     expect(await db.get('meta', 'syncState')).toBeUndefined()
   })
 
+  /*
+   * v16 puts back what a vault round flattened.
+   *
+   * The vault sealed horizon chunks with JSON, and an Int32Array comes back
+   * from that as `{"0":5,"1":6}`: no length, so every lookup looped zero
+   * times, while the chunk counted as fresh for thirty days. Integer keys keep
+   * their order, so nothing needs fetching again.
+   */
+  it('repairs horizon chunks a vault round turned into plain objects', async () => {
+    const chunk = {
+      key: 'label:5',
+      kind: 'label',
+      entityId: 5,
+      name: 'Brain',
+      fetchedAt: 1,
+      complete: true,
+      requests: 1,
+      releaseIds: Int32Array.from([3, 11, 200]),
+      roles: Uint8Array.from([0, 1, 0]),
+      years: Int16Array.from([1972, 1973, 1980]),
+      catnoNums: Int32Array.from([1001, 1002, 1050]),
+    }
+    const old = await openDB('fidelity', 15, {
+      upgrade(db) {
+        db.createObjectStore('horizon', { keyPath: 'key' })
+      },
+    })
+    await old.put('horizon', JSON.parse(JSON.stringify(chunk)))
+    old.close()
+
+    const db = await openFidelityDb()
+    const back = await db.get('horizon', 'label:5')
+
+    expect(back?.releaseIds).toBeInstanceOf(Int32Array)
+    expect(back).toEqual(chunk)
+  })
+
   it('creates every store with its indexes', async () => {
     const db = await openFidelityDb()
 

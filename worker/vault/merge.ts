@@ -22,17 +22,23 @@ import type { VaultSnapshot } from '#shared/types'
  *   Digs and matches — marketplace data, gone after six hours by rule anyway.
  *   Putting prices on a server to sync them back is the one thing this app
  *   promised not to do.
+ *
+ *   Collection and wantlist — every device mirrors them from Discogs with its
+ *   own token. Their rows carry no write date, so a merge could only add the
+ *   two sides together: a sold record or a removed want came back from the
+ *   other device on every round (found 2026-10-31).
+ *
+ *   The horizon — its ids are typed arrays, which JSON turns into plain
+ *   objects with no length (repaired by db v16). It can be rebuilt, which is
+ *   why the JSON export leaves it out as well.
  */
 
 /** How each store decides which of two records is the newer one. */
 const STAMP = {
-  horizon: (row: { fetchedAt?: number }) => row.fetchedAt ?? 0,
   feedback: (row: { updatedAt?: number; createdAt?: number }) =>
     row.updatedAt ?? row.createdAt ?? 0,
   dealers: (row: { updatedAt?: number; lastScannedAt?: number | null }) =>
     row.updatedAt ?? row.lastScannedAt ?? 0,
-  collection: (row: { syncedAt?: number }) => row.syncedAt ?? 0,
-  wantlist: (row: { syncedAt?: number }) => row.syncedAt ?? 0,
   /*
    * Places and locations (M12).
    *
@@ -52,12 +58,8 @@ const STAMP = {
 } as const
 
 const KEY = {
-  horizon: 'key',
   feedback: 'listingId',
   dealers: 'username',
-  // The store's keyPath: two copies of one release are two rows.
-  collection: 'instanceId',
-  wantlist: 'releaseId',
   places: 'id',
   placements: 'instanceId',
 } as const

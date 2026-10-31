@@ -35,8 +35,10 @@ export const DB_NAME = 'fidelity'
  * why the upgrade drops and refetches rather than backfilling.
  *
  * 4 — added the `covers` store. Additive: nothing existing is touched.
+ *
+ * 16 — repairs horizon chunks a vault round had flattened. No shape change.
  */
-export const DB_VERSION = 15
+export const DB_VERSION = 16
 
 /**
  * `meta` is a small key-value store rather than nine one-row stores. The union

@@ -148,14 +148,31 @@ describe('two devices, one truth', () => {
     expect(mergeSnapshots(there, here).preferences).toMatchObject({ currency: 'GBP' })
   })
 
-  it('keeps two copies of the same release apart', () => {
-    const here = snapshot({
-      stores: { collection: [{ instanceId: 1, releaseId: 42, syncedAt: 100 }] },
-    })
-    const there = snapshot({
-      stores: { collection: [{ instanceId: 2, releaseId: 42, syncedAt: 100 }] },
-    })
-    expect(mergeSnapshots(here, there).stores.collection).toHaveLength(2)
+  it('leaves the collection and the wantlist out — a sold record would come back', () => {
+    // Every device mirrors both from Discogs. Their rows carry no write date,
+    // so a merge could only add the two sides together.
+    const merged = mergeSnapshots(
+      snapshot({}),
+      snapshot({
+        stores: {
+          collection: [{ instanceId: 1, releaseId: 42 }],
+          wantlist: [{ releaseId: 43 }],
+        },
+      }),
+    )
+    expect(merged.stores.collection).toBeUndefined()
+    expect(merged.stores.wantlist).toBeUndefined()
+    expect(SYNCABLE_STORES).not.toContain('collection')
+    expect(SYNCABLE_STORES).not.toContain('wantlist')
+  })
+
+  it('leaves the horizon out — its typed arrays do not survive JSON', () => {
+    const merged = mergeSnapshots(
+      snapshot({}),
+      snapshot({ stores: { horizon: [{ key: 'artist:1', releaseIds: { 0: 5 } }] } }),
+    )
+    expect(merged.stores.horizon).toBeUndefined()
+    expect(SYNCABLE_STORES).not.toContain('horizon')
   })
 
   it('leaves followed artists and watched records out — their deletions would come back', () => {
