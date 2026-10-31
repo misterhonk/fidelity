@@ -166,8 +166,19 @@ export async function unwantRecords(releaseIds: number[]): Promise<WantlistItem[
  * window in which the job is gone and the record is not yet on the wantlist,
  * and a drain landing inside it would leave the record nowhere — removed at
  * Discogs, absent here, with nothing left that remembers it.
+ *
+ * ⚠️ **Under the outbox lock.** A drain reads the queue once and sends what it
+ * read; dropping a job behind its back does not stop the DELETE. Waiting for
+ * a running drain costs seconds, and then "pending" means not sent.
  */
 export async function rewantRecords(records: WantlistItem[]): Promise<number> {
+  const { OUTBOX_LOCK } = await import('~~/db/outbox')
+  const locks = globalThis.navigator?.locks
+  const run = () => restore(records)
+  return locks ? locks.request(OUTBOX_LOCK, run) : run()
+}
+
+async function restore(records: WantlistItem[]): Promise<number> {
   const db = await openFidelityDb()
   const { pendingJobs, dropJob } = await import('~~/db/outbox')
 

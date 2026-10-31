@@ -257,6 +257,45 @@ describe('the wantlist, by the armful', () => {
   })
 
   /*
+   * And the case in between: undo while a drain is sending.
+   *
+   * The drain reads the queue once. Dropping a job it has already read does
+   * not stop its DELETE, so an undo that took "still queued" at its word left
+   * the want gone at Discogs with nothing asking for it back — and the next
+   * full sync then removed the row here as well, note and all.
+   */
+  it('asks back every want a running drain removed, rather than trusting the queue', async () => {
+    const db = await openFidelityDb()
+    await db.put('wantlist', want())
+    await db.put('wantlist', want({ releaseId: 32, title: 'Tweez' }))
+    const removed = await unwantRecords([31, 32])
+
+    let sending!: () => void
+    const inFlight = new Promise<void>((resolve) => (sending = resolve))
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    const fake = client(async () => {
+      sending()
+      await gate
+      return null
+    })
+
+    const drained = drainOutbox(fake, 'mrtnmlchr')
+    await inFlight
+    const undone = rewantRecords(removed)
+    release()
+    const [, resent] = await Promise.all([drained, undone])
+
+    expect(fake.write).toHaveBeenCalledTimes(2)
+    expect(resent).toBe(2)
+    expect((await pendingJobs()).map((job) => job.id).sort()).toEqual([
+      'wantlist.add:31',
+      'wantlist.add:32',
+    ])
+    expect((await db.get('wantlist', 32))?.title).toBe('Tweez')
+  })
+
+  /*
    * The row goes back whole, not as an id.
    *
    * A wantlist row carries the note, the wish rating and the date it was added

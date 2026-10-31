@@ -12,6 +12,9 @@ import type { OutboxJob } from './schema'
 /** After this many failed runs a job is given up on and its value put back. */
 export const MAX_ATTEMPTS = 5
 
+/** Held by a drain, and by anything that must know which jobs it has not sent yet. */
+export const OUTBOX_LOCK = 'fidelity:outbox'
+
 export async function queueJob(job: Omit<OutboxJob, 'attempts'>): Promise<void> {
   const db = await openFidelityDb()
   /*

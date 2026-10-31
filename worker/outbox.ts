@@ -1,4 +1,4 @@
-import { dropJob, noteFailure, pendingJobs } from '~~/db/outbox'
+import { dropJob, noteFailure, OUTBOX_LOCK, pendingJobs } from '~~/db/outbox'
 import { openFidelityDb } from '~~/db/open'
 import { DiscogsError } from './discogs/errors'
 import type { OutboxJob, OutboxKind } from '~~/db/schema'
@@ -303,8 +303,6 @@ export async function drainOutbox(
   if (!locks) return run()
   return signal ? locks.request(OUTBOX_LOCK, { signal }, run) : locks.request(OUTBOX_LOCK, run)
 }
-
-const OUTBOX_LOCK = 'fidelity:outbox'
 
 async function drainOnce(
   client: DiscogsClient,
