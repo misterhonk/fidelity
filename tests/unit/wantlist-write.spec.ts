@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import { pendingJobs } from '~~/db/outbox'
@@ -265,6 +265,24 @@ describe('the wantlist, by the armful', () => {
    * full sync then removed the row here as well, note and all.
    */
   it('asks back every want a running drain removed, rather than trusting the queue', async () => {
+    // Node 22, which CI runs, has no `navigator.locks`; one lock stands in for it (outbox.spec.ts).
+    let held: Promise<unknown> = Promise.resolve()
+    vi.stubGlobal('navigator', {
+      locks: {
+        request: <T>(_name: string, run: () => Promise<T>): Promise<T> => {
+          const turn = held.then(run, run)
+          held = turn.then(
+            () => undefined,
+            () => undefined,
+          )
+          return turn
+        },
+      },
+    })
+    onTestFinished(() => {
+      vi.unstubAllGlobals()
+    })
+
     const db = await openFidelityDb()
     await db.put('wantlist', want())
     await db.put('wantlist', want({ releaseId: 32, title: 'Tweez' }))
