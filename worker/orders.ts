@@ -4,6 +4,7 @@ import { blankDealer } from '~~/db/dealer'
 import { openFidelityDb } from '~~/db/open'
 import { readOffShipping } from './basket/profiles'
 import type { DiscogsClient } from './discogs/client'
+import { alive } from './feedback'
 import type { Feedback, OrderImport } from '#shared/types'
 
 /**
@@ -147,7 +148,9 @@ export async function importOrder(
   let enriched = 0
 
   for (const item of order.items) {
-    const existing = await db.get('feedback', item.id)
+    // A cleared verdict counts as none: the import writes a fresh row over its tombstone.
+    const stored = await db.get('feedback', item.id)
+    const existing = stored && alive(stored) ? stored : undefined
 
     /*
      * An existing row is filled out, not replaced.

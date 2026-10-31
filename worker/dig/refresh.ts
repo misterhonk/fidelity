@@ -8,6 +8,7 @@ import type { Dig, Match } from '#shared/types'
 import type { DiscogsClient } from '../discogs/client'
 import { DiscogsError } from '../discogs/errors'
 import { fail } from '../fail'
+import { alive } from '../feedback'
 
 /**
  * Bringing an expired dig back to life.
@@ -393,7 +394,7 @@ export async function refreshMarked({
 }> {
   const db = await openFidelityDb()
   const open = (await db.getAll('feedback')).filter(
-    (entry) => entry.verdict === 'interesting' && !entry.soldAt,
+    (entry) => alive(entry) && entry.verdict === 'interesting' && !entry.soldAt,
   )
 
   const prices: Record<
@@ -481,7 +482,7 @@ export async function basketFromMarked({
     signal?.throwIfAborted()
 
     const marked = await db.get('feedback', listingId)
-    if (!marked) {
+    if (!marked || !alive(marked)) {
       done += 1
       continue
     }

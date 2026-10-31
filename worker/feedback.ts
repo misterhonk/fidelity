@@ -23,6 +23,16 @@ import type { Feedback, MarkedOverview, MarkedRecord, Signal, Verdict } from '#s
  * — the basket has kept the title for exactly this reason since M4.
  */
 
+/**
+ * A cleared verdict is still there, but no longer counts.
+ *
+ * The tombstone exists for the vault (`Feedback.removedAt`): a deleted row is
+ * not a message to its merge but a gap, and the other device filled it in
+ * again (found 2026-10-31). Every read of this store goes through this filter,
+ * in whichever module it happens.
+ */
+export const alive = (entry: Feedback) => !entry.removedAt
+
 export async function recordFeedback(
   match: FeedbackSubject,
   verdict: Verdict,
@@ -65,19 +75,21 @@ export async function recordFeedback(
 export async function setVerdict(listingId: number, verdict: Verdict): Promise<void> {
   const db = await openFidelityDb()
   const entry = await db.get('feedback', listingId)
-  if (!entry) return
+  if (!entry || !alive(entry)) return
   await db.put('feedback', { ...entry, verdict, updatedAt: Date.now() })
 }
 
-export async function clearFeedback(listingId: number): Promise<void> {
+export async function clearFeedback(listingId: number, now = Date.now()): Promise<void> {
   const db = await openFidelityDb()
-  await db.delete('feedback', listingId)
+  const entry = await db.get('feedback', listingId)
+  if (!entry || !alive(entry)) return
+  await db.put('feedback', { ...entry, removedAt: now, updatedAt: now })
 }
 
 /** Every verdict given so far, keyed by listing — what the UI needs to render. */
 export async function feedbackVerdicts(): Promise<Record<number, Verdict>> {
   const db = await openFidelityDb()
-  const all = await db.getAll('feedback')
+  const all = (await db.getAll('feedback')).filter(alive)
 
   const verdicts: Record<number, Verdict> = {}
   for (const entry of all) verdicts[entry.listingId] = entry.verdict
@@ -90,7 +102,7 @@ export async function feedbackVerdicts(): Promise<Record<number, Verdict>> {
  */
 export async function allFeedback(): Promise<Feedback[]> {
   const db = await openFidelityDb()
-  const all = await db.getAll('feedback')
+  const all = (await db.getAll('feedback')).filter(alive)
   return all.sort((a, b) => b.createdAt - a.createdAt)
 }
 
@@ -107,7 +119,7 @@ export async function allFeedback(): Promise<Feedback[]> {
  */
 export async function markedOverview(): Promise<MarkedOverview> {
   const db = await openFidelityDb()
-  const all = await db.getAll('feedback')
+  const all = (await db.getAll('feedback')).filter(alive)
 
   const marked = all.filter((entry) => entry.verdict === 'interesting').map(toMarked)
   const bought = all

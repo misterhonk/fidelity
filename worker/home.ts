@@ -8,6 +8,8 @@ import type { FidelityDB } from '~~/db/schema'
 import type { HomeCover, HomeFind, HomeOverview, HomeShop } from '#shared/protocol'
 import type { IDBPDatabase } from 'idb'
 
+import { alive } from './feedback'
+
 /**
  * Everything for the start page, in one message.
  *
@@ -90,7 +92,7 @@ export async function homeOverview(): Promise<HomeOverview> {
   const [digs, dealers, feedback, shelf, wanted] = await Promise.all([
     db.getAll('digs'),
     db.getAll('dealers').then((rows) => rows.filter((dealer) => !isHidden(dealer))),
-    db.getAll('feedback'),
+    db.getAll('feedback').then((rows) => rows.filter(alive)),
     newest(db, 'collection', RAIL),
     newest(db, 'wantlist', RAIL),
   ])

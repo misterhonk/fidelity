@@ -203,6 +203,27 @@ describe('reading an order', () => {
 
     expect((await db.get('feedback', 4240795662))?.arrived).toBe('worse')
   })
+
+  // A verdict taken back is a tombstone (worker/feedback.ts); bought is a fresh one over it.
+  it('counts a cleared verdict as none and writes the purchase over it', async () => {
+    const db = await openFidelityDb()
+    await db.put('feedback', {
+      listingId: 4240795662,
+      releaseId: 201068,
+      verdict: 'interesting',
+      signals: [],
+      score: 0,
+      createdAt: JETZT - 1000,
+      removedAt: JETZT - 500,
+    } as unknown as Feedback)
+
+    const { fake } = client()
+    expect(await importOrder(fake, '259022-32308', JETZT)).toMatchObject({ enriched: 0 })
+
+    const row = await db.get('feedback', 4240795662)
+    expect(row?.verdict).toBe('bought')
+    expect(row?.removedAt).toBeUndefined()
+  })
 })
 
 describe('what an order never brings along', () => {

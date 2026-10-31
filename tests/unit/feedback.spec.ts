@@ -88,6 +88,41 @@ describe('feedback', () => {
     expect(await feedbackVerdicts()).toEqual({})
   })
 
+  /*
+   * And stays taken back once the vault has been round (found 2026-10-31).
+   *
+   * Clearing used to delete the row. The merge knows only "this row is newer",
+   * so the gap was filled from the device that still had the verdict, and the
+   * record was back on the shortlist after the next round.
+   */
+  it('stays taken back when another device still has the verdict', async () => {
+    const { snapshotLocal, applySnapshot } = await import('~~/worker/vault/sync')
+    const { mergeSnapshots } = await import('~~/worker/vault/merge')
+
+    await recordFeedback(subject(1), 'interesting', 1000)
+    const phone = await snapshotLocal(1000)
+    await clearFeedback(1, 2000)
+
+    await applySnapshot(mergeSnapshots(await snapshotLocal(2000), phone))
+
+    expect(await feedbackVerdicts()).toEqual({})
+    expect((await markedOverview()).total).toBe(0)
+  })
+
+  it('can be given again after it was taken back, and then that wins', async () => {
+    const { snapshotLocal, applySnapshot } = await import('~~/worker/vault/sync')
+    const { mergeSnapshots } = await import('~~/worker/vault/merge')
+
+    await recordFeedback(subject(1), 'interesting', 1000)
+    await clearFeedback(1, 2000)
+    const phone = await snapshotLocal(2000)
+    await recordFeedback(subject(1), 'bought', 3000)
+
+    await applySnapshot(mergeSnapshots(await snapshotLocal(3000), phone))
+
+    expect(await feedbackVerdicts()).toEqual({ 1: 'bought' })
+  })
+
   it('exports newest first, which is the order you want to read it in', async () => {
     await recordFeedback(subject(1), 'meh', 1000)
     await recordFeedback(subject(2), 'bought', 3000)

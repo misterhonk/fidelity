@@ -9,7 +9,7 @@ import { anonymousDiscogs, currentIdentity, discogs, requestPersistence, signOut
 import { forgetLookup } from './dig/detail'
 import { affinityFactor } from './dig/fingerprint'
 import { shelfSample } from './dealers/shelf'
-import { allFeedback, clearFeedback, feedbackVerdicts, recordFeedback } from './feedback'
+import { alive, allFeedback, clearFeedback, feedbackVerdicts, recordFeedback } from './feedback'
 
 import { bestPerRelease, topFive } from './match/select'
 import { computeTasteProfile } from './match/taste'
@@ -1531,8 +1531,9 @@ export const handlers: HandlerMap = {
       basket: await db.count('basket'),
       // Counted rather than stored: a verdict can be taken back, and a number
       // that drifts from the list it describes is worse than no number.
-      marked: (await db.getAll('feedback')).filter((entry) => entry.verdict === 'interesting')
-        .length,
+      marked: (await db.getAll('feedback')).filter(
+        (entry) => alive(entry) && entry.verdict === 'interesting',
+      ).length,
       collectionSyncedAt: syncState.collectionSyncedAt,
       wantlistSyncedAt: syncState.wantlistSyncedAt,
     }

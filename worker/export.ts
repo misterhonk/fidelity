@@ -8,6 +8,8 @@ import {
   type WatchedRelease,
 } from '#shared/types'
 
+import { alive } from './feedback'
+
 /**
  * Taking your data with you (docs/06 M8).
  *
@@ -167,7 +169,7 @@ export async function exportEverything(now: number): Promise<FullExport> {
     db.getAll('wantlist'),
     db.getAll('dealers'),
     db.getAll('digs'),
-    db.getAll('feedback'),
+    db.getAll('feedback').then((rows) => rows.filter(alive)),
     db.getAll('basket'),
     db.getAll('matches'),
     db.getAll('places'),

@@ -1,6 +1,8 @@
 import { openFidelityDb } from '~~/db/open'
 import type { GradingRecord } from '#shared/types'
 
+import { alive } from './feedback'
+
 /**
  * Does this shop grade honestly? (M14)
  *
@@ -49,7 +51,7 @@ export async function gradingFor(dealer: string): Promise<GradingRecord> {
   // Through the index (M34.4): one shop's rows, not every row this device has judged.
   const rows = await db.getAllFromIndex('feedback', 'by-dealer', dealer)
 
-  const mine = rows.filter((row) => row.arrived)
+  const mine = rows.filter((row) => alive(row) && row.arrived)
   const asDescribed = mine.filter((row) => row.arrived === 'as-described').length
   const better = mine.filter((row) => row.arrived === 'better').length
   const worse = mine.filter((row) => row.arrived === 'worse').length
@@ -78,7 +80,7 @@ export async function recordArrival(
 ): Promise<void> {
   const db = await openFidelityDb()
   const row = await db.get('feedback', listingId)
-  if (!row) return
+  if (!row || !alive(row)) return
 
   await db.put('feedback', {
     ...row,
@@ -100,7 +102,7 @@ export async function awaitingArrival(
   { listingId: number; dealer: string | null; artist: string | null; title: string | null }[]
 > {
   const db = await openFidelityDb()
-  const all = await db.getAll('feedback')
+  const all = (await db.getAll('feedback')).filter(alive)
 
   return all
     .filter(

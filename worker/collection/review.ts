@@ -11,6 +11,7 @@ import {
 } from '#shared/types'
 import { mediumOf } from '#shared/format'
 
+import { alive } from '../feedback'
 import { buildLookup, hitsFor, type HorizonLookup } from '../horizon/lookup'
 import { computeTasteProfile, topFacets } from '../match/taste'
 
@@ -174,7 +175,7 @@ export async function collectionReview(year: number | null): Promise<YearReview 
   const [copies, digs, feedback, chunks, releases, wantlist] = await Promise.all([
     db.getAll('collection'),
     db.getAll('digs'),
-    db.getAll('feedback'),
+    db.getAll('feedback').then((rows) => rows.filter(alive)),
     db.getAll('horizon'),
     distinctReleases(),
     db.getAll('wantlist'),
