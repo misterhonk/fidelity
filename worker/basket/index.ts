@@ -134,9 +134,11 @@ export async function basketSummaries(now: number, country: string): Promise<Bas
 
   const byDealer = new Map<string, BasketLine[]>()
   for (const item of items) {
+    const priceUntil = (item.pricedAt ?? item.addedAt) + PRICE_TTL_MS
     const line: BasketLine = {
       ...item,
-      priceExpired: now - (item.pricedAt ?? item.addedAt) > PRICE_TTL_MS,
+      priceExpired: now > priceUntil,
+      priceUntil,
       sold: Boolean(item.soldAt),
     }
     const lines = byDealer.get(item.dealer)

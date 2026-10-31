@@ -71,6 +71,7 @@ const line = (over: Partial<BasketLine> = {}): BasketLine => ({
   addedAt: 0,
   note: null,
   priceExpired: false,
+  priceUntil: 6 * 60 * 60 * 1000,
   sold: false,
   ...over,
 })
@@ -195,6 +196,11 @@ describe('holding a basket', () => {
     expect(baskets[0]?.lines.map((line) => line.listingId)).toEqual([3, 2])
     // The clock still runs from the older dig's price.
     expect(baskets[0]?.lines.map((line) => line.priceExpired)).toEqual([false, true])
+    // And says when it runs out, so the screen can ask again then.
+    expect(baskets[0]?.lines.map((line) => line.priceUntil)).toEqual([
+      4 * hour + PRICE_TTL_MS,
+      PRICE_TTL_MS,
+    ])
   })
 
   it('refuses a match without a showable price', async () => {

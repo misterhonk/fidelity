@@ -5,19 +5,31 @@ const b = useBasketMessages()
 
 useSeoMeta({ title: () => b.value.title, description: () => b.value.description })
 
-const { view, load, clear, failure } = useBasket()
+const { view, refresh, clear, failure } = useBasket()
 
 /* Loading and the last toggle can each fail; whichever did is what is shown. */
 const error = ref<unknown>(null)
 const trouble = computed(() => error.value ?? failure.value)
 
-onMounted(async () => {
+/*
+ * Asked again on every visit and when the first shown price runs out (rule 4).
+ * The basket is loaded once per session for the nav; a view from 09:00 still
+ * showed its prices at 15:00 (found 2026-10-31).
+ */
+async function reload() {
   try {
-    await load()
+    await refresh()
   } catch (cause) {
     error.value = cause
   }
-})
+}
+onMounted(reload)
+useDeadline(() => {
+  const until = view.value.baskets.flatMap((basket) =>
+    basket.lines.filter((line) => !line.priceExpired).map((line) => line.priceUntil),
+  )
+  return until.length > 0 ? Math.min(...until) : null
+}, reload)
 
 const baskets = computed(() => view.value.baskets)
 

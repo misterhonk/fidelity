@@ -35,6 +35,7 @@ const line = (over: Partial<BasketLine> = {}): BasketLine => ({
   addedAt: 0,
   note: null,
   priceExpired: false,
+  priceUntil: 6 * 60 * 60 * 1000,
   sold: false,
   ...over,
 })

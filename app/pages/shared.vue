@@ -88,10 +88,9 @@ onMounted(async () => {
   }
 })
 
-const fresh = computed(() => {
-  const at = snapshot.value?.expiresAt
-  return at !== undefined && Date.now() < at
-})
+// A clock that ticks at the deadline, not a `Date.now()` read once (rule 4, useDeadline).
+const { passed } = useDeadline(() => snapshot.value?.expiresAt)
+const fresh = computed(() => snapshot.value?.expiresAt !== undefined && !passed.value)
 </script>
 
 <template>

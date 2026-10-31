@@ -2132,6 +2132,8 @@ export interface BasketLine {
   note: string | null
   /** Six hours on the price may no longer be shown (CLAUDE.md rule 4). */
   priceExpired: boolean
+  /** When that happens — the screen asks again then, rather than keep the price up. */
+  priceUntil: number
   /** Set once a refresh found the offer gone. */
   soldAt?: number | null
   /** Shown, but not counted: a sold record is not part of the order. */
@@ -2439,6 +2441,12 @@ export interface Feedback {
    */
   arrived?: 'as-described' | 'better' | 'worse' | null
   arrivedAt?: number | null
+  /**
+   * A tombstone instead of a deletion, for the same reason as `Place.removedAt`:
+   * the vault would fill the gap in again. Reads filter through `alive` in
+   * `worker/feedback.ts`.
+   */
+  removedAt?: number | null
   /** Signal snapshot at the time of the verdict — otherwise it is unusable later. */
   signals: Signal[]
   score: number
