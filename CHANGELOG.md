@@ -12,6 +12,33 @@ Für eine App bedeutet SemVer:
 ## [0.116.0](https://github.com/misterhonk/fidelity/compare/v0.115.0...v0.116.0) (2026-11-01)
 
 
+<!-- en -->
+**Sleeveside has its own address now: sleeveside.martinmelcher.de.** Nothing else lives there, so
+no other site can reach the data on your device. Under the hood, this release closes the doors the
+security review found:
+
+- The audio preview plays without loading any script from Google into the app.
+- The app only talks to the places it needs, and every link, backup and vault file is checked
+  before it is read.
+- Signing out also clears covers, the push sign-up and the cloud sign-ins.
+- The demo reads the part of a shop where the promised artist is, and never ends empty.
+- Setting up the key explains what it is, has a paste button and tells you how to revoke it.
+- When the disk is full, Sleeveside clears covers first instead of losing your data.
+
+<!-- de -->
+**Sleeveside hat jetzt eine eigene Adresse: sleeveside.martinmelcher.de.** Dort wohnt sonst
+nichts, also kommt keine andere Seite an die Daten auf deinem Gerät. Unter der Haube schließt diese
+Version die Türen, die die Sicherheitsprüfung gefunden hat:
+
+- Die Hörprobe spielt, ohne ein Skript von Google in die App zu laden.
+- Die App spricht nur mit den Stellen, die sie braucht. Links, Backups und Tresor-Dateien werden
+  geprüft, bevor sie gelesen werden.
+- Abmelden räumt jetzt auch Cover, die Push-Anmeldung und die Cloud-Anmeldungen weg.
+- Die Demo liest den Teil eines Ladens, in dem der versprochene Künstler steht, und endet nie leer.
+- Beim Schlüssel steht jetzt, was er ist, es gibt einen Einfügen-Knopf, und du siehst, wie du ihn
+  widerrufst.
+- Ist der Speicher voll, räumt Sleeveside zuerst Cover weg, statt Daten zu verlieren.
+
 ### Added
 
 * **auth:** token step that explains itself ([e90cd73](https://github.com/misterhonk/fidelity/commit/e90cd737defd91365425ed138b3377ac5ca4b743))
