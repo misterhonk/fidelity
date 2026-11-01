@@ -1104,6 +1104,13 @@ export const handlers: HandlerMap = {
     return searchShelf(query, Date.now())
   },
 
+  // The newest finished dig, the same one `dig.latest` hands the dig page.
+  'records.search': async ({ query }, context) => {
+    const { searchRecords } = await import('./search')
+    const latest = await handlers['dig.latest'](undefined, context)
+    return searchRecords(query, latest?.matches ?? [])
+  },
+
   'feedback.marked': async () => {
     const { markedOverview } = await import('./feedback')
     return markedOverview()

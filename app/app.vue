@@ -63,7 +63,7 @@ useHead({
  * somebody actually presses the shortcut. The first paint has a budget and
  * a search box nobody has opened yet does not belong in it.
  */
-const paletteOpen = ref(false)
+const paletteOpen = usePaletteOpen()
 
 // The sheet lives here rather than on the dig page: the shortlist and the long
 // list both open it, and only ever one at a time.

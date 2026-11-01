@@ -59,6 +59,7 @@ import type {
   RoundProgress,
   RoundSummary,
   SharedDig,
+  RecordSearch,
   ShelfResult,
   ShelfSort,
   ShelfView,
@@ -305,6 +306,12 @@ export interface WorkerContract {
    * it answers in a shop basement with no signal.
    */
   'collection.shelf': { params: { query: string }; progress: never; result: ShelfResult }
+  /**
+   * The palette's record search (#215): artist, title, label or catalogue
+   * number across shelf, wantlist and the last dig. In the worker, because the
+   * main thread does not compute. No requests.
+   */
+  'records.search': { params: { query: string }; progress: never; result: RecordSearch }
   /** The collection itself, filtered and sorted in the worker, a page at a time. */
   'collection.records': {
     params: {

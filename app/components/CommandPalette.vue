@@ -1,19 +1,20 @@
 <script setup lang="ts">
-import type { Dealer, Dig, Match } from '#shared/types'
+import type { Dealer, Dig, RecordHit, RecordSearch } from '#shared/types'
 import { useCollectionMessages } from '~/i18n/collection'
+import { useSettingsMessages } from '~/i18n/settings'
 
 const messages = useMessages()
 const collection = useCollectionMessages()
+const settings = useSettingsMessages()
 const emit = defineEmits<{ close: [] }>()
 
 /**
- * ⌘K. Searches **data**, not only navigation (docs/05 §3): the dealers you
- * have scanned, the digs you have run, and the matches in the newest one.
+ * ⌘K. Searches **data**, not only navigation (docs/05 §3): records on the
+ * shelf, the wantlist and in the last dig, the shops and digs, and actions.
  *
- * Everything it needs already sits in IndexedDB, so it is loaded once on open
- * and filtered in memory. A round trip to the worker per keystroke would put
- * a postMessage hop in front of every letter for a few hundred rows, which is
- * the wrong shape of expensive.
+ * The records are searched in the worker (`records.search`, #215) — the main
+ * thread does not compute, and a collection is thousands of rows. Shops, digs
+ * and the fixed entries are a few dozen labels, loaded once and filtered here.
  */
 
 const { call } = useFidelityWorker()
@@ -23,17 +24,35 @@ const query = ref('')
 const input = useTemplateRef<HTMLInputElement>('input')
 const cursor = ref(0)
 
-const dealers = ref<Dealer[]>([])
-const digs = ref<Dig[]>([])
-const matches = ref<Match[]>([])
+const dealers = shallowRef<Dealer[]>([])
+const digs = shallowRef<Dig[]>([])
+const records = shallowRef<RecordSearch>({ shelf: [], wantlist: [], dig: [] })
+
+// Focus goes back where it came from: the start page's field, or the page.
+const opener = import.meta.client ? (document.activeElement as HTMLElement | null) : null
 
 onMounted(async () => {
   input.value?.focus()
-
   dealers.value = await call('dealer.list', undefined)
   digs.value = await call('dig.list', undefined)
-  matches.value = (await call('dig.latest', undefined))?.matches ?? []
 })
+
+onBeforeUnmount(() => {
+  if (opener?.isConnected) opener.focus()
+})
+
+/** Numbered so a slower answer to an older query cannot overwrite a newer one. */
+let asked = 0
+let timer: ReturnType<typeof setTimeout> | undefined
+watch(query, (value) => {
+  clearTimeout(timer)
+  const ticket = ++asked
+  timer = setTimeout(async () => {
+    const found = await call('records.search', { query: value })
+    if (ticket === asked) records.value = found
+  }, 120)
+})
+onBeforeUnmount(() => clearTimeout(timer))
 
 interface Entry {
   id: string
@@ -50,22 +69,58 @@ function go(path: string, query?: Record<string, string>) {
   }
 }
 
+/** Found by the worker already; listed as they came, never filtered again. */
+const recordEntries = computed<Entry[]>(() => {
+  const m = messages.value
+  const r = records.value
+  const label = (hit: RecordHit) => `${hit.artist || '—'} – ${hit.title || '—'}`
+  const hint = (hit: RecordHit) => [hit.label, hit.catno].filter(Boolean).join(' · ')
+
+  return [
+    ...r.shelf.map((hit) => ({
+      id: `shelf-${hit.releaseId}`,
+      group: m.palette.shelf,
+      label: label(hit),
+      hint: hint(hit),
+      run: go('/shelf', { q: hit.title }),
+    })),
+    ...r.wantlist.map((hit) => ({
+      id: `want-${hit.releaseId}`,
+      group: m.palette.wantlist,
+      label: label(hit),
+      hint: hint(hit),
+      run: go('/wantlist', { q: hit.title }),
+    })),
+    // A find opens its sheet over its dig; app.vue reads `?find=`.
+    ...r.dig.map((hit) => ({
+      id: `match-${hit.listingId}`,
+      group: m.palette.lastDig,
+      label: label(hit),
+      hint: hint(hit),
+      run: go('/dig', { id: hit.digId ?? '', find: `${hit.digId}~${hit.listingId}` }),
+    })),
+  ]
+})
+
 const entries = computed<Entry[]>(() => {
   const m = messages.value
   const c = collection.value
+  const s = settings.value
   const goTo = m.palette.goTo
+  const actions = m.palette.actions
+
+  const settingsPages = [
+    ['account', s.account.title],
+    ['appearance', s.appearance.title],
+    ['collection', s.library.title],
+    ['search', s.search.title],
+    ['sync', s.sync.title],
+    ['data', s.data.title],
+    ['hub', s.hub.title],
+    ['help', s.help.title],
+  ] as const
 
   return [
-    { id: 'nav-dig', group: goTo, label: m.nav.dig.label, run: go('/dig') },
-    { id: 'nav-shelf', group: goTo, label: c.tabs.shelf, run: go('/shelf') },
-    { id: 'nav-map', group: goTo, label: c.tabs.map, run: go('/map') },
-    { id: 'nav-want', group: goTo, label: c.tabs.wantlist, run: go('/wantlist') },
-    { id: 'nav-clerk', group: goTo, label: m.nav.dealers.label, run: go('/dealers') },
-    { id: 'nav-basket', group: goTo, label: m.nav.basket.label, run: go('/basket') },
-    { id: 'nav-store', group: goTo, label: m.palette.inStore, run: go('/in-store') },
-    { id: 'nav-settings', group: goTo, label: m.nav.settings.label, run: go('/settings') },
-    { id: 'nav-home', group: goTo, label: m.nav.start.label, run: go('/') },
-
     ...dealers.value.map((dealer) => ({
       id: `dealer-${dealer.username}`,
       group: m.palette.dealers,
@@ -84,20 +139,35 @@ const entries = computed<Entry[]>(() => {
       run: go('/dig', { id: dig.id }),
     })),
 
-    // A find opens its sheet over its dig; app.vue reads `?find=`.
-    ...matches.value.map((match) => ({
-      id: `match-${match.listingId}`,
-      group: m.palette.lastDig,
-      label: `${match.artist ?? '—'} – ${match.title ?? '—'}`,
-      hint: `${match.score}`,
-      run: go('/dig', { id: match.digId, find: `${match.digId}~${match.listingId}` }),
+    { id: 'nav-dig', group: goTo, label: m.nav.dig.label, run: go('/dig') },
+    { id: 'nav-shelf', group: goTo, label: c.tabs.shelf, run: go('/shelf') },
+    { id: 'nav-map', group: goTo, label: c.tabs.map, run: go('/map') },
+    { id: 'nav-want', group: goTo, label: c.tabs.wantlist, run: go('/wantlist') },
+    { id: 'nav-clerk', group: goTo, label: m.nav.dealers.label, run: go('/dealers') },
+    { id: 'nav-store', group: goTo, label: m.palette.inStore, run: go('/in-store') },
+    { id: 'nav-home', group: goTo, label: m.nav.start.label, run: go('/') },
+
+    { id: 'act-scan', group: actions, label: m.palette.scan, run: go('/in-store') },
+    { id: 'act-basket', group: actions, label: m.nav.basket.label, run: go('/basket') },
+    // Filled in and checked on the dig page, never started: a scan spends
+    // somebody's rate limit, and that takes a second, deliberate press.
+    ...dealers.value.map((dealer) => ({
+      id: `act-dig-${dealer.username}`,
+      group: actions,
+      label: m.palette.digAt(dealer.displayName || dealer.username),
+      run: go('/dig', { dealer: dealer.username }),
+    })),
+    ...settingsPages.map(([path, title]) => ({
+      id: `act-settings-${path}`,
+      group: actions,
+      label: m.palette.settings(title),
+      run: go(`/settings/${path}`),
     })),
   ]
 })
 
 const results = computed(() => {
-  const needle = query.value.trim().toLowerCase()
-  const words = needle.split(/\s+/).filter(Boolean)
+  const words = query.value.trim().toLowerCase().split(/\s+/).filter(Boolean)
 
   const hits =
     words.length === 0
@@ -107,9 +177,9 @@ const results = computed(() => {
           return words.every((word) => haystack.includes(word))
         })
 
-  // Capped, because "im letzten Dig" can be several hundred rows and a palette
-  // that scrolls forever is a list, not a palette.
-  return hits.slice(0, 40)
+  // Records first: a typed name is most often a record. Capped, because a
+  // palette that scrolls forever is a list, not a palette.
+  return [...recordEntries.value, ...hits].slice(0, 40)
 })
 
 // Any keystroke moves the selection back to the top result; leaving the cursor
@@ -128,6 +198,15 @@ const grouped = computed(() => {
     else groups.push({ name: entry.group, entries: [{ entry, index }] })
   })
   return groups
+})
+
+const optionId = (index: number) => `palette-option-${index}`
+const active = computed(() => (results.value.length ? optionId(cursor.value) : undefined))
+
+// The active option stays in sight while ↓ walks past the bottom edge.
+watch(cursor, async () => {
+  await nextTick()
+  if (active.value) document.getElementById(active.value)?.scrollIntoView({ block: 'nearest' })
 })
 
 function move(delta: number) {
@@ -150,6 +229,9 @@ function onKeydown(event: KeyboardEvent) {
   } else if (event.key === 'Escape') {
     event.preventDefault()
     emit('close')
+  } else if (event.key === 'Tab') {
+    // The focus trap: the field is the one stop, the list is walked with arrows.
+    event.preventDefault()
   }
 }
 </script>
@@ -157,8 +239,8 @@ function onKeydown(event: KeyboardEvent) {
 <template>
   <!--
     A plain overlay rather than <dialog>: this needs no top-layer stacking and
-    no browser-styled backdrop, and focus is already trapped by the single
-    input that owns every key.
+    no browser-styled backdrop. Focus stays in the one field: options are not
+    focusable, Tab is held, and aria-activedescendant names the active option.
   -->
   <div
     class="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 pt-[12vh]"
@@ -171,11 +253,16 @@ function onKeydown(event: KeyboardEvent) {
       class="flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-fid-md border border-fid-border bg-fid-surface shadow-2xl"
     >
       <div class="flex items-center gap-3 border-b border-fid-border px-4">
-        <FidIcon name="search" class="text-fid-text-muted" />
+        <FidIcon name="search" class="text-fid-text-muted" aria-hidden="true" />
         <input
           ref="input"
           v-model="query"
           type="text"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-controls="palette-list"
+          :aria-expanded="results.length > 0"
+          :aria-activedescendant="active"
           autocomplete="off"
           spellcheck="false"
           :placeholder="messages.palette.placeholder"
@@ -189,32 +276,47 @@ function onKeydown(event: KeyboardEvent) {
         {{ messages.palette.nothing }}
       </p>
 
-      <div v-else class="overflow-y-auto py-2" style="scrollbar-gutter: stable">
-        <div v-for="group in grouped" :key="group.name">
-          <p class="px-4 py-1 text-fid-xs uppercase tracking-[0.2em] text-fid-text-muted">
+      <!-- mousedown is held so a click never takes the focus out of the field. -->
+      <div
+        v-show="results.length > 0"
+        id="palette-list"
+        role="listbox"
+        :aria-label="messages.palette.results"
+        class="overflow-y-auto py-2"
+        style="scrollbar-gutter: stable"
+        @mousedown.prevent
+      >
+        <div
+          v-for="(group, g) in grouped"
+          :key="group.name"
+          role="group"
+          :aria-labelledby="`palette-group-${g}`"
+        >
+          <p
+            :id="`palette-group-${g}`"
+            role="presentation"
+            class="px-4 py-1 text-fid-xs uppercase tracking-[0.2em] text-fid-text-muted"
+          >
             {{ group.name }}
           </p>
-          <ul>
-            <li v-for="{ entry, index } in group.entries" :key="entry.id">
-              <button
-                type="button"
-                class="flex w-full items-baseline gap-3 px-4 py-2 text-left transition-colors"
-                :class="index === cursor ? 'bg-fid-accent/15' : 'hover:bg-fid-inset/50'"
-                @click="entry.run()"
-                @mouseenter="cursor = index"
-              >
-                <span class="min-w-0 grow truncate text-fid-sm text-fid-text">
-                  {{ entry.label }}
-                </span>
-                <span
-                  v-if="entry.hint"
-                  class="fid-num shrink-0 text-fid-xs text-fid-text-muted"
-                >
-                  {{ entry.hint }}
-                </span>
-              </button>
-            </li>
-          </ul>
+          <div
+            v-for="{ entry, index } in group.entries"
+            :id="optionId(index)"
+            :key="entry.id"
+            role="option"
+            :aria-selected="index === cursor"
+            class="flex w-full cursor-pointer items-baseline gap-3 px-4 py-2 text-left transition-colors"
+            :class="index === cursor ? 'bg-fid-accent/15' : 'hover:bg-fid-inset/50'"
+            @click="entry.run()"
+            @mousemove="cursor = index"
+          >
+            <span class="min-w-0 grow truncate text-fid-sm text-fid-text">
+              {{ entry.label }}
+            </span>
+            <span v-if="entry.hint" class="fid-num shrink-0 text-fid-xs text-fid-text-muted">
+              {{ entry.hint }}
+            </span>
+          </div>
         </div>
       </div>
     </div>

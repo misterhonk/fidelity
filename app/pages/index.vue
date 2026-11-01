@@ -13,6 +13,7 @@ useSeoMeta({
 })
 
 const { call } = useFidelityWorker()
+const paletteOpen = usePaletteOpen()
 
 /*
  * The shops with fresh finds — for the row at the top.
@@ -149,6 +150,21 @@ const tiles = computed(() => {
             <p class="text-fid-sm text-fid-text-muted">{{ identity.username }}</p>
           </template>
         </PageHeader>
+
+        <!--
+          ⌘K for a thumb (#215): a phone has no keyboard shortcut, so the
+          palette needs a door. A button that looks like a field, because the
+          field itself lives in the palette.
+        -->
+        <button
+          type="button"
+          class="flex w-full max-w-md items-center gap-3 rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-left text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+          aria-haspopup="dialog"
+          @click="paletteOpen = true"
+        >
+          <FidIcon name="search" :size="16" aria-hidden="true" />
+          {{ m.home.search }}
+        </button>
 
         <!--
           How current this is, right under the heading.
