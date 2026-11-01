@@ -157,6 +157,32 @@ jobs:
 > ⚠️ **Install WebKit in CI.** The app is a PWA whose weakest target is iOS Safari. Testing
 > only Chromium means not testing the browser that matters.
 
+### What runs when
+
+The extract above is the shape; the real `ci.yml` adds three gates so feedback stays fast
+(issue #200):
+
+| Event | quality | services, build | e2e (8 shards, Chromium + WebKit) |
+|---|---|---|---|
+| Draft pull request | ✔ | – | – |
+| Pull request, ready (opened, push, reopened, **ready_for_review**) | ✔ | ✔ | only if the `changes` job finds a path the browser can see |
+| Push to `main` | ✔ | ✔ | ✔ always |
+| release-please pull request | – | – | – |
+
+- **Draft:** jobs after `quality` carry `!github.event.pull_request.draft`. Leaving draft fires
+  `ready_for_review`, which is in the trigger's `types`, and runs everything.
+- **Paths:** the `changes` job asks the API for the pull request's files — no checkout — and
+  e2e runs when one matches `app/ worker/ db/ shared/ public/ tokens/ scripts/ tests/{e2e,fixtures,helpers}/`
+  or `nuxt.config.ts playwright.config.ts package.json pnpm-lock.yaml pnpm-workspace.yaml
+  tsconfig.json .github/workflows/ci.yml`. A docs-only pull request runs no e2e. A missing
+  path here shows up as a red `main` later — when in doubt, add it.
+- **Concurrency:** on a pull request a new push cancels the run it makes obsolete. On `main`
+  every commit gets its own group (`github.sha`) and nothing is cancelled or superseded.
+
+Agents open work from `.github/ISSUE_TEMPLATE/agent-task.yml` and hand it back through
+`.github/pull_request_template.md`: what ran locally with results, screenshots for visible
+changes, and what stayed unverified.
+
 **The Discogs API in CI:** never call it live. Recorded fixtures (`tests/fixtures/`) plus an
 MSW-style interceptor. A single real smoke test runs **nightly**, not per PR — otherwise you
 burn the rate limit on merges.
