@@ -42,6 +42,13 @@ Any script that runs in the origin has the same reach as the app.
   'self'` plus the hashes of this build's three inline scripts, computed at build time by
   `scripts/csp/write.mjs`; `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'none'`.
   No analytics, no tag manager, fonts self-hosted.
+- `'wasm-unsafe-eval'` in `script-src` (ADR-018, #301) lets the barcode reader for
+  Safari compile its WebAssembly. It allows `WebAssembly.compile`/`instantiate` and
+  nothing else: no `eval()`, no `new Function`, no string-to-code path. A script that can
+  already run in the origin gains nothing from it it did not have; a script that cannot
+  run still cannot, because `script-src` stays `'self'` plus hashes and the `.wasm` itself
+  comes from `'self'` (`connect-src` is unchanged — zxing-wasm's jsDelivr default is
+  overridden). `tests/unit/csp.spec.ts` pins exactly that token and no other.
 - The YouTube preview (ADR-012) is a **frame** on `youtube-nocookie.com`, driven by
   `postMessage` — Google's script runs in Google's origin, not ours.
 - New dependencies are bundled, not loaded from a CDN, and have to justify their bytes

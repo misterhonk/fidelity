@@ -1,6 +1,6 @@
 # ADR-018 – A barcode decoder for Safari, loaded only when asked for
 
-**Status:** Proposed — waiting for the owner's decision (#217)
+**Status:** Accepted — option 2, owner decision of 2026-11-01 (#301)
 **Date:** 2026-11-01
 
 ## Context
@@ -37,7 +37,7 @@ Two rules stand against loading it the ordinary way:
    of JS, slower on a phone, and worse at the curved, glossy barcode on a shrink-wrapped
    sleeve.
 
-## Proposed decision
+## Decision
 
 Option 2, under these conditions:
 
@@ -51,9 +51,27 @@ Option 2, under these conditions:
 - If the import fails (offline on first use, blocked), the screen falls back to the
   field and the Scan Text hint that exists today.
 
-## Open for the owner
+## Decided by the owner (2026-11-01)
 
-- Is `'wasm-unsafe-eval'` acceptable in the policy? (Threat model: `docs/21-THREAT-MODEL.md`.)
-- Is 412 kB on demand, once, worth two taps saved per record in a shop?
+Both open questions were answered yes: `'wasm-unsafe-eval'` is acceptable in the policy
+(threat-model note in `docs/21-THREAT-MODEL.md` §2.2), and ~415 kB on demand, once, is
+worth two taps saved per record.
 
-Nothing is implemented until this is decided.
+## As built (#301)
+
+- `zxing-wasm` **3.1.5**, pinned exactly, reader build only (`zxing-wasm/reader`). Measured:
+  415.1 kB gzip `.wasm` + 12.3 kB gzip glue. The full build (reader + writer) would be
+  roughly twice that and is refused by a unit test.
+- `app/composables/scan/zxing.ts` is reached only by `import()` in
+  `useBarcodeScan.start()`, and only when `BarcodeDetector` is absent. It points zxing's
+  `locateFile` at the hashed `.wasm` Vite emits under `/_nuxt/` instead of jsDelivr.
+- The decoder loads **before** the camera opens: without a reader, the camera would show a
+  picture and read nothing. If the import or the `.wasm` fails, `failure` is
+  `'unavailable'` and the screen shows the field and the Scan Text hint.
+- **Service worker:** the glue chunk is precached like every other lazy chunk (`**/*.js`,
+  12 kB); the `.wasm` is **not** (no `.wasm` in `globPatterns`), so a fresh install does not
+  carry 415 kB that Chromium never uses. `app/sw/sw.ts` caches it CacheFirst on first use
+  (`fidelity-decoder`, one entry), so a second scan works in the basement.
+- `.size-limit.js` throws if the glue or the `.wasm` is among the first-paint files or is
+  named anywhere in `index.html` (prefetch included), and holds the lazy pair under 440 kB.
+- The scanned digits are also written into the field, so a misread is visible and fixable.
