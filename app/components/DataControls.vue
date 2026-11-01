@@ -259,7 +259,7 @@ async function deleteAll() {
           <button
             type="button"
             :disabled="busy"
-            class="rounded-fid-sm bg-fid-sig-scarcity px-4 py-2 text-fid-sm font-medium text-fid-on-accent disabled:opacity-50"
+            class="rounded-fid-sm border border-fid-error px-4 py-2 text-fid-sm font-medium text-fid-error disabled:opacity-50"
             @click="deleteAll"
           >
             {{ st.dataPanel.deleteConfirm }}

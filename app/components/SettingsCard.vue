@@ -26,11 +26,7 @@ const id = useId()
     :id="anchor"
     :aria-labelledby="id"
     class="flex scroll-mt-20 flex-col gap-4 rounded-fid-md border p-5"
-    :class="
-      danger
-        ? 'border-fid-sig-scarcity/40 bg-fid-sig-scarcity/5'
-        : 'border-fid-border bg-fid-surface'
-    "
+    :class="danger ? 'border-fid-error/40 bg-fid-error/5' : 'border-fid-border bg-fid-surface'"
   >
     <div class="flex flex-col gap-1">
       <h2 :id="id" class="text-fid-base font-medium text-fid-text">{{ title }}</h2>

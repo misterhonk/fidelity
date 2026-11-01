@@ -767,7 +767,8 @@ async function remove() {
           <FidIcon name="eye" :size="14" aria-hidden="true" />
           {{ watching ? c.watched.watchingOn : c.watched.watch }}
         </button>
-        <p v-if="watchFull" class="text-fid-xs text-fid-sig-scarcity-text">
+        <p v-if="watchFull" class="flex items-center gap-1 text-fid-xs text-fid-error">
+          <FidIcon name="circle-alert" :size="14" aria-hidden="true" />
           {{ c.watched.full }}
         </p>
 
@@ -791,20 +792,23 @@ async function remove() {
           class="flex w-full flex-wrap items-center gap-3 rounded-fid-sm border border-fid-error bg-fid-error/10 px-3 py-2"
         >
           <span class="text-fid-sm text-fid-text">{{ c.shelf.sheet.removeSure }}</span>
-          <button
-            type="button"
-            class="fid-lift inline-flex min-h-11 items-center rounded-fid-sm border border-fid-field px-3 text-fid-sm text-fid-text"
-            @click="confirming = false"
-          >
-            {{ m.cancel }}
-          </button>
-          <button
-            type="button"
-            class="fid-lift inline-flex min-h-11 items-center rounded-fid-sm border border-fid-error px-3 text-fid-sm font-medium text-fid-error"
-            @click="remove()"
-          >
-            {{ c.shelf.sheet.removeYes }}
-          </button>
+          <!-- One group, so both buttons wrap together instead of Remove dropping alone. -->
+          <div class="flex gap-3">
+            <button
+              type="button"
+              class="fid-lift inline-flex min-h-11 items-center rounded-fid-sm border border-fid-field px-3 text-fid-sm text-fid-text"
+              @click="confirming = false"
+            >
+              {{ m.cancel }}
+            </button>
+            <button
+              type="button"
+              class="fid-lift inline-flex min-h-11 items-center rounded-fid-sm border border-fid-error px-3 text-fid-sm font-medium text-fid-error"
+              @click="remove()"
+            >
+              {{ c.shelf.sheet.removeYes }}
+            </button>
+          </div>
         </div>
       </div>
     </template>

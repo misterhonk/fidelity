@@ -514,7 +514,11 @@ function waiting(addedAt: string): string | null {
                   }}</span>
                 </li>
               </ul>
-              <p v-if="shop.belowMinimum" class="text-fid-xs text-fid-sig-scarcity-text">
+              <p
+                v-if="shop.belowMinimum"
+                class="flex items-center gap-1 text-fid-xs text-fid-error"
+              >
+                <FidIcon name="circle-alert" :size="14" aria-hidden="true" />
                 {{
                   c.wantlist.plan.belowMinimum(money(shop.minOrderTotal, plan.currency) ?? '')
                 }}
