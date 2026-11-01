@@ -95,6 +95,14 @@ export default defineConfig({
     timeout: 240_000,
     stdout: 'pipe',
     stderr: 'pipe',
-    env: { PORT: String(PORT) },
+    env: {
+      PORT: String(PORT),
+      // The preview sends the Content-Security-Policy, and every test fails on
+      // a violation (tests/e2e/support/test.ts, #204). The two hosts are the
+      // hub and catalogue the hub-settings specs name — what a self-hoster
+      // would put here.
+      FIDELITY_PREVIEW_CSP: '1',
+      FIDELITY_CONNECT_SRC: 'https://hub.test https://catalogue.test',
+    },
   },
 })

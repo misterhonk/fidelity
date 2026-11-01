@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page } from './support/test'
 
 /**
  * Which language the app opens in, and when it decides.

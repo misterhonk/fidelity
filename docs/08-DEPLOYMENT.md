@@ -181,7 +181,9 @@ Header set X-Content-Type-Options "nosniff"
 Header set Referrer-Policy "strict-origin-when-cross-origin"
 Header set Strict-Transport-Security "max-age=31536000"
 Header set Content-Security-Policy "default-src 'self'; \
-  connect-src 'self' https:; \
+  connect-src 'self' https://api.discogs.com https://i.discogs.com https://api.dropboxapi.com \
+    https://content.dropboxapi.com https://oauth2.googleapis.com https://www.googleapis.com \
+    http://localhost:8787 http://127.0.0.1:8787 http://localhost:8788 http://127.0.0.1:8788; \
   img-src 'self' https://i.discogs.com data: blob:; \
   script-src 'self' 'sha256-…' 'sha256-…' 'sha256-…'; \
   style-src 'self' 'unsafe-inline'; font-src 'self'; worker-src 'self' blob:; \
@@ -192,11 +194,14 @@ Header set Content-Security-Policy "default-src 'self'; \
 > **Shipped since M34.5 (2026-09-16), and computed rather than typed.** The three hashes are
 > those of Nuxt's two inline scripts and the import map of *this* build; `scripts/csp/write.mjs`
 > runs after `nuxt build` and writes `.output/htaccess` and `.output/nginx.conf`, which the
-> deploy workflow and the app image copy. `connect-src` is `https:` and not a host list,
-> because the hub and the catalogue are origins the user names and the vault talks to
-> Dropbox and Google — what stays forbidden is any `http:`, `ws:` or `data:` connection, and
-> any script that is not this build's. A tighter `connect-src` would need the hub origin at
-> build time, which a self-hosted app does not have.
+> deploy workflow and the app image copy. `connect-src` is a host list since #204 (it was
+> `https:`, which let any script in the origin post the token to a host of its choosing):
+> Discogs, the covers the service worker caches, Dropbox and Google for the vault, and a hub
+> or catalogue on this machine. A hub or catalogue under `/hub` or `/catalogue` of the app's
+> own origin needs nothing; one on a host of its own is named at build time in
+> `FIDELITY_CONNECT_SRC` (space-separated https origins; `--build-arg` for the app image).
+> The prebuilt image and the release names none. The e2e suite runs behind the same policy and
+> fails on any violation (`tests/e2e/support/test.ts`).
 
 ### Deploy
 

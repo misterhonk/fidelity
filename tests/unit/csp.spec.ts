@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
-import { inlineHashes, policy } from '../../scripts/csp/policy.mjs'
+import { connectHosts, inlineHashes, policy } from '../../scripts/csp/policy.mjs'
 
 /**
  * The Content-Security-Policy is computed from the build (M34.5).
@@ -30,12 +30,59 @@ describe('the content security policy', () => {
   it('forbids what the token must never reach', () => {
     const value = policy(inlineHashes(html))
     expect(value).toContain("default-src 'self'")
-    expect(value).toContain("connect-src 'self' https:")
     expect(value).toContain("img-src 'self' https://i.discogs.com")
     expect(value).toContain("frame-ancestors 'none'")
     expect(value).toContain("base-uri 'self'")
     expect(value).not.toContain('unsafe-eval')
     expect(value).not.toContain("script-src 'self' 'unsafe-inline'")
+  })
+
+  it('lets the origin talk to the hosts it uses and nowhere else', () => {
+    // #204: a script running in the origin must not be able to post the token
+    // to a host of its choosing. `https:` allowed exactly that.
+    const value = policy(inlineHashes(html))
+    const connect = value.split('; ').find((directive) => directive.startsWith('connect-src'))
+    expect(connect).toBe(
+      [
+        "connect-src 'self'",
+        'https://api.discogs.com',
+        // The service worker's cover cache fetches these.
+        'https://i.discogs.com',
+        // The vault (useVaultCloud.ts, cloud-vault.ts).
+        'https://api.dropboxapi.com',
+        'https://content.dropboxapi.com',
+        'https://oauth2.googleapis.com',
+        'https://www.googleapis.com',
+        // A hub or catalogue on this machine (hub.discover, catalogue.discover).
+        'http://localhost:8787',
+        'http://127.0.0.1:8787',
+        'http://localhost:8788',
+        'http://127.0.0.1:8788',
+      ].join(' '),
+    )
+    expect(connect).not.toMatch(/ https: | https:$| \*/)
+  })
+
+  it('adds the hub and catalogue a self-hoster names at build time, and nothing else', () => {
+    expect(connectHosts('https://hub.example.org  https://cat.example.org:8443/')).toEqual([
+      'https://hub.example.org',
+      'https://cat.example.org:8443',
+    ])
+    expect(connectHosts(undefined)).toEqual([])
+    expect(connectHosts('')).toEqual([])
+    const value = policy([], connectHosts('https://hub.example.org'))
+    expect(value).toMatch(/connect-src [^;]* https:\/\/hub\.example\.org;/)
+    // A value that would smuggle in a directive, a wildcard or a path is refused.
+    for (const bad of [
+      'https://a.test; script-src *',
+      'https:',
+      '*',
+      'https://*.example.org',
+      'http://hub.example.org',
+      'https://hub.example.org/path',
+      'wss://hub.example.org',
+    ])
+      expect(() => connectHosts(bad), bad).toThrow()
   })
 
   it('lets the audio preview frame in, and no Google script into the origin', () => {

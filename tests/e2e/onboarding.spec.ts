@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './support/test'
 
 /**
  * A stranger's first afternoon (docs/17 §2, M24): nothing on the device, no

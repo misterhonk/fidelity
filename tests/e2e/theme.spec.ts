@@ -1,4 +1,4 @@
-import { devices, expect, test } from '@playwright/test'
+import { devices, expect, test } from './support/test'
 
 /**
  * Light and dark, and what happens on a phone.

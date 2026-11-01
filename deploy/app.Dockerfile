@@ -26,6 +26,12 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY . .
 
+# A hub or catalogue on a host of its own, not under /hub or /catalogue of
+# this origin, has to be named here — the CSP lets the app connect nowhere
+# else (scripts/csp/policy.mjs). Space-separated https origins:
+#   docker build --build-arg FIDELITY_CONNECT_SRC="https://hub.example.org" …
+ARG FIDELITY_CONNECT_SRC=
+
 RUN pnpm tokens:build && pnpm icons:build && pnpm exec nuxt build && node scripts/csp/write.mjs
 
 # --- serve ------------------------------------------------------------------

@@ -7,12 +7,12 @@
  * carries the version and the release note), which is why this runs after
  * `nuxt build` and not by hand.
  *
- * `connect-src https:` rather than a host list: the hub and the catalogue are
- * origins the user names in the settings, the vault talks to Dropbox and
- * Google, and Discogs is the fourth. What the policy still forbids is the
- * thing that matters for the token — a `http:` endpoint, a `ws:` socket, a
- * data: URL — and everything a script could inject that is not a script of
- * this build.
+ * `connect-src` is a host list (#204): a script that runs in the origin —
+ * injected, or slipped in by a dependency — must not be able to send the
+ * token anywhere it likes, and `https:` let it. The hub and the catalogue are
+ * found on this origin (`/hub`, `/catalogue`) or on this machine; a
+ * self-hoster who runs them on another host names it at build time in
+ * `FIDELITY_CONNECT_SRC`, space-separated https origins.
  */
 import { createHash } from 'node:crypto'
 
@@ -30,10 +30,41 @@ export function inlineHashes(html) {
   return [...hashes]
 }
 
-export function policy(hashes) {
+/** Every host the app itself fetches from. A new one is a new line here and in the test. */
+const CONNECT = [
+  'https://api.discogs.com',
+  // The service worker's cover cache (app/sw/sw.ts) fetches the covers.
+  'https://i.discogs.com',
+  // The vault (app/utils/cloud-vault.ts, app/composables/useVaultCloud.ts).
+  'https://api.dropboxapi.com',
+  'https://content.dropboxapi.com',
+  'https://oauth2.googleapis.com',
+  'https://www.googleapis.com',
+  // A hub or a catalogue on this machine (hub.discover, catalogue.discover).
+  'http://localhost:8787',
+  'http://127.0.0.1:8787',
+  'http://localhost:8788',
+  'http://127.0.0.1:8788',
+]
+
+const ORIGIN = /^https:\/\/[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:\d{1,5})?\/?$/i
+
+/** The extra origins a self-hoster names at build time — origins only, so nothing can ride along into the header. */
+export function connectHosts(value) {
+  return (value ?? '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((origin) => {
+      if (!ORIGIN.test(origin))
+        throw new Error(`FIDELITY_CONNECT_SRC: ${origin} is not an https origin`)
+      return origin.replace(/\/$/, '')
+    })
+}
+
+export function policy(hashes, extraConnect = []) {
   return [
     "default-src 'self'",
-    "connect-src 'self' https:",
+    ["connect-src 'self'", ...CONNECT, ...extraConnect].join(' '),
     "img-src 'self' https://i.discogs.com data: blob:",
     /*
      * No third party. The audio preview's player (ADR-012) used to be driven
