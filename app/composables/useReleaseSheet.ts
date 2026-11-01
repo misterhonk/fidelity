@@ -36,6 +36,22 @@ let sleeve: HTMLElement | null = null
 /** The one name the list's cover and the sheet's cover share, never both at once. */
 export const COVER_MORPH = 'fid-cover'
 
+/**
+ * Resolves the wait for the sheet's new picture (#226). The sheet's cover is
+ * only drawn once `dig.detail` has answered, and a picture taken before that
+ * has no cover in it for the list's one to grow into. Capped: a slow answer
+ * gets a plain crossfade rather than a frozen screen.
+ */
+let settle: (() => void) | null = null
+const SETTLE_CAP_MS = 250
+
+function ready(): Promise<void> {
+  return new Promise((resolve) => {
+    settle = resolve
+    setTimeout(resolve, SETTLE_CAP_MS)
+  })
+}
+
 function name(el: HTMLElement | null, value: string) {
   if (el) el.style.viewTransitionName = value
 }
@@ -51,7 +67,12 @@ function name(el: HTMLElement | null, value: string) {
  * name may stand on only one element per picture, so each is taken off again
  * the moment its picture has been taken.
  */
-function transition(change: () => void, before: HTMLElement | null = null, after = before) {
+function transition(
+  change: () => void,
+  before: HTMLElement | null = null,
+  after = before,
+  wait = false,
+) {
   // No document at all in a plain test process — and nothing to animate there.
   if (typeof document === 'undefined') {
     change()
@@ -70,9 +91,15 @@ function transition(change: () => void, before: HTMLElement | null = null, after
   name(before, COVER_MORPH)
   const running = doc.startViewTransition(async () => {
     name(before, '')
+    // Armed before the change, so a sheet that is ready at once cannot miss it.
+    const settled = wait ? ready() : null
     change()
     // Vue patches the DOM on the next tick; the new picture must wait for it.
     await nextTick()
+    if (settled) {
+      await settled
+      await nextTick()
+    }
     if (after !== before) name(after, COVER_MORPH)
   })
   // A transition skipped by a newer one is not an error anybody can act on.
@@ -113,7 +140,8 @@ export function useReleaseSheet() {
     stepped: readonly(stepped),
     /** `from` is the find's card or row; its cover grows into the sheet's. */
     show: (digId: string, listingId: number, from?: HTMLElement | null) => {
-      sleeve = from?.querySelector('img') ?? null
+      // The picture, or the label sleeve standing in for it: most finds have no cover.
+      sleeve = from?.querySelector<HTMLElement>('[data-sleeve]') ?? null
       transition(
         () => {
           stepped.value = false
@@ -121,16 +149,22 @@ export function useReleaseSheet() {
         },
         sleeve,
         null,
+        true,
       )
     },
     /** The same move, from the arrows — and the app may read ahead from here. */
     step: (digId: string, listingId: number) => {
       // Another record now: closing must not fly into the first one's cover.
       sleeve = null
-      transition(() => {
-        stepped.value = true
-        open.value = { digId, listingId }
-      })
+      transition(
+        () => {
+          stepped.value = true
+          open.value = { digId, listingId }
+        },
+        null,
+        null,
+        true,
+      )
     },
     hide: () => {
       const back = sleeve
@@ -143,6 +177,11 @@ export function useReleaseSheet() {
         null,
         back,
       )
+    },
+    /** Called by the sheet once its record is drawn, or known to be gone. */
+    settled: () => {
+      settle?.()
+      settle = null
     },
     /** The reading order of the list on screen. Null while none is shown. */
     setOrder: (found: { digId: string; ids: number[] } | null) => (order.value = found),

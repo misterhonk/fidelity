@@ -91,15 +91,21 @@ describe('the cover the sheet grows out of', () => {
   const sheet = useReleaseSheet()
   const img = { style: { viewTransitionName: '' } }
   const card = { querySelector: () => img } as unknown as HTMLElement
-  let update: () => Promise<void> = async () => {}
+  let callback: () => Promise<void> = async () => {}
   let names: string[] = []
+  /** Runs the update as the sheet would see it: drawn, then reported ready. */
+  const update = () => {
+    const running = callback()
+    sheet.settled()
+    return running
+  }
 
   beforeEach(() => {
     names = []
     vi.stubGlobal('document', {
       startViewTransition(cb: () => Promise<void>) {
         names.push(img.style.viewTransitionName)
-        update = cb
+        callback = cb
         return { ready: Promise.resolve(), finished: new Promise(() => {}) }
       },
     })
@@ -132,5 +138,20 @@ describe('the cover the sheet grows out of', () => {
     sheet.hide()
     await update()
     expect(img.style.viewTransitionName).toBe('')
+  })
+
+  it('takes the new picture only once the sheet is drawn, or after 250 ms', async () => {
+    vi.useFakeTimers()
+    try {
+      let taken = false
+      sheet.show('dig-1', 20, card)
+      void callback().then(() => (taken = true))
+      await vi.advanceTimersByTimeAsync(200)
+      expect(taken).toBe(false)
+      await vi.advanceTimersByTimeAsync(60)
+      expect(taken).toBe(true)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
