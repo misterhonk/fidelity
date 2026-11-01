@@ -374,9 +374,16 @@ watch(query, (value) => {
   })
 })
 
-/** Nothing anywhere — which in a shop is an answer, not an empty state. */
+/**
+ * Nothing anywhere — which in a shop is an answer, not an empty state.
+ *
+ * Not for a catalogue number still in the field: it filters the finds (a
+ * catno or "808 State" can match), but that it matches nothing here is no
+ * answer before Discogs was asked.
+ */
 const nothingAnywhere = computed(
   () =>
+    kind.value !== 'catno' &&
     query.value.trim().length >= 2 &&
     matches.value.length === 0 &&
     shelf.value?.hits.length === 0,
