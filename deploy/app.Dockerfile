@@ -7,7 +7,7 @@
 #   docker build -f deploy/app.Dockerfile -t fidelity-app .
 
 # --- build ------------------------------------------------------------------
-FROM node:24-alpine AS build
+FROM node:24-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85 AS build
 
 # corepack pins the pnpm version from package.json, so the image builds with
 # the same one the lockfile was written by.
@@ -35,7 +35,7 @@ ARG FIDELITY_CONNECT_SRC=
 RUN pnpm tokens:build && pnpm icons:build && pnpm exec nuxt build && node scripts/csp/write.mjs
 
 # --- serve ------------------------------------------------------------------
-FROM nginx:1.29-alpine AS serve
+FROM nginx:1.29-alpine@sha256:5616878291a2eed594aee8db4dade5878cf7edcb475e59193904b198d9b830de AS serve
 
 # The config with this build's Content-Security-Policy, written after the build.
 COPY --from=build /src/.output/nginx.conf /etc/nginx/conf.d/default.conf

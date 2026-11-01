@@ -24,7 +24,7 @@
 # und die beiden Architekturen unterscheiden sich nur noch in der nginx-Schicht,
 # die sie tatsächlich brauchen.
 
-FROM nginx:1.29-alpine
+FROM nginx:1.29-alpine@sha256:5616878291a2eed594aee8db4dade5878cf7edcb475e59193904b198d9b830de
 
 # The config with this build's Content-Security-Policy (scripts/csp/write.mjs).
 COPY .output/nginx.conf /etc/nginx/conf.d/default.conf
