@@ -361,12 +361,18 @@ async function drainOnce(
       signal?.throwIfAborted()
       // Offline, limited or unauthorised hits every job alike; anything else is this job's own.
       if (!(error instanceof DiscogsError) || error.code !== undefined) {
-        return { sent, givenUp, undone, waiting: waiting + jobs.length - index - 1 }
+        return {
+          sent,
+          givenUp,
+          undone: [...new Set(undone)],
+          waiting: waiting + jobs.length - index - 1,
+        }
       }
     }
   }
 
-  return { sent, givenUp, undone, waiting }
+  // A rating and a move on the same record are still one record to name.
+  return { sent, givenUp, undone: [...new Set(undone)], waiting }
 }
 
 /** The record a job is about — read before its revert takes the row away. */

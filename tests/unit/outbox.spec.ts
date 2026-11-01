@@ -201,6 +201,29 @@ describe('the outbox', () => {
     expect(last.undone).toEqual([record().title])
   })
 
+  // A rating and a move on the same record, both given up on, are one record to name.
+  it('names a record once, however many of its changes went back', async () => {
+    await queueRating(5, 3)
+    await queueJob({
+      id: 'collection.folder:900',
+      kind: 'collection.folder',
+      payload: { releaseId: 42, folderId: 1, instanceId: 900, moveTo: 2 },
+      revert: { folderId: 1 },
+      queuedAt: 2,
+    })
+    const fake = client(async () => {
+      throw new DiscogsError(422, 'Unprocessable')
+    })
+
+    let last = await drainOutbox(fake, 'mrtnmlchr')
+    for (let attempt = 1; attempt < MAX_ATTEMPTS; attempt++) {
+      last = await drainOutbox(fake, 'mrtnmlchr')
+    }
+
+    expect(last.givenUp).toBe(2)
+    expect(last.undone).toEqual([record().title])
+  })
+
   /*
    * Found on 2026-10-21. The pacer's lock serialises requests, not jobs: two
    * drains (the keeper's and a flush after a write, or two tabs) both read
