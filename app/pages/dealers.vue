@@ -218,12 +218,24 @@ async function addStarter(username: string) {
 /* --- the open shop ---------------------------------------------------------- */
 
 async function close() {
+  going = null
   profile.value = null
   grading.value = null
   await router.replace({ query: { ...route.query, shop: undefined } })
 }
 
+/** The shop select() last went for, so the watcher below does not ask twice. */
+let going: string | null = null
+
+// The address can change underneath an open page — the palette does that (#195).
+watch(selected, (name) => {
+  if (name && name !== going && dealers.value.some((dealer) => dealer.username === name)) {
+    void select(name)
+  }
+})
+
 async function select(username: string) {
+  going = username
   if (selected.value !== username) {
     await router.replace({ query: { ...route.query, shop: username } })
   }
