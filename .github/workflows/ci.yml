@@ -1,7 +1,10 @@
 name: CI
 
 on:
-  pull_request: {}
+  pull_request:
+    # The default three plus `ready_for_review`: a draft runs quality only
+    # (see the job conditions below), so leaving draft has to start the rest.
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]
 
@@ -9,9 +12,13 @@ on:
 permissions:
   contents: read
 
+# A new push to a pull request cancels the run it makes obsolete. On main
+# nothing is cancelled and nothing is superseded: every commit gets a group of
+# its own, because a shared group would still drop a *pending* run when a
+# third one queues behind it, and each commit on main is a release candidate.
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   # release-please's own pull request carries a version bump and a generated
@@ -53,8 +60,10 @@ jobs:
   # mini-dump (docs/16 §9, M21.2) — four hundred real releases, built into
   # SQLite in well under a second, with golden files for the fields that
   # bite. `node:sqlite` needs Node 22.13 or later, which "22" resolves to.
+  # Everything below `quality` waits for the pull request to leave draft.
+  # On a push, `github.event.pull_request` is null and `!null` is true.
   services:
-    if: ${{ !startsWith(github.head_ref, 'release-please--') }}
+    if: ${{ !startsWith(github.head_ref, 'release-please--') && !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -78,7 +87,7 @@ jobs:
 
   build:
     needs: quality
-    if: ${{ !startsWith(github.head_ref, 'release-please--') }}
+    if: ${{ !startsWith(github.head_ref, 'release-please--') && !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -103,8 +112,40 @@ jobs:
   #
   # Measured 2026-09-14, before any of this: 590 s for the job, 60 s of it
   # downloading browsers that never change between runs.
+  # Does this pull request touch anything the browser suite can see? Asked of
+  # the API rather than of git, so there is no checkout and no history to
+  # fetch. The list is what the app is built from plus what the suite runs —
+  # wider than the code directories on purpose: a dependency bump or a
+  # config change breaks the browser as surely as a component does. Missing
+  # a path here means a red main later, so when in doubt, add it.
+  changes:
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.draft && !startsWith(github.head_ref, 'release-please--') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      app: ${{ steps.diff.outputs.app }}
+    steps:
+      - id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename')
+          printf '%s\n' "$files"
+          if grep -qE '^(app|worker|db|shared|public|tokens|scripts|tests/(e2e|fixtures|helpers))/|^(nuxt\.config\.ts|playwright\.config\.ts|package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|tsconfig\.json|\.github/workflows/ci\.yml)$' <<<"$files"; then
+            echo app=true >> "$GITHUB_OUTPUT"
+          else
+            echo app=false >> "$GITHUB_OUTPUT"
+          fi
+
   e2e:
-    if: ${{ !startsWith(github.head_ref, 'release-please--') }}
+    # On main always; on a pull request only out of draft and only when
+    # `changes` found something. `!cancelled()` is what lets this run on a
+    # push at all — without a status function, a skipped `needs` skips it.
+    needs: changes
+    if: ${{ !cancelled() && !startsWith(github.head_ref, 'release-please--') && (github.event_name == 'push' || needs.changes.outputs.app == 'true') }}
     runs-on: ubuntu-latest
     # Browsers and the system libraries they link against, baked in.
     #
