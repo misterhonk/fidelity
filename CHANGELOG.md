@@ -12,6 +12,41 @@ Für eine App bedeutet SemVer:
 ## [0.117.0](https://github.com/misterhonk/fidelity/compare/v0.116.0...v0.117.0) (2026-11-01)
 
 
+<!-- en -->
+**The first find comes faster, and you can find any record again.** Setting up is three steps that
+end in your first dig; looking up your artists and credits now happens afterwards, in the
+background. And the app got lighter on the way.
+
+- The search (⌘K, or the field on Start) finds records on your shelf, on your wantlist and in your
+  last dig, by artist, title, label or catalogue number.
+- Every long job, a dig, a sync or the artist lookup, can be stopped, and a running dig shows on
+  every screen.
+- Finds without a cover show their record label instead of a grey square.
+- Colours mean one thing each: rarity reads as good news, stars and priority share one colour.
+- Paste a Discogs shop or listing link on Start to open that shop. On an iPhone, Sleeveside
+  explains how to install it and how to read a barcode with Scan Text; on Android you can share a
+  Discogs link straight into it.
+- The first screen loads about 19 kB less, because the background worker no longer comes along
+  before it is needed.
+
+<!-- de -->
+**Der erste Fund kommt schneller, und jede Platte findest du wieder.** Die Einrichtung hat jetzt
+drei Schritte und endet im ersten Dig. Künstler und Credits schlägt Sleeveside danach im
+Hintergrund nach. Und die App ist unterwegs leichter geworden.
+
+- Die Suche (⌘K oder das Feld auf Start) findet Platten im Regal, auf der Wunschliste und im
+  letzten Dig, nach Künstler, Titel, Label oder Katalognummer.
+- Jede lange Arbeit lässt sich stoppen, ob Dig, Abgleich oder Künstlersuche. Ein laufender Dig ist
+  auf jedem Bildschirm zu sehen.
+- Funde ohne Cover zeigen ihr Plattenetikett statt eines grauen Quadrats.
+- Jede Farbe heißt eine Sache: Seltenheit sieht nach guter Nachricht aus, Sterne und Priorität
+  teilen sich eine Farbe.
+- Ein Discogs-Laden- oder Angebotslink auf Start öffnet den Laden. Auf dem iPhone erklärt
+  Sleeveside, wie du es installierst und Barcodes mit „Text scannen“ liest. Auf Android kannst du
+  Discogs-Links direkt an Sleeveside teilen.
+- Der erste Bildschirm lädt etwa 19 kB weniger, weil der Hintergrund-Worker erst kommt, wenn er
+  gebraucht wird.
+
 ### Added
 
 * **dig:** search records from the command palette in the worker ([a61ac40](https://github.com/misterhonk/fidelity/commit/a61ac40fb1a10815a43942db6472b7bbedccb021)), closes [#215](https://github.com/misterhonk/fidelity/issues/215)
