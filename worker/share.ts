@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 import { seal, open } from './vault/crypto'
 import { createHubClient } from './hub/client'
 import { HUB_BULK_TIMEOUT_MS, withTimeout } from './hub/fallback'
@@ -123,7 +125,13 @@ export async function readShare(
   const found = await withTimeout(hub.shareRead(id), HUB_BULK_TIMEOUT_MS)
   if (!found) return null
 
-  const snapshot = await open(found.sealed, key, sharedDigSchema)
+  // The version first: a link from a newer Sleeveside is too new, not damaged.
+  const envelope = await open(found.sealed, key, z.looseObject({ version: z.number() }))
+  if (envelope.version > SHARE_VERSION) return null
+
+  const parsed = sharedDigSchema.safeParse(envelope)
+  if (!parsed.success) throw fail('malformed-payload', 'shared list does not match the schema')
+  const snapshot = parsed.data
 
   /*
    * The expiry is checked again here, and this time it is not dead code: the
@@ -131,7 +139,6 @@ export async function readShare(
    * decided by the one somebody is sitting in front of.
    */
   if (Date.now() >= snapshot.expiresAt) return null
-  if (snapshot.version > SHARE_VERSION) return null
 
   return snapshot
 }
