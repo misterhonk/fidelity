@@ -260,7 +260,11 @@ fifteen minutes (`429` + `retry-after`), and while it waits it is not asked for 
 all. The right word clears it; a request with no word is a device not set up yet and is not
 counted. Behind a proxy every request has the proxy's address, so `HUB_IP_HEADER` names the
 header the proxy writes the client's into (`x-forwarded-for`, `cf-connecting-ip`); its last
-entry counts, because anything before it the client could have written.
+entry counts, because anything before it the client could have written. Behind a Cloudflare
+tunnel that is `cf-connecting-ip` even with Traefik in between — the last `x-forwarded-for`
+hop there is cloudflared — and the homelab compose file sets it. Only a wrong `x-hub-secret`
+counts: an expired or revoked access key is no guess, and counting it would lock out everyone
+behind the same address.
 
 Access keys (M22) add per-key limits — `403` over a ceiling, `429` for a second large
 upload on one route, `stored: false` for a row another key holds. The table is in

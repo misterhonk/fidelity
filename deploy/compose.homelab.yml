@@ -49,10 +49,12 @@ services:
       # characters: openssl rand -base64 32
       HUB_SECRET: ${HUB_SECRET:-}
       HUB_OPEN: ${HUB_OPEN:-}
-      # Behind a proxy: the header it writes the client's address into —
-      # x-forwarded-for (Traefik) or cf-connecting-ip (Cloudflare tunnel).
-      # Empty: the socket's address, which behind a proxy is the proxy's.
-      HUB_IP_HEADER: ${HUB_IP_HEADER:-}
+      # The header that carries the client's address, for counting wrong
+      # secrets per address. The homelab sits behind a Cloudflare tunnel and
+      # then Traefik: the socket is Traefik and the last x-forwarded-for hop
+      # is cloudflared, so both would lump every device into one address and
+      # let a stranger lock them all out. cf-connecting-ip is the visitor.
+      HUB_IP_HEADER: ${HUB_IP_HEADER:-cf-connecting-ip}
       # Der Wächter sieht stündlich nach, ob ein beobachteter Laden Neues hat,
       # und schickt eine Benachrichtigung. Er ist das Einzige hier, das von
       # sich aus nach draußen geht — deshalb aus, bis du ihn einschaltest.

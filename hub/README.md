@@ -61,8 +61,12 @@ The secret is at least 32 characters, or the hub does not start (#206). Make one
 waits a second, and each further miss doubles the wait up to fifteen minutes (`429` with
 `retry-after`); the right word clears it. Behind a proxy every request comes from the
 proxy, so name the header it writes the client's address into — `HUB_IP_HEADER=x-forwarded-for`
-behind Caddy or Traefik, `cf-connecting-ip` behind a Cloudflare tunnel. The last entry
-of that header counts.
+behind Caddy or Traefik alone, `cf-connecting-ip` behind a Cloudflare tunnel, also when
+Traefik sits behind the tunnel: there the last `x-forwarded-for` hop is cloudflared, so every
+device would share one address and one stranger could lock them all out. The homelab compose
+file defaults to `cf-connecting-ip`. The last entry of that header counts. Only wrong
+`x-hub-secret` values count; an expired or revoked access key is refused without adding to
+the wait.
 
 The hub keeps no covers (#206): release images are Restricted Data under the Discogs API
 terms, and a hub handing them to every member would be redistributing them. A hub that
