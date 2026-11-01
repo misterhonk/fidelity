@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 import { getMeta, getPreferences } from '~~/db/meta'
 import type { CloudTokens } from '#shared/types'
 
@@ -28,6 +30,8 @@ export async function revokeCloudTokens(fetchImpl: typeof fetch = fetch): Promis
     }),
   )
 }
+
+const RenewedToken = z.object({ access_token: z.string() })
 
 const signal = () => AbortSignal.timeout(HUB_TIMEOUT_MS)
 
@@ -63,8 +67,10 @@ async function revokeDropbox(
       }).toString(),
       signal: signal(),
     })
-    const body = (await response.json()) as { access_token?: unknown }
-    if (typeof body.access_token === 'string') access = body.access_token
+    if (response.ok) {
+      const body = RenewedToken.safeParse(await response.json())
+      if (body.success) access = body.data.access_token
+    }
     registerSecret(access)
   }
   await fetchImpl('https://api.dropboxapi.com/2/auth/token/revoke', {

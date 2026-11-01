@@ -283,11 +283,11 @@ describe('signing out leaves nothing behind', () => {
   }
   const PUSH = { endpoint: 'https://push.example/abc', keys: { p256dh: 'p', auth: 'a' } }
 
-  function outside(body = '{}') {
+  function outside(body = '{}', status = 200) {
     const calls: { url: string; init: RequestInit | undefined }[] = []
     globalThis.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       calls.push({ url: String(input), init })
-      return new Response(body, { status: 200 })
+      return new Response(body, { status })
     }) as typeof fetch
     const deleted = vi.fn(async () => true)
     vi.stubGlobal('caches', { delete: deleted })
@@ -349,6 +349,18 @@ describe('signing out leaves nothing behind', () => {
     ])
     expect(new Headers(calls[1]?.init?.headers).get('authorization')).toBe(
       'Bearer dropbox-fresh-xyz',
+    )
+  })
+
+  it('keeps the old Dropbox token when renewal is refused', async () => {
+    await updatePreferences({ cloudClientIds: { dropbox: 'client-1' } })
+    await setMeta('cloudTokens', { dropbox: { ...DROPBOX, expiresAt: 1 } })
+    const { calls } = outside(JSON.stringify({ access_token: 'from-an-error-page' }), 400)
+
+    await signOut()
+
+    expect(new Headers(calls[1]?.init?.headers).get('authorization')).toBe(
+      'Bearer dropbox-access-xyz',
     )
   })
 
