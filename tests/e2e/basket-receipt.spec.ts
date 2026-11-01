@@ -1,6 +1,6 @@
 import { expect, test } from './support/test'
 
-import { seed } from './seed'
+import { putRows, seed, seedBasket } from './seed'
 
 /**
  * The basket as a receipt (#224): per shop the lines, the total and one
@@ -16,6 +16,24 @@ test.describe('on a phone', () => {
 
     const total = page.getByText('€60.00')
     await expect(total).toBeInViewport()
+    await expect(page.getByRole('button', { name: 'Put these in at Discogs' })).toBeInViewport({
+      ratio: 1,
+    })
+  })
+
+  test('keeps it there with six records in the basket', async ({ page }) => {
+    await seed(page, 'en')
+    const [first] = seedBasket(Date.now())
+    await putRows(page, {
+      basket: [1, 2, 3, 4].map((n) => ({
+        ...first!,
+        listingId: first!.listingId + n,
+        title: `Extra record ${n}`,
+      })),
+    })
+    await page.goto('/basket')
+
+    await expect(page.getByText('Extra record 4')).toBeAttached()
     await expect(page.getByRole('button', { name: 'Put these in at Discogs' })).toBeInViewport({
       ratio: 1,
     })
