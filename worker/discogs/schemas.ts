@@ -1,10 +1,23 @@
 import { z } from 'zod'
 
+import { isHttps } from '#shared/listen'
+
 /**
  * Zod at the boundary and nowhere else. These describe only the fields we
  * actually read — Discogs sends a great deal more, and pinning fields we
  * ignore would turn their next additive change into our outage.
  */
+
+/**
+ * The clips people entered for a release, https only (#207).
+ *
+ * Filtered rather than refused: one odd address must not cost the release its
+ * styles and market figures.
+ */
+export const videosSchema = z
+  .array(z.object({ title: z.string().optional(), uri: z.string() }))
+  .transform((videos) => videos.filter((video) => isHttps(video.uri)))
+  .optional()
 
 /** GET /oauth/identity — the cheapest way to prove a token works. */
 export const identitySchema = z.object({
@@ -145,7 +158,7 @@ export const releaseDetailSchema = z.object({
       rating: z.object({ average: z.number().optional(), count: z.number().optional() }),
     })
     .optional(),
-  videos: z.array(z.object({ title: z.string().optional(), uri: z.string() })).optional(),
+  videos: videosSchema,
   /*
    * The only two marketplace numbers in this response, and the reason the
    * request carries `curr_abbr`: Discogs prices in the caller's currency and

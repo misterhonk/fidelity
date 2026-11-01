@@ -266,6 +266,11 @@ const de: Messages = {
         title: 'Diese Sicherung stammt aus einer neueren Sleeveside-Version.',
         action: 'Aktualisiere zuerst die App. Eine ältere läse sie falsch statt gar nicht.',
       },
+      'malformed-payload': {
+        title: 'Das lässt sich nicht lesen.',
+        action:
+          'Es ist beschädigt oder stammt nicht von Sleeveside. Auf diesem Gerät hat sich nichts geändert.',
+      },
       'vault-unusable': {
         title: 'Dieses Sicherungsziel lässt sich nicht benutzen.',
         action: 'Schau in den Einstellungen nach dem Ziel.',

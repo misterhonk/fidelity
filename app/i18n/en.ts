@@ -414,6 +414,11 @@ const en = {
         action:
           'Update the app first. An older one would read it wrong rather than not at all.',
       },
+      'malformed-payload': {
+        title: 'This could not be read.',
+        action:
+          'It is damaged, or it was not written by Sleeveside. Nothing on this device was changed.',
+      },
       'vault-unusable': {
         title: 'This backup target cannot be used.',
         action: 'Check the target in the settings.',

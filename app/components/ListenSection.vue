@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { clipsOnTracks, LISTEN_NAMES, listenUrl, type ListenService } from '#shared/listen'
+import {
+  clipsOnTracks,
+  isHttps,
+  LISTEN_NAMES,
+  listenUrl,
+  type ListenService,
+} from '#shared/listen'
 import type { ReleaseTrack } from '#shared/types'
 import { useAudioPreview, videoId } from '~/composables/useAudioPreview'
 
@@ -113,6 +119,8 @@ const distinct = computed(() => {
   const all = props.videos?.length ? props.videos : (found.value ?? [])
   const seen = new Set<string>()
   return all.filter((video) => {
+    // Rows cached before #207 were never checked, and these land in an href.
+    if (!isHttps(video.uri)) return false
     // An address nobody can read an id out of stands for itself: dropping it
     // would hide a clip, and keeping it costs one row.
     const id = videoId(video.uri) ?? video.uri

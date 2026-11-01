@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 import { fail } from '../fail'
 
 /**
@@ -35,6 +37,14 @@ export interface SealedVault {
   salt: string
   cipher: string
 }
+
+/** The envelope as it arrives from a hub or a file — checked before it is opened. */
+export const sealedSchema = z.object({
+  version: z.number().int().positive(),
+  iv: z.string().min(1),
+  salt: z.string().min(1),
+  cipher: z.string().min(1),
+}) satisfies z.ZodType<SealedVault>
 
 async function deriveKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
   const material = await crypto.subtle.importKey(
@@ -80,7 +90,11 @@ export async function seal(data: unknown, passphrase: string): Promise<SealedVau
  * A wrong passphrase is indistinguishable from a tampered block, and both
  * throw — which is correct: neither is a state to carry on from.
  */
-export async function open<T>(sealed: SealedVault, passphrase: string): Promise<T> {
+export async function open<T>(
+  sealed: SealedVault,
+  passphrase: string,
+  schema: z.ZodType<T>,
+): Promise<T> {
   if (sealed.version > VAULT_VERSION) {
     throw fail('vault-too-new', 'vault from a newer version')
   }
@@ -92,7 +106,11 @@ export async function open<T>(sealed: SealedVault, passphrase: string): Promise<
     fromBase64(sealed.cipher) as BufferSource,
   )
 
-  return JSON.parse(new TextDecoder().decode(plain)) as T
+  // Authentic is not well-formed: a key opens whatever the other side sealed (#207).
+  const parsed = schema.safeParse(JSON.parse(new TextDecoder().decode(plain)))
+  if (!parsed.success)
+    throw fail('malformed-payload', 'sealed contents do not match the schema')
+  return parsed.data
 }
 
 /*

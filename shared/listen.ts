@@ -38,6 +38,22 @@ export const LISTEN_NAMES: Record<Exclude<ListenService, 'none'>, string> = {
 }
 
 /**
+ * Whether an address from data may reach an `href` or an embed.
+ *
+ * Discogs stores what people typed, and a shared link or a vault carries what
+ * another device wrote. Vue does not sanitise `javascript:` in an `href`, so
+ * anything that is not https stays out (#207).
+ */
+export function isHttps(url: unknown): url is string {
+  if (typeof url !== 'string') return false
+  try {
+    return new URL(url).protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+/**
  * Where each service takes a search.
  *
  * Public addresses, not API endpoints: nothing here is authenticated and

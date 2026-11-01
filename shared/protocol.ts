@@ -1621,6 +1621,8 @@ export interface WorkerError {
     | 'not-a-backup'
     | 'backup-too-new'
     | 'vault-too-new'
+    /** A link, vault or file whose contents do not have the shape they claim (#207). */
+    | 'malformed-payload'
     | 'vault-unusable'
     | 'passphrase-short'
     | 'asset-missing'

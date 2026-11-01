@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { z } from 'zod'
 
 import type { VaultSnapshot } from '#shared/types'
 import { open, seal, VAULT_VERSION } from '~~/worker/vault/crypto'
@@ -27,7 +28,7 @@ describe('what leaves the device', () => {
     // The block itself gives nothing away.
     expect(JSON.stringify(sealed)).not.toContain('welt')
 
-    expect(await open(sealed, 'ein gutes Passwort')).toEqual({
+    expect(await open(sealed, 'ein gutes Passwort', z.unknown())).toEqual({
       hallo: 'welt',
       zahlen: [1, 2, 3],
     })
@@ -37,14 +38,16 @@ describe('what leaves the device', () => {
     const sealed = await seal({ geheim: true }, 'richtig')
     // AES-GCM authenticates, so a wrong key fails to open instead of opening
     // into nonsense — which is the difference between a refusal and a bug.
-    await expect(open(sealed, 'falsch')).rejects.toThrow()
+    await expect(open(sealed, 'falsch', z.unknown())).rejects.toThrow()
   }, 30_000)
 
   it('refuses a block somebody edited', async () => {
     const sealed = await seal({ geheim: true }, 'richtig')
     const bytes = atob(sealed.cipher).split('')
     bytes[0] = bytes[0] === 'A' ? 'B' : 'A'
-    await expect(open({ ...sealed, cipher: btoa(bytes.join('')) }, 'richtig')).rejects.toThrow()
+    await expect(
+      open({ ...sealed, cipher: btoa(bytes.join('')) }, 'richtig', z.unknown()),
+    ).rejects.toThrow()
   }, 30_000)
 
   it('uses a new salt and iv every time', async () => {
@@ -58,11 +61,11 @@ describe('what leaves the device', () => {
 
   it('says so rather than failing oddly on a newer format', async () => {
     const sealed = await seal({ x: 1 }, 'egal')
-    await expect(open({ ...sealed, version: VAULT_VERSION + 1 }, 'egal')).rejects.toMatchObject(
-      {
-        code: 'vault-too-new',
-      },
-    )
+    await expect(
+      open({ ...sealed, version: VAULT_VERSION + 1 }, 'egal', z.unknown()),
+    ).rejects.toMatchObject({
+      code: 'vault-too-new',
+    })
   }, 30_000)
 })
 
