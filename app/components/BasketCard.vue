@@ -330,9 +330,10 @@ const uid = useId()
     <!--
       A receipt (#224): the lines on one side, what they add up to and the one
       thing to do with them on the other. From a wide screen up the sum stays
-      in view while the lines scroll past; on a phone it follows the lines,
-      and the button follows the total rather than the notes about postage, so
-      it is on screen without scrolling.
+      in view while the lines scroll past; on a phone it comes before the
+      lines, because after six of them the button is below the fold, and the
+      button follows the total rather than the notes about postage, so it is
+      on screen without scrolling.
     -->
     <div class="grid items-start gap-6 @2xl:grid-cols-[minmax(0,1fr)_18rem]">
       <ul class="flex flex-col gap-2">
@@ -426,7 +427,7 @@ const uid = useId()
         </li>
       </ul>
 
-      <div class="flex flex-col gap-3 @2xl:sticky @2xl:top-20">
+      <div class="order-first flex flex-col gap-3 @2xl:sticky @2xl:top-20 @2xl:order-none">
         <section class="flex flex-col gap-2 rounded-fid-md border border-fid-border p-4">
           <dl class="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 text-fid-sm">
             <dt class="text-fid-text-muted">{{ b.records }}</dt>
