@@ -83,6 +83,7 @@ async function submit() {
 
     <ol class="flex list-decimal flex-col gap-1 pl-5 text-fid-sm text-fid-text-muted">
       <li>
+        {{ m.token.step1.verbFirst ? m.token.step1.verb : '' }}
         <a
           class="fid-action text-fid-accent underline underline-offset-4"
           href="https://www.discogs.com/settings/developers"
@@ -91,7 +92,7 @@ async function submit() {
         >
           discogs.com/settings/developers
         </a>
-        {{ m.token.step1 }}
+        {{ m.token.step1.verbFirst ? '' : m.token.step1.verb }}
       </li>
       <li>{{ m.token.step2 }}</li>
       <li>{{ m.token.step3 }}</li>

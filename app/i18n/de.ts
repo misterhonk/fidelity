@@ -97,14 +97,14 @@ const de: Messages = {
     tryHub: (_n) =>
       'Ein Hub teilt sie zwischen deinen Geräten, und mit allen, die ihn mitbenutzen.',
     costs: 'Was wie lange dauert',
-    costRows: [
-      ['Ein Dig, 3.000 Angebote', '~ 130', '~ 2½ Min'],
-      ['Ein Dig, 20.000 Angebote', '~ 300', '~ 6 Min'],
+    costRows: (n, d) => [
+      [`Ein Dig, ${n(3000)} Angebote`, '~ 130', '~ 2½ Min'],
+      [`Ein Dig, ${n(20000)} Angebote`, '~ 300', '~ 6 Min'],
       ['Deine Künstler und Labels, 30 Stück', '~ 600', '~ 12 Min'],
-      ['Sammlung holen, 2.000 Platten', '~ 40', '~ 1 Min'],
+      [`Sammlung holen, ${n(2000)} Platten`, '~ 40', '~ 1 Min'],
       ['Die Runde, je beobachtetem Laden', '~ 20', '~ 25 Sek'],
-      ['Eine Platte öffnen', '1', '1,2 Sek'],
-    ] as [string, string, string][],
+      ['Eine Platte öffnen', '1', `${d(1.2)} Sek`],
+    ],
   },
 
   notice: {
@@ -348,7 +348,7 @@ const de: Messages = {
     sampleTitle: 'Was dabei herauskommt',
     sampleNote:
       'Beispiele. Eine Punktzahl und ein Satz, warum, für jede Platte in einem Laden. Sobald deine Sammlung drin ist, stehen da deine Künstler und deine Labels.',
-    step1: 'öffnen',
+    step1: { verb: 'öffnen', verbFirst: false },
     step2: '„Generate token" klicken',
     step3: 'Den Token hier einfügen',
     field: 'Personal Access Token',
@@ -588,6 +588,7 @@ const de: Messages = {
   close: 'Schließen',
   cancel: 'Abbrechen',
   mainReleases: (n) => `${n} Hauptveröffentlichungen`,
+  decade: (year) => `${year}er`,
 
   demo: {
     title: 'Erst ansehen',

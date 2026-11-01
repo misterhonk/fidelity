@@ -63,6 +63,10 @@ test.describe('smoke', () => {
     await page.getByRole('button', { name: /Set it up/ }).click()
     await expect(page.getByRole('heading', { name: 'Enter a token' })).toBeVisible()
     await expect(page.getByLabel('Personal Access Token')).toHaveAttribute('type', 'password')
+    // The verb before the link in English, not after it as in German (#190).
+    await expect(
+      page.getByRole('listitem').filter({ hasText: 'Open discogs.com/settings/developers' }),
+    ).toBeVisible()
 
     // Sending is blocked until something has been entered.
     await expect(page.getByRole('button', { name: 'Sign in' })).toBeDisabled()

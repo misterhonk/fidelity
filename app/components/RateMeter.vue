@@ -228,7 +228,7 @@ onBeforeUnmount(() => {
       <!-- Figures, behind a disclosure: nobody reads a price list twice. -->
       <WhyNote :label="m.limit.costs">
         <span class="grid grid-cols-[1fr_auto_auto] gap-x-4 gap-y-1">
-          <template v-for="row in m.limit.costRows" :key="row[0]">
+          <template v-for="row in m.limit.costRows(count, decimal)" :key="row[0]">
             <span class="min-w-0">{{ row[0] }}</span>
             <span class="fid-num text-right">{{ row[1] }}</span>
             <span class="fid-num text-right">{{ row[2] }}</span>

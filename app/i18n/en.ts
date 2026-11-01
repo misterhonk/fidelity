@@ -196,14 +196,16 @@ const en = {
       'A hub shares these between your devices, and with whoever else uses it.',
     /** What things cost, behind a disclosure: figures, not a lecture. */
     costs: 'What takes how long',
-    costRows: [
-      ['A dig, 3.000 listings', '~ 130', '~ 2½ min'],
-      ['A dig, 20.000 listings', '~ 300', '~ 6 min'],
-      ['Your artists and labels, 30 of them', '~ 600', '~ 12 min'],
-      ['Fetching a collection of 2.000', '~ 40', '~ 1 min'],
-      ['The round, per watched shop', '~ 20', '~ 25 s'],
-      ['Opening one record', '1', '1,2 s'],
-    ] as [string, string, string][],
+    /** Handed `count` and `decimal` from `app/utils/money.ts`, so 3,000 reads 3.000 only in German. */
+    costRows: (n: (value: number) => string, d: (value: number) => string) =>
+      [
+        [`A dig, ${n(3000)} listings`, '~ 130', '~ 2½ min'],
+        [`A dig, ${n(20000)} listings`, '~ 300', '~ 6 min'],
+        ['Your artists and labels, 30 of them', '~ 600', '~ 12 min'],
+        [`Fetching a collection of ${n(2000)}`, '~ 40', '~ 1 min'],
+        ['The round, per watched shop', '~ 20', '~ 25 s'],
+        ['Opening one record', '1', `${d(1.2)} s`],
+      ] as [string, string, string][],
   },
 
   /** The notices that can appear on any screen. */
@@ -513,7 +515,8 @@ const en = {
     sampleTitle: 'What comes out of it',
     sampleNote:
       'Examples. A score and a sentence saying why, for every record in a shop. Once your collection is in, those are your artists and your labels.',
-    step1: 'open',
+    /** Next to the link: English says the verb first, German last. */
+    step1: { verb: 'Open', verbFirst: true },
     step2: 'Click "Generate token"',
     step3: 'Paste the token here',
     field: 'Personal access token',
@@ -838,6 +841,8 @@ const en = {
   close: 'Close',
   cancel: 'Cancel',
   mainReleases: (n: string) => `${n} main releases`,
+  /** The worker counts decades as numbers (1990); this is how one reads. */
+  decade: (year: number) => `${year}s`,
 
   /** The demonstration, before anybody hands over a key. */
   demo: {
