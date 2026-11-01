@@ -100,11 +100,25 @@ const scoreAll = () => listings.filter((listing) => evaluate(listing, index, fil
 describe('scoring speed', () => {
   it('scores 20,000 listings in under 250 ms', () => {
     const found = scoreAll() // warm-up: lets the JIT compile the hot path
-    const started = performance.now()
-    scoreAll()
-    const elapsed = performance.now() - started
+    // Median of five, timed in CPU time: a runner busy with other processes
+    // stretches the wall clock but not the work the engine does. Single-threaded
+    // and uncontended, the two are the same number.
+    const runs = Array.from({ length: 5 }, () => {
+      const wall = performance.now()
+      const cpu = process.cpuUsage()
+      scoreAll()
+      const { user, system } = process.cpuUsage(cpu)
+      return { cpu: (user + system) / 1000, wall: performance.now() - wall }
+    })
+    const cpu = runs.map((run) => run.cpu).sort((a, b) => a - b)
+    const wall = runs.map((run) => run.wall).sort((a, b) => a - b)
+    const median = cpu[2]!
+    const ms = (times: number[]) => times.map((t) => t.toFixed(0)).join('/')
+    console.info(
+      `scoring 20,000 listings, min/median/max: cpu ${ms([cpu[0]!, median, cpu[4]!])} ms, wall ${ms([wall[0]!, wall[2]!, wall[4]!])} ms`,
+    )
 
     expect(found).toBeGreaterThan(0)
-    expect(elapsed).toBeLessThan(250)
+    expect(median).toBeLessThan(250)
   })
 })
