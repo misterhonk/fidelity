@@ -7,7 +7,7 @@ import { seed } from './seed'
  * catalogue number and text apart, a big scan button in thumb reach, dark by
  * default — and a barcode typed without signal looked up once it is back.
  */
-test.use({ viewport: { width: 390, height: 844 } })
+test.use({ viewport: { width: 390, height: 844 }, colorScheme: 'light' })
 
 const field = (page: Page) =>
   page.getByRole('textbox', { name: 'Barcode, catalogue number or name' })
@@ -29,9 +29,11 @@ test('one field at the bottom, a big scan button beside it, dark by default', as
   await expect(scan).toBeVisible()
   expect((await scan.boundingBox())!.height).toBeGreaterThanOrEqual(44)
 
-  expect(
-    await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme),
-  ).toBe('dark')
+  // A real colour, not color-scheme: that read dark over a light screen.
+  // The browser emulates a light OS here; the dark end of the ramp is #050402.
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toMatch(
+    /^(rgb\(5, 4, 2\)|oklch\(0\.105 0\.008 70\))$/,
+  )
   // …and the installed app's status bar with it.
   await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#050402')
 
