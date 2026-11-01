@@ -78,7 +78,7 @@ signal colour looks heavier than the others.
 --fid-sig-catalog:   oklch(0.74 0.150 150);  /* green     – catalogue run           */
 --fid-sig-style:     oklch(0.76 0.110 210);  /* cyan      – style adjacency         */
 --fid-sig-price:     oklch(0.78 0.160 130);  /* lime      – price signal            */
---fid-sig-scarcity:  oklch(0.70 0.180  28);  /* red-orange– scarcity                */
+--fid-sig-scarcity:  oklch(0.70 0.120 100);  /* old gold  – scarcity                */
 --fid-sig-upgrade:   oklch(0.74 0.130 170);  /* mint      – format upgrade          */
 ```
 
@@ -94,6 +94,12 @@ A unit test computes every pair from the tokens and refuses a bare `text-fid-sig
 **Errors have their own role,** `--fid-error` (`color.red.700` / `color.red.400`), and never
 borrow the scarcity signal: a failure is not a finding. Error text always stands beside the
 `circle-alert` icon, so colour is never the only cue. Scarcity itself is shown as a chip.
+
+**Scarcity is good news, so it is gold, not red.** Until issue #219 it sat at hue 28,
+red-orange, and next to the error red it read as a warning even as a chip. It is now an old
+gold (hue 100) — darker and greener than gap's saffron, at least 60° from the error red. No
+warning, limit or destructive action borrows it: those use `--fid-error` with the icon. A unit
+test keeps both true.
 
 ### 2.4 Semantic roles with `light-dark()`
 

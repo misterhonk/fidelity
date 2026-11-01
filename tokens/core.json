@@ -173,9 +173,9 @@
       "scarcity": {
         "$value": {
           "colorSpace": "oklch",
-          "components": [0.7, 0.18, 28]
+          "components": [0.7, 0.12, 100]
         },
-        "$description": "Red-orange — S11 scarcity."
+        "$description": "Old gold — S11 scarcity. Darker and greener than gap's saffron. Was red-orange at hue 28 until issue #219: next to the error red it read as a warning, and a scarce record is good news."
       },
       "upgrade": {
         "$value": {
@@ -238,7 +238,7 @@
       "scarcity": {
         "$value": {
           "colorSpace": "oklch",
-          "components": [0.56, 0.18, 28]
+          "components": [0.52, 0.12, 100]
         }
       },
       "upgrade": {

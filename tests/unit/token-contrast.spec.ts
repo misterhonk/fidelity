@@ -167,3 +167,39 @@ describe('signal colours as text', () => {
     expect(note).not.toMatch(/fid-sig-/)
   })
 })
+
+describe('scarcity reads as a finding, not a warning', () => {
+  /**
+   * Scarcity sat at hue 28, red-orange, right next to the error red — even as
+   * a chip it looked like something had gone wrong (issue #219). A scarce
+   * record is good news, so its hue keeps well clear of red, out of the
+   * orange of the accent, and no warning on any screen borrows it.
+   */
+  type Token = { $value: { components: number[] } }
+  const hue = (token: Token) => token.$value.components[2] as number
+  const apart = (a: number, b: number) => Math.min(Math.abs(a - b), 360 - Math.abs(a - b))
+
+  it('keeps its hue 60° from the error red and 30° from the accent', () => {
+    const scarcity = hue(core.color.sig.scarcity)
+
+    for (const step of ['400', '700']) {
+      expect(apart(scarcity, hue(core.color.red[step]))).toBeGreaterThanOrEqual(60)
+    }
+    for (const step of ['400', '500', '600', '700']) {
+      expect(apart(scarcity, hue(core.color.accent[step]))).toBeGreaterThanOrEqual(30)
+    }
+    expect(hue(core.color['sig-ink'].scarcity)).toBe(scarcity)
+  })
+
+  it('is used only where a signal is shown', () => {
+    const signalScreens = [
+      'components/MatchCard.vue',
+      'components/ReleaseSheet.vue',
+      'pages/in-store.vue',
+    ]
+    const borrowers = readdirSync('app', { recursive: true, encoding: 'utf8' })
+      .filter((file) => file.endsWith('.vue') && !signalScreens.includes(file))
+      .filter((file) => readFileSync(`app/${file}`, 'utf8').includes('fid-sig-scarcity'))
+    expect(borrowers).toEqual([])
+  })
+})
