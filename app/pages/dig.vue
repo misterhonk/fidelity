@@ -1818,14 +1818,6 @@ const noHorizon = computed(
               <MatchCard :match="match" />
             </li>
           </ul>
-          <!-- Under the wall, not above it: on a phone the first find comes first (#223). -->
-          <p
-            v-if="collectionSize !== null && collectionSize < SMALL_COLLECTION"
-            data-testid="small-collection"
-            class="max-w-prose text-fid-sm text-fid-text-muted"
-          >
-            {{ d.smallCollection }}
-          </p>
         </section>
 
         <section
@@ -1879,6 +1871,18 @@ const noHorizon = computed(
           />
         </section>
       </template>
+
+      <!--
+        Under the finds, not above them: on a phone the first find comes first
+        (#223). Outside the branches above, so a dig with no finds still says why.
+      -->
+      <p
+        v-if="collectionSize !== null && collectionSize < SMALL_COLLECTION"
+        data-testid="small-collection"
+        class="max-w-prose text-fid-sm text-fid-text-muted"
+      >
+        {{ d.smallCollection }}
+      </p>
     </section>
   </AppPage>
 </template>
