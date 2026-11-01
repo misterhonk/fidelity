@@ -180,7 +180,7 @@ const DOUBLE_RULE =
 /** `each additional 1,00 €`, `jede weitere 1 €`, `zzgl. 1 € je weitere LP`. */
 /** The same step with the price first: "+ £1.50 PER ADDITIONAL LP" (2026-09-17). */
 const ADDITIONAL_BEFORE_RULE = new RegExp(
-  String.raw`\+?\s*${PRICE}\s*(?:per|each|for each|je)\s+(?:additional|extra|further|weitere[nrs]?)\s*${UNIT}`,
+  String.raw`(?<![\d.,])\+?\s*${PRICE}\s*(?:per|each|for each|je)\s+(?:additional|extra|further|weitere[nrs]?)\s*${UNIT}`,
   'i',
 )
 
@@ -273,7 +273,8 @@ const FREE_OVER_RULE = new RegExp(
  * per record, and there is no honest one — see `ParsedShipping.byWeight`.
  */
 const WEIGHT_RULE = new RegExp(
-  String.raw`\d[\d.,]*\s*(?:-|–|bis|to|until|up to)\s*\d[\d.,]*\s*(?:g|gr|gram|gramm|grams|gramme|kg)\b`,
+  // The lookbehind starts a match only where a number starts: linear, not quadratic.
+  String.raw`(?<![\d.,])\d[\d.,]*\s*(?:-|–|bis|to|until|up to)\s*\d[\d.,]*\s*(?:g|gr|gram|gramm|grams|gramme|kg)\b`,
   'i',
 )
 
@@ -289,6 +290,9 @@ export function billsByWeight(text: string | null | undefined): boolean {
   return WEIGHT_RULE.test(clean) || WEIGHT_FROM_RULE.test(clean)
 }
 
+/** Longest dealer text read; 80k chars once took 12.4 s (#196). */
+export const MAX_TEXT = 4_000
+
 export function parseShippingText(
   text: string | null | undefined,
   country?: string,
@@ -302,6 +306,8 @@ export function parseShippingText(
     doubleCounts: false,
   }
   if (!text || text.trim().length === 0) return empty
+  // Some rules are quadratic in a run of digits; no real policy is this long.
+  text = text.slice(0, MAX_TEXT)
 
   const byWeight = billsByWeight(text)
   const clean = stripBbCode(text)
