@@ -9,6 +9,80 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.117.0](https://github.com/misterhonk/fidelity/compare/v0.116.0...v0.117.0) (2026-11-01)
+
+
+<!-- en -->
+**The first find comes faster, and you can find any record again.** Setting up is three steps that
+end in your first dig; looking up your artists and credits now happens afterwards, in the
+background. And the app got lighter on the way.
+
+- The search (⌘K, or the field on Start) finds records on your shelf, on your wantlist and in your
+  last dig, by artist, title, label or catalogue number.
+- Every long job, a dig, a sync or the artist lookup, can be stopped, and a running dig shows on
+  every screen.
+- Finds without a cover show their record label instead of a grey square.
+- Colours mean one thing each: rarity reads as good news, stars and priority share one colour.
+- Paste a Discogs shop or listing link on Start to open that shop. On an iPhone, Sleeveside
+  explains how to install it and how to read a barcode with Scan Text; on Android you can share a
+  Discogs link straight into it.
+- The first screen loads about 19 kB less, because the background worker no longer comes along
+  before it is needed.
+
+<!-- de -->
+**Der erste Fund kommt schneller, und jede Platte findest du wieder.** Die Einrichtung hat jetzt
+drei Schritte und endet im ersten Dig. Künstler und Credits schlägt Sleeveside danach im
+Hintergrund nach. Und die App ist unterwegs leichter geworden.
+
+- Die Suche (⌘K oder das Feld auf Start) findet Platten im Regal, auf der Wunschliste und im
+  letzten Dig, nach Künstler, Titel, Label oder Katalognummer.
+- Jede lange Arbeit lässt sich stoppen, ob Dig, Abgleich oder Künstlersuche. Ein laufender Dig ist
+  auf jedem Bildschirm zu sehen.
+- Funde ohne Cover zeigen ihr Plattenetikett statt eines grauen Quadrats.
+- Jede Farbe heißt eine Sache: Seltenheit sieht nach guter Nachricht aus, Sterne und Priorität
+  teilen sich eine Farbe.
+- Ein Discogs-Laden- oder Angebotslink auf Start öffnet den Laden. Auf dem iPhone erklärt
+  Sleeveside, wie du es installierst und Barcodes mit „Text scannen“ liest. Auf Android kannst du
+  Discogs-Links direkt an Sleeveside teilen.
+- Der erste Bildschirm lädt etwa 19 kB weniger, weil der Hintergrund-Worker erst kommt, wenn er
+  gebraucht wird.
+
+### Added
+
+* **dig:** search records from the command palette in the worker ([a61ac40](https://github.com/misterhonk/fidelity/commit/a61ac40fb1a10815a43942db6472b7bbedccb021)), closes [#215](https://github.com/misterhonk/fidelity/issues/215)
+* **dig:** stop any long job and show a running dig everywhere ([d6d8514](https://github.com/misterhonk/fidelity/commit/d6d8514dc6ca19f4cb62eb00f5541ee857be253d)), closes [#216](https://github.com/misterhonk/fidelity/issues/216)
+* **pwa:** add an in-shop shortcut and an Android share target ([ba685de](https://github.com/misterhonk/fidelity/commit/ba685de21743ac43e12f21b01db0449265e34c09)), closes [#218](https://github.com/misterhonk/fidelity/issues/218)
+* **ui:** open a shop from a pasted Discogs link on Start, explain the iPhone install and Live Text ([a0a4cde](https://github.com/misterhonk/fidelity/commit/a0a4cde1f711f44dfb839f8f52df775b11af5cab))
+* **ui:** set up in three steps that end in the first dig ([6d75794](https://github.com/misterhonk/fidelity/commit/6d757947af846b0f701723c31307efb4e86ed739)), closes [#214](https://github.com/misterhonk/fidelity/issues/214)
+* **ui:** show a label sleeve for finds without a cover ([866ade1](https://github.com/misterhonk/fidelity/commit/866ade1b47929e9558446d562ec7a51502a02b6d)), closes [#220](https://github.com/misterhonk/fidelity/issues/220)
+
+
+### Fixed
+
+* **dig:** harvest credits fifty at a time after a dig ([57cfb4e](https://github.com/misterhonk/fidelity/commit/57cfb4e9bcdceecc75418e984d97982be0490497))
+* **dig:** stop announcing the horizon lane counter on every page ([8cc501f](https://github.com/misterhonk/fidelity/commit/8cc501fe781f9b1ae408e77cef729dedc57e7a3c))
+* **discogs:** set zod's jitless flag in the worker's first import ([0b4701d](https://github.com/misterhonk/fidelity/commit/0b4701d415a57a55b8b39492ee5d70079e7de7d4))
+* **horizon:** run one credit harvest at a time ([4436d2e](https://github.com/misterhonk/fidelity/commit/4436d2e07aa511c59cbd02b9e53122f249a0e021))
+* **i18n:** say that a dig during the background build runs slower ([6537f32](https://github.com/misterhonk/fidelity/commit/6537f329462adc13c34fd1da5725ae805587ccba))
+* **ui:** announce the first library sync at milestones and let it stop ([a3a15a9](https://github.com/misterhonk/fidelity/commit/a3a15a9a486cf8854ed1149d7d41ab393f57f9b3))
+* **ui:** draw distribution bars in cardboard with one shellac highlight ([f03c9d5](https://github.com/misterhonk/fidelity/commit/f03c9d5552d8b5a6e9ee76ad235eccc6dcc2ccf3))
+* **ui:** drop stale records on every palette keystroke ([d3a0acc](https://github.com/misterhonk/fidelity/commit/d3a0acc178dd51b24ca05722c05761433756f603))
+* **ui:** give scarcity a colour that reads as good news ([e6428bb](https://github.com/misterhonk/fidelity/commit/e6428bb86399e563067fef0a1c9e60e5720a80f2)), closes [#219](https://github.com/misterhonk/fidelity/issues/219)
+* **ui:** give stars and priority one importance colour ([4cd138b](https://github.com/misterhonk/fidelity/commit/4cd138bb4d4f29969d4622e7cfcdfe1358cef466))
+* **ui:** hold the palette's empty state until the records are back ([0d638da](https://github.com/misterhonk/fidelity/commit/0d638dad5c72f9f496ad0d2f61e7fdd0358d8efe))
+* **ui:** label the setup's way back when it leads back ([773f5ec](https://github.com/misterhonk/fidelity/commit/773f5ec98a340f0908551e1e04a476eb9166d4a5))
+* **ui:** list no records when the palette search fails ([198e7a6](https://github.com/misterhonk/fidelity/commit/198e7a6d7f8c1b15351ce225941fc8a44227a33f))
+* **ui:** put the label sleeve on every cover, not only the finds ([48d2f0f](https://github.com/misterhonk/fidelity/commit/48d2f0f4914ec4bb71508b89401c020acd444c4c)), closes [#220](https://github.com/misterhonk/fidelity/issues/220)
+* **ui:** show high-severity pressing warnings in the error role ([2de6bee](https://github.com/misterhonk/fidelity/commit/2de6bee2c4252220c02761dc19307742fd0c11c0))
+
+
+### Changed
+
+* **basket:** load the basket and hub handler groups on first use ([553b332](https://github.com/misterhonk/fidelity/commit/553b332d7e32c72f0275fcb2e5b72f62993dc019)), closes [#299](https://github.com/misterhonk/fidelity/issues/299)
+* **discogs:** set zod's jitless flag without importing zod in the worker entry ([0e2b69c](https://github.com/misterhonk/fidelity/commit/0e2b69c291ecd351f43203d97645d9979118ef91)), closes [#299](https://github.com/misterhonk/fidelity/issues/299)
+* **pwa:** lower the worker budget to 22 kB and refuse a preloaded worker ([fce81d2](https://github.com/misterhonk/fidelity/commit/fce81d28c0ac442481c038280ce3ef02d3b66077)), closes [#299](https://github.com/misterhonk/fidelity/issues/299)
+* **pwa:** stop preloading the worker from index.html ([66c7dc8](https://github.com/misterhonk/fidelity/commit/66c7dc89fa1edffb4c540036a5630fa9fa68e207)), closes [#299](https://github.com/misterhonk/fidelity/issues/299)
+
 ## [0.116.0](https://github.com/misterhonk/fidelity/compare/v0.115.0...v0.116.0) (2026-11-01)
 
 
