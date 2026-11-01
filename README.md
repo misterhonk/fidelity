@@ -314,6 +314,10 @@ puts on the internet. Anybody meaning well satisfies it with a link to their sou
 Without warranty, and here that is not merely a formula: this app works with its users'
 Discogs accounts.
 
+Third-party fonts, icons and libraries come under their own licences:
+[`public/THIRD-PARTY-NOTICES.md`](public/THIRD-PARTY-NOTICES.md) and
+[`public/OFL.txt`](public/OFL.txt). Both sit in `public/`, so every build ships them.
+
 **The name is the one thing the licence does not give.** Run the software, change it, host
 it for your friends or your shop — but not under the name "Fidelity" as a service for other
 people. That name belongs to the hosted one ([ADR-014](docs/adr/014-open-core-hosted-comfort.md)),
