@@ -55,7 +55,8 @@ watch(query, (value) => {
   searching.value = true
   const ticket = ++asked
   timer = setTimeout(async () => {
-    const found = await call('records.search', { query: value })
+    // A failed search lists no records rather than an unhandled rejection.
+    const found = await call('records.search', { query: value }).catch(() => noRecords)
     if (ticket !== asked) return
     records.value = found
     searching.value = false
