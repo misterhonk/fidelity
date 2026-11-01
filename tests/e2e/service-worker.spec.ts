@@ -70,6 +70,15 @@ test.describe('the service worker', () => {
     }
   })
 
+  // SECURITY.md promises the file there; the shell fallback must not answer for it.
+  test('leaves /.well-known/security.txt to the server', async ({ page }) => {
+    test.skip(!(await underServiceWorker(page, '/')), 'No service worker in this browser')
+
+    const response = await page.goto('/.well-known/security.txt')
+    expect(response?.status()).toBe(200)
+    expect(await page.content()).toContain('Contact:')
+  })
+
   /**
    * A cover fetched twice is fetched once.
    *

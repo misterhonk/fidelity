@@ -82,7 +82,12 @@ cleanupOutdatedCaches()
  * evaluation, which is the better of the two: getting it wrong now means no
  * worker at all, and all four tests say so within seconds.
  */
-registerRoute(new NavigationRoute(createHandlerBoundToURL('200')))
+// Not for files the server has and the precache does not: /.well-known/security.txt
+// is a document of its own, and answering it with the app shell hides it from anyone
+// who has the worker installed.
+registerRoute(
+  new NavigationRoute(createHandlerBoundToURL('200'), { denylist: [/\/\.well-known\//] }),
+)
 
 /*
  * A shop got records while nobody was looking.
