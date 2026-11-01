@@ -351,7 +351,8 @@ describe('the screen that shows it', () => {
   it('takes a barcode or a run-out in one field', () => {
     expect(withoutComments(PAGE)).toMatch(/identify\.runout/)
     expect(withoutComments(PAGE)).toMatch(/identify\.barcode/)
-    expect(withoutComments(PAGE)).toMatch(/looksLikeBarcode/)
+    // The decision itself is tested in in-store-lookup.spec.ts (#225).
+    expect(withoutComments(PAGE)).toMatch(/lookupKind\(/)
   })
 
   /** The camera stops when the screen is gone. */

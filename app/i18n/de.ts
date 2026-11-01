@@ -527,8 +527,6 @@ const de: Messages = {
       'Noch kein Dig, die Fundliste bleibt also leer. Deine Sammlung und deine Wantlist kannst du trotzdem durchsuchen, auch ohne Empfang.',
     expired:
       'Älter als sechs Stunden, Preise und Zustände sind darum weg. Die Funde und ihre Begründungen bleiben.',
-    search: 'Künstler oder Titel',
-    searchLabel: 'Sammlung, Wantlist und die Fundliste durchsuchen',
     scan: 'Barcode lesen',
     scanning: 'Wird nachgeschlagen …',
     scanStop: 'Abbrechen',
@@ -546,8 +544,17 @@ const de: Messages = {
       `${n} Pressungen teilen sich diesen Barcode. Ein Barcode benennt eine Veröffentlichung, keine Pressung.`,
     scanNothing: 'Discogs kennt keine Platte mit diesem Barcode.',
     identify: 'Nachschlagen',
-    identifyLabel: 'Barcode oder Auslaufrillen-Nummer',
-    identifyPlaceholder: 'Barcode, oder was im Auslauf steht',
+    identifyLabel: 'Barcode, Katalognummer oder Name',
+    identifyPlaceholder: 'Barcode, Katalognummer, Künstler oder Titel',
+    kind: {
+      barcode: 'Ein Barcode. Nachschlagen zeigt die Pressungen.',
+      catno: 'Eine Katalog- oder Auslaufnummer. Nachschlagen zeigt die Pressung.',
+      text: 'Künstler oder Titel. Wird beim Tippen gesucht.',
+    },
+    identifyLater: 'Für später merken',
+    queued: (n) =>
+      `${n} ${n === 1 ? 'wartet' : 'warten'} auf Empfang. Sobald es welchen gibt, wird nachgeschlagen.`,
+    resolved: 'Nachgeschlagen, als der Empfang wieder da war',
     pressing: {
       pick: 'Welche hältst du in der Hand? Tipp sie an, dann wird sie gegen alle Pressungen des Albums gelesen.',
       check: 'Welche Pressung ist das?',
