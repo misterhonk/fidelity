@@ -101,6 +101,7 @@ describe('zxingDetector', () => {
     state.loadFails = true
     const { zxingDetector } = await launcher()
     await expect(zxingDetector()).rejects.toThrow()
+    expect(state.workers[0]!.terminated).toBe(true)
   })
 
   it('gives up on a worker that dies without a word, and starts a new one next time', async () => {
