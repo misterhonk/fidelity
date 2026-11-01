@@ -298,14 +298,14 @@ function focusHeading(panel: Element) {
 
           <!--
               The middleware appends `?next=` when it has sent somebody here
-              from another screen; they go back there. Everybody else goes to
-              the dig.
+              from another screen; they go back there, under a label that says
+              so. Everybody else goes to the dig.
             -->
           <NuxtLink
             :to="backTo"
             class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
           >
-            {{ w.dig.anyShop }}
+            {{ backTo === '/dig' ? w.dig.anyShop : w.dig.goBack }}
           </NuxtLink>
         </section>
       </Transition>
