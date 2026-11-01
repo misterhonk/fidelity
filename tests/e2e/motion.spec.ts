@@ -20,6 +20,26 @@ function longest(page: Page) {
   )
 }
 
+/*
+ * How long the "why" takes to unfold, or null where it cannot unfold at all.
+ *
+ * Read off the style, not `getAnimations()`: that list never carries the
+ * `::details-content` transition (Chromium 151 — mid-unfold, zero entries),
+ * so a poll on it passes on whatever else is moving. Without
+ * `interpolate-size` (WebKit 26.5) the height cannot be animated and the
+ * answer opens at once, which is the designed fallback.
+ */
+function unfolding(page: Page) {
+  return page
+    .locator('section[aria-labelledby="the-wall"] details')
+    .first()
+    .evaluate((details) =>
+      CSS.supports('interpolate-size', 'allow-keywords')
+        ? getComputedStyle(details, '::details-content').transitionDuration
+        : null,
+    )
+}
+
 async function openDig(page: Page) {
   const dig = await seed(page, 'en')
   await page.goto(`/dig?id=${dig.id}`)
@@ -40,10 +60,9 @@ test.describe('with motion', () => {
       )
     expect(delays).toEqual(['0.03s', '0.06s'])
 
-    const why = wall.locator('details').first()
-    await why.locator('summary').click()
-    await expect(why).toHaveAttribute('open', '')
-    await expect.poll(() => longest(page)).toBeGreaterThan(1)
+    const duration = await unfolding(page)
+    test.skip(duration === null, 'no interpolate-size: the why opens at once by design')
+    expect(duration).not.toMatch(/^0s(, 0s)*$/)
   })
 
   /*
@@ -85,8 +104,9 @@ test.describe('with reduced motion', () => {
     const wall = await openDig(page)
     expect(await longest(page)).toBeLessThanOrEqual(1)
 
-    await wall.locator('details').first().locator('summary').click()
-    expect(await longest(page)).toBeLessThanOrEqual(1)
+    // main.css's opt-out cannot reach the pseudo-element; WhyNote's own must.
+    const duration = await unfolding(page)
+    if (duration !== null) expect(duration).toMatch(/^0s(, 0s)*$/)
 
     await wall.getByRole('button', { name: / – / }).first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15_000 })
