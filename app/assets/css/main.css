@@ -29,6 +29,17 @@
 }
 
 /*
+ * A page that is dark by default (the in-store screen, #225). `color-scheme`
+ * alone does not switch the palette: the build polyfills light-dark() through
+ * these two variables, which `.light` above sets from the OS.
+ */
+:root[data-dim] {
+  --lightningcss-light: ;
+  --lightningcss-dark: initial;
+  color-scheme: dark;
+}
+
+/*
  * One typeface, and it is this one.
  *
  * Until 2026-08-11 there were three switchable sets — Presswerk, Kontor,

@@ -37,7 +37,7 @@ const { preference, resolved: theme } = useTheme()
 const dim = computed(() => preference.value === 'system')
 useHead({
   htmlAttrs: {
-    style: computed(() => (dim.value ? 'color-scheme: dark' : undefined)),
+    'data-dim': computed(() => dim.value || undefined),
   },
   // The status bar of an installed app goes dark with the screen (app.vue sets it otherwise).
   meta: [
