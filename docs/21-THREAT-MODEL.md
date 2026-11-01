@@ -30,7 +30,8 @@ second app served from the same scheme, host and port — `example.org/sleevesid
 `example.org/blog/` — reads the token like Sleeveside does.
 
 - **Defence:** none in code; there cannot be one. Deploy on a host of its own
-  (`docs/08-DEPLOYMENT.md`). `DEPLOY_BASE_URL` exists for convenience, not as isolation.
+  (`docs/08-DEPLOYMENT.md`). The deploy workflow refuses a `DEPLOY_BASE_URL` other than
+  `/` (#202); the live app moved to `sleeveside.martinmelcher.de` for this reason.
 - **Residual risk:** a self-hoster who ignores this. Out of scope in `SECURITY.md`.
 
 ### 2.2 A third-party script

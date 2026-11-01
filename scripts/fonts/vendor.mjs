@@ -147,7 +147,7 @@ ${rules.join('\n')}
  * Under `assets`, not `public`, and referenced relatively.
  *
  * An absolute `/fonts/…` would be correct at the root and wrong everywhere
- * else — this app also lives under `/fidelity/` (NUXT_APP_BASE_URL), where an
+ * else — this app can be built for a sub-path (NUXT_APP_BASE_URL), where an
  * absolute path resolves to a 404 and the page silently falls back to Arial.
  * From `assets` with a relative url(), the bundler rewrites and fingerprints
  * them, and the base URL is applied for free.
