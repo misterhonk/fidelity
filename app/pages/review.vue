@@ -23,6 +23,15 @@ const route = useRoute()
 const router = useRouter()
 
 const review = shallowRef<YearReview | null>(null)
+
+const m = useMessages()
+/** The worker names a decade by its number; "1990er" is how German reads it, not English. */
+const decades = computed(() =>
+  (review.value?.decades ?? []).map((f) => ({
+    ...f,
+    name: m.value.decade(Number.parseInt(f.name, 10)),
+  })),
+)
 const ready = ref(false)
 const error = ref<unknown>(null)
 
@@ -186,7 +195,7 @@ const named = (record: { artist: string; title: string }) =>
         <FacetBars
           :title="c.review.decades"
           signal="gap"
-          :facets="review.decades"
+          :facets="decades"
           :empty="c.review.noYears"
         />
         <FacetBars :title="c.review.media" signal="catalog" :facets="review.media" />

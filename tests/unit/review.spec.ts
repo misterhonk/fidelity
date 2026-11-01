@@ -130,9 +130,9 @@ describe('a year on the shelf', () => {
     ]
     const review = reviewYear({ copies, digs: [], feedback: [], lookup: null }, 2026)
     expect(review?.decades.map((f) => [f.name, f.n])).toEqual([
-      ['1950er', 1],
-      ['1970er', 1],
-      ['2020er', 1],
+      ['1950', 1],
+      ['1970', 1],
+      ['2020', 1],
     ])
     expect(review?.media.map((f) => [f.name, f.n])).toEqual([
       ['Vinyl', 3],

@@ -98,4 +98,7 @@ test('puts the catalogue’s lift on the bars and says which build it is', async
   })
   // Every decade on the shelf has a denominator now, so at least one × stands.
   await expect(page.getByText(/\d×/).first()).toBeVisible()
+  // Stored as "1960er" before #190, read in the language on the screen.
+  await expect(page.getByText('1960s', { exact: true })).toBeVisible()
+  await expect(page.getByText('1960er')).toHaveCount(0)
 })

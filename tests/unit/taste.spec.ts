@@ -77,7 +77,8 @@ describe('the taste profile', () => {
       0,
     )
 
-    expect(profile.decades['1970']).toMatchObject({ name: '1970er', n: 2 })
+    // A number, not a word: the language pack says "1970s" or "1970er".
+    expect(profile.decades['1970']).toMatchObject({ name: '1970', n: 2 })
     expect(profile.decades['1980']?.n).toBe(1)
     // Year 0 means "unknown", not "the zeroth decade".
     expect(profile.decades['0']).toBeUndefined()

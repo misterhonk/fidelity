@@ -154,9 +154,10 @@ const browsing = ref<{ title: string; label?: string; decade?: number } | null>(
 const decadeOf = (name: string) => Number.parseInt(name, 10)
 const labels = computed(() => facets(dealer.value.fingerprint?.labelDist ?? {}, 12))
 const decades = computed(() =>
-  facets(dealer.value.fingerprint?.decadeDist ?? {}, 8).sort((a, b) =>
-    a.name.localeCompare(b.name),
-  ),
+  facets(dealer.value.fingerprint?.decadeDist ?? {}, 8)
+    .sort((a, b) => decadeOf(a.name) - decadeOf(b.name))
+    // Keys are "1990", or "1990er" from before #190; the pack says how either reads.
+    .map((facet) => ({ ...facet, name: m.value.decade(decadeOf(facet.name)) })),
 )
 
 /* A different shop closes whatever label was open under the bars. */
