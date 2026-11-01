@@ -49,6 +49,28 @@ export default defineNuxtConfig({
   // the whole deployment: a docroot, Cloudflare Pages, GitHub Pages.
   ssr: false,
 
+  hooks: {
+    /*
+     * The worker is not part of the first paint (#299).
+     *
+     * Vite lists the worker's entry as an *asset* of the chunk that says
+     * `new Worker(new URL(...))`, and Nuxt preloads the assets of every chunk
+     * it preloads — so index.html carried a `modulepreload` for the worker:
+     * 19.3 kB gzip fetched and compiled in the page's module map, which the
+     * worker, with a module map of its own, never uses. That was the whole gap
+     * between docs/12's 125 kB and the 143 kB `pnpm size` reported. A `.js`
+     * file can only be an asset if it is a separate bundle, so all of them go.
+     */
+    'build:manifest': (manifest) => {
+      for (const chunk of Object.values(manifest)) {
+        for (const asset of chunk.assets ?? []) {
+          const entry = manifest[asset]
+          if (asset.endsWith('.js') && entry) entry.preload = false
+        }
+      }
+    },
+  },
+
   nitro: {
     preset: 'static',
     prerender: {
