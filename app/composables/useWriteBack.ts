@@ -22,6 +22,8 @@ export type WriteState = 'idle' | 'sending' | 'sent' | 'queued' | 'failed'
 export function useWriteBack() {
   const { call } = useFidelityWorker()
   const state = ref<WriteState>('idle')
+  /** Records whose older change this flush gave up on and put back — the keeper never hears of these. */
+  const undone = ref<string[]>([])
 
   let settle: ReturnType<typeof setTimeout> | undefined
 
@@ -35,6 +37,7 @@ export function useWriteBack() {
   async function push(change: () => Promise<boolean>): Promise<boolean> {
     clearTimeout(settle)
     state.value = 'sending'
+    undone.value = []
 
     if (!(await change())) {
       state.value = 'failed'
@@ -50,6 +53,7 @@ export function useWriteBack() {
     }
 
     state.value = result.sent > 0 ? 'sent' : 'queued'
+    undone.value = result.undone
 
     // Long enough to be read, short enough not to become furniture. A failure
     // stays: it is the one state somebody has to act on.
@@ -59,5 +63,5 @@ export function useWriteBack() {
 
   onScopeDispose(() => clearTimeout(settle))
 
-  return { state: readonly(state), push }
+  return { state: readonly(state), undone: readonly(undone), push }
 }
