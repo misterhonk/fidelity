@@ -52,7 +52,7 @@ const de: Messages = {
     source: 'Läuft über YouTube',
     consent: {
       lead: 'Die Clips gleich hier abspielen?',
-      what: 'Den Player holen wir von YouTube. Google sieht dann die Adresse dieses Geräts und welche Platte läuft. Sammlung und Token bleiben hier. Vor dem Tippen laden wir nichts.',
+      what: 'Den Player holen wir von YouTube. Google sieht dann die Adresse dieses Geräts und welche Platte läuft. Sobald er läuft, kann YouTube Daten auf diesem Gerät speichern und lesen, etwa Cookies. Sammlung und Token bleiben hier. Vor dem Tippen laden wir nichts.',
       yes: 'Hier abspielen',
       settings: 'Ausschalten kannst du es wieder unter Einstellungen → Suche.',
     },

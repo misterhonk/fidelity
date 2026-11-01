@@ -64,6 +64,7 @@ interface Player {
   loadVideoById(id: string): void
   stopVideo(): void
   destroy(): void
+  getIframe(): HTMLIFrameElement
 }
 
 let player: Player | null = null
@@ -182,9 +183,14 @@ export function useAudioPreview() {
       const fresh = ready === null
       armed.value = true
       host = mount
+      // Shown and on screen *before* it starts: YouTube's terms want the
+      // player seen while it plays, and autoplay begins the moment it is built.
+      playing.value = id
+      await nextTick()
+      const frame = mount.isConnected ? mount : player?.getIframe()
+      frame?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' })
       const instance = await boot(mount, id)
       if (!fresh) instance.loadVideoById(id)
-      playing.value = id
       clip.value = title?.trim() || null
       failed.value = false
     } catch {
@@ -193,6 +199,7 @@ export function useAudioPreview() {
       // button goes away.
       failed.value = true
       armed.value = false
+      playing.value = null
       host = null
     }
   }
