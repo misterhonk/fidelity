@@ -45,6 +45,7 @@ Bundled into the app, all under the MIT License unless noted:
 | TanStack Virtual                | Copyright (c) 2021-present Tanner Linsley           |
 | Zod                             | Copyright (c) 2025 Colin McDonnell                  |
 | Workbox (service worker)        | Copyright 2018 Google LLC                           |
+| zxing-wasm (barcode reader, JS) | Copyright (c) 2023 Ze-Zheng Wu                      |
 | idb                             | Copyright (c) 2016, Jake Archibald. **ISC License** |
 
 Smaller transitive packages carry their own licence files; `pnpm licenses
