@@ -21,6 +21,10 @@ const error = ref<unknown>(null)
 const renewed = ref(false)
 const shown = ref(false)
 const pasteFailed = ref(false)
+// Typing or pasting by hand answers the failed paste; the line should not outlive it.
+watch(token, () => {
+  pasteFailed.value = false
+})
 
 /**
  * On a phone, long-pressing a password field to paste 40 characters is where
