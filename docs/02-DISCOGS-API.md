@@ -283,7 +283,10 @@ GET /users/{user}/cart     → 404  The requested resource was not found.
 **The Discogs cart is not part of the API** — neither to read nor to fill. The marketplace
 endpoints cover inventory, individual listings, orders (the seller side), fees and price
 suggestions, and that is where it stops. What remains is the direct link to
-`discogs.com/sell/item/{listing_id}`; that is where the "Add to Cart" button lives.
+`discogs.com/shop/item/{listing_id}` (`/sell/item` before 2026-09-10);
+that is where the "Add to Cart" button lives. Pasted into the basket, both paths are read as
+listings; a shop page — `/shop/list?user=…`, formerly `/sell/list` — is accepted in the same
+paste and yields no listing (`worker/basket/listings.ts`).
 
 For Sleeveside that means: the basket works out combined postage **beforehand** — precisely
 the gap Discogs leaves open, because it only shows combined postage in its own cart. The

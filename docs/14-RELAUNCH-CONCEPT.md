@@ -38,7 +38,7 @@ copies, and every row carries a URL that was actually seen.
 
 | # | Wish | How often | Fidelity today |
 |---|---|---|---|
-| 1 | **The seller with the most of my wantlist**, to bundle postage. Removed from the site in Aug 2025 with *Shop My Wants*, uproar, then *Seller Matches* in the app (Jun 2026). [forum/1136465](https://www.discogs.com/forum/thread/1136465) · [forum/1154350](https://www.discogs.com/forum/thread/1154350) | frequent | Per shop yes; across shops no — there is no listings-by-release endpoint |
+| 1 | **The seller with the most of my wantlist**, to bundle postage. Removed from the site in Aug 2025 with *Shop My Wants*, uproar, then *Seller Matches* in the app (8 Sep 2026). [forum/1136465](https://www.discogs.com/forum/thread/1136465) · [forum/1154350](https://www.discogs.com/forum/thread/1154350) | frequent | Per shop yes; across shops no — there is no listings-by-release endpoint |
 | 2 | **Wantlist notifications are noise** — price ceiling, condition, country, seller as filters. [forum/705163](https://www.discogs.com/forum/thread/705163) | frequent | Deliberately not built (Wantlister) |
 | 3 | **A "ships from" filter.** Staff, 2021: "there is not a ways to filter by where an item ships from". [forum/701208](https://www.discogs.com/forum/thread/701208) | frequent | The country is on the shop profile, not a filter |
 | 4 | **The official app is unreliable** — crashes, sign-in loops, captchas. [App Store](https://apps.apple.com/us/app/discogs/id1036449551) | frequent | — |
@@ -68,7 +68,8 @@ copies, and every row carries a URL that was actually seen.
 | Aug 2025 | *Shop My Wants* replaces *Items I Want*; the seller-count facet removed | Wish #1 got worse, then moved to the app |
 | Nov 2025 | App relaunch on both platforms: live prices, barcode scanner, listing notifications; 500k updates on day one | Discogs absorbs what third parties used to sell |
 | Apr 2026 | New listing layout; `/sell/item` → `/shop/item` | The basket's paste parser has to read both paths |
-| Jun 2026 | *Item Photos*; a personalised app home with **Seller Matches**; native barcode scanner | Seller Matches is raw wantlist overlap, app only, no collection, no reason |
+| Jun 2026 | *Item Photos*; a personalised app home; native barcode scanner | Buyers see the actual copy |
+| 8 Sep 2026 | **Seller Matches** in the app | Raw wantlist overlap, app only, no collection, no reason |
 | 2026 | Payment-first checkout; the classic flow only for high-volume sellers who merge orders | Bundling postage matters *more* for buyers — the basket gains value |
 
 No consumer "Discogs Pro" exists. The API is unchanged: 60/25 requests a minute, OAuth 1.0a
@@ -295,8 +296,10 @@ were not verified for this document; the recommendation does not depend on them.
 ## 10. What was not verified
 
 Stated as such rather than filled in: an alleged 2026 Discogs fee tiering (one vendor
-blog, contradicted by Discogs' own pages); the Google Play rating of the Discogs app;
+blog, contradicted by Discogs' own pages);
 Popsike's archive size; ECDB's $275 M revenue estimate; Hostinger's current prices;
 Hetzner's Object Storage base fee. The apps "Kvibe", "Diskogs" and "Vinylize" could not be
 found. The domain of the dead "Discogs Wantlist Optimizer" now serves gambling spam and is
 deliberately not linked anywhere in this repository.
+
+Verified since: the Discogs app's Google Play rating stands at 1.7–1.8.

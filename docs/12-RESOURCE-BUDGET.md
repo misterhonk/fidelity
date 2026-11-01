@@ -33,7 +33,7 @@ concrete shelving.
 | App-shell JS (Vue + router + UI core) | ≤ 140 kB | |
 | Matching engine (worker, lazy) | ≤ 25 kB | 20.3 kB (2026-09-16) |
 | The remaining routes (lazy) | ≤ 30 kB each | 13.9 kB |
-| **First meaningful paint** | **≤ 180 kB** | **118 kB** |
+| **First meaningful paint** | **≤ 180 kB** | **125 kB** |
 
 > **Why the worker went from 25 to 35 kB (M3).** The 25 kB were an estimate made before
 > there was any code. Measured, it is 31.5 kB, about 16 kB of which is Zod. The obvious way

@@ -1194,7 +1194,7 @@ was written on 2026-09-12; what has to be signed, paid for or sent is Martin's.
 | M25.6 The Support screen | Settings › Support with the plans and tips, built in M22.3, is off the settings index and out of the bundle until a provider can take the money — a price list nobody can pay is a promise. Comes back with M25.4 | **Taken out 2026-09-12** |
 | 1.0 | Tag, changelog, the four promises of `docs/17` §2 checked one by one | After M24.6 and M25.1's reply, or its absence |
 
-## M26 · Sleeve → in progress
+## M26 · Sleeve → done 2026-09-12
 
 **Occasion:** the UI review of 2026-09-12 — docs/05 §1 says "record covers are the
 interface" and the screens showed 72 px thumbnails beside eight lines of text, four type
