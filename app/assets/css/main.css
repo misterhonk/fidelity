@@ -440,6 +440,44 @@ body {
  */
 .fid-sheet {
   view-transition-name: var(--fid-sheet-name, none);
+  view-transition-class: fid-sheet;
+}
+
+/*
+ * A drawer comes in from its own edge and goes back out over it (#226). Only
+ * on open and close — walking from record to record keeps the crossfade.
+ */
+::view-transition-new(.fid-sheet):only-child {
+  animation: fid-sheet-in var(--fid-motion-layout) ease-out;
+}
+
+::view-transition-old(.fid-sheet):only-child {
+  animation: fid-sheet-in var(--fid-motion-feedback) ease-in reverse;
+}
+
+@keyframes fid-sheet-in {
+  from {
+    translate: 100% 0;
+  }
+}
+
+/*
+ * Finds arrive one after another as a scan turns them up (#226), not as a
+ * block. `sibling-index()` where the browser has it; elsewhere the delay is
+ * invalid, drops out, and they simply arrive together.
+ */
+.fid-cascade {
+  transition:
+    opacity var(--fid-motion-layout) ease-out,
+    translate var(--fid-motion-layout) ease-out;
+  transition-delay: calc(min(sibling-index(), 12) * 30ms);
+}
+
+@starting-style {
+  .fid-cascade {
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
 }
 
 /*
@@ -452,6 +490,9 @@ body {
   ::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+    /* A stagger is a wait with nothing moving in it. */
+    animation-delay: 0s !important;
+    transition-delay: 0s !important;
   }
 
   ::view-transition-group(*),

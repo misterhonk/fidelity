@@ -415,6 +415,7 @@ function years(entry: { from: number; to: number }): string {
         clipped, while every sibling kept its size. Measured 2026-09-14.
       -->
       <RecordMasthead
+        :morph="COVER_MORPH"
         :cover="cover ?? null"
         :title="match.title"
         :artist="match.artist"

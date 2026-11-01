@@ -41,4 +41,31 @@ defineProps<{
 summary::-webkit-details-marker {
   display: none;
 }
+
+/*
+ * The answer unfolds rather than appearing (#226). Where `interpolate-size`
+ * is missing the height cannot be animated and it opens at once, as before.
+ */
+details {
+  interpolate-size: allow-keywords;
+}
+
+details::details-content {
+  block-size: 0;
+  overflow-y: clip;
+  transition:
+    block-size var(--fid-motion-feedback) ease,
+    content-visibility var(--fid-motion-feedback) allow-discrete;
+}
+
+details[open]::details-content {
+  block-size: auto;
+}
+
+/* main.css's opt-out names `*`, which no pseudo-element like this one matches. */
+@media (prefers-reduced-motion: reduce) {
+  details::details-content {
+    transition: none;
+  }
+}
 </style>

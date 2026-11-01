@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useReleaseSheet } from '~/composables/useReleaseSheet'
 
@@ -78,5 +78,59 @@ describe('the release sheet', () => {
     sheet.step('dig-1', 20)
     sheet.show('dig-1', 30)
     expect(sheet.stepped.value).toBe(false)
+  })
+})
+
+/*
+ * The cover grows into the sheet and shrinks back into the list (#226). A
+ * view-transition name may stand on one element per picture, so the list's
+ * cover holds it for the old picture only on the way in, and for the new one
+ * only on the way out — the sheet's own cover holds it the rest of the time.
+ */
+describe('the cover the sheet grows out of', () => {
+  const sheet = useReleaseSheet()
+  const img = { style: { viewTransitionName: '' } }
+  const card = { querySelector: () => img } as unknown as HTMLElement
+  let update: () => Promise<void> = async () => {}
+  let names: string[] = []
+
+  beforeEach(() => {
+    names = []
+    vi.stubGlobal('document', {
+      startViewTransition(cb: () => Promise<void>) {
+        names.push(img.style.viewTransitionName)
+        update = cb
+        return { ready: Promise.resolve(), finished: new Promise(() => {}) }
+      },
+    })
+  })
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('is named for the picture before the sheet opens, and not after', async () => {
+    sheet.show('dig-1', 20, card)
+    expect(names).toEqual(['fid-cover'])
+    await update()
+    expect(img.style.viewTransitionName).toBe('')
+    expect(sheet.open.value).toEqual({ digId: 'dig-1', listingId: 20 })
+  })
+
+  it('is named for the picture after the sheet closes, and not before', async () => {
+    sheet.show('dig-1', 20, card)
+    await update()
+    sheet.hide()
+    expect(names.at(-1)).toBe('')
+    await update()
+    expect(img.style.viewTransitionName).toBe('fid-cover')
+  })
+
+  it('is left alone on the way out once the sheet has walked to another record', async () => {
+    sheet.show('dig-1', 20, card)
+    await update()
+    sheet.step('dig-1', 30)
+    await update()
+    img.style.viewTransitionName = ''
+    sheet.hide()
+    await update()
+    expect(img.style.viewTransitionName).toBe('')
   })
 })

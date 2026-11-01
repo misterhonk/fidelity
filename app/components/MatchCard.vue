@@ -143,7 +143,7 @@ const meta = computed(() => {
         type="button"
         class="fid-cover-button aspect-square w-full overflow-hidden rounded-fid-cover bg-fid-inset"
         :aria-label="d.match.open(`${match.artist} – ${match.title}`)"
-        @click="show(match.digId, match.listingId)"
+        @click="show(match.digId, match.listingId, root)"
       >
         <LabelSleeve
           :src="cover.thumbUrl"
@@ -181,7 +181,7 @@ const meta = computed(() => {
         <button
           type="button"
           class="flex flex-col items-start gap-1 text-left"
-          @click="show(match.digId, match.listingId)"
+          @click="show(match.digId, match.listingId, root)"
         >
           <span class="text-fid-base text-fid-text">{{ match.artist }}</span>
           <span class="sr-only"> – </span>

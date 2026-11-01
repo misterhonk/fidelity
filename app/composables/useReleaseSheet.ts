@@ -1,6 +1,6 @@
 // Named, so a plain Vitest process can import this module without Nuxt's
 // auto-imports — the walk arithmetic below is worth testing on its own.
-import { computed, readonly, ref, shallowRef } from 'vue'
+import { computed, nextTick, readonly, ref, shallowRef } from 'vue'
 
 /**
  * Which record's detail sheet is open, and the transition that opens it.
@@ -27,25 +27,57 @@ const open = shallowRef<{ digId: string; listingId: number } | null>(null)
 const order = shallowRef<{ digId: string; ids: number[] } | null>(null)
 
 /**
+ * The cover in the list the open sheet grew out of, so closing can shrink the
+ * sheet's cover back into it (#226). Null when the sheet was opened from
+ * anywhere without a cover — an address, the palette — or walked away from it.
+ */
+let sleeve: HTMLElement | null = null
+
+/** The one name the list's cover and the sheet's cover share, never both at once. */
+export const COVER_MORPH = 'fid-cover'
+
+function name(el: HTMLElement | null, value: string) {
+  if (el) el.style.viewTransitionName = value
+}
+
+/**
  * Wraps a state change in a same-document View Transition where the browser
  * has one (docs/05 §4). Everything still works without it — the change just
  * happens instantly, which is also what somebody asking for reduced motion
- * gets, since the transition names are dropped under that media query.
+ * gets, since the transition animations are dropped under that media query.
+ *
+ * `before` is the cover named in the old picture, `after` the one named in the
+ * new; the sheet's own cover carries the name for as long as it is open. A
+ * name may stand on only one element per picture, so each is taken off again
+ * the moment its picture has been taken.
  */
-function transition(change: () => void) {
+function transition(change: () => void, before: HTMLElement | null = null, after = before) {
   // No document at all in a plain test process — and nothing to animate there.
   if (typeof document === 'undefined') {
     change()
     return
   }
   const doc = document as Document & {
-    startViewTransition?: (cb: () => void) => { finished: Promise<void> }
+    startViewTransition?: (cb: () => Promise<void>) => {
+      ready: Promise<void>
+      finished: Promise<void>
+    }
   }
   if (typeof doc.startViewTransition !== 'function') {
     change()
     return
   }
-  doc.startViewTransition(change)
+  name(before, COVER_MORPH)
+  const running = doc.startViewTransition(async () => {
+    name(before, '')
+    change()
+    // Vue patches the DOM on the next tick; the new picture must wait for it.
+    await nextTick()
+    if (after !== before) name(after, COVER_MORPH)
+  })
+  // A transition skipped by a newer one is not an error anybody can act on.
+  running.ready.catch(() => {})
+  running.finished.finally(() => name(after, '')).catch(() => {})
 }
 
 /** Where the open record stands in that list, and what is either side of it. */
@@ -79,22 +111,39 @@ export function useReleaseSheet() {
     open: readonly(open),
     walk,
     stepped: readonly(stepped),
-    show: (digId: string, listingId: number) =>
-      transition(() => {
-        stepped.value = false
-        open.value = { digId, listingId }
-      }),
+    /** `from` is the find's card or row; its cover grows into the sheet's. */
+    show: (digId: string, listingId: number, from?: HTMLElement | null) => {
+      sleeve = from?.querySelector('img') ?? null
+      transition(
+        () => {
+          stepped.value = false
+          open.value = { digId, listingId }
+        },
+        sleeve,
+        null,
+      )
+    },
     /** The same move, from the arrows — and the app may read ahead from here. */
-    step: (digId: string, listingId: number) =>
+    step: (digId: string, listingId: number) => {
+      // Another record now: closing must not fly into the first one's cover.
+      sleeve = null
       transition(() => {
         stepped.value = true
         open.value = { digId, listingId }
-      }),
-    hide: () =>
-      transition(() => {
-        stepped.value = false
-        open.value = null
-      }),
+      })
+    },
+    hide: () => {
+      const back = sleeve
+      sleeve = null
+      transition(
+        () => {
+          stepped.value = false
+          open.value = null
+        },
+        null,
+        back,
+      )
+    },
     /** The reading order of the list on screen. Null while none is shown. */
     setOrder: (found: { digId: string; ids: number[] } | null) => (order.value = found),
   }

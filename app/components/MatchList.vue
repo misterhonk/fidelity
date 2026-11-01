@@ -249,7 +249,7 @@ const gridStyle = computed(() => ({
     <li
       v-for="match in matches"
       :key="match.listingId"
-      :class="density === 'compact' ? '' : 'fid-far'"
+      :class="density === 'compact' ? 'fid-cascade' : 'fid-far fid-cascade'"
       :style="{ '--fid-far-height': density === 'compact' ? '2.125rem' : '13rem' }"
     >
       <MatchRow v-if="density === 'compact'" :match="match" />
