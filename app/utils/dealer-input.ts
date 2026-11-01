@@ -88,3 +88,23 @@ export function dealerFromInput(input: string): string | null {
   if (trimmed.includes('/') || trimmed.includes(' ')) return null
   return USERNAME.test(trimmed) ? trimmed : null
 }
+
+/**
+ * The dealer in what Android's share sheet hands over (manifest `share_target`).
+ *
+ * Which field carries the address is up to the sharing app — Chrome puts it in
+ * `text`, sometimes after the page title — so all three are tried. The address
+ * patterns are not anchored, which is what finds a link inside a sentence.
+ *
+ * Only addresses, never a bare word: a shared title of "Discogs" is a valid
+ * username, and opening a shop called that would be a guess.
+ */
+export function dealerFromShare(query: Record<string, unknown>): string | null {
+  for (const key of ['url', 'text', 'title']) {
+    const value = query[key]
+    const name =
+      typeof value === 'string' && /discogs\.com\//i.test(value) ? dealerFromInput(value) : null
+    if (name) return name
+  }
+  return null
+}

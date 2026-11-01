@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { dealerFromInput } from '~/utils/dealer-input'
+import { dealerFromInput, dealerFromShare } from '~/utils/dealer-input'
 
 /**
  * Whatever somebody pastes into the dealer field.
@@ -99,5 +99,30 @@ describe('what the dealer field accepts', () => {
     // Free text.
     expect(dealerFromInput('der laden in jena')).toBeNull()
     expect(dealerFromInput('foo/bar')).toBeNull()
+  })
+})
+
+describe('dealerFromShare', () => {
+  it('finds the shop in whichever field the sharing app filled', () => {
+    expect(dealerFromShare({ url: 'https://www.discogs.com/seller/fatplastics/profile' })).toBe(
+      'fatplastics',
+    )
+    // Chrome on Android: the link inside `text`, after the page title.
+    expect(
+      dealerFromShare({
+        title: 'Discogs',
+        text: 'fatplastics on Discogs https://www.discogs.com/user/fatplastics',
+      }),
+    ).toBe('fatplastics')
+  })
+
+  it('gives null when nothing shared names a shop', () => {
+    expect(dealerFromShare({})).toBeNull()
+    // A title is a valid username; it must not be taken for one.
+    expect(dealerFromShare({ title: 'Discogs', text: 'fatplastics' })).toBeNull()
+    expect(
+      dealerFromShare({ text: 'https://www.discogs.com/release/636159-Kraftwerk-Das-Model' }),
+    ).toBeNull()
+    expect(dealerFromShare({ text: ['a', 'b'] })).toBeNull()
   })
 })
