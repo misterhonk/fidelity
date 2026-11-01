@@ -9,6 +9,74 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.115.0](https://github.com/misterhonk/fidelity/compare/v0.114.1...v0.115.0) (2026-11-01)
+
+
+<!-- en -->
+**Fidelity is now called Sleeveside.** Same app, same data: your collection, your digs and your
+basket stay on your device exactly as they were. With the new name come a dozen small repairs:
+
+- Signal colours are readable in light mode, and errors are red with an icon.
+- On an iPhone home screen nothing hides under the status bar or the home indicator any more.
+- The screen stays on in a shop and while a dig runs.
+- A change that never reached Discogs is now named on screen instead of quietly undone, and a
+  second copy of a record you already own is no longer lost when the connection drops.
+- The command palette opens the shop or the find you pick.
+- No more German in the English app, settings only promise what exists, and the price ceiling is
+  in your currency.
+- The key goes to api.discogs.com and nowhere else, and a seller's endless shipping text can no
+  longer stall the app.
+
+<!-- de -->
+**Fidelity heißt jetzt Sleeveside.** Dieselbe App, dieselben Daten: Sammlung, Digs und Korb
+bleiben genau so auf deinem Gerät. Mit dem neuen Namen kommen ein Dutzend kleine Reparaturen:
+
+- Signalfarben sind im hellen Modus gut lesbar. Fehler sind rot und haben ein Symbol.
+- Auf dem iPhone-Homescreen verschwindet nichts mehr unter Statusleiste oder Home-Balken.
+- Im Laden und während ein Dig läuft, bleibt der Bildschirm an.
+- Kommt eine Änderung nicht bei Discogs an, sagt Sleeveside das jetzt, statt sie still
+  zurückzunehmen. Eine zweite Kopie einer Platte geht nicht mehr verloren, wenn das Netz abreißt.
+- Die Befehlssuche öffnet den Laden oder Fund, den du wählst.
+- Kein Deutsch mehr in der englischen App, die Einstellungen versprechen nur, was es gibt, und die
+  Preisgrenze steht in deiner Währung.
+- Der Schlüssel geht nur an api.discogs.com. Ein endloser Versandtext eines Händlers bremst die
+  App nicht mehr aus.
+
+### Added
+
+* **i18n:** a what's-new lead per language ([6457326](https://github.com/misterhonk/fidelity/commit/6457326e9c46c6ba5b41e1d82bab317f48d469cf))
+* **pwa:** keep the screen on in the shop and while a dig runs ([e4e5e9e](https://github.com/misterhonk/fidelity/commit/e4e5e9e16d5899d80d98fa0dda007fa4f60025cc))
+* **pwa:** name Sleeveside in the icon label and the self-hoster readme ([11e327f](https://github.com/misterhonk/fidelity/commit/11e327fa27fcc86daef114deea3eada8e42e6964))
+* **ui:** add readable text roles for signal colours and an error role ([7542d39](https://github.com/misterhonk/fidelity/commit/7542d39be15a37b3c4975f1e2f1abd5d734d0080))
+* **ui:** call the product Sleeveside wherever a user sees it ([e521f89](https://github.com/misterhonk/fidelity/commit/e521f89f79bc0f8909ff8985bbc149ef042818bd))
+* **ui:** say which change did not reach Discogs and was undone ([fd8db62](https://github.com/misterhonk/fidelity/commit/fd8db626fd833b996c8f402163a4a820841eb810)), closes [#197](https://github.com/misterhonk/fidelity/issues/197)
+
+
+### Fixed
+
+* **basket:** cap shipping text at 4,000 chars and keep digit runs linear ([8a8107e](https://github.com/misterhonk/fidelity/commit/8a8107ea6cdc1ea14c53bbf8cff1a7edbb3ce7a5)), closes [#196](https://github.com/misterhonk/fidelity/issues/196)
+* **collection:** count copies before an add, so a second copy is never dropped ([08f5556](https://github.com/misterhonk/fidelity/commit/08f55564ba316e77ae8930c0af3d62994fc7146a)), closes [#197](https://github.com/misterhonk/fidelity/issues/197)
+* **collection:** keep instance ids before an add, not a count ([a54d58c](https://github.com/misterhonk/fidelity/commit/a54d58ca081f99bc78a174aadd953c76ce0c8b5e)), closes [#197](https://github.com/misterhonk/fidelity/issues/197)
+* **deps:** update zod to 4.6.7 ([edb541e](https://github.com/misterhonk/fidelity/commit/edb541ec9eeab2b823e2f4d3d6580cc3ccac8446)), closes [#196](https://github.com/misterhonk/fidelity/issues/196)
+* **discogs:** refuse any address off api.discogs.com before the token is read ([2e85c16](https://github.com/misterhonk/fidelity/commit/2e85c163f187eccd46c6cb9934efe5f9166b5542)), closes [#196](https://github.com/misterhonk/fidelity/issues/196)
+* **hub:** update zod to 4.6.7 ([53693e9](https://github.com/misterhonk/fidelity/commit/53693e9c8b9508f70e8fedafe60af83025537a4c)), closes [#196](https://github.com/misterhonk/fidelity/issues/196)
+* **i18n:** English word order at the token step, English figures in the cost table ([48a9b2a](https://github.com/misterhonk/fidelity/commit/48a9b2a63f8334c80a11cfb3f420d5bb83ec2ad8))
+* **i18n:** say a reverted change in two short sentences, each record once ([3ce10ef](https://github.com/misterhonk/fidelity/commit/3ce10eff4fe3aa3b35a6bb8011b86b0eb3360bf7)), closes [#197](https://github.com/misterhonk/fidelity/issues/197)
+* **i18n:** say einer neueren Sleeveside-Version, and test the manifest name ([7b06fb3](https://github.com/misterhonk/fidelity/commit/7b06fb3adfbe1bc5590d8f1df299a4c0e7279e19))
+* **i18n:** settings hints name only what exists ([0cab5d9](https://github.com/misterhonk/fidelity/commit/0cab5d98ab47aecfa3c5a4151d07faaf3229abd7))
+* **match:** keep decades as numbers in the worker, label them per language ([38b8468](https://github.com/misterhonk/fidelity/commit/38b8468716be8997231996ce9da720b551348ee3))
+* **pwa:** clear the status bar and home indicator on installed iPhones ([ac4b497](https://github.com/misterhonk/fidelity/commit/ac4b497a5ff6930252e8c93723d45e61b9e8d774)), closes [#192](https://github.com/misterhonk/fidelity/issues/192)
+* **pwa:** clear the status bar on stack and shared, and the home indicator in bar-less sheets ([2f788bc](https://github.com/misterhonk/fidelity/commit/2f788bc06411cfe3123121d9f800653f936144be))
+* **sync:** put a change back even when its name cannot be read ([79e2237](https://github.com/misterhonk/fidelity/commit/79e2237c35f983fdccc1171aa8fc858ed68b7df0)), closes [#197](https://github.com/misterhonk/fidelity/issues/197)
+* **sync:** say which change the manual sync's drain gave up on ([90144d5](https://github.com/misterhonk/fidelity/commit/90144d5f55ac0163bca5402efc6613de2c5eb66a)), closes [#197](https://github.com/misterhonk/fidelity/issues/197)
+* **ui:** follow ?shop= while the shops screen is open ([0b2b466](https://github.com/misterhonk/fidelity/commit/0b2b466e341d6ed8d1079d1ce88726c9cb482ac8))
+* **ui:** format release sheet evidence by kind of number ([5809b87](https://github.com/misterhonk/fidelity/commit/5809b87fd012711c75c4430662f76716c8a51bb5)), closes [#191](https://github.com/misterhonk/fidelity/issues/191)
+* **ui:** name the record when the flush after a change gives up on it ([e298c52](https://github.com/misterhonk/fidelity/commit/e298c52667e8ce8dc5f8b6be743d4a947dff21de)), closes [#197](https://github.com/misterhonk/fidelity/issues/197)
+* **ui:** open the chosen shop and find from the command palette ([79bae09](https://github.com/misterhonk/fidelity/commit/79bae092caff3942c28d413e931d58596cb02d3d))
+* **ui:** search summary writes the price ceiling in your currency ([9cffe99](https://github.com/misterhonk/fidelity/commit/9cffe9975769478c58f57bca976043c586c9e73d))
+* **ui:** style the undone line as an error, not in a raw signal colour ([3ca48cb](https://github.com/misterhonk/fidelity/commit/3ca48cb1a493bb5d58962000ea999c5ad50d69e5)), closes [#197](https://github.com/misterhonk/fidelity/issues/197)
+* **ui:** use signal text roles, give errors their own colour and an icon ([ce61b62](https://github.com/misterhonk/fidelity/commit/ce61b6244e5a22ffdb6c4c887dddc94f35f9bf4c))
+
 ## [0.114.1](https://github.com/misterhonk/fidelity/compare/v0.114.0...v0.114.1) (2026-11-01)
 
 
