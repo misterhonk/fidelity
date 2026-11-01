@@ -224,5 +224,22 @@ test.describe('installed on an iPhone', () => {
 
     expect(await padsWithInset(page, '[role="dialog"]', 'top')).toBe(true)
     expect(await padsWithInset(page, '[role="dialog"] .sticky', 'bottom')).toBe(true)
+    // The bar carries the inset, so the sheet must not add it a second time…
+    expect(await padsWithInset(page, '[role="dialog"]', 'bottom')).toBe(false)
+
+    // …but a sheet without one has to clear the home indicator itself.
+    await page.locator('[role="dialog"] .sticky').evaluate((bar) => bar.remove())
+    expect(await padsWithInset(page, '[role="dialog"]', 'bottom')).toBe(true)
   })
+
+  // The two pages without a PageHeader clear the status bar on their own.
+  for (const route of ['/stack', '/shared']) {
+    test(`${route} clears the status bar`, async ({ page }) => {
+      await signIn(page)
+      await page.goto(route)
+      await expect(page.locator('main')).toBeVisible()
+      expect(new URL(page.url()).pathname).toBe(route)
+      expect(await padsWithInset(page, 'main', 'top')).toBe(true)
+    })
+  }
 })

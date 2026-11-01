@@ -101,13 +101,14 @@ function onKeydown(event: KeyboardEvent) {
     @click.self="emit('close')"
     @keydown="onKeydown"
   >
+    <!-- A sheet with a sticky action bar leaves the home indicator to the bar. -->
     <aside
       ref="panel"
       role="dialog"
       aria-modal="true"
       :aria-label="props.label"
       tabindex="-1"
-      class="fid-sheet @container relative isolate flex h-full w-full max-w-lg flex-col gap-6 overflow-y-auto border-l border-fid-border bg-fid-surface p-6 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] outline-none lg:max-w-2xl xl:max-w-3xl"
+      class="fid-sheet @container relative isolate flex h-full w-full max-w-lg flex-col gap-6 overflow-y-auto border-l border-fid-border bg-fid-surface p-6 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] outline-none [&:not(:has(.sticky))]:pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] lg:max-w-2xl xl:max-w-3xl"
       :style="{ scrollbarGutter: 'stable', '--fid-sheet-name': props.transition ?? 'none' }"
     >
       <!--
