@@ -207,11 +207,10 @@ export function useAudioPreview() {
     } catch {
       // A blocked Google — extension, firewall, network — is not this app's
       // failure. Every screen works completely without sound, so only the
-      // button goes away.
+      // button goes away. The frame goes too: built with autoplay, a late load
+      // would play in a player nobody can see or stop.
+      teardown()
       failed.value = true
-      armed.value = false
-      playing.value = null
-      host = null
     }
   }
 
