@@ -1,10 +1,11 @@
 import { fileURLToPath } from 'node:url'
 
-import { defineConfig } from 'vitest/config'
+import { configDefaults, defineConfig } from 'vitest/config'
+
+const bench = 'tests/unit/scoring-bench.spec.ts'
 
 export default defineConfig({
   test: {
-    include: ['tests/unit/**/*.spec.ts'],
     environment: 'node',
     setupFiles: ['tests/setup/indexeddb.ts'],
     // The matching engine is a pure function on purpose (CLAUDE.md), so most
@@ -16,6 +17,19 @@ export default defineConfig({
       reporter: ['text', 'lcov'],
       include: ['db/**', 'worker/**', 'shared/**', 'scripts/**', 'app/utils/**'],
     },
+    // The scoring benchmark runs after every other file, alone, so it times
+    // the engine and not the test files competing for the runner's CPU.
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'unit',
+          include: ['tests/unit/**/*.spec.ts'],
+          exclude: [...configDefaults.exclude, bench],
+        },
+      },
+      { extends: true, test: { name: 'bench', include: [bench], sequence: { groupOrder: 1 } } },
+    ],
   },
   resolve: {
     alias: {
