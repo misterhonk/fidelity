@@ -1,8 +1,8 @@
 # Additional permission under GNU AGPL version 3, section 7
 
-Fidelity is licensed under the GNU Affero General Public License, version 3
-(`LICENSE`). As the copyright holder, Martin Melcher grants the following
-additional permission under section 7 of that licence.
+Sleeveside (formerly Fidelity) is licensed under the GNU Affero General Public
+License, version 3 (`LICENSE`). As the copyright holder, Martin Melcher grants
+the following additional permission under section 7 of that licence.
 
 **App store distribution.** You may convey this program, or a work based on
 it, in object code form through an application distribution platform (such
