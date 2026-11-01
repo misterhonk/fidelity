@@ -20,6 +20,9 @@ import { readdirSync, readFileSync } from 'node:fs'
  * budgets once there is more than one route.
  */
 const html = readFileSync('.output/public/index.html', 'utf8')
+// The service worker's navigation fallback: every address but `/` opens this
+// one, so what it preloads or prefetches is paid just the same (#304).
+const fallbackHtml = readFileSync('.output/public/200.html', 'utf8')
 
 const blocking = [
   ...html.matchAll(/<link\b[^>]*\brel="(stylesheet|modulepreload)"[^>]*>/g),
@@ -60,17 +63,33 @@ const chunkFiles = readdirSync(WORKER_DIR)
   .filter((file) => file.endsWith('.js'))
   .map((file) => `${WORKER_DIR}/${file}`)
 
-const workerEntry = chunkFiles
-  .map(
-    (file) =>
-      /new Worker\(new URL\([^)]*?["'`]([\w.-]+\.js)["'`]/.exec(
-        readFileSync(file, 'utf8'),
-      )?.[1],
+const read = (file) => readFileSync(file, 'utf8')
+
+/*
+ * The barcode reader for Safari (ADR-018, #301) starts a worker of its own
+ * (#304), so there are two `new Worker(new URL(...))` in the build. Its
+ * launcher is the one chunk that names the hashed `.wasm`; the Discogs worker
+ * is whichever the launcher does not start.
+ */
+const decoderLaunchers = chunkFiles.filter((file) =>
+  /zxing_reader\.[\w-]+\.wasm/.test(read(file)),
+)
+
+const workerStarts = (file) =>
+  [...read(file).matchAll(/new Worker\(new URL\([^)]*?["'`]([\w.-]+\.js)["'`]/g)].map(
+    ([, name]) => name,
   )
-  .find((name) => name !== undefined)
+
+const decoderWorkers = new Set(decoderLaunchers.flatMap(workerStarts))
+const workerEntries = [
+  ...new Set(chunkFiles.flatMap(workerStarts).filter((name) => !decoderWorkers.has(name))),
+]
+const workerEntry = workerEntries.length === 1 ? workerEntries[0] : undefined
 
 if (!workerEntry) {
-  throw new Error('worker entry not found — did `new Worker(new URL(...))` change shape?')
+  throw new Error(
+    `expected one worker entry besides the decoder's, found ${workerEntries.length} — did \`new Worker(new URL(...))\` change shape?`,
+  )
 }
 
 const workerPath = `${WORKER_DIR}/${workerEntry}`
@@ -105,45 +124,53 @@ function staticImports(file) {
     .map((specifier) => `${WORKER_DIR}/${specifier.replace(/^\.+\//, '')}`)
 }
 
-const workerChunks = new Set([workerPath])
-const queue = [workerPath]
-
-while (queue.length > 0) {
-  for (const next of staticImports(queue.pop())) {
-    if (workerChunks.has(next)) continue
-    workerChunks.add(next)
-    queue.push(next)
-  }
-}
-
 /*
  * The barcode reader for Safari (ADR-018, #301): zxing-wasm's reader build,
- * reached only through `import()` in useBarcodeScan.start(). Its glue chunk is
- * the one that names the hashed `.wasm`. Neither may be among the first-paint
- * files, nor so much as prefetched by index.html — a Chromium visitor must
- * never download it.
+ * reached only through `import()` in useBarcodeScan.start(). Its launcher
+ * names the hashed `.wasm` and starts the decoder's worker, which carries the
+ * glue (#304). None of it may be among the first-paint files, nor so much as
+ * prefetched by index.html or 200.html — a Chromium visitor must never
+ * download it.
  */
 const decoderWasm = readdirSync(WORKER_DIR)
   .filter((file) => /^zxing_reader\..+\.wasm$/.test(file))
   .map((file) => `${WORKER_DIR}/${file}`)
-const decoderGlue = chunkFiles.filter((file) =>
-  /zxing_reader\.[\w-]+\.wasm/.test(readFileSync(file, 'utf8')),
-)
 
-if (decoderWasm.length !== 1 || decoderGlue.length !== 1) {
+if (decoderWasm.length !== 1 || decoderLaunchers.length !== 1 || decoderWorkers.size !== 1) {
   throw new Error(
-    `barcode decoder not found as one .wasm and one glue chunk (${decoderWasm.length}, ${decoderGlue.length})`,
+    `barcode decoder not found as one .wasm, one launcher and one worker (${decoderWasm.length}, ${decoderLaunchers.length}, ${decoderWorkers.size})`,
   )
 }
 
-const decoderChunks = new Set([...decoderGlue, ...decoderGlue.flatMap(staticImports)])
+const withStaticImports = (roots) => {
+  const found = new Set(roots)
+  const pending = [...roots]
+  while (pending.length > 0) {
+    for (const next of staticImports(pending.pop())) {
+      if (found.has(next)) continue
+      found.add(next)
+      pending.push(next)
+    }
+  }
+  return found
+}
+
+const decoderChunks = withStaticImports([
+  ...decoderLaunchers,
+  ...[...decoderWorkers].map((name) => `${WORKER_DIR}/${name}`),
+])
 
 for (const file of [...decoderWasm, ...decoderChunks]) {
   const name = file.slice(WORKER_DIR.length + 1)
-  if (entryAssets.includes(file) || html.includes(name)) {
-    throw new Error(
-      `the barcode decoder (${name}) is loaded or prefetched by index.html — ADR-018`,
-    )
+  for (const [page, source] of [
+    ['index.html', html],
+    ['200.html', fallbackHtml],
+  ]) {
+    if (entryAssets.includes(file) || source.includes(name)) {
+      throw new Error(
+        `the barcode decoder (${name}) is loaded or prefetched by ${page} — ADR-018`,
+      )
+    }
   }
 }
 
@@ -156,7 +183,7 @@ export default [
   },
   {
     name: 'Worker (lazy, nach dem ersten Paint)',
-    path: [...workerChunks],
+    path: [...withStaticImports([workerPath])],
     /*
      * 35 → 40 kB on 2026-09-12 (M21.4), then **40 → 25 kB on 2026-09-16**,
      * because the worker had reached 39.54 and the answer turned out to be

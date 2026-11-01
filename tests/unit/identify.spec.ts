@@ -280,9 +280,60 @@ describe('the screen that shows it', () => {
     expect(withoutComments(SCAN)).toMatch(/await import\('\.\/scan\/zxing'\)/)
     expect(withoutComments(SCAN)).not.toMatch(/^import .*scan\/zxing/m)
     expect(withoutComments(PAGE)).not.toMatch(/scan\/zxing|zxing-wasm/)
-    const reader = readFileSync('app/composables/scan/zxing.ts', 'utf8')
+    const reader = readFileSync('worker/scan/zxing.ts', 'utf8')
     expect(reader).toMatch(/from 'zxing-wasm\/reader'/)
     expect(reader).not.toMatch(/from 'zxing-wasm(\/full|\/writer)?'/)
+  })
+
+  /**
+   * The decoding happens in a worker of its own (#304).
+   *
+   * CLAUDE.md: the main thread does not compute. The side the page loads
+   * fetches the .wasm and hands frames over; `readBarcodes` is called only in
+   * `worker/scan/zxing.ts`, which a `new Worker()` starts.
+   */
+  it('decodes off the main thread', () => {
+    const launcher = withoutComments(readFileSync('app/composables/scan/zxing.ts', 'utf8'))
+    expect(launcher).not.toMatch(/from 'zxing-wasm\/reader'/)
+    expect(launcher).not.toMatch(/readBarcodes/)
+    expect(launcher).toMatch(
+      /new Worker\(new URL\('\.\.\/\.\.\/\.\.\/worker\/scan\/zxing\.ts', import\.meta\.url\)/,
+    )
+    expect(withoutComments(readFileSync('worker/scan/zxing.ts', 'utf8'))).toMatch(
+      /readBarcodes\(/,
+    )
+  })
+
+  /**
+   * The .wasm is cached on first use, and never installed up front (ADR-018).
+   *
+   * Precaching it would put 415 kB on every Chromium install that never reads
+   * a barcode through it; not caching it at runtime would leave the second
+   * scan in a shop basement without a reader.
+   */
+  it('caches the .wasm at runtime and keeps it out of the precache', () => {
+    const sw = withoutComments(readFileSync('app/sw/sw.ts', 'utf8'))
+    expect(sw).toMatch(
+      /registerRoute\(\s*\(\{ url, sameOrigin \}\) => sameOrigin && url\.pathname\.endsWith\('\.wasm'\),\s*new CacheFirst\(\{\s*cacheName: 'fidelity-decoder'/,
+    )
+    const config = readFileSync('nuxt.config.ts', 'utf8')
+    const globs = /globPatterns: \[([^\]]*)\]/.exec(config)?.[1]
+    expect(globs).toBeDefined()
+    expect(globs).not.toMatch(/wasm/)
+  })
+
+  /**
+   * Apache names the type, or Emscripten falls back to the slower
+   * non-streaming compile and says so in the console (#304). nginx gets it
+   * from its own mime.types.
+   */
+  it('is served as application/wasm, compressed and kept', () => {
+    const htaccess = readFileSync('deploy/.htaccess', 'utf8')
+    expect(htaccess).toMatch(/^\s*AddType application\/wasm \.wasm$/m)
+    expect(htaccess).toMatch(
+      /<FilesMatch "\^\.\*\\\.\([^)]*\bwasm\b[^)]*\)\$">\s*Header set Cache-Control "public, max-age=31536000, immutable"/,
+    )
+    expect(htaccess).toMatch(/AddOutputFilterByType DEFLATE [^\n]*application\/wasm/)
   })
 
   /**
