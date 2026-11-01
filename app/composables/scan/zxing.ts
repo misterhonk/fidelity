@@ -69,6 +69,8 @@ async function start(): Promise<Detector> {
       }
       const onError = () => {
         done()
+        dead = true
+        worker.terminate()
         shared = null
         reject(new Error('decoder-worker'))
       }
