@@ -29,6 +29,26 @@ export default withNuxt(
     rules: { 'no-console': 'off' },
   },
   {
+    // Every spec fails on a CSP violation (#204), but only if it imports the
+    // fixture that listens. The smoke run goes against a deployed site whose
+    // policy this build did not write.
+    files: ['tests/e2e/**/*.spec.ts'],
+    ignores: ['tests/e2e/smoke/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@playwright/test',
+              message: "Import from './support/test' — it fails the spec on a CSP violation.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     ignores: ['app/assets/css/tokens.css', 'server/db/migrations/**', 'docs/**', '*.html'],
   },
   // Must stay last: switches off everything Prettier already decides.
