@@ -120,7 +120,7 @@ const de: Messages = {
       body_middle: 'tippen, dann',
       addToHome: 'Zum Home-Bildschirm',
       body_after:
-        '. Danach geht es ohne Browserleiste auf und läuft auch im Keller ohne Empfang.',
+        '. Nur vom Home-Bildschirm aus erlaubt iOS Mitteilungen und das Badge. Und nur dort bleibt gespeichert, was hier liegt, statt nach einer Woche weg zu sein. Läuft auch im Keller ohne Empfang.',
     },
     update: {
       title: 'Eine neue Version steht bereit.',
@@ -414,6 +414,8 @@ const de: Messages = {
     title: 'Start',
     description: 'Sleeveside, der Mensch hinterm Tresen für dein Graben bei Discogs.',
     inStore: 'Gerade im Laden',
+    pasteLink: 'Discogs-Link einfügen',
+    openShop: 'Öffnen',
     search: 'Platten, Läden, Aktionen suchen',
     counts: {
       collection: 'Sammlung',
@@ -530,7 +532,7 @@ const de: Messages = {
     scanStop: 'Abbrechen',
     scanDenied: 'Die Kamera blieb zu. Tippen geht auch.',
     scanNotHere:
-      'Dieser Browser kann keinen Barcode lesen; Safari bringt keinen Leser mit. Tipp die Ziffern ein, das findet dasselbe.',
+      'Dieser Browser kann keinen Barcode lesen; Safari bringt keinen Leser mit. Tipp die Ziffern ein, das findet dasselbe. Auf dem iPhone: ins Feld tippen, dann die Live-Text-Taste in der Tastaturleiste. Die Kamera liest die Ziffern für dich.',
     scanOwned: (copies) => `Hast du, ${copies} in der Sammlung.`,
     scanWanted: 'Nicht in der Sammlung. Steht auf deiner Wantlist.',
     scanOwnedAlbum: (copies) =>
