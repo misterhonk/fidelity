@@ -16,9 +16,9 @@ import { describe, expect, it } from 'vitest'
  * lives in a module that reaches for IndexedDB at import time. What is being
  * guarded is a decision, not an algorithm, and the decision is visible.
  */
-const HANDLERS = readFileSync('worker/handlers.ts', 'utf8')
+const HANDLERS = readFileSync('worker/hub/handlers.ts', 'utf8')
 
-/** The `hub.discover` handler alone — the file is four thousand lines. */
+/** The `hub.discover` handler alone — `hub.check` follows it. */
 const discover = HANDLERS.slice(
   HANDLERS.indexOf("'hub.discover'"),
   HANDLERS.indexOf("'hub.check'"),
