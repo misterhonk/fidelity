@@ -251,11 +251,13 @@ export async function runDemo(options: {
   const finds: Match[] = []
   let listingsTotal = 0
   let shopRequests = 0
+  // A request count, not a page number; capped at the shop's size once page 1 says it.
+  let pageCap = DEMO_PAGES
 
   /** One page, and its artists in sort order. Every row on it is scored. */
   async function readPage(page: number, order: 'asc' | 'desc'): Promise<string[]> {
     signal?.throwIfAborted()
-    report?.({ step: 'shop', done: shopRequests, total: DEMO_PAGES })
+    report?.({ step: 'shop', done: shopRequests, total: pageCap })
     shopRequests += 1
     requests += 1
 
@@ -318,6 +320,7 @@ export async function runDemo(options: {
 
   pages.set(1, await readPage(1, 'asc'))
   const lastPage = Math.max(1, Math.ceil(listingsTotal / PER_PAGE))
+  pageCap = Math.min(DEMO_PAGES, lastPage)
   let order: 'asc' | 'desc' = 'asc'
   const last = Math.min(lastPage, WINDOW_PAGES)
 

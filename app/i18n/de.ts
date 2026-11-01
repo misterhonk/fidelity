@@ -606,7 +606,7 @@ const de: Messages = {
     orOne: 'Oder eine von diesen:',
     moment: 'Einen Moment …',
     fetching: 'Holen die Platte …',
-    reading: (page, pages) => `Lesen das Sortiment, Seite ${page} von ${pages}`,
+    reading: (page, pages) => `Lesen das Sortiment, ${page} von höchstens ${pages} Seiten`,
     comparing: 'Vergleichen …',
     progress: 'Fortschritt',
     fitsAt: (dealer) => `Bei ${dealer} passt dazu`,
