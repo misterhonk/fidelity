@@ -82,7 +82,9 @@ const workerPath = `${WORKER_DIR}/${workerEntry}`
  * that is a regression to name, not a number to absorb.
  */
 if (entryAssets.includes(workerPath)) {
-  throw new Error(`the worker (${workerEntry}) is preloaded by index.html — see nuxt.config.ts build:manifest`)
+  throw new Error(
+    `the worker (${workerEntry}) is preloaded by index.html — see nuxt.config.ts build:manifest`,
+  )
 }
 
 function staticImports(file) {
