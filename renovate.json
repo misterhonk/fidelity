@@ -1,0 +1,34 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "A release must be a week old before it reaches a pull request: most compromised packages are pulled within days. Actions and base images stay pinned by digest, and Renovate keeps the digests fresh.",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    "docker:pinDigests",
+    ":semanticCommits"
+  ],
+  "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+  "rangeStrategy": "bump",
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 5,
+  "lockFileMaintenance": { "enabled": true },
+  "packageRules": [
+    {
+      "description": "Conventional Commit scope required by commitlint.",
+      "matchPackageNames": ["*"],
+      "semanticCommitScope": "deps"
+    },
+    {
+      "description": "Our own images: the homelab follows its tag on purpose; promote.yml moves `stable`.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/misterhonk/**"],
+      "enabled": false
+    },
+    {
+      "description": "CLAUDE.md: no TypeScript 7 while vue-tsc lags behind.",
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "<7"
+    }
+  ]
+}
