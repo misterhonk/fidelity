@@ -1,0 +1,60 @@
+name: Agent task
+description: One self-contained piece of work an agent can pick up and finish in one PR.
+labels: ['agent:ready']
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: One sentence — what is true when this is done.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Files, modules and screens this touches. Name what stays out.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checkable, one per line.
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: rules
+    attributes:
+      label: Rules touched
+      description: Which of the CLAUDE.md rules or ADRs this comes near, and how it keeps them. "none" is an answer.
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: Tests
+      description: Unit, e2e specs, golden file — what has to run or change. "—" if nothing.
+    validations:
+      required: true
+  - type: input
+    id: lane
+    attributes:
+      label: Lane · size · sprint
+      placeholder: 'lane:infra · size:S · sprint:0'
+    validations:
+      required: true
+  - type: input
+    id: depends
+    attributes:
+      label: Depends on
+      placeholder: 'nothing, or #123'
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        **For the agent:** follow `CLAUDE.md` (eight rules, tests, Conventional Commits). Work in your own worktree on branch `gf/<issue>-<slug>`. Locally run only the specs you touch (Chromium, one worker; check the exit code before committing); CI runs the rest incl. WebKit. Open a PR with `Closes #<issue>`. Do not merge, do not release.
