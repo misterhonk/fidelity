@@ -31,9 +31,10 @@ const en = {
      * section of this page — but this line used to read "light or dark, and in
      * which type", which sounds like a complete list, so nobody looking for a
      * language had any reason to open it. A row that enumerates what is behind
-     * it has to enumerate all of it.
+     * it has to enumerate all of it, and nothing more: the type picker it
+     * also named was removed on 2026-08-11 (#194).
      */
-    hint: 'Language, light or dark, and in which type',
+    hint: 'Language, and light or dark',
 
     theme: {
       title: 'Theme',
@@ -76,7 +77,7 @@ const en = {
   library: {
     lead: 'What we know about your records, straight from Discogs. Everything else builds on this.',
     title: 'Collection',
-    hint: 'Collection, wantlist, horizon and credits',
+    hint: 'Collection, wantlist, your artists and labels, credits',
     /**
      * Given already-formatted numbers, not raw ones.
      *
@@ -747,7 +748,7 @@ const en = {
 const de: typeof en = {
   appearance: {
     title: 'Darstellung',
-    hint: 'Sprache, hell oder dunkel, und in welcher Schrift',
+    hint: 'Sprache und hell oder dunkel',
 
     theme: {
       title: 'Thema',

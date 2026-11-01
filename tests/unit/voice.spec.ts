@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
+import { packs as settings } from '~/i18n/settings'
+
 /**
  * The voice (docs/20): four checks that catch the relapse.
  *
@@ -65,6 +67,20 @@ describe('the voice', () => {
         }
       }
       expect(strays).toEqual([])
+    })
+  }
+})
+
+/**
+ * A settings row that enumerates what is behind it has to enumerate only
+ * that (#194): the type picker went on 2026-08-11, and "horizon" is a word
+ * the English hint had kept after the German one was rewritten.
+ */
+describe('settings hints', () => {
+  for (const [language, pack] of Object.entries(settings)) {
+    it(`promise only what exists in ${language}`, () => {
+      expect(pack.appearance.hint).not.toMatch(/\btype\b|Schrift/i)
+      expect(pack.library.hint).not.toMatch(/horizon|Horizont/i)
     })
   }
 })
