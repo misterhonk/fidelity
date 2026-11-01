@@ -37,6 +37,18 @@ const open = useOpenInQuery('place', (raw) => raw)
 const openCube = computed(
   () => compartments.value.find((cube) => cube.id === open.value) ?? null,
 )
+// A compartment that no longer exists anywhere — its unit was deleted — opens
+// nothing and must leave the address, or the next tap replaces instead of
+// pushes. Checked against every node: another unit's compartment is not gone.
+watch(
+  () => props.nodes,
+  (nodes) => {
+    const units = new Set(nodes.filter((n) => n.kind === 'unit').map((n) => n.id))
+    const cube = nodes.find((n) => n.id === open.value)
+    if (open.value !== null && !(cube?.parentId && units.has(cube.parentId))) open.value = null
+  },
+  { immediate: true },
+)
 
 function show(id: string) {
   startMoving.value = false
