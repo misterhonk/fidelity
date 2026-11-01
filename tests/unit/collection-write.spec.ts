@@ -300,6 +300,25 @@ describe('putting a bought record on the shelf', () => {
     expect(second.sent).toBe(1)
   })
 
+  /*
+   * The look before the very first send fails, and Discogs already holds a
+   * copy. Nothing went out — no mark — so the copy there is not ours, and the
+   * add still has to be sent.
+   */
+  it('sends after a first lookup that failed, though a copy is already there', async () => {
+    await addRecord(match())
+    const fake = client()
+    ;(fake.get as ReturnType<typeof vi.fn>)
+      .mockRejectedValueOnce(new DiscogsError(0, 'Discogs is not answering'))
+      .mockResolvedValue({ releases: [{ id: 12, instance_id: 1 }] })
+
+    await drainOutbox(fake, 'mrtnmlchr')
+    const second = await drainOutbox(fake, 'mrtnmlchr')
+
+    expect(fake.write).toHaveBeenCalledTimes(1)
+    expect(second.sent).toBe(1)
+  })
+
   it('names the record when it gives up and takes it off the shelf again', async () => {
     await addRecord(match())
     const fake = client({
