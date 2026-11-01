@@ -11,7 +11,13 @@
  * An empty `HUB_SECRET` is no secret. `?? null` let the empty string through
  * as one, which the middleware then read as "no door" — the same open hub,
  * by a different road.
+ *
+ * A short secret is no secret either (#206): the secret opens every route,
+ * so a word a person chose is a word a script can try. 32 characters is the
+ * floor; `openssl rand -base64 32` prints 44.
  */
+export const MIN_SECRET_LENGTH = 32
+
 export function hubDoors(env: Record<string, string | undefined>): {
   secret: string | null
   open: boolean
@@ -25,9 +31,12 @@ export function hubDoors(env: Record<string, string | undefined>): {
     secret,
     open,
     refusal:
-      open && !allowed
-        ? 'No door: set HUB_SECRET (or HUB_ACCESS_PUBLIC_KEY). ' +
-          'To run an open hub on purpose, inside a home network only, set HUB_OPEN=1.'
-        : null,
+      secret && secret.length < MIN_SECRET_LENGTH
+        ? `HUB_SECRET is shorter than ${MIN_SECRET_LENGTH} characters. ` +
+          'Make one with: openssl rand -base64 32'
+        : open && !allowed
+          ? 'No door: set HUB_SECRET (or HUB_ACCESS_PUBLIC_KEY). ' +
+            'To run an open hub on purpose, inside a home network only, set HUB_OPEN=1.'
+          : null,
   }
 }

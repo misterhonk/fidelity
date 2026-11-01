@@ -10,6 +10,7 @@ services:
       # Ohne Secret läuft der Hub offen. Für ein Heimnetz in Ordnung,
       # für alles andere hier eintragen.
       # Empty and no HUB_OPEN=1: the hub refuses to start.
+      # At least 32 characters: openssl rand -base64 32
       HUB_SECRET: ${HUB_SECRET:-}
       HUB_OPEN: ${HUB_OPEN:-}
     ports:

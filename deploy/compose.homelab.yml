@@ -45,9 +45,14 @@ services:
       HUB_PORT: 8787
       HUB_DB: /data/hub.sqlite
       # Empty means the hub does not start. HUB_OPEN=1 runs it open — fine in
-      # a home network, wrong anywhere else.
+      # a home network, wrong anywhere else. A secret is at least 32
+      # characters: openssl rand -base64 32
       HUB_SECRET: ${HUB_SECRET:-}
       HUB_OPEN: ${HUB_OPEN:-}
+      # Behind a proxy: the header it writes the client's address into —
+      # x-forwarded-for (Traefik) or cf-connecting-ip (Cloudflare tunnel).
+      # Empty: the socket's address, which behind a proxy is the proxy's.
+      HUB_IP_HEADER: ${HUB_IP_HEADER:-}
       # Der Wächter sieht stündlich nach, ob ein beobachteter Laden Neues hat,
       # und schickt eine Benachrichtigung. Er ist das Einzige hier, das von
       # sich aus nach draußen geht — deshalb aus, bis du ihn einschaltest.

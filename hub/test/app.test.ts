@@ -1,7 +1,16 @@
 import assert from 'node:assert/strict'
+import { mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { DatabaseSync } from 'node:sqlite'
 import { test, describe } from 'node:test'
 
-import { createKeyLimiter, generateAccessKeyPair, issueKey } from '../src/access.ts'
+import {
+  createFailureLimiter,
+  createKeyLimiter,
+  generateAccessKeyPair,
+  issueKey,
+} from '../src/access.ts'
 import { createHubApp, MAX_CHUNK_BYTES } from '../src/app.ts'
 import { CATALOGUE_TTL_MS, openHubDb, sweepStale } from '../src/db.ts'
 
@@ -164,6 +173,89 @@ describe('shops', () => {
   })
 })
 
+/**
+ * Guessing the secret (#206).
+ *
+ * Every wrong word from one address makes the next wait longer; while it
+ * waits, that address is not even asked for a word — or the wait would be
+ * one more guess. Other addresses and the right word from elsewhere carry on.
+ */
+describe('failed knocks', () => {
+  const SECRET = 's'.repeat(32)
+  function guarded() {
+    let clock = 1_000_000
+    const failures = createFailureLimiter({
+      free: 3,
+      baseMs: 1000,
+      maxMs: 8000,
+      now: () => clock,
+    })
+    const app = createHubApp({
+      db: openHubDb(':memory:'),
+      secret: SECRET,
+      failures,
+      ipHeader: 'x-forwarded-for',
+      now: () => clock,
+    })
+    const knock = (ip: string, word: string) =>
+      app.request('/v1/watch/key', { headers: { 'x-hub-secret': word, 'x-forwarded-for': ip } })
+    const bare = (ip: string) =>
+      app.request('/v1/watch/key', { headers: { 'x-forwarded-for': ip } })
+    return { knock, bare, wait: (ms: number) => (clock += ms) }
+  }
+
+  test('a few wrong words are 401 and nothing more', async () => {
+    const { knock } = guarded()
+    for (let i = 0; i < 3; i++) assert.equal((await knock('1.1.1.1', 'nope')).status, 401)
+  })
+
+  test('past them, the address waits — the right word included', async () => {
+    const { knock } = guarded()
+    for (let i = 0; i < 3; i++) await knock('1.1.1.1', 'nope')
+    const held = await knock('1.1.1.1', SECRET)
+    assert.equal(held.status, 429)
+    assert.equal(held.headers.get('retry-after'), '1')
+    // Somebody else is not held up by it.
+    assert.equal((await knock('2.2.2.2', SECRET)).status, 200)
+  })
+
+  test('each further miss doubles the wait, up to the ceiling', async () => {
+    const { knock, wait } = guarded()
+    for (let i = 0; i < 3; i++) await knock('1.1.1.1', 'nope')
+    wait(1000)
+    assert.equal((await knock('1.1.1.1', 'nope')).status, 401)
+    assert.equal((await knock('1.1.1.1', SECRET)).headers.get('retry-after'), '2')
+    wait(2000)
+    await knock('1.1.1.1', 'nope')
+    wait(4000)
+    await knock('1.1.1.1', 'nope')
+    wait(8000)
+    await knock('1.1.1.1', 'nope')
+    assert.equal((await knock('1.1.1.1', SECRET)).headers.get('retry-after'), '8')
+  })
+
+  test('no word at all is not a guess', async () => {
+    const { knock, bare } = guarded()
+    for (let i = 0; i < 5; i++) assert.equal((await bare('1.1.1.1')).status, 401)
+    assert.equal((await knock('1.1.1.1', SECRET)).status, 200)
+  })
+
+  test('the right word clears the slate', async () => {
+    const { knock, wait } = guarded()
+    for (let i = 0; i < 3; i++) await knock('1.1.1.1', 'nope')
+    wait(1000)
+    assert.equal((await knock('1.1.1.1', SECRET)).status, 200)
+    for (let i = 0; i < 3; i++) assert.equal((await knock('1.1.1.1', 'nope')).status, 401)
+  })
+
+  test('the address is the last hop of the configured header', async () => {
+    const { knock } = guarded()
+    // A client may write anything in front; the proxy appends what it saw.
+    for (let i = 0; i < 3; i++) await knock(`${i}.0.0.0, 1.1.1.1`, 'nope')
+    assert.equal((await knock('1.1.1.1', SECRET)).status, 429)
+  })
+})
+
 describe('health', () => {
   test('reports counts and whether it is secured', async () => {
     const { app } = hub('geheim')
@@ -173,7 +265,6 @@ describe('health', () => {
       doors: ['secret'],
       horizon: 0,
       shipping: 0,
-      covers: 0,
       families: 0,
       shops: 0,
       watching: 0,
@@ -567,15 +658,28 @@ describe('what the hub refuses to be', () => {
 })
 
 /**
- * The cover cache.
- *
- * The marketplace hands back listings without images, so every cover a client
- * shows costs it one request to Discogs — the same request, for the same
- * answer, on every device. That is what a shared cache is for.
- *
- * The tests that matter here are the ones about what is *refused*: these
- * strings become `<img src>` on every device sharing this hub.
+ * No cover pool (#206). Release images are Restricted Data under the Discogs
+ * API terms, and a hub handing them to every member is redistributing them.
+ * The route is gone and so is the table, on a hub that had one too.
  */
+describe('covers', () => {
+  test('there is no cover route', async () => {
+    const { app } = hub()
+    assert.equal((await app.request('/v1/covers?ids=1')).status, 404)
+    assert.equal((await put(app, '/v1/covers', { covers: [] })).status, 404)
+  })
+
+  test('an older hub’s cover table is dropped on start', () => {
+    const path = join(mkdtempSync(join(tmpdir(), 'hub-')), 'hub.sqlite')
+    const old = new DatabaseSync(path)
+    old.exec('CREATE TABLE covers (release_id INTEGER PRIMARY KEY, thumb_url TEXT)')
+    old.close()
+    const db = openHubDb(path)
+    const tables = db.prepare("SELECT name FROM sqlite_master WHERE name = 'covers'").all()
+    assert.deepEqual(tables, [])
+  })
+})
+
 describe('pressing families', () => {
   const family = (over = {}) => ({
     masterId: 5542,
@@ -618,72 +722,6 @@ describe('pressing families', () => {
     const older = await put(app, '/v1/family/5542', family({ fetchedAt: 1000, total: 160 }))
     assert.deepEqual(await older.json(), { stored: false, reason: 'older than cached' })
     assert.equal((await (await app.request('/v1/family/5542')).json()).total, 161)
-  })
-})
-
-describe('covers', () => {
-  const cover = (releaseId: number, thumbUrl: string, coverUrl = thumbUrl) => ({
-    releaseId,
-    thumbUrl,
-    coverUrl,
-  })
-  const REAL = 'https://i.discogs.com/abc/rs:fit/x.jpeg'
-
-  test('gives back what was contributed, in one request', async () => {
-    const { app } = hub()
-    await put(app, '/v1/covers', { covers: [cover(1, REAL), cover(2, REAL)] })
-
-    const body = await (await app.request('/v1/covers?ids=1,2,3')).json()
-    assert.deepEqual(Object.keys(body.covers).sort(), ['1', '2'])
-    assert.equal(body.covers['1'].thumbUrl, REAL)
-  })
-
-  test('stores "there is no picture" as an empty pair', async () => {
-    // Worth sharing: it saves the next person the same wasted request.
-    const { app } = hub()
-    await put(app, '/v1/covers', { covers: [cover(7, '', '')] })
-
-    const body = await (await app.request('/v1/covers?ids=7')).json()
-    assert.deepEqual(body.covers['7'], { thumbUrl: '', coverUrl: '' })
-  })
-
-  test('refuses any host that is not Discogs', async () => {
-    const { app } = hub()
-    const res = await put(app, '/v1/covers', {
-      covers: [
-        cover(10, 'https://evil.test/pixel.gif'),
-        // Passes a naive `includes('i.discogs.com')` and is not Discogs.
-        cover(11, 'https://i.discogs.com.evil.test/x.jpeg'),
-        cover(12, 'https://evil.test/?a=https://i.discogs.com'),
-        cover(13, 'http://i.discogs.com/x.jpeg'),
-        cover(14, 'javascript:alert(1)'),
-      ],
-    })
-
-    assert.deepEqual(await res.json(), { stored: 0, rejected: 5 })
-    const body = await (await app.request('/v1/covers?ids=10,11,12,13,14')).json()
-    assert.deepEqual(body.covers, {})
-  })
-
-  test('keeps the good ones out of a mixed contribution', async () => {
-    const { app } = hub()
-    await put(app, '/v1/covers', {
-      covers: [cover(20, REAL), cover(21, 'https://evil.test/x.gif')],
-    })
-
-    const body = await (await app.request('/v1/covers?ids=20,21')).json()
-    assert.deepEqual(Object.keys(body.covers), ['20'])
-  })
-
-  test('ignores ids that are not ids', async () => {
-    const { app } = hub()
-    const body = await (await app.request('/v1/covers?ids=a,-1,0,,%20')).json()
-    assert.deepEqual(body.covers, {})
-  })
-
-  test('needs the secret like everything else', async () => {
-    const { app } = hub('geheim')
-    assert.equal((await app.request('/v1/covers?ids=1')).status, 401)
   })
 })
 
@@ -778,7 +816,7 @@ describe('a shared find list', () => {
   /** The open reading door applies to this path and not to the rest. */
   test('does not open any other door with it', async () => {
     const { app } = hub('geheim')
-    for (const path of ['/v1/covers', '/v1/vault/' + 'a'.repeat(32), '/v1/watch/key']) {
+    for (const path of ['/v1/shops', '/v1/vault/' + 'a'.repeat(32), '/v1/watch/key']) {
       assert.equal((await app.request(path)).status, 401, path)
     }
   })

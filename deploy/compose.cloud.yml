@@ -34,7 +34,11 @@ services:
       # One door or the other (docs/17 §3.2): a secret for a private box,
       # a public key for one with members. Both may be set. Neither, and the
       # hub refuses to start: on 443 an open hub is everybody's.
+      # At least 32 characters: openssl rand -base64 32
       HUB_SECRET: ${HUB_SECRET:-}
+      # Caddy writes the client's address here; without it every wrong guess
+      # would count against Caddy's address, and so against everybody (#206).
+      HUB_IP_HEADER: ${HUB_IP_HEADER:-x-forwarded-for}
       HUB_ACCESS_PUBLIC_KEY: ${HUB_ACCESS_PUBLIC_KEY:-}
       HUB_ACCESS_URL: ${HUB_ACCESS_URL:-}
       HUB_ACCESS_REVOKED: ${HUB_ACCESS_REVOKED:-}

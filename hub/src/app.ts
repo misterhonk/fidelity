@@ -4,9 +4,10 @@ import { Hono, type MiddlewareHandler } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 import { cors } from 'hono/cors'
 
-import { type createKeyLimiter, verifyKey } from './access.ts'
+import { type createFailureLimiter, type createKeyLimiter, verifyKey } from './access.ts'
 import { CATALOGUE_TTL_MS } from './db.ts'
 import { vapidKeys } from './watch.ts'
+import type { IncomingMessage } from 'node:http'
 import type { DatabaseSync } from 'node:sqlite'
 import { z } from 'zod'
 
@@ -131,6 +132,14 @@ export interface HubOptions {
    * with the secret could flood the pools in a minute (2026-09-16).
    */
   limiter?: ReturnType<typeof createKeyLimiter> | null
+  /** Wrong words per address, with a growing wait (#206); absent means none, for tests. */
+  failures?: ReturnType<typeof createFailureLimiter> | null
+  /**
+   * The header a proxy in front writes the client's address into
+   * (`HUB_IP_HEADER`). Absent: the socket's own address — behind a proxy
+   * that is the proxy, and every client would share one wait.
+   */
+  ipHeader?: string | null
   now?: () => number
 }
 
@@ -150,8 +159,6 @@ export const MAX_SHARES_PER_OWNER = 50
 export const MAX_WATCHERS_PER_OWNER = 5
 /** Below the 200 `GET /v1/shops` hands out, so one key cannot evict every other shop. */
 export const MAX_SHOPS_PER_OWNER = 50
-/** How long a cover stays its contributor's before another member may replace it. */
-export const COVER_HOLD_MS = 30 * 24 * 60 * 60 * 1000
 /** Only rows touched this recently count against a ceiling; older ones are orphans the client cannot reach. */
 export const CEILING_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
 
@@ -162,6 +169,8 @@ export function createHubApp({
   secret,
   access = null,
   limiter = null,
+  failures = null,
+  ipHeader = null,
   now = Date.now,
 }: HubOptions) {
   const app = new Hono<{ Variables: Doors }>()
@@ -271,7 +280,19 @@ export function createHubApp({
     if (c.req.method === 'GET' && OPEN_READS.test(c.req.path)) return next()
     if (!secret && !access) return next()
 
+    // The last hop: what the nearest proxy saw. Anything before it the client wrote.
+    const ip =
+      (ipHeader && c.req.header(ipHeader)?.split(',').at(-1)?.trim()) ||
+      (c.env as { incoming?: IncomingMessage } | undefined)?.incoming?.socket.remoteAddress ||
+      ''
+    const waiting = failures?.waiting(ip) ?? 0
+    if (waiting > 0) {
+      c.header('retry-after', String(waiting))
+      return c.json({ error: 'too many wrong attempts' }, 429)
+    }
+
     if (secret && sameSecret(c.req.header('x-hub-secret'), secret)) {
+      failures?.pass(ip)
       const taken = limiter?.take('secret') ?? { ok: true as const }
       if (!taken.ok) {
         c.header('retry-after', String(taken.retryAfterSeconds))
@@ -288,7 +309,11 @@ export function createHubApp({
         now,
         revoked: access.revoked ? await access.revoked() : undefined,
       })
-      if (!verdict.ok) return c.json({ error: `access key ${verdict.reason}` }, 401)
+      if (!verdict.ok) {
+        failures?.miss(ip)
+        return c.json({ error: `access key ${verdict.reason}` }, 401)
+      }
+      failures?.pass(ip)
       const taken = access.limiter?.take(verdict.claims.kid) ?? { ok: true as const }
       if (!taken.ok) {
         c.header('retry-after', String(taken.retryAfterSeconds))
@@ -299,6 +324,8 @@ export function createHubApp({
       return next()
     }
 
+    // A request with no word is a device not set up yet, not a guess.
+    if (c.req.header('x-hub-secret') !== undefined || token) failures?.miss(ip)
     return c.json(
       { error: secret ? 'wrong or missing x-hub-secret' : 'missing or wrong x-fidelity-key' },
       401,
@@ -314,7 +341,6 @@ export function createHubApp({
       // Counts, not contents. Enough to see the cache is doing something.
       horizon: (db.prepare('SELECT COUNT(*) AS n FROM horizon').get() as { n: number }).n,
       shipping: (db.prepare('SELECT COUNT(*) AS n FROM shipping').get() as { n: number }).n,
-      covers: (db.prepare('SELECT COUNT(*) AS n FROM covers').get() as { n: number }).n,
       families: (db.prepare('SELECT COUNT(*) AS n FROM families').get() as { n: number }).n,
       shops: (db.prepare('SELECT COUNT(*) AS n FROM shops').get() as { n: number }).n,
       watching: (
@@ -476,83 +502,6 @@ export function createHubApp({
     db.prepare('DELETE FROM watchers WHERE endpoint = ?').run(parsed.data.endpoint)
     db.prepare('DELETE FROM watches WHERE endpoint = ?').run(parsed.data.endpoint)
     return c.json({ removed: true })
-  })
-
-  // --- Covers ---------------------------------------------------------------
-
-  /*
-   * Batched, not one at a time.
-   *
-   * A screen asks for about a dozen covers at once, and a dozen round trips to
-   * a Raspberry Pi — each with its own two-second ceiling — would cost more
-   * than the requests they are meant to save.
-   */
-  app.get('/v1/covers', (c) => {
-    const ids = parseIds(c.req.query('ids') ?? '')
-    if (ids.length === 0) return c.json({ covers: {} })
-
-    const rows = db
-      .prepare(
-        `SELECT release_id, thumb_url, cover_url FROM covers
-         WHERE release_id IN (${ids.map(() => '?').join(',')})`,
-      )
-      .all(...ids) as { release_id: number; thumb_url: string; cover_url: string }[]
-
-    const covers: Record<number, { thumbUrl: string; coverUrl: string }> = {}
-    for (const row of rows) {
-      covers[row.release_id] = { thumbUrl: row.thumb_url, coverUrl: row.cover_url }
-    }
-    // Misses are simply absent. The client fetches those itself and may offer
-    // the answers back.
-    return c.json({ covers })
-  })
-
-  app.put('/v1/covers', capped(MAX_COVERS_BYTES), async (c) => {
-    const raw = await c.req.text()
-    if (raw.length > MAX_COVERS_BYTES) return c.json({ error: 'too large' }, 413)
-
-    const parsed = coversSchema.safeParse(safeJson(raw))
-    if (!parsed.success) return c.json({ error: 'not a cover list' }, 400)
-
-    const statement = db.prepare(
-      `INSERT INTO covers (release_id, thumb_url, cover_url, updated_at, owner)
-       VALUES (?, ?, ?, ?, ?)
-       ON CONFLICT(release_id) DO UPDATE SET
-         thumb_url = excluded.thumb_url,
-         cover_url = excluded.cover_url,
-         ${HELD_SINCE},
-         owner = excluded.owner`,
-    )
-    const holder = db.prepare('SELECT owner, updated_at FROM covers WHERE release_id = ?')
-
-    let stored = 0
-    let rejected = 0
-    for (const cover of parsed.data.covers) {
-      /*
-       * The check that matters, and it is not a formality.
-       *
-       * These addresses end up in an `<img src>` on every device that shares
-       * this hub. A contributor who could put an arbitrary URL in here could
-       * make every one of them fetch anything — a tracking pixel at minimum.
-       * So only Discogs' own image host is accepted, and an empty pair, which
-       * is how "there is no picture" is recorded.
-       *
-       * The client checks again on the way in. Neither end trusts the other,
-       * which is the only arrangement that survives one of them being wrong.
-       */
-      if (!isDiscogsImage(cover.thumbUrl) || !isDiscogsImage(cover.coverUrl)) {
-        rejected += 1
-        continue
-      }
-      // Another member's recent answer stands; neither stored nor refused.
-      const row = holder.get(cover.releaseId) as
-        { owner: string; updated_at: number } | undefined
-      if (heldByOther(row, c.get('owner'), COVER_HOLD_MS)) continue
-      statement.run(cover.releaseId, cover.thumbUrl, cover.coverUrl, now(), c.get('owner'))
-      stored += 1
-    }
-
-    return c.json({ stored, rejected })
   })
 
   // --- Pressing families (M20 #7) -----------------------------------------
@@ -792,7 +741,7 @@ export function createHubApp({
       shop.displayName,
       shop.shipsFrom,
       shop.numForSale,
-      // A sign is a Discogs picture or nothing — the same rule the covers have.
+      // A sign is a Discogs picture or nothing.
       shop.avatarUrl && isDiscogsImage(shop.avatarUrl) ? shop.avatarUrl : '',
       JSON.stringify(shop.fingerprint),
       shop.seenAt,
@@ -1079,12 +1028,6 @@ function safeJson(raw: string): unknown {
   }
 }
 
-/** A dozen ids is the normal ask; the cap is against a runaway query. */
-const MAX_COVER_IDS = 200
-
-/** Enough for two hundred pairs of URLs and nothing like enough for abuse. */
-export const MAX_COVERS_BYTES = 256 * 1024
-
 /**
  * A pressing family: a hundred siblings of a few short strings each. Sixty-four
  * kilobytes is room for that four times over; past it, it is not a family.
@@ -1110,25 +1053,12 @@ const familySchema = z.object({
     .max(200),
 })
 
-const coversSchema = z.object({
-  covers: z
-    .array(
-      z.object({
-        releaseId: z.number().int().positive(),
-        thumbUrl: z.string(),
-        coverUrl: z.string(),
-      }),
-    )
-    .max(MAX_COVER_IDS),
-})
-
 /**
  * Discogs' own image host only — or nothing at all.
  *
- * Empty is a real answer: it records that Discogs holds no picture for that
- * release, which is worth sharing and saves the next person a request. Anything
- * else is refused, because these strings become `<img src>` on every device
- * that shares this hub.
+ * A shop's sign is the one address left here (the cover pool went in #206).
+ * Anything else is refused, because these strings become `<img src>` on every
+ * device that shares this hub.
  *
  * Parsed rather than pattern-matched: `https://i.discogs.com.evil.test/x` and
  * `https://evil.test/?a=https://i.discogs.com` both pass a naive `includes`,
@@ -1142,17 +1072,6 @@ function isDiscogsImage(url: string): boolean {
   } catch {
     return false
   }
-}
-
-/** Ids out of `?ids=1,2,3`. Anything that is not a positive integer is dropped. */
-function parseIds(raw: string): number[] {
-  const seen = new Set<number>()
-  for (const part of raw.split(',')) {
-    const id = Number(part.trim())
-    if (Number.isSafeInteger(id) && id > 0) seen.add(id)
-    if (seen.size >= MAX_COVER_IDS) break
-  }
-  return [...seen]
 }
 
 /**
