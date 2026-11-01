@@ -47,7 +47,8 @@ const searchSummary = computed(() => {
 
   const search = st.value.search
   const parts: string[] = []
-  if (prefs.maxPrice !== null) parts.push(search.upTo(money(prefs.maxPrice, 'EUR') ?? ''))
+  if (prefs.maxPrice !== null)
+    parts.push(search.upTo(money(prefs.maxPrice, prefs.currency) ?? ''))
   if (prefs.excludeReissues) parts.push(search.originalsOnly)
   if (prefs.formatsAllow.length > 0) parts.push(prefs.formatsAllow.join(', '))
   if (prefs.shipsFromBlock.length > 0) {
