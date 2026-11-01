@@ -10,7 +10,7 @@ import type { BasketView } from '#shared/types'
  */
 const view = shallowRef<BasketView>({ baskets: [], listingIds: [] })
 const ids = shallowRef(new Set<number>())
-/** The last add or remove that did not survive the trip to the worker. */
+/** The last add, remove or undo that did not survive the trip to the worker. */
 const failure = shallowRef<unknown>(null)
 /** The last line taken out, for the undo line (#221). Lives here, not in the card: the card is gone with its last line. */
 const removed = shallowRef<{ listingId: number; title: string } | null>(null)
@@ -73,15 +73,26 @@ export function useBasket() {
   }
 
   async function remove(listingId: number, title: string) {
-    apply(await call('basket.remove', { listingId }))
-    removed.value = { listingId, title }
+    failure.value = null
+    try {
+      apply(await call('basket.remove', { listingId }))
+      removed.value = { listingId, title }
+    } catch (cause) {
+      failure.value = cause
+    }
   }
 
   async function undoRemove() {
     const last = removed.value
     if (!last) return
-    removed.value = null
-    apply(await call('basket.restore', { listingId: last.listingId }))
+    failure.value = null
+    try {
+      apply(await call('basket.restore', { listingId: last.listingId }))
+      // Only now: a restore that failed keeps its undo line for another try.
+      removed.value = null
+    } catch (cause) {
+      failure.value = cause
+    }
   }
 
   /** The page is left: the undo line goes with it. */
