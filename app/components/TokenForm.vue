@@ -214,12 +214,8 @@ async function submit() {
       </p>
     </div>
 
-    <button
-      type="submit"
-      :disabled="busy || token.length === 0"
-      class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
-    >
+    <FidButton type="submit" :disabled="busy || token.length === 0" class="self-start">
       {{ busy ? m.token.checking : renew ? m.token.renew : m.token.signIn }}
-    </button>
+    </FidButton>
   </form>
 </template>

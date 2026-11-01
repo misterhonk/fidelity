@@ -1,6 +1,6 @@
 import { showableUntil } from '~~/db/expire'
 import { openFidelityDb } from '~~/db/open'
-import type { BasketLine, BasketSummary, Dealer, Match } from '#shared/types'
+import type { BasketItem, BasketLine, BasketSummary, Dealer, Match } from '#shared/types'
 
 import { importCharges } from './customs'
 import { namedPostage } from './postage'
@@ -85,9 +85,24 @@ export async function addToBasket(
   })
 }
 
+// shortcut: the undo stash lives in this worker's memory, so a reload forgets
+// it — fine for an undo line that is gone with the screen anyway.
+const removed = new Map<number, BasketItem>()
+
 export async function removeFromBasket(listingId: number): Promise<void> {
   const db = await openFidelityDb()
+  const item = await db.get('basket', listingId)
+  if (item) removed.set(listingId, item)
   await db.delete('basket', listingId)
+}
+
+/** The undo line after "Remove" (#221): the line comes back exactly as it was. */
+export async function restoreToBasket(listingId: number): Promise<void> {
+  const item = removed.get(listingId)
+  if (!item) return
+  removed.delete(listingId)
+  const db = await openFidelityDb()
+  await db.put('basket', item)
 }
 
 /**

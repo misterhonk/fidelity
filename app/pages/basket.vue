@@ -5,7 +5,7 @@ const b = useBasketMessages()
 
 useSeoMeta({ title: () => b.value.title, description: () => b.value.description })
 
-const { view, refresh, clear, failure } = useBasket()
+const { view, refresh, clear, failure, removed, undoRemove } = useBasket()
 
 /* Loading and the last toggle can each fail; whichever did is what is shown. */
 const error = ref<unknown>(null)
@@ -106,5 +106,13 @@ const records = computed(() =>
 
       <BasketCard v-for="basket in baskets" :key="basket.dealer" :summary="basket" />
     </template>
+
+    <!-- The way back after "Remove", pinned where the eye is — as on the shelf. -->
+    <p v-if="removed" role="status" class="fid-toast">
+      {{ b.line.removed(removed.title) }}
+      <FidButton variant="tertiary" @click="undoRemove()">
+        {{ b.line.undo }}
+      </FidButton>
+    </p>
   </AppPage>
 </template>

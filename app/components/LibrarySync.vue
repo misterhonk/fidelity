@@ -111,14 +111,9 @@ const formatDate = (at: number | null) => (at === null ? m.value.common.never : 
     </p>
 
     <div class="flex flex-wrap items-center gap-3">
-      <button
-        type="button"
-        :disabled="running"
-        class="fid-fill rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
-        @click="sync"
-      >
+      <FidButton :disabled="running" @click="sync">
         {{ summary?.collectionSyncedAt ? st.library.fetch.again : st.library.fetch.start }}
-      </button>
+      </FidButton>
     </div>
   </section>
 </template>

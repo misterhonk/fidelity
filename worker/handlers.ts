@@ -899,6 +899,7 @@ export const handlers: HandlerMap = {
 
   'basket.add': deferred(basketGroup, 'basket.add'),
   'basket.remove': deferred(basketGroup, 'basket.remove'),
+  'basket.restore': deferred(basketGroup, 'basket.restore'),
   'basket.handedOver': deferred(basketGroup, 'basket.handedOver'),
   'basket.clear': deferred(basketGroup, 'basket.clear'),
   'basket.get': deferred(basketGroup, 'basket.get'),

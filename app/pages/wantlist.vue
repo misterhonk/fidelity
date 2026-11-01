@@ -126,11 +126,15 @@ function sortBy(key: 'waiting' | 'want') {
 }
 
 async function drop(releaseId: number) {
-  if (!(await call('wantlist.remove', { releaseId }))) return
+  // Through the selection's path, because that one hands the row back for the
+  // undo line — a destructive button never comes without one (#221).
+  const records = await call('wantlist.removeMany', { releaseIds: [releaseId] })
+  if (records.length === 0) return
   // Re-read rather than splice: the overview carries counts that a removed
   // row changes, and a list whose header disagrees with its body is worse
   // than one that takes a moment.
   overview.value = await call('collection.wantlist', undefined)
+  last.value = { line: c.value.wantlist.select.dropped(count(records.length)), records }
 }
 
 /**
@@ -620,28 +624,10 @@ function waiting(addedAt: string): string | null {
         >
           {{ c.wantlist.select.all }}
         </button>
-        <button
-          type="button"
-          :disabled="chosenWants === 0"
-          class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-sm text-fid-text disabled:opacity-50"
-          @click="dropSelected"
-        >
+        <FidButton :disabled="chosenWants === 0" variant="destructive" @click="dropSelected">
           {{ c.wantlist.select.drop(count(chosenWants)) }}
-        </button>
+        </FidButton>
       </div>
-
-      <!-- The way back, pinned where the eye is — as on the shelf. -->
-      <p v-if="last" role="status" class="fid-toast">
-        {{ last.line }}
-        <button
-          v-if="last.records"
-          type="button"
-          class="fid-action min-h-11 text-fid-sm text-fid-accent underline underline-offset-4"
-          @click="undo"
-        >
-          {{ c.wantlist.select.undo }}
-        </button>
-      </p>
 
       <p v-if="records.length === 0" class="text-fid-sm text-fid-text-muted">
         {{ c.map.nothingByName }}
@@ -802,14 +788,13 @@ function waiting(addedAt: string): string | null {
                   {{ member.title
                   }}<template v-if="member.year > 0"> · {{ member.year }}</template>
                 </OutwardLink>
-                <button
-                  type="button"
-                  class="fid-plate fid-action min-h-11 text-fid-text-muted hover:text-fid-text"
+                <FidButton
+                  variant="destructive"
                   :aria-label="c.wantlist.drop(member.artist, member.title)"
                   @click="drop(member.releaseId)"
                 >
                   {{ c.wantlist.dropShort }}
-                </button>
+                </FidButton>
               </li>
             </ul>
           </template>
@@ -850,19 +835,19 @@ function waiting(addedAt: string): string | null {
           </button>
 
           <!--
-            Wanting something is allowed to stop — as a plate, not a button:
-            twenty of them down a page would shout. No confirmation: unlike
-            the collection, a want costs nothing to add back.
+            Wanting something is allowed to stop. No confirmation: unlike the
+            collection, a want costs nothing to add back — and the undo line
+            below is that way back, one tap away.
           -->
-          <button
+          <FidButton
             v-if="group.members.length === 1"
-            type="button"
-            class="fid-plate fid-action min-h-11 self-start text-fid-text-muted hover:text-fid-text"
+            variant="destructive"
+            class="self-start"
             :aria-label="c.wantlist.drop(group.lead.artist, group.lead.title)"
             @click="drop(group.lead.releaseId)"
           >
             {{ c.wantlist.dropShort }}
-          </button>
+          </FidButton>
         </li>
       </ul>
 
@@ -875,6 +860,22 @@ function waiting(addedAt: string): string | null {
         {{ c.showMore(count(Math.min(rest, STEP))) }}
       </button>
     </template>
+
+    <!--
+      The way back, pinned where the eye is — as on the shelf. Outside the list,
+      because taking the last want off empties it and the undo must outlive that.
+    -->
+    <p v-if="last" role="status" class="fid-toast">
+      {{ last.line }}
+      <button
+        v-if="last.records"
+        type="button"
+        class="fid-action min-h-11 text-fid-sm text-fid-accent underline underline-offset-4"
+        @click="undo"
+      >
+        {{ c.wantlist.select.undo }}
+      </button>
+    </p>
 
     <WantSheet
       v-if="openRecord"

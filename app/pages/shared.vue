@@ -188,12 +188,9 @@ const fresh = computed(() => snapshot.value?.expiresAt !== undefined && !passed.
 
       <footer class="flex flex-col gap-2 border-t border-fid-border pt-4">
         <p class="text-fid-sm text-fid-text-muted">{{ d.sharedPitch }}</p>
-        <NuxtLink
-          to="/welcome"
-          class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 text-fid-sm font-medium text-fid-on-accent"
-        >
+        <FidButton to="/welcome" class="self-start">
           {{ d.sharedWhatIsThis }}
-        </NuxtLink>
+        </FidButton>
       </footer>
     </template>
   </AppPage>

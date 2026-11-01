@@ -102,11 +102,8 @@ const step = computed(() => {
       above just named. Two different affordances for "go here" was a choice
       nobody needed to make.
     -->
-    <NuxtLink
-      :to="step.to"
-      class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 text-fid-sm font-medium text-fid-on-accent"
-    >
+    <FidButton :to="step.to" class="self-start">
       {{ step.cta }}
-    </NuxtLink>
+    </FidButton>
   </section>
 </template>

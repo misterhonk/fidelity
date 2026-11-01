@@ -100,14 +100,9 @@ async function save() {
     </div>
 
     <div class="flex flex-wrap gap-2">
-      <button
-        type="button"
-        :disabled="busy"
-        class="fid-fill rounded-fid-sm bg-fid-accent-fill px-4 py-2 text-fid-sm font-medium text-fid-on-accent disabled:opacity-50"
-        @click="save"
-      >
+      <FidButton :disabled="busy" @click="save">
         {{ st.cataloguePanel.save }}
-      </button>
+      </FidButton>
       <button
         type="button"
         :disabled="busy || !url.trim()"

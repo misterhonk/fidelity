@@ -1129,14 +1129,9 @@ const noHorizon = computed(
           )
         }}
       </p>
-      <button
-        type="button"
-        :disabled="busy"
-        class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
-        @click="resume"
-      >
+      <FidButton :disabled="busy" class="self-start" @click="resume">
         {{ d.resume }}
-      </button>
+      </FidButton>
     </section>
 
     <!--
@@ -1194,19 +1189,14 @@ const noHorizon = computed(
         <p class="max-w-prose text-fid-sm text-fid-text-muted">
           {{ d.incremental.known(Math.ceil(((preflight.reachable / 100) * 1.2) / 60)) }}
         </p>
-        <button
-          type="button"
+        <FidButton
           :disabled="busy"
-          class="self-start rounded-fid-sm px-4 py-2 font-medium disabled:opacity-50"
-          :class="
-            resumable
-              ? 'border border-fid-border text-fid-text'
-              : 'fid-fill bg-fid-accent-fill text-fid-on-accent'
-          "
+          class="self-start"
+          :variant="resumable ? 'secondary' : 'primary'"
           @click="start('neu')"
         >
           {{ d.incremental.fetch }}
-        </button>
+        </FidButton>
       </div>
 
       <!--
@@ -1214,22 +1204,17 @@ const noHorizon = computed(
 
         An interrupted dig outranks a new one — those pages are already paid
         for in requests — and so does "nur das Neue" on a shop that has one.
-        The full dig steps back to an outline in both cases, so the screen has
+        The full dig steps back to the secondary tier in both cases, so the screen has
         one accent and it points at the right button.
       -->
-      <button
-        type="button"
+      <FidButton
         :disabled="busy"
-        class="self-start rounded-fid-sm px-4 py-2 font-medium disabled:opacity-50"
-        :class="
-          resumable || preflight.since
-            ? 'border border-fid-border text-fid-text'
-            : 'fid-fill bg-fid-accent-fill text-fid-on-accent'
-        "
+        class="self-start"
+        :variant="resumable || preflight.since ? 'secondary' : 'primary'"
         @click="start('normal')"
       >
         {{ preflight.since ? d.startAgain : d.start }}
-      </button>
+      </FidButton>
 
       <!--
         The deep scan, offered only where it can do something.

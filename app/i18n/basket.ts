@@ -53,7 +53,9 @@ const en = {
     sold: 'sold',
     priceExpired: 'price expired',
     remove: (title: string) => `Remove ${title}`,
-    removeShort: 'out',
+    removeShort: 'Remove',
+    removed: (title: string) => `${title} is out of the basket.`,
+    undo: 'Undo',
   },
 
   records: 'Records',
@@ -376,7 +378,9 @@ const de: typeof en = {
     sold: 'verkauft',
     priceExpired: 'Preis abgelaufen',
     remove: (title) => `${title} entfernen`,
-    removeShort: 'raus',
+    removeShort: 'Raus',
+    removed: (title) => `${title} ist raus.`,
+    undo: 'Rückgängig',
   },
 
   records: 'Platten',

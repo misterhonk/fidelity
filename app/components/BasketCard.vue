@@ -31,7 +31,7 @@ const m = useMessages()
 const props = defineProps<{ summary: DeepReadonly<BasketSummary> }>()
 
 const { call } = useFidelityWorker()
-const { refresh } = useBasket()
+const { refresh, remove: removeLine } = useBasket()
 
 /*
  * The same basket, at the other shops (M29).
@@ -82,11 +82,6 @@ watch(
 )
 
 const error = ref<unknown>(null)
-
-async function remove(listingId: number) {
-  await call('basket.remove', { listingId })
-  await refresh()
-}
 
 /** Empties this shipment, line by line — the other shops are untouched. */
 async function clearThisOne() {
@@ -410,14 +405,14 @@ const uid = useId()
             <span v-else class="fid-num shrink-0 text-fid-sm text-fid-text">
               {{ money(line.price, line.currency) }}
             </span>
-            <button
-              type="button"
-              class="fid-action shrink-0 text-fid-xs text-fid-text-muted underline underline-offset-4"
+            <FidButton
+              variant="destructive"
+              class="shrink-0"
               :aria-label="b.line.remove(line.title || b.unknownRecord)"
-              @click="remove(line.listingId)"
+              @click="removeLine(line.listingId, line.title || b.unknownRecord)"
             >
               {{ b.line.removeShort }}
-            </button>
+            </FidButton>
           </div>
         </li>
       </ul>
