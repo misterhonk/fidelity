@@ -25,7 +25,7 @@ export interface PostageFields {
 /** Six hours, like the price beside it (CLAUDE.md rule 4). */
 export const POSTAGE_TTL_MS = 6 * 60 * 60 * 1000
 
-const cents = (value: number) => Math.round(value * 100) / 100
+const twoPlaces = (value: number) => Math.round(value * 100) / 100
 
 export function postageOf(listing: PostageFields, now: number): ListingPostage | null {
   const shown = listing.shipping_price
@@ -33,11 +33,11 @@ export function postageOf(listing: PostageFields, now: number): ListingPostage |
 
   const original = listing.original_shipping_price
   return {
-    value: cents(shown.value),
+    value: twoPlaces(shown.value),
     currency: shown.currency,
     original:
       original && typeof original.value === 'number' && original.curr_abbr
-        ? { value: cents(original.value), currency: original.curr_abbr }
+        ? { value: twoPlaces(original.value), currency: original.curr_abbr }
         : null,
     at: now,
   }

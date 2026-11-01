@@ -306,6 +306,7 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   let shippingNote: string | null = null
   /* The same row carries the shop's order floor and how it is paid (M34.2). */
   let minOrderTotal: number | null = null
+  let minOrderCurrency: string | null = null
   let payment: string | null = null
 
   /**
@@ -401,7 +402,11 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
 
         scanned += 1
         shippingNote ??= row.seller?.shipping?.trim() || null
-        minOrderTotal ??= row.seller?.min_order_total ?? null
+        if (minOrderTotal === null && row.seller?.min_order_total != null) {
+          minOrderTotal = row.seller.min_order_total
+          // An inventory asked without curr_abbr prices in the seller's currency, as the floor is.
+          minOrderCurrency = row.price?.currency ?? null
+        }
         payment ??= row.seller?.payment?.trim() || null
         shipsFrom ??= row.ships_from?.trim() || null
         if (
@@ -573,6 +578,7 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   await db.put('digs', dig)
   await saveDealer(ctx, dig, fingerprint, newestSeen, shippingNote, shipsFrom, {
     minOrderTotal,
+    minOrderCurrency,
     payment,
   })
   await noteChange(db, dig.dealer, now())
@@ -849,7 +855,11 @@ async function saveDealer(
   newestListedAt: string | null,
   shippingNote: string | null,
   shipsFrom: string | null,
-  seller: { minOrderTotal: number | null; payment: string | null } = {
+  seller: {
+    minOrderTotal: number | null
+    minOrderCurrency?: string | null
+    payment: string | null
+  } = {
     minOrderTotal: null,
     payment: null,
   },
@@ -859,6 +869,10 @@ async function saveDealer(
   /* Like the note: read for nothing on every visit, never blanked by a page without it. */
   const terms = {
     minOrderTotal: seller.minOrderTotal ?? existing?.minOrderTotal ?? 0,
+    minOrderCurrency:
+      seller.minOrderTotal !== null
+        ? (seller.minOrderCurrency ?? null)
+        : (existing?.minOrderCurrency ?? null),
     payment: seller.payment ?? existing?.payment,
   }
 

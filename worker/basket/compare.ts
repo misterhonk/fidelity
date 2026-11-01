@@ -1,11 +1,11 @@
 import { rankOf } from '#shared/format'
-import { shippingFor } from '#shared/shipping'
 import { openFidelityDb } from '~~/db/open'
 import { getPreferences } from '~~/db/meta'
-import type { BasketItem, Dealer, StockRow } from '#shared/types'
+import type { BasketItem, BasketLine, Dealer, StockRow } from '#shared/types'
 
-import { PRICE_TTL_MS } from './index'
+import { PRICE_TTL_MS, summarise } from './index'
 import { resolveShipping } from './profiles'
+import { cents } from './shipping'
 
 /**
  * The same basket, at the other shops.
@@ -126,12 +126,7 @@ export async function compareBasket(dealer: string, now = Date.now()): Promise<C
   // Same rule as the basket's total: one price past six hours and there is nothing honest to compare against.
   const expired = items.some((item) => now - (item.pricedAt ?? item.addedAt) > PRICE_TTL_MS)
 
-  const baseline = await priceAt(
-    here ?? null,
-    expired ? [] : items.map((item) => item.price),
-    items[0]?.currency ?? null,
-    country,
-  )
+  const baseline = await priceAt(here ?? null, expired ? [] : items, country)
 
   const empty: CompareResult = {
     dealer,
@@ -205,15 +200,7 @@ export async function compareBasket(dealer: string, now = Date.now()): Promise<C
   const offers: CompareOffer[] = []
   for (const [shop, lines] of byDealer) {
     const row = await db.get('dealers', shop)
-    const subtotal = lines.reduce((sum, line) => sum + line.price, 0)
-    const shipping = (
-      await priceAt(
-        row ?? null,
-        lines.map((l) => l.price),
-        lines[0]!.currency,
-        country,
-      )
-    ).shipping
+    const { subtotal, shipping, total } = await priceAt(row ?? null, lines, country)
 
     /*
      * The records this shop has not got, still where they are — with their own
@@ -227,15 +214,9 @@ export async function compareBasket(dealer: string, now = Date.now()): Promise<C
         ? null
         : {
             items: missing.length,
-            ...(await priceAt(
-              here ?? null,
-              missing.map((item) => item.price),
-              missing[0]?.currency ?? null,
-              country,
-            )),
+            ...(await priceAt(here ?? null, missing, country)),
           }
 
-    const total = shipping === null ? null : subtotal + shipping
     const combined =
       total === null
         ? null
@@ -243,7 +224,7 @@ export async function compareBasket(dealer: string, now = Date.now()): Promise<C
           ? total
           : rest.total === null
             ? null
-            : total + rest.total
+            : (cents(total) + cents(rest.total)) / 100
 
     offers.push({
       dealer: shop,
@@ -257,7 +238,10 @@ export async function compareBasket(dealer: string, now = Date.now()): Promise<C
       total,
       rest,
       combined,
-      delta: combined === null || baseline.total === null ? null : combined - baseline.total,
+      delta:
+        combined === null || baseline.total === null
+          ? null
+          : (cents(combined) - cents(baseline.total)) / 100,
       better: lines.filter((line) => line.grade === -1).length,
       worse: lines.filter((line) => line.grade === 1).length,
       seenAt: seenAt.get(shop) ?? now,
@@ -284,26 +268,47 @@ export async function compareBasket(dealer: string, now = Date.now()): Promise<C
   }
 }
 
-/** What a set of prices costs at one shop, postage included where it is known. */
+type Priced = { price: number; currency: string; format?: string | null }
+
+/**
+ * What a set of prices costs at one shop, postage included where it is known.
+ *
+ * The basket card's own arithmetic, not a second copy of it: the table for the
+ * unit, free postage over a threshold, one currency. The copy that stood here
+ * read LPs off a singles table and missed "free over £75", and called a shop
+ * that cost £2 more "saves £2" (found 2026-10-31).
+ */
 async function priceAt(
   dealer: Dealer | null,
-  prices: number[],
-  currency: string | null,
+  lines: Priced[],
   country: string,
 ): Promise<{ subtotal: number; shipping: number | null; total: number | null }> {
-  const subtotal = prices.reduce((sum, price) => sum + price, 0)
-  if (prices.length === 0 || !currency || !dealer) {
-    return { subtotal, shipping: null, total: null }
-  }
+  const subtotal = lines.reduce((sum, line) => sum + cents(line.price), 0) / 100
+  if (lines.length === 0 || !dealer) return { subtotal, shipping: null, total: null }
 
-  const resolved = await resolveShipping(dealer, country)
-  const tier = shippingFor(resolved.tiers, prices.length)
-  // Currencies are compared, never converted — the same rule the basket and
-  // S10 follow, and for the same reason.
-  const shipping = tier && (!tier.currency || tier.currency === currency) ? tier.price : null
-
-  return { subtotal, shipping, total: shipping === null ? null : subtotal + shipping }
+  const summary = summarise(
+    lines.map(asLine),
+    dealer,
+    await resolveShipping(dealer, country),
+    country,
+  )
+  return { subtotal, shipping: summary.shipping, total: summary.total }
 }
+
+const asLine = (line: Priced, index: number): BasketLine => ({
+  listingId: index,
+  dealer: '',
+  releaseId: 0,
+  title: '',
+  price: line.price,
+  currency: line.currency,
+  addedAt: 0,
+  note: null,
+  priceExpired: false,
+  priceUntil: Number.POSITIVE_INFINITY,
+  sold: false,
+  format: line.format ?? null,
+})
 
 /** -1 the other copy is better, 0 the same, 1 worse, null when one is ungraded. */
 function compareGrades(mine: string | null, theirs: string | null): -1 | 0 | 1 | null {

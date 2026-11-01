@@ -133,6 +133,18 @@ describe('the same basket at another shop', () => {
     expect(result.offers).toEqual([])
   })
 
+  /*
+   * The comparison had arithmetic of its own, and it missed "free over": the
+   * card said €100 and the baseline €110, so a shop at €105 read as a saving.
+   */
+  it('prices the basket the way its card does, free postage over a threshold included', async () => {
+    await fiveAtHome()
+    await shop('home', 10, { freeOver: { amount: 75, currency: 'EUR' } })
+
+    const result = await compareBasket('home', NOW)
+    expect(result.baseline).toMatchObject({ subtotal: 100, shipping: 0, total: 100 })
+  })
+
   it('finds a shop with all five, cheaper, and says by how much', async () => {
     await fiveAtHome()
     await shop('cheaper', 6)

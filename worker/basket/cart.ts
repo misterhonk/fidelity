@@ -3,6 +3,7 @@ import { openFidelityDb } from '~~/db/open'
 
 import type { CartBlock, Money } from './parse-cart'
 import { readOffShipping } from './profiles'
+import { cents } from './shipping'
 
 /**
  * What a pasted cart page teaches about each shop (M34.3).
@@ -29,8 +30,6 @@ export interface CartNote {
   freeOver: Money | null
   minOrderTotal: number | null
 }
-
-const cents = (value: number) => Math.round(value * 100)
 
 export async function noteCart(blocks: CartBlock[], now: number): Promise<CartNote[]> {
   const db = await openFidelityDb()
@@ -63,6 +62,11 @@ export async function noteCart(blocks: CartBlock[], now: number): Promise<CartNo
           ? { amount: block.freeOver.value, currency: block.freeOver.currency }
           : (existing.freeOver ?? null),
         minOrderTotal: minOrderTotal ?? existing.minOrderTotal,
+        // Read off your own cart, so in its currency.
+        minOrderCurrency:
+          minOrderTotal !== null
+            ? (block.subtotal?.currency ?? null)
+            : (existing.minOrderCurrency ?? null),
         updatedAt: now,
       })
     }

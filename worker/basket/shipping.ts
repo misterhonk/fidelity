@@ -1,6 +1,9 @@
 import { shippingFor, sortTiers } from '#shared/shipping'
 import type { ShippingAdvice, ShippingPoint, ShippingTier } from '#shared/types'
 
+/** Money is added up in whole cents (CLAUDE.md): 1.02 + 20.08 + 3.90 in floats is 24.999…. */
+export const cents = (amount: number) => Math.round(amount * 100)
+
 /**
  * Shipping, which Discogs will not tell us.
  *

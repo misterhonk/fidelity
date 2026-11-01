@@ -359,6 +359,36 @@ describe('what a basket costs', () => {
     ).toBeCloseTo(7.12, 10)
   })
 
+  /*
+   * The floor is in the seller's currency (docs/02), a refreshed basket in
+   * yours. £10 against €10.50 said nothing, and Discogs refused the order.
+   */
+  it("reads a floor in the seller's currency at Discogs' own rate", () => {
+    const postage = {
+      value: 11.8,
+      currency: 'EUR',
+      original: { value: 10, currency: 'GBP' },
+      at: 1,
+    }
+    const summary = summarise(
+      [line({ price: 10.5, postage })],
+      dealer({ minOrderTotal: 10, minOrderCurrency: 'GBP' }),
+      shipping(table),
+    )
+    // £10 at 1.18 is €11.80, so €1.30 short.
+    expect(summary.minOrderTotal).toBe(11.8)
+    expect(summary.missingToMinimum).toBeCloseTo(1.3, 10)
+  })
+
+  it('claims nothing about a floor it has no rate for', () => {
+    const summary = summarise(
+      [line({ price: 8 })],
+      dealer({ minOrderTotal: 10, minOrderCurrency: 'GBP' }),
+      shipping(table),
+    )
+    expect(summary.missingToMinimum).toBeNull()
+  })
+
   it('has no gap to report when there is none', () => {
     expect(
       summarise([line({ price: 30 })], dealer({ minOrderTotal: 25 }), shipping(table))
@@ -420,6 +450,20 @@ describe('planning a shipment', () => {
     // Two 60s at 12 € beat one 90 at 40 € once postage is in the total.
     expect(plan.chosen.map((item) => item.listingId).sort()).toEqual([2, 3])
     expect(plan.total).toBe(33)
+  })
+
+  it('adds up in cents, so a budget met to the cent is met', () => {
+    // 41.78 + 1.02 + 7.20 postage in floats is 50.00000000000001, over €50.
+    const plan = planBasket(
+      [
+        c({ listingId: 1, score: 90, price: 41.78 }),
+        c({ listingId: 2, score: 10, price: 1.02 }),
+      ],
+      [tier(1, null, 7.2)],
+      50,
+    )
+    expect(plan.chosen.map((item) => item.listingId).sort()).toEqual([1, 2])
+    expect(plan.total).toBe(50)
   })
 
   it('stays inside the budget, postage included', () => {

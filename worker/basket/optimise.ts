@@ -1,6 +1,6 @@
 import type { BasketCandidate, BasketPlan, Match, ShippingTier } from '#shared/types'
 
-import { shippingFor } from './shipping'
+import { cents, shippingFor } from './shipping'
 
 /**
  * Which records to add, and which set to buy at all.
@@ -33,12 +33,14 @@ export function toCandidate(match: Match): BasketCandidate | null {
  */
 export const MAX_SWAP_ROUNDS = 3
 
+/** In cents: 41.78 + 1.02 + 7.20 in floats is 50.000…01, over a €50 budget. */
 function cost(
   chosen: BasketCandidate[],
   tiers: ShippingTier[],
 ): { goods: number; shipping: number | null; total: number | null } {
-  const goods = chosen.reduce((sum, item) => sum + item.price, 0)
-  const shipping = chosen.length === 0 ? 0 : (shippingFor(tiers, chosen.length)?.price ?? null)
+  const goods = chosen.reduce((sum, item) => sum + cents(item.price), 0)
+  const tier = chosen.length === 0 ? 0 : (shippingFor(tiers, chosen.length)?.price ?? null)
+  const shipping = tier === null ? null : cents(tier)
   return { goods, shipping, total: shipping === null ? null : goods + shipping }
 }
 
@@ -95,7 +97,7 @@ export function planBasket(
     .map((order) => improve(order, tiers, budget))
     .map((plan) => ({
       ...plan,
-      belowMinimum: plan.chosen.length > 0 && plan.goods < minOrderTotal,
+      belowMinimum: plan.chosen.length > 0 && cents(plan.goods) < cents(minOrderTotal),
     }))
 
   return plans.reduce((best, plan) => {
@@ -107,7 +109,7 @@ export function planBasket(
 function improve(order: BasketCandidate[], tiers: ShippingTier[], budget: number): BasketPlan {
   const fits = (set: BasketCandidate[]) => {
     const { total } = cost(set, tiers)
-    return total !== null && total <= budget
+    return total !== null && total <= cents(budget)
   }
 
   const chosen: BasketCandidate[] = []
@@ -150,9 +152,9 @@ function improve(order: BasketCandidate[], tiers: ShippingTier[], budget: number
   return {
     chosen,
     score: scoreOf(chosen),
-    goods,
-    shipping,
-    total,
+    goods: goods / 100,
+    shipping: shipping === null ? null : shipping / 100,
+    total: total === null ? null : total / 100,
     improvements,
     belowMinimum: false,
   }

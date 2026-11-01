@@ -132,6 +132,17 @@ describe('the cheapest set of shops', () => {
     expect(best?.shops[0]?.belowMinimum).toBe(true)
   })
 
+  it('does not call a basket that meets the minimum to the cent below it', () => {
+    // 1.02 + 20.08 + 3.90 in floats is 24.999999999999996.
+    const shops = new Map([['a', shop('a', 4, 4, 25)]])
+    const { best } = optimise(
+      [offer(1, 'a', 1.02), offer(2, 'a', 20.08), offer(3, 'a', 3.9)],
+      shops,
+    )
+    expect(best?.shops[0]?.belowMinimum).toBe(false)
+    expect(best?.goods).toBe(25)
+  })
+
   it('finds nothing when no shop has a table', () => {
     expect(optimise([offer(1, 'z', 3)], new Map())).toEqual({ best: null, naive: null })
   })

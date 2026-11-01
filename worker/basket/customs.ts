@@ -1,6 +1,8 @@
 import { unitsOf } from '#shared/shipping'
 import type { ImportCharges } from '#shared/types'
 
+import { cents } from './shipping'
+
 /**
  * What a parcel from outside the EU costs on top of its price and postage.
  *
@@ -69,7 +71,6 @@ export function inEu(country: string | null | undefined): boolean {
 }
 
 /** Cents, so the sums do not drift (CLAUDE.md: never float for money). */
-const cents = (amount: number) => Math.round(amount * 100)
 
 /**
  * The charges for one parcel, or null where none apply or none can be told.

@@ -203,6 +203,11 @@ export async function addPastedListings(options: {
       ...(existing ?? blankDealer(dealer)),
       displayName: existing?.displayName || dealer,
       minOrderTotal: listing.seller.min_order_total ?? existing?.minOrderTotal ?? 0,
+      // The seller's currency, which only the postage names here: the price came converted.
+      minOrderCurrency:
+        listing.seller.min_order_total != null
+          ? (listing.original_shipping_price?.curr_abbr ?? null)
+          : (existing?.minOrderCurrency ?? null),
       payment: listing.seller.payment ?? existing?.payment,
       shippingNote: listing.seller.shipping ?? existing?.shippingNote ?? '',
       updatedAt: now,

@@ -1,6 +1,6 @@
 import { getPreferences } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
-import { shippingFor } from '#shared/shipping'
+import { shippingFor, tiersForUnit } from '#shared/shipping'
 import { passesOrigin, type OriginFilter } from '#shared/countries'
 import type {
   Dig,
@@ -11,6 +11,8 @@ import type {
   WantlistItem,
   WantPlan,
 } from '#shared/types'
+
+import { cents } from '../basket/shipping'
 
 /**
  * Your wants, across the shops you scanned (docs/06 M19 #9).
@@ -86,7 +88,9 @@ export function evaluate(
     if (!shop) return null
     const postage = shippingFor(shop.tiers, items.length)?.price
     if (postage === undefined) return null
-    const goods = items.reduce((sum, item) => sum + item.price, 0)
+    // In cents: 1.02 + 20.08 + 3.90 in floats is 24.999…, "below a €25 minimum".
+    const goodsCents = items.reduce((sum, item) => sum + cents(item.price), 0)
+    const goods = goodsCents / 100
     planned.push({
       dealer,
       displayName: shop.displayName,
@@ -112,15 +116,20 @@ export function evaluate(
       goods,
       postage,
       minOrderTotal: shop.minOrderTotal,
-      belowMinimum: goods < shop.minOrderTotal,
+      belowMinimum: goodsCents < cents(shop.minOrderTotal),
     })
   }
   planned.sort(
     (a, b) => b.items.length - a.items.length || a.displayName.localeCompare(b.displayName),
   )
-  const goods = planned.reduce((sum, shop) => sum + shop.goods, 0)
-  const postage = planned.reduce((sum, shop) => sum + shop.postage, 0)
-  return { shops: planned, goods, postage, total: goods + postage }
+  const goods = planned.reduce((sum, shop) => sum + cents(shop.goods), 0)
+  const postage = planned.reduce((sum, shop) => sum + cents(shop.postage), 0)
+  return {
+    shops: planned,
+    goods: goods / 100,
+    postage: postage / 100,
+    total: (goods + postage) / 100,
+  }
 }
 
 /**
@@ -324,7 +333,10 @@ export async function wantlistPlan(now: number, from: OriginFilter = 'any'): Pro
     if (!inCurrency.some((offer) => offer.dealer === dig.dealer)) continue
     const row = dealerRows.get(dig.dealer)
     const resolved = row ? await resolveShipping(row, shipsToCountry) : { tiers: [] }
-    const tiers = resolved.tiers.filter((tier) => tier.currency === currency)
+    // The records table: a shop's singles rate is not what an LP costs to post.
+    const tiers = tiersForUnit(resolved.tiers, 'record').filter(
+      (tier) => tier.currency === currency,
+    )
     const displayName = row?.displayName || dig.dealer
     if (tiers.length === 0) {
       unknownPostage.push(displayName)
@@ -335,7 +347,11 @@ export async function wantlistPlan(now: number, from: OriginFilter = 'any'): Pro
       displayName,
       digId: dig.id,
       tiers,
-      minOrderTotal: row?.minOrderTotal ?? 0,
+      // A floor in another currency is not compared against this plan's sums.
+      minOrderTotal:
+        !row?.minOrderCurrency || row.minOrderCurrency === currency
+          ? (row?.minOrderTotal ?? 0)
+          : 0,
     })
   }
 

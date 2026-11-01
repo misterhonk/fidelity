@@ -1149,7 +1149,8 @@ export const handlers: HandlerMap = {
 
   'basket.plan': async ({ dealer, budget }) => {
     const view = await basketView()
-    if (!view.baskets.some((basket) => basket.dealer === dealer)) return null
+    const summary = view.baskets.find((basket) => basket.dealer === dealer)
+    if (!summary) return null
 
     const { planBasket } = await import('./basket/optimise')
     const { resolveShipping } = await import('./basket/profiles')
@@ -1172,7 +1173,22 @@ export const handlers: HandlerMap = {
     // Everything this dealer has that you want, not only what is in the basket
     // — the plan's whole job is to say which set to buy.
     const { candidates } = await candidatesFor(dealer, Date.now())
-    return planBasket(candidates, shipping.tiers, budget, row?.minOrderTotal ?? 0)
+    /*
+     * In the currency the budget is typed in, and off the records table (found
+     * 2026-10-31): a dig's pounds summed with a table's euros came out labelled
+     * as euros, and LPs were priced at the singles rate. The minimum is the
+     * card's, already in that currency.
+     */
+    const { tiersForUnit } = await import('#shared/shipping')
+    const currency = summary.currency
+    return planBasket(
+      candidates.filter((item) => item.currency === currency),
+      tiersForUnit(shipping.tiers, 'record').filter(
+        (tier) => !tier.currency || tier.currency === currency,
+      ),
+      budget,
+      summary.minOrderTotal,
+    )
   },
 
   'basket.landed': async ({ dealer }) => {

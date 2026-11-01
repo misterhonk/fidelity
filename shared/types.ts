@@ -1944,6 +1944,12 @@ export interface Dealer {
   suspended?: boolean
   numForSale: number
   minOrderTotal: number
+  /**
+   * The currency of that floor. Discogs states it in the seller's, while a
+   * refreshed or pasted basket is in yours (docs/02). Absent on rows from
+   * before 2026-11-01, which are compared as they always were.
+   */
+  minOrderCurrency?: string | null
   /** How the shop takes money — `seller.payment`, "PayPal Commerce" mostly (M34.2). */
   payment?: string
   /** Free text from seller.shipping. */

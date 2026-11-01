@@ -5,7 +5,7 @@ import type { BasketLine, BasketSummary, Dealer, Match } from '#shared/types'
 import { importCharges } from './customs'
 import { namedPostage } from './postage'
 import { resolveShipping, type ShippingResolution } from './profiles'
-import { shippingAdvice, shippingCurve, shippingFor } from './shipping'
+import { cents, shippingAdvice, shippingCurve, shippingFor } from './shipping'
 import { tiersForUnit, unitsOf } from '#shared/shipping'
 
 import { fail } from '../fail'
@@ -295,7 +295,17 @@ export function summarise(
 
   const saysHere = live.map((line) => line.shipsHere).filter((flag) => flag != null)
   const shipsHere = saysHere.includes(false) ? false : saysHere.includes(true) ? true : null
-  const minOrderTotal = dealer?.minOrderTotal ?? 0
+  /*
+   * The floor in the basket's currency (found 2026-10-31). Discogs states it in
+   * the seller's; £10 against a basket of €10.50 said nothing, and Discogs
+   * refused the order. Converted at Discogs' own rate where a line carries it,
+   * and not claimed at all where none does.
+   */
+  const floorCurrency = dealer?.minOrderCurrency ?? currency
+  const floorRate =
+    floorCurrency === currency ? 1 : conversionRate(live, floorCurrency, currency)
+  const minOrderTotal =
+    floorRate === null ? 0 : Math.round((dealer?.minOrderTotal ?? 0) * floorRate * 100) / 100
   /*
    * How far under the dealer's floor this basket is. The threshold on its own
    * is a fact about the shop; the difference is the only part that is about
@@ -350,8 +360,6 @@ export function summarise(
     freeOver,
   }
 }
-
-const cents = (amount: number) => Math.round(amount * 100)
 
 /**
  * The parcel as a shop's table sees it: one unit when every line agrees,
