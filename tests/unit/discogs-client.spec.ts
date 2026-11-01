@@ -622,6 +622,24 @@ describe('the Discogs client', () => {
     }
   })
 
+  // Rule 6: a path that resolves off api.discogs.com never gets the token.
+  it.each(['//evil.example/x', 'https://evil.example/x', 'http://api.discogs.com/x'])(
+    'refuses %s before any header is set',
+    async (path) => {
+      const getToken = vi.fn(() => 'a-pat')
+      const fetchImpl = vi.fn()
+      const client = new DiscogsClient({
+        getToken,
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+        pacer: createPacer({ now: () => 0, sleep: async () => {} }),
+      })
+      await expect(client.get(path, identity)).rejects.toThrow(/api\.discogs\.com/)
+      await expect(client.write('POST', path, {})).rejects.toThrow(/api\.discogs\.com/)
+      expect(getToken).not.toHaveBeenCalled()
+      expect(fetchImpl).not.toHaveBeenCalled()
+    },
+  )
+
   it('rejects a response that does not match the schema', async () => {
     const { client } = makeClient([jsonResponse({ id: 'not-a-number', username: 'martin' })])
     await expect(client.get('/oauth/identity', identity)).rejects.toThrow()
