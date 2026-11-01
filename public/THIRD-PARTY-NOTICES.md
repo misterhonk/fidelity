@@ -5,7 +5,7 @@ repository, and `LICENSE-EXCEPTION.md` for the additional permission). This
 file lists the third-party material that ships inside the built app, and the
 licence each one comes under.
 
-This file and `OFL.txt` live in `public/`, so every build carries them: the
+This file, `OFL.txt` and `APACHE-2.0.txt` live in `public/`, so every build carries them: the
 website, the release archive and the container images.
 
 ## Fonts
@@ -50,6 +50,21 @@ Bundled into the app, all under the MIT License unless noted:
 
 Smaller transitive packages carry their own licence files; `pnpm licenses
 list --prod` prints the complete list for a given lockfile.
+
+## WebAssembly
+
+`zxing_reader.*.wasm`, the barcode reader Safari loads on the first scan
+(ADR-018), is zxing-wasm's reader build. It is compiled from:
+
+| Component                                 | Copyright                                                                                         | Licence                                           |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| ZXing C++ (zxing-cpp), commit `2ecec3f`   | Copyright 2016 ZXing authors, Copyright 2016 Nu-book Inc., Copyright 2017-2026 Axel Waggershauser | Apache License 2.0, full text in `APACHE-2.0.txt` |
+| `ZXingWasm.cpp`, zxing-wasm's C++ binding | Copyright 2016 Nu-book Inc., Copyright 2023 Axel Waggershauser, Copyright 2023 Ze-Zheng Wu        | Apache License 2.0, full text in `APACHE-2.0.txt` |
+
+Source: https://github.com/zxing-cpp/zxing-cpp and
+https://github.com/Sec-ant/zxing-wasm (v3.1.5). zxing-cpp carries no `NOTICE`
+file. The writer half of zxing-wasm, and the zint library it uses, is not
+shipped.
 
 ---
 
