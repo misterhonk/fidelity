@@ -388,7 +388,9 @@ async function growAfterDig() {
     if (horizon.expanded < horizon.entities) await call('horizon.build', undefined)
     if (await call('credits.running', undefined)) return
     const credits = await call('credits.status', undefined)
-    if (credits.harvestedAt === null) await call('credits.harvest', {})
+    // Fifty a dig, about a minute: bounded (rule 2), and each later dig
+    // resumes where the last stopped.
+    if (credits.harvested < credits.favourites) await call('credits.harvest', { limit: 50 })
   } catch {
     // Both can be finished in the settings; a failure here stops nothing else.
   }
