@@ -19,16 +19,20 @@ const size = (bytes: number) =>
     : bytes < 1024 ** 3
       ? `${count(Math.round(bytes / 1024 ** 2))} MB`
       : `${decimal(bytes / 1024 ** 3)} GB`
-/** Null where the browser withholds the estimate; then the line is left out. */
+/** Null until the worker answers; where the browser withholds the estimate, a line that says so. */
 const storage = computed(() => {
   const s = stats.value
-  if (s?.usageBytes == null || s.quotaBytes == null) return null
+  if (!s) return null
+  if (s.usageBytes == null || s.quotaBytes == null) return st.value.data.storageUnknown
   return st.value.data.storageLine(size(s.usageBytes), size(s.quotaBytes))
 })
 // The total alone disagrees with settings/account.vue, which shows the data without the covers.
+// Chrome only: no other engine reports usageDetails.
 const storageHint = computed(() => {
-  const data = stats.value?.dataBytes
-  return storage.value && data != null ? st.value.data.storageHint(size(data)) : null
+  const s = stats.value
+  return s?.usageBytes != null && s.dataBytes != null
+    ? st.value.data.storageHint(size(s.dataBytes))
+    : null
 })
 </script>
 

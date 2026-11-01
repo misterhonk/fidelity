@@ -93,14 +93,15 @@ async function dbStats(): Promise<DbStats> {
   let coverEntries: number | null = null
   let persisted = false
   if (typeof navigator !== 'undefined' && navigator.storage) {
-    const estimate = await navigator.storage.estimate?.()
+    // A rejection here must not take the store counts down with it.
+    const estimate = await navigator.storage.estimate?.().catch(() => undefined)
     usageBytes = estimate?.usage ?? null
     quotaBytes = estimate?.quota ?? null
     // Chrome only, and not in the standard: what IndexedDB takes on its own.
     const details = (estimate as { usageDetails?: { indexedDB?: number } } | undefined)
       ?.usageDetails
     dataBytes = details?.indexedDB ?? null
-    persisted = (await navigator.storage.persisted?.()) ?? false
+    persisted = (await navigator.storage.persisted?.().catch(() => false)) ?? false
   }
   if (typeof caches !== 'undefined') {
     try {
