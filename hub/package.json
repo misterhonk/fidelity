@@ -4,7 +4,7 @@
   "private": true,
   "license": "AGPL-3.0-only",
   "type": "module",
-  "description": "Optionaler Beschleuniger für Fidelity. Kein Fundament (ADR-008).",
+  "description": "Optionaler Beschleuniger für Sleeveside. Kein Fundament (ADR-008).",
   "engines": {
     "node": ">=22.5"
   },

@@ -64,7 +64,7 @@ serve({ fetch: app.fetch, port, hostname: '0.0.0.0' }, (info) => {
   // A server's startup line belongs on stdout, and this is a server rather
   // than the browser code the no-console rule is written for.
   // eslint-disable-next-line no-console
-  console.log(`Fidelity-Hub auf :${info.port}, Datenbank ${dbPath}`)
+  console.log(`Sleeveside-Hub auf :${info.port}, Datenbank ${dbPath}`)
   // Same reasoning as the line above: a server's startup output belongs on
   // stdout, and the no-console rule is written for browser code.
   // eslint-disable-next-line no-console

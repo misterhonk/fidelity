@@ -1,6 +1,6 @@
 # Der Hub
 
-Ein optionaler Beschleuniger für Fidelity. **Kein Fundament.**
+Ein optionaler Beschleuniger für Sleeveside. **Kein Fundament.**
 
 Die App läuft vollständig ohne ihn — wer ihn abschaltet, verliert Komfort, nie
 Funktionalität (ADR-008, `docs/13-HUB-ADDON.md`). Genau das prüft ein Test in
