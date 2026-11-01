@@ -14,6 +14,7 @@ import { alive, allFeedback, clearFeedback, feedbackVerdicts, recordFeedback } f
 import { bestPerRelease, topFive } from './match/select'
 import { computeTasteProfile } from './match/taste'
 import { fail } from './fail'
+import { onThisMachine } from './loopback'
 
 /**
  * The shops, best first — what `dealer.list` answers and what `dealer.hide`
@@ -1270,15 +1271,15 @@ export const handlers: HandlerMap = {
      * That is not a special case here: `response.json()` throws on it, and a
      * throw means "not this one" like any other.
      *
-     * Then localhost, in both spellings — a hub bound to 127.0.0.1 does not
+     * Then localhost, only when the app runs there itself (worker/loopback.ts),
+     * and in both spellings — a hub bound to 127.0.0.1 does not
      * answer to `localhost` on a machine where that resolves to ::1 first, and
      * the failure looks identical to "there is no hub".
      */
     const here = self.location?.origin
     const tried = [
       ...(here ? [`${here}/hub`, here] : []),
-      'http://localhost:8787',
-      'http://127.0.0.1:8787',
+      ...(onThisMachine() ? ['http://localhost:8787', 'http://127.0.0.1:8787'] : []),
     ]
 
     /*

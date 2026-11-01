@@ -40,7 +40,8 @@ const CONNECT = [
   'https://content.dropboxapi.com',
   'https://oauth2.googleapis.com',
   'https://www.googleapis.com',
-  // A hub or a catalogue on this machine (hub.discover, catalogue.discover).
+  // A hub or a catalogue on this machine (hub.discover, catalogue.discover),
+  // probed only when the app itself runs there (worker/loopback.ts).
   'http://localhost:8787',
   'http://127.0.0.1:8787',
   'http://localhost:8788',
