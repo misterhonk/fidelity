@@ -224,7 +224,7 @@ const en = {
       body_middle: 'at the bottom, then',
       addToHome: 'Add to Home Screen',
       body_after:
-        '. After that it opens without a browser bar and works in a basement with no signal.',
+        '. Only from the Home Screen does iOS allow notifications and the badge, and keep what is stored here instead of clearing it after a week. It also works in a basement with no signal.',
     },
     update: {
       title: 'A new version is ready.',
@@ -598,6 +598,9 @@ const en = {
     description: 'Sleeveside, the person behind the counter for your Discogs digging.',
     /** The way into the in-store screen on a phone, where there is no ⌘K. */
     inStore: 'In a shop right now',
+    /** A shop's address copied out of Safari (#217). Also takes a bare name. */
+    pasteLink: 'Paste a Discogs link',
+    openShop: 'Open',
     /** The way into ⌘K where there is no keyboard (#215). */
     search: 'Search records, shops, actions',
     counts: {
@@ -744,7 +747,7 @@ const en = {
     scanStop: 'Stop',
     scanDenied: 'The camera stayed shut. Typing works too.',
     scanNotHere:
-      'This browser cannot read a barcode; Safari has no reader of its own. Type the digits instead, it finds the same thing.',
+      'This browser cannot read a barcode; Safari has no reader of its own. Type the digits instead, it finds the same thing. On an iPhone, tap the field, then the Live Text button in the keyboard bar: the camera reads the digits for you.',
     scanOwned: (copies: string) => `You have it, ${copies} in the collection.`,
     scanWanted: 'Not in the collection. It is on your wantlist.',
     /* The album through its master (M20 #3): another pressing than the one in your hand. */

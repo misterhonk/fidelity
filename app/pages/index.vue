@@ -84,6 +84,14 @@ async function reload() {
   if (finds.length > 0) void requestCovers(finds.map((find) => find.releaseId))
 }
 
+const pasted = ref('')
+const pastedName = computed(() => dealerFromInput(pasted.value))
+
+function openPasted() {
+  const name = pastedName.value
+  if (name) void navigateTo({ path: '/dig', query: { dealer: name } })
+}
+
 const digAge = computed(() => {
   const dig = home.value?.dig
   return dig ? since(dig.startedAt) : null
@@ -165,6 +173,31 @@ const tiles = computed(() => {
           <FidIcon name="search" :size="16" aria-hidden="true" />
           {{ m.home.search }}
         </button>
+
+        <!--
+          A shop from Safari (#217): an iPhone has no extension and no share
+          target, so the way in is a copied address. Opens the dig screen with
+          the shop checked, never started — same as the watchlist banner.
+        -->
+        <form class="flex w-full max-w-md gap-2" @submit.prevent="openPasted">
+          <input
+            v-model="pasted"
+            type="text"
+            inputmode="url"
+            autocomplete="off"
+            spellcheck="false"
+            :aria-label="m.home.pasteLink"
+            :placeholder="m.home.pasteLink"
+            class="min-w-0 grow fid-field px-3 py-2 text-fid-sm text-fid-text"
+          />
+          <button
+            type="submit"
+            :disabled="!pastedName"
+            class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text disabled:opacity-40"
+          >
+            {{ m.home.openShop }}
+          </button>
+        </form>
 
         <!--
           How current this is, right under the heading.
