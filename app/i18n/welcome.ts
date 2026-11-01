@@ -25,7 +25,7 @@ const en = {
     summary: (records: string, wants: string) =>
       `${records} ${records === '1' ? 'record' : 'records'} and ${wants} ${wants === '1' ? 'wish' : 'wishes'} are on this device now. Pick a shop and we go through it for you.`,
     after:
-      'Once the dig is through, we look up what else your artists made and who is behind your favourite records. That runs in the background, and you can keep digging.',
+      'Once the dig is through, we look up what else your artists made and who is behind your favourite records. That runs in the background and shares the one line to Discogs, so a dig you start meanwhile runs slower.',
     starters: 'Shops to start with',
     anyShop: 'Pick any shop',
   },
@@ -57,7 +57,7 @@ const de: typeof en = {
     summary: (records, wants) =>
       `${records} ${records === '1' ? 'Platte' : 'Platten'} und ${wants} ${wants === '1' ? 'Wunsch' : 'Wünsche'} liegen jetzt auf diesem Gerät. Such dir einen Laden aus, wir gehen ihn für dich durch.`,
     after:
-      'Ist der Dig durch, schauen wir nach, was deine Künstler sonst noch gemacht haben und wer hinter deinen Lieblingsplatten steckt. Das läuft im Hintergrund. Du kannst weitergraben.',
+      'Ist der Dig durch, schauen wir nach, was deine Künstler sonst noch gemacht haben und wer hinter deinen Lieblingsplatten steckt. Das läuft im Hintergrund über dieselbe Leitung zu Discogs. Ein Dig, den du solange startest, läuft deshalb langsamer.',
     starters: 'Läden für den Anfang',
     anyShop: 'Einen Laden aussuchen',
   },
