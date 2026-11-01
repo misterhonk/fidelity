@@ -35,7 +35,7 @@ import pkg from './package.json'
 const base = process.env.NUXT_APP_BASE_URL ?? '/'
 
 const SHARE = {
-  title: 'Fidelity — the clerk behind the counter, for Discogs',
+  title: 'Sleeveside — the clerk behind the counter, for Discogs',
   description:
     'Scan a Discogs shop and get back a scored list of the records in it that fit your collection — each one with a sentence saying why. Runs entirely in your browser.',
 } as const
@@ -124,7 +124,7 @@ export default defineNuxtConfig({
        *
        * Pages override it at runtime; this is the state before one does.
        */
-      title: 'Fidelity',
+      title: 'Sleeveside',
 
       meta: [
         // Nothing here is meant for a search index (docs/00 §9). robots.txt
@@ -145,7 +145,7 @@ export default defineNuxtConfig({
          */
         { name: 'description', content: SHARE.description },
         { property: 'og:type', content: 'website' },
-        { property: 'og:site_name', content: 'Fidelity' },
+        { property: 'og:site_name', content: 'Sleeveside' },
         { property: 'og:title', content: SHARE.title },
         { property: 'og:description', content: SHARE.description },
         { property: 'og:image', content: '/icons/icon-512.png' },
@@ -174,7 +174,7 @@ export default defineNuxtConfig({
          * The manifest says the same thing for everyone else; this is the one
          * Safari reads.
          */
-        { name: 'apple-mobile-web-app-title', content: 'Fidelity' },
+        { name: 'apple-mobile-web-app-title', content: 'Sleeveside' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'mobile-web-app-capable', content: 'yes' },
 
@@ -211,8 +211,8 @@ export default defineNuxtConfig({
     // asked, and the answer can be "later".
     registerType: 'prompt',
     manifest: {
-      name: 'Fidelity',
-      short_name: 'Fidelity',
+      name: 'Sleeveside',
+      short_name: 'Sleeveside',
       /*
        * The manifest is read once at install time, by the operating system,
        * before any of the app's own code runs. It cannot follow the language

@@ -56,7 +56,7 @@ const en = {
     loved: (loved: string, rated: string) =>
       `${loved} of them got four or five stars, ${rated} a rating at all.`,
     unrated: 'None of them has a rating yet.',
-    digs: 'With Fidelity',
+    digs: 'With Sleeveside',
     digsLine: (runs: string, shops: string, finds: string) =>
       `${runs} across ${shops}, ${finds} altogether.`,
     bought: (n: string) => `${n} marked as bought.`,
@@ -696,7 +696,7 @@ const de: typeof en = {
     loved: (loved, rated) =>
       `${loved} davon haben vier oder fünf Sterne bekommen, ${rated} überhaupt eine Bewertung.`,
     unrated: 'Noch keine davon hat eine Bewertung.',
-    digs: 'Mit Fidelity',
+    digs: 'Mit Sleeveside',
     digsLine: (runs, shops, finds) => `${runs} in ${shops}, zusammen ${finds}.`,
     bought: (n) => `${n} als gekauft markiert.`,
     noDigs: 'Kein Dig in dem Jahr.',

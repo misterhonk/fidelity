@@ -44,10 +44,10 @@ async function run(what: 'all' | 'dig' | 'collection' | 'wantlist') {
     if (what === 'collection' || what === 'wantlist') {
       // CSV, for a spreadsheet — the columns Discogs' own export lacks (M19 #5).
       const file = await call('data.exportCsv', { what })
-      downloadText(`fidelity-${what}-${stamp()}.csv`, file.csv, 'text/csv;charset=utf-8')
+      downloadText(`sleeveside-${what}-${stamp()}.csv`, file.csv, 'text/csv;charset=utf-8')
     } else if (what === 'all') {
       download(
-        `fidelity-backup-${stamp()}.json`,
+        `sleeveside-backup-${stamp()}.json`,
         withReasons(await call('data.exportAll', undefined)),
       )
     } else {
@@ -57,7 +57,7 @@ async function run(what: 'all' | 'dig' | 'collection' | 'wantlist') {
         return
       }
       const file = await call('data.exportDig', { digId: latest.dig.id })
-      download(`fidelity-dig-${latest.dig.dealer}-${stamp()}.json`, withReasons(file))
+      download(`sleeveside-dig-${latest.dig.dealer}-${stamp()}.json`, withReasons(file))
     }
   } catch (cause) {
     error.value = cause

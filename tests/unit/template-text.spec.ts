@@ -53,7 +53,7 @@ const STYLE = /<style[\s\S]*?<\/style>/g
  * record's catalogue number precisely because it has to show the figures.
  */
 const NOT_PROSE = new Set([
-  'Fidelity',
+  'Sleeveside',
   'PFR 81',
   'Martin Melcher',
   'discogs.com/settings/developers',

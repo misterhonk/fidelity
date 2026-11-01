@@ -28,8 +28,8 @@ test.describe('smoke', () => {
      * screen, and iOS names the icon from the document title. Anything after
      * "Fidelity" here ends up on somebody's phone.
      */
-    await expect(page).toHaveTitle('Fidelity')
-    await expect(page.getByRole('heading', { level: 1, name: 'Fidelity' })).toBeVisible()
+    await expect(page).toHaveTitle('Sleeveside')
+    await expect(page.getByRole('heading', { level: 1, name: 'Sleeveside' })).toBeVisible()
 
     /*
      * The landing page, not the token form. Asking for the key to somebody's
@@ -329,9 +329,9 @@ test('says what the app is called, in the two places an install reads', async ({
 
   await expect(page.locator('meta[name="apple-mobile-web-app-title"]')).toHaveAttribute(
     'content',
-    'Fidelity',
+    'Sleeveside',
   )
-  await expect(page).toHaveTitle('Fidelity')
+  await expect(page).toHaveTitle('Sleeveside')
 })
 
 // That every other screen keeps the name in front is asserted where a screen

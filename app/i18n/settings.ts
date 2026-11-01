@@ -700,7 +700,7 @@ const en = {
     {
       title: 'Where is my data?',
       body: [
-        "On this device, in your browser's storage. There is no server it could go to; Fidelity is nothing but files running in your browser.",
+        "On this device, in your browser's storage. There is no server it could go to; Sleeveside is nothing but files running in your browser.",
         'Your Discogs token stays here as well. It is never written into an address, never logged, and never passed to anybody.',
         'We read. We only write back what you change here yourself: ratings, folders, purchases, your wantlist. We buy nothing.',
       ],
@@ -738,7 +738,7 @@ const en = {
    */
   closing: {
     title: 'Still a question open?',
-    body: 'Fidelity is open to read. How it calculates is in the code, and why it calculates that way is in the documents beside it. Anyone who wants to know exactly how a score comes about will find it written down there in full.',
+    body: 'Sleeveside is open to read. How it calculates is in the code, and why it calculates that way is in the documents beside it. Anyone who wants to know exactly how a score comes about will find it written down there in full.',
     disclaimer: 'This application uses the Discogs API but is not connected with Discogs.',
   },
 }
@@ -1230,7 +1230,7 @@ const de: typeof en = {
     {
       title: 'Wo liegen meine Daten?',
       body: [
-        'Auf diesem Gerät, im Speicher deines Browsers. Es gibt keinen Server, an den sie gehen könnten; Fidelity besteht nur aus Dateien, die in deinem Browser laufen.',
+        'Auf diesem Gerät, im Speicher deines Browsers. Es gibt keinen Server, an den sie gehen könnten; Sleeveside besteht nur aus Dateien, die in deinem Browser laufen.',
         'Dein Discogs-Token bleibt ebenfalls hier. Er wird nie in eine Adresse geschrieben, nie protokolliert und an niemanden weitergegeben.',
         'Wir lesen. Zurück schreiben wir nur, was du hier selbst änderst: Bewertungen, Ordner, Käufe, deine Wantlist. Wir kaufen nichts.',
       ],
@@ -1260,7 +1260,7 @@ const de: typeof en = {
 
   closing: {
     title: 'Noch eine Frage offen?',
-    body: 'Fidelity ist quelloffen. Wie es rechnet, steht im Code, und warum es so rechnet, in den Unterlagen daneben. Wer genauer wissen will, wie eine Punktzahl zustande kommt, findet es dort vollständig aufgeschrieben.',
+    body: 'Sleeveside ist quelloffen. Wie es rechnet, steht im Code, und warum es so rechnet, in den Unterlagen daneben. Wer genauer wissen will, wie eine Punktzahl zustande kommt, findet es dort vollständig aufgeschrieben.',
     disclaimer:
       'Diese Anwendung nutzt die Discogs-API, steht aber in keiner Verbindung zu Discogs.',
   },

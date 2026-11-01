@@ -158,7 +158,7 @@ const de: Messages = {
     noFileChosen: 'Noch keine Datei gewählt.',
     fileUnreadable: 'Die Datei enthält keinen lesbaren Tresor.',
     fileDenied: 'Der Browser hat den Zugriff auf die Datei nicht erlaubt.',
-    notAVault: 'Diese Datei ist kein Fidelity-Tresor.',
+    notAVault: 'Diese Datei ist kein Sleeveside-Tresor.',
     oauthRejected: (provider) => `${provider} hat den Code abgelehnt.`,
     notConnected: 'Noch nicht verbunden.',
     connectionExpired: 'Die Verbindung ist abgelaufen. Verbind dich neu.',
@@ -235,7 +235,7 @@ const de: Messages = {
         action: 'Ein Hub ist freiwillig. Trag in den Einstellungen einen ein, oder lass es.',
       },
       'not-a-hub': {
-        title: 'Das ist kein Fidelity-Hub.',
+        title: 'Das ist kein Sleeveside-Hub.',
         action: 'Unter der Adresse antwortet etwas, aber kein Hub. Prüfe Adresse und Port.',
       },
       'no-catalogue': {
@@ -244,16 +244,16 @@ const de: Messages = {
           'Ein Katalog ist freiwillig. Trag in den Einstellungen einen ein, oder lass es.',
       },
       'not-a-catalogue': {
-        title: 'Das ist kein Fidelity-Katalog.',
+        title: 'Das ist kein Sleeveside-Katalog.',
         action: 'Unter der Adresse antwortet etwas, aber kein Katalog. Prüfe Adresse und Port.',
       },
       'not-a-backup': {
-        title: 'Das ist kein Fidelity-Backup.',
+        title: 'Das ist kein Sleeveside-Backup.',
         action:
-          'Ein Backup ist die Datei, die „Alles exportieren" hier schreibt: fidelity-backup-<Datum>.json.',
+          'Ein Backup ist die Datei, die „Alles exportieren" hier schreibt: sleeveside-backup-<Datum>.json.',
       },
       'backup-too-new': {
-        title: 'Dieses Backup stammt aus einer neueren Fidelity.',
+        title: 'Dieses Backup stammt aus einer neueren Sleeveside-Version.',
         action:
           'Erst die App aktualisieren. Eine ältere würde es falsch lesen statt gar nicht.',
       },
@@ -263,7 +263,7 @@ const de: Messages = {
           'Was auf diesem Gerät liegt, gehört dem angemeldeten Konto. Zum Kontowechsel erst abmelden, das löscht die Datenbank, und mit dem neuen Token anmelden.',
       },
       'vault-too-new': {
-        title: 'Diese Sicherung stammt aus einem neueren Fidelity.',
+        title: 'Diese Sicherung stammt aus einem neueren Sleeveside-Version.',
         action: 'Aktualisiere zuerst die App. Eine ältere läse sie falsch statt gar nicht.',
       },
       'vault-unusable': {
@@ -384,7 +384,7 @@ const de: Messages = {
 
   home: {
     title: 'Start',
-    description: 'Fidelity, der Mensch hinterm Tresen für dein Graben bei Discogs.',
+    description: 'Sleeveside, der Mensch hinterm Tresen für dein Graben bei Discogs.',
     inStore: 'Gerade im Laden',
     counts: {
       collection: 'Sammlung',

@@ -21,7 +21,7 @@ const themeColor = computed(() => THEME_COLORS[resolved.value])
 const { current: language } = useLanguage()
 
 /** What the app is called, wherever a name is what is being asked for. */
-const NAME = 'Fidelity'
+const NAME = 'Sleeveside'
 
 useHead({
   /*
@@ -42,7 +42,7 @@ useHead({
   titleTemplate: (title?: string) =>
     // The static title in nuxt.config is the bare name, so that an install
     // reading the delivered HTML finds it. Without this it would arrive here
-    // like any page title and come back out as "Fidelity · Fidelity".
+    // like any page title and come back out as "Sleeveside · Sleeveside".
     !title || title === NAME ? NAME : `${NAME} · ${title}`,
   htmlAttrs: { lang: language },
   meta: [{ name: 'theme-color', content: themeColor }],

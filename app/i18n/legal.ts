@@ -17,8 +17,8 @@ const en = {
 
   privacy: {
     title: 'Privacy',
-    description: 'What Fidelity stores — and where. Short, because it is short.',
-    lead: 'Fidelity has no server of its own. Everything it knows sits in your browser’s database; what leaves this device leaves it to Discogs — and to a few other places, each of them only if you switch it on.',
+    description: 'What Sleeveside stores — and where. Short, because it is short.',
+    lead: 'Sleeveside has no server of its own. Everything it knows sits in your browser’s database; what leaves this device leaves it to Discogs — and to a few other places, each of them only if you switch it on.',
 
     onDevice: 'What is on your device',
     items: [
@@ -56,7 +56,7 @@ const en = {
      */
     hub: 'The second exception: a hub of your own',
     hubBody:
-      'Fidelity can make use of a small helper server — the hub. There is none until you enter its address in the settings yourself; with that field empty nothing is ever asked of it. If you do run one: your backup and any find list you share go there sealed, so the hub holds them and cannot read them. What it does see in plain sight is the shops you are watching, the push address your browser hands out for notifications, the release ids it is asked for covers of, and the shop and country a postage table belongs to. Your Discogs token is never among it.',
+      'Sleeveside can make use of a small helper server — the hub. There is none until you enter its address in the settings yourself; with that field empty nothing is ever asked of it. If you do run one: your backup and any find list you share go there sealed, so the hub holds them and cannot read them. What it does see in plain sight is the shops you are watching, the push address your browser hands out for notifications, the release ids it is asked for covers of, and the shop and country a postage table belongs to. Your Discogs token is never among it.',
 
     /*
      * The third exception. The catalogue is read-only and holds nothing of
@@ -105,7 +105,7 @@ const en = {
      * GitHub — which is where every question about this project ends up anyway.
      */
     about:
-      'Fidelity is a private tool with no intent to profit. It sells nothing, brokers nothing and handles no payments. Contact and bug reports go through the project on GitHub.',
+      'Sleeveside is a private tool with no intent to profit. It sells nothing, brokers nothing and handles no payments. Contact and bug reports go through the project on GitHub.',
   },
 }
 
@@ -114,8 +114,8 @@ const de: typeof en = {
 
   privacy: {
     title: 'Datenschutz',
-    description: 'Was Fidelity speichert – und wo. Kurz, weil es kurz ist.',
-    lead: 'Fidelity hat keinen eigenen Server. Alles, was die App weiß, liegt in der Datenbank deines Browsers; was dieses Gerät verlässt, geht an Discogs – und an ein paar weitere Stellen, jede nur dann, wenn du sie einschaltest.',
+    description: 'Was Sleeveside speichert – und wo. Kurz, weil es kurz ist.',
+    lead: 'Sleeveside hat keinen eigenen Server. Alles, was die App weiß, liegt in der Datenbank deines Browsers; was dieses Gerät verlässt, geht an Discogs – und an ein paar weitere Stellen, jede nur dann, wenn du sie einschaltest.',
 
     onDevice: 'Was auf deinem Gerät liegt',
     items: [
@@ -136,7 +136,7 @@ const de: typeof en = {
 
     hub: 'Die zweite Ausnahme: ein eigener Hub',
     hubBody:
-      'Fidelity kann einen kleinen Hilfsserver nutzen – den Hub. Es gibt keinen, solange du seine Adresse nicht selbst in den Einstellungen einträgst; bleibt das Feld leer, wird nie etwas bei ihm angefragt. Wer einen betreibt: Sicherung und geteilte Fundliste gehen versiegelt dorthin, der Hub hält sie und kann sie nicht lesen. Im Klartext sieht er die Läden, die du beobachtest, die Push-Adresse, die dein Browser für Benachrichtigungen herausgibt, die Release-IDs, zu denen er Cover liefern soll, und Laden und Land, zu dem eine Versandstaffel gehört. Dein Discogs-Token ist nie dabei.',
+      'Sleeveside kann einen kleinen Hilfsserver nutzen – den Hub. Es gibt keinen, solange du seine Adresse nicht selbst in den Einstellungen einträgst; bleibt das Feld leer, wird nie etwas bei ihm angefragt. Wer einen betreibt: Sicherung und geteilte Fundliste gehen versiegelt dorthin, der Hub hält sie und kann sie nicht lesen. Im Klartext sieht er die Läden, die du beobachtest, die Push-Adresse, die dein Browser für Benachrichtigungen herausgibt, die Release-IDs, zu denen er Cover liefern soll, und Laden und Land, zu dem eine Versandstaffel gehört. Dein Discogs-Token ist nie dabei.',
 
     catalogue: 'Die dritte Ausnahme: ein Katalog',
     catalogueBody:
@@ -168,7 +168,7 @@ const de: typeof en = {
     description: 'Anbieterkennzeichnung.',
     perStatute: 'Angaben gemäß § 5 DDG.',
     about:
-      'Fidelity ist ein privates Werkzeug ohne Gewinnerzielungsabsicht. Es verkauft nichts, vermittelt nichts und wickelt keine Zahlungen ab. Kontakt und Fehlermeldungen laufen über das Projekt auf GitHub.',
+      'Sleeveside ist ein privates Werkzeug ohne Gewinnerzielungsabsicht. Es verkauft nichts, vermittelt nichts und wickelt keine Zahlungen ab. Kontakt und Fehlermeldungen laufen über das Projekt auf GitHub.',
   },
 }
 

@@ -9,7 +9,7 @@ import { activeLanguage } from '~/composables/useMessages'
  */
 const en = {
   title: 'Welcome',
-  description: 'Set Fidelity up: your key, your shelf, your artists, your credits.',
+  description: 'Set Sleeveside up: your key, your shelf, your artists, your credits.',
   lead: 'Give us a shop. We hand you the records that fit, and say why for each one.',
   setUp: 'Set it up with your collection',
   setUpAbout:
@@ -73,7 +73,7 @@ const en = {
 const de: typeof en = {
   title: 'Willkommen',
   description:
-    'Fidelity einrichten: dein Schlüssel, dein Regal, deine Künstler, deine Credits.',
+    'Sleeveside einrichten: dein Schlüssel, dein Regal, deine Künstler, deine Credits.',
   lead: 'Gib uns einen Laden. Wir legen dir die Platten hin, die passen, und sagen zu jeder, warum.',
   setUp: 'Mit deiner Sammlung einrichten',
   setUpAbout:

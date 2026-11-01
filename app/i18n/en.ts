@@ -290,7 +290,7 @@ const en = {
     noFileChosen: 'No file chosen yet.',
     fileUnreadable: 'The file holds no readable vault.',
     fileDenied: 'The browser did not allow access to the file.',
-    notAVault: 'This file is not a Fidelity vault.',
+    notAVault: 'This file is not a Sleeveside vault.',
     oauthRejected: (provider: string) => `${provider} rejected the code.`,
     notConnected: 'Not connected yet.',
     connectionExpired: 'The connection has expired. Connect again.',
@@ -378,7 +378,7 @@ const en = {
         action: 'A hub is optional. Enter one in the settings, or leave it and use the rest.',
       },
       'not-a-hub': {
-        title: 'That is not a Fidelity hub.',
+        title: 'That is not a Sleeveside hub.',
         action:
           'Something answered at that address, but not a hub. Check the address and port.',
       },
@@ -388,17 +388,17 @@ const en = {
           'A catalogue is optional. Enter one in the settings, or leave it and use the rest.',
       },
       'not-a-catalogue': {
-        title: 'That is not a Fidelity catalogue.',
+        title: 'That is not a Sleeveside catalogue.',
         action:
           'Something answered at that address, but not a catalogue. Check the address and port.',
       },
       'not-a-backup': {
-        title: 'That is not a Fidelity backup.',
+        title: 'That is not a Sleeveside backup.',
         action:
-          'A backup is the file “Export everything” writes here: fidelity-backup-<date>.json.',
+          'A backup is the file “Export everything” writes here: sleeveside-backup-<date>.json.',
       },
       'backup-too-new': {
-        title: 'This backup is from a newer Fidelity.',
+        title: 'This backup is from a newer Sleeveside version.',
         action:
           'Update the app first. An older one would read it wrong rather than not at all.',
       },
@@ -408,7 +408,7 @@ const en = {
           'What is on this device belongs to the signed-in account. To switch accounts, sign out first, which deletes the database, and sign in with the new token.',
       },
       'vault-too-new': {
-        title: 'This backup is from a newer Fidelity.',
+        title: 'This backup is from a newer Sleeveside version.',
         action:
           'Update the app first. An older one would read it wrong rather than not at all.',
       },
@@ -563,7 +563,7 @@ const en = {
   /** The start screen: what is new, and what is waiting. */
   home: {
     title: 'Start',
-    description: 'Fidelity, the person behind the counter for your Discogs digging.',
+    description: 'Sleeveside, the person behind the counter for your Discogs digging.',
     /** The way into the in-store screen on a phone, where there is no ⌘K. */
     inStore: 'In a shop right now',
     counts: {

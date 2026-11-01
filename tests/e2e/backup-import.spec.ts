@@ -22,5 +22,5 @@ test('reads a backup back in and says what came back', async ({ page }) => {
   await page
     .getByLabel('Read a backup back in')
     .setInputFiles('tests/fixtures/backup/notes.json')
-  await expect(page.getByText('That is not a Fidelity backup.')).toBeVisible()
+  await expect(page.getByText('That is not a Sleeveside backup.')).toBeVisible()
 })

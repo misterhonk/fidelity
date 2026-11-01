@@ -15,12 +15,12 @@ test.describe('what this is, beside the others', () => {
     await page.goto('/compared')
 
     await expect(page).toHaveURL(/\/compared$/)
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Fidelity, compared')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sleeveside, compared')
     await expect(page.getByText(/reads a shop’s stock against your collection/)).toBeVisible()
     // Every app in the list has both halves: what it does, and Fidelity instead.
     // Eight since Reccogs joined the list (2026-10-21).
     await expect(page.getByRole('heading', { level: 3 })).toHaveCount(8)
-    await expect(page.getByText('Fidelity instead')).toHaveCount(8)
+    await expect(page.getByText('Sleeveside instead')).toHaveCount(8)
   })
 
   test('is in the footer, and speaks German when the app does', async ({ page }) => {
@@ -29,7 +29,7 @@ test.describe('what this is, beside the others', () => {
     await page.getByRole('contentinfo').getByRole('link', { name: 'Im Vergleich' }).click()
 
     await expect(page).toHaveURL(/\/compared$/)
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Fidelity im Vergleich')
-    await expect(page.getByText('Fidelity stattdessen')).toHaveCount(8)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sleeveside im Vergleich')
+    await expect(page.getByText('Sleeveside stattdessen')).toHaveCount(8)
   })
 })
