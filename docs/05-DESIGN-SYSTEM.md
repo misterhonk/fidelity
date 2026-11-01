@@ -374,7 +374,7 @@ Postage to you (DE)             currently 2 records · €9.00 total · €4.50 
 | Pattern | Implementation |
 |---|---|
 | **Virtualisation** | From ~200 rows, `@tanstack/vue-virtual`. Collections have 5,000+ entries. |
-| **View transitions** | Same-document, for card → detail sheet. Cross-document not yet (an Interop 2026 building site). |
+| **View transitions** | Same-document, in two places. Between routes, Nuxt's `experimental.viewTransition` crossfades one screen into the next (a query change on the same page is not a route change). Card → detail sheet: the find's cover — picture or label sleeve — carries `view-transition-name: fid-cover` in the old picture and the sheet's masthead in the new, so it grows into the sheet and shrinks back on close; the new picture waits for the sheet to report its record drawn, at most 250 ms. The sheets share `view-transition-class: fid-sheet`, which slides a drawer in from its edge on open and out on close; stepping between records keeps the crossfade. Cross-document not yet (an Interop 2026 building site). |
 | **Optimistic UI** | Only for the basket, wantlist adds and feedback. **Not** for anything involving money or a real error rate. |
 | **Worker progress** | `postMessage` from the web worker. No polling, no SSE — there is no server. |
 | **The URL is the state** | Filters, sorting and density in query params. Digs live locally — for sharing there is JSON export. |
@@ -486,15 +486,30 @@ the thought but its position.
   duration anywhere. `main.css` and every progress bar read them; a component that writes
   `duration-300` is writing a third value.
 - Motion serves orientation and causality, not decoration
-- No motion library. The detail sheets use a same-document View Transition, the cards
-  CSS transitions, and that is the whole inventory. `motion-v` stood here until
-  2026-09-11 and was never installed.
+- No motion library. Platform CSS only, and this is the whole inventory (#226):
+  - **Route crossfade** — Nuxt's `experimental.viewTransition`, which already stands down
+    for reduced motion and for a back-swipe the browser animates itself.
+  - **Cover → sheet** — a same-document View Transition on `fid-cover`, and
+    `view-transition-class: fid-sheet` sliding the drawer in and out (§4).
+  - **Finds cascade in** — `.fid-cascade` on every list item: `@starting-style` from
+    transparent and half a rem low, `transition-delay: min(sibling-index(), 12) × 30 ms`.
+    Where `sibling-index()` is missing the delay is invalid and they arrive together.
+  - **The "why" unfolds** — `WhyNote`'s `::details-content` transitions `block-size` under
+    `interpolate-size: allow-keywords`; without it (WebKit 26.5) the answer opens at once.
+    Its reduced-motion opt-out is its own, because no `*` selector reaches that
+    pseudo-element.
+  - The cards' hover states, as plain CSS transitions.
+
+  `motion-v` stood here until 2026-09-11 and was never installed.
 
 ```css
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+    /* A stagger is a wait with nothing moving in it. */
+    animation-delay: 0s !important;
+    transition-delay: 0s !important;
   }
   ::view-transition-group(*),
   ::view-transition-old(*),
