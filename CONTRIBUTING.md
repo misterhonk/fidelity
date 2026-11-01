@@ -201,7 +201,17 @@ with its cost, its auth requirement and its CORS behaviour, measured.
 
 [**GNU AGPL-3.0**](LICENSE). Anybody contributing here puts it under the same licence.
 There is no contributor licence agreement — you keep your copyright, and the contribution
-stands under the project's licence.
+stands under the project's licence, including the app-store permission in
+[`LICENSE-EXCEPTION.md`](LICENSE-EXCEPTION.md).
+
+**Sign off every commit** under the [Developer Certificate of Origin 1.1](https://developercertificate.org/):
+by adding the line below (`git commit -s` does it), you certify that you wrote the change or
+otherwise have the right to submit it under the project's licence and that additional
+permission.
+
+```
+Signed-off-by: Your Name <you@example.com>
+```
 
 In practice: forking, rebuilding and running your own is expressly welcome. If you pass on
 your version or host it for other people, your source belongs open as well.

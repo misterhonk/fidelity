@@ -311,6 +311,10 @@ That is deliberate and not an obstruction. Fidelity is a project with no intent 
 and the AGPL is the licence that keeps it that way — including in the version somebody else
 puts on the internet. Anybody meaning well satisfies it with a link to their source.
 
+One additional permission under section 7 of the AGPL: the app may be distributed through
+app stores whose terms would otherwise clash with it, as long as the source stays available
+under the AGPL — see [`LICENSE-EXCEPTION.md`](LICENSE-EXCEPTION.md).
+
 Without warranty, and here that is not merely a formula: this app works with its users'
 Discogs accounts.
 
