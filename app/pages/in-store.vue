@@ -225,8 +225,10 @@ async function resolveQueued() {
   if (draining || queued.value.length === 0) return
   draining = true
   try {
-    const { done, left } = await drainLookups(queued.value, ask)
-    keep(left)
+    const { done } = await drainLookups(queued.value, ask)
+    // From the queue as it is now: a code kept while this ran is not lost.
+    const gone = new Set(done.map((entry) => entry.entry.code))
+    keep(queued.value.filter((entry) => !gone.has(entry.code)))
     resolved.value = [...resolved.value, ...done]
   } finally {
     draining = false
