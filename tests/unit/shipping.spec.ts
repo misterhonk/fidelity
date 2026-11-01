@@ -125,6 +125,14 @@ describe('reading a shipping table out of free text', () => {
     expect(performance.now() - started).toBeLessThan(200)
   })
 
+  // A long run of digits was quadratic: 80k chars took 12.4 s. The input is capped.
+  it('reads a hundred thousand characters in no time', () => {
+    const started = performance.now()
+    parseShippingText('1'.repeat(100_000))
+    parseShippingText(`1 LP ${'12,'.repeat(33_000)}`)
+    expect(performance.now() - started).toBeLessThan(50)
+  })
+
   it('reads the common German table', () => {
     const { tiers } = parseShippingText('1 LP: 6,00 €, 2-3 LP: 9,00 €, 4-6 LP: 12,00 €')
     expect(tiers).toEqual([
