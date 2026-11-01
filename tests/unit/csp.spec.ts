@@ -38,11 +38,14 @@ describe('the content security policy', () => {
     expect(value).not.toContain("script-src 'self' 'unsafe-inline'")
   })
 
-  it('lets the audio preview load its player script, not only its frame', () => {
-    // From v0.91.2 to v0.105.0 the frame was allowed and the script was not,
-    // and every play button went away without a word (ADR-012).
+  it('lets the audio preview frame in, and no Google script into the origin', () => {
+    // Until #203 the player was driven by YouTube's iframe API, a script from
+    // www.youtube.com running with this app's rights, next to the token. The
+    // frame is driven by postMessage now, so script-src names no third party.
     const value = policy(inlineHashes(html))
-    expect(value).toMatch(/script-src 'self' https:\/\/www\.youtube\.com 'sha256-/)
+    const script = value.split('; ').find((directive) => directive.startsWith('script-src'))
+    expect(script).toMatch(/^script-src 'self' 'sha256-/)
+    expect(script).not.toMatch(/youtube|google/i)
     expect(value).toContain(
       'frame-src https://www.youtube-nocookie.com https://www.youtube.com',
     )

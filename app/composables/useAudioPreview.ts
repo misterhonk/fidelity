@@ -14,9 +14,15 @@
  *
  * The same gesture incidentally solves the one technical problem: browsers
  * require a user gesture for sound. **Autoplay on card one exists in no
- * browser**, and no line of code changes that. After the first tap one player
- * instance stays standing and gets a `loadVideoById()` per card — the one
- * gesture carries through the stack.
+ * browser**, and no line of code changes that. After the first tap one frame
+ * stays standing and gets a `loadVideoById` per card — the one gesture
+ * carries through the stack.
+ *
+ * **No Google script runs in this origin** (#203). YouTube's iframe API was a
+ * script from www.youtube.com with this app's rights, next to the token. The
+ * frame is driven by the same postMessage commands that script would send,
+ * addressed only to the origin the frame was loaded from, and `script-src`
+ * names no third party.
  *
  * **One player, wherever it is asked for.** The state below is module scope,
  * not per component: the stack, a find's sheet and a shelf record's sheet all
@@ -40,7 +46,9 @@ import { readonly, ref } from 'vue'
 /** Privacy-enhanced mode: no cookies before playing. Google still sees the
  *  request itself, and the privacy page says so. */
 const ORIGIN = 'https://www.youtube-nocookie.com'
-const API = 'https://www.youtube.com/iframe_api'
+
+/** How long a frame may stay silent before Google counts as blocked here. */
+const SILENT_MS = 15_000
 
 /**
  * The video id out of a Discogs address.
@@ -60,15 +68,17 @@ export function videoId(uri: string): string | null {
   }
 }
 
-interface Player {
-  loadVideoById(id: string): void
-  stopVideo(): void
-  destroy(): void
-  getIframe(): HTMLIFrameElement
+let frame: HTMLIFrameElement | null = null
+let ready: Promise<HTMLIFrameElement> | null = null
+
+/** One message to the player, in the shape YouTube's own iframe API sends. */
+function send(to: HTMLIFrameElement | null, message: Record<string, unknown>) {
+  to?.contentWindow?.postMessage(JSON.stringify(message), ORIGIN)
 }
 
-let player: Player | null = null
-let ready: Promise<Player> | null = null
+function command(func: 'loadVideoById' | 'pauseVideo', args: unknown[] = []) {
+  send(frame, { event: 'command', func, args })
+}
 
 /** The element the frame was built into, so a screen can take back its own. */
 let host: HTMLElement | null = null
@@ -88,13 +98,10 @@ const failed = ref(false)
 
 /** Back to before the first tap: no frame, no player, nothing playing. */
 function teardown() {
-  try {
-    player?.destroy()
-  } catch {
-    // The frame can already have gone with the element it lived in. Nothing to
-    // stop, and a throw here would take the screen down with it.
-  }
-  player = null
+  // The frame can already have gone with the element it lived in; remove()
+  // on a detached node is a no-op.
+  frame?.remove()
+  frame = null
   ready = null
   host = null
   playing.value = null
@@ -111,54 +118,59 @@ function teardown() {
  * for the frame, which did not yet exist at the moment of the tap. From the
  * second card on it carries, because the player is standing.
  */
-function boot(mount: HTMLElement, first: string): Promise<Player> {
+function boot(mount: HTMLElement, first: string): Promise<HTMLIFrameElement> {
   if (ready) return ready
 
-  ready = new Promise<Player>((resolve, reject) => {
-    const global = window as unknown as {
-      YT?: { Player: new (el: HTMLElement, options: unknown) => Player }
-      onYouTubeIframeAPIReady?: () => void
-    }
+  ready = new Promise<HTMLIFrameElement>((resolve, reject) => {
+    const made = document.createElement('iframe')
+    const query = new URLSearchParams({
+      enablejsapi: '1',
+      autoplay: '1',
+      playsinline: '1',
+      origin: location.origin,
+    })
+    made.src = `${ORIGIN}/embed/${encodeURIComponent(first)}?${query}`
+    made.title = 'YouTube'
+    made.allow = 'autoplay; encrypted-media; picture-in-picture'
+    /*
+     * Visible, and for two reasons.
+     *
+     * YouTube's terms require the embedded player to be seen — a hidden
+     * player is not an edge case of the rules but a breach of them. And
+     * practically: a 0 × 0 player does not start at all (measured 2026-09-11,
+     * state 5). The page sizes the box around it; this fills the box.
+     */
+    made.style.cssText = 'display:block;width:100%;height:100%;border:0'
 
-    const build = () => {
-      const YT = global.YT
-      if (!YT) {
-        reject(new Error('youtube api missing'))
-        return
-      }
-      const made = new YT.Player(mount, {
-        host: ORIGIN,
-        videoId: first,
-        /*
-         * Visible, and for two reasons.
-         *
-         * YouTube's terms require the embedded player to be seen — a hidden
-         * player is not an edge case of the rules but a breach of them. And
-         * practically: a 0 × 0 player does not start at all (measured
-         * 2026-09-11, state 5).
-         *
-         * The page sets the size in CSS; all this says is that it takes up its
-         * space.
-         */
-        height: '100%',
-        width: '100%',
-        playerVars: { playsinline: 1, autoplay: 1, origin: location.origin },
-        events: { onReady: () => resolve(made) },
-      })
-      player = made
+    /*
+     * The handshake the iframe API makes: knock until the player answers.
+     * A knock before the embed has loaded goes to about:blank, whose origin
+     * does not match, and is dropped by the browser.
+     */
+    const knock = setInterval(
+      () => send(made, { event: 'listening', id: 1, channel: 'widget' }),
+      250,
+    )
+    const settle = () => {
+      clearInterval(knock)
+      clearTimeout(silent)
+      window.removeEventListener('message', answer)
     }
-
-    if (global.YT?.Player) {
-      build()
-      return
+    const answer = (event: MessageEvent) => {
+      if (event.origin !== ORIGIN || event.source !== made.contentWindow) return
+      settle()
+      resolve(made)
     }
+    // A blocked Google — extension, firewall, network — never answers.
+    const silent = setTimeout(() => {
+      settle()
+      // Torn down meanwhile: nobody is waiting for this frame any more.
+      if (frame === made) reject(new Error('youtube player silent'))
+    }, SILENT_MS)
 
-    global.onYouTubeIframeAPIReady = build
-    const script = document.createElement('script')
-    script.src = API
-    script.async = true
-    script.onerror = () => reject(new Error('youtube api blocked'))
-    document.head.append(script)
+    window.addEventListener('message', answer)
+    frame = made
+    mount.append(made)
   })
 
   return ready
@@ -187,10 +199,9 @@ export function useAudioPreview() {
       // player seen while it plays, and autoplay begins the moment it is built.
       playing.value = id
       await nextTick()
-      const frame = mount.isConnected ? mount : player?.getIframe()
-      frame?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' })
-      const instance = await boot(mount, id)
-      if (!fresh) instance.loadVideoById(id)
+      mount.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' })
+      await boot(mount, id)
+      if (!fresh) command('loadVideoById', [id])
       clip.value = title?.trim() || null
       failed.value = false
     } catch {
@@ -205,7 +216,7 @@ export function useAudioPreview() {
   }
 
   function stop() {
-    player?.stopVideo()
+    command('pauseVideo')
     playing.value = null
     clip.value = null
   }
