@@ -205,6 +205,37 @@ describe('the demo', () => {
     expect(result.requests).toBeLessThanOrEqual(1 + DEMO_PAGES)
   })
 
+  it('counts the pages it can read, not ten, once the shop says its size', async () => {
+    const get = vi.fn(async (path: string, schema: { parse: (v: unknown) => unknown }) =>
+      path.startsWith('/releases/')
+        ? schema.parse({ id: 900, title: 'Das Model', artists: [{ id: 5, name: 'Kraftwerk' }] })
+        : schema.parse({
+            pagination: { page: 1, pages: 3, per_page: 100, items: 250, urls: {} },
+            listings: [],
+          }),
+    )
+    const totals: number[] = []
+    await runDemo({
+      client: { get } as unknown as DiscogsClient,
+      listingIds: [111],
+      known: [
+        {
+          listingId: 111,
+          releaseId: 900,
+          dealer: 'plattenladen',
+          title: 'Das Model',
+          artist: 'Kraftwerk',
+        },
+      ],
+      report: (step) => {
+        if (step.step === 'shop') totals.push(step.total)
+      },
+    })
+    // Before page 1 nobody knows the size; after it, a three-page shop is three.
+    expect(totals.length).toBeGreaterThan(1)
+    expect(totals.slice(1)).toEqual(totals.slice(1).map(() => 3))
+  })
+
   it('says a pasted listing has sold, rather than blaming a token', async () => {
     const { DiscogsError } = await import('~~/worker/discogs/errors')
     const get = vi.fn(async () => {

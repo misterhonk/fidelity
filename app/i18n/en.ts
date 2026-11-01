@@ -862,7 +862,8 @@ const en = {
     orOne: 'Or one of these:',
     moment: 'One moment …',
     fetching: 'Fetching the record …',
-    reading: (page: number, pages: number) => `Reading the stock, page ${page} of ${pages}`,
+    reading: (page: number, pages: number) =>
+      `Reading the stock, ${page} of up to ${pages} pages`,
     comparing: 'Comparing …',
     progress: 'Progress',
     fitsAt: (dealer: string) => `At ${dealer} this fits`,
