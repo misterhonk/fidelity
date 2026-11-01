@@ -487,10 +487,16 @@ const STACKED =
         same thing.
       -->
       <div v-show="audio.playing.value" class="flex flex-col gap-1">
+        <!--
+          At least 200 × 200, which YouTube's terms set as the smallest
+          player: 16:9 on a 375 px phone is 343 × 193. The frame replaces the
+          inner div, so the size lives on the box around it.
+        -->
         <div
-          ref="mount"
-          class="aspect-video w-full overflow-hidden rounded-fid-sm bg-fid-inset"
-        />
+          class="aspect-video min-h-[200px] w-full min-w-[200px] overflow-hidden rounded-fid-sm bg-fid-inset"
+        >
+          <div ref="mount" class="size-full" />
+        </div>
         <!--
           What is playing, named (ADR-012, condition 8).
 

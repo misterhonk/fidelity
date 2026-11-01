@@ -42,7 +42,7 @@ const en = {
      */
     audio: 'The first exception: the audio preview',
     audioBody:
-      'Discogs has one source of sound: YouTube. If you switch the audio preview on in the settings and then tap Listen, a player is loaded from Google. From that moment Google sees this device’s address and which record is playing. Your collection, wantlist and token stay here — none of that is sent. The switch is off to begin with, and with it off nothing is loaded from Google at all. Google LLC is in the United States; the transfer relies on the EU–US Data Privacy Framework.',
+      'Discogs has one source of sound: YouTube. If you switch the audio preview on in the settings and then tap Listen, a player is loaded from Google. From that moment Google sees this device’s address and which record is playing, and once the clip plays YouTube may store and read information on this device, such as cookies. The player is YouTube’s, used through the YouTube API Services: the YouTube Terms of Service (youtube.com/t/terms) apply, and Google’s Privacy Policy (policies.google.com/privacy) says what Google does with the data. Your collection, wantlist and token stay here — none of that is sent. The switch is off to begin with, and with it off nothing is loaded from Google at all. Google LLC is in the United States; the transfer relies on the EU–US Data Privacy Framework. The legal basis is your consent (Art. 6(1)(a) GDPR, and § 25(1) TDDDG for what is stored on the device), given by switching the preview on and tapping play; switching it off in the settings withdraws it for everything after.',
 
     /*
      * The second exception, and it gets a heading for the same reason the
@@ -132,7 +132,7 @@ const de: typeof en = {
 
     audio: 'Die erste Ausnahme: die Hörprobe',
     audioBody:
-      'Discogs hat genau eine Tonquelle: YouTube. Wer die Hörprobe in den Einstellungen einschaltet und dann auf „Anhören" tippt, lädt einen Spieler von Google. Ab diesem Moment sieht Google die Adresse dieses Geräts und welche Platte läuft. Sammlung, Wantlist und Token bleiben hier – davon wird nichts gesendet. Der Schalter ist zu Anfang aus, und solange er aus ist, wird gar nichts von Google geladen. Google LLC sitzt in den USA; die Übermittlung stützt sich auf das EU-US Data Privacy Framework.',
+      'Discogs hat genau eine Tonquelle: YouTube. Wer die Hörprobe in den Einstellungen einschaltet und dann auf „Anhören" tippt, lädt einen Spieler von Google. Ab diesem Moment sieht Google die Adresse dieses Geräts und welche Platte läuft, und sobald der Clip läuft, kann YouTube Daten auf diesem Gerät speichern und lesen, etwa Cookies. Der Spieler ist der von YouTube, eingebunden über die YouTube API Services: Es gelten die YouTube-Nutzungsbedingungen (youtube.com/t/terms), und was Google mit den Daten macht, steht in der Datenschutzerklärung von Google (policies.google.com/privacy). Sammlung, Wantlist und Token bleiben hier – davon wird nichts gesendet. Der Schalter ist zu Anfang aus, und solange er aus ist, wird gar nichts von Google geladen. Google LLC sitzt in den USA; die Übermittlung stützt sich auf das EU-US Data Privacy Framework. Rechtsgrundlage ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO, für das Speichern auf dem Gerät § 25 Abs. 1 TDDDG): Du gibst sie, indem du die Hörprobe einschaltest und auf Abspielen tippst. Schaltest du sie in den Einstellungen wieder aus, widerrufst du sie für alles Weitere.',
 
     hub: 'Die zweite Ausnahme: ein eigener Hub',
     hubBody:

@@ -124,7 +124,7 @@ const en = {
      */
     consent: {
       lead: 'Play the clips right here?',
-      what: 'We fetch the player from YouTube. Google then sees this device’s address and which record is playing. Your collection and your token stay here. Nothing loads before you tap play.',
+      what: 'We fetch the player from YouTube. Google then sees this device’s address and which record is playing. Once it plays, YouTube may store and read information on this device, such as cookies. Your collection and your token stay here. Nothing loads before you tap play.',
       yes: 'Play here',
       settings: 'You can switch it off again under Settings → Search.',
     },

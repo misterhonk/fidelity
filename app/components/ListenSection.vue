@@ -190,7 +190,10 @@ onBeforeUnmount(() => audio.release(mount.value))
     after stopping, showing the last record's still under the next one.
   -->
   <div v-show="audio.playing.value" class="flex flex-col gap-2">
-    <div class="aspect-video w-full overflow-hidden rounded-fid-sm bg-fid-field">
+    <!-- 200 × 200 at the least, YouTube's smallest player (stack.vue says why). -->
+    <div
+      class="aspect-video min-h-[200px] w-full min-w-[200px] overflow-hidden rounded-fid-sm bg-fid-field"
+    >
       <div ref="mount" class="size-full"></div>
     </div>
     <p class="text-fid-xs text-fid-text-muted">

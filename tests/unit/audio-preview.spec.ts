@@ -5,6 +5,9 @@ import { describe, expect, it } from 'vitest'
 import { withoutComments } from '../helpers/german'
 
 import { videoId } from '~/composables/useAudioPreview'
+import de from '~/i18n/de'
+import en from '~/i18n/en'
+import { packs } from '~/i18n/legal'
 
 /**
  * The audio preview and the conditions under which ADR-012 allows it.
@@ -118,6 +121,29 @@ describe('the promise that had to change', () => {
     // than it is.
     expect(LEGAL).toMatch(/collection, wantlist and token stay here/)
     expect(LEGAL).toMatch(/Sammlung, Wantlist und Token bleiben hier/)
+  })
+
+  /**
+   * What YouTube's API terms and the GDPR ask of the notice (legal review
+   * 2026-11-01): that YouTube may store data once playback starts, a pointer
+   * to the YouTube API Services and Google's privacy policy, and the legal
+   * basis. Pinned in both languages, because the German page is the one a
+   * German regulator reads.
+   */
+  it('names YouTube API Services, Google’s policy and the legal basis', () => {
+    for (const lang of ['en', 'de'] as const) {
+      const body = packs[lang].privacy.audioBody
+      expect(body).toMatch(/YouTube API Services/)
+      expect(body).toMatch(/policies\.google\.com\/privacy/)
+      expect(body).toMatch(/youtube\.com\/t\/terms/)
+      expect(body).toMatch(/Art\. 6/)
+      expect(body).toMatch(/Cookies/i)
+    }
+  })
+
+  it('warns in the consent that YouTube may store data once it plays', () => {
+    expect(en.listen.consent.what).toMatch(/store and read information on this device/)
+    expect(de.listen.consent.what).toMatch(/Daten auf diesem Gerät speichern/)
   })
 
   it('is a heading of its own on the page', () => {
