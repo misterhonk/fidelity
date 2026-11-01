@@ -34,7 +34,10 @@ watch(token, () => {
 async function paste() {
   pasteFailed.value = false
   try {
-    token.value = (await navigator.clipboard.readText()).trim()
+    const pasted = (await navigator.clipboard.readText()).trim()
+    // An empty clipboard would blank the field without a word; that is a failed paste too.
+    if (pasted) token.value = pasted
+    else pasteFailed.value = true
   } catch {
     pasteFailed.value = true
   }
