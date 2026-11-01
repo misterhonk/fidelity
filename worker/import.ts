@@ -2,8 +2,8 @@ import { openFidelityDb } from '~~/db/open'
 import type { MetaValue } from '~~/db/schema'
 import type { Preferences } from '#shared/types'
 
-import { withoutKeys } from './export'
 import { fail } from './fail'
+import { parsePreferences, ROW_SCHEMAS, type RowStore } from './payloads'
 
 /**
  * A backup, read back in (docs/17 §8.4, M24).
@@ -29,20 +29,7 @@ import { fail } from './fail'
  */
 export const OLDEST_ROW_VERSION = 6
 
-/** Each store with its key path — a row without that value cannot be put. */
-const KEY_PATH = {
-  collection: 'instanceId',
-  wantlist: 'releaseId',
-  dealers: 'username',
-  feedback: 'listingId',
-  basket: 'listingId',
-  places: 'id',
-  placements: 'instanceId',
-  valueHistory: 'day',
-  followed: 'artistId',
-  watched: 'releaseId',
-} as const
-const STORES = Object.keys(KEY_PATH) as (keyof typeof KEY_PATH)[]
+const STORES = Object.keys(ROW_SCHEMAS) as RowStore[]
 type Store = (typeof STORES)[number]
 
 export interface ImportReport {
@@ -103,14 +90,16 @@ export async function importEverything(file: unknown): Promise<ImportReport> {
       let put = 0
       let invalid = 0
       for (const row of rows) {
-        if (!isValidRow(store, row)) {
+        const parsed = ROW_SCHEMAS[store].safeParse(row)
+        if (!parsed.success) {
           invalid += 1
           continue
         }
+        const valid: Record<string, unknown> = parsed.data
         // A backup's basket line and watched record carry no prices; they must not replace ones that do.
-        if (store === 'basket' && (await target.count(row.listingId as number)) > 0) continue
-        if (store === 'watched' && (await target.count(row.releaseId as number)) > 0) continue
-        await target.put(row as never)
+        if (store === 'basket' && (await target.count(valid.listingId as number)) > 0) continue
+        if (store === 'watched' && (await target.count(valid.releaseId as number)) > 0) continue
+        await target.put(valid as never)
         put += 1
       }
       report.imported[store] = put
@@ -125,17 +114,12 @@ export async function importEverything(file: unknown): Promise<ImportReport> {
     }
 
     const meta = tx.objectStore('meta')
-    if (
-      backup.preferences &&
-      typeof backup.preferences === 'object' &&
-      !(await meta.get('preferences'))
-    ) {
-      // A file is no place for a hub's key, and one older than 0.112 may hold
-      // them: they stay with whoever entered them on this device.
-      await meta.put({
-        key: 'preferences',
-        value: withoutKeys(backup.preferences as Preferences)!,
-      })
+    const preferences = parsePreferences(backup.preferences)
+    if (preferences && !(await meta.get('preferences'))) {
+      // Parsed, not cast: a file older than 0.112 may hold a hub's keys, and
+      // any file may hold a hub or catalogue address. Those stay with whoever
+      // entered them on this device (#207).
+      await meta.put({ key: 'preferences', value: preferences as Preferences })
       report.meta.push('preferences')
     }
     for (const key of ['tasteProfile', 'credits'] as const) {
@@ -159,21 +143,4 @@ export async function importEverything(file: unknown): Promise<ImportReport> {
   }
 
   return report
-}
-
-/** The fields later code reads without checking; a row missing them is skipped. */
-function isValidRow(
-  store: keyof typeof KEY_PATH,
-  row: unknown,
-): row is Record<string, unknown> {
-  if (!row || typeof row !== 'object') return false
-  const record = row as Record<string, unknown>
-  const key = record[KEY_PATH[store]]
-  const keyOk =
-    (typeof key === 'number' && Number.isFinite(key)) || (typeof key === 'string' && key !== '')
-  if (!keyOk) return false
-  if (store === 'collection' && typeof key !== 'number') return false
-  if (store === 'dealers' && !Array.isArray(record.shippingTiers)) return false
-  if (store === 'watched' && !Array.isArray(record.points)) return false
-  return true
 }

@@ -5,6 +5,7 @@ import { openFidelityDb } from '~~/db/open'
 import type { Match, Signal, TasteProfile } from '#shared/types'
 
 import type { DiscogsClient } from '../discogs/client'
+import { videosSchema } from '../discogs/schemas'
 import { listingDampeners } from '../match'
 import { priceSignal, scarcitySignal, type MarketStats } from '../match/market'
 import { pressingContradictions, pressingWarnings, readPressing } from '../match/pressing'
@@ -75,7 +76,7 @@ export const releaseDetailSchema = z.object({
    * same answer, fourteen of them on release 1. A pass of its own would be
    * fifty requests for data that was already there.
    */
-  videos: z.array(z.object({ title: z.string().optional(), uri: z.string() })).optional(),
+  videos: videosSchema,
 })
 
 /** @deprecated Kept as the old name; the schema grew for M7. */

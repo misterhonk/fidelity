@@ -3,7 +3,9 @@ import { openFidelityDb } from '~~/db/open'
 import type { VaultSnapshot } from '#shared/types'
 import type { VaultTargetPort } from '#shared/ports'
 
-import { open, seal, type SealedVault } from './crypto'
+import { vaultSnapshotSchema } from '../payloads'
+import { fail } from '../fail'
+import { open, seal, sealedSchema } from './crypto'
 import {
   describeSnapshot,
   mergeSnapshots,
@@ -109,13 +111,15 @@ export async function syncVault({
    * reach my other device" into "I no longer have what my other device knew",
    * so a read that throws stops the round.
    */
-  const remote = (await target.read()) as SealedVault | null
+  const remote = await target.read()
 
   let merged = mine
   let hadRemote = false
 
   if (remote) {
-    const theirs = await open<VaultSnapshot>(remote, passphrase)
+    const envelope = sealedSchema.safeParse(remote)
+    if (!envelope.success) throw fail('malformed-payload', 'vault target holds no sealed block')
+    const theirs = await open(envelope.data, passphrase, vaultSnapshotSchema)
     merged = mergeSnapshots(mine, theirs)
     hadRemote = true
     await applySnapshot(merged)

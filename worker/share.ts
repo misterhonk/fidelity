@@ -5,6 +5,7 @@ import { getPreferences } from '~~/db/meta'
 import type { DigWithMatches } from '#shared/protocol'
 import type { SharedDig } from '#shared/types'
 import { fail } from './fail'
+import { sharedDigSchema } from './payloads'
 
 /**
  * Sending a find list without putting it anywhere somebody can read it.
@@ -122,7 +123,7 @@ export async function readShare(
   const found = await withTimeout(hub.shareRead(id), HUB_BULK_TIMEOUT_MS)
   if (!found) return null
 
-  const snapshot = await open<SharedDig>(found.sealed, key)
+  const snapshot = await open(found.sealed, key, sharedDigSchema)
 
   /*
    * The expiry is checked again here, and this time it is not dead code: the

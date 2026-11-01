@@ -15,6 +15,7 @@ import type {
 import { CLOCK_SKEW_MS } from '../horizon/revalidate'
 import { log } from '../log'
 import { fail } from '../fail'
+import { sealedSchema } from '../vault/crypto'
 
 /**
  * What the hub sends back for shops (ADR-014).
@@ -246,13 +247,6 @@ export interface SealedVault {
  */
 const watchKeySchema = z.object({
   publicKey: z.string().regex(/^[A-Za-z0-9_-]{80,100}$/, 'not a base64url VAPID key'),
-})
-
-const sealedSchema = z.object({
-  version: z.number().int().positive(),
-  iv: z.string().min(1),
-  salt: z.string().min(1),
-  cipher: z.string().min(1),
 })
 
 /** Returns null when no hub is configured — the caller then never asks. */

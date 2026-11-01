@@ -1,5 +1,5 @@
 import { getPreferences, updatePreferences } from '~~/db/meta'
-import type { VaultBlocked, VaultSnapshot, VaultStatus } from '#shared/types'
+import type { VaultBlocked, VaultStatus } from '#shared/types'
 
 import { currentIdentity } from '../auth'
 import { createHubClient } from '../hub/client'
@@ -82,14 +82,18 @@ export async function mergeIntoVault(
 
   const { snapshotLocal, applySnapshot } = await import('./sync')
   const { mergeSnapshots, describeSnapshot } = await import('./merge')
-  const { open, seal } = await import('./crypto')
+  const { open, seal, sealedSchema } = await import('./crypto')
+  const { vaultSnapshotSchema } = await import('../payloads')
 
   const mine = await snapshotLocal(now)
   let merged = mine
   let hadRemote = false
 
   if (remote) {
-    const theirs = await open<VaultSnapshot>(remote as SealedVault, passphrase)
+    // The file came through a picker: anything at all could be in it.
+    const envelope = sealedSchema.safeParse(remote)
+    if (!envelope.success) throw fail('malformed-payload', 'vault file is not a sealed block')
+    const theirs = await open(envelope.data, passphrase, vaultSnapshotSchema)
     merged = mergeSnapshots(mine, theirs)
     hadRemote = true
     await applySnapshot(merged)

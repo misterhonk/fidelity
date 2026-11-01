@@ -82,13 +82,20 @@ describe('reading a backup back in', () => {
 
     const old = {
       ...JSON.parse(JSON.stringify(file)),
-      preferences: { maxPrice: 40, hubSecret: 'friends-only', accessKey: 'signed.key' },
+      preferences: {
+        maxPrice: 40,
+        currency: 7,
+        hubSecret: 'friends-only',
+        accessKey: 'signed.key',
+        hubUrl: 'https://someone-elses.example',
+        catalogueUrl: 'https://someone-elses.example/catalogue',
+      },
     }
     await importEverything(old)
     const restored = (await getMeta('preferences')) as unknown as Record<string, unknown>
-    expect(restored.maxPrice).toBe(40)
-    expect(restored.hubSecret).toBeUndefined()
-    expect(restored.accessKey).toBeUndefined()
+    // Parsed field by field (#207): the right type comes back, the wrong one does not,
+    // and where this device's hub and catalogue live never comes from a file.
+    expect(restored).toEqual({ maxPrice: 40 })
   })
 
   it('merges into what the device already has, and keeps its own preferences', async () => {
@@ -137,6 +144,18 @@ describe('reading a backup back in', () => {
 })
 
 describe('a backup that is not quite right', () => {
+  it('skips rows the database could not put, and preferences that are not an object', async () => {
+    const report = await importEverything({
+      kind: 'fidelity-backup',
+      version: 1,
+      feedback: [{ listingId: 1 }, { listingId: '' }, 'row', null, { listingId: { x: 1 } }],
+      preferences: 'all of them',
+    })
+    expect(report.imported.feedback).toBe(1)
+    expect(report.skipped).toEqual([{ store: 'feedback', rows: 4, reason: 'invalid' }])
+    expect(report.meta).toEqual([])
+  })
+
   it('skips a shop row without its tiers and says how many', async () => {
     const file = await exportEverything(9000)
     const report = await importEverything({
