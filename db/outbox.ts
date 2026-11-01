@@ -1,4 +1,5 @@
 import { openFidelityDb } from './open'
+import { retryAfterPurge } from './quota'
 import type { OutboxJob } from './schema'
 
 /**
@@ -29,17 +30,20 @@ export async function queueJob(job: Omit<OutboxJob, 'attempts'>): Promise<void> 
    * still believes, not what the app showed a second ago.
    */
   // One transaction: a drain dropping or failing the job in between must not be undone.
-  const tx = db.transaction('outbox', 'readwrite')
-  const existing = await tx.store.get(job.id)
-  // A pending move still sits in its old folder at Discogs, so that stays the address.
-  const from = existing?.kind === 'collection.folder' ? existing.payload.folderId : undefined
-  await tx.store.put({
-    ...job,
-    payload: from === undefined ? job.payload : { ...job.payload, folderId: from },
-    revert: existing?.revert ?? job.revert,
-    attempts: 0,
+  // The one write here that holds what nobody else has yet, so a full disk gives up covers for it.
+  await retryAfterPurge(async () => {
+    const tx = db.transaction('outbox', 'readwrite')
+    const existing = await tx.store.get(job.id)
+    // A pending move still sits in its old folder at Discogs, so that stays the address.
+    const from = existing?.kind === 'collection.folder' ? existing.payload.folderId : undefined
+    await tx.store.put({
+      ...job,
+      payload: from === undefined ? job.payload : { ...job.payload, folderId: from },
+      revert: existing?.revert ?? job.revert,
+      attempts: 0,
+    })
+    await tx.done
   })
-  await tx.done
 }
 
 export async function pendingJobs(): Promise<OutboxJob[]> {
