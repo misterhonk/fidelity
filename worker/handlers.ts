@@ -388,6 +388,12 @@ export const handlers: HandlerMap = {
     return harvest
   },
 
+  /* Whether a harvest is in flight — module state, no I/O. */
+  'credits.running': async () => {
+    const { harvestRunning } = await import('./horizon/credits')
+    return harvestRunning()
+  },
+
   'credits.status': async () => {
     const { creditCandidates, MIN_RATING } = await import('./horizon/credits')
     const db = await openFidelityDb()

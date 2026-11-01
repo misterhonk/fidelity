@@ -5,6 +5,7 @@ import type { CreditHarvest } from '#shared/types'
 
 import type { DiscogsClient } from '../discogs/client'
 import { DiscogsError } from '../discogs/errors'
+import { fail } from '../fail'
 import { isAnonymousArtist, norm } from '../match/normalize'
 import { distinctReleases } from '~~/db/collection'
 
@@ -71,6 +72,18 @@ export interface HarvestOptions {
 const MS_PER_REQUEST = 1200
 
 /**
+ * Whether this worker is harvesting right now. Module state, like
+ * `horizon/running.ts`: the run outlives the panel that started it, and a
+ * second run beside it would read the same `seen` set, ask for the same
+ * releases again and overwrite the first one's people.
+ */
+let harvesting = false
+
+export function harvestRunning(): boolean {
+  return harvesting
+}
+
+/**
  * Reads the credits off every favourite that has not been read yet.
  *
  * Resumable by construction: the set of release ids already harvested is
@@ -78,7 +91,17 @@ const MS_PER_REQUEST = 1200
  * the run. Nothing here is displayable content — names and roles only, which
  * is the same ID-and-edge shape the rest of the horizon stores (docs/11 §7).
  */
-export async function harvestCredits({
+export async function harvestCredits(options: HarvestOptions): Promise<CreditHarvest> {
+  if (harvesting) throw fail('harvest-running', 'a credit harvest is already running')
+  harvesting = true
+  try {
+    return await harvest(options)
+  } finally {
+    harvesting = false
+  }
+}
+
+async function harvest({
   client,
   report,
   signal,

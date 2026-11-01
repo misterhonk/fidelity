@@ -608,6 +608,8 @@ export interface WorkerContract {
     result: CreditHarvest
   }
   'credits.status': { params: undefined; progress: never; result: CreditStatus }
+  /** Whether a harvest is in flight in this worker — see `harvestRunning()`. */
+  'credits.running': { params: undefined; progress: never; result: boolean }
 
   /**
    * Stage two of the master/release two-step: the pressings the last dig
@@ -1622,6 +1624,8 @@ export interface WorkerError {
     /** The round (M36): one at a time, and not twice within ten minutes. */
     | 'round-running'
     | 'round-recent'
+    /** One credit harvest at a time: a second would read the same releases again. */
+    | 'harvest-running'
     | 'deep-scan-done'
     | 'no-anchor'
     | 'match-gone'

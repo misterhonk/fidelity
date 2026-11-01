@@ -205,6 +205,11 @@ const de: Messages = {
         title: 'Es läuft schon ein Dig.',
         action: 'Einer auf einmal, mehr lässt Discogs uns nicht. Lass ihn zu Ende laufen.',
       },
+      'harvest-running': {
+        title: 'Die Credits werden schon gelesen.',
+        action:
+          'Immer nur ein Durchgang. Er läuft weiter, auch wenn du den Bildschirm verlässt.',
+      },
       'round-running': {
         title: 'Die Runde läuft schon.',
         action:
