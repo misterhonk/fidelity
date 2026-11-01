@@ -422,7 +422,7 @@ const en = {
 
     scopeWhyLabel: 'What travels and what does not',
     scopeWhy:
-      'With: your artists and labels, shortlist, shops with their postage tiers, settings. Not with: your Discogs token, or the basket. Its prices go stale, and a line removed here would come back. One key on three devices is three times the surface, and each device signs itself in once. And no digs: prices go after six hours anyway and have no business on a server.',
+      'With: your shortlist, shops with their postage tiers, settings. Not with: your Discogs token, or the basket. Its prices go stale, and a line removed here would come back. One key on three devices is three times the surface, and each device signs itself in once. Each device also looks up your artists and labels itself. And no digs: prices go after six hours anyway and have no business on a server.',
   },
 
   /** Settings → Hub. */
@@ -1019,7 +1019,7 @@ const de: typeof en = {
 
     scopeWhyLabel: 'Was mitgeht und was nicht',
     scopeWhy:
-      'Mit: deine Künstler und Labels, Gemerktes, Läden mit Versandstaffeln, Einstellungen. Nicht mit: dein Discogs-Token und der Korb. Seine Preise veralten, und eine hier entfernte Zeile käme zurück. Ein Schlüssel auf drei Geräten ist dreimal so viel Angriffsfläche, jedes Gerät meldet sich einmal selbst an. Und keine Digs: Preise sind nach sechs Stunden sowieso weg und gehören nicht auf einen Server.',
+      'Mit: Gemerktes, Läden mit Versandstaffeln, Einstellungen. Nicht mit: dein Discogs-Token und der Korb. Seine Preise veralten, und eine hier entfernte Zeile käme zurück. Ein Schlüssel auf drei Geräten ist dreimal so viel Angriffsfläche, jedes Gerät meldet sich einmal selbst an. Deine Künstler und Labels schlägt auch jedes Gerät selbst nach. Und keine Digs: Preise sind nach sechs Stunden sowieso weg und gehören nicht auf einen Server.',
   },
 
   hubPanel: {
