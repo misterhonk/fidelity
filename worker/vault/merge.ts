@@ -1,4 +1,32 @@
-import type { VaultSnapshot } from '#shared/types'
+import type { Preferences, VaultSnapshot } from '#shared/types'
+
+/**
+ * The preferences that travel — an allowlist, so a setting added later stays on
+ * its device until somebody decides otherwise.
+ *
+ * What a person wants from a shop, not how a device is set up: vault target,
+ * hub, access key, cloud client ids, friends import and audio consent (ADR-009,
+ * ADR-012 — per device by design) never leave. Language, theme and density are
+ * not preferences at all; they live in the main thread's own storage.
+ */
+const SYNCED_PREFERENCES = [
+  'prefMediaCondition',
+  'targetPrice',
+  'maxPrice',
+  'minSellerRating',
+  'formatsAllow',
+  'shipsFromBlock',
+  'excludeReissues',
+  'currency',
+  'shipsToCountry',
+  'updatedAt',
+] as const satisfies readonly (keyof Preferences)[]
+
+export function syncedPreferences(prefs: Partial<Preferences>): Partial<Preferences> {
+  return Object.fromEntries(
+    SYNCED_PREFERENCES.filter((key) => key in prefs).map((key) => [key, prefs[key]]),
+  )
+}
 
 /**
  * Two devices, one truth.

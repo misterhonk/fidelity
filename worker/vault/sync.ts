@@ -1,10 +1,16 @@
 import { getPreferences } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
-import type { Preferences, VaultSnapshot } from '#shared/types'
+import type { VaultSnapshot } from '#shared/types'
 import type { VaultTargetPort } from '#shared/ports'
 
 import { open, seal, type SealedVault } from './crypto'
-import { describeSnapshot, mergeSnapshots, SYNCABLE_STORES, type SyncableStore } from './merge'
+import {
+  describeSnapshot,
+  mergeSnapshots,
+  SYNCABLE_STORES,
+  syncedPreferences,
+  type SyncableStore,
+} from './merge'
 
 /**
  * One round: read what is out there, merge, write back, keep the result.
@@ -43,7 +49,7 @@ export async function snapshotLocal(now: number): Promise<VaultSnapshot> {
     if (rows.length > 0) stores[store] = rows as unknown[]
   }
 
-  return { savedAt: now, preferences: await getPreferences(), stores }
+  return { savedAt: now, preferences: syncedPreferences(await getPreferences()), stores }
 }
 
 /**
@@ -71,8 +77,14 @@ export async function applySnapshot(snapshot: VaultSnapshot): Promise<void> {
      * The token is not in here and never was — but preferences arriving from
      * another device must not be able to smuggle one in either, so this writes
      * the preferences key and nothing else.
+     *
+     * Merged into what is here, and filtered again: a vault written before the
+     * allowlist still carries another device's hub, vault target and consent.
      */
-    await setMeta('preferences', snapshot.preferences as Preferences)
+    await setMeta('preferences', {
+      ...(await getPreferences()),
+      ...syncedPreferences(snapshot.preferences),
+    })
   }
 }
 
