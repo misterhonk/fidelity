@@ -71,7 +71,7 @@ const entries = computed<Entry[]>(() => {
       group: m.palette.dealers,
       label: dealer.displayName || dealer.username,
       hint: dealer.affinity ? m.palette.affinity(decimal(dealer.affinity)) : undefined,
-      run: go('/dealers'),
+      run: go('/dealers', { shop: dealer.username }),
     })),
 
     ...digs.value.map((dig) => ({
@@ -84,14 +84,13 @@ const entries = computed<Entry[]>(() => {
       run: go('/dig', { id: dig.id }),
     })),
 
-    // Matches jump into the dig with the text filter already set, which is the
-    // one action that works today for every record in the list.
+    // A find opens its sheet over its dig; app.vue reads `?find=`.
     ...matches.value.map((match) => ({
       id: `match-${match.listingId}`,
       group: m.palette.lastDig,
       label: `${match.artist ?? '—'} – ${match.title ?? '—'}`,
       hint: `${match.score}`,
-      run: go('/dig', { q: `${match.artist ?? ''} ${match.title ?? ''}`.trim() }),
+      run: go('/dig', { id: match.digId, find: `${match.digId}~${match.listingId}` }),
     })),
   ]
 })
