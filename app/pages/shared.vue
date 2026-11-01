@@ -94,7 +94,7 @@ const fresh = computed(() => snapshot.value?.expiresAt !== undefined && !passed.
 </script>
 
 <template>
-  <AppPage narrow>
+  <AppPage narrow class="max-md:pt-[calc(env(safe-area-inset-top,0px)+2rem)]">
     <p v-if="loading" class="text-fid-base text-fid-text-muted">{{ d.sheet.loading }}</p>
 
     <section v-else-if="problem" class="flex flex-col gap-3">

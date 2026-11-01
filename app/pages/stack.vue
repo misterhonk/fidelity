@@ -305,7 +305,10 @@ const STACKED =
 </script>
 
 <template>
-  <main class="mx-auto flex w-full max-w-lg flex-col gap-4 p-4" @keydown="onKey">
+  <main
+    class="mx-auto flex w-full max-w-lg flex-col gap-4 p-4 max-md:pt-[calc(env(safe-area-inset-top,0px)+1rem)]"
+    @keydown="onKey"
+  >
     <h1 class="sr-only">{{ d.stack.title }}</h1>
 
     <!--
