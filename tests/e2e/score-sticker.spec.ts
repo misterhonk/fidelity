@@ -1,6 +1,6 @@
 import { expect, test } from './support/test'
 
-import { seed } from './seed'
+import { freshDig, putRows, seed } from './seed'
 
 /**
  * The score as a price sticker, explained once per list (#222).
@@ -28,5 +28,21 @@ test('cards wear a score sticker and the list explains it once', async ({ page }
   const fives = page.locator('section[aria-labelledby="the-wall"]')
   await expect(fives.getByText('How the score works')).toHaveCount(1)
 
+  await expect(page.getByTestId('small-collection')).toBeVisible()
+})
+
+/*
+ * And without finds (#223 review): the hint stands under the finds section,
+ * not inside the branch that only renders when there are some. A small
+ * collection is the likeliest reason a dig comes back empty.
+ */
+test('a dig with no finds still says the collection is small', async ({ page }) => {
+  await seed(page, 'en')
+  const dig = { ...freshDig(Date.now()), id: '01J0000000000000000000DIG0', matchCount: 0 }
+  await putRows(page, { digs: [dig] })
+
+  await page.goto(`/dig?id=${dig.id}`)
+  await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByTestId('score-sticker')).toHaveCount(0)
   await expect(page.getByTestId('small-collection')).toBeVisible()
 })
