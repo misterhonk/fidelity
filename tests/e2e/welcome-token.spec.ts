@@ -68,3 +68,25 @@ test('a failed paste says so, and the line goes once the key is typed', async ({
   await page.getByLabel('Personal access token').fill('typed-token')
   await expect(failed).toBeHidden()
 })
+
+test('an empty clipboard is a failed paste and leaves the field alone', async ({
+  page,
+  context,
+}) => {
+  await context.route('https://api.discogs.com/**', (route) =>
+    route.fulfill({ status: 404, headers: { 'access-control-allow-origin': '*' }, body: '{}' }),
+  )
+  await page.goto('/welcome')
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'], {
+    origin: new URL(page.url()).origin,
+  })
+  await page.getByRole('button', { name: 'Set it up with your collection' }).click()
+
+  const field = page.getByLabel('Personal access token')
+  await field.fill('typed-token')
+  await page.evaluate(() => navigator.clipboard.writeText('   '))
+  await page.getByRole('button', { name: 'Paste' }).click()
+
+  await expect(page.getByText('The clipboard stayed closed')).toBeVisible()
+  await expect(field).toHaveValue('typed-token')
+})
