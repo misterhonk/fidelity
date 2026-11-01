@@ -29,7 +29,8 @@ useSeoMeta({ description: () => w.value.description })
  * Its own route rather than a modal: it is the only thing on screen, it can be
  * left and come back to, and it is a chunk that a returning user never loads.
  */
-const { call } = useFidelityWorker()
+const m = useMessages()
+const { call, stop } = useFidelityWorker()
 const { identity, ready, load, set } = useIdentity()
 
 /**
@@ -114,7 +115,8 @@ async function sync() {
     library.value = await call('library.summary', undefined)
     step.value = 'dig'
   } catch (cause) {
-    error.value = cause
+    // Stopped on purpose: what was stored stays, and the button offers the rest.
+    if (!isCancelled(cause)) error.value = cause
   } finally {
     syncing.value = false
     progress.value = null
@@ -241,8 +243,16 @@ function focusHeading(panel: Element) {
             </p>
           </div>
 
-          <div v-if="syncing" class="flex flex-col gap-2" aria-live="polite">
-            <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
+          <!-- Silent bar and counter; the milestone note speaks once per tenth (#216). -->
+          <div v-if="syncing" class="flex flex-col gap-2">
+            <div
+              role="progressbar"
+              :aria-label="syncLabel ?? w.asking"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              :aria-valuenow="percent"
+              class="h-2 w-full overflow-hidden rounded-full bg-fid-inset"
+            >
               <div
                 class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
                 :style="{ width: `${percent}%` }"
@@ -251,6 +261,14 @@ function focusHeading(panel: Element) {
             <p class="fid-num text-fid-sm text-fid-text-muted">
               {{ syncLabel ?? w.asking }}
             </p>
+            <JobMilestone :label="w.steps.sync" :percent="percent" />
+            <button
+              type="button"
+              class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+              @click="stop('library.sync')"
+            >
+              {{ m.common.stop }}
+            </button>
           </div>
 
           <button

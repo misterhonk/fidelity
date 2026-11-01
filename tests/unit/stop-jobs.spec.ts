@@ -72,6 +72,7 @@ describe('progress is announced at milestones only', () => {
     'app/components/HorizonBuild.vue',
     'app/components/CreditHarvest.vue',
     'app/components/ShopRound.vue',
+    'app/pages/welcome.vue',
   ]
 
   for (const file of panels) {
