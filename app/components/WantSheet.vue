@@ -194,7 +194,7 @@ useWalkKeys((to) =>
     />
 
     <div
-      class="sticky -bottom-6 -mx-6 mt-auto flex items-center justify-between gap-2 border-t border-fid-border bg-fid-surface px-6 pt-4 -mb-6 pb-6"
+      class="sticky -bottom-6 -mx-6 mt-auto flex items-center justify-between gap-2 border-t border-fid-border bg-fid-surface px-6 pt-4 -mb-6 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]"
     >
       <OutwardLink
         tone="inherit"

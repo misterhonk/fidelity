@@ -681,7 +681,7 @@ async function remove() {
         through underneath it.
       -->
       <div
-        class="sticky -bottom-6 -mx-6 mt-auto flex flex-wrap items-center gap-3 border-t border-fid-border bg-fid-surface px-6 pt-4 -mb-6 pb-6"
+        class="sticky -bottom-6 -mx-6 mt-auto flex flex-wrap items-center gap-3 border-t border-fid-border bg-fid-surface px-6 pt-4 -mb-6 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]"
       >
         <a
           :href="`https://www.discogs.com/release/${record.releaseId}`"

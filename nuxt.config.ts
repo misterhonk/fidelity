@@ -126,6 +126,11 @@ export default defineNuxtConfig({
        */
       title: 'Sleeveside',
 
+      // `viewport-fit=cover` is what makes iOS report the safe-area insets.
+      // Without it every `env(safe-area-inset-*)` is zero, and with the
+      // translucent status bar below, headers sat under the clock.
+      viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
+
       meta: [
         // Nothing here is meant for a search index (docs/00 §9). robots.txt
         // asks politely; this is the part crawlers actually honour.
