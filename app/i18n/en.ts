@@ -471,8 +471,8 @@ const en = {
     /** A change we gave up on after five tries and put back, named so you can redo it. */
     undone: (titles: string[]) =>
       titles.length === 1
-        ? `“${titles[0]}” didn't reach Discogs, so we undid the change`
-        : `${titles.length} changes didn't reach Discogs, so we undid them: ${titles.map((t) => `“${t}”`).join(', ')}`,
+        ? `“${titles[0]}” didn’t reach Discogs. We put it back as it was.`
+        : `We put back ${new Intl.ListFormat('en').format(titles.map((t) => `“${t}”`))}. They didn’t reach Discogs.`,
     asOf: (when: string) => `As of ${when}`,
     refreshAll: 'Refresh everything',
 

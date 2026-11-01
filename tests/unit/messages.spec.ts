@@ -145,9 +145,18 @@ describe('the cost table', () => {
 
 describe('a change given up on', () => {
   it('names the record in both languages', () => {
-    expect(en.freshness.undone(['Loveless'])).toContain('“Loveless”')
-    expect(de.freshness.undone(['Loveless'])).toContain('„Loveless“')
-    expect(de.freshness.undone(['A', 'B'])).toMatch(/^2 .*„A“, „B“$/)
+    expect(en.freshness.undone(['Loveless'])).toBe(
+      '“Loveless” didn’t reach Discogs. We put it back as it was.',
+    )
+    expect(de.freshness.undone(['Loveless'])).toBe(
+      '„Loveless“ kam nicht bei Discogs an. Wir haben die Änderung zurückgenommen.',
+    )
+    expect(en.freshness.undone(['A', 'B', 'C'])).toBe(
+      'We put back “A”, “B”, and “C”. They didn’t reach Discogs.',
+    )
+    expect(de.freshness.undone(['A', 'B'])).toBe(
+      'Wir haben „A“ und „B“ zurückgenommen. Sie kamen nicht bei Discogs an.',
+    )
   })
 })
 
