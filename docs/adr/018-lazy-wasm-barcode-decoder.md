@@ -75,3 +75,31 @@ worth two taps saved per record.
 - `.size-limit.js` throws if the glue or the `.wasm` is among the first-paint files or is
   named anywhere in `index.html` (prefetch included), and holds the lazy pair under 440 kB.
 - The scanned digits are also written into the field, so a misread is visible and fixable.
+
+## Follow-ups (#304)
+
+- **Decoding runs in a worker of its own.** `app/composables/scan/zxing.ts` is now only a
+  launcher: it fetches the `.wasm` (so the request stays the page's, cached by the service
+  worker and routable in tests in every engine), starts `worker/scan/zxing.ts` with
+  `new Worker(new URL(...))`, hands it the bytes once and then one frame at a time. Copying
+  the video frame into an `ImageData` stays on the main thread, because only it has the
+  `<video>`; `readBarcodes` runs only in the worker. The worker is separate from the Discogs
+  worker, makes no requests and is started at most once per page. `.size-limit.js` tells the
+  two workers apart by the launcher, the one chunk that names the hashed `.wasm`.
+- **No retry after a failed load, by design.** When the reader cannot load, `failure` is
+  `'unavailable'` and the scan button stays hidden until the page is reloaded. The usual
+  cause is being offline on first use, where a second tap fails the same way; and a failed
+  `import()` of the launcher chunk is remembered by some browsers' module maps, so a retry
+  would not even reach the network. The field and the Scan Text hint cover the meantime.
+  The launcher itself forgets a failed start, so the next attempt after a reload is a clean
+  one.
+- **Delivery.** Apache now sends `application/wasm` (`AddType`), compresses it and marks it
+  immutable like every hashed file; without the type, Emscripten falls back to the slower
+  non-streaming compile. nginx had both already through `mime.types` and its `/_nuxt/` rule.
+  Since #304 the bytes reach the worker as an `ArrayBuffer`, so the compile is not streamed
+  either way; the type still matters for anything that fetches the file directly.
+- **Guards.** The size-limit prefetch check also reads `200.html`, the service worker's
+  navigation fallback; `tests/unit/identify.spec.ts` pins the `.wasm` runtime route, its
+  absence from `globPatterns`, the Apache type and that `readBarcodes` stays out of the
+  launcher; `tests/e2e/barcode-scan.spec.ts` finds the decoder's files by content in the
+  build instead of by a name pattern that missed the hashed launcher chunk.

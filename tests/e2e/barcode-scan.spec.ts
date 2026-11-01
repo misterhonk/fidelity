@@ -1,4 +1,4 @@
-import { expect, test, type Page, type Request } from './support/test'
+import { expect, test, type Page } from './support/test'
 
 import { seed } from './seed'
 
@@ -16,7 +16,7 @@ import { seed } from './seed'
  * every CI host.
  *
  * Service workers are blocked so every request is the page's own and seen
- * by `page.on('request')`.
+ * by `page.on('response')`.
  */
 test.use({ serviceWorkers: 'block' })
 
@@ -62,21 +62,40 @@ async function camera(page: Page, detector: 'native' | 'none') {
 
       Object.defineProperty(navigator, 'mediaDevices', {
         configurable: true,
-        value: { getUserMedia: async () => canvas.captureStream(15) },
+        value: {
+          getUserMedia: async () => {
+            // A test may act at the moment the camera opens (see below).
+            await (window as { cameraOpening?: () => Promise<void> }).cameraOpening?.()
+            return canvas.captureStream(15)
+          },
+        },
       })
     },
     { bars, size, detector, ean: EAN },
   )
 }
 
-const isDecoder = (request: Request) => /zxing_reader|\.wasm$/.test(request.url())
-
+/**
+ * Every file of the decoder the page received: the .wasm, and each `/_nuxt/`
+ * chunk whose text names `zxing_reader` — the launcher and the decoder's
+ * worker (#304). Judged by content because their names are hashes; a pattern
+ * on the URL (`zxing_reader|\.wasm$`) let the launcher chunk through unseen.
+ */
 function decoderRequests(page: Page) {
-  const seen: string[] = []
-  page.on('request', (request) => {
-    if (isDecoder(request)) seen.push(request.url())
+  const seen: Promise<string | null>[] = []
+  page.on('response', (response) => {
+    const url = response.url()
+    if (!new URL(url).pathname.includes('/_nuxt/')) return
+    seen.push(
+      url.endsWith('.wasm')
+        ? Promise.resolve(url)
+        : response.text().then(
+            (text) => (text.includes('zxing_reader') ? url : null),
+            () => null,
+          ),
+    )
   })
-  return seen
+  return async () => (await Promise.all(seen)).filter((url) => url !== null)
 }
 
 const field = (page: Page) => page.getByRole('textbox', { name: 'Barcode or run-out number' })
@@ -108,30 +127,36 @@ test('with BarcodeDetector the decoder is never fetched', async ({ page, browser
 
   await scanButton(page).click()
   await expect(field(page)).toHaveValue(EAN)
-  expect(seen).toEqual([])
+  expect(await seen()).toEqual([])
 })
 
 test('without BarcodeDetector the reader loads on the tap and reads an EAN-13', async ({
   page,
 }) => {
   await camera(page, 'none')
+  // The lookup after the read would go to Discogs from the worker, which
+  // Playwright cannot route in WebKit. Offline, it fails here instead — from
+  // the moment the camera opens, which is after the reader is ready (decoder
+  // first) and before anything can be read.
+  await page.exposeFunction('cameraOpening', () => page.context().setOffline(true))
   const seen = decoderRequests(page)
   await seed(page, 'en')
   await page.goto('/in-store')
   await expect(scanButton(page)).toBeVisible({ timeout: 15_000 })
 
   // On the screen, and nothing of the reader yet.
-  expect(seen).toEqual([])
+  expect(await seen()).toEqual([])
 
   const wasm = page.waitForResponse((response) => /\.wasm$/.test(response.url()))
   await scanButton(page).click()
   expect((await wasm).status()).toBe(200)
-  // The lookup after the read would go to Discogs from the worker, which
-  // Playwright cannot route in WebKit. Offline, it fails here instead.
-  await page.context().setOffline(true)
 
   await expect(field(page)).toHaveValue(EAN, { timeout: 15_000 })
-  expect(seen.some((url) => url.endsWith('.wasm'))).toBe(true)
+  expect((await seen()).some((url) => url.endsWith('.wasm'))).toBe(true)
+  // The launcher, not only the .wasm (#304).
+  expect((await seen()).some((url) => !url.endsWith('.wasm'))).toBe(true)
+  // Read in the decoder's own worker, not on the main thread (#304).
+  expect(page.workers().some((worker) => /\/zxing-[\w-]+\.js$/.test(worker.url()))).toBe(true)
 })
 
 test('when the reader cannot load, the field and the Scan Text hint stay', async ({ page }) => {

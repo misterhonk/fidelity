@@ -110,8 +110,10 @@ concrete shelving.
 >
 > - **Nobody on first paint.** It is an `import()` inside `useBarcodeScan.start()`, never
 >   prefetched or preloaded. `.size-limit.js` breaks the build if either file shows up among
->   the first-paint assets or anywhere in `index.html`. First paint and worker were measured
+>   the first-paint assets or anywhere in `index.html` or `200.html`. First paint and worker were measured
 >   identical before and after (125.46 kB, 20.17 kB).
+> - **Not the main thread.** Since #304 the glue and the decoding live in a worker of their
+>   own (`worker/scan/zxing.ts`); the page's side is a 1 kB launcher.
 > - **Nobody with `BarcodeDetector`.** Chromium reads barcodes by itself and never fetches it.
 > - **An iPhone, once, on the first tap on "Read a barcode".** About 0.3 s on normal LTE,
 >   ~4.3 s on one bar in the basement (the table below, scaled) — and then never again:
