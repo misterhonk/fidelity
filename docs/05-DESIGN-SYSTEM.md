@@ -126,9 +126,33 @@ pinch zoom stays.
 
 One set, **Presswerk**, self-hosted from `app/assets/fonts/` and declared in `fonts.css`.
 No component names a typeface — everything goes through `--fid-font-sans`,
-`--fid-font-mono`, `--fid-font-display`. All three come from Fontshare — the licence
-allows the files in an AGPL repository, which the Swiss foundries' webfont licences would
-not (the review of 2026-09-12 says why that is the decision, not the taste).
+`--fid-font-mono`, `--fid-font-display`.
+
+**The licences, corrected on 2026-11-01.** This paragraph used to say all three faces come
+from Fontshare and that the licence allows them in an AGPL repository. Both halves were
+wrong:
+
+- **JetBrains Mono** is not a Fontshare face. It is under the SIL Open Font License 1.1,
+  which allows redistribution as long as the licence text travels with the files —
+  `public/OFL.txt`, listed in `public/THIRD-PARTY-NOTICES.md`.
+- **Switzer and Cabinet Grotesk** are under the ITF Free Font License 2.0 (Fontshare,
+  17 August 2026). It allows using them on one's own websites and apps, and **forbids
+  distributing the font files through repositories or public servers**.
+
+**Decision (Martin, 2026-11-01): Switzer and Cabinet Grotesk stay.** What follows from it:
+
+- The GitHub repository goes **private** — the owner switches that himself. A public
+  repository with the files in `app/assets/fonts/` is exactly the redistribution the
+  licence rules out.
+- **Open for the owner:** two more places hand the files out publicly and must become
+  private too, or be built without the font files — the **release archive**
+  (`.github/workflows/release.yml` attaches `fidelity-<tag>.zip`, built from
+  `.output/public`, to a GitHub release) and the **container images** on GHCR
+  (`images.yml`, which copy the same `.output/public`). Serving the fonts from the app's own
+  website is use, not redistribution, and stays as it is.
+
+The AGPL itself does not cover the font files — they are separate works with their own
+licence, bundled, not derived from.
 
 **Two faces changed on 2026-09-12 (M26.1).** Array became a dot matrix at the new display
 size — a neon sign, not a type plate — and Chivo Mono was the one face not on Fontshare.

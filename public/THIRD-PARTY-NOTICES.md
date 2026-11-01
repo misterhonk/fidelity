@@ -10,11 +10,11 @@ website, the release archive and the container images.
 
 ## Fonts
 
-| Font            | Files                     | Licence                                                                                                                                                  |
-| --------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| JetBrains Mono  | `JetBrains-Mono-*.woff2`  | SIL Open Font License 1.1, full text in `OFL.txt`. Copyright 2020 The JetBrains Mono Project Authors                                                     |
-| Switzer         | `Switzer-*.woff2`         | ITF Free Font License (Fontshare), © Indian Type Foundry. Use only; the files may not be redistributed on their own. See `docs/05-DESIGN-SYSTEM.md` §2.5 |
-| Cabinet Grotesk | `Cabinet-Grotesk-*.woff2` | ITF Free Font License (Fontshare), © Indian Type Foundry. Same terms as Switzer                                                                          |
+| Font            | Files                     | Licence                                                                                                                                                                                                |
+| --------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| JetBrains Mono  | `JetBrains-Mono-*.woff2`  | SIL Open Font License 1.1, full text in `OFL.txt`. Copyright 2020 The JetBrains Mono Project Authors                                                                                                   |
+| Switzer         | `Switzer-*.woff2`         | ITF Free Font License (Fontshare), © Indian Type Foundry. Licensed for use in this app; the files may not be redistributed through repositories or public servers. See `docs/05-DESIGN-SYSTEM.md` §2.5 |
+| Cabinet Grotesk | `Cabinet-Grotesk-*.woff2` | ITF Free Font License (Fontshare), © Indian Type Foundry. Same terms as Switzer                                                                                                                        |
 
 ## Icons
 
