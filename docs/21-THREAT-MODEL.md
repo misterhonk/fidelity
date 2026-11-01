@@ -78,9 +78,13 @@ Dealer names, listing comments, release titles and notes come from strangers via
 - Whoever holds it ships a build of their own, the service worker installs it on the next
   visit, and that build reads every token. **This is the worst case in the list.**
 - **Defence:** the key is for this deployment only, scoped to a GitHub environment, and held
-  as a secret, not a variable. The owner should restrict it on the server side as well
-  (`restrict` and a forced `rrsync` command in `authorized_keys`) so it can write the
-  docroot and nothing else.
+  as a secret, not a variable. The owner should restrict it on the server side as well:
+  a dedicated deploy user that owns the deployment path and nothing else, with
+  `restrict,from=…` in `authorized_keys`. A forced `rrsync` command does not fit as it
+  stands — the same key also runs `rm -rf`/`mkdir` on `.incoming`, `chmod` and `publish.sh`,
+  and `readlink` on `current` (`deploy.yml`), and `rrsync` refuses all of that. Narrowing it
+  further means a forced-command wrapper that checks `$SSH_ORIGINAL_COMMAND` against exactly
+  those calls, and changing it whenever the workflow's commands change.
 - **Residual risk:** the docroot itself. Rotate the key and redeploy if it may have leaked;
   every user then gets the clean build with the next update.
 
