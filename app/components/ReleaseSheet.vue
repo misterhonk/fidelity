@@ -295,32 +295,6 @@ const meta = computed(() =>
 )
 
 /**
- * The evidence behind each signal, rendered as a phrase.
- *
- * Deliberately not the Barry sentence again: the card already carries that.
- * This is the sheet, so it answers the follow-up question — *why* did the
- * label signal fire, how many records is "some".
- */
-function evidenceOf(evidence: Record<string, unknown>): string {
-  const parts: string[] = []
-  for (const [key, value] of Object.entries(evidence)) {
-    // Only labelled keys are shown. Evidence also carries internal handles —
-    // releaseId, masterId — and printing "releaseId: 10.147.986" at somebody
-    // is worse than printing nothing: it looks like an answer and is not one.
-    const label = EVIDENCE_LABEL.value[key]
-    if (!label || value === null || value === undefined || value === '') continue
-
-    const shown = Array.isArray(value)
-      ? value.slice(0, 3).join(', ')
-      : typeof value === 'number'
-        ? decimal(value, 2)
-        : String(value)
-    parts.push(`${label}: ${shown}`)
-  }
-  return parts.join(' · ')
-}
-
-/**
  * The evidence keys the sheet is allowed to print, and what each is called.
  *
  * The table is the allowlist: anything not in it is an internal handle
@@ -586,8 +560,11 @@ function years(entry: { from: number; to: number }): string {
                 {{ Math.round(signal.confidence * 100) }} %
               </span>
             </p>
-            <p v-if="evidenceOf(signal.evidence)" class="text-fid-xs text-fid-text-muted">
-              {{ evidenceOf(signal.evidence) }}
+            <p
+              v-if="evidenceOf(signal.evidence, EVIDENCE_LABEL)"
+              class="text-fid-xs text-fid-text-muted"
+            >
+              {{ evidenceOf(signal.evidence, EVIDENCE_LABEL) }}
             </p>
           </li>
         </ul>
