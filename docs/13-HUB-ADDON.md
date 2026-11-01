@@ -43,7 +43,7 @@ the local route on any error.
 | **Shipping tiers** | One person enters them, everybody has them. Replaces the pull-request route | ❌ no |
 | **The change watcher** | Polls `num_for_sale` per watched dealer — **1 request instead of 100** — and sends a push on a change | ❌ no |
 | **Web Push** | The only route to real notifications. Strictly requires an application server | ❌ no |
-| **Device sync** | Desktop and phone share wantlist notes, the basket, feedback | ❌ no |
+| **Device sync** | Desktop and phone share verdicts (feedback), the shop list, places and what stands where. **Not** the basket, the collection or the wantlist — they are left out of the vault on purpose (`worker/vault/merge.ts`, `SYNCABLE_STORES`) | ❌ no |
 | **Sharing a dig** | Upload a dig, send Jens the link | ❌ no |
 
 > **The most important find: none of that needs the Discogs token.**

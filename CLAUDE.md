@@ -31,9 +31,13 @@ direkter Zugriff auf `api.discogs.com` aus dem Browser. Siehe `docs/adr/007-clie
    erlaubt Discogs nur 25 statt 60 Anfragen pro Minute (gemessen 2026-08-10). Alles läuft
    durch den einen `DiscogsClient` im Worker.
 
-   **Und zwar über alle Tabs hinweg.** Das Limit gilt pro IP, ein Tab ist keine IP.
-   Der Slot wird unter dem Web Lock `fidelity:discogs` gegen `meta.lastRequestAt`
-   beansprucht. Wer den Pacer anfasst, behält das bei.
+   **Und zwar über alle Tabs hinweg.** Discogs zählt das Limit **pro Zugangsdaten**, nicht
+   pro IP (Discogs-Staff im Forum, Thread 1188759, ~2026-10-22): alle Tabs mit demselben
+   Token ziehen aus einem Topf — und **zwei Geräte mit einem Token teilen sich ebenfalls
+   einen**. Ohne Token zählt die IP. Die Regel bleibt dieselbe, nur ihre Begründung ist
+   genauer: der Slot wird unter dem Web Lock `fidelity:discogs` gegen `meta.lastRequestAt`
+   beansprucht. Wer den Pacer anfasst, behält das bei. Über Geräte hinweg schützt der Lock
+   nicht — dort ist ein abgelehntes `fetch()` erwartbar und kein Fehler des Pacers.
 
 4. **Niemals Marktplatzdaten älter als 6 Stunden anzeigen.**
    ToS. `dig.expiresAt` erzwingt das. Nicht umgehen, auch nicht „nur für die Entwicklung".
@@ -75,7 +79,7 @@ Alle am 2026-08-09 live verifiziert.
 | **`fetch()` kann keinen User-Agent setzen** | Verifiziert unkritisch – Discogs akzeptiert Browser-UAs. Trotzdem: erster Test in M1 |
 | **Max. 10.000 Listings** pro fremdem Händler (Seite 101 → 403) | `sort_order` asc+desc für 20.000; Coverage ehrlich anzeigen |
 | `pagination.pages` **lügt** bei Inventory | Nie darauf verlassen, immer auf 403 vorbereitet sein |
-| **60 Req/min pro IP** – und die IP ist die des **Nutzers** | Kein geteiltes Budget, keine Warteschlange |
+| **60 Req/min pro Zugangsdaten** (Token; ohne Token pro IP, 25/min) – laut Discogs-Staff, ~2026-10-22 | Kein geteiltes Budget zwischen Nutzern, keine Warteschlange — aber zwei Geräte mit einem Token teilen sich die 60 |
 | Inventory-`release` hat **kein `master_id`, kein `genre`/`style`** | „Anderes Pressing" braucht den Horizont |
 | Inventory-`release.label` ist **nur das erste Label** | Multi-Label-Releases werden unterschätzt |
 | Inventory-`artist` ist ein **String ohne IDs** | Fuzzy-Kaskade: Map-Lookup → Token → Trigram |
