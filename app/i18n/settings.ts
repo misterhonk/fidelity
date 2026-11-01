@@ -632,6 +632,9 @@ const en = {
     lead: 'Take it with you, or be rid of it.',
     title: 'Your data',
     hint: 'Export it, or delete all of it',
+    storage: 'Storage',
+    /* From navigator.storage.estimate(). When it runs full, the cover cache goes first (db/quota.ts). */
+    storageLine: (used: string, quota: string) => `${used} of ${quota} in use`,
   },
   help: {
     lead: 'How this works, what the scores mean, and where your data lives.',
@@ -1170,6 +1173,8 @@ const de: typeof en = {
     lead: 'Mitnehmen oder loswerden.',
     title: 'Deine Daten',
     hint: 'Exportieren oder alles löschen',
+    storage: 'Speicher',
+    storageLine: (used, quota) => `${used} von ${quota} belegt`,
   },
   help: {
     lead: 'Wie das hier funktioniert, was die Punktzahlen bedeuten und wo deine Daten liegen.',
