@@ -61,6 +61,15 @@ test.describe('settings', () => {
     await expect(page.getByText('3.000')).toHaveCount(0)
   })
 
+  /** How full the disk is, beside what fills it (#211). */
+  test('your data shows the storage estimate', async ({ page }) => {
+    await signIn(page)
+    await page.goto('/settings/data')
+    await expect(page.getByTestId('storage-estimate')).toHaveText(
+      /^Storage: [\d,.]+ (KB|MB|GB) of [\d,.]+ (KB|MB|GB) in use$/,
+    )
+  })
+
   /** The price ceiling in the currency you buy in, not always in euros (#194). */
   test('the search summary writes the ceiling in your currency', async ({ page }) => {
     await signIn(page)
