@@ -14,7 +14,8 @@ const { defaultBrowserType: _engine, ...IPHONE } = devices['iPhone 15']
 async function undersized(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     if (!matchMedia('(pointer: coarse)').matches) return ['pointer is not coarse']
-    return [...document.querySelectorAll('.fid-button')]
+    // Every button, not only FidButtons: a raw <button> beside them is just as hard to hit.
+    return [...document.querySelectorAll('button, [role="button"], .fid-button')]
       .map((el) => ({ el, box: el.getBoundingClientRect() }))
       .filter(({ box }) => box.width > 0 && box.height > 0)
       .filter(({ box }) => box.width < 44 || box.height < 44)
