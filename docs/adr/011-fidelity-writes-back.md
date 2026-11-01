@@ -53,9 +53,14 @@ event.**
 `WriteOptions.idempotent` is therefore a **required argument**, not an option with a
 default. Rating, field value, `DELETE` and `PUT /wants` may be repeated.
 `POST …/folders/{f}/releases/{r}` — adding a record — may not: Discogs creates a new
-instance every time. There, from the second attempt onwards, we **look instead of send**
-with `GET /users/{u}/collection/releases/{r}`, and an unreadable lookup leaves the job in
-the queue rather than guessing.
+instance every time. There, before **every** attempt, we look with
+`GET /users/{u}/collection/releases/{r}` and keep the instance ids it lists with the job,
+marked as sent. Once a job is marked, the next attempt **looks instead of sending**: an
+instance id that was not there before means the add landed. Ids, not "any copy" and not a
+count: a copy already owned, or one removed meanwhile, must not pass for ours (#197). An
+unreadable lookup leaves the job in the queue rather than guessing. One case stays
+ambiguous: the same release added elsewhere while ours never arrived also shows up as a new id,
+so the job is dropped and only one copy lands, not two.
 
 ### 2. Everything goes through the outbox, nothing directly
 
@@ -75,8 +80,9 @@ costs one request.
 ### 3. What is shown and never arrives gets taken back
 
 After five attempts the outbox puts the old value back. A displayed change that never
-arrives is worse than a rejected one: shelf and Discogs contradict each other, and nothing
-on screen says so. That is why a delete job carries the **whole row** with it — Discogs
+arrives is worse than a rejected one: shelf and Discogs contradict each other. So the
+revert is shown, too: every drain names the records it put back, and the sync status, the
+shelf sheet and the library sync each say "“Loveless” didn’t reach Discogs" (#197). That is why a delete job carries the **whole row** with it — Discogs
 cannot give back what it never deleted.
 
 ### 4. Out before in
