@@ -44,6 +44,7 @@ export function useBasket() {
     const inBasket = ids.value.has(listingId)
     const before = ids.value
     failure.value = null
+    removed.value = null
 
     const optimistic = new Set(ids.value)
     if (inBasket) optimistic.delete(listingId)
@@ -66,6 +67,8 @@ export function useBasket() {
   }
 
   async function clear() {
+    // An undo after emptying would put one line back into a basket just cleared.
+    removed.value = null
     apply(await call('basket.clear', undefined))
   }
 
@@ -81,6 +84,11 @@ export function useBasket() {
     apply(await call('basket.restore', { listingId: last.listingId }))
   }
 
+  /** The page is left: the undo line goes with it. */
+  function forgetRemoved() {
+    removed.value = null
+  }
+
   return {
     view: readonly(view),
     ids: readonly(ids),
@@ -93,5 +101,6 @@ export function useBasket() {
     clear,
     remove,
     undoRemove,
+    forgetRemoved,
   }
 }
