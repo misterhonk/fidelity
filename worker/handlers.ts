@@ -2,7 +2,6 @@ import { asShown, showableUntil } from '~~/db/expire'
 import { getMeta, getPreferences, getSyncState, setMeta, updatePreferences } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 import type { DbStats, ParamsOf, RequestKind, ResultOf } from '#shared/protocol'
-import type { BasketCandidate, BasketDig, BasketView } from '#shared/types'
 
 import { anonymousDiscogs, currentIdentity, discogs, requestPersistence, signOut } from './auth'
 
@@ -15,7 +14,6 @@ import { bestPerRelease, topFive } from './match/select'
 import { computeTasteProfile } from './match/taste'
 import { fail } from './fail'
 import { registerSecret } from './log'
-import { onThisMachine } from './loopback'
 
 /**
  * The shops, best first — what `dealer.list` answers and what `dealer.hide`
@@ -126,6 +124,23 @@ const scan = () => import('./dig/scan')
 const auth = () => import('./auth')
 const library = () => import('./sync/library')
 const inventory = () => import('./discogs/inventory')
+
+/*
+ * Whole handler groups that no screen needs before the first answer live in
+ * modules of their own (#299). The table keeps every kind — `index.ts`
+ * derives the accepted kinds from its keys — and each entry fetches its group
+ * the first time it runs. tests/unit/worker-entry.spec.ts keeps them out of
+ * this file's static imports.
+ */
+const basketGroup = () => import('./basket/handlers')
+const hubGroup = () => import('./hub/handlers')
+
+function deferred<K extends RequestKind>(
+  load: () => Promise<{ handlers: Pick<HandlerMap, K> }>,
+  kind: K,
+): Handler<K> {
+  return async (params, ctx) => (await load()).handlers[kind](params, ctx)
+}
 
 export const handlers: HandlerMap = {
   ping: async ({ echo }) => ({ pong: true, echo }),
@@ -240,28 +255,7 @@ export const handlers: HandlerMap = {
       signal,
     }),
 
-  'basket.paste': async ({ input }, { report, signal }) => {
-    const { addPastedListings, parseListingIds } = await import('./basket/listings')
-    const { parseCartText } = await import('./basket/parse-cart')
-    const { noteCart } = await import('./basket/cart')
-    const preferences = await getPreferences()
-    const now = Date.now()
-
-    // The cart page first: no request, and its postage figures are what the
-    // basket view below adds up with.
-    const cart = await noteCart(parseCartText(input), now)
-
-    const result = await addPastedListings({
-      client: discogs(),
-      ids: parseListingIds(input),
-      currency: preferences.currency,
-      now,
-      report: (progress) => report(progress),
-      signal,
-    })
-
-    return { ...result, cart, view: await basketView() }
-  },
+  'basket.paste': deferred(basketGroup, 'basket.paste'),
 
   'dig.resumable': async () => (await scan()).findResumable(),
   'dig.running': async () => (await scan()).runningDig(),
@@ -903,49 +897,12 @@ export const handlers: HandlerMap = {
     return matchDetail(digId, listingId)
   },
 
-  'basket.add': async ({ digId, listingId }) => {
-    const { addToBasket } = await import('./basket')
-    const db = await openFidelityDb()
-    const match = await db.get('matches', [digId, listingId])
-    const dig = await db.get('digs', digId)
-    if (!match || !dig) throw fail('match-gone', 'no such match')
-
-    await addToBasket(match, dig.dealer, Date.now(), dig.expiresAt)
-    return basketView()
-  },
-
-  'basket.remove': async ({ listingId }) => {
-    const { removeFromBasket } = await import('./basket')
-    await removeFromBasket(listingId)
-    return basketView()
-  },
-
-  'basket.handedOver': async ({ listingId, at }) => {
-    const { markHandedOver } = await import('./basket')
-    await markHandedOver(listingId, at)
-    return basketView()
-  },
-
-  'basket.clear': async () => {
-    const { clearBasket } = await import('./basket')
-    await clearBasket()
-    return basketView()
-  },
-
-  'basket.get': () => basketView(),
-
-  'basket.fromMarked': async ({ listingIds }, { report, signal }) => {
-    const { basketFromMarked } = await import('./dig/refresh')
-    const { currency } = await getPreferences()
-    const { added, sold } = await basketFromMarked({
-      client: discogs(),
-      listingIds,
-      currency,
-      report: (progress) => report(progress),
-      signal,
-    })
-    return { view: await basketView(), added, sold }
-  },
+  'basket.add': deferred(basketGroup, 'basket.add'),
+  'basket.remove': deferred(basketGroup, 'basket.remove'),
+  'basket.handedOver': deferred(basketGroup, 'basket.handedOver'),
+  'basket.clear': deferred(basketGroup, 'basket.clear'),
+  'basket.get': deferred(basketGroup, 'basket.get'),
+  'basket.fromMarked': deferred(basketGroup, 'basket.fromMarked'),
 
   /*
    * The vault. Loaded on demand like everything that is not a dig: crypto,
@@ -1145,99 +1102,11 @@ export const handlers: HandlerMap = {
     })
   },
 
-  'basket.refresh': async (_params, { report, signal }) => {
-    const { refreshBasket } = await import('./dig/refresh')
-    const { currency } = await getPreferences()
-    await refreshBasket({
-      client: discogs(),
-      currency,
-      report: (progress) => report(progress),
-      signal,
-    })
-    return basketView()
-  },
-
-  'basket.setShipping': async ({ dealer, tiers }) => {
-    const { saveUserShipping } = await import('./basket/profiles')
-    await saveUserShipping(dealer, tiers)
-    return basketView()
-  },
-
-  'basket.readOff': async ({ dealer, items, price, currency }) => {
-    const { readOffShipping } = await import('./basket/profiles')
-    await readOffShipping(dealer, items, price, currency)
-    return basketView()
-  },
-
-  'basket.plan': async ({ dealer, budget }) => {
-    const view = await basketView()
-    const summary = view.baskets.find((basket) => basket.dealer === dealer)
-    if (!summary) return null
-
-    const { planBasket } = await import('./basket/optimise')
-    const { resolveShipping } = await import('./basket/profiles')
-    const db = await openFidelityDb()
-    const row = await db.get('dealers', dealer)
-
-    /*
-     * The same postage the card above it shows, which means the same ladder of
-     * sources — hand-entered, hub, repository, parsed. Reading `shippingTiers`
-     * straight off the dealer looked equivalent and was not: it holds only the
-     * hand-entered table, so for every shop nobody has typed one for, the plan
-     * had no tiers, every total came out null, and the screen blamed the
-     * budget for a postage table it had simply not asked for.
-     */
-    const preferences = await getPreferences()
-    const shipping = row
-      ? await resolveShipping(row, preferences.shipsToCountry)
-      : { tiers: [], source: null, matched: [] }
-
-    // Everything this dealer has that you want, not only what is in the basket
-    // — the plan's whole job is to say which set to buy.
-    const { candidates } = await candidatesFor(dealer, Date.now())
-    /*
-     * In the currency the budget is typed in, and off the records table (found
-     * 2026-10-31): a dig's pounds summed with a table's euros came out labelled
-     * as euros, and LPs were priced at the singles rate. The minimum is the
-     * card's, already in that currency.
-     */
-    const { tiersForUnit } = await import('#shared/shipping')
-    const currency = summary.currency
-    return planBasket(
-      candidates.filter((item) => item.currency === currency),
-      tiersForUnit(shipping.tiers, 'record').filter(
-        (tier) => !tier.currency || tier.currency === currency,
-      ),
-      budget,
-      summary.minOrderTotal,
-    )
-  },
-
-  'basket.landed': async ({ dealer }) => {
-    const { resolveShipping } = await import('./basket/profiles')
-    const db = await openFidelityDb()
-    const row = await db.get('dealers', dealer)
-    const preferences = await getPreferences()
-    // The same ladder as the basket card and the plan above — see the note there.
-    const shipping = row
-      ? await resolveShipping(row, preferences.shipsToCountry)
-      : { tiers: [], source: null, matched: [] }
-    // Sold lines are shown in the basket but no longer counted, here as there.
-    const lines = (await db.getAll('basket')).filter(
-      (item) => item.dealer === dealer && !item.soldAt,
-    )
-    const { tiersForUnit } = await import('#shared/shipping')
-    return {
-      dealer,
-      // The find list prices records; a singles or CD table is not its business.
-      tiers: tiersForUnit(shipping.tiers, 'record'),
-      source: shipping.source,
-      section: shipping.section ?? null,
-      inBasket: lines.length,
-      listingIds: lines.map((item) => item.listingId),
-      currency: shipping.tiers[0]?.currency ?? null,
-    }
-  },
+  'basket.refresh': deferred(basketGroup, 'basket.refresh'),
+  'basket.setShipping': deferred(basketGroup, 'basket.setShipping'),
+  'basket.readOff': deferred(basketGroup, 'basket.readOff'),
+  'basket.plan': deferred(basketGroup, 'basket.plan'),
+  'basket.landed': deferred(basketGroup, 'basket.landed'),
 
   'dig.credits': async ({ digId }) => {
     const { creditGroups } = await import('./dig/credits')
@@ -1274,72 +1143,7 @@ export const handlers: HandlerMap = {
 
   'preferences.set': ({ ...patch }) => updatePreferences(patch),
 
-  'hub.discover': async () => {
-    /*
-     * Here first, then on this machine.
-     *
-     * `/hub` on the app's own domain is where `.github/workflows/hub.yml` puts
-     * one, and same origin is the only arrangement that cannot fail for a
-     * reason outside the hub itself: no CORS, no mixed content, no second
-     * certificate — and it is the only one that still works on a phone that
-     * is nowhere near the machine at home.
-     *
-     * The bare origin comes second, for a hub sitting at the root of a domain
-     * whose app lives under a path.
-     *
-     * A static host answers an unknown path with the app's own HTML and a 200.
-     * That is not a special case here: `response.json()` throws on it, and a
-     * throw means "not this one" like any other.
-     *
-     * Then localhost, only when the app runs there itself (worker/loopback.ts),
-     * and in both spellings — a hub bound to 127.0.0.1 does not
-     * answer to `localhost` on a machine where that resolves to ::1 first, and
-     * the failure looks identical to "there is no hub".
-     */
-    const here = self.location?.origin
-    const tried = [
-      ...(here ? [`${here}/hub`, here] : []),
-      ...(onThisMachine() ? ['http://localhost:8787', 'http://127.0.0.1:8787'] : []),
-    ]
-
-    /*
-     * Predicted, not detected.
-     *
-     * A blocked request and a refused connection are the same TypeError to
-     * JavaScript. But the block is knowable in advance: an https page asking
-     * for http is mixed content, which WebKit refuses outright (measured
-     * 2026-08-10). Saying so is the difference between "run the hub over
-     * https" and a fruitless hunt for a service that is running fine.
-     */
-    const blockedByMixedContent = self.location?.protocol === 'https:'
-
-    for (const base of tried) {
-      try {
-        const response = await fetch(`${base}/v1/health`, {
-          // Short: a machine that is not listening refuses instantly, and the
-          // only thing a longer wait buys is a longer wait.
-          signal: AbortSignal.timeout(1500),
-        })
-        if (!response.ok) continue
-        const body = (await response.json()) as { ok?: boolean; secured?: boolean }
-        if (body.ok === true) {
-          return {
-            url: base,
-            // Assumed secured when the hub does not say: an unsecured guess
-            // would have the app save an address it cannot use, and then fail
-            // silently forever (rule 8).
-            secured: body.secured !== false,
-            blockedByMixedContent: false,
-            tried,
-          }
-        }
-      } catch {
-        // Refused, blocked or too slow — all three mean "not this one".
-      }
-    }
-
-    return { url: null, secured: false, blockedByMixedContent, tried }
-  },
+  'hub.discover': deferred(hubGroup, 'hub.discover'),
 
   'catalogue.discover': async () => {
     const { discoverCatalogue } = await import('./catalogue/probe')
@@ -1351,108 +1155,7 @@ export const handlers: HandlerMap = {
     return checkCatalogue(url)
   },
 
-  'hub.check': async ({ url, secret, accessKey }) => {
-    registerSecret(secret)
-    registerSecret(accessKey)
-    const base = url.trim().replace(/\/+$/, '')
-    if (!base) throw fail('no-hub', 'hub: no url given')
-
-    // Deliberately a plain fetch rather than the hub client: this is the one
-    // place a failure has to be *reported* instead of swallowed.
-    let response: Response
-    try {
-      response = await fetch(`${base}/v1/health`, {
-        headers: secret ? { 'x-hub-secret': secret } : {},
-        signal: AbortSignal.timeout(5000),
-      })
-    } catch {
-      /*
-       * "Failed to fetch" is not an answer.
-       *
-       * That string is what the browser says and it reached the screen
-       * untouched. It covers four different situations and names none of them,
-       * so the sentence below names the ones somebody can actually act on —
-       * including the mixed-content case, which is not a fault in the hub at
-       * all and which every iPhone hits (measured 2026-08-10).
-       */
-      const mixed = self.location?.protocol === 'https:' && base.startsWith('http://')
-      // A code, not a sentence: `HubSettings` writes the words, in whatever
-      // language the person reading them has chosen.
-      throw mixed
-        ? fail('hub-mixed-content', 'hub: mixed content')
-        : fail('hub-unreachable', 'hub: no answer')
-    }
-    if (!response.ok) {
-      throw Object.assign(fail('hub-http-error', `hub: HTTP ${response.status}`), {
-        status: response.status,
-      })
-    }
-
-    const body = (await response.json()) as {
-      ok?: boolean
-      horizon?: number
-      shipping?: number
-      secured?: boolean
-      doors?: ('secret' | 'key')[]
-    }
-    if (body.ok !== true) throw fail('not-a-hub', 'not a fidelity hub')
-    const doors = Array.isArray(body.doors) ? body.doors : []
-
-    /*
-     * The secret, tried at a door that is actually locked.
-     *
-     * Health is open on purpose so a monitor needs no word — which means it
-     * answers "reachable" to a wrong word just the same. On 2026-09-12 a phone
-     * showed "reachable · secured with a secret" while every horizon request
-     * it made came back 401. So the check knocks once more where the secret
-     * matters: the push key route answers 200 to the right word and 401 to a
-     * wrong one. (It was the cover route until the hub dropped covers, #206.)
-     */
-    let secretState: 'ok' | 'wrong' | 'missing' | 'unchecked' = 'unchecked'
-    if (body.secured) {
-      if (!secret) {
-        secretState = 'missing'
-      } else {
-        try {
-          const door = await fetch(`${base}/v1/watch/key`, {
-            headers: { 'x-hub-secret': secret },
-            signal: AbortSignal.timeout(5000),
-          })
-          secretState = door.status === 401 ? 'wrong' : door.ok ? 'ok' : 'unchecked'
-        } catch {
-          secretState = 'unchecked'
-        }
-      }
-    }
-
-    // And the key, at the same door, when the hub has that door (M22).
-    let keyState: 'ok' | 'wrong' | 'missing' | 'unchecked' = 'unchecked'
-    if (doors.includes('key')) {
-      if (!accessKey) {
-        keyState = 'missing'
-      } else {
-        try {
-          const door = await fetch(`${base}/v1/watch/key`, {
-            headers: { 'x-fidelity-key': accessKey },
-            signal: AbortSignal.timeout(5000),
-          })
-          keyState = door.status === 401 ? 'wrong' : door.ok ? 'ok' : 'unchecked'
-        } catch {
-          keyState = 'unchecked'
-        }
-      }
-    }
-
-    return {
-      ok: true,
-      secret: secretState,
-      key: keyState,
-      doors,
-      horizon: body.horizon ?? 0,
-      shipping: body.shipping ?? 0,
-      secured: body.secured ?? false,
-    }
-  },
+  'hub.check': deferred(hubGroup, 'hub.check'),
 
   'dig.list': async () => {
     const db = await openFidelityDb()
@@ -1578,84 +1281,6 @@ export const handlers: HandlerMap = {
       wantlistSyncedAt: syncState.wantlistSyncedAt,
     }
   },
-}
-
-/**
- * Everything the basket screen needs, in one message.
- *
- * Assembled here rather than in three calls because every mutation changes all
- * of it: adding a record moves the total, the postage tier, the advice and
- * which candidates are still worth suggesting.
- */
-async function basketView(): Promise<BasketView> {
-  const [{ basketListingIds, basketSummaries }, { suggestCandidates }] = await Promise.all([
-    import('./basket'),
-    import('./basket/optimise'),
-  ])
-
-  const now = Date.now()
-  const preferences = await getPreferences()
-  const summaries = await basketSummaries(now, preferences.shipsToCountry)
-  const listingIds = await basketListingIds()
-  const inBasket = new Set(listingIds)
-
-  /*
-   * Candidates are per shop, because postage is. Filling up at one seller says
-   * nothing about what would ride along at another — and suggesting a record
-   * from the wrong shop is the one mistake that would cost real money.
-   */
-  const baskets = await Promise.all(
-    summaries.map(async (summary) => {
-      const { candidates, dig } = await candidatesFor(summary.dealer, now)
-      return {
-        ...summary,
-        /*
-         * Which dig the suggestions came out of, so an empty list can say
-         * why. Three silences look identical on screen and mean different
-         * things: a shop nobody has walked, a dig whose prices have aged past
-         * the six-hour rule, and a shop that simply has nothing else for you.
-         * Only the last one is an answer.
-         */
-        dig,
-        candidates: suggestCandidates(
-          candidates,
-          inBasket,
-          preferences.targetPrice,
-          undefined,
-          summary.missingToMinimum,
-        ),
-      }
-    }),
-  )
-
-  return { baskets, listingIds }
-}
-
-/** The scored records this dealer still has, newest dig first. */
-async function candidatesFor(
-  dealer: string,
-  now: number,
-): Promise<{ candidates: BasketCandidate[]; dig: BasketDig | null }> {
-  const { toCandidate } = await import('./basket/optimise')
-  const db = await openFidelityDb()
-  const newest = (await db.getAll('digs'))
-    .filter((entry) => entry.dealer === dealer)
-    .sort((a, b) => b.id.localeCompare(a.id))[0]
-  if (!newest) return { candidates: [], dig: null }
-
-  const dig = { at: newest.startedAt, expired: newest.expiresAt <= now }
-
-  const matches = await db
-    .transaction('matches')
-    .store.index('by-dig-score')
-    .getAll(IDBKeyRange.bound([newest.id, -Infinity], [newest.id, Infinity]))
-
-  return {
-    dig,
-    candidates: matches
-      .map(toCandidate)
-      .filter((item): item is BasketCandidate => item !== null),
-  }
 }
 
 /** A dig plus its matches, strongest first. */
