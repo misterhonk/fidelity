@@ -12,6 +12,24 @@ Für eine App bedeutet SemVer:
 ## [0.114.1](https://github.com/misterhonk/fidelity/compare/v0.114.0...v0.114.1) (2026-11-01)
 
 
+**Rechnet in Cent, und der Mindestbestellwert zählt in der richtigen Währung.** Die zweite
+Runde aus der gründlichen Durchsicht:
+
+- Das Budget, der Wantlist-Plan und der Vergleich mit anderen Läden rechnen jetzt in Cent. Vorher
+  lagen 41,78 € + 1,02 € + 7,20 € Porto knapp über 50 €, und eine Platte fiel aus dem Budget.
+- Der Vergleich rechnet das Porto wie die Karte im Korb, mit „Porto frei ab“ und der Tabelle für
+  LPs. Ein teurerer Laden sah dort sonst manchmal günstiger aus.
+- Ein Laden nennt seinen Mindestbestellwert in seiner Währung. Fidelity rechnet ihn jetzt mit dem
+  Kurs von Discogs um, statt Pfund mit Euro zu vergleichen. Ohne Kurs sagt die Karte nichts dazu.
+- Bricht das Eintragen in die Sammlung mitten im Senden ab, schaut Fidelity erst nach, statt die
+  Platte ein zweites Mal einzutragen.
+- Reißt die Verbindung mitten in einer Antwort ab, versucht Fidelity es kurz noch einmal, statt
+  den Dig abzubrechen.
+- Ein Stern hängt nicht mehr minutenlang auf „wird gesendet“, und die Anmeldung sagt nach ein paar
+  Sekunden Bescheid, wenn Discogs nicht antwortet.
+- Eine Versandbeschreibung voller Leerzeichen hält Fidelity nicht mehr auf, und eine falsch
+  gehende Uhr legt die Anfragen an Discogs nicht mehr still.
+
 ### Fixed
 
 * **basket:** collapse runs of spaces before the shipping parser reads them ([3aeca84](https://github.com/misterhonk/fidelity/commit/3aeca84642ee7dafce1b5eff25239226f4253245))
