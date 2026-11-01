@@ -35,6 +35,15 @@ const query = ref('')
 
 const route = useRoute()
 
+// `?q=` is how the palette (#215) hands over a record: the box fills in.
+watch(
+  () => route.query.q,
+  (q) => {
+    if (typeof q === 'string') query.value = q
+  },
+  { immediate: true },
+)
+
 onMounted(async () => {
   try {
     overview.value = await call('collection.wantlist', undefined)

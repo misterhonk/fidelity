@@ -20,7 +20,7 @@ async function choose(page: Page, text: string) {
   await expect(palette).toBeVisible()
   await page.keyboard.type(text)
   // In the palette: the rows load after it opens, and the start page has its own buttons.
-  await expect(palette.getByRole('button', { name: new RegExp(text) }).first()).toBeVisible()
+  await expect(palette.getByRole('option', { name: new RegExp(text) }).first()).toBeVisible()
   await page.keyboard.press('Enter')
 }
 

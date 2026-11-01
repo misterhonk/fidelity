@@ -594,6 +594,8 @@ const en = {
     description: 'Sleeveside, the person behind the counter for your Discogs digging.',
     /** The way into the in-store screen on a phone, where there is no ⌘K. */
     inStore: 'In a shop right now',
+    /** The way into ⌘K where there is no keyboard (#215). */
+    search: 'Search records, shops, actions',
     counts: {
       collection: 'Collection',
       wantlist: 'Wantlist',
@@ -653,8 +655,15 @@ const en = {
 
   /** ⌘K. */
   palette: {
-    placeholder: 'Artist, shop, dig …',
-    nothing: 'Nothing found. Digs and shops turn up here as soon as there are some.',
+    placeholder: 'Artist, title, label, cat. no., shop …',
+    nothing: 'Nothing found. Records, digs and shops turn up here as soon as there are some.',
+    shelf: 'On your shelf',
+    wantlist: 'On your wantlist',
+    actions: 'Actions',
+    digAt: (shop: string) => `Dig at ${shop}`,
+    scan: 'Read a barcode',
+    settings: (page: string) => `Settings: ${page}`,
+    results: 'Results',
     goTo: 'Go to',
     dealers: 'Shops',
     digs: 'Digs',

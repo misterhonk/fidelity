@@ -792,6 +792,28 @@ export interface ShelfHit {
   waitingDays: number | null
 }
 
+/**
+ * One record the ⌘K palette found (#215): on the shelf, on the wantlist, or
+ * in the last dig. Names only — the palette never shows a price.
+ */
+export interface RecordHit {
+  source: 'shelf' | 'wantlist' | 'dig'
+  releaseId: number
+  artist: string
+  title: string
+  label: string
+  catno: string
+  /** Dig only: which find to open. */
+  digId?: string
+  listingId?: number
+}
+
+export interface RecordSearch {
+  shelf: RecordHit[]
+  wantlist: RecordHit[]
+  dig: RecordHit[]
+}
+
 /** One record on the shelf, as the grid needs it. */
 export interface ShelfRecord {
   /** The copy. What the sheet opens and what a rating is written against. */

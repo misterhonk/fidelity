@@ -409,6 +409,7 @@ const de: Messages = {
     title: 'Start',
     description: 'Sleeveside, der Mensch hinterm Tresen für dein Graben bei Discogs.',
     inStore: 'Gerade im Laden',
+    search: 'Platten, Läden, Aktionen suchen',
     counts: {
       collection: 'Sammlung',
       wantlist: 'Wantlist',
@@ -457,8 +458,16 @@ const de: Messages = {
   },
 
   palette: {
-    placeholder: 'Künstler, Laden, Dig …',
-    nothing: 'Nichts gefunden. Digs und Läden tauchen hier auf, sobald es welche gibt.',
+    placeholder: 'Künstler, Titel, Label, Katalognr., Laden …',
+    nothing:
+      'Nichts gefunden. Platten, Digs und Läden tauchen hier auf, sobald es welche gibt.',
+    shelf: 'Im Regal',
+    wantlist: 'Auf der Wantlist',
+    actions: 'Aktionen',
+    digAt: (shop) => `Bei ${shop} graben`,
+    scan: 'Barcode lesen',
+    settings: (page) => `Einstellungen: ${page}`,
+    results: 'Treffer',
     goTo: 'Gehe zu',
     dealers: 'Läden',
     digs: 'Digs',

@@ -33,6 +33,15 @@ const facet = computed(() => {
   return { label: one(route.query.label), artist: one(route.query.artist) }
 })
 
+// `?q=` is how the palette (#215) hands over a record: the box fills in.
+watch(
+  () => route.query.q,
+  (q) => {
+    if (typeof q === 'string') query.value = q
+  },
+  { immediate: true },
+)
+
 /** The way back to the whole shelf, keeping whatever was typed in the box. */
 function clearFacet() {
   void navigateTo({ path: '/shelf' })
