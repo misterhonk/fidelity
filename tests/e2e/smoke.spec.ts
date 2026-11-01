@@ -334,6 +334,19 @@ test('says what the app is called, in the two places an install reads', async ({
   await expect(page).toHaveTitle('Sleeveside')
 })
 
+test('names the app in the manifest an install reads', async ({ page }) => {
+  await page.goto('/welcome')
+
+  const href = await page.locator('link[rel="manifest"]').getAttribute('href')
+  expect(href).toBeTruthy()
+  const manifest = (await (await page.request.get(new URL(href!, page.url()).href)).json()) as {
+    name?: string
+    short_name?: string
+  }
+  expect(manifest.name).toBe('Sleeveside')
+  expect(manifest.short_name).toBe('Sleeveside')
+})
+
 // That every other screen keeps the name in front is asserted where a screen
 // is opened with a session: language.spec, on the appearance settings. Going
 // there from here signed out only races the redirect to /welcome.

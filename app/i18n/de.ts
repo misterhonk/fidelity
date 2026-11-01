@@ -263,7 +263,7 @@ const de: Messages = {
           'Was auf diesem Gerät liegt, gehört dem angemeldeten Konto. Zum Kontowechsel erst abmelden, das löscht die Datenbank, und mit dem neuen Token anmelden.',
       },
       'vault-too-new': {
-        title: 'Diese Sicherung stammt aus einem neueren Sleeveside-Version.',
+        title: 'Diese Sicherung stammt aus einer neueren Sleeveside-Version.',
         action: 'Aktualisiere zuerst die App. Eine ältere läse sie falsch statt gar nicht.',
       },
       'vault-unusable': {
