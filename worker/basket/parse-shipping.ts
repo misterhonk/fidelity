@@ -325,8 +325,12 @@ export function parseShippingText(
     return { ...empty, byWeight, doubleCounts }
   }
 
-  // Newlines and bullets are separators like commas; the rules key off those.
-  const normalised = `,${stripAsides(section.text).replace(/[\r\n••]+/g, ',')}`
+  // Newlines and bullets are separators like commas; the rules key off those. Runs of
+  // spaces become one: RANGE_RULE's run of `\s*` backtracks exponentially over them.
+  const normalised = `,${stripAsides(section.text).replace(/[\r\n••]+/g, ',')}`.replace(
+    /\s+/g,
+    ' ',
+  )
 
   const tiers: ShippingTier[] = []
   const matched: string[] = []

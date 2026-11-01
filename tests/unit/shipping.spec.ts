@@ -114,6 +114,17 @@ describe('"one more record saves X each"', () => {
 })
 
 describe('reading a shipping table out of free text', () => {
+  /*
+   * The text is the seller's. A count followed by a long run of spaces and no
+   * price made the range rule backtrack exponentially: 80 spaces took 1.8 s,
+   * each 20 more five times as long, and the parse runs on every basket view.
+   */
+  it('reads a policy padded with spaces in no time', () => {
+    const started = performance.now()
+    parseShippingText(`1${' '.repeat(100)}week to dispatch`)
+    expect(performance.now() - started).toBeLessThan(200)
+  })
+
   it('reads the common German table', () => {
     const { tiers } = parseShippingText('1 LP: 6,00 €, 2-3 LP: 9,00 €, 4-6 LP: 12,00 €')
     expect(tiers).toEqual([
