@@ -1,4 +1,4 @@
-import { dropJob, noteFailure, OUTBOX_LOCK, pendingJobs } from '~~/db/outbox'
+import { dropJob, noteFailure, noteSending, OUTBOX_LOCK, pendingJobs } from '~~/db/outbox'
 import { openFidelityDb } from '~~/db/open'
 import { DiscogsError } from './discogs/errors'
 import type { OutboxJob, OutboxKind } from '~~/db/schema'
@@ -319,12 +319,14 @@ async function drainOnce(
     try {
       const kind = KINDS[job.kind]
       // Never on the first run: looking costs a paced request, and the first
-      // attempt has nothing to look for.
-      if (job.attempts > 0 && (await kind.alreadyDone?.(client, job, username))) {
+      // attempt has nothing to look for — unless it was cut off mid-send.
+      const triedBefore = job.attempts > 0 || job.sentAt !== undefined
+      if (triedBefore && (await kind.alreadyDone?.(client, job, username))) {
         await dropJob(job.id, job)
         sent += 1
         continue
       }
+      if (kind.alreadyDone) await noteSending(job.id, Date.now())
       await kind.send(client, job, username, signal)
       await dropJob(job.id, job)
       sent += 1

@@ -313,6 +313,8 @@ export interface OutboxJob {
   attempts: number
   queuedAt: number
   lastError?: string
+  /** When a write that may not be repeated went out — left behind by a run cut off mid-send. */
+  sentAt?: number
 }
 
 export type OutboxKind =

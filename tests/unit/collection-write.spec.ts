@@ -188,6 +188,40 @@ describe('putting a bought record on the shelf', () => {
     expect(await pendingJobs()).toEqual([])
   })
 
+  /*
+   * And a run that never got to fail. Closing the tab while the POST is out
+   * counts no attempt, and Discogs may have filed it all the same: the next
+   * start sent it again, and the shelf had two copies.
+   */
+  it('marks an add before it goes out, so a run cut off mid-send looks next time', async () => {
+    await addRecord(match())
+    let marked: number | undefined
+    const fake = client({
+      write: async () => {
+        marked = (await pendingJobs())[0]?.sentAt
+        return null
+      },
+    })
+
+    await drainOutbox(fake, 'mrtnmlchr')
+
+    expect(marked).toBeTypeOf('number')
+  })
+
+  it('looks instead of sending when the last run was cut off mid-send', async () => {
+    await addRecord(match())
+    const db = await openFidelityDb()
+    const [job] = await pendingJobs()
+    await db.put('outbox', { ...job!, sentAt: 1 })
+    const fake = client({ get: async () => ({ releases: [{ id: 12 }] }) })
+
+    const result = await drainOutbox(fake, 'mrtnmlchr')
+
+    expect(fake.write).not.toHaveBeenCalled()
+    expect(result.sent).toBe(1)
+    expect(await pendingJobs()).toEqual([])
+  })
+
   it('leaves it queued when the lookup itself cannot be read', async () => {
     await addRecord(match())
 

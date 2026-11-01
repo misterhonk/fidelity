@@ -77,6 +77,21 @@ export async function dropJob(id: string, sent?: OutboxJob): Promise<void> {
 }
 
 /**
+ * Note that a write which may not be repeated is going out.
+ *
+ * A run cut off mid-send — the tab closed, the worker gone — counts no attempt,
+ * and Discogs may have filed it all the same. This mark is what tells the next
+ * run to look before it sends again.
+ */
+export async function noteSending(id: string, at: number): Promise<void> {
+  const db = await openFidelityDb()
+  const tx = db.transaction('outbox', 'readwrite')
+  const job = await tx.store.get(id)
+  if (job) await tx.store.put({ ...job, sentAt: at })
+  await tx.done
+}
+
+/**
  * Note that a run failed. Returns the job when it is out of attempts, so the
  * caller knows it has a value to put back.
  */
