@@ -98,7 +98,8 @@ function decoderRequests(page: Page) {
   return async () => (await Promise.all(seen)).filter((url) => url !== null)
 }
 
-const field = (page: Page) => page.getByRole('textbox', { name: 'Barcode or run-out number' })
+const field = (page: Page) =>
+  page.getByRole('textbox', { name: 'Barcode, catalogue number or name' })
 const scanButton = (page: Page) => page.getByRole('button', { name: 'Read a barcode' })
 
 test('with BarcodeDetector the decoder is never fetched', async ({ page, browserName }) => {

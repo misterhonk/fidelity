@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { looksLikeBarcode } from '~~/worker/barcode'
 import type { DigWithMatches } from '#shared/protocol'
 import type {
   ShelfHit,
@@ -12,6 +11,13 @@ import type {
 import { reasonFor } from '~/i18n/reason'
 import { pressingText, stampText } from '~/i18n/pressing'
 import { useDigMessages } from '~/i18n/dig'
+import {
+  drainLookups,
+  lookupKind,
+  queueLookup,
+  readQueue,
+  type QueuedLookup,
+} from '~/utils/lookup'
 
 const d = useDigMessages()
 
@@ -22,6 +28,17 @@ useSeoMeta({
 })
 
 const { call } = useFidelityWorker()
+
+/*
+ * Dark by default (#225): a shop is dim and a white screen glares across the
+ * racks. A theme picked in the settings still wins.
+ */
+const { preference } = useTheme()
+useHead({
+  htmlAttrs: {
+    style: computed(() => (preference.value === 'system' ? 'color-scheme: dark' : undefined)),
+  },
+})
 /** Flipping crates, the screen stays on (#198). */
 useWakeLock(() => true)
 const { online } = useOnline()
@@ -122,7 +139,7 @@ async function openCamera() {
     await scan.start(video.value, (code) => {
       // The digits read stand in the field: a misread is visible, and fixable.
       typed.value = code
-      void lookUp(code)
+      void identify(code)
     })
   if (scan.failure.value) scanning.value = false
 }
@@ -133,32 +150,101 @@ function closeCamera() {
 }
 
 /**
- * Typed rather than scanned — and it takes both.
+ * Typed rather than scanned — and one field takes all of it (#225).
  *
- * Digits only is a barcode, anything else a run-out number. Two fields side by
- * side would be two decisions nobody wants to make while holding a record.
+ * A barcode, a catalogue or run-out number, or an artist and a title:
+ * `lookupKind` tells them apart. A name is searched as it is typed; a number
+ * is looked up on Discogs. Two fields side by side would be two decisions
+ * nobody wants to make while holding a record.
  */
 const typed = ref('')
+const kind = computed(() => lookupKind(typed.value))
 
-async function lookUpTyped() {
-  const text = typed.value.trim()
-  if (!text) return
+// A barcode is not a name: it would only empty the list while it is typed.
+watch(typed, (text) => (query.value = lookupKind(text) === 'barcode' ? '' : text))
+
+function ask(entry: QueuedLookup): Promise<Identified> {
+  return entry.kind === 'barcode'
+    ? call('identify.barcode', { barcode: entry.code })
+    : call('identify.runout', { runout: entry.code })
+}
+
+function show(found: Identified) {
+  identified.value = found
+  /*
+   * The first candidate fills the search — not because it is the right one
+   * but because it is the best starting point. The list shows that there are
+   * several.
+   */
+  const first = found.candidates[0]
+  if (first) query.value = first.title
+  void readOnlyCandidate(found)
+}
+
+/*
+ * No signal is not a dead end (#225). A code read in a basement is kept on
+ * this device and looked up once the browser is back online.
+ */
+const QUEUE_KEY = 'fidelity:in-store-queue'
+const queued = ref<QueuedLookup[]>([])
+const resolved = shallowRef<{ entry: QueuedLookup; result: Identified }[]>([])
+
+function keep(queue: QueuedLookup[]) {
+  queued.value = queue
+  try {
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(queue))
+  } catch {
+    // Private mode, or storage refused: the queue still lasts this visit.
+  }
+}
+
+async function identify(text: string) {
+  scanning.value = false
+  const sort = lookupKind(text)
+  if (sort === null || sort === 'text') return
+  const entry: QueuedLookup = { code: text.trim(), kind: sort }
+  if (!online.value) return keep(queueLookup(queued.value, entry))
 
   identifying.value = true
   identified.value = null
   try {
-    identified.value = looksLikeBarcode(text)
-      ? await call('identify.barcode', { barcode: text })
-      : await call('identify.runout', { runout: text })
-
-    const first = identified.value.candidates[0]
-    if (first) query.value = first.title
-    void readOnlyCandidate(identified.value)
+    show(await ask(entry))
   } catch (cause) {
-    error.value = cause
+    // shortcut: only a browser that says offline queues; a basement router with no uplink shows the error.
+    if (online.value) error.value = cause
+    else keep(queueLookup(queued.value, entry))
   } finally {
     identifying.value = false
   }
+}
+
+let draining = false
+
+/** One drain at a time: the reconnect and a mount can both ask for one. */
+async function resolveQueued() {
+  if (draining || queued.value.length === 0) return
+  draining = true
+  try {
+    const { done, left } = await drainLookups(queued.value, ask)
+    keep(left)
+    resolved.value = [...resolved.value, ...done]
+  } finally {
+    draining = false
+  }
+}
+
+watch(online, (now) => {
+  if (now) void resolveQueued()
+})
+
+/** The answer in one sentence, first: the pressing, then the album (M20 #3). */
+function verdict(found: Identified): string {
+  if (found.owned.length > 0) return m.value.inStore.scanOwned(count(found.owned.length))
+  if (found.ownedAlbums.length > 0)
+    return m.value.inStore.scanOwnedAlbum(count(found.ownedAlbums.length))
+  if (found.wanted.length > 0) return m.value.inStore.scanWanted
+  if (found.wantedAlbums.length > 0) return m.value.inStore.scanWantedAlbum
+  return m.value.inStore.scanNew
 }
 
 /*
@@ -201,28 +287,13 @@ function readOnlyCandidate(found: Identified) {
 
 const ownedIds = computed(() => new Set(identified.value?.owned.map((o) => o.releaseId) ?? []))
 
-async function lookUp(barcode: string) {
-  scanning.value = false
-  identifying.value = true
-  try {
-    const found = await call('identify.barcode', { barcode })
-    identified.value = found
-    /*
-     * The first candidate fills the search field — not because it is the right
-     * one but because it is the best starting point. The list below shows that
-     * there are several.
-     */
-    const first = found.candidates[0]
-    if (first) query.value = first.title
-    void readOnlyCandidate(found)
-  } catch (cause) {
-    error.value = cause
-  } finally {
-    identifying.value = false
-  }
-}
-
 onMounted(async () => {
+  try {
+    queued.value = readQueue(localStorage.getItem(QUEUE_KEY))
+  } catch {
+    // Nothing kept, nothing lost.
+  }
+  if (online.value) void resolveQueued()
   try {
     stands.value = await call('dig.stands', undefined)
     await Promise.all([loadShown(), loadFeedback(), loadBasket()])
@@ -441,72 +512,29 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
       <ErrorNote v-if="judgeFailure" :cause="judgeFailure" />
       <ErrorNote v-else-if="basketFailure" :cause="basketFailure" />
 
-      <!-- Big enough to hit while walking. -->
       <!--
-          The camera, wherever there is one. `BarcodeDetector` reads in
-          Chromium; in WebKit the first tap loads zxing-wasm (ADR-018). When
-          that cannot load — offline on first use — the sentence stands
-          instead, and typing goes into the field below anyway (M13).
+          Codes kept without signal, and what they turned out to be once it
+          came back (#225). Tapping one shows the whole answer below.
         -->
-      <div v-if="canScan && scan.failure.value !== 'unavailable'" class="flex flex-col gap-2">
-        <button
-          v-if="!scanning"
-          type="button"
-          :disabled="identifying || !online"
-          class="fid-action flex min-h-11 items-center gap-2 self-start rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text disabled:opacity-40"
-          @click="openCamera"
-        >
-          <FidIcon name="scan" :size="16" aria-hidden="true" />
-          {{ identifying ? m.inStore.scanning : m.inStore.scan }}
-        </button>
-
-        <div v-show="scanning" class="flex flex-col gap-2">
-          <video ref="video" playsinline muted class="w-full rounded-fid-md bg-fid-inset" />
-          <button
-            type="button"
-            class="fid-action min-h-11 self-start rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text"
-            @click="closeCamera"
-          >
-            {{ m.inStore.scanStop }}
-          </button>
-        </div>
-
-        <p
-          v-if="scan.failure.value === 'denied'"
-          class="flex items-start gap-2 text-fid-sm text-fid-error"
-        >
-          <FidIcon name="circle-alert" :size="16" />
-          {{ m.inStore.scanDenied }}
-        </p>
-      </div>
-      <p v-else class="text-fid-sm text-fid-text-muted">{{ m.inStore.scanNotHere }}</p>
-
-      <!--
-          Typed: barcode or run-out.
-
-          Measured on twelve records on 2026-09-11: ten had a barcode,
-          **eleven had a run-out**, none had neither. On club vinyl the
-          identifier is in the run-out — and the full string is more precise
-          than any barcode (one hit instead of eight).
-        -->
-      <form class="flex flex-wrap gap-2" @submit.prevent="lookUpTyped">
-        <input
-          v-model="typed"
-          type="text"
-          autocomplete="off"
-          spellcheck="false"
-          :placeholder="m.inStore.identifyPlaceholder"
-          :aria-label="m.inStore.identifyLabel"
-          class="min-w-0 grow fid-field px-3 py-2 text-fid-sm text-fid-text"
-        />
-        <button
-          type="submit"
-          :disabled="identifying || !online"
-          class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text disabled:opacity-40"
-        >
-          {{ identifying ? m.inStore.scanning : m.inStore.identify }}
-        </button>
-      </form>
+      <p v-if="queued.length > 0" role="status" class="text-fid-sm text-fid-text-muted">
+        {{ m.inStore.queued(queued.length) }}
+        <span class="fid-num">{{ queued.map((entry) => entry.code).join(' · ') }}</span>
+      </p>
+      <section v-if="resolved.length > 0" class="flex flex-col gap-1">
+        <p class="text-fid-xs text-fid-text-muted">{{ m.inStore.resolved }}</p>
+        <ul class="flex flex-col gap-1">
+          <li v-for="done in resolved" :key="done.entry.code">
+            <button
+              type="button"
+              class="fid-action flex min-h-11 w-full flex-col rounded-fid-sm border border-fid-border px-3 py-1 text-left"
+              @click="show(done.result)"
+            >
+              <span class="text-fid-sm text-fid-text">{{ verdict(done.result) }}</span>
+              <span class="fid-num text-fid-xs text-fid-text-muted">{{ done.entry.code }}</span>
+            </button>
+          </li>
+        </ul>
+      </section>
 
       <!--
           What the barcode yielded — as a **list**, not as an answer. Measured
@@ -522,19 +550,7 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
             have another pressing of it" are different answers in a shop, and
             the second used to be "not in your collection".
           -->
-        <p class="text-fid-sm text-fid-text">
-          {{
-            identified.owned.length > 0
-              ? m.inStore.scanOwned(count(identified.owned.length))
-              : identified.ownedAlbums.length > 0
-                ? m.inStore.scanOwnedAlbum(count(identified.ownedAlbums.length))
-                : identified.wanted.length > 0
-                  ? m.inStore.scanWanted
-                  : identified.wantedAlbums.length > 0
-                    ? m.inStore.scanWantedAlbum
-                    : m.inStore.scanNew
-          }}
-        </p>
+        <p class="text-fid-base font-medium text-fid-text">{{ verdict(identified) }}</p>
         <p v-if="identified.candidates.length > 1" class="text-fid-xs text-fid-text-muted">
           {{ m.inStore.scanPressings(count(identified.candidates.length)) }}
         </p>
@@ -695,16 +711,6 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
         </template>
       </section>
 
-      <input
-        v-model="query"
-        type="search"
-        autocomplete="off"
-        spellcheck="false"
-        :placeholder="m.inStore.search"
-        :aria-label="m.inStore.searchLabel"
-        class="rounded-fid-md border border-fid-field bg-fid-surface px-4 py-3 text-fid-base text-fid-text"
-      />
-
       <!--
           Your own shelf first. Standing in a shop the two answers that stop you
           short are "die hast du schon" and "die suchst du seit vier Jahren", and
@@ -804,10 +810,10 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
                 {{ money(match.price, match.currency) }}
               </span>
               <DiscogsCredit :to="listingPage(match.listingId)" class="shrink-0" />
-              <span class="truncate text-fid-xs text-fid-text-muted">{{
-                reasonFor(match.signals)
-              }}</span>
             </span>
+            <span class="line-clamp-2 text-fid-xs text-fid-text-muted">{{
+              reasonFor(match.signals)
+            }}</span>
           </span>
 
           <!--
@@ -845,6 +851,103 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
           </button>
         </li>
       </ul>
+
+      <!--
+          One field, at the bottom, in thumb reach (#225).
+
+          Fixed above the phone's nav bar, so it stays under the thumb however
+          short or long the list above it is; sticky on a desk. A barcode, a
+          catalogue or run-out number, or a name: the line under it says which
+          one it took the input for.
+
+          Measured on twelve records on 2026-09-11: ten had a barcode,
+          **eleven had a run-out**, none had neither. On club vinyl the
+          identifier is in the run-out — and the full string is more precise
+          than any barcode (one hit instead of eight).
+        -->
+      <!-- What the fixed bar would otherwise cover at the end of the list. -->
+      <div class="h-32 md:hidden" aria-hidden="true" />
+      <div
+        class="z-10 flex flex-col gap-2 border-t border-fid-border bg-fid-bg/95 px-4 py-3 backdrop-blur max-md:fixed max-md:inset-x-0 max-md:bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] md:sticky md:bottom-0 md:-mx-4"
+        data-testid="in-store-field"
+      >
+        <!--
+            The camera, wherever there is one. `BarcodeDetector` reads in
+            Chromium; in WebKit the first tap loads zxing-wasm (ADR-018). When
+            that cannot load — offline on first use — the sentence stands
+            instead, and typing goes into the field anyway (M13). Without
+            signal it still reads: the code waits for the lookup.
+          -->
+        <div v-show="scanning" class="flex flex-col gap-2">
+          <video
+            ref="video"
+            playsinline
+            muted
+            class="max-h-[40dvh] w-full rounded-fid-md bg-fid-inset object-cover"
+          />
+          <FidButton variant="secondary" class="self-start" @click="closeCamera">
+            {{ m.inStore.scanStop }}
+          </FidButton>
+        </div>
+        <p
+          v-if="scan.failure.value === 'denied'"
+          class="flex items-start gap-2 text-fid-sm text-fid-error"
+        >
+          <FidIcon name="circle-alert" :size="16" />
+          {{ m.inStore.scanDenied }}
+        </p>
+        <p
+          v-if="!canScan || scan.failure.value === 'unavailable'"
+          class="text-fid-sm text-fid-text-muted"
+        >
+          {{ m.inStore.scanNotHere }}
+        </p>
+
+        <form class="flex items-stretch gap-2" @submit.prevent="identify(typed)">
+          <input
+            v-model="typed"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            enterkeyhint="go"
+            :placeholder="m.inStore.identifyPlaceholder"
+            :aria-label="m.inStore.identifyLabel"
+            aria-describedby="in-store-kind"
+            class="min-h-14 min-w-0 grow fid-field px-4 text-fid-base text-fid-text"
+          />
+          <FidButton
+            v-if="canScan && scan.failure.value !== 'unavailable'"
+            size="lg"
+            class="shrink-0"
+            :disabled="identifying || scanning"
+            @click="openCamera"
+          >
+            <FidIcon name="scan" :size="20" aria-hidden="true" />
+            {{ identifying ? m.inStore.scanning : m.inStore.scan }}
+          </FidButton>
+        </form>
+
+        <div class="flex min-h-11 items-center justify-between gap-2">
+          <p id="in-store-kind" aria-live="polite" class="text-fid-xs text-fid-text-muted">
+            {{ kind ? m.inStore.kind[kind] : '' }}
+          </p>
+          <FidButton
+            v-if="kind === 'barcode' || kind === 'catno'"
+            variant="secondary"
+            class="shrink-0"
+            :disabled="identifying"
+            @click="identify(typed)"
+          >
+            {{
+              identifying
+                ? m.inStore.scanning
+                : online
+                  ? m.inStore.identify
+                  : m.inStore.identifyLater
+            }}
+          </FidButton>
+        </div>
+      </div>
     </template>
   </AppPage>
 </template>

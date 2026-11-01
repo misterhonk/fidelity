@@ -736,8 +736,6 @@ const en = {
       'No dig yet, so the list of finds stays empty. You can still search your collection and your wantlist, signal or not.',
     expired:
       'More than six hours old, so prices and conditions are gone. The finds and their reasons stay.',
-    search: 'Artist or title',
-    searchLabel: 'Search the collection, the wantlist and the finds',
     /*
      * The barcode scan (M13).
      *
@@ -764,10 +762,20 @@ const en = {
       `${n} pressings share this barcode. A barcode names a release, not a pressing.`,
     scanNothing: 'Discogs knows no record with this barcode.',
     identify: 'Look it up',
-    identifyLabel: 'Barcode or run-out number',
-    /* Both in one field: somebody holding a record does not want to decide
-     * first which kind of number they are about to type. */
-    identifyPlaceholder: 'Barcode, or what is etched in the run-out',
+    identifyLabel: 'Barcode, catalogue number or name',
+    /* All in one field (#225): somebody holding a record does not want to
+     * decide first which kind of thing they are about to type. */
+    identifyPlaceholder: 'Barcode, catalogue number, artist or title',
+    /* What the field took the input for, said under it. */
+    kind: {
+      barcode: 'A barcode. Look it up for the pressings.',
+      catno: 'A catalogue or run-out number. Look it up for the pressing.',
+      text: 'An artist or a title, searched as you type.',
+    },
+    identifyLater: 'Keep for later',
+    queued: (n: number) =>
+      `${n} waiting for signal. ${n === 1 ? 'It is' : 'They are'} looked up as soon as there is some.`,
+    resolved: 'Looked up once the signal came back',
     /*
      * Which pressing this is (M19 #7). The candidates are the pressings that
      * share the code; picking the one in your hand reads it against the

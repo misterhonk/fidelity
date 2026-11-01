@@ -147,7 +147,7 @@ test('a barcode shared by two pressings: pick one, and it is placed among all of
   await answerDiscogs(context, [uk1994, eu2017])
   await page.goto('/in-store')
 
-  await page.getByLabel('Barcode or run-out number').fill('5012394144777')
+  await page.getByLabel('Barcode, catalogue number or name').fill('5012394144777')
   await page.getByRole('button', { name: 'Look it up' }).click()
 
   // The pressings as a list to pick from — never the first one as *the* answer.
@@ -208,7 +208,7 @@ test('knows the album from the wantlist, in another pressing (M20 #3)', async ({
   })
   await page.goto('/in-store')
 
-  await page.getByLabel('Barcode or run-out number').fill('5012394144777')
+  await page.getByLabel('Barcode, catalogue number or name').fill('5012394144777')
   await page.getByRole('button', { name: 'Look it up' }).click()
   await expect(
     page.getByText(
@@ -222,7 +222,7 @@ test('a run-out that names one pressing is read without a tap', async ({ page, c
   await answerDiscogs(context, [uk1994])
   await page.goto('/in-store')
 
-  await page.getByLabel('Barcode or run-out number').fill('828 553-1 A1 TOWNHOUSE')
+  await page.getByLabel('Barcode, catalogue number or name').fill('828 553-1 A1 TOWNHOUSE')
   await page.getByRole('button', { name: 'Look it up' }).click()
 
   const family = page.getByTestId('pressing-family')
