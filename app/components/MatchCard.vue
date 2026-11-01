@@ -270,10 +270,10 @@ const meta = computed(() => {
         <!-- The score and the price, on the card's last line, with the band as a plate. -->
         <div class="mt-auto flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 pt-2">
           <!--
-            The score, with the word its band actually has and a ladder of
-            four — see ScoreMark.vue. It used to be `48 c`: the number in the
-            same size as the record's title, and a letter whose legend was
-            nowhere on the screen.
+            The score as a price sticker with its band word, "92 · Side One,
+            Track One" — see ScoreMark.vue (#222). It used to be `48 c`: the
+            number in the same size as the record's title, and a letter whose
+            legend was nowhere on the screen.
           -->
           <ScoreMark :score="match.score" />
           <p class="flex flex-wrap items-baseline gap-x-3 text-fid-sm text-fid-text-muted">

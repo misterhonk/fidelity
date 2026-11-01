@@ -46,29 +46,34 @@ const band = computed(() => bandOf(props.score))
 const lit = computed(() => bandStep(band.value))
 const word = computed(() => d.value.match.band[band.value])
 
-/**
- * The question mark, once per screen rather than once per card (M33 #4).
- *
- * It answers "how does the score work", and the answer is the same on every
- * card — so twenty-seven cards carried twenty-seven of them on the walk of
- * 2026-09-16, each one a target you can press to be told the thing you were
- * told above. The list carries a single "Why?" at its head instead
- * (`MatchList`), and the mark stands down wherever that head exists.
- *
- * Standing down rather than being switched off by a prop: whether this mark
- * is one of twenty is not something the card knows, and a prop would have to
- * be threaded through the virtualiser to tell it. `inList` is the same fact
- * the plate is read from, and it is false everywhere a score stands alone —
- * the sheet, the top five, the stack, the basket.
+/*
+ * The question mark lives on the sheet only (#222). A card is one of many, and
+ * the list carries the single "Why?" at its head (`MatchList`); the top five,
+ * the stack and the basket open the sheet, which answers in full.
  */
-const { inList } = useLeads()
 </script>
 
 <template>
-  <div :class="block ? 'flex flex-col gap-2' : 'flex flex-col items-end gap-1'">
+  <!--
+    On a card: a price sticker, "92 · Side One, Track One" (#222). The number
+    and its word in one line, the way docs/00 writes a find, with no ladder and
+    no disclosure — the explanation stands once at the head of the list.
+  -->
+  <span
+    v-if="!block"
+    data-testid="score-sticker"
+    class="inline-flex items-baseline gap-1 rounded-fid-sm border border-fid-border px-2 text-fid-xs text-fid-text-muted"
+    :aria-label="d.match.scoreBand(score, word)"
+  >
+    <span class="fid-num text-fid-base font-bold text-fid-text" aria-hidden="true">{{
+      score
+    }}</span>
+    <span aria-hidden="true">· {{ word }}</span>
+  </span>
+
+  <div v-else class="flex flex-col gap-2">
     <span
-      class="fid-num font-bold text-fid-text"
-      :class="block ? 'text-fid-xl' : 'text-fid-base'"
+      class="fid-num text-fid-xl font-bold text-fid-text"
       :aria-label="d.match.scoreBand(score, word)"
     >
       {{ score }}
@@ -88,16 +93,11 @@ const { inList } = useLeads()
       />
     </div>
 
-    <!-- The word and its explanation belong together, at both sizes. -->
+    <!-- The word and its explanation belong together. -->
     <div class="flex items-center gap-2">
-      <span
-        class="text-fid-text-muted"
-        :class="block ? 'text-fid-sm' : 'text-fid-xs'"
-        aria-hidden="true"
-        >{{ word }}</span
-      >
+      <span class="text-fid-sm text-fid-text-muted" aria-hidden="true">{{ word }}</span>
 
-      <details v-if="!inList" class="group">
+      <details class="group">
         <summary
           class="fid-action flex size-5 cursor-pointer list-none items-center justify-center rounded-full border border-fid-border text-fid-xs text-fid-text-muted hover:text-fid-text"
           :aria-label="d.match.scoreWhat"
