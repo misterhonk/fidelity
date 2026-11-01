@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './support/test'
 
-import { seed } from './seed'
+import { putRows, seed } from './seed'
 
 /**
  * A record fair (docs/06 M19 #4): two shops scanned this morning, one screen.
@@ -10,16 +10,11 @@ import { seed } from './seed'
  * in-store screen has two stands to offer, and "all of them" adds up.
  */
 async function secondStand(page: Page) {
-  await page.evaluate(
-    async (input) => {
-      const open = indexedDB.open('fidelity')
-      const db: IDBDatabase = await new Promise((resolve, reject) => {
-        open.onsuccess = () => resolve(open.result)
-        open.onerror = () => reject(open.error)
-      })
-
-      const tx = db.transaction(['dealers', 'digs', 'matches'], 'readwrite')
-      tx.objectStore('dealers').put({
+  const now = Date.now()
+  const digId = '01J0000000000000000000DIG2'
+  await putRows(page, {
+    dealers: [
+      {
         username: 'waxstand',
         displayName: 'Wax Stand',
         shipsFrom: 'Germany',
@@ -28,19 +23,21 @@ async function secondStand(page: Page) {
         numForSale: 500,
         minOrderTotal: 0,
         shippingNote: '',
-        lastScannedAt: input.now - 120_000,
+        lastScannedAt: now - 120_000,
         newestListedAt: null,
         affinity: 1,
         fingerprint: null,
         shippingTiers: [],
-      })
-      tx.objectStore('digs').put({
-        id: '01J0000000000000000000DIG2',
+      },
+    ],
+    digs: [
+      {
+        id: digId,
         dealer: 'waxstand',
         status: 'done',
-        startedAt: input.now - 120_000,
-        finishedAt: input.now - 90_000,
-        expiresAt: input.now + 5 * 60 * 60 * 1000,
+        startedAt: now - 120_000,
+        finishedAt: now - 90_000,
+        expiresAt: now + 5 * 60 * 60 * 1000,
         listingsTotal: 500,
         listingsScanned: 500,
         coverage: 1,
@@ -48,39 +45,36 @@ async function secondStand(page: Page) {
         matchCount: 2,
         apiRequests: 6,
         cursor: null,
-      })
-      for (const [listingId, title, score] of [
+      },
+    ],
+    matches: (
+      [
         [4_100_000_001, 'Maiden Voyage', 88],
         [4_100_000_002, 'Empyrean Isles', 64],
-      ] as const) {
-        tx.objectStore('matches').put({
-          digId: '01J0000000000000000000DIG2',
-          listingId,
-          releaseId: listingId - 4_000_000_000,
-          score,
-          signals: [{ type: 'ARTIST_KNOWN', confidence: 1, evidence: {} }],
-          title,
-          artist: 'Herbie Hancock',
-          label: 'Blue Note',
-          catno: null,
-          format: 'Vinyl, LP',
-          year: 1965,
-          condition: 'Very Good Plus (VG+)',
-          sleeve: null,
-          price: 18,
-          currency: 'EUR',
-          comments: null,
-          thumbUrl: null,
-          marketLowestPrice: null,
-          marketNumForSale: null,
-          expired: false,
-        })
-      }
-      await new Promise((done) => (tx.oncomplete = () => done(null)))
-      db.close()
-    },
-    { now: Date.now() },
-  )
+      ] as const
+    ).map(([listingId, title, score]) => ({
+      digId,
+      listingId,
+      releaseId: listingId - 4_000_000_000,
+      score,
+      signals: [{ type: 'ARTIST_KNOWN', confidence: 1, evidence: {} }],
+      title,
+      artist: 'Herbie Hancock',
+      label: 'Blue Note',
+      catno: null,
+      format: 'Vinyl, LP',
+      year: 1965,
+      condition: 'Very Good Plus (VG+)',
+      sleeve: null,
+      price: 18,
+      currency: 'EUR',
+      comments: null,
+      thumbUrl: null,
+      marketLowestPrice: null,
+      marketNumForSale: null,
+      expired: false,
+    })),
+  })
 }
 
 test('two stands, one screen — each on its own or all at once', async ({ page }) => {

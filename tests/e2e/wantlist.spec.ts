@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './support/test'
 
-import { seed } from './seed'
+import { putRows, seed } from './seed'
 
 /**
  * How much you want it (docs/06 M20 #1): Discogs' 0–5 per want, synced all
@@ -11,36 +11,30 @@ import { seed } from './seed'
  * an order to switch and a star to give.
  */
 async function olderWant(page: Page) {
-  await page.evaluate(async () => {
-    const open = indexedDB.open('fidelity')
-    const db: IDBDatabase = await new Promise((resolve, reject) => {
-      open.onsuccess = () => resolve(open.result)
-      open.onerror = () => reject(open.error)
-    })
-    const tx = db.transaction('wantlist', 'readwrite')
-    tx.objectStore('wantlist').put({
-      releaseId: 9_912_999,
-      masterId: 0,
-      title: 'Unity',
-      artistIds: [2],
-      artistNorms: ['larry young'],
-      artistNames: ['Larry Young'],
-      labelIds: [],
-      labelNorms: [],
-      labelNames: [],
-      catnos: [],
-      genres: [],
-      styles: [],
-      formats: ['Vinyl'],
-      year: 1966,
-      thumbUrl: '',
-      coverUrl: '',
-      addedAt: '2018-06-01T00:00:00-00:00',
-      note: '',
-      want: 0,
-    })
-    await new Promise((done) => (tx.oncomplete = () => done(null)))
-    db.close()
+  await putRows(page, {
+    wantlist: [
+      {
+        releaseId: 9_912_999,
+        masterId: 0,
+        title: 'Unity',
+        artistIds: [2],
+        artistNorms: ['larry young'],
+        artistNames: ['Larry Young'],
+        labelIds: [],
+        labelNorms: [],
+        labelNames: [],
+        catnos: [],
+        genres: [],
+        styles: [],
+        formats: ['Vinyl'],
+        year: 1966,
+        thumbUrl: '',
+        coverUrl: '',
+        addedAt: '2018-06-01T00:00:00-00:00',
+        note: '',
+        want: 0,
+      },
+    ],
   })
 }
 

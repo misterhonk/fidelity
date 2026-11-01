@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './support/test'
 
-import { putRows, seed } from './seed'
+import { putRows, readRows, seed } from './seed'
 
 /**
  * Your wants across the shops you dug (docs/06 M19 #9).
@@ -129,22 +129,8 @@ test('before the first dig it says what would fill it, with the way there', asyn
 }) => {
   await seed(page, 'en')
   // The seed's dig, expired: nothing inside the six hours any more (rule 4).
-  await page.evaluate(async () => {
-    const open = indexedDB.open('fidelity')
-    const db: IDBDatabase = await new Promise((resolve, reject) => {
-      open.onsuccess = () => resolve(open.result)
-      open.onerror = () => reject(open.error)
-    })
-    const tx = db.transaction('digs', 'readwrite')
-    const store = tx.objectStore('digs')
-    const all: { id: string; expiresAt: number }[] = await new Promise((resolve) => {
-      const req = store.getAll()
-      req.onsuccess = () => resolve(req.result)
-    })
-    for (const dig of all) store.put({ ...dig, expiresAt: Date.now() - 1000 })
-    await new Promise((done) => (tx.oncomplete = () => done(null)))
-    db.close()
-  })
+  const digs = await readRows<{ expiresAt: number }>(page, 'digs')
+  await putRows(page, { digs: digs.map((dig) => ({ ...dig, expiresAt: Date.now() - 1000 })) })
   await page.goto('/wantlist')
 
   const box = page.getByTestId('want-plan')

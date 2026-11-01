@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './support/test'
 
-import { signIn } from './seed'
+import { putRows, signIn } from './seed'
 
 /**
  * Long lists: the way back up, and not all of it at once.
@@ -20,38 +20,27 @@ async function withWantlist(page: Page) {
   // the stores — the long reasoning is in `seed.ts`.
   await signIn(page)
 
-  await page.evaluate(async (howMany: number) => {
-    const open = indexedDB.open('fidelity')
-    const db: IDBDatabase = await new Promise((resolve, reject) => {
-      open.onsuccess = () => resolve(open.result)
-      open.onerror = () => reject(open.error)
-    })
-
-    const tx = db.transaction('wantlist', 'readwrite')
-    for (let i = 0; i < howMany; i += 1) {
-      tx.objectStore('wantlist').put({
-        releaseId: 1000 + i,
-        masterId: 0,
-        title: `Platte ${i}`,
-        artistIds: [],
-        artistNames: ['Probe'],
-        artistNorms: ['probe'],
-        labelIds: [],
-        labelNames: ['Label'],
-        labelNorms: ['label'],
-        catnos: [],
-        genres: [],
-        styles: [],
-        formats: ['Vinyl'],
-        year: 1990,
-        rating: 0,
-        thumbUrl: '',
-        coverUrl: '',
-        addedAt: `2020-01-01T00:00:0${i % 10}-00:00`,
-      })
-    }
-    await new Promise((done) => (tx.oncomplete = () => done(null)))
-  }, VIELE)
+  const wantlist = Array.from({ length: VIELE }, (_, i) => ({
+    releaseId: 1000 + i,
+    masterId: 0,
+    title: `Platte ${i}`,
+    artistIds: [],
+    artistNames: ['Probe'],
+    artistNorms: ['probe'],
+    labelIds: [],
+    labelNames: ['Label'],
+    labelNorms: ['label'],
+    catnos: [],
+    genres: [],
+    styles: [],
+    formats: ['Vinyl'],
+    year: 1990,
+    rating: 0,
+    thumbUrl: '',
+    coverUrl: '',
+    addedAt: `2020-01-01T00:00:0${i % 10}-00:00`,
+  }))
+  await putRows(page, { wantlist })
 
   await page.goto('/wantlist')
   await expect(page.locator('main')).toBeVisible()

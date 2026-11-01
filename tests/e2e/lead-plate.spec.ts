@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './support/test'
 
-import { seed } from './seed'
+import { putRows, readRows, seed } from './seed'
 
 /**
  * A reason that repeats is not a reason, it is a category (M33 #1).
@@ -27,52 +27,36 @@ const MANY = 20
  * that also collects the label sits at 30, safely inside it.
  */
 async function manyOfTheSame(page: Page, digId: string) {
-  await page.evaluate(
-    async ({ dig, howMany }: { dig: string; howMany: number }) => {
-      const request = indexedDB.open('fidelity')
-      const db: IDBDatabase = await new Promise((done) => {
-        request.onsuccess = () => done(request.result)
-      })
-      const tx = db.transaction('matches', 'readwrite')
-      const store = tx.objectStore('matches')
-      const first: Record<string, unknown> = await new Promise((done) => {
-        const all = store.getAll()
-        all.onsuccess = () => done(all.result[0] as Record<string, unknown>)
-      })
-
-      for (let i = 0; i < howMany; i += 1) {
-        const artist = {
-          type: 'ARTIST_KNOWN',
-          confidence: 1,
-          evidence: { artist: `Probe ${i}`, owned: 5 },
-        }
-        /*
-         * One of them collects the label as well. ARTIST_KNOWN weighs 55 and
-         * LABEL_AFFINITY 45, so the artist still leads and goes on the plate
-         * — and the label is what the card has left to say in a sentence.
-         */
-        const alsoLabel = {
-          type: 'LABEL_AFFINITY',
-          confidence: 1,
-          evidence: { label: 'Blue Note', owned: 14 },
-        }
-        store.put({
-          ...first,
-          digId: dig,
-          listingId: 900_000 + i,
-          releaseId: 910_000 + i,
-          artist: `Probe ${i}`,
-          title: `Record ${i}`,
-          score: 40 - i,
-          price: 40 - i,
-          signals: i === 10 ? [artist, alsoLabel] : [artist],
-        })
-      }
-      await new Promise((done) => (tx.oncomplete = done))
-      db.close()
-    },
-    { dig: digId, howMany: MANY },
-  )
+  const [first] = await readRows(page, 'matches')
+  const matches = Array.from({ length: MANY }, (_, i) => {
+    const artist = {
+      type: 'ARTIST_KNOWN',
+      confidence: 1,
+      evidence: { artist: `Probe ${i}`, owned: 5 },
+    }
+    /*
+     * One of them collects the label as well. ARTIST_KNOWN weighs 55 and
+     * LABEL_AFFINITY 45, so the artist still leads and goes on the plate
+     * — and the label is what the card has left to say in a sentence.
+     */
+    const alsoLabel = {
+      type: 'LABEL_AFFINITY',
+      confidence: 1,
+      evidence: { label: 'Blue Note', owned: 14 },
+    }
+    return {
+      ...first,
+      digId,
+      listingId: 900_000 + i,
+      releaseId: 910_000 + i,
+      artist: `Probe ${i}`,
+      title: `Record ${i}`,
+      score: 40 - i,
+      price: 40 - i,
+      signals: i === 10 ? [artist, alsoLabel] : [artist],
+    }
+  })
+  await putRows(page, { matches })
 }
 
 test('wears a worn-out reason as a plate, and keeps the sentence for the rest', async ({
@@ -143,34 +127,20 @@ test('breaks a tie on the price, and says on the tab that it does', async ({ pag
     timeout: 15_000,
   })
 
-  await page.evaluate(async (digId: string) => {
-    const request = indexedDB.open('fidelity')
-    const db: IDBDatabase = await new Promise((done) => {
-      request.onsuccess = () => done(request.result)
-    })
-    const tx = db.transaction('matches', 'readwrite')
-    const store = tx.objectStore('matches')
-    const first: Record<string, unknown> = await new Promise((done) => {
-      const all = store.getAll()
-      all.onsuccess = () => done(all.result[0] as Record<string, unknown>)
-    })
-    // Eight finds at one score, written dearest first so the order on screen
-    // can only come from the tie-break.
-    for (let i = 0; i < 8; i += 1) {
-      store.put({
-        ...first,
-        digId,
-        listingId: 800_000 + i,
-        releaseId: 810_000 + i,
-        artist: `Tie ${i}`,
-        title: `Same ${i}`,
-        score: 48,
-        price: 80 - i * 5,
-      })
-    }
-    await new Promise((done) => (tx.oncomplete = done))
-    db.close()
-  }, dig.id)
+  const [first] = await readRows(page, 'matches')
+  // Eight finds at one score, written dearest first so the order on screen
+  // can only come from the tie-break.
+  const matches = Array.from({ length: 8 }, (_, i) => ({
+    ...first,
+    digId: dig.id,
+    listingId: 800_000 + i,
+    releaseId: 810_000 + i,
+    artist: `Tie ${i}`,
+    title: `Same ${i}`,
+    score: 48,
+    price: 80 - i * 5,
+  }))
+  await putRows(page, { matches })
 
   await page.goto(`/dig?id=${dig.id}&density=compact`)
   await expect(page.getByRole('heading', { name: '10 finds at plattenkiste' })).toBeVisible({

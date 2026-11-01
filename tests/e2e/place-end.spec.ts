@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './support/test'
 
-import { seed } from './seed'
+import { putRows, readRows, seed } from './seed'
 
 /**
  * A shelf big enough to have boundaries in it.
@@ -11,32 +11,17 @@ import { seed } from './seed'
  * one letter each, make every boundary legible.
  */
 async function eightRecords(page: Page) {
-  await page.evaluate(async () => {
-    const open = indexedDB.open('fidelity')
-    const db: IDBDatabase = await new Promise((resolve, reject) => {
-      open.onsuccess = () => resolve(open.result)
-      open.onerror = () => reject(open.error)
-    })
-    const tx = db.transaction('collection', 'readwrite')
-    const store = tx.objectStore('collection')
-    const first: Record<string, unknown> = await new Promise((done) => {
-      const all = store.getAll()
-      all.onsuccess = () => done(all.result[0] as Record<string, unknown>)
-    })
-    const names = ['Air', 'Bowie', 'Can', 'Dinky', 'Eno', 'Fela', 'Gas', 'Hood']
-    names.forEach((name, i) => {
-      store.put({
-        ...first,
-        instanceId: 800_000 + i,
-        releaseId: 810_000 + i,
-        title: `Record ${i}`,
-        artistNames: [name],
-        artistNorms: [name.toLowerCase()],
-      })
-    })
-    await new Promise((done) => (tx.oncomplete = done))
-    db.close()
-  })
+  const [first] = await readRows(page, 'collection')
+  const names = ['Air', 'Bowie', 'Can', 'Dinky', 'Eno', 'Fela', 'Gas', 'Hood']
+  const collection = names.map((name, i) => ({
+    ...first,
+    instanceId: 800_000 + i,
+    releaseId: 810_000 + i,
+    title: `Record ${i}`,
+    artistNames: [name],
+    artistNorms: [name.toLowerCase()],
+  }))
+  await putRows(page, { collection })
 }
 
 /**
