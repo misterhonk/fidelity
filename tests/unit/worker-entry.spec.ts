@@ -13,7 +13,9 @@ import { describe, expect, it } from 'vitest'
 const source = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8')
 
 function staticImports(code: string): string[] {
-  return [...code.matchAll(/^import\s+(?!type\b)[^'"]*['"]([^'"]+)['"]/gm)].map((m) => m[1]!)
+  return [...code.matchAll(/^(?:import|export)\s+(?!type\b)[^'"=;]*['"]([^'"]+)['"]/gm)].map(
+    (m) => m[1]!,
+  )
 }
 
 const GROUPS = { basket: './basket/handlers', hub: './hub/handlers' } as const
