@@ -112,6 +112,36 @@ describe('how the score is shown', () => {
     expect(ladder).toMatch(/aria-hidden="true"/)
   })
 
+  /**
+   * On a card the score is a price sticker, "92 · Side One, Track One" (#222),
+   * and the explanation is not repeated on it: the list says it once.
+   */
+  it('wears a sticker on the card, with no explanation of its own', () => {
+    const card = MARK.slice(MARK.indexOf('v-if="!block"'), MARK.indexOf('v-else'))
+    expect(card).toMatch(/data-testid="score-sticker"/)
+    expect(card).toMatch(/\{\{\s*score\s*\}\}[\s\S]*· \{\{ word \}\}/)
+    expect(card).not.toMatch(/<details/)
+    expect(card).not.toMatch(/scoreHow/)
+    expect(MARK.match(/<details/g)).toHaveLength(1)
+  })
+
+  it('explains the score once per list, at its head', () => {
+    const list = withoutComments(readFileSync('app/components/MatchList.vue', 'utf8'))
+    expect(list.match(/d\.match\.scoreHow/g)).toHaveLength(1)
+    // The top five is a list of its own, with its own single explanation.
+    const dig = withoutComments(readFileSync('app/pages/dig.vue', 'utf8'))
+    expect(dig.match(/d\.match\.scoreHow/g)).toHaveLength(1)
+  })
+
+  /** Below 50 records the low scores are the collection's doing, and the dig says so. */
+  it('says when the collection is too small for high scores', () => {
+    const dig = withoutComments(readFileSync('app/pages/dig.vue', 'utf8'))
+    expect(dig).toMatch(/SMALL_COLLECTION = 50/)
+    expect(dig).toMatch(/collectionSize < SMALL_COLLECTION/)
+    // In both languages; read from source, like the band names above.
+    expect(readFileSync('app/i18n/dig.ts', 'utf8').match(/smallCollection:/g)).toHaveLength(2)
+  })
+
   /** And the sheet stands it next to the reasons, not in a corner. */
   it('puts the sheet score beside the signals', () => {
     const section = SHEET.slice(SHEET.indexOf('sheet-signals'))

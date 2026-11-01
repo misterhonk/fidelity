@@ -176,7 +176,7 @@ const gridStyle = computed(() => ({
     It used to be a question mark under every score — twenty-seven of them on
     a dig of twenty-seven finds, every one opening the same paragraph. One
     disclosure at the head of the list is the same answer at a twenty-seventh
-    of the noise, and `ScoreMark` stands its mark down wherever this stands.
+    of the noise, and a card's `ScoreMark` carries no mark of its own (#222).
 
     Not in the crate: those tiles carry no score, so there is nothing here to
     explain (see `MatchTile`, where the number is deliberately absent).

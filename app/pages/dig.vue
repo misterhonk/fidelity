@@ -788,6 +788,19 @@ const basis = computed(() => {
   return d.value.basis(count(h.releaseIds), h.expanded, h.entities)
 })
 
+/**
+ * Under 50 records the scores run low whatever the shop holds (#222): there is
+ * little in the collection for a find to resemble. Said once, above the list,
+ * so a column of footnotes reads as the collection's size and not the shop's.
+ */
+const SMALL_COLLECTION = 50
+const collectionSize = ref<number | null>(null)
+
+watchEffect(async () => {
+  if (!result.value || collectionSize.value !== null) return
+  collectionSize.value = (await call('collection.records', { limit: 1 })).collection
+})
+
 /** Something is in the horizon, but not all of it — with the way to the rest. */
 const horizonPartial = computed(
   () => horizon.value !== null && horizon.value.expanded < horizon.value.entities,
@@ -1554,6 +1567,14 @@ const noHorizon = computed(
         </NuxtLink>
       </p>
 
+      <p
+        v-if="collectionSize !== null && collectionSize < SMALL_COLLECTION"
+        data-testid="small-collection"
+        class="max-w-prose text-fid-sm text-fid-text-muted"
+      >
+        {{ d.smallCollection }}
+      </p>
+
       <!--
         What the share produced, and only then: a link, how long it lives, and
         what it hands over. The trigger is a plate in the row above; this is
@@ -1731,6 +1752,10 @@ const noHorizon = computed(
             <span class="text-fid-text">{{ d.sideOne }}</span>
             {{ result.topFive[0].artist }} – {{ result.topFive[0].title }}
           </p>
+          <!-- The score explained once for the five, not on each card (#222). -->
+          <WhyNote :label="d.match.scoreWhat" class="self-start">
+            {{ d.match.scoreHow }}
+          </WhyNote>
           <!-- Five cards, two abreast once there is room for two. -->
           <ul class="grid gap-3 @4xl:grid-cols-2">
             <li v-for="match in result.topFive" :key="match.listingId">
