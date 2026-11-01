@@ -112,10 +112,7 @@ export function mergeSnapshots(mine: VaultSnapshot, theirs: VaultSnapshot): Vaul
     // and splitting it per field would make "ich habe das abgeschaltet" a
     // question of which knob, on which device, in which order.
     // Their own stamp, not `savedAt`: a local snapshot is always stamped "now".
-    preferences:
-      (theirs.preferences?.updatedAt ?? 0) > (mine.preferences?.updatedAt ?? 0)
-        ? theirs.preferences
-        : mine.preferences,
+    preferences: pickPreferences(mine.preferences, theirs.preferences),
     stores: {},
   }
 
@@ -128,6 +125,15 @@ export function mergeSnapshots(mine: VaultSnapshot, theirs: VaultSnapshot): Vaul
   }
 
   return merged
+}
+
+// Filtered again here: the merge is re-sealed, so a vault written before the allowlist would otherwise carry another device's hub secret round after round.
+function pickPreferences(
+  mine: VaultSnapshot['preferences'],
+  theirs: VaultSnapshot['preferences'],
+): VaultSnapshot['preferences'] {
+  const newer = (theirs?.updatedAt ?? 0) > (mine?.updatedAt ?? 0) ? theirs : mine
+  return newer ? syncedPreferences(newer) : null
 }
 
 function mergeRows(store: SyncableStore, here: Row[], there: Row[]): Row[] {

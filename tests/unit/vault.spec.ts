@@ -148,6 +148,15 @@ describe('two devices, one truth', () => {
     expect(mergeSnapshots(there, here).preferences).toMatchObject({ currency: 'GBP' })
   })
 
+  it('drops device-local settings from a vault written before the allowlist', () => {
+    const old = snapshot({
+      preferences: { currency: 'GBP', hubSecret: 's3cret', updatedAt: 200 } as never,
+    })
+    const merged = mergeSnapshots(snapshot(), old).preferences
+    expect(merged).toMatchObject({ currency: 'GBP' })
+    expect(merged).not.toHaveProperty('hubSecret')
+  })
+
   it('leaves the collection and the wantlist out — a sold record would come back', () => {
     // Every device mirrors both from Discogs. Their rows carry no write date,
     // so a merge could only add the two sides together.
