@@ -72,7 +72,7 @@ const basketCount = computed(() => basketIds.value.size)
   <nav
     v-if="identity && route.path !== '/welcome'"
     :aria-label="m.nav.label"
-    class="z-30 md:sticky md:top-0 md:border-b md:border-fid-border md:bg-fid-bg/90 md:backdrop-blur max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:border-t max-md:border-fid-border max-md:bg-fid-surface/95 max-md:pb-[env(safe-area-inset-bottom)] max-md:backdrop-blur"
+    class="z-30 md:sticky md:top-0 md:border-b md:border-fid-border md:bg-fid-bg/90 md:backdrop-blur max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:border-t max-md:border-fid-border max-md:bg-fid-surface/95 max-md:pb-[env(safe-area-inset-bottom,0px)] max-md:backdrop-blur md:pt-[env(safe-area-inset-top,0px)]"
   >
     <!--
       Stretched to equal widths on a phone, where a tab bar is a row of

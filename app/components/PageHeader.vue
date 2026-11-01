@@ -26,7 +26,8 @@ defineProps<{
     display size — the only place that size exists. Everything under it is
     text or plate.
   -->
-  <header class="flex flex-col gap-4">
+  <!-- On a phone nothing sits above it, so it clears the status bar itself. -->
+  <header class="flex flex-col gap-4 max-md:pt-[env(safe-area-inset-top,0px)]">
     <div class="flex flex-wrap items-baseline justify-between gap-4">
       <h1 class="fid-display text-fid-display leading-none font-bold text-fid-text">
         <slot name="title">{{ title }}</slot>

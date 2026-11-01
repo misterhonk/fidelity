@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 
-import { signIn } from './seed'
+import { seed, signIn } from './seed'
 
 /**
  * The app on a screen with room.
@@ -157,5 +157,72 @@ test.describe('the shelf grid itself', () => {
 
     await page.setViewportSize(PHONE)
     expect(await columns(page, '#probe')).toBe(3)
+  })
+})
+
+/**
+ * Installed on an iPhone, the page runs under the clock and the home indicator.
+ *
+ * `black-translucent` lets the app's background reach up under the status
+ * bar, but only `viewport-fit=cover` makes iOS report how much of the screen
+ * it claims — without it every `env(safe-area-inset-*)` is zero. Chromium has
+ * no notch, so what can be checked here is that the rules exist and reach the
+ * right elements, not the pixels they produce.
+ */
+test.describe('installed on an iPhone', () => {
+  // Whether a stylesheet rule matching the element pads that side with an env()
+  // inset. Computed style resolves env() to pixels, so the rules are read.
+  async function padsWithInset(page: Page, selector: string, side: 'top' | 'bottom') {
+    return page
+      .locator(selector)
+      .first()
+      .evaluate((el, side) => {
+        let found = false
+        const walk = (rules: CSSRuleList) => {
+          for (const rule of Array.from(rules)) {
+            if (
+              rule instanceof CSSStyleRule &&
+              el.matches(rule.selectorText) &&
+              rule.style.getPropertyValue(`padding-${side}`).includes(`safe-area-inset-${side}`)
+            ) {
+              found = true
+            }
+            if ('cssRules' in rule) walk((rule as CSSGroupingRule).cssRules)
+          }
+        }
+        for (const sheet of Array.from(document.styleSheets)) walk(sheet.cssRules)
+        return found
+      }, side)
+  }
+
+  test('the viewport covers the whole screen', async ({ page }) => {
+    await page.goto('/welcome')
+    const viewport = await page.locator('meta[name="viewport"]').getAttribute('content')
+    expect(viewport).toMatch(/viewport-fit\s*=\s*cover/)
+  })
+
+  test('the page header and the nav clear the status bar and the home indicator', async ({
+    page,
+  }) => {
+    await signIn(page)
+    await page.goto('/dealers')
+    await expect(page.locator('main header').first()).toBeVisible()
+    expect(await padsWithInset(page, 'main header', 'top')).toBe(true)
+    expect(await padsWithInset(page, 'nav', 'top')).toBe(true)
+    expect(await padsWithInset(page, 'nav', 'bottom')).toBe(true)
+  })
+
+  test('a sheet clears the status bar and its action bar the home indicator', async ({
+    page,
+  }) => {
+    await seed(page, 'en')
+    await page.goto('/wantlist')
+    const cover = page.locator('main ul li button').first()
+    await expect(cover).toBeVisible({ timeout: 15_000 })
+    await cover.click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15_000 })
+
+    expect(await padsWithInset(page, '[role="dialog"]', 'top')).toBe(true)
+    expect(await padsWithInset(page, '[role="dialog"] .sticky', 'bottom')).toBe(true)
   })
 })
