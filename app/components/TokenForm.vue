@@ -19,6 +19,22 @@ const token = ref('')
 const busy = ref(false)
 const error = ref<unknown>(null)
 const renewed = ref(false)
+const shown = ref(false)
+const pasteFailed = ref(false)
+
+/**
+ * On a phone, long-pressing a password field to paste 40 characters is where
+ * people gave up. `readText` only works inside a click, and the token goes
+ * from the clipboard into the field and nowhere else (rule 6).
+ */
+async function paste() {
+  pasteFailed.value = false
+  try {
+    token.value = (await navigator.clipboard.readText()).trim()
+  } catch {
+    pasteFailed.value = true
+  }
+}
 
 async function submit() {
   if (busy.value) return
@@ -81,9 +97,11 @@ async function submit() {
       <p class="text-fid-xs text-fid-text-muted">{{ m.token.sampleNote }}</p>
     </section>
 
+    <p class="text-fid-sm text-fid-text">{{ m.token.what }}</p>
+
     <ol class="flex list-decimal flex-col gap-1 pl-5 text-fid-sm text-fid-text-muted">
       <li>
-        {{ m.token.step1.verbFirst ? m.token.step1.verb : '' }}
+        {{ m.token.step1 }}
         <a
           class="fid-action text-fid-accent underline underline-offset-4"
           href="https://www.discogs.com/settings/developers"
@@ -92,27 +110,71 @@ async function submit() {
         >
           discogs.com/settings/developers
         </a>
-        {{ m.token.step1.verbFirst ? '' : m.token.step1.verb }}
       </li>
       <li>{{ m.token.step2 }}</li>
       <li>{{ m.token.step3 }}</li>
     </ol>
 
+    <!--
+      What the page looks like when it opens, drawn rather than photographed:
+      a few hundred bytes instead of an image, and it follows the theme.
+    -->
+    <figure
+      role="img"
+      :aria-label="m.token.picture.alt"
+      class="flex max-w-sm flex-col gap-3 rounded-fid-md border border-fid-border p-3"
+    >
+      <div
+        aria-hidden="true"
+        class="rounded-fid-sm bg-fid-inset px-2 py-1 font-fid-mono text-fid-xs text-fid-text-muted"
+      >
+        discogs.com/settings/developers
+      </div>
+      <div aria-hidden="true" class="flex flex-col gap-2 px-1">
+        <span class="text-fid-sm font-medium text-fid-text">{{ m.token.picture.heading }}</span>
+        <span
+          class="self-start rounded-fid-sm px-3 py-1 text-fid-xs text-fid-text ring-2 ring-fid-accent"
+        >
+          {{ m.token.picture.button }}
+        </span>
+      </div>
+    </figure>
+
     <div class="flex flex-col gap-2">
       <label class="text-fid-sm font-medium text-fid-text" for="discogs-token">
         {{ m.token.field }}
       </label>
-      <input
-        id="discogs-token"
-        v-model="token"
-        type="password"
-        autocomplete="off"
-        spellcheck="false"
-        required
-        :aria-invalid="error !== null"
-        :aria-describedby="error ? 'token-error' : 'token-hint'"
-        class="fid-field px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
-      />
+      <div class="flex gap-2">
+        <input
+          id="discogs-token"
+          v-model="token"
+          :type="shown ? 'text' : 'password'"
+          autocomplete="off"
+          spellcheck="false"
+          required
+          :aria-invalid="error !== null"
+          :aria-describedby="error ? 'token-error' : 'token-hint'"
+          class="fid-field min-w-0 flex-1 px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+        />
+        <button
+          type="button"
+          class="fid-action rounded-fid-sm border border-fid-border px-3 text-fid-sm text-fid-text"
+          @click="paste"
+        >
+          {{ m.token.paste }}
+        </button>
+        <button
+          type="button"
+          :aria-pressed="shown"
+          class="fid-action rounded-fid-sm border border-fid-border px-3 text-fid-sm text-fid-text"
+          @click="shown = !shown"
+        >
+          {{ m.token.show }}
+        </button>
+      </div>
+      <p v-if="pasteFailed" class="text-fid-xs text-fid-text" aria-live="polite">
+        {{ m.token.pasteFailed }}
+      </p>
       <!--
         Where it is kept — and what is done with it.
 
@@ -129,6 +191,14 @@ async function submit() {
       </p>
       <!-- The whole of what it may and may not do, one click away (M26.3). -->
       <WhyNote>{{ m.token.readsOnlyRest }}</WhyNote>
+      <a
+        class="fid-action w-fit text-fid-xs text-fid-accent underline underline-offset-4"
+        href="https://www.discogs.com/settings/developers"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {{ m.token.revoke }}
+      </a>
       <div v-if="error" id="token-error">
         <ErrorNote :cause="error" :signed-in="renew === true" />
       </div>

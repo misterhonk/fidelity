@@ -361,10 +361,20 @@ const de: Messages = {
     sampleTitle: 'Was dabei herauskommt',
     sampleNote:
       'Beispiele. Eine Punktzahl und ein Satz, warum, für jede Platte in einem Laden. Sobald deine Sammlung drin ist, stehen da deine Künstler und deine Labels.',
-    step1: { verb: 'öffnen', verbFirst: false },
-    step2: '„Generate token" klicken',
-    step3: 'Den Token hier einfügen',
+    what: 'Ein Token funktioniert wie ein Passwort, nur für die Discogs-API, und du kannst ihn jederzeit widerrufen.',
+    step1: 'Öffne',
+    step2: 'Tipp auf „Generate new token"',
+    step3: 'Kopier ihn und füg ihn hier ein',
+    picture: {
+      alt: 'Die Entwickler-Einstellungen bei Discogs, mit dem Knopf „Generate new token"',
+      heading: 'Personal access token',
+      button: 'Generate new token',
+    },
     field: 'Personal Access Token',
+    paste: 'Einfügen',
+    pasteFailed: 'Die Zwischenablage blieb zu. Halt das Feld gedrückt und füg ihn dort ein.',
+    show: 'Zeigen',
+    revoke: 'Bei Discogs jederzeit widerrufen',
     readsOnly: 'Wir lesen. Ändern tust nur du.',
     readsOnlyRest:
       'Deine Sammlung, deine Wantlist und was die Läden haben. Nur was du hier änderst, geht an Discogs: Bewertungen, Ordner, Käufe, die Wantlist. Gekauft wird dort, von dir.',
