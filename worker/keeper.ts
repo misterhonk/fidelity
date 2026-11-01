@@ -104,6 +104,8 @@ export interface KeeperResult {
   pushed: number
   /** Queued changes given up on. Their old value is back on the shelf. */
   givenUp: number
+  /** Their records, by title. */
+  undone: string[]
 }
 
 export async function runKeeper(options: {
@@ -140,6 +142,7 @@ export async function runKeeper(options: {
     expired: 0,
     pushed: 0,
     givenUp: 0,
+    undone: [],
   }
 
   /*
@@ -196,6 +199,7 @@ export async function runKeeper(options: {
   if (drained.sent > 0 || drained.givenUp > 0) result.did.push('outbox')
   result.pushed = drained.sent
   result.givenUp = drained.givenUp
+  result.undone = drained.undone
 
   /*
    * 2 — the collection. Cheap, and it says the most: everything else in the

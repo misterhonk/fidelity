@@ -60,7 +60,12 @@ async function queueRating(rating: number, was: number) {
 }
 
 const client = (write: () => Promise<unknown>) =>
-  ({ write: vi.fn(write) }) as unknown as DiscogsClient & { write: ReturnType<typeof vi.fn> }
+  ({
+    write: vi.fn(write),
+    get: vi.fn(async () => ({ releases: [] })),
+  }) as unknown as DiscogsClient & {
+    write: ReturnType<typeof vi.fn>
+  }
 
 describe('the outbox', () => {
   it('sends a queued change and forgets it', async () => {
@@ -69,7 +74,7 @@ describe('the outbox', () => {
 
     const result = await drainOutbox(fake, 'mrtnmlchr')
 
-    expect(result).toEqual({ sent: 1, givenUp: 0, waiting: 0 })
+    expect(result).toEqual({ sent: 1, givenUp: 0, undone: [], waiting: 0 })
     expect(await pendingJobs()).toEqual([])
 
     const [method, path, options] = (fake.write as ReturnType<typeof vi.fn>).mock.calls[0] ?? []
@@ -186,12 +191,14 @@ describe('the outbox', () => {
       throw new DiscogsError(0, 'Discogs is not answering')
     })
 
-    let last = { sent: 0, givenUp: 0, waiting: 0 }
-    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    let last = await drainOutbox(fake, 'mrtnmlchr')
+    for (let attempt = 1; attempt < MAX_ATTEMPTS; attempt++) {
       last = await drainOutbox(fake, 'mrtnmlchr')
     }
 
     expect(last.givenUp).toBe(1)
+    // By name, so the line on screen can say which record went back.
+    expect(last.undone).toEqual([record().title])
   })
 
   /*
@@ -301,7 +308,7 @@ describe('a job that fails on its own', () => {
 
     const result = await drainOutbox(fake, 'mrtnmlchr')
 
-    expect(result).toEqual({ sent: 1, givenUp: 0, waiting: 1 })
+    expect(result).toEqual({ sent: 1, givenUp: 0, undone: [], waiting: 1 })
     expect((await pendingJobs()).map((job) => job.id)).toEqual(['wantlist.note:7'])
   })
 })

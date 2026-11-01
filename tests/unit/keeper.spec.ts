@@ -48,7 +48,7 @@ beforeEach(() => {
   checkWatched.mockReset().mockResolvedValue({ checked: 1, alerts: [{ dealer: 'x' }] })
   revalidateHorizon.mockReset().mockResolvedValue({ expanded: 3 })
   expireDigs.mockReset().mockResolvedValue(0)
-  drainOutbox.mockReset().mockResolvedValue({ sent: 0, givenUp: 0, waiting: 0 })
+  drainOutbox.mockReset().mockResolvedValue({ sent: 0, givenUp: 0, undone: [], waiting: 0 })
 })
 
 /**
@@ -192,11 +192,20 @@ describe('the keeper', () => {
 
   // Pending rows are protected inside syncLibrary (pendingKeys); skipping here stalled the sync for hours.
   it('syncs the library even while outbox changes are still waiting', async () => {
-    drainOutbox.mockResolvedValue({ sent: 0, givenUp: 0, waiting: 3 })
+    drainOutbox.mockResolvedValue({ sent: 0, givenUp: 0, undone: [], waiting: 3 })
     const result = await runKeeper({ client, username: 'mrtnmlchr', now: NOW })
 
     expect(syncLibrary).toHaveBeenCalled()
     expect(result.did).toContain('library')
+  })
+
+  // So the line under the shelf can say which change went back, not "nothing new".
+  it('passes on the records whose change was given up on', async () => {
+    drainOutbox.mockResolvedValue({ sent: 0, givenUp: 1, undone: ['Loveless'], waiting: 0 })
+    const result = await runKeeper({ client, username: 'mrtnmlchr', now: NOW })
+
+    expect(result.givenUp).toBe(1)
+    expect(result.undone).toEqual(['Loveless'])
   })
 
   it('does not let one failure stop the rest', async () => {

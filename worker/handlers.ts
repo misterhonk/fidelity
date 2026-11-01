@@ -1014,7 +1014,7 @@ export const handlers: HandlerMap = {
 
   'outbox.flush': async () => {
     const identity = await currentIdentity()
-    if (!identity) return { sent: 0, givenUp: 0, waiting: 0 }
+    if (!identity) return { sent: 0, givenUp: 0, undone: [], waiting: 0 }
     const { drainOutbox } = await import('./outbox')
     return drainOutbox(discogs(), identity.username)
   },
