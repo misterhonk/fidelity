@@ -499,10 +499,7 @@ function waiting(addedAt: string): string | null {
                     :aria-label="`${item.artist} – ${item.title} (${c.wantlist.plan.open})`"
                   >
                     {{ item.artist }} – {{ item.title }}
-                    <span
-                      v-if="item.want >= WANT_MOST"
-                      class="text-fid-xs text-fid-sig-wantlist-text"
-                    >
+                    <span v-if="item.want >= WANT_MOST" class="text-fid-xs text-fid-importance">
                       · {{ c.wantlist.priority.most }}</span
                     >
                     <span v-if="!item.exact" class="text-fid-xs text-fid-text-muted">
@@ -742,7 +739,7 @@ function waiting(addedAt: string): string | null {
           <p class="fid-plate flex flex-wrap gap-x-2 text-fid-text-muted">
             <span v-if="group.lead.year > 0" class="fid-num">{{ group.lead.year }}</span>
             <span v-if="waiting(group.lead.addedAt)">{{ waiting(group.lead.addedAt) }}</span>
-            <span v-if="group.lead.want >= WANT_MOST" class="text-fid-sig-wantlist-text">{{
+            <span v-if="group.lead.want >= WANT_MOST" class="text-fid-importance">{{
               c.wantlist.priority.most
             }}</span>
             <span v-if="group.lead.pressings !== null">{{
@@ -765,7 +762,7 @@ function waiting(addedAt: string): string | null {
               class="fid-lift flex min-h-11 min-w-8 items-center justify-center rounded-fid-sm text-fid-sm transition-colors"
               :class="
                 group.lead.want >= star
-                  ? 'text-fid-sig-wantlist-text'
+                  ? 'text-fid-importance'
                   : 'text-fid-text-muted hover:text-fid-text'
               "
               @click="want(group.lead, star)"

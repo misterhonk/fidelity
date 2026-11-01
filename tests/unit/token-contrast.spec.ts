@@ -140,8 +140,8 @@ describe('signal colours as text', () => {
 
   describe.each(['light', 'dark'] as const)('in %s mode', (scheme) => {
     it.each(
-      [...signals.map((name) => `sig-${name}-text`), 'error'].flatMap((foreground) =>
-        BACKGROUNDS.map((background) => ({ foreground, background })),
+      [...signals.map((name) => `sig-${name}-text`), 'error', 'importance'].flatMap(
+        (foreground) => BACKGROUNDS.map((background) => ({ foreground, background })),
       ),
     )('$foreground on $background clears AA', ({ foreground, background }) => {
       const ratio = contrastRatio(role(foreground, scheme), role(background, scheme))
@@ -197,5 +197,20 @@ describe('scarcity reads as a finding, not a warning', () => {
       .filter((file) => file.endsWith('.vue'))
       .filter((file) => readFileSync(`app/${file}`, 'utf8').includes('fid-sig-scarcity'))
     expect(borrowers).toEqual([])
+  })
+})
+
+describe('importance has one colour', () => {
+  /**
+   * Stars were magenta on the wantlist and gold on the shelf (issue #219). Both
+   * screens now draw stars and "wanted most" in the importance role.
+   */
+  it('is the colour of stars and priority on the wantlist and the shelf', () => {
+    for (const file of ['app/pages/wantlist.vue', 'app/pages/shelf.vue']) {
+      expect(readFileSync(file, 'utf8'), file).toContain('text-fid-importance')
+    }
+    const wantlist = readFileSync('app/pages/wantlist.vue', 'utf8')
+    expect(wantlist).not.toMatch(/sig-wantlist-text"[^<]*\{\{\s*c\.wantlist\.priority/)
+    expect(wantlist).not.toMatch(/\? 'text-fid-sig-wantlist-text'\s*:\s*'text-fid-text-muted/)
   })
 })
