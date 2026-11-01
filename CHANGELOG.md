@@ -9,6 +9,17 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.114.1](https://github.com/misterhonk/fidelity/compare/v0.114.0...v0.114.1) (2026-11-01)
+
+
+### Fixed
+
+* **basket:** collapse runs of spaces before the shipping parser reads them ([3aeca84](https://github.com/misterhonk/fidelity/commit/3aeca84642ee7dafce1b5eff25239226f4253245))
+* **basket:** plans in cents, on the card's own postage, against a minimum in its currency ([d26b310](https://github.com/misterhonk/fidelity/commit/d26b31044838cc4f55f53bed56892741222c5f5f))
+* **collection:** look before resending an add that a run was cut off in ([2d3b963](https://github.com/misterhonk/fidelity/commit/2d3b963e142be03974d00ce1aa69ae45a401f1a8))
+* **discogs:** cap the pacer's wait, retry a body that drops, and let writes fail fast ([741067c](https://github.com/misterhonk/fidelity/commit/741067c1d025160a1d9055e876d251f66c6714e7))
+* **hub:** keep the catalogue's body inside its two-second bound ([ae8ca89](https://github.com/misterhonk/fidelity/commit/ae8ca89b5737b7b38a917b862a71352ea9878c7f))
+
 ## [0.114.0](https://github.com/misterhonk/fidelity/compare/v0.113.3...v0.114.0) (2026-11-01)
 
 
