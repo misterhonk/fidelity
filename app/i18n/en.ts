@@ -425,6 +425,10 @@ const en = {
         title: 'Part of the app did not load.',
         action: 'Reload the page. If it keeps happening, the deployment is incomplete.',
       },
+      'off-discogs': {
+        title: 'A request was about to leave Discogs, so it was stopped.',
+        action: 'Your token was not sent. This is a bug; please report it.',
+      },
     },
 
     tokenRevoked: {

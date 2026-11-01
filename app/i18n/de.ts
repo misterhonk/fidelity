@@ -279,6 +279,10 @@ const de: Messages = {
         title: 'Ein Teil der App ist nicht geladen.',
         action: 'Lade die Seite neu. Passiert es weiter, ist die Auslieferung unvollständig.',
       },
+      'off-discogs': {
+        title: 'Eine Anfrage wollte weg von Discogs. Sie ist gestoppt.',
+        action: 'Dein Token ging nicht raus. Das ist ein Fehler, bitte melde ihn.',
+      },
     },
 
     tokenRevoked: {

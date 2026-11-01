@@ -1,10 +1,12 @@
 import type { z } from 'zod'
 
+import { fail } from '../fail'
 import { DiscogsError, toDiscogsError } from './errors'
 import { createPacer, type Pacer } from './pacer'
 import { note, noteBackoff } from './ledger'
 
 export const DISCOGS_API = 'https://api.discogs.com'
+const DISCOGS_ORIGIN = new URL(DISCOGS_API).origin
 
 /**
  * Discogs sends no Retry-After with a 429, so the schedule is ours. Long on
@@ -192,6 +194,9 @@ export class DiscogsClient {
   /** The address a path and a query add up to — and the key a flight is filed under. */
   #addressOf(path: string, query: RequestOptions['query']): URL {
     const url = new URL(path, this.#options.baseUrl)
+    // Rule 6: '//evil.example' resolves off Discogs, and the token must not follow it.
+    if (url.origin !== DISCOGS_ORIGIN)
+      throw fail('off-discogs', `not ${DISCOGS_API}: ${url.origin}`)
     for (const [key, value] of Object.entries(query ?? {})) {
       if (value !== undefined) url.searchParams.set(key, String(value))
     }

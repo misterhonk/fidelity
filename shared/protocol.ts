@@ -1619,6 +1619,7 @@ export interface WorkerError {
     | 'vault-unusable'
     | 'passphrase-short'
     | 'asset-missing'
+    | 'off-discogs'
   /** The HTTP status, for `hub-http-error`. Nothing else carries one. */
   status?: number
   /** The shop a running scan is at, for `dig-running`. */
