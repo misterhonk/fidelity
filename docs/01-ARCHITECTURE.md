@@ -356,7 +356,7 @@ did not hit. Measured budget: < 60 ms for 20,000 listings.
 | Personal Access Token | IndexedDB only, never logged, never in a URL or error report, never to third parties |
 | "Sign out" | Deletes the token **and** all local data |
 | GDPR | **There is no server processing anyone else's data.** No processor, no cookie banner, no tracking. The privacy notice simply describes: everything stays on your device |
-| CSP | Strict. `connect-src 'self' https://api.discogs.com` · `img-src 'self' https://i.discogs.com data:` |
+| CSP | Strict, computed per build (`scripts/csp/policy.mjs`). `connect-src` is a host list: Discogs, the vault's Dropbox and Google hosts, a local hub/catalogue, plus `FIDELITY_CONNECT_SRC` · `img-src 'self' https://i.discogs.com data: blob:` |
 | Subresource integrity | For anything not from our own build (ideally: nothing) |
 | Dependencies | Renovate, `pnpm audit` in CI, GitHub Actions pinned to commit SHAs |
 | Persistence | Ask for `navigator.storage.persist()` so iOS does not clean up after 7 days |

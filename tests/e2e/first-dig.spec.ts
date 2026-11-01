@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './support/test'
 
 import { putRows, seedCollection, signIn } from './seed'
 
