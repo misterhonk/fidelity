@@ -187,6 +187,17 @@ body {
 }
 
 /*
+ * Under a thumb the floor is 44 px, as for FidButton (#221). Unlayered like the
+ * rule above, which also outranked any `min-h-11` written beside it.
+ */
+@media (pointer: coarse) {
+  .fid-action {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/*
  * One measure for the whole app — and why it is needed.
  *
  * Until 2026-09-11 every page had its own: the shelf 110rem, the map 90rem,
