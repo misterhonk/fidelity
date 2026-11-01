@@ -42,6 +42,24 @@ test('one field at the bottom, a big scan button beside it, dark by default', as
   await expect(kind).toHaveText('A barcode. Look it up for the pressings.')
 })
 
+test('back to the top floats above the field, not over it', async ({ page }) => {
+  await seed(page, 'en')
+  await page.goto('/in-store')
+  await expect(field(page)).toBeVisible({ timeout: 15_000 })
+
+  // Two screens down, however long the seed's list is: ToTop's own threshold.
+  await page.evaluate(() => {
+    document.body.style.paddingBottom = '3000px'
+    window.scrollTo(0, document.body.scrollHeight)
+  })
+  const toTop = page.getByRole('button', { name: 'Back to the top' })
+  await expect(toTop).toBeVisible()
+
+  const button = (await toTop.boundingBox())!
+  const bar = (await page.getByTestId('in-store-field').boundingBox())!
+  expect(button.y + button.height).toBeLessThanOrEqual(bar.y)
+})
+
 test('a barcode typed without signal is looked up once the signal is back', async ({
   page,
   browserName,

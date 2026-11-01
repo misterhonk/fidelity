@@ -69,7 +69,7 @@ function toTop() {
     <button
       v-if="shown"
       type="button"
-      class="fid-lift fixed right-4 z-30 flex min-h-11 min-w-11 items-center justify-center rounded-fid-sm border border-fid-border bg-fid-surface-raised text-fid-text shadow-lg max-md:bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] md:bottom-6"
+      class="fid-lift fixed right-4 z-30 flex min-h-11 min-w-11 items-center justify-center rounded-fid-sm border border-fid-border bg-fid-surface-raised text-fid-text shadow-lg max-md:bottom-(--fid-float-bottom) md:bottom-6"
       :aria-label="m.common.toTop"
       @click="toTop()"
     >
