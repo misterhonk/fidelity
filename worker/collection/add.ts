@@ -19,29 +19,31 @@ const ownedSchema = z.object({
 })
 
 /**
- * Does the shelf already hold this release, over at Discogs?
+ * How many copies of this release the shelf holds, over at Discogs.
  *
  * The lookup that replaces a retry. Adding is the one call that files
  * something new, so after an unreadable failure the question is not "did it
- * work" — which cannot be known — but "is it there now", which can.
+ * work" — which cannot be known — but "is there one more now", which can.
+ * One more, not "any": a second copy of a record already owned would
+ * otherwise be taken for having arrived, and dropped.
  */
-export async function ownsRelease(
+export async function copiesOf(
   client: DiscogsClient,
   username: string,
   releaseId: number,
-): Promise<boolean> {
+): Promise<number> {
   const answer = await client.get(
     `/users/${encodeURIComponent(username)}/collection/releases/${releaseId}`,
     ownedSchema,
   )
-  return answer.releases.length > 0
+  return answer.releases.length
 }
 
 /*
  * And it deliberately does not catch.
  *
- * Not knowing is neither "it is there" nor "it is not". Answering "yes" would
- * drop a job that may never have arrived; answering "no" would send the add
+ * Not knowing is neither "it is there" nor "it is not". Answering "more" would
+ * drop a job that may never have arrived; answering "the same" would send the add
  * again on a guess, which is the duplicate this whole mechanism exists to
  * prevent. Letting the error out leaves the job queued for the next round —
  * the only honest third answer.

@@ -176,14 +176,18 @@ describe('putting a bought record on the shelf', () => {
     const write = vi.fn(async () => {
       throw new DiscogsError(0, 'Discogs is not answering')
     })
-    const get = vi.fn(async () => ({ releases: [{ id: 12 }] }))
+    // None before the add went out, one when the next run looks.
+    const get = vi
+      .fn()
+      .mockResolvedValueOnce({ releases: [] })
+      .mockResolvedValue({ releases: [{ id: 12 }] })
     const fake = { write, get } as unknown as DiscogsClient
 
     await drainOutbox(fake, 'mrtnmlchr')
     const second = await drainOutbox(fake, 'mrtnmlchr')
 
     expect(write).toHaveBeenCalledTimes(1)
-    expect(get).toHaveBeenCalledTimes(1)
+    expect(get).toHaveBeenCalledTimes(2)
     expect(second.sent).toBe(1)
     expect(await pendingJobs()).toEqual([])
   })
@@ -222,6 +226,66 @@ describe('putting a bought record on the shelf', () => {
     expect(await pendingJobs()).toEqual([])
   })
 
+  /*
+   * A second copy of a record already on the shelf over there.
+   *
+   * "Owns at least one" was taken for "this add arrived", so after an
+   * unreadable failure the copy that was already there swallowed the new one
+   * and the job was dropped. The count before sending is what tells them apart.
+   */
+  it('sends a second copy again after an unreadable failure, instead of taking the first for it', async () => {
+    await addRecord(match())
+    const write = vi
+      .fn()
+      .mockRejectedValueOnce(new DiscogsError(0, 'Discogs is not answering'))
+      .mockResolvedValue(null)
+    const fake = client({ write, get: async () => ({ releases: [{ id: 12 }] }) })
+
+    await drainOutbox(fake, 'mrtnmlchr')
+    expect((await pendingJobs())[0]?.copiesBefore).toBe(1)
+    const second = await drainOutbox(fake, 'mrtnmlchr')
+
+    expect(write).toHaveBeenCalledTimes(2)
+    expect(second.sent).toBe(1)
+    expect(await pendingJobs()).toEqual([])
+  })
+
+  it('takes a grown count for the add having landed', async () => {
+    await addRecord(match())
+    const fake = client({
+      write: async () => {
+        throw new DiscogsError(0, 'Discogs is not answering')
+      },
+    })
+    ;(fake.get as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({ releases: [{ id: 12 }] })
+      .mockResolvedValue({ releases: [{ id: 12 }, { id: 12 }] })
+
+    await drainOutbox(fake, 'mrtnmlchr')
+    const second = await drainOutbox(fake, 'mrtnmlchr')
+
+    expect(fake.write).toHaveBeenCalledTimes(1)
+    expect(second.sent).toBe(1)
+  })
+
+  it('names the record when it gives up and takes it off the shelf again', async () => {
+    await addRecord(match())
+    const fake = client({
+      write: async () => {
+        throw new DiscogsError(0, 'Discogs is not answering')
+      },
+    })
+
+    let last = await drainOutbox(fake, 'mrtnmlchr')
+    for (let attempt = 1; attempt < MAX_ATTEMPTS; attempt++) {
+      last = await drainOutbox(fake, 'mrtnmlchr')
+    }
+
+    expect(last.givenUp).toBe(1)
+    expect(last.undone).toEqual(['Isn’t Anything'])
+    expect(await (await openFidelityDb()).get('collection', -12)).toBeUndefined()
+  })
+
   it('leaves it queued when the lookup itself cannot be read', async () => {
     await addRecord(match())
 
@@ -229,10 +293,11 @@ describe('putting a bought record on the shelf', () => {
       write: async () => {
         throw new DiscogsError(0, 'Discogs is not answering')
       },
-      get: async () => {
-        throw new DiscogsError(0, 'Discogs is not answering')
-      },
     })
+    // The count before sending answers; the look afterwards does not.
+    ;(fake.get as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({ releases: [] })
+      .mockRejectedValue(new DiscogsError(0, 'Discogs is not answering'))
 
     await drainOutbox(fake, 'mrtnmlchr')
     await drainOutbox(fake, 'mrtnmlchr')

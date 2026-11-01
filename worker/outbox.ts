@@ -27,14 +27,15 @@ interface JobKind {
   /** Put the old value back locally, after the job has been given up on. */
   revert: (job: OutboxJob) => Promise<void>
   /**
-   * Only for a job that must not be repeated: has it already happened?
+   * Only for a job that must not be repeated: how many of what it files exist.
    *
-   * Asked before every attempt but the first. A write whose answer never got
-   * back through CORS looks exactly like one that never arrived, so a job that
-   * files something new has to go and look instead of guessing — otherwise the
-   * retry puts the same record in the shelf a second time.
+   * Counted before every attempt and kept with the job. A write whose answer
+   * never got back through CORS looks exactly like one that never arrived, so
+   * a job that files something new has to go and look instead of guessing —
+   * one more than before means it landed. Asking "is there any" instead took a
+   * copy already on the shelf for the new one, and dropped it.
    */
-  alreadyDone?: (client: DiscogsClient, job: OutboxJob, username: string) => Promise<boolean>
+  count?: (client: DiscogsClient, job: OutboxJob, username: string) => Promise<number>
 }
 
 /**
@@ -144,7 +145,7 @@ const KINDS: Record<OutboxKind, JobKind> = {
          * Discogs creates another instance every time, so a blind retry after
          * an unreadable failure puts the same record in the shelf twice —
          * weeks later, with nothing to connect it to a network blip. Hence
-         * `alreadyDone` below, and hence this being false.
+         * `count` below, and hence this being false.
          */
         { idempotent: false },
       )
@@ -153,10 +154,10 @@ const KINDS: Record<OutboxKind, JobKind> = {
       const { updateSyncState } = await import('~~/db/meta')
       await updateSyncState({ collectionSyncedAt: 0 })
     },
-    alreadyDone: async (client, job, username) => {
+    count: async (client, job, username) => {
       const { releaseId } = job.payload as { releaseId: number }
-      const { ownsRelease } = await import('./collection/add')
-      return ownsRelease(client, username, releaseId)
+      const { copiesOf } = await import('./collection/add')
+      return copiesOf(client, username, releaseId)
     },
     revert: async (job) => {
       const { releaseId } = job.payload as { releaseId: number }
@@ -271,6 +272,8 @@ export interface DrainResult {
   sent: number
   /** Jobs that ran out of attempts. Their local value has been put back. */
   givenUp: number
+  /** What those were about, by record title, so a screen can say which. */
+  undone: string[]
   /** Still queued — failed this round, or never reached. */
   waiting: number
 }
@@ -312,21 +315,27 @@ async function drainOnce(
   const jobs = await pendingJobs()
   let sent = 0
   let givenUp = 0
+  const undone: string[] = []
   let waiting = 0
 
   for (const [index, job] of jobs.entries()) {
     signal?.throwIfAborted()
     try {
       const kind = KINDS[job.kind]
-      // Never on the first run: looking costs a paced request, and the first
-      // attempt has nothing to look for — unless it was cut off mid-send.
-      const triedBefore = job.attempts > 0 || job.sentAt !== undefined
-      if (triedBefore && (await kind.alreadyDone?.(client, job, username))) {
-        await dropJob(job.id, job)
-        sent += 1
-        continue
+      if (kind.count) {
+        const copies = await kind.count(client, job, username)
+        /*
+         * Only a marked job can have gone out: every send is marked first, and
+         * one that failed while counting never reached the POST. A mark without
+         * a count predates counting, and then any copy at all is taken for it.
+         */
+        if (job.sentAt !== undefined && copies > (job.copiesBefore ?? 0)) {
+          await dropJob(job.id, job)
+          sent += 1
+          continue
+        }
+        await noteSending(job.id, Date.now(), copies)
       }
-      if (kind.alreadyDone) await noteSending(job.id, Date.now())
       await kind.send(client, job, username, signal)
       await dropJob(job.id, job)
       sent += 1
@@ -336,6 +345,7 @@ async function drainOnce(
       const reason = error instanceof Error ? error.message : String(error)
       const exhausted = await noteFailure(job.id, reason)
       if (exhausted) {
+        undone.push(await titleOf(exhausted))
         await KINDS[exhausted.kind].revert(exhausted)
         givenUp += 1
       } else {
@@ -345,10 +355,24 @@ async function drainOnce(
       signal?.throwIfAborted()
       // Offline, limited or unauthorised hits every job alike; anything else is this job's own.
       if (!(error instanceof DiscogsError) || error.code !== undefined) {
-        return { sent, givenUp, waiting: waiting + jobs.length - index - 1 }
+        return { sent, givenUp, undone, waiting: waiting + jobs.length - index - 1 }
       }
     }
   }
 
-  return { sent, givenUp, waiting }
+  return { sent, givenUp, undone, waiting }
+}
+
+/** The record a job is about — read before its revert takes the row away. */
+async function titleOf(job: OutboxJob): Promise<string> {
+  const { releaseId, instanceId } = job.payload
+  // A removal carries the whole row it took off, since nothing local has it any more.
+  const carried = job.revert.record ?? job.revert.want
+  if (carried !== undefined) return (JSON.parse(String(carried)) as { title: string }).title
+  const db = await openFidelityDb()
+  const row = job.kind.startsWith('wantlist.')
+    ? await db.get('wantlist', Number(releaseId))
+    : // An add is still the provisional row under `-releaseId` (collection/add.ts).
+      await db.get('collection', Number(instanceId ?? -Number(releaseId)))
+  return row?.title ?? `#${releaseId}`
 }

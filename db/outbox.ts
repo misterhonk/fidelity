@@ -83,11 +83,11 @@ export async function dropJob(id: string, sent?: OutboxJob): Promise<void> {
  * and Discogs may have filed it all the same. This mark is what tells the next
  * run to look before it sends again.
  */
-export async function noteSending(id: string, at: number): Promise<void> {
+export async function noteSending(id: string, at: number, copiesBefore: number): Promise<void> {
   const db = await openFidelityDb()
   const tx = db.transaction('outbox', 'readwrite')
   const job = await tx.store.get(id)
-  if (job) await tx.store.put({ ...job, sentAt: at })
+  if (job) await tx.store.put({ ...job, sentAt: at, copiesBefore })
   await tx.done
 }
 

@@ -41,7 +41,7 @@ export function useWriteBack() {
       return false
     }
 
-    let result: DrainResult = { sent: 0, givenUp: 0, waiting: 0 }
+    let result: DrainResult = { sent: 0, givenUp: 0, undone: [], waiting: 0 }
     try {
       result = await call('outbox.flush', undefined)
     } catch {
