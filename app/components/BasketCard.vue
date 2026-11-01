@@ -400,7 +400,7 @@ const uid = useId()
             call — but no price: it is not an offer any more, and it no
             longer counts towards the total or the postage tier.
           -->
-            <span v-if="line.sold" class="shrink-0 text-fid-xs text-fid-sig-gap">
+            <span v-if="line.sold" class="shrink-0 text-fid-xs text-fid-sig-gap-text">
               {{ b.line.sold }}
             </span>
             <!-- Already opened on the way to the cart: the hand-over's memory, shown. -->
@@ -412,7 +412,10 @@ const uid = useId()
             a dig lives under (CLAUDE.md rule 4). The record stays in the
             basket; only the number goes.
           -->
-            <span v-else-if="line.priceExpired" class="shrink-0 text-fid-xs text-fid-sig-gap">
+            <span
+              v-else-if="line.priceExpired"
+              class="shrink-0 text-fid-xs text-fid-sig-gap-text"
+            >
               {{ b.line.priceExpired }}
             </span>
             <span v-else class="fid-num shrink-0 text-fid-sm text-fid-text">
@@ -497,11 +500,14 @@ const uid = useId()
         {{ summary.importCharges.overThreshold ? b.customsNoteOver : b.customsNote(flatDuty) }}
       </p>
 
-      <p v-if="summary.subtotal === null" class="text-fid-sm text-fid-sig-gap">
+      <p v-if="summary.subtotal === null" class="text-fid-sm text-fid-sig-gap-text">
         {{ b.subtotalExpired }}
       </p>
 
-      <p v-if="summary.missingToMinimum !== null" class="fid-num text-fid-sm text-fid-sig-gap">
+      <p
+        v-if="summary.missingToMinimum !== null"
+        class="fid-num text-fid-sm text-fid-sig-gap-text"
+      >
         {{
           b.missingToMinimum(
             money(summary.missingToMinimum, summary.currency) ?? '',
@@ -554,7 +560,7 @@ const uid = useId()
         for one record to your address; for a basket of one it is the line
         above, for more it stands here beside the table as the floor.
       -->
-      <p v-if="summary.shipsHere === false" class="text-fid-sm text-fid-sig-gap">
+      <p v-if="summary.shipsHere === false" class="text-fid-sm text-fid-sig-gap-text">
         {{ b.noShipping }}
       </p>
       <!-- "Free delivery above £75", read off the shop's text (M34.3): the threshold and the distance to it. -->
@@ -736,7 +742,7 @@ const uid = useId()
                 }}
               </span>
             </p>
-            <p v-else class="text-fid-sm text-fid-sig-gap">{{ b.compare.noPostage }}</p>
+            <p v-else class="text-fid-sm text-fid-sig-gap-text">{{ b.compare.noPostage }}</p>
 
             <p v-if="offer.rest" class="text-fid-sm text-fid-text-muted">
               {{
@@ -929,7 +935,7 @@ const uid = useId()
               )
             }}
           </p>
-          <p v-if="plan.belowMinimum" class="fid-num text-fid-sm text-fid-sig-gap">
+          <p v-if="plan.belowMinimum" class="fid-num text-fid-sm text-fid-sig-gap-text">
             {{ b.budget.belowMinimum(money(summary.minOrderTotal, summary.currency) ?? '') }}
           </p>
           <p class="text-fid-xs text-fid-text-muted">{{ b.budget.caveat }}</p>

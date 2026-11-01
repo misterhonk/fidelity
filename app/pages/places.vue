@@ -250,7 +250,7 @@ async function undo() {
           <p class="text-fid-sm text-fid-text-muted">{{ c.places.dissolveWhat }}</p>
           <button
             type="button"
-            class="fid-action min-h-11 self-start rounded-fid-sm border border-fid-sig-scarcity px-4 text-fid-sm text-fid-sig-scarcity"
+            class="fid-action min-h-11 self-start rounded-fid-sm border border-fid-error px-4 text-fid-sm text-fid-error"
             @click="dissolve(room)"
           >
             {{ c.places.dissolveConfirm }}

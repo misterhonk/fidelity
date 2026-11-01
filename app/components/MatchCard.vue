@@ -225,7 +225,8 @@ const meta = computed(() => {
             match.pressings !== undefined &&
             match.pressings <= FEW_PRESSINGS
           "
-          class="text-fid-sm text-fid-sig-scarcity"
+          class="w-fit rounded-fid-sm border px-2 text-fid-sm text-fid-text"
+          :style="signalChipStyle('SCARCITY')"
         >
           {{ d.match.fewPressings(match.pressings) }}
         </p>
@@ -240,7 +241,11 @@ const meta = computed(() => {
             v-for="warning in match.pressingWarnings"
             :key="warning.kind + (warning.facts.special ?? '')"
             class="text-fid-sm"
-            :class="warning.severity === 'high' ? 'text-fid-sig-scarcity' : 'text-fid-sig-gap'"
+            :class="
+              warning.severity === 'high'
+                ? 'text-fid-sig-scarcity-text'
+                : 'text-fid-sig-gap-text'
+            "
           >
             {{ pressingText(warning) }}
           </li>

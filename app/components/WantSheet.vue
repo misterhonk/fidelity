@@ -146,7 +146,7 @@ useWalkKeys((to) =>
             class="fid-lift flex min-h-11 min-w-11 items-center justify-center rounded-fid-sm text-fid-base transition-colors"
             :class="
               record.want >= star
-                ? 'text-fid-sig-wantlist'
+                ? 'text-fid-sig-wantlist-text'
                 : 'text-fid-text-muted hover:text-fid-text'
             "
             @click="emit('want', star)"
@@ -169,7 +169,7 @@ useWalkKeys((to) =>
       v-if="record.note"
       class="flex items-start gap-2 rounded-fid-sm border border-fid-sig-wantlist/40 bg-fid-sig-wantlist/10 px-3 py-2 text-fid-sm text-fid-text"
     >
-      <FidIcon name="bookmark" :size="16" class="shrink-0 text-fid-sig-wantlist" />
+      <FidIcon name="bookmark" :size="16" class="shrink-0 text-fid-sig-wantlist-text" />
       {{ record.note }}
     </p>
 

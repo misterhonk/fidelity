@@ -532,7 +532,7 @@ const walk = computed(() => {
               magenta: magenta is the wantlist's colour, and a rating on the
               shelf has nothing to do with the wantlist.
             -->
-            <span v-if="record.rating > 0" class="text-fid-sig-gap">
+            <span v-if="record.rating > 0" class="text-fid-sig-gap-text">
               {{ '★'.repeat(record.rating) }}
             </span>
           </span>

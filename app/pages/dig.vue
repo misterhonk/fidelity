@@ -1031,7 +1031,7 @@ const noHorizon = computed(
       Offline the last dig is still fully readable — it is on this device. Only
       the parts that need Discogs are gone, and the screen says which.
     -->
-    <p v-if="!online" role="status" class="text-fid-sm text-fid-sig-gap">
+    <p v-if="!online" role="status" class="text-fid-sm text-fid-sig-gap-text">
       {{ d.offline }}
     </p>
 
@@ -1098,7 +1098,7 @@ const noHorizon = computed(
         <span class="font-medium">{{ preflight.displayName }}</span>
         {{ d.listings(count(preflight.numForSale)) }}
       </p>
-      <p v-if="preflight.truncated" class="text-fid-sm text-fid-sig-gap">
+      <p v-if="preflight.truncated" class="text-fid-sm text-fid-sig-gap-text">
         {{
           d.truncated(
             count(preflight.reachable),
@@ -1582,7 +1582,10 @@ const noHorizon = computed(
         about the shop but about us — and it belongs said that way, together
         with the route to where it can be fixed.
       -->
-      <p v-if="result.matches.length === 0 && noHorizon" class="text-fid-base text-fid-sig-gap">
+      <p
+        v-if="result.matches.length === 0 && noHorizon"
+        class="text-fid-base text-fid-sig-gap-text"
+      >
         {{ d.empty.noHorizon }}
         <NuxtLink
           to="/settings/collection"

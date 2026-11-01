@@ -236,14 +236,14 @@ const tiles = computed(() => {
             screen has always said so and offered to finish; this one borrowed
             its results and none of its honesty.
           -->
-          <p v-if="home.dig && !home.dig.complete" class="text-fid-sm text-fid-sig-gap">
+          <p v-if="home.dig && !home.dig.complete" class="text-fid-sm text-fid-sig-gap-text">
             {{ m.home.interrupted(count(home.dig.scanned), count(home.dig.listingsTotal)) }}
             <NuxtLink to="/dig" class="underline underline-offset-4">{{
               m.home.carryOn
             }}</NuxtLink>
           </p>
 
-          <p v-if="pricesGone" class="text-fid-sm text-fid-sig-gap">
+          <p v-if="pricesGone" class="text-fid-sm text-fid-sig-gap-text">
             {{ m.home.pricesGone }}
           </p>
 

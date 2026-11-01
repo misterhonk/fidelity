@@ -140,7 +140,11 @@ const finds = computed(() => hits.value.reduce((sum, stop) => sum + stop.matches
             <span v-if="stop.status === 'never-dug'" class="text-fid-text-muted">
               {{ h.round.stopNeverDug }}
             </span>
-            <span v-else-if="stop.status === 'failed'" class="text-fid-sig-gap">
+            <span
+              v-else-if="stop.status === 'failed'"
+              class="inline-flex items-center gap-1 text-fid-error"
+            >
+              <FidIcon name="circle-alert" :size="14" />
               {{ h.round.stopFailed }}
             </span>
             <span v-else class="text-fid-text-muted">

@@ -221,7 +221,7 @@ watch(
         <p class="fid-num text-fid-sm text-fid-text-muted" data-prose="data">
           {{ trust.join(' · ') }}
         </p>
-        <p v-if="dealer.suspended" class="text-fid-sm text-fid-sig-gap">
+        <p v-if="dealer.suspended" class="text-fid-sm text-fid-sig-gap-text">
           {{ h.trust.suspended }}
         </p>
 
@@ -389,7 +389,7 @@ watch(
       <h2 id="plate-range" class="fid-plate text-fid-text-muted">{{ h.plates.range }}</h2>
       <p
         v-if="dealer.fingerprint && dealer.fingerprint.coverage < 0.99"
-        class="text-fid-sm text-fid-sig-gap"
+        class="text-fid-sm text-fid-sig-gap-text"
       >
         {{
           h.coverage(

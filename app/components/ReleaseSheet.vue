@@ -506,7 +506,7 @@ function years(entry: { from: number; to: number }): string {
         v-if="detail?.wantNote"
         class="flex items-start gap-2 rounded-fid-sm border border-fid-sig-wantlist/40 bg-fid-sig-wantlist/10 px-3 py-2 text-fid-sm text-fid-text"
       >
-        <FidIcon name="bookmark" :size="16" class="shrink-0 text-fid-sig-wantlist" />
+        <FidIcon name="bookmark" :size="16" class="shrink-0 text-fid-sig-wantlist-text" />
         {{ detail.wantNote }}
       </p>
 
@@ -589,7 +589,11 @@ function years(entry: { from: number; to: number }): string {
             v-for="warning in match.pressingWarnings"
             :key="warning.kind + (warning.facts.special ?? '')"
             class="text-fid-sm"
-            :class="warning.severity === 'high' ? 'text-fid-sig-scarcity' : 'text-fid-sig-gap'"
+            :class="
+              warning.severity === 'high'
+                ? 'text-fid-sig-scarcity-text'
+                : 'text-fid-sig-gap-text'
+            "
           >
             {{ pressingText(warning) }}
           </li>
@@ -780,7 +784,7 @@ function years(entry: { from: number; to: number }): string {
         </button>
         <span
           v-else-if="wanted"
-          class="inline-flex min-h-11 items-center gap-2 px-3 text-fid-sm text-fid-sig-wantlist"
+          class="inline-flex min-h-11 items-center gap-2 px-3 text-fid-sm text-fid-sig-wantlist-text"
         >
           <FidIcon name="heart" :size="16" />
           {{ d.sheet.wanted }}

@@ -316,7 +316,7 @@ async function check() {
               <template v-else>{{ b.saved.release(record.releaseId) }}</template>
             </OutwardLink>
 
-            <span v-if="record.soldAt" class="shrink-0 text-fid-xs text-fid-sig-gap">{{
+            <span v-if="record.soldAt" class="shrink-0 text-fid-xs text-fid-sig-gap-text">{{
               b.saved.gone
             }}</span>
             <!-- Fresh, this second, from the check. Never stored. -->
