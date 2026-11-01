@@ -46,6 +46,9 @@ on:
 permissions:
   contents: read
   packages: write
+  # Build provenance (#209): `gh attestation verify oci://… -R misterhonk/fidelity`.
+  id-token: write
+  attestations: write
 
 concurrency:
   group: images-${{ github.ref }}
@@ -128,6 +131,7 @@ jobs:
             type=sha,enable=${{ !startsWith(github.ref, 'refs/tags/v') && inputs.version == '' }}
 
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        id: build
         with:
           context: .
           file: ${{ matrix.dockerfile }}
@@ -139,3 +143,11 @@ jobs:
           # einmal je Architektur.
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,scope=${{ matrix.name }},mode=max
+
+      # Signed provenance for the pushed index, stored beside it in the
+      # registry: which workflow, which commit, which runner built it.
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ghcr.io/${{ github.repository }}-${{ matrix.name }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true

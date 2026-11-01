@@ -45,6 +45,10 @@ Any script that runs in the origin has the same reach as the app.
   `postMessage` — Google's script runs in Google's origin, not ours.
 - New dependencies are bundled, not loaded from a CDN, and have to justify their bytes
   (rule 7) — which also keeps the supply chain small.
+- Renovate (`renovate.json`) proposes a release only once it is seven days old; CI fails on a
+  high or critical advisory in production dependencies (`pnpm audit --prod`); actions and
+  base images are pinned by digest; release images and the release zip carry GitHub build
+  provenance (`gh attestation verify`).
 - **Residual risk:** a compromised npm dependency ends up inside `'self'`. `pnpm-lock.yaml`
   pins it; CSP cannot help.
 
@@ -85,6 +89,8 @@ Dealer names, listing comments, release titles and notes come from strangers via
   and `readlink` on `current` (`deploy.yml`), and `rrsync` refuses all of that. Narrowing it
   further means a forced-command wrapper that checks `$SSH_ORIGINAL_COMMAND` against exactly
   those calls, and changing it whenever the workflow's commands change.
+- The server's host key is pinned in `DEPLOY_KNOWN_HOSTS`, not scanned on each run, so a
+  spoofed host cannot collect the upload.
 - **Residual risk:** the docroot itself. Rotate the key and redeploy if it may have leaked;
   every user then gets the clean build with the next update.
 
