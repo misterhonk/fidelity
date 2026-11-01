@@ -1,18 +1,18 @@
 import { fail } from '../fail'
+import { onThisMachine } from '../loopback'
 
 /**
  * Finding and checking a catalogue service, the hub's way (docs/16 §6).
  *
  * `/catalogue` on the app's own origin first — same origin is the one
  * arrangement that cannot fail for a reason outside the service — then the
- * bare origin, then a local one for whoever runs the build on their laptop.
+ * bare origin, then a local one — only when the app itself runs on localhost.
  */
 export async function discoverCatalogue(): Promise<{ url: string | null }> {
   const here = globalThis.location?.origin
   const tried = [
     ...(here ? [`${here}/catalogue`, here] : []),
-    'http://localhost:8788',
-    'http://127.0.0.1:8788',
+    ...(onThisMachine() ? ['http://localhost:8788', 'http://127.0.0.1:8788'] : []),
   ]
   for (const base of tried) {
     try {
