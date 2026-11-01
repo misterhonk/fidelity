@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './support/test'
 
 /**
  * The token step explains itself (#213): what a token is, where it is made,
