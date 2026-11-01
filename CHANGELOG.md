@@ -12,6 +12,36 @@ Für eine App bedeutet SemVer:
 ## [0.115.0](https://github.com/misterhonk/fidelity/compare/v0.114.1...v0.115.0) (2026-11-01)
 
 
+<!-- en -->
+**Fidelity is now called Sleeveside.** Same app, same data: your collection, your digs and your
+basket stay on your device exactly as they were. With the new name come a dozen small repairs:
+
+- Signal colours are readable in light mode, and errors are red with an icon.
+- On an iPhone home screen nothing hides under the status bar or the home indicator any more.
+- The screen stays on in a shop and while a dig runs.
+- A change that never reached Discogs is now named on screen instead of quietly undone, and a
+  second copy of a record you already own is no longer lost when the connection drops.
+- The command palette opens the shop or the find you pick.
+- No more German in the English app, settings only promise what exists, and the price ceiling is
+  in your currency.
+- The key goes to api.discogs.com and nowhere else, and a seller's endless shipping text can no
+  longer stall the app.
+
+<!-- de -->
+**Fidelity heißt jetzt Sleeveside.** Dieselbe App, dieselben Daten: Sammlung, Digs und Korb
+bleiben genau so auf deinem Gerät. Mit dem neuen Namen kommen ein Dutzend kleine Reparaturen:
+
+- Signalfarben sind im hellen Modus gut lesbar. Fehler sind rot und haben ein Symbol.
+- Auf dem iPhone-Homescreen verschwindet nichts mehr unter Statusleiste oder Home-Balken.
+- Im Laden und während ein Dig läuft, bleibt der Bildschirm an.
+- Kommt eine Änderung nicht bei Discogs an, sagt Sleeveside das jetzt, statt sie still
+  zurückzunehmen. Eine zweite Kopie einer Platte geht nicht mehr verloren, wenn das Netz abreißt.
+- Die Befehlssuche öffnet den Laden oder Fund, den du wählst.
+- Kein Deutsch mehr in der englischen App, die Einstellungen versprechen nur, was es gibt, und die
+  Preisgrenze steht in deiner Währung.
+- Der Schlüssel geht nur an api.discogs.com. Ein endloser Versandtext eines Händlers bremst die
+  App nicht mehr aus.
+
 ### Added
 
 * **i18n:** a what's-new lead per language ([6457326](https://github.com/misterhonk/fidelity/commit/6457326e9c46c6ba5b41e1d82bab317f48d469cf))
