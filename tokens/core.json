@@ -184,6 +184,84 @@
         },
         "$description": "Mint — S9 format upgrade."
       }
+    },
+    "sig-ink": {
+      "$description": "The signal colours darkened until they read as text on a light ground (≥ 4.7:1 against white and n.50). Same hue and chroma as their `sig` twin, lightness only. The palette above is tuned for even weight on a dark ground and reached 1.81–2.74:1 as light-mode text (issue #193).",
+      "wantlist": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.56, 0.17, 350]
+        }
+      },
+      "gap": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.54, 0.15, 85]
+        }
+      },
+      "credit": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.51, 0.12, 190]
+        }
+      },
+      "artist": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.54, 0.14, 250]
+        }
+      },
+      "label": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.56, 0.16, 300]
+        }
+      },
+      "catalog": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.52, 0.15, 150]
+        }
+      },
+      "style": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.52, 0.11, 210]
+        }
+      },
+      "price": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.53, 0.16, 130]
+        }
+      },
+      "scarcity": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.56, 0.18, 28]
+        }
+      },
+      "upgrade": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.51, 0.13, 170]
+        }
+      }
+    },
+    "red": {
+      "$description": "Errors, and nothing else. Kept apart from the scarcity signal so a failure never borrows the colour of a finding; error text always stands beside an icon, so the colour is never the only cue.",
+      "400": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.72, 0.16, 22]
+        }
+      },
+      "700": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.5, 0.19, 25]
+        }
+      }
     }
   },
   "space": {

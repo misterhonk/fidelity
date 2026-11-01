@@ -85,6 +85,16 @@ signal colour looks heavier than the others.
 `contrast-color()` (Baseline 2026) for the chip text — so the contrast stays correct without
 maintaining a foreground colour per colour.
 
+**Signal colours are fills, not ink.** As light-mode text they reached 1.81:1 (price) to 2.74:1
+(scarcity). Text in a signal colour uses its text role, `--fid-sig-<name>-text`
+(`text-fid-sig-gap-text`): `light-dark()` of a darker ink (`color.sig-ink.*`, same hue and
+chroma, ≥ 4.7:1 on white and n-50) and the palette colour itself (≥ 6.4:1 on every dark surface).
+A unit test computes every pair from the tokens and refuses a bare `text-fid-sig-*` in a template.
+
+**Errors have their own role,** `--fid-error` (`color.red.700` / `color.red.400`), and never
+borrow the scarcity signal: a failure is not a finding. Error text always stands beside the
+`circle-alert` icon, so colour is never the only cue. Scarcity itself is shown as a chip.
+
 ### 2.4 Semantic roles with `light-dark()`
 
 ```css

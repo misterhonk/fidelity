@@ -128,3 +128,42 @@ describe('the signal palette', () => {
     }
   })
 })
+
+describe('signal colours as text', () => {
+  /**
+   * The signal palette is tuned for even weight on a dark ground, not for
+   * reading on a light one: as text in light mode price reached 1.81:1, gap
+   * 1.91:1, scarcity 2.74:1 (issue #193). Each signal therefore has a text
+   * role of its own: a darker ink in light mode, the palette colour in dark.
+   */
+  const signals = Object.keys(core.color.sig).filter((key) => !key.startsWith('$'))
+
+  describe.each(['light', 'dark'] as const)('in %s mode', (scheme) => {
+    it.each(
+      [...signals.map((name) => `sig-${name}-text`), 'error'].flatMap((foreground) =>
+        BACKGROUNDS.map((background) => ({ foreground, background })),
+      ),
+    )('$foreground on $background clears AA', ({ foreground, background }) => {
+      const ratio = contrastRatio(role(foreground, scheme), role(background, scheme))
+      expect(ratio).toBeGreaterThanOrEqual(AA_BODY_TEXT)
+    })
+  })
+
+  const screens = readdirSync('app', { recursive: true, encoding: 'utf8' })
+    .filter((file) => file.endsWith('.vue'))
+    .map((file) => ({ file, source: readFileSync(`app/${file}`, 'utf8') }))
+
+  it('writes no text in a raw signal colour', () => {
+    const offenders = screens.flatMap(({ file, source }) =>
+      [...source.matchAll(/\btext-fid-sig-[a-z]+\b(?!-text)/g)].map((m) => `${file}: ${m[0]}`),
+    )
+    expect(offenders).toEqual([])
+  })
+
+  it('draws error text in the error role, beside an icon', () => {
+    const note = readFileSync('app/components/ErrorNote.vue', 'utf8')
+    expect(note).toContain('text-fid-error')
+    expect(note).toMatch(/<FidIcon\s+name="circle-alert"/)
+    expect(note).not.toMatch(/fid-sig-/)
+  })
+})

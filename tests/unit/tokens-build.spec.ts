@@ -46,7 +46,7 @@ describe('design token build', () => {
   })
 
   it('carries one colour per signal, ten for eleven signals', () => {
-    const signals = [...css.matchAll(/--color-fid-sig-([\w-]+):/g)].map((m) => m[1]!)
+    const signals = [...css.matchAll(/--color-fid-sig-(\w+):/g)].map((m) => m[1]!)
     expect(signals).toEqual([
       'wantlist',
       'gap',

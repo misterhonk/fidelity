@@ -72,6 +72,54 @@
       "$extensions": {
         "de.fidelity.dark": "{color.n.50}"
       }
+    },
+    "error": {
+      "$value": "{color.red.700}",
+      "$description": "Error text, always beside an icon. Not the scarcity signal: a failure is not a finding. 6.25:1 on white in light mode, ≥ 7:1 on every dark surface.",
+      "$extensions": {
+        "de.fidelity.dark": "{color.red.400}"
+      }
+    },
+    "sig-wantlist-text": {
+      "$value": "{color.sig-ink.wantlist}",
+      "$description": "A signal colour used as text. The palette itself is for fills, borders and dots; as light-mode text it fell to 1.81–2.74:1. Dark mode keeps the palette colour (≥ 6.4:1).",
+      "$extensions": { "de.fidelity.dark": "{color.sig.wantlist}" }
+    },
+    "sig-gap-text": {
+      "$value": "{color.sig-ink.gap}",
+      "$extensions": { "de.fidelity.dark": "{color.sig.gap}" }
+    },
+    "sig-credit-text": {
+      "$value": "{color.sig-ink.credit}",
+      "$extensions": { "de.fidelity.dark": "{color.sig.credit}" }
+    },
+    "sig-artist-text": {
+      "$value": "{color.sig-ink.artist}",
+      "$extensions": { "de.fidelity.dark": "{color.sig.artist}" }
+    },
+    "sig-label-text": {
+      "$value": "{color.sig-ink.label}",
+      "$extensions": { "de.fidelity.dark": "{color.sig.label}" }
+    },
+    "sig-catalog-text": {
+      "$value": "{color.sig-ink.catalog}",
+      "$extensions": { "de.fidelity.dark": "{color.sig.catalog}" }
+    },
+    "sig-style-text": {
+      "$value": "{color.sig-ink.style}",
+      "$extensions": { "de.fidelity.dark": "{color.sig.style}" }
+    },
+    "sig-price-text": {
+      "$value": "{color.sig-ink.price}",
+      "$extensions": { "de.fidelity.dark": "{color.sig.price}" }
+    },
+    "sig-scarcity-text": {
+      "$value": "{color.sig-ink.scarcity}",
+      "$extensions": { "de.fidelity.dark": "{color.sig.scarcity}" }
+    },
+    "sig-upgrade-text": {
+      "$value": "{color.sig-ink.upgrade}",
+      "$extensions": { "de.fidelity.dark": "{color.sig.upgrade}" }
     }
   }
 }
