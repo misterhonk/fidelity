@@ -1382,8 +1382,8 @@ export const handlers: HandlerMap = {
      * answers "reachable" to a wrong word just the same. On 2026-09-12 a phone
      * showed "reachable · secured with a secret" while every horizon request
      * it made came back 401. So the check knocks once more where the secret
-     * matters: the cover route answers 200 with an empty map to the right
-     * word and 401 to a wrong one.
+     * matters: the push key route answers 200 to the right word and 401 to a
+     * wrong one. (It was the cover route until the hub dropped covers, #206.)
      */
     let secretState: 'ok' | 'wrong' | 'missing' | 'unchecked' = 'unchecked'
     if (body.secured) {
@@ -1391,7 +1391,7 @@ export const handlers: HandlerMap = {
         secretState = 'missing'
       } else {
         try {
-          const door = await fetch(`${base}/v1/covers?ids=1`, {
+          const door = await fetch(`${base}/v1/watch/key`, {
             headers: { 'x-hub-secret': secret },
             signal: AbortSignal.timeout(5000),
           })
@@ -1409,7 +1409,7 @@ export const handlers: HandlerMap = {
         keyState = 'missing'
       } else {
         try {
-          const door = await fetch(`${base}/v1/covers?ids=1`, {
+          const door = await fetch(`${base}/v1/watch/key`, {
             headers: { 'x-fidelity-key': accessKey },
             signal: AbortSignal.timeout(5000),
           })

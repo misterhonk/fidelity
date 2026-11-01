@@ -7,7 +7,7 @@ import { handlers } from '~~/worker/handlers'
  *
  * Health is open by design, so a wrong word still reads "reachable · secured".
  * Measured on a phone on 2026-09-12: the status line was green while every
- * horizon request came back 401. The cover route answers 200 to the right
+ * horizon request came back 401. The push key route answers 200 to the right
  * word and 401 to a wrong one — that is the knock.
  */
 function hub(secured: boolean, accepts: string | null) {
@@ -20,7 +20,7 @@ function hub(secured: boolean, accepts: string | null) {
     }
     const word = new Headers(init?.headers).get('x-hub-secret')
     if (accepts !== null && word !== accepts) return new Response('{}', { status: 401 })
-    return new Response(JSON.stringify({ covers: {} }), { status: 200 })
+    return new Response(JSON.stringify({ publicKey: 'BPub' }), { status: 200 })
   })
 }
 
@@ -31,8 +31,11 @@ afterEach(() => vi.unstubAllGlobals())
 
 describe('testing the hub connection', () => {
   it('says the secret opens the door when it does', async () => {
-    vi.stubGlobal('fetch', hub(true, 'wort'))
+    const fetchMock = hub(true, 'wort')
+    vi.stubGlobal('fetch', fetchMock)
     expect(await check('wort')).toMatchObject({ ok: true, secured: true, secret: 'ok' })
+    // A door every hub still has: the cover route is gone (#206).
+    expect(String(fetchMock.mock.calls[1]![0])).toBe('https://hub.test/v1/watch/key')
   })
 
   it('says the hub refuses the word when it does — "reachable" was not enough', async () => {
@@ -72,7 +75,7 @@ describe('the access key at the door', () => {
       }
       const key = new Headers(init?.headers).get('x-fidelity-key')
       if (key !== accepts) return new Response('{}', { status: 401 })
-      return new Response(JSON.stringify({ covers: {} }), { status: 200 })
+      return new Response(JSON.stringify({ publicKey: 'BPub' }), { status: 200 })
     })
   }
   const checkWith = (accessKey?: string) =>

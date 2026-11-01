@@ -173,20 +173,6 @@ export interface HubClient {
   contributeShop(shop: HubShop): Promise<boolean>
 
   /**
-   * Covers, in one bundle.
-   *
-   * The one thing in this app that costs a request per record and returns the
-   * same answer for everybody: the marketplace hands back listings without
-   * images (worker/covers.ts), so each cover is a `/releases/{id}`. Batched
-   * because a screen wants a dozen at once and a dozen round trips would cost
-   * more than the requests they save.
-   *
-   * Misses are simply absent from the map.
-   */
-  covers(releaseIds: number[]): Promise<Record<number, HubCover>>
-  contributeCovers(covers: (HubCover & { releaseId: number })[]): Promise<void>
-
-  /**
    * A pressing family, by master (M20 #7) — the catalogue hub of docs/14 in
    * miniature. CC0 facts, thirty days; a miss is null and the client asks
    * Discogs itself, then offers the answer back.
@@ -239,17 +225,8 @@ export interface HubClient {
   watchUnsubscribe(endpoint: string): Promise<void>
 }
 
-export interface HubCover {
-  thumbUrl: string
-  coverUrl: string
-}
-
 /** Re-exported: the guard lives in `#shared/images` since M34.5, the tests import it here. */
 export { isDiscogsImage }
-
-const coversSchema = z.object({
-  covers: z.record(z.string(), z.object({ thumbUrl: z.string(), coverUrl: z.string() })),
-})
 
 /** The envelope, as it travels. The hub validates this shape and no more. */
 export interface SealedVault {
@@ -328,42 +305,6 @@ export function createHubClient({
       }
 
       return chunk
-    },
-
-    async covers(releaseIds) {
-      if (releaseIds.length === 0) return {}
-
-      const response = await fetchImpl(url(`/v1/covers?ids=${releaseIds.join(',')}`), {
-        headers,
-      })
-      if (!response.ok) return {}
-
-      const parsed = coversSchema.safeParse(await response.json())
-      if (!parsed.success) {
-        log.warn('[hub] cover answer does not match the schema')
-        return {}
-      }
-
-      const covers: Record<number, HubCover> = {}
-      for (const [key, value] of Object.entries(parsed.data.covers)) {
-        const releaseId = Number(key)
-        if (!Number.isSafeInteger(releaseId) || releaseId <= 0) continue
-        if (!isDiscogsImage(value.thumbUrl) || !isDiscogsImage(value.coverUrl)) {
-          log.warn('[hub] cover address is not Discogs, discarded', releaseId)
-          continue
-        }
-        covers[releaseId] = value
-      }
-      return covers
-    },
-
-    async contributeCovers(covers) {
-      if (covers.length === 0) return
-      await fetchImpl(url('/v1/covers'), {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({ covers }),
-      })
     },
 
     async family(masterId) {
