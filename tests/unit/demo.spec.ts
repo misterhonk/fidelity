@@ -3,6 +3,9 @@ import { describe, expect, it, vi } from 'vitest'
 import type { DiscogsClient } from '~~/worker/discogs/client'
 import { DEMO_PAGES, MAX_SEEDS, runDemo } from '~~/worker/demo'
 import { reasonFor } from '~/i18n/reason'
+import { DEMO_SEEDS } from '~/utils/demo-seeds'
+
+import shops from '../fixtures/demo-shops.json'
 
 /**
  * Fidelity without a token, on one record.
@@ -128,7 +131,8 @@ describe('the demo', () => {
 
   it('stops well short of a dig', async () => {
     // A demo that spent four minutes and 200 requests would not be a demo.
-    expect(DEMO_PAGES).toBeLessThanOrEqual(5)
+    // Ten pages at the token-less 2.4 s is 24 seconds: under a minute with room.
+    expect(DEMO_PAGES).toBeLessThanOrEqual(10)
     expect(MAX_SEEDS).toBeLessThanOrEqual(2)
   })
 
@@ -163,6 +167,44 @@ describe('the demo', () => {
     expect(result.finds.map((find) => find.releaseId)).toContain(901)
   })
 
+  it('turns back at the 10,000-listing wall instead of failing', async () => {
+    const { DiscogsError } = await import('~~/worker/discogs/errors')
+    const get = vi.fn(
+      async (
+        path: string,
+        schema: { parse: (v: unknown) => unknown },
+        options?: { query?: { page?: number } },
+      ) => {
+        if (path.startsWith('/releases/'))
+          return schema.parse({
+            id: 900,
+            title: 'Das Model',
+            artists: [{ id: 5, name: 'Kraftwerk' }],
+          })
+        if ((options?.query?.page ?? 1) > 1) throw new DiscogsError(403, 'Forbidden')
+        return schema.parse({
+          pagination: { page: 1, pages: 300, per_page: 100, items: 30_000, urls: {} },
+          listings: [],
+        })
+      },
+    )
+    const result = await runDemo({
+      client: { get } as unknown as DiscogsClient,
+      listingIds: [111],
+      known: [
+        {
+          listingId: 111,
+          releaseId: 900,
+          dealer: 'plattenladen',
+          title: 'Das Model',
+          artist: 'Kraftwerk',
+        },
+      ],
+    })
+    expect(result.finds).toEqual([])
+    expect(result.requests).toBeLessThanOrEqual(1 + DEMO_PAGES)
+  })
+
   it('says a pasted listing has sold, rather than blaming a token', async () => {
     const { DiscogsError } = await import('~~/worker/discogs/errors')
     const get = vi.fn(async () => {
@@ -172,4 +214,103 @@ describe('the demo', () => {
       runDemo({ client: { get } as unknown as DiscogsClient, listingIds: [111] }),
     ).rejects.toMatchObject({ code: 'listing-gone' })
   })
+})
+
+/*
+ * Issue #212: the demo read the newest 500 listings, and in a shop of thirty
+ * thousand the artist the welcome screen had just promised was almost never
+ * among them. Each shop below is the real one's size, with the clue artist at
+ * the place the artist sort put it on 2026-11-01 and that artist's real rows
+ * (tests/fixtures/demo-shops.json); the rest is filler that fits nothing.
+ */
+describe('every record on the welcome screen', () => {
+  type ShopFixture = (typeof shops)[keyof typeof shops]
+  type Row = ShopFixture['sameArtist'][number]
+
+  function shopOf(fixture: ShopFixture) {
+    const filler = (key: string, id: number): Row => ({
+      id,
+      condition: 'Very Good (VG)',
+      price: { value: 5, currency: 'EUR' },
+      release: {
+        id,
+        title: 'Filler',
+        artist: key,
+        format: 'LP',
+        label: 'Nobody',
+        catalog_number: 'X',
+        year: 1990,
+      },
+    })
+    // Digits sort before every letter and `~` after: filler either side of the clue.
+    const rest = fixture.items - fixture.before - fixture.sameArtist.length
+    const early = fixture.order === 'asc' ? fixture.before : rest
+    const late = fixture.items - early - fixture.sameArtist.length
+    const asc = [
+      ...Array.from({ length: early }, (_, i) => filler(String(i).padStart(6, '0'), 1e9 + i)),
+      ...fixture.sameArtist,
+      ...Array.from({ length: late }, (_, i) =>
+        filler(`~${String(i).padStart(6, '0')}`, 2e9 + i),
+      ),
+    ]
+    const desc = asc.toReversed()
+    const asked: string[] = []
+
+    const get = vi.fn(
+      async (
+        path: string,
+        schema: { parse: (v: unknown) => unknown },
+        options?: { query?: { page?: number; sort?: string; sort_order?: string } },
+      ) => {
+        asked.push(path)
+        if (path.startsWith('/releases/')) return schema.parse(fixture.release)
+        const { page = 1, sort, sort_order: order } = options?.query ?? {}
+        expect(sort).toBe('artist')
+        if (page > 100) throw Object.assign(new Error('Forbidden'), { status: 403 })
+        return schema.parse({
+          pagination: {
+            page,
+            pages: Math.ceil(asc.length / 100),
+            per_page: 100,
+            items: asc.length,
+            urls: {},
+          },
+          listings: (order === 'desc' ? desc : asc).slice((page - 1) * 100, page * 100),
+        })
+      },
+    )
+    return { client: { get } as unknown as DiscogsClient, asked }
+  }
+
+  for (const seed of DEMO_SEEDS) {
+    it(`finds something next to ${seed.artist} at ${seed.dealer}`, async () => {
+      const fixture = (shops as Record<string, ShopFixture | undefined>)[seed.releaseId]
+      expect(fixture, 'a recorded shop for this seed').toBeDefined()
+      expect(fixture!.dealer).toBe(seed.dealer)
+
+      const { client, asked } = shopOf(fixture!)
+      const result = await runDemo({
+        client,
+        listingIds: [seed.listingId],
+        known: [
+          {
+            listingId: seed.listingId,
+            releaseId: seed.releaseId,
+            dealer: seed.dealer,
+            title: seed.title,
+            artist: seed.artist,
+          },
+        ],
+      })
+
+      expect(result.finds.length).toBeGreaterThanOrEqual(1)
+      expect(result.finds[0]!.signals.map((signal) => signal.type)).toContain('ARTIST_KNOWN')
+      // Rule 3 at 2.4 s a request: the whole look stays well under a minute.
+      expect(asked.filter((path) => path.includes('/inventory')).length).toBeLessThanOrEqual(
+        DEMO_PAGES,
+      )
+      // Rule 2: one release, the seed's.
+      expect(asked.filter((path) => path.startsWith('/releases/'))).toHaveLength(1)
+    })
+  }
 })

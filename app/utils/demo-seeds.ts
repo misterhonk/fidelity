@@ -16,9 +16,17 @@ import type { Language } from '~/composables/useMessages'
  * which label, in which year, in whose shop, and what the sleeve looks like.
  * The demo fetches the rest live.
  *
- * **Every promise below is a count, and every count was counted.** The shop's
- * newest five hundred listings were read on 2026-08-10 and the neighbours
- * tallied by hand; the numbers in `promise` are those tallies.
+ * **Every promise below is a count, and every count was counted.** The demo
+ * reads the shop sorted by artist, around the seed's artist, and the numbers
+ * in `promise` are what that read found on 2026-11-01.
+ *
+ * **Only artists the demo can reach.** A stranger may read 10,000 listings of
+ * a shop from each end of the alphabet and nothing in between. Nine seeds were
+ * dropped on 2026-11-01 (#212): Kraftwerk, Dylan, Deep Purple, the Clash, the
+ * Toten Hosen and the Puhdys sat in the unreachable middle of a 114,000-record
+ * shop, Beltram and the Pet Shop Boys in that of a 36,000-record one, and "not
+ * even noticed" had sold out. Each of them ended on "nothing fitted". A seed
+ * belongs here only with a recorded shop in tests/fixtures/demo-shops.json.
  *
  * That measurement replaced three seeds. Trio, Hubert Kah and Rheingold were
  * here for their *label* and their *era* — a box of German new wave, seventeen
@@ -118,63 +126,6 @@ function cover(thumbHash: string, coverHash: string, size: string, path: string)
 
 export const DEMO_SEEDS: DemoSeedOption[] = [
   {
-    listingId: 4309313268,
-    releaseId: 636159,
-    artist: 'Kraftwerk',
-    title: 'Das Model',
-    label: 'Kling Klang',
-    year: 1978,
-    dealer: 'schoenwettermusik',
-    promise: {
-      en: 'Another Kraftwerk single from 1978.',
-      de: 'Noch eine Kraftwerk-Single von 1978.',
-    },
-    ...cover(
-      'zbmCQ3oQX7MDzH86obw83VMZurH6H-iuVgLLi-HEYxA',
-      '3owBPyalmlALOmsZAhko6JXvKjCU6CQ4SnkkxbUdHOw',
-      'h:594/w:600',
-      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTYzNjE1/OS0xMTQxNTUxMTA2/LmpwZWc',
-    ),
-  },
-  {
-    listingId: 3921870991,
-    releaseId: 6089190,
-    artist: 'Joey Beltram',
-    title: 'Energy Flash',
-    label: 'R & S Records',
-    year: 2014,
-    dealer: '430AM_Studio',
-    promise: {
-      en: 'Another Beltram in the same shop.',
-      de: 'Noch ein Beltram im selben Laden.',
-    },
-    ...cover(
-      'v33DzOvDLL31wLhJNIhH9nX7mRjQV_msHqAOkXgLAuI',
-      'p0w54Y-lMjsd33l5NFvO9lpq-JBTVcZ1Ef-LVxhOVd0',
-      'h:592/w:600',
-      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTYwODkx/OTAtMTU5MzQ2NDUw/Mi00Nzg3LmpwZWc',
-    ),
-  },
-  {
-    listingId: 4308995931,
-    releaseId: 3166021,
-    artist: 'The Clash',
-    title: 'London Calling',
-    label: 'Columbia',
-    year: 1999,
-    dealer: 'schoenwettermusik',
-    promise: {
-      en: 'Seven more Clash records on the rack.',
-      de: 'Sieben weitere Clash-Platten im Regal.',
-    },
-    ...cover(
-      'R2k8XMELB8QRy7vkkLHq1di6iJ4YnHJGFt-h1bNuYTc',
-      'Wthl0F7gLYCvuFtZpQSYfhco_3hfArxGdgczoADJrp4',
-      'h:597/w:594',
-      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMxNjYw/MjEtMTM0ODM0MjY3/MS05NDgyLmpwZWc',
-    ),
-  },
-  {
     listingId: 3721514041,
     releaseId: 31419368,
     artist: 'AIR',
@@ -191,22 +142,6 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
       'QxsMavZoWkfRNKhrkblNR8HwHXZXysy8hFhOCR6_tac',
       'h:594/w:600',
       'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMxNDE5/MzY4LTE3MzQ1Mjcx/ODMtNTEwNi5qcGVn',
-    ),
-  },
-  {
-    listingId: 4309125996,
-    releaseId: 452416,
-    artist: 'Die Toten Hosen',
-    title: 'Reich & Sexy',
-    label: 'Totenkopf',
-    year: 1993,
-    dealer: 'schoenwettermusik',
-    promise: { en: 'Six more by Die Toten Hosen.', de: 'Sechs weitere von den Toten Hosen.' },
-    ...cover(
-      'MEQzsnWMz7dZb67FuSiPQ4e-yzxYhDml2DPe8Plzwig',
-      'RiglYEbPKn47qsmWrM3fUomHKlzfqqsk9nVLzLYuFpE',
-      'h:593/w:600',
-      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ1MjQx/Ni0xNzA2MjYwMzc1/LTEyNTMuanBlZw',
     ),
   },
   {
@@ -244,82 +179,12 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'MCA Records',
     year: 2002,
     dealer: 'schoenwettermusik',
-    promise: { en: 'Fourteen more by The Who.', de: 'Vierzehn weitere von The Who.' },
+    promise: { en: 'Over a hundred more by The Who.', de: 'Über hundert weitere von The Who.' },
     ...cover(
       's4kc87yQLO4Kz3w6Yo2HrYM0gcbMQNnJPkzbYAugwxM',
       '31vKgRzBBOtonidx6mCfCK9ViSi82lkxCwr-M3iDSyM',
       'h:544/w:600',
       'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI5OTIz/MzYtMTU0MTM5NjM0/Ni03NzAzLmpwZWc',
-    ),
-  },
-  {
-    listingId: 3446612022,
-    releaseId: 151260,
-    artist: 'Pet Shop Boys',
-    title: 'Suburbia',
-    label: 'Parlophone',
-    year: 1986,
-    dealer: '430AM_Studio',
-    promise: { en: 'Another Pet Shop Boys record.', de: 'Noch eine Pet-Shop-Boys-Platte.' },
-    ...cover(
-      'tIK3PB3VkvqYdcRztjk7DfLd8_wCqnCQFU1UeX73p7M',
-      'R7jVaCtzU0-D29eBIIkkFYXy_dW-KVs6ErdRmNFOL6I',
-      'h:592/w:600',
-      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE1MTI2/MC0xNzEzNzk5NDIy/LTEwODQuanBlZw',
-    ),
-  },
-  {
-    listingId: 4309359201,
-    releaseId: 3960500,
-    artist: 'Deep Purple',
-    title: 'Machine Head',
-    label: 'Purple Records',
-    year: 2012,
-    dealer: 'schoenwettermusik',
-    promise: {
-      en: 'Nine more Deep Purple records are there.',
-      de: 'Neun weitere Deep-Purple-Platten liegen dort.',
-    },
-    ...cover(
-      'f35uGihhfUzFRw8rbyrwPJBaaqdSmlVqJIujfU_7JZk',
-      'wDAri2X3oMTcU1Mi0vPdGus7L94bXcqiWnNfjlcHi_w',
-      'h:600/w:566',
-      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM5NjA1/MDAtMTY4MjgzODg5/OS03NDE4LmpwZWc',
-    ),
-  },
-  {
-    listingId: 4274557002,
-    releaseId: 32044362,
-    artist: 'not even noticed',
-    title: 'Feel EP',
-    label: 'eudemonia',
-    year: 2024,
-    dealer: 'spirax.records',
-    promise: { en: 'Ten more by the same artist.', de: 'Zehn weitere desselben Künstlers.' },
-    ...cover(
-      'TptviHATua_z2bAdfigEHjyR7ZPwf-VYAds_uKalA-U',
-      'Q-p3Agll867rhvRC_nvOXsNYdzdUcLSU_9jmoOJ4Nb8',
-      'h:600/w:600',
-      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMyMDQ0/MzYyLTE3MjkzMjI0/NDEtMTIzMS5qcGVn',
-    ),
-  },
-  {
-    listingId: 4309120548,
-    releaseId: 396235,
-    artist: 'Bob Dylan',
-    title: 'John Wesley Harding',
-    label: 'Columbia',
-    year: 2003,
-    dealer: 'schoenwettermusik',
-    promise: {
-      en: 'Twelve more Dylan records are there.',
-      de: 'Zwölf weitere Dylan-Platten liegen dort.',
-    },
-    ...cover(
-      'OPx_NImYs-Elj4yLSbhPJOxUAaCiH65zEkXuDxrjYKQ',
-      'TzLVG4AyfZO8Y9cTcLVdScO-7e7UwkwNBsIhmvlIp5g',
-      'h:600/w:600',
-      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM5NjIz/NS0xNjQ4NTQ4Nzk1/LTMzMzkuanBlZw',
     ),
   },
   {
@@ -330,31 +195,12 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'Freude Am Tanzen',
     year: 2009,
     dealer: 'fatplastics',
-    promise: { en: 'Two more Hemmann in the shop.', de: 'Zwei weitere Hemmann im Laden.' },
+    promise: { en: 'Three more Hemmann in the shop.', de: 'Drei weitere Hemmann im Laden.' },
     ...cover(
       'PTGyNjQoisUYJsn1DThMEXbcIWRVVYpu6mVrDn9K-Sw',
       '3ayQvChu2PrjH073K9jfbGSm7K-hPUrjnNbd6-r2EXM',
       'h:600/w:592',
       'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE3ODY0/MzUtMTM1ODY3MjI0/NS05NDQzLmpwZWc',
-    ),
-  },
-  {
-    listingId: 4309372362,
-    releaseId: 8086889,
-    artist: 'Puhdys',
-    title: "Hey, Wir Woll'n Die Eisbär'n Sehn!",
-    label: 'BuschFunk',
-    year: 2009,
-    dealer: 'schoenwettermusik',
-    promise: {
-      en: 'Twenty-six more Puhdys are there.',
-      de: 'Sechsundzwanzig weitere Puhdys stehen dort.',
-    },
-    ...cover(
-      'HBjabLWOMPAd3VnhRNq773OC3oe-WPZ1GFmlx0ph22c',
-      'id7dMpDjcD2lMW166mqfrr_INiITe9ksBXF1HjvG3aE',
-      'h:446/w:500',
-      'czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTgwODY4/ODktMTQ1NDg3MzI0/My0zMTE1LmpwZWc',
     ),
   },
 ]

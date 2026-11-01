@@ -868,7 +868,7 @@ const en = {
     fitsAt: (dealer: string) => `At ${dealer} this fits`,
     score: (score: number) => `Barry score ${score} out of 100`,
     nothing:
-      'Nothing in this slice fitted. That happens: one record alone is a thin clue, and only part of the shop was read. With your collection it looks different.',
+      'Nothing sat next to this one. One record is a thin clue; your collection is a thick one. This is what finds look like:',
     /* What the demonstration cannot do, and why. Without this sentence Fidelity
      * looks thinner than it is. */
     coverage: (scanned: string, total: string) =>

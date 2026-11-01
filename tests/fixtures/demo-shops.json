@@ -1,0 +1,473 @@
+{
+  "1786435": {
+    "dealer": "fatplastics",
+    "items": 2817,
+    "order": "asc",
+    "before": 1460,
+    "release": {
+      "id": 1786435,
+      "title": "Gemini EP",
+      "year": 2009,
+      "master_id": 998228,
+      "artists": [
+        {
+          "id": 432324,
+          "name": "Marek Hemmann"
+        }
+      ],
+      "labels": [
+        {
+          "id": 2643,
+          "name": "Freude Am Tanzen",
+          "catno": "FAT 042"
+        }
+      ],
+      "genres": ["Electronic"],
+      "styles": ["House", "Tech House"]
+    },
+    "sameArtist": [
+      {
+        "id": 4339127571,
+        "condition": "Mint (M)",
+        "price": {
+          "value": 16,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 17448208,
+          "title": "Bittersweet",
+          "artist": "Marek Hemmann",
+          "format": "2xLP, Album, RP, 140",
+          "label": "Freude Am Tanzen",
+          "catalog_number": "FATLP 009",
+          "year": 2020
+        }
+      },
+      {
+        "id": 4415530008,
+        "condition": "Mint (M)",
+        "price": {
+          "value": 16,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 1997186,
+          "title": "In Between",
+          "artist": "Marek Hemmann",
+          "format": "2x12\", Album",
+          "label": "Freude Am Tanzen, Freude Am Tanzen",
+          "catalog_number": "FREUDE AM TANZEN REC. LP004, FAT LP 004",
+          "year": 2009
+        }
+      },
+      {
+        "id": 2898938227,
+        "condition": "Mint (M)",
+        "price": {
+          "value": 3,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 8797069,
+          "title": "Moments",
+          "artist": "Marek Hemmann",
+          "format": "CD, Album",
+          "label": "Freude Am Tanzen",
+          "catalog_number": "FATCD 015",
+          "year": 2016
+        }
+      }
+    ]
+  },
+  "2992336": {
+    "dealer": "schoenwettermusik",
+    "items": 114528,
+    "order": "desc",
+    "before": 2462,
+    "release": {
+      "id": 2992336,
+      "title": "My Generation",
+      "year": 2002,
+      "master_id": 68534,
+      "artists": [
+        {
+          "id": 196766,
+          "name": "The Who"
+        }
+      ],
+      "labels": [
+        {
+          "id": 878,
+          "name": "MCA Records",
+          "catno": "088 112 926-2"
+        },
+        {
+          "id": 24572,
+          "name": "Chronicles",
+          "catno": "088 112 926-2"
+        },
+        {
+          "id": 5320,
+          "name": "Decca",
+          "catno": "088 112 926-2"
+        },
+        {
+          "id": 14624,
+          "name": "Brunswick",
+          "catno": "088 112 926-2"
+        }
+      ],
+      "genres": ["Rock"],
+      "styles": ["Beat", "Mod", "Rhythm & Blues"]
+    },
+    "sameArtist": [
+      {
+        "id": 890864764,
+        "condition": "Near Mint (NM or M-)",
+        "price": {
+          "value": 49.99,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 1129977,
+          "title": "The Who",
+          "artist": "The Who",
+          "format": "LP, Album, RP, Red",
+          "label": "Polydor, International Polydor Production",
+          "catalog_number": "623 025",
+          "year": 1966
+        }
+      },
+      {
+        "id": 4089082459,
+        "condition": "Very Good Plus (VG+)",
+        "price": {
+          "value": 5.99,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 15793989,
+          "title": "Who's Better, Who's Best",
+          "artist": "The Who",
+          "format": "CD, Comp, Mono",
+          "label": "Polydor",
+          "catalog_number": "835 389-2",
+          "year": 0
+        }
+      },
+      {
+        "id": 4232561655,
+        "condition": "Near Mint (NM or M-)",
+        "price": {
+          "value": 7.9,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 8043565,
+          "title": "Tommy",
+          "artist": "The Who",
+          "format": "CD, Album, RE, RM",
+          "label": "Polydor",
+          "catalog_number": "531 043-2",
+          "year": 0
+        }
+      },
+      {
+        "id": 4299172386,
+        "condition": "Near Mint (NM or M-)",
+        "price": {
+          "value": 5.99,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 14248399,
+          "title": "The Who Collection - Volume One",
+          "artist": "The Who",
+          "format": "CD, Comp",
+          "label": "Impression Records, Polydor",
+          "catalog_number": "IMCD4/1",
+          "year": 1985
+        }
+      },
+      {
+        "id": 4309318968,
+        "condition": "Near Mint (NM or M-)",
+        "price": {
+          "value": 4.99,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 1283897,
+          "title": "Live At The Isle Of Wight Festival 1970",
+          "artist": "The Who",
+          "format": "2xCD, Album",
+          "label": "Essential! Records, Essential! Records",
+          "catalog_number": "EDF CD 326, GAS0000326EDF",
+          "year": 1996
+        }
+      },
+      {
+        "id": 3720307669,
+        "condition": "Near Mint (NM or M-)",
+        "price": {
+          "value": 19.9,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 12144633,
+          "title": "Tommy",
+          "artist": "The Who",
+          "format": "SACD, Hybrid, Multichannel, Album, RE + SACD, Hybr",
+          "label": "Geffen Records, UMe, Chronicles",
+          "catalog_number": "B0001386-36",
+          "year": 2003
+        }
+      },
+      {
+        "id": 2947277440,
+        "condition": "Near Mint (NM or M-)",
+        "price": {
+          "value": 13.99,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 16008947,
+          "title": "The Ultimate Collection",
+          "artist": "The Who",
+          "format": "2xCD, Comp, Promo",
+          "label": "Universal",
+          "catalog_number": "none",
+          "year": 2002
+        }
+      },
+      {
+        "id": 4414489629,
+        "condition": "Near Mint (NM or M-)",
+        "price": {
+          "value": 4.99,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 5365466,
+          "title": "My Generation (The Very Best Of The Who)",
+          "artist": "The Who",
+          "format": "CD, Comp, RE, RM",
+          "label": "Polydor",
+          "catalog_number": "533 150-2",
+          "year": 0
+        }
+      },
+      {
+        "id": 3719076421,
+        "condition": "Very Good Plus (VG+)",
+        "price": {
+          "value": 10.99,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 5846824,
+          "title": "The Best Of The Last Ten Years / '64 - '74",
+          "artist": "The Who",
+          "format": "2xLP, Comp, Gat",
+          "label": "Polydor",
+          "catalog_number": "2664 323",
+          "year": 0
+        }
+      },
+      {
+        "id": 2201682328,
+        "condition": "Mint (M)",
+        "price": {
+          "value": 21.99,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 4336018,
+          "title": "A Quick One",
+          "artist": "The Who",
+          "format": "LP, Album, RE",
+          "label": "Polydor",
+          "catalog_number": "835 728-1",
+          "year": 2004
+        }
+      },
+      {
+        "id": 3795850877,
+        "condition": "Near Mint (NM or M-)",
+        "price": {
+          "value": 4.99,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 8348992,
+          "title": "The Who Collection - Volume One",
+          "artist": "The Who",
+          "format": "CD, Comp",
+          "label": "Impression Records, Polydor",
+          "catalog_number": "IMCD4/1, IMCD4-1",
+          "year": 1985
+        }
+      },
+      {
+        "id": 3283631266,
+        "condition": "Very Good (VG)",
+        "price": {
+          "value": 8.99,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 790120,
+          "title": "Wire & Glass (Six Songs From A Mini-Opera)",
+          "artist": "The Who",
+          "format": "12\", S/Sided, EP, Etch, Ltd, Num",
+          "label": "Polydor, Polydor",
+          "catalog_number": "170 311-2, 1703112",
+          "year": 2006
+        }
+      }
+    ]
+  },
+  "5866006": {
+    "dealer": "spirax.records",
+    "items": 1660,
+    "order": "asc",
+    "before": 121,
+    "release": {
+      "id": 5866006,
+      "title": "Sky/Motormouth Remixes",
+      "year": 2014,
+      "master_id": 829332,
+      "artists": [
+        {
+          "id": 191782,
+          "name": "Audion"
+        }
+      ],
+      "labels": [
+        {
+          "id": 249,
+          "name": "Spectral Sound",
+          "catno": "SPC-125"
+        }
+      ],
+      "genres": ["Electronic"],
+      "styles": ["Techno"]
+    },
+    "sameArtist": [
+      {
+        "id": 4261867251,
+        "condition": "Very Good Plus (VG+)",
+        "price": {
+          "value": 5.75,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 3254862,
+          "title": "Suckfish",
+          "artist": "Audion",
+          "format": "2x12\", Album, TP",
+          "label": "Spectral Sound",
+          "catalog_number": "SPC-33",
+          "year": 2005
+        }
+      },
+      {
+        "id": 4224333861,
+        "condition": "Near Mint (NM or M-)",
+        "price": {
+          "value": 10.35,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 5866006,
+          "title": "Sky/Motormouth Remixes",
+          "artist": "Audion",
+          "format": "12\"",
+          "label": "Spectral Sound",
+          "catalog_number": "SPC-125",
+          "year": 2014
+        }
+      }
+    ]
+  },
+  "31419368": {
+    "dealer": "430AM_Studio",
+    "items": 35832,
+    "order": "asc",
+    "before": 503,
+    "release": {
+      "id": 31419368,
+      "title": "Moon Safari",
+      "year": 2023,
+      "master_id": 1622,
+      "artists": [
+        {
+          "id": 2770,
+          "name": "AIR"
+        }
+      ],
+      "labels": [
+        {
+          "id": 2294,
+          "name": "Parlophone",
+          "catno": "0724384497811"
+        }
+      ],
+      "genres": ["Electronic", "Pop"],
+      "styles": ["Chillwave", "Europop", "Downtempo"]
+    },
+    "sameArtist": [
+      {
+        "id": 1260339963,
+        "condition": "Near Mint (NM or M-)",
+        "price": {
+          "value": 7.99,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 252337,
+          "title": "Surfing On A Rocket",
+          "artist": "AIR",
+          "format": "12\", Single",
+          "label": "Virgin, Source, Source",
+          "catalog_number": "VST 1871, 07243 5 487106 1, 5 487106",
+          "year": 2004
+        }
+      },
+      {
+        "id": 3721514053,
+        "condition": "Mint (M)",
+        "price": {
+          "value": 29.99,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 7066979,
+          "title": "Talkie Walkie",
+          "artist": "AIR",
+          "format": "LP, Album, RE, 180",
+          "label": "Parlophone",
+          "catalog_number": "72435 966001 1",
+          "year": 2015
+        }
+      },
+      {
+        "id": 3721514041,
+        "condition": "Mint (M)",
+        "price": {
+          "value": 31.99,
+          "currency": "EUR"
+        },
+        "release": {
+          "id": 31419368,
+          "title": "Moon Safari",
+          "artist": "AIR",
+          "format": "LP, Album, RE, RP",
+          "label": "Parlophone",
+          "catalog_number": "0724384497811",
+          "year": 2023
+        }
+      }
+    ]
+  }
+}

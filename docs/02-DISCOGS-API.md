@@ -209,6 +209,11 @@ at this time."*
 - `sort_order=asc` + `desc` → two disjoint windows → **up to 20,000**
 - Further `sort` keys (`price`, `artist`, `catno`, each asc/desc) → further samples,
   **without** a completeness guarantee
+- `sort=artist` orders by the artist's own name without a leading "The", ignoring case
+  ("The 2 German Latinos" among the 2s; a name variation like "Two Sinners*" sorts by the
+  real name — measured 2026-11-01). The token-free demo binary-searches it for the clue
+  artist (`worker/demo.ts`): ≈7 requests, but only for an artist inside one of the two
+  10,000-listing windows
 - No filters by price/condition/format are available to narrow the set
 - Above 20,000: complete coverage is **impossible**. Only the dealer themselves can export
   in full via `/inventory/export`

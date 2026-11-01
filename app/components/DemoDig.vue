@@ -285,9 +285,30 @@ function shapeOf(format: string | null) {
         {{ m.demo.fitsAt(result.dealer) }}
       </h3>
 
-      <p v-if="shown.length === 0" class="max-w-prose text-fid-base text-fid-text-muted">
-        {{ m.demo.nothing }}
-      </p>
+      <!--
+        Nothing beside it: the three example finds rather than an empty page.
+
+        A newcomer who waited half a minute for "nothing fitted" leaves with
+        nothing to judge the app by. The examples are the engine's own
+        sentences (`sample-finds.ts`), and the line above them says they are
+        examples, not this shop.
+      -->
+      <div v-if="shown.length === 0" class="flex flex-col gap-3" data-testid="demo-examples">
+        <p class="max-w-prose text-fid-base text-fid-text-muted">{{ m.demo.nothing }}</p>
+        <ul class="flex flex-col gap-3 rounded-fid-md bg-fid-inset p-4">
+          <li v-for="(find, i) in SAMPLE_FINDS" :key="i" class="flex items-baseline gap-3">
+            <span class="fid-num shrink-0 text-fid-base font-medium text-fid-text">
+              {{ find.score }}
+            </span>
+            <span class="fid-num shrink-0 text-fid-xs text-fid-text-muted">{{
+              find.grade
+            }}</span>
+            <span class="min-w-0 text-fid-sm text-fid-text-muted">
+              {{ reasonFor(find.signals) }}
+            </span>
+          </li>
+        </ul>
+      </div>
 
       <ul v-else class="grid grid-cols-2 gap-x-3 gap-y-5 @lg:grid-cols-3 @3xl:grid-cols-5">
         <li v-for="find in shown" :key="find.listingId" class="flex min-w-0 flex-col gap-2">

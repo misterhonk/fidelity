@@ -34,15 +34,21 @@ import { fail } from './fail'
  */
 
 /**
- * How much of the shop the demo reads.
+ * How much of the shop the demo reads: at most this many inventory pages.
  *
- * Five pages, five hundred listings, five requests. A whole shop is 200 and
- * four minutes, which is a dig — and a dig is what somebody does *after* they
- * decide to use this. The number is stated on screen, because "500 von 2.881"
- * is the difference between a sample and a claim.
+ * It used to read the newest five hundred, which in a shop of thirty thousand
+ * almost never held the artist the welcome screen had just promised, and the
+ * demo ended on "nothing fitted". Now it reads the shop sorted by artist and
+ * halves its way to the clue's page — seven requests for a hundred pages — and
+ * spends what is left on the pages either side. Ten requests at the token-less
+ * 2.4 s is under half a minute; a whole shop would be a dig. The number read
+ * is still stated on screen, because a sample is not a claim.
  */
-export const DEMO_PAGES = 5
+export const DEMO_PAGES = 10
 const PER_PAGE = 100
+
+/** Discogs serves a stranger 10,000 listings per sort order; page 101 is a 403. */
+const WINDOW_PAGES = 100
 
 /** Seed listings, capped: two records make the point and four make it slower. */
 export const MAX_SEEDS = 2
@@ -239,27 +245,39 @@ export async function runDemo(options: {
     currency: '',
   }
 
-  // 3 — a slice of the shop, newest first.
+  // 3 — the shop sorted by artist, around the clue's artist.
   const seeded = new Set(seeds.map((seed) => seed.releaseId))
+  const read = new Set<number>()
   const finds: Match[] = []
-  let scanned = 0
   let listingsTotal = 0
+  let shopRequests = 0
 
-  for (let page = 1; page <= DEMO_PAGES; page++) {
+  /** One page, and its artists in sort order. Every row on it is scored. */
+  async function readPage(page: number, order: 'asc' | 'desc'): Promise<string[]> {
     signal?.throwIfAborted()
-    report?.({ step: 'shop', done: page - 1, total: DEMO_PAGES })
-
-    const response = await client.get(
-      `/users/${encodeURIComponent(dealer)}/inventory`,
-      inventoryPageSchema,
-      { query: { page, per_page: PER_PAGE, sort: 'listed', sort_order: 'desc' }, signal },
-    )
+    report?.({ step: 'shop', done: shopRequests, total: DEMO_PAGES })
+    shopRequests += 1
     requests += 1
+
+    let response
+    try {
+      response = await client.get(
+        `/users/${encodeURIComponent(dealer)}/inventory`,
+        inventoryPageSchema,
+        { query: { page, per_page: PER_PAGE, sort: 'artist', sort_order: order }, signal },
+      )
+    } catch (error) {
+      // Past the 10,000-listing wall: an empty page, so the search turns back.
+      if ((error as { status?: number } | null)?.status === 403) return []
+      throw error
+    }
     listingsTotal = response.pagination.items
 
     for (const row of response.listings) {
       const listing = toListing(row)
-      scanned += 1
+      // Both ends overlap in a shop under 20,000 listings; a row counts once.
+      if (read.has(listing.listingId)) continue
+      read.add(listing.listingId)
 
       // The seed itself is not a find.
       if (seeded.has(listing.releaseId)) continue
@@ -291,11 +309,95 @@ export async function runDemo(options: {
       })
     }
 
-    if (page * PER_PAGE >= listingsTotal) break
+    return response.listings.map((row) => artistKey(row.release.artist ?? ''))
+  }
+
+  const target = artistKey(seeds[0]?.artist ?? '')
+  const pages = new Map<number, string[]>()
+  const budget = () => shopRequests < DEMO_PAGES
+
+  pages.set(1, await readPage(1, 'asc'))
+  const lastPage = Math.max(1, Math.ceil(listingsTotal / PER_PAGE))
+  let order: 'asc' | 'desc' = 'asc'
+  const last = Math.min(lastPage, WINDOW_PAGES)
+
+  /*
+   * A shop bigger than the window can be read from both ends of the alphabet
+   * but not in the middle. One look at the window's edge says which end the
+   * clue is nearer. A clue in the middle is searched for anyway: what the
+   * search passes on its way is scored all the same.
+   */
+  if (lastPage > WINDOW_PAGES) {
+    const edge = await readPage(WINDOW_PAGES, 'asc')
+    pages.set(WINDOW_PAGES, edge)
+    if (side(edge, target, false) > 0) {
+      order = 'desc'
+      pages.clear()
+    }
+  }
+
+  let found = 0
+  let lo = 1
+  let hi = last
+  while (lo <= hi && budget()) {
+    const mid = Math.floor((lo + hi) / 2)
+    const keys = pages.get(mid) ?? (await readPage(mid, order))
+    pages.set(mid, keys)
+    const where = side(keys, target, order === 'desc')
+    if (where === 0) {
+      found = mid
+      break
+    }
+    if (where < 0) hi = mid - 1
+    else lo = mid + 1
+  }
+
+  // An artist with forty records runs over a page edge: read the neighbours.
+  const keys = pages.get(found) ?? []
+  if (keys[0] === target && found > 1 && !pages.has(found - 1) && budget()) {
+    await readPage(found - 1, order)
+  }
+  if (keys.at(-1) === target && found < last && !pages.has(found + 1) && budget()) {
+    await readPage(found + 1, order)
   }
 
   report?.({ step: 'matching', done: 1, total: 1 })
   finds.sort((a, b) => b.score - a.score)
 
-  return { dealer, seeds, finds, scanned, listingsTotal, requests }
+  return { dealer, seeds, finds, scanned: read.size, listingsTotal, requests }
+}
+
+/**
+ * An artist the way the shop's artist sort orders it.
+ *
+ * Measured 2026-11-01: Discogs sorts by the artist's own name, without a
+ * leading "The" and ignoring case — "The 2 German Latinos" sits among the 2s.
+ * shortcut: a name written as a variation ("Two Sinners*") sorts by a name the
+ * listing does not carry; `side` reads inside a page's edges so a few such
+ * rows do not turn the search. A wrong turn costs finds, never correctness.
+ */
+export function artistKey(artist: string): string {
+  return artist
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/\*|\s\(\d+\)/g, '')
+    .replace(/^the\s+/, '')
+    .trim()
+}
+
+/**
+ * Where the clue lies from this page: before it (-1), on it (0), after it (1).
+ *
+ * Judged by the tenth and the ninetieth row rather than the first and last, so
+ * an odd row at the edge of a page does not send the search the wrong way.
+ */
+export function side(keys: string[], target: string, descending: boolean): -1 | 0 | 1 {
+  if (keys.length === 0) return -1
+  if (keys.includes(target)) return 0
+  const early = keys[Math.floor((keys.length - 1) * 0.1)]!
+  const late = keys[Math.ceil((keys.length - 1) * 0.9)]!
+  const before = descending ? target > early : target < early
+  const after = descending ? target < late : target > late
+  return before ? -1 : after ? 1 : 0
 }
