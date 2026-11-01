@@ -5,7 +5,7 @@ const b = useBasketMessages()
 
 useSeoMeta({ title: () => b.value.title, description: () => b.value.description })
 
-const { view, refresh, clear, failure, removed, undoRemove } = useBasket()
+const { view, refresh, clear, failure, removed, undoRemove, forgetRemoved } = useBasket()
 
 /* Loading and the last toggle can each fail; whichever did is what is shown. */
 const error = ref<unknown>(null)
@@ -50,7 +50,10 @@ function clearAll() {
   confirming.value = false
   void clear()
 }
-onBeforeUnmount(() => clearTimeout(settle))
+onBeforeUnmount(() => {
+  clearTimeout(settle)
+  forgetRemoved()
+})
 const records = computed(() =>
   baskets.value.reduce((sum, basket) => sum + basket.lines.length, 0),
 )
