@@ -5,6 +5,9 @@
  *
  * The main thread never computes (CLAUDE.md). It renders and takes input.
  */
+// First, before anything that could construct a zod schema (see the file).
+import './zod-jitless'
+
 import type { RequestKind, WorkerError, WorkerInbound, WorkerOutbound } from '#shared/protocol'
 
 import { sweepIfDue } from '~~/db/expire'
@@ -14,20 +17,6 @@ import { handlers } from './handlers'
 import { redactString } from './log'
 
 const scope = self as unknown as DedicatedWorkerGlobalScope
-
-/*
- * The CSP has no 'unsafe-eval', so zod's compiled parsers could never run
- * here anyway — but zod finds that out by calling `new Function`, and the
- * browser reports every such probe as a violation (#204).
- *
- * Set on the global zod keeps its config on, not through `z.config()`: that
- * import put zod's core and util — 3.6 kB gzip — into the worker's entry
- * chunk, ahead of the first message, for a flag (#299). zod reads this very
- * object whenever it is loaded; tests/unit/worker-zod-config.spec.ts holds it
- * to that.
- */
-const zodGlobal = globalThis as { __zod_globalConfig?: { jitless?: boolean } }
-;(zodGlobal.__zod_globalConfig ??= {}).jitless = true
 
 /** Derived from the handler map, so it can never drift out of sync with it. */
 const KINDS = new Set<string>([...Object.keys(handlers), '$cancel'])
