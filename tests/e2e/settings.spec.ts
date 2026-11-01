@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test'
 
-import { signIn } from './seed'
+import { DEFAULT_PREFERENCES } from '~~/db/meta'
+
+import { putRows, signIn } from './seed'
 
 /**
  * Settings as an index rather than a stack.
@@ -57,5 +59,25 @@ test.describe('settings', () => {
     await expect(main.getByText('A dig, 3,000 listings')).toBeVisible()
     await expect(main.getByText('1.2 s')).toBeVisible()
     await expect(page.getByText('3.000')).toHaveCount(0)
+  })
+
+  /** The price ceiling in the currency you buy in, not always in euros (#194). */
+  test('the search summary writes the ceiling in your currency', async ({ page }) => {
+    await signIn(page)
+    await putRows(page, {
+      meta: [
+        {
+          key: 'preferences',
+          value: {
+            ...DEFAULT_PREFERENCES,
+            shipsToCountry: 'Germany',
+            currency: 'GBP',
+            maxPrice: 40,
+          },
+        },
+      ],
+    })
+    await page.goto('/settings')
+    await expect(page.getByRole('main').getByText('up to £40.00')).toBeVisible()
   })
 })
