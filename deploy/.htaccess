@@ -77,9 +77,14 @@
   # Warnung; der Typ ist der aus der Spezifikation.
   AddType application/manifest+json .webmanifest
 
+  # Ebenso WebAssembly (der Barcode-Leser, ADR-018). Ohne den Typ verweigert der
+  # Browser das schnelle Streaming-Kompilieren, Emscripten weicht auf den
+  # langsameren Weg aus und meldet das in der Konsole (#304).
+  AddType application/wasm .wasm
+
   # Gehashte Dateinamen: ändert sich der Inhalt, ändert sich der Name. Der
   # Browser muss also nie wieder nachfragen.
-  <FilesMatch "^.*\.(js|css|woff2)$">
+  <FilesMatch "^.*\.(js|css|woff2|wasm)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
 
@@ -102,5 +107,5 @@
 
 # --- 3. Komprimierung ---------------------------------------------------------
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml application/wasm
 </IfModule>
