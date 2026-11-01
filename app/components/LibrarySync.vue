@@ -11,6 +11,7 @@ const summary = ref<LibrarySummary | null>(null)
 const progress = ref<SyncProgress | null>(null)
 const running = ref(false)
 const error = ref<unknown>(null)
+const undone = ref<string[]>([])
 
 async function refresh() {
   summary.value = await call('library.summary', undefined)
@@ -23,9 +24,13 @@ async function sync() {
   running.value = true
   error.value = null
   progress.value = null
+  undone.value = []
 
   try {
-    await call('library.sync', undefined, { onProgress: (p) => (progress.value = p) })
+    const result = await call('library.sync', undefined, {
+      onProgress: (p) => (progress.value = p),
+    })
+    undone.value = result.undone
     await refresh()
   } catch (cause) {
     error.value = cause
@@ -68,6 +73,14 @@ const formatDate = (at: number | null) => (at === null ? m.value.common.never : 
     </p>
 
     <ErrorNote v-if="error" :cause="error" />
+    <p
+      v-if="undone.length > 0"
+      role="status"
+      class="flex items-center gap-2 rounded-fid-sm bg-fid-error/10 px-3 py-2 text-fid-sm text-fid-error"
+    >
+      <FidIcon name="circle-alert" :size="14" />
+      {{ m.freshness.undone(undone) }}
+    </p>
 
     <div class="flex flex-wrap items-center gap-3">
       <button

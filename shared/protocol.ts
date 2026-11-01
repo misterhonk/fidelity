@@ -172,7 +172,12 @@ export interface WorkerContract {
    * Mirrors collection and wantlist. Reports per page, because the first run
    * takes ~25 requests and a spinner for half a minute is not an answer.
    */
-  'library.sync': { params: undefined; progress: SyncProgress; result: SyncResult }
+  'library.sync': {
+    params: undefined
+    progress: SyncProgress
+    /** `undone`: records whose queued change the drain before it gave up on. */
+    result: SyncResult & { undone: string[] }
+  }
   'library.summary': { params: undefined; progress: never; result: LibrarySummary }
 
   /** Everything the start screen shows, from this device only. */

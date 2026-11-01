@@ -143,7 +143,7 @@ export const handlers: HandlerMap = {
     await requestPersistence()
     // Out before in: what Discogs answers is older than a change still waiting here.
     const { drainOutbox } = await import('./outbox')
-    await drainOutbox(discogs(), identity.username, signal)
+    const { undone } = await drainOutbox(discogs(), identity.username, signal)
     const { syncLibrary } = await library()
     const result = await syncLibrary({
       client: discogs(),
@@ -164,7 +164,8 @@ export const handlers: HandlerMap = {
       computeTasteProfile(await db.getAll('collection'), Date.now()),
     )
 
-    return result
+    // A change that drain gave up on and put back, named so the screen can say so.
+    return { ...result, undone }
   },
 
   'taste.profile': async () => (await getMeta('tasteProfile')) ?? null,
