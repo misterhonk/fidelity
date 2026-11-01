@@ -876,7 +876,8 @@ export interface DiscoveryResult {
  */
 export interface VaultSnapshot {
   savedAt: number
-  preferences: Preferences | null
+  /** Only the allowlisted keys — see `syncedPreferences`. */
+  preferences: Partial<Preferences> | null
   stores: Partial<Record<string, unknown[]>>
 }
 

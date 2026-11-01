@@ -312,3 +312,69 @@ describe('the preferences stamp', () => {
     await deleteFidelityDb()
   })
 })
+
+describe('what stays on this device', () => {
+  it('keeps device-local settings through a merge with newer preferences', async () => {
+    const { updatePreferences, getPreferences } = await import('~~/db/meta')
+    const { deleteFidelityDb } = await import('~~/db/open')
+    const { snapshotLocal, applySnapshot } = await import('~~/worker/vault/sync')
+
+    const local = await updatePreferences({
+      currency: 'EUR',
+      vaultTarget: 'file',
+      hubUrl: 'https://hub.example',
+      hubSecret: 'local-secret',
+      accessKey: 'local-key',
+      audioPreview: true,
+    })
+
+    // Newer, and from an older vault that still carries the other device's local keys.
+    const there = snapshot({
+      preferences: {
+        currency: 'GBP',
+        maxPrice: 4000,
+        vaultTarget: 'none',
+        hubUrl: null,
+        hubSecret: null,
+        accessKey: null,
+        audioPreview: false,
+        updatedAt: local.updatedAt! + 1000,
+      } as never,
+    })
+    await applySnapshot(mergeSnapshots(await snapshotLocal(2000), there))
+
+    expect(await getPreferences()).toMatchObject({
+      currency: 'GBP',
+      maxPrice: 4000,
+      vaultTarget: 'file',
+      hubUrl: 'https://hub.example',
+      hubSecret: 'local-secret',
+      accessKey: 'local-key',
+      audioPreview: true,
+    })
+    await deleteFidelityDb()
+  })
+
+  it('does not put device-local settings into the snapshot that leaves', async () => {
+    const { updatePreferences } = await import('~~/db/meta')
+    const { deleteFidelityDb } = await import('~~/db/open')
+    const { snapshotLocal } = await import('~~/worker/vault/sync')
+
+    await updatePreferences({ currency: 'GBP', hubSecret: 'local-secret', vaultTarget: 'file' })
+    const { preferences } = await snapshotLocal(1000)
+
+    expect(preferences).toMatchObject({ currency: 'GBP' })
+    for (const key of [
+      'vaultTarget',
+      'vaultRemember',
+      'hubUrl',
+      'hubSecret',
+      'accessKey',
+      'audioPreview',
+      'importFriends',
+      'cloudClientIds',
+    ])
+      expect(preferences).not.toHaveProperty(key)
+    await deleteFidelityDb()
+  })
+})
