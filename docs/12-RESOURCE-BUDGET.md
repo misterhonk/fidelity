@@ -33,6 +33,7 @@ concrete shelving.
 | App-shell JS (Vue + router + UI core) | ≤ 140 kB | |
 | Matching engine (worker, lazy) | ≤ 22 kB | 20.1 kB (2026-11-01) |
 | The remaining routes (lazy) | ≤ 30 kB each | 13.9 kB |
+| Barcode decoder (lazy, only without `BarcodeDetector`) | ≤ 440 kB | 427.3 kB (2026-11-01) |
 | **First meaningful paint** | **≤ 180 kB** | **125.4 kB** (2026-11-01) |
 
 > **Why the worker went from 25 to 35 kB (M3).** The 25 kB were an estimate made before
@@ -101,6 +102,29 @@ concrete shelving.
 > `tests/unit/worker-entry.spec.ts` fails if a group is imported statically or a handler is
 > written inline again. **25.01 → 20.13 kB**, and the ceiling came down to 22 kB with it, for
 > the reason given in the September note.
+
+> **Why a 427 kB dependency is allowed in (2026-11-01, ADR-018, #301).** `zxing-wasm`
+> 3.1.5, reader build only: 415.1 kB gzip of `.wasm` and 12.3 kB of JS glue. It is the
+> largest single thing the app can download, and it justifies its place under rule 7 only
+> because of *who* pays and *when*:
+>
+> - **Nobody on first paint.** It is an `import()` inside `useBarcodeScan.start()`, never
+>   prefetched or preloaded. `.size-limit.js` breaks the build if either file shows up among
+>   the first-paint assets or anywhere in `index.html`. First paint and worker were measured
+>   identical before and after (125.46 kB, 20.17 kB).
+> - **Nobody with `BarcodeDetector`.** Chromium reads barcodes by itself and never fetches it.
+> - **An iPhone, once, on the first tap on "Read a barcode".** About 0.3 s on normal LTE,
+>   ~4.3 s on one bar in the basement (the table below, scaled) — and then never again:
+>   the service worker keeps the `.wasm` (`fidelity-decoder`, CacheFirst, one entry). It is deliberately **not** in the
+>   install-time precache, so a fresh install does not carry 415 kB most visitors never use;
+>   the 12 kB glue is, like every lazy chunk.
+> - **What it buys:** pointing the camera instead of typing thirteen digits or two extra taps
+>   for Scan Text, per record, in a shop — on the platform that had no reader at all.
+>
+> The alternatives were weighed in ADR-018: a JS-only decoder would be 100–200 kB *without*
+> the CSP change but slower and worse on a curved, glossy sleeve; the full zxing-wasm build
+> (reader + writer) roughly doubles the bytes for a writer nobody here needs. The ceiling of
+> 440 kB leaves room for a patch release, not for the full build slipping in.
 
 > **Why 120 kB became 180 kB (2026-08-11).** The 120 were tied to a network that no longer
 > exists: "in the basement of a record shop over 3G". 3G was switched off in Germany in

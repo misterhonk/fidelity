@@ -221,7 +221,7 @@ Header set Content-Security-Policy "default-src 'self'; \
     https://content.dropboxapi.com https://oauth2.googleapis.com https://www.googleapis.com \
     http://localhost:8787 http://127.0.0.1:8787 http://localhost:8788 http://127.0.0.1:8788; \
   img-src 'self' https://i.discogs.com data: blob:; \
-  script-src 'self' 'sha256-…' 'sha256-…' 'sha256-…'; \
+  script-src 'self' 'wasm-unsafe-eval' 'sha256-…' 'sha256-…' 'sha256-…'; \
   style-src 'self' 'unsafe-inline'; font-src 'self'; worker-src 'self' blob:; \
   frame-src https://www.youtube-nocookie.com https://www.youtube.com; \
   frame-ancestors 'none'; base-uri 'self'; object-src 'none'; manifest-src 'self'; form-action 'self'"
