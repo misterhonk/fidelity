@@ -36,6 +36,20 @@ test('a shop in the palette opens that shop', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Plattenkiste' })).toBeVisible()
 })
 
+test('a shop in the palette replaces the one open on the shops screen', async ({ page }) => {
+  await seed(page, 'en')
+  await putRows(page, { dealers: [first] })
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/dealers')
+  await expect(page).toHaveURL(/shop=aardvark/, { timeout: 15_000 })
+  await expect(page.getByRole('heading', { name: 'Aardvark Records' })).toBeVisible()
+
+  await choose(page, 'Plattenkiste')
+  await expect(page).toHaveURL(/shop=plattenkiste/)
+  await expect(page.getByRole('heading', { name: 'Plattenkiste' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Aardvark Records' })).toBeHidden()
+})
+
 test('a find in the palette opens its sheet', async ({ page }) => {
   const dig = await seed(page, 'en')
   await page.goto('/')
