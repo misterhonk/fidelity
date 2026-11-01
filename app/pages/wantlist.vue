@@ -703,8 +703,7 @@ function waiting(addedAt: string): string | null {
               selecting ? toggleSelect(group.lead.releaseId) : (open = group.lead.releaseId)
             "
           >
-            <img
-              v-if="group.lead.thumbUrl || group.lead.coverUrl"
+            <LabelSleeve
               :src="group.lead.coverUrl || group.lead.thumbUrl"
               :srcset="
                 group.lead.coverUrl && group.lead.thumbUrl
@@ -712,19 +711,10 @@ function waiting(addedAt: string): string | null {
                   : undefined
               "
               sizes="(min-width: 90rem) 16vw, (min-width: 48rem) 25vw, 50vw"
-              alt=""
-              loading="lazy"
-              decoding="async"
               width="600"
               height="600"
               class="aspect-square w-full rounded-fid-sm bg-fid-surface object-cover"
             />
-            <span
-              v-else
-              class="flex aspect-square w-full items-center justify-center rounded-fid-sm bg-fid-surface text-fid-xs text-fid-text-muted"
-            >
-              {{ c.noCover }}
-            </span>
           </button>
           <button
             type="button"

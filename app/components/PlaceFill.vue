@@ -150,20 +150,12 @@ async function put() {
             :aria-label="c.places.pick(record.artist, record.title)"
             @change="toggle(record.instanceId)"
           />
-          <img
-            v-if="record.thumbUrl"
+          <LabelSleeve
             :src="record.thumbUrl"
-            alt=""
-            loading="lazy"
-            decoding="async"
+            :label="record.label"
             width="40"
             height="40"
             class="size-10 shrink-0 rounded-fid-cover bg-fid-inset object-cover"
-          />
-          <span
-            v-else
-            class="size-10 shrink-0 rounded-fid-cover bg-fid-inset"
-            aria-hidden="true"
           />
           <span class="flex min-w-0 flex-col">
             <span class="truncate text-fid-sm text-fid-text">{{ record.title }}</span>

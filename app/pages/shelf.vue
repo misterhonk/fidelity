@@ -498,8 +498,7 @@ const walk = computed(() => {
               one on a phone is four times the bytes for nothing. srcset lets
               the browser pick, and it picks better than a breakpoint would.
             -->
-            <img
-              v-if="record.thumbUrl || record.coverUrl"
+            <LabelSleeve
               :src="record.coverUrl || record.thumbUrl"
               :srcset="
                 record.coverUrl && record.thumbUrl
@@ -511,19 +510,11 @@ const walk = computed(() => {
                   ? '(min-width: 90rem) 12vw, (min-width: 48rem) 16vw, 30vw'
                   : '(min-width: 90rem) 16vw, (min-width: 48rem) 25vw, 50vw'
               "
-              alt=""
-              loading="lazy"
-              decoding="async"
+              :label="record.label"
               width="600"
               height="600"
               class="aspect-square w-full rounded-fid-sm bg-fid-surface object-cover transition-opacity group-hover:opacity-85"
             />
-            <span
-              v-else
-              class="flex aspect-square w-full items-center justify-center rounded-fid-sm bg-fid-surface text-fid-xs text-fid-text-muted"
-            >
-              {{ c.noCover }}
-            </span>
 
             <!-- The title in the display face; the rest is a plate under it (M26.2). -->
             <span

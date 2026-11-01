@@ -378,22 +378,14 @@ const labelFor = (placeId: string | null) => {
           "
           @pointerdown="lift($event, record)"
         >
-          <img
-            v-if="record.thumbUrl || record.coverUrl"
+          <LabelSleeve
             :src="record.thumbUrl || record.coverUrl"
-            alt=""
-            loading="lazy"
-            decoding="async"
+            :label="record.labelNames[0]"
+            :catno="record.catnos[0]"
             width="150"
             height="150"
             class="aspect-square w-full rounded-fid-cover bg-fid-inset object-cover"
           />
-          <span
-            v-else
-            class="flex aspect-square w-full items-center justify-center rounded-fid-cover bg-fid-inset text-fid-xs text-fid-text-muted"
-          >
-            {{ c.noCover }}
-          </span>
           <span
             class="fid-display line-clamp-2 text-fid-xs leading-tight font-semibold text-fid-text"
           >
