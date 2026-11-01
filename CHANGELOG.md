@@ -9,6 +9,18 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.114.0](https://github.com/misterhonk/fidelity/compare/v0.113.3...v0.114.0) (2026-11-01)
+
+
+### Added
+
+* **ui:** credit Discogs beside the data it provided ([0ea50bb](https://github.com/misterhonk/fidelity/commit/0ea50bba6b7aa303d3f2999c06e9a64d22c39f0f))
+
+
+### Fixed
+
+* **ui:** keep the YouTube player at 200 px and say what it may store ([5596470](https://github.com/misterhonk/fidelity/commit/5596470ca792c909df37c99aa197e9dc7b66db55))
+
 ## [0.113.3](https://github.com/misterhonk/fidelity/compare/v0.113.2...v0.113.3) (2026-11-01)
 
 
