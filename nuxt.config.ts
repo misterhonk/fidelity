@@ -243,6 +243,24 @@ export default defineNuxtConfig({
           purpose: 'maskable',
         },
       ],
+      // Long-press on the icon: straight to the crate-flipping screen (#218).
+      shortcuts: [
+        {
+          name: 'In a shop',
+          url: `${base}in-store`,
+          icons: [{ src: `${base}icons/icon-192.png`, sizes: '192x192', type: 'image/png' }],
+        },
+      ],
+      /*
+       * Android's share sheet: a shared Discogs shop page opens here. GET, so it
+       * is a plain navigation the service worker's fallback already serves —
+       * no POST handler in sw.ts. iOS has no share target at all (#217).
+       */
+      share_target: {
+        action: `${base}share`,
+        method: 'GET',
+        params: { title: 'title', text: 'text', url: 'url' },
+      },
     },
     /*
      * The worker is written, not generated — `app/sw/sw.ts`.
