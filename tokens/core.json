@@ -229,7 +229,7 @@
       "$description": "UI and body copy."
     },
     "mono": {
-      "$value": ["Chivo Mono", "ui-monospace", "monospace"],
+      "$value": ["JetBrains Mono", "ui-monospace", "monospace"],
       "$description": "Catalogue numbers, matrix/runout, prices. These are codes, not prose."
     },
     "$description": "Die Schriften des Satzes Presswerk. Bis zum 2026-08-11 standen hier andere als in app/assets/css/main.css — 'Geist Mono' gegen 'Chivo Mono' —, und beide waren gleichzeitig in Gebrauch: die Tailwind-Klasse font-fid-mono aus diesen Token an 21 Stellen, var(--fid-font-mono) aus main.css an einer. Die App setzte ihre Zahlen also in zwei verschiedenen Monospace-Schriften, und der Schriftsatz-Umschalter steuerte nur eine davon. Geist Mono und Inter kostete das 40 heruntergeladene Dateien für Schriften, die niemand ausgewählt hatte."
