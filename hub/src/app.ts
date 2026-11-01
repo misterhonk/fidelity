@@ -309,8 +309,9 @@ export function createHubApp({
         now,
         revoked: access.revoked ? await access.revoked() : undefined,
       })
+      // A signed key that fails is expired or revoked, not a guess: counting it
+      // would put everyone behind the same address into the wait.
       if (!verdict.ok) {
-        failures?.miss(ip)
         return c.json({ error: `access key ${verdict.reason}` }, 401)
       }
       failures?.pass(ip)
@@ -325,7 +326,7 @@ export function createHubApp({
     }
 
     // A request with no word is a device not set up yet, not a guess.
-    if (c.req.header('x-hub-secret') !== undefined || token) failures?.miss(ip)
+    if (c.req.header('x-hub-secret') !== undefined) failures?.miss(ip)
     return c.json(
       { error: secret ? 'wrong or missing x-hub-secret' : 'missing or wrong x-fidelity-key' },
       401,
