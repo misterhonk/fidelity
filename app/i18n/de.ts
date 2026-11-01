@@ -634,6 +634,7 @@ const de: Messages = {
     numForSale: 'im Angebot',
   },
   close: 'Schließen',
+  skipToContent: 'Zum Inhalt springen',
   cancel: 'Abbrechen',
   mainReleases: (n) => `${n} Hauptveröffentlichungen`,
   decade: (year) => `${year}er`,

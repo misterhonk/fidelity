@@ -33,7 +33,7 @@ const pinned = computed(
       .length,
 )
 
-const open = ref<string | null>(null)
+const open = useOpenInQuery('place', (raw) => raw)
 const openCube = computed(
   () => compartments.value.find((cube) => cube.id === open.value) ?? null,
 )

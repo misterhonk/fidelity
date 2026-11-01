@@ -225,7 +225,7 @@ const visible = computed(() => groups.value.slice(0, shown.value))
  * The lead of each group, in the order the grid shows them — the same rule
  * every other walk follows: "the list" is what is on the screen.
  */
-const open = ref<number | null>(null)
+const open = useOpenInQuery('want', asId)
 const openRecord = computed(
   () => visible.value.find((group) => group.lead.releaseId === open.value)?.lead ?? null,
 )

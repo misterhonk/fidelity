@@ -96,6 +96,7 @@ useWalkKeys((to) =>
         :aria-label="c.shelf.sheet.previous"
         :title="c.shelf.sheet.previous"
         class="fid-lift flex min-h-11 min-w-11 items-center justify-center fid-field-raised text-fid-text disabled:opacity-40"
+        aria-keyshortcuts="k ArrowLeft"
         @click="step(walk.previous)"
       >
         <FidIcon name="arrow-left" :size="18" aria-hidden="true" />
@@ -109,6 +110,7 @@ useWalkKeys((to) =>
         :aria-label="c.shelf.sheet.next"
         :title="c.shelf.sheet.next"
         class="fid-lift flex min-h-11 min-w-11 items-center justify-center fid-field-raised text-fid-text disabled:opacity-40"
+        aria-keyshortcuts="j ArrowRight"
         @click="step(walk.next)"
       >
         <FidIcon name="arrow-right" :size="18" aria-hidden="true" />

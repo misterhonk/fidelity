@@ -14,9 +14,14 @@ const bar = useTemplateRef<HTMLElement>('bar')
  * seen reads as a screen with no tabs.
  */
 onMounted(() => {
-  bar.value
-    ?.querySelector('[data-current]')
-    ?.scrollIntoView({ block: 'nearest', inline: 'center' })
+  // The bar's own scroll, not `scrollIntoView`: Chromium moves the Tab
+  // starting point to the element it scrolls to, and the first Tab on the
+  // screen then skipped the skip link and the nav (#227).
+  const tab = bar.value?.querySelector('[data-current]')
+  if (!bar.value || !tab) return
+  const outer = bar.value.getBoundingClientRect()
+  const inner = tab.getBoundingClientRect()
+  bar.value.scrollLeft += inner.left - outer.left - (outer.width - inner.width) / 2
 })
 
 /**
@@ -62,7 +67,7 @@ const TABS = [
     nothing.
 
     `overflow-x-auto` stays in reserve for a language with longer words, and
-    `scrollIntoView` makes sure the tab you are standing on is then visible.
+    scrolling the bar on mount makes sure the tab you are standing on is then visible.
   -->
   <!--
     No frame since M26.1 (docs/05 §3a): the box around the tabs was the most

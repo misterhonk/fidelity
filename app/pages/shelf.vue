@@ -239,7 +239,7 @@ async function reread() {
  * what it was rated — all of it already in IndexedDB, all of it readable in a
  * basement with no signal. Discogs is one button away for the rest.
  */
-const open = ref<number | null>(null)
+const open = useOpenInQuery('record', asId)
 
 /** Where the open record stands in the list on screen, and what is either side. */
 const walk = computed(() => {

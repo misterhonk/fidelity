@@ -109,7 +109,7 @@ async function showRoom(room: PlaceNode) {
   roomContents.value = await call('places.contents', { placeId: room.id })
 }
 
-const sheet = ref<number | null>(null)
+const sheet = useOpenInQuery('record', asId)
 
 /**
  * A drop (M27.4): sleeves or a whole compartment onto a cube, furniture onto
