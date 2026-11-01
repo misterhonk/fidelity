@@ -243,10 +243,16 @@ const meta = computed(() => {
             class="text-fid-sm"
             :class="
               warning.severity === 'high'
-                ? 'text-fid-sig-scarcity-text'
+                ? 'flex items-center gap-1 text-fid-error'
                 : 'text-fid-sig-gap-text'
             "
           >
+            <FidIcon
+              v-if="warning.severity === 'high'"
+              name="circle-alert"
+              :size="14"
+              aria-hidden="true"
+            />
             {{ pressingText(warning) }}
           </li>
         </ul>
