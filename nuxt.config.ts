@@ -49,6 +49,11 @@ export default defineNuxtConfig({
   // the whole deployment: a docroot, Cloudflare Pages, GitHub Pages.
   ssr: false,
 
+  // One screen gives way to the next in a crossfade (#226). Nuxt's plugin
+  // already stands down for prefers-reduced-motion and for a back-swipe the
+  // browser animates itself; a query change on the same page is no page change.
+  experimental: { viewTransition: true },
+
   hooks: {
     /*
      * The worker is not part of the first paint (#299).

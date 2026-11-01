@@ -32,6 +32,8 @@ defineProps<{
   /** Printed on the sleeve when there is no cover (#220). */
   label?: string | null
   catno?: string | null
+  /** The `view-transition-name` the list's cover morphs into (#226). */
+  morph?: string
 }>()
 </script>
 
@@ -44,6 +46,7 @@ defineProps<{
         :catno="catno"
         width="600"
         height="600"
+        :style="morph ? { viewTransitionName: morph } : undefined"
         class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80"
       />
 

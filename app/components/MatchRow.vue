@@ -112,7 +112,7 @@ const landedWhy = computed(() => {
       <button
         type="button"
         class="min-w-0 shrink truncate text-left text-fid-sm text-fid-text underline-offset-4 hover:underline"
-        @click="show(match.digId, match.listingId)"
+        @click="show(match.digId, match.listingId, root)"
       >
         {{ match.artist }} – {{ match.title }}
       </button>

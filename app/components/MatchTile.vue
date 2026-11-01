@@ -35,7 +35,7 @@ const price = computed(() => money(props.match.price, props.match.currency))
       type="button"
       class="fid-cover-button rounded-fid-cover"
       :aria-label="d.match.open(`${match.artist} – ${match.title}`)"
-      @click="show(match.digId, match.listingId)"
+      @click="show(match.digId, match.listingId, root)"
     >
       <LabelSleeve
         :src="cover?.thumbUrl"
