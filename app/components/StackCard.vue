@@ -43,20 +43,13 @@ const meta = computed(() =>
       The cover, as large as it goes. 600 on the long edge is the ceiling
       Discogs gives (`docs/02`) — here it gets the full width.
     -->
-    <img
-      v-if="cover"
-      :src="cover.coverUrl || cover.thumbUrl"
-      alt=""
-      loading="lazy"
-      decoding="async"
+    <LabelSleeve
+      :src="cover?.coverUrl || cover?.thumbUrl"
+      :label="match.label"
+      :catno="match.catno"
       width="600"
       height="600"
       class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover"
-    />
-    <div
-      v-else
-      class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset"
-      aria-hidden="true"
     />
 
     <div class="flex items-start justify-between gap-3">

@@ -83,7 +83,7 @@ const CROWD = Array.from({ length: 19 }, (_, index) => ({
   addedAt: `2020-01-${String(index + 1).padStart(2, '0')}T00:00:00-00:00`,
 }))
 
-async function withRails(page: Page) {
+async function withRails(page: Page, shelf: typeof SHELF = SHELF) {
   await page.goto('/')
 
   /*
@@ -133,7 +133,7 @@ async function withRails(page: Page) {
       { key: 'token', value: 'not-a-real-token' },
       { key: 'identity', value: { username: 'probe', displayName: 'Probe' } },
     ],
-    collection: [SHELF],
+    collection: [shelf],
     wantlist: [WANTED, ...CROWD],
   })
   await page.goto('/')
@@ -187,5 +187,26 @@ test.describe('the covers on the start screen', () => {
 
     const outward = page.locator('.fid-rail a[href*="discogs.com"]')
     await expect(outward).toHaveCount(0)
+  })
+
+  /**
+   * A cover that fails to draw becomes the label sleeve, never the browser's
+   * broken-image glyph (#220). A same-origin address with no image behind it
+   * fails the way a Cloudflare 429 on i.discogs.com does: it does not decode.
+   */
+  test('a cover that fails shows the label sleeve, not a broken image', async ({ page }) => {
+    await withRails(page, { ...SHELF, thumbUrl: '/no-such-cover.jpg' })
+
+    const tile = page.getByRole('button', { name: /Open Selected Ambient Works/i }).first()
+    await expect(tile).toBeVisible({ timeout: 15_000 })
+    const sleeve = tile.getByTestId('label-sleeve')
+    await expect(sleeve).toBeVisible()
+    await expect(sleeve).toContainText('Apollo')
+    await expect(sleeve).toContainText('AMB 3922 CD')
+
+    const broken = await page.evaluate(
+      () => [...document.images].filter((img) => img.complete && img.naturalWidth === 0).length,
+    )
+    expect(broken).toBe(0)
   })
 })

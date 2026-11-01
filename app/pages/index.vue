@@ -237,6 +237,8 @@ const tiles = computed(() => {
             :cover-url="coverFor(find.releaseId)?.coverUrl"
             :title="find.title ?? `Release ${find.releaseId}`"
             :subtitle="find.artist"
+            :label="find.label"
+            :catno="find.catno"
             :score="find.score"
             :note="money(find.price, find.currency)"
             :open="() => show(find.digId, find.listingId)"
@@ -302,6 +304,8 @@ const tiles = computed(() => {
             :cover-url="record.coverUrl"
             :title="record.title"
             :subtitle="record.artist"
+            :label="record.label"
+            :catno="record.catno"
             :note="record.year ? String(record.year) : null"
             :open="() => (openInstance = record.instanceId)"
           />
@@ -322,6 +326,8 @@ const tiles = computed(() => {
             :cover-url="record.coverUrl"
             :title="record.title"
             :subtitle="record.artist"
+            :label="record.label"
+            :catno="record.catno"
             :note="record.year ? String(record.year) : null"
             :to="`/wantlist#want-${record.releaseId}`"
           />

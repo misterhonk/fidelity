@@ -37,23 +37,14 @@ const price = computed(() => money(props.match.price, props.match.currency))
       :aria-label="d.match.open(`${match.artist} – ${match.title}`)"
       @click="show(match.digId, match.listingId)"
     >
-      <img
-        v-if="cover"
-        :src="cover.thumbUrl"
-        alt=""
-        loading="lazy"
-        decoding="async"
+      <LabelSleeve
+        :src="cover?.thumbUrl"
+        :label="match.label"
+        :catno="match.catno"
         width="150"
         height="150"
         class="aspect-square w-full rounded-fid-cover bg-fid-inset object-cover"
       />
-      <span
-        v-else
-        class="flex aspect-square w-full items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted"
-        aria-hidden="true"
-      >
-        <FidIcon name="record" :size="28" />
-      </span>
     </button>
 
     <!--

@@ -1475,6 +1475,9 @@ export interface HomeCover {
   title: string
   artist: string
   year: number
+  /** First label and catalogue number, for the sleeve when there is no cover (#220). */
+  label: string
+  catno: string
   thumbUrl: string
   coverUrl: string
   /** ISO 8601 from Discogs. */
@@ -1490,6 +1493,8 @@ export interface HomeFind {
   signals: Signal[]
   title: string | null
   artist: string | null
+  label: string | null
+  catno: string | null
   thumbUrl: string | null
   price: number | null
   currency: string | null
