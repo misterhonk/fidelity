@@ -642,22 +642,18 @@ const uid = useId()
             class="fid-field px-2 py-1 font-fid-mono text-fid-sm text-fid-text"
           />
         </label>
-        <button
+        <FidButton
+          variant="secondary"
           type="submit"
           :disabled="!readOffPrice || readOffPrice <= 0"
-          class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text disabled:opacity-50"
         >
           {{ b.readOff.take }}
-        </button>
+        </FidButton>
       </form>
 
-      <button
-        type="button"
-        class="self-start rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
-        @click="editing = !editing"
-      >
+      <FidButton variant="secondary" class="self-start" @click="editing = !editing">
         {{ summary.shippingSource === 'user' ? b.editTiers : b.enterTiers }}
-      </button>
+      </FidButton>
     </section>
 
     <!--
@@ -671,14 +667,9 @@ const uid = useId()
       v-if="!summary.lines.some((line) => line.priceExpired && !line.sold)"
       class="flex flex-col gap-3 border-t border-fid-border pt-4"
     >
-      <button
-        type="button"
-        :disabled="comparing"
-        class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
-        @click="compare"
-      >
+      <FidButton variant="secondary" :disabled="comparing" class="self-start" @click="compare">
         {{ comparing ? b.compare.busy : b.compare.start }}
-      </button>
+      </FidButton>
 
       <ErrorNote v-if="compareFailed" :cause="compareFailed" />
 
@@ -845,20 +836,12 @@ const uid = useId()
       </div>
 
       <div class="flex gap-2">
-        <button
-          type="button"
-          class="rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
-          @click="addRow"
-        >
+        <FidButton variant="secondary" @click="addRow">
           {{ b.addTier }}
-        </button>
-        <button
-          type="button"
-          class="rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
-          @click="saveShipping"
-        >
+        </FidButton>
+        <FidButton variant="secondary" @click="saveShipping">
           {{ m.common.save }}
-        </button>
+        </FidButton>
       </div>
     </section>
 
@@ -882,13 +865,9 @@ const uid = useId()
         <span class="text-fid-sm text-fid-text-muted">
           {{ b.budget.including(summary.currency ?? '') }}
         </span>
-        <button
-          type="submit"
-          :disabled="planning || !budget"
-          class="rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text disabled:opacity-50"
-        >
+        <FidButton variant="secondary" type="submit" :disabled="planning || !budget">
           {{ b.budget.compute }}
-        </button>
+        </FidButton>
       </form>
 
       <template v-if="plan">
@@ -1015,14 +994,14 @@ const uid = useId()
         form is not ours — but one link at a time with the next one moving
         up, and a memory of which are done that survives a closed tab.
       -->
-      <button
+      <FidButton
         v-if="!handingShown && openLines.length > 0"
-        type="button"
-        class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+        variant="secondary"
+        class="self-start"
         @click="handing = true"
       >
         {{ b.handOver }}
-      </button>
+      </FidButton>
 
       <section
         v-if="handingShown"

@@ -113,16 +113,11 @@ async function paste() {
       {{ outcome }}
     </p>
 
-    <button
-      type="button"
-      :disabled="busy || !ready"
-      class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
-      @click="paste"
-    >
+    <FidButton variant="secondary" :disabled="busy || !ready" class="self-start" @click="paste">
       {{ b.paste.take
       }}<template v-if="count > 0">
         <span class="fid-num"> ({{ count }})</span></template
       >
-    </button>
+    </FidButton>
   </section>
 </template>
