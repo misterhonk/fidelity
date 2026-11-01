@@ -16,6 +16,7 @@ const state = vi.hoisted(() => ({
   workers: [] as FakeWorker[],
   ready: true,
   loadFails: false,
+  silent: false,
 }))
 
 class FakeWorker extends EventTarget {
@@ -28,6 +29,7 @@ class FakeWorker extends EventTarget {
   }
   postMessage(message: Posted['message'], transfer: Transferable[] = []) {
     this.posted.push({ message, transfer })
+    if (message.frame && state.silent) return
     const reply = message.wasm ? { ready: state.ready } : { codes: ['4006381333931'] }
     queueMicrotask(() => this.dispatchEvent(new MessageEvent('message', { data: reply })))
   }
@@ -46,13 +48,17 @@ beforeEach(() => {
   state.workers = []
   state.ready = true
   state.loadFails = false
+  state.silent = false
   fetchWasm.mockClear()
   vi.stubGlobal('Worker', FakeWorker)
   vi.stubGlobal('fetch', fetchWasm)
   vi.stubGlobal('document', { createElement: () => ({ getContext: () => context }) })
 })
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.useRealTimers()
+  vi.unstubAllGlobals()
+})
 
 const launcher = () => import('~/composables/scan/zxing')
 
@@ -95,6 +101,24 @@ describe('zxingDetector', () => {
     state.loadFails = true
     const { zxingDetector } = await launcher()
     await expect(zxingDetector()).rejects.toThrow()
+  })
+
+  it('gives up on a worker that dies without a word, and starts a new one next time', async () => {
+    const { zxingDetector } = await launcher()
+    const reader = await zxingDetector()
+    state.silent = true
+    vi.useFakeTimers()
+
+    const pending = expect(reader.detect(video)).rejects.toThrow()
+    await vi.advanceTimersByTimeAsync(5000)
+    await pending
+    expect(state.workers[0]!.terminated).toBe(true)
+    await expect(reader.detect(video)).rejects.toThrow()
+    expect(state.workers[0]!.posted).toHaveLength(2)
+
+    state.silent = false
+    await zxingDetector()
+    expect(state.workers).toHaveLength(2)
   })
 
   it('rejects when the .wasm cannot be fetched, and starts no worker', async () => {

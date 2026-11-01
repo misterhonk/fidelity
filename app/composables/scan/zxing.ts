@@ -26,6 +26,9 @@ export function zxingDetector(): Promise<Detector> {
   return shared
 }
 
+/** A frame decodes in well under a second, even on an old iPhone. */
+const FRAME_TIMEOUT = 5000
+
 type Outbound = { ready: boolean } | { codes: string[] }
 
 async function start(): Promise<Detector> {
@@ -38,10 +41,25 @@ async function start(): Promise<Detector> {
   const worker = new Worker(new URL('../../../worker/scan/zxing.ts', import.meta.url), {
     type: 'module',
   })
-  // The worker answers in order and is asked one thing at a time.
-  const answer = () =>
+  // Set once the worker is given up on; its reader then only says so, and
+  // never again clears `shared`, which by then may hold a newer worker.
+  let dead = false
+  // The worker answers in order and is asked one thing at a time. With a
+  // timeout, because WebKit can kill a worker under memory pressure without
+  // an 'error' event, and a frame that never comes back holds the camera.
+  const answer = (timeout?: number) =>
     new Promise<Outbound>((resolve, reject) => {
+      const timer = timeout
+        ? setTimeout(() => {
+            done()
+            dead = true
+            worker.terminate()
+            shared = null
+            reject(new Error('decoder-timeout'))
+          }, timeout)
+        : undefined
       const done = () => {
+        clearTimeout(timer)
         worker.removeEventListener('message', onMessage)
         worker.removeEventListener('error', onError)
       }
@@ -71,13 +89,14 @@ async function start(): Promise<Detector> {
 
   return {
     async detect(video) {
+      if (dead) throw new Error('decoder-dead')
       const { videoWidth: width, videoHeight: height } = video
       if (!context || !width || !height) return []
       canvas.width = width
       canvas.height = height
       context.drawImage(video, 0, 0)
       const frame = context.getImageData(0, 0, width, height)
-      const reply = answer()
+      const reply = answer(FRAME_TIMEOUT)
       worker.postMessage({ frame }, [frame.data.buffer])
       const result = await reply
       return 'codes' in result ? result.codes.map((rawValue) => ({ rawValue })) : []
