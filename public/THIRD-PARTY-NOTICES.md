@@ -1,6 +1,6 @@
 # Third-party notices
 
-Fidelity itself is licensed under the GNU AGPL v3 (see `LICENSE` in the
+Sleeveside itself is licensed under the GNU AGPL v3 (see `LICENSE` in the
 repository, and `LICENSE-EXCEPTION.md` for the additional permission). This
 file lists the third-party material that ships inside the built app, and the
 licence each one comes under.

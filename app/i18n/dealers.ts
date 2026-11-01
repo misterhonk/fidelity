@@ -141,7 +141,7 @@ const en = {
   pushStop: 'Stop telling me',
   pushWhy: 'The hub looks at each watched shop once an hour, once for everybody.',
   pushInstall:
-    'On an iPhone this needs Fidelity on the home screen. Share, then Add to Home Screen.',
+    'On an iPhone this needs Sleeveside on the home screen. Share, then Add to Home Screen.',
 
   coverage: (sampled: string, total: string, percent: number) =>
     `We saw ${sampled} of ${total} records, ${percent} % of the shop.`,
@@ -353,7 +353,7 @@ const de: typeof en = {
   pushWhy:
     'Der Hub schaut einmal die Stunde bei jedem beobachteten Laden vorbei, einmal für alle.',
   pushInstall:
-    'Auf dem iPhone geht das nur mit Fidelity auf dem Home-Bildschirm. Teilen, dann „Zum Home-Bildschirm".',
+    'Auf dem iPhone geht das nur mit Sleeveside auf dem Home-Bildschirm. Teilen, dann „Zum Home-Bildschirm".',
 
   coverage: (sampled, total, percent) =>
     `Wir haben ${sampled} von ${total} Platten gesehen, ${percent} % des Ladens.`,

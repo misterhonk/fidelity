@@ -15,13 +15,13 @@ import { activeLanguage } from '~/composables/useMessages'
  */
 
 const en = {
-  title: 'Fidelity, compared',
+  title: 'Sleeveside, compared',
   description:
-    'What Fidelity is and is not, beside Seller Matches, discdogs, WaxTracker, Groovv and the rest.',
+    'What Sleeveside is and is not, beside Seller Matches, discdogs, WaxTracker, Groovv and the rest.',
   back: '← Start',
 
   sentence:
-    'Fidelity reads a shop’s stock against your collection and tells you, with a reason, what belongs on your shelf.',
+    'Sleeveside reads a shop’s stock against your collection and tells you, with a reason, what belongs on your shelf.',
   sentenceAbout:
     'Everything else follows from that: the shop is the unit, the collection comes before the wantlist, and the sentence is the product.',
   notTitle: 'What that is not',
@@ -29,7 +29,7 @@ const en = {
 
   sideBySide: 'Side by side',
   theyDo: 'What it does',
-  instead: 'Fidelity instead',
+  instead: 'Sleeveside instead',
   rows: [
     {
       name: 'Discogs app, Seller Matches',
@@ -43,7 +43,7 @@ const en = {
       since: 'Wantlister is Discogs’ own since June 2024',
       does: 'Real-time alerts when a wanted record is listed: price, condition, country, seller filters; mail or Telegram. discdogs is free and adds a browser extension.',
       fidelity:
-        'No alerts, on purpose. Discogs owns the listing event; a third party can only poll. What Fidelity watches is a shop — has its stock moved since you were there — one lookup for everybody through the hub.',
+        'No alerts, on purpose. Discogs owns the listing event; a third party can only poll. What Sleeveside watches is a shop — has its stock moved since you were there — one lookup for everybody through the hub.',
     },
     {
       name: 'WaxTracker and the portfolio apps',
@@ -55,7 +55,7 @@ const en = {
       name: 'Groovv, Spinstack, On Rotation, Discographic, CLZ, My Vinyl+',
       does: 'Catalogue your records: scan, sync, browse, play log, shelf photos, stats. Beautiful, and solved a dozen times.',
       fidelity:
-        'Not a catalogue. Discogs is the catalogue; Fidelity mirrors it to the device and asks what to buy. The year in review and the CSV export exist because they fall out of the mirror, not because cataloguing is the job.',
+        'Not a catalogue. Discogs is the catalogue; Sleeveside mirrors it to the device and asks what to buy. The year in review and the CSV export exist because they fall out of the mirror, not because cataloguing is the job.',
     },
     {
       name: 'Discogs Enhancer',
@@ -86,7 +86,7 @@ const en = {
 
   whyTitle: 'Why it is not “the same API wrapper”',
   whyLead:
-    'Most third-party apps do what the Discogs app does with a different skin: sync, browse, scan, alert. They read the same endpoints and show the same rows. Fidelity reads the same endpoints and computes something the API does not hand out:',
+    'Most third-party apps do what the Discogs app does with a different skin: sync, browse, scan, alert. They read the same endpoints and show the same rows. Sleeveside reads the same endpoints and computes something the API does not hand out:',
   why: [
     {
       name: 'A horizon.',
@@ -137,13 +137,13 @@ const en = {
 }
 
 const de: typeof en = {
-  title: 'Fidelity im Vergleich',
+  title: 'Sleeveside im Vergleich',
   description:
-    'Was Fidelity ist und was nicht – neben Seller Matches, discdogs, WaxTracker, Groovv und den anderen.',
+    'Was Sleeveside ist und was nicht – neben Seller Matches, discdogs, WaxTracker, Groovv und den anderen.',
   back: '← Start',
 
   sentence:
-    'Fidelity liest das Sortiment eines Ladens gegen deine Sammlung und sagt dir, mit Begründung, was in dein Regal gehört.',
+    'Sleeveside liest das Sortiment eines Ladens gegen deine Sammlung und sagt dir, mit Begründung, was in dein Regal gehört.',
   sentenceAbout:
     'Alles Weitere folgt daraus: Der Laden ist die Einheit, die Sammlung kommt vor der Wantlist, und der Satz ist das Produkt.',
   notTitle: 'Was das nicht ist',
@@ -151,7 +151,7 @@ const de: typeof en = {
 
   sideBySide: 'Nebeneinander',
   theyDo: 'Was es tut',
-  instead: 'Fidelity stattdessen',
+  instead: 'Sleeveside stattdessen',
   rows: [
     {
       name: 'Discogs-App, Seller Matches',
@@ -165,7 +165,7 @@ const de: typeof en = {
       since: 'Wantlister gehört seit Juni 2024 Discogs',
       does: 'Alarm in Echtzeit, wenn eine gesuchte Platte eingestellt wird: Preis, Zustand, Land, Verkäuferfilter; Mail oder Telegram. discdogs ist gratis und bringt eine Browser-Erweiterung mit.',
       fidelity:
-        'Keine Alarme, mit Absicht. Das Einstellen gehört Discogs; ein Dritter kann nur nachfragen. Was Fidelity beobachtet, ist ein Laden – hat sich sein Bestand bewegt, seit du da warst – eine Abfrage für alle über den Hub.',
+        'Keine Alarme, mit Absicht. Das Einstellen gehört Discogs; ein Dritter kann nur nachfragen. Was Sleeveside beobachtet, ist ein Laden – hat sich sein Bestand bewegt, seit du da warst – eine Abfrage für alle über den Hub.',
     },
     {
       name: 'WaxTracker und die Portfolio-Apps',
@@ -177,7 +177,7 @@ const de: typeof en = {
       name: 'Groovv, Spinstack, On Rotation, Discographic, CLZ, My Vinyl+',
       does: 'Deine Platten katalogisieren: scannen, abgleichen, blättern, Hörprotokoll, Regalfotos, Statistik. Schön, und ein Dutzend Mal gelöst.',
       fidelity:
-        'Kein Katalog. Discogs ist der Katalog; Fidelity spiegelt ihn aufs Gerät und fragt, was zu kaufen ist. Der Jahresrückblick und der CSV-Export gibt es, weil sie aus dem Spiegel herausfallen, nicht weil Katalogisieren die Aufgabe wäre.',
+        'Kein Katalog. Discogs ist der Katalog; Sleeveside spiegelt ihn aufs Gerät und fragt, was zu kaufen ist. Der Jahresrückblick und der CSV-Export gibt es, weil sie aus dem Spiegel herausfallen, nicht weil Katalogisieren die Aufgabe wäre.',
     },
     {
       name: 'Discogs Enhancer',
@@ -208,7 +208,7 @@ const de: typeof en = {
 
   whyTitle: 'Warum es nicht „derselbe API-Wrapper" ist',
   whyLead:
-    'Die meisten Dritt-Apps tun, was die Discogs-App tut, in anderer Hülle: abgleichen, blättern, scannen, alarmieren. Sie lesen dieselben Endpunkte und zeigen dieselben Zeilen. Fidelity liest dieselben Endpunkte und rechnet etwas aus, das die API nicht herausgibt:',
+    'Die meisten Dritt-Apps tun, was die Discogs-App tut, in anderer Hülle: abgleichen, blättern, scannen, alarmieren. Sie lesen dieselben Endpunkte und zeigen dieselben Zeilen. Sleeveside liest dieselben Endpunkte und rechnet etwas aus, das die API nicht herausgibt:',
   why: [
     {
       name: 'Einen Horizont.',

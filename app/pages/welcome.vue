@@ -155,7 +155,7 @@ const CAN_DO = computed(
 <template>
   <AppPage narrow>
     <PageHeader>
-      <template #title>Fidelity</template>
+      <template #title>Sleeveside</template>
       <p class="max-w-prose text-fid-base text-fid-text-muted">{{ w.lead }}</p>
     </PageHeader>
 

@@ -13,7 +13,7 @@ const at = (baseURL: string | undefined, path: string) =>
 
 test('the app loads and names itself', async ({ page }) => {
   await page.goto('/')
-  await expect(page).toHaveTitle(/Fidelity/)
+  await expect(page).toHaveTitle(/Sleeveside/)
 })
 
 test('the hub answers, and says which doors it has', async ({ request, baseURL }) => {

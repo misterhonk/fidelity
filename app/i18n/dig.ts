@@ -127,7 +127,7 @@ const en = {
   sharedBadLink: 'Something is missing from this link, most likely the part after the #.',
   sharedNoHub:
     'No hub answers at this address. The link only works where the list was shared from.',
-  sharedWhatIsThis: 'What is Fidelity?',
+  sharedWhatIsThis: 'What is Sleeveside?',
   sharedPitch:
     'We go through a record shop with your collection in mind and say, for every find, why it fits you.',
   stack: {
@@ -415,7 +415,7 @@ const de: typeof en = {
   sharedBadLink: 'An diesem Link fehlt etwas, vermutlich der Teil hinter dem #.',
   sharedNoHub:
     'Unter dieser Adresse antwortet kein Hub. Der Link funktioniert nur da, wo jemand die Liste geteilt hat.',
-  sharedWhatIsThis: 'Was ist Fidelity?',
+  sharedWhatIsThis: 'Was ist Sleeveside?',
   sharedPitch:
     'Wir gehen einen Plattenladen mit deiner Sammlung im Kopf durch und sagen zu jedem Fund, warum er zu dir passt.',
   stack: {

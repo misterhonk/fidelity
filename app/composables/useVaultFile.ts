@@ -56,7 +56,7 @@ export function useVaultFile() {
       suggestedName: 'fidelity-tresor.json',
       types: [
         {
-          description: 'Fidelity-Tresor',
+          description: 'Sleeveside-Tresor',
           accept: { 'application/json': ['.json'] },
         },
       ],
