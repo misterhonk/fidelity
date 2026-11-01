@@ -735,7 +735,7 @@ function waiting(addedAt: string): string | null {
               type="button"
               :aria-label="c.wantlist.priority.set(star)"
               :aria-pressed="group.lead.want >= star"
-              class="fid-lift flex min-h-11 min-w-8 items-center justify-center rounded-fid-sm text-fid-sm transition-colors"
+              class="fid-lift flex min-h-11 min-w-8 items-center pointer-coarse:min-w-11 justify-center rounded-fid-sm text-fid-sm transition-colors"
               :class="
                 group.lead.want >= star
                   ? 'text-fid-importance'
