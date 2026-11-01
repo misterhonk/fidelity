@@ -117,14 +117,14 @@ deleted, and every sync asks again.
 
 ### Dropbox and Drive: your own registration
 
-There is no Fidelity server and therefore no Fidelity app at Dropbox or Google. You create
+There is no Sleeveside server and therefore no Sleeveside app at Dropbox or Google. You create
 your own and enter the **client id** — public by design, since PKCE needs no secret.
 
 **Dropbox** → `dropbox.com/developers/apps` → *Scoped access*, *App folder*.
 Permissions `files.content.read` and `files.content.write`. The *app key* is the client id.
 
 **Google Drive** → `console.cloud.google.com/apis/credentials` → an OAuth client id, type
-*Web application*, enable the Drive API. Fidelity asks only for `drive.appdata`: a hidden
+*Web application*, enable the Drive API. Sleeveside asks only for `drive.appdata`: a hidden
 directory only this app can see — it cannot reach your own files.
 
 > ⚠️ **The redirect URL has to match exactly.** The settings screen shows it for copying.
@@ -235,7 +235,7 @@ jobs:
             ${{ secrets.UBERSPACE_USER }}@${{ secrets.UBERSPACE_HOST }}:html/fidelity/
 
       - name: Smoke test
-        run: curl -fsS https://fidelity.example.de/ | grep -q "Fidelity"
+        run: curl -fsS https://fidelity.example.de/ | grep -q "Sleeveside"
 ```
 
 No build secret is needed — the app has no consumer secret, because it does no OAuth.

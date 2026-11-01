@@ -80,7 +80,7 @@ For all of it:
 - ❌ **do not use with advertising/marketing platforms** → **no ad networks** on pages with
   listings
 - ❌ **no marketing analytics without Discogs' written permission.** Feeding API data — or
-  usage tied to it — into marketing or analytics tooling needs their consent first. Fidelity
+  usage tied to it — into marketing or analytics tooling needs their consent first. Sleeveside
   has no analytics of any kind (`privacy.vue`); this line is why that must stay so.
 
 ### 1.4 No fees
@@ -111,7 +111,7 @@ private repository (M25) and goes out before the first euro.
 This concerns the HTML route `/sell/release/{id}` used by `discogs_alert`,
 `discogs-market-monitor` and various Apify scrapers.
 
-**Fidelity does not scrape.** The dealer-centric approach runs entirely on the documented
+**Sleeveside does not scrape.** The dealer-centric approach runs entirely on the documented
 `/users/{u}/inventory` endpoint. That is not only clean but also more durable — the scrapers
 break on Cloudflare regularly.
 
@@ -127,7 +127,7 @@ break on Cloudflare regularly.
 - Do not circumvent the rate limits, in particular **not with additional API keys**
 - **Circumventing the marketplace is an explicit breach.** Using API data to steer a buyer
   and a seller into a deal outside Discogs — contacting the seller off-platform, a price
-  agreed around the checkout — is named in the terms. Fidelity ends in a Discogs checkout and
+  agreed around the checkout — is named in the terms. Sleeveside ends in a Discogs checkout and
   must keep doing so; nothing may suggest buying "directly"
 - **The licence is revocable.** Discogs can withdraw API access or terminate the agreement at
   any time, for any reason, and the app must then stop using the API and the stored Content.
@@ -141,7 +141,7 @@ break on Cloudflare regularly.
 The ToS contain **no** explicit clause against it. The nearest constraints are the
 traffic-diversion and Restricted Data rules.
 
-**Our position is strategically strong:** Fidelity is a buying advisor that ends in a
+**Our position is strategically strong:** Sleeveside is a buying advisor that ends in a
 **Discogs checkout**. It drives traffic **to** Discogs and raises basket value. That is
 exactly in Discogs' interest — a good argument, should it ever be needed.
 
@@ -172,7 +172,7 @@ So for releases, artists, labels and masters from the monthly dumps:
 
 ## 3. GDPR – almost nothing to do
 
-**Fidelity has no server.** There is no place where other people's personal data is
+**Sleeveside has no server.** There is no place where other people's personal data is
 processed. Everything — token, collection, wantlist, dig results — lives in IndexedDB in the
 user's browser and never leaves the device.
 
@@ -218,7 +218,7 @@ payment data (tax, fraud, its own contract with the buyer) and is therefore an
 processing agreement to sign, and its own privacy notice covers what it holds. What passes
 between the two is a transfer between controllers: the webhook carries only what
 `fidelity-access` needs (payer id, a hash of the email, the plan, its end date), and the
-privacy notice names the provider as a recipient and links its notice. Fidelity holds none
+privacy notice names the provider as a recipient and links its notice. Sleeveside holds none
 of the provider's data. This section said "processor relationship" until 2026-11-01.
 
 > **The privacy notice is allowed to be honestly short.** But short is not the same as
@@ -250,6 +250,10 @@ Details: `05-DESIGN-SYSTEM.md` §6.
 
 ## 5. Naming rights
 
+- **"Sleeveside"** – the product name, chosen 2026-11-01 after TMview and store checks;
+  attorney clearance is pending. What follows on "Fidelity" is why it was replaced. Stored
+  identifiers (database name, lock names, vault file, `fid-` prefixes, repository) keep
+  "fidelity" on purpose: renaming the database would wipe every user's data.
 - **"Fidelity"** – **not** unproblematic, corrected 2026-11-01. The EU word mark
   **018694508 FIDELITY**, held by **FIL Limited** (Fidelity International), covers
   software, downloadable mobile apps and software as a service, among others. "Fidelity" as

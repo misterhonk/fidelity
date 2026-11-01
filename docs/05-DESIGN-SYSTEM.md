@@ -556,7 +556,7 @@ draft of March 2026, "an incomplete draft" and years away.
 **Is a PWA a substitute for a native app?** For this app specifically: yes, comfortably. It is
 a networked, list-heavy data-browsing app — the archetype the web does best. The real
 remaining gaps: a worse install funnel on iOS, no app store, no background sync, no NFC on
-iOS. None of that is a blocker for Fidelity.
+iOS. None of that is a blocker for Sleeveside.
 
 ---
 

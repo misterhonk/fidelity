@@ -1,6 +1,6 @@
 # 01 – Architecture & tech stack
 
-> **Fidelity has no backend.** A static PWA that talks to `api.discogs.com` directly. All
+> **Sleeveside has no backend.** A static PWA that talks to `api.discogs.com` directly. All
 > data lives in the user's browser. See ADR-007.
 
 ---

@@ -50,6 +50,10 @@ private.
 hosted service is Martin's; the software may be run by anybody, but not offered under that
 name as a service. One sentence in the README, the way Ghost does it.
 
+> **2026-11-01:** the product name is now **Sleeveside** (chosen after TMview and store
+> checks, attorney clearance pending; docs/09 §5). Where this record says "Fidelity", read
+> Sleeveside.
+
 **The test for every future feature:** if it could only exist with closed code, it has
 slipped into the wrong layer. Compute on CC0 data, hosting a cache, a process that runs
 monthly — those are the layers that may be paid for. A signal, a screen, a sentence are

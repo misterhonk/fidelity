@@ -6,7 +6,7 @@ Arbeitsanweisungen für Claude Code in diesem Repository.
 
 ## Was das hier ist
 
-**Fidelity** – ein Kaufberater für Discogs. Scannt das Sortiment eines Händlers, gleicht
+**Sleeveside** – ein Kaufberater für Discogs. Scannt das Sortiment eines Händlers, gleicht
 es gegen Sammlung und Wantlist ab, liefert eine bewertete Fundliste mit Begründungssatz
 pro Treffer.
 

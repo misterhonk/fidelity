@@ -1,17 +1,17 @@
-# Fidelity
+# Sleeveside
 
 > The clerk behind the counter — for Discogs.
 
 Discogs is a search engine, not a record shop. It answers *"do you have record X?"*
 perfectly and *"what would you have for me?"* not at all.
 
-**Fidelity** reads a Discogs dealer's stock, matches it against your collection and your
+**Sleeveside** reads a Discogs dealer's stock, matches it against your collection and your
 wantlist, and hands back a scored list of finds — **with a sentence of reasoning for
 every one.**
 
 ```
 You: "fatplastics"
-Fidelity, two minutes later:
+Sleeveside, two minutes later:
 
   74 · Top Five
   Hemmann + Kaden – Guten Tag EP · Freude Am Tanzen FAT 016 · 12", EP · 2003 · €5.00
@@ -26,7 +26,7 @@ All of it stays on your device.
 
 ## What it does
 
-**Dig.** Enter a dealer's name, or the link to their Discogs page. Fidelity reads their
+**Dig.** Enter a dealer's name, or the link to their Discogs page. Sleeveside reads their
 stock and scores every record against your taste. Eleven signals, a score from 0 to 100, a
 sentence saying why. Very large shops get a deep scan across thirteen orderings, and shops
 you already know get "only what is new" since your last visit.
@@ -65,7 +65,7 @@ and no account. Real machinery, not a mock-up.
 Settings → Appearance whenever you like.
 
 **What it is not.** Not a catalogue app, not a price tracker, not an alert service, not an
-overlay on discogs.com — each of those exists, several times. What Fidelity computes that
+overlay on discogs.com — each of those exists, several times. What Sleeveside computes that
 the API does not hand out, and how it sits beside Seller Matches, discdogs, WaxTracker,
 Groovv and the rest: [`docs/15-COMPARED.md`](docs/15-COMPARED.md), and the same page inside the app at `/compared`.
 
@@ -168,7 +168,7 @@ done here: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 ### The hub — optional
 
 A small service you can run yourself. It remembers what is the same for everybody: what
-Fidelity has worked out about artists and labels, postage per dealer, record covers. Then
+Sleeveside has worked out about artists and labels, postage per dealer, record covers. Then
 not every device has to fetch it for itself, and people sharing a hub work for each other.
 
 ```bash
@@ -292,7 +292,7 @@ rules that are not up for negotiation.
 | [`docs/12-RESOURCE-BUDGET.md`](docs/12-RESOURCE-BUDGET.md) | Bundle, storage, compute, requests |
 | [`docs/13-HUB-ADDON.md`](docs/13-HUB-ADDON.md) | The optional server add-on |
 | [`docs/14-RELAUNCH-CONCEPT.md`](docs/14-RELAUNCH-CONCEPT.md) | What a second version would look like — research, architecture, hosting, business model. Not a plan |
-| [`docs/15-COMPARED.md`](docs/15-COMPARED.md) | What Fidelity is and is not, beside Seller Matches, discdogs, WaxTracker, Groovv and the rest |
+| [`docs/15-COMPARED.md`](docs/15-COMPARED.md) | What Sleeveside is and is not, beside Seller Matches, discdogs, WaxTracker, Groovv and the rest |
 | [`docs/16-CATALOGUE-SERVICE.md`](docs/16-CATALOGUE-SERVICE.md) | The catalogue service from the CC0 dump — concept and phases for M21, not built |
 | [`docs/18-PLACES.md`](docs/18-PLACES.md) | Places as a wall: room, furniture, compartment; rules instead of slots; how records are sorted in and re-sorted |
 | [`docs/19-DEMO-ACCOUNT.md`](docs/19-DEMO-ACCOUNT.md) | The demo account at Discogs: what it is for, the script that fills it, where its token lives |
@@ -307,7 +307,7 @@ rules that are not up for negotiation.
 a modified version **or host one for other people**, your source has to be open under the
 same licence.
 
-That is deliberate and not an obstruction. Fidelity is a project with no intent to profit,
+That is deliberate and not an obstruction. Sleeveside is a project with no intent to profit,
 and the AGPL is the licence that keeps it that way — including in the version somebody else
 puts on the internet. Anybody meaning well satisfies it with a link to their source.
 
@@ -323,7 +323,7 @@ Third-party fonts, icons and libraries come under their own licences:
 [`public/OFL.txt`](public/OFL.txt). Both sit in `public/`, so every build ships them.
 
 **The name is the one thing the licence does not give.** Run the software, change it, host
-it for your friends or your shop — but not under the name "Fidelity" as a service for other
+it for your friends or your shop — but not under the name "Sleeveside" as a service for other
 people. That name belongs to the hosted one ([ADR-014](docs/adr/014-open-core-hosted-comfort.md)),
 the way Ghost keeps its name and gives away its code.
 

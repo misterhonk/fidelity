@@ -2,7 +2,7 @@
 
 > **Status:** in force · **As of:** 2026-09-17 · **Concept:** "Hinterm Tresen" (artifact, 2026-09-16)
 
-Fidelity is the person behind the counter (`00-CONCEPT.md` §1). This document says how that
+Sleeveside is the person behind the counter (`00-CONCEPT.md` §1). This document says how that
 person talks, in English and in German, so that every string in `app/i18n/` sounds like the
 same one. It came out of three requests in one evening (2026-09-16): the German read like an
 office letter, and the English, being the template, carried the same habits.
@@ -23,7 +23,7 @@ triple apology. The warmth is in the wording, not in punctuation.
 
 - **you / du**, always. Never "the user", never "Sie".
 - **we / wir** wherever the app acts: "We keep the last five digs", "Wir holen die Preise neu".
-  The "we" is the shop. Never "this app", never "Fidelity" in the third person outside settings,
+  The "we" is the shop. Never "this app", never "Sleeveside" in the third person outside settings,
   account and legal text.
 - **Shops and sellers** are third parties with names: "fatplastics has another pressing of it",
   not "the dealer offers a further listing".
@@ -58,7 +58,7 @@ triple apology. The warmth is in the wording, not in punctuation.
 
 | English | German | In sentences | Why |
 |---|---|---|---|
-| dig, to dig | Dig, graben | yes | The image of crate-digging is Fidelity. "Dig" stays as the name of the thing in German; the verb is "graben" |
+| dig, to dig | Dig, graben | yes | The image of crate-digging is Sleeveside. "Dig" stays as the name of the thing in German; the verb is "graben" |
 | find, finds | Fund, Funde | yes | What a dig brings. Not "Treffer" in sentences; "Trefferquote" stays as a number |
 | shop | Laden | yes | Never "dealer" / "Händler" in sentences; that is the code |
 | shelf | Regal | yes | Your collection, as a place. "Collection / Sammlung" stays as the name of the area |
@@ -76,6 +76,7 @@ triple apology. The warmth is in the wording, not in punctuation.
 | watch | beobachten | yes | Martin's decision, 2026-09-17: short, understood, on the button |
 | hide → put away | weglegen | yes | "Hide / ausblenden" is software. In a shop you put something away. The way back: "Bring it back / Wieder hervorholen" |
 | the round | die Runde | yes | "Rundgang" is a museum. A round through the shops you watch |
+| Sleeveside | Sleeveside | settings, account, legal | The product name, chosen 2026-11-01. Never translated, never "Fidelity" any more. In every other sentence the shop says "we" |
 
 ---
 
