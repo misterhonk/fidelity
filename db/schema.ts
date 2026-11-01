@@ -315,8 +315,8 @@ export interface OutboxJob {
   lastError?: string
   /** When a write that may not be repeated went out — left behind by a run cut off mid-send. */
   sentAt?: number
-  /** Copies of the release Discogs held just before an add went out. One more means it landed. */
-  copiesBefore?: number
+  /** Instance ids of the release Discogs held just before an add went out. A new one means it landed. */
+  instancesBefore?: number[]
 }
 
 export type OutboxKind =

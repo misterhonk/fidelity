@@ -15,35 +15,36 @@ import { norm } from '../match/normalize'
  */
 
 const ownedSchema = z.object({
-  releases: z.array(z.object({ id: z.number().int() })),
+  releases: z.array(z.object({ id: z.number().int(), instance_id: z.number().int() })),
 })
 
 /**
- * How many copies of this release the shelf holds, over at Discogs.
+ * The copies of this release on the shelf, over at Discogs, by instance id.
  *
  * The lookup that replaces a retry. Adding is the one call that files
  * something new, so after an unreadable failure the question is not "did it
- * work" — which cannot be known — but "is there one more now", which can.
- * One more, not "any": a second copy of a record already owned would
- * otherwise be taken for having arrived, and dropped.
+ * work" — which cannot be known — but "is there a copy now that was not there
+ * before", which can. Not "any copy": a second copy of a record already owned
+ * would be taken for having arrived, and dropped. And ids, not a count: a copy
+ * removed meanwhile would hide ours, and it would be sent twice.
  */
-export async function copiesOf(
+export async function instancesOf(
   client: DiscogsClient,
   username: string,
   releaseId: number,
-): Promise<number> {
+): Promise<number[]> {
   const answer = await client.get(
     `/users/${encodeURIComponent(username)}/collection/releases/${releaseId}`,
     ownedSchema,
   )
-  return answer.releases.length
+  return answer.releases.map((copy) => copy.instance_id)
 }
 
 /*
  * And it deliberately does not catch.
  *
- * Not knowing is neither "it is there" nor "it is not". Answering "more" would
- * drop a job that may never have arrived; answering "the same" would send the add
+ * Not knowing is neither "it is there" nor "it is not". Answering "new" would
+ * drop a job that may never have arrived; answering "nothing new" would send the add
  * again on a guess, which is the duplicate this whole mechanism exists to
  * prevent. Letting the error out leaves the job queued for the next round —
  * the only honest third answer.

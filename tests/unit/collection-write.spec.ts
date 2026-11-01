@@ -180,7 +180,7 @@ describe('putting a bought record on the shelf', () => {
     const get = vi
       .fn()
       .mockResolvedValueOnce({ releases: [] })
-      .mockResolvedValue({ releases: [{ id: 12 }] })
+      .mockResolvedValue({ releases: [{ id: 12, instance_id: 5 }] })
     const fake = { write, get } as unknown as DiscogsClient
 
     await drainOutbox(fake, 'mrtnmlchr')
@@ -217,7 +217,8 @@ describe('putting a bought record on the shelf', () => {
     const db = await openFidelityDb()
     const [job] = await pendingJobs()
     await db.put('outbox', { ...job!, sentAt: 1 })
-    const fake = client({ get: async () => ({ releases: [{ id: 12 }] }) })
+    // Marked before ids were kept: any copy at all is taken for it.
+    const fake = client({ get: async () => ({ releases: [{ id: 12, instance_id: 5 }] }) })
 
     const result = await drainOutbox(fake, 'mrtnmlchr')
 
@@ -231,7 +232,7 @@ describe('putting a bought record on the shelf', () => {
    *
    * "Owns at least one" was taken for "this add arrived", so after an
    * unreadable failure the copy that was already there swallowed the new one
-   * and the job was dropped. The count before sending is what tells them apart.
+   * and the job was dropped. The copies before sending are what tell them apart.
    */
   it('sends a second copy again after an unreadable failure, instead of taking the first for it', async () => {
     await addRecord(match())
@@ -239,10 +240,13 @@ describe('putting a bought record on the shelf', () => {
       .fn()
       .mockRejectedValueOnce(new DiscogsError(0, 'Discogs is not answering'))
       .mockResolvedValue(null)
-    const fake = client({ write, get: async () => ({ releases: [{ id: 12 }] }) })
+    const fake = client({
+      write,
+      get: async () => ({ releases: [{ id: 12, instance_id: 1 }] }),
+    })
 
     await drainOutbox(fake, 'mrtnmlchr')
-    expect((await pendingJobs())[0]?.copiesBefore).toBe(1)
+    expect((await pendingJobs())[0]?.instancesBefore).toEqual([1])
     const second = await drainOutbox(fake, 'mrtnmlchr')
 
     expect(write).toHaveBeenCalledTimes(2)
@@ -250,7 +254,7 @@ describe('putting a bought record on the shelf', () => {
     expect(await pendingJobs()).toEqual([])
   })
 
-  it('takes a grown count for the add having landed', async () => {
+  it('takes a copy it has not seen for the add having landed', async () => {
     await addRecord(match())
     const fake = client({
       write: async () => {
@@ -258,8 +262,36 @@ describe('putting a bought record on the shelf', () => {
       },
     })
     ;(fake.get as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce({ releases: [{ id: 12 }] })
-      .mockResolvedValue({ releases: [{ id: 12 }, { id: 12 }] })
+      .mockResolvedValueOnce({ releases: [{ id: 12, instance_id: 1 }] })
+      .mockResolvedValue({
+        releases: [
+          { id: 12, instance_id: 1 },
+          { id: 12, instance_id: 2 },
+        ],
+      })
+
+    await drainOutbox(fake, 'mrtnmlchr')
+    const second = await drainOutbox(fake, 'mrtnmlchr')
+
+    expect(fake.write).toHaveBeenCalledTimes(1)
+    expect(second.sent).toBe(1)
+  })
+
+  /*
+   * Ours landed and another copy went in the meantime — on discogs.com, or a
+   * queued removal that went first. A count stays the same and sends ours
+   * again; the id that was not there before says it arrived.
+   */
+  it('sees its copy arrive even when another one went in the meantime', async () => {
+    await addRecord(match())
+    const fake = client({
+      write: async () => {
+        throw new DiscogsError(0, 'Discogs is not answering')
+      },
+    })
+    ;(fake.get as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({ releases: [{ id: 12, instance_id: 1 }] })
+      .mockResolvedValue({ releases: [{ id: 12, instance_id: 2 }] })
 
     await drainOutbox(fake, 'mrtnmlchr')
     const second = await drainOutbox(fake, 'mrtnmlchr')
