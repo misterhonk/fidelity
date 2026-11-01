@@ -145,15 +145,14 @@ const meta = computed(() => {
         :aria-label="d.match.open(`${match.artist} – ${match.title}`)"
         @click="show(match.digId, match.listingId)"
       >
-        <img
+        <LabelSleeve
           :src="cover.thumbUrl"
           :srcset="
             cover.coverUrl ? `${cover.thumbUrl} 150w, ${cover.coverUrl} 600w` : undefined
           "
           sizes="(min-width: 48rem) 20rem, 100vw"
-          alt=""
-          loading="lazy"
-          decoding="async"
+          :label="match.label"
+          :catno="match.catno"
           width="600"
           height="600"
           class="size-full object-cover"
@@ -162,17 +161,16 @@ const meta = computed(() => {
       <!--
         No cover is the normal case, not a failure: Discogs has no image for
         plenty of small pressings, and images are never fetched actively
-        (docs/02, the separate Cloudflare limit). A record standing in for one
-        says "nothing to show here" where an empty grey square said "still
+        (docs/02, the separate Cloudflare limit). A sleeve with the label showing
+        through says "nothing to show here" where an empty grey square said "still
         loading" for as long as somebody was willing to wait.
       -->
-      <div
+      <LabelSleeve
         v-else
-        class="flex aspect-square w-full items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted"
-        aria-hidden="true"
-      >
-        <FidIcon name="record" :size="48" />
-      </div>
+        :label="match.label"
+        :catno="match.catno"
+        class="aspect-square w-full rounded-fid-cover"
+      />
 
       <div class="flex min-w-0 flex-col gap-2">
         <!--

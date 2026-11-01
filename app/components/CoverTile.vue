@@ -15,6 +15,9 @@ const props = withDefaults(
     coverUrl?: string | null
     title: string
     subtitle?: string | null
+    /** Shown on the sleeve when there is no cover (#220). */
+    label?: string | null
+    catno?: string | null
     /** The Barry score, where there is one. */
     score?: number | null
     note?: string | null
@@ -61,6 +64,8 @@ const props = withDefaults(
     thumbUrl: null,
     coverUrl: null,
     subtitle: null,
+    label: null,
+    catno: null,
     score: null,
     note: null,
   },
@@ -103,23 +108,14 @@ const tag = computed(() =>
       class="group relative block w-full text-left"
       @click="open?.()"
     >
-      <img
-        v-if="thumbUrl"
+      <LabelSleeve
         :src="thumbUrl"
         :srcset="coverUrl ? `${thumbUrl} 150w, ${coverUrl} 600w` : undefined"
         sizes="(min-width: 1024px) 208px, 160px"
-        alt=""
-        loading="lazy"
-        decoding="async"
+        :label="label"
+        :catno="catno"
         class="aspect-square w-full rounded-fid-cover bg-fid-inset object-cover transition-transform duration-[var(--fid-motion-feedback)] group-hover:-translate-y-0.5"
       />
-      <div
-        v-else
-        class="flex aspect-square w-full items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted"
-        aria-hidden="true"
-      >
-        <FidIcon name="record" :size="36" />
-      </div>
 
       <!--
         The score rides on the cover rather than under it. On a rail the

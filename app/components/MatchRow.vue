@@ -93,23 +93,13 @@ const landedWhy = computed(() => {
       have seen this pressing before, three hundred rows into a scan, faster
       than the title does.
     -->
-    <img
-      v-if="cover"
-      :src="cover.thumbUrl"
-      alt=""
-      loading="lazy"
-      decoding="async"
+    <LabelSleeve
+      :src="cover?.thumbUrl"
+      :label="match.label"
       width="26"
       height="26"
       class="size-[26px] shrink-0 rounded-[3px] bg-fid-inset object-cover"
     />
-    <span
-      v-else
-      class="flex size-[26px] shrink-0 items-center justify-center rounded-[3px] bg-fid-inset text-fid-text-muted"
-      aria-hidden="true"
-    >
-      <FidIcon name="record" :size="14" />
-    </span>
 
     <span
       class="fid-num text-fid-sm font-medium text-fid-text"
