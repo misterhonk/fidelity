@@ -114,6 +114,7 @@ describe('scoring speed', () => {
     const wall = runs.map((run) => run.wall).sort((a, b) => a - b)
     const median = cpu[2]!
     const ms = (times: number[]) => times.map((t) => t.toFixed(0)).join('/')
+    // eslint-disable-next-line no-console -- the timings are the point of this spec (#268)
     console.info(
       `scoring 20,000 listings, min/median/max: cpu ${ms([cpu[0]!, median, cpu[4]!])} ms, wall ${ms([wall[0]!, wall[2]!, wall[4]!])} ms`,
     )
