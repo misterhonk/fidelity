@@ -411,7 +411,6 @@ watch(
         <FacetBars
           :title="h.decades"
           signal="gap"
-          token="label"
           :facets="decades"
           :empty="h.noYears"
           :open="(facet) => (browsing = { title: facet.name, decade: decadeOf(facet.name) })"

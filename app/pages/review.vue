@@ -154,7 +154,10 @@ const named = (record: { artist: string; title: string }) =>
             <li
               v-for="(n, month) in review.byMonth"
               :key="month"
-              class="rounded-t-sm bg-fid-sig-gap/70"
+              class="rounded-t-sm"
+              :class="
+                peak.n > 0 && month === peak.index ? 'bg-fid-accent' : 'bg-fid-text-muted'
+              "
               :style="{
                 height: `${peak.n > 0 ? Math.max(n > 0 ? 6 : 2, (n / peak.n) * 100) : 2}%`,
               }"
