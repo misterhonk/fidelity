@@ -17,6 +17,12 @@ Source: [support.discogs.com – API Terms of Use](https://support.discogs.com/h
 Plus: *"You may not cache or store the Content longer than is necessary to provide a
 service to Your application's users."*
 
+**That second sentence is a storage rule of its own, and it binds everything the API
+returns — not only marketplace data.** The collection, the wantlist and the release facts in
+IndexedDB are kept because the app cannot work without them, and only as long as it is in
+use: sign-out and "delete everything" clear them, and no copy of them goes anywhere that
+outlives the device (the vault leaves them out on purpose, `worker/vault/merge.ts`).
+
 **This is a rule about currency, not about cache duration.** We may not display yesterday's
 inventory snapshot.
 
@@ -46,18 +52,36 @@ Data provided by Discogs          ← as a hyperlink to the corresponding discog
                                      WITHOUT rel="nofollow"
 ```
 
-**Implementation:** a global footer component; plus a deep link to the Discogs listing on
-every `MatchCard` (which is the buying target anyway).
+**Directly next to the data, linked to the page that shows *that* data** (checked against
+the terms on 2026-11-01). A homepage link in the footer alone does not meet the condition:
+the notice belongs beside what the API returned, and its link goes to the discogs.com page
+showing it — the listing, the release, the shop, the collection or the wantlist.
+
+**Implementation:** the footer keeps both notices. `DiscogsCredit.vue` puts "Data provided
+by Discogs" beside the data, with its link from `app/utils/discogs-pages.ts`: per card,
+sheet and stack card to the listing or release; once per list — the dig's rows and crate,
+the shelf grid, the wantlist, a shop's stock, the cover rails on the start page — to the
+shop, collection or wantlist page those rows come from, because a credit on each of four
+hundred 34 px rows would bury the rows.
 
 ### 1.3 Restricted Data
 
-Marketplace data (inventory, prices, sales history) and user data (profiles, images) count
-as **Restricted Data**:
+The terms define **Restricted Data** as, in full:
+
+- all **marketplace** data — listings, inventory, prices, conditions, seller comments,
+  sales history and price statistics
+- all **user** data — **usernames**, profiles, a user's **collection** and **wantlist**
+- **all images**, release images included — not only user avatars
+
+For all of it:
 
 - ❌ do not pass on to third parties
 - ❌ do not exploit commercially
 - ❌ **do not use with advertising/marketing platforms** → **no ad networks** on pages with
   listings
+- ❌ **no marketing analytics without Discogs' written permission.** Feeding API data — or
+  usage tied to it — into marketing or analytics tooling needs their consent first. Fidelity
+  has no analytics of any kind (`privacy.vue`); this line is why that must stay so.
 
 ### 1.4 No fees
 
@@ -101,6 +125,14 @@ break on Cloudflare regularly.
 ### 1.7 Miscellaneous
 
 - Do not circumvent the rate limits, in particular **not with additional API keys**
+- **Circumventing the marketplace is an explicit breach.** Using API data to steer a buyer
+  and a seller into a deal outside Discogs — contacting the seller off-platform, a price
+  agreed around the checkout — is named in the terms. Fidelity ends in a Discogs checkout and
+  must keep doing so; nothing may suggest buying "directly"
+- **The licence is revocable.** Discogs can withdraw API access or terminate the agreement at
+  any time, for any reason, and the app must then stop using the API and the stored Content.
+  Nothing here may assume the API is permanent — which is one more reason the catalogue
+  comes from the CC0 dump (§2)
 - Discogs reserves the right to **charge for API access in future**
 - Do not resell API access
 
@@ -175,11 +207,19 @@ access key travels with every hub and catalogue call. `privacy-promise.spec.ts` 
 payment provider's webhooks and keeps `payer_id, email_hash, tier, valid_until, key_id,
 revoked`. That is personal data under art. 4 GDPR, the legal basis is the contract
 (art. 6(1)(b)), and it needs what the app never did — a privacy notice of its own, a
-retention rule (rows deleted 30 days after the plan ends), a processor relationship with the
-provider (who, as merchant of record, is the seller and holds name, address and payment
-data; Fidelity holds none of them), and a real postal address in the legal notice, because
+retention rule (rows deleted 30 days after the plan ends), and a real postal address in the legal notice, because
 § 5 DDG's "geschäftsmäßig" is met the day the first plan is sold. The notice is drafted with
 the service in the private repository; it goes live with the service, not before.
+
+**The payment provider is not a processor.** As **merchant of record** it is the seller: it
+sells the plan in its own name, sets its own purposes for the buyer's name, address and
+payment data (tax, fraud, its own contract with the buyer) and is therefore an
+**independent controller** (art. 4(7)), not a processor under art. 28 — there is no data
+processing agreement to sign, and its own privacy notice covers what it holds. What passes
+between the two is a transfer between controllers: the webhook carries only what
+`fidelity-access` needs (payer id, a hash of the email, the plan, its end date), and the
+privacy notice names the provider as a recipient and links its notice. Fidelity holds none
+of the provider's data. This section said "processor relationship" until 2026-11-01.
 
 > **The privacy notice is allowed to be honestly short.** But short is not the same as
 > partial, and the difference cost something once. Until 2026-09-11 the notice opened with
@@ -210,12 +250,19 @@ Details: `05-DESIGN-SYSTEM.md` §6.
 
 ## 5. Naming rights
 
-- **"Fidelity"** – a generic term, unproblematic. Research DPMA/EUIPO before registering a
-  word mark (there is Fidelity Investments — a different Nice class, but check).
+- **"Fidelity"** – **not** unproblematic, corrected 2026-11-01. The EU word mark
+  **018694508 FIDELITY**, held by **FIL Limited** (Fidelity International), covers
+  software, downloadable mobile apps and software as a service, among others. "Fidelity" as
+  the name of an app — and above all of a hosted, paid service (ADR-014) — sits inside that
+  specification. Before any registration, store listing or paid tier under the name: get a
+  trade-mark opinion, or rename. A descriptive use in running text is not the issue; a
+  product name is.
 - **"High Fidelity"** – protected as a title; do **not** use as a product name.
 - **"Championship Vinyl"** – a fictional shop name from a protected work. Harmless as an
   **internal screen name**, unnecessary risk as a **product name**.
-- **"Barry"** – a first name, not protectable. Perfectly fine as a feature persona.
+- **"Barry"** – corrected 2026-11-01: "Barry" is registered as an EU mark in class 9
+  (software) by others. Use it only as a **feature label inside the app** ("the Barry
+  Score"), never as a product, app or store name.
 - **"Discogs"** is a trade mark of Zink Media, LLC → use descriptively only ("for Discogs"),
   never in the product name, never in the logo.
 
