@@ -141,8 +141,7 @@ test('Back closes the shelf sheet on the start page', async ({ page }) => {
   })
 })
 
-test('Back closes the compartment sheet', async ({ page }) => {
-  await seed(page, 'en')
+async function addKallax(page: Page) {
   await page.goto('/places')
   await page.getByLabel('Add a place').fill('Living room')
   await page.getByRole('button', { name: 'Add a place' }).click()
@@ -151,13 +150,31 @@ test('Back closes the compartment sheet', async ({ page }) => {
   await room.getByRole('button', { name: 'Kallax 2×2' }).click()
   await room.getByLabel('Name of the furniture').fill('Kallax')
   await room.getByRole('button', { name: 'Add furniture' }).last().click()
+}
 
-  await backCloses(page, /\/places/, 'place', async () => {
-    await page
-      .getByRole('grid', { name: 'Kallax' })
-      .getByRole('button', { name: /^B1, 0 records/ })
-      .click()
-  })
+const compartmentB1 = (page: Page) =>
+  page.getByRole('grid', { name: 'Kallax' }).getByRole('button', { name: /^B1, 0 records/ })
+
+test('Back closes the compartment sheet', async ({ page }) => {
+  await seed(page, 'en')
+  await addKallax(page)
+  await backCloses(page, /\/places/, 'place', () => compartmentB1(page).click())
+})
+
+test('a compartment that is gone leaves no stale ?place= behind', async ({ page }) => {
+  await seed(page, 'en')
+  await addKallax(page)
+  await page.goto('/places?place=gone')
+  await page.reload()
+  await expect(compartmentB1(page)).toBeVisible({ timeout: 15_000 })
+  await expect(page).not.toHaveURL(/place=/)
+
+  await compartmentB1(page).click()
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15_000 })
+  await page.goBack()
+  await expect(page.getByRole('dialog')).toBeHidden()
+  await expect(page).toHaveURL(/\/places/)
+  await expect(page).not.toHaveURL(/place=/)
 })
 
 /**
