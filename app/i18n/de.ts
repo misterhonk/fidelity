@@ -612,7 +612,7 @@ const de: Messages = {
     fitsAt: (dealer) => `Bei ${dealer} passt dazu`,
     score: (score) => `Barry Score ${score} von 100`,
     nothing:
-      'In diesem Ausschnitt lag nichts, das dazu passt. Das kommt vor: Eine Platte allein ist ein dünner Anhaltspunkt, und wir haben nur einen Teil des Ladens gelesen. Mit deiner Sammlung sieht das anders aus.',
+      'Daneben lag diesmal nichts. Eine Platte ist ein dünner Anhaltspunkt, deine Sammlung ein dicker. So sehen Funde aus:',
     coverage: (scanned, total) =>
       `Wir haben ${scanned} von ${total} Platten gelesen, mit einer Platte als Anhaltspunkt. Ein Dig liest den ganzen Laden und kennt deine Sammlung.`,
     shopLogo: (dealer: string) => `${dealer}, Ladenschild`,
