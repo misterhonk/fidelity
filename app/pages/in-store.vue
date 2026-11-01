@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { looksLikeBarcode } from '~~/worker/identify'
+import { looksLikeBarcode } from '~~/worker/barcode'
 import type { DigWithMatches } from '#shared/protocol'
 import type {
   ShelfHit,

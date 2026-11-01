@@ -5,7 +5,8 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { withoutComments } from '../helpers/german'
 
 import { openFidelityDb } from '~~/db/open'
-import { cleanBarcode, identify, identifyByRunout, looksLikeBarcode } from '~~/worker/identify'
+import { looksLikeBarcode } from '~~/worker/barcode'
+import { cleanBarcode, identify, identifyByRunout } from '~~/worker/identify'
 import type { CollectionItem } from '#shared/types'
 
 /**
