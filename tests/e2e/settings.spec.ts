@@ -62,16 +62,24 @@ test.describe('settings', () => {
   })
 
   /** How full the disk is, beside what fills it (#211). */
-  test('your data shows the storage estimate', async ({ page }) => {
+  test('your data shows the storage estimate', async ({ page, browserName }) => {
     await signIn(page)
     await page.goto('/settings/data')
-    await expect(page.getByTestId('storage-estimate')).toHaveText(
-      /^Storage: [\d,.]+ (KB|MB|GB) of [\d,.]+ (KB|MB|GB) in use$/,
-    )
-    // The same data figure settings/account shows, so the two pages do not disagree.
-    await expect(page.getByTestId('storage-hint')).toHaveText(
-      /^[\d,.]+ (KB|MB) of it is your data\./,
-    )
+    const figures = /^Storage: [\d,.]+ (KB|MB|GB) of [\d,.]+ (KB|MB|GB) in use$/
+    if (browserName === 'chromium') {
+      await expect(page.getByTestId('storage-estimate')).toHaveText(figures)
+      // The same data figure settings/account shows, so the two pages do not disagree.
+      await expect(page.getByTestId('storage-hint')).toHaveText(
+        /^[\d,.]+ (KB|MB) of it is your data\./,
+      )
+    } else {
+      // WebKit gives the worker an estimate on macOS, none on CI's Linux: either way a line.
+      await expect(page.getByTestId('storage-estimate')).toHaveText(
+        new RegExp(`${figures.source}|^Storage: this browser does not say how much is in use$`),
+      )
+      // usageDetails is Chrome's alone, so there is no data figure to set beside it.
+      await expect(page.getByTestId('storage-hint')).toHaveCount(0)
+    }
   })
 
   /** The price ceiling in the currency you buy in, not always in euros (#194). */
