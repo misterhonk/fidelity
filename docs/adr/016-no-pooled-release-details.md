@@ -1,6 +1,6 @@
 # ADR-016 – The hub does not pool release details
 
-**Status:** Accepted
+**Status:** Accepted — the cover pool it kept was removed in #206 (release images are Restricted Data)
 **Date:** 2026-09-14
 
 ## Context

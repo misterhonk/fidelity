@@ -357,7 +357,7 @@ lands. Cross-checked against a Hetzner CAX21 (4 vCPU ARM, 8 GB, 40 GB) in `docs/
 3. `mkdir -p ~/fidelity && cd ~/fidelity`, then fetch `deploy/compose.cloud.yml`,
    `deploy/Caddyfile` and `deploy/cloud.env.example` from the release tag.
 4. `cp cloud.env.example .env` and fill in `DOMAIN`, and one door for the hub: `HUB_SECRET`
-   for a private box, or `HUB_ACCESS_PUBLIC_KEY` from `scripts/access-keys.ts generate` for
+   (at least 32 characters, `openssl rand -base64 32`) for a private box, or `HUB_ACCESS_PUBLIC_KEY` from `scripts/access-keys.ts generate` for
    one with members.
 5. `docker compose -f compose.cloud.yml up -d caddy app hub hub-backup` — Caddy fetches the
    certificate; a minute later `https://<DOMAIN>/hub/v1/health` answers.
