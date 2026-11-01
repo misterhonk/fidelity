@@ -111,13 +111,20 @@ const scanning = ref(false)
 const identified = shallowRef<Identified | null>(null)
 const identifying = ref(false)
 
-const canScan = barcodeSupported()
+// Where `BarcodeDetector` is missing, the first tap loads a reader (ADR-018).
+const canScan = cameraSupported()
 
 async function openCamera() {
   scanning.value = true
   identified.value = null
   await nextTick()
-  if (video.value) await scan.start(video.value, (code) => void lookUp(code))
+  if (video.value)
+    await scan.start(video.value, (code) => {
+      // The digits read stand in the field: a misread is visible, and fixable.
+      typed.value = code
+      void lookUp(code)
+    })
+  if (scan.failure.value) scanning.value = false
 }
 
 function closeCamera() {
@@ -436,12 +443,12 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
 
       <!-- Big enough to hit while walking. -->
       <!--
-          The camera, and only where it can read something.
-          `BarcodeDetector` is missing in WebKit — on an iPhone a camera button
-          would show a picture and recognise nothing. There a sentence stands
+          The camera, wherever there is one. `BarcodeDetector` reads in
+          Chromium; in WebKit the first tap loads zxing-wasm (ADR-018). When
+          that cannot load — offline on first use — the sentence stands
           instead, and typing goes into the field below anyway (M13).
         -->
-      <div v-if="canScan" class="flex flex-col gap-2">
+      <div v-if="canScan && scan.failure.value !== 'unavailable'" class="flex flex-col gap-2">
         <button
           v-if="!scanning"
           type="button"

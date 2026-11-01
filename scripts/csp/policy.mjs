@@ -72,7 +72,12 @@ export function policy(hashes, extraConnect = []) {
      * by YouTube's iframe API, a script from www.youtube.com running with this
      * app's rights; since #203 the frame is driven by postMessage instead.
      */
-    `script-src 'self' ${hashes.join(' ')}`.trim(),
+    /*
+     * `'wasm-unsafe-eval'` lets the barcode reader compile its WebAssembly
+     * (ADR-018) — `WebAssembly.instantiate`, not `eval()` of strings, and only
+     * of bytes `'self'` serves. Nothing else may join it (tests/unit/csp.spec.ts).
+     */
+    `script-src 'self' 'wasm-unsafe-eval' ${hashes.join(' ')}`.trim(),
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
     "worker-src 'self' blob:",

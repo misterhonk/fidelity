@@ -33,7 +33,8 @@ describe('the content security policy', () => {
     expect(value).toContain("img-src 'self' https://i.discogs.com")
     expect(value).toContain("frame-ancestors 'none'")
     expect(value).toContain("base-uri 'self'")
-    expect(value).not.toContain('unsafe-eval')
+    // 'wasm-unsafe-eval' (ADR-018) is not this: it compiles WebAssembly, not strings.
+    expect(value).not.toContain("'unsafe-eval'")
     expect(value).not.toContain("script-src 'self' 'unsafe-inline'")
   })
 
@@ -91,11 +92,22 @@ describe('the content security policy', () => {
     // frame is driven by postMessage now, so script-src names no third party.
     const value = policy(inlineHashes(html))
     const script = value.split('; ').find((directive) => directive.startsWith('script-src'))
-    expect(script).toMatch(/^script-src 'self' 'sha256-/)
+    expect(script).toMatch(/^script-src 'self' 'wasm-unsafe-eval' 'sha256-/)
     expect(script).not.toMatch(/youtube|google/i)
     expect(value).toContain(
       'frame-src https://www.youtube-nocookie.com https://www.youtube.com',
     )
+  })
+
+  it('lets WebAssembly compile, and adds nothing else to script-src (ADR-018)', () => {
+    // The barcode reader for Safari is zxing-wasm. 'wasm-unsafe-eval' allows
+    // WebAssembly.instantiate, not eval() of strings; it is the one token the
+    // ADR accepted, and only exactly that token.
+    const hashes = inlineHashes(html)
+    const script = policy(hashes)
+      .split('; ')
+      .find((directive) => directive.startsWith('script-src'))
+    expect(script).toBe(`script-src 'self' 'wasm-unsafe-eval' ${hashes.join(' ')}`)
   })
 
   it('is what both servers send', () => {
