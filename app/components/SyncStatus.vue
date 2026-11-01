@@ -79,6 +79,8 @@ const note = computed(() => {
     const parts: string[] = []
     if (result.stored > 0) parts.push(words.added(result.stored))
     if (result.alerts > 0) parts.push(words.alerts(result.alerts))
+    // A change that never arrived is the one thing here you may have to redo.
+    if (result.undone.length > 0) parts.push(words.undone(result.undone))
     if (parts.length > 0) return parts.join(' · ')
     return words.nothingNew
   }

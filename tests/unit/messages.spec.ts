@@ -143,6 +143,14 @@ describe('the cost table', () => {
   })
 })
 
+describe('a change given up on', () => {
+  it('names the record in both languages', () => {
+    expect(en.freshness.undone(['Loveless'])).toContain('“Loveless”')
+    expect(de.freshness.undone(['Loveless'])).toContain('„Loveless“')
+    expect(de.freshness.undone(['A', 'B'])).toMatch(/^2 .*„A“, „B“$/)
+  })
+})
+
 describe('the language list', () => {
   it('names every language that has a pack, and only those', () => {
     expect(Object.keys(LANGUAGES).sort()).toEqual(['de', 'en'])

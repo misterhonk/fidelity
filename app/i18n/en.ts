@@ -468,6 +468,11 @@ const en = {
     nothingNew: 'Nothing new.',
     added: (records: number) => `${counted(records, 'record', 'records')} added`,
     alerts: (shops: number) => `${counted(shops, 'shop has', 'shops have')} something new`,
+    /** A change we gave up on after five tries and put back, named so you can redo it. */
+    undone: (titles: string[]) =>
+      titles.length === 1
+        ? `“${titles[0]}” didn't reach Discogs, so we undid the change`
+        : `${titles.length} changes didn't reach Discogs, so we undid them: ${titles.map((t) => `“${t}”`).join(', ')}`,
     asOf: (when: string) => `As of ${when}`,
     refreshAll: 'Refresh everything',
 

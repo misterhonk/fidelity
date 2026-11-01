@@ -318,6 +318,10 @@ const de: Messages = {
     nothingNew: 'Nichts Neues.',
     added: (records) => `${counted(records, 'Platte', 'Platten')} dazu`,
     alerts: (shops) => `${counted(shops, 'Laden hat', 'Läden haben')} Neues`,
+    undone: (titles) =>
+      titles.length === 1
+        ? `„${titles[0]}“ kam nicht bei Discogs an, wir haben die Änderung zurückgenommen`
+        : `${titles.length} Änderungen kamen nicht bei Discogs an, wir haben sie zurückgenommen: ${titles.map((t) => `„${t}“`).join(', ')}`,
     asOf: (when) => `Stand von ${when}`,
     refreshAll: 'Alles auffrischen',
 
