@@ -2,6 +2,7 @@
 const m = useMessages()
 const { identity, load } = useIdentity()
 const { ids: basketIds, load: loadBasket } = useBasket()
+const { percent: digPercent } = useRunningDig()
 
 /*
  * The nav asks for the identity itself.
@@ -90,6 +91,9 @@ const basketCount = computed(() => basketIds.value.size)
         :key="section.to"
         :to="section.to"
         :aria-current="isCurrent(section) ? 'page' : undefined"
+        :aria-describedby="
+          section.to === '/dig' && digPercent !== null ? 'nav-dig-running' : undefined
+        "
         :title="m.nav[section.key].hint"
         class="relative flex min-h-11 items-center justify-center gap-2 border-b-2 px-3 text-fid-sm transition-colors max-md:min-h-16 max-md:flex-1 max-md:flex-col max-md:gap-1 max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0 max-md:px-1 max-md:py-3 max-md:text-fid-xs"
         :class="
@@ -117,6 +121,38 @@ const basketCount = computed(() => basketIds.value.size)
         <span class="relative flex shrink-0">
           <FidIcon :name="section.icon" :size="20" />
           <!--
+            A dig runs on whatever screen somebody is on (#216): a ring round
+            the crate, filling as the shop is read. Drawn, not spoken — the
+            words are the link's description, after the links.
+          -->
+          <svg
+            v-if="section.to === '/dig' && digPercent !== null"
+            data-testid="dig-ring"
+            class="pointer-events-none absolute -inset-1.5 -rotate-90"
+            viewBox="0 0 36 36"
+            aria-hidden="true"
+          >
+            <circle
+              cx="18"
+              cy="18"
+              r="16"
+              fill="none"
+              stroke-width="2.5"
+              class="stroke-fid-inset"
+            />
+            <circle
+              cx="18"
+              cy="18"
+              r="16"
+              fill="none"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              pathLength="100"
+              :stroke-dasharray="`${digPercent} 100`"
+              class="stroke-fid-accent"
+            />
+          </svg>
+          <!--
             The badge is on the basket because it is the only number that means
             "you left something unfinished". Everything else is either zero or
             not urgent.
@@ -131,6 +167,13 @@ const basketCount = computed(() => basketIds.value.size)
         </span>
         {{ m.nav[section.key].label }}
       </NuxtLink>
+      <!--
+        A description, not part of the name: the tab stays "Dig" for anyone
+        who finds it by name, and says it is busy to anyone who lands on it.
+      -->
+      <span v-if="digPercent !== null" id="nav-dig-running" class="sr-only">
+        {{ m.nav.digRunning(milestone(digPercent)) }}
+      </span>
 
       <!--
         The sixth tab, and now built exactly like the other five.

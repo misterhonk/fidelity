@@ -1573,6 +1573,11 @@ export type WorkerRequest = {
 export interface CancelRequest {
   id: string
   kind: '$cancel'
+  /**
+   * Cancels every request of these kinds instead of the one with `id` (#216).
+   * A screen that attached to a running dig never made the call it stops.
+   */
+  of?: RequestKind[]
 }
 
 export type WorkerInbound = WorkerRequest | CancelRequest

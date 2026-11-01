@@ -5,7 +5,7 @@ import { useSettingsMessages } from '~/i18n/settings'
 const m = useMessages()
 const st = useSettingsMessages()
 
-const { call } = useFidelityWorker()
+const { call, stop } = useFidelityWorker()
 
 const summary = ref<LibrarySummary | null>(null)
 const progress = ref<SyncProgress | null>(null)
@@ -33,7 +33,9 @@ async function sync() {
     undone.value = result.undone
     await refresh()
   } catch (cause) {
-    error.value = cause
+    // Stopped on purpose: what was stored stays, and the summary says how much.
+    if (isCancelled(cause)) await refresh()
+    else error.value = cause
   } finally {
     running.value = false
   }
@@ -48,6 +50,11 @@ const label = computed(() => {
     stored,
     total,
   )
+})
+
+const percent = computed(() => {
+  const p = progress.value
+  return p && p.total > 0 ? Math.round((p.stored / p.total) * 100) : 0
 })
 
 const formatDate = (at: number | null) => (at === null ? m.value.common.never : dayTime(at))
@@ -68,9 +75,30 @@ const formatDate = (at: number | null) => (at === null ? m.value.common.never : 
       Never a bare spinner. The first run is roughly 25 requests at 1.2 s
       apart, so the only honest thing to show is real numbers moving.
     -->
-    <p v-if="running" class="text-fid-sm text-fid-text-muted" aria-live="polite">
-      {{ label }}
-    </p>
+    <template v-if="running">
+      <div
+        role="progressbar"
+        :aria-label="label"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        :aria-valuenow="percent"
+        class="h-2 w-full overflow-hidden rounded-full bg-fid-inset"
+      >
+        <div
+          class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
+          :style="{ width: `${percent}%` }"
+        />
+      </div>
+      <p class="text-fid-sm text-fid-text-muted">{{ label }}</p>
+      <JobMilestone :label="st.library.fetch.fetching" :percent="percent" />
+      <button
+        type="button"
+        class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+        @click="stop('library.sync')"
+      >
+        {{ m.common.stop }}
+      </button>
+    </template>
 
     <ErrorNote v-if="error" :cause="error" />
     <p

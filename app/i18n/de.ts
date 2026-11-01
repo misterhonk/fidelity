@@ -39,6 +39,8 @@ const de: Messages = {
     never: 'noch nie',
     ofTotal: (done: string | number, total: string | number) => `${done} von ${total}`,
     loading: 'Wird geladen …',
+    stop: 'Stopp',
+    progressAt: (label, percent) => `${label}: ${percent} %`,
     asking: 'Fragen nach …',
     searching: 'Suchen …',
     save: 'Speichern',
@@ -659,6 +661,7 @@ const de: Messages = {
     dealers: { label: 'Läden', hint: 'Bei wem du kaufst' },
     settings: { label: 'Einstellungen', hint: 'Token, Abgleich, Aussehen' },
     inBasket: (count) => `${count} im Korb`,
+    digRunning: (percent) => `Dig läuft, ${percent} %`,
     attribution: 'Daten von Discogs',
     disclaimer:
       'Diese Anwendung nutzt die Discogs-API, steht aber in keiner Verbindung zu Discogs, wird von Discogs weder unterstützt noch empfohlen. „Discogs" ist eine Marke von Zink Media, LLC.',
