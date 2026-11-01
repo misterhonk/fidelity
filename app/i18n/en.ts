@@ -355,6 +355,10 @@ const en = {
         title: 'The round is already walking.',
         action: 'One round at a time. It keeps going if you leave the screen.',
       },
+      'harvest-running': {
+        title: 'The credits are already being read.',
+        action: 'One harvest at a time. It keeps going if you leave the screen.',
+      },
       'round-recent': {
         title: 'The round ran a few minutes ago.',
         action: 'Shops do not restock that fast. Give it ten minutes.',

@@ -16,7 +16,31 @@ async function refresh() {
   status.value = await call('credits.status', undefined)
 }
 
-onMounted(refresh)
+/*
+ * A harvest started elsewhere (the background pass after a dig) holds the lane
+ * and the `seen` set. Show it as running and wait for it, rather than offering
+ * a button that would start a second one beside it.
+ */
+let watching: ReturnType<typeof setInterval> | null = null
+
+function stopWatching() {
+  if (watching !== null) clearInterval(watching)
+  watching = null
+}
+
+onMounted(async () => {
+  await refresh()
+  if (!(await call('credits.running', undefined))) return
+  running.value = true
+  watching = setInterval(async () => {
+    if (await call('credits.running', undefined)) return
+    stopWatching()
+    await refresh()
+    running.value = false
+  }, 1500)
+})
+
+onBeforeUnmount(stopWatching)
 
 async function harvest() {
   if (running.value) return

@@ -386,6 +386,7 @@ async function growAfterDig() {
     ])
     if (running) return
     if (horizon.expanded < horizon.entities) await call('horizon.build', undefined)
+    if (await call('credits.running', undefined)) return
     const credits = await call('credits.status', undefined)
     if (credits.harvestedAt === null) await call('credits.harvest', {})
   } catch {

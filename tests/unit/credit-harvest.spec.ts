@@ -8,6 +8,7 @@ import { DiscogsError } from '~~/worker/discogs/errors'
 import {
   creditCandidates,
   harvestCredits,
+  harvestRunning,
   MIN_APPEARANCES,
   MIN_RATING,
 } from '~~/worker/horizon/credits'
@@ -66,6 +67,19 @@ async function seed(items: CollectionItem[]) {
 }
 
 describe('harvesting credits off the favourites', () => {
+  it('refuses a second run beside one in flight, and reports it running', async () => {
+    await seed([record({ releaseId: 1 })])
+    const { client: api, get } = client({})
+
+    const first = harvestCredits({ client: api })
+    expect(harvestRunning()).toBe(true)
+    // A second run would ask for the same releases and overwrite the people.
+    await expect(harvestCredits({ client: api })).rejects.toThrow(/already running/)
+    await first
+    expect(harvestRunning()).toBe(false)
+    expect(get).toHaveBeenCalledTimes(1)
+  })
+
   it('reads only records rated highly', async () => {
     await seed([
       record({ releaseId: 1, rating: 5 }),
