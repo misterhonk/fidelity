@@ -64,6 +64,18 @@ describe('lookups without signal (#225)', () => {
     expect(back.left).toEqual([])
   })
 
+  it('sets a code aside that fails with signal, and looks up the rest', async () => {
+    const refused = new Error('no token')
+    const lookUp = async (entry: QueuedLookup) => {
+      if (entry === ean) throw refused
+      return entry.code
+    }
+    const result = await drainLookups([ean, runout], lookUp, () => true)
+    expect(result.failed).toEqual([{ entry: ean, cause: refused }])
+    expect(result.done).toEqual([{ entry: runout, result: runout.code }])
+    expect(result.left).toEqual([])
+  })
+
   it('keeps what is left when the signal drops halfway', async () => {
     const lookUp = async (entry: QueuedLookup) => {
       if (entry === runout) throw new TypeError('Failed to fetch')

@@ -46,21 +46,29 @@ export function readQueue(raw: string | null): QueuedLookup[] {
 }
 
 /**
- * Looks the queue up in order, one after the other (rule 3), and stops at the
- * first failure: a lookup that fails is most likely still no signal, and the
- * rest would fail the same way.
+ * Looks the queue up in order, one after the other (rule 3). A failure while
+ * offline stops it: the rest would fail the same way. A failure while still
+ * online is that entry's own (no token, an answer that does not parse) — it
+ * is set aside with its error, so it cannot block the queue forever.
  */
 export async function drainLookups<T>(
   queue: readonly QueuedLookup[],
   lookUp: (entry: QueuedLookup) => Promise<T>,
-): Promise<{ done: { entry: QueuedLookup; result: T }[]; left: QueuedLookup[] }> {
+  stillOnline: () => boolean = () => false,
+): Promise<{
+  done: { entry: QueuedLookup; result: T }[]
+  failed: { entry: QueuedLookup; cause: unknown }[]
+  left: QueuedLookup[]
+}> {
   const done: { entry: QueuedLookup; result: T }[] = []
+  const failed: { entry: QueuedLookup; cause: unknown }[] = []
   for (const [index, entry] of queue.entries()) {
     try {
       done.push({ entry, result: await lookUp(entry) })
-    } catch {
-      return { done, left: queue.slice(index) }
+    } catch (cause) {
+      if (!stillOnline()) return { done, failed, left: queue.slice(index) }
+      failed.push({ entry, cause })
     }
   }
-  return { done, left: [] }
+  return { done, failed, left: [] }
 }

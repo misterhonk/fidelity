@@ -207,6 +207,7 @@ async function identify(text: string) {
 
   identifying.value = true
   identified.value = null
+  error.value = null
   try {
     show(await ask(entry))
   } catch (cause) {
@@ -225,10 +226,12 @@ async function resolveQueued() {
   if (draining || queued.value.length === 0) return
   draining = true
   try {
-    const { done } = await drainLookups(queued.value, ask)
+    const { done, failed } = await drainLookups(queued.value, ask, () => online.value)
     // From the queue as it is now: a code kept while this ran is not lost.
-    const gone = new Set(done.map((entry) => entry.entry.code))
+    const gone = new Set([...done, ...failed].map((entry) => entry.entry.code))
     keep(queued.value.filter((entry) => !gone.has(entry.code)))
+    // A code that failed with signal will not do better later: say why, and drop it.
+    if (failed[0]) error.value = failed[0].cause
     resolved.value = [...resolved.value, ...done]
   } finally {
     draining = false
@@ -536,6 +539,8 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
         -->
       <ErrorNote v-if="judgeFailure" :cause="judgeFailure" />
       <ErrorNote v-else-if="basketFailure" :cause="basketFailure" />
+      <!-- A lookup that failed with signal: typed now, or kept from the basement. -->
+      <ErrorNote v-if="error" :cause="error" />
 
       <!--
           Codes kept without signal, and what they turned out to be once it
