@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
-import { blocks, pieces } from '~/utils/release-notes'
+import { blocks, leadIn, pieces } from '~/utils/release-notes'
 
 /**
  * What is new in this release, readable in the app.
@@ -111,11 +111,47 @@ describe('the release that is about to ship', () => {
   })
 })
 
+/**
+ * A lead may be written once per language, each under `<!-- en -->` or
+ * `<!-- de -->`. An English reader never gets the German one (#190).
+ */
+describe("the lead in the reader's language", () => {
+  const both = 'Shared?\n\n<!-- en -->\nIn English.\n\n<!-- de -->\nAuf Deutsch.'
+
+  it('picks the section for the language', () => {
+    expect(leadIn('<!-- en -->\nIn English.\n\n<!-- de -->\nAuf Deutsch.', 'en')).toBe(
+      'In English.',
+    )
+    expect(leadIn('<!-- en -->\nIn English.\n\n<!-- de -->\nAuf Deutsch.', 'de')).toBe(
+      'Auf Deutsch.',
+    )
+  })
+
+  it('falls back to English when a language has no section', () => {
+    expect(leadIn('<!-- en -->\nIn English.', 'de')).toBe('In English.')
+  })
+
+  it('ignores untagged text once there are sections', () => {
+    expect(leadIn(both, 'en')).toBe('In English.')
+  })
+
+  it('shows an untagged lead as it is, as every lead before this was', () => {
+    expect(leadIn('Just one.', 'en')).toBe('Just one.')
+    expect(leadIn('Just one.', 'de')).toBe('Just one.')
+  })
+})
+
 describe('the line that asks something', () => {
   it('turns a "What to do:" paragraph into an action block', async () => {
     const { blocks } = await import('~/utils/release-notes')
     const out = blocks('The news.\n\n**What to do:** Reload once, then sync.\n\nMore news.')
     expect(out.map((b) => b.kind)).toEqual(['paragraph', 'action', 'paragraph'])
     expect(out[1]!.pieces.map((p) => p.text).join('')).toBe('Reload once, then sync.')
+  })
+
+  it('knows it in a German lead too', () => {
+    const out = blocks('**Was zu tun ist:** Einmal neu laden.')
+    expect(out[0]!.kind).toBe('action')
+    expect(out[0]!.pieces.map((p) => p.text).join('')).toBe('Einmal neu laden.')
   })
 })

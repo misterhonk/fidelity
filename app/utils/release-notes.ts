@@ -25,7 +25,7 @@ export type Piece =
  */
 export type Block = { kind: 'paragraph' | 'bullet' | 'action'; pieces: Piece[] }
 
-const ACTION = /^\*{0,2}What to do:\*{0,2}\s*/i
+const ACTION = /^\*{0,2}(?:What to do|Was zu tun ist):\*{0,2}\s*/i
 
 /**
  * Bold, code and links — in one pass, so that the order comes out right.
@@ -123,4 +123,25 @@ export function blocks(lead: string): Block[] {
   closeParagraph()
   closeBullet()
   return out
+}
+
+const SECTION = /^<!--\s*([a-z]{2})\s*-->\s*$/m
+
+/**
+ * The lead in the reader's language (#190).
+ *
+ * A lead may be written once per language, each part under a line
+ * `<!-- en -->` or `<!-- de -->` — invisible on GitHub, so the changelog still
+ * reads as one entry. Without such a part for the language, English; a lead
+ * with no parts at all is shown as it is, which is how every lead before this
+ * was written.
+ */
+export function leadIn(lead: string, language: string): string {
+  const parts = lead.split(SECTION)
+  if (parts.length === 1) return lead.trim()
+
+  const byLanguage = new Map<string, string>()
+  // split() with a group: [untagged, lang, text, lang, text, …]
+  for (let i = 1; i < parts.length; i += 2) byLanguage.set(parts[i]!, parts[i + 1]!.trim())
+  return byLanguage.get(language) ?? byLanguage.get('en') ?? ''
 }

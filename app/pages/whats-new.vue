@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { blocks } from '~/utils/release-notes'
+import { activeLanguage } from '~/composables/useMessages'
+import { blocks, leadIn } from '~/utils/release-notes'
 
 /**
  * What is new in this release — in the app, not on GitHub.
@@ -20,7 +21,8 @@ const { version, releaseNotes } = useRuntimeConfig().public
 
 useSeoMeta({ title: () => m.value.news.title })
 
-const parts = computed(() => blocks(String(releaseNotes ?? '')))
+// The lead in the reader's language, when the release wrote one (#190).
+const parts = computed(() => blocks(leadIn(String(releaseNotes ?? ''), activeLanguage())))
 
 /**
  * Up to which release the notes are in German.
