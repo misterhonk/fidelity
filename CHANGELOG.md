@@ -9,6 +9,27 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.114.0](https://github.com/misterhonk/fidelity/compare/v0.113.3...v0.114.0) (2026-11-01)
+
+
+**Fidelity sagt jetzt an jeder Stelle, woher die Daten kommen.** Neben jedem Fund, jedem Blatt
+und jeder Liste steht „Daten von Discogs“, und der Link führt genau zu der Platte oder dem Angebot,
+um das es geht. So verlangen es die Regeln von Discogs, und so findest du schneller hin.
+
+- Die Hörprobe ist überall mindestens 200 Pixel groß und rückt ins Bild, bevor sie startet.
+- Der Hinweis vor der Hörprobe sagt jetzt auch, dass YouTube nach dem Start etwas auf deinem Gerät
+  speichern kann. Die Datenschutzerklärung nennt YouTube und Google genauer.
+- Die Lizenzen der Schrift und der Symbole liegen jetzt jeder Version bei.
+
+### Added
+
+* **ui:** credit Discogs beside the data it provided ([0ea50bb](https://github.com/misterhonk/fidelity/commit/0ea50bba6b7aa303d3f2999c06e9a64d22c39f0f))
+
+
+### Fixed
+
+* **ui:** keep the YouTube player at 200 px and say what it may store ([5596470](https://github.com/misterhonk/fidelity/commit/5596470ca792c909df37c99aa197e9dc7b66db55))
+
 ## [0.113.3](https://github.com/misterhonk/fidelity/compare/v0.113.2...v0.113.3) (2026-11-01)
 
 
