@@ -114,6 +114,22 @@ test('Back closes the wantlist sheet', async ({ page }) => {
   })
 })
 
+test('a wanted record the grid cannot show leaves no stale ?want= behind', async ({ page }) => {
+  await seed(page, 'en')
+  await page.goto('/wantlist?want=999999999')
+  await page.reload()
+  const cover = page.locator('main ul li button').first()
+  await expect(cover).toBeVisible({ timeout: 15_000 })
+  await expect(page).not.toHaveURL(/want=/)
+
+  await cover.click()
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15_000 })
+  await page.goBack()
+  await expect(page.getByRole('dialog')).toBeHidden()
+  await expect(page).toHaveURL(/\/wantlist/)
+  await expect(page).not.toHaveURL(/want=/)
+})
+
 test('Back closes the shelf sheet on the start page', async ({ page }) => {
   await seed(page, 'en')
   await page.goto('/')
