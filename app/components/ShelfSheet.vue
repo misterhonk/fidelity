@@ -26,7 +26,7 @@ const props = defineProps<{
 const emit = defineEmits<{ close: []; step: [instanceId: number] }>()
 
 const { call } = useFidelityWorker()
-const { state: writeState, push } = useWriteBack()
+const { state: writeState, undone, push } = useWriteBack()
 
 const record = ref<CollectionItem | null>(null)
 
@@ -436,6 +436,14 @@ async function remove() {
           class="shrink-0 text-fid-sig-price-text"
         />
         {{ c.shelf.sheet.write[writeState] }}
+      </p>
+      <!-- An older change this flush gave up on and put back: the one thing here to redo. -->
+      <p
+        v-if="undone.length > 0"
+        role="status"
+        class="rounded-fid-sm bg-fid-sig-scarcity/10 px-3 py-2 text-fid-sm text-fid-sig-scarcity"
+      >
+        {{ m.freshness.undone([...undone]) }}
       </p>
 
       <!--
