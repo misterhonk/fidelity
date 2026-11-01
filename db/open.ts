@@ -4,6 +4,7 @@ import { log } from '~~/worker/log'
 
 import { repairShipsFrom } from './dealer'
 import { repairHorizonChunk } from './horizon'
+import { withQuotaRetry } from './quota'
 import { DB_NAME, DB_VERSION, type FidelityDB } from './schema'
 
 export type FidelityDatabase = IDBPDatabase<FidelityDB>
@@ -312,11 +313,13 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
       // The browser killed the connection; the next call reopens it.
       handle = undefined
     },
-  }).catch((error: unknown) => {
-    // A failed open must not be cached, or every later call rejects with it.
-    handle = undefined
-    throw error
   })
+    .then(withQuotaRetry)
+    .catch((error: unknown) => {
+      // A failed open must not be cached, or every later call rejects with it.
+      handle = undefined
+      throw error
+    })
 
   return handle
 }
