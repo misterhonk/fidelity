@@ -12,6 +12,20 @@ Für eine App bedeutet SemVer:
 ## [0.113.3](https://github.com/misterhonk/fidelity/compare/v0.113.2...v0.113.3) (2026-11-01)
 
 
+**Der Tresor bringt nichts mehr zurück, was du weggeräumt hast.** Eine gründliche Durchsicht
+hat ein paar Stellen gefunden, an denen still etwas schiefging:
+
+- Eine verkaufte Platte oder ein gelöschter Wunsch kam über den Tresor vom anderen Gerät zurück.
+  Sammlung und Wantlist holt jetzt jedes Gerät selbst von Discogs, sie fahren nicht mehr mit.
+- Ein zurückgenommenes Urteil kam genauso zurück. Jetzt bleibt es weg, auf allen Geräten.
+- Auf einem zweiten Gerät hat der Tresor deine nachgeschlagenen Künstler und Labels kaputt
+  gemacht, und Treffer über sie fehlten dort ohne Meldung. Fidelity repariert das beim ersten
+  Öffnen, ganz ohne neue Anfragen.
+- Wer mehrere Wünsche entfernt und auf „Rückgängig" tippt, während Fidelity gerade an Discogs
+  sendet, bekommt sie jetzt zurück. Bisher waren sie dort trotzdem weg.
+- Preise im Korb und in geteilten Links verschwinden pünktlich nach sechs Stunden, auch wenn der
+  Tab offen bleibt.
+
 ### Fixed
 
 * **basket:** take basket and shared-link prices down at six hours ([981ff82](https://github.com/misterhonk/fidelity/commit/981ff8208148868ce45dc5a6a30f49bf1c16087a))
