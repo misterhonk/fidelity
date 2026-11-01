@@ -1,10 +1,14 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
 import { isHttps } from '#shared/listen'
 import { releaseDetailSchema } from '~~/worker/discogs/schemas'
 import { parsePreferences, sharedDigSchema, vaultSnapshotSchema } from '~~/worker/payloads'
+import { readShare } from '~~/worker/share'
 import { open, seal } from '~~/worker/vault/crypto'
+
+const shareRead = vi.hoisted(() => vi.fn())
+vi.mock('~~/worker/hub/client', () => ({ createHubClient: () => ({ shareRead }) }))
 
 /**
  * Shared links, vault files and backups are parsed, not cast (#207).
@@ -173,5 +177,10 @@ describe('a shared find list', () => {
       code: 'malformed-payload',
     })
     expect(await open(await seal(shared, 'k'), 'k', z.unknown())).toEqual(shared)
+  }, 30_000)
+
+  it('reads a link from a newer version as nothing, not as damaged', async () => {
+    shareRead.mockResolvedValueOnce({ sealed: await seal({ version: 2 }, 'k'), expiresAt: 0 })
+    expect(await readShare('https://hub.example', 'id', 'k')).toBeNull()
   }, 30_000)
 })
