@@ -47,3 +47,24 @@ test('pastes the token, shows it on request, and says where to revoke it', async
     'true',
   )
 })
+
+test('a failed paste says so, and the line goes once the key is typed', async ({
+  page,
+  context,
+}) => {
+  await context.route('https://api.discogs.com/**', (route) =>
+    route.fulfill({ status: 404, headers: { 'access-control-allow-origin': '*' }, body: '{}' }),
+  )
+  await page.goto('/welcome')
+  await page.evaluate(() => {
+    navigator.clipboard.readText = () => Promise.reject(new DOMException('', 'NotAllowedError'))
+  })
+  await page.getByRole('button', { name: 'Set it up with your collection' }).click()
+
+  await page.getByRole('button', { name: 'Paste' }).click()
+  const failed = page.getByText('The clipboard stayed closed')
+  await expect(failed).toBeVisible()
+
+  await page.getByLabel('Personal access token').fill('typed-token')
+  await expect(failed).toBeHidden()
+})
