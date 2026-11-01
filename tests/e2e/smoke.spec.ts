@@ -91,16 +91,14 @@ test.describe('smoke', () => {
     await page.getByRole('button', { name: /Set it up/ }).click()
 
     /*
-     * Five: token, collection, horizon, credits, done.
+     * Three: key, collection, first dig (#214).
      *
-     * The horizon and the credits used to sit only in the settings, on the
-     * argument that they cost minutes and the app runs without them. Both
-     * still true — but somebody who never opens the settings ended up with a
-     * matcher that knows only the artists they already own by name. They are
-     * steps now, and both can be walked past in one click.
+     * Artists and credits were steps of their own for a while — minutes each
+     * before anything was found. They now start in the background after the
+     * first dig, which is the moment somebody has something to look at.
      */
     const steps = page.getByRole('list', { name: 'Setup' }).getByRole('listitem')
-    await expect(steps).toHaveCount(5)
+    await expect(steps).toHaveCount(3)
 
     // The first is current before anything has been entered, and the ones
     // after it are not — a rail that lights every step says nothing.

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SyncProgress } from '#shared/protocol'
+import { STARTER_SHOPS } from '#shared/starter-shops'
 import type { Identity } from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
@@ -39,18 +40,15 @@ const { identity, ready, load, set } = useIdentity()
  * progress rail belongs to the steps that follow, so an extra dot for the page
  * you are standing on would say the demo is something to get through.
  *
- * Horizon and credits are steps as of today. They were left out because they
- * cost minutes and the app runs without them — both still true, and both beside
- * the point: without them the matcher only knows the artists somebody already
- * owns, by name. No other pressings, no catalogue series, no producers. That is
- * half the app, hidden behind a settings page nobody has a reason to open on
- * day one. Each says what it buys before it starts and each is one click to
- * walk past.
+ * Key, collection, first dig (#214). Artists and credits were steps of their
+ * own for a while: minutes each, before anything was found. They now start in
+ * the background once the first dig is through (`app/pages/dig.vue`), which
+ * is when somebody has a list to look at instead of a bar to watch.
  */
-type Step = 'start' | 'token' | 'sync' | 'horizon' | 'credits' | 'done'
+type Step = 'start' | 'token' | 'sync' | 'dig'
 
 const step = ref<Step>('start')
-const STEPS: Step[] = ['token', 'sync', 'horizon', 'credits', 'done']
+const STEPS: Step[] = ['token', 'sync', 'dig']
 
 /**
  * Where the last button leads.
@@ -61,19 +59,21 @@ const STEPS: Step[] = ['token', 'sync', 'horizon', 'credits', 'done']
  */
 const backTo = computed(() => {
   const next = useRoute().query.next
-  return typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') ? next : '/'
+  return typeof next === 'string' && next.startsWith('/') && !next.startsWith('//')
+    ? next
+    : '/dig'
 })
 const stepIndex = computed(() => STEPS.indexOf(step.value))
 
 /**
- * Short enough that five of them fit on a phone.
+ * Short enough that the three of them fit on a phone.
  *
  * Typed by `Step` rather than `Exclude<Step, 'start'>` so the lookup in the
  * template needs no cast — a `<` inside a template expression reads as an
  * opening tag to the formatter, which is a strange way to lose a build.
  */
 const STEP_LABEL = computed<Partial<Record<Step, string>>>(
-  // `satisfies` is what the loose type above gave up: two of the five labels
+  // `satisfies` is what the loose type above gave up: two of the labels
   // were keyed `horizont` and `fertig`, and the segments stood there empty.
   () => w.value.steps satisfies Record<Exclude<Step, 'start'>, string>,
 )
@@ -96,7 +96,7 @@ onMounted(async () => {
    */
   const summary = await call('library.summary', undefined)
   library.value = summary
-  step.value = summary.collection > 0 ? 'done' : 'sync'
+  step.value = summary.collection > 0 ? 'dig' : 'sync'
 })
 
 function signedIn(next: Identity) {
@@ -112,7 +112,7 @@ async function sync() {
   try {
     await call('library.sync', undefined, { onProgress: (p) => (progress.value = p) })
     library.value = await call('library.summary', undefined)
-    step.value = 'horizon'
+    step.value = 'dig'
   } catch (cause) {
     error.value = cause
   } finally {
@@ -136,20 +136,19 @@ const syncLabel = computed(() => {
 })
 
 /**
- * What the app does, in three lines, at the moment it can finally do it.
+ * Focus follows the step (#214).
  *
- * Deliberately at the end rather than the start: a feature tour before there
- * is any data is a promise, and the same three sentences after the collection
- * has landed are instructions.
+ * The panel that had focus is gone after the swap, and focus fell back to the
+ * body: a screen reader said nothing and a keyboard started over at the top.
+ * After the new panel has entered, its heading takes focus — the one place
+ * that says where the setup has got to.
  */
-const CAN_DO = computed(
-  () =>
-    [
-      { icon: 'crate', to: '/dig', ...w.value.canDo.dig },
-      { icon: 'record', to: '/in-store', ...w.value.canDo.inStore },
-      { icon: 'shelf', to: '/shelf', ...w.value.canDo.collection },
-    ] as const,
-)
+function focusHeading(panel: Element) {
+  const heading = panel.querySelector<HTMLElement>('h2')
+  if (!heading) return
+  heading.tabIndex = -1
+  heading.focus()
+}
 </script>
 
 <template>
@@ -191,7 +190,7 @@ const CAN_DO = computed(
         two panels crossfading through each other is mush at this size.
       -->
     <div class="relative">
-      <Transition name="fid-step" mode="out-in">
+      <Transition name="fid-step" mode="out-in" @after-enter="focusHeading">
         <!-- 0 · Ankommen ---------------------------------------------------- -->
         <!--
             The button goes above the demonstration, not below it.
@@ -264,118 +263,49 @@ const CAN_DO = computed(
           </button>
         </section>
 
-        <!-- 3 · Horizont ---------------------------------------------------- -->
+        <!-- 3 · First dig ------------------------------------------------- -->
         <!--
-            The horizon was deliberately not in the setup — now it is. Why, in
-            `app/i18n/welcome.ts`.
-
-            The argument for leaving it out was that it takes minutes and the app
-            works without it. Both are still true. What that argument missed is
-            that half of what makes Fidelity interesting is invisible without it:
-            another pressing of a record you own, a catalogue series with a hole
-            in it, a producer whose name you never see on a sleeve. Somebody who
-            finishes the setup and never opens the settings gets a matcher that
-            only knows the artists they already own by name.
-
-            So it is a step, and it says how long it takes before it starts, and
-            it can be walked past in one click.
+            The setup ends in a dig, not on the start page (#214). A shop
+            leads to the dig screen with its name filled in and checked, never
+            started: the scan spends somebody's rate limit, and that screen
+            asks first.
           -->
-        <section v-else-if="step === 'horizon'" key="horizon" class="flex flex-col gap-5">
+        <section v-else key="dig" class="flex flex-col gap-5">
           <div class="flex flex-col gap-2">
-            <h2 class="text-fid-base font-medium text-fid-text">
-              {{ w.horizon.title }}
-            </h2>
-            <p class="max-w-prose text-fid-base text-fid-text-muted">
-              {{ w.horizon.about }}
-            </p>
-          </div>
-
-          <HorizonBuild />
-
-          <div class="flex flex-col gap-2">
-            <button
-              type="button"
-              class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
-              @click="step = 'credits'"
-            >
-              {{ w.horizon.skip }}
-            </button>
-            <p class="text-fid-xs text-fid-text-muted">
-              {{ w.horizon.resumable }}
-            </p>
-          </div>
-        </section>
-
-        <!-- 4 · Credits ----------------------------------------------------- -->
-        <section v-else-if="step === 'credits'" key="credits" class="flex flex-col gap-5">
-          <div class="flex flex-col gap-2">
-            <h2 class="text-fid-base font-medium text-fid-text">
-              {{ w.credits.title }}
-            </h2>
-            <p class="max-w-prose text-fid-base text-fid-text-muted">
-              {{ w.credits.about }}
-            </p>
-          </div>
-
-          <CreditHarvest />
-
-          <div class="flex flex-col gap-2">
-            <button
-              type="button"
-              class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
-              @click="step = 'done'"
-            >
-              {{ w.credits.skip }}
-            </button>
-            <p class="text-fid-xs text-fid-text-muted">
-              {{ w.credits.later }}
-            </p>
-          </div>
-        </section>
-
-        <!-- 5 · Fertig ------------------------------------------------------ -->
-        <section v-else key="done" class="flex flex-col gap-5">
-          <div class="flex flex-col gap-2">
-            <h2 class="text-fid-base font-medium text-fid-text">{{ w.done.title }}</h2>
+            <h2 class="text-fid-base font-medium text-fid-text">{{ w.dig.title }}</h2>
             <p v-if="library" class="max-w-prose text-fid-base text-fid-text-muted">
-              {{ w.done.summary(count(library.collection), count(library.wantlist)) }}
+              {{ w.dig.summary(count(library.collection), count(library.wantlist)) }}
             </p>
+            <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ w.dig.after }}</p>
           </div>
 
-          <ul class="flex flex-col gap-3">
-            <li
-              v-for="(thing, index) in CAN_DO"
-              :key="thing.title"
-              class="fid-rise flex flex-col gap-2 rounded-fid-md border border-fid-border bg-fid-surface p-4"
-              :style="{ '--fid-stagger': index + 1 }"
-            >
-              <h3 class="flex items-center gap-2 text-fid-base font-medium text-fid-text">
-                <FidIcon :name="thing.icon" />
-                {{ thing.title }}
-              </h3>
-              <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ thing.body }}</p>
+          <div class="flex flex-col gap-2">
+            <h3 id="welcome-starters" class="text-fid-xs font-medium text-fid-text-muted">
+              {{ w.dig.starters }}
+            </h3>
+            <nav aria-labelledby="welcome-starters" class="flex flex-wrap gap-2">
               <NuxtLink
-                :to="thing.to"
-                class="fid-action self-start text-fid-sm text-fid-text underline underline-offset-4"
+                v-for="shop in STARTER_SHOPS"
+                :key="shop.username"
+                :to="{ path: '/dig', query: { dealer: shop.username } }"
+                class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
               >
-                {{ thing.cta }}
+                {{ shop.displayName }}
+                <span class="ml-1.5 text-fid-xs opacity-70">{{ shop.shipsFrom }}</span>
               </NuxtLink>
-            </li>
-          </ul>
+            </nav>
+          </div>
 
           <!--
-              Back to where you were going.
-
-              The middleware appends `?next=` when it has intercepted somebody
-              from another screen. Anyone who actually wanted to see their
-              basket should not land on the start page and find it again by
-              hand — the setup was the detour, not the destination.
+              The middleware appends `?next=` when it has sent somebody here
+              from another screen; they go back there. Everybody else goes to
+              the dig.
             -->
           <NuxtLink
             :to="backTo"
             class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
           >
-            {{ w.done.toStart }}
+            {{ w.dig.anyShop }}
           </NuxtLink>
         </section>
       </Transition>

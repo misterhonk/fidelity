@@ -363,6 +363,34 @@ async function finish(dig: Dig) {
   } catch {
     // A gap that stays a gap is the state we were already in.
   }
+
+  void growAfterDig()
+}
+
+/**
+ * Artists and credits, once the first dig is through (#214).
+ *
+ * They used to be two setup steps of their own: minutes each, before
+ * somebody had seen a single find. Now they start here, in the background,
+ * when there is a list on screen to look at. Not awaited, and not tied to this
+ * page: the calls live in the worker and run on after the page is left. The
+ * build expands only what is not expanded yet, so a later dig resumes an
+ * interrupted one and otherwise costs nothing. The worker's one lane keeps
+ * rule 3.
+ */
+async function growAfterDig() {
+  try {
+    const [horizon, running] = await Promise.all([
+      call('horizon.status', undefined),
+      call('horizon.running', undefined),
+    ])
+    if (running) return
+    if (horizon.expanded < horizon.entities) await call('horizon.build', undefined)
+    const credits = await call('credits.status', undefined)
+    if (credits.harvestedAt === null) await call('credits.harvest', {})
+  } catch {
+    // Both can be finished in the settings; a failure here stops nothing else.
+  }
 }
 
 /**
