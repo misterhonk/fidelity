@@ -1,0 +1,5 @@
+# Sleeveside. How to report a security problem: see Policy.
+Contact: https://github.com/misterhonk/fidelity/security/advisories/new
+Expires: 2027-10-01T00:00:00Z
+Policy: https://github.com/misterhonk/fidelity/blob/main/SECURITY.md
+Preferred-Languages: en, de

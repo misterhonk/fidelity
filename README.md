@@ -297,7 +297,11 @@ rules that are not up for negotiation.
 | [`docs/18-PLACES.md`](docs/18-PLACES.md) | Places as a wall: room, furniture, compartment; rules instead of slots; how records are sorted in and re-sorted |
 | [`docs/19-DEMO-ACCOUNT.md`](docs/19-DEMO-ACCOUNT.md) | The demo account at Discogs: what it is for, the script that fills it, where its token lives |
 | [`docs/17-ROADMAP-1.0.md`](docs/17-ROADMAP-1.0.md) | The road to 1.0: app, hub, catalogue, access — technology, the test rings, the Hetzner cross-check, the paid comfort tier with one key per payer |
+| [`docs/21-THREAT-MODEL.md`](docs/21-THREAT-MODEL.md) | What the app protects, from whom, and what it leaves to others |
 | [`docs/adr/`](docs/adr/) | Architecture decision records, including the rejected ones |
+
+**Found a security problem?** Please report it privately, not as an issue:
+[`SECURITY.md`](SECURITY.md). Also at `/.well-known/security.txt` on every deployment.
 
 ---
 
