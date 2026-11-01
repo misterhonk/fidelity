@@ -10,6 +10,7 @@ test('takes the figure off the Discogs cart for exactly this basket', async ({ p
   await seed(page, 'en')
   await page.goto('/basket')
 
+  await page.getByText('Tools: postage table, budget, other shops').click()
   const field = page.getByLabel('What Discogs shows for 2 records')
   await expect(field).toBeVisible({ timeout: 15_000 })
   await field.fill('7.5')

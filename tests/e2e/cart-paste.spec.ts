@@ -30,6 +30,8 @@ test('takes the postage for this basket off a pasted cart page', async ({ page }
   await seed(page, 'en')
   await page.goto('/basket')
 
+  // With a basket in, paste is folded away under the page's tools (#224).
+  await page.getByText('Tools: paste from Discogs').click()
   const field = page.getByLabel('Links to records, or the cart page')
   await expect(field).toBeVisible({ timeout: 15_000 })
   await field.fill(CART)

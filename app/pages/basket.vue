@@ -23,7 +23,18 @@ async function reload() {
     error.value = cause
   }
 }
-onMounted(reload)
+
+/*
+ * Paste is a tool (#224), folded once there is a receipt to read — but open
+ * for somebody who arrives with nothing in yet, mid-session on Discogs. Set
+ * once: closing it under a paste that just filled the basket would hide the
+ * answer to that paste.
+ */
+const pasteOpen = ref(false)
+onMounted(async () => {
+  await reload()
+  pasteOpen.value = view.value.baskets.length === 0
+})
 useDeadline(() => {
   const until = view.value.baskets.flatMap((basket) =>
     basket.lines.filter((line) => !line.priceExpired).map((line) => line.priceUntil),
@@ -66,14 +77,7 @@ const records = computed(() =>
       <template #tabs><BasketTabs /></template>
     </PageHeader>
 
-    <!--
-        Offered first when the basket is empty, because that is the state
-        somebody arrives in mid-shopping-session: records already picked out on
-        Discogs, and nothing here yet to reason about.
-      -->
     <ErrorNote v-if="trouble" :cause="trouble" />
-
-    <BasketPaste />
 
     <p v-if="baskets.length === 0" class="text-fid-base text-fid-text-muted">
       {{ b.empty }}
@@ -109,6 +113,20 @@ const records = computed(() =>
 
       <BasketCard v-for="basket in baskets" :key="basket.dealer" :summary="basket" />
     </template>
+
+    <!--
+        Open when the basket is empty, because that is the state somebody
+        arrives in mid-shopping-session: records already picked out on
+        Discogs, and nothing here yet to reason about.
+      -->
+    <details class="group" :open="pasteOpen">
+      <summary
+        class="fid-action w-fit cursor-pointer list-none text-fid-sm text-fid-text-muted underline decoration-dotted underline-offset-4 hover:text-fid-text"
+      >
+        {{ b.pasteTools }}
+      </summary>
+      <BasketPaste class="mt-4" />
+    </details>
 
     <!-- The way back after "Remove", pinned where the eye is — as on the shelf. -->
     <p v-if="removed" role="status" class="fid-toast">

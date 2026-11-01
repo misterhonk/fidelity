@@ -89,6 +89,8 @@ test('names a shop that has the same basket for less', async ({ page }) => {
 
   // On demand: a page with four shops would otherwise run four joins before
   // anybody asked a question.
+  // Folded under the receipt's tools (#224).
+  await page.getByText('Tools: postage table, budget, other shops').click()
   const ask = page.getByRole('button', { name: 'Cheaper at another shop?' })
   await expect(ask).toBeVisible({ timeout: 15_000 })
   await ask.click()

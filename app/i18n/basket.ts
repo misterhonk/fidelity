@@ -252,6 +252,9 @@ const en = {
    * there made short: one link at a time, the next one moving up, and a
    * memory of which are done that survives a closed tab.
    */
+  /** The receipt's folded half (#224): what works on a basket rather than reads it. */
+  tools: 'Tools: postage table, budget, other shops',
+  pasteTools: 'Tools: paste from Discogs',
   handOver: 'Put these in at Discogs',
   handOverLead:
     'Discogs lets us open one record at a time: each link opens the page with the "Add to Cart" button, and the next one moves up here. Worth a "Still there?" first if the basket is a day old.',
@@ -513,6 +516,8 @@ const de: typeof en = {
   stillThere: 'Noch da?',
   clearThis: 'Diesen Korb leeren',
 
+  tools: 'Werkzeuge: Portotabelle, Budget, andere Läden',
+  pasteTools: 'Werkzeuge: aus Discogs einfügen',
   handOver: 'Bei Discogs einlegen',
   handOverLead:
     'Bei Discogs geht es Platte für Platte: Jeder Link öffnet die Seite mit dem „Add to Cart"-Knopf, und hier rückt die nächste nach. Ist der Korb einen Tag alt, lohnt vorher ein „Noch da?".',
