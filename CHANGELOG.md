@@ -9,6 +9,78 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.116.0](https://github.com/misterhonk/fidelity/compare/v0.115.0...v0.116.0) (2026-11-01)
+
+
+<!-- en -->
+**Sleeveside has its own address now: sleeveside.martinmelcher.de.** Nothing else lives there, so
+no other site can reach the data on your device. Under the hood, this release closes the doors the
+security review found:
+
+- The audio preview plays without loading any script from Google into the app.
+- The app only talks to the places it needs, and every link, backup and vault file is checked
+  before it is read.
+- Signing out also clears covers, the push sign-up and the cloud sign-ins.
+- The demo reads the part of a shop where the promised artist is, and never ends empty.
+- Setting up the key explains what it is, has a paste button and tells you how to revoke it.
+- When the disk is full, Sleeveside clears covers first instead of losing your data.
+
+<!-- de -->
+**Sleeveside hat jetzt eine eigene Adresse: sleeveside.martinmelcher.de.** Dort wohnt sonst
+nichts, also kommt keine andere Seite an die Daten auf deinem Gerät. Unter der Haube schließt diese
+Version die Türen, die die Sicherheitsprüfung gefunden hat:
+
+- Die Hörprobe spielt, ohne ein Skript von Google in die App zu laden.
+- Die App spricht nur mit den Stellen, die sie braucht. Links, Backups und Tresor-Dateien werden
+  geprüft, bevor sie gelesen werden.
+- Abmelden räumt jetzt auch Cover, die Push-Anmeldung und die Cloud-Anmeldungen weg.
+- Die Demo liest den Teil eines Ladens, in dem der versprochene Künstler steht, und endet nie leer.
+- Beim Schlüssel steht jetzt, was er ist, es gibt einen Einfügen-Knopf, und du siehst, wie du ihn
+  widerrufst.
+- Ist der Speicher voll, räumt Sleeveside zuerst Cover weg, statt Daten zu verlieren.
+
+### Added
+
+* **auth:** token step that explains itself ([e90cd73](https://github.com/misterhonk/fidelity/commit/e90cd737defd91365425ed138b3377ac5ca4b743))
+* **deploy:** attest build provenance for images and the release zip ([d3955e0](https://github.com/misterhonk/fidelity/commit/d3955e0423754ab9d3594e8a572edc86c74dcdb6)), closes [#209](https://github.com/misterhonk/fidelity/issues/209)
+* **deploy:** refuse a base path other than '/' ([8cbff46](https://github.com/misterhonk/fidelity/commit/8cbff46a6b38e3a5ca2b34fa4bd0b43b696197a7))
+* **deps:** add Renovate with a seven-day release age, pin base images by digest ([bb3f571](https://github.com/misterhonk/fidelity/commit/bb3f571e6d31c2d151954267f0b65b662e0825cf)), closes [#209](https://github.com/misterhonk/fidelity/issues/209)
+* **ui:** show the storage estimate under Settings, Your data ([ad39db7](https://github.com/misterhonk/fidelity/commit/ad39db737030638b219588c7eb240300b23c2104))
+
+
+### Fixed
+
+* **auth:** clear hub, cloud and cover traces on sign-out and redact every secret ([eb1e0f5](https://github.com/misterhonk/fidelity/commit/eb1e0f5655ffbed2f610e59fd797c42ce73b7e55))
+* **auth:** drop the failed-paste line once the key is typed ([93b76b8](https://github.com/misterhonk/fidelity/commit/93b76b802966a4864a8e108a807b6e4e2c27527c))
+* **auth:** sign out even when a cleanup chunk fails to load ([8ee681c](https://github.com/misterhonk/fidelity/commit/8ee681c491a701611b526fcb7333a24c8a6b708a))
+* **auth:** treat an empty clipboard as a failed paste ([a01fa58](https://github.com/misterhonk/fidelity/commit/a01fa58817cc6f2a3e24f5c6921ac689a25f4ae3))
+* **auth:** validate the Dropbox renewal before revoking with it ([0ea76a8](https://github.com/misterhonk/fidelity/commit/0ea76a8423808721842823fa5170749bcef06eee))
+* **db:** drop the cover cache and retry once when a write hits the quota ([afdcd50](https://github.com/misterhonk/fidelity/commit/afdcd503cad4329106c52d3b1573c74e580ed1d5))
+* **demo:** count the pages read against the shop's size, not a page number ([12657d9](https://github.com/misterhonk/fidelity/commit/12657d961aa0a884ce7f746b850a24dfcbca0c4c))
+* **demo:** read the shop around the clue artist, and never end empty ([cab948c](https://github.com/misterhonk/fidelity/commit/cab948cc800d176416513f0ba71eca3abf38bec9))
+* **demo:** show a refused first page as an error, not an empty shop ([e9a9763](https://github.com/misterhonk/fidelity/commit/e9a9763d3b99c0411fa3e855c1a088538a5ed422))
+* **deploy:** count failures by cf-connecting-ip on the homelab hub ([38afb0d](https://github.com/misterhonk/fidelity/commit/38afb0d792bdc5e52bb5c41e83e097bd47cc08a3))
+* **deploy:** make every e2e spec import the CSP fixture ([4974576](https://github.com/misterhonk/fidelity/commit/4974576e1d4de88d65fe121603d3320ad158bfa9))
+* **deploy:** narrow connect-src to an allowlist ([1f81d98](https://github.com/misterhonk/fidelity/commit/1f81d98f7083e121bb5eb130d5a8370a7f9770e7)), closes [#204](https://github.com/misterhonk/fidelity/issues/204)
+* **deploy:** trust a pinned known_hosts secret instead of ssh-keyscan ([0fb09b1](https://github.com/misterhonk/fidelity/commit/0fb09b19ea3abed2f40648b9d1eda7f1b6da3568)), closes [#209](https://github.com/misterhonk/fidelity/issues/209)
+* **deploy:** wait for both copies of a provoked CSP violation ([b947d51](https://github.com/misterhonk/fidelity/commit/b947d51774b00da1d57fa6baa67173dfe6bd1c3c))
+* **deps:** gate CI on production advisories, move build tooling to devDependencies ([1c19a3d](https://github.com/misterhonk/fidelity/commit/1c19a3d8a1b615af035bc778dc2ddeb03166dcd7)), closes [#209](https://github.com/misterhonk/fidelity/issues/209)
+* **deps:** list the client runtime Nuxt and Nuxt UI ship as dependencies ([399349b](https://github.com/misterhonk/fidelity/commit/399349bf96c886ec9feeba362a16c00fe142250e))
+* **hub:** count only wrong secrets, not a stale access key ([ef034a4](https://github.com/misterhonk/fidelity/commit/ef034a45b9b16b61c2d8746138248c96e8b12313))
+* **hub:** probe localhost only when the app runs on localhost ([dd21409](https://github.com/misterhonk/fidelity/commit/dd21409b405ea989114f67280bf35a227b97c3a0))
+* **hub:** refuse short secrets, slow wrong guesses, drop the cover pool ([05cadfa](https://github.com/misterhonk/fidelity/commit/05cadfa268581000aa3df65e8669127adaf74f88))
+* **hub:** stop asking the hub for covers, knock at the push key route ([4e65ffd](https://github.com/misterhonk/fidelity/commit/4e65ffd37899d5ba983b40d79e90931e5c55e4c2))
+* **pwa:** drive the YouTube frame by postMessage, no Google script in the origin ([a4038f6](https://github.com/misterhonk/fidelity/commit/a4038f6992daf72aa7928b43fa7cf696a6200ab5)), closes [#203](https://github.com/misterhonk/fidelity/issues/203)
+* **pwa:** let /.well-known/ past the navigation fallback ([a990da2](https://github.com/misterhonk/fidelity/commit/a990da27547d740d702ee211e78bd4dfee9fe1c4))
+* **pwa:** stop zod probing for eval under the CSP ([a7e6fd7](https://github.com/misterhonk/fidelity/commit/a7e6fd7ef470b52421f0f5338a74b31c9e360f45))
+* **pwa:** tear the YouTube frame down when it stays silent ([ddaca1a](https://github.com/misterhonk/fidelity/commit/ddaca1ad937ac9b8fb3753aa9e7dfdf0d2c33316))
+* **sync:** carry only allowlisted preferences through the vault ([dbd6737](https://github.com/misterhonk/fidelity/commit/dbd6737fcfb066561368fda25d9c630894033de9))
+* **sync:** check a shared list's version before its shape ([b994024](https://github.com/misterhonk/fidelity/commit/b994024a481523f2b0c4334055a1f92c3fe27cea))
+* **sync:** filter preferences inside the merge, not only on write ([e7c7098](https://github.com/misterhonk/fidelity/commit/e7c7098ddad8066fb165480df82814a91467d79c))
+* **sync:** parse shared links, vault blocks and backups instead of casting ([cb1c3d4](https://github.com/misterhonk/fidelity/commit/cb1c3d4cc395ba62c9f34502fc867bda66e3ed23)), closes [#207](https://github.com/misterhonk/fidelity/issues/207)
+* **ui:** say how much of the storage estimate is data, not covers ([dca985e](https://github.com/misterhonk/fidelity/commit/dca985e748522f638110d929071b493e2b7697ad))
+* **ui:** say so where the browser gives no storage estimate ([d2ecfc0](https://github.com/misterhonk/fidelity/commit/d2ecfc04ae738b226a781a8d149a4d9630f00af3))
+
 ## [0.115.0](https://github.com/misterhonk/fidelity/compare/v0.114.1...v0.115.0) (2026-11-01)
 
 
