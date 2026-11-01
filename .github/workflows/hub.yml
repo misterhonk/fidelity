@@ -123,13 +123,21 @@ jobs:
         name: Schlüssel bereitlegen
         env:
           KEY: ${{ secrets.DEPLOY_KEY }}
-          HOST: ${{ secrets.DEPLOY_HOST }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' "$KEY" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
-          # Den Hostschlüssel einmal holen, statt die Prüfung abzuschalten.
-          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          # The host key is pinned in a secret, not fetched with ssh-keyscan:
+          # a scan trusts whoever answers at that address on the day of the
+          # run, which is the one thing the check is there to rule out (#209).
+          # Fill it once with `ssh-keyscan -H <host>` from a trusted machine.
+          if [ -z "$KNOWN_HOSTS" ]; then
+            echo "::error::DEPLOY_KNOWN_HOSTS is empty — refusing to trust an unpinned host key."
+            exit 1
+          fi
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
 
       # Der Trockenlauf beantwortet die Fragen, an denen dieser Aufbau
       # scheitern kann — jede einzeln, statt sie beim echten Lauf gemeinsam als
