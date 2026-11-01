@@ -232,7 +232,19 @@ export async function signOut({ force = false }: { force?: boolean } = {}): Prom
     const waiting = (await pendingJobs().catch(() => [])).length
     if (waiting > 0) throw fail('outbox-pending', `${waiting} changes not yet sent`)
   }
+  /*
+   * What lives outside this database goes first, while the database still
+   * says where it is: the hub's push address and the cloud grants. Each is
+   * bounded by a timeout and silent on failure (rule 8) — leaving must work offline.
+   */
+  const [{ disablePush }, { revokeCloudTokens }] = await Promise.all([
+    import('./watch/push'),
+    import('./vault/revoke'),
+  ])
+  await Promise.all([disablePush().catch(() => {}), revokeCloudTokens().catch(() => {})])
   await deleteFidelityDb()
+  // Covers are whose collection it was, too.
+  await globalThis.caches?.delete('fidelity-covers').catch(() => false)
   forgetSecrets()
   shared = undefined
 }

@@ -13,7 +13,7 @@ import type {
 } from '#shared/types'
 
 import { CLOCK_SKEW_MS } from '../horizon/revalidate'
-import { log } from '../log'
+import { log, registerSecret } from '../log'
 import { fail } from '../fail'
 import { sealedSchema } from '../vault/crypto'
 
@@ -259,6 +259,8 @@ export function createHubClient({
   const trimmed = baseUrl?.trim().replace(/\/+$/, '')
   if (!trimmed) return null
 
+  registerSecret(secret)
+  registerSecret(accessKey)
   const headers: Record<string, string> = { 'content-type': 'application/json' }
   if (secret) headers['x-hub-secret'] = secret
   // The second door (docs/17 §3.2). Both may travel: a self-hoster's hub

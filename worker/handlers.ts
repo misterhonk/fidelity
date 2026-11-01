@@ -14,6 +14,7 @@ import { alive, allFeedback, clearFeedback, feedbackVerdicts, recordFeedback } f
 import { bestPerRelease, topFive } from './match/select'
 import { computeTasteProfile } from './match/taste'
 import { fail } from './fail'
+import { registerSecret } from './log'
 import { onThisMachine } from './loopback'
 
 /**
@@ -955,10 +956,15 @@ export const handlers: HandlerMap = {
     return (await vault()).vaultStatus()
   },
 
-  'vault.sync': async ({ passphrase }) => (await vault()).runVaultSync(passphrase),
+  'vault.sync': async ({ passphrase }) => {
+    registerSecret(passphrase)
+    return (await vault()).runVaultSync(passphrase)
+  },
 
-  'vault.merge': async ({ passphrase, remote }) =>
-    (await vault()).mergeIntoVault(passphrase, remote),
+  'vault.merge': async ({ passphrase, remote }) => {
+    registerSecret(passphrase)
+    return (await vault()).mergeIntoVault(passphrase, remote)
+  },
 
   'dealer.discover': async (_params, { report, signal }) => {
     const { discoverDealers } = await import('./dealers/discover')
@@ -1332,6 +1338,8 @@ export const handlers: HandlerMap = {
   },
 
   'hub.check': async ({ url, secret, accessKey }) => {
+    registerSecret(secret)
+    registerSecret(accessKey)
     const base = url.trim().replace(/\/+$/, '')
     if (!base) throw fail('no-hub', 'hub: no url given')
 

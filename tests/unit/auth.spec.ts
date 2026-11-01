@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { getMeta, setMeta } from '~~/db/meta'
+import { getMeta, setMeta, updatePreferences } from '~~/db/meta'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import { queueJob } from '~~/db/outbox'
 import { currentIdentity, signIn, signOut } from '~~/worker/auth'
+import { redactString } from '~~/worker/log'
 
 /**
  * Sign-in, sign-out, and the token that must not leak.
@@ -261,5 +262,125 @@ describe('signing out with changes not yet sent', () => {
 
     expect(await getMeta('token')).toBeUndefined()
     spy.mockRestore()
+  })
+})
+
+/**
+ * What lives outside the database (#208): the hub's push address, the cloud
+ * grants and the cover cache. Deleting IndexedDB forgets where they are; it
+ * does not end them.
+ */
+describe('signing out leaves nothing behind', () => {
+  const DRIVE = {
+    accessToken: 'drive-access-xyz',
+    refreshToken: 'drive-refresh-xyz',
+    expiresAt: 1,
+  }
+  const DROPBOX = {
+    accessToken: 'dropbox-access-xyz',
+    refreshToken: 'dropbox-refresh-xyz',
+    expiresAt: Date.now() + 3_600_000,
+  }
+  const PUSH = { endpoint: 'https://push.example/abc', keys: { p256dh: 'p', auth: 'a' } }
+
+  function outside(body = '{}') {
+    const calls: { url: string; init: RequestInit | undefined }[] = []
+    globalThis.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      calls.push({ url: String(input), init })
+      return new Response(body, { status: 200 })
+    }) as typeof fetch
+    const deleted = vi.fn(async () => true)
+    vi.stubGlobal('caches', { delete: deleted })
+    return { calls, deleted }
+  }
+
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('deletes the cover cache', async () => {
+    const { deleted } = outside()
+    await signOut()
+    expect(deleted).toHaveBeenCalledWith('fidelity-covers')
+  })
+
+  it('unsubscribes this device at the hub', async () => {
+    await updatePreferences({ hubUrl: 'https://hub.test' })
+    await setMeta('pushRegistration', PUSH)
+    const { calls } = outside()
+
+    await signOut()
+
+    const call = calls.find((c) => c.url === 'https://hub.test/v1/watch/unsubscribe')
+    expect(JSON.parse(String(call?.init?.body))).toEqual({ endpoint: PUSH.endpoint })
+  })
+
+  it('revokes the Google refresh token in the body, not the address', async () => {
+    await setMeta('cloudTokens', { drive: DRIVE })
+    const { calls } = outside()
+
+    await signOut()
+
+    const call = calls.find((c) => c.url.startsWith('https://oauth2.googleapis.com/revoke'))
+    expect(call?.url).toBe('https://oauth2.googleapis.com/revoke')
+    expect(String(call?.init?.body)).toBe('token=drive-refresh-xyz')
+  })
+
+  it('revokes the Dropbox grant with its access token', async () => {
+    await setMeta('cloudTokens', { dropbox: DROPBOX })
+    const { calls } = outside()
+
+    await signOut()
+
+    const call = calls.find((c) => c.url === 'https://api.dropboxapi.com/2/auth/token/revoke')
+    expect(new Headers(call?.init?.headers).get('authorization')).toBe(
+      'Bearer dropbox-access-xyz',
+    )
+  })
+
+  it('renews an expired Dropbox token first, or the refresh token would survive', async () => {
+    await updatePreferences({ cloudClientIds: { dropbox: 'client-1' } })
+    await setMeta('cloudTokens', { dropbox: { ...DROPBOX, expiresAt: 1 } })
+    const { calls } = outside(JSON.stringify({ access_token: 'dropbox-fresh-xyz' }))
+
+    await signOut()
+
+    expect(calls.map((c) => c.url)).toEqual([
+      'https://api.dropboxapi.com/oauth2/token',
+      'https://api.dropboxapi.com/2/auth/token/revoke',
+    ])
+    expect(new Headers(calls[1]?.init?.headers).get('authorization')).toBe(
+      'Bearer dropbox-fresh-xyz',
+    )
+  })
+
+  it('still signs out when every one of them fails', async () => {
+    await updatePreferences({ hubUrl: 'https://hub.test' })
+    await setMeta('pushRegistration', PUSH)
+    await setMeta('cloudTokens', { drive: DRIVE, dropbox: DROPBOX })
+    await setMeta('token', 'a-pat-1234')
+    globalThis.fetch = vi.fn(async () => {
+      throw new TypeError('Failed to fetch')
+    }) as typeof fetch
+    vi.stubGlobal('caches', { delete: vi.fn(async () => Promise.reject(new Error('gone'))) })
+
+    await signOut()
+
+    expect(await getMeta('token')).toBeUndefined()
+    expect(await getMeta('cloudTokens')).toBeUndefined()
+  })
+
+  it('redacts the cloud tokens while revoking, and forgets them afterwards', async () => {
+    await setMeta('cloudTokens', { drive: DRIVE })
+    outside()
+    const seen: string[] = []
+    const answer = globalThis.fetch
+    globalThis.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      seen.push(redactString(`revoking ${DRIVE.refreshToken} ${DRIVE.accessToken}`))
+      return answer(input, init)
+    }) as typeof fetch
+
+    await signOut()
+
+    expect(seen[0]).toBe('revoking [redacted] [redacted]')
+    expect(redactString(DRIVE.refreshToken)).toBe(DRIVE.refreshToken)
   })
 })
