@@ -1094,10 +1094,11 @@ const noHorizon = computed(
       while the horizon is being built waits for it. Reported as "now, after 10
       minutes, the app starts scanning my first shop. A bit illogical": the
       order was right and nothing said so, which is what made it look wrong.
+      No live region: its counter moves every 1.2 s, and the build announces
+      its own tenths where it runs (#216).
     -->
     <p
       v-if="lane"
-      role="status"
       class="max-w-prose rounded-fid-sm border border-fid-border p-3 text-fid-sm text-fid-text-muted"
     >
       {{ d.lane }}
