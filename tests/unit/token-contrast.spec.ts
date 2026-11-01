@@ -192,13 +192,9 @@ describe('scarcity reads as a finding, not a warning', () => {
   })
 
   it('is used only where a signal is shown', () => {
-    const signalScreens = [
-      'components/MatchCard.vue',
-      'components/ReleaseSheet.vue',
-      'pages/in-store.vue',
-    ]
+    // Signal chips get their colour through app/utils/signals.ts, never from a class in a template.
     const borrowers = readdirSync('app', { recursive: true, encoding: 'utf8' })
-      .filter((file) => file.endsWith('.vue') && !signalScreens.includes(file))
+      .filter((file) => file.endsWith('.vue'))
       .filter((file) => readFileSync(`app/${file}`, 'utf8').includes('fid-sig-scarcity'))
     expect(borrowers).toEqual([])
   })
