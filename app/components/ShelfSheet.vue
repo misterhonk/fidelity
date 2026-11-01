@@ -441,8 +441,9 @@ async function remove() {
       <p
         v-if="undone.length > 0"
         role="status"
-        class="rounded-fid-sm bg-fid-sig-scarcity/10 px-3 py-2 text-fid-sm text-fid-sig-scarcity"
+        class="flex items-center gap-2 rounded-fid-sm bg-fid-error/10 px-3 py-2 text-fid-sm text-fid-error"
       >
+        <FidIcon name="circle-alert" :size="14" />
         {{ m.freshness.undone([...undone]) }}
       </p>
 
