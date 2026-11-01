@@ -1675,6 +1675,7 @@ const noHorizon = computed(
               }}
             </summary>
             <div class="mt-3 flex flex-col gap-4">
+              <DiscogsCredit :to="sellerPage(result.dig.dealer)" class="self-start" />
               <div v-for="part in comparisonParts" :key="part.key" class="flex flex-col gap-1">
                 <h4 class="fid-plate text-fid-text-muted">
                   {{ d.compare.heading(part.key, part.rows.length) }}
@@ -1714,6 +1715,12 @@ const noHorizon = computed(
           >
             {{ d.allFindsHeading }}
           </h3>
+          <!--
+            Once for the list, linked to the shop's page that shows these
+            listings: a credit on each of four hundred 34 px rows would be the
+            noisiest thing on the screen. Each card and each sheet carries its own.
+          -->
+          <DiscogsCredit :to="sellerPage(result.dig.dealer)" class="self-start" />
 
           <DigFilters
             :available="view.available.value"

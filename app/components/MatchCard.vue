@@ -338,6 +338,7 @@ const meta = computed(() => {
           }}
         </button>
       </div>
+      <DiscogsCredit :to="listingPage(match.listingId)" class="ml-auto" />
     </div>
   </article>
 </template>

@@ -87,8 +87,11 @@ const meta = computed(() =>
     </p>
     <p v-else-if="expired" class="text-fid-sm text-fid-text-muted">{{ d.expired }}</p>
 
-    <OutwardLink :to="`https://www.discogs.com/sell/item/${match.listingId}`" class="mt-auto">
-      {{ d.sheet.atDiscogs }}
-    </OutwardLink>
+    <p class="mt-auto flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      <OutwardLink :to="listingPage(match.listingId)">
+        {{ d.sheet.atDiscogs }}
+      </OutwardLink>
+      <DiscogsCredit :to="listingPage(match.listingId)" />
+    </p>
   </article>
 </template>

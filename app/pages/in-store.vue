@@ -573,6 +573,10 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
               </button>
             </li>
           </ul>
+          <DiscogsCredit
+            :to="releasePage(familyFor ?? identified.candidates[0]!.releaseId)"
+            class="self-start"
+          />
 
           <p v-if="reading" class="text-fid-sm text-fid-text-muted" aria-live="polite">
             {{ m.inStore.pressing.reading }}
@@ -728,6 +732,7 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
             <span v-if="hit.pressings !== null" class="fid-num">
               {{ m.inStore.pressings(hit.pressings) }}
             </span>
+            <DiscogsCredit :to="releasePage(hit.releaseId)" />
           </span>
         </li>
       </ul>
@@ -777,6 +782,7 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
               >
                 {{ money(match.price, match.currency) }}
               </span>
+              <DiscogsCredit :to="listingPage(match.listingId)" class="shrink-0" />
               <span class="truncate text-fid-xs text-fid-text-muted">{{
                 reasonFor(match.signals)
               }}</span>

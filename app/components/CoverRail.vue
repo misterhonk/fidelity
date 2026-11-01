@@ -17,6 +17,8 @@ defineProps<{
   to?: string
   /** Right-hand note: a count, a shop name, an age. */
   note?: string
+  /** The discogs.com page that shows these records, for the attribution (docs/09 §1.2). */
+  credit?: string
 }>()
 </script>
 
@@ -29,7 +31,10 @@ defineProps<{
         </NuxtLink>
         <template v-else>{{ title }}</template>
       </h2>
-      <p v-if="note" class="fid-num text-fid-xs text-fid-text-muted">{{ note }}</p>
+      <p v-if="note || credit" class="flex flex-wrap items-baseline gap-x-3">
+        <span v-if="note" class="fid-num text-fid-xs text-fid-text-muted">{{ note }}</span>
+        <DiscogsCredit v-if="credit" :to="credit" />
+      </p>
     </div>
 
     <!--

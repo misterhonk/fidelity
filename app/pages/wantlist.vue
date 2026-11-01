@@ -12,6 +12,7 @@ import { ORIGIN_FILTERS, readOrigin, type OriginFilter } from '#shared/countries
 import { useCollectionMessages } from '~/i18n/collection'
 
 const c = useCollectionMessages()
+const { identity } = useIdentity()
 useSeoMeta({
   title: () => c.value.tabs.wantlist,
   description: () => c.value.wantlist.description,
@@ -364,6 +365,7 @@ function waiting(addedAt: string): string | null {
           {{ c.wantlist.seenRecently(count(overview.seenRecently)) }}
         </template>
       </p>
+      <DiscogsCredit v-if="identity" :to="wantlistPage(identity.username)" class="self-start" />
 
       <!--
         Across the shops you scanned (M19 #9) — labelled as the subset it is.
@@ -463,6 +465,7 @@ function waiting(addedAt: string): string | null {
                 >
                   {{ shop.displayName }}
                 </NuxtLink>
+                <DiscogsCredit :to="sellerPage(shop.dealer)" />
                 <span class="fid-num text-fid-xs text-fid-text-muted">
                   {{
                     c.wantlist.plan.shopLine(

@@ -692,6 +692,7 @@ async function remove() {
           {{ c.shelf.sheet.atDiscogs }}
           <FidIcon name="external-link" :size="14" />
         </a>
+        <DiscogsCredit :to="releasePage(record.releaseId)" />
 
         <!--
             Where it stands — only where there are any places at all. An empty

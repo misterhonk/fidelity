@@ -211,6 +211,7 @@ const tiles = computed(() => {
           :title="m.home.lastFound"
           to="/dig"
           :note="`${home.dig.dealer} · ${digAge}`"
+          :credit="sellerPage(home.dig.dealer)"
         >
           <CoverTile
             v-for="(find, index) in home.finds"
@@ -275,6 +276,7 @@ const tiles = computed(() => {
           :title="m.home.newOnShelf"
           to="/shelf"
           :note="m.home.owned(count(home.library.collection))"
+          :credit="collectionPage(identity.username)"
         >
           <CoverTile
             v-for="(record, index) in home.shelf"
@@ -294,6 +296,7 @@ const tiles = computed(() => {
           :title="m.home.lastNoted"
           to="/wantlist"
           :note="m.home.wanted(count(home.library.wantlist))"
+          :credit="wantlistPage(identity.username)"
         >
           <CoverTile
             v-for="(record, index) in home.wanted"

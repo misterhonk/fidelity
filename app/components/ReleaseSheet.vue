@@ -706,6 +706,9 @@ function years(entry: { from: number; to: number }): string {
 
       <ReleaseFacts :detail="release" :tags="tags" />
 
+      <!-- The listing and the release both come from the API (docs/09 §1.2). -->
+      <DiscogsCredit v-if="match" :to="listingPage(match.listingId)" class="self-start" />
+
       <!--
         The row that has to stay reachable, at every width (M31.11).
 

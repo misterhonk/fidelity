@@ -1071,6 +1071,7 @@ const uid = useId()
       >
         {{ b.viewAtDiscogs(summary.displayName) }}
       </a>
+      <DiscogsCredit :to="sellerPage(summary.dealer)" class="self-start" />
     </div>
   </article>
 </template>
