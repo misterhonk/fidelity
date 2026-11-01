@@ -25,6 +25,11 @@ const storage = computed(() => {
   if (s?.usageBytes == null || s.quotaBytes == null) return null
   return st.value.data.storageLine(size(s.usageBytes), size(s.quotaBytes))
 })
+// The total alone disagrees with settings/account.vue, which shows the data without the covers.
+const storageHint = computed(() => {
+  const data = stats.value?.dataBytes
+  return storage.value && data != null ? st.value.data.storageHint(size(data)) : null
+})
 </script>
 
 <template>
@@ -37,6 +42,9 @@ const storage = computed(() => {
       data-testid="storage-estimate"
     >
       {{ st.data.storage }}: {{ storage }}
+    </p>
+    <p v-if="storageHint" class="text-fid-sm text-fid-text-muted" data-testid="storage-hint">
+      {{ storageHint }}
     </p>
 
     <!--
