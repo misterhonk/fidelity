@@ -33,11 +33,19 @@ const { call } = useFidelityWorker()
  * Dark by default (#225): a shop is dim and a white screen glares across the
  * racks. A theme picked in the settings still wins.
  */
-const { preference } = useTheme()
+const { preference, resolved: theme } = useTheme()
+const dim = computed(() => preference.value === 'system')
 useHead({
   htmlAttrs: {
-    style: computed(() => (preference.value === 'system' ? 'color-scheme: dark' : undefined)),
+    style: computed(() => (dim.value ? 'color-scheme: dark' : undefined)),
   },
+  // The status bar of an installed app goes dark with the screen (app.vue sets it otherwise).
+  meta: [
+    {
+      name: 'theme-color',
+      content: computed(() => THEME_COLORS[dim.value ? 'dark' : theme.value]),
+    },
+  ],
 })
 /** Flipping crates, the screen stays on (#198). */
 useWakeLock(() => true)
