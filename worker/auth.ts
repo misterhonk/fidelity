@@ -237,11 +237,11 @@ export async function signOut({ force = false }: { force?: boolean } = {}): Prom
    * says where it is: the hub's push address and the cloud grants. Each is
    * bounded by a timeout and silent on failure (rule 8) — leaving must work offline.
    */
-  const [{ disablePush }, { revokeCloudTokens }] = await Promise.all([
-    import('./watch/push'),
-    import('./vault/revoke'),
+  // A chunk that fails to load is just another failure here — the database still goes.
+  await Promise.all([
+    import('./watch/push').then((m) => m.disablePush()).catch(() => {}),
+    import('./vault/revoke').then((m) => m.revokeCloudTokens()).catch(() => {}),
   ])
-  await Promise.all([disablePush().catch(() => {}), revokeCloudTokens().catch(() => {})])
   await deleteFidelityDb()
   // Covers are whose collection it was, too.
   await globalThis.caches?.delete('fidelity-covers').catch(() => false)
