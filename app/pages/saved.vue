@@ -256,6 +256,7 @@ async function check() {
               {{ group.records.length }}
             </span>
           </h2>
+          <DiscogsCredit v-if="group.dealer" :to="sellerPage(group.dealer)" />
 
           <!--
             The whole shop at once, because postage is per shipment and that is

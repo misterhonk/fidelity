@@ -92,6 +92,7 @@ const more = computed(() => rows.value.length < total.value)
       <p class="fid-num text-fid-xs text-fid-text-muted">
         {{ h.stock.counted(count(rows.length), count(total)) }}
         <template v-if="scannedAt"> · {{ since(scannedAt) }}</template>
+        · <DiscogsCredit :to="sellerPage(dealer)" />
       </p>
 
       <ul class="flex flex-col gap-1">
@@ -100,11 +101,7 @@ const more = computed(() => rows.value.length < total.value)
           :key="row.listingId"
           class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-fid-border/50 pb-1 text-fid-sm last:border-0"
         >
-          <OutwardLink
-            class="min-w-0 grow"
-            tone="inherit"
-            :to="`https://www.discogs.com/sell/item/${row.listingId}`"
-          >
+          <OutwardLink class="min-w-0 grow" tone="inherit" :to="listingPage(row.listingId)">
             {{ row.artist }}<template v-if="row.artist && row.title"> – </template
             >{{ row.title }}
           </OutwardLink>

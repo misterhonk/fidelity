@@ -177,9 +177,12 @@ const fresh = computed(() => snapshot.value?.expiresAt !== undefined && !passed.
             >
           </p>
 
-          <OutwardLink :to="`https://www.discogs.com/sell/item/${match.listingId}`">
-            {{ d.sheet.atDiscogs }}
-          </OutwardLink>
+          <p class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <OutwardLink :to="listingPage(match.listingId)">
+              {{ d.sheet.atDiscogs }}
+            </OutwardLink>
+            <DiscogsCredit :to="listingPage(match.listingId)" />
+          </p>
         </li>
       </ul>
 

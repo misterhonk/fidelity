@@ -6,6 +6,7 @@ import type { PlaceNode, ShelfSort, ShelfView, SortDirection } from '#shared/typ
 import { useCollectionMessages } from '~/i18n/collection'
 
 const c = useCollectionMessages()
+const { identity } = useIdentity()
 useSeoMeta({ title: () => c.value.title, description: () => c.value.shelf.description })
 
 const { call } = useFidelityWorker()
@@ -291,6 +292,7 @@ const walk = computed(() => {
             )
           }}
         </p>
+        <DiscogsCredit v-if="identity" :to="collectionPage(identity.username)" />
 
         <!-- A plate, not a button (M28 #7): maintenance must not compete with the covers. -->
         <p class="fid-plate ml-auto flex shrink-0 items-center gap-4 text-fid-text-muted">

@@ -203,6 +203,7 @@ useWalkKeys((to) =>
       >
         {{ c.shelf.sheet.atDiscogs }}
       </OutwardLink>
+      <DiscogsCredit :to="releasePage(record.releaseId)" />
     </div>
   </SheetFrame>
 </template>

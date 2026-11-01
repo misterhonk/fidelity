@@ -255,13 +255,10 @@ watch(
             notices, the return policy. `/seller/{u}/profile`, not `/user/{u}`:
             the first is the shop.
           -->
-          <OutwardLink
-            tone="inherit"
-            class="text-fid-sm"
-            :to="`https://www.discogs.com/seller/${encodeURIComponent(dealer.username)}/profile`"
-          >
+          <OutwardLink tone="inherit" class="text-fid-sm" :to="sellerPage(dealer.username)">
             {{ h.atDiscogs }}
           </OutwardLink>
+          <DiscogsCredit :to="sellerPage(dealer.username)" />
           <button
             type="button"
             class="fid-action fid-plate min-h-11 text-fid-text-muted transition-colors hover:text-fid-text"
