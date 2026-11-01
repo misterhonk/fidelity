@@ -89,8 +89,9 @@ export function computeTasteProfile(items: CollectionItem[], now: number): Taste
     // Year 0 means Discogs does not know, which is not the same as "the
     // zeroth decade" — counting it would put a phantom bar on the map.
     if (item.year > 0) {
-      const decade = Math.floor(item.year / 10) * 10
-      decades.push({ key: String(decade), name: `${decade}er` })
+      // The name stays a number: the language pack says "1990s" or "1990er".
+      const decade = String(Math.floor(item.year / 10) * 10)
+      decades.push({ key: decade, name: decade })
     }
   }
 

@@ -73,7 +73,9 @@ function withLift(key: string, facet: TasteFacet, lift?: Record<string, number>)
 const decades = computed(() =>
   Object.entries(profile.value?.decades ?? {})
     .sort(([a], [b]) => Number(a) - Number(b))
-    .map(([key, facet]) => withLift(key, facet, compared.value?.decades)),
+    .map(([key, facet]) => withLift(key, facet, compared.value?.decades))
+    // Older profiles stored "1990er" as the name; the number in front is what counts.
+    .map((facet) => ({ ...facet, name: m.value.decade(Number.parseInt(facet.name, 10)) })),
 )
 </script>
 

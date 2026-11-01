@@ -66,6 +66,8 @@ test('opens on the latest year and switches to an earlier one', async ({ page })
     page.getByText('The oldest pressing to arrive: Herbie Hancock – Maiden Voyage, 1965.'),
   ).toBeVisible()
   await expect(page.getByText('No dig that year.')).toBeVisible()
+  // A decade reads as English does, not "1960er" (#190).
+  await expect(page.getByText('1960s', { exact: true })).toBeVisible()
 
   await chips.getByRole('button', { name: '2019' }).click()
   await expect(page).toHaveURL(/year=2019/)
@@ -80,4 +82,5 @@ test('is the first year, and says so, when there is only one', async ({ page }) 
   await expect(page.getByRole('group', { name: 'Welches Jahr' })).toHaveCount(0)
   await expect(page.getByText('2 Platten kamen 2024 dazu.')).toBeVisible()
   await expect(page.getByText('Das erste Jahr im Regal.')).toBeVisible()
+  await expect(page.getByText('1960er', { exact: true })).toBeVisible()
 })

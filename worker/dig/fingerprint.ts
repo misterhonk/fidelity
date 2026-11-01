@@ -31,7 +31,8 @@ export class FingerprintAccumulator {
 
     // Year 0 means Discogs does not know, which is not a decade.
     if (listing.year && listing.year > 1880) {
-      const decade = `${Math.floor(listing.year / 10) * 10}er`
+      // A number as the key; the language pack labels it.
+      const decade = String(Math.floor(listing.year / 10) * 10)
       this.#decades.set(decade, (this.#decades.get(decade) ?? 0) + 1)
     }
 

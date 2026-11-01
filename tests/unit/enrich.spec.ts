@@ -477,8 +477,8 @@ describe('the dealer fingerprint', () => {
     expect(print.sampledItems).toBe(3)
     expect(print.coverage).toBeCloseTo(0.01)
     expect(print.labelDist['Border Community']).toBe(2)
-    expect(print.decadeDist['2000er']).toBe(2)
-    expect(print.decadeDist['1990er']).toBe(1)
+    expect(print.decadeDist['2000']).toBe(2)
+    expect(print.decadeDist['1990']).toBe(1)
     expect(print.medianPrice).toBe(20)
   })
 
