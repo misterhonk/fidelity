@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { signIn } from './seed'
+
 /**
  * Settings as an index rather than a stack.
  *
@@ -43,5 +45,17 @@ test.describe('settings', () => {
   test('the index is reachable and names itself', async ({ page }) => {
     await page.goto('/settings')
     await expect(page.getByRole('heading', { level: 1, name: 'Settings' })).toBeVisible()
+  })
+
+  /** English numbers on an English screen: 3,000, not 3.000 (#190). */
+  test('your data writes its figures in English', async ({ page }) => {
+    await signIn(page)
+    await page.goto('/settings/data')
+    // The header pulse carries the same table; this is the one on the page.
+    const main = page.getByRole('main')
+    await main.getByText('What takes how long').click()
+    await expect(main.getByText('A dig, 3,000 listings')).toBeVisible()
+    await expect(main.getByText('1.2 s')).toBeVisible()
+    await expect(page.getByText('3.000')).toHaveCount(0)
   })
 })

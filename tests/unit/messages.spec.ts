@@ -90,7 +90,15 @@ describe.each(Object.entries(AREAS))('the German %s pack', (_area, pack) => {
       // the point of a probe, and JavaScript does not mind.
       const call = (fn: unknown) => String((fn as (...args: unknown[]) => string)(PROBE))
 
-      if (!call(value).includes(String(PROBE))) continue
+      // One that takes formatters (`limit.costRows`) cannot take a number at
+      // all; it has its own test below.
+      let english: string
+      try {
+        english = call(value)
+      } catch {
+        continue
+      }
+      if (!english.includes(String(PROBE))) continue
       expect(call(translated), `${key} drops its number`).toContain(String(PROBE))
     }
   })
@@ -101,6 +109,37 @@ describe('the locale each language formats with', () => {
     for (const pack of [en, de] as Messages[]) {
       expect(Intl.NumberFormat.supportedLocalesOf(pack.meta.locale)).toEqual([pack.meta.locale])
     }
+  })
+})
+
+/**
+ * The worker counts decades as numbers; only the pack says how a decade reads.
+ * "1990er" on an English screen was the leak (#190).
+ */
+describe('a decade, per language', () => {
+  it('reads 1990s in English and 1990er in German', () => {
+    expect(en.decade(1990)).toBe('1990s')
+    expect(de.decade(1990)).toBe('1990er')
+  })
+})
+
+/** What a dig costs, with the numbers formatted for the language reading them. */
+describe('the cost table', () => {
+  const count = (locale: string) => (n: number) => new Intl.NumberFormat(locale).format(n)
+  const decimal = (locale: string) => (n: number) =>
+    new Intl.NumberFormat(locale, { minimumFractionDigits: 1 }).format(n)
+
+  it('writes English numbers in English', () => {
+    const rows = en.limit.costRows(count(en.meta.locale), decimal(en.meta.locale)).flat()
+    expect(rows).toContain('A dig, 3,000 listings')
+    expect(rows).toContain('1.2 s')
+    expect(rows.join(' ')).not.toMatch(/\d\.\d{3}|\d,\d s/)
+  })
+
+  it('writes German numbers in German', () => {
+    const rows = de.limit.costRows(count(de.meta.locale), decimal(de.meta.locale)).flat()
+    expect(rows).toContain('Ein Dig, 3.000 Angebote')
+    expect(rows).toContain('1,2 Sek')
   })
 })
 
