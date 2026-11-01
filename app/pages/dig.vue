@@ -672,6 +672,9 @@ onBeforeUnmount(() => {
   if (throttleTimer !== null) clearInterval(throttleTimer)
 })
 
+/** The phone stays awake while a scan runs (#198). */
+useWakeLock(() => progress.value !== null || scanningDealer.value !== null)
+
 /**
  * A shop whose stock has not moved since the last dig (M32.4).
  *

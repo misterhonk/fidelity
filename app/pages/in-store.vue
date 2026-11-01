@@ -22,6 +22,8 @@ useSeoMeta({
 })
 
 const { call } = useFidelityWorker()
+/** Flipping crates, the screen stays on (#198). */
+useWakeLock(() => true)
 const { online } = useOnline()
 const { verdicts, judge, failure: judgeFailure, load: loadFeedback } = useFeedback()
 const { contains, toggle, failure: basketFailure, load: loadBasket } = useBasket()
