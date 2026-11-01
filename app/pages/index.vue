@@ -124,7 +124,7 @@ const pricesGone = computed(() => {
  * record and landing on a website was the app sending somebody away from the
  * one screen that knew more.
  */
-const openInstance = ref<number | null>(null)
+const openInstance = useOpenInQuery('record', asId)
 
 const tiles = computed(() => {
   const summary = home.value?.library
@@ -168,6 +168,7 @@ const tiles = computed(() => {
           type="button"
           class="flex w-full max-w-md items-center gap-3 rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-left text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
           aria-haspopup="dialog"
+          aria-keyshortcuts="Meta+K Control+K"
           @click="paletteOpen = true"
         >
           <FidIcon name="search" :size="16" aria-hidden="true" />

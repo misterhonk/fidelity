@@ -892,6 +892,7 @@ const en = {
     numForSale: 'for sale',
   },
   close: 'Close',
+  skipToContent: 'Skip to content',
   cancel: 'Cancel',
   mainReleases: (n: string) => `${n} main releases`,
   /** The worker counts decades as numbers (1990); this is how one reads. */

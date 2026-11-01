@@ -735,6 +735,16 @@ const en = {
         'If we say we cannot reach Discogs although you are online, the lookup budget is usually spent for the moment. Waiting a few minutes helps.',
       ],
     },
+    {
+      title: 'Keyboard shortcuts',
+      body: [
+        'The first Tab on any screen offers "Skip to content", past the navigation.',
+        '⌘K, or Ctrl+K away from a Mac, searches everything: records, shops, screens.',
+        'On a dig, / jumps to the search field and j opens the first find. In an open record, j or → goes to the next one, k or ← to the one before. Escape closes it, and so does Back.',
+        'On the shops screen, j and k walk the list of shops. In the stack, ← and → move between records.',
+        'On a shelf wall, the arrow keys move between compartments, Home and End go to the first and last, a letter jumps to the compartment it is filed under, and M moves everything in one somewhere else.',
+      ],
+    },
   ],
 
   /**
@@ -1268,6 +1278,16 @@ const de: typeof en = {
       body: [
         'Unter „Deine Daten" kannst du alles exportieren oder alles löschen. Löschen entfernt auch den Token; danach ist das Gerät leer und du kannst von vorne anfangen. Verloren geht dabei nichts, was sich nicht von Discogs neu holen ließe.',
         'Sagen wir, wir kommen nicht an Discogs ran, obwohl du online bist, ist meist das Anfragebudget für den Moment aufgebraucht. Ein paar Minuten warten hilft.',
+      ],
+    },
+    {
+      title: 'Tastenkürzel',
+      body: [
+        'Das erste Tab auf jedem Bildschirm bietet „Zum Inhalt springen" an. Damit bist du an der Navigation vorbei.',
+        '⌘K, oder Strg+K ohne Mac, sucht überall: Platten, Läden, Bildschirme.',
+        'In einem Dig springt / ins Suchfeld und j öffnet den ersten Fund. In einer offenen Platte geht j oder → zur nächsten, k oder ← zur vorigen. Escape schließt sie, Zurück auch.',
+        'Bei den Läden gehen j und k durch die Liste. Im Stapel wechseln ← und → die Platte.',
+        'An einer Regalwand wandern die Pfeiltasten von Fach zu Fach. Pos1 und Ende springen zum ersten und letzten, ein Buchstabe zu dem Fach, unter dem er steht, und M räumt ein Fach komplett um.',
       ],
     },
   ],

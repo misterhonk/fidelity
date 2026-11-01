@@ -338,6 +338,7 @@ function years(entry: { from: number; to: number }): string {
         :aria-label="d.sheet.previous"
         :title="d.sheet.previous"
         class="fid-lift flex min-h-11 min-w-11 items-center justify-center fid-field-raised text-fid-text disabled:opacity-40"
+        aria-keyshortcuts="k ArrowLeft"
         @click="step(walk.previous)"
       >
         <FidIcon name="arrow-left" :size="20" aria-hidden="true" />
@@ -351,6 +352,7 @@ function years(entry: { from: number; to: number }): string {
         :aria-label="d.sheet.next"
         :title="d.sheet.next"
         class="fid-lift flex min-h-11 min-w-11 items-center justify-center fid-field-raised text-fid-text disabled:opacity-40"
+        aria-keyshortcuts="j ArrowRight"
         @click="step(walk.next)"
       >
         <FidIcon name="arrow-right" :size="20" aria-hidden="true" />

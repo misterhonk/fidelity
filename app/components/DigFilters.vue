@@ -90,6 +90,7 @@ const densityTabs = computed(() => DENSITIES.map((key) => ({ key, label: f.value
       spellcheck="false"
       :placeholder="f.searchPlaceholder"
       :aria-label="f.search"
+      aria-keyshortcuts="/"
       class="fid-field px-3 py-2 text-fid-sm text-fid-text"
       @input="emit('setQuery', ($event.target as HTMLInputElement).value)"
     />

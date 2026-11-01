@@ -34,14 +34,33 @@ const panel = useTemplateRef<HTMLElement>('panel')
 /** Whatever had focus when the sheet opened, to hand it back on close. */
 let opener: HTMLElement | null = null
 
+/**
+ * Everything beside the sheet, made `inert` while it is open (#227).
+ *
+ * `aria-modal` is a request a screen reader may ignore, and the focus trap
+ * only guards Tab: the rotor, a swipe through the page and Find still walked
+ * the list behind the scrim. Every sibling on the way up to `<body>` is
+ * switched off; only the ones this sheet switched are switched back, so a
+ * second sheet on top of the first undoes its own and nothing else.
+ */
+const madeInert: HTMLElement[] = []
+
 onMounted(() => {
   opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
+  for (let at = panel.value?.parentElement; at && at !== document.body; at = at.parentElement) {
+    for (const sibling of at.parentElement?.children ?? []) {
+      if (sibling === at || !(sibling instanceof HTMLElement) || sibling.inert) continue
+      sibling.inert = true
+      madeInert.push(sibling)
+    }
+  }
   panel.value?.focus()
   document.addEventListener('keydown', onEscapeAnywhere)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', onEscapeAnywhere)
+  for (const element of madeInert) element.inert = false
   if (opener?.isConnected) opener.focus()
 })
 
@@ -143,6 +162,7 @@ function onKeydown(event: KeyboardEvent) {
           <button
             type="button"
             :aria-label="m.close"
+            aria-keyshortcuts="Escape"
             class="fid-lift flex min-h-11 min-w-11 items-center justify-center fid-field-raised text-fid-base text-fid-text"
             @click="emit('close')"
           >

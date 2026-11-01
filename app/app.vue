@@ -153,6 +153,20 @@ watch(
   { immediate: true },
 )
 
+/**
+ * The skip link (#227, WCAG 2.4.1): past the nav bar to the screen itself.
+ *
+ * Focus, not a fragment: every screen has one `<main>` but no shared id, and
+ * `#main` in the address would be one more entry for Back to walk through.
+ */
+const m = useMessages()
+function skipToMain() {
+  const main = document.querySelector('main')
+  if (!main) return
+  main.tabIndex = -1
+  main.focus()
+}
+
 function onKeydown(event: KeyboardEvent) {
   if (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)) {
     event.preventDefault()
@@ -192,6 +206,12 @@ onBeforeUnmount(() => {
 
 <template>
   <NuxtRouteAnnouncer />
+  <a
+    href="#main"
+    class="sr-only z-50 rounded-fid-sm bg-fid-surface px-4 py-3 text-fid-sm font-bold text-fid-text focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+    @click.prevent="skipToMain"
+    >{{ m.skipToContent }}</a
+  >
   <!--
     The bottom padding belongs on the shell, not on each page: the nav bar is
     fixed on phones and the footer sits outside <main>, so padding the pages
