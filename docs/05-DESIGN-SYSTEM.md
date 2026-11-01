@@ -151,11 +151,11 @@ wrong:
 
 **Decision (Martin, 2026-11-01): Switzer and Cabinet Grotesk stay.** What follows from it:
 
-- The GitHub repository goes **private** — the owner switches that himself. A public
-  repository with the files in `app/assets/fonts/` is exactly the redistribution the
-  licence rules out.
+- The GitHub repository is **public** again since 2026-11-01, with the files in
+  `app/assets/fonts/` — exactly the redistribution the licence rules out. How that is
+  resolved is open in [#201](https://github.com/misterhonk/fidelity/issues/201).
 - **Open for the owner:** two more places hand the files out publicly and must become
-  private too, or be built without the font files — the **release archive**
+  private, or be built without the font files — the **release archive**
   (`.github/workflows/release.yml` attaches `fidelity-<tag>.zip`, built from
   `.output/public`, to a GitHub release) and the **container images** on GHCR
   (`images.yml`, which copy the same `.output/public`). Serving the fonts from the app's own

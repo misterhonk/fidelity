@@ -63,7 +63,7 @@ An honest placing (as of August 2026, researched):
 
 | Tool | What it does | Alive? | What it lacks |
 |---|---|---|---|
-| **Discogs Enhancer** (browser ext.) | 60+ features: sorting including postage, currency conversion, collection indicators | ✅ very active, 10k+ users, €3–10/year | No recommendations, no inventory matching |
+| **Discogs Enhancer** (browser ext.) | 60+ features: sorting including postage, currency conversion, collection indicators | ✅ very active, 10k+ users, $3/mo · $10/yr · $50 lifetime | No recommendations, no inventory matching |
 | **Waxrunner** | Constraint solver: the best combination of wantlist × dealer | ✅ (HN, Aug 2026) | **Wantlist only**, no taste profile |
 | **milkcrate.fm** | Dealer storefronts, "crates", genre bins | ✅ (HN, Jun 2026) | **No personalisation** |
 | **recordsv.lt** | Pressing insights, contributor networks from your collection | ✅ (HN, Mar 2026) | **No marketplace connection** – it does not say what to buy |
