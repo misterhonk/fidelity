@@ -365,9 +365,11 @@ Covers therefore come from a store of their own (`db/covers.ts`):
   `cover_image`, so a synced shelf supplies a few thousand covers without a single extra
   request;
 - **one request each** to `/releases/{id}` for everything else, and only for tiles that
-  actually scroll into view, capped at 120 per visit;
-- **shared**, when a hub is configured (`13-HUB-ADDON.md`) — a cover is the same for
-  everybody and never changes.
+  actually scroll into view, capped at 120 per visit.
+
+Covers are **not shared through a hub** (#206): release images are Restricted Data under
+the API terms, and a hub handing them to every member would be redistributing them. Each
+device finds its own.
 
 Even nothing is stored: "Discogs has no image for this release" is worth as much as an image
 and costs the same request to find out.
