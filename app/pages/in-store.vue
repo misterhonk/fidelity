@@ -304,6 +304,29 @@ onMounted(async () => {
 
 watch(chosen, () => void loadShown())
 
+/*
+ * ToTop and the toasts float above the tab bar — where this screen's field
+ * sits. Raise them over it, by however tall the bar is right now (the camera
+ * makes it taller).
+ */
+const bar = useTemplateRef<HTMLElement>('bar')
+let barSize: ResizeObserver | undefined
+watch(bar, (element) => {
+  barSize?.disconnect()
+  if (!element) return
+  barSize = new ResizeObserver(() =>
+    document.documentElement.style.setProperty(
+      '--fid-float-bottom',
+      `calc(env(safe-area-inset-bottom) + 5.5rem + ${element.offsetHeight}px)`,
+    ),
+  )
+  barSize.observe(element)
+})
+onBeforeUnmount(() => {
+  barSize?.disconnect()
+  document.documentElement.style.removeProperty('--fid-float-bottom')
+})
+
 /**
  * Everything, by score, with the shortlist folded in.
  *
@@ -868,6 +891,7 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
       <!-- What the fixed bar would otherwise cover at the end of the list. -->
       <div class="h-32 md:hidden" aria-hidden="true" />
       <div
+        ref="bar"
         class="z-10 flex flex-col gap-2 border-t border-fid-border bg-fid-bg/95 px-4 py-3 backdrop-blur max-md:fixed max-md:inset-x-0 max-md:bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] md:sticky md:bottom-0 md:-mx-4"
         data-testid="in-store-field"
       >

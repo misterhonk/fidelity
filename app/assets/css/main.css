@@ -46,6 +46,8 @@
  * change is one file again and not thirty.
  */
 :root {
+  /* Where ToTop and the toasts float on a phone: above the tab bar. */
+  --fid-float-bottom: calc(env(safe-area-inset-bottom) + 5.5rem);
   /* Array is narrow like the stamping on a record spine. */
   --fid-font-sans: 'Switzer', ui-sans-serif, system-ui, sans-serif;
   --fid-font-mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -486,8 +488,9 @@ body {
  * The undo line after hiding or removing something (2026-10-21). Four pages
  * carried this as one long class string and had to be edited in step; on a
  * phone it sits above the tab bar and leaves room for ToTop on the right —
- * the 5.5rem is the same offset ToTop.vue uses.
+ * both read --fid-float-bottom, which a page with a bar of its own above the
+ * tab bar raises (the in-store field, #225).
  */
 @utility fid-toast {
-  @apply fixed left-4 z-30 flex flex-wrap items-center gap-3 rounded-fid-sm border border-fid-border bg-fid-surface px-4 py-2 text-fid-sm text-fid-text shadow-lg max-md:right-20 max-md:bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] md:bottom-4;
+  @apply fixed left-4 z-30 flex flex-wrap items-center gap-3 rounded-fid-sm border border-fid-border bg-fid-surface px-4 py-2 text-fid-sm text-fid-text shadow-lg max-md:right-20 max-md:bottom-(--fid-float-bottom) md:bottom-4;
 }
