@@ -460,6 +460,8 @@ async function remove() {
             : null
         "
         :title="record.title"
+        :label="record.labelNames[0]"
+        :catno="record.catnos[0]"
       >
         <template #artist>
           <template

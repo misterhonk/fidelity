@@ -355,23 +355,13 @@ watch(
             :title="`${record.artist} – ${record.title} · ${record.label}`"
             :aria-label="`${record.artist} – ${record.title} · ${record.label}`"
           >
-            <img
-              v-if="coverFor(record.releaseId, null)"
-              :src="coverFor(record.releaseId, null)!.thumbUrl"
-              alt=""
-              loading="lazy"
-              decoding="async"
+            <LabelSleeve
+              :src="coverFor(record.releaseId, null)?.thumbUrl"
+              :label="record.label"
               width="150"
               height="150"
               class="size-full object-cover"
             />
-            <span
-              v-else
-              class="flex size-full items-center justify-center text-fid-text-muted"
-              aria-hidden="true"
-            >
-              <FidIcon name="record" :size="28" />
-            </span>
           </NuxtLink>
         </li>
       </ul>

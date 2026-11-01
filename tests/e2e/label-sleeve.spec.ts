@@ -38,3 +38,21 @@ test('finds without a cover show a sleeve in their label colour', async ({ page 
   )
   expect(broken).toBe(0)
 })
+
+/**
+ * And a cover that fails to load is a sleeve too, on every screen that shows
+ * one, not the browser's broken-image glyph (#220). The seeded wantlist entry
+ * has a cover URL; here i.discogs.com refuses it, as a Cloudflare 429 would.
+ */
+test('a cover that fails to load falls back to the sleeve', async ({ page, context }) => {
+  await context.route('https://i.discogs.com/**', (route) => route.abort())
+  await seed(page, 'en')
+  await page.goto('/wantlist')
+  await expect(page.getByText('Sound-Dust')).toBeVisible()
+
+  await expect(page.getByTestId('label-sleeve').first()).toBeVisible()
+  const broken = await page.evaluate(
+    () => [...document.images].filter((img) => img.complete && img.naturalWidth === 0).length,
+  )
+  expect(broken).toBe(0)
+})

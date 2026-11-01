@@ -68,7 +68,7 @@ describe.each([['the masthead', MASTHEAD]])('%s', (_name, source) => {
    * line.
    */
   it('shows the cover, and falls back to the thumb only when there is none', () => {
-    expect(withoutComments(source)).toMatch(/:src="\w+\.coverUrl \|\| \w+\.thumbUrl"/)
+    expect(withoutComments(source)).toMatch(/:src="\w+\??\.coverUrl \|\| \w+\??\.thumbUrl"/)
   })
 
   /**
@@ -80,7 +80,9 @@ describe.each([['the masthead', MASTHEAD]])('%s', (_name, source) => {
    * that.
    */
   it('still waits to be scrolled into view', () => {
-    expect(withoutComments(source)).toMatch(/loading="lazy"/)
+    // The <img> lives in LabelSleeve since #220; the masthead only hands it the src.
+    expect(withoutComments(source)).toMatch(/<LabelSleeve/)
+    expect(readFileSync('app/components/LabelSleeve.vue', 'utf8')).toMatch(/loading="lazy"/)
   })
 })
 

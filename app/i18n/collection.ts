@@ -638,7 +638,6 @@ const en = {
   shelfCount: (shown: string, of: string | null, records: string) =>
     of === null ? `${shown} ${records}` : `${shown} of ${of} ${records}`,
   records: 'records',
-  noCover: 'no cover',
   open: (artist: string, title: string) => `Open ${artist} — ${title}`,
   showMore: (n: string) => `Show ${n} more`,
   howMuchLeft: 'How much is still out there',
@@ -1105,7 +1104,6 @@ const de: typeof en = {
   shelfCount: (shown: string, of: string | null, records: string) =>
     of === null ? `${shown} ${records}` : `${shown} von ${of} ${records}`,
   records: 'Platten',
-  noCover: 'kein Cover',
   open: (artist, title) => `${artist} – ${title} öffnen`,
   showMore: (n: string) => `Weitere ${n} zeigen`,
   howMuchLeft: 'Wie viel es noch gibt',

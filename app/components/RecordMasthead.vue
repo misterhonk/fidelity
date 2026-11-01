@@ -29,34 +29,23 @@ defineProps<{
   title: string | null
   /** Plain text; the `artist` slot wins where it has to be a link. */
   artist?: string | null
+  /** Printed on the sleeve when there is no cover (#220). */
+  label?: string | null
+  catno?: string | null
 }>()
 </script>
 
 <template>
   <div class="relative -mx-6 shrink-0 border-b border-fid-border px-6 pb-6">
     <div class="flex flex-col gap-5 sm:flex-row sm:flex-wrap sm:items-end">
-      <img
-        v-if="cover"
-        :src="cover.coverUrl || cover.thumbUrl"
-        alt=""
-        loading="lazy"
-        decoding="async"
+      <LabelSleeve
+        :src="cover?.coverUrl || cover?.thumbUrl"
+        :label="label"
+        :catno="catno"
         width="600"
         height="600"
         class="aspect-square w-full shrink-0 rounded-fid-cover bg-fid-inset object-cover sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80"
       />
-      <!--
-        And a sleeve-shaped hole where there is no sleeve. The masthead is a
-        composition of two things; with one of them simply absent the type
-        floats in an empty field and the head reads as broken rather than bare.
-      -->
-      <div
-        v-else
-        class="flex aspect-square w-full shrink-0 items-center justify-center rounded-fid-cover bg-fid-inset text-fid-text-muted sm:size-56 sm:w-56 lg:size-72 lg:w-72 xl:size-80 xl:w-80"
-        aria-hidden="true"
-      >
-        <FidIcon name="record" :size="56" />
-      </div>
 
       <div class="flex min-w-0 grow flex-col gap-4 sm:basis-64">
         <div class="flex min-w-0 flex-col gap-1">

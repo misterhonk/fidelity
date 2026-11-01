@@ -193,13 +193,10 @@ function onKey(event: KeyboardEvent, index: number) {
           "records live here" at a glance; the count says how many.
         -->
         <span class="flex h-6 gap-px">
-          <img
+          <LabelSleeve
             v-for="cover in cube.covers"
             :key="cover"
             :src="cover"
-            alt=""
-            loading="lazy"
-            decoding="async"
             width="24"
             height="24"
             class="size-6 rounded-fid-cover bg-fid-inset object-cover"

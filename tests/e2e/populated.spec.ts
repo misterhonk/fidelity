@@ -60,7 +60,14 @@ test.describe('a device that has been used', () => {
    * with records that no test had ever rendered with data in it. Everything
    * else got translated because something drew it.
    */
-  test('the wantlist shows what is wanted, with its sleeve', async ({ page }) => {
+  test('the wantlist shows what is wanted, with its sleeve', async ({ page, context }) => {
+    // A cover that loads; a failing one now falls back to the label sleeve (#220).
+    await context.route('https://i.discogs.com/**', (route) =>
+      route.fulfill({
+        contentType: 'image/svg+xml',
+        body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>',
+      }),
+    )
     await seed(page, 'en')
     await page.goto('/wantlist')
 

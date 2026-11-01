@@ -412,7 +412,13 @@ function years(entry: { from: number; to: number }): string {
         taller, and the head promptly rendered at zero pixels with its content
         clipped, while every sibling kept its size. Measured 2026-09-14.
       -->
-      <RecordMasthead :cover="cover ?? null" :title="match.title" :artist="match.artist">
+      <RecordMasthead
+        :cover="cover ?? null"
+        :title="match.title"
+        :artist="match.artist"
+        :label="match.label"
+        :catno="match.catno"
+      >
         <template #facts>
           <p v-if="meta" class="font-fid-mono text-fid-xs text-fid-text-muted">
             {{ meta }}

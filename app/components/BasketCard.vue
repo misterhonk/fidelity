@@ -347,24 +347,13 @@ const uid = useId()
             already in the store or five requests: cheap, and the only place in
             the app where a wrong record costs real money.
           -->
-          <img
-            v-if="coverFor(line.releaseId)"
-            :src="coverFor(line.releaseId)!.thumbUrl"
-            alt=""
-            loading="lazy"
-            decoding="async"
+          <LabelSleeve
+            :src="coverFor(line.releaseId)?.thumbUrl"
             width="40"
             height="40"
             class="size-10 shrink-0 rounded-[4px] bg-fid-inset object-cover"
             :class="line.sold ? 'opacity-50' : ''"
           />
-          <span
-            v-else
-            class="flex size-10 shrink-0 items-center justify-center rounded-[4px] bg-fid-inset text-fid-text-muted"
-            aria-hidden="true"
-          >
-            <FidIcon name="record" :size="18" />
-          </span>
 
           <div class="flex min-w-0 grow flex-wrap items-baseline gap-x-3 gap-y-1">
             <!--
