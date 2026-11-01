@@ -182,29 +182,31 @@ watch(
   >
     <template #title>{{ shopName }}</template>
 
-    <!-- Over the list on a phone, the neighbours are one tap away. -->
+    <!--
+      Over the list on a phone, the neighbours are one tap away — named, not
+      just an arrow: on a phone an icon on its own is a guess (#221).
+    -->
     <div v-if="narrow && total > 1" class="flex items-center justify-between">
-      <button
-        type="button"
-        class="fid-action fid-plate min-h-11 px-2 text-fid-text-muted hover:text-fid-text disabled:opacity-40"
+      <FidButton
+        variant="tertiary"
+        icon="arrow-left"
         :disabled="position <= 0"
-        :aria-label="h.prev"
         @click="emit('step', -1)"
       >
-        <FidIcon name="arrow-left" :size="16" aria-hidden="true" />
-      </button>
+        {{ h.prev }}
+      </FidButton>
       <span class="fid-plate text-fid-text-muted">{{
         m.common.ofTotal(position + 1, total)
       }}</span>
-      <button
-        type="button"
-        class="fid-action fid-plate min-h-11 px-2 text-fid-text-muted hover:text-fid-text disabled:opacity-40"
+      <FidButton
+        variant="tertiary"
+        icon="arrow-right"
+        class="flex-row-reverse"
         :disabled="position >= total - 1"
-        :aria-label="h.next"
         @click="emit('step', 1)"
       >
-        <FidIcon name="arrow-right" :size="16" aria-hidden="true" />
-      </button>
+        {{ h.next }}
+      </FidButton>
     </div>
 
     <header class="flex gap-4">
@@ -231,12 +233,9 @@ watch(
           plate word: reachable, not proposed.
         -->
         <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <NuxtLink
-            :to="`/dig?dealer=${encodeURIComponent(dealer.username)}`"
-            class="fid-action fid-fill rounded-fid-sm bg-fid-accent-fill px-4 py-2 text-fid-sm font-medium text-fid-on-accent"
-          >
+          <FidButton :to="`/dig?dealer=${encodeURIComponent(dealer.username)}`">
             {{ dealer.lastScannedAt === null ? h.digNow : h.digAgain }}
-          </NuxtLink>
+          </FidButton>
           <button
             type="button"
             :aria-pressed="watched"

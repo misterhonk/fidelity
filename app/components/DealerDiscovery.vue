@@ -226,14 +226,9 @@ async function keep() {
     </template>
 
     <template v-if="found && found.length > 0">
-      <button
-        type="button"
-        :disabled="chosen.size === 0"
-        class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 text-fid-sm font-medium text-fid-on-accent disabled:opacity-50"
-        @click="keep()"
-      >
+      <FidButton :disabled="chosen.size === 0" class="self-start" @click="keep()">
         {{ m.discovery.take(count(chosen.size)) }}
-      </button>
+      </FidButton>
     </template>
   </section>
 </template>

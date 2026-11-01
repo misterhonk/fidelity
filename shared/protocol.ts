@@ -1138,6 +1138,8 @@ export interface WorkerContract {
     result: BasketView
   }
   'basket.remove': { params: { listingId: number }; progress: never; result: BasketView }
+  /** Puts a removed line back: the undo after "Remove". A no-op once the worker restarted. */
+  'basket.restore': { params: { listingId: number }; progress: never; result: BasketView }
   /** The line was opened at Discogs (or, with null, the hand-over starts again). */
   'basket.handedOver': {
     params: { listingId: number; at: number | null }

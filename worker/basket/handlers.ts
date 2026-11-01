@@ -55,6 +55,12 @@ export const handlers = {
     return basketView()
   },
 
+  'basket.restore': async ({ listingId }) => {
+    const { restoreToBasket } = await import('./index')
+    await restoreToBasket(listingId)
+    return basketView()
+  },
+
   'basket.handedOver': async ({ listingId, at }) => {
     const { markHandedOver } = await import('./index')
     await markHandedOver(listingId, at)

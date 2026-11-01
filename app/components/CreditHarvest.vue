@@ -170,15 +170,9 @@ const eta = computed(() => {
         </li>
       </ul>
 
-      <button
-        v-if="remaining > 0"
-        type="button"
-        :disabled="running"
-        class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent disabled:opacity-50"
-        @click="harvest"
-      >
+      <FidButton v-if="remaining > 0" :disabled="running" class="self-start" @click="harvest">
         {{ status.harvested > 0 ? st.library.credits.continue : st.library.credits.harvest }}
-      </button>
+      </FidButton>
     </template>
   </section>
 </template>

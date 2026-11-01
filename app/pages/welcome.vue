@@ -204,13 +204,9 @@ function focusHeading(panel: Element) {
           -->
         <section v-if="step === 'start'" key="start" class="flex flex-col gap-8">
           <div class="flex flex-col gap-3">
-            <button
-              type="button"
-              class="fid-fill fid-action self-start rounded-fid-md bg-fid-accent-fill px-6 py-3 text-fid-base font-medium text-fid-on-accent"
-              @click="step = 'token'"
-            >
+            <FidButton class="self-start" size="lg" @click="step = 'token'">
               {{ w.setUp }}
-            </button>
+            </FidButton>
             <p class="max-w-prose text-fid-sm text-fid-text-muted">
               {{ w.setUpAbout }}
             </p>
@@ -271,14 +267,9 @@ function focusHeading(panel: Element) {
             </button>
           </div>
 
-          <button
-            v-else
-            type="button"
-            class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
-            @click="sync"
-          >
+          <FidButton v-else class="self-start" @click="sync">
             {{ w.fetchCollection }}
-          </button>
+          </FidButton>
         </section>
 
         <!-- 3 · First dig ------------------------------------------------- -->
@@ -319,12 +310,9 @@ function focusHeading(panel: Element) {
               from another screen; they go back there, under a label that says
               so. Everybody else goes to the dig.
             -->
-          <NuxtLink
-            :to="backTo"
-            class="fid-fill self-start rounded-fid-sm bg-fid-accent-fill px-4 py-2 font-medium text-fid-on-accent"
-          >
+          <FidButton :to="backTo" class="self-start">
             {{ backTo === '/dig' ? w.dig.anyShop : w.dig.goBack }}
-          </NuxtLink>
+          </FidButton>
         </section>
       </Transition>
     </div>

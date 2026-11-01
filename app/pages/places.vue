@@ -326,13 +326,9 @@ async function undo() {
           :aria-label="c.places.addTop"
           class="min-w-0 grow fid-field px-3 py-2 text-fid-base text-fid-text"
         />
-        <button
-          type="submit"
-          :disabled="creating"
-          class="fid-fill min-h-11 rounded-fid-sm bg-fid-accent-fill px-4 text-fid-sm font-medium text-fid-on-accent disabled:opacity-50"
-        >
+        <FidButton type="submit" :disabled="creating">
           {{ c.places.addTop }}
-        </button>
+        </FidButton>
       </form>
       <button
         type="button"

@@ -12,6 +12,8 @@ const view = shallowRef<BasketView>({ baskets: [], listingIds: [] })
 const ids = shallowRef(new Set<number>())
 /** The last add or remove that did not survive the trip to the worker. */
 const failure = shallowRef<unknown>(null)
+/** The last line taken out, for the undo line (#221). Lives here, not in the card: the card is gone with its last line. */
+const removed = shallowRef<{ listingId: number; title: string } | null>(null)
 let loaded = false
 
 function apply(next: BasketView) {
@@ -67,14 +69,29 @@ export function useBasket() {
     apply(await call('basket.clear', undefined))
   }
 
+  async function remove(listingId: number, title: string) {
+    apply(await call('basket.remove', { listingId }))
+    removed.value = { listingId, title }
+  }
+
+  async function undoRemove() {
+    const last = removed.value
+    if (!last) return
+    removed.value = null
+    apply(await call('basket.restore', { listingId: last.listingId }))
+  }
+
   return {
     view: readonly(view),
     ids: readonly(ids),
     failure: readonly(failure),
+    removed: readonly(removed),
     contains: (listingId: number) => ids.value.has(listingId),
     load,
     refresh,
     toggle,
     clear,
+    remove,
+    undoRemove,
   }
 }

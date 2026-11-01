@@ -303,17 +303,15 @@ const walk = computed(() => {
         </p>
         <DiscogsCredit v-if="identity" :to="collectionPage(identity.username)" />
 
-        <!-- A plate, not a button (M28 #7): maintenance must not compete with the covers. -->
+        <!--
+          Tertiary, not filled (M28 #7): maintenance must not compete with the
+          covers. The reading stays a plate; the action beside it is words.
+        -->
         <p class="fid-plate ml-auto flex shrink-0 items-center gap-4 text-fid-text-muted">
           <span v-if="readFullyAt">{{ c.shelf.readFully(since(readFullyAt)) }}</span>
-          <button
-            type="button"
-            class="fid-plate fid-action min-h-11 text-fid-text-muted transition-colors hover:text-fid-text disabled:opacity-50"
-            :disabled="rereading"
-            @click="reread()"
-          >
+          <FidButton variant="tertiary" :disabled="rereading" @click="reread()">
             {{ rereading ? c.shelf.rereading : c.shelf.reread }}
-          </button>
+          </FidButton>
         </p>
       </div>
 

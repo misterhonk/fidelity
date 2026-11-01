@@ -61,12 +61,8 @@ router.afterEach(() => void consider())
     >
       {{ m.notice.update.later }}
     </button>
-    <button
-      type="button"
-      class="fid-fill rounded-fid-sm bg-fid-accent-fill px-3 py-2 font-medium text-fid-on-accent"
-      @click="$pwa.updateServiceWorker()"
-    >
+    <FidButton @click="$pwa.updateServiceWorker()">
       {{ m.notice.update.reload }}
-    </button>
+    </FidButton>
   </div>
 </template>

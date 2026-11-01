@@ -19,6 +19,28 @@ const screens = readdirSync('app', { recursive: true, encoding: 'utf8' })
   .filter((file) => file.endsWith('.vue'))
   .map((file) => ({ file, source: readFileSync(`app/${file}`, 'utf8') }))
 
+/**
+ * Filled surfaces a file draws unconditionally.
+ *
+ * A static `class="… bg-fid-accent-fill …"` is the old spelling; since #221 the
+ * filled surface is `<FidButton>` with no variant (primary is the default) or
+ * `variant="primary"`. A `:variant` is the code choosing by state, which is
+ * exactly what the rule asks for, so it does not count.
+ */
+function unconditionalFills(source: string): number {
+  const statics = [...source.matchAll(/(?<!:)class="([^"]*)"/gs)]
+    .map((match) => match[1]!)
+    .filter(
+      (attribute) =>
+        /bg-fid-accent(-fill)?(?![/\w-])/.test(attribute) &&
+        !attribute.includes('transition-[width]'),
+    )
+  const buttons = [...withoutComments(source).matchAll(/<FidButton\b([^>]*)>/gs)]
+    .map((match) => match[1]!)
+    .filter((attributes) => !/(?<![:\w])variant="(?!primary")|:variant=/.test(attributes))
+  return statics.length + buttons.length
+}
+
 describe('the type scale', () => {
   /**
    * Four steps for text, and one voice above them.
@@ -150,30 +172,23 @@ describe('the accent', () => {
   it('fills at most one surface per screen unconditionally', () => {
     const busy = screens
       .filter(({ file }) => !STEP_FLOWS.includes(file))
-      .map(({ file, source }) => {
-        const statics = [...source.matchAll(/(?<!:)class="([^"]*)"/gs)].map(
-          (match) => match[1]!,
-        )
-        /*
-         * `bg-fid-accent-fill` as well as `bg-fid-accent`, since the accent
-         * was split in two on 2026-08-11: a filled button and a link cannot
-         * share a colour, because one needs to be dark enough for light text
-         * on it and the other light enough to be read on a dark page.
-         *
-         * Worth spelling out, because the old pattern ended in `(?![/\w-])`
-         * and would have quietly stopped matching the moment the fill token
-         * gained its suffix — leaving a green test that counted nothing.
-         */
-        const actions = statics.filter(
-          (attribute) =>
-            /bg-fid-accent(-fill)?(?![/\w-])/.test(attribute) &&
-            !attribute.includes('transition-[width]'),
-        )
-        return { file, actions: actions.length }
-      })
+      /*
+       * `bg-fid-accent-fill` as well as `bg-fid-accent`, since the accent was
+       * split in two on 2026-08-11: a filled button and a link cannot share a
+       * colour. The old pattern ended in `(?![/\w-])` and would have quietly
+       * stopped matching the moment the fill token gained its suffix — leaving
+       * a green test that counted nothing. The same trap waits for FidButton,
+       * hence the check below that the counter still finds something.
+       */
+      .map(({ file, source }) => ({ file, actions: unconditionalFills(source) }))
       .filter((screen) => screen.actions > 1)
 
     expect(busy).toEqual([])
+  })
+
+  it('still finds the filled buttons it counts', () => {
+    const counted = screens.reduce((sum, { source }) => sum + unconditionalFills(source), 0)
+    expect(counted).toBeGreaterThan(5)
   })
 })
 
@@ -272,14 +287,10 @@ describe('the middle volume', () => {
     expect(uses.length, 'nothing uses it yet').toBeGreaterThan(0)
 
     for (const { file, source } of uses) {
-      const fills = [...source.matchAll(/(?<!:)class="([^"]*)"/gs)]
-        .map((match) => match[1]!)
-        .filter(
-          (attribute) =>
-            /bg-fid-accent(-fill)?(?![/\w-])/.test(attribute) &&
-            !attribute.includes('transition-[width]'),
-        )
-      expect(fills.length, `${file} fills more than one surface`).toBeLessThanOrEqual(1)
+      expect(
+        unconditionalFills(source),
+        `${file} fills more than one surface`,
+      ).toBeLessThanOrEqual(1)
     }
   })
 })
