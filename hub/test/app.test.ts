@@ -248,6 +248,41 @@ describe('failed knocks', () => {
     for (let i = 0; i < 3; i++) assert.equal((await knock('1.1.1.1', 'nope')).status, 401)
   })
 
+  test('a stale access key is not a guess — the secret holder behind the same address gets in', async () => {
+    const pair = generateAccessKeyPair()
+    const failures = createFailureLimiter({
+      free: 3,
+      baseMs: 1000,
+      maxMs: 8000,
+      now: () => 1_000_000,
+    })
+    const app = createHubApp({
+      db: openHubDb(':memory:'),
+      secret: SECRET,
+      failures,
+      ipHeader: 'x-forwarded-for',
+      now: () => 1_000_000,
+      access: { publicKey: pair.publicKey },
+    })
+    // Issued 40 days before the clock: expired.
+    const stale = issueKey({
+      privateKeyPem: pair.privateKeyPem,
+      sub: 'm',
+      tier: 'lp',
+      now: () => 1_000_000 - 40 * 86_400_000,
+    })
+    for (let i = 0; i < 10; i++) {
+      const r = await app.request('/v1/watch/key', {
+        headers: { 'x-fidelity-key': stale, 'x-forwarded-for': '1.1.1.1' },
+      })
+      assert.equal(r.status, 401)
+    }
+    const right = await app.request('/v1/watch/key', {
+      headers: { 'x-hub-secret': SECRET, 'x-forwarded-for': '1.1.1.1' },
+    })
+    assert.equal(right.status, 200)
+  })
+
   test('the address is the last hop of the configured header', async () => {
     const { knock } = guarded()
     // A client may write anything in front; the proxy appends what it saw.
