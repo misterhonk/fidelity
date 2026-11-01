@@ -68,6 +68,11 @@ export function dayTime(at: number | Date): string {
   }).format(at)
 }
 
+/** The time of day alone, for a deadline within the next six hours. */
+export function clockTime(at: number | Date): string {
+  return new Intl.DateTimeFormat(activeLocale(), { timeStyle: 'short' }).format(at)
+}
+
 /** January to December, short, in the language of the app — for a row of bars. */
 export function shortMonths(): string[] {
   const format = new Intl.DateTimeFormat(activeLocale(), { month: 'short' })

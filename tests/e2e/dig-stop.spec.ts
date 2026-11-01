@@ -58,7 +58,10 @@ test('stops a dig from another screen and resumes it later', async ({ page, cont
   })
 
   await page.goto('/dig')
-  await page.getByText('Another shop, or an earlier dig').click()
+  await page
+    .getByRole('group', { name: 'This dig' })
+    .getByRole('button', { name: 'Shop' })
+    .click()
   await page.getByLabel('Shop name or link').fill('slowshop')
   await page.getByRole('button', { name: 'Check' }).click()
   await page.getByRole('button', { name: 'Start the dig' }).click()

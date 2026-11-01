@@ -114,7 +114,8 @@ describe('the six-hour rule', () => {
   })
 
   it('takes the button away once the dig is stale', () => {
-    expect(withoutComments(DIG)).toMatch(/v-if="!expired"/)
+    expect(withoutComments(DIG)).toMatch(/v-if="!expired && hubUrl"/)
+    expect(withoutComments(DIG)).toMatch(/v-if="!expired && shareLink"/)
   })
 })
 

@@ -17,12 +17,20 @@ test('folds the question away and walks the list from inside the sheet', async (
   const result = page.getByRole('heading', { name: /finds at/ })
   await expect(result).toBeVisible({ timeout: 15_000 })
 
-  // The field, the shops and the earlier digs are one line now, and they come
-  // back with one click.
+  // The field and the shops sit under "Shop" now (#223), one tap away, and the
+  // finds step aside for them until "Finds" brings them back.
   const field = page.getByLabel('Shop name or link')
   await expect(field).toBeHidden()
-  await page.getByText('Another shop, or an earlier dig').click()
+  await page
+    .getByRole('group', { name: 'This dig' })
+    .getByRole('button', { name: 'Shop' })
+    .click()
   await expect(field).toBeVisible()
+  await page
+    .getByRole('group', { name: 'This dig' })
+    .getByRole('button', { name: 'Finds' })
+    .click()
+  await expect(field).toBeHidden()
 
   // And the sheet says where in the list it is standing.
   await page

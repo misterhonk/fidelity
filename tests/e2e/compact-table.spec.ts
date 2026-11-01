@@ -51,13 +51,13 @@ test('names the columns and sorts by the one you click', async ({ page }) => {
   )
 
   /*
-   * The long list, not the shortlist above it — that keeps its cards, and it
-   * takes the best five, so what is left here are the lower-scoring probes.
+   * The long list, not the wall above it — that keeps its cards, and it
+   * takes the best four (#223), so what is left here are the lower-scoring probes.
    * By score the strongest of those leads; by price the cheapest does, and the
    * probes are built so that the two orderings disagree.
    */
   const rows = page.locator('section[aria-labelledby="all-matches"] ul > li')
-  await expect(rows.first()).toContainText('Probe 3')
+  await expect(rows.first()).toContainText('Probe 2')
 
   await head.getByRole('button', { name: 'Price' }).click()
   await expect(head.getByRole('button', { name: 'Price' })).toHaveAttribute(
@@ -74,7 +74,7 @@ test('names the columns and sorts by the one you click', async ({ page }) => {
    */
   await head.getByRole('button', { name: 'Price' }).click()
   await expect(page).toHaveURL(/dir=desc/)
-  await expect(rows.first()).toContainText('Probe 3')
+  await expect(rows.first()).toContainText('Probe 2')
 })
 
 /**

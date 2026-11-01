@@ -25,7 +25,7 @@ test('cards wear a score sticker and the list explains it once', async ({ page }
 
   await expect(page.locator('article details')).toHaveCount(0)
   // Once per list: the seeded finds all stand in the top five.
-  const fives = page.locator('section[aria-labelledby="top-five"]')
+  const fives = page.locator('section[aria-labelledby="the-wall"]')
   await expect(fives.getByText('How the score works')).toHaveCount(1)
 
   await expect(page.getByTestId('small-collection')).toBeVisible()

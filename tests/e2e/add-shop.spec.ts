@@ -64,13 +64,16 @@ test('takes a shop by name and stands it beside the dug ones', async ({ page, co
   /*
    * And the same list is what the dig screen offers — one line away.
    *
-   * With a result already on the screen the dig page folds the question into
-   * a single disclosure (M31.13): the field, the shops you know and the digs
-   * you have run. The seed leaves a result there, so this is that screen.
+   * With a result already on the screen the dig page opens on its finds and
+   * keeps the field and the shops you know under "Shop" (#223). The seed
+   * leaves a result there, so this is that screen.
    */
   await page.getByRole('link', { name: 'Dig', exact: true }).click()
   await expect(page).toHaveURL(/dig/)
-  await page.getByText('Another shop, or an earlier dig').click()
+  await page
+    .getByRole('group', { name: 'This dig' })
+    .getByRole('button', { name: 'Shop' })
+    .click()
   await expect(page.getByRole('button', { name: /spirax.records/ })).toBeVisible({
     timeout: 15_000,
   })
