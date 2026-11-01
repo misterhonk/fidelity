@@ -229,6 +229,11 @@ const open = useOpenInQuery('want', asId)
 const openRecord = computed(
   () => visible.value.find((group) => group.lead.releaseId === open.value)?.lead ?? null,
 )
+// An address naming a record the grid cannot show opens nothing — and must
+// not stay, or the next tap replaces instead of pushes and Back leaves the screen.
+watch([loading, openRecord], () => {
+  if (!loading.value && open.value !== null && !openRecord.value) open.value = null
+})
 const walk = computed(() => {
   const ids = visible.value.map((group) => group.lead.releaseId)
   const at = open.value
