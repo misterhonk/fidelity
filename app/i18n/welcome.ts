@@ -9,7 +9,7 @@ import { activeLanguage } from '~/composables/useMessages'
  */
 const en = {
   title: 'Welcome',
-  description: 'Set Sleeveside up: your key, your shelf, your artists, your credits.',
+  description: 'Set Sleeveside up: your key, your shelf, your first dig.',
   lead: 'Give us a shop. We hand you the records that fit, and say why for each one.',
   setUp: 'Set it up with your collection',
   setUpAbout:
@@ -20,43 +20,14 @@ const en = {
   asking: 'Asking Discogs …',
   syncing: (what: string, stored: string, total: string) => `${what}: ${stored} of ${total}`,
   fetchCollection: 'Fetch the collection',
-  horizon: {
-    title: 'What else your artists made',
-    about:
-      'We look up once what your artists and labels have put out, not only what of it is on your shelf. That is how we later spot another pressing of a record you own, a gap in a catalogue run, or an album you did not know about.',
-    skip: 'Carry on',
-    resumable:
-      'It runs in small bites and survives a reload. Move on whenever you like and finish it later in the settings.',
-  },
-  credits: {
-    title: 'Who is behind your records',
-    about:
-      'From your favourite records, four or five stars at Discogs, we read who made them: producers, remixers, studio people. When the same name keeps turning up, we can later find records that name is not on the front of.',
-    skip: 'Carry on',
-    later: 'You can skip this too and catch up later in the settings.',
-  },
-  done: {
-    title: 'Done.',
+  dig: {
+    title: 'Your first dig',
     summary: (records: string, wants: string) =>
-      `${records} ${records === '1' ? 'record' : 'records'} and ${wants} ${wants === '1' ? 'wish' : 'wishes'} are on this device now. Three things you can do with that:`,
-    toStart: 'To the start page',
-  },
-  canDo: {
-    dig: {
-      title: 'Dig through a shop',
-      body: 'Give us a shop name. We go through everything they have and pull out what fits you, with a sentence for every find.',
-      cta: 'To the dig',
-    },
-    inStore: {
-      title: 'Check in the shop',
-      body: 'Record in hand, "do I have this one already?" Answered from your pocket, no signal needed. Record shops are basements.',
-      cta: 'In the shop',
-    },
-    collection: {
-      title: 'Look at your collection',
-      body: 'Shelf, map and wantlist. The map shows where your collection runs deep and where the gaps are.',
-      cta: 'To the collection',
-    },
+      `${records} ${records === '1' ? 'record' : 'records'} and ${wants} ${wants === '1' ? 'wish' : 'wishes'} are on this device now. Pick a shop and we go through it for you.`,
+    after:
+      'Once the dig is through, we look up what else your artists made and who is behind your favourite records. That runs in the background, and you can keep digging.',
+    starters: 'Shops to start with',
+    anyShop: 'Pick any shop',
   },
   alreadySetUp: 'Already set up?',
   startPage: 'To the start page',
@@ -64,16 +35,13 @@ const en = {
   steps: {
     token: 'Key',
     sync: 'Collection',
-    horizon: 'Artists',
-    credits: 'Credits',
-    done: 'Done',
+    dig: 'First dig',
   },
 }
 
 const de: typeof en = {
   title: 'Willkommen',
-  description:
-    'Sleeveside einrichten: dein Schlüssel, dein Regal, deine Künstler, deine Credits.',
+  description: 'Sleeveside einrichten: dein Schlüssel, dein Regal, dein erster Dig.',
   lead: 'Gib uns einen Laden. Wir legen dir die Platten hin, die passen, und sagen zu jeder, warum.',
   setUp: 'Mit deiner Sammlung einrichten',
   setUpAbout:
@@ -84,43 +52,14 @@ const de: typeof en = {
   asking: 'Fragen bei Discogs nach …',
   syncing: (what, stored, total) => `${what}: ${stored} von ${total}`,
   fetchCollection: 'Sammlung holen',
-  horizon: {
-    title: 'Was deine Künstler sonst noch gemacht haben',
-    about:
-      'Wir schauen einmal nach, was deine Künstler und Labels alles rausgebracht haben, nicht nur, was davon bei dir steht. So erkennen wir später eine andere Pressung von einer Platte, die du hast, eine Lücke in einer Katalogreihe oder ein Album, das du noch gar nicht kanntest.',
-    skip: 'Weiter',
-    resumable:
-      'Läuft in kleinen Happen und übersteht ein Neuladen. Geh weiter, wann du willst, und mach es später in den Einstellungen fertig.',
-  },
-  credits: {
-    title: 'Wer hinter deinen Platten steckt',
-    about:
-      'Aus deinen Lieblingsplatten, vier oder fünf Sterne bei Discogs, lesen wir raus, wer sie gemacht hat: Produzenten, Remixer, Studioleute. Taucht ein Name öfter auf, finden wir später auch Platten, auf denen er nicht vorne draufsteht.',
-    skip: 'Weiter',
-    later: 'Auch das kannst du überspringen und später in den Einstellungen nachholen.',
-  },
-  done: {
-    title: 'Fertig.',
+  dig: {
+    title: 'Dein erster Dig',
     summary: (records, wants) =>
-      `${records} ${records === '1' ? 'Platte' : 'Platten'} und ${wants} ${wants === '1' ? 'Wunsch' : 'Wünsche'} liegen jetzt auf diesem Gerät. Drei Dinge kannst du damit machen:`,
-    toStart: 'Zur Startseite',
-  },
-  canDo: {
-    dig: {
-      title: 'Einen Laden durchgraben',
-      body: 'Gib uns einen Ladennamen. Wir gehen alles durch, was er hat, und holen raus, was zu dir passt, mit einem Satz zu jedem Fund.',
-      cta: 'Zum Graben',
-    },
-    inStore: {
-      title: 'Im Laden nachschauen',
-      body: 'Platte in der Hand, „hab ich die schon?" Die Antwort kommt aus deiner Tasche, ganz ohne Empfang. Plattenläden sind Keller.',
-      cta: 'Im Laden',
-    },
-    collection: {
-      title: 'Deine Sammlung ansehen',
-      body: 'Regal, Landkarte und Wantlist. Die Landkarte zeigt, wo deine Sammlung tief geht und wo die Lücken sind.',
-      cta: 'Zur Sammlung',
-    },
+      `${records} ${records === '1' ? 'Platte' : 'Platten'} und ${wants} ${wants === '1' ? 'Wunsch' : 'Wünsche'} liegen jetzt auf diesem Gerät. Such dir einen Laden aus, wir gehen ihn für dich durch.`,
+    after:
+      'Ist der Dig durch, schauen wir nach, was deine Künstler sonst noch gemacht haben und wer hinter deinen Lieblingsplatten steckt. Das läuft im Hintergrund. Du kannst weitergraben.',
+    starters: 'Läden für den Anfang',
+    anyShop: 'Einen Laden aussuchen',
   },
   alreadySetUp: 'Schon eingerichtet?',
   startPage: 'Zur Startseite',
@@ -128,9 +67,7 @@ const de: typeof en = {
   steps: {
     token: 'Schlüssel',
     sync: 'Sammlung',
-    horizon: 'Künstler',
-    credits: 'Credits',
-    done: 'Fertig',
+    dig: 'Erster Dig',
   },
 }
 

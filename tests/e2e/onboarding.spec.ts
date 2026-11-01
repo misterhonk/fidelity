@@ -2,8 +2,8 @@ import { expect, test } from './support/test'
 
 /**
  * A stranger's first afternoon (docs/17 §2, M24): nothing on the device, no
- * document read. Token, collection, past the two optional steps, a first dig
- * with finds. Discogs is answered from here — chromium only, as every spec
+ * document read. Token, collection, a first dig with finds — three steps
+ * (#214). Artists and credits follow the dig on their own, in the background. Discogs is answered from here — chromium only, as every spec
  * that routes the worker's requests.
  */
 test.skip(
@@ -50,8 +50,10 @@ test('a stranger sets up, syncs, and digs a shop without reading a document', as
         : { id: 9000 + i, title: `Somebody - Record ${i}`, artist: 'Somebody', format: '12"' },
     seller: { username: 'kompaktshop' },
   }))
+  const asked: string[] = []
   await context.route('https://api.discogs.com/**', (route) => {
     const url = new URL(route.request().url())
+    asked.push(url.pathname)
     const json = (body: unknown) =>
       route.fulfill({
         status: 200,
@@ -118,21 +120,23 @@ test('a stranger sets up, syncs, and digs a shop without reading a document', as
   await page.getByRole('button', { name: 'Sign in' }).click()
 
   await expect(page.getByText('Signed in as stranger')).toBeVisible({ timeout: 15_000 })
+  // Every step change puts focus on the new step's heading, so a screen
+  // reader hears where the setup has got to.
+  await expect(page.getByRole('heading', { name: 'Signed in as stranger' })).toBeFocused()
   await page.getByRole('button', { name: 'Fetch the collection' }).click()
-  // The two optional steps are walked past, as the setup promises.
-  //
-  // Both buttons say "Carry on", and the panels swap with an out-in
-  // transition: on a slow runner the second click can land on the first
-  // button while it is still leaving, and the setup stays on the credits
-  // step forever. So the next heading is awaited between the two clicks —
-  // once it is there, the old panel is gone.
-  await page.getByRole('button', { name: 'Carry on' }).click({ timeout: 30_000 })
-  await expect(page.getByRole('heading', { name: 'Who is behind your records' })).toBeVisible()
-  await page.getByRole('button', { name: 'Carry on' }).click()
-  await expect(page.getByRole('heading', { name: 'Done.' })).toBeVisible({ timeout: 15_000 })
 
-  // The first dig, from the offer on the last screen.
-  await page.getByRole('link', { name: 'To the dig' }).click()
+  // Three steps, and the third is the dig — no artists or credits in between.
+  const third = page.getByRole('heading', { name: 'Your first dig' })
+  await expect(third).toBeFocused({ timeout: 30_000 })
+  await expect(page.getByRole('list', { name: 'Setup' }).getByRole('listitem')).toHaveCount(3)
+  await expect(
+    page.getByRole('navigation', { name: 'Shops to start with' }).getByRole('link'),
+  ).toHaveCount(5)
+
+  // Nothing of the horizon has been asked for yet: it waits for the first dig.
+  expect(asked.filter((path) => /^\/(artists|labels)\//.test(path))).toEqual([])
+
+  await page.getByRole('link', { name: 'Pick any shop' }).click()
   await expect(page).toHaveURL(/dig/)
   await page.getByLabel('Shop name or link').fill('kompaktshop')
   await page.getByRole('button', { name: 'Check' }).click()
@@ -141,4 +145,11 @@ test('a stranger sets up, syncs, and digs a shop without reading a document', as
     timeout: 60_000,
   })
   await expect(page.getByText('Wuppdeckmischmampflow', { exact: false }).first()).toBeVisible()
+
+  // And then the horizon starts by itself, in the background.
+  await expect
+    .poll(() => asked.some((path) => /^\/(artists|labels)\/\d+\/releases$/.test(path)), {
+      timeout: 30_000,
+    })
+    .toBe(true)
 })
