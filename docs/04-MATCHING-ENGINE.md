@@ -12,7 +12,7 @@
 
 Every hit carries (a) a score, (b) the list of signals that fired with their evidence and
 (c) exactly one sentence explaining why. The sentence is **not a nice-to-have** — it is the
-product. Without it Fidelity is a better filter; with it, it is Barry.
+product. Without it Sleeveside is a better filter; with it, it is Barry.
 
 ---
 

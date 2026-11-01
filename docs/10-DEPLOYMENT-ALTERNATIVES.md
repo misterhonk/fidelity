@@ -1,7 +1,7 @@
 # 10 - Deployment alternatives
 
 > **LARGELY OBSOLETE (2026-08-09).** This document compared hosting options for the server
-> design in terms of RAM, disk and outbound IP. Since **ADR-007** Fidelity has **no backend**
+> design in terms of RAM, disk and outbound IP. Since **ADR-007** Sleeveside has **no backend**
 > — what gets deployed is static files. None of those figures is relevant any more.
 >
 > **The current options are in [`08-DEPLOYMENT.md`](08-DEPLOYMENT.md) section 2.**

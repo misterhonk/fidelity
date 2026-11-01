@@ -285,7 +285,7 @@ endpoints cover inventory, individual listings, orders (the seller side), fees a
 suggestions, and that is where it stops. What remains is the direct link to
 `discogs.com/sell/item/{listing_id}`; that is where the "Add to Cart" button lives.
 
-For Fidelity that means: the basket works out combined postage **beforehand** — precisely
+For Sleeveside that means: the basket works out combined postage **beforehand** — precisely
 the gap Discogs leaves open, because it only shows combined postage in its own cart. The
 adding happens there, line by line.
 
@@ -488,7 +488,7 @@ record into another folder, and `date_added` is untouched — the pass turns rou
 before, every time.
 
 **Reading the whole list and comparing is not *one* way to notice this; it is the only
-one.** It costs one request per 100 entries. Fidelity does it once daily, on "refresh
+one.** It costs one request per 100 entries. Sleeveside does it once daily, on "refresh
 everything", and at the press of a button above the shelf; everyday use stays on the delta,
 because for an unchanged collection that costs exactly one request.
 
@@ -496,7 +496,7 @@ The same applies to the wantlist, which is therefore always read in full anyway.
 
 ### Write access — measured on 2026-08-11, from the browser
 
-Until then Fidelity had only read, and whether the API is **writable** at all from a
+Until then Sleeveside had only read, and whether the API is **writable** at all from a
 client-only app had never been checked. It is. Every value below comes from real calls from
 `http://localhost:3000` against `api.discogs.com` with a Personal Access Token.
 

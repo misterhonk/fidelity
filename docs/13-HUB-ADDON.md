@@ -1,6 +1,6 @@
 # 13 – The hub: an optional server add-on
 
-> **Fidelity works completely without a hub.** The hub is a tiny, self-hostable service that
+> **Sleeveside works completely without a hub.** The hub is a tiny, self-hostable service that
 > enriches the experience — never a requirement.
 > Status: **planned for M9**, but the seams are being built in M2/M5 already.
 

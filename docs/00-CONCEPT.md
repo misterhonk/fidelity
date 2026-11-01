@@ -91,6 +91,9 @@ are laborious; the wantlist intersection is trivial.
 
 ## 3. Naming
 
+> **2026-11-01:** the product is now called **Sleeveside**. "Fidelity" collides with an EU
+> word mark for software (docs/09 §5). This section is kept as the history of the first name.
+
 An homage to *High Fidelity* (Stephen Frears, 2000 / Nick Hornby, 1995).
 
 ### Recommendation: **Fidelity**
