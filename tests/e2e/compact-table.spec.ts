@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './support/test'
 
-import { seed } from './seed'
+import { putRows, readRows, seed } from './seed'
 
 /**
  * The compact density is a table, and now it says so (M31.25).
@@ -11,33 +11,19 @@ import { seed } from './seed'
  * table instead of cards, columns to sort by".
  */
 async function manyFinds(page: Page, digId: string) {
-  await page.evaluate(async (dig: string) => {
-    const request = indexedDB.open('fidelity')
-    const db: IDBDatabase = await new Promise((done) => {
-      request.onsuccess = () => done(request.result)
-    })
-    const tx = db.transaction('matches', 'readwrite')
-    const store = tx.objectStore('matches')
-    const first: Record<string, unknown> = await new Promise((done) => {
-      const all = store.getAll()
-      all.onsuccess = () => done(all.result[0] as Record<string, unknown>)
-    })
-    // Cheapest last by score, so the two orderings disagree and the click shows.
-    for (let i = 0; i < 6; i += 1) {
-      store.put({
-        ...first,
-        digId: dig,
-        listingId: 900_000 + i,
-        releaseId: 910_000 + i,
-        artist: `Probe ${i}`,
-        title: `Record ${i}`,
-        score: 40 - i,
-        price: 40 - i * 5,
-      })
-    }
-    await new Promise((done) => (tx.oncomplete = done))
-    db.close()
-  }, digId)
+  const [first] = await readRows(page, 'matches')
+  // Cheapest last by score, so the two orderings disagree and the click shows.
+  const matches = Array.from({ length: 6 }, (_, i) => ({
+    ...first,
+    digId,
+    listingId: 900_000 + i,
+    releaseId: 910_000 + i,
+    artist: `Probe ${i}`,
+    title: `Record ${i}`,
+    score: 40 - i,
+    price: 40 - i * 5,
+  }))
+  await putRows(page, { matches })
 }
 
 test('names the columns and sorts by the one you click', async ({ page }) => {

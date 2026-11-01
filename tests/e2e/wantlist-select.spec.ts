@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './support/test'
 
-import { seed } from './seed'
+import { putRows, seed } from './seed'
 
 /**
  * Select mode on the wantlist (M27).
@@ -15,40 +15,33 @@ import { seed } from './seed'
  * M28 #4 from the other side, and it is invisible until a master repeats.
  */
 async function morePressings(page: Page) {
-  await page.evaluate(async () => {
-    const open = indexedDB.open('fidelity')
-    const db: IDBDatabase = await new Promise((resolve, reject) => {
-      open.onsuccess = () => resolve(open.result)
-      open.onerror = () => reject(open.error)
-    })
-    const tx = db.transaction('wantlist', 'readwrite')
-    const store = tx.objectStore('wantlist')
-    const blank = {
-      masterId: 0,
-      artistIds: [],
-      artistNorms: ['tomita'],
-      artistNames: ['Isao Tomita'],
-      labelIds: [],
-      labelNorms: [],
-      labelNames: [],
-      catnos: [],
-      genres: [],
-      styles: [],
-      formats: ['Vinyl'],
-      year: 1974,
-      thumbUrl: '',
-      coverUrl: '',
-      addedAt: '2018-06-01T00:00:00-00:00',
-      note: '',
-      want: 0,
-    }
-    // Two pressings of one album — they fold into a single sleeve (M28 #2).
-    store.put({ ...blank, releaseId: 9_912_001, masterId: 77_001, title: 'Snowflakes' })
-    store.put({ ...blank, releaseId: 9_912_002, masterId: 77_001, title: 'Snowflakes' })
-    // And one that stands alone, so the list is not all one album.
-    store.put({ ...blank, releaseId: 9_912_003, title: 'Firebird' })
-    await new Promise((done) => (tx.oncomplete = () => done(null)))
-    db.close()
+  const blank = {
+    masterId: 0,
+    artistIds: [],
+    artistNorms: ['tomita'],
+    artistNames: ['Isao Tomita'],
+    labelIds: [],
+    labelNorms: [],
+    labelNames: [],
+    catnos: [],
+    genres: [],
+    styles: [],
+    formats: ['Vinyl'],
+    year: 1974,
+    thumbUrl: '',
+    coverUrl: '',
+    addedAt: '2018-06-01T00:00:00-00:00',
+    note: '',
+    want: 0,
+  }
+  await putRows(page, {
+    wantlist: [
+      // Two pressings of one album — they fold into a single sleeve (M28 #2).
+      { ...blank, releaseId: 9_912_001, masterId: 77_001, title: 'Snowflakes' },
+      { ...blank, releaseId: 9_912_002, masterId: 77_001, title: 'Snowflakes' },
+      // And one that stands alone, so the list is not all one album.
+      { ...blank, releaseId: 9_912_003, title: 'Firebird' },
+    ],
   })
 }
 

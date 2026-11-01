@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './support/test'
 
-import { seed } from './seed'
+import { putRows, seed } from './seed'
 
 /**
  * A year on the shelf (docs/06 M19 #8).
@@ -11,37 +11,31 @@ import { seed } from './seed'
  * earlier year to switch to.
  */
 async function olderRecord(page: Page) {
-  await page.evaluate(async () => {
-    const open = indexedDB.open('fidelity')
-    const db: IDBDatabase = await new Promise((resolve, reject) => {
-      open.onsuccess = () => resolve(open.result)
-      open.onerror = () => reject(open.error)
-    })
-    const tx = db.transaction('collection', 'readwrite')
-    tx.objectStore('collection').put({
-      instanceId: 990_001,
-      folderId: 1,
-      releaseId: 1_178_452,
-      masterId: 0,
-      title: 'Ege Bamyasi',
-      artistIds: [1],
-      artistNorms: ['can'],
-      artistNames: ['Can'],
-      labelIds: [5],
-      labelNorms: ['united artists records'],
-      labelNames: ['United Artists Records'],
-      catnos: ['UAS 29 414'],
-      genres: ['Rock'],
-      styles: ['Krautrock'],
-      formats: ['Vinyl', 'LP', 'Album'],
-      year: 1972,
-      thumbUrl: '',
-      coverUrl: '',
-      rating: 0,
-      addedAt: '2019-03-01T00:00:00-00:00',
-    })
-    await new Promise((done) => (tx.oncomplete = () => done(null)))
-    db.close()
+  await putRows(page, {
+    collection: [
+      {
+        instanceId: 990_001,
+        folderId: 1,
+        releaseId: 1_178_452,
+        masterId: 0,
+        title: 'Ege Bamyasi',
+        artistIds: [1],
+        artistNorms: ['can'],
+        artistNames: ['Can'],
+        labelIds: [5],
+        labelNorms: ['united artists records'],
+        labelNames: ['United Artists Records'],
+        catnos: ['UAS 29 414'],
+        genres: ['Rock'],
+        styles: ['Krautrock'],
+        formats: ['Vinyl', 'LP', 'Album'],
+        year: 1972,
+        thumbUrl: '',
+        coverUrl: '',
+        rating: 0,
+        addedAt: '2019-03-01T00:00:00-00:00',
+      },
+    ],
   })
 }
 

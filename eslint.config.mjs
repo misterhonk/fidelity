@@ -46,6 +46,17 @@ export default withNuxt(
           ],
         },
       ],
+      // A hand-made write that navigates before `oncomplete` is cancelled by
+      // WebKit now and then (#264, #271). The helpers in seed.ts wait for it.
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'indexedDB',
+          property: 'open',
+          message:
+            'Use signIn/seed/putRows/readRows from ./seed — they wait for the transaction.',
+        },
+      ],
     },
   },
   {

@@ -1,6 +1,6 @@
 import { expect, test } from './support/test'
 
-import { seed } from './seed'
+import { putRows, readRows, seed } from './seed'
 
 /**
  * The history as the shops' story (M36): one line per shop with the newest
@@ -16,56 +16,44 @@ test('groups the earlier digs by shop, and an old dig says what came since', asy
   const older = '01H0000000000000000000OLD1'
 
   // An earlier full dig of the same shop, with two finds, one of them gone since.
-  await page.evaluate(
-    async ({ id, startedAt, goneAt }) => {
-      const request = indexedDB.open('fidelity')
-      const db: IDBDatabase = await new Promise((done) => {
-        request.onsuccess = () => done(request.result)
-      })
-      const tx = db.transaction(['digs', 'matches'], 'readwrite')
-      const digs = tx.objectStore('digs')
-      const matches = tx.objectStore('matches')
-      const current: Record<string, unknown> = await new Promise((done) => {
-        const all = digs.getAll()
-        all.onsuccess = () => done(all.result[0] as Record<string, unknown>)
-      })
-      digs.put({
+  const startedAt = Date.now() - 9 * day
+  const goneAt = Date.now() - day
+  const [current] = await readRows(page, 'digs')
+  const [first] = await readRows(page, 'matches')
+  await putRows(page, {
+    digs: [
+      {
         ...current,
-        id,
+        id: older,
         startedAt,
         finishedAt: startedAt + 1000,
         expiresAt: startedAt + 6 * 3_600_000,
         status: 'expired',
         matchCount: 2,
-      })
-      digs.put({ ...current, checkedGone: true })
-      const first: Record<string, unknown> = await new Promise((done) => {
-        const all = matches.getAll()
-        all.onsuccess = () => done(all.result[0] as Record<string, unknown>)
-      })
-      // Two releases, or the sheet's one-per-release fold would keep one.
-      matches.put({
+      },
+      { ...current, checkedGone: true },
+    ],
+    // Two releases, or the sheet's one-per-release fold would keep one.
+    matches: [
+      {
         ...first,
-        digId: id,
+        digId: older,
         listingId: 800_001,
         releaseId: 810_001,
         price: null,
         expired: true,
-      })
-      matches.put({
+      },
+      {
         ...first,
-        digId: id,
+        digId: older,
         listingId: 800_002,
         releaseId: 810_002,
         price: null,
         expired: true,
         goneAt,
-      })
-      await new Promise((done) => (tx.oncomplete = done))
-      db.close()
-    },
-    { id: older, startedAt: Date.now() - 9 * day, goneAt: Date.now() - day },
-  )
+      },
+    ],
+  })
 
   await page.goto(`/dig?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({

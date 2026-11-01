@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './support/test'
 
-import { seed } from './seed'
+import { putRows, readRows, seed } from './seed'
 
 /**
  * The list from the keyboard (M31.24).
@@ -14,31 +14,17 @@ import { seed } from './seed'
 
 /** The seed's two finds both sit in the shortlist, so there is no long list. */
 async function moreFinds(page: Page, digId: string) {
-  await page.evaluate(async (dig: string) => {
-    const request = indexedDB.open('fidelity')
-    const db: IDBDatabase = await new Promise((done) => {
-      request.onsuccess = () => done(request.result)
-    })
-    const tx = db.transaction('matches', 'readwrite')
-    const store = tx.objectStore('matches')
-    const first: Record<string, unknown> = await new Promise((done) => {
-      const all = store.getAll()
-      all.onsuccess = () => done(all.result[0] as Record<string, unknown>)
-    })
-    for (let i = 0; i < 8; i += 1) {
-      store.put({
-        ...first,
-        digId: dig,
-        listingId: 900_000 + i,
-        releaseId: 910_000 + i,
-        artist: `Probe ${i}`,
-        title: `Record ${i}`,
-        score: 40 - i,
-      })
-    }
-    await new Promise((done) => (tx.oncomplete = done))
-    db.close()
-  }, digId)
+  const [first] = await readRows(page, 'matches')
+  const matches = Array.from({ length: 8 }, (_, i) => ({
+    ...first,
+    digId,
+    listingId: 900_000 + i,
+    releaseId: 910_000 + i,
+    artist: `Probe ${i}`,
+    title: `Record ${i}`,
+    score: 40 - i,
+  }))
+  await putRows(page, { matches })
 }
 
 test('walks the finds with j and k, and jumps into the filter with /', async ({ page }) => {

@@ -1,8 +1,6 @@
 import { expect, test } from './support/test'
 
-import { DB_NAME } from '~~/db/schema'
-
-import { seed } from './seed'
+import { putRows, seed } from './seed'
 
 /**
  * The map against the catalogue (M21.6): with a catalogue configured, every
@@ -56,39 +54,26 @@ test('puts the catalogue’s lift on the bars and says which build it is', async
 
   // The seed carries no taste profile — the sync computes it — so one is
   // written by hand: two decades, one style, the shape the worker writes.
-  await page.evaluate(
-    ([name, profile]) =>
-      new Promise<void>((resolve, reject) => {
-        const open = indexedDB.open(name as string)
-        open.onerror = () => reject(open.error)
-        open.onsuccess = () => {
-          const db = open.result
-          const tx = db.transaction('meta', 'readwrite')
-          tx.objectStore('meta').put({ key: 'tasteProfile', value: profile })
-          tx.oncomplete = () => {
-            db.close()
-            resolve()
-          }
-          tx.onerror = () => reject(tx.error)
-        }
-      }),
-    [
-      DB_NAME,
+  await putRows(page, {
+    meta: [
       {
-        computedAt: Date.now(),
-        releaseCount: 4,
-        artists: {},
-        labels: {},
-        styles: { Techno: { name: 'Techno', n: 2, weight: 0.5, lift: null } },
-        genres: {},
-        decades: {
-          1960: { name: '1960er', n: 3, weight: 0.75, lift: null },
-          1990: { name: '1990er', n: 1, weight: 0.25, lift: null },
+        key: 'tasteProfile',
+        value: {
+          computedAt: Date.now(),
+          releaseCount: 4,
+          artists: {},
+          labels: {},
+          styles: { Techno: { name: 'Techno', n: 2, weight: 0.5, lift: null } },
+          genres: {},
+          decades: {
+            1960: { name: '1960er', n: 3, weight: 0.75, lift: null },
+            1990: { name: '1990er', n: 1, weight: 0.25, lift: null },
+          },
+          styleCentroid: {},
         },
-        styleCentroid: {},
       },
-    ] as const,
-  )
+    ],
+  })
 
   await page.goto('/map')
   await expect(

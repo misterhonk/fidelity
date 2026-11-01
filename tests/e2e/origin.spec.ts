@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './support/test'
 
-import { seed } from './seed'
+import { putRows, seed } from './seed'
 
 /**
  * "Only from Germany / the EU" (docs/06 M20 #2), on the plan and on the shops.
@@ -10,15 +10,10 @@ import { seed } from './seed'
  * exactly the line the filter is asked to draw.
  */
 async function britishShop(page: Page) {
-  await page.evaluate(
-    async (input) => {
-      const open = indexedDB.open('fidelity')
-      const db: IDBDatabase = await new Promise((resolve, reject) => {
-        open.onsuccess = () => resolve(open.result)
-        open.onerror = () => reject(open.error)
-      })
-      const tx = db.transaction(['wantlist', 'dealers', 'digs', 'matches'], 'readwrite')
-      tx.objectStore('wantlist').put({
+  const now = Date.now()
+  await putRows(page, {
+    wantlist: [
+      {
         releaseId: 9_912_999,
         masterId: 0,
         title: 'Unity',
@@ -38,8 +33,10 @@ async function britishShop(page: Page) {
         addedAt: '2021-01-01T00:00:00-00:00',
         note: '',
         want: 0,
-      })
-      tx.objectStore('dealers').put({
+      },
+    ],
+    dealers: [
+      {
         username: 'londonwax',
         displayName: 'London Wax',
         shipsFrom: 'United Kingdom',
@@ -48,21 +45,23 @@ async function britishShop(page: Page) {
         numForSale: 500,
         minOrderTotal: 0,
         shippingNote: '',
-        lastScannedAt: input.now - 120_000,
+        lastScannedAt: now - 120_000,
         newestListedAt: null,
         affinity: 1,
         fingerprint: null,
         shippingTiers: [
           { minItems: 1, maxItems: null, price: 9, currency: 'EUR', source: 'user' },
         ],
-      })
-      tx.objectStore('digs').put({
+      },
+    ],
+    digs: [
+      {
         id: '01J0000000000000000000DIG3',
         dealer: 'londonwax',
         status: 'done',
-        startedAt: input.now - 120_000,
-        finishedAt: input.now - 90_000,
-        expiresAt: input.now + 5 * 60 * 60 * 1000,
+        startedAt: now - 120_000,
+        finishedAt: now - 90_000,
+        expiresAt: now + 5 * 60 * 60 * 1000,
         listingsTotal: 500,
         listingsScanned: 500,
         coverage: 1,
@@ -70,8 +69,10 @@ async function britishShop(page: Page) {
         matchCount: 1,
         apiRequests: 6,
         cursor: null,
-      })
-      tx.objectStore('matches').put({
+      },
+    ],
+    matches: [
+      {
         digId: '01J0000000000000000000DIG3',
         listingId: 4_200_000_001,
         releaseId: 9_912_999,
@@ -92,12 +93,9 @@ async function britishShop(page: Page) {
         marketLowestPrice: null,
         marketNumForSale: null,
         expired: false,
-      })
-      await new Promise((done) => (tx.oncomplete = () => done(null)))
-      db.close()
-    },
-    { now: Date.now() },
-  )
+      },
+    ],
+  })
 }
 
 test('the plan drops the shop across the Channel when asked, and says so', async ({ page }) => {

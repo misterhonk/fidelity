@@ -1,6 +1,6 @@
 import { expect, type Page, test } from './support/test'
 
-import { seed } from './seed'
+import { putRows, readRows, seed } from './seed'
 
 /**
  * The compact table on a phone, and the sheet's way through the finds
@@ -12,32 +12,18 @@ test.use({ viewport: { width: 390, height: 844 } })
 
 /** Enough finds that the long list below the top five exists (as compact-table.spec does). */
 async function manyFinds(page: Page, digId: string) {
-  await page.evaluate(async (dig: string) => {
-    const request = indexedDB.open('fidelity')
-    const db: IDBDatabase = await new Promise((done) => {
-      request.onsuccess = () => done(request.result)
-    })
-    const tx = db.transaction('matches', 'readwrite')
-    const store = tx.objectStore('matches')
-    const first: Record<string, unknown> = await new Promise((done) => {
-      const all = store.getAll()
-      all.onsuccess = () => done(all.result[0] as Record<string, unknown>)
-    })
-    for (let i = 0; i < 6; i += 1) {
-      store.put({
-        ...first,
-        digId: dig,
-        listingId: 900_000 + i,
-        releaseId: 910_000 + i,
-        artist: `Probe ${i}`,
-        title: `Record ${i}`,
-        score: 40 - i,
-        price: 40 - i * 5,
-      })
-    }
-    await new Promise((done) => (tx.oncomplete = done))
-    db.close()
-  }, digId)
+  const [first] = await readRows(page, 'matches')
+  const matches = Array.from({ length: 6 }, (_, i) => ({
+    ...first,
+    digId,
+    listingId: 900_000 + i,
+    releaseId: 910_000 + i,
+    artist: `Probe ${i}`,
+    title: `Record ${i}`,
+    score: 40 - i,
+    price: 40 - i * 5,
+  }))
+  await putRows(page, { matches })
 }
 
 test('keeps the record readable in a compact row, and the sheet’s arrows visible', async ({

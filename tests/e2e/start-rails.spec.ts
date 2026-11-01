@@ -2,6 +2,8 @@ import { expect, test, type Page } from './support/test'
 
 import { DB_VERSION } from '~~/db/schema'
 
+import { putRows } from './seed'
+
 /**
  * The covers on the start screen are really clickable.
  *
@@ -118,33 +120,22 @@ async function withRails(page: Page) {
     { timeout: 20_000 },
   )
 
-  await page.evaluate(
-    async ([shelf, wanted, crowd]) => {
-      const open = indexedDB.open('fidelity')
-      const db: IDBDatabase = await new Promise((resolve, reject) => {
-        open.onsuccess = () => resolve(open.result)
-        open.onerror = () => reject(open.error)
-      })
-
-      const meta = db.transaction('meta', 'readwrite').objectStore('meta')
-      /*
-       * A stand-in, and the gate this screen actually checks.
-       *
-       * `identity` alone leaves the start screen redirecting to the setup —
-       * measured 2026-08-13. Nothing here ever reaches Discogs: the rails are
-       * read out of the two stores below, and a request with this would fail
-       * and be swallowed like any other.
-       */
-      meta.put({ key: 'token', value: 'not-a-real-token' })
-      meta.put({ key: 'identity', value: { username: 'probe', displayName: 'Probe' } })
-
-      const tx = db.transaction(['collection', 'wantlist'], 'readwrite')
-      tx.objectStore('collection').put(shelf)
-      for (const record of [wanted, ...crowd]) tx.objectStore('wantlist').put(record)
-      await new Promise((done) => (tx.oncomplete = () => done(null)))
-    },
-    [SHELF, WANTED, CROWD] as const,
-  )
+  await putRows(page, {
+    /*
+     * A stand-in, and the gate this screen actually checks.
+     *
+     * `identity` alone leaves the start screen redirecting to the setup —
+     * measured 2026-08-13. Nothing here ever reaches Discogs: the rails are
+     * read out of the two stores below, and a request with this would fail
+     * and be swallowed like any other.
+     */
+    meta: [
+      { key: 'token', value: 'not-a-real-token' },
+      { key: 'identity', value: { username: 'probe', displayName: 'Probe' } },
+    ],
+    collection: [SHELF],
+    wantlist: [WANTED, ...CROWD],
+  })
   await page.goto('/')
   await expect(page.locator('main')).toBeVisible()
 }

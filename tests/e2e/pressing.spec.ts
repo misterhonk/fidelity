@@ -1,6 +1,6 @@
 import { expect, test, type BrowserContext } from './support/test'
 
-import { seed } from './seed'
+import { putRows, seed } from './seed'
 
 /**
  * Which pressing this is (docs/06 M19 #7): the record in your hand, read
@@ -181,36 +181,30 @@ test('knows the album from the wantlist, in another pressing (M20 #3)', async ({
   await seed(page, 'en')
   await answerDiscogs(context, [uk1994, eu2017])
   // A third pressing of Dummy on the wantlist — not one of the two the barcode names.
-  await page.evaluate(async () => {
-    const open = indexedDB.open('fidelity')
-    const db: IDBDatabase = await new Promise((resolve, reject) => {
-      open.onsuccess = () => resolve(open.result)
-      open.onerror = () => reject(open.error)
-    })
-    const tx = db.transaction('wantlist', 'readwrite')
-    tx.objectStore('wantlist').put({
-      releaseId: 1065562,
-      masterId: 5542,
-      title: 'Dummy',
-      artistIds: [10],
-      artistNorms: ['portishead'],
-      artistNames: ['Portishead'],
-      labelIds: [],
-      labelNorms: [],
-      labelNames: [],
-      catnos: [],
-      genres: [],
-      styles: [],
-      formats: ['Cassette'],
-      year: 1994,
-      thumbUrl: '',
-      coverUrl: '',
-      addedAt: '2022-01-01T00:00:00-00:00',
-      note: '',
-      want: 0,
-    })
-    await new Promise((done) => (tx.oncomplete = () => done(null)))
-    db.close()
+  await putRows(page, {
+    wantlist: [
+      {
+        releaseId: 1065562,
+        masterId: 5542,
+        title: 'Dummy',
+        artistIds: [10],
+        artistNorms: ['portishead'],
+        artistNames: ['Portishead'],
+        labelIds: [],
+        labelNorms: [],
+        labelNames: [],
+        catnos: [],
+        genres: [],
+        styles: [],
+        formats: ['Cassette'],
+        year: 1994,
+        thumbUrl: '',
+        coverUrl: '',
+        addedAt: '2022-01-01T00:00:00-00:00',
+        note: '',
+        want: 0,
+      },
+    ],
   })
   await page.goto('/in-store')
 

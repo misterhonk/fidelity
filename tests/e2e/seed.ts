@@ -428,6 +428,40 @@ export async function putRows(page: Page, rows: Record<string, unknown[]>): Prom
 }
 
 /**
+ * Every row of one store, for a spec that writes variations of a seeded row.
+ *
+ * The read half of a read-modify-write; the write goes through `putRows`,
+ * which waits for `oncomplete`. Specs may not open IndexedDB themselves (the
+ * lint rule in eslint.config.mjs): a hand-made write that navigated before its
+ * transaction completed was cancelled by WebKit now and then (#264, #271).
+ */
+export async function readRows<T = Record<string, unknown>>(
+  page: Page,
+  store: string,
+): Promise<T[]> {
+  return page.evaluate(
+    ({ name, store }) =>
+      new Promise<T[]>((resolve, reject) => {
+        const open = indexedDB.open(name)
+        open.onerror = () => reject(open.error)
+        open.onsuccess = () => {
+          const db = open.result
+          const all = db.transaction(store, 'readonly').objectStore(store).getAll()
+          all.onsuccess = () => {
+            db.close()
+            resolve(all.result as T[])
+          }
+          all.onerror = () => {
+            db.close()
+            reject(all.error)
+          }
+        }
+      }),
+    { name: DB_NAME, store },
+  )
+}
+
+/**
  * Reload, and survive the app landing a navigation of its own in the same
  * moment: "Frame load interrupted" on CI's WebKit, in `signIn()`, now and
  * then. The reload is tried again once the interrupting load is through.
