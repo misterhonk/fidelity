@@ -5,7 +5,7 @@ import { useSettingsMessages } from '~/i18n/settings'
 const st = useSettingsMessages()
 const m = useMessages()
 
-const { call } = useFidelityWorker()
+const { call, stop } = useFidelityWorker()
 
 const status = ref<CreditStatus | null>(null)
 const progress = ref<HarvestProgress | null>(null)
@@ -50,7 +50,7 @@ async function harvest() {
   try {
     await call('credits.harvest', {}, { onProgress: (p) => (progress.value = p) })
   } catch (cause) {
-    error.value = cause
+    if (!isCancelled(cause)) error.value = cause
   } finally {
     // Whatever was read before an interruption is kept — the next run picks up
     // where this one stopped.
@@ -112,8 +112,15 @@ const eta = computed(() => {
         {{ st.library.credits.remaining(remaining, minutes) }}
       </p>
 
-      <div v-if="progress" class="flex flex-col gap-2" aria-live="polite">
-        <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
+      <div v-if="progress" class="flex flex-col gap-2">
+        <div
+          role="progressbar"
+          :aria-label="st.library.credits.harvest"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          :aria-valuenow="percent"
+          class="h-2 w-full overflow-hidden rounded-full bg-fid-inset"
+        >
           <div
             class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
             :style="{ width: `${percent}%` }"
@@ -126,6 +133,14 @@ const eta = computed(() => {
           <template v-if="progress.current"> · {{ progress.current }}</template>
           <template v-if="eta"> {{ m.common.etaLeft(eta) }}</template>
         </p>
+        <JobMilestone :label="st.library.credits.harvest" :percent="percent" />
+        <button
+          type="button"
+          class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+          @click="stop('credits.harvest')"
+        >
+          {{ m.common.stop }}
+        </button>
       </div>
 
       <!--

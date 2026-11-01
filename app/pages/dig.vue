@@ -19,7 +19,7 @@ useSeoMeta({
   description: () => d.value.description,
 })
 
-const { call } = useFidelityWorker()
+const { call, stop } = useFidelityWorker()
 const { online, noteFailure } = useOnline()
 const { failure: judgeFailure, load: loadFeedback } = useFeedback()
 const { failure: basketFailure, load: loadBasket, ids: basketIds } = useBasket()
@@ -451,8 +451,7 @@ async function resume() {
     resumable.value = null
     await finish(done)
   } catch (cause) {
-    error.value = cause
-    resumable.value = await call('dig.resumable', undefined)
+    await interrupted(cause)
   } finally {
     busy.value = false
     progress.value = null
@@ -478,16 +477,35 @@ async function start(depth: 'normal' | 'deep' | 'neu' = 'normal') {
     resumable.value = null
     await finish(done)
   } catch (cause) {
-    error.value = cause
-    // A failed run usually means an interrupted one, so ask again what can be
-    // continued rather than leaving a stale offer on screen.
-    resumable.value = await call('dig.resumable', undefined)
+    await interrupted(cause)
   } finally {
     busy.value = false
     progress.value = null
     scanningDealer.value = null
   }
 }
+
+/**
+ * A run that ended early — failed, or stopped on purpose.
+ *
+ * Either way it is usually resumable, so the offer is asked for again rather
+ * than a stale one left on screen. A Stop is not an error (#216): what it
+ * leaves is the finds so far and the offer to carry on.
+ */
+async function interrupted(cause: unknown) {
+  if (isCancelled(cause)) result.value = await call('dig.latest', undefined)
+  else error.value = cause
+  resumable.value = await call('dig.resumable', undefined)
+}
+
+/** Stops the scan, whichever screen started it. The offer to resume follows. */
+function stopDig() {
+  stop('dig.run', 'dig.resume')
+}
+
+/** Share of a pass, for the bars that count done against total. */
+const shareOf = (p: { done: number; total: number }) =>
+  p.total > 0 ? Math.round((p.done / p.total) * 100) : 0
 
 /**
  * Determinate progress with real numbers — never a bare spinner.
@@ -1241,7 +1259,7 @@ const noHorizon = computed(
       </div>
     </section>
 
-    <section v-if="progress || scanningDealer" class="flex flex-col gap-2" aria-live="polite">
+    <section v-if="progress || scanningDealer" class="flex flex-col gap-2">
       <!-- Which shop, first. A bar without a name is a bar somebody has to guess at. -->
       <p v-if="scanningDealer" class="text-fid-sm font-medium text-fid-text">
         {{ d.scanning(scanningDealer) }}
@@ -1258,10 +1276,12 @@ const noHorizon = computed(
 
         Polled only while a scan is running, and only out of the worker's own
         memory — no request, and no line at all when nothing is waiting.
+
+        Not a live region: the seconds count down every three, and a screen
+        reader would read each of them out (#216).
       -->
       <p
         v-if="waitingFor !== null"
-        role="status"
         class="max-w-prose rounded-fid-sm border border-fid-sig-gap/40 bg-fid-sig-gap/10 px-3 py-2 text-fid-sm text-fid-text"
       >
         {{ d.throttled(waitingFor) }}
@@ -1282,14 +1302,20 @@ const noHorizon = computed(
       -->
       <p
         v-else-if="crawling"
-        role="status"
         class="max-w-prose rounded-fid-sm border border-fid-sig-gap/40 bg-fid-sig-gap/10 px-3 py-2 text-fid-sm text-fid-text"
       >
         {{ d.slowLane(perMinute ?? 0) }}
       </p>
 
       <div v-if="progress" class="flex items-center gap-3">
-        <div class="h-2 grow overflow-hidden rounded-full bg-fid-inset">
+        <div
+          role="progressbar"
+          :aria-label="d.scanning(scanningDealer ?? '')"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          :aria-valuenow="percent"
+          class="h-2 grow overflow-hidden rounded-full bg-fid-inset"
+        >
           <div
             class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
             :style="{ width: `${percent}%` }"
@@ -1318,6 +1344,18 @@ const noHorizon = computed(
         </template>
         <template v-if="eta"> {{ m.common.etaLeft(eta) }}</template>
       </p>
+      <JobMilestone
+        v-if="progress"
+        :label="d.scanning(scanningDealer ?? '')"
+        :percent="percent"
+      />
+      <button
+        type="button"
+        class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+        @click="stopDig"
+      >
+        {{ m.common.stop }}
+      </button>
     </section>
 
     <!--
@@ -1327,15 +1365,21 @@ const noHorizon = computed(
     -->
     <section
       v-if="enriching"
-      class="flex items-center gap-3 rounded-fid-sm border border-fid-border px-3 py-2"
-      aria-live="polite"
+      class="flex flex-wrap items-center gap-3 rounded-fid-sm border border-fid-border px-3 py-2"
     >
-      <div class="h-1 w-24 overflow-hidden rounded-full bg-fid-inset">
+      <div
+        role="progressbar"
+        :aria-label="
+          d.enriching(count(enriching.done), count(enriching.total), count(enriching.requests))
+        "
+        aria-valuemin="0"
+        aria-valuemax="100"
+        :aria-valuenow="shareOf(enriching)"
+        class="h-1 w-24 overflow-hidden rounded-full bg-fid-inset"
+      >
         <div
           class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
-          :style="{
-            width: `${enriching.total > 0 ? Math.round((enriching.done / enriching.total) * 100) : 0}%`,
-          }"
+          :style="{ width: `${shareOf(enriching)}%` }"
         />
       </div>
       <p class="fid-num text-fid-sm text-fid-text-muted">
@@ -1343,6 +1387,17 @@ const noHorizon = computed(
           d.enriching(count(enriching.done), count(enriching.total), count(enriching.requests))
         }}
       </p>
+      <JobMilestone
+        :label="d.scanning(result?.dig.dealer ?? '')"
+        :percent="shareOf(enriching)"
+      />
+      <button
+        type="button"
+        class="rounded-fid-sm border border-fid-border px-3 py-1 text-fid-sm text-fid-text"
+        @click="stop('dig.enrich')"
+      >
+        {{ m.common.stop }}
+      </button>
     </section>
 
     <!--
@@ -1584,15 +1639,21 @@ const noHorizon = computed(
         }}
       </p>
 
-      <div v-if="refreshing" class="flex flex-col gap-1" aria-live="polite">
-        <div class="h-1.5 w-full overflow-hidden rounded-full bg-fid-inset">
+      <div v-if="refreshing" class="flex flex-col gap-1">
+        <div
+          role="progressbar"
+          :aria-label="d.checked(count(refreshing.done), count(refreshing.total))"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          :aria-valuenow="shareOf(refreshing)"
+          class="h-1.5 w-full overflow-hidden rounded-full bg-fid-inset"
+        >
           <div
             class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
-            :style="{
-              width: `${refreshing.total > 0 ? Math.round((refreshing.done / refreshing.total) * 100) : 0}%`,
-            }"
+            :style="{ width: `${shareOf(refreshing)}%` }"
           />
         </div>
+        <JobMilestone :label="d.refreshPrices" :percent="shareOf(refreshing)" />
         <p class="fid-num text-fid-sm text-fid-text-muted">
           {{ d.checked(count(refreshing.done), count(refreshing.total))
           }}<template v-if="refreshing.sold > 0"

@@ -3,8 +3,9 @@ import type { HorizonProgress, HorizonStatus } from '#shared/protocol'
 import { useSettingsMessages } from '~/i18n/settings'
 
 const st = useSettingsMessages()
+const m = useMessages()
 
-const { call } = useFidelityWorker()
+const { call, stop } = useFidelityWorker()
 
 const status = ref<HorizonStatus | null>(null)
 const progress = ref<HorizonProgress | null>(null)
@@ -100,7 +101,7 @@ async function build() {
     await call('horizon.build', undefined, { onProgress: (p) => (progress.value = p) })
     await refresh()
   } catch (cause) {
-    error.value = cause
+    if (!isCancelled(cause)) error.value = cause
     // Whatever was expanded before the interruption is kept; refreshing shows
     // how far it got.
     await refresh()
@@ -193,8 +194,15 @@ const built = computed(() => {
       and a panel that showed nothing at all in that window would be the same
       empty screen this whole change is against.
     -->
-    <div v-if="progress || running" class="flex flex-col gap-2" aria-live="polite">
-      <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
+    <div v-if="progress || running" class="flex flex-col gap-2">
+      <div
+        role="progressbar"
+        :aria-label="st.library.horizon.build"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        :aria-valuenow="percent"
+        class="h-2 w-full overflow-hidden rounded-full bg-fid-inset"
+      >
         <div
           class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
           :style="{ width: `${percent}%` }"
@@ -209,6 +217,14 @@ const built = computed(() => {
       </p>
       <!-- Because the opposite was being read into a bar that vanished. -->
       <p class="text-fid-sm text-fid-text-muted">{{ st.library.horizon.keepsRunning }}</p>
+      <JobMilestone :label="st.library.horizon.build" :percent="percent" />
+      <button
+        type="button"
+        class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+        @click="stop('horizon.build')"
+      >
+        {{ m.common.stop }}
+      </button>
     </div>
 
     <ErrorNote v-if="error" :cause="error" />

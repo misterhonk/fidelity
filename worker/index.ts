@@ -21,8 +21,8 @@ const scope = self as unknown as DedicatedWorkerGlobalScope
 /** Derived from the handler map, so it can never drift out of sync with it. */
 const KINDS = new Set<string>([...Object.keys(handlers), '$cancel'])
 
-/** One AbortController per in-flight request, so $cancel can reach it. */
-const inFlight = new Map<string, AbortController>()
+/** One AbortController per in-flight request, so $cancel can reach it — by id or by kind. */
+const inFlight = new Map<string, { controller: AbortController; kind: RequestKind }>()
 
 /**
  * A worker receives messages from anything on the page, browser extensions and
@@ -55,7 +55,7 @@ function remember(id: string) {
 
 async function dispatch(id: string, kind: RequestKind, params: unknown) {
   const controller = new AbortController()
-  inFlight.set(id, controller)
+  inFlight.set(id, { controller, kind })
 
   try {
     const handler = handlers[kind] as (
@@ -151,7 +151,10 @@ function onMessage(event: MessageEvent) {
   if (!isWorkerInbound(message)) return
 
   if (message.kind === '$cancel') {
-    inFlight.get(message.id)?.abort()
+    const kinds = message.of
+    if (!kinds) inFlight.get(message.id)?.controller.abort()
+    else
+      for (const job of inFlight.values()) if (kinds.includes(job.kind)) job.controller.abort()
     return
   }
 

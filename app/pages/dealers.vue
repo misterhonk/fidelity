@@ -27,7 +27,7 @@ useSeoMeta({
   description: () => h.value.description,
 })
 
-const { call } = useFidelityWorker()
+const { call, stop } = useFidelityWorker()
 const { alerts, isWatched, toggle, load: loadWatchlist } = useWatchlist()
 const {
   state: push,
@@ -143,7 +143,8 @@ async function startRound() {
     // The shops moved: new scan dates, new hit rates, a new order.
     await refresh()
   } catch (cause) {
-    error.value = cause
+    // A Stop is no failure; the shops visited so far are in the last round.
+    if (!isCancelled(cause)) error.value = cause
     lastRound.value = await call('round.last', undefined)
   } finally {
     roundBusy.value = false
@@ -390,6 +391,7 @@ onBeforeUnmount(() => {
         :last-round="lastRound"
         :busy="roundBusy"
         @start="startRound"
+        @stop="stop('round.run')"
       />
 
       <!--

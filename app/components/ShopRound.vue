@@ -22,7 +22,7 @@ const props = defineProps<{
   busy: boolean
 }>()
 
-defineEmits<{ start: [] }>()
+defineEmits<{ start: []; stop: [] }>()
 
 const minutes = computed(() => Math.max(1, Math.ceil((props.plan.requests * 1.2) / 60)))
 
@@ -74,8 +74,15 @@ const finds = computed(() => hits.value.reduce((sum, stop) => sum + stop.matches
       <WhyNote>{{ h.round.about(plan.reachable, minutes) }}</WhyNote>
     </div>
 
-    <div v-if="round" class="flex flex-col gap-2" aria-live="polite">
-      <div class="h-2 w-full overflow-hidden rounded-full bg-fid-inset">
+    <div v-if="round" class="flex flex-col gap-2">
+      <div
+        role="progressbar"
+        :aria-label="h.round.title"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        :aria-valuenow="percent"
+        class="h-2 w-full overflow-hidden rounded-full bg-fid-inset"
+      >
         <div
           class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
           :style="{ width: `${percent}%` }"
@@ -87,6 +94,14 @@ const finds = computed(() => hits.value.reduce((sum, stop) => sum + stop.matches
         · {{ h.round.found(round.found) }}
       </p>
       <p class="text-fid-sm text-fid-text-muted">{{ h.round.keepsRunning }}</p>
+      <JobMilestone :label="h.round.title" :percent="percent" />
+      <button
+        type="button"
+        class="self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
+        @click="$emit('stop')"
+      >
+        {{ m.common.stop }}
+      </button>
     </div>
 
     <!--

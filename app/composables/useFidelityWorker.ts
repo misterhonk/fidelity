@@ -102,6 +102,21 @@ export function callWorker<K extends RequestKind>(
   })
 }
 
+/**
+ * Stops every running request of these kinds, whoever started it (#216).
+ *
+ * What the job already did is kept — a stopped dig is offered to resume.
+ * The callers see their promise reject with `code: 'cancelled'`.
+ */
+export function stopJobs(...kinds: RequestKind[]): void {
+  worker?.postMessage({ id: crypto.randomUUID(), kind: '$cancel', of: kinds })
+}
+
+/** A failure that is somebody pressing Stop, which no screen reports as an error. */
+export function isCancelled(cause: unknown): boolean {
+  return cause instanceof WorkerRequestError && cause.code === 'cancelled'
+}
+
 /** Drops the worker and fails everything still in flight. Used on sign-out. */
 export function terminateWorker(): void {
   worker?.terminate()
@@ -113,5 +128,5 @@ export function terminateWorker(): void {
 }
 
 export function useFidelityWorker() {
-  return { call: callWorker, terminate: terminateWorker }
+  return { call: callWorker, terminate: terminateWorker, stop: stopJobs }
 }

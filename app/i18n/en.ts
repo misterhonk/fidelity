@@ -94,6 +94,10 @@ const en = {
      */
     ofTotal: (done: string | number, total: string | number) => `${done} of ${total}`,
     loading: 'Loading …',
+    /** Ends a long job. What it already did is kept. */
+    stop: 'Stop',
+    /** Read out once per tenth of a running job, never more often (#216). */
+    progressAt: (label: string, percent: number) => `${label}: ${percent}%`,
     asking: 'Asking …',
     searching: 'Searching …',
     save: 'Save',
@@ -919,6 +923,8 @@ const en = {
     dealers: { label: 'Shops', hint: 'Who you buy from' },
     settings: { label: 'Settings', hint: 'Token, sync, appearance' },
     inBasket: (count: number) => `${count} in the basket`,
+    /** Spoken with the Dig tab while a dig runs anywhere in the app. */
+    digRunning: (percent: number) => `dig running, ${percent}%`,
     attribution: 'Data provided by Discogs',
     disclaimer:
       'This application uses Discogs\' API but is not affiliated with, sponsored or endorsed by Discogs. "Discogs" is a trademark of Zink Media, LLC.',
