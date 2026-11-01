@@ -1,44 +1,21 @@
 import { expect, test, type Page } from '@playwright/test'
 
-import { DB_VERSION } from '~~/db/schema'
+import { settled, signIn } from './seed'
 
 /**
  * A signed-in device that has never dug, watched or bought anywhere.
  *
- * `seed()` writes a shop, and this is the one screen where that would hide
- * the case under test. The token is a placeholder: nothing here talks to
- * Discogs.
+ * `signIn()` and not `seed()`: `seed()` writes a shop, and this is the one
+ * screen where that would hide the case under test. This used to be a seed of
+ * its own that put the token in a transaction and navigated away without
+ * waiting for it to commit — WebKit then aborted the write now and then, and
+ * the screen said "Sign in first" instead (#264). `signIn()` waits for
+ * `oncomplete`.
  */
 async function signedInWithNoShops(page: Page) {
-  await page.goto('/')
-
-  /* The welcome screen means the stores exist and the guard has run. */
-  await page.waitForURL(/\/welcome/, { timeout: 20_000 })
-
-  await page.waitForFunction(
-    async (wanted: number) => {
-      const known = await indexedDB.databases()
-      return known.some((entry) => entry.name === 'fidelity' && (entry.version ?? 0) >= wanted)
-    },
-    DB_VERSION,
-    { timeout: 20_000 },
-  )
-
-  await page.evaluate(async () => {
-    const open = indexedDB.open('fidelity')
-    const db: IDBDatabase = await new Promise((resolve, reject) => {
-      open.onsuccess = () => resolve(open.result)
-      open.onerror = () => reject(open.error)
-    })
-
-    const meta = db.transaction('meta', 'readwrite').objectStore('meta')
-    meta.put({ key: 'token', value: 'not-a-real-token' })
-    meta.put({ key: 'identity', value: { username: 'probe', displayName: 'Probe' } })
-    await new Promise((done) => setTimeout(done, 0))
-  })
-
+  await signIn(page)
   await page.goto('/dealers')
-  await expect(page.locator('main')).toBeVisible()
+  await settled(page)
 }
 
 test.describe('the shops screen with nothing on it', () => {
