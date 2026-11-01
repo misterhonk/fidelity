@@ -3,12 +3,9 @@ import { getPreferences } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 
 import { coverOf, storeReleaseDetail } from './collection/detail'
-import { noteFree } from './discogs/ledger'
 import { releaseDetailSchema } from './discogs/schemas'
 
 import type { DiscogsClient } from './discogs/client'
-import { createHubClient } from './hub/client'
-import { HUB_TIMEOUT_MS, withTimeout } from './hub/fallback'
 
 /**
  * Fetching the covers the marketplace does not hand over.
@@ -66,51 +63,19 @@ export async function fetchCovers(options: {
   signal?: AbortSignal
 }): Promise<number> {
   const { client, report, signal } = options
-  let missing = (await unknownCovers(options.releaseIds)).slice(0, options.limit ?? COVER_BATCH)
+  const missing = (await unknownCovers(options.releaseIds)).slice(
+    0,
+    options.limit ?? COVER_BATCH,
+  )
   if (missing.length === 0) return 0
 
   const learned: { releaseId: number; thumbUrl: string; coverUrl: string }[] = []
 
   /*
-   * Ask the hub first — one call for all of them at once.
-   *
-   * This is the cheapest thing a hub can do and the most valuable: a cover
-   * costs one request to Discogs, the answer is identical for everybody, and a
-   * sleeve does not change. A dozen of them are one round trip here.
-   *
-   * All the usual rules (ADR-008, rule 8): two seconds, no retry, and any
-   * failure falls through to the ordinary path without a word. The addresses
-   * are re-checked inside the client — a hub is the component that code is
-   * written not to trust.
+   * The hub is not asked (#206): release images are Restricted Data under the
+   * Discogs API terms, so their addresses are not pooled between people.
    */
   const preferences = await getPreferences()
-  const hub = createHubClient({
-    baseUrl: preferences.hubUrl,
-    secret: preferences.hubSecret,
-    accessKey: preferences.accessKey,
-  })
-  let fromHub = 0
-
-  if (hub) {
-    try {
-      const shared = await withTimeout(hub.covers(missing), HUB_TIMEOUT_MS)
-      const hits = Object.entries(shared).map(([id, cover]) => ({
-        releaseId: Number(id),
-        ...cover,
-      }))
-      if (hits.length > 0) {
-        await writeCovers(hits)
-        fromHub = hits.length
-        // Each of these would have been one request to Discogs (M31.9).
-        noteFree('record', hits.length)
-        const known = new Set(hits.map((hit) => hit.releaseId))
-        missing = missing.filter((releaseId) => !known.has(releaseId))
-      }
-    } catch {
-      // A hub that is slow, off or broken is not an event. The requests below
-      // are what would have happened anyway.
-    }
-  }
 
   for (const [index, releaseId] of missing.entries()) {
     signal?.throwIfAborted()
@@ -150,19 +115,5 @@ export async function fetchCovers(options: {
   await writeCovers(learned)
   report?.({ done: missing.length, total: missing.length })
 
-  /*
-   * And hand back what we learned.
-   *
-   * Fire-and-forget, and a courtesy rather than part of the request: whoever
-   * shares this hub does not pay for these again. The negatives go too — "no
-   * picture for this release" is worth exactly as much as a picture, and costs
-   * the same request to find out.
-   */
-  if (hub && learned.length > 0) {
-    void hub.contributeCovers(learned).catch(() => {
-      // A hub that refuses a contribution changes nothing here.
-    })
-  }
-
-  return learned.length + fromHub
+  return learned.length
 }
