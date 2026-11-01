@@ -28,6 +28,8 @@ const dealers = shallowRef<Dealer[]>([])
 const digs = shallowRef<Dig[]>([])
 const noRecords: RecordSearch = { shelf: [], wantlist: [], dig: [] }
 const records = shallowRef<RecordSearch>(noRecords)
+/** A query whose records are not back yet: "nothing found" would be a guess. */
+const searching = ref(false)
 
 // Focus goes back where it came from: the start page's field, or the page.
 const opener = import.meta.client ? (document.activeElement as HTMLElement | null) : null
@@ -50,10 +52,13 @@ watch(query, (value) => {
   // An older query's records would stay listed, and armed for Enter, until the
   // worker answers this one.
   records.value = noRecords
+  searching.value = true
   const ticket = ++asked
   timer = setTimeout(async () => {
     const found = await call('records.search', { query: value })
-    if (ticket === asked) records.value = found
+    if (ticket !== asked) return
+    records.value = found
+    searching.value = false
   }, 120)
 })
 onBeforeUnmount(() => clearTimeout(timer))
@@ -278,7 +283,10 @@ function onKeydown(event: KeyboardEvent) {
         />
       </div>
 
-      <p v-if="results.length === 0" class="px-4 py-6 text-fid-sm text-fid-text-muted">
+      <p
+        v-if="results.length === 0 && !searching"
+        class="px-4 py-6 text-fid-sm text-fid-text-muted"
+      >
         {{ messages.palette.nothing }}
       </p>
 
