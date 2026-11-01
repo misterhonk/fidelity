@@ -635,6 +635,9 @@ const en = {
     storage: 'Storage',
     /* From navigator.storage.estimate(). When it runs full, the cover cache goes first (db/quota.ts). */
     storageLine: (used: string, quota: string) => `${used} of ${quota} in use`,
+    /* On Chrome the figure above is mostly cover padding (settings/account.vue), so say what is data. */
+    storageHint: (data: string) =>
+      `${data} of it is your data. The rest is mostly cached covers, the first to go when space runs out.`,
   },
   help: {
     lead: 'How this works, what the scores mean, and where your data lives.',
@@ -1175,6 +1178,8 @@ const de: typeof en = {
     hint: 'Exportieren oder alles löschen',
     storage: 'Speicher',
     storageLine: (used, quota) => `${used} von ${quota} belegt`,
+    storageHint: (data) =>
+      `Davon sind ${data} deine Daten. Der Rest sind meist Cover im Cache, die fliegen zuerst raus, wenn der Platz knapp wird.`,
   },
   help: {
     lead: 'Wie das hier funktioniert, was die Punktzahlen bedeuten und wo deine Daten liegen.',

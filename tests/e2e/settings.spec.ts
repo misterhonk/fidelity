@@ -68,6 +68,10 @@ test.describe('settings', () => {
     await expect(page.getByTestId('storage-estimate')).toHaveText(
       /^Storage: [\d,.]+ (KB|MB|GB) of [\d,.]+ (KB|MB|GB) in use$/,
     )
+    // The same data figure settings/account shows, so the two pages do not disagree.
+    await expect(page.getByTestId('storage-hint')).toHaveText(
+      /^[\d,.]+ (KB|MB) of it is your data\./,
+    )
   })
 
   /** The price ceiling in the currency you buy in, not always in euros (#194). */
