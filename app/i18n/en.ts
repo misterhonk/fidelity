@@ -529,11 +529,22 @@ const en = {
     sampleTitle: 'What comes out of it',
     sampleNote:
       'Examples. A score and a sentence saying why, for every record in a shop. Once your collection is in, those are your artists and your labels.',
-    /** Next to the link: English says the verb first, German last. */
-    step1: { verb: 'Open', verbFirst: true },
-    step2: 'Click "Generate token"',
-    step3: 'Paste the token here',
+    what: 'A token works like a password, only for the Discogs API, and you can revoke it any time.',
+    /** Comes before the link in both languages. */
+    step1: 'Open',
+    step2: 'Tap "Generate new token"',
+    step3: 'Copy it and paste it here',
+    /** A drawing of the Discogs page, not a screenshot. The button says what Discogs says. */
+    picture: {
+      alt: 'The Discogs developer settings, with the button "Generate new token"',
+      heading: 'Personal access token',
+      button: 'Generate new token',
+    },
     field: 'Personal access token',
+    paste: 'Paste',
+    pasteFailed: 'The clipboard stayed closed. Press and hold the field to paste.',
+    show: 'Show',
+    revoke: 'Revoke it on Discogs any time',
     readsOnly: 'We read. Changes are yours.',
     readsOnlyRest:
       'Your collection, your wantlist and what the shops have. Only what you change here goes to Discogs: ratings, folders, purchases, your wantlist. Buying happens there, by you.',
