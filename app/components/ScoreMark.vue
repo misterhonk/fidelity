@@ -63,8 +63,9 @@ const word = computed(() => d.value.match.band[band.value])
     v-if="!block"
     data-testid="score-sticker"
     class="inline-flex items-baseline gap-1 rounded-fid-sm border border-fid-border px-2 text-fid-xs text-fid-text-muted"
-    :aria-label="d.match.scoreBand(score, word)"
   >
+    <!-- An aria-label on a role-less span is not read out; text is. -->
+    <span class="sr-only">{{ d.match.scoreBand(score, word) }}</span>
     <span class="fid-num text-fid-base font-bold text-fid-text" aria-hidden="true">{{
       score
     }}</span>

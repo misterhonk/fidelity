@@ -17,8 +17,9 @@ test('cards wear a score sticker and the list explains it once', async ({ page }
 
   const stickers = page.getByTestId('score-sticker')
   await expect(stickers.first()).toBeVisible()
+  // The screen reader's sentence first (sr-only), then the visible "92 · Word".
   await expect(stickers.first()).toHaveText(
-    /^\s*\d+\s*· (Side One, Track One|Top Five|Solid|Footnote)\s*$/,
+    /^\s*Barry Score (\d+) out of 100, (Side One, Track One|Top Five|Solid|Footnote)\s*\1\s*· \2\s*$/,
   )
   expect(await stickers.count()).toBeGreaterThan(1)
 
