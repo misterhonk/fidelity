@@ -27,15 +27,15 @@ interface JobKind {
   /** Put the old value back locally, after the job has been given up on. */
   revert: (job: OutboxJob) => Promise<void>
   /**
-   * Only for a job that must not be repeated: how many of what it files exist.
+   * Only for a job that must not be repeated: the ids of what it files, as they are now.
    *
-   * Counted before every attempt and kept with the job. A write whose answer
+   * Read before every attempt and kept with the job. A write whose answer
    * never got back through CORS looks exactly like one that never arrived, so
    * a job that files something new has to go and look instead of guessing —
-   * one more than before means it landed. Asking "is there any" instead took a
-   * copy already on the shelf for the new one, and dropped it.
+   * an id that was not there before means it landed. Asking "is there any"
+   * instead took a copy already on the shelf for the new one, and dropped it.
    */
-  count?: (client: DiscogsClient, job: OutboxJob, username: string) => Promise<number>
+  instances?: (client: DiscogsClient, job: OutboxJob, username: string) => Promise<number[]>
 }
 
 /**
@@ -145,7 +145,7 @@ const KINDS: Record<OutboxKind, JobKind> = {
          * Discogs creates another instance every time, so a blind retry after
          * an unreadable failure puts the same record in the shelf twice —
          * weeks later, with nothing to connect it to a network blip. Hence
-         * `count` below, and hence this being false.
+         * `instances` below, and hence this being false.
          */
         { idempotent: false },
       )
@@ -154,10 +154,10 @@ const KINDS: Record<OutboxKind, JobKind> = {
       const { updateSyncState } = await import('~~/db/meta')
       await updateSyncState({ collectionSyncedAt: 0 })
     },
-    count: async (client, job, username) => {
+    instances: async (client, job, username) => {
       const { releaseId } = job.payload as { releaseId: number }
-      const { copiesOf } = await import('./collection/add')
-      return copiesOf(client, username, releaseId)
+      const { instancesOf } = await import('./collection/add')
+      return instancesOf(client, username, releaseId)
     },
     revert: async (job) => {
       const { releaseId } = job.payload as { releaseId: number }
@@ -322,19 +322,24 @@ async function drainOnce(
     signal?.throwIfAborted()
     try {
       const kind = KINDS[job.kind]
-      if (kind.count) {
-        const copies = await kind.count(client, job, username)
+      if (kind.instances) {
+        const now = await kind.instances(client, job, username)
+        const before = new Set(job.instancesBefore)
         /*
          * Only a marked job can have gone out: every send is marked first, and
-         * one that failed while counting never reached the POST. A mark without
-         * a count predates counting, and then any copy at all is taken for it.
+         * one that failed while looking never reached the POST. A mark without
+         * ids predates them (0.114.1), and then any copy at all is taken for it.
+         *
+         * shortcut: the same release added elsewhere while ours never arrived
+         * is a new id too, so the job is dropped and one copy lands, not two.
+         * Nothing Discogs answers tells the two apart.
          */
-        if (job.sentAt !== undefined && copies > (job.copiesBefore ?? 0)) {
+        if (job.sentAt !== undefined && now.some((id) => !before.has(id))) {
           await dropJob(job.id, job)
           sent += 1
           continue
         }
-        await noteSending(job.id, Date.now(), copies)
+        await noteSending(job.id, Date.now(), now)
       }
       await kind.send(client, job, username, signal)
       await dropJob(job.id, job)
