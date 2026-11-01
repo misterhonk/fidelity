@@ -246,7 +246,7 @@ async function deleteAll() {
         v-if="!confirming"
         type="button"
         :disabled="busy"
-        class="fid-action gap-2 self-start text-fid-sm text-fid-sig-scarcity underline underline-offset-4 disabled:opacity-50"
+        class="fid-action gap-2 self-start text-fid-sm text-fid-error underline underline-offset-4 disabled:opacity-50"
         @click="confirming = true"
       >
         <FidIcon name="trash-2" :size="16" />

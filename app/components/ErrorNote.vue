@@ -20,7 +20,10 @@ const showDetail = ref(false)
 
 <template>
   <div role="alert" class="flex flex-col gap-1">
-    <p class="text-fid-sm text-fid-sig-scarcity">{{ explained.title }}</p>
+    <p class="flex items-start gap-2 text-fid-sm text-fid-error">
+      <FidIcon name="circle-alert" :size="16" />
+      {{ explained.title }}
+    </p>
     <p v-if="explained.action" class="text-fid-sm text-fid-text-muted">
       {{ explained.action }}
     </p>

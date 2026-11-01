@@ -246,7 +246,9 @@ const decades = computed(() =>
             </dd>
             <dd
               class="fid-num text-right text-fid-sm"
-              :class="(label.lift ?? 0) >= 2 ? 'text-fid-sig-label' : 'text-fid-text-muted'"
+              :class="
+                (label.lift ?? 0) >= 2 ? 'text-fid-sig-label-text' : 'text-fid-text-muted'
+              "
             >
               <template v-if="label.lift">{{ decimal(label.lift) }}×</template>
               <template v-else>–</template>

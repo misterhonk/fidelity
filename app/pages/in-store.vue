@@ -395,7 +395,7 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
         v-for="entry in interrupted"
         :key="entry.dig.id"
         role="status"
-        class="text-fid-sm text-fid-sig-gap"
+        class="text-fid-sm text-fid-sig-gap-text"
       >
         {{
           single
@@ -419,7 +419,7 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
         {{ m.inStore.noDig }}
       </p>
 
-      <p v-if="expired" role="status" class="text-fid-sm text-fid-sig-gap">
+      <p v-if="expired" role="status" class="text-fid-sm text-fid-sig-gap-text">
         {{ m.inStore.expired }}
       </p>
 
@@ -462,7 +462,11 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
           </button>
         </div>
 
-        <p v-if="scan.failure.value === 'denied'" class="text-fid-sm text-fid-sig-scarcity">
+        <p
+          v-if="scan.failure.value === 'denied'"
+          class="flex items-start gap-2 text-fid-sm text-fid-error"
+        >
+          <FidIcon name="circle-alert" :size="16" />
           {{ m.inStore.scanDenied }}
         </p>
       </div>
@@ -566,7 +570,7 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
                 </span>
                 <span
                   v-if="ownedIds.has(candidate.releaseId)"
-                  class="text-fid-xs text-fid-sig-artist"
+                  class="text-fid-xs text-fid-sig-artist-text"
                 >
                   {{ m.inStore.pressing.you }}
                 </span>
@@ -597,7 +601,9 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
                 :key="warning.kind + (warning.facts.special ?? '')"
                 class="text-fid-sm"
                 :class="
-                  warning.severity === 'high' ? 'text-fid-sig-scarcity' : 'text-fid-sig-gap'
+                  warning.severity === 'high'
+                    ? 'text-fid-sig-scarcity-text'
+                    : 'text-fid-sig-gap-text'
                 "
               >
                 {{ pressingText(warning) }}
@@ -633,7 +639,7 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
                 <span v-if="sibling.format" class="text-fid-xs">{{ sibling.format }}</span>
                 <span
                   v-if="ownedIds.has(sibling.releaseId)"
-                  class="text-fid-xs text-fid-sig-artist"
+                  class="text-fid-xs text-fid-sig-artist-text"
                 >
                   {{ m.inStore.pressing.you }}
                 </span>
@@ -704,7 +710,7 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
             <span
               class="text-fid-sm font-medium"
               :class="
-                hit.source === 'wantlist' ? 'text-fid-sig-wantlist' : 'text-fid-text-muted'
+                hit.source === 'wantlist' ? 'text-fid-sig-wantlist-text' : 'text-fid-text-muted'
               "
             >
               {{ hit.source === 'wantlist' ? m.inStore.youWant : m.inStore.youOwn }}

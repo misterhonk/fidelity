@@ -84,7 +84,7 @@ const more = computed(() => rows.value.length < total.value)
       deleted. Telling the two cases apart is the difference between
       information and a false statement.
     -->
-    <p v-else-if="!loading && scannedAt === null" class="text-fid-sm text-fid-sig-gap">
+    <p v-else-if="!loading && scannedAt === null" class="text-fid-sm text-fid-sig-gap-text">
       {{ h.stock.needsDig }}
     </p>
 

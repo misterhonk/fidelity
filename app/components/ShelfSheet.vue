@@ -424,15 +424,16 @@ async function remove() {
         class="flex items-center gap-2 rounded-fid-sm px-3 py-2 text-fid-sm"
         :class="
           writeState === 'failed'
-            ? 'bg-fid-sig-scarcity/10 text-fid-sig-scarcity'
+            ? 'bg-fid-error/10 text-fid-error'
             : 'bg-fid-surface-raised text-fid-text-muted'
         "
       >
+        <FidIcon v-if="writeState === 'failed'" name="circle-alert" :size="14" />
         <FidIcon
           v-if="writeState === 'sent'"
           name="check"
           :size="14"
-          class="shrink-0 text-fid-sig-price"
+          class="shrink-0 text-fid-sig-price-text"
         />
         {{ c.shelf.sheet.write[writeState] }}
       </p>
@@ -516,7 +517,7 @@ async function remove() {
                   class="fid-lift flex min-h-11 min-w-11 items-center justify-center rounded-fid-sm text-fid-base transition-colors"
                   :class="
                     record.rating >= star
-                      ? 'text-fid-sig-wantlist'
+                      ? 'text-fid-sig-wantlist-text'
                       : 'text-fid-text-muted hover:text-fid-text'
                   "
                   @click="rate(star)"
@@ -526,7 +527,7 @@ async function remove() {
               </div>
               <span
                 v-else
-                class="fid-num text-fid-sig-wantlist"
+                class="fid-num text-fid-sig-wantlist-text"
                 :aria-label="c.shelf.sheet.rated(record.rating)"
               >
                 {{ '★'.repeat(record.rating) }}
@@ -757,7 +758,7 @@ async function remove() {
           <FidIcon name="eye" :size="14" aria-hidden="true" />
           {{ watching ? c.watched.watchingOn : c.watched.watch }}
         </button>
-        <p v-if="watchFull" class="text-fid-xs text-fid-sig-scarcity">
+        <p v-if="watchFull" class="text-fid-xs text-fid-sig-scarcity-text">
           {{ c.watched.full }}
         </p>
 
@@ -778,7 +779,7 @@ async function remove() {
           -->
         <div
           v-else-if="confirming"
-          class="flex w-full flex-wrap items-center gap-3 rounded-fid-sm border border-fid-sig-scarcity bg-fid-sig-scarcity/10 px-3 py-2"
+          class="flex w-full flex-wrap items-center gap-3 rounded-fid-sm border border-fid-error bg-fid-error/10 px-3 py-2"
         >
           <span class="text-fid-sm text-fid-text">{{ c.shelf.sheet.removeSure }}</span>
           <button
@@ -790,7 +791,7 @@ async function remove() {
           </button>
           <button
             type="button"
-            class="fid-lift inline-flex min-h-11 items-center rounded-fid-sm border border-fid-sig-scarcity px-3 text-fid-sm font-medium text-fid-sig-scarcity"
+            class="fid-lift inline-flex min-h-11 items-center rounded-fid-sm border border-fid-error px-3 text-fid-sm font-medium text-fid-error"
             @click="remove()"
           >
             {{ c.shelf.sheet.removeYes }}

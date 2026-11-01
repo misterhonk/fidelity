@@ -492,7 +492,7 @@ function waiting(addedAt: string): string | null {
                     {{ item.artist }} – {{ item.title }}
                     <span
                       v-if="item.want >= WANT_MOST"
-                      class="text-fid-xs text-fid-sig-wantlist"
+                      class="text-fid-xs text-fid-sig-wantlist-text"
                     >
                       · {{ c.wantlist.priority.most }}</span
                     >
@@ -505,7 +505,7 @@ function waiting(addedAt: string): string | null {
                   }}</span>
                 </li>
               </ul>
-              <p v-if="shop.belowMinimum" class="text-fid-xs text-fid-sig-scarcity">
+              <p v-if="shop.belowMinimum" class="text-fid-xs text-fid-sig-scarcity-text">
                 {{
                   c.wantlist.plan.belowMinimum(money(shop.minOrderTotal, plan.currency) ?? '')
                 }}
@@ -729,7 +729,7 @@ function waiting(addedAt: string): string | null {
           <p class="fid-plate flex flex-wrap gap-x-2 text-fid-text-muted">
             <span v-if="group.lead.year > 0" class="fid-num">{{ group.lead.year }}</span>
             <span v-if="waiting(group.lead.addedAt)">{{ waiting(group.lead.addedAt) }}</span>
-            <span v-if="group.lead.want >= WANT_MOST" class="text-fid-sig-wantlist">{{
+            <span v-if="group.lead.want >= WANT_MOST" class="text-fid-sig-wantlist-text">{{
               c.wantlist.priority.most
             }}</span>
             <span v-if="group.lead.pressings !== null">{{
@@ -752,7 +752,7 @@ function waiting(addedAt: string): string | null {
               class="fid-lift flex min-h-11 min-w-8 items-center justify-center rounded-fid-sm text-fid-sm transition-colors"
               :class="
                 group.lead.want >= star
-                  ? 'text-fid-sig-wantlist'
+                  ? 'text-fid-sig-wantlist-text'
                   : 'text-fid-text-muted hover:text-fid-text'
               "
               @click="want(group.lead, star)"
@@ -765,7 +765,7 @@ function waiting(addedAt: string): string | null {
           <NuxtLink
             v-if="group.lead.lastSeen"
             :to="`/dig?dealer=${encodeURIComponent(group.lead.lastSeen.dealer)}`"
-            class="fid-action fid-plate text-fid-sig-wantlist underline-offset-4 hover:underline"
+            class="fid-action fid-plate text-fid-sig-wantlist-text underline-offset-4 hover:underline"
           >
             {{ c.lastSeenAt }}
             <span class="text-fid-text">{{ group.lead.lastSeen.dealer }}</span>

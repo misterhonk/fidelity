@@ -290,7 +290,7 @@ const redirectUri = computed(() =>
       </div>
     </div>
 
-    <p v-if="status.blocked" class="text-fid-sm text-fid-sig-gap">
+    <p v-if="status.blocked" class="text-fid-sm text-fid-sig-gap-text">
       {{ st.vault.blocked[status.blocked] }}
     </p>
 

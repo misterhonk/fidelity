@@ -209,7 +209,9 @@ function onKey(event: KeyboardEvent, index: number) {
         <span class="flex flex-col gap-1">
           <span
             class="fid-num text-fid-xs"
-            :class="fill(cube) === 1 ? 'text-fid-sig-gap' : look.face ? '' : 'text-fid-text'"
+            :class="
+              fill(cube) === 1 ? 'text-fid-sig-gap-text' : look.face ? '' : 'text-fid-text'
+            "
           >
             {{
               cube.capacity

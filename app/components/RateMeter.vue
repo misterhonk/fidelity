@@ -198,13 +198,13 @@ onBeforeUnmount(() => {
             {{ m.limit.purposes[row.purpose] }}
           </dt>
           <dd class="fid-num text-right text-fid-text">{{ row.spent }}</dd>
-          <dd class="fid-num text-right text-fid-sig-catalog">
+          <dd class="fid-num text-right text-fid-sig-catalog-text">
             {{ row.saved > 0 ? `+${row.saved}` : '' }}
           </dd>
         </template>
       </dl>
 
-      <p v-if="data.savedTotal > 0" class="text-fid-sm text-fid-sig-catalog">
+      <p v-if="data.savedTotal > 0" class="text-fid-sm text-fid-sig-catalog-text">
         {{ m.limit.saved(count(data.savedTotal), savedMinutes) }}
       </p>
 

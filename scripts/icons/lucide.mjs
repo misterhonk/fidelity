@@ -43,6 +43,7 @@ const NEEDED = {
   download: 'Export',
   'trash-2': 'Delete everything',
   'wifi-off': 'The offline notice',
+  'circle-alert': 'Beside every error message, so colour is never the only cue',
   /*
    * Save and Bought are actions, not ratings.
    *

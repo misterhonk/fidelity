@@ -245,15 +245,20 @@ async function remove() {
         </button>
       </div>
       <!-- What the value is, read before it is saved: a key names its tier, a bad one says so. -->
-      <p v-if="isKey && !claims" class="text-fid-sm text-fid-sig-scarcity" aria-live="polite">
+      <p
+        v-if="isKey && !claims"
+        class="flex items-start gap-2 text-fid-sm text-fid-error"
+        aria-live="polite"
+      >
+        <FidIcon name="circle-alert" :size="16" />
         {{ st.accessPanel.notAKey }}
       </p>
       <p v-else-if="claims" class="text-fid-sm text-fid-text" aria-live="polite">
         {{
           st.accessPanel.reads(st.supportPanel.tierName(claims.tier), day(claims.validUntil))
         }}
-        <span v-if="expired" class="text-fid-sig-scarcity">
-          · {{ st.accessPanel.expired }}</span
+        <span v-if="expired" class="inline-flex items-center gap-1 text-fid-error"
+          >· <FidIcon name="circle-alert" :size="14" />{{ st.accessPanel.expired }}</span
         >
       </p>
       <WhyNote>{{ st.hubPanel.notYourToken }}</WhyNote>
@@ -310,7 +315,7 @@ async function remove() {
       aria-live="polite"
       data-prose="data"
     >
-      <p class="text-fid-sm" :class="verdict.fine ? 'text-fid-text' : 'text-fid-sig-gap'">
+      <p class="text-fid-sm" :class="verdict.fine ? 'text-fid-text' : 'text-fid-sig-gap-text'">
         {{ verdict.text }}
       </p>
       <p class="fid-num text-fid-xs text-fid-text-muted">
