@@ -216,7 +216,7 @@ app with it.
 > ```
 > GET  /v1/share/<random>  → 404   (reading works without the secret)
 > POST /v1/share           → 401   (writing does not)
-> GET  /v1/covers          → 401   (the other doors stay shut)
+> GET  /v1/watch/key       → 401   (the other doors stay shut)
 > ```
 >
 > A 401 at the first of these means: the hub is old.
@@ -233,8 +233,6 @@ GET    /v1/horizon/:kind/:id           → HorizonChunk | 404
 PUT    /v1/horizon/:kind/:id           ← contribute a chunk
 GET    /v1/shipping/:dealer/:country   → { tiers, confirmedBy } | 404   (one vote per key, M34.3)
 PUT    /v1/shipping/:dealer/:country   ← contribute tiers; answers { stored, confirmedBy }
-GET    /v1/covers?ids=1,2,3            → { covers: { releaseId: {thumbUrl, coverUrl} } }
-PUT    /v1/covers                      ← contribute { covers: [...] }
 GET    /v1/family/:master              → PressingFamilyFacts | 404   (M20 #7, CC0, 30 days)
 PUT    /v1/family/:master              ← contribute a family
 GET    /v1/vault/:id                   → { sealed, updatedAt } | 404
@@ -243,7 +241,7 @@ DELETE /v1/vault/:id                   ← forget a block (moving the identifier
 POST   /v1/watch/subscribe             ← a push subscription + the dealer list
 POST   /v1/watch/unsubscribe           ← unregister an endpoint
 GET    /v1/watch/key                   → { publicKey }  (VAPID, generated once)
-GET    /v1/health                      → { ok, horizon, shipping, covers, families, watching, secured }
+GET    /v1/health                      → { ok, doors, horizon, shipping, families, shops, watching, secured }
 ```
 
 **Every one of these methods belongs in `allowMethods`.** The client is a page on another
@@ -252,42 +250,32 @@ origin, so the preflight is not a formality but the gate. `POST` was missing the
 because `/v1/watch/subscribe` is a POST. It survived the day push rang for the first time,
 because the subscription then went through `curl`, and curl asks nobody for permission.
 
-**Auth:** a shared secret in the `Authorization` header, generated once at setup. Entirely
+**Auth:** a shared secret in the `x-hub-secret` header, generated once at setup. Entirely
 sufficient for a circle of friends. No user accounts, no passwords, no sessions.
+
+**The secret cannot be guessed, and guessing is slow (#206).** A secret under 32 characters
+stops the hub at startup — `openssl rand -base64 32` makes one. Wrong words are counted per
+address: after five that address waits a second, each further miss doubles the wait up to
+fifteen minutes (`429` + `retry-after`), and while it waits it is not asked for a word at
+all. The right word clears it; a request with no word is a device not set up yet and is not
+counted. Behind a proxy every request has the proxy's address, so `HUB_IP_HEADER` names the
+header the proxy writes the client's into (`x-forwarded-for`, `cf-connecting-ip`); its last
+entry counts, because anything before it the client could have written.
 
 Access keys (M22) add per-key limits — `403` over a ceiling, `429` for a second large
 upload on one route, `stored: false` for a row another key holds. The table is in
 `hub/README.md`. Cache reads and contributions fall back silently; a refused vault save or share shows as an
 error, because somebody pressed a button for it.
 
-### Covers — the cheapest win in the whole add-on
+### No covers (#206)
 
-The inventory endpoint delivers **no images at all**: `release.thumbnail` is empty, in 1,200
-of 1,200 rows across four shops (measured 2026-08-10, see `02-DISCOGS-API.md`). Every cover a
-client shows therefore costs it a lookup of `/releases/{id}` of its own — and that returns
-the same answer for everybody, permanently, because a cover does not change. Exactly the case
-this hub exists for.
-
-**In bulk, not one at a time.** A screen wants about a dozen covers at once. A dozen round
-trips to a Raspberry Pi, each with its own two-second limit, costs more than the requests they
-are meant to save.
-
-**Empty pairs are stored deliberately.** "Discogs has no image for this release" is worth as
-much as an image and costs the same request to find out.
-
-**The addresses are checked at both ends, and that is not a formality.** They land in an
-`<img src>` on every device using the same hub — anyone who could write here freely could make
-all those devices load arbitrary addresses. Only `i.discogs.com` over HTTPS is accepted, and
-**parsed rather than pattern-matched**:
-
-```
-https://i.discogs.com.evil.test/x.jpeg      ← survives a naive includes()
-https://evil.test/?a=https://i.discogs.com  ← likewise
-```
-
-The hub rejects them on the way in, the client rejects them again on the way out. The hub is
-precisely the component `worker/hub/client.ts` is written against — an old version, a
-misconfigured one, or somebody else's hub. Neither side relies on the other.
+Until #206 the hub pooled cover addresses: one device fetched `/releases/{id}`, every member
+got the picture. Release images are **Restricted Data** under the Discogs API terms, and a
+server handing them to everybody who asks is redistributing them, whatever the saving. So
+the route and the table are gone — a hub that had the table drops it on start — and each
+device fetches its own covers (`worker/covers.ts`), a dozen at a time, kept for good on that
+device. ADR-016's "covers stay pooled" is withdrawn by this; its rule for anything pooled in
+future now reads: only what the API alone has, the same for everybody, *and* free to pass on.
 
 ### The watcher
 

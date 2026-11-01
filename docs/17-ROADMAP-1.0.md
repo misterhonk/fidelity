@@ -14,7 +14,7 @@
 | Part | State on 2026-09-12 | Runs where |
 |---|---|---|
 | **App** | 0.44.0. Static PWA, Nuxt 4 in SPA mode, worker, IndexedDB. Eleven signals, digs, basket, shelf, map, wantlist with plan and priority, in-store with identify and pressing family, record fair, year on the shelf, CSV, vault, share, two languages, WCAG-checked. 1,379 unit tests, 344 browser tests, bundle 118 kB of 180. | `martinmelcher.de/fidelity` (webspace), `fidelity.mrtnmlchr.de` (home lab), GHCR image |
-| **Hub** | Hono + `node:sqlite`, one process. Horizon cache with the lexicon, shipping tiers, covers, pressing families, vault, share links, the watcher with push. One shared secret per hub. 67 tests. | Home lab, behind Traefik and a Cloudflare tunnel; the Uberspace copy retired |
+| **Hub** | Hono + `node:sqlite`, one process. Horizon cache with the lexicon, shipping tiers, pressing families, vault, share links, the watcher with push. One shared secret per hub, at least 32 characters, with a per-address wait after wrong guesses; no cover pool since #206. | Home lab, behind Traefik and a Cloudflare tunnel; the Uberspace copy retired |
 | **Catalogue** | Concept and decision only ([ADR-013](adr/013-catalogue-service.md), `docs/16`). | — |
 | **Access** | None. A hub is a friend circle behind one word. | — |
 
@@ -37,7 +37,7 @@ versions; documentation that a self-hoster can follow (`deploy/`, `README`).
 **Hub 1.0** — *It can hold a hundred strangers' data without any of them seeing another's,
 and it can be run by anybody from the compose file.* Concretely: per-user access (§6)
 beside the shared secret; the vault and the push registration keyed by the person who owns
-them; the shared caches (horizon, covers, shipping, families) public to every member and
+them; the shared caches (horizon, shipping, families) public to every member and
 containing nothing personal; backups; a health page a monitor can read; rate limits per
 key; a documented way to run it at home in five minutes.
 
@@ -205,13 +205,21 @@ Discogs' terms forbid charging for *access to an application that integrates wit
 
 | Free, always, for everybody | Comfort tier (hosted by Martin) |
 |---|---|
-| The whole app: every signal, digs, basket, shelf, map, wantlist, plan, in-store, identify, pressing family via the API, year on the shelf, CSV, backup, two languages | **A hosted hub**: shared horizon and families (seconds instead of twelve minutes), covers, shipping tiers |
-| Self-hosting hub and catalogue from the compose file, with every feature the hosted ones have | **The watcher with push** for the shops you follow |
+| The whole app: every signal, digs, basket, shelf, map, wantlist, plan, in-store, identify, pressing family via the API, year on the shelf, CSV, backup, two languages | **A hosted hub**: shared horizon and families (seconds instead of twelve minutes), shipping tiers |
+| Self-hosting hub and catalogue from the compose file, with every feature the hosted ones have | |
+| **The watcher with push** for the shops you follow, on a hub you run yourself | |
 | | **The vault and share links** on Martin's hub |
 | | **The catalogue's reach**: runs above 1,500, credits in the second degree, identify and families without a request, the map compared |
 
 Everything in the right column is *computation on CC0 data* or *hosting a cache*, and none
-of it is an API call made on the member's behalf. The letter to Discogs (`docs/14` §7) is
+of it is an API call made on the member's behalf.
+
+**Two things left that column in #206.** *Covers*: release images are Restricted Data under
+the API terms, and a hub handing their addresses to every member is redistributing them — so
+the hub keeps no covers at all, each device fetches its own. *The watcher*: it asks
+`/users/{name}` every hour for whoever follows a shop, which is exactly an API call made on a
+member's behalf; charging for it is what the terms forbid. It stays a feature of any hub,
+self-hosted ones first, and is not something a key pays for. The letter to Discogs (`docs/14` §7) is
 still sent before the first euro — as a courtesy, and as insurance.
 
 ### 6.2 One key per payer — how it works
