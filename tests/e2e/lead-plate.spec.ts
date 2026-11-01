@@ -74,7 +74,7 @@ test('wears a worn-out reason as a plate, and keeps the sentence for the rest', 
   })
 
   const list = page.locator('section[aria-labelledby="all-matches"]')
-  const shortlist = page.locator('section[aria-labelledby="top-five"]')
+  const shortlist = page.locator('section[aria-labelledby="the-wall"]')
 
   // The plate: the signal's own word, the name it is about, and how many of
   // them are on the shelf.

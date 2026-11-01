@@ -202,6 +202,23 @@ const comparisonParts = computed(() => {
 const busy = ref(false)
 
 /**
+ * Which view of a dig with a result is up (#223).
+ *
+ * The finds open the page. The field, the shops and the tools of this dig sit
+ * under "Shop", the earlier runs under "Visits" — one tap away, and out of the
+ * way of the first find on a phone. Another dig on screen opens on its finds.
+ */
+type Segment = 'finds' | 'shop' | 'visits'
+const segment = ref<Segment>('finds')
+const segments = computed(() =>
+  (['finds', 'shop', 'visits'] as const).map((key) => ({ key, label: d.value.segments[key] })),
+)
+watch(
+  () => result.value?.dig.id,
+  () => (segment.value = 'finds'),
+)
+
+/**
  * The shops already known, so a dig starts with a click.
  *
  * Watched first, then by hit rate — the ordering that answers "wo als
@@ -527,10 +544,17 @@ const eta = computed(() => {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
 })
 
-/** Everything the shortlist did not already show. */
+/**
+ * The wall (#223): the four best, faced out the way a shop hangs its best
+ * records. The worker's shortlist holds five; the fifth reads on in the list,
+ * and four is what two rows of a phone hold.
+ */
+const wall = computed(() => result.value?.topFive.slice(0, 4) ?? [])
+
+/** Everything the wall did not already show. */
 const rest = computed(() => {
   if (!result.value) return []
-  const shown = new Set(result.value.topFive.map((match) => match.listingId))
+  const shown = new Set(wall.value.map((match) => match.listingId))
   return result.value.matches.filter((match) => !shown.has(match.listingId))
 })
 
@@ -609,7 +633,7 @@ function onListKey(event: KeyboardEvent) {
   }
 
   if (event.key !== 'j' || sheet.open.value || event.shiftKey) return
-  const first = result.value?.topFive[0] ?? view.visible.value[0]
+  const first = wall.value[0] ?? view.visible.value[0]
   if (!first) return
   event.preventDefault()
   sheet.show(first.digId, first.listingId)
@@ -622,7 +646,7 @@ watchEffect(() => {
   const found = result.value
   if (!found) return sheet.setOrder(null)
   const ids = [
-    ...found.topFive.map((match) => match.listingId),
+    ...wall.value.map((match) => match.listingId),
     ...view.visible.value.map((match) => match.listingId),
   ]
   sheet.setOrder({ digId: found.dig.id, ids })
@@ -855,233 +879,515 @@ const noHorizon = computed(
 
 <template>
   <AppPage>
-    <!--
-      The working surface. A dig is a list somebody reads for minutes, and a
-      wider one shows more of it at once — which is the whole reason to sit at
-      a desk for this. The prose blocks inside keep their own width.
-    -->
-    <!-- The promise of the screen, until the screen keeps it. -->
-    <PageHeader :title="d.title" :lead="result ? undefined : d.lead" />
+    <!-- Without a result the question is the screen: the promise, the field, the shops. -->
+    <PageHeader v-if="!result" :title="d.title" :lead="d.lead" />
 
     <!--
-      The head of the screen steps aside once there is something to read.
-
-      A dig is a list somebody reads for minutes, and everything above it —
-      the field, the shops, the earlier runs — is the question, already
-      answered. On a phone that was four blocks and most of a screen before
-      the first find; the disclosure puts them one tap away and nothing else
-      changes. Without a result it is a plain block and always open, because
-      then the question *is* the screen.
+      With one, the shop's head (#223): its finds, how much of it was read, and
+      until when its prices may stand on this screen (rule 4). Compact, so the
+      first find stands above the fold on a phone; the field, the shops and the
+      earlier runs fold into the segments below it.
     -->
-    <component :is="result ? 'details' : 'div'" :class="result ? '' : 'flex flex-col gap-8'">
-      <!--
-        A chip, not a field. Full width with a magnifier in it, this read as a
-        search box somebody was meant to type in — which is the one thing it
-        is not.
-      -->
-      <summary
-        v-if="result"
-        class="fid-action inline-flex w-fit cursor-pointer list-none items-center gap-2 rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
-      >
-        <FidIcon name="store" :size="16" aria-hidden="true" />
-        {{ d.another }}
-      </summary>
+    <header v-if="result" class="flex flex-col gap-1 max-md:pt-[env(safe-area-inset-top,0px)]">
+      <h1 class="fid-display text-fid-xl leading-tight font-bold text-fid-text">
+        {{ d.hits(result.matches.length, result.dig.dealer) }}
+      </h1>
+      <div class="flex flex-wrap items-baseline gap-x-4">
+        <p class="text-fid-sm text-fid-text-muted">
+          <template v-if="kind !== 'full'">
+            {{ d.newListings(count(result.dig.listingsTotal), result.dig.listingsTotal === 1) }}
+          </template>
+          <template v-else>
+            <!--
+                Distinct listings, not rows read (M32.6).
 
-      <div :class="result ? 'flex flex-col gap-8 pt-6' : 'contents'">
-        <form class="flex flex-wrap items-end gap-3" @submit.prevent="check">
-          <div class="flex min-w-64 grow flex-col gap-2">
-            <label class="text-fid-sm font-medium text-fid-text" for="dealer">
-              {{ d.dealer }}
-            </label>
-            <input
-              id="dealer"
-              v-model="dealer"
-              type="text"
-              autocomplete="off"
-              spellcheck="false"
-              :placeholder="d.dealerPlaceholder"
-              class="fid-field px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
-            />
-          </div>
-          <button
-            type="submit"
-            :disabled="busy || !online || dealerName === null"
-            class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+                A shop walked from both ends hands the middle back twice, so
+                `listingsScanned` counts to 20.000 on a shop that holds 19.864 —
+                and the line said "20.000 von 19.864 gescannt (100 %)", which is
+                a number nobody can make sense of. `uniqueSeen` is the numerator
+                `coverage` is already built from; the two now agree. Older digs
+                have no `uniqueSeen` and keep the old number rather than none.
+              -->
+            {{
+              d.scanned(
+                count(result.dig.uniqueSeen ?? result.dig.listingsScanned),
+                count(result.dig.listingsTotal),
+                Math.round(result.dig.coverage * 100),
+              )
+            }}
+          </template>
+          <template v-if="result.folded > 0"> · {{ d.folded(result.folded) }}</template>
+          ·
+          <span
+            data-testid="freshness"
+            class="fid-num"
+            :class="expired ? 'text-fid-sig-gap-text' : undefined"
+            >{{ expired ? d.freshGone : d.freshUntil(clockTime(result.dig.expiresAt)) }}</span
           >
-            {{ d.check }}
-          </button>
-        </form>
-
+        </p>
         <!--
-        The shops you already know, to click instead of type.
-      
-        Every dig writes its dealer down, and until now that list only existed to
-        be read on another screen. Nobody remembers whether it was 430AM_Studio
-        or 430am-studio, and getting it wrong costs a request and a wrong answer.
-        Watched shops first: those are the ones somebody said out loud they care
-        about.
-      -->
-        <!--
-        And a heading, because two rows of chips on one screen looked alike.
-
-        Asked outright on 2026-09-14: "what are the buttons of the earlier digs
-        for?" The shops you can dig and the digs you have run were both a
-        `flex-wrap` of bordered buttons with a name and a number in them, and the
-        only thing telling them apart was an `aria-label` — which is to say,
-        nothing at all for anybody looking at the screen.
-      -->
-        <!--
-          Shops to start with, while there are none of one's own (2026-10-21).
-
-          The empty dig screen was a text field and nothing else: "which shop?"
-          is the first question a stranger has, and the five starters stood on
-          the shops screen, which a first dig does not pass.
+          The way out of an expired dig that is not a four-minute rescan: each
+          match's own listing, one request apiece. What it costs is said in
+          the sentence below rather than hidden in a title, because a minute
+          of somebody's rate limit is not a detail.
         -->
-        <section v-if="knownDealers.length === 0" class="flex flex-col gap-2">
-          <h2 id="starter-shops" class="text-fid-xs font-medium text-fid-text-muted">
-            {{ d.starters }}
-          </h2>
-          <nav aria-labelledby="starter-shops" class="flex flex-wrap gap-2">
-            <button
-              v-for="starter in STARTER_SHOPS"
-              :key="starter.username"
-              type="button"
-              class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
-              @click="pick(starter.username)"
-            >
-              {{ starter.displayName }}
-              <span class="ml-1.5 text-fid-xs opacity-70">{{ starter.shipsFrom }}</span>
-            </button>
-          </nav>
-          <p class="text-fid-xs text-fid-text-muted">{{ d.startersNote }}</p>
-        </section>
-
-        <section v-if="knownDealers.length > 0" class="flex flex-col gap-2">
-          <h2 id="your-shops" class="text-fid-xs font-medium text-fid-text-muted">
-            {{ d.yourShops }}
-          </h2>
-          <nav aria-labelledby="your-shops" class="flex flex-wrap gap-2">
-            <button
-              v-for="known in knownDealers"
-              :key="known.username"
-              type="button"
-              class="fid-action rounded-fid-sm border px-3 py-2 text-fid-sm transition-colors"
-              :class="
-                known.watching
-                  ? 'border-fid-accent/40 text-fid-text'
-                  : 'border-fid-border text-fid-text-muted hover:text-fid-text'
-              "
-              @click="pick(known.username)"
-            >
-              {{ known.displayName || known.username }}
-              <!--
-            The hit rate, and what it is a rate *of*.
-            It was a bare "13.0" beside a shop's name — a number with no unit,
-            which somebody either ignores or misreads as a rating out of five.
+        <button
+          v-if="expired && result.matches.length > 0"
+          type="button"
+          :disabled="busy || !online"
+          class="fid-action fid-plate min-h-9 text-fid-text transition-colors hover:text-fid-accent disabled:opacity-50"
+          @click="refresh"
+        >
+          <!--
+            The count hangs on a margin, not on a space. `fid-plate` letters
+            are tracked 0.12em apart, so a word space is no wider than the gap
+            inside a word and the plate read "REFRESH THE PRICES(17)". The
+            filter chips carry their number the same way.
           -->
-              <span
-                v-if="known.affinity !== null"
-                class="fid-num ml-1.5 text-fid-xs opacity-70"
-                :title="d.perThousand(decimal(known.affinity))"
-                :aria-label="d.perThousand(decimal(known.affinity))"
-              >
-                {{ decimal(known.affinity) }}
-              </span>
-            </button>
-          </nav>
-        </section>
+          {{ d.refreshPrices }}<span class="fid-num ml-1">({{ result.matches.length }})</span>
+        </button>
+      </div>
+      <!--
+        An earlier dig, opened (M36): what has happened at this shop since.
+        The finds and their reasons are still here; the prices are not, and
+        the head says what the later visits saw.
+      -->
+      <p v-if="sinceThis" class="fid-num text-fid-sm text-fid-text-muted">
+        {{ d.visits.sinceThis(sinceThis.newFinds, sinceThis.looked ? sinceThis.gone : null) }}
+        <button
+          type="button"
+          class="fid-action underline underline-offset-4 hover:text-fid-text"
+          @click="showDig(sinceThis.latest.id)"
+        >
+          {{ d.visits.latest }}
+        </button>
+      </p>
+    </header>
+
+    <!--
+      The ToS deadline, enforced in the UI and not only in the cleanup job —
+      and as a sentence since M33 #3.
+
+      It was a bordered box holding a notice, a button and a cost line — a
+      frame round a thing that is not a choice but a fact about this dig.
+      The button is a plate beside the freshness clock, and what it costs stands
+      here beside the fact, still said out loud: a minute of somebody's rate
+      limit is not a detail to hide in a title.
+
+      `role="status"` stays. The sentence appears when a dig ages past six
+      hours while somebody is looking at it, and that is exactly the kind of
+      change a screen reader should be told about.
+
+      And only where there were prices to lose. A dig that found nothing
+      showed this notice and a button offering to refresh nought prices —
+      three controls that could do nothing, dressed as a result. Reported on
+      2026-09-14 with exactly that screen in front of it.
+    -->
+    <p
+      v-if="result && expired && result.matches.length > 0"
+      role="status"
+      class="max-w-prose text-fid-sm text-fid-text-muted"
+    >
+      {{ d.expired }}
+      {{
+        d.refreshCost(result.matches.length, Math.ceil((result.matches.length * 1.2) / 60) || 1)
+      }}
+    </p>
+
+    <div v-if="refreshing" class="flex flex-col gap-1">
+      <div
+        role="progressbar"
+        :aria-label="d.checked(count(refreshing.done), count(refreshing.total))"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        :aria-valuenow="shareOf(refreshing)"
+        class="h-1.5 w-full overflow-hidden rounded-full bg-fid-inset"
+      >
+        <div
+          class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
+          :style="{ width: `${shareOf(refreshing)}%` }"
+        />
+      </div>
+      <JobMilestone :label="d.refreshPrices" :percent="shareOf(refreshing)" />
+      <p class="fid-num text-fid-sm text-fid-text-muted">
+        {{ d.checked(count(refreshing.done), count(refreshing.total))
+        }}<template v-if="refreshing.sold > 0"
+          >, {{ d.alreadySold(count(refreshing.sold)) }}</template
+        >
+      </p>
+    </div>
+
+    <p v-if="refreshed" role="status" class="fid-num text-fid-sm text-fid-text-muted">
+      {{ d.refreshed(count(refreshed.refreshed))
+      }}<template v-if="refreshed.sold > 0"
+        >, {{ d.refreshedSold(count(refreshed.sold)) }}</template
+      ><template v-if="refreshed.gone > 0"
+        >, {{ d.refreshedGone(count(refreshed.gone)) }}</template
+      >.
+    </p>
+
+    <PlateTabs
+      v-if="result"
+      :label="d.segments.label"
+      :options="segments"
+      :value="segment"
+      @select="segment = $event as Segment"
+    />
+
+    <div v-if="!result || segment === 'shop'" class="flex flex-col gap-8">
+      <form class="flex flex-wrap items-end gap-3" @submit.prevent="check">
+        <div class="flex min-w-64 grow flex-col gap-2">
+          <label class="text-fid-sm font-medium text-fid-text" for="dealer">
+            {{ d.dealer }}
+          </label>
+          <input
+            id="dealer"
+            v-model="dealer"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            :placeholder="d.dealerPlaceholder"
+            class="fid-field px-3 py-2 font-fid-mono text-fid-sm text-fid-text"
+          />
+        </div>
+        <button
+          type="submit"
+          :disabled="busy || !online || dealerName === null"
+          class="rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text disabled:opacity-50"
+        >
+          {{ d.check }}
+        </button>
+      </form>
+
+      <!--
+      The shops you already know, to click instead of type.
+      
+      Every dig writes its dealer down, and until now that list only existed to
+      be read on another screen. Nobody remembers whether it was 430AM_Studio
+      or 430am-studio, and getting it wrong costs a request and a wrong answer.
+      Watched shops first: those are the ones somebody said out loud they care
+      about.
+      -->
+      <!--
+      And a heading, because two rows of chips on one screen looked alike.
+
+      Asked outright on 2026-09-14: "what are the buttons of the earlier digs
+      for?" The shops you can dig and the digs you have run were both a
+      `flex-wrap` of bordered buttons with a name and a number in them, and the
+      only thing telling them apart was an `aria-label` — which is to say,
+      nothing at all for anybody looking at the screen.
+      -->
+      <!--
+        Shops to start with, while there are none of one's own (2026-10-21).
+
+        The empty dig screen was a text field and nothing else: "which shop?"
+        is the first question a stranger has, and the five starters stood on
+        the shops screen, which a first dig does not pass.
+      -->
+      <section v-if="knownDealers.length === 0" class="flex flex-col gap-2">
+        <h2 id="starter-shops" class="text-fid-xs font-medium text-fid-text-muted">
+          {{ d.starters }}
+        </h2>
+        <nav aria-labelledby="starter-shops" class="flex flex-wrap gap-2">
+          <button
+            v-for="starter in STARTER_SHOPS"
+            :key="starter.username"
+            type="button"
+            class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+            @click="pick(starter.username)"
+          >
+            {{ starter.displayName }}
+            <span class="ml-1.5 text-fid-xs opacity-70">{{ starter.shipsFrom }}</span>
+          </button>
+        </nav>
+        <p class="text-fid-xs text-fid-text-muted">{{ d.startersNote }}</p>
+      </section>
+
+      <section v-if="knownDealers.length > 0" class="flex flex-col gap-2">
+        <h2 id="your-shops" class="text-fid-xs font-medium text-fid-text-muted">
+          {{ d.yourShops }}
+        </h2>
+        <nav aria-labelledby="your-shops" class="flex flex-wrap gap-2">
+          <button
+            v-for="known in knownDealers"
+            :key="known.username"
+            type="button"
+            class="fid-action rounded-fid-sm border px-3 py-2 text-fid-sm transition-colors"
+            :class="
+              known.watching
+                ? 'border-fid-accent/40 text-fid-text'
+                : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+            "
+            @click="pick(known.username)"
+          >
+            {{ known.displayName || known.username }}
+            <!--
+          The hit rate, and what it is a rate *of*.
+          It was a bare "13.0" beside a shop's name — a number with no unit,
+          which somebody either ignores or misreads as a rating out of five.
+        -->
+            <span
+              v-if="known.affinity !== null"
+              class="fid-num ml-1.5 text-fid-xs opacity-70"
+              :title="d.perThousand(decimal(known.affinity))"
+              :aria-label="d.perThousand(decimal(known.affinity))"
+            >
+              {{ decimal(known.affinity) }}
+            </span>
+          </button>
+        </nav>
+      </section>
+
+      <template v-if="result">
+        <!--
+        One head, one line of things to do (M33 #3).
+
+        Above the finds stood four separate calls — "dig again", a bordered
+        box offering to refresh prices, a bordered accent link into the stack,
+        and a share button — each in its own shape and its own volume, before
+        the first record. Reported on 2026-09-16 as exactly that: four calls
+        and then, eventually, a shop.
+
+        They are one row of plates now, in the order somebody asks for them:
+        look again, look differently, repair the prices, pass it on. No fills,
+        no frames, no box round any of them. The sentences that used to be
+        stacked between them — what this was matched against, what the six
+        hours did — stand under the row as sentences, which is what they are.
+
+        Since #223 the row lives under "Shop": the price refresh moved up to
+        the freshness clock it answers, and the stack to the head of the wall.
+
+        And no icons. M34.1 put an icon beside every word on the shops screen
+        and that rule holds where it was made, on buttons with frames; a plate
+        is a word, and one glyph among three plates read as a mistake rather
+        than as a system.
+      -->
+        <nav class="flex flex-wrap items-center gap-x-5 gap-y-1" :aria-label="d.actions">
+          <button
+            type="button"
+            :disabled="busy || !online"
+            class="fid-action fid-plate min-h-9 text-fid-text transition-colors hover:text-fid-accent disabled:opacity-50"
+            @click="again()"
+          >
+            {{ d.again(result.dig.dealer) }}
+          </button>
+
+          <!--
+            Sharing, and only where it is possible. Without a hub there is
+            nowhere a find list could live, and the plate is simply not there:
+            a sentence apologising for a hub nobody asked for stood above the
+            finds until #223. After six hours it goes altogether: what may no longer
+            be shown may not be passed on either (rule 4).
+          -->
+          <button
+            v-if="!expired && hubUrl"
+            type="button"
+            :disabled="sharing || !online"
+            class="fid-action fid-plate min-h-9 text-fid-text transition-colors hover:text-fid-accent disabled:opacity-50"
+            @click="share"
+          >
+            {{ sharing ? d.shareBusy : d.share }}
+          </button>
+        </nav>
 
         <!--
-          Visits (M36): the history as the shops' story. One line per shop —
-          the newest full dig, what has happened since — and the runs in a
-          fold. It was a flat row of the last five digs; Martin's screen on
-          2026-09-20 showed five chips for one shop, three of them the same
-          empty minute.
+          What it was held against. On every dig, not only the empty ones.
+
+          "Now I do not know whether my horizon was used or not" — and the
+          screen had no way to say. A nought and a list of twenty are equally
+          unreadable without the basis they were found against.
         -->
-        <section v-if="history.length > 0" class="flex flex-col gap-2">
-          <h2 id="visits" class="text-fid-xs font-medium text-fid-text-muted">
-            {{ d.visits.title }}
-          </h2>
-          <ul aria-labelledby="visits" class="flex flex-col gap-1">
-            <li
-              v-for="visit in visits"
-              :key="visit.dealer"
-              class="rounded-fid-sm border border-fid-border px-3 py-2"
+        <p v-if="basis" class="max-w-prose text-fid-sm text-fid-text-muted">
+          {{ basis }}
+          <NuxtLink
+            v-if="horizonPartial"
+            to="/settings/collection"
+            class="text-fid-accent underline underline-offset-4"
+          >
+            {{ d.basisMore }}
+          </NuxtLink>
+        </p>
+
+        <!--
+          What the share produced, and only then: a link, how long it lives, and
+          what it hands over. The trigger is a plate in the row above; this is
+          the answer, and it appears where an answer belongs.
+        -->
+        <div
+          v-if="!expired && shareLink"
+          class="flex flex-col gap-2 rounded-fid-sm border border-fid-border p-3"
+        >
+          <p class="text-fid-sm text-fid-text">
+            {{ d.shareReady(shareLink.matches, shareLink.total) }}
+          </p>
+          <div class="flex flex-wrap items-center gap-2">
+            <input
+              :value="shareLink.url"
+              readonly
+              :aria-label="d.share"
+              class="min-w-0 grow fid-field px-3 py-2 font-fid-mono text-fid-xs text-fid-text"
+              @focus="($event.target as HTMLInputElement).select()"
+            />
+            <button
+              type="button"
+              class="fid-action shrink-0 rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
+              @click="copyShare"
             >
-              <details :open="visit.runs.some((run) => run.id === result?.dig.id) || undefined">
-                <summary
-                  class="fid-action flex cursor-pointer list-none flex-wrap items-baseline gap-x-3 gap-y-1"
+              {{ shareCopied ? d.shareCopied : d.shareCopy }}
+            </button>
+          </div>
+          <p class="text-fid-xs text-fid-text-muted">
+            {{ d.shareGone(dayTime(shareLink.until)) }}
+          </p>
+          <p class="text-fid-xs text-fid-text-muted">{{ d.shareTells }}</p>
+        </div>
+
+        <CreditExplorer v-if="result.matches.length > 0" :dig-id="result.dig.id" />
+      </template>
+    </div>
+
+    <div v-if="result ? segment === 'visits' : history.length > 0" class="flex flex-col gap-8">
+      <!--
+        Visits (M36): the history as the shops' story. One line per shop —
+        the newest full dig, what has happened since — and the runs in a
+        fold. It was a flat row of the last five digs; Martin's screen on
+        2026-09-20 showed five chips for one shop, three of them the same
+        empty minute.
+      -->
+      <section v-if="history.length > 0" class="flex flex-col gap-2">
+        <h2 id="visits" class="text-fid-xs font-medium text-fid-text-muted">
+          {{ d.visits.title }}
+        </h2>
+        <ul aria-labelledby="visits" class="flex flex-col gap-1">
+          <li
+            v-for="visit in visits"
+            :key="visit.dealer"
+            class="rounded-fid-sm border border-fid-border px-3 py-2"
+          >
+            <details :open="visit.runs.some((run) => run.id === result?.dig.id) || undefined">
+              <summary
+                class="fid-action flex cursor-pointer list-none flex-wrap items-baseline gap-x-3 gap-y-1"
+              >
+                <span
+                  class="text-fid-sm"
+                  :class="
+                    visit.runs.some((run) => run.id === result?.dig.id)
+                      ? 'text-fid-accent'
+                      : 'text-fid-text'
+                  "
+                  >{{ visit.displayName }}</span
                 >
+                <span v-if="visit.full" class="fid-num text-fid-xs text-fid-text-muted">
+                  {{ d.visits.full(dayTime(visit.full.startedAt), visit.full.matchCount)
+                  }}<template v-if="visit.since.length || visit.quietChecks">
+                    ·
+                    {{
+                      d.visits.since(visit.since.length, visit.newFinds, visit.quietChecks)
+                    }}</template
+                  >
+                </span>
+                <span v-else class="fid-num text-fid-xs text-fid-text-muted">
+                  {{ d.visits.onlyChecked(visit.since.length, visit.newFinds) }}
+                </span>
+              </summary>
+              <ol class="mt-2 flex flex-col border-l border-fid-border pl-3">
+                <li
+                  v-for="run in visit.runs"
+                  :key="run.id"
+                  class="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-1"
+                >
+                  <span class="fid-num text-fid-xs text-fid-text-muted">{{
+                    dayTime(run.startedAt)
+                  }}</span>
                   <span
-                    class="text-fid-sm"
-                    :class="
-                      visit.runs.some((run) => run.id === result?.dig.id)
-                        ? 'text-fid-accent'
-                        : 'text-fid-text'
-                    "
-                    >{{ visit.displayName }}</span
+                    class="text-fid-xs"
+                    :class="run.id === result?.dig.id ? 'text-fid-accent' : 'text-fid-text'"
                   >
-                  <span v-if="visit.full" class="fid-num text-fid-xs text-fid-text-muted">
-                    {{ d.visits.full(dayTime(visit.full.startedAt), visit.full.matchCount)
-                    }}<template v-if="visit.since.length || visit.quietChecks">
-                      ·
-                      {{
-                        d.visits.since(visit.since.length, visit.newFinds, visit.quietChecks)
-                      }}</template
-                    >
+                    {{ d.visits.run(run.kind, run.matchCount, run.listingsTotal) }}
                   </span>
-                  <span v-else class="fid-num text-fid-xs text-fid-text-muted">
-                    {{ d.visits.onlyChecked(visit.since.length, visit.newFinds) }}
+                  <span v-if="run.gone" class="fid-num text-fid-xs text-fid-text-muted">
+                    {{ d.visits.gone(run.gone, run.matchCount) }}
                   </span>
-                </summary>
-                <ol class="mt-2 flex flex-col border-l border-fid-border pl-3">
-                  <li
-                    v-for="run in visit.runs"
-                    :key="run.id"
-                    class="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-1"
+                  <button
+                    v-if="run.id !== result?.dig.id"
+                    type="button"
+                    class="fid-action text-fid-xs text-fid-text-muted underline underline-offset-4 hover:text-fid-text"
+                    @click="showDig(run.id)"
                   >
-                    <span class="fid-num text-fid-xs text-fid-text-muted">{{
-                      dayTime(run.startedAt)
-                    }}</span>
-                    <span
-                      class="text-fid-xs"
-                      :class="run.id === result?.dig.id ? 'text-fid-accent' : 'text-fid-text'"
-                    >
-                      {{ d.visits.run(run.kind, run.matchCount, run.listingsTotal) }}
-                    </span>
-                    <span v-if="run.gone" class="fid-num text-fid-xs text-fid-text-muted">
-                      {{ d.visits.gone(run.gone, run.matchCount) }}
-                    </span>
-                    <button
-                      v-if="run.id !== result?.dig.id"
-                      type="button"
-                      class="fid-action text-fid-xs text-fid-text-muted underline underline-offset-4 hover:text-fid-text"
-                      @click="showDig(run.id)"
-                    >
-                      {{ d.visits.open }}
-                    </button>
-                    <span v-else class="fid-plate text-fid-text-muted">{{
-                      d.visits.current
-                    }}</span>
-                  </li>
-                  <li
-                    v-if="visit.quietChecks > 0 && visit.checkedAt"
-                    class="flex flex-wrap items-baseline gap-x-3 py-1"
-                  >
-                    <span class="fid-num text-fid-xs text-fid-text-muted">{{
-                      dayTime(visit.checkedAt)
-                    }}</span>
-                    <span class="text-fid-xs text-fid-text-muted">{{
-                      d.visits.quiet(visit.quietChecks)
-                    }}</span>
-                  </li>
-                </ol>
-              </details>
-            </li>
-          </ul>
-        </section>
-      </div>
-    </component>
+                    {{ d.visits.open }}
+                  </button>
+                  <span v-else class="fid-plate text-fid-text-muted">{{
+                    d.visits.current
+                  }}</span>
+                </li>
+                <li
+                  v-if="visit.quietChecks > 0 && visit.checkedAt"
+                  class="flex flex-wrap items-baseline gap-x-3 py-1"
+                >
+                  <span class="fid-num text-fid-xs text-fid-text-muted">{{
+                    dayTime(visit.checkedAt)
+                  }}</span>
+                  <span class="text-fid-xs text-fid-text-muted">{{
+                    d.visits.quiet(visit.quietChecks)
+                  }}</span>
+                </li>
+              </ol>
+            </details>
+          </li>
+        </ul>
+      </section>
+
+      <!--
+        Two visits side by side (M36.5). Folded: it is a comparison, not
+        the list, and somebody who came for the finds reads on.
+      -->
+      <section
+        v-if="result && comparison"
+        class="flex flex-col gap-3"
+        aria-labelledby="compare"
+      >
+        <details>
+          <summary
+            id="compare"
+            class="fid-action cursor-pointer list-none text-fid-sm uppercase tracking-[0.2em] text-fid-text-muted"
+          >
+            {{
+              d.compare.summary(
+                dayTime(comparison.earlier.startedAt),
+                comparison.fresh.length,
+                comparison.gone?.length ?? null,
+                comparison.kept.length,
+              )
+            }}
+          </summary>
+          <div class="mt-3 flex flex-col gap-4">
+            <DiscogsCredit :to="sellerPage(result.dig.dealer)" class="self-start" />
+            <div v-for="part in comparisonParts" :key="part.key" class="flex flex-col gap-1">
+              <h3 class="fid-plate text-fid-text-muted">
+                {{ d.compare.heading(part.key, part.rows.length) }}
+              </h3>
+              <p
+                v-if="part.key === GONE && comparison.gone === null"
+                class="text-fid-xs text-fid-text-muted"
+              >
+                {{ d.compare.goneUnknown }}
+              </p>
+              <p v-else-if="part.rows.length === 0" class="text-fid-xs text-fid-text-muted">
+                {{ d.compare.none }}
+              </p>
+              <ul v-else class="flex flex-col">
+                <li v-for="match in part.rows.slice(0, 30)" :key="match.listingId">
+                  <MatchRow :match="match" />
+                </li>
+              </ul>
+              <p v-if="part.rows.length > 30" class="fid-num text-fid-xs text-fid-text-muted">
+                {{ d.compare.more(part.rows.length - 30) }}
+              </p>
+            </div>
+          </div>
+        </details>
+      </section>
+    </div>
 
     <ErrorNote v-if="error" :cause="error" />
     <!--
@@ -1413,271 +1719,7 @@ const noHorizon = computed(
       >. {{ d.horizonCounts }}
     </p>
 
-    <!--
-      Which dig is on screen, and the others. Five are kept (docs/03 §5) and
-      until now only the newest could be opened.
-    -->
-    <section v-if="result" class="flex flex-col gap-4">
-      <div class="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 class="text-fid-xl font-bold text-fid-text">
-          {{ d.hits(result.matches.length, result.dig.dealer) }}
-        </h2>
-        <!--
-            An earlier dig, opened (M36): what has happened at this shop since.
-            The finds and their reasons are still here; the prices are not, and
-            the head says what the later visits saw.
-          -->
-        <p v-if="sinceThis" class="fid-num text-fid-sm text-fid-text-muted">
-          {{ d.visits.sinceThis(sinceThis.newFinds, sinceThis.looked ? sinceThis.gone : null) }}
-          <button
-            type="button"
-            class="fid-action underline underline-offset-4 hover:text-fid-text"
-            @click="showDig(sinceThis.latest.id)"
-          >
-            {{ d.visits.latest }}
-          </button>
-        </p>
-        <p class="text-fid-sm text-fid-text-muted">
-          <template v-if="kind !== 'full'">
-            {{ d.newListings(count(result.dig.listingsTotal), result.dig.listingsTotal === 1) }}
-          </template>
-          <template v-else>
-            <!--
-              Distinct listings, not rows read (M32.6).
-
-              A shop walked from both ends hands the middle back twice, so
-              `listingsScanned` counts to 20.000 on a shop that holds 19.864 —
-              and the line said "20.000 von 19.864 gescannt (100 %)", which is
-              a number nobody can make sense of. `uniqueSeen` is the numerator
-              `coverage` is already built from; the two now agree. Older digs
-              have no `uniqueSeen` and keep the old number rather than none.
-            -->
-            {{
-              d.scanned(
-                count(result.dig.uniqueSeen ?? result.dig.listingsScanned),
-                count(result.dig.listingsTotal),
-                Math.round(result.dig.coverage * 100),
-              )
-            }}
-          </template>
-          <template v-if="result.folded > 0"> · {{ d.folded(result.folded) }}</template>
-        </p>
-      </div>
-
-      <!--
-        One head, one line of things to do (M33 #3).
-
-        Above the finds stood four separate calls — "dig again", a bordered
-        box offering to refresh prices, a bordered accent link into the stack,
-        and a share button — each in its own shape and its own volume, before
-        the first record. Reported on 2026-09-16 as exactly that: four calls
-        and then, eventually, a shop.
-
-        They are one row of plates now, in the order somebody asks for them:
-        look again, look differently, repair the prices, pass it on. No fills,
-        no frames, no box round any of them. The sentences that used to be
-        stacked between them — what this was matched against, what the six
-        hours did — stand under the row as sentences, which is what they are.
-
-        And no icons. M34.1 put an icon beside every word on the shops screen
-        and that rule holds where it was made, on buttons with frames; a plate
-        is a word, and one glyph among three plates read as a mistake rather
-        than as a system.
-      -->
-      <nav class="flex flex-wrap items-center gap-x-5 gap-y-1" :aria-label="d.actions">
-        <button
-          type="button"
-          :disabled="busy || !online"
-          class="fid-action fid-plate min-h-9 text-fid-text transition-colors hover:text-fid-accent disabled:opacity-50"
-          @click="again()"
-        >
-          {{ d.again(result.dig.dealer) }}
-        </button>
-
-        <!--
-          The same finds, one after another.
-
-          No sixth entry in the navigation bar: on a phone five is already the
-          limit. The stack is a second **view** of this list, so it stands
-          where the list stands — and not somewhere you would have to go
-          looking.
-        -->
-        <NuxtLink
-          v-if="result.matches.length > 0"
-          :to="{ path: '/stack' }"
-          class="fid-action fid-plate min-h-9 text-fid-text transition-colors hover:text-fid-accent"
-        >
-          {{ d.stack.title }}
-        </NuxtLink>
-
-        <!--
-          The way out of an expired dig that is not a four-minute rescan: each
-          match's own listing, one request apiece. What it costs is said in
-          the sentence below rather than hidden in a title, because a minute
-          of somebody's rate limit is not a detail.
-        -->
-        <button
-          v-if="expired && result.matches.length > 0"
-          type="button"
-          :disabled="busy || !online"
-          class="fid-action fid-plate min-h-9 text-fid-text transition-colors hover:text-fid-accent disabled:opacity-50"
-          @click="refresh"
-        >
-          <!--
-            The count hangs on a margin, not on a space. `fid-plate` letters
-            are tracked 0.12em apart, so a word space is no wider than the gap
-            inside a word and the plate read "REFRESH THE PRICES(17)". The
-            filter chips carry their number the same way.
-          -->
-          {{ d.refreshPrices }}<span class="fid-num ml-1">({{ result.matches.length }})</span>
-        </button>
-
-        <!--
-          Sharing, and only where it is possible. Without a hub there is
-          nowhere a find list could live, so the sentence under the row says
-          so instead. After six hours it goes altogether: what may no longer
-          be shown may not be passed on either (rule 4).
-        -->
-        <button
-          v-if="!expired && hubUrl"
-          type="button"
-          :disabled="sharing || !online"
-          class="fid-action fid-plate min-h-9 text-fid-text transition-colors hover:text-fid-accent disabled:opacity-50"
-          @click="share"
-        >
-          {{ sharing ? d.shareBusy : d.share }}
-        </button>
-      </nav>
-
-      <!--
-        What it was held against. On every dig, not only the empty ones.
-
-        "Now I do not know whether my horizon was used or not" — and the
-        screen had no way to say. A nought and a list of twenty are equally
-        unreadable without the basis they were found against.
-      -->
-      <p v-if="basis" class="max-w-prose text-fid-sm text-fid-text-muted">
-        {{ basis }}
-        <NuxtLink
-          v-if="horizonPartial"
-          to="/settings/collection"
-          class="text-fid-accent underline underline-offset-4"
-        >
-          {{ d.basisMore }}
-        </NuxtLink>
-      </p>
-
-      <p
-        v-if="collectionSize !== null && collectionSize < SMALL_COLLECTION"
-        data-testid="small-collection"
-        class="max-w-prose text-fid-sm text-fid-text-muted"
-      >
-        {{ d.smallCollection }}
-      </p>
-
-      <!--
-        What the share produced, and only then: a link, how long it lives, and
-        what it hands over. The trigger is a plate in the row above; this is
-        the answer, and it appears where an answer belongs.
-      -->
-      <div v-if="!expired" class="flex flex-col gap-2">
-        <p v-if="!hubUrl" class="text-fid-sm text-fid-text-muted">{{ d.shareNeedsHub }}</p>
-
-        <div
-          v-if="shareLink"
-          class="flex flex-col gap-2 rounded-fid-sm border border-fid-border p-3"
-        >
-          <p class="text-fid-sm text-fid-text">
-            {{ d.shareReady(shareLink.matches, shareLink.total) }}
-          </p>
-          <div class="flex flex-wrap items-center gap-2">
-            <input
-              :value="shareLink.url"
-              readonly
-              :aria-label="d.share"
-              class="min-w-0 grow fid-field px-3 py-2 font-fid-mono text-fid-xs text-fid-text"
-              @focus="($event.target as HTMLInputElement).select()"
-            />
-            <button
-              type="button"
-              class="fid-action shrink-0 rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
-              @click="copyShare"
-            >
-              {{ shareCopied ? d.shareCopied : d.shareCopy }}
-            </button>
-          </div>
-          <p class="text-fid-xs text-fid-text-muted">
-            {{ d.shareGone(dayTime(shareLink.until)) }}
-          </p>
-          <p class="text-fid-xs text-fid-text-muted">{{ d.shareTells }}</p>
-        </div>
-      </div>
-
-      <!--
-        The ToS deadline, enforced in the UI and not only in the cleanup job —
-        and as a sentence since M33 #3.
-
-        It was a bordered box holding a notice, a button and a cost line — a
-        frame round a thing that is not a choice but a fact about this dig.
-        The button is a plate in the row above now, and what it costs stands
-        here beside the fact, still said out loud: a minute of somebody's rate
-        limit is not a detail to hide in a title.
-
-        `role="status"` stays. The sentence appears when a dig ages past six
-        hours while somebody is looking at it, and that is exactly the kind of
-        change a screen reader should be told about.
-
-        And only where there were prices to lose. A dig that found nothing
-        showed this notice and a button offering to refresh nought prices —
-        three controls that could do nothing, dressed as a result. Reported on
-        2026-09-14 with exactly that screen in front of it.
-      -->
-      <p
-        v-if="expired && result.matches.length > 0"
-        role="status"
-        class="max-w-prose text-fid-sm text-fid-text-muted"
-      >
-        {{ d.expired }}
-        {{
-          d.refreshCost(
-            result.matches.length,
-            Math.ceil((result.matches.length * 1.2) / 60) || 1,
-          )
-        }}
-      </p>
-
-      <div v-if="refreshing" class="flex flex-col gap-1">
-        <div
-          role="progressbar"
-          :aria-label="d.checked(count(refreshing.done), count(refreshing.total))"
-          aria-valuemin="0"
-          aria-valuemax="100"
-          :aria-valuenow="shareOf(refreshing)"
-          class="h-1.5 w-full overflow-hidden rounded-full bg-fid-inset"
-        >
-          <div
-            class="h-full rounded-full bg-fid-accent transition-[width] duration-[var(--fid-motion-layout)]"
-            :style="{ width: `${shareOf(refreshing)}%` }"
-          />
-        </div>
-        <JobMilestone :label="d.refreshPrices" :percent="shareOf(refreshing)" />
-        <p class="fid-num text-fid-sm text-fid-text-muted">
-          {{ d.checked(count(refreshing.done), count(refreshing.total))
-          }}<template v-if="refreshing.sold > 0"
-            >, {{ d.alreadySold(count(refreshing.sold)) }}</template
-          >
-        </p>
-      </div>
-
-      <p v-if="refreshed" role="status" class="fid-num text-fid-sm text-fid-text-muted">
-        {{ d.refreshed(count(refreshed.refreshed))
-        }}<template v-if="refreshed.sold > 0"
-          >, {{ d.refreshedSold(count(refreshed.sold)) }}</template
-        ><template v-if="refreshed.gone > 0"
-          >, {{ d.refreshedGone(count(refreshed.gone)) }}</template
-        >.
-      </p>
-
+    <section v-if="result && segment === 'finds'" class="flex flex-col gap-4">
       <!--
         No acquittal without a basis.
         Without a horizon, "there is nothing here for you" is not information
@@ -1738,92 +1780,65 @@ const noHorizon = computed(
 
       <template v-else>
         <!--
-          The shortlist first, one record per artist. Three records by the same
-          name are a finding, but they are not five different reasons to look.
+          The wall first (#223): the four best, one record per artist. Three
+          records by the same name are a finding, but they are not four
+          different reasons to look.
         -->
-        <section class="flex flex-col gap-3" aria-labelledby="top-five">
-          <h3 id="top-five" class="text-fid-sm uppercase tracking-[0.2em] text-fid-text-muted">
-            {{ d.topFive }}
-          </h3>
-          <p
-            v-if="result.topFive[0] && result.topFive[0].score >= 85"
-            class="text-fid-sm text-fid-text-muted"
-          >
-            <span class="text-fid-text">{{ d.sideOne }}</span>
-            {{ result.topFive[0].artist }} – {{ result.topFive[0].title }}
-          </p>
-          <!-- The score explained once for the five, not on each card (#222). -->
+        <section class="flex flex-col gap-3" aria-labelledby="the-wall">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-5">
+            <h2
+              id="the-wall"
+              class="text-fid-sm uppercase tracking-[0.2em] text-fid-text-muted"
+            >
+              {{ d.wall }}
+            </h2>
+            <!--
+              The same finds, one after another.
+
+              No sixth entry in the navigation bar: on a phone five is already
+              the limit. The stack is a second **view** of this list, so it
+              stands where the list stands — and not somewhere you would have
+              to go looking.
+            -->
+            <NuxtLink
+              v-if="result.matches.length > 0"
+              :to="{ path: '/stack' }"
+              class="fid-action fid-plate min-h-9 text-fid-text transition-colors hover:text-fid-accent"
+            >
+              {{ d.stack.title }}
+            </NuxtLink>
+          </div>
+          <!-- The score explained once for the wall, not on each card (#222). -->
           <WhyNote :label="d.match.scoreWhat" class="self-start">
             {{ d.match.scoreHow }}
           </WhyNote>
-          <!-- Five cards, two abreast once there is room for two. -->
+          <!-- Four cards, two abreast once there is room for two. -->
           <ul class="grid gap-3 @4xl:grid-cols-2">
-            <li v-for="match in result.topFive" :key="match.listingId">
+            <li v-for="match in wall" :key="match.listingId">
               <MatchCard :match="match" />
             </li>
           </ul>
+          <!-- Under the wall, not above it: on a phone the first find comes first (#223). -->
+          <p
+            v-if="collectionSize !== null && collectionSize < SMALL_COLLECTION"
+            data-testid="small-collection"
+            class="max-w-prose text-fid-sm text-fid-text-muted"
+          >
+            {{ d.smallCollection }}
+          </p>
         </section>
-
-        <!--
-          Two visits side by side (M36.5). Folded: it is a comparison, not
-          the list, and somebody who came for the finds reads on.
-        -->
-        <section v-if="comparison" class="flex flex-col gap-3" aria-labelledby="compare">
-          <details>
-            <summary
-              id="compare"
-              class="fid-action cursor-pointer list-none text-fid-sm uppercase tracking-[0.2em] text-fid-text-muted"
-            >
-              {{
-                d.compare.summary(
-                  dayTime(comparison.earlier.startedAt),
-                  comparison.fresh.length,
-                  comparison.gone?.length ?? null,
-                  comparison.kept.length,
-                )
-              }}
-            </summary>
-            <div class="mt-3 flex flex-col gap-4">
-              <DiscogsCredit :to="sellerPage(result.dig.dealer)" class="self-start" />
-              <div v-for="part in comparisonParts" :key="part.key" class="flex flex-col gap-1">
-                <h4 class="fid-plate text-fid-text-muted">
-                  {{ d.compare.heading(part.key, part.rows.length) }}
-                </h4>
-                <p
-                  v-if="part.key === GONE && comparison.gone === null"
-                  class="text-fid-xs text-fid-text-muted"
-                >
-                  {{ d.compare.goneUnknown }}
-                </p>
-                <p v-else-if="part.rows.length === 0" class="text-fid-xs text-fid-text-muted">
-                  {{ d.compare.none }}
-                </p>
-                <ul v-else class="flex flex-col">
-                  <li v-for="match in part.rows.slice(0, 30)" :key="match.listingId">
-                    <MatchRow :match="match" />
-                  </li>
-                </ul>
-                <p v-if="part.rows.length > 30" class="fid-num text-fid-xs text-fid-text-muted">
-                  {{ d.compare.more(part.rows.length - 30) }}
-                </p>
-              </div>
-            </div>
-          </details>
-        </section>
-
-        <CreditExplorer :dig-id="result.dig.id" />
 
         <section
           v-if="rest.length > 0"
           class="flex flex-col gap-3"
           aria-labelledby="all-matches"
         >
-          <h3
+          <h2
             id="all-matches"
             class="text-fid-sm uppercase tracking-[0.2em] text-fid-text-muted"
           >
             {{ d.allFindsHeading }}
-          </h3>
+          </h2>
           <!--
             Once for the list, linked to the shop's page that shows these
             listings: a credit on each of four hundred 34 px rows would be the

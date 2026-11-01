@@ -200,7 +200,9 @@ const meta = computed(() => {
           and catalogue number between the two was a comparison table
           interrupting a sentence.
 
-          Never truncated. The sentence is the product.
+          Two lines on a phone (#223), whole from a tablet up: the sentence is
+          the product, but four cards of it pushed the second find off the
+          first screen. The sheet says it in full.
 
           Unless the list has heard it twenty times (M33 #1) — then the lead
           is a plate above the sentence, and the sentence says what is left.
@@ -209,7 +211,9 @@ const meta = computed(() => {
           piece in three words.
         -->
         <p v-if="plate" class="fid-plate text-fid-text">{{ plate }}</p>
-        <p v-if="sentence" class="max-w-prose text-fid-base text-fid-text">{{ sentence }}</p>
+        <p v-if="sentence" class="max-w-prose text-fid-base text-fid-text max-md:line-clamp-2">
+          {{ sentence }}
+        </p>
         <p v-if="meta" class="fid-plate text-fid-text-muted">{{ meta }}</p>
 
         <!--

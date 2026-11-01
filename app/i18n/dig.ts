@@ -24,7 +24,11 @@ const en = {
   /** For a device with no shop yet: the same five as on the shops screen. */
   starters: 'Shops to start with',
   startersNote: 'Big, well rated, shipping across Europe. Or type any shop above.',
-  another: 'Another shop, or an earlier dig',
+  /** The three views of a dig with a result (#223): the finds lead, the tools fold beside them. */
+  segments: { label: 'This dig', finds: 'Finds', shop: 'Shop', visits: 'Visits' },
+  /** The freshness clock in the head: how long the prices may still be shown (rule 4). */
+  freshUntil: (time: string) => `prices until ${time}`,
+  freshGone: 'prices expired',
   perThousand: (rate: string) => `${rate} finds per thousand records`,
   offline:
     "You're offline, so no new dig right now. The last one is below, and it is complete.",
@@ -153,7 +157,6 @@ const en = {
     back: 'Back',
   },
   shareBusy: 'Sealing …',
-  shareNeedsHub: 'Sharing needs a hub. You set one up in the settings.',
   shareReady: (matches: number, total: number) =>
     matches < total
       ? `Link ready, with the top ${matches} of ${total} finds.`
@@ -189,8 +192,7 @@ const en = {
       'We checked every record here and none fit. But we have not looked up your artists and labels yet, so there was almost nothing to check against. Until we have, we only recognise the exact pressings you already own: no other pressing, no same artist, no same label.',
     buildIt: 'Build it now',
   },
-  topFive: 'Top Five',
-  sideOne: 'Side One, Track One:',
+  wall: 'The wall',
   filters: {
     search: 'Filter the finds',
     searchPlaceholder: 'Artist, title, label, catalogue number …',
@@ -318,7 +320,9 @@ const de: typeof en = {
   starters: 'Läden für den Anfang',
   startersNote:
     'Groß, gut bewertet, liefern in ganz Europa. Oder tipp oben einen beliebigen Laden ein.',
-  another: 'Ein anderer Laden, oder ein früherer Dig',
+  segments: { label: 'Dieser Dig', finds: 'Funde', shop: 'Laden', visits: 'Besuche' },
+  freshUntil: (time) => `Preise bis ${time}`,
+  freshGone: 'Preise abgelaufen',
   perThousand: (rate) => `${rate} Funde auf tausend Platten`,
   offline:
     'Du bist offline, ein neuer Dig geht gerade nicht. Der letzte steht unten und ist vollständig.',
@@ -442,7 +446,6 @@ const de: typeof en = {
     back: 'Zurück',
   },
   shareBusy: 'Wird versiegelt …',
-  shareNeedsHub: 'Teilen braucht einen Hub. Den trägst du in den Einstellungen ein.',
   shareReady: (matches, total) =>
     matches < total
       ? `Link steht, mit den besten ${matches} von ${total} Funden.`
@@ -473,8 +476,7 @@ const de: typeof en = {
       'Wir haben jede Platte hier geprüft, und keine passte. Aber wir haben deine Künstler und Labels noch nicht nachgeschlagen, es gab also fast nichts zum Vergleichen. Bis dahin erkennen wir nur die Pressungen, die du schon hast: keine andere Pressung, keinen gleichen Künstler, kein gleiches Label.',
     buildIt: 'Jetzt nachschlagen',
   },
-  topFive: 'Top Five',
-  sideOne: 'Side One, Track One:',
+  wall: 'Die Wand',
   filters: {
     search: 'Funde filtern',
     searchPlaceholder: 'Künstler, Titel, Label, Katalognummer …',
