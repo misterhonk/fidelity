@@ -45,6 +45,37 @@ test.describe('with motion', () => {
     await expect(why).toHaveAttribute('open', '')
     await expect.poll(() => longest(page)).toBeGreaterThan(1)
   })
+
+  /*
+   * The sheet's cover is drawn only once its record has been read, so the new
+   * picture has to wait for it — taken a tick early it had no cover in it and
+   * nothing grew anywhere. Chromium only: it is where `getAnimations()` lists
+   * the view-transition pseudo-elements.
+   */
+  test('the cover grows into the sheet', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'view-transition animations are listed in Chromium')
+    const wall = await openDig(page)
+
+    await page.evaluate(() => {
+      const seen = new Set<string>()
+      Object.assign(window, { __seen: seen })
+      const look = () => {
+        for (const a of document.getAnimations()) {
+          const pseudo = (a.effect as KeyframeEffect | null)?.pseudoElement
+          if (pseudo) seen.add(pseudo)
+        }
+        requestAnimationFrame(look)
+      }
+      look()
+    })
+    await wall.getByRole('button', { name: / – / }).first().click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15_000 })
+    await expect
+      .poll(() =>
+        page.evaluate(() => [...(window as unknown as { __seen: Set<string> }).__seen]),
+      )
+      .toContain('::view-transition-group(fid-cover)')
+  })
 })
 
 test.describe('with reduced motion', () => {

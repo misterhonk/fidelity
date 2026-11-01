@@ -34,6 +34,7 @@ const colour = computed(() => labelColour(props.label))
     :srcset="srcset"
     :sizes="sizes"
     alt=""
+    data-sleeve
     loading="lazy"
     decoding="async"
     @error="failed = true"
@@ -42,6 +43,7 @@ const colour = computed(() => labelColour(props.label))
     v-else
     class="@container relative overflow-hidden bg-fid-inset"
     data-testid="label-sleeve"
+    data-sleeve
     aria-hidden="true"
   >
     <div

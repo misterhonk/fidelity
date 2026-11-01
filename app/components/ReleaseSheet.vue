@@ -143,6 +143,11 @@ async function postage(dealer: string) {
 const sheet = useReleaseSheet()
 const walk = sheet.walk
 
+// The cover can only grow into a sheet that has one on screen (#226).
+watch(state, (now) => {
+  if (now !== 'loading') sheet.settled()
+})
+
 function step(to: number | null) {
   if (to === null) return
   sheet.step(props.digId, to)
