@@ -56,9 +56,13 @@ jobs:
       - run: pnpm ${{ matrix.task }}
 
   # Supply-chain gate (#209): a high or critical advisory in what ships stops
-  # the pull request. `--prod` is the point — build tooling lives in
-  # devDependencies, so a dev-server CVE in Vite does not block a release
-  # while a hole in Vue does. Reads the lock file only; no install needed.
+  # the pull request. `--prod` audits `dependencies` only, and Nuxt and Nuxt
+  # UI are build tools in devDependencies — so the client runtime they inject
+  # (vue-router, @unhead/vue, ofetch, reka-ui) is listed there directly, at
+  # the versions the lock resolves. Their smaller helpers (defu, ufo,
+  # hookable, @vueuse/core, tailwind-variants, …) also reach the bundle and
+  # are NOT audited here: residual risk, docs/21 §2.2. @unhead/vue declares
+  # Vite as a dependency, so a Vite advisory can still fail this job. Reads the lock file only; no install needed.
   audit:
     if: ${{ !startsWith(github.head_ref, 'release-please--') }}
     runs-on: ubuntu-latest
