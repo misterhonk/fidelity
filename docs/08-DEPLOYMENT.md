@@ -153,14 +153,50 @@ directory only this app can see — it cannot reach your own files.
 
 ## 3. Uberspace
 
+### An origin of its own — mandatory
+
+**The app is served from the root of a (sub)domain that serves nothing else.** Not
+`example.de/sleeveside/` next to a blog, a WordPress or another app on `example.de`.
+
+IndexedDB, the Cache Storage, the service worker and the Web Lock belong to the **origin**
+(scheme, host, port), not to the path. Everything else on the same origin can open the same
+database — and that database holds the Discogs token (rule 6). There is no defence against
+that in code, only in where the files are served from (`docs/21-THREAT-MODEL.md` §2.1).
+
+So `.github/workflows/deploy.yml` refuses to build for any base path other than `/`: leave
+`DEPLOY_BASE_URL` unset. `NUXT_APP_BASE_URL` still works for a build of your own, but a
+sub-path is only safe on a host where nothing else runs.
+
+Changing the origin is a move for the data too: a new origin starts with an empty
+IndexedDB. *Settings → Data → Export everything* on the old address, *Read a backup back in*
+on the new one.
+
 ### Once
 
 ```bash
-uberspace web domain add fidelity.example.de     # TLS comes automatically
-mkdir -p ~/html/fidelity
+uberspace web domain add sleeveside.example.de     # TLS comes automatically
+mkdir -p /var/www/virtual/$USER/sleeveside         # DEPLOY_PATH, publish.sh fills it
+# The domain's docroot is the folder named after it; make it the `current` symlink.
+ln -sfn /var/www/virtual/$USER/sleeveside/current /var/www/virtual/$USER/sleeveside.example.de
 ```
 
-The SPA fallback and the headers go in `~/html/fidelity/.htaccess`:
+`DEPLOY_PATH` is not the docroot: `deploy/publish.sh` uploads each version into
+`<DEPLOY_PATH>/releases/…` and then flips `<DEPLOY_PATH>/current`, so a visitor never sees
+half a version. It has to stay under `/var/www/virtual/$USER/` — Apache on Uberspace refuses
+a symlink that leads out of that tree with a 403.
+
+**The live setup** (since 2026-11-01, #202): `https://sleeveside.martinmelcher.de/` is
+such a subdomain, its docroot a symlink to the deploy's `current`. The old address
+`https://martinmelcher.de/fidelity/` shared its origin with the WordPress at
+`martinmelcher.de/` and now answers every path with a 301 to the same path on the new
+origin, in `~/html/fidelity/.htaccess`:
+
+```apache
+RedirectMatch 301 ^/fidelity/?(.*)$ https://sleeveside.martinmelcher.de/$1
+```
+
+The SPA fallback and the headers go in the docroot's `.htaccess` (the deploy workflow writes
+it from `deploy/.htaccess`; this is the gist):
 
 ```apache
 # SPA fallback: anything that is not a real file goes to index.html
@@ -237,10 +273,10 @@ jobs:
         run: |
           rsync -az --delete --exclude='.htaccess' \
             .output/public/ \
-            ${{ secrets.UBERSPACE_USER }}@${{ secrets.UBERSPACE_HOST }}:html/fidelity/
+            ${{ secrets.UBERSPACE_USER }}@${{ secrets.UBERSPACE_HOST }}:/var/www/virtual/<user>/sleeveside.example.de/
 
       - name: Smoke test
-        run: curl -fsS https://fidelity.example.de/ | grep -q "Sleeveside"
+        run: curl -fsS https://sleeveside.example.de/ | grep -q "Sleeveside"
 ```
 
 No build secret is needed — the app has no consumer secret, because it does no OAuth.
@@ -306,8 +342,8 @@ PWA installation and the service worker need HTTPS. Two routes:
 cloudflared tunnel --url http://localhost:3000
 
 # b) A staging domain on Uberspace
-uberspace web domain add fidelity-stage.example.de
-# its own folder ~/html/fidelity-stage, deploying from main rather than from tags
+uberspace web domain add sleeveside-stage.example.de
+# its own docroot /var/www/virtual/$USER/sleeveside-stage.example.de, deploying from main rather than from tags
 ```
 
 Recommendation: **both**. The tunnel for fast iteration on the phone, the staging domain for
