@@ -49,6 +49,7 @@ export function parseListingIds(input: string): number[] {
 
   // Links first: `/sell/item/123`, or `/shop/item/123` since Discogs renamed
   // the marketplace pages (2026-09-10), with or without a language segment.
+  // A shop page (`/shop/list?user=…`) names no listing and is passed over.
   for (const match of input.matchAll(/\/(?:sell|shop)\/item\/(\d+)/g)) add(match[1]!)
 
   /*

@@ -26,6 +26,20 @@ describe('parseListingIds', () => {
     ])
   })
 
+  it('takes a shop page link in the paste without mistaking it for a listing', () => {
+    /*
+     * `/shop/list?user=…` (formerly `/sell/list`) is a whole shop, not a
+     * record. Pasted next to listing links it must neither break the paste nor
+     * turn its query into a listing id.
+     */
+    const pasted = `
+      https://www.discogs.com/de/shop/list?user=juno_records&page=1234567
+      https://www.discogs.com/shop/item/1260275694
+      https://www.discogs.com/sell/list?user=fatplastics&offset=7654321
+    `
+    expect(parseListingIds(pasted)).toEqual([1260275694])
+  })
+
   it('survives a language segment and a tracking query', () => {
     expect(
       parseListingIds('https://www.discogs.com/de/sell/item/1260346497?ev=rb&format=Vinyl'),
