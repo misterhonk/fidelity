@@ -27,13 +27,13 @@ Pages or GitHub Pages — free everywhere, interchangeable everywhere.
 The thing should load where reception is bad too — in the basement of a record shop, behind
 concrete shelving.
 
-| Part | Budget (gzip) | As of M3 |
+| Part | Budget (gzip) | Measured |
 |---|---:|---:|
 | HTML + critical CSS | ≤ 8 kB | |
 | App-shell JS (Vue + router + UI core) | ≤ 140 kB | |
-| Matching engine (worker, lazy) | ≤ 25 kB | 20.3 kB (2026-09-16) |
+| Matching engine (worker, lazy) | ≤ 22 kB | 20.1 kB (2026-11-01) |
 | The remaining routes (lazy) | ≤ 30 kB each | 13.9 kB |
-| **First meaningful paint** | **≤ 180 kB** | **125 kB** |
+| **First meaningful paint** | **≤ 180 kB** | **125.4 kB** (2026-11-01) |
 
 > **Why the worker went from 25 to 35 kB (M3).** The 25 kB were an estimate made before
 > there was any code. Measured, it is 31.5 kB, about 16 kB of which is Zod. The obvious way
@@ -75,6 +75,32 @@ concrete shelving.
 >
 > The order for the day 25 is genuinely reached is unchanged: the horizon and the matcher
 > become a chunk a dig loads, then `zod/mini`. Both are still ahead of raising the number.
+
+> **Why 25 kB became 22 kB, and where 18 kB of first paint went (2026-11-01, #299).**
+> `pnpm size` had reported the first paint at 143–144 kB for weeks while this table still
+> said 125, and the worker stood at 25.01 kB of 25. Measured against v0.116.0 (143.14 kB),
+> Sprint 2 itself added only **1.07 kB** to the first paint: English strings (`app/i18n/en.ts`),
+> new entries in the router table, the palette's open-state composable, 0.13 kB of CSS. No
+> feature had walked into the first screen; the command palette is still a lazy component.
+>
+> The other 18 kB were **the worker, preloaded by index.html**. Vite lists a worker's entry
+> as an *asset* of the chunk that says `new Worker(new URL(...))`, and Nuxt preloads the
+> assets of every chunk it preloads — so the page fetched and compiled 19.3 kB into its own
+> module map, which the worker, having one of its own, never uses. A `build:manifest` hook
+> in `nuxt.config.ts` takes `.js` assets out of the preload, and `.size-limit.js` now
+> refuses to measure a build where the worker is back among the first-paint files:
+> **144.21 → 125.39 kB.**
+>
+> The worker lost 4.9 kB the same way it lost 19 in September — by not paying at start-up
+> for something used later. `z.config({ jitless: true })` in `worker/index.ts` had pulled
+> zod's core and util into the entry for one flag (3.6 kB); the flag is now set on
+> `globalThis.__zod_globalConfig`, the object zod reads its config from, and a unit test
+> pins that. The basket's twelve handlers and the hub's two moved into
+> `worker/basket/handlers.ts` and `worker/hub/handlers.ts`, loaded the first time one of
+> them is asked for; the table in `worker/handlers.ts` keeps every kind, and
+> `tests/unit/worker-entry.spec.ts` fails if a group is imported statically or a handler is
+> written inline again. **25.01 → 20.13 kB**, and the ceiling came down to 22 kB with it, for
+> the reason given in the September note.
 
 > **Why 120 kB became 180 kB (2026-08-11).** The 120 were tied to a network that no longer
 > exists: "in the basement of a record shop over 3G". 3G was switched off in Germany in

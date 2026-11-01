@@ -75,6 +75,16 @@ if (!workerEntry) {
 
 const workerPath = `${WORKER_DIR}/${workerEntry}`
 
+/*
+ * The worker is not a first-paint asset (#299). Nuxt used to preload it from
+ * index.html, and the first-paint figure carried 19 kB the page never runs;
+ * nuxt.config.ts's `build:manifest` hook takes it out. Should it come back,
+ * that is a regression to name, not a number to absorb.
+ */
+if (entryAssets.includes(workerPath)) {
+  throw new Error(`the worker (${workerEntry}) is preloaded by index.html — see nuxt.config.ts build:manifest`)
+}
+
 function staticImports(file) {
   const code = readFileSync(file, 'utf8')
   const found = new Set()
@@ -133,8 +143,14 @@ export default [
      *
      * Raising it again is a decision, not a fix. What comes first if it is
      * reached: the horizon and the matcher, then zod/mini (docs/12 §2).
+     *
+     * **25 → 22 kB on 2026-11-01 (#299).** It had crept to 25.01 kB. Zod was
+     * back in the entry for a one-line `z.config()` (3.6 kB), and the basket
+     * and hub handlers sat in the table inline; out: **25.01 → 20.13 kB**.
+     * The ceiling follows for the same reason as last time — tests/unit/
+     * worker-entry.spec.ts names the cause, this notices the size.
      */
-    limit: '25 kB',
+    limit: '22 kB',
     gzip: true,
   },
 ]
