@@ -16,7 +16,8 @@ export * from '@playwright/test'
  * carries `report-uri /__csp-report`, and the report request is heard here
  * whoever sent it.
  *
- * A test that provokes one on purpose reads `cspViolations` and empties it.
+ * A test that provokes one on purpose waits for every copy (a page violation is
+ * heard twice), then drops its own lines from `cspViolations` at the end.
  */
 export const test = base.extend<{ cspViolations: string[] }>({
   cspViolations: [
