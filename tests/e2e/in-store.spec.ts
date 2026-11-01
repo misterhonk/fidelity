@@ -32,6 +32,8 @@ test('one field at the bottom, a big scan button beside it, dark by default', as
   expect(
     await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme),
   ).toBe('dark')
+  // …and the installed app's status bar with it.
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#050402')
 
   const kind = page.locator('#in-store-kind')
   await field(page).fill('Portishead')
