@@ -240,6 +240,30 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
 })
 
 /*
+ * The barcode reader's WebAssembly, kept after its first use (ADR-018).
+ *
+ * Not in the precache: `injectManifest.globPatterns` names no `.wasm`, so a
+ * fresh install stays ~415 kB lighter, and Chromium — which reads barcodes by
+ * itself — never fetches it at all. Its JS glue is an ordinary lazy chunk and
+ * is precached like every other (about 12 kB). After the first scan on an
+ * iPhone the `.wasm` sits here, so the shop basement still reads.
+ *
+ * CacheFirst because the filename carries the content hash; one entry, so
+ * the next release's file replaces the old one instead of piling up.
+ */
+registerRoute(
+  ({ url, sameOrigin }) => sameOrigin && url.pathname.endsWith('.wasm'),
+  new CacheFirst({
+    cacheName: 'fidelity-decoder',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 1 }),
+      new CacheableResponsePlugin({ statuses: [200] }),
+    ],
+  }),
+  'GET',
+)
+
+/*
  * Covers, kept for three months.
  *
  * i.discogs.com has a budget of its own — roughly thirty requests a minute,

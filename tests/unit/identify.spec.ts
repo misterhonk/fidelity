@@ -248,28 +248,41 @@ describe('the screen that shows it', () => {
   })
 
   /**
-   * And on an iPhone no button is offered that can do nothing.
+   * The camera wherever there is one (ADR-018, #301).
    *
-   * `BarcodeDetector` is missing in WebKit. A camera that shows a picture and
-   * recognises nothing is worse than a sentence saying: you type here.
+   * `BarcodeDetector` is missing in WebKit; there the first tap loads a
+   * zxing-wasm reader. Only when that cannot load does the sentence stand —
+   * a camera that shows a picture and recognises nothing is still worse than
+   * a sentence saying: you type here.
    */
-  it('offers the camera only where it can read', () => {
-    expect(withoutComments(PAGE)).toMatch(/v-if="canScan"/)
+  it('offers the camera where there is one, and the hint where nothing reads', () => {
+    expect(withoutComments(PAGE)).toMatch(
+      /v-if="canScan && scan\.failure\.value !== 'unavailable'"/,
+    )
     expect(withoutComments(PAGE)).toMatch(/scanNotHere/)
     expect(withoutComments(SCAN)).toMatch(/'BarcodeDetector' in globalThis/)
   })
 
   /**
-   * And no library for it.
+   * One decoder, the reader-only build, pinned — and never in the bundle.
    *
-   * A decoder in JavaScript weighs over a hundred kilobytes, and rule 7
-   * demands that every dependency justify its place. Typed digits cost
-   * nothing.
+   * It weighs ~415 kB gzip. Rule 7 lets it in on two conditions: it is an
+   * `import()` that only a tap reaches, and only the reader (not the writer)
+   * comes along. `.size-limit.js` checks the built output; this checks that
+   * nothing names it statically.
    */
-  it('adds no decoder to the bundle', () => {
+  it('adds the decoder only as a lazy, reader-only import', () => {
     const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
     const deps = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies })
-    expect(deps.filter((d) => /zxing|quagga|barcode|jsqr/i.test(d))).toEqual([])
+    expect(deps.filter((d) => /zxing|quagga|barcode|jsqr/i.test(d))).toEqual(['zxing-wasm'])
+    expect(pkg.dependencies['zxing-wasm']).toMatch(/^\d+\.\d+\.\d+$/)
+
+    expect(withoutComments(SCAN)).toMatch(/await import\('\.\/scan\/zxing'\)/)
+    expect(withoutComments(SCAN)).not.toMatch(/^import .*scan\/zxing/m)
+    expect(withoutComments(PAGE)).not.toMatch(/scan\/zxing|zxing-wasm/)
+    const reader = readFileSync('app/composables/scan/zxing.ts', 'utf8')
+    expect(reader).toMatch(/from 'zxing-wasm\/reader'/)
+    expect(reader).not.toMatch(/from 'zxing-wasm(\/full|\/writer)?'/)
   })
 
   /**
@@ -292,7 +305,7 @@ describe('the screen that shows it', () => {
 
   /** The camera stops when the screen is gone. */
   it('turns the camera off again', () => {
-    expect(withoutComments(SCAN)).toMatch(/onBeforeUnmount\(stop\)/)
+    expect(withoutComments(SCAN)).toMatch(/onScopeDispose\(stop\)/)
     expect(withoutComments(SCAN)).toMatch(
       /getTracks\(\)\.forEach\(\(track\) => track\.stop\(\)\)/,
     )

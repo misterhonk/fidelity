@@ -116,6 +116,37 @@ while (queue.length > 0) {
   }
 }
 
+/*
+ * The barcode reader for Safari (ADR-018, #301): zxing-wasm's reader build,
+ * reached only through `import()` in useBarcodeScan.start(). Its glue chunk is
+ * the one that names the hashed `.wasm`. Neither may be among the first-paint
+ * files, nor so much as prefetched by index.html — a Chromium visitor must
+ * never download it.
+ */
+const decoderWasm = readdirSync(WORKER_DIR)
+  .filter((file) => /^zxing_reader\..+\.wasm$/.test(file))
+  .map((file) => `${WORKER_DIR}/${file}`)
+const decoderGlue = chunkFiles.filter((file) =>
+  /zxing_reader\.[\w-]+\.wasm/.test(readFileSync(file, 'utf8')),
+)
+
+if (decoderWasm.length !== 1 || decoderGlue.length !== 1) {
+  throw new Error(
+    `barcode decoder not found as one .wasm and one glue chunk (${decoderWasm.length}, ${decoderGlue.length})`,
+  )
+}
+
+const decoderChunks = new Set([...decoderGlue, ...decoderGlue.flatMap(staticImports)])
+
+for (const file of [...decoderWasm, ...decoderChunks]) {
+  const name = file.slice(WORKER_DIR.length + 1)
+  if (entryAssets.includes(file) || html.includes(name)) {
+    throw new Error(
+      `the barcode decoder (${name}) is loaded or prefetched by index.html — ADR-018`,
+    )
+  }
+}
+
 export default [
   {
     name: 'Erster sinnvoller Paint',
@@ -153,6 +184,19 @@ export default [
      * worker-entry.spec.ts names the cause, this notices the size.
      */
     limit: '22 kB',
+    gzip: true,
+  },
+  {
+    name: 'Barcode decoder (lazy, only without BarcodeDetector)',
+    path: [...decoderChunks, ...decoderWasm],
+    /*
+     * zxing-wasm 3.1.5's reader build, measured on 2026-11-01: 415.1 kB of
+     * .wasm plus 12.3 kB of glue, gzip. Fetched once, on the first tap on
+     * "Scan" in a browser without BarcodeDetector, then kept by the service
+     * worker (docs/12 §2). The ceiling leaves room for a patch release, not
+     * for the full build (reader + writer) slipping in by a wrong import.
+     */
+    limit: '440 kB',
     gzip: true,
   },
 ]
