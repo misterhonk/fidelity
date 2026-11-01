@@ -113,7 +113,7 @@ const en = {
   basisMore: 'Build the rest',
   /** Under 50 records the scores run low, and that is the collection, not the shop (#222). */
   smallCollection:
-    'Your collection is still small, under 50 records. Few finds can score high against it yet; the scores grow with it.',
+    'Your collection is still small, under 50 records. Few finds can score high against it yet. The scores grow with it.',
   lane: 'We are still learning your artists and labels. There is one line to Discogs and we serve it in order, so a dig started now begins once that is through.',
   laneWatch: 'Watch it',
   expired:
