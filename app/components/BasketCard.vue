@@ -776,9 +776,14 @@ const uid = useId()
     <!--
       Everything that works on the receipt rather than reads it (#224): the
       postage table, the budget and the other shops. Folded, because a basket
-      is mostly read and only sometimes worked on.
+      is mostly read and only sometimes worked on. Open when the postage is
+      unknown: the note above says "here is what to type", and the form to
+      type it into is in here.
     -->
-    <details class="group border-t border-fid-border pt-4">
+    <details
+      class="group border-t border-fid-border pt-4"
+      :open="summary.shippingSource === null"
+    >
       <summary
         class="fid-action w-fit cursor-pointer list-none text-fid-sm text-fid-text-muted underline decoration-dotted underline-offset-4 hover:text-fid-text"
       >

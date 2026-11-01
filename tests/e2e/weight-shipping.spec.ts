@@ -44,4 +44,6 @@ test('a shop that bills by weight says so, and hands over its own words', async 
   await expect(page.getByText('What the shop says about postage')).toBeVisible()
   // Verbatim, so it can be read off and typed in.
   await expect(page.getByText('2000 bis 4999 Gramm: 24,50 €')).toBeVisible()
+  // And the form to type them into, without hunting for it under the tools.
+  await expect(page.getByRole('button', { name: 'Enter the postage tiers' })).toBeVisible()
 })
