@@ -214,3 +214,20 @@ describe('importance has one colour', () => {
     expect(wantlist).not.toMatch(/\? 'text-fid-sig-wantlist-text'\s*:\s*'text-fid-text-muted/)
   })
 })
+
+describe('distribution bars', () => {
+  /**
+   * The year review and the map drew five lists of the same kind of number in
+   * five signal hues (issue #219). They are cardboard with one shellac
+   * highlight, and a signal colour there would read as a finding.
+   */
+  it.each(['app/components/FacetBars.vue', 'app/pages/review.vue'])(
+    '%s draws no bar in a signal colour',
+    (file) => {
+      const source = readFileSync(file, 'utf8')
+      expect(source).not.toMatch(/fid-sig-/)
+      expect(source).toContain('fid-accent')
+      expect(source).toContain('fid-text-muted')
+    },
+  )
+})

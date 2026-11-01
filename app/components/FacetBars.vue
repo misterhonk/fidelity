@@ -7,16 +7,8 @@ const h = useDealerMessages()
 const props = defineProps<{
   title: string
   facets: TasteFacet[]
-  /** Token name for the bar, e.g. 'label' → --fid-sig-label. Also the heading id. */
+  /** The heading id. No longer a colour: see the bar below. */
   signal: string
-  /**
-   * The colour, where it should not follow the heading id.
-   *
-   * Two distributions of the same shop's stock — its labels and its decades —
-   * were drawn in two different signal colours, which reads as two different
-   * kinds of number. They are the same kind: how much of this shop is that.
-   */
-  token?: string
   empty?: string
   /**
    * What a click on a row does — if anything at all.
@@ -35,6 +27,13 @@ const props = defineProps<{
  * of the distribution is the point.
  */
 const peak = computed(() => Math.max(1, ...props.facets.map((facet) => facet.n)))
+
+/**
+ * Bars are cardboard with one shellac highlight, the strongest row (issue #219).
+ * They used to take a signal colour each, so five lists of the same kind of
+ * number came out in five hues and read as five kinds of finding.
+ */
+const lead = computed(() => props.facets.find((facet) => facet.n === peak.value))
 </script>
 
 <template>
@@ -76,7 +75,7 @@ const peak = computed(() => Math.max(1, ...props.facets.map((facet) => facet.n))
             :style="{
               width: `${Math.max(2, (facet.n / peak) * 100)}%`,
               minWidth: '0.75rem',
-              backgroundColor: `var(--fid-sig-${token ?? signal})`,
+              backgroundColor: facet === lead ? 'var(--fid-accent)' : 'var(--fid-text-muted)',
             }"
           />
         </dt>

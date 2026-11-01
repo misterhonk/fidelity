@@ -133,6 +133,12 @@ the priority stars and "wanted most" on the wantlist. One colour on both screens
 in its text form. Until issue #219 the wantlist drew them in the wantlist magenta and the shelf
 in gold, so the same five stars meant two things. A unit test keeps both screens on the role.
 
+**Distribution bars are cardboard with one shellac highlight.** The month bars on `/review` and
+every `FacetBars` list (`/review`, `/map`, the shop page) draw in `--fid-text-muted`, and only
+the strongest row or month in `--fid-accent`. They used to take a signal colour per list, so
+artists, labels, styles, decades and formats came out in five hues and read as five kinds of
+finding. A count is not a signal.
+
 **The switch** lives under Settings › Appearance and knows system, light and dark. `system`
 is not a third palette but the absence of an override: then `color-scheme: light dark`
 decides alone. `<meta name="theme-color">` follows the result at runtime — the manifest can
