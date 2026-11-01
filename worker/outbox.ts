@@ -350,7 +350,8 @@ async function drainOnce(
       const reason = error instanceof Error ? error.message : String(error)
       const exhausted = await noteFailure(job.id, reason)
       if (exhausted) {
-        undone.push(await titleOf(exhausted))
+        // The job is already gone from the queue, so the revert must run whatever the name lookup does.
+        undone.push(await titleOf(exhausted).catch(() => `#${exhausted.payload.releaseId}`))
         await KINDS[exhausted.kind].revert(exhausted)
         givenUp += 1
       } else {
