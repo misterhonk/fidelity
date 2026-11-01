@@ -270,7 +270,8 @@ export async function runDemo(options: {
       )
     } catch (error) {
       // Past the 10,000-listing wall: an empty page, so the search turns back.
-      if ((error as { status?: number } | null)?.status === 403) return []
+      // A 403 on page 1 is a closed shop, not a wall, and must be said.
+      if (page > 1 && (error as { status?: number } | null)?.status === 403) return []
       throw error
     }
     listingsTotal = response.pagination.items

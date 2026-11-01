@@ -236,6 +236,34 @@ describe('the demo', () => {
     expect(totals.slice(1)).toEqual(totals.slice(1).map(() => 3))
   })
 
+  it('fails on a shop that refuses its first page, rather than reading it as empty', async () => {
+    const { DiscogsError } = await import('~~/worker/discogs/errors')
+    const get = vi.fn(async (path: string, schema: { parse: (v: unknown) => unknown }) => {
+      if (path.startsWith('/releases/'))
+        return schema.parse({
+          id: 900,
+          title: 'Das Model',
+          artists: [{ id: 5, name: 'Kraftwerk' }],
+        })
+      throw new DiscogsError(403, 'Forbidden')
+    })
+    await expect(
+      runDemo({
+        client: { get } as unknown as DiscogsClient,
+        listingIds: [111],
+        known: [
+          {
+            listingId: 111,
+            releaseId: 900,
+            dealer: 'plattenladen',
+            title: 'Das Model',
+            artist: 'Kraftwerk',
+          },
+        ],
+      }),
+    ).rejects.toMatchObject({ status: 403 })
+  })
+
   it('says a pasted listing has sold, rather than blaming a token', async () => {
     const { DiscogsError } = await import('~~/worker/discogs/errors')
     const get = vi.fn(async () => {
