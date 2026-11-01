@@ -1,5 +1,5 @@
-Fidelity
-========
+Sleeveside
+==========
 
 Ein Kaufberater für Discogs. Er liest das Sortiment eines Händlers, gleicht es
 gegen deine Sammlung ab und sagt dir, was davon zu dir passt — mit einer
@@ -30,7 +30,7 @@ Einen kostenlosen Zugangsschlüssel von Discogs. Den erzeugst du dir selbst:
 
     https://www.discogs.com/settings/developers
 
-Dort auf "Generate token" klicken und den Schlüssel in Fidelity einfügen. Er
+Dort auf "Generate token" klicken und den Schlüssel in Sleeveside einfügen. Er
 bleibt auf deinem Gerät gespeichert und wird an niemanden weitergegeben — es
 gibt auch niemanden, der ihn empfangen könnte, denn zu dieser App gehört kein
 Server.
@@ -48,7 +48,7 @@ nach — die Datei selbst ist in Ordnung.
 HTTPS
 -----
 
-Fidelity sollte über https:// laufen. Ohne Verschlüsselung funktionieren
+Sleeveside sollte über https:// laufen. Ohne Verschlüsselung funktionieren
 Offline-Betrieb und Installation als App nicht, weil Browser das nur über eine
 gesicherte Verbindung erlauben. Fast jeder Anbieter stellt HTTPS heute
 kostenlos zur Verfügung.

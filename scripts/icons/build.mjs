@@ -232,7 +232,7 @@ const hex = (c) => toHex(c.map((v) => Math.round(v)))
 
 await writeFile(
   resolve(root, 'public/icon.svg'),
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Fidelity">
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Sleeveside">
   <defs>
     <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="${hex(tileFrom)}"/>
