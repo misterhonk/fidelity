@@ -46,11 +46,15 @@ Any script that runs in the origin has the same reach as the app.
 - New dependencies are bundled, not loaded from a CDN, and have to justify their bytes
   (rule 7) — which also keeps the supply chain small.
 - Renovate (`renovate.json`) proposes a release only once it is seven days old; CI fails on a
-  high or critical advisory in production dependencies (`pnpm audit --prod`); actions and
+  high or critical advisory in production dependencies (`pnpm audit --prod`) — which list
+  the client runtime Nuxt and Nuxt UI ship (vue-router, `@unhead/vue`, ofetch, reka-ui)
+  directly, because the two frameworks are build tools in devDependencies; actions and
   base images are pinned by digest; release images and the release zip carry GitHub build
   provenance (`gh attestation verify`).
 - **Residual risk:** a compromised npm dependency ends up inside `'self'`. `pnpm-lock.yaml`
-  pins it; CSP cannot help.
+  pins it; CSP cannot help. And the audit sees only `dependencies`: the smaller helpers Nuxt
+  and Nuxt UI bundle besides the four above (defu, ufo, hookable, `@vueuse/core`,
+  tailwind-variants, …) reach the client unaudited.
 
 ### 2.3 A hub member
 
