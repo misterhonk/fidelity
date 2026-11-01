@@ -56,6 +56,18 @@ Ein geteiltes Geheimnis, kein Nutzerkonto — für einen Freundeskreis reicht da
 Without a secret or an access key the hub refuses to start (since 0.112). An open hub is
 a choice you write down: `HUB_OPEN=1` — inside a home network only.
 
+The secret is at least 32 characters, or the hub does not start (#206). Make one with
+`openssl rand -base64 32`. Wrong words are counted per address: after five, that address
+waits a second, and each further miss doubles the wait up to fifteen minutes (`429` with
+`retry-after`); the right word clears it. Behind a proxy every request comes from the
+proxy, so name the header it writes the client's address into — `HUB_IP_HEADER=x-forwarded-for`
+behind Caddy or Traefik, `cf-connecting-ip` behind a Cloudflare tunnel. The last entry
+of that header counts.
+
+The hub keeps no covers (#206): release images are Restricted Data under the Discogs API
+terms, and a hub handing them to every member would be redistributing them. A hub that
+had a cover table drops it on start.
+
 ## Der Wächter
 
 Standardmäßig **aus**. Er ist das Einzige in diesem Dienst, das von sich aus nach draußen
@@ -111,7 +123,7 @@ does not (constants in `src/app.ts`):
 | `403` | more than 3 vaults, 50 live shares, 5 push endpoints or 50 shops — counting only vaults and shops the hub wrote in the last 30 days, by its own clock (a client's `seenAt` does not count). Rewriting one's own vault or shop last written longer ago counts as a new one |
 | `429` + `retry-after: 1` | a second large upload (vault, share, horizon) on the same route while the first is still sending |
 | `409` | a share id that already exists — shares are never overwritten (on every door) |
-| `stored: false` | a horizon chunk or family another key wrote less than 30 days ago (counted from its first write). Such a cover is not refused either: it is silently left out of the `stored` count. The hold binds every other writer, the secret door included; rows from the secret door or from before the owner column have no owner and are open to everyone |
+| `stored: false` | a horizon chunk or family another key wrote less than 30 days ago (counted from its first write). The hold binds every other writer, the secret door included; rows from the secret door or from before the owner column have no owner and are open to everyone |
 
 The hub deletes expired shares, horizon chunks and families past the 30-day client TTL,
 and watch state for shops nobody watches, once an hour.

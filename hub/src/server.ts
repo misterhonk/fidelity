@@ -1,6 +1,6 @@
 import { serve } from '@hono/node-server'
 
-import { createKeyLimiter, createRevocationList } from './access.ts'
+import { createFailureLimiter, createKeyLimiter, createRevocationList } from './access.ts'
 import { createHubApp } from './app.ts'
 import { openHubDb, sweepStale } from './db.ts'
 import { hubDoors } from './doors.ts'
@@ -58,7 +58,15 @@ const access = accessPublicKey
   : null
 
 const db = openHubDb(dbPath)
-const app = createHubApp({ db, secret, access, limiter: createKeyLimiter() })
+const app = createHubApp({
+  db,
+  secret,
+  access,
+  limiter: createKeyLimiter(),
+  failures: createFailureLimiter(),
+  // Behind a proxy: the header it writes the client's address into (#206).
+  ipHeader: process.env.HUB_IP_HEADER?.trim().toLowerCase() || null,
+})
 
 serve({ fetch: app.fetch, port, hostname: '0.0.0.0' }, (info) => {
   // A server's startup line belongs on stdout, and this is a server rather

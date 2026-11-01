@@ -106,19 +106,6 @@ export function openHubDb(path: string): DatabaseSync {
   `)
 
   /*
-   * Covers, by release id.
-   *
-   * The marketplace returns listings without images — 1.200 of 1.200 rows
-   * across four shops, measured 2026-08-10 — so every cover a client shows
-   * costs it one `/releases/{id}`. That is the most expensive per-user cost in
-   * the app and it is the same answer for everybody, which is exactly what
-   * this hub is for.
-   *
-   * An empty pair is stored on purpose: "Discogs has no picture for this
-   * release" is worth sharing too, and saves the next person the same wasted
-   * request.
-   */
-  /*
    * Pressing families, by master (M20 #7).
    *
    * What `/masters/{id}/versions` says about an album — how many pressings,
@@ -136,14 +123,12 @@ export function openHubDb(path: string): DatabaseSync {
     )
   `)
 
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS covers (
-      release_id INTEGER PRIMARY KEY,
-      thumb_url  TEXT NOT NULL,
-      cover_url  TEXT NOT NULL,
-      updated_at INTEGER NOT NULL
-    )
-  `)
+  /*
+   * No cover pool any more (#206): release images are Restricted Data under
+   * the Discogs API terms, and a hub handing their addresses to every member
+   * is redistributing them. A hub that had the table loses it here.
+   */
+  db.exec('DROP TABLE IF EXISTS covers')
 
   /*
    * The watcher — the one thing that justifies a running process.
@@ -250,15 +235,7 @@ export function openHubDb(path: string): DatabaseSync {
    */
   // Shared rows carry their writer too, so one member's rows can be counted and
   // kept from replacing another's (2026-10-22).
-  for (const table of [
-    'vault',
-    'watchers',
-    'shares',
-    'horizon',
-    'families',
-    'covers',
-    'shops',
-  ]) {
+  for (const table of ['vault', 'watchers', 'shares', 'horizon', 'families', 'shops']) {
     const columns = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]
     if (!columns.some((column) => column.name === 'owner')) {
       db.exec(`ALTER TABLE ${table} ADD COLUMN owner TEXT NOT NULL DEFAULT ''`)
@@ -273,8 +250,8 @@ export const CATALOGUE_TTL_MS = 30 * 24 * 60 * 60 * 1000
 /**
  * Rows that are never deleted otherwise, cleared where an expiry is clear:
  * horizon and families past the clients' TTL, expired shares, and watcher
- * state for shops nobody watches any more. Covers and shops have no expiry
- * rule and stay.
+ * state for shops nobody watches any more. Shops have no expiry rule and
+ * stay.
  */
 export function sweepStale(db: DatabaseSync, now: number): void {
   db.prepare('DELETE FROM horizon WHERE fetched_at < ?').run(now - CATALOGUE_TTL_MS)

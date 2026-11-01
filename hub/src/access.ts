@@ -248,3 +248,51 @@ export function createKeyLimiter({ capacity = 120, perSecond = 2, now = Date.now
     },
   }
 }
+
+/**
+ * Wrong words, counted per address (#206).
+ *
+ * The secret opens everything, so a door that answers a wrong word as fast as
+ * a right one is a door a script can stand at all night. After `free` misses
+ * an address waits `baseMs`, and each further miss doubles it up to `maxMs`.
+ * While it waits it is not asked for a word at all, or the wait would be one
+ * more guess. The right word clears the slate; so does a quiet stretch as long
+ * as the ceiling.
+ *
+ * Memory is bounded: past `maxAddresses` the oldest address is forgotten,
+ * which gives an attacker with that many addresses nothing they lacked.
+ */
+export function createFailureLimiter({
+  free = 5,
+  baseMs = 1000,
+  maxMs = 15 * 60_000,
+  maxAddresses = 10_000,
+  now = Date.now,
+} = {}) {
+  // `until` is the end of the wait, or the last miss while there is none yet.
+  const misses = new Map<string, { count: number; until: number }>()
+  return {
+    /** Seconds this address still has to wait, or 0. */
+    waiting(ip: string): number {
+      const entry = misses.get(ip)
+      if (!entry) return 0
+      const at = now()
+      if (at > entry.until + maxMs) {
+        misses.delete(ip)
+        return 0
+      }
+      return entry.until > at ? Math.ceil((entry.until - at) / 1000) : 0
+    },
+    miss(ip: string): void {
+      const count = (misses.get(ip)?.count ?? 0) + 1
+      const wait = count < free ? 0 : Math.min(maxMs, baseMs * 2 ** (count - free))
+      misses.delete(ip)
+      misses.set(ip, { count, until: now() + wait })
+      const oldest = misses.keys().next().value
+      if (misses.size > maxAddresses && oldest !== undefined) misses.delete(oldest)
+    },
+    pass(ip: string): void {
+      misses.delete(ip)
+    },
+  }
+}

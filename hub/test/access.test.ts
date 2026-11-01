@@ -16,7 +16,6 @@ import {
   MAX_VAULTS_PER_OWNER,
   MAX_WATCHERS_PER_OWNER,
   CEILING_WINDOW_MS,
-  COVER_HOLD_MS,
 } from '../src/app.ts'
 import { CATALOGUE_TTL_MS, openHubDb } from '../src/db.ts'
 
@@ -350,7 +349,7 @@ describe('what one key cannot do to the others', () => {
     )
   })
 
-  test('another member’s fresh horizon chunk and cover are not replaced', async () => {
+  test('another member’s fresh horizon chunk is not replaced', async () => {
     const { app } = hub({ keys: true })
     const chunk = (fetchedAt: number) => ({
       version: 1,
@@ -382,16 +381,6 @@ describe('what one key cannot do to the others', () => {
       await (await send(app, 'PUT', '/v1/horizon/artist/55', chunk(NOW), alice)).json(),
       { stored: true },
     )
-
-    const cover = (url: string) => ({
-      covers: [{ releaseId: 7, thumbUrl: url, coverUrl: url }],
-    })
-    await send(app, 'PUT', '/v1/covers', cover('https://i.discogs.com/a.jpg'), alice)
-    await send(app, 'PUT', '/v1/covers', cover(''), bob)
-    const got = (await (await app.request('/v1/covers?ids=7', alice)).json()) as {
-      covers: Record<string, { thumbUrl: string }>
-    }
-    assert.equal(got.covers['7']?.thumbUrl, 'https://i.discogs.com/a.jpg')
   })
 
   test('a key sends one large body at a time', async () => {
@@ -589,9 +578,6 @@ describe('what one key cannot do to the others', () => {
       `INSERT INTO horizon (key, kind, entity_id, fetched_at, release_ids, body, updated_at, owner)
        VALUES ('artist:55', 'artist', 55, ?, 0, '{}', ?, 'alice')`,
     ).run(NOW - 30, first)
-    db.prepare(
-      `INSERT INTO covers (release_id, thumb_url, cover_url, updated_at, owner) VALUES (7, '', '', ?, 'alice')`,
-    ).run(NOW - COVER_HOLD_MS - 1)
     // A row from before owners.
     db.prepare(
       `INSERT INTO families (master_id, fetched_at, body, updated_at, owner) VALUES (9, ?, '{}', ?, '')`,
@@ -602,30 +588,10 @@ describe('what one key cannot do to the others', () => {
       await (await send(app, 'PUT', '/v1/horizon/artist/55', chunk(NOW - 20), alice)).json(),
       { stored: true },
     )
-    const url = 'https://i.discogs.com/a.jpg'
-    await send(
-      app,
-      'PUT',
-      '/v1/covers',
-      { covers: [{ releaseId: 7, thumbUrl: url, coverUrl: url }] },
-      alice,
-    )
 
     assert.deepEqual(
       await (await send(app, 'PUT', '/v1/horizon/artist/55', chunk(NOW - 10), bob)).json(),
       { stored: true },
-    )
-    assert.deepEqual(
-      await (
-        await send(
-          app,
-          'PUT',
-          '/v1/covers',
-          { covers: [{ releaseId: 7, thumbUrl: '', coverUrl: '' }] },
-          bob,
-        )
-      ).json(),
-      { stored: 1, rejected: 0 },
     )
     assert.deepEqual(
       await (await send(app, 'PUT', '/v1/family/9', family(9, NOW - 10), bob)).json(),
