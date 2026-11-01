@@ -136,3 +136,19 @@ and one button; on the stack, one line and the button. The button throws the sam
 switch as the settings, and the switch moved to Settings → Search → Hear a record,
 beside the "listen at" picker. Nothing about conditions 1–8 changes: still off by
 default, still nothing before a tap, still `youtube-nocookie.com`.
+
+## Amended 2026-11-01: no Google script in the origin (#203)
+
+The fix of 2026-09-20 let `https://www.youtube.com` into `script-src`: the iframe API,
+and the widget script it loads in turn, ran with this app's rights — the same origin as
+IndexedDB and the token (rule 6). A third-party script there is a bigger exception than
+the one this ADR grants, which is a frame.
+
+`useAudioPreview` now builds the `youtube-nocookie.com` embed itself (`enablejsapi=1`,
+`autoplay=1`) and drives it with the postMessage commands the iframe API would have sent:
+a `listening` handshake, then `loadVideoById` per card and `pauseVideo` to stop, each
+addressed only to `https://www.youtube-nocookie.com`. A frame that has not answered after
+fifteen seconds counts as blocked, which takes the button away as the refused script
+used to. `script-src` names no third party again, and `tests/unit/csp.spec.ts` holds it
+to that. Conditions 1–8 are unchanged: still nothing before a tap, still visible and at
+least 200 × 200, still `youtube-nocookie.com`.

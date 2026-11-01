@@ -492,7 +492,7 @@ const STACKED =
       <div v-show="audio.playing.value" class="flex flex-col gap-1">
         <!--
           At least 200 × 200, which YouTube's terms set as the smallest
-          player: 16:9 on a 375 px phone is 343 × 193. The frame replaces the
+          player: 16:9 on a 375 px phone is 343 × 193. The frame fills the
           inner div, so the size lives on the box around it.
         -->
         <div

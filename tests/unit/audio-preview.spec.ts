@@ -26,22 +26,36 @@ const LEGAL = readFileSync('app/i18n/legal.ts', 'utf8')
 
 describe('nothing reaches Google before somebody asks', () => {
   /**
-   * The script is created **inside a function body**, not at import.
+   * The frame is created **inside a function body**, not at import.
    *
-   * A `<script src>` at module level or an `<iframe>` in the template would
-   * load as soon as the screen appears — and then the exception would no
-   * longer be a decision but a default.
+   * An `<iframe>` in the template would load as soon as the screen appears —
+   * and then the exception would no longer be a decision but a default.
    */
-  it('creates the script only inside the function that a tap calls', () => {
+  it('creates the frame only inside the function that a tap calls', () => {
     const bare = withoutComments(COMPOSABLE)
     expect(bare).toMatch(/function boot\(/)
 
     const boot = bare.slice(bare.indexOf('function boot('))
-    expect(boot).toMatch(/createElement\('script'\)/)
+    expect(boot).toMatch(/createElement\('iframe'\)/)
 
     // And nowhere else — nothing may be created before `boot`.
     const before = bare.slice(0, bare.indexOf('function boot('))
     expect(before).not.toMatch(/createElement|document\.head|new .*Player/)
+  })
+
+  /**
+   * And no Google script runs with the app's rights (#203).
+   *
+   * YouTube's iframe API was a script from www.youtube.com executing in this
+   * origin, next to the token. The frame is driven by postMessage instead,
+   * addressed only to the origin it was loaded from — never `'*'`.
+   */
+  it('loads no script from Google and talks to the frame by postMessage', () => {
+    const bare = withoutComments(COMPOSABLE)
+    expect(bare).not.toMatch(/createElement\('script'\)|iframe_api|onYouTubeIframeAPIReady/)
+    expect(bare).toMatch(/postMessage\(/)
+    expect(bare).toMatch(/enablejsapi/)
+    expect(bare).not.toMatch(/postMessage\([^)]*'\*'/)
   })
 
   /** The template has an empty div and no `<iframe>`. */
