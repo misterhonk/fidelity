@@ -143,18 +143,21 @@ export function createCatalogueClient({
   /** One GET, bounded, parsed — or null. Never a throw past this line. */
   async function ask<T>(path: string, schema: z.ZodType<T>): Promise<T | null> {
     try {
-      const response = await withTimeout(
+      // The body inside the bound too: `fetch` resolves at the headers, and a
+      // connection that drops after them would otherwise hang until the OS gives up.
+      const body = await withTimeout(
         fetchImpl(`${trimmed}/v1/catalogue${path}`, {
           headers: {
             accept: 'application/json',
             ...(accessKey ? { 'x-fidelity-key': accessKey } : {}),
           },
-        }),
+        })
+          // 404 is the ordinary answer for anything the build does not know.
+          .then((response) => (response.ok ? (response.json() as Promise<unknown>) : null)),
         timeoutMs,
       )
-      // 404 is the ordinary answer for anything the build does not know.
-      if (!response.ok) return null
-      const parsed = schema.safeParse(await response.json())
+      if (body === null) return null
+      const parsed = schema.safeParse(body)
       if (!parsed.success) {
         log.warn('[catalogue] answer does not match the schema', path)
         return null

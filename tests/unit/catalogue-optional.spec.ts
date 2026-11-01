@@ -54,6 +54,21 @@ describe('the app runs completely without a catalogue', () => {
     expect(Date.now() - started).toBeLessThan(1000)
   })
 
+  it('does not wait for a body that stops after the headers', async () => {
+    // Headers at once, a body that never ends: a shop's mobile data dropping mid-answer.
+    const stalled = new ReadableStream({ start: () => undefined })
+    const fetchImpl = vi.fn(async () => new Response(stalled))
+    const catalogue = createCatalogueClient({
+      baseUrl: 'http://catalogue.test',
+      fetchImpl,
+      timeoutMs: 30,
+    })!
+
+    const started = Date.now()
+    await expect(catalogue.family(5542)).resolves.toBeNull()
+    expect(Date.now() - started).toBeLessThan(1000)
+  })
+
   it('answers null when the catalogue answers with nonsense', async () => {
     const fetchImpl = vi.fn(async () => new Response(JSON.stringify({ nope: true })))
     const catalogue = createCatalogueClient({ baseUrl: 'http://catalogue.test', fetchImpl })!
