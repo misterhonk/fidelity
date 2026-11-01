@@ -26,7 +26,8 @@ const cursor = ref(0)
 
 const dealers = shallowRef<Dealer[]>([])
 const digs = shallowRef<Dig[]>([])
-const records = shallowRef<RecordSearch>({ shelf: [], wantlist: [], dig: [] })
+const noRecords: RecordSearch = { shelf: [], wantlist: [], dig: [] }
+const records = shallowRef<RecordSearch>(noRecords)
 
 // Focus goes back where it came from: the start page's field, or the page.
 const opener = import.meta.client ? (document.activeElement as HTMLElement | null) : null
@@ -46,6 +47,9 @@ let asked = 0
 let timer: ReturnType<typeof setTimeout> | undefined
 watch(query, (value) => {
   clearTimeout(timer)
+  // An older query's records would stay listed, and armed for Enter, until the
+  // worker answers this one.
+  records.value = noRecords
   const ticket = ++asked
   timer = setTimeout(async () => {
     const found = await call('records.search', { query: value })
@@ -185,6 +189,8 @@ const results = computed(() => {
 // Any keystroke moves the selection back to the top result; leaving the cursor
 // where it was would arm the wrong entry for the next Enter.
 watch(query, () => (cursor.value = 0))
+// Records arrive late and go on top: an index kept from before points elsewhere.
+watch(records, () => (cursor.value = 0))
 watch(results, () => {
   if (cursor.value >= results.value.length) cursor.value = Math.max(0, results.value.length - 1)
 })
