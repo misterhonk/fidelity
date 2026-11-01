@@ -6,13 +6,15 @@ name: Deploy
 # dieser Ablauf selbst, statt bei jedem Release rot zu werden. Wer Fidelity über
 # das Zip oder über Docker betreibt, braucht ihn nie.
 #
-# Einzurichten sind vier Geheimnisse im Repository
+# Einzurichten sind fünf Geheimnisse im Repository
 # (Settings → Secrets and variables → Actions):
 #
 #   DEPLOY_HOST     server.example.de
 #   DEPLOY_USER     benutzername
 #   DEPLOY_KEY      ein privater SSH-Schlüssel (nur für dieses Deployment!)
 #   DEPLOY_PATH     /pfad/zur/wurzel   ← nicht der Docroot, siehe unten
+#   DEPLOY_KNOWN_HOSTS  the output of `ssh-keyscan -H <host>`, taken once
+#                   from a trusted machine — the pinned host key (#209)
 #
 # **DEPLOY_PATH ist nicht der Docroot.** Der Docroot des Webservers zeigt auf
 # <DEPLOY_PATH>/current — einen Symlink, den deploy/publish.sh umlegt. Das ist
@@ -178,15 +180,21 @@ jobs:
         name: Schlüssel bereitlegen
         env:
           KEY: ${{ secrets.DEPLOY_KEY }}
-          HOST: ${{ secrets.DEPLOY_HOST }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' "$KEY" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
-          # Den Hostschlüssel einmal holen, statt die Prüfung abzuschalten.
-          # StrictHostKeyChecking=no würde jeden Server akzeptieren, der gerade
-          # unter dieser Adresse antwortet.
-          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          # The host key is pinned in a secret, not fetched with ssh-keyscan:
+          # a scan trusts whoever answers at that address on the day of the
+          # run, which is the one thing the check is there to rule out (#209).
+          # Fill it once with `ssh-keyscan -H <host>` from a trusted machine.
+          if [ -z "$KNOWN_HOSTS" ]; then
+            echo "::error::DEPLOY_KNOWN_HOSTS is empty — refusing to trust an unpinned host key."
+            exit 1
+          fi
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
 
       # Der Trockenlauf: alles, was Auskunft gibt, und nichts, was schreibt.
       #
