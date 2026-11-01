@@ -106,6 +106,9 @@ function probeClient(token: string): DiscogsClient {
   return new DiscogsClient({
     getToken: () => token,
     pacer: createPacer({ minIntervalMs: () => MIN_REQUEST_INTERVAL_MS, slotClock }),
+    // Somebody is watching a button: after the quick retries, say so and let them try
+    // again, rather than wait out a rate limit of minutes (60 + 120 + 240 s).
+    isOnline: () => false,
   })
 }
 

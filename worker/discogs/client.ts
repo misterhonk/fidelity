@@ -208,7 +208,7 @@ export class DiscogsClient {
     let networkAttempt = 0
 
     for (let attempt = 0; ; attempt++) {
-      let response: Response
+      let response: Answer
       try {
         response = await this.#options.pacer.run(() => {
           /*
@@ -248,7 +248,12 @@ export class DiscogsClient {
          * the one that happened to land on the limit would throw all of it
          * away for something that clears in under a minute.
          */
-        if (this.#options.isOnline() && attempt < BACKOFF_MS.length) {
+        /*
+         * Reads only. A write sitting out minutes held the outbox lock, and a
+         * tapped star said "sending" for nine of them: the outbox tries again
+         * on its next round, which is the wait a write deserves.
+         */
+        if (method === 'GET' && this.#options.isOnline() && attempt < BACKOFF_MS.length) {
           const base = BACKOFF_MS[attempt]!
           const wait = base + this.#options.jitter() * 0.25 * base
           // So that a screen can say "waiting" rather than showing a bar that
@@ -271,9 +276,8 @@ export class DiscogsClient {
         continue
       }
 
-      const parsed = await readBody(response)
-      if (!response.ok) throw toDiscogsError(response.status, parsed)
-      return parsed
+      if (!response.ok) throw toDiscogsError(response.status, response.body)
+      return response.body
     }
   }
 
@@ -294,12 +298,12 @@ export class DiscogsClient {
   async #send(
     url: URL,
     { signal, method, payload }: { signal?: AbortSignal; method: string; payload?: unknown },
-  ): Promise<Response> {
+  ): Promise<Answer> {
     const token = await this.#options.getToken()
     const send = this.#options.fetchImpl
 
     try {
-      return await send(url, {
+      const response = await send(url, {
         signal,
         method,
         // A JSON content type is what makes the browser ask permission first.
@@ -316,6 +320,9 @@ export class DiscogsClient {
           ...(token ? { Authorization: `Discogs token=${token}` } : {}),
         },
       })
+      // Read here, inside the slot and the catch: a connection that drops in
+      // the body is the same blip as one that drops before the headers.
+      return { status: response.status, ok: response.ok, body: await readBody(response) }
     } catch (error) {
       if (signal?.aborted) throw error
       /*
@@ -332,6 +339,13 @@ export class DiscogsClient {
       )
     }
   }
+}
+
+/** A response with its body already read. */
+interface Answer {
+  status: number
+  ok: boolean
+  body: unknown
 }
 
 async function readBody(response: Response): Promise<unknown> {

@@ -184,6 +184,25 @@ describe('the pacer', () => {
       }
     })
 
+    /*
+     * The shared start lives in IndexedDB and survives a clock correction. A
+     * device that ran thirty minutes fast left a start in the future, and the
+     * next request slept those thirty minutes under the lock, in every tab.
+     */
+    it('waits one interval at most, even for a start stamped in the future', async () => {
+      const clock = fakeClock()
+      const thirtyMinutes = 30 * 60 * 1000
+      const pacer = createPacer({
+        now: clock.now,
+        sleep: clock.sleep,
+        slotClock: { read: () => thirtyMinutes, write: () => undefined },
+      })
+
+      await pacer.run(async () => undefined)
+
+      expect(clock.time).toBeLessThanOrEqual(MIN_REQUEST_INTERVAL_MS)
+    })
+
     it('stays under the limit that a single tab stays under', async () => {
       const { clock, first, second } = twoTabs()
 
@@ -648,6 +667,45 @@ describe('a dropped connection', () => {
     await client.get('/oauth/identity', identitySchema)
 
     expect(clock.time).toBe(NETWORK_RETRY_MS[0])
+    expect(clock.time).toBeLessThan(BACKOFF_MS[0]!)
+  })
+
+  it('retries a connection that drops in the body, as it does one that drops before', async () => {
+    const clock = fakeClock()
+    let calls = 0
+    const fetchImpl = vi.fn(async () => {
+      calls += 1
+      if (calls > 1) return new Response(JSON.stringify({ id: 1, username: 'martin' }))
+      // The headers arrive, then the body fails: a train going into a tunnel.
+      const broken = new ReadableStream({ pull: (c) => c.error(new TypeError('network')) })
+      return new Response(broken)
+    })
+    const client = new DiscogsClient({
+      getToken: () => 'a-pat',
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      pacer: createPacer({ now: clock.now, sleep: clock.sleep }),
+      sleep: clock.sleep,
+      jitter: () => 0,
+      isOnline: () => false,
+    })
+
+    await expect(client.get('/oauth/identity', identitySchema)).resolves.toMatchObject({
+      username: 'martin',
+    })
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
+  })
+
+  /*
+   * A write waits out no rate limit. Sitting in a backoff it held the outbox
+   * lock for nine minutes while a tapped star said "sending"; the outbox tries
+   * again on its next round anyway.
+   */
+  it('lets a write fail after the quick retries instead of waiting minutes', async () => {
+    const { client, clock } = flaky(99, () => true)
+
+    await expect(
+      client.write('PUT', '/users/x/wants/31', { idempotent: true }),
+    ).rejects.toMatchObject({ status: 0 })
     expect(clock.time).toBeLessThan(BACKOFF_MS[0]!)
   })
 

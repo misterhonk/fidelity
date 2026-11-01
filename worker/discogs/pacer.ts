@@ -126,7 +126,9 @@ export function createPacer({
      * a clock every tab shares rather than from this one's memory.
      */
     return exclusively(async () => {
-      const waitFor = (await slotClock.read()) + interval() - now()
+      // Never more than one interval: a start stamped by a clock that ran fast would
+      // otherwise hold the lock, in every tab, for as long as the clock had jumped.
+      const waitFor = Math.min(interval(), (await slotClock.read()) + interval() - now())
       if (waitFor > 0) await sleep(waitFor)
 
       // Checked after the wait, not before: a dig cancelled while this request
