@@ -80,6 +80,11 @@
         "de.fidelity.dark": "{color.red.400}"
       }
     },
+    "importance": {
+      "$value": "{color.sig-ink.gap}",
+      "$description": "How much a record matters to you: lit rating stars on the shelf, priority stars and 'wanted most' on the wantlist. One colour on both screens (issue #219). Gold, borrowed from gap, not the wantlist magenta: a rating on the shelf has nothing to do with the wantlist.",
+      "$extensions": { "de.fidelity.dark": "{color.sig.gap}" }
+    },
     "sig-wantlist-text": {
       "$value": "{color.sig-ink.wantlist}",
       "$description": "A signal colour used as text. The palette itself is for fills, borders and dots; as light-mode text it fell to 1.81–2.74:1. Dark mode keeps the palette colour (≥ 6.4:1).",

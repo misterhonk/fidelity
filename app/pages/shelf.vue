@@ -536,12 +536,8 @@ const walk = computed(() => {
           <span class="fid-plate truncate text-fid-text-muted">{{ record.artist }}</span>
           <span class="fid-plate flex flex-wrap gap-x-2 text-fid-text-muted">
             <span v-if="record.year > 0">{{ record.year }}</span>
-            <!--
-              Only when it was actually given. 0 means "never said". Gold, not
-              magenta: magenta is the wantlist's colour, and a rating on the
-              shelf has nothing to do with the wantlist.
-            -->
-            <span v-if="record.rating > 0" class="text-fid-sig-gap-text">
+            <!-- Only when it was actually given. 0 means "never said". -->
+            <span v-if="record.rating > 0" class="text-fid-importance">
               {{ '★'.repeat(record.rating) }}
             </span>
           </span>

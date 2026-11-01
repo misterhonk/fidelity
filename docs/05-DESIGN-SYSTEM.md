@@ -128,6 +128,11 @@ dark mode, black tiles on a white ground in light mode. It carries **no accent t
 in light mode, which is not enough. A unit test reads the templates and does not let that
 combination through.
 
+**`--fid-importance`** is how much a record matters to you: the lit rating stars on the shelf,
+the priority stars and "wanted most" on the wantlist. One colour on both screens, the gap gold
+in its text form. Until issue #219 the wantlist drew them in the wantlist magenta and the shelf
+in gold, so the same five stars meant two things. A unit test keeps both screens on the role.
+
 **The switch** lives under Settings › Appearance and knows system, light and dark. `system`
 is not a third palette but the absence of an override: then `color-scheme: light dark`
 decides alone. `<meta name="theme-color">` follows the result at runtime — the manifest can
