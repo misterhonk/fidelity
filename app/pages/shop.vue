@@ -1856,6 +1856,8 @@ const noHorizon = computed(
           <DigFilters
             :available="view.available.value"
             :active="view.active.value"
+            :sizes="view.sizesAvailable.value"
+            :sized="view.sizes.value"
             :sort="view.sort.value"
             :direction="view.direction.value"
             :density="view.density.value"
@@ -1865,6 +1867,7 @@ const noHorizon = computed(
             :landed-known="view.landedKnown.value"
             :up-to="view.upTo.value"
             @toggle-signal="view.toggleSignal"
+            @toggle-size="view.toggleSize"
             @set-sort="view.setSort"
             @set-density="view.setDensity"
             @set-query="view.setQuery"

@@ -228,6 +228,9 @@ const en = {
       artist: { label: 'Artist', about: 'Alphabetical' },
     },
     nothingMatches: 'Nothing matches this selection.',
+    /* The record by its size (#246), in the words on the sleeve. */
+    size: 'Size',
+    sizes: { lp: 'LP', '12': '12"', '10': '10"', '7': '7"' },
     upTo: 'Up to',
     upToLabel: 'At most this much, postage included',
     noPostage:
@@ -508,6 +511,8 @@ const de: typeof en = {
       artist: { label: 'Künstler', about: 'Alphabetisch' },
     },
     nothingMatches: 'Nichts passt zu dieser Auswahl.',
+    size: 'Größe',
+    sizes: { lp: 'LP', '12': '12"', '10': '10"', '7': '7"' },
     upTo: 'Bis',
     upToLabel: 'Höchstens so viel, Porto eingerechnet',
     noPostage:

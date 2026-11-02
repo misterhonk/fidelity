@@ -5,6 +5,9 @@ import { bestPerRelease } from '~~/worker/match/select'
 import {
   arrange,
   availableSignals,
+  availableSizes,
+  formatSize,
+  parseSizes,
   DEFAULT_DIRECTION,
   leadOf,
   parseDensity,
@@ -521,5 +524,55 @@ describe('with postage', () => {
     expect(parseUpTo('')).toBeNull()
     expect(parseUpTo('-3')).toBeNull()
     expect(parseUpTo('lots')).toBeNull()
+  })
+})
+
+/** 12" versus LP versus 10" versus 7" (#246): Discogs' own words, read off the format line. */
+describe('the record by its size', () => {
+  it('reads the size out of the format line', () => {
+    expect(formatSize('LP, Album, RE')).toBe('lp')
+    expect(formatSize('2xLP, Comp, Gat')).toBe('lp')
+    expect(formatSize('12"')).toBe('12')
+    expect(formatSize('2x12"')).toBe('12')
+    expect(formatSize('12", 33 ⅓ RPM, EP')).toBe('12')
+    // A ten-inch album is a ten-inch first: that is what fits the box.
+    expect(formatSize('10", LP, Album')).toBe('10')
+    expect(formatSize('7", Single, 45 RPM')).toBe('7')
+    expect(formatSize('CD, Album')).toBeNull()
+    expect(formatSize(null)).toBeNull()
+  })
+
+  it('offers only the sizes that are there, in shelf order', () => {
+    const all = [
+      match({ listingId: 1, format: '7"' }),
+      match({ listingId: 2, format: 'LP, Album' }),
+      match({ listingId: 3, format: 'LP' }),
+      match({ listingId: 4, format: 'CD' }),
+    ]
+    expect(availableSizes(all)).toEqual([
+      { size: 'lp', n: 2 },
+      { size: '7', n: 1 },
+    ])
+  })
+
+  it('reads only real sizes out of the URL', () => {
+    expect(parseSizes('lp,7,cd')).toEqual(['lp', '7'])
+    expect(parseSizes('')).toEqual([])
+  })
+
+  it('narrows the list, either size of those chosen', () => {
+    const all = [
+      match({ listingId: 1, format: '7"' }),
+      match({ listingId: 2, format: 'LP, Album' }),
+      match({ listingId: 3, format: '12"' }),
+      match({ listingId: 4, format: 'CD' }),
+    ]
+    const ids = (sizes: ('lp' | '12' | '10' | '7')[]) =>
+      arrange(all, [], 'score', '', null, 'desc', sizes)
+        .map((m) => m.listingId)
+        .sort()
+    expect(ids([])).toEqual([1, 2, 3, 4])
+    expect(ids(['lp'])).toEqual([2])
+    expect(ids(['12', '7'])).toEqual([1, 3])
   })
 })

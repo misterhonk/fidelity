@@ -255,6 +255,47 @@ export function repeatedLeads(matches: Match[]): Set<SignalType> {
 }
 
 /**
+ * The record by its size (#246): 12" versus LP versus 10" versus 7".
+ *
+ * Discogs' own words off the inventory's format line ("2xLP, Album",
+ * `12"`, `7", Single`). LP and 12" stay apart because Discogs keeps them apart:
+ * an LP is an album, a 12" a maxi. A ten- or seven-inch LP is its size first,
+ * because the size is what decides whether it fits the box. Null for anything
+ * that is not one of the four — a CD, or a format that expired after six hours.
+ */
+export const SIZES = ['lp', '12', '10', '7'] as const
+export type Size = (typeof SIZES)[number]
+
+export function formatSize(format: string | null): Size | null {
+  const parts = new Set(
+    (format ?? '').split(/,|\+/).map((part) => part.trim().replace(/^\d+x/, '')),
+  )
+  if (parts.has('7"')) return '7'
+  if (parts.has('10"')) return '10'
+  if (parts.has('LP')) return 'lp'
+  if (parts.has('12"')) return '12'
+  return null
+}
+
+/** The sizes in this list with how many each keeps, in shelf order — none that is not there. */
+export function availableSizes(matches: Match[]): { size: Size; n: number }[] {
+  const counts = new Map<Size, number>()
+  for (const match of matches) {
+    const size = formatSize(match.format)
+    if (size) counts.set(size, (counts.get(size) ?? 0) + 1)
+  }
+  return SIZES.filter((size) => counts.has(size)).map((size) => ({
+    size,
+    n: counts.get(size)!,
+  }))
+}
+
+export function parseSizes(raw: string): Size[] {
+  const wanted = raw.split(',')
+  return SIZES.filter((size) => wanted.includes(size))
+}
+
+/**
  * Which of the requested signals are real. Validated against what is actually
  * in the list, so a stale or hand-edited URL degrades to "no filter" instead
  * of an empty screen with no way back.
@@ -299,6 +340,8 @@ export function arrange(
   query = '',
   landed: LandedView | null = null,
   direction: SortDirection = DEFAULT_DIRECTION[sort],
+  /** Either of these sizes (#246); none narrows nothing. */
+  sizes: Size[] = [],
 ): Match[] {
   const wanted = new Set(active)
   const needle = query.trim()
@@ -321,6 +364,10 @@ export function arrange(
     if (wanted.size > 0 && !match.signals.some((signal) => wanted.has(signal.type)))
       return false
     if (!textMatches(match, needle)) return false
+    if (sizes.length > 0) {
+      const size = formatSize(match.format)
+      if (!size || !sizes.includes(size)) return false
+    }
     // A ceiling with postage keeps only what can be priced with postage: a
     // record nobody can put a number on is not "under €30", it is unknown.
     if (landed?.upTo !== null && landed?.upTo !== undefined) {

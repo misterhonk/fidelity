@@ -4,13 +4,16 @@ import { landedPrice } from '#shared/shipping'
 import {
   arrange,
   availableSignals,
+  availableSizes,
   DEFAULT_DIRECTION,
   parseDensity,
   parseDirection,
   parseSignals,
+  parseSizes,
   parseSort,
   parseUpTo,
   type Density,
+  type Size,
   type SortKey,
 } from '~/utils/digview'
 import { DOCK_QUERY } from '~/composables/useDocked'
@@ -73,6 +76,13 @@ export function useDigView(
       : remembered.value,
   )
   const available = computed(() => availableSignals(matches.value))
+  const sizesAvailable = computed(() => availableSizes(matches.value))
+  // Only sizes this list has: a stale `?size=` must not empty the screen.
+  const sizes = computed(() =>
+    parseSizes(param('size')).filter((size) =>
+      sizesAvailable.value.some((one) => one.size === size),
+    ),
+  )
   const query = computed(() => param('q'))
   const upTo = computed(() => parseUpTo(param('upto')))
   /** Whether this shop's postage is known at all — the list only offers the sort when it is. */
@@ -88,6 +98,7 @@ export function useDigView(
         upTo: landedKnown.value ? upTo.value : null,
       },
       direction.value,
+      sizes.value,
     ),
   )
 
@@ -145,16 +156,23 @@ export function useDigView(
       dicht: undefined,
     })
   }
+  function toggleSize(size: Size) {
+    const set = new Set(sizes.value)
+    if (!set.delete(size)) set.add(size)
+    apply({ size: [...set].join(',') })
+  }
   const setQuery = (value: string) => apply({ q: value.trim() || undefined })
   const setUpTo = (value: string) => {
     const amount = parseUpTo(value)
     apply({ upto: amount === null ? undefined : String(amount) })
   }
-  const clear = () => apply({ sig: undefined, q: undefined, upto: undefined })
+  const clear = () => apply({ sig: undefined, size: undefined, q: undefined, upto: undefined })
 
   return {
     active,
     available,
+    sizes,
+    sizesAvailable,
     sort,
     density,
     direction,
@@ -163,6 +181,7 @@ export function useDigView(
     landedKnown,
     visible,
     toggleSignal,
+    toggleSize,
     setSort,
     setDensity,
     setQuery,
