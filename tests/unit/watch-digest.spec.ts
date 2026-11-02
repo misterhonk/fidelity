@@ -4,11 +4,20 @@ import { blankDealer } from '~~/db/dealer'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import type { Dealer, Dig } from '#shared/types'
 import type { DiscogsClient } from '~~/worker/discogs/client'
-import { digestMoved } from '~~/worker/watch/digest'
+import { lastRound, runRound } from '~~/worker/dealers/round'
+import type * as scan from '~~/worker/dig/scan'
+import { runningDig } from '~~/worker/dig/scan'
+import { digestMoved, runningDigest } from '~~/worker/watch/digest'
 
 import { seedMatches } from '../e2e/seed'
 
+vi.mock('~~/worker/dig/scan', async (original) => ({
+  ...(await original<typeof scan>()),
+  runningDig: vi.fn(() => null),
+}))
+
 afterEach(async () => {
+  vi.mocked(runningDig).mockReset().mockReturnValue(null)
   await deleteFidelityDb()
 })
 
@@ -106,5 +115,48 @@ describe('the digest of shops that moved', () => {
     })
 
     expect(digests.map((digest) => digest.dealer)).toEqual(['fine'])
+  })
+
+  it('keeps a round from starting while it holds the dig slot', async () => {
+    await shop('moved')
+
+    let release!: () => void
+    const held = new Promise<void>((resolve) => (release = resolve))
+    const runDig = vi.fn(async ({ dealer, digId }: { dealer: string; digId: string }) => {
+      await held
+      return dug(digId, dealer, 0)
+    })
+
+    const pass = digestMoved({ client, dealers: ['moved'], now: () => NOW, runDig })
+    expect(runningDigest()).toBe(true)
+
+    // Refused before the cooldown is written, so the round can run right after.
+    await expect(runRound({ client, now: () => NOW, runDig })).rejects.toMatchObject({
+      code: 'round-running',
+    })
+    expect(await lastRound()).toBeNull()
+
+    release()
+    await pass
+    expect(runningDigest()).toBe(false)
+  })
+
+  it('stops at a dig somebody else started', async () => {
+    await shop('first')
+    await shop('second')
+    const runDig = vi.fn(async ({ dealer, digId }: { dealer: string; digId: string }) => {
+      vi.mocked(runningDig).mockReturnValue({} as ReturnType<typeof runningDig>)
+      return dug(digId, dealer, 0)
+    })
+
+    const digests = await digestMoved({
+      client,
+      dealers: ['first', 'second'],
+      now: () => NOW,
+      runDig,
+    })
+
+    expect(runDig).toHaveBeenCalledTimes(1)
+    expect(digests.map((digest) => digest.dealer)).toEqual(['first'])
   })
 })

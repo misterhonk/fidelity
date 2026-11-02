@@ -6,6 +6,7 @@ import type { DiscogsClient } from '../discogs/client'
 import type { runDig as RunDig } from '../dig/scan'
 import { fail } from '../fail'
 import { log } from '../log'
+import { runningDigest } from '../watch/digest'
 
 /**
  * Not twice within ten minutes (M36). Martin's screen showed three check-in
@@ -116,7 +117,8 @@ export async function runRound({
 }: RoundOptions): Promise<RoundSummary> {
   const dig = runDig ?? (await import('../dig/scan')).runDig
 
-  if (current) throw fail('round-running', 'a round is already walking')
+  // The start-up digest walks the same shops through the same dig slot (#240).
+  if (current || runningDigest()) throw fail('round-running', 'a round is already walking')
   const previous = await lastRound()
   if (previous && now() - (previous.finishedAt ?? previous.startedAt) < ROUND_COOLDOWN_MS)
     throw fail('round-recent', 'the last round finished minutes ago')
