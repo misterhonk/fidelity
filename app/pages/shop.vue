@@ -65,6 +65,9 @@ async function share() {
 
   try {
     const made = await call('share.create', { digId: result.value.dig.id })
+    // The picture on screen shows the old link's top find, not this one's.
+    if (cardUrl.value) URL.revokeObjectURL(cardUrl.value)
+    cardUrl.value = null
     shareLink.value = {
       url: sharedUrl(made.data),
       matches: made.matches,
