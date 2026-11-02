@@ -561,5 +561,7 @@ describe('several copies of one record on their way', () => {
 
     expect(paths(fake)).toEqual(['/users/mrtnmlchr/collection/folders/1/releases/12'])
     expect(await keys()).toEqual([5])
+    // Filed in folder 1, so a rating afterwards must not address the virtual folder 0.
+    expect((await db.get('collection', 5))?.folderId).toBe(1)
   })
 })

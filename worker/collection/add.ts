@@ -162,7 +162,9 @@ export async function settleCopy(job: OutboxJob, instanceId: number): Promise<vo
   const collection = tx.objectStore('collection')
   const row = await collection.get(key)
   // A sync that already brought the real entry wins: it knows more than the find did.
-  if (row && !(await collection.get(instanceId))) await collection.put({ ...row, instanceId })
+  // The folder it was sent to: a row queued before per-copy keys still says 0, which no write can address.
+  if (row && !(await collection.get(instanceId)))
+    await collection.put({ ...row, instanceId, folderId: Number(job.payload.folderId ?? 1) })
   await collection.delete(key)
 
   const placements = tx.objectStore('placements')
