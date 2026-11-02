@@ -757,7 +757,7 @@ const walk = computed(() => {
                 </td>
                 <td
                   class="fid-plate py-1 whitespace-nowrap"
-                  :class="record.failing ? 'text-fid-importance' : 'text-fid-text-muted'"
+                  :class="record.failing ? 'text-fid-error' : 'text-fid-text-muted'"
                   data-testid="row-sync"
                 >
                   {{ syncOf(record) }}
