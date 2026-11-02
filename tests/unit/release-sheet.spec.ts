@@ -154,4 +154,13 @@ describe('the cover the sheet grows out of', () => {
       vi.useRealTimers()
     }
   })
+
+  it('starts no transition at all under reduced motion, and opens at once', () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: true }))
+    sheet.hide()
+    sheet.show('dig-1', 40, card)
+    expect(names).toEqual([])
+    expect(sheet.open.value).toEqual({ digId: 'dig-1', listingId: 40 })
+    expect(img.style.viewTransitionName).toBe('')
+  })
 })
