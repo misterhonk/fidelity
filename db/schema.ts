@@ -18,6 +18,7 @@ import type {
   Place,
   Placement,
   Preferences,
+  PressingRules,
   PushRegistration,
   ReleaseDetail,
   RoundSummary,
@@ -124,6 +125,8 @@ export type MetaValue =
    * the endpoint can make this device buzz. It stays where the token stays.
    */
   | { key: 'pushRegistration'; value: PushRegistration }
+  /** Which pressings of a wanted album will do, per master (#242, docs/04 §S2). */
+  | { key: 'pressingRules'; value: PressingRules }
 
 export type MetaKey = MetaValue['key']
 

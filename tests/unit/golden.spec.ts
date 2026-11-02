@@ -131,3 +131,30 @@ describe('the traps in the fixture', () => {
     expect(scoreOf(9701)).toBeLessThan(Math.min(...genuine.map((row) => row.result.score)))
   })
 })
+
+describe('the golden dig with a pressing rule (#242)', () => {
+  /*
+   * Dummy, first pressing only. The fixture's 2014 reissue (9101) stops being
+   * "the album you want"; nothing else may move — a rule is about one album.
+   */
+  const ruled = buildIndex(collection, wantlist, taste, horizon, [], {
+    77: { firstOnly: true, except: [] },
+  })
+  const summary = (result: ReturnType<typeof evaluate>) =>
+    result && {
+      score: result.score,
+      signals: result.signals.map((signal) => signal.type).sort(),
+    }
+
+  it('moves only the pressings of the ruled album', () => {
+    const changed = inventory.flatMap((listing) => {
+      const before = summary(evaluate(listing, index, filters))
+      const after = summary(evaluate(listing, ruled, filters))
+      return JSON.stringify(before) === JSON.stringify(after)
+        ? []
+        : [{ release: listing.releaseId, before, after }]
+    })
+    expect(changed.map((row) => row.release)).toEqual([9101])
+    expect(changed).toMatchSnapshot()
+  })
+})

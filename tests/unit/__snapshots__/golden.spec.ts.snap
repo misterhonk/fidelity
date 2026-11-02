@@ -114,3 +114,18 @@ exports[`the golden dig > ranks the shelf-related records the way the engine is 
   },
 ]
 `;
+
+exports[`the golden dig with a pressing rule (#242) > moves only the pressings of the ruled album 1`] = `
+[
+  {
+    "after": null,
+    "before": {
+      "score": 39,
+      "signals": [
+        "WANTLIST_PRESSING",
+      ],
+    },
+    "release": 9101,
+  },
+]
+`;

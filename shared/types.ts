@@ -766,6 +766,22 @@ export type WantlistItem = Omit<CollectionItem, 'rating' | 'instanceId' | 'folde
 }
 
 /**
+ * Which pressings of a wanted album will do (#242, docs/04 §S2).
+ *
+ * Per master and on this device only: Discogs has nowhere to keep it but the
+ * free-text note, which a dig cannot read.
+ */
+export interface PressingRule {
+  /** Only a pressing from the album's first year or the one after. */
+  firstOnly: boolean
+  /** Release ids that will not do — "any pressing except the 2016 reissue". */
+  except: number[]
+}
+
+/** Keyed by master id. */
+export type PressingRules = Record<number, PressingRule>
+
+/**
  * From this priority up a want is one of the ones you want most (M20 #1).
  *
  * Four and five, on Discogs' five. It changes what a find says and the order

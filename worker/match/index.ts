@@ -10,6 +10,7 @@ import type {
   FollowedArtist,
   HorizonChunk,
   Kin,
+  PressingRules,
   Signal,
   TasteProfile,
   WantlistItem,
@@ -137,6 +138,7 @@ export function buildIndex(
   taste: TasteProfile | null,
   chunks: HorizonChunk[] = [],
   followed: FollowedArtist[] = [],
+  rules: PressingRules = {},
 ): MatchIndex {
   const artistWeight = new Map<string, ArtistEntry>()
   const labelWeight = new Map<string, { name: string; weight: number; n: number }>()
@@ -208,7 +210,7 @@ export function buildIndex(
     }
   }
 
-  const horizon = buildLookup(chunks, collection, wantlist)
+  const horizon = buildLookup(chunks, collection, wantlist, rules)
 
   return {
     wantlistReleaseIds: new Set(wantlist.map((item) => item.releaseId)),
