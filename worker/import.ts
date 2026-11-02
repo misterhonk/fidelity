@@ -3,7 +3,7 @@ import type { MetaValue } from '~~/db/schema'
 import type { Preferences } from '#shared/types'
 
 import { fail } from './fail'
-import { parsePreferences, ROW_SCHEMAS, type RowStore } from './payloads'
+import { parsePreferences, parsePressingRules, ROW_SCHEMAS, type RowStore } from './payloads'
 
 /**
  * A backup, read back in (docs/17 §8.4, M24).
@@ -18,7 +18,8 @@ import { parsePreferences, ROW_SCHEMAS, type RowStore } from './payloads'
  * Rows are put, not replaced: importing on a device that already has a
  * shelf merges, the way the vault merges — a backup from the phone must not
  * wipe what the laptop did since. Meta (preferences, the taste profile, the
- * credit harvest) is taken from the file when the device has none.
+ * credit harvest, the pressing rules) is taken from the file when the device
+ * has none.
  *
  * **Across versions.** The file carries the database version it came from.
  * The database's own migrations up to v6 refetch the shelf rather than
@@ -41,7 +42,7 @@ export interface ImportReport {
   /** What the file had that did not come back, and why. */
   skipped: { store: string; rows: number; reason: 'no-prices' | 'too-old' | 'invalid' }[]
   /** Which meta came from the file because the device had none. */
-  meta: ('preferences' | 'tasteProfile' | 'credits')[]
+  meta: ('preferences' | 'tasteProfile' | 'credits' | 'pressingRules')[]
 }
 
 interface BackupFile {
@@ -121,6 +122,11 @@ export async function importEverything(file: unknown): Promise<ImportReport> {
       // entered them on this device (#207).
       await meta.put({ key: 'preferences', value: preferences as Preferences })
       report.meta.push('preferences')
+    }
+    const pressingRules = parsePressingRules(backup.pressingRules)
+    if (pressingRules && !(await meta.get('pressingRules'))) {
+      await meta.put({ key: 'pressingRules', value: pressingRules })
+      report.meta.push('pressingRules')
     }
     for (const key of ['tasteProfile', 'credits'] as const) {
       const value = backup[key]
