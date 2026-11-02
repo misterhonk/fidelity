@@ -9,6 +9,85 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.122.0](https://github.com/misterhonk/fidelity/compare/v0.121.0...v0.122.0) (2026-11-02)
+
+
+<!-- en -->
+**New finds come to you.** Today shows what is new in the shops you watch since your last visit,
+your wants can say which pressing will do, and a friend's wantlist turns into gift ideas.
+
+- Since your last visit: when you open Sleeveside, the shops you watch are checked for what is
+  new, and the finds wait on Today.
+- A want can say which pressing will do: first pressing only, or not this one. Digs follow it.
+- Gift finder: enter a friend's username and see what from their public wantlist a shop has.
+  Nothing of theirs is kept after you leave the page.
+- Record fairs: a pick list per stand that works offline. After six hours it keeps the record
+  facts, the reason and your max price, but no prices from Discogs.
+- Filter finds by size (12", LP, 10", 7"), search and sort the shelf by catalogue number, and
+  filter shops by the UK, North America and Japan.
+- The basket estimates import duty and VAT into the UK and the US too.
+- A shop's page counts how much of its stock was listed more than five years ago. Only you see it.
+- Catalogue runs you collect show as badges on the map.
+
+<!-- de -->
+**Neue Funde kommen zu dir.** Heute zeigt, was seit deinem letzten Besuch in deinen beobachteten
+Läden neu ist, deine Wünsche können sagen, welche Pressung es sein darf, und aus der Wantlist
+eines Freundes werden Geschenkideen.
+
+- Seit deinem letzten Besuch: Wenn du Sleeveside öffnest, schauen wir in deinen beobachteten
+  Läden nach Neuem, und die Funde warten auf Heute.
+- Ein Wunsch kann sagen, welche Pressung es sein darf: nur die Erstpressung oder diese nicht.
+  Digs halten sich daran.
+- Geschenkefinder: Gib den Namen eines Freundes ein und sieh, was ein Laden von seiner
+  öffentlichen Wantlist hat. Sobald du die Seite verlässt, ist nichts davon mehr gespeichert.
+- Plattenbörsen: eine Liste pro Stand, die offline funktioniert. Nach sechs Stunden bleiben die
+  Fakten zur Platte, der Grund und dein Höchstpreis, aber keine Preise von Discogs.
+- Funde nach Größe filtern (12", LP, 10", 7"), das Regal nach Katalognummer suchen und sortieren
+  und Läden nach Großbritannien, Nordamerika und Japan filtern.
+- Der Korb schätzt Zoll und Einfuhrumsatzsteuer jetzt auch für Großbritannien und die USA.
+- Die Seite eines Ladens zählt, wie viel seines Bestands vor mehr als fünf Jahren eingestellt
+  wurde. Das siehst nur du.
+- Katalogreihen, die du sammelst, erscheinen als Abzeichen auf der Karte.
+
+### Added
+
+* **basket:** estimate import duty and VAT into the UK and the US too ([b43438f](https://github.com/misterhonk/fidelity/commit/b43438fa6f76785d3e0df395eb18e396dea64ee8)), closes [#243](https://github.com/misterhonk/fidelity/issues/243)
+* **collection:** search and sort the shelf by catalogue number ([9725f42](https://github.com/misterhonk/fidelity/commit/9725f42d0b34eaab6581a731e3fa511cbf26b026)), closes [#246](https://github.com/misterhonk/fidelity/issues/246)
+* **dealers:** count a shop's stock listed more than five years ago ([9ead8d9](https://github.com/misterhonk/fidelity/commit/9ead8d90e6ae8ad57ff28ef7ab0dd1222108121f)), closes [#244](https://github.com/misterhonk/fidelity/issues/244)
+* **dealers:** filter shops by the UK, North America and Japan ([4f0a312](https://github.com/misterhonk/fidelity/commit/4f0a312553d52f4fbee39389fb421bb450cbc6c1)), closes [#246](https://github.com/misterhonk/fidelity/issues/246)
+* **dealers:** find a gift from a friend's public wantlist ([bbd6e34](https://github.com/misterhonk/fidelity/commit/bbd6e347bf7b3c94ebdd23390bb80596d0a66f27)), closes [#245](https://github.com/misterhonk/fidelity/issues/245)
+* **dig:** filter the finds by size, 12" versus LP versus 10" versus 7" ([72d37ee](https://github.com/misterhonk/fidelity/commit/72d37eee71bf4b8a53c7385eba52468372e682e5)), closes [#246](https://github.com/misterhonk/fidelity/issues/246)
+* **match:** honour pressing rules in WANTLIST_PRESSING ([7876d73](https://github.com/misterhonk/fidelity/commit/7876d730c57ce1f8cd2842b38348e8bc6c921118))
+* **ui:** set a pressing rule from the wanted record's sheet ([a7f3890](https://github.com/misterhonk/fidelity/commit/a7f38909a589ffd4579132bbcf70196e0d664f8d))
+* **ui:** show catalogue facts and your max price on stands past six hours ([d590533](https://github.com/misterhonk/fidelity/commit/d590533ab8953bddef07dbcfc6eeee5cd91edc9e)), closes [#241](https://github.com/misterhonk/fidelity/issues/241)
+* **ui:** show catalogue runs as badges on the map ([085a3f4](https://github.com/misterhonk/fidelity/commit/085a3f4e64e29c0b336b14462464b7518bac1de7)), closes [#247](https://github.com/misterhonk/fidelity/issues/247)
+* **watch:** dig moved shops for what is new and show the finds on Start ([830c393](https://github.com/misterhonk/fidelity/commit/830c393c798c02f9a9e6185cb8b35415458bd255)), closes [#240](https://github.com/misterhonk/fidelity/issues/240)
+
+
+### Fixed
+
+* **collection:** keep lone numbers in catalogue number search ([28c7363](https://github.com/misterhonk/fidelity/commit/28c73631ca7c64125112b5f1a900fc4b4708b6ae))
+* **collection:** show no run badge for a label cut short ([74cdb21](https://github.com/misterhonk/fidelity/commit/74cdb21e6e75d5e33439f3c08e7d1c5cb003bac6))
+* **dealers:** count only the gift candidates a friend already owns ([b4ada07](https://github.com/misterhonk/fidelity/commit/b4ada07c44d4702ceb2cf18e01044adf2f113372))
+* **dealers:** count stale stock only from a whole, unbroken dig ([2f9cd62](https://github.com/misterhonk/fidelity/commit/2f9cd62a48395a71c732d8a0b5f29d7e3584a379))
+* **dealers:** stop reading a friend's lists when the gift page is left ([3096051](https://github.com/misterhonk/fidelity/commit/3096051011d7b8264a6f0bafb2df4523f48ef238))
+* **i18n:** call the fair max 'Höchstpreis' like the setting ([91b58c1](https://github.com/misterhonk/fidelity/commit/91b58c1e2e22c1e62c744d202532db34938836f5))
+* **i18n:** say 'Nach Großbritannien' in the UK customs notes ([e586721](https://github.com/misterhonk/fidelity/commit/e586721995abee02cf9252a346dab6be7c116aaf))
+* **i18n:** say the US carrier may add a fee in German as in English ([ad9b7b4](https://github.com/misterhonk/fidelity/commit/ad9b7b47c90ec4ce7839fd0015cfc5a0e268b844))
+* **sync:** carry pressing rules in the backup file ([4075fb4](https://github.com/misterhonk/fidelity/commit/4075fb4ff360eee17763d16656df301066d97a84))
+* **ui:** keep the in-store screen loading when the max cannot be read ([732f5cf](https://github.com/misterhonk/fidelity/commit/732f5cf798db74fc9613d5ad443f4fe740e04b00))
+* **ui:** name a run below a thousand by the label alone ([fedbe2e](https://github.com/misterhonk/fidelity/commit/fedbe2ef968f819f955e5f22dfdc41ef01ad2322))
+* **ui:** say out loud when an excluded pressing is not a release ([04675e2](https://github.com/misterhonk/fidelity/commit/04675e2727463e7f271318dd84b82eab1e2cec81))
+* **ui:** say the US duty is not known instead of 'ordinary rules' ([9253982](https://github.com/misterhonk/fidelity/commit/92539821a4f3d8117eb892b66fc605fdc3d400e0))
+* **watch:** drop the digests when the shops are checked again ([d7191d2](https://github.com/misterhonk/fidelity/commit/d7191d24a78c2e96bd97440e16581e245a8f9df9))
+* **watch:** drop the finds on Start when their dig expires ([f65c4c4](https://github.com/misterhonk/fidelity/commit/f65c4c4e2a8cb46eba72550fc0815af3d7d3fed2))
+* **watch:** keep a round from starting while the digest holds the dig slot ([9850a24](https://github.com/misterhonk/fidelity/commit/9850a244bfeb35c188cb5d1b16e62684d38b866d))
+
+
+### Changed
+
+* **dealers:** ask a friend's shelf only about the gift candidates ([41a684d](https://github.com/misterhonk/fidelity/commit/41a684df28a7dad1a92c0803cdc1242d86eb6bff))
+
 ## [0.121.0](https://github.com/misterhonk/fidelity/compare/v0.120.0...v0.121.0) (2026-11-02)
 
 
