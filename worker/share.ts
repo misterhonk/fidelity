@@ -32,22 +32,13 @@ const MAX_SHARED_MATCHES = 50
 const MARKET_SIGNALS: ReadonlySet<SignalType> = new Set(['PRICE_SIGNAL', 'SCARCITY'])
 
 /**
- * The evidence a reason may carry: catalogue names, never counts.
+ * The evidence a plate reads, and nothing else: styles and a person's name.
  *
- * How many records by an artist somebody owns, what format they own an album
- * in, how high a want ranks — those are the sender's collection and wantlist.
- * The plates on the shared page say the same thing without them.
+ * Everything else in a signal's evidence is the sender's own — what they own an
+ * album as, what they want, how they know an artist — and the shared page has
+ * no use for it.
  */
-const NAMED_EVIDENCE = [
-  'artist',
-  'via',
-  'relation',
-  'label',
-  'prefix',
-  'person',
-  'styles',
-  'album',
-] as const
+const NAMED_EVIDENCE = ['styles', 'person'] as const
 
 function cleanSignals(signals: readonly Signal[]): Signal[] {
   return signals
