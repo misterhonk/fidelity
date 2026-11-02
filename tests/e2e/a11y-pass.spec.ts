@@ -23,7 +23,7 @@ async function axe(page: Page) {
       const running = document
         .getAnimations()
         .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
-        .filter((a) => a.playState === 'running' || a.playState === 'pending')
+        .filter((a) => a.playState === 'running' || a.pending)
       if (running.length === 0) return
       await Promise.all(running.map((a) => a.finished.catch(() => undefined)))
       await new Promise((resolve) => setTimeout(resolve, 100))
