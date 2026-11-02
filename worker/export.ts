@@ -8,6 +8,7 @@ import {
   type WatchedRelease,
 } from '#shared/types'
 
+import { withoutStaleStock } from './dig/stale'
 import { alive } from './feedback'
 
 /**
@@ -199,7 +200,8 @@ export async function exportEverything(now: number): Promise<FullExport> {
     tasteProfile: await getMeta('tasteProfile'),
     credits: await getMeta('credits'),
     pressingRules: await getMeta('pressingRules'),
-    dealers,
+    // A file can be handed on; the stale-stock count is said to you alone (#244).
+    dealers: dealers.map(withoutStaleStock),
     digs,
     matches: matches.map(strip),
     feedback,

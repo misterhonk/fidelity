@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
+import { blankDealer } from '~~/db/dealer'
 import { setMeta } from '~~/db/meta'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import type { Dig, Match } from '#shared/types'
@@ -137,6 +138,19 @@ describe('exporting everything', () => {
   it('leaves marketplace data out of the backup too', async () => {
     await seed()
     expect(JSON.stringify(await exportEverything(5000))).not.toContain('SEALED NEW ITEM')
+  })
+
+  it('leaves the stale-stock count out, because it is never shared (#244)', async () => {
+    const db = await seed()
+    await db.put('dealers', {
+      ...blankDealer('430AM_Studio'),
+      staleStock: { old: 41, dated: 100, asOf: 2000 },
+    })
+
+    const file = await exportEverything(5000)
+
+    expect(file.dealers).toHaveLength(1)
+    expect(JSON.stringify(file)).not.toContain('staleStock')
   })
 
   it('leaves the horizon out, because it is reproducible', async () => {

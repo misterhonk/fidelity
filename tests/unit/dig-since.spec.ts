@@ -157,6 +157,7 @@ describe('only what is new', () => {
       ...blankDealer('stammladen'),
       numForSale: 4000,
       affinity: 7.5,
+      staleStock: { old: 41, dated: 100, asOf: 1_700_000_000_000 },
       lastScannedAt: 1_700_000_000_000,
       newestListedAt: new Date(Date.parse('2026-08-05T12:00:00Z') - 3_600_000).toISOString(),
     })
@@ -174,6 +175,7 @@ describe('only what is new', () => {
     expect(dealer?.affinity).toBe(7.5)
     expect(dealer?.numForSale).toBe(4000)
     expect(dealer?.lastScannedAt).toBe(1_700_000_000_000)
+    expect(dealer?.staleStock).toEqual({ old: 41, dated: 100, asOf: 1_700_000_000_000 })
     // The one thing it does know, and nothing else does.
     expect(dealer?.newestListedAt).toBe('2026-08-05T12:00:00.000Z')
   })
@@ -185,5 +187,7 @@ describe('only what is new', () => {
 
     const dealer = await (await openFidelityDb()).get('dealers', 'stammladen')
     expect(dealer?.newestListedAt).toBe('2026-08-05T12:00:00.000Z')
+    // And the stale-stock count (#244): every row dated, none of them five years old.
+    expect(dealer?.staleStock).toMatchObject({ old: 0, dated: 150 })
   })
 })

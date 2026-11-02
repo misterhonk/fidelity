@@ -75,6 +75,15 @@ const trust = computed(() => {
   parts.push(h.value.listings(count(d.numForSale)))
   if (d.shipsFrom) parts.push(h.value.shipsFrom(d.shipsFrom))
   if (d.lastScannedAt) parts.push(h.value.trust.dug(since(d.lastScannedAt)))
+  const stale = d.staleStock
+  if (stale && stale.dated > 0)
+    parts.push(
+      h.value.trust.stale(
+        decimal(Math.round((stale.old / stale.dated) * 100), 0),
+        day(stale.asOf),
+        count(stale.dated),
+      ),
+    )
   return parts
 })
 
