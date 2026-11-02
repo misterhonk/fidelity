@@ -51,15 +51,12 @@ async function friendOnDiscogs(context: BrowserContext, wantsStatus = 200) {
         })),
       })
     }
-    if (path === '/users/ada.friend/collection/folders/0/releases') {
+    // 702 and 704 are on their shelf; 704 is in no shop, so nothing was left out for it.
+    const shelf = /^\/users\/ada\.friend\/collection\/releases\/(\d+)$/.exec(path)
+    if (shelf) {
+      const id = Number(shelf[1])
       return json(200, {
-        // 704 is owned too, but in no shop: nothing was left out for it.
-        pagination: pagination(2),
-        releases: [702, 704].map((id) => ({
-          id,
-          date_added: '2026-01-01T00:00:00-00:00',
-          basic_information: basic(id),
-        })),
+        releases: [702, 704].includes(id) ? [{ id, instance_id: id * 10 }] : [],
       })
     }
     return json(404, { message: 'not here' })

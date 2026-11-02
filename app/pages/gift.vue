@@ -107,7 +107,13 @@ async function find() {
     <ErrorNote v-if="error" :cause="error" />
 
     <p v-if="busy" role="status" class="text-fid-sm text-fid-text-muted">
-      {{ progress ? g.reading(count(progress.read), count(progress.total)) : g.looking }}
+      {{
+        !progress
+          ? g.looking
+          : progress.stage === 'shelf'
+            ? g.checking(count(progress.read), count(progress.total))
+            : g.reading(count(progress.read), count(progress.total))
+      }}
     </p>
 
     <section v-if="result" class="flex flex-col gap-3" data-testid="gift-result">

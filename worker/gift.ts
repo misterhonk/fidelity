@@ -3,9 +3,10 @@ import { openFidelityDb } from '~~/db/open'
 import type { Dig, StockRow } from '#shared/types'
 import type { ZodType } from 'zod'
 
+import { instancesOf } from './collection/add'
 import type { DiscogsClient } from './discogs/client'
 import { DiscogsError } from './discogs/errors'
-import { collectionPageSchema, wantlistPageSchema } from './discogs/schemas'
+import { wantlistPageSchema } from './discogs/schemas'
 
 /**
  * A present for a friend (#245): what they want, in the shops you scanned,
@@ -49,6 +50,8 @@ export interface GiftResult {
 }
 
 export interface GiftProgress {
+  /** Their wantlist, page by page, then their shelf, one candidate at a time. */
+  stage: 'wants' | 'shelf'
   read: number
   total: number
 }
@@ -127,7 +130,7 @@ async function releaseIds<T extends { pagination: { pages: number; items: number
     }
     pages = body.pagination.pages
     ids.push(...idsOf(body))
-    report?.({ read: ids.length, total: body.pagination.items })
+    report?.({ stage: 'wants', read: ids.length, total: body.pagination.items })
   }
   return ids
 }
@@ -182,16 +185,23 @@ export async function findGifts(
   // Their shelf costs requests, so it is only read when there is something to take off it.
   if (candidates.size === 0) return result
 
-  const owned = await releaseIds(
-    client,
-    `${user}/collection/folders/0/releases`,
-    collectionPageSchema,
-    (page) => page.releases.map((release) => release.id),
-    signal,
-  )
-  if (owned === null) return { ...result, owned: null, expiresAt: earliest(ideas, fresh) }
+  // One request per candidate, not their whole shelf: a few records, not 200 pages.
+  const have = new Set<number>()
+  let checked = 0
+  for (const id of candidates) {
+    report?.({ stage: 'shelf', read: checked, total: candidates.size })
+    try {
+      if ((await instancesOf(client, username, id, signal)).length > 0) have.add(id)
+    } catch (error) {
+      // A private collection; a 404 for one release only means it is not on their shelf.
+      if (error instanceof DiscogsError && [401, 403].includes(error.status)) {
+        return { ...result, owned: null, expiresAt: earliest(ideas, fresh) }
+      }
+      if (!(error instanceof DiscogsError && error.status === 404)) throw error
+    }
+    checked++
+  }
 
-  const have = new Set(owned)
   // Only what was actually taken off the list counts, not every owned want.
   const left = [...candidates].filter((id) => have.has(id))
   ;({ ideas, overBudget } = pickIdeas(
