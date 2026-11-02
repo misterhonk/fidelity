@@ -1053,6 +1053,16 @@ export const handlers: HandlerMap = {
     return setFieldValue(instanceId, fieldId, value)
   },
 
+  'collection.copy': async ({ instanceId }) => {
+    const { copyOf } = await import('./collection/copy')
+    return copyOf(instanceId)
+  },
+
+  'collection.setCopy': async ({ instanceId, paid, arrivedOn }) => {
+    const { setCopy } = await import('./collection/copy')
+    return setCopy(instanceId, { paid, arrivedOn })
+  },
+
   'collection.rate': async ({ instanceId, rating }) => {
     const { rateRecord } = await import('./collection/rate')
     return rateRecord(instanceId, rating)

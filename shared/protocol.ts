@@ -27,6 +27,7 @@ import type {
   BasketPlan,
   BasketView,
   CollectionField,
+  CopyState,
   CollectionFolder,
   CollectionGaps,
   CollectionItem,
@@ -377,6 +378,18 @@ export interface WorkerContract {
   /** Sets one field. False when the record has no entry to write to. */
   'collection.setField': {
     params: { instanceId: number; fieldId: number; value: string }
+    progress: never
+    result: boolean
+  }
+  /** Your copy (ADR-019): the other copies of this release, paid, arrival, and what waits for Discogs. */
+  'collection.copy': { params: { instanceId: number }; progress: never; result: CopyState }
+  /** Writes paid and/or arrival as typed. False when either is not a price or a day. */
+  'collection.setCopy': {
+    params: {
+      instanceId: number
+      paid?: { amount: string; currency: string }
+      arrivedOn?: string
+    }
     progress: never
     result: boolean
   }

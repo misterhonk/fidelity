@@ -167,6 +167,19 @@ const en = {
       sounds: 'Sounds like',
       condition: 'Your copy',
       unset: 'Not said',
+      /* Your copy, above the facts (M41): what is true of this copy and of nobody else's. */
+      copy: {
+        which: 'Which copy',
+        pick: (n: number) => `Copy ${n}`,
+        paid: 'Paid',
+        currency: 'Currency',
+        notAPrice: 'Not a price. Try 18.50 and EUR.',
+        since: 'Since',
+        synced: 'In step with Discogs',
+        waiting: (n: number) =>
+          n === 1 ? '1 change waiting for Discogs' : `${n} changes waiting for Discogs`,
+        failing: 'Not at Discogs yet. It keeps trying.',
+      },
       write: {
         idle: '',
         sending: 'Sending to Discogs…',
@@ -769,6 +782,18 @@ const de: typeof en = {
       sounds: 'Klingt nach',
       condition: 'Dein Exemplar',
       unset: 'Keine Angabe',
+      copy: {
+        which: 'Welches Exemplar',
+        pick: (n) => `Exemplar ${n}`,
+        paid: 'Bezahlt',
+        currency: 'Währung',
+        notAPrice: 'Kein Preis. Probier 18,50 und EUR.',
+        since: 'Seit',
+        synced: 'Stimmt mit Discogs überein',
+        waiting: (n) =>
+          n === 1 ? '1 Änderung wartet auf Discogs' : `${n} Änderungen warten auf Discogs`,
+        failing: 'Noch nicht bei Discogs. Es versucht es weiter.',
+      },
       write: {
         idle: '',
         sending: 'Geht an Discogs …',

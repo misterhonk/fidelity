@@ -328,7 +328,12 @@ export async function applyUnitPlan(unitId: string, includeUnplaced: boolean): P
   const placements = tx.objectStore('placements')
   const places = tx.objectStore('places')
   for (const move of plan.moves)
-    await placements.put({ instanceId: move.instanceId, placeId: move.to, at })
+    await placements.put({
+      ...(await placements.get(move.instanceId)),
+      instanceId: move.instanceId,
+      placeId: move.to,
+      at,
+    })
   const byId = new Map(plan.ranges.map((range) => [range.placeId, range]))
   for (const cube of await places.getAll()) {
     if (cube.parentId !== unitId || cube.kind !== 'compartment' || !alive(cube)) continue

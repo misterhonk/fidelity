@@ -313,8 +313,12 @@ export async function removePlace(id: string): Promise<void> {
 /** Put a copy in a place — or take it down from everywhere. */
 export async function placeRecord(instanceId: number, placeId: string | null): Promise<void> {
   const db = await openFidelityDb()
-  // Taking it down is written too, not deleted — see above.
-  await db.put('placements', { instanceId, placeId, at: Date.now() })
+  // Taking it down is written too, not deleted — see above. The rest of the row
+  // (paid, arrival — ADR-019) stays.
+  const tx = db.transaction('placements', 'readwrite')
+  const row = await tx.store.get(instanceId)
+  await tx.store.put({ ...row, instanceId, placeId, at: Date.now() })
+  await tx.done
 }
 
 /** Several at once, one transaction, one stamp — filling a compartment from the wall (M27.1c). */
@@ -325,7 +329,8 @@ export async function placeRecords(
   const db = await openFidelityDb()
   const at = Date.now()
   const tx = db.transaction('placements', 'readwrite')
-  for (const instanceId of instanceIds) await tx.store.put({ instanceId, placeId, at })
+  for (const instanceId of instanceIds)
+    await tx.store.put({ ...(await tx.store.get(instanceId)), instanceId, placeId, at })
   await tx.done
   return instanceIds.length
 }

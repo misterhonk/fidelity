@@ -1439,6 +1439,25 @@ export interface Placement {
    */
   placeId: string | null
   at: number
+  /**
+   * What this copy cost, as the collector typed it (ADR-019) — never the order's price.
+   * Integer cents in the currency typed, never converted.
+   */
+  paid?: { cents: number; currency: string } | null
+  /** The day the copy came into the house, `YYYY-MM-DD`, when it differs from Discogs' "added". */
+  arrivedOn?: string | null
+}
+
+/** Your copy, as the record sheet shows it above the facts (M41). */
+export interface CopyState {
+  /** Every copy of this release on the shelf, this one included — a switcher from two up. */
+  copies: number[]
+  paid: { cents: number; currency: string } | null
+  arrivedOn: string | null
+  /** Changes to this copy still waiting for Discogs. */
+  waiting: number
+  /** One of them has already failed at least once. */
+  failing: boolean
 }
 
 /** A place with what the interface needs to know about it. */

@@ -4,6 +4,7 @@ import type {
   CollectionField,
   CollectionFolder,
   CollectionItem,
+  CopyState,
   PlaceNode,
   ReleaseDetail,
 } from '#shared/types'
@@ -28,6 +29,8 @@ const emit = defineEmits<{ close: []; step: [instanceId: number] }>()
 const { call } = useFidelityWorker()
 const { state: writeState, undone, push } = useWriteBack()
 
+/** The copy on screen — the prop at first, another copy of the same release after a switch. */
+const current = ref(props.instanceId)
 const record = ref<CollectionItem | null>(null)
 
 /*
@@ -162,13 +165,20 @@ async function move(folderId: number) {
 
 const fields = ref<CollectionField[]>([])
 const values = ref<Record<number, string>>({})
+/** Media and sleeve under the rating; the free line (Notes) further down, after the folder. */
+const conditionFields = computed(() =>
+  canRate.value ? fields.value.filter((field) => field.type === 'dropdown') : [],
+)
+const noteFields = computed(() =>
+  canRate.value ? fields.value.filter((field) => field.type !== 'dropdown') : [],
+)
 
 async function setField(field: CollectionField, value: string) {
   const before = values.value[field.id] ?? ''
   values.value = { ...values.value, [field.id]: value }
 
   const written = await push(() =>
-    call('collection.setField', { instanceId: props.instanceId, fieldId: field.id, value }),
+    call('collection.setField', { instanceId: current.value, fieldId: field.id, value }),
   )
   if (!written) values.value = { ...values.value, [field.id]: before }
 }
@@ -239,35 +249,94 @@ useWalkKeys((to) =>
   step(to === 'next' ? (props.walk?.next ?? null) : (props.walk?.previous ?? null)),
 )
 
-onMounted(async () => {
-  record.value = await call('collection.record', { instanceId: props.instanceId })
+/*
+ * Your copy, and nobody else's (M41, ADR-019).
+ *
+ * What it cost and since when it is in the house are ours alone — typed here,
+ * kept beside the placement, never sent to Discogs. Beside them, one line per
+ * record on what Discogs already knows: the session's "Saved at Discogs" says
+ * nothing about a change made yesterday that is still waiting.
+ */
+const copy = ref<CopyState | null>(null)
+const paidText = ref('')
+const paidCurrency = ref('')
+const paidInvalid = ref(false)
+const since = ref('')
+
+async function refreshCopy() {
+  copy.value = await call('collection.copy', { instanceId: current.value })
+}
+watch(writeState, () => void refreshCopy())
+
+function showCopy() {
+  const paid = copy.value?.paid
+  // Integer arithmetic only: the price never passes through a float.
+  paidText.value = paid
+    ? `${Math.floor(paid.cents / 100)}.${String(paid.cents % 100).padStart(2, '0')}`
+    : ''
+  if (paid) paidCurrency.value = paid.currency
+  paidInvalid.value = false
+  since.value = copy.value?.arrivedOn ?? record.value?.addedAt.slice(0, 10) ?? ''
+}
+
+async function setPaid() {
+  const instanceId = current.value
+  const ok = await call('collection.setCopy', {
+    instanceId,
+    paid: { amount: paidText.value, currency: paidCurrency.value },
+  })
+  paidInvalid.value = !ok
+  if (ok) {
+    await refreshCopy()
+    showCopy()
+  }
+}
+
+async function setSince() {
+  if (await call('collection.setCopy', { instanceId: current.value, arrivedOn: since.value }))
+    await refreshCopy()
+  showCopy()
+}
+
+async function load() {
+  const instanceId = current.value
+  record.value = await call('collection.record', { instanceId })
   if (record.value) {
     const list = await call('watched.list', undefined)
     watching.value = list.some((row) => row.releaseId === record.value?.releaseId)
 
     places.value = await call('places.overview', undefined)
-    placeId.value = await call('places.of', { instanceId: props.instanceId })
+    placeId.value = await call('places.of', { instanceId })
     // Where the rule would put it — shown only where it differs from where it is.
-    proposal.value = await call('places.propose', { instanceId: props.instanceId })
+    proposal.value = await call('places.propose', { instanceId })
   }
 
-  if (record.value?.releaseId) void look()
+  // Ours and on this device, so before the field definitions, which may cost a request.
+  await refreshCopy()
+  showCopy()
 
-  const noted = await call('collection.fields', { instanceId: props.instanceId })
+  const noted = await call('collection.fields', { instanceId })
   fields.value = noted.fields
   values.value = noted.values
+}
 
+/** Another copy of the same release: same record, same tracklist, a different shelf entry. */
+async function switchCopy(instanceId: number) {
+  if (instanceId === current.value) return
+  current.value = instanceId
+  confirming.value = false
+  await load()
+}
+
+onMounted(async () => {
+  const prefs = await call('preferences.get', undefined)
+  paidCurrency.value = prefs.currency
+  await load()
+  if (record.value?.releaseId) void look()
   folders.value = await call('collection.folders', undefined)
 })
 
 const artist = computed(() => record.value?.artistNames.join(' · ') ?? '')
-
-const added = computed(() => {
-  const at = record.value?.addedAt
-  if (!at) return ''
-  const when = new Date(at)
-  return Number.isNaN(when.getTime()) ? '' : day(when)
-})
 
 /*
  * What is on the record, one line per question.
@@ -316,33 +385,6 @@ function pressing(item: CollectionItem): string {
   return discs > 1 ? `${discs} × ${words}` : words
 }
 
-interface Fact {
-  key: keyof typeof c.value.shelf.sheet.facts
-  /** A plain statement — a year, a catalogue number, a format. */
-  value?: string
-  /** Or names that lead somewhere: this label, this artist, on your shelf. */
-  links?: { name: string; to: string }[]
-  mono?: boolean
-}
-
-const facts = computed<Fact[]>(() => {
-  const item = record.value
-  if (!item) return []
-  return (
-    /*
-     * What is left of the table once the masthead has the record itself
-     * (M31.20): artist, label, catalogue number, format and year are the
-     * *record*, and they now stand where every other sheet puts them. What
-     * stays here is what is true of **your copy** and of nobody else's — the
-     * rating, the folder, and the day it arrived.
-     */
-    ([{ key: 'added', value: added.value, mono: true }] as Fact[])
-      // Empty ones are dropped rather than shown blank — a row that says
-      // "Catalogue number: —" is a row that wasted a line.
-      .filter((fact) => (fact.links?.length ?? 0) > 0 || (fact.value?.length ?? 0) > 0)
-  )
-})
-
 const tags = computed(() => {
   const item = record.value
   if (!item) return []
@@ -360,7 +402,7 @@ const tags = computed(() => {
 const confirming = ref(false)
 
 async function remove() {
-  if (!(await push(() => call('collection.remove', { instanceId: props.instanceId })))) {
+  if (!(await push(() => call('collection.remove', { instanceId: current.value })))) {
     confirming.value = false
     return
   }
@@ -501,16 +543,64 @@ async function remove() {
             <span v-if="record.year > 0" class="fid-num">· {{ record.year }}</span>
           </p>
         </template>
+      </RecordMasthead>
 
-        <dl
-          class="grid min-w-0 grow grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-fid-sm sm:basis-52"
+      <!--
+        Your copy first (M41): everything that is true of this copy and of
+        nobody else's, in the order it is asked with the record in hand —
+        rating, condition, place, folder, notes, paid, since — and only then
+        what the record is.
+      -->
+      <section class="flex flex-col gap-3" :aria-label="c.shelf.sheet.condition">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.condition }}</h3>
+          <!-- Two copies of one pressing are two shelf entries: each has its own answers. -->
+          <div
+            v-if="(copy?.copies.length ?? 0) > 1"
+            role="group"
+            :aria-label="c.shelf.sheet.copy.which"
+            class="flex gap-1"
+          >
+            <button
+              v-for="(id, index) in copy?.copies"
+              :key="id"
+              type="button"
+              :aria-pressed="id === current"
+              class="fid-lift min-h-11 rounded-fid-sm border px-3 text-fid-sm"
+              :class="
+                id === current
+                  ? 'border-fid-accent-fill text-fid-accent'
+                  : 'border-fid-field text-fid-text'
+              "
+              @click="switchCopy(id)"
+            >
+              {{ c.shelf.sheet.copy.pick(index + 1) }}
+            </button>
+          </div>
+        </div>
+        <!-- What Discogs knows of this copy, not of this session (the line at the top). -->
+        <p
+          v-if="canRate && copy"
+          data-testid="copy-sync"
+          class="flex items-center gap-2 text-fid-xs"
+          :class="copy.failing ? 'text-fid-error' : 'text-fid-text-muted'"
         >
-          <!--
-              Only when it was actually given, and first, because it is the one
-              line that is an opinion rather than a fact. A zero on Discogs
-              means "never rated", not "rated nothing" — five hollow stars
-              would invent an opinion the collector never had.
-            -->
+          <FidIcon
+            v-if="copy.failing || !copy.waiting"
+            :name="copy.failing ? 'circle-alert' : 'check'"
+            :size="14"
+            aria-hidden="true"
+          />
+          {{
+            copy.failing
+              ? c.shelf.sheet.copy.failing
+              : copy.waiting
+                ? c.shelf.sheet.copy.waiting(copy.waiting)
+                : c.shelf.sheet.copy.synced
+          }}
+        </p>
+
+        <dl class="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 text-fid-sm">
           <template v-if="canRate || record.rating > 0">
             <dt class="text-fid-text-muted">{{ c.shelf.sheet.facts.rating }}</dt>
             <dd class="min-w-0">
@@ -547,6 +637,78 @@ async function remove() {
               </span>
             </dd>
           </template>
+          <template v-for="field in conditionFields" :key="field.id">
+            <dt class="text-fid-text-muted">{{ field.name }}</dt>
+            <dd class="min-w-0">
+              <!--
+                A select for what Discogs enumerates. The empty option is not
+                padding: a condition you have not decided on yet has to stay
+                sayable, and clearing one is the only way back to it.
+              -->
+              <select
+                :value="values[field.id] ?? ''"
+                :aria-label="field.name"
+                class="min-h-11 w-full fid-field px-2 text-fid-sm text-fid-text"
+                @change="setField(field, ($event.target as HTMLSelectElement).value)"
+              >
+                <option value="">{{ c.shelf.sheet.unset }}</option>
+                <option v-for="option in field.options" :key="option" :value="option">
+                  {{ option }}
+                </option>
+              </select>
+            </dd>
+          </template>
+
+          <dt class="text-fid-text-muted">{{ c.places.where }}</dt>
+          <dd class="flex min-w-0 flex-col gap-1">
+            <!--
+              Only where there are any places at all. An empty select would be
+              a control that can do nothing; the way to make one is right here.
+            -->
+            <select
+              v-if="places.length > 0"
+              :value="placeId ?? ''"
+              :aria-label="c.places.where"
+              class="min-h-11 w-full fid-field px-2 text-fid-sm text-fid-text"
+              @change="setPlace(($event.target as HTMLSelectElement).value)"
+            >
+              <option value="">{{ c.places.nowhere }}</option>
+              <option v-for="place in places" :key="place.id" :value="place.id">
+                {{ '— '.repeat(place.depth) }}{{ labelOf(place) }}
+              </option>
+            </select>
+            <NuxtLink
+              v-else
+              to="/places"
+              class="fid-action inline-flex min-h-11 items-center text-fid-sm text-fid-text-muted underline underline-offset-4"
+            >
+              {{ c.places.addTop }}
+            </NuxtLink>
+            <!-- The address, the way it reads on the wall: room · furniture · compartment. -->
+            <p v-if="placeId" class="fid-plate text-fid-text-muted">
+              {{ addressOf(placeId, places).join(' · ') }}
+            </p>
+            <!-- And where the rule would put it, one tap away. -->
+            <p
+              v-if="proposed"
+              class="flex flex-wrap items-center gap-3 text-fid-sm text-fid-text-muted"
+            >
+              {{
+                c.places.suggested(
+                  addressOf(proposed.id, places).join(' · '),
+                  proposedBy.divider,
+                  proposedBy.rule,
+                )
+              }}
+              <button
+                type="button"
+                class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-sm text-fid-text"
+                @click="setPlace(proposed.id)"
+              >
+                {{ c.places.putThere }}
+              </button>
+            </p>
+          </dd>
 
           <template v-if="canMove">
             <dt class="text-fid-text-muted">{{ c.shelf.sheet.facts.folder }}</dt>
@@ -563,72 +725,59 @@ async function remove() {
               </select>
             </dd>
           </template>
-
-          <template v-for="fact in facts" :key="fact.key">
-            <dt class="text-fid-text-muted">{{ c.shelf.sheet.facts[fact.key] }}</dt>
-            <dd
-              class="min-w-0 text-fid-text"
-              :class="fact.mono ? 'font-fid-mono text-fid-xs' : ''"
-            >
-              <!--
-                  A name that leads back to your own shelf. The separator stays
-                  outside the link so that two labels read as two things, not
-                  as one long one somebody might click by accident.
-                -->
-              <template v-if="fact.links">
-                <template v-for="(link, index) in fact.links" :key="link.to">
-                  <span v-if="index > 0" class="text-fid-text-muted"> · </span>
-                  <NuxtLink
-                    :to="link.to"
-                    class="underline underline-offset-4 hover:text-fid-accent"
-                    :title="c.shelf.sheet.ownedBy(link.name)"
-                  >
-                    {{ link.name }}
-                  </NuxtLink>
-                </template>
-              </template>
-              <template v-else>{{ fact.value }}</template>
+          <template v-for="field in noteFields" :key="field.id">
+            <dt class="text-fid-text-muted">{{ field.name }}</dt>
+            <dd class="min-w-0">
+              <input
+                :value="values[field.id] ?? ''"
+                type="text"
+                :aria-label="field.name"
+                class="min-h-11 w-full fid-field px-3 text-fid-sm text-fid-text"
+                @change="setField(field, ($event.target as HTMLInputElement).value)"
+              />
             </dd>
           </template>
-        </dl>
-      </RecordMasthead>
 
-      <section v-if="canRate && fields.length > 0" class="flex flex-col gap-3">
-        <h3 class="text-fid-sm font-bold text-fid-text">{{ c.shelf.sheet.condition }}</h3>
-        <div class="grid gap-3 @sm:grid-cols-2">
-          <label
-            v-for="field in fields"
-            :key="field.id"
-            class="flex flex-col gap-1"
-            :class="field.type === 'text' ? '@sm:col-span-2' : ''"
-          >
-            <span class="text-fid-xs text-fid-text-muted">{{ field.name }}</span>
-            <!--
-                A select for what Discogs enumerates, a line for what it does
-                not. The empty option is not padding: a condition you have not
-                decided on yet has to stay sayable, and clearing one is the
-                only way back to it.
-              -->
-            <select
-              v-if="field.type === 'dropdown'"
-              :value="values[field.id] ?? ''"
-              class="min-h-11 fid-field px-3 text-fid-sm text-fid-text"
-              @change="setField(field, ($event.target as HTMLSelectElement).value)"
-            >
-              <option value="">{{ c.shelf.sheet.unset }}</option>
-              <option v-for="option in field.options" :key="option" :value="option">
-                {{ option }}
-              </option>
-            </select>
+          <!-- Typed by you, never taken from an order (ADR-019 §4). -->
+          <dt class="text-fid-text-muted">{{ c.shelf.sheet.copy.paid }}</dt>
+          <dd class="flex min-w-0 flex-col gap-1">
+            <div class="flex gap-2">
+              <input
+                v-model="paidText"
+                type="text"
+                inputmode="decimal"
+                :aria-label="c.shelf.sheet.copy.paid"
+                :aria-invalid="paidInvalid"
+                class="fid-num min-h-11 w-28 fid-field px-3 text-fid-sm text-fid-text"
+                :class="paidInvalid ? 'border-fid-error' : ''"
+                @change="setPaid()"
+              />
+              <input
+                v-model="paidCurrency"
+                type="text"
+                maxlength="3"
+                autocapitalize="characters"
+                :aria-label="c.shelf.sheet.copy.currency"
+                class="min-h-11 w-20 fid-field px-3 font-fid-mono text-fid-sm text-fid-text uppercase"
+                @change="paidText && setPaid()"
+              />
+            </div>
+            <p v-if="paidInvalid" class="text-fid-xs text-fid-error">
+              {{ c.shelf.sheet.copy.notAPrice }}
+            </p>
+          </dd>
+
+          <dt class="text-fid-text-muted">{{ c.shelf.sheet.copy.since }}</dt>
+          <dd class="min-w-0">
             <input
-              v-else
-              :value="values[field.id] ?? ''"
-              type="text"
-              class="min-h-11 fid-field px-3 text-fid-sm text-fid-text"
-              @change="setField(field, ($event.target as HTMLInputElement).value)"
+              v-model="since"
+              type="date"
+              :aria-label="c.shelf.sheet.copy.since"
+              class="min-h-11 fid-field px-3 font-fid-mono text-fid-sm text-fid-text"
+              @change="setSince()"
             />
-          </label>
-        </div>
+          </dd>
+        </dl>
       </section>
 
       <!--
@@ -707,56 +856,6 @@ async function remove() {
           <FidIcon name="external-link" :size="14" />
         </a>
         <DiscogsCredit :to="releasePage(record.releaseId)" />
-
-        <!--
-            Where it stands — only where there are any places at all. An empty
-            select beside "view on Discogs" would be a control that can do
-            nothing, and the way to make one is right next to it.
-          -->
-        <label v-if="places.length > 0" class="flex items-center gap-2 text-fid-sm">
-          <span class="text-fid-text-muted">{{ c.places.where }}</span>
-          <select
-            :value="placeId ?? ''"
-            class="fid-field px-3 py-2 text-fid-sm text-fid-text"
-            @change="setPlace(($event.target as HTMLSelectElement).value)"
-          >
-            <option value="">{{ c.places.nowhere }}</option>
-            <option v-for="place in places" :key="place.id" :value="place.id">
-              {{ '— '.repeat(place.depth) }}{{ labelOf(place) }}
-            </option>
-          </select>
-        </label>
-        <NuxtLink
-          v-else
-          to="/places"
-          class="fid-action inline-flex min-h-11 items-center text-fid-sm text-fid-text-muted underline underline-offset-4"
-        >
-          {{ c.places.addTop }}
-        </NuxtLink>
-        <!-- The address, the way it reads on the wall: room · furniture · compartment. -->
-        <p v-if="placeId" class="fid-plate text-fid-text-muted">
-          {{ addressOf(placeId, places).join(' · ') }}
-        </p>
-        <!-- And where the rule would put it, one tap away. -->
-        <p
-          v-if="proposed"
-          class="flex flex-wrap items-center gap-3 text-fid-sm text-fid-text-muted"
-        >
-          {{
-            c.places.suggested(
-              addressOf(proposed.id, places).join(' · '),
-              proposedBy.divider,
-              proposedBy.rule,
-            )
-          }}
-          <button
-            type="button"
-            class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-sm text-fid-text"
-            @click="setPlace(proposed.id)"
-          >
-            {{ c.places.putThere }}
-          </button>
-        </p>
 
         <button
           type="button"
