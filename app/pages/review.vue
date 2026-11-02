@@ -97,9 +97,10 @@ const named = (record: { artist: string; title: string }) =>
 
     <p v-if="ready && !review" class="max-w-prose text-fid-base text-fid-text-muted">
       {{ c.review.empty }}
-      <NuxtLink class="text-fid-accent underline underline-offset-4" to="/settings/sync">{{
-        c.review.settings
-      }}</NuxtLink
+      <NuxtLink
+        class="text-fid-accent underline underline-offset-4"
+        to="/settings/account#sync"
+        >{{ c.review.settings }}</NuxtLink
       >.
     </p>
 
