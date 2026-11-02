@@ -53,8 +53,9 @@ const madeInert: HTMLElement[] = []
 const LIVE = '[aria-live]:not([aria-live="off"]), [role="status"], [role="alert"], [role="log"]'
 
 function silence(element: HTMLElement) {
-  if (element.inert) return
-  if (!element.matches(LIVE) && !element.querySelector(LIVE)) {
+  // A live region is left whole: an inert child inside it would go unread.
+  if (element.inert || element.matches(LIVE)) return
+  if (!element.querySelector(LIVE)) {
     element.inert = true
     madeInert.push(element)
     return
