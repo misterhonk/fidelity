@@ -13,6 +13,7 @@ import {
   type Density,
   type SortKey,
 } from '~/utils/digview'
+import { DOCK_QUERY } from '~/composables/useDocked'
 
 /**
  * Filter, sort and density — kept in the URL, not in a ref.
@@ -55,7 +56,13 @@ export function useDigView(
   const remembered = ref<Density>('comfortable')
   onMounted(() => {
     try {
-      remembered.value = parseDensity(localStorage.getItem(DENSITY_KEY) ?? '')
+      const stored = localStorage.getItem(DENSITY_KEY)
+      // Never chosen: a desk gets the table (#230) — cards a phone wide, stretched, are not a view.
+      remembered.value = stored
+        ? parseDensity(stored)
+        : window.matchMedia(DOCK_QUERY).matches
+          ? 'compact'
+          : 'comfortable'
     } catch {
       // Private mode, or storage refused: the address still decides.
     }

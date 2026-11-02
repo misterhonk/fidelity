@@ -1814,7 +1814,13 @@ const noHorizon = computed(
           </WhyNote>
           <!-- Four cards, two abreast once there is room for two. -->
           <ul class="grid gap-3 @4xl:grid-cols-2">
-            <li v-for="match in wall" :key="match.listingId" class="fid-cascade">
+            <li
+              v-for="match in wall"
+              :key="match.listingId"
+              :data-listing="match.listingId"
+              :aria-current="match.listingId === sheet.open.value?.listingId || undefined"
+              class="fid-cascade rounded-fid-md aria-[current=true]:ring-2 aria-[current=true]:ring-fid-accent"
+            >
               <MatchCard :match="match" />
             </li>
           </ul>

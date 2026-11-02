@@ -444,6 +444,23 @@ body {
 }
 
 /*
+ * Docked on a wide screen (#230): the sheet is the right pane and the page
+ * steps aside for it, so the list stays whole on the left instead of under a
+ * scrim. The width leaves the list at least 55 % of the window.
+ */
+:root {
+  --fid-dock: min(44rem, 45vw);
+}
+
+.fid-sheet-docked {
+  max-width: var(--fid-dock);
+}
+
+html.fid-docked body {
+  padding-inline-end: var(--fid-dock);
+}
+
+/*
  * A drawer comes in from its own edge and goes back out over it (#226). Only
  * on open and close — walking from record to record keeps the crossfade.
  */

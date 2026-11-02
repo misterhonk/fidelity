@@ -142,7 +142,16 @@ const tiles = computed(() => {
 </script>
 
 <template>
-  <main class="@container fid-page-flush flex flex-col gap-8 py-8 md:py-16">
+  <main
+    class="@container fid-page-flush flex flex-col gap-8 py-8 md:py-16 min-[85rem]:grid min-[85rem]:grid-cols-[24rem_minmax(0,1fr)] min-[85rem]:grid-rows-[auto_1fr] min-[85rem]:items-start min-[85rem]:gap-x-4"
+  >
+    <!--
+      On a desk the screen is two columns (#230): the words — search, status,
+      what to do next, your shops, the counts — in a narrow column on the left,
+      and the covers taking the rest of the width. One column of everything,
+      a phone stretched to 1440, read as a page of text with some pictures in
+      it. A phone keeps the one column, in the same order.
+    -->
     <!--
       Signed out there is nothing to draw: the mount redirects to the setup,
       and a dashboard flashing its empty sections on the way there is worse
@@ -256,31 +265,35 @@ const tiles = computed(() => {
         at.
       -->
       <template v-if="home">
-        <CoverRail
-          v-if="home.finds.length > 0 && home.dig"
-          :title="m.home.lastFound"
-          to="/dig"
-          :note="`${home.dig.dealer} · ${digAge}`"
-          :credit="sellerPage(home.dig.dealer)"
+        <div
+          data-home="covers"
+          class="flex min-w-0 flex-col gap-8 min-[85rem]:col-start-2 min-[85rem]:row-span-2 min-[85rem]:row-start-1"
         >
-          <CoverTile
-            v-for="(find, index) in home.finds"
-            :key="find.listingId"
-            :index="index"
-            :thumb-url="coverFor(find.releaseId, find.thumbUrl)?.thumbUrl"
-            :cover-url="coverFor(find.releaseId)?.coverUrl"
-            :title="find.title ?? `Release ${find.releaseId}`"
-            :subtitle="find.artist"
-            :label="find.label"
-            :catno="find.catno"
-            :score="find.score"
-            :note="money(find.price, find.currency)"
-            :open="() => show(find.digId, find.listingId)"
-          />
-        </CoverRail>
+          <CoverRail
+            v-if="home.finds.length > 0 && home.dig"
+            :title="m.home.lastFound"
+            to="/dig"
+            :note="`${home.dig.dealer} · ${digAge}`"
+            :credit="sellerPage(home.dig.dealer)"
+          >
+            <CoverTile
+              v-for="(find, index) in home.finds"
+              :key="find.listingId"
+              :index="index"
+              :thumb-url="coverFor(find.releaseId, find.thumbUrl)?.thumbUrl"
+              :cover-url="coverFor(find.releaseId)?.coverUrl"
+              :title="find.title ?? `Release ${find.releaseId}`"
+              :subtitle="find.artist"
+              :label="find.label"
+              :catno="find.catno"
+              :score="find.score"
+              :note="money(find.price, find.currency)"
+              :open="() => show(find.digId, find.listingId)"
+            />
+          </CoverRail>
 
-        <div v-if="home.finds.length > 0" class="flex flex-col gap-2 px-6">
-          <!--
+          <div v-if="home.finds.length > 0" class="flex flex-col gap-2 px-6">
+            <!--
             An interrupted dig is not a result.
             A scan that stopped — closed tab, lost connection — keeps whatever
             it found, and shown without this it reads as the answer: three
@@ -288,99 +301,101 @@ const tiles = computed(() => {
             screen has always said so and offered to finish; this one borrowed
             its results and none of its honesty.
           -->
-          <p v-if="home.dig && !home.dig.complete" class="text-fid-sm text-fid-sig-gap-text">
-            {{ m.home.interrupted(count(home.dig.scanned), count(home.dig.listingsTotal)) }}
-            <NuxtLink to="/dig" class="underline underline-offset-4">{{
-              m.home.carryOn
-            }}</NuxtLink>
-          </p>
+            <p v-if="home.dig && !home.dig.complete" class="text-fid-sm text-fid-sig-gap-text">
+              {{ m.home.interrupted(count(home.dig.scanned), count(home.dig.listingsTotal)) }}
+              <NuxtLink to="/dig" class="underline underline-offset-4">{{
+                m.home.carryOn
+              }}</NuxtLink>
+            </p>
 
-          <p v-if="pricesGone" class="text-fid-sm text-fid-sig-gap-text">
-            {{ m.home.pricesGone }}
-          </p>
+            <p v-if="pricesGone" class="text-fid-sm text-fid-sig-gap-text">
+              {{ m.home.pricesGone }}
+            </p>
 
-          <!--
+            <!--
             The reasons behind a fold. They are the point of the app and they
             are also five sentences — on a screen meant to be scanned, that is
             a wall. Open once and it is all there.
           -->
-          <details class="group">
-            <summary
-              class="fid-action cursor-pointer list-none gap-2 text-fid-sm text-fid-text-muted hover:text-fid-text"
-            >
-              {{ m.home.whyThese }}
-            </summary>
-            <ul class="mt-2 flex max-w-prose flex-col gap-2">
-              <li
-                v-for="find in home.finds.slice(0, 5)"
-                :key="find.listingId"
-                class="text-fid-sm text-fid-text-muted"
+            <details class="group">
+              <summary
+                class="fid-action cursor-pointer list-none gap-2 text-fid-sm text-fid-text-muted hover:text-fid-text"
               >
-                <span class="fid-num text-fid-text">{{ find.score }}</span>
-                · {{ reasonFor(find.signals) }}
-              </li>
-            </ul>
-          </details>
+                {{ m.home.whyThese }}
+              </summary>
+              <ul class="mt-2 flex max-w-prose flex-col gap-2">
+                <li
+                  v-for="find in home.finds.slice(0, 5)"
+                  :key="find.listingId"
+                  class="text-fid-sm text-fid-text-muted"
+                >
+                  <span class="fid-num text-fid-text">{{ find.score }}</span>
+                  · {{ reasonFor(find.signals) }}
+                </li>
+              </ul>
+            </details>
+          </div>
+
+          <CoverRail
+            v-if="home.shelf.length > 0"
+            :title="m.home.newOnShelf"
+            to="/shelf"
+            :note="m.home.owned(count(home.library.collection))"
+            :credit="collectionPage(identity.username)"
+          >
+            <CoverTile
+              v-for="(record, index) in home.shelf"
+              :key="record.releaseId"
+              :index="index"
+              :thumb-url="record.thumbUrl"
+              :cover-url="record.coverUrl"
+              :title="record.title"
+              :subtitle="record.artist"
+              :label="record.label"
+              :catno="record.catno"
+              :note="record.year ? String(record.year) : null"
+              :open="() => (openInstance = record.instanceId)"
+            />
+          </CoverRail>
+
+          <CoverRail
+            v-if="home.wanted.length > 0"
+            :title="m.home.lastNoted"
+            to="/wantlist"
+            :note="m.home.wanted(count(home.library.wantlist))"
+            :credit="wantlistPage(identity.username)"
+          >
+            <CoverTile
+              v-for="(record, index) in home.wanted"
+              :key="record.releaseId"
+              :index="index"
+              :thumb-url="record.thumbUrl"
+              :cover-url="record.coverUrl"
+              :title="record.title"
+              :subtitle="record.artist"
+              :label="record.label"
+              :catno="record.catno"
+              :note="record.year ? String(record.year) : null"
+              :to="`/wantlist#want-${record.releaseId}`"
+            />
+          </CoverRail>
         </div>
 
-        <CoverRail
-          v-if="home.shelf.length > 0"
-          :title="m.home.newOnShelf"
-          to="/shelf"
-          :note="m.home.owned(count(home.library.collection))"
-          :credit="collectionPage(identity.username)"
-        >
-          <CoverTile
-            v-for="(record, index) in home.shelf"
-            :key="record.releaseId"
-            :index="index"
-            :thumb-url="record.thumbUrl"
-            :cover-url="record.coverUrl"
-            :title="record.title"
-            :subtitle="record.artist"
-            :label="record.label"
-            :catno="record.catno"
-            :note="record.year ? String(record.year) : null"
-            :open="() => (openInstance = record.instanceId)"
-          />
-        </CoverRail>
-
-        <CoverRail
-          v-if="home.wanted.length > 0"
-          :title="m.home.lastNoted"
-          to="/wantlist"
-          :note="m.home.wanted(count(home.library.wantlist))"
-          :credit="wantlistPage(identity.username)"
-        >
-          <CoverTile
-            v-for="(record, index) in home.wanted"
-            :key="record.releaseId"
-            :index="index"
-            :thumb-url="record.thumbUrl"
-            :cover-url="record.coverUrl"
-            :title="record.title"
-            :subtitle="record.artist"
-            :label="record.label"
-            :catno="record.catno"
-            :note="record.year ? String(record.year) : null"
-            :to="`/wantlist#want-${record.releaseId}`"
-          />
-        </CoverRail>
-
-        <!--
+        <div class="@container flex flex-col gap-8">
+          <!--
           The shops, sorted by how often they actually have something. That is
           what affinity measures and it is the only ordering that answers
           "where should I look next".
         -->
-        <section v-if="home.shops.length > 0" class="flex flex-col gap-3 px-6">
-          <h2 class="text-fid-base font-medium text-fid-text">
-            <NuxtLink to="/dealers" class="underline-offset-4 hover:underline">
-              {{ m.home.yourShops }}
-            </NuxtLink>
-          </h2>
+          <section v-if="home.shops.length > 0" class="flex flex-col gap-3 px-6">
+            <h2 class="text-fid-base font-medium text-fid-text">
+              <NuxtLink to="/dealers" class="underline-offset-4 hover:underline">
+                {{ m.home.yourShops }}
+              </NuxtLink>
+            </h2>
 
-          <ul class="grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3">
-            <!--
+            <ul class="grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3">
+              <!--
               Every tile leads to its own shop.
               The name, the hit rate and the size of the stock were all here
               and none of it was reachable. A shop has a profile page — its
@@ -388,55 +403,59 @@ const tiles = computed(() => {
               the only way in was the heading above, which lands on whichever
               shop happens to be first in the list.
             -->
-            <li v-for="shop in home.shops" :key="shop.username">
-              <NuxtLink
-                :to="{ path: '/dealers', query: { dealer: shop.username } }"
-                class="flex flex-col gap-1 rounded-fid-md border border-fid-border bg-fid-surface p-4 transition-colors hover:border-fid-text-muted"
-              >
-                <div class="flex items-baseline justify-between gap-3">
-                  <span class="truncate text-fid-sm font-medium text-fid-text">
-                    {{ shop.displayName }}
-                  </span>
-                  <span v-if="shop.affinity" class="fid-num shrink-0 text-fid-xs text-fid-text">
-                    {{ decimal(shop.affinity) }}
-                  </span>
-                </div>
-                <p class="fid-num text-fid-xs text-fid-text-muted">
-                  {{ m.home.forSale(count(shop.numForSale))
-                  }}<template v-if="shop.lastScannedAt">
-                    · {{ since(shop.lastScannedAt) }}</template
-                  >
-                </p>
-              </NuxtLink>
-            </li>
-          </ul>
-        </section>
+              <li v-for="shop in home.shops" :key="shop.username">
+                <NuxtLink
+                  :to="{ path: '/dealers', query: { dealer: shop.username } }"
+                  class="flex flex-col gap-1 rounded-fid-md border border-fid-border bg-fid-surface p-4 transition-colors hover:border-fid-text-muted"
+                >
+                  <div class="flex items-baseline justify-between gap-3">
+                    <span class="truncate text-fid-sm font-medium text-fid-text">
+                      {{ shop.displayName }}
+                    </span>
+                    <span
+                      v-if="shop.affinity"
+                      class="fid-num shrink-0 text-fid-xs text-fid-text"
+                    >
+                      {{ decimal(shop.affinity) }}
+                    </span>
+                  </div>
+                  <p class="fid-num text-fid-xs text-fid-text-muted">
+                    {{ m.home.forSale(count(shop.numForSale))
+                    }}<template v-if="shop.lastScannedAt">
+                      · {{ since(shop.lastScannedAt) }}</template
+                    >
+                  </p>
+                </NuxtLink>
+              </li>
+            </ul>
+          </section>
 
-        <section class="flex flex-col gap-3 px-6" aria-labelledby="whats-here">
-          <h2 id="whats-here" class="text-fid-base font-medium text-fid-text">
-            {{ m.home.whatIsHere }}
-          </h2>
-          <!--
+          <section class="flex flex-col gap-3 px-6" aria-labelledby="whats-here">
+            <h2 id="whats-here" class="text-fid-base font-medium text-fid-text">
+              {{ m.home.whatIsHere }}
+            </h2>
+            <!--
             Every one of these numbers names a place, so every one of them goes
             there. They were dead labels next to a nav bar that led to the same
             five screens — a count somebody reads and then has to go find is a
             count that made them do the work twice.
           -->
-          <ul class="grid grid-cols-2 gap-2 text-fid-sm @sm:grid-cols-5">
-            <li v-for="tile in tiles" :key="tile.to">
-              <NuxtLink
-                :to="tile.to"
-                class="flex min-h-16 flex-col justify-center rounded-fid-sm px-3 py-2 transition-colors hover:bg-fid-surface"
-                :aria-label="`${tile.label}: ${count(tile.count)}`"
-              >
-                <span class="text-fid-text-muted">{{ tile.label }}</span>
-                <span class="fid-num text-fid-xl text-fid-text" aria-hidden="true">
-                  {{ count(tile.count) }}
-                </span>
-              </NuxtLink>
-            </li>
-          </ul>
-        </section>
+            <ul class="grid grid-cols-2 gap-2 text-fid-sm @sm:grid-cols-3 @lg:grid-cols-5">
+              <li v-for="tile in tiles" :key="tile.to">
+                <NuxtLink
+                  :to="tile.to"
+                  class="flex min-h-16 flex-col justify-center rounded-fid-sm px-3 py-2 transition-colors hover:bg-fid-surface"
+                  :aria-label="`${tile.label}: ${count(tile.count)}`"
+                >
+                  <span class="text-fid-text-muted">{{ tile.label }}</span>
+                  <span class="fid-num text-fid-xl text-fid-text" aria-hidden="true">
+                    {{ count(tile.count) }}
+                  </span>
+                </NuxtLink>
+              </li>
+            </ul>
+          </section>
+        </div>
       </template>
     </template>
 

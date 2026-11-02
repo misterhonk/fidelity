@@ -162,6 +162,22 @@ function rowMatches(index: number): Match[] {
   return props.matches.slice(from, from + perRow.value)
 }
 
+/**
+ * The find the sheet shows, marked in the list and kept on screen (#230).
+ *
+ * With the sheet docked beside the list, `j` and `k` walk the sheet while the
+ * eye stays on the list; without a mark and a scroll the list would stand
+ * still while the record changed, and the two panes would stop being one view.
+ */
+const sheet = useReleaseSheet()
+const current = computed(() => sheet.open.value?.listingId ?? null)
+watch(current, (id) => {
+  const index = id === null ? -1 : props.matches.findIndex((match) => match.listingId === id)
+  if (index < 0) return
+  if (virtual.value) rows.value.scrollToIndex(Math.floor(index / perRow.value))
+  else document.querySelector(`[data-listing="${id}"]`)?.scrollIntoView({ block: 'nearest' })
+})
+
 const gridStyle = computed(() => ({
   display: 'grid',
   gridTemplateColumns: `repeat(${perRow.value}, minmax(0, 1fr))`,
@@ -249,6 +265,9 @@ const gridStyle = computed(() => ({
     <li
       v-for="match in matches"
       :key="match.listingId"
+      :data-listing="match.listingId"
+      :aria-current="match.listingId === current || undefined"
+      class="scroll-my-24 rounded-fid-sm aria-[current=true]:bg-fid-surface aria-[current=true]:ring-2 aria-[current=true]:ring-fid-accent"
       :class="density === 'compact' ? 'fid-cascade' : 'fid-far fid-cascade'"
       :style="{ '--fid-far-height': density === 'compact' ? '2.125rem' : '13rem' }"
     >
@@ -273,7 +292,10 @@ const gridStyle = computed(() => ({
         :key="String(item.key)"
         :ref="(el) => rows.measureElement(el as Element)"
         :data-index="item.index"
-        class="absolute top-0 left-0 w-full"
+        :aria-current="
+          rowMatches(item.index).some((match) => match.listingId === current) || undefined
+        "
+        class="absolute top-0 left-0 w-full rounded-fid-sm aria-[current=true]:bg-fid-surface aria-[current=true]:ring-2 aria-[current=true]:ring-fid-accent"
         :style="{
           transform: `translateY(${item.start - rows.options.scrollMargin}px)`,
           ...gridStyle,
