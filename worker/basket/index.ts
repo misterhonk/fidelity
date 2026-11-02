@@ -307,7 +307,7 @@ export function summarise(
   })
   const allIn =
     charges && total !== null && charges.duty !== null && charges.vat !== null
-      ? Math.round((total + charges.duty + charges.vat) * 100) / 100
+      ? (cents(total) + cents(charges.duty) + cents(charges.vat)) / 100
       : null
 
   const saysHere = live.map((line) => line.shipsHere).filter((flag) => flag != null)

@@ -714,6 +714,17 @@ describe('a parcel from outside the EU', () => {
     expect(summary.allIn).toBe(64.88)
   })
 
+  it('adds the UK VAT, and no duty under £135', () => {
+    const summary = summarise(
+      [line({ price: 20, currency: 'GBP', format: 'Vinyl, LP' })],
+      dealer({ shipsFrom: 'Netherlands' }),
+      shipping([{ ...tier(1, null, 10), currency: 'GBP' }]),
+      'United Kingdom',
+    )
+    expect(summary.importCharges?.region).toBe('uk')
+    expect(summary.allIn).toBe(36)
+  })
+
   it('adds nothing inside the EU', () => {
     const summary = summarise([line()], dealer(), shipping([tier(1, null, 5)]), 'Germany')
     expect(summary.importCharges).toBeNull()
