@@ -488,7 +488,10 @@ const uid = useId()
             <template v-if="summary.importCharges">
               <dt class="text-fid-text-muted">{{ b.customs[summary.importCharges.region] }}</dt>
               <dd class="fid-num text-right text-fid-text">
-                {{ money(summary.importCharges.duty, summary.currency) ?? b.customsOver }}
+                {{
+                  money(summary.importCharges.duty, summary.currency) ??
+                  (summary.importCharges.region === 'us' ? b.customsUnknown : b.customsOver)
+                }}
               </dd>
 
               <template v-if="summary.importCharges.vatRate !== null">
