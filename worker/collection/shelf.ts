@@ -1,7 +1,7 @@
 import { openFidelityDb } from '~~/db/open'
 import type { ShelfHit, ShelfResult } from '#shared/types'
 
-import { norm, tokens } from '../match/normalize'
+import { norm } from '../match/normalize'
 import { catnoText } from './records'
 import { distinctReleases } from '~~/db/collection'
 
@@ -32,7 +32,10 @@ export const SHELF_LIMIT = 12
 export const MIN_QUERY_LENGTH = 2
 
 export async function searchShelf(query: string, now: number): Promise<ShelfResult> {
-  const needles = tokens(norm(query)).filter((token) => token.length > 0)
+  // A lone digit stays: "WARP 9" must not match every WARP record.
+  const needles = norm(query)
+    .split(' ')
+    .filter((token) => token.length > 1 || /\d/.test(token))
   if (needles.length === 0 || query.trim().length < MIN_QUERY_LENGTH) {
     return { hits: [], collection: 0, wantlist: 0 }
   }

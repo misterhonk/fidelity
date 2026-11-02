@@ -15,7 +15,7 @@ import type {
   SortDirection,
 } from '#shared/types'
 
-import { norm, tokens } from '../match/normalize'
+import { norm } from '../match/normalize'
 
 /**
  * The collection as a shelf you can look at.
@@ -142,7 +142,10 @@ export function shelve(
     }
   }
 
-  const needles = tokens(norm(query)).filter((token) => token.length > 0)
+  // A lone digit stays: "WARP 9" must not match every WARP record.
+  const needles = norm(query)
+    .split(' ')
+    .filter((token) => token.length > 1 || /\d/.test(token))
   const wantedLabel = norm(label)
   const wantedArtist = norm(artist)
 

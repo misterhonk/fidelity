@@ -132,6 +132,13 @@ describe('the shelf as rows', () => {
     expect(ids(shelve(shelf, { query: 'warp lp 31' }))).toEqual([])
   })
 
+  it('keeps a lone number of a catalogue number (#246)', () => {
+    const shelf = stores({
+      items: [item(1, { catnos: ['WARP 9'] }), item(2, { catnos: ['WARP 10'] })],
+    })
+    expect(ids(shelve(shelf, { query: 'warp 9' }))).toEqual([1])
+  })
+
   it('sorts by catalogue number in natural order, blanks last either way (#246)', () => {
     const shelf = stores({
       items: [
