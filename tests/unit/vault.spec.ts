@@ -474,4 +474,31 @@ describe('pressing rules between devices', () => {
     expect(Object.keys((await getMeta('pressingRules')) ?? {})).toEqual(['7', '42'])
     await deleteFidelityDb()
   })
+
+  it('keeps a rule set while the round was on the network', async () => {
+    const { deleteFidelityDb } = await import('~~/db/open')
+    const { snapshotLocal, applySnapshot } = await import('~~/worker/vault/sync')
+    const { handlers } = await import('~~/worker/handlers')
+
+    const local = await snapshotLocal(1000)
+    await handlers['wantlist.setRule']({ masterId: 55, rule: { firstOnly: true, except: [] } })
+    await applySnapshot(
+      mergeSnapshots(
+        local,
+        snapshot({
+          pressingRules: { 7: { firstOnly: false, except: [9101], updatedAt: 500 } },
+        }),
+      ),
+    )
+
+    expect(await handlers['wantlist.rule']({ masterId: 55 })).toEqual({
+      firstOnly: true,
+      except: [],
+    })
+    expect(await handlers['wantlist.rule']({ masterId: 7 })).toEqual({
+      firstOnly: false,
+      except: [9101],
+    })
+    await deleteFidelityDb()
+  })
 })

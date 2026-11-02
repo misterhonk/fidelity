@@ -8,6 +8,7 @@ import { fail } from '../fail'
 import { open, seal, sealedSchema } from './crypto'
 import {
   describeSnapshot,
+  mergePressingRules,
   mergeSnapshots,
   SYNCABLE_STORES,
   syncedPreferences,
@@ -78,8 +79,11 @@ export async function applySnapshot(snapshot: VaultSnapshot): Promise<void> {
     await tx.done
   }
 
-  // The merge already holds this device's rules, so the merged map replaces them whole.
-  if (snapshot.pressingRules) await setMeta('pressingRules', snapshot.pressingRules)
+  // Merged again with what is here now: a rule set while the round was on the network is newer than the snapshot.
+  if (snapshot.pressingRules) {
+    const rules = mergePressingRules(await getMeta('pressingRules'), snapshot.pressingRules)
+    if (rules) await setMeta('pressingRules', rules)
+  }
 
   if (snapshot.preferences) {
     /*
