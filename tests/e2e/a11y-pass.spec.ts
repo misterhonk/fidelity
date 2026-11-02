@@ -54,6 +54,14 @@ async function backCloses(page: Page, path: RegExp, param: string, open: () => P
         live.filter((el) => el.closest('[inert]')).map((el) => el.outerHTML.slice(0, 80)),
       ),
   ).toEqual([])
+  // Nor is anything inside one switched off: the region is left whole.
+  expect(
+    await page
+      .locator('[aria-live], [role="status"], [role="alert"], [role="log"]')
+      .evaluateAll((live) =>
+        live.filter((el) => el.querySelector('[inert]')).map((el) => el.outerHTML.slice(0, 80)),
+      ),
+  ).toEqual([])
 
   // A reload keeps it open — the address is the state.
   await page.reload()
