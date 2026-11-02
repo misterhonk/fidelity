@@ -1,24 +1,25 @@
 <script setup lang="ts">
-import type { SharedDig } from '#shared/types'
+import type { SharedDig, Signal } from '#shared/types'
 
-import { reasonFor } from '~/i18n/reason'
+import { byStrength } from '~~/worker/match/reason'
+
+import { plateFor } from '~/i18n/reason'
 import { useDigMessages } from '~/i18n/dig'
 
 /**
  * A find list somebody has sent.
  *
  * **The one screen in this app built for somebody who does not have it.** No
- * token, no collection, no hub entered, possibly never heard of it —
- * everything here comes from the link. Which is why `/shared` is in the
+ * token, no collection, no hub, possibly never heard of it — everything here
+ * comes from the link's fragment (#249). Which is why `/shared` is in the
  * exception list of `app/middleware/setup.global.ts`: a shared link that
  * redirects to the setup is the worst possible way to introduce an app.
  *
- * Reading only. No thumb, no basket, no sheet — those all presuppose a
- * collection of your own. The way to the record leads to Discogs, as it does
- * everywhere else in this app.
+ * Reading only, and no price, condition, seller or cover — the link carries
+ * none (`worker/share.ts`). The way to the record leads to Discogs, as it does
+ * everywhere else in this app; the way into the app leads to the demo.
  */
 const d = useDigMessages()
-const route = useRoute()
 
 useSeoMeta({ title: () => d.value.sharedTitle })
 
@@ -26,71 +27,28 @@ const { call } = useFidelityWorker()
 
 const loading = ref(true)
 const snapshot = shallowRef<SharedDig | null>(null)
-const problem = ref<'link' | 'gone' | 'nohub' | null>(null)
+const problem = ref<'link' | 'newer' | null>(null)
 const error = ref<unknown>(null)
 
 onMounted(async () => {
-  /*
-   * The key is in the fragment and read from there — not from the query.
-   *
-   * No browser sends a fragment to a server. If the key stood beside it as
-   * `?k=`, it would be in every access log the hub or a reverse proxy in front
-   * of it keeps, and the whole encryption would be decoration.
-   */
-  const key = new URLSearchParams(location.hash.slice(1)).get('k')
-  const id = typeof route.query.id === 'string' ? route.query.id : null
-
-  if (!key || !id) {
-    problem.value = 'link'
-    loading.value = false
-    return
-  }
-
+  // The fragment, never the query: no browser sends a fragment to a server.
+  const data = new URLSearchParams(location.hash.slice(1)).get('d')
   try {
-    /*
-     * Which hub gets asked is this device's decision — not the link's.
-     *
-     * An address the sender determines would be an invitation to point a
-     * stranger's browser at an arbitrary server. So the same search that runs
-     * during setup: `/hub` under the same domain first, then the bare origin,
-     * then localhost. The link came from somebody whose hub is exactly there.
-     */
-    const found = await call('hub.discover', undefined)
-    /*
-     * "No hub runs here" is a different message from "the link is old".
-     *
-     * Calling both the same thing cost a quarter of an hour on the first run:
-     * the screen said "expired" while in truth the address was wrong. What was
-     * a debugging session here would be a dead end with no clue for a
-     * recipient.
-     */
-    if (!found.url) {
-      problem.value = 'nohub'
-      return
+    if (!data) problem.value = 'link'
+    else {
+      snapshot.value = await call('share.read', { data })
+      if (!snapshot.value) problem.value = 'newer'
     }
-
-    const hubUrl = found.url
-    snapshot.value = await call('share.read', { hubUrl, id, key })
-    if (!snapshot.value) problem.value = 'gone'
   } catch (cause) {
-    /*
-     * A wrong key and an expired link mean the same thing: nothing will come
-     * of this. Everything else is an error and is shown as one.
-     *
-     * Before, every cause landed in the sentence "expired". That cost a
-     * quarter of an hour on the first run — and it would be worse for a
-     * recipient than it was here: they would have no second way to find out.
-     */
     error.value = cause
-    problem.value = 'gone'
+    problem.value = 'link'
   } finally {
     loading.value = false
   }
 })
 
-// A clock that ticks at the deadline, not a `Date.now()` read once (rule 4, useDeadline).
-const { passed } = useDeadline(() => snapshot.value?.expiresAt)
-const fresh = computed(() => snapshot.value?.expiresAt !== undefined && !passed.value)
+/** Why it fits, strongest first, as plates: the link carries names, not counts. */
+const plates = (signals: Signal[]) => [...signals].sort(byStrength).map(plateFor).join(' · ')
 </script>
 
 <template>
@@ -100,13 +58,7 @@ const fresh = computed(() => snapshot.value?.expiresAt !== undefined && !passed.
     <section v-else-if="problem" class="flex flex-col gap-3">
       <h1 class="text-fid-xl font-bold text-fid-text">{{ d.sharedTitle }}</h1>
       <p class="text-fid-base text-fid-text-muted">
-        {{
-          problem === 'link'
-            ? d.sharedBadLink
-            : problem === 'nohub'
-              ? d.sharedNoHub
-              : d.sharedGone
-        }}
+        {{ problem === 'newer' ? d.sharedNewer : d.sharedBadLink }}
       </p>
       <ErrorNote v-if="error" :cause="error" :signed-in="false" />
       <NuxtLink
@@ -119,9 +71,7 @@ const fresh = computed(() => snapshot.value?.expiresAt !== undefined && !passed.
 
     <template v-else-if="snapshot">
       <header class="flex flex-col gap-2">
-        <h1 class="text-fid-xl font-bold text-fid-text">
-          {{ d.sharedFrom(snapshot.dealer) }}
-        </h1>
+        <h1 class="text-fid-xl font-bold text-fid-text">{{ d.sharedTitle }}</h1>
         <p class="text-fid-sm text-fid-text-muted">
           {{
             d.sharedScope(
@@ -131,13 +81,7 @@ const fresh = computed(() => snapshot.value?.expiresAt !== undefined && !passed.
             )
           }}
         </p>
-        <!--
-            The six-hour clock, here too. It runs from the scan and not from
-            the sending; hence a point in time here and not a duration.
-          -->
-        <p v-if="fresh" class="text-fid-xs text-fid-text-muted">
-          {{ d.shareGone(dayTime(snapshot.expiresAt)) }}
-        </p>
+        <p class="text-fid-xs text-fid-text-muted">{{ d.sharedNoPrices }}</p>
       </header>
 
       <ul class="flex flex-col gap-3">
@@ -162,19 +106,8 @@ const fresh = computed(() => snapshot.value?.expiresAt !== undefined && !passed.
             }}
           </p>
 
-          <p class="text-fid-sm text-fid-text">{{ reasonFor(match.signals) }}</p>
-
-          <!--
-              Price and condition only for as long as they may be shown. After
-              six hours the link is gone anyway — but between "the server still
-              has it" and "this device finds it expired" lies a clock, and this
-              is the one that counts.
-            -->
-          <p v-if="fresh && match.price !== null" class="text-fid-sm text-fid-text">
-            {{ money(match.price, match.currency) }}
-            <span v-if="match.condition" class="text-fid-text-muted"
-              >· {{ match.condition }}</span
-            >
+          <p v-if="match.signals.length" class="text-fid-sm text-fid-text">
+            {{ plates(match.signals) }}
           </p>
 
           <p class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">

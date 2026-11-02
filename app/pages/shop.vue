@@ -35,19 +35,14 @@ const scanningDealer = ref<string | null>(null)
 const enriching = ref<EnrichProgress | null>(null)
 const gaps = ref<{ expanded: number; requests: number; titles: string[] } | null>(null)
 /*
- * Sharing.
- *
- * The key comes from the worker and goes into the `#` fragment of the link —
- * the one part of an address no browser sends to a server, and what the hub's
- * inability to read the contents rests on. So it is assembled here and nowhere
- * else.
+ * Sharing (#249). The worker packs the list; it travels in the link's `#`
+ * fragment, with no hub and no price (`app/utils/share-link.ts`).
  */
-const hubUrl = ref<string | null>(null)
 const sharing = ref(false)
-const shareLink = ref<{ url: string; matches: number; total: number; until: number } | null>(
-  null,
-)
+const shareLink = ref<{ url: string; matches: number; total: number } | null>(null)
 const shareCopied = ref(false)
+/** A share sheet on this device, or only the clipboard: the button says which. */
+const canSend = ref(false)
 
 async function share() {
   if (sharing.value || !result.value) return
@@ -57,12 +52,10 @@ async function share() {
 
   try {
     const made = await call('share.create', { digId: result.value.dig.id })
-    const base = `${location.origin}${location.pathname.replace(/\/shop\/?$/, '')}`
     shareLink.value = {
-      url: `${base}/shared?id=${made.id}#k=${made.key}`,
+      url: sharedUrl(made.data),
       matches: made.matches,
       total: result.value.matches.length,
-      until: made.expiresAt,
     }
   } catch (cause) {
     error.value = cause
@@ -71,15 +64,9 @@ async function share() {
   }
 }
 
-async function copyShare() {
+async function sendShare() {
   if (!shareLink.value) return
-  try {
-    await navigator.clipboard.writeText(shareLink.value.url)
-    shareCopied.value = true
-  } catch {
-    // With no clipboard the link stays in the field and can be taken by hand.
-    // An error here would be louder than the problem.
-  }
+  shareCopied.value = (await handOver(shareLink.value.url)) === 'copied'
 }
 
 const refreshing = ref<RefreshProgress | null>(null)
@@ -261,9 +248,7 @@ const error = ref<unknown>(null)
 const resumable = ref<Dig | null>(null)
 
 onMounted(async () => {
-  // Only to show or leave out the share button. Without a hub there is
-  // nowhere a find list could live.
-  void call('preferences.get', undefined).then((prefs) => (hubUrl.value = prefs.hubUrl))
+  canSend.value = typeof navigator.share === 'function'
 
   // An interrupted dig is offered before anything else: the work is already
   // paid for in requests, and throwing it away to start over would spend the
@@ -1183,14 +1168,11 @@ const noHorizon = computed(
           </button>
 
           <!--
-            Sharing, and only where it is possible. Without a hub there is
-            nowhere a find list could live, and the plate is simply not there:
-            a sentence apologising for a hub nobody asked for stood above the
-            finds until #223. After six hours it goes altogether: what may no longer
-            be shown may not be passed on either (rule 4).
+            Sharing needs no hub since #249: the list travels in the link.
+            After six hours it goes: its listings may have sold (rule 4).
           -->
           <button
-            v-if="!expired && hubUrl"
+            v-if="!expired"
             type="button"
             :disabled="sharing || !online"
             class="fid-action fid-plate min-h-9 text-fid-text transition-colors hover:text-fid-accent disabled:opacity-50"
@@ -1241,14 +1223,11 @@ const noHorizon = computed(
             <button
               type="button"
               class="fid-action shrink-0 rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
-              @click="copyShare"
+              @click="sendShare"
             >
-              {{ shareCopied ? d.shareCopied : d.shareCopy }}
+              {{ shareCopied ? d.shareCopied : canSend ? d.shareSend : d.shareCopy }}
             </button>
           </div>
-          <p class="text-fid-xs text-fid-text-muted">
-            {{ d.shareGone(dayTime(shareLink.until)) }}
-          </p>
           <p class="text-fid-xs text-fid-text-muted">{{ d.shareTells }}</p>
         </div>
 

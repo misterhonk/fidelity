@@ -125,15 +125,13 @@ const en = {
   refreshPrices: 'Refresh the prices',
   share: 'Share this list',
   sharedTitle: 'A list of finds',
-  sharedFrom: (dealer: string) => `Finds at ${dealer}`,
   sharedScope: (shown: string, total: string, coverage: string) =>
     shown === total
       ? `All ${total} of them. We read ${coverage} % of the shop.`
       : `The best ${shown} of ${total}. We read ${coverage} % of the shop.`,
-  sharedGone: 'This link has expired. Prices from a shop only live six hours.',
+  sharedNewer: 'This link comes from a newer Sleeveside. Reload the page to read it.',
+  sharedNoPrices: 'No prices or conditions travel in a link. Discogs has them, one tap away.',
   sharedBadLink: 'Something is missing from this link, most likely the part after the #.',
-  sharedNoHub:
-    'No hub answers at this address. The link only works where the list was shared from.',
   sharedWhatIsThis: 'What is Sleeveside?',
   sharedPitch:
     'We go through a record shop with your collection in mind and say, for every find, why it fits you.',
@@ -156,16 +154,16 @@ const en = {
     next: 'Next',
     back: 'Back',
   },
-  shareBusy: 'Sealing …',
+  shareBusy: 'Packing …',
   shareReady: (matches: number, total: number) =>
     matches < total
       ? `Link ready, with the top ${matches} of ${total} finds.`
       : `Link ready, with all ${matches} finds.`,
   shareCopy: 'Copy link',
+  shareSend: 'Send link',
   shareCopied: 'Copied.',
-  shareGone: (when: string) => `Works until ${when}, then it is gone.`,
   shareTells:
-    'Whoever opens it sees why each record fits you, and so, a little, what you collect.',
+    'Whoever opens it sees why each record fits you, and so, a little, what you collect. No prices, no conditions, no shop name.',
   refreshAbout: (minutes: number) =>
     `${counted(minutes, 'minute', 'minutes')}. Finds nothing new, only what this dig already found, again.`,
   refreshed: (n: string) => `${n} up to date again`,
@@ -418,15 +416,14 @@ const de: typeof en = {
   refreshPrices: 'Preise auffrischen',
   share: 'Diese Liste teilen',
   sharedTitle: 'Eine Fundliste',
-  sharedFrom: (dealer) => `Funde bei ${dealer}`,
   sharedScope: (shown, total, coverage) =>
     shown === total
       ? `Alle ${total}. Wir haben ${coverage} % des Ladens gelesen.`
       : `Die besten ${shown} von ${total}. Wir haben ${coverage} % des Ladens gelesen.`,
-  sharedGone: 'Dieser Link ist abgelaufen. Preise aus einem Laden halten nur sechs Stunden.',
+  sharedNewer: 'Der Link kommt von einem neueren Sleeveside. Lad die Seite neu, dann geht er.',
+  sharedNoPrices:
+    'Preise und Zustände reisen nicht mit. Die stehen bei Discogs, einen Tipp weiter.',
   sharedBadLink: 'An diesem Link fehlt etwas, vermutlich der Teil hinter dem #.',
-  sharedNoHub:
-    'Unter dieser Adresse antwortet kein Hub. Der Link funktioniert nur da, wo jemand die Liste geteilt hat.',
   sharedWhatIsThis: 'Was ist Sleeveside?',
   sharedPitch:
     'Wir gehen einen Plattenladen mit deiner Sammlung im Kopf durch und sagen zu jedem Fund, warum er zu dir passt.',
@@ -448,16 +445,16 @@ const de: typeof en = {
     next: 'Weiter',
     back: 'Zurück',
   },
-  shareBusy: 'Wird versiegelt …',
+  shareBusy: 'Wird gepackt …',
   shareReady: (matches, total) =>
     matches < total
       ? `Link steht, mit den besten ${matches} von ${total} Funden.`
       : `Link steht, mit allen ${matches} Funden.`,
   shareCopy: 'Link kopieren',
+  shareSend: 'Link senden',
   shareCopied: 'Kopiert.',
-  shareGone: (when) => `Gilt bis ${when}, danach ist er weg.`,
   shareTells:
-    'Wer ihn öffnet, sieht zu jeder Platte, warum sie zu dir passt, und damit ein bisschen, was du sammelst.',
+    'Wer ihn öffnet, sieht zu jeder Platte, warum sie zu dir passt. Und damit ein bisschen, was du sammelst. Ohne Preise, ohne Zustand, ohne Ladennamen.',
   refreshAbout: (minutes) =>
     `${counted(minutes, 'Minute', 'Minuten')}. Findet nichts Neues, nur das nochmal, was dieser Dig schon gefunden hat.`,
   refreshed: (n) => `${n} wieder aktuell`,

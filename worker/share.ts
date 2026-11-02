@@ -1,144 +1,159 @@
 import { z } from 'zod'
 
-import { seal, open } from './vault/crypto'
-import { createHubClient } from './hub/client'
-import { HUB_BULK_TIMEOUT_MS, withTimeout } from './hub/fallback'
-import { getPreferences } from '~~/db/meta'
 import type { DigWithMatches } from '#shared/protocol'
-import type { SharedDig } from '#shared/types'
+import type { SharedDig, SharedFind, Signal, SignalType } from '#shared/types'
 import { fail } from './fail'
 import { sharedDigSchema } from './payloads'
 
 /**
- * Sending a find list without putting it anywhere somebody can read it.
+ * Sending a find list without putting it anywhere (#249).
  *
- * The hub carries a sealed envelope under a random id. The key sits in the `#`
- * fragment of the link — and **no** browser sends a fragment to a server.
- * Whoever has the link can read; whoever has the hub's database has a string.
+ * The whole list travels in the `#` fragment of the link, compressed. No hub,
+ * no server, nothing stored: whoever has the link has the list, and no browser
+ * sends a fragment anywhere. Rule 8 holds — this used to need the hub.
  *
- * **Why the hub at all.** A find list of a hundred matches does not fit in an
- * address, and there is nothing else both sides can reach. Under rule 8 no
- * feature hangs off the hub — this one is the exception that proves it:
- * without a hub the button is not there, and everything else carries on.
+ * **What travels** is ids, catalogue facts, and why each one fits. Never a
+ * price, a condition, the seller's name or a cover (Discogs Restricted Data,
+ * docs/09): a link lives as long as somebody keeps it, and the six hours do not
+ * reach into a chat history.
  */
 
-/** The snapshot's version, so that an old link is not silently misread by a
- *  newer client. */
-const SHARE_VERSION = 1
+/** 2: the fragment payload. 1 was the hub's sealed envelope. */
+const SHARE_VERSION = 2
 
 /**
- * How many matches travel along.
- *
- * The list is sorted by score; anyone reading past a hundred is not reading
- * any more, they are scrolling. The total travels with it so that the snapshot
- * does not claim that was all of them.
+ * How many finds travel along. The list is sorted by score, and the total
+ * travels with it so the link does not claim that was all of them. Fifty keep
+ * the link around 5,000 characters, which chat apps still carry whole.
  */
-const MAX_SHARED_MATCHES = 100
+const MAX_SHARED_MATCHES = 50
 
-/** 128 bits as hex — id and key have the same shape and both come from
- *  `crypto.getRandomValues`, not from `Math.random`. */
-function randomHex(bytes: number): string {
-  return [...crypto.getRandomValues(new Uint8Array(bytes))]
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('')
-}
-
-export interface ShareCreated {
-  id: string
-  /** Belongs in the `#` fragment and nowhere else. */
-  key: string
-  /** When it expires — the dig's clock, not the sharing's. */
-  expiresAt: number
-  matches: number
-}
+/** Signals whose evidence is marketplace data — a price or a stock count. */
+const MARKET_SIGNALS: ReadonlySet<SignalType> = new Set(['PRICE_SIGNAL', 'SCARCITY'])
 
 /**
- * Takes what the screen has loaded anyway.
+ * The evidence a reason may carry: catalogue names, never counts.
  *
- * Deliberately not `digId`: `loadDig()` applies `bestPerRelease()` and folds
- * duplicate copies away. Fetching the same list from the database again here
- * would mean making that selection a second time — and the second version
- * would be the one nobody maintains. What is shared is what is on the screen.
+ * How many records by an artist somebody owns, what format they own an album
+ * in, how high a want ranks — those are the sender's collection and wantlist.
+ * The plates on the shared page say the same thing without them.
  */
-export async function createShare(loaded: DigWithMatches): Promise<ShareCreated> {
-  const preferences = await getPreferences()
-  const hub = createHubClient({
-    baseUrl: preferences.hubUrl,
-    secret: preferences.hubSecret,
-    accessKey: preferences.accessKey,
-  })
-  if (!hub) throw fail('no-hub', 'no hub configured')
+const NAMED_EVIDENCE = [
+  'artist',
+  'via',
+  'relation',
+  'label',
+  'prefix',
+  'person',
+  'styles',
+  'album',
+] as const
 
-  const dig = loaded.dig
+function cleanSignals(signals: readonly Signal[]): Signal[] {
+  return signals
+    .filter((signal) => !MARKET_SIGNALS.has(signal.type))
+    .map((signal) => ({
+      type: signal.type,
+      confidence: signal.confidence,
+      evidence: Object.fromEntries(
+        NAMED_EVIDENCE.filter((key) => signal.evidence[key] !== undefined).map((key) => [
+          key,
+          signal.evidence[key],
+        ]),
+      ),
+    }))
+}
 
-  /*
-   * What has expired is not shared.
-   *
-   * Six hours after the scan, prices and conditions may not be shown any more
-   * (rule 4). Sharing an expired dig would mean showing somebody else exactly
-   * that — and getting round the lock on one's own screen by opening a second
-   * one.
-   */
-  if (Date.now() >= dig.expiresAt) throw fail('dig-expired', 'dig expired')
-
-  const snapshot: SharedDig = {
+/** What may leave the device, picked field by field rather than stripped. */
+export function toSharedDig(loaded: DigWithMatches): SharedDig {
+  return {
     version: SHARE_VERSION,
-    dealer: dig.dealer,
-    scannedAt: dig.startedAt,
-    expiresAt: dig.expiresAt,
-    coverage: dig.coverage,
-    listingsTotal: dig.listingsTotal,
+    coverage: loaded.dig.coverage,
     matchesTotal: loaded.matches.length,
-    matches: loaded.matches.slice(0, MAX_SHARED_MATCHES),
+    matches: loaded.matches.slice(0, MAX_SHARED_MATCHES).map((match): SharedFind => ({
+      releaseId: match.releaseId,
+      listingId: match.listingId,
+      score: match.score,
+      artist: match.artist,
+      title: match.title,
+      label: match.label,
+      catno: match.catno,
+      format: match.format,
+      year: match.year,
+      signals: cleanSignals(match.signals),
+    })),
+  }
+}
+
+async function pipe(
+  bytes: Uint8Array,
+  stream: CompressionStream | DecompressionStream,
+): Promise<Uint8Array> {
+  const body = new Blob([bytes as BlobPart]).stream().pipeThrough(stream)
+  return new Uint8Array(await new Response(body).arrayBuffer())
+}
+
+/** base64url: the fragment may hold `+` and `/`, but a chat app may not keep them. */
+function toBase64Url(bytes: Uint8Array): string {
+  let binary = ''
+  for (const byte of bytes) binary += String.fromCharCode(byte)
+  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
+}
+
+function fromBase64Url(text: string): Uint8Array {
+  const binary = atob(text.replaceAll('-', '+').replaceAll('_', '/'))
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0))
+}
+
+export async function encodeShare(snapshot: SharedDig): Promise<string> {
+  const json = new TextEncoder().encode(JSON.stringify(snapshot))
+  return toBase64Url(await pipe(json, new CompressionStream('deflate-raw')))
+}
+
+/**
+ * Takes what the screen has loaded anyway — `loadDig()` has already folded
+ * duplicate copies away, and what is shared is what is on the screen.
+ */
+export async function createShare(
+  loaded: DigWithMatches,
+): Promise<{ data: string; matches: number }> {
+  /*
+   * An expired dig is not shared. Its listings may have sold, and the link
+   * would send somebody to six-hour-old stock as if it were fresh (rule 4).
+   */
+  if (Date.now() >= loaded.dig.expiresAt) throw fail('dig-expired', 'dig expired')
+
+  const snapshot = toSharedDig(loaded)
+  return { data: await encodeShare(snapshot), matches: snapshot.matches.length }
+}
+
+/**
+ * And the other side: opening a link. Runs **with no token and no sign-in**.
+ *
+ * Null for a link from a newer Sleeveside — too new, not damaged.
+ */
+export async function readShare(data: string): Promise<SharedDig | null> {
+  let envelope: unknown
+  try {
+    const json = await pipe(fromBase64Url(data), new DecompressionStream('deflate-raw'))
+    envelope = JSON.parse(new TextDecoder().decode(json))
+  } catch {
+    throw fail('malformed-payload', 'shared list does not decode')
   }
 
-  const id = randomHex(16)
-  const key = randomHex(16)
-  const sealed = await seal(snapshot, key)
-
-  await withTimeout(hub.shareWrite(id, sealed, dig.expiresAt), HUB_BULK_TIMEOUT_MS)
-  return { id, key, expiresAt: dig.expiresAt, matches: snapshot.matches.length }
-}
-
-/**
- * And the other side: opening a link.
- *
- * Runs **with no token and no sign-in**. Whoever receives the link may never
- * have opened Fidelity, and sending them to the setup first would be the worst
- * possible way to introduce an app.
- */
-export async function readShare(
-  hubUrl: string,
-  id: string,
-  key: string,
-): Promise<SharedDig | null> {
-  /*
-   * Built without a secret, on purpose.
-   *
-   * The recipient has none. Even if they happened to have one stored for some
-   * *other* hub, it would have no business here — a secret does not go to a
-   * server just because a link points at it.
-   */
-  const hub = createHubClient({ baseUrl: hubUrl, secret: null })
-  if (!hub) return null
-
-  const found = await withTimeout(hub.shareRead(id), HUB_BULK_TIMEOUT_MS)
-  if (!found) return null
-
-  // The version first: a link from a newer Sleeveside is too new, not damaged.
-  const envelope = await open(found.sealed, key, z.looseObject({ version: z.number() }))
-  if (envelope.version > SHARE_VERSION) return null
+  const version = z.looseObject({ version: z.number() }).safeParse(envelope)
+  if (version.success && version.data.version > SHARE_VERSION) return null
 
   const parsed = sharedDigSchema.safeParse(envelope)
   if (!parsed.success) throw fail('malformed-payload', 'shared list does not match the schema')
+
+  // A hand-made link is cut to the same names an honest one carries.
   const snapshot = parsed.data
-
-  /*
-   * The expiry is checked again here, and this time it is not dead code: the
-   * server has its own clock, the device has another, and what may be shown is
-   * decided by the one somebody is sitting in front of.
-   */
-  if (Date.now() >= snapshot.expiresAt) return null
-
-  return snapshot
+  return {
+    ...snapshot,
+    matches: snapshot.matches.map((match) => ({
+      ...match,
+      signals: cleanSignals(match.signals),
+    })),
+  }
 }

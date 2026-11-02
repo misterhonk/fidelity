@@ -1,14 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
-import { z } from 'zod'
+import { describe, expect, it } from 'vitest'
 
 import { isHttps } from '#shared/listen'
 import { releaseDetailSchema } from '~~/worker/discogs/schemas'
 import { parsePreferences, sharedDigSchema, vaultSnapshotSchema } from '~~/worker/payloads'
-import { readShare } from '~~/worker/share'
 import { open, seal } from '~~/worker/vault/crypto'
-
-const shareRead = vi.hoisted(() => vi.fn())
-vi.mock('~~/worker/hub/client', () => ({ createHubClient: () => ({ shareRead }) }))
 
 /**
  * Shared links, vault files and backups are parsed, not cast (#207).
@@ -110,39 +105,20 @@ describe('a vault snapshot', () => {
   }, 30_000)
 })
 
-const match = {
-  digId: 'd',
-  listingId: 1,
+const find = {
   releaseId: 2,
+  listingId: 1,
   score: 80,
-  signals: [{ type: 'WANTLIST_EXACT', confidence: 1, evidence: {} }],
-  title: 'T',
   artist: 'A',
+  title: 'T',
   label: null,
   catno: null,
   format: null,
   year: 1990,
-  condition: null,
-  sleeve: null,
-  price: 1200,
-  currency: 'EUR',
-  comments: null,
-  thumbUrl: null,
-  marketLowestPrice: null,
-  marketNumForSale: null,
-  expired: false,
+  signals: [{ type: 'WANTLIST_EXACT', confidence: 1, evidence: {} }],
 }
 
-const shared = {
-  version: 1,
-  dealer: 'tom',
-  scannedAt: 1,
-  expiresAt: 2,
-  coverage: 1,
-  listingsTotal: 10,
-  matchesTotal: 1,
-  matches: [match],
-}
+const shared = { version: 2, coverage: 1, matchesTotal: 1, matches: [find] }
 
 describe('a shared find list', () => {
   it('reads a well-formed one', () => {
@@ -151,46 +127,26 @@ describe('a shared find list', () => {
 
   it('rejects a broken one', () => {
     expect(sharedDigSchema.safeParse({ ...shared, matches: 'many' }).success).toBe(false)
-    expect(sharedDigSchema.safeParse({ ...shared, expiresAt: undefined }).success).toBe(false)
+    expect(sharedDigSchema.safeParse({ ...shared, coverage: undefined }).success).toBe(false)
     expect(
-      sharedDigSchema.safeParse({ ...shared, matches: [{ ...match, listingId: 'x' }] }).success,
+      sharedDigSchema.safeParse({ ...shared, matches: [{ ...find, listingId: 'x' }] }).success,
     ).toBe(false)
     expect(
       sharedDigSchema.safeParse({
         ...shared,
-        matches: [{ ...match, signals: [{ type: 'NOPE' }] }],
+        matches: [{ ...find, signals: [{ type: 'NOPE' }] }],
       }).success,
     ).toBe(false)
   })
 
-  it('keeps no address that is not https', () => {
+  it('keeps nothing it does not read — a cover or a price among them', () => {
     const parsed = sharedDigSchema.parse({
       ...shared,
-      matches: [
-        {
-          ...match,
-          thumbUrl: 'javascript:alert(1)',
-          videos: [
-            { title: 'x', uri: 'javascript:alert(1)' },
-            { title: 'y', uri: 'https://youtu.be/abc' },
-          ],
-        },
-      ],
+      dealer: 'tom',
+      matches: [{ ...find, thumbUrl: 'javascript:alert(1)', price: 1200 }],
     })
-    expect(parsed.matches[0]!.thumbUrl).toBeNull()
-    expect(parsed.matches[0]!.videos).toEqual([{ title: 'y', uri: 'https://youtu.be/abc' }])
+    expect(parsed).not.toHaveProperty('dealer')
+    expect(parsed.matches[0]).not.toHaveProperty('thumbUrl')
+    expect(parsed.matches[0]).not.toHaveProperty('price')
   })
-
-  it('opens through the schema and refuses what does not fit', async () => {
-    const sealed = await seal({ ...shared, matches: null }, 'k')
-    await expect(open(sealed, 'k', sharedDigSchema)).rejects.toMatchObject({
-      code: 'malformed-payload',
-    })
-    expect(await open(await seal(shared, 'k'), 'k', z.unknown())).toEqual(shared)
-  }, 30_000)
-
-  it('reads a link from a newer version as nothing, not as damaged', async () => {
-    shareRead.mockResolvedValueOnce({ sealed: await seal({ version: 2 }, 'k'), expiresAt: 0 })
-    expect(await readShare('https://hub.example', 'id', 'k')).toBeNull()
-  }, 30_000)
 })

@@ -1684,17 +1684,32 @@ export interface StackShop {
   seen: number
 }
 
+/**
+ * One find in a shared link (#249): ids, catalogue facts and why it fits.
+ *
+ * Never a price, a condition, a seller or a cover — the link travels on its
+ * own and nothing in it expires, so nothing in it may be marketplace data or
+ * Discogs Restricted Data. Evidence is cut to names (`worker/share.ts`).
+ */
+export interface SharedFind {
+  releaseId: number
+  listingId: number
+  score: number
+  artist: string | null
+  title: string | null
+  label: string | null
+  catno: string | null
+  format: string | null
+  year: number | null
+  signals: Signal[]
+}
+
+/** A find list as it travels in the fragment of a link — no hub, no seller. */
 export interface SharedDig {
   version: number
-  dealer: string
-  scannedAt: number
-  /** The dig's clock, not the sharing's — otherwise a find list five hours
-   *  old would end up eleven hours old (rule 4). */
-  expiresAt: number
   coverage: number
-  listingsTotal: number
   matchesTotal: number
-  matches: Match[]
+  matches: SharedFind[]
 }
 
 /** Up to this many pressings an album is rare enough to say so on a find (M20 #6). */

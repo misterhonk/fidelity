@@ -277,9 +277,8 @@ async function share() {
   shareLink.value = null
   try {
     const made = await call('share.create', { digId: dig.value.dig.id })
-    const base = location.origin + location.pathname.replace(/\/stack\/?$/, '')
-    shareLink.value = `${base}/shared?id=${made.id}#k=${made.key}`
-    await navigator.clipboard.writeText(shareLink.value).catch(() => {})
+    shareLink.value = sharedUrl(made.data)
+    await handOver(shareLink.value)
   } catch (cause) {
     error.value = cause
   } finally {
