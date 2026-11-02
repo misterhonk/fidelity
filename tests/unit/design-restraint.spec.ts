@@ -283,7 +283,11 @@ describe('the middle volume', () => {
    * answer to "what do I do here".
    */
   it('leaves the one filled surface per screen alone', () => {
-    const uses = screens.filter(({ source }) => /\bfid-tonal\b/.test(source))
+    // The class, or the FidButton tier that draws it — which the class alone missed (#313).
+    const uses = screens.filter(
+      ({ source }) =>
+        /\bfid-tonal\b/.test(source) || /<FidButton\b[^>]*\svariant="secondary"/s.test(source),
+    )
     expect(uses.length, 'nothing uses it yet').toBeGreaterThan(0)
 
     for (const { file, source } of uses) {
