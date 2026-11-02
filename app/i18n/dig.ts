@@ -162,6 +162,9 @@ const en = {
   shareCopy: 'Copy link',
   shareSend: 'Send link',
   shareCopied: 'Copied.',
+  /** The top find as a picture (#250): sleeve, record, reason. Never a cover. */
+  shareCard: 'Share the top find as a picture',
+  shareCardAlt: 'The top find as a picture. Press and hold to save it.',
   shareTells:
     'Whoever opens it sees why each record fits you, and so, a little, what you collect. No prices, no conditions, no shop name.',
   refreshAbout: (minutes: number) =>
@@ -453,6 +456,8 @@ const de: typeof en = {
   shareCopy: 'Link kopieren',
   shareSend: 'Link senden',
   shareCopied: 'Kopiert.',
+  shareCard: 'Besten Fund als Bild teilen',
+  shareCardAlt: 'Der beste Fund als Bild. Lang drücken zum Sichern.',
   shareTells:
     'Wer ihn öffnet, sieht zu jeder Platte, warum sie zu dir passt. Und damit ein bisschen, was du sammelst. Ohne Preise, ohne Zustand, ohne Ladennamen.',
   refreshAbout: (minutes) =>
@@ -754,6 +759,8 @@ const fr: typeof en = {
   shareCopy: 'Copier le lien',
   shareSend: 'Envoyer le lien',
   shareCopied: 'Copié.',
+  shareCard: 'Partager la meilleure trouvaille en image',
+  shareCardAlt: 'La meilleure trouvaille en image. Appui long pour l’enregistrer.',
   shareTells:
     'Qui l’ouvre voit pour chaque disque pourquoi il te va, et donc un peu ce que tu collectionnes. Sans prix, sans état, sans nom de boutique.',
   refreshAbout: (minutes) =>

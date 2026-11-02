@@ -66,6 +66,7 @@ import type {
   RoundProgress,
   RoundSummary,
   SharedDig,
+  SharedFind,
   RecordSearch,
   ShelfResult,
   ShelfChip,
@@ -1188,7 +1189,8 @@ export interface WorkerContract {
   'share.create': {
     params: { digId: string }
     progress: never
-    result: { data: string; matches: number }
+    /** `top`: the best find, cleaned like the link, for the share card (#250). */
+    result: { data: string; matches: number; top: SharedFind | null }
   }
 
   /** And open a shared link — **no token, no sign-in**. Null when it is too new. */
