@@ -17,6 +17,10 @@ const { call } = useFidelityWorker()
 const rule = ref<PressingRule>({ firstOnly: false, except: [] })
 const typed = ref('')
 const invalid = ref(false)
+// A new keystroke is a new attempt; the old complaint no longer applies.
+watch(typed, () => {
+  invalid.value = false
+})
 
 onMounted(async () => {
   try {
@@ -97,10 +101,15 @@ function add() {
           autocomplete="off"
           :aria-invalid="invalid"
           :placeholder="c.wantlist.rule.exceptPlaceholder"
-          class="fid-num min-h-11 min-w-0 flex-1 rounded-fid-sm border border-fid-border bg-fid-surface px-3 text-fid-sm text-fid-text"
+          class="fid-num min-h-11 min-w-0 flex-1 rounded-fid-sm border bg-fid-surface px-3 text-fid-sm text-fid-text"
+          :class="invalid ? 'border-fid-error' : 'border-fid-border'"
         />
         <FidButton variant="tertiary" type="submit">{{ c.wantlist.rule.exceptAdd }}</FidButton>
       </div>
+      <p v-if="invalid" role="alert" class="flex items-center gap-1 text-fid-xs text-fid-error">
+        <FidIcon name="circle-alert" :size="14" aria-hidden="true" />
+        {{ c.wantlist.rule.notARelease }}
+      </p>
     </form>
   </section>
 </template>
