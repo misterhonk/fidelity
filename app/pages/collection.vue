@@ -206,6 +206,8 @@ async function apply(change: BulkChange) {
   const instanceIds = [...selected.value]
   if (instanceIds.length === 0) return
   const result = await call('collection.bulk', { instanceIds, change })
+  // Every copy was already there: no line, and no Undo all that would undo nothing.
+  if (result.changed === 0) return stopSelecting()
   const node = change.kind === 'place' ? nodes.value.find((n) => n.id === change.placeId) : null
   last.value = {
     line:
