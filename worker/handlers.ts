@@ -618,6 +618,10 @@ export const handlers: HandlerMap = {
     const { checkWatched } = await import('./watch/check')
     return checkWatched({ client: discogs(), force, signal })
   },
+  'watch.digest': async ({ dealers }, { signal }) => {
+    const { digestMoved } = await import('./watch/digest')
+    return digestMoved({ client: discogs(), dealers, signal })
+  },
 
   'dealer.stock': async (params) => {
     const { dealerStock } = await import('./dealers/stock')

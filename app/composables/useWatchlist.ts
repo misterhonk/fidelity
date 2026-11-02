@@ -1,4 +1,4 @@
-import type { Dealer, WatchAlert } from '#shared/types'
+import type { Dealer, WatchAlert, WatchDigest } from '#shared/types'
 
 /**
  * The watchlist, checked when the app opens.
@@ -11,6 +11,8 @@ import type { Dealer, WatchAlert } from '#shared/types'
  */
 const watched = shallowRef<Dealer[]>([])
 const alerts = shallowRef<WatchAlert[]>([])
+/** What the "only what is new" pass found at the shops that moved (#240). */
+const digests = shallowRef<WatchDigest[]>([])
 let checked = false
 
 /**
@@ -51,6 +53,11 @@ export function useWatchlist() {
       alerts.value = result.alerts
       setBadge(result.alerts.length)
       if (result.checked > 0) await load()
+      if (result.alerts.length > 0) {
+        digests.value = await call('watch.digest', {
+          dealers: result.alerts.map((alert) => alert.dealer),
+        })
+      }
     } catch {
       // A shop that will not answer is not worth an error message on the
       // dashboard. The next start tries again.
@@ -72,12 +79,14 @@ export function useWatchlist() {
 
   function dismiss() {
     alerts.value = []
+    digests.value = []
     setBadge(0)
   }
 
   return {
     watched: readonly(watched),
     alerts: readonly(alerts),
+    digests: readonly(digests),
     isWatched: (dealer: string) => watched.value.some((entry) => entry.username === dealer),
     load,
     checkOnce,

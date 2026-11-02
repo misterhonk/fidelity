@@ -490,6 +490,7 @@ const de: Messages = {
     moreListings: (n: number, one: boolean) =>
       `${one ? 'Angebot' : 'Angebote'} mehr als beim letzten Mal.`,
     read: 'Gelesen',
+    nothingNew: 'Nichts Neues für dich dabei.',
     moved: (n: string, one: boolean) =>
       `hat ${n} ${one ? 'Angebot' : 'Angebote'} mehr als beim letzten Mal.`,
   },
