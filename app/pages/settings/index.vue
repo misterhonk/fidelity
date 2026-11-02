@@ -65,9 +65,10 @@ const library = computed(() => {
   return st.value.library.summary(count(counts.collection), count(counts.wantlist ?? 0))
 })
 
+/** Null when no vault is set up — "martin · Off" reads as the account being off. */
 const sync = computed(() => {
   const status = vault.value
-  if (!status || status.target === 'none') return m.value.common.off
+  if (!status || status.target === 'none') return null
   const label = st.value.sync.targets[status.target]
   return status.lastSyncedAt
     ? `${label} · ${since(status.lastSyncedAt)}`
@@ -115,7 +116,9 @@ const SECTIONS = computed(() => [
   {
     to: '/settings/account',
     ...st.value.account,
-    status: identity.value ? `${identity.value.username} · ${sync.value}` : null,
+    status: identity.value
+      ? [identity.value.username, sync.value].filter(Boolean).join(' · ')
+      : null,
   },
   { to: '/settings/collection', ...st.value.library, status: library.value },
   { to: '/settings/finds', ...st.value.search, status: searchSummary.value },
