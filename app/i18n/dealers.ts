@@ -206,6 +206,8 @@ const en = {
     unwatched: 'Not watched, so we do not look.',
   },
   pick: 'Pick a shop on the left.',
+  /** The way to the gift finder (#245), under the list. */
+  giftEntry: 'Looking for a gift? Search a friend’s wantlist in these shops.',
   verdict: {
     fit: { above: 'more finds', same: 'as many finds', below: 'fewer finds' },
     price: { high: 'dearer', middle: 'mid-priced', low: 'cheaper' },
@@ -418,6 +420,7 @@ const de: typeof en = {
     unwatched: 'Nicht beobachtet, also schauen wir nicht nach.',
   },
   pick: 'Such dir links einen Laden aus.',
+  giftEntry: 'Suchst du ein Geschenk? Durchsuch die Wantlist von jemandem in diesen Läden.',
   verdict: {
     fit: { above: 'mehr Funde', same: 'gleich viele Funde', below: 'weniger Funde' },
     price: { high: 'teurer', middle: 'Mittelfeld', low: 'günstiger' },

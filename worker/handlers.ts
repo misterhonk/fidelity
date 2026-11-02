@@ -207,6 +207,11 @@ export const handlers: HandlerMap = {
     return wantlistPlan(Date.now(), from)
   },
 
+  'gift.find': async ({ username, budget }, { report, signal }) => {
+    const { findGifts } = await import('./gift')
+    return findGifts(discogs(), username, budget, Date.now(), signal, report)
+  },
+
   'collection.review': async ({ year }) => {
     const { collectionReview } = await import('./collection/review')
     return collectionReview(year)
