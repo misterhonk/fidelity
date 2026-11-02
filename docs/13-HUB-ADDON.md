@@ -268,7 +268,7 @@ behind the same address.
 
 Access keys (M22) add per-key limits — `403` over a ceiling, `429` for a second large
 upload on one route, `stored: false` for a row another key holds. The table is in
-`hub/README.md`. Cache reads and contributions fall back silently; a refused vault save or share shows as an
+`hub/README.md`. Cache reads and contributions fall back silently; a refused vault save shows as an
 error, because somebody pressed a button for it.
 
 ### No covers (#206)
@@ -353,7 +353,6 @@ The hub deliberately stores almost nothing personal:
 | Shipping tiers | ❌ none | Public dealer terms |
 | Watched dealer names | ⚠️ indirectly | Reveals collecting interests |
 | Push subscription | ⚠️ yes | The endpoint URL of the push service |
-| Shared digs | ⚠️ yes | TTL 6 h, deleted after that (a ToS requirement anyway) |
 | **The Discogs token** | 🔴 | **Is not stored** (except explicitly opt-in, see §2) |
 
 Anybody running the hub for others needs a short privacy notice. Anybody running it only for

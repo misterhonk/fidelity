@@ -292,8 +292,9 @@ read against the code on 2026-09-11.
 - [x] Data export and account deletion work — `DataControls.vue`: the whole database as
       JSON, a single dig as JSON, and a delete that takes the token with it
 - [x] Marketplace data is not passed on or exported anywhere — the two ways out are the
-      user's own: a file they download, and a share that is sealed before it leaves and
-      expires with the dig (`worker/share.ts`)
+      user's own: a file they download, and a share link that carries the find list in
+      its `#` fragment — ids, catalogue facts and reasons, but no price, condition,
+      seller, cover or counts (`worker/share.ts`)
 
 **Two lines cannot be built, and saying so is better than leaving them open:**
 
