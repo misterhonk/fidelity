@@ -104,6 +104,7 @@ describe.each(TRANSLATIONS)('the %s pack', (_name, original, translation) => {
    */
   it('keeps the numbers it was given', () => {
     const PROBE = 4711
+    const COUNTRY_KEYS = new Set(['wantlist.plan.origin.home', 'origin.home', 'shipsFrom'])
 
     for (const [key, value] of english) {
       if (typeof value !== 'function') continue
@@ -124,15 +125,11 @@ describe.each(TRANSLATIONS)('the %s pack', (_name, original, translation) => {
         continue
       }
       if (!english.includes(String(PROBE))) continue
-      // A translation may look a value up where English prints it as given:
-      // `countryName('DE')` throws on a number. That is the probe's wrong
-      // type again, not a dropped argument.
-      let text: string
-      try {
-        text = call(translated)
-      } catch {
-        continue
-      }
+      // A translation may look a country up where English prints it as given:
+      // `countryName` throws on a number. That is the probe's wrong type
+      // again, not a dropped argument — for these keys and no others.
+      if (COUNTRY_KEYS.has(key)) continue
+      const text = call(translated)
       expect(text, `${key} drops its number`).toContain(String(PROBE))
     }
   })
