@@ -59,6 +59,7 @@ import type {
   Place,
   PlaceNode,
   Preferences,
+  PressingRule,
   PushRegistration,
   ReleaseDetail,
   RoundProgress,
@@ -476,6 +477,18 @@ export interface WorkerContract {
   }
   /** Takes a release off the wantlist. */
   'wantlist.remove': { params: { releaseId: number }; progress: never; result: boolean }
+  /** Which pressings of a wanted album will do (#242). Null means any. On this device only. */
+  'wantlist.rule': {
+    params: { masterId: number }
+    progress: never
+    result: PressingRule | null
+  }
+  /** Stores it; a rule that allows everything is removed. Read by the next dig. */
+  'wantlist.setRule': {
+    params: { masterId: number; rule: PressingRule }
+    progress: never
+    result: PressingRule | null
+  }
   /**
    * Takes a selection off the wantlist, and hands the rows back (M27).
    *

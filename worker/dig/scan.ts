@@ -1,6 +1,6 @@
 import { DIG_TTL_MS, pruneDigs } from '~~/db/expire'
 import { discardQuietCheck, markGone, noteChange } from './history'
-import { getPreferences } from '~~/db/meta'
+import { getMeta, getPreferences } from '~~/db/meta'
 import { openFidelityDb, type FidelityDatabase } from '~~/db/open'
 import type { Dig, Match, StockRow } from '#shared/types'
 import type { ScanProgress, WorkerError } from '#shared/protocol'
@@ -183,7 +183,7 @@ async function prepare({
   const db = await openFidelityDb()
   const preferences = await getPreferences()
 
-  const [collection, wantlist, taste, chunks, followed] = await Promise.all([
+  const [collection, wantlist, taste, chunks, followed, rules] = await Promise.all([
     db.getAll('collection'),
     db.getAll('wantlist'),
     db
@@ -195,9 +195,11 @@ async function prepare({
     // The bands on the radar (M29). Empty on every device that follows none,
     // and then nothing about the scan changes.
     db.getAll('followed'),
+    // Which pressings of a wanted album will do (#242). Usually none.
+    getMeta('pressingRules'),
   ])
 
-  const index = buildIndex(collection, wantlist, taste, chunks, followed)
+  const index = buildIndex(collection, wantlist, taste, chunks, followed, rules ?? {})
 
   return {
     client,

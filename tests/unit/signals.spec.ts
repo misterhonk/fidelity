@@ -107,6 +107,51 @@ describe('S2 — same album, different pressing', () => {
     const other = buildLookup([master], [], [])
     expect(wantlistPressing(listing(), other, false)).toBeNull()
   })
+
+  describe('with a pressing rule (#242)', () => {
+    it('stays quiet about the one pressing that will not do', () => {
+      const ruled = buildLookup([master], [], wantlist, {
+        77: { firstOnly: false, except: [501] },
+      })
+      expect(wantlistPressing(listing({ releaseId: 501, year: 2017 }), ruled, false)).toBeNull()
+      expect(wantlistPressing(listing({ year: 1994 }), ruled, false)?.confidence).toBe(0.9)
+    })
+
+    it('keeps only a first pressing, and vouches for it fully', () => {
+      const ruled = buildLookup([master], [], wantlist, {
+        77: { firstOnly: true, except: [] },
+      })
+      expect(wantlistPressing(listing({ year: 1994 }), ruled, false)?.confidence).toBe(0.9)
+      // One year of grace: pressings run on after release.
+      expect(wantlistPressing(listing({ year: 1995 }), ruled, false)).not.toBeNull()
+      expect(wantlistPressing(listing({ year: 1996 }), ruled, false)).toBeNull()
+      expect(wantlistPressing(listing({ releaseId: 501, year: 0 }), ruled, false)).toBeNull()
+    })
+
+    it('never passes an unknown year as a first pressing', () => {
+      const unknown = chunk({
+        kind: 'master',
+        entityId: 77,
+        releaseIds: Int32Array.from([502]),
+        years: Int16Array.from([0]),
+      })
+      const ruled = buildLookup([master, unknown], [], wantlist, {
+        77: { firstOnly: true, except: [] },
+      })
+      expect(wantlistPressing(listing({ releaseId: 502, year: 0 }), ruled, false)).toBeNull()
+    })
+
+    it('takes the first year from the want when the horizon starts later', () => {
+      const late = chunk({
+        kind: 'master',
+        entityId: 77,
+        releaseIds: Int32Array.from([503]),
+        years: Int16Array.from([2017]),
+      })
+      const ruled = buildLookup([late], [], wantlist, { 77: { firstOnly: true, except: [] } })
+      expect(wantlistPressing(listing({ releaseId: 503, year: 2017 }), ruled, false)).toBeNull()
+    })
+  })
 })
 
 describe('S4 — the discography gap', () => {

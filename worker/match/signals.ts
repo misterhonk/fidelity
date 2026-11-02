@@ -32,10 +32,21 @@ export function wantlistPressing(
     const wanted = lookup.wantlistMasters.get(hit.entityId)
     if (!wanted) continue
 
-    // A pressing much younger than the one on the wantlist is probably a
-    // reissue, and a reissue is not what was asked for (docs/04 §S2).
     // Inventory sends 0 for an unknown year, not null.
     const listingYear = listing.year || hit.year
+
+    // The reader's own rule for this album (#242, docs/04 §S2). An unknown
+    // year never passes as a first pressing: the rule promises what it can check.
+    const rule = wanted.rule
+    if (rule?.except.includes(listing.releaseId)) return null
+    if (
+      rule?.firstOnly &&
+      !(listingYear > 0 && wanted.firstYear > 0 && listingYear - wanted.firstYear <= 1)
+    )
+      return null
+
+    // A pressing much younger than the one on the wantlist is probably a
+    // reissue, and a reissue is not what was asked for (docs/04 §S2).
     const suspiciouslyLate =
       wanted.year > 0 && listingYear > 0 && listingYear - wanted.year >= 15
 

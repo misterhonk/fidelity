@@ -984,6 +984,23 @@ export const handlers: HandlerMap = {
     return unwantRecord(releaseId)
   },
 
+  'wantlist.rule': async ({ masterId }) => (await getMeta('pressingRules'))?.[masterId] ?? null,
+
+  'wantlist.setRule': async ({ masterId, rule }) => {
+    if (!Number.isInteger(masterId) || masterId <= 0) return null
+    const except = [...new Set(rule.except)].filter((id) => Number.isInteger(id) && id > 0)
+    const firstOnly = rule.firstOnly === true
+    const kept = firstOnly || except.length > 0 ? { firstOnly, except } : null
+    const others = Object.entries((await getMeta('pressingRules')) ?? {}).filter(
+      ([id]) => Number(id) !== masterId,
+    )
+    await setMeta(
+      'pressingRules',
+      Object.fromEntries(kept ? [...others, [masterId, kept]] : others),
+    )
+    return kept
+  },
+
   'wantlist.removeMany': async ({ releaseIds }) => {
     const { unwantRecords } = await import('./collection/want')
     return unwantRecords(releaseIds)

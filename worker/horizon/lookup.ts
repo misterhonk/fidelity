@@ -1,4 +1,11 @@
-import type { CollectionItem, HorizonChunk, HorizonKind, WantlistItem } from '#shared/types'
+import type {
+  CollectionItem,
+  HorizonChunk,
+  HorizonKind,
+  PressingRule,
+  PressingRules,
+  WantlistItem,
+} from '#shared/types'
 
 /**
  * The runtime lookup a dig consults once per listing.
@@ -34,7 +41,7 @@ export interface HorizonLookup {
   /** releaseId → every entity that points at it. */
   byRelease: Map<number, HorizonHit[]>
   /** Masters of wantlist albums — the basis for "same album, other pressing". */
-  wantlistMasters: Map<number, { title: string; year: number; want: number }>
+  wantlistMasters: Map<number, WantedMaster>
   /** Masters of records you own on something other than vinyl. */
   upgradeMasters: Map<number, { title: string; formats: string[] }>
   /** Per artist: how much of their main discography you already have. */
@@ -57,12 +64,24 @@ export interface HorizonLookup {
   pressings: Map<number, number>
 }
 
+/** A wantlist album, as S2 reads it. */
+export interface WantedMaster {
+  title: string
+  year: number
+  want: number
+  /** The earliest pressing year known for the album, 0 when none is (docs/04 §S2). */
+  firstYear: number
+  /** Which pressings will do; null means any (#242). */
+  rule: PressingRule | null
+}
+
 const EMPTY: HorizonHit[] = []
 
 export function buildLookup(
   chunks: HorizonChunk[],
   collection: CollectionItem[],
   wantlist: WantlistItem[],
+  rules: PressingRules = {},
 ): HorizonLookup {
   const byRelease = new Map<number, HorizonHit[]>()
   const catalogueSizes = new Map<number, number>()
@@ -74,6 +93,7 @@ export function buildLookup(
 
   const ownedReleaseIds = new Set(collection.map((item) => item.releaseId))
   const pressings = new Map<number, number>()
+  const firstYears = new Map<number, number>()
 
   for (const chunk of chunks) {
     if (chunk.kind === 'label') catalogueSizes.set(chunk.entityId, chunk.catalogueSize ?? 0)
@@ -81,6 +101,9 @@ export function buildLookup(
     // would call a 2,000-pressing album "one of 1,500".
     if (chunk.kind === 'master' && chunk.complete) {
       pressings.set(chunk.entityId, chunk.releaseIds.length)
+    }
+    if (chunk.kind === 'master') {
+      for (const year of chunk.years) earliest(firstYears, chunk.entityId, year)
     }
 
     for (let i = 0; i < chunk.releaseIds.length; i++) {
@@ -151,7 +174,11 @@ export function buildLookup(
     }
   }
 
-  const wantlistMasters = new Map<number, { title: string; year: number; want: number }>()
+  // The want's own year counts too: a horizon cut short may not reach back that far.
+  for (const want of wantlist)
+    if (want.masterId > 0) earliest(firstYears, want.masterId, want.year)
+
+  const wantlistMasters = new Map<number, WantedMaster>()
   for (const want of wantlist) {
     if (want.masterId <= 0) continue
     // Two wants of one album: the higher priority speaks for the master.
@@ -161,6 +188,8 @@ export function buildLookup(
         title: want.title,
         year: want.year,
         want: want.want,
+        firstYear: firstYears.get(want.masterId) ?? 0,
+        rule: rules[want.masterId] ?? null,
       })
     }
   }
@@ -184,6 +213,11 @@ export function buildLookup(
     catalogueSizes,
     pressings,
   }
+}
+
+/** Keeps the smallest real year per id; 0 and negatives mean unknown. */
+function earliest(years: Map<number, number>, id: number, year: number): void {
+  if (year > 0 && year < (years.get(id) ?? Infinity)) years.set(id, year)
 }
 
 /** How many pressings the album of this release has, or null when the horizon does not know. */
