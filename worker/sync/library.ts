@@ -158,8 +158,8 @@ type OutboxStore = IDBPObjectStore<
  *
  * Settled or Discogs-only changes leave the queue; a change only we made stays
  * and goes out; both sides changed is marked and waits for an answer. Returns
- * the row to store: Discogs' whole row when nothing of ours is left, else the
- * local one with Discogs' side taken where it won — or null to leave it be.
+ * the row to store: Discogs' row with our still-waiting values on top — or null
+ * to leave it be when there is no local row (removed here, not yet over there).
  */
 async function mergeRow<T extends CollectionItem | WantlistItem>(
   outbox: OutboxStore,
@@ -168,17 +168,18 @@ async function mergeRow<T extends CollectionItem | WantlistItem>(
   local: T | undefined,
 ): Promise<T | null> {
   let waiting = false
-  const taken: Record<string, number | string> = {}
+  // Only the values still on their way stay ours; a folder moved over there meanwhile is not one.
+  const kept: Record<string, number | string> = {}
   for (const job of jobs) {
     const ours = valueOf(job)
     const theirs = remoteValueOf(job, remote)
     const outcome = ours ? merge3(job.revert, ours, theirs) : 'send'
     if (outcome === 'settled' || outcome === 'theirs') {
       await outbox.delete(job.id)
-      if (outcome === 'theirs') Object.assign(taken, theirs)
       continue
     }
     waiting = true
+    if (local) Object.assign(kept, remoteValueOf(job, local))
     if (outcome === 'conflict')
       await outbox.put({ ...job, conflict: { remote: theirs!, at: Date.now() } })
     // Discogs went back to the base: only ours differs now, so the question is gone.
@@ -188,7 +189,7 @@ async function mergeRow<T extends CollectionItem | WantlistItem>(
     }
   }
   if (!waiting) return remote
-  return local && Object.keys(taken).length > 0 ? { ...local, ...taken } : null
+  return local ? { ...remote, ...kept } : null
 }
 
 function jobsByKey(

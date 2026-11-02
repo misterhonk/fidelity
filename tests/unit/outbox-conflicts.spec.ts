@@ -161,6 +161,23 @@ describe('a sync that meets a change still waiting', () => {
     expect((await pendingJobs()).map((job) => job.id)).toEqual(['collection.rating:501'])
   })
 
+  it('takes a folder moved on Discogs while our rating waits, and rates it there', async () => {
+    await syncCollection(discogs([release(1, 3, 1)]), { full: true })
+    await rateLocally(501, 5, 3)
+
+    await syncCollection(discogs([release(1, 3, 7)]), { full: true })
+
+    const db = await openFidelityDb()
+    expect(await db.get('collection', 501)).toMatchObject({ rating: 5, folderId: 7 })
+    const side = discogs([])
+    await drainOutbox(side.client, side.username)
+    expect(side.client.write).toHaveBeenCalledWith(
+      'POST',
+      expect.stringContaining('/collection/folders/7/releases/1/instances/501'),
+      expect.anything(),
+    )
+  })
+
   it('merges a wantlist note the same way', async () => {
     const want = { ...release(1, 0), rating: 2, notes: 'theirs' }
     await syncWantlist(discogs([{ ...want, notes: 'base' }], 'wants'))
