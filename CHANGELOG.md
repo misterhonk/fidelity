@@ -12,6 +12,32 @@ Für eine App bedeutet SemVer:
 ## [0.120.0](https://github.com/misterhonk/fidelity/compare/v0.119.0...v0.120.0) (2026-11-02)
 
 
+<!-- en -->
+**You can now add a record to your shelf in two to four taps.** Scan the barcode or type the
+catalogue number, pick the pressing, say what shape it is in and where it goes, done.
+
+- Add a record from the shelf's "+", from Search, with the key a, or straight from a result in
+  a shop. Copies you already own come first, and a second copy gets a gentle warning.
+- Open a record and you see your copy first: rating, place, what you paid and since when. With
+  two copies or more, switch between them.
+- Each record says whether it is in step with Discogs or still waiting. A copy that has not
+  landed yet keeps trying by itself, and you can undo it.
+- What you paid is only what you type in. Sleeveside never takes it from an order.
+
+<!-- de -->
+**Du kannst jetzt eine Platte mit zwei bis vier Tipps ins Regal stellen.** Barcode scannen oder
+Katalognummer tippen, Pressung wählen, Zustand und Platz sagen, fertig.
+
+- Hinzufügen geht über das "+" im Regal, über die Suche, mit der Taste a oder direkt aus einem
+  Treffer im Laden. Pressungen, die du schon hast, stehen oben, und bei einem zweiten Exemplar
+  gibt es einen kurzen Hinweis.
+- Öffnest du eine Platte, siehst du zuerst dein Exemplar: Bewertung, Platz, was du bezahlt hast
+  und seit wann. Bei zwei oder mehr Exemplaren schaltest du zwischen ihnen um.
+- Jede Platte sagt dir, ob sie mit Discogs übereinstimmt oder noch wartet. Ein Exemplar, das
+  noch nicht angekommen ist, versucht es von selbst weiter, und du kannst es rückgängig machen.
+- Was du bezahlt hast, ist nur das, was du selbst eintippst. Sleeveside nimmt es nie aus einer
+  Bestellung.
+
 ### Added
 
 * **collection:** add a record in two to four taps ([8f3f555](https://github.com/misterhonk/fidelity/commit/8f3f555ada5fe2f5151ad893c67fcd5e079ceb6d)), closes [#233](https://github.com/misterhonk/fidelity/issues/233)
