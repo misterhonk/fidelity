@@ -1031,6 +1031,16 @@ export const handlers: HandlerMap = {
     return removeRecord(instanceId)
   },
 
+  'collection.bulk': async ({ instanceIds, change }) => {
+    const { bulkEdit } = await import('./collection/bulk')
+    return bulkEdit(instanceIds, change)
+  },
+
+  'collection.bulkUndo': async ({ undo }) => {
+    const { bulkUndo } = await import('./collection/bulk')
+    return bulkUndo(undo)
+  },
+
   'collection.add': async ({ digId, listingId, folderId }) => {
     const db = await openFidelityDb()
     const match = await db.get('matches', [digId, listingId])

@@ -89,29 +89,63 @@ export async function dropJob(id: string, sent?: OutboxJob): Promise<void> {
 }
 
 /**
- * Note that a write which may not be repeated is going out.
+ * Note that a job is going out, and hand back the row as it is now.
  *
  * A run cut off mid-send — the tab closed, the worker gone — counts no attempt,
  * and Discogs may have filed it all the same. This mark is what tells the next
- * run to look before it sends again.
+ * run to look before it sends an add again, and what tells `takeBack` that a
+ * job is no longer only ours to cancel. Null when the job was taken back first:
+ * then nothing goes out.
  */
 export async function noteSending(
   id: string,
   at: number,
-  instancesBefore: number[],
-): Promise<void> {
+  instancesBefore?: number[],
+): Promise<OutboxJob | null> {
   const db = await openFidelityDb()
   const tx = db.transaction('outbox', 'readwrite')
   const job = await tx.store.get(id)
-  if (job) await tx.store.put({ ...job, sentAt: at, instancesBefore })
+  const marked = job
+    ? { ...job, sentAt: at, ...(instancesBefore && { instancesBefore }) }
+    : null
+  if (marked) await tx.store.put(marked)
   await tx.done
+  return marked
+}
+
+/**
+ * Cancels a job that has not gone out yet and hands it back. Null when it has
+ * (or is on its way), when there is none, or when `still` says it is no longer
+ * the change being taken back.
+ *
+ * One transaction against the drain's `noteSending`: either the drain marks it
+ * first and it goes, or this deletes it first and the drain skips it. Never both.
+ */
+export async function takeBack(
+  id: string,
+  still: (job: OutboxJob) => boolean = () => true,
+): Promise<OutboxJob | null> {
+  const db = await openFidelityDb()
+  const tx = db.transaction('outbox', 'readwrite')
+  const job = await tx.store.get(id)
+  const taken = job && job.sentAt === undefined && still(job) ? job : null
+  if (taken) await tx.store.delete(id)
+  await tx.done
+  return taken
 }
 
 /**
  * Note that a run failed. Returns the job when it is out of attempts, so the
  * caller knows it has a value to put back.
+ *
+ * `refused`: Discogs answered with a 4xx, so nothing was filed and the job is
+ * only ours again — its sending mark goes, and an undo may cancel it.
  */
-export async function noteFailure(id: string, reason: string): Promise<OutboxJob | null> {
+export async function noteFailure(
+  id: string,
+  reason: string,
+  refused = false,
+): Promise<OutboxJob | null> {
   const db = await openFidelityDb()
   const tx = db.transaction('outbox', 'readwrite')
   const job = await tx.store.get(id)
@@ -127,7 +161,8 @@ export async function noteFailure(id: string, reason: string): Promise<OutboxJob
     return { ...job, attempts, lastError: reason }
   }
 
-  await tx.store.put({ ...job, attempts, lastError: reason })
+  const { sentAt: _, ...unmarked } = job
+  await tx.store.put({ ...(refused ? unmarked : job), attempts, lastError: reason })
   await tx.done
   return null
 }

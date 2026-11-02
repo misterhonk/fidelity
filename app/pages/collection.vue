@@ -2,6 +2,7 @@
 import { gradeFieldIds } from '#shared/grades'
 import { labelOf } from '#shared/places'
 import { DEFAULT_SHELF_DIRECTION, isOwnEntry, SHELF_CHIPS } from '#shared/types'
+import { GRADES } from '#shared/format'
 import type {
   CollectionField,
   CollectionFolder,
@@ -11,6 +12,7 @@ import type {
   ShelfSort,
   ShelfView,
 } from '#shared/types'
+import type { BulkChange, BulkUndo } from '~~/worker/collection/bulk'
 
 import { useCollectionMessages } from '~/i18n/collection'
 
@@ -112,68 +114,126 @@ function chooseSort(key: ShelfSort) {
 const shown = ref(120)
 
 /**
- * From the shelf into a compartment (M27.5, docs/18 §4). "Select" turns the
- * sleeves into things to tick; "Put n in …" opens the wall small as the
- * picker, the same one the compartment's sheet uses; the line with "Undo"
- * puts them back where they were — a compartment, or no place at all.
+ * Select, then change them all (M27.5, #237). "Select" turns the sleeves into
+ * things to tick — or `x` on the one in focus, shift-click for a run, a long
+ * press on a phone. Then one change for all of them: a place (on the small
+ * wall, the same picker the compartment's sheet uses), a rating, a grade, a
+ * folder, or off the shelf. The line after it says how long Discogs will take
+ * to hear of it, and "Undo all" takes all of it back.
  */
 const selecting = ref(false)
 const selected = ref(new Set<number>())
-const picking = ref(false)
+const panel = ref<'place' | 'remove' | null>(null)
 const nodes = shallowRef<PlaceNode[]>([])
-const last = shallowRef<{
-  line: string
-  was: { instanceId: number; placeId: string | null }[]
-} | null>(null)
-function toggleSelect(instanceId: number) {
+const folders = shallowRef<CollectionFolder[]>([])
+const last = shallowRef<{ line: string; button: string; undo: BulkUndo } | null>(null)
+const notice = ref<string | null>(null)
+/** The tick a shift-click runs from. */
+let anchor: number | null = null
+
+function toggleSelect(instanceId: number, run = false) {
   const next = new Set(selected.value)
-  if (next.has(instanceId)) next.delete(instanceId)
+  const ids = view.value?.records.map((record) => record.instanceId) ?? []
+  const from = anchor === null ? -1 : ids.indexOf(anchor)
+  const to = ids.indexOf(instanceId)
+  if (run && from >= 0 && to >= 0)
+    for (const id of ids.slice(Math.min(from, to), Math.max(from, to) + 1)) next.add(id)
+  else if (next.has(instanceId)) next.delete(instanceId)
   else next.add(instanceId)
+  anchor = instanceId
   selected.value = next
+}
+function startSelecting() {
+  selecting.value = true
+  if (folders.value.length === 0)
+    void call('collection.folders', undefined).then((all) => (folders.value = all))
 }
 function selectAll() {
   selected.value = new Set((view.value?.records ?? []).map((record) => record.instanceId))
 }
 function stopSelecting() {
   selecting.value = false
-  picking.value = false
+  panel.value = null
   selected.value = new Set()
+  anchor = null
 }
+
+/** Press and hold: a phone has no shift key and no x. */
+let holding: ReturnType<typeof setTimeout> | undefined
+let held = false
+function press(instanceId: number) {
+  clearTimeout(holding)
+  held = false
+  holding = setTimeout(() => {
+    held = true
+    startSelecting()
+    toggleSelect(instanceId)
+  }, 500)
+}
+function release() {
+  clearTimeout(holding)
+}
+onBeforeUnmount(release)
+
+function onTile(event: MouseEvent, instanceId: number) {
+  // The click that ends a long press is not a second tick.
+  if (held) {
+    held = false
+    return
+  }
+  if (event.shiftKey) {
+    startSelecting()
+    toggleSelect(instanceId, true)
+  } else if (selecting.value) toggleSelect(instanceId)
+  else open.value = instanceId
+}
+
 async function openPicker() {
-  picking.value = !picking.value
-  if (picking.value && nodes.value.length === 0)
+  panel.value = panel.value === 'place' ? null : 'place'
+  if (panel.value && nodes.value.length === 0)
     nodes.value = await call('places.overview', undefined)
 }
-async function putIn(placeId: string) {
+
+/** A select's choice, and the select back on its prompt for the next one. */
+function chosen(event: Event): string {
+  const select = event.target as HTMLSelectElement
+  const value = select.value
+  select.value = ''
+  return value
+}
+
+async function apply(change: BulkChange) {
   const instanceIds = [...selected.value]
   if (instanceIds.length === 0) return
-  // Where each one was, for the way back.
-  const was = await Promise.all(
-    instanceIds.map(async (instanceId) => ({
-      instanceId,
-      placeId: await call('places.of', { instanceId }),
-    })),
-  )
-  await call('places.assignMany', { instanceIds, placeId })
-  const node = nodes.value.find((n) => n.id === placeId)
+  const result = await call('collection.bulk', { instanceIds, change })
+  const node = change.kind === 'place' ? nodes.value.find((n) => n.id === change.placeId) : null
   last.value = {
-    line: c.value.places.putInto(count(instanceIds.length), node ? labelOf(node) : ''),
-    was,
+    line:
+      change.kind === 'place'
+        ? c.value.places.putInto(count(instanceIds.length), node ? labelOf(node) : '')
+        : c.value.bulk.done(
+            result.changed,
+            count(result.changed),
+            Math.round(result.ms / 60_000),
+          ),
+    button: change.kind === 'place' ? c.value.places.undo : c.value.bulk.undoAll,
+    undo: result.undo,
   }
+  notice.value = null
   stopSelecting()
   await load()
+  // In the background: the drain takes as long as the line says, and nobody waits for it.
+  if (result.requests > 0) void call('outbox.flush', undefined).catch(() => undefined)
 }
+
 async function undo() {
   if (!last.value) return
-  const byPlace = new Map<string | null, number[]>()
-  for (const { instanceId, placeId } of last.value.was) {
-    byPlace.set(placeId, [...(byPlace.get(placeId) ?? []), instanceId])
-  }
-  for (const [placeId, instanceIds] of byPlace) {
-    await call('places.assignMany', { instanceIds, placeId })
-  }
+  const { undo: was } = last.value
+  const result = await call('collection.bulkUndo', { undo: was })
   last.value = null
+  notice.value = result.gone > 0 ? c.value.bulk.gone(count(result.gone)) : null
   await load()
+  if (was.kind !== 'place') void call('outbox.flush', undefined).catch(() => undefined)
 }
 
 let token = 0
@@ -253,7 +313,6 @@ watch(shown, load)
  * place — through the same worker calls and the same outbox as the sheet.
  */
 const fields = shallowRef<CollectionField[]>([])
-const folders = shallowRef<CollectionFolder[]>([])
 const grades = computed(() => {
   const ids = gradeFieldIds(fields.value)
   return {
@@ -548,7 +607,8 @@ const walk = computed(() => {
               : 'border-transparent text-fid-text-muted hover:text-fid-text'
           "
           :aria-pressed="selecting"
-          @click="selecting ? stopSelecting() : (selecting = true)"
+          :title="c.bulk.keys"
+          @click="selecting ? stopSelecting() : startSelecting()"
         >
           {{ selecting ? c.places.done : c.places.select }}
         </button>
@@ -573,7 +633,7 @@ const walk = computed(() => {
         </button>
       </div>
 
-      <!-- The selection's one action: into a compartment, picked on the small wall. -->
+      <!-- One change for every tick: a place, a rating, a grade, a folder, or off the shelf. -->
       <div v-if="selecting" class="flex flex-wrap items-center gap-4">
         <span class="fid-plate text-fid-text-muted">{{
           c.places.selected(count(selected.size))
@@ -593,13 +653,82 @@ const walk = computed(() => {
         >
           {{ c.places.putSelected(count(selected.size)) }}
         </button>
+        <!-- Selects with their name as the prompt: the choice is the action. -->
+        <select
+          :aria-label="c.bulk.rating"
+          :disabled="selected.size === 0"
+          class="min-h-11 fid-field px-2 text-fid-sm text-fid-text disabled:opacity-50"
+          @change="apply({ kind: 'rating', rating: Number(chosen($event)) })"
+        >
+          <option value="" disabled selected>{{ c.bulk.rating }}</option>
+          <option v-for="stars in [5, 4, 3, 2, 1]" :key="stars" :value="stars">
+            {{ '★'.repeat(stars) }}
+          </option>
+          <option value="0">{{ c.bulk.noRating }}</option>
+        </select>
+        <select
+          :aria-label="c.bulk.grade"
+          :disabled="selected.size === 0"
+          class="min-h-11 fid-field px-2 text-fid-sm text-fid-text disabled:opacity-50"
+          @change="apply({ kind: 'grade', grade: chosen($event) })"
+        >
+          <option value="" disabled selected>{{ c.bulk.grade }}</option>
+          <option v-for="each in GRADES" :key="each" :value="each">{{ each }}</option>
+        </select>
+        <select
+          v-if="folders.length > 0"
+          :aria-label="c.bulk.folder"
+          :disabled="selected.size === 0"
+          class="min-h-11 fid-field px-2 text-fid-sm text-fid-text disabled:opacity-50"
+          @change="apply({ kind: 'folder', folderId: Number(chosen($event)) })"
+        >
+          <option value="" disabled selected>{{ c.bulk.folder }}</option>
+          <option v-for="folder in folders" :key="folder.id" :value="folder.id">
+            {{ folder.name }}
+          </option>
+        </select>
+        <button
+          type="button"
+          :disabled="selected.size === 0"
+          class="fid-action min-h-11 px-1 text-fid-sm text-fid-text-muted hover:text-fid-text disabled:opacity-50"
+          @click="panel = panel === 'remove' ? null : 'remove'"
+        >
+          {{ c.bulk.remove(count(selected.size)) }}
+        </button>
       </div>
       <div
-        v-if="selecting && picking"
+        v-if="selecting && panel === 'place'"
         class="flex flex-col gap-2 border-t border-fid-border pt-3"
       >
         <span class="fid-plate text-fid-text-muted">{{ c.places.whereTo }}</span>
-        <PlacePicker :nodes="nodes" :except="null" @pick="putIn($event)" />
+        <PlacePicker
+          :nodes="nodes"
+          :except="null"
+          @pick="apply({ kind: 'place', placeId: $event })"
+        />
+      </div>
+      <!-- The one change Discogs cannot be asked to forget, so it asks first. -->
+      <div
+        v-if="selecting && panel === 'remove' && selected.size > 0"
+        class="flex flex-wrap items-center gap-4 border-t border-fid-border pt-3"
+      >
+        <span class="text-fid-sm text-fid-text">{{
+          c.bulk.removeWhat(count(selected.size))
+        }}</span>
+        <button
+          type="button"
+          class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-3 text-fid-sm text-fid-text"
+          @click="apply({ kind: 'remove' })"
+        >
+          {{ c.bulk.removeConfirm }}
+        </button>
+        <button
+          type="button"
+          class="fid-action min-h-11 text-fid-sm text-fid-text-muted"
+          @click="panel = null"
+        >
+          {{ c.bulk.keep }}
+        </button>
       </div>
 
       <!-- The way back, pinned where the eye is. -->
@@ -610,8 +739,11 @@ const walk = computed(() => {
           class="fid-action min-h-11 text-fid-sm text-fid-accent underline underline-offset-4"
           @click="undo"
         >
-          {{ c.places.undo }}
+          {{ last.button }}
         </button>
+      </p>
+      <p v-else-if="notice" role="status" class="text-fid-sm text-fid-text-muted">
+        {{ notice }}
       </p>
 
       <p v-if="view.records.length === 0" class="text-fid-base text-fid-text-muted">
@@ -782,18 +914,25 @@ const walk = computed(() => {
             class="absolute top-2 left-2 z-10 size-5"
             :checked="selected.has(record.instanceId)"
             :aria-label="c.places.pick(record.artist, record.title)"
-            @change="toggleSelect(record.instanceId)"
+            @click="toggleSelect(record.instanceId, $event.shiftKey)"
           />
           <button
             type="button"
             :aria-label="c.open(record.artist, record.title)"
+            aria-keyshortcuts="x"
             class="fid-cover-button group flex flex-col gap-2 rounded-fid-sm text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fid-accent"
             :class="
               selecting && selected.has(record.instanceId)
                 ? 'outline-2 outline-offset-2 outline-fid-accent'
                 : ''
             "
-            @click="selecting ? toggleSelect(record.instanceId) : (open = record.instanceId)"
+            @keydown.x.exact.prevent="(startSelecting(), toggleSelect(record.instanceId))"
+            @pointerdown="press(record.instanceId)"
+            @pointerup="release"
+            @pointerleave="release"
+            @pointercancel="release"
+            @contextmenu="selecting && $event.preventDefault()"
+            @click="onTile($event, record.instanceId)"
           >
             <!--
               Lazy, never fetched by hand. i.discogs.com has its own budget of

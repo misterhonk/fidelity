@@ -438,6 +438,27 @@ const en = {
    * Measured 2026-09-11 — Discogs returns exactly three collection fields
    * (Media, Sleeve, Notes), and a location fits in none of them.
    */
+  /* Bulk edit (#237): one change to every ticked copy, its cost, and the way back. */
+  bulk: {
+    rating: 'Rating',
+    noRating: 'No rating',
+    grade: 'Media',
+    folder: 'Folder',
+    remove: (n: string) => `Remove ${n}`,
+    removeWhat: (n: string) =>
+      `${n} leave your collection at Discogs too. Undo all works until they have gone out.`,
+    removeConfirm: 'Remove them',
+    keep: 'Keep them',
+    /* "240 changes · about 5 min in the background". Given the count, formatted, and the minutes. */
+    done: (n: number, formatted: string, minutes: number) =>
+      `${formatted} ${n === 1 ? 'change' : 'changes'} · ${
+        minutes === 0 ? 'under a minute' : `about ${minutes} min`
+      } in the background`,
+    undoAll: 'Undo all',
+    gone: (n: string) => `${n} had already gone out to Discogs and stay removed.`,
+    keys: 'x ticks the record in focus · shift-click ticks a run · on a phone, press and hold',
+  },
+
   places: {
     title: 'Where they are',
     lead: 'A collection does not live in a list. It lives in a flat.',
@@ -1073,6 +1094,25 @@ const de: typeof en = {
       records: (n) => `${n} ${n === 1 ? 'Platte' : 'Platten'}`,
       offers: (n) => `${n} ${n === 1 ? 'Angebot' : 'Angebote'}`,
     },
+  },
+
+  bulk: {
+    rating: 'Bewertung',
+    noRating: 'Keine Bewertung',
+    grade: 'Platte',
+    folder: 'Ordner',
+    remove: (n) => `${n} entfernen`,
+    removeWhat: (n) =>
+      `${n} fliegen auch bei Discogs aus deiner Sammlung. Alles zurück geht, bis sie raus sind.`,
+    removeConfirm: 'Entfernen',
+    keep: 'Behalten',
+    done: (n, formatted, minutes) =>
+      `${formatted} ${n === 1 ? 'Änderung' : 'Änderungen'} · ${
+        minutes === 0 ? 'unter einer Minute' : `etwa ${minutes} Min.`
+      } im Hintergrund`,
+    undoAll: 'Alles zurück',
+    gone: (n) => `${n} waren schon an Discogs raus und bleiben entfernt.`,
+    keys: 'x hakt die Platte im Fokus ab · Shift-Klick eine ganze Reihe · am Handy lang drücken',
   },
 
   places: {

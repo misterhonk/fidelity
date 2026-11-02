@@ -361,8 +361,9 @@ async function drainOnce(
     }
     try {
       const kind = KINDS[job.kind]
+      let now: number[] | undefined
       if (kind.instances) {
-        const now = await kind.instances(client, job, username)
+        now = await kind.instances(client, job, username)
         const before = new Set(job.instancesBefore)
         /*
          * Only a marked job can have gone out: every send is marked first, and
@@ -380,16 +381,24 @@ async function drainOnce(
           sent += 1
           continue
         }
-        await noteSending(job.id, Date.now(), now)
       }
-      await kind.send(client, job, username, signal)
-      await dropJob(job.id, job)
+      // Every job is marked, so an undo (#237) never cancels one already on its way.
+      const sending = await noteSending(job.id, Date.now(), now)
+      if (!sending) continue
+      await kind.send(client, sending, username, signal)
+      await dropJob(sending.id, sending)
       sent += 1
     } catch (error) {
       // Cut off, not failed: the job stays as it was, and only idempotent writes ever see the signal.
       if (signal?.aborted && error instanceof Error && error.name === 'AbortError') throw error
       const reason = error instanceof Error ? error.message : String(error)
-      const exhausted = await noteFailure(job.id, reason)
+      // A 4xx filed nothing. Not for an add: its mark may be a cut-off run's, and the look failed.
+      const refused =
+        !KINDS[job.kind].instances &&
+        error instanceof DiscogsError &&
+        error.status >= 400 &&
+        error.status < 500
+      const exhausted = await noteFailure(job.id, reason, refused)
       if (exhausted) {
         // The job is already gone from the queue, so the revert must run whatever the name lookup does.
         undone.push(await titleOf(exhausted).catch(() => `#${exhausted.payload.releaseId}`))
