@@ -171,3 +171,12 @@ test('the key a and ⌘K open add mode; Back closes it', async ({ page }) => {
   await page.keyboard.press('Enter')
   await expect(page.getByRole('dialog', { name: 'Add a record' })).toBeVisible()
 })
+
+test('signed out, neither the key a nor ?add=1 opens add mode', async ({ page }) => {
+  await page.goto('/welcome?add=1')
+  await expect(page.getByRole('button', { name: /Set it up/ })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Add a record' })).toHaveCount(0)
+
+  await page.keyboard.press('a')
+  await expect(page.getByRole('dialog', { name: 'Add a record' })).toHaveCount(0)
+})
