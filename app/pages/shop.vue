@@ -57,7 +57,7 @@ async function share() {
 
   try {
     const made = await call('share.create', { digId: result.value.dig.id })
-    const base = `${location.origin}${location.pathname.replace(/\/dig\/?$/, '')}`
+    const base = `${location.origin}${location.pathname.replace(/\/shop\/?$/, '')}`
     shareLink.value = {
       url: `${base}/shared?id=${made.id}#k=${made.key}`,
       matches: made.matches,
