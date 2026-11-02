@@ -885,7 +885,7 @@ export interface ShelfRecord {
 export const SHELF_CHIPS = ['unplaced', 'ungraded', 'doubles', 'otherPressing', 'worn'] as const
 export type ShelfChip = (typeof SHELF_CHIPS)[number]
 
-export type ShelfSort = 'added' | 'artist' | 'year' | 'rating'
+export type ShelfSort = 'added' | 'artist' | 'year' | 'rating' | 'catno'
 
 /**
  * Ascending or descending.
@@ -914,6 +914,7 @@ export const DEFAULT_SHELF_DIRECTION = {
   artist: 'asc',
   year: 'asc',
   rating: 'desc',
+  catno: 'asc',
 } as const satisfies Record<ShelfSort, SortDirection>
 
 export interface ShelfView {

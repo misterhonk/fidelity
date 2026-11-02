@@ -124,6 +124,30 @@ describe('the shelf as rows', () => {
     expect(isWorn('', 'Generic', 'Not Graded', 'No Cover')).toBe(false)
   })
 
+  it('finds a record by its catalogue number, spaced or not (#246)', () => {
+    const shelf = stores({ items: [item(1, { catnos: ['WARP LP 30'] }), item(2)] })
+    expect(ids(shelve(shelf, { query: 'warp lp 30' }))).toEqual([1])
+    expect(ids(shelve(shelf, { query: 'WARPLP30' }))).toEqual([1])
+    expect(ids(shelve(shelf, { query: 'warp-lp-30' }))).toEqual([1])
+    expect(ids(shelve(shelf, { query: 'warp lp 31' }))).toEqual([])
+  })
+
+  it('sorts by catalogue number in natural order, blanks last either way (#246)', () => {
+    const shelf = stores({
+      items: [
+        item(1, { catnos: ['WARP 10'] }),
+        item(2, { catnos: [] }),
+        item(3, { catnos: ['WARP 9'] }),
+        item(4, { catnos: ['ABC 1'] }),
+        item(5, { catnos: ['none'] }),
+      ],
+    })
+    const order = (direction?: 'asc' | 'desc') =>
+      shelve(shelf, { sort: 'catno', direction }).records.map((record) => record.instanceId)
+    expect(order()).toEqual([4, 3, 1, 2, 5])
+    expect(order('desc')).toEqual([1, 3, 4, 2, 5])
+  })
+
   it('builds 20,000 rows with every chip in under 250 ms', () => {
     const items = Array.from({ length: 20_000 }, (_, i) =>
       item(i + 1, { releaseId: (i % 15_000) + 1, masterId: i % 3 === 0 ? (i % 4_000) + 1 : 0 }),

@@ -151,7 +151,7 @@ export function shelve(
     if (wantedLabel && !item.labelNorms.includes(wantedLabel)) continue
     if (wantedArtist && !item.artistNorms.includes(wantedArtist)) continue
     if (needles.length) {
-      const haystack = `${item.artistNorms.join(' ')} ${norm(item.title)} ${item.labelNorms.join(' ')}`
+      const haystack = `${item.artistNorms.join(' ')} ${norm(item.title)} ${item.labelNorms.join(' ')} ${catnoText(item.catnos)}`
       if (!needles.every((needle) => haystack.includes(needle))) continue
     }
 
@@ -200,6 +200,23 @@ export function shelve(
 }
 
 /**
+ * Catalogue numbers as somebody types them (#246): case, dashes and spaces are
+ * what differs between the sleeve and the box, so each one is there spaced and
+ * squashed — "WARP LP 30" answers "warp-lp-30" and "warplp30" alike.
+ */
+export function catnoText(catnos: readonly string[]): string {
+  return catnos
+    .map((catno) => {
+      const spaced = catno
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim()
+      return `${spaced} ${spaced.replaceAll(' ', '')}`
+    })
+    .join(' ')
+}
+
+/**
  * Sorts, and reverses afterwards where that is asked for.
  *
  * Reversing rather than two comparators per key: the comparator decides the
@@ -217,6 +234,21 @@ function sortRecords(records: ShelfRecord[], sort: ShelfSort, direction: SortDir
     a.title.localeCompare(b.title, 'de')
 
   switch (sort) {
+    case 'catno': {
+      // Natural order, so WARP 9 comes before WARP 10; blanks last from either end,
+      // and Discogs writes a blank as "none".
+      const blank = (record: ShelfRecord) =>
+        Number(!record.catno || /^none$/i.test(record.catno))
+      const turn = direction === 'asc' ? 1 : -1
+      records.sort(
+        (a, b) =>
+          blank(a) - blank(b) ||
+          (blank(a) ? 0 : turn) *
+            a.catno.localeCompare(b.catno, 'en', { numeric: true, sensitivity: 'base' }) ||
+          byArtist(a, b),
+      )
+      return
+    }
     case 'artist':
       records.sort(byArtist)
       break

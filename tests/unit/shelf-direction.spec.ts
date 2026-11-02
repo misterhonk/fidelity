@@ -95,6 +95,7 @@ describe('the shelf, in both directions', () => {
       artist: 'asc',
       year: 'asc',
       rating: 'desc',
+      catno: 'asc',
     })
 
     const artists = (await shelfView({ sort: 'artist' })).records.map((r) => r.artist)
