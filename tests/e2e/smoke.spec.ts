@@ -207,9 +207,9 @@ const SCREENS = [
    * exactly what a stranger sees first, and where a wrong label survives.
    */
   '/settings',
-  '/settings/hub',
+  '/settings/advanced',
   '/settings/account',
-  '/settings/data',
+  '/settings/look',
 ]
 
 test.describe('accessibility', () => {

@@ -2,6 +2,7 @@
 import { useSettingsMessages } from '~/i18n/settings'
 
 const st = useSettingsMessages()
+const m = useMessages()
 
 useSeoMeta({ title: () => st.value.account.title })
 
@@ -29,12 +30,15 @@ onMounted(async () => {
  * Storage, in a unit that says something.
  *
  * Rounding to whole megabytes turned a real 400 KB into "0 MB", which reads as
- * "nothing is stored" — the opposite of what the line is there to show.
+ * "nothing is stored" — the opposite of what the line is there to show. One
+ * helper for the whole page, so the data figure reads the same in both places.
  */
 const size = (bytes: number) =>
-  bytes < 1024 * 1024
+  bytes < 1024 ** 2
     ? `${count(Math.round(bytes / 1024))} KB`
-    : `${decimal(bytes / 1024 / 1024)} MB`
+    : bytes < 1024 ** 3
+      ? `${decimal(bytes / 1024 ** 2)} MB`
+      : `${decimal(bytes / 1024 ** 3)} GB`
 /*
  * The data apart from the cover cache, where the browser tells them apart.
  * On Chrome the total is mostly padding — every cached cover is booked at
@@ -48,6 +52,20 @@ const usage = computed(() => {
     return st.value.account.usedLine(size(s.dataBytes), count(s.coverEntries))
   if (s.usageBytes === null) return null
   return size(s.usageBytes)
+})
+/** Null until the worker answers; where the browser withholds the estimate, a line that says so. */
+const storage = computed(() => {
+  const s = stats.value
+  if (!s) return null
+  if (s.usageBytes == null || s.quotaBytes == null) return st.value.data.storageUnknown
+  return st.value.data.storageLine(size(s.usageBytes), size(s.quotaBytes))
+})
+// Chrome only: no other engine reports usageDetails.
+const storageHint = computed(() => {
+  const s = stats.value
+  return s?.usageBytes != null && s.dataBytes != null
+    ? st.value.data.storageHint(size(s.dataBytes))
+    : null
 })
 </script>
 
@@ -87,5 +105,33 @@ const usage = computed(() => {
         {{ st.account.signOutWarning }}
       </p>
     </div>
+
+    <!-- Where the data goes besides this device: the old "Sync devices" page (#229). -->
+    <SettingsCard anchor="sync" :title="st.sync.title" :description="st.sync.lead">
+      <VaultSettings />
+    </SettingsCard>
+
+    <!-- And what this device holds and spends: the old "Your data" page. -->
+    <SettingsCard anchor="data" :title="st.data.title" :description="st.data.lead">
+      <DataControls />
+
+      <p
+        v-if="storage"
+        class="fid-num text-fid-sm text-fid-text-muted"
+        data-testid="storage-estimate"
+      >
+        {{ st.data.storage }}: {{ storage }}
+      </p>
+      <p v-if="storageHint" class="text-fid-sm text-fid-text-muted" data-testid="storage-hint">
+        {{ storageHint }}
+      </p>
+
+      <!--
+        What this device has asked Discogs for (M31.12). The header carries a
+        pulse on a desktop and nothing on a phone; here the numbers stand open.
+      -->
+      <h3 class="text-fid-sm font-medium text-fid-text">{{ m.limit.title }}</h3>
+      <RateMeter card />
+    </SettingsCard>
   </SettingsPage>
 </template>

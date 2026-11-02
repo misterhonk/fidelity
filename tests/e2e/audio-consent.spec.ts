@@ -38,9 +38,9 @@ test('asks on the sheet, and the switch lands in the settings', async ({ page })
   await expect(sheet.getByText('Play the clips right here?')).toBeHidden()
   expect(asked).toEqual([])
 
-  // The switch is where the "listen at" picker is, and no longer under Your data.
-  await page.goto('/settings/search')
+  // The switch sits with the look and sound of the app since #229.
+  await page.goto('/settings/look')
   await expect(page.getByLabel('Play clips right here')).toBeChecked({ timeout: 15_000 })
-  await page.goto('/settings/data')
+  await page.goto('/settings/finds')
   await expect(page.getByLabel('Play clips right here')).toHaveCount(0)
 })

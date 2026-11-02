@@ -59,7 +59,7 @@ test('tries the secret at a locked door, and shows it on request', async ({
 }) => {
   await fakeHub(context, 'richtig')
   await seed(page, 'en')
-  await page.goto('/settings/hub')
+  await page.goto('/settings/advanced')
 
   // The screen looks for a hub on its own when it opens and writes what it
   // finds into the field. Let it finish, or the address typed here is
@@ -119,7 +119,7 @@ test('tests a catalogue and says which build answers', async ({ page, context })
     return route.fulfill({ status: 404, headers: cors, body: 'not found' })
   })
   await seed(page, 'en')
-  await page.goto('/settings/hub')
+  await page.goto('/settings/advanced')
 
   await expect(
     page

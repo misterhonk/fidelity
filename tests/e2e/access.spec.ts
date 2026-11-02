@@ -27,7 +27,7 @@ const KEY = `fk1.${payload}.c2lnbmF0dXJl`
 
 test('reads, keeps and forgets an access key on the hub screen', async ({ page }) => {
   await seed(page, 'en')
-  await page.goto('/settings/hub')
+  await page.goto('/settings/advanced')
   const panel = page.locator('section').filter({ has: page.getByLabel('Hub URL') })
   const field = panel.getByLabel('Access key or shared secret')
 
@@ -49,7 +49,7 @@ test('reads, keeps and forgets an access key on the hub screen', async ({ page }
   // The index says what the key is, and a reload keeps it.
   await page.goto('/settings')
   await expect(page.getByText(/Beta key · until/)).toBeVisible()
-  await page.goto('/settings/hub')
+  await page.goto('/settings/advanced')
   await expect(page.getByLabel('Access key or shared secret')).toHaveValue(KEY)
 
   await page.getByRole('button', { name: 'Remove' }).click()
@@ -61,5 +61,5 @@ test('reads, keeps and forgets an access key on the hub screen', async ({ page }
 test('the old address of the access screen leads to the hub', async ({ page }) => {
   await seed(page, 'en')
   await page.goto('/settings/access')
-  await expect(page).toHaveURL(/\/settings\/hub$/)
+  await expect(page).toHaveURL(/\/settings\/advanced$/)
 })

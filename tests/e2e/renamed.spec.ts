@@ -27,14 +27,21 @@ const MOVED = [
   ['/datenschutz', '/privacy'],
   ['/impressum', '/legal'],
   ['/einstellungen', '/settings'],
-  ['/einstellungen/abgleich', '/settings/sync'],
-  ['/einstellungen/darstellung', '/settings/appearance'],
-  ['/einstellungen/daten', '/settings/data'],
+  ['/einstellungen/abgleich', '/settings/account#sync'],
+  ['/einstellungen/darstellung', '/settings/look'],
+  ['/einstellungen/daten', '/settings/account#data'],
   ['/einstellungen/hilfe', '/settings/help'],
-  ['/einstellungen/hub', '/settings/hub'],
+  ['/einstellungen/hub', '/settings/advanced'],
   ['/einstellungen/konto', '/settings/account'],
   ['/einstellungen/sammlung', '/settings/collection'],
-  ['/einstellungen/suche', '/settings/search'],
+  ['/einstellungen/suche', '/settings/finds'],
+  // Nine settings pages became five and an advanced one (#229).
+  ['/settings/search', '/settings/finds'],
+  ['/settings/appearance', '/settings/look'],
+  ['/settings/hub', '/settings/advanced'],
+  ['/settings/access', '/settings/advanced'],
+  ['/settings/sync', '/settings/account#sync'],
+  ['/settings/data', '/settings/account#data'],
 ] as const
 
 test.describe('an address from before the rename', () => {
@@ -98,7 +105,21 @@ test.describe('an address from before the rename', () => {
     page,
   }) => {
     await page.goto('/einstellungen/abgleich?code=abc123')
-    await expect(page).toHaveURL(/\/settings\/sync/)
+    await expect(page).toHaveURL(/\/settings\/account/)
+  })
+
+  /** The registered redirect URI is still /settings/sync (app/utils/pkce.ts). */
+  test('sends the registered OAuth address to the page that holds the vault', async ({
+    page,
+  }) => {
+    await page.goto('/settings/sync?code=abc123')
+    await expect(page).toHaveURL(/\/settings\/account/)
+    await expect(page.locator('#sync')).toBeVisible()
+  })
+
+  test('keeps a hash the old address already had', async ({ page }) => {
+    await page.goto('/settings/search#dealers')
+    await expect(page).toHaveURL(/\/settings\/finds#dealers$/)
   })
 
   test('leaves an address that was never renamed alone', async ({ page }) => {

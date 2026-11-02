@@ -56,7 +56,7 @@ async function allow() {
         {{ m.listen.consent.yes }}
       </button>
       <NuxtLink
-        to="/settings/search#listen"
+        to="/settings/look#listen"
         class="fid-action text-fid-xs text-fid-text-muted underline underline-offset-4 hover:text-fid-text"
       >
         {{ compact ? m.listen.consent.what : m.listen.consent.settings }}

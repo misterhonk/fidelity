@@ -19,7 +19,8 @@ describe('the settings overview', () => {
   it('links to at least the sections that exist', () => {
     // Not an exact count on purpose: adding a section should not need this
     // number edited. What must hold is that the index is not empty.
-    expect(targets.length).toBeGreaterThanOrEqual(7)
+    // Five pages and an advanced one since #229.
+    expect(targets.length).toBeGreaterThanOrEqual(6)
   })
 
   it.each(targets)('/settings/%s has a page behind it', (name) => {
