@@ -161,6 +161,7 @@ async function putIn(placeId: string) {
     was,
   }
   stopSelecting()
+  await load()
 }
 async function undo() {
   if (!last.value) return
@@ -172,6 +173,7 @@ async function undo() {
     await call('places.assignMany', { instanceIds, placeId })
   }
   last.value = null
+  await load()
 }
 
 let token = 0
