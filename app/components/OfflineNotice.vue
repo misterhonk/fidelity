@@ -38,26 +38,32 @@ function dismissCoach() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-3">
+  <div class="flex flex-col">
     <!--
       Offline. Deliberately not an error: everything already scanned still
       works, which is the whole point of a record shop being a basement.
+
+      The status is always there and only its contents come and go (#313): a
+      region mounted while a sheet is open lands under an inert ancestor and
+      is never read, and a screen reader only follows regions it already knew.
     -->
-    <section
-      v-if="!online"
-      role="status"
-      class="flex flex-col gap-1 rounded-fid-md border border-fid-border bg-fid-surface p-4"
-    >
-      <p class="flex items-center gap-2 text-fid-base text-fid-text">
-        <FidIcon name="wifi-off" />
-        {{ m.notice.offline.title }}
-      </p>
-      <p class="text-fid-sm text-fid-text-muted">{{ m.notice.offline.body }}</p>
-    </section>
+    <div role="status">
+      <section
+        v-if="!online"
+        class="flex flex-col gap-1 rounded-fid-md border border-fid-border bg-fid-surface p-4"
+      >
+        <p class="flex items-center gap-2 text-fid-base text-fid-text">
+          <FidIcon name="wifi-off" />
+          {{ m.notice.offline.title }}
+        </p>
+        <p class="text-fid-sm text-fid-text-muted">{{ m.notice.offline.body }}</p>
+      </section>
+    </div>
 
     <section
       v-if="showCoach"
       class="flex flex-col gap-2 rounded-fid-md border border-fid-border p-4"
+      :class="!online && 'mt-3'"
     >
       <div class="flex flex-wrap items-baseline justify-between gap-2">
         <p class="text-fid-base text-fid-text">{{ m.notice.install.title }}</p>

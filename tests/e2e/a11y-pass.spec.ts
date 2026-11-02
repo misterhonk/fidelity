@@ -158,6 +158,29 @@ test('Back closes the shelf sheet on the start page', async ({ page }) => {
   })
 })
 
+test('going offline under an open sheet is still announced', async ({ page, context }) => {
+  await seed(page, 'en')
+  await page.goto('/')
+  await page
+    .getByRole('button', { name: /Open .*Maiden Voyage/i })
+    .first()
+    .click()
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15_000 })
+
+  await context.setOffline(true)
+  try {
+    const status = page.getByRole('status').filter({ hasText: 'No network.' })
+    await expect(status).toBeVisible()
+    expect(
+      await status.evaluate((el) =>
+        Boolean(el.closest('[inert]') ?? el.querySelector('[inert]')),
+      ),
+    ).toBe(false)
+  } finally {
+    await context.setOffline(false)
+  }
+})
+
 async function addKallax(page: Page) {
   await page.goto('/places')
   await page.getByLabel('Add a place').fill('Living room')
