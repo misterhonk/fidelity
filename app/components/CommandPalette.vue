@@ -48,15 +48,6 @@ onBeforeUnmount(() => {
 let asked = 0
 let timer: ReturnType<typeof setTimeout> | undefined
 watch(query, (value) => {
-  /*
-   * A shop's address goes straight to that shop (#217, #314): the start page
-   * has one field, and on an iPhone a copied address is the way a shop gets
-   * in. Opened on the dig page, checked, never started. Only an address — a
-   * bare word is a search, not a guess at a username.
-   */
-  const shop = /discogs\.com\//i.test(value) ? dealerFromInput(value) : null
-  if (shop) return go('/dig', { dealer: shop })()
-
   clearTimeout(timer)
   // An older query's records would stay listed, and armed for Enter, until the
   // worker answers this one.
@@ -188,6 +179,27 @@ const entries = computed<Entry[]>(() => {
   ]
 })
 
+/*
+ * A shop's address offers that shop on top (#217, #314): the start page has one
+ * field, and on an iPhone a copied address is the way a shop gets in. Enter or
+ * a tap opens it on the dig page — checked, never started. Offered, not
+ * followed: an address typed by hand passes through shorter, wrong usernames.
+ * Only an address — a bare word is a search, not a guess at a username.
+ */
+const shopEntry = computed<Entry[]>(() => {
+  const shop = /discogs\.com\//i.test(query.value) ? dealerFromInput(query.value) : null
+  if (!shop) return []
+  const m = messages.value
+  return [
+    {
+      id: 'paste-shop',
+      group: m.palette.actions,
+      label: m.palette.digAt(shop),
+      run: go('/dig', { dealer: shop }),
+    },
+  ]
+})
+
 const results = computed(() => {
   const words = query.value.trim().toLowerCase().split(/\s+/).filter(Boolean)
 
@@ -201,7 +213,7 @@ const results = computed(() => {
 
   // Records first: a typed name is most often a record. Capped, because a
   // palette that scrolls forever is a list, not a palette.
-  return [...recordEntries.value, ...hits].slice(0, 40)
+  return [...shopEntry.value, ...recordEntries.value, ...hits].slice(0, 40)
 })
 
 // Any keystroke moves the selection back to the top result; leaving the cursor
