@@ -12,6 +12,43 @@ Für eine App bedeutet SemVer:
 ## [0.122.0](https://github.com/misterhonk/fidelity/compare/v0.121.0...v0.122.0) (2026-11-02)
 
 
+<!-- en -->
+**New finds come to you.** Today shows what is new in the shops you watch since your last visit,
+your wants can say which pressing will do, and a friend's wantlist turns into gift ideas.
+
+- Since your last visit: when you open Sleeveside, the shops you watch are checked for what is
+  new, and the finds wait on Today.
+- A want can say which pressing will do: first pressing only, or not this one. Digs follow it.
+- Gift finder: enter a friend's username and see what from their public wantlist a shop has.
+  Nothing of theirs is kept after you leave the page.
+- Record fairs: a pick list per stand that works offline. After six hours it keeps the record
+  facts, the reason and your max price, but no prices from Discogs.
+- Filter finds by size (12", LP, 10", 7"), search and sort the shelf by catalogue number, and
+  filter shops by the UK, North America and Japan.
+- The basket estimates import duty and VAT into the UK and the US too.
+- A shop's page counts how much of its stock was listed more than five years ago. Only you see it.
+- Catalogue runs you collect show as badges on the map.
+
+<!-- de -->
+**Neue Funde kommen zu dir.** Heute zeigt, was seit deinem letzten Besuch in deinen beobachteten
+Läden neu ist, deine Wünsche können sagen, welche Pressung es sein darf, und aus der Wantlist
+eines Freundes werden Geschenkideen.
+
+- Seit deinem letzten Besuch: Wenn du Sleeveside öffnest, schauen wir in deinen beobachteten
+  Läden nach Neuem, und die Funde warten auf Heute.
+- Ein Wunsch kann sagen, welche Pressung es sein darf: nur die Erstpressung oder diese nicht.
+  Digs halten sich daran.
+- Geschenkefinder: Gib den Namen eines Freundes ein und sieh, was ein Laden von seiner
+  öffentlichen Wantlist hat. Sobald du die Seite verlässt, ist nichts davon mehr gespeichert.
+- Plattenbörsen: eine Liste pro Stand, die offline funktioniert. Nach sechs Stunden bleiben die
+  Fakten zur Platte, der Grund und dein Höchstpreis, aber keine Preise von Discogs.
+- Funde nach Größe filtern (12", LP, 10", 7"), das Regal nach Katalognummer suchen und sortieren
+  und Läden nach Großbritannien, Nordamerika und Japan filtern.
+- Der Korb schätzt Zoll und Einfuhrumsatzsteuer jetzt auch für Großbritannien und die USA.
+- Die Seite eines Ladens zählt, wie viel seines Bestands vor mehr als fünf Jahren eingestellt
+  wurde. Das siehst nur du.
+- Katalogreihen, die du sammelst, erscheinen als Abzeichen auf der Karte.
+
 ### Added
 
 * **basket:** estimate import duty and VAT into the UK and the US too ([b43438f](https://github.com/misterhonk/fidelity/commit/b43438fa6f76785d3e0df395eb18e396dea64ee8)), closes [#243](https://github.com/misterhonk/fidelity/issues/243)
