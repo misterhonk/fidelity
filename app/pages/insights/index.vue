@@ -2,6 +2,7 @@
 import type {
   CollectionGaps,
   CollectionValue,
+  RunStanding,
   TasteComparison,
   TasteFacet,
   TasteProfile,
@@ -77,6 +78,14 @@ const decades = computed(() =>
     // Older profiles stored "1990er" as the name; the number in front is what counts.
     .map((facet) => ({ ...facet, name: m.value.decade(Number.parseInt(facet.name, 10)) })),
 )
+
+/** "Brain 1000", "Ohr OMM", or just "Brain" when the prefix only repeats the name. */
+function runName(run: RunStanding): string {
+  if (run.series > 0) return `${run.label} ${run.series}`
+  return run.prefix.toLowerCase() === run.label.toLowerCase()
+    ? run.label
+    : `${run.label} ${run.prefix}`
+}
 </script>
 
 <template>
@@ -279,8 +288,7 @@ const decades = computed(() =>
             :key="`${run.label}:${run.prefix}:${run.series}`"
             class="rounded-fid-sm border border-fid-border px-3 py-1 text-fid-sm"
           >
-            <span class="text-fid-text"
-              >{{ run.label }} {{ run.series > 0 ? run.series : run.prefix }}:&#32;</span
+            <span class="text-fid-text">{{ runName(run) }}:&#32;</span
             ><span class="fid-num text-fid-text-muted">{{
               m.common.ofTotal(run.owned, run.total)
             }}</span>
