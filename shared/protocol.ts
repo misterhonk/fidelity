@@ -22,6 +22,7 @@ import type { CheckProgress, WatchedCheck } from '~~/worker/watched/check'
 import type { DemoProgress, DemoResult } from '~~/worker/demo'
 import type { ImportReport } from '../worker/import'
 import type { ArtistHit } from '~~/worker/followed'
+import type { GiftProgress, GiftResult } from '~~/worker/gift'
 import type { CompareResult } from '~~/worker/basket/compare'
 import type { SuggestResult } from '~~/worker/dealers/suggest'
 import type {
@@ -308,6 +309,15 @@ export interface WorkerContract {
     params: { from: OriginFilter }
     progress: never
     result: WantPlan
+  }
+  /**
+   * A friend's public wantlist across the shops scanned inside the six hours,
+   * within a budget, minus their collection (#245). Nothing about them is kept.
+   */
+  'gift.find': {
+    params: { username: string; budget: number }
+    progress: GiftProgress
+    result: GiftResult
   }
   /**
    * "Habe ich die schon?" — collection and wantlist, by name. No requests, so

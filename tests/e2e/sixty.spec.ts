@@ -38,6 +38,7 @@ const ROUTES = [
   '/basket',
   '/saved',
   '/shops',
+  '/gift',
   '/in-store',
   '/settings',
   '/settings/advanced',

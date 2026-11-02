@@ -453,6 +453,12 @@ onBeforeUnmount(() => {
       @starter="addStarter"
     />
 
+    <p class="text-fid-sm text-fid-text-muted">
+      <NuxtLink to="/gift" class="fid-action underline underline-offset-4">{{
+        h.giftEntry
+      }}</NuxtLink>
+    </p>
+
     <!-- The way back, pinned where the eye is. -->
     <p v-if="lastHidden" role="status" class="fid-toast">
       {{ h.hiddenLine(lastHidden.name) }}

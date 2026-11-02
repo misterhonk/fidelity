@@ -37,7 +37,7 @@ onMounted(() => {
  */
 const SECTIONS = [
   { to: '/', key: 'start', icon: 'house' },
-  { to: '/shops', key: 'dealers', icon: 'store', also: ['/shop', '/stack'] },
+  { to: '/shops', key: 'dealers', icon: 'store', also: ['/shop', '/stack', '/gift'] },
   {
     to: '/collection',
     key: 'shelf',
