@@ -108,9 +108,12 @@ const nameOf = (id: string) => {
   return node ? labelOf(node) : ''
 }
 
+// A double tap would queue two jobs and file two copies at Discogs.
+const adding = ref(false)
 async function add() {
   const chosenPressing = pressing.value
-  if (!chosenPressing) return
+  if (!chosenPressing || adding.value) return
+  adding.value = true
   error.value = null
   try {
     const copy = await call('collection.addPressing', {
@@ -128,6 +131,8 @@ async function add() {
     proposal.value = proposed?.placeId ?? null
   } catch (cause) {
     error.value = cause
+  } finally {
+    adding.value = false
   }
 }
 
@@ -315,7 +320,7 @@ onBeforeUnmount(() => clearInterval(timer))
             </button>
           </div>
         </div>
-        <FidButton size="lg" class="self-start" @click="add()">
+        <FidButton size="lg" class="self-start" :disabled="adding" @click="add()">
           {{ second ? a.addSecond : a.add }}
         </FidButton>
       </section>
