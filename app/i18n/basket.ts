@@ -412,9 +412,9 @@ const de: typeof en = {
   customsNoteOver:
     'Von außerhalb der EU und über 150 €: Die Steuer zahlst du bei der Einfuhr, und es gelten die normalen Zollregeln.',
   customsNoteUk:
-    'In die UK, bis 135 £: kein Zoll. Die 20 % Steuer schlägt Discogs an der Kasse drauf.',
+    'Nach Großbritannien, bis 135 £: kein Zoll. Die 20 % Steuer schlägt Discogs an der Kasse drauf.',
   customsNoteUkOver:
-    'In die UK und über 135 £: Die Steuer zahlst du bei der Einfuhr, und es gelten die normalen Zollregeln.',
+    'Nach Großbritannien und über 135 £: Die Steuer zahlst du bei der Einfuhr, und es gelten die normalen Zollregeln.',
   customsNoteUs:
     'In die USA: Seit 29. August 2025 gibt es keine Freigrenze mehr. Der Zoll hängt davon ab, wo die Platte herkommt, und der Paketdienst nimmt oft eine Gebühr. Beides zeigt Discogs nicht an.',
 
