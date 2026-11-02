@@ -268,7 +268,7 @@ describe('the outbox', () => {
       await queueAdd()
       const fake = client(async () => {
         await new Promise((resolve) => setTimeout(resolve, 5))
-        return null
+        return { instance_id: 7 }
       })
 
       await Promise.all([drainOutbox(fake, 'mrtnmlchr'), drainOutbox(fake, 'mrtnmlchr')])

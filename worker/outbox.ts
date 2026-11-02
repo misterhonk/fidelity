@@ -1,6 +1,9 @@
+import { z } from 'zod'
+
 import { dropJob, noteFailure, noteSending, OUTBOX_LOCK, pendingJobs } from '~~/db/outbox'
 import { openFidelityDb } from '~~/db/open'
 import { DiscogsError } from './discogs/errors'
+import { fail } from './fail'
 import type { OutboxJob, OutboxKind } from '~~/db/schema'
 import type { WantlistItem } from '#shared/types'
 import type { DiscogsClient } from './discogs/client'
@@ -36,7 +39,12 @@ interface JobKind {
    * instead took a copy already on the shelf for the new one, and dropped it.
    */
   instances?: (client: DiscogsClient, job: OutboxJob, username: string) => Promise<number[]>
+  /** With `instances`: what to do once the lookup has found the id the job filed. */
+  landed?: (job: OutboxJob, instanceId: number) => Promise<void>
 }
+
+/** Discogs answers an add with the entry it filed (201). */
+const addedSchema = z.object({ instance_id: z.number().int().positive() })
 
 /**
  * The folder Discogs has an entry in right now, which is part of its address.
@@ -135,10 +143,14 @@ const KINDS: Record<OutboxKind, JobKind> = {
 
   'collection.add': {
     send: async (client, job, username) => {
-      const { releaseId } = job.payload as { releaseId: number }
-      await client.write(
+      // No folder: queued before the chosen one was kept, when every add went to 1.
+      const { releaseId, folderId = 1 } = job.payload as {
+        releaseId: number
+        folderId?: number
+      }
+      const answer = await client.write(
         'POST',
-        `/users/${encodeURIComponent(username)}/collection/folders/1/releases/${releaseId}`,
+        `/users/${encodeURIComponent(username)}/collection/folders/${folderId}/releases/${releaseId}`,
         /*
          * The one call in the app that files something new.
          *
@@ -153,23 +165,33 @@ const KINDS: Record<OutboxKind, JobKind> = {
       // properly rather than leaving a half-built row behind.
       const { updateSyncState } = await import('~~/db/meta')
       await updateSyncState({ collectionSyncedAt: 0 })
+      /*
+       * Landed, but not said as what. Counted as a failure, so the job stays
+       * marked: the next round looks, finds the new id and settles it there,
+       * rather than leaving the copy under a key no sync ever replaces.
+       */
+      const added = addedSchema.safeParse(answer)
+      if (!added.success) throw fail('malformed-payload', 'add answered without an instance id')
+      const { settleCopy } = await import('./collection/add')
+      await settleCopy(job, added.data.instance_id)
     },
     instances: async (client, job, username) => {
       const { releaseId } = job.payload as { releaseId: number }
       const { instancesOf } = await import('./collection/add')
       return instancesOf(client, username, releaseId)
     },
+    landed: async (job, instanceId) => {
+      const { settleCopy } = await import('./collection/add')
+      await settleCopy(job, instanceId)
+    },
     revert: async (job) => {
-      const { releaseId } = job.payload as { releaseId: number }
-      const db = await openFidelityDb()
       /*
-       * Under the key it was put there with. The provisional row is filed as
-       * `-releaseId` (collection/add.ts) until a sync brings the real
-       * instance, and the sync keeps keys at or below zero on purpose — so
-       * deleting `releaseId` left a record on the shelf for good, hiding it
-       * from every dig as owned.
+       * Under the key it was put there with, not `releaseId`: the sync keeps
+       * keys at or below zero on purpose, so deleting the wrong one left a
+       * record on the shelf for good, hiding it from every dig as owned.
        */
-      await db.delete('collection', -releaseId)
+      const { dropCopy } = await import('./collection/add')
+      await dropCopy(job)
     },
   },
 
@@ -334,7 +356,9 @@ async function drainOnce(
          * is a new id too, so the job is dropped and one copy lands, not two.
          * Nothing Discogs answers tells the two apart.
          */
-        if (job.sentAt !== undefined && now.some((id) => !before.has(id))) {
+        const landed = now.find((id) => !before.has(id))
+        if (job.sentAt !== undefined && landed !== undefined) {
+          await kind.landed?.(job, landed)
           await dropJob(job.id, job)
           sent += 1
           continue
@@ -384,7 +408,7 @@ async function titleOf(job: OutboxJob): Promise<string> {
   const db = await openFidelityDb()
   const row = job.kind.startsWith('wantlist.')
     ? await db.get('wantlist', Number(releaseId))
-    : // An add is still the provisional row under `-releaseId` (collection/add.ts).
+    : // An add is still its provisional row: the payload's key, or `-releaseId` for an older one.
       await db.get('collection', Number(instanceId ?? -Number(releaseId)))
   return row?.title ?? `#${releaseId}`
 }

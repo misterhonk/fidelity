@@ -405,7 +405,8 @@ export interface WorkerContract {
   }
   /** Puts a record you just bought on the shelf. False when it is already on it. */
   'collection.add': {
-    params: { digId: string; listingId: number }
+    /** `folderId`: where it is filed at Discogs; "Uncategorized" (1) when left out. */
+    params: { digId: string; listingId: number; folderId?: number }
     progress: never
     result: boolean
   }

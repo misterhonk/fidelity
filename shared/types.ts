@@ -735,9 +735,11 @@ export interface CollectionItem {
    * write at one of them.
    *
    * **Negative means provisional.** A record put on the shelf from a find has
-   * no instance until Discogs has been asked, so it gets `-releaseId` — unique
-   * per release, impossible to confuse with a real id (those are positive),
-   * and refused by every write path until the next sync replaces it.
+   * no instance until Discogs has answered, so it gets a negative key of its
+   * own per copy (`collection/add.ts`) — impossible to confuse with a real id
+   * (those are positive), and refused by every write path until the answer
+   * moves it to the real one. A row from a sync that came without an
+   * instance stands in as `-releaseId`.
    */
   instanceId: number
   folderId: number
