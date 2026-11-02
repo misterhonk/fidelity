@@ -113,3 +113,16 @@ test('a barcode typed without signal is looked up once the signal is back', asyn
   await page.getByRole('button', { name: /Not in your collection.*5012394144777/ }).click()
   await expect(page.getByText('Discogs knows no record with this barcode.')).toBeVisible()
 })
+
+/* The spacer at the list's end is as tall as the bar it makes room for (#313). */
+test('the end of the list clears the field', async ({ page }) => {
+  await seed(page, 'en')
+  await page.goto('/in-store')
+  await expect(field(page)).toBeVisible({ timeout: 15_000 })
+
+  const bar = page.getByTestId('in-store-field')
+  const spacer = page.getByTestId('in-store-spacer')
+  await expect
+    .poll(async () => (await spacer.boundingBox())!.height)
+    .toBeGreaterThanOrEqual((await bar.boundingBox())!.height)
+})

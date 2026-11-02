@@ -58,7 +58,8 @@ test.describe('with motion', () => {
       .evaluateAll((items) =>
         items.slice(0, 2).map((li) => getComputedStyle(li).transitionDelay),
       )
-    expect(delays).toEqual(['0.03s', '0.06s'])
+    // One step for every stagger (#313): the tiles' 40 ms.
+    expect(delays).toEqual(['0.04s', '0.08s'])
 
     const duration = await unfolding(page)
     test.skip(duration === null, 'no interpolate-size: the why opens at once by design')

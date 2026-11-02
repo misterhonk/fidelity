@@ -108,9 +108,18 @@ export function useBarcodeScan() {
           onFound(code)
           return
         }
-      } catch {
+      } catch (error) {
         // A frame with nothing readable in it is the ordinary case, not an
         // error. The next look comes in 400 ms.
+        //
+        // A decoder that died (zxing's `decoder-*`) reads nothing ever again:
+        // the camera goes off and the field's hint stands, and the next Scan
+        // starts a fresh worker (#313).
+        if (error instanceof Error && error.message.startsWith('decoder-')) {
+          stop()
+          failure.value = 'unavailable'
+          return
+        }
       }
       timer = self.setTimeout(look, 400)
     }

@@ -59,6 +59,8 @@
 :root {
   /* Where ToTop and the toasts float on a phone: above the tab bar. */
   --fid-float-bottom: calc(env(safe-area-inset-bottom) + 5.5rem);
+  /* One stagger for everything that arrives in turn: tiles and finds alike (#313). */
+  --fid-stagger-step: 40ms;
   /* Array is narrow like the stamping on a record spine. */
   --fid-font-sans: 'Switzer', ui-sans-serif, system-ui, sans-serif;
   --fid-font-mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -277,7 +279,7 @@ body {
 .fid-tile,
 .fid-rise {
   animation: fid-lay-out var(--fid-motion-layout) ease-out backwards;
-  animation-delay: calc(min(var(--fid-stagger, 0), 11) * 40ms);
+  animation-delay: calc(min(var(--fid-stagger, 0), 11) * var(--fid-stagger-step));
 }
 
 /*
@@ -487,7 +489,7 @@ html.fid-docked body {
   transition:
     opacity var(--fid-motion-layout) ease-out,
     translate var(--fid-motion-layout) ease-out;
-  transition-delay: calc(min(sibling-index(), 12) * 30ms);
+  transition-delay: calc(min(sibling-index(), 12) * var(--fid-stagger-step));
 }
 
 @starting-style {

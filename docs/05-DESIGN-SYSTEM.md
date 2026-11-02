@@ -381,7 +381,7 @@ Postage to you (DE)             currently 2 records · €9.00 total · €4.50 
 | **`scrollbar-gutter: stable`** | On every list pane. No layout jump when filtering. |
 | **Skeletons** | Only with exactly the dimensions of the real content, or you swap a spinner for CLS. |
 | **`content-visibility: auto`** | On the rows of the two long lists that are *not* virtualised — a dig under two hundred finds and the shelf — with `contain-intrinsic-size` so the scrollbar does not lie. Not above the virtualiser's threshold: there the nodes are gone anyway, and two mechanisms would argue about the same rows. One side effect worth knowing: a full-page screenshot captures the skipped rows blank. |
-| **Four tiers, one component** | `FidButton` (#221) and nothing else: **primary** filled, for the one action a screen is for; **secondary** tonal (`.fid-tonal`, the accent at 16 %) for the reversible companions; **tertiary** a line of underlined words, sentence case — never the plate's mono capitals, which read as a label rather than something to press; **destructive** outlined, because red is a warning and not a button, and always followed by an undo line. Under `pointer: coarse` every tier is at least 44 × 44 px. With `icon`, the label shows beside it on a phone and goes to the screen reader only from `md` up. The filled surface lives inside the component; `tests/unit/fid-button.spec.ts` fails on a `fid-fill` anywhere else. A second accent colour would talk over the signal colours, which each mean one signal. |
+| **Four tiers, one component** | `FidButton` (#221) and nothing else: **primary** filled, for the one action a screen is for; **secondary** tonal (`.fid-tonal`, the accent at 16 %) for the reversible companions — "read the whole shop" after an empty quick dig is one (decided in #313): it spends requests but changes nothing, and it stands beside the result rather than being what the screen is for; **tertiary** a line of underlined words, sentence case — never the plate's mono capitals, which read as a label rather than something to press; **destructive** outlined, because red is a warning and not a button, and always followed by an undo line. Under `pointer: coarse` every tier is at least 44 × 44 px. With `icon`, the label shows beside it on a phone and goes to the screen reader only from `md` up. The filled surface lives inside the component; `tests/unit/fid-button.spec.ts` fails on a `fid-fill` anywhere else. A second accent colour would talk over the signal colours, which each mean one signal. |
 
 ---
 
@@ -492,7 +492,7 @@ the thought but its position.
   - **Cover → sheet** — a same-document View Transition on `fid-cover`, and
     `view-transition-class: fid-sheet` sliding the drawer in and out (§4).
   - **Finds cascade in** — `.fid-cascade` on every list item: `@starting-style` from
-    transparent and half a rem low, `transition-delay: min(sibling-index(), 12) × 30 ms`.
+    transparent and half a rem low, `transition-delay: min(sibling-index(), 12) × --fid-stagger-step` (40 ms, the same step as `.fid-rise`).
     Where `sibling-index()` is missing the delay is invalid and they arrive together.
   - **The "why" unfolds** — `WhyNote`'s `::details-content` transitions `block-size` under
     `interpolate-size: allow-keywords`; without it (WebKit 26.5) the answer opens at once.
