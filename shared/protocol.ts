@@ -17,6 +17,7 @@ import type { OriginFilter } from './countries'
 import type { CoverProgress } from '~~/worker/covers'
 import type { KeeperProgress, KeeperResult } from '~~/worker/keeper'
 import type { DrainResult, OutboxOverview } from '~~/worker/outbox'
+import type { BulkChange, BulkResult, BulkUndo, UndoResult } from '~~/worker/collection/bulk'
 import type { CheckProgress, WatchedCheck } from '~~/worker/watched/check'
 import type { DemoProgress, DemoResult } from '~~/worker/demo'
 import type { ImportReport } from '../worker/import'
@@ -430,6 +431,14 @@ export interface WorkerContract {
     progress: never
     result: boolean
   }
+  /** One change to every selected copy (#237): place, rating, grade, folder or removal. No request; the outbox sends it. */
+  'collection.bulk': {
+    params: { instanceIds: number[]; change: BulkChange }
+    progress: never
+    result: BulkResult
+  }
+  /** And all of it back: cancels what has not gone out, queues the old value for what has. */
+  'collection.bulkUndo': { params: { undo: BulkUndo }; progress: never; result: UndoResult }
   /** Puts a record you just bought on the shelf. False when it is already on it. */
   'collection.add': {
     /** `folderId`: where it is filed at Discogs; "Uncategorized" (1) when left out. */
