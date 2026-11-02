@@ -92,12 +92,9 @@ const note = computed(() => {
 
 <template>
   <!--
-    A `<div>` and no longer a `<p>`.
-
-    `<p>` takes phrasing content only, and `WhyNote` is a `<details>`. The
-    browser then closes the paragraph itself and lifts the `<details>` out —
-    the line falls into two blocks, and only in the rendered document, not in
-    the source. Noticed on 2026-09-11 while fitting it.
+    One quiet line (#314). What refreshes by itself, and when, is a chapter in
+    Help: it was a third control on this line, and on a phone the line was
+    three rows before the first cover.
   -->
   <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-fid-xs text-fid-text-muted">
     <span aria-live="polite">{{ note }}</span>
@@ -109,6 +106,5 @@ const note = computed(() => {
     >
       {{ m.freshness.refreshAll }}
     </button>
-    <WhyNote :label="m.freshness.whyLabel">{{ m.freshness.why }}</WhyNote>
   </div>
 </template>

@@ -728,6 +728,12 @@ const en = {
       ],
     },
     {
+      title: 'What refreshes by itself?',
+      body: [
+        'Your collection, your wantlist, the shops you watch and your artists and labels: when the app opens, when you come back to the tab, and every twenty minutes. Usually that is a single lookup, because we only ask Discogs what has changed. Two things stay out on purpose. A dig is two to four minutes and a hundred lookups or more, so you start it, never a clock. And your orders we cannot fetch at all; Discogs only lists what you sold, so a purchase is read from its order number.',
+      ],
+    },
+    {
       title: 'Does it work without a network?',
       body: [
         'For looking things up, yes. Collection, wantlist, map and the last lists of finds are on the device. The "In the shop" screen exists exactly for this: with the record in your hand, check whether you already have it. Record shops are basements.',
@@ -1275,6 +1281,12 @@ const de: typeof en = {
       body: [
         'Unter „Konto & Daten", bei „Geräte abgleichen". Wir verschlüsseln deine Daten auf diesem Gerät und legen sie als einen einzigen Block ab: in deinem Hub, in einem Sync-Ordner, bei Dropbox oder Google Drive, wie du willst. Nur deine Geräte können ihn wieder öffnen.',
         'Alternativ richtest du das Handy einfach neu ein. Alles außer deinen Urteilen lässt sich von Discogs neu holen.',
+      ],
+    },
+    {
+      title: 'Was frischt sich von selbst auf?',
+      body: [
+        'Deine Sammlung, deine Wantlist, die beobachteten Läden und deine Künstler und Labels: beim Öffnen, beim Zurückkommen in den Tab und alle zwanzig Minuten. Meistens ist das eine einzige Abfrage, weil wir Discogs nur fragen, was sich geändert hat. Zwei Dinge bleiben absichtlich draußen. Ein Dig dauert zwei bis vier Minuten und hundert Abfragen und mehr, den startest also du und keine Uhr. Und deine Bestellungen können wir gar nicht holen; Discogs listet nur, was du verkauft hast, einen Kauf lesen wir deshalb über seine Bestellnummer.',
       ],
     },
     {

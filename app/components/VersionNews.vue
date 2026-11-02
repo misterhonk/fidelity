@@ -74,17 +74,27 @@ function seen() {
 </script>
 
 <template>
+  <!--
+    One chip, not three rows (#314): the whole of it opens the notes, the cross
+    puts it away for this release.
+  -->
   <p
     v-if="show"
-    class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-fid-sm text-fid-text-muted"
+    class="inline-flex w-fit max-w-full items-center rounded-full border border-fid-border text-fid-xs text-fid-text-muted"
     role="status"
   >
-    <span class="fid-num">{{ m.news.updatedTo(version) }}</span>
-    <NuxtLink to="/whats-new" class="fid-action underline underline-offset-4" @click="seen()">{{
-      m.news.whatChanged
-    }}</NuxtLink>
-    <button type="button" class="fid-action underline underline-offset-4" @click="seen()">
-      {{ m.news.dismiss }}
+    <NuxtLink to="/whats-new" class="fid-action py-1 pl-3 hover:text-fid-text" @click="seen()"
+      ><span class="fid-num">{{ m.news.updatedTo(version) }}</span> ·
+      <span class="underline underline-offset-4">{{ m.news.whatChanged }}</span></NuxtLink
+    >
+    <button
+      type="button"
+      class="fid-action justify-center rounded-full px-2 hover:text-fid-text"
+      :aria-label="m.news.dismiss"
+      :title="m.news.dismiss"
+      @click="seen()"
+    >
+      <span aria-hidden="true">×</span>
     </button>
   </p>
 </template>
