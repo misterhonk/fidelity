@@ -220,12 +220,16 @@ const readFullyAt = ref<number | null>(null)
 const rereading = ref(false)
 const { tick } = useKeeper()
 
+const outboxSeen = ref(0)
+
 async function reread() {
   rereading.value = true
   try {
     await tick({ force: true })
     readFullyAt.value = await call('collection.readFullyAt', undefined)
     await load()
+    // A full read is when both sides are compared (#238): the line may have news.
+    outboxSeen.value += 1
   } finally {
     rereading.value = false
   }
@@ -319,6 +323,7 @@ const walk = computed(() => {
             {{ rereading ? c.shelf.rereading : c.shelf.reread }}
           </FidButton>
         </p>
+        <OutboxStatus :key="outboxSeen" />
       </div>
 
       <!--

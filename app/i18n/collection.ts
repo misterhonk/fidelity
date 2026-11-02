@@ -684,6 +684,43 @@ const en = {
     toShelf: 'Add to shelf',
   },
 
+  /** The outbox sheet (#238): what is still on its way, what needs you, what is gone. */
+  outbox: {
+    open: (waiting: number, decide: number, gone: number) =>
+      [
+        waiting > 0 ? `${waiting} waiting for Discogs` : '',
+        decide > 0 ? `${decide} to decide` : '',
+        gone > 0 ? `${gone} gone from Discogs` : '',
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    title: 'On its way to Discogs',
+    empty: 'Nothing waiting. Discogs has everything you changed.',
+    kinds: {
+      'collection.rating': 'Rating',
+      'collection.field': 'Condition or note',
+      'collection.remove': 'Taken off the shelf',
+      'collection.add': 'Added to the shelf',
+      'collection.folder': 'Folder',
+      'wantlist.add': 'Added to the wantlist',
+      'wantlist.remove': 'Taken off the wantlist',
+      'wantlist.note': 'Wantlist note',
+    },
+    waiting: 'Waiting',
+    attempts: (n: number) => (n === 1 ? 'Tried once' : `Tried ${n} times`),
+    lastError: (error: string) => `Last answer: ${error}`,
+    conflict: 'Changed on Discogs too. Which one stays?',
+    yours: 'Yours',
+    theirs: 'On Discogs',
+    keepMine: 'Keep mine',
+    takeTheirs: 'Take Discogs’',
+    gone: 'No longer on Discogs',
+    goneLead:
+      'Sold, or removed somewhere else. Each one keeps its place for 30 days. If it comes back by then, it goes back there.',
+    goneUntil: (place: string | null, day: string) =>
+      place ? `Keeps ${place} until ${day}` : `Listed here until ${day}`,
+  },
+
   shelfCount: (shown: string, of: string | null, records: string) =>
     of === null ? `${shown} ${records}` : `${shown} of ${of} ${records}`,
   records: 'records',
@@ -1193,6 +1230,41 @@ const de: typeof en = {
     undone: (label) => `${label} wieder raus.`,
     cannotUndo: 'Ist gerade unterwegs zu Discogs. Gleich nochmal versuchen.',
     toShelf: 'Ins Regal',
+  },
+
+  outbox: {
+    open: (waiting, decide, gone) =>
+      [
+        waiting > 0 ? `${waiting} warten auf Discogs` : '',
+        decide > 0 ? `${decide} zu entscheiden` : '',
+        gone > 0 ? `${gone} nicht mehr bei Discogs` : '',
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    title: 'Unterwegs zu Discogs',
+    empty: 'Nichts wartet. Discogs hat alles, was du geändert hast.',
+    kinds: {
+      'collection.rating': 'Bewertung',
+      'collection.field': 'Zustand oder Notiz',
+      'collection.remove': 'Aus dem Regal genommen',
+      'collection.add': 'Ins Regal gestellt',
+      'collection.folder': 'Ordner',
+      'wantlist.add': 'Auf die Wunschliste gesetzt',
+      'wantlist.remove': 'Von der Wunschliste genommen',
+      'wantlist.note': 'Notiz auf der Wunschliste',
+    },
+    waiting: 'Wartet',
+    attempts: (n) => (n === 1 ? 'Einmal versucht' : `${n}-mal versucht`),
+    lastError: (error) => `Letzte Antwort: ${error}`,
+    conflict: 'Auch bei Discogs geändert. Was soll bleiben?',
+    yours: 'Deins',
+    theirs: 'Bei Discogs',
+    keepMine: 'Meins behalten',
+    takeTheirs: 'Discogs übernehmen',
+    gone: 'Nicht mehr bei Discogs',
+    goneLead:
+      'Verkauft oder woanders entfernt. Der Platz bleibt 30 Tage frei. Kommt die Platte bis dahin zurück, steht sie wieder dort.',
+    goneUntil: (place, day) => (place ? `Hält ${place} bis ${day}` : `Steht hier bis ${day}`),
   },
 
   shelfCount: (shown: string, of: string | null, records: string) =>
