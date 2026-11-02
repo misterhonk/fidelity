@@ -12,9 +12,20 @@
  * Norway and the UK are exactly the cases the question is about.
  */
 
-export type OriginFilter = 'any' | 'home' | 'eu' | 'europe'
+export type OriginFilter = 'any' | 'home' | 'eu' | 'europe' | 'uk' | 'na' | 'jp'
 
-export const ORIGIN_FILTERS: OriginFilter[] = ['any', 'home', 'eu', 'europe']
+export const ORIGIN_FILTERS: OriginFilter[] = ['any', 'home', 'eu', 'europe', 'uk', 'na', 'jp']
+
+/**
+ * The three regions a collector names beside home and Europe (#246) — where
+ * the original pressings of most records were made, and three separate
+ * postage-and-customs questions for anybody outside them.
+ */
+const REGIONS: Record<'uk' | 'na' | 'jp', Set<string>> = {
+  uk: new Set(['united kingdom']),
+  na: new Set(['united states', 'canada', 'mexico']),
+  jp: new Set(['japan']),
+}
 
 /** The 27 member states, as Discogs spells them. */
 export const EU = new Set([
@@ -121,11 +132,12 @@ export function passesOrigin(
   if (filter === 'any') return true
   if (filter === 'home') return sameCountry(shipsFrom, home)
   if (filter === 'europe') return isEurope(shipsFrom)
-  return isEu(shipsFrom)
+  if (filter === 'eu') return isEu(shipsFrom)
+  return REGIONS[filter].has(key(shipsFrom))
 }
 
 export function readOrigin(value: unknown): OriginFilter {
-  return value === 'home' || value === 'eu' || value === 'europe' ? value : 'any'
+  return ORIGIN_FILTERS.find((filter) => filter === value) ?? 'any'
 }
 
 /**
