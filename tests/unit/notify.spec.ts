@@ -29,12 +29,21 @@ describe('what a watch push says', () => {
     )
   })
 
-  it('counts one as one, in both languages', () => {
+  it('speaks French when the app does', () => {
+    expect(watchNotice({ dealer: 'plattenladen', newListings: 12 }, 'fr')?.body).toBe(
+      '12 annonces de plus que la dernière fois.',
+    )
+  })
+
+  it('counts one as one, in every language', () => {
     expect(watchNotice({ dealer: 'a', newListings: 1 }, 'en')?.body).toBe(
       '1 listing more on offer than last time.',
     )
     expect(watchNotice({ dealer: 'a', newListings: 1 }, 'de')?.body).toBe(
       '1 Angebot mehr als beim letzten Mal.',
+    )
+    expect(watchNotice({ dealer: 'a', newListings: 1 }, 'fr')?.body).toBe(
+      '1 annonce de plus que la dernière fois.',
     )
   })
 
