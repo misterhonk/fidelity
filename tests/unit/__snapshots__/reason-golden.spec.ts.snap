@@ -1,0 +1,148 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the reason, word for word, in de > carries the cases that change the grammar 1`] = `
+{
+  "alias, one record": "Miss Dinky ist Dinky. Dinky steht bei dir im Regal, diese nicht.",
+  "artist, one record": "Aphex Twin steht bei dir im Regal. Diese Platte nicht.",
+  "group member, several records": "Paul Hartnoll gehört zu Orbital. Du hast 4 Platten von Orbital, diese nicht.",
+  "nothing specific": "Passt zu dem, was du sammelst.",
+  "one copy left": "Weltweit genau eine im Angebot.",
+  "one runner-up": "Steht auf deiner Wantlist. Außerdem: Robag Wruhme steht bei dir im Regal.",
+  "runner-up under another name": "Steht auf deiner Wantlist. Außerdem: Dinky steht bei dir im Regal, als Miss Dinky.",
+  "same pressing era": "Nicht die Pressung von deiner Wantlist, aber dasselbe Album: Dummy.",
+  "three runners-up": "Steht auf deiner Wantlist. Außerdem: eine Lücke bei Aphex Twin, Freude Am Tanzen sammelst du, nur 3 im Angebot.",
+  "want most": "Steht auf deiner Wantlist, und zwar ganz oben.",
+}
+`;
+
+exports[`the reason, word for word, in de > leads with each signal 1`] = `
+{
+  "ARTIST_FOLLOWED": "Exit North hast du auf dem Schirm, und noch nichts davon im Regal.",
+  "ARTIST_GAP": "Du hast 5 von 12 Platten von Aphex Twin. Diese fehlt.",
+  "ARTIST_KNOWN": "Du hast 5 Platten von Robag Wruhme, diese nicht.",
+  "CATALOG_RUN": "Kompakt-Serie KOM: Von den 9 Nummern um diese herum hast du 6, diese nicht.",
+  "CREDIT_GRAPH": "Rudy Van Gelder hat hier mitgearbeitet, wie auf 4 Platten bei dir.",
+  "FORMAT_UPGRADE": "Kid A hast du schon, aber als CD. Hier auf Vinyl.",
+  "LABEL_AFFINITY": "Freude Am Tanzen sammelst du mit Absicht: 3 Platten, 4-mal so viel wie erwartet.",
+  "PRICE_SIGNAL": "24,00 € hier, sonst am Markt ab 41,00 €.",
+  "SCARCITY": "Weltweit nur 3 im Angebot.",
+  "STYLE_ADJACENT": "Minimal, Tech House, Deep House: dein Revier.",
+  "WANTLIST_EXACT": "Steht auf deiner Wantlist.",
+  "WANTLIST_PRESSING": "Das Album von deiner Wantlist, aber eine Pressung von 2017, nicht das Original von 1994.",
+}
+`;
+
+exports[`the reason, word for word, in de > names each signal on a plate 1`] = `
+{
+  "ARTIST_FOLLOWED": "Auf dem Schirm",
+  "ARTIST_GAP": "Eine Lücke · 5 von 12",
+  "ARTIST_KNOWN": "Im Regal · 5",
+  "CATALOG_RUN": "Eine Serie · 6 von 9",
+  "CREDIT_GRAPH": "Credits · Rudy Van Gelder · 4",
+  "FORMAT_UPGRADE": "Hast du als CD",
+  "LABEL_AFFINITY": "Dein Label · 3",
+  "PRICE_SIGNAL": "Unter 41,00 €",
+  "SCARCITY": "3 im Angebot",
+  "STYLE_ADJACENT": "Dein Revier · Minimal",
+  "WANTLIST_EXACT": "Auf deiner Wantlist",
+  "WANTLIST_PRESSING": "Anderes Pressing",
+}
+`;
+
+exports[`the reason, word for word, in en > carries the cases that change the grammar 1`] = `
+{
+  "alias, one record": "Miss Dinky is Dinky. Dinky is on your shelf, not this one.",
+  "artist, one record": "Aphex Twin is on your shelf. This record is not.",
+  "group member, several records": "Paul Hartnoll is part of Orbital. You have 4 records by Orbital, not this one.",
+  "nothing specific": "Fits what you collect.",
+  "one copy left": "Exactly one copy for sale worldwide.",
+  "one runner-up": "That's on your wantlist. Also: Robag Wruhme is on your shelf.",
+  "runner-up under another name": "That's on your wantlist. Also: Dinky is on your shelf, as Miss Dinky.",
+  "same pressing era": "Not the pressing from your wantlist, but the same album: Dummy.",
+  "three runners-up": "That's on your wantlist. Also: a gap in your Aphex Twin, you collect Freude Am Tanzen, only 3 for sale.",
+  "want most": "That's on your wantlist, and one you want most.",
+}
+`;
+
+exports[`the reason, word for word, in en > leads with each signal 1`] = `
+{
+  "ARTIST_FOLLOWED": "Exit North is on your radar, and nothing of theirs is on the shelf yet.",
+  "ARTIST_GAP": "You have 5 of 12 records by Aphex Twin. This one is missing.",
+  "ARTIST_KNOWN": "You have 5 records by Robag Wruhme, not this one.",
+  "CATALOG_RUN": "Kompakt series KOM: you have 6 of the 9 numbers around this one, not this one.",
+  "CREDIT_GRAPH": "Rudy Van Gelder worked on this. You have 4 records of theirs.",
+  "FORMAT_UPGRADE": "You have Kid A, but as CD. Here it is on vinyl.",
+  "LABEL_AFFINITY": "You collect Freude Am Tanzen on purpose: 3 records, 4× what you'd expect.",
+  "PRICE_SIGNAL": "€24.00 against a market low of €41.00.",
+  "SCARCITY": "Only 3 copies for sale worldwide.",
+  "STYLE_ADJACENT": "Minimal, Tech House, Deep House: your home ground.",
+  "WANTLIST_EXACT": "That's on your wantlist.",
+  "WANTLIST_PRESSING": "The album from your wantlist, but a 2017 pressing, not the 1994 original.",
+}
+`;
+
+exports[`the reason, word for word, in en > names each signal on a plate 1`] = `
+{
+  "ARTIST_FOLLOWED": "On your radar",
+  "ARTIST_GAP": "A gap · 5 of 12",
+  "ARTIST_KNOWN": "On the shelf · 5",
+  "CATALOG_RUN": "A run · 6 of 9",
+  "CREDIT_GRAPH": "Credits · Rudy Van Gelder · 4",
+  "FORMAT_UPGRADE": "You have the CD",
+  "LABEL_AFFINITY": "Your label · 3",
+  "PRICE_SIGNAL": "Under €41.00",
+  "SCARCITY": "3 for sale",
+  "STYLE_ADJACENT": "Your ground · Minimal",
+  "WANTLIST_EXACT": "On your wantlist",
+  "WANTLIST_PRESSING": "Another pressing",
+}
+`;
+
+exports[`the reason, word for word, in fr > carries the cases that change the grammar 1`] = `
+{
+  "alias, one record": "Miss Dinky, c’est Dinky. Dinky est sur ton étagère, mais pas celui-ci.",
+  "artist, one record": "Aphex Twin est sur ton étagère. Ce disque, non.",
+  "group member, several records": "Paul Hartnoll fait partie d’Orbital. Tu as 4 disques d’Orbital, mais pas celui-ci.",
+  "nothing specific": "Va avec ce que tu collectionnes.",
+  "one copy left": "Un seul exemplaire en vente dans le monde.",
+  "one runner-up": "Il est sur ta liste d’envies. Aussi : Robag Wruhme est sur ton étagère.",
+  "runner-up under another name": "Il est sur ta liste d’envies. Aussi : Dinky est sur ton étagère, sous le nom Miss Dinky.",
+  "same pressing era": "Pas le pressage de ta liste d’envies, mais le même album : Dummy.",
+  "three runners-up": "Il est sur ta liste d’envies. Aussi : un trou dans tes disques d’Aphex Twin, tu collectionnes Freude Am Tanzen et seulement 3 en vente.",
+  "want most": "Il est sur ta liste d’envies, parmi ceux que tu veux le plus.",
+}
+`;
+
+exports[`the reason, word for word, in fr > leads with each signal 1`] = `
+{
+  "ARTIST_FOLLOWED": "Exit North est dans ton viseur, et rien sur l’étagère pour l’instant.",
+  "ARTIST_GAP": "Tu as 5 des 12 disques d’Aphex Twin. Celui-ci manque.",
+  "ARTIST_KNOWN": "Tu as 5 disques de Robag Wruhme, mais pas celui-ci.",
+  "CATALOG_RUN": "Kompakt, série KOM : tu as 6 des 9 numéros autour de celui-ci, mais pas lui.",
+  "CREDIT_GRAPH": "Rudy Van Gelder a travaillé dessus. Tu as 4 disques avec son nom.",
+  "FORMAT_UPGRADE": "Tu as Kid A, mais en CD. Le voici en vinyle.",
+  "LABEL_AFFINITY": "Tu collectionnes Freude Am Tanzen exprès : 3 disques, 4 fois ce qu’on attendrait.",
+  "PRICE_SIGNAL": "24,00 € ici, pour un plancher du marché à 41,00 €.",
+  "SCARCITY": "Seulement 3 exemplaires en vente dans le monde.",
+  "STYLE_ADJACENT": "Minimal, Tech House et Deep House : ton terrain.",
+  "WANTLIST_EXACT": "Il est sur ta liste d’envies.",
+  "WANTLIST_PRESSING": "L’album de ta liste d’envies, mais un pressage de 2017, pas l’original de 1994.",
+}
+`;
+
+exports[`the reason, word for word, in fr > names each signal on a plate 1`] = `
+{
+  "ARTIST_FOLLOWED": "Dans le viseur",
+  "ARTIST_GAP": "Un trou · 5 sur 12",
+  "ARTIST_KNOWN": "Sur l’étagère · 5",
+  "CATALOG_RUN": "Une série · 6 sur 9",
+  "CREDIT_GRAPH": "Crédits · Rudy Van Gelder · 4",
+  "FORMAT_UPGRADE": "Tu l’as en CD",
+  "LABEL_AFFINITY": "Ton label · 3",
+  "PRICE_SIGNAL": "Sous 41,00 €",
+  "SCARCITY": "3 en vente",
+  "STYLE_ADJACENT": "Ton terrain · Minimal",
+  "WANTLIST_EXACT": "Sur ta liste d’envies",
+  "WANTLIST_PRESSING": "Autre pressage",
+}
+`;

@@ -1,10 +1,17 @@
 import { describe, expect, it } from 'vitest'
 
 import de from '~/i18n/de'
+import fr from '~/i18n/fr'
 import en, { type Messages } from '~/i18n/en'
+import { packs as basket } from '~/i18n/basket'
+import { packs as collection } from '~/i18n/collection'
 import { packs as compared } from '~/i18n/compared'
+import { packs as dealers } from '~/i18n/dealers'
+import { packs as dig } from '~/i18n/dig'
+import { packs as gift } from '~/i18n/gift'
 import { packs as legal } from '~/i18n/legal'
 import { packs as settings } from '~/i18n/settings'
+import { packs as welcome } from '~/i18n/welcome'
 import { LANGUAGES } from '~/composables/useMessages'
 
 /**
@@ -28,13 +35,28 @@ import { LANGUAGES } from '~/composables/useMessages'
  * chunk rather than in the first paint. That split would otherwise cost this
  * file its reach: a new area pack would arrive with no test behind it, and the
  * German half could go missing a key without anything saying so.
+ *
+ * Every translation of every area, French included (#251): the type keeps a
+ * pack from missing a key, this keeps it from missing a number.
  */
-const AREAS = {
-  shell: { en, de },
+const AREAS: Record<string, Record<string, unknown>> = {
+  shell: { en, de, fr },
   settings,
   legal,
   compared,
+  basket,
+  collection,
+  dealers,
+  dig,
+  gift,
+  welcome,
 }
+
+const TRANSLATIONS = Object.entries(AREAS).flatMap(([area, packs]) =>
+  Object.keys(packs)
+    .filter((language) => language !== 'en')
+    .map((language) => [`${language} ${area}`, packs.en, packs[language]] as const),
+)
 
 type Node = Record<string, unknown>
 
@@ -44,9 +66,9 @@ function walk(value: unknown, path: string[] = []): [string, unknown][] {
   return Object.entries(value as Node).flatMap(([key, next]) => walk(next, [...path, key]))
 }
 
-describe.each(Object.entries(AREAS))('the German %s pack', (_area, pack) => {
-  const english = new Map(walk(pack.en))
-  const german = new Map(walk(pack.de))
+describe.each(TRANSLATIONS)('the %s pack', (_name, original, translation) => {
+  const english = new Map(walk(original))
+  const german = new Map(walk(translation))
 
   it('has the same keys as English, and no others', () => {
     expect([...german.keys()].sort()).toEqual([...english.keys()].sort())
@@ -60,7 +82,10 @@ describe.each(Object.entries(AREAS))('the German %s pack', (_area, pack) => {
 
   it('says something at every key', () => {
     for (const [key, value] of german) {
-      if (typeof value === 'string') expect(value.trim(), key).not.toBe('')
+      // Empty on purpose only where English is empty too (a write that is idle).
+      if (typeof value === 'string' && english.get(key) !== '') {
+        expect(value.trim(), key).not.toBe('')
+      }
     }
   })
 
@@ -99,14 +124,23 @@ describe.each(Object.entries(AREAS))('the German %s pack', (_area, pack) => {
         continue
       }
       if (!english.includes(String(PROBE))) continue
-      expect(call(translated), `${key} drops its number`).toContain(String(PROBE))
+      // A translation may look a value up where English prints it as given:
+      // `countryName('DE')` throws on a number. That is the probe's wrong
+      // type again, not a dropped argument.
+      let text: string
+      try {
+        text = call(translated)
+      } catch {
+        continue
+      }
+      expect(text, `${key} drops its number`).toContain(String(PROBE))
     }
   })
 })
 
 describe('the locale each language formats with', () => {
   it('is one Intl actually knows', () => {
-    for (const pack of [en, de] as Messages[]) {
+    for (const pack of [en, de, fr] as Messages[]) {
       expect(Intl.NumberFormat.supportedLocalesOf(pack.meta.locale)).toEqual([pack.meta.locale])
     }
   })
@@ -120,6 +154,10 @@ describe('a decade, per language', () => {
   it('reads 1990s in English and 1990er in German', () => {
     expect(en.decade(1990)).toBe('1990s')
     expect(de.decade(1990)).toBe('1990er')
+  })
+
+  it('reads années 1990 in French', () => {
+    expect(fr.decade(1990)).toBe('années 1990')
   })
 })
 
@@ -141,6 +179,13 @@ describe('the cost table', () => {
     expect(rows).toContain('Ein Dig, 3.000 Angebote')
     expect(rows).toContain('1,2 Sek')
   })
+
+  it('writes French numbers in French', () => {
+    // French groups thousands with a narrow no-break space.
+    const rows = fr.limit.costRows(count(fr.meta.locale), decimal(fr.meta.locale)).flat()
+    expect(rows).toContain('Une fouille, 3\u202f000 annonces')
+    expect(rows).toContain('1,2 s')
+  })
 })
 
 describe('a change given up on', () => {
@@ -157,16 +202,20 @@ describe('a change given up on', () => {
     expect(de.freshness.undone(['A', 'B'])).toBe(
       'Wir haben „A“ und „B“ zurückgenommen. Sie kamen nicht bei Discogs an.',
     )
+    expect(fr.freshness.undone(['A', 'B'])).toBe(
+      'On a annulé « A » et « B ». Ils ne sont pas arrivés chez Discogs.',
+    )
   })
 })
 
 describe('the language list', () => {
   it('names every language that has a pack, and only those', () => {
-    expect(Object.keys(LANGUAGES).sort()).toEqual(['de', 'en'])
+    expect(Object.keys(LANGUAGES).sort()).toEqual(['de', 'en', 'fr'])
   })
 
   it('names each language in itself', () => {
     expect(LANGUAGES.en).toBe(en.meta.name)
     expect(LANGUAGES.de).toBe(de.meta.name)
+    expect(LANGUAGES.fr).toBe(fr.meta.name)
   })
 })

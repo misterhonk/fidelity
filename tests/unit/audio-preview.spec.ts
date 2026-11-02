@@ -126,15 +126,16 @@ describe('the promise that had to change', () => {
    * paragraph above — otherwise it would be hidden, and ADR-012 allows the
    * exception on precisely that condition.
    */
-  it('says so on the privacy page, in both languages', () => {
+  it('says so on the privacy page, in every language', () => {
     const hits = [...LEGAL.matchAll(/^\s{4}audioBody:$/gm)]
-    expect(hits).toHaveLength(2)
+    expect(hits).toHaveLength(3)
 
     expect(LEGAL).toMatch(/YouTube/)
     // And names what does *not* happen — otherwise the exception sounds bigger
     // than it is.
     expect(LEGAL).toMatch(/collection, wantlist and token stay here/)
     expect(LEGAL).toMatch(/Sammlung, Wantlist und Token bleiben hier/)
+    expect(LEGAL).toMatch(/Collection, liste d’envies et token restent ici/)
   })
 
   /**
@@ -145,7 +146,7 @@ describe('the promise that had to change', () => {
    * German regulator reads.
    */
   it('names YouTube API Services, Google’s policy and the legal basis', () => {
-    for (const lang of ['en', 'de'] as const) {
+    for (const lang of ['en', 'de', 'fr'] as const) {
       const body = packs[lang].privacy.audioBody
       expect(body).toMatch(/YouTube API Services/)
       expect(body).toMatch(/policies\.google\.com\/privacy/)

@@ -451,7 +451,237 @@ const de: typeof en = {
   next: 'Nächster Laden',
 }
 
-export const packs = { en, de }
+/** French counts nought and one in the singular. */
+const frCounted = (n: number, one: string, many: string) => `${n} ${n < 2 ? one : many}`
+
+const fr: typeof en = {
+  title: 'Boutiques',
+  description: 'Quelles boutiques sont ton truc, et ce qu’il y a dans leurs bacs.',
+  lead: 'Quelles boutiques sont ton truc, et ce qu’il y a dans leurs bacs.',
+
+  none: 'Pas encore de boutiques. Fouilles-en une, et elle apparaîtra ici.',
+  scanned: 'Tes boutiques',
+  origin: {
+    label: 'Expédié depuis',
+    any: 'Partout',
+    home: (country) => `Depuis : ${countryName(country)}`,
+    eu: 'Depuis l’UE',
+    europe: 'Depuis l’Europe',
+    uk: 'Depuis le Royaume-Uni',
+    na: 'Depuis l’Amérique du Nord',
+    jp: 'Depuis le Japon',
+    none: 'Aucune de tes boutiques n’expédie de là.',
+  },
+
+  rateAlone: (rate) => `${rate} trouvailles pour mille disques.`,
+  rateAbove: (rate, factor) =>
+    `${rate} trouvailles pour mille disques, ${factor} fois tes autres boutiques.`,
+  rateSame: (rate) =>
+    `${rate} trouvailles pour mille disques, à peu près comme tes autres boutiques.`,
+  rateBelow: (rate, factor) =>
+    `${rate} trouvailles pour mille disques, seulement ${factor} fois tes autres boutiques.`,
+
+  neverScanned:
+    'Pour l’instant, on ne connaît que le nom. Tu peux quand même la suivre, une fouille remplira le reste.',
+  notDug: 'pas encore fouillée',
+  digShort: 'Fouiller',
+  sort: {
+    label: 'Trier',
+    rate: 'Taux de trouvailles',
+    recent: 'Dernière fouille',
+    size: 'Taille',
+    name: 'Nom',
+  },
+  groups: { mine: 'Tes boutiques', rest: 'Autres' },
+  digAt: (shop) => `Fouiller chez ${shop} maintenant`,
+  perThousand: (rate) => `${rate} trouvailles pour mille`,
+  find: 'Trouver une boutique',
+  noMatch: 'Aucune de tes boutiques ne s’appelle comme ça.',
+  more: (n) => `Afficher ${n} de plus`,
+  listings: (n) => `${n} annonces`,
+  shipsFrom: (country) => `depuis : ${countryName(country)}`,
+  rating: (percent, count) => `${percent} sur ${count} évaluations`,
+  lastScanned: (when) => `dernière fouille le ${when}`,
+
+  grading: {
+    rate: (percent, judged) =>
+      `${percent} des ${judged} disques que tu as achetés ici sont arrivés comme décrits, ou mieux.`,
+    tooFew: (judged, one) =>
+      `Seulement ${judged} ${one ? 'disque évalué' : 'disques évalués'}, trop peu pour un chiffre.`,
+    worse: (n, one) => `${n} ${one ? 'était moins bon' : 'étaient moins bons'} que décrit.`,
+    whyLabel: 'Pourquoi ce n’est pas sur Discogs ?',
+    why: 'L’évaluation sur Discogs dit si le colis est arrivé vite. Si le disque était aussi bon que décrit, elle ne le dit pas. Ce chiffre vient de toi : tu as évalué les disques au déballage. Il reste sur ton appareil.',
+  },
+
+  watching: 'Suivie',
+  watch: 'Suivre la boutique',
+  watchCostLabel: 'Ce que coûte le suivi',
+  watchCost:
+    'Chaque fois que tu ouvres l’appli, on regarde vite si la boutique a du nouveau. Un coup d’œil, pas une nouvelle fouille.',
+  digNow: 'Fouiller maintenant',
+  digAgain: 'Refouiller',
+
+  add: {
+    label: 'Ajouter une boutique',
+    placeholder: 'juno_records, ou l’adresse de la page de la boutique',
+    submit: 'Ajouter',
+    busy: 'On regarde …',
+  },
+
+  reasons: {
+    dug: 'fouillée',
+    basket: 'au panier',
+    watched: 'suivie',
+    order: 'achats ici',
+    friend: 'ami Discogs',
+    manual: 'ajoutée à la main',
+  },
+
+  suggested: {
+    title: 'Des boutiques où d’autres ont trouvé leur bonheur',
+    busy: 'On demande à ton hub …',
+    about: 'Le chiffre dit quelle part de la boutique est sur des labels que tu collectionnes.',
+    fit: (percent) => `${percent} % pour toi`,
+    sample:
+      'Fouilles-en une, et elle apparaîtra avec ses propres chiffres parmi tes boutiques.',
+  },
+
+  round: {
+    title: 'La tournée',
+    line: (shops, minutes) =>
+      `${shops} suivies · environ ${minutes === 1 ? 'une minute' : `${minutes} minutes`}`,
+    about: (shops, minutes) =>
+      `On passe ${shops === 1 ? 'ta boutique suivie' : `tes ${shops} boutiques suivies`} l’une après l’autre et on ne récupère que ce qui est nouveau depuis ton dernier coup d’œil. Environ ${minutes === 1 ? 'une minute' : `${minutes} minutes`}. On laisse de côté styles et prix, ce serait cent requêtes de plus par boutique, et une trouvaille est à un toucher de là.`,
+    neverDug: (n) =>
+      n === 1
+        ? 'Tu n’as jamais fouillé une de tes boutiques. On la laisse de côté pendant la tournée.'
+        : `Tu n’as jamais fouillé ${n} de tes boutiques. On les laisse de côté pendant la tournée.`,
+    start: 'Lancer la tournée',
+    found: (n) => (n < 2 ? `${n} trouvaille` : `${n} trouvailles`),
+    keepsRunning: 'Continue même si tu quittes l’écran.',
+    lastAt: (when) => `Dernière tournée ${when}`,
+    stopNothing: (listings) => `rien pour toi parmi ${listings} nouvelles`,
+    stopFound: (matches, listings) =>
+      `${matches < 2 ? `${matches} trouvaille` : `${matches} trouvailles`} parmi ${listings} nouvelles`,
+    stopNeverDug: 'jamais fouillée, laissée de côté',
+    stopFailed: 'n’a pas répondu cette fois',
+    quiet: (n) => (n < 2 ? `${n} sans nouveauté` : `${n} sans nouveauté`),
+    skipped: (n) =>
+      n < 2
+        ? `${n} jamais fouillée, laissée de côté`
+        : `${n} jamais fouillées, laissées de côté`,
+    others: (n) => (n === 1 ? 'L’autre' : `Les ${n} autres`),
+  },
+
+  hide: 'Mettre cette boutique de côté',
+  atDiscogs: 'La boutique sur Discogs',
+  hideWhy:
+    'On retire la boutique de toutes les listes et on ne la surveille plus. Fouille-la par son nom, et elle revient.',
+  hidden: {
+    title: (n) => (n === 1 ? 'Une boutique mise de côté' : `${n} boutiques mises de côté`),
+    restore: 'La ressortir',
+  },
+
+  pushOffer: 'Prévenir aussi quand l’appli est fermée',
+  pushOn: 'On te prévient, même quand l’appli est fermée.',
+  pushStop: 'Ne plus prévenir',
+  pushWhy: 'Le hub passe une fois par heure voir chaque boutique suivie, une fois pour tous.',
+  pushInstall:
+    'Sur iPhone, ça ne marche qu’avec Sleeveside sur l’écran d’accueil. Partager, puis « Sur l’écran d’accueil ».',
+
+  coverage: (sampled, total, percent) =>
+    `On a vu ${sampled} disques sur ${total}, ${percent} % de la boutique.`,
+
+  priceTitle: 'Niveau de prix',
+  median: (amount) => `Médiane ${amount}`,
+  mixedCurrencies: '(la boutique affiche ses prix en plusieurs devises)',
+  priceHigh: 'plutôt chère parmi tes boutiques',
+  priceLow: 'plutôt bon marché parmi tes boutiques',
+  priceMiddle: 'dans la moyenne de tes boutiques',
+  priceWhyLabel: 'Avec quoi on compare',
+  priceWhy:
+    'Seulement avec tes propres boutiques. Ce que pratique tout le marché, on ne le sait pas.',
+
+  shelfSample: 'De ton étagère, elle a',
+  labelsInStock: 'Labels dans les bacs',
+  noLabels: 'La boutique n’indique pas de labels.',
+  decades: 'Décennies',
+  noYears: 'La boutique n’indique pas d’années.',
+  stock: {
+    show: (name: string, n: number) => `Montrer les ${n} disques sur ${name}`,
+    close: 'Fermer',
+    counted: (shown: string, total: string) => `${shown} sur ${total}`,
+    more: (n: string) => `Afficher ${n} de plus`,
+    loading: 'On récupère …',
+    needsDig:
+      'Ce qu’il y a dans les bacs, ce sont des données du marché, valables six heures. Refouille la boutique, et on te montre les rayons.',
+  },
+  nothingYet: 'Rien pour l’instant.',
+
+  trust: {
+    ratings: (n, percent) => `${n} évaluations · ${percent} %`,
+    noRatings: 'pas encore d’évaluations',
+    since: (year) => `depuis ${year}`,
+    dug: (when) => `fouillée ${when}`,
+    stale: (percent, asOf, n) =>
+      `${percent} % en vente sur Discogs depuis plus de cinq ans (état au ${asOf}, n = ${n})`,
+    suspended: 'Discogs a exclu cette boutique de la vente.',
+  },
+  plates: {
+    fit: 'Accord',
+    postage: 'Port',
+    price: 'Niveau de prix',
+    shelf: 'De ton étagère',
+    range: 'Dans les bacs',
+    movement: 'Nouveautés',
+    purchases: 'Tes achats',
+  },
+  rateWhyLabel: 'Comment on calcule',
+  rateWhy:
+    'Autant de trouvailles pour mille disques lors de la dernière fouille ici. Pour comparer, on prend la médiane de tes autres boutiques. Ce que donne tout le marché, on ne le sait pas.',
+  postage: {
+    named: (original, converted) =>
+      `${original}${converted ? ` (${converted})` : ''} pour un disque, selon Discogs`,
+    from: (amount) => `à partir de ${amount} pour un disque`,
+    unknown: 'On ne connaît pas encore le port.',
+    enter: 'Le saisir dans le panier',
+    text: 'Ce que la boutique en dit',
+  },
+  movement: {
+    tempo: (gone, of, from, days) =>
+      `${gone} sur ${frCounted(of, 'trouvaille', 'trouvailles')} du ${from} étaient parties ${frCounted(days, 'jour', 'jours')} plus tard.`,
+    newest: (when) => `dernière arrivée ${when}`,
+    still: 'Rien de neuf depuis ton dernier coup d’œil.',
+    unwatched: 'Pas suivie, donc on ne regarde pas.',
+  },
+  pick: 'Choisis une boutique à gauche.',
+  giftEntry:
+    'Tu cherches un cadeau ? Parcours la liste d’envies de quelqu’un dans ces boutiques.',
+  verdict: {
+    fit: {
+      above: 'plus de trouvailles',
+      same: 'autant de trouvailles',
+      below: 'moins de trouvailles',
+    },
+    price: { high: 'plus chère', middle: 'dans la moyenne', low: 'moins chère' },
+  },
+  starters: {
+    title: 'Cinq boutiques pour commencer',
+    about:
+      'Grandes, bien notées, et elles expédient dans toute l’Europe. Une coûte une requête.',
+    add: 'Ajouter',
+    adding: 'Ça arrive …',
+  },
+  rowPostage: (amount) => `Port à partir de ${amount}`,
+  rowPostageUpTo: (n) => `, jusqu’à ${n} disques`,
+  hideShort: 'Mettre de côté',
+  hiddenLine: (shop) => `${shop} mise de côté.`,
+  undo: 'Annuler',
+  prev: 'Boutique précédente',
+  next: 'Boutique suivante',
+}
+
+export const packs = { en, de, fr }
 
 export function useDealerMessages() {
   return computed(() => packs[activeLanguage()])

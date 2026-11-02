@@ -105,8 +105,21 @@ test.describe('a language somebody chose', () => {
   })
 })
 
-test.describe('a language nothing here speaks', () => {
+test.describe('French, when the device asks for it (#251)', () => {
   test.use({ locale: 'fr-FR' })
+
+  test('is picked without anybody choosing it, from the first frame', async ({ page }) => {
+    await page.addInitScript(watchHeadings)
+    await page.goto('/settings/look')
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Apparence & son' })).toBeVisible()
+    await expect(page.locator('html')).toHaveAttribute('lang', 'fr')
+    expect(await everyHeading(page)).toEqual(['Apparence & son'])
+  })
+})
+
+test.describe('a language nothing here speaks', () => {
+  test.use({ locale: 'pt-BR' })
 
   test('falls back to English rather than to nothing', async ({ page }) => {
     await page.goto('/settings/look')
@@ -115,15 +128,15 @@ test.describe('a language nothing here speaks', () => {
 })
 
 test.describe('a preference list', () => {
-  // Somebody whose browser is French but who reads German before English. The
-  // list is ordered, and the first language with a pack should win — not the
-  // last, and not English merely because it is the default.
-  test.use({ locale: 'fr-FR' })
+  // Somebody whose browser is Portuguese but who reads German before English.
+  // The list is ordered, and the first language with a pack should win — not
+  // the last, and not English merely because it is the default.
+  test.use({ locale: 'pt-BR' })
 
   test('is read in order, not skimmed for English', async ({ page }) => {
     await page.addInitScript(() => {
       Object.defineProperty(navigator, 'languages', {
-        get: () => ['fr-FR', 'de-AT', 'en-GB'],
+        get: () => ['pt-BR', 'de-AT', 'en-GB'],
       })
     })
     await page.goto('/settings/look')

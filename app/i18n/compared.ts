@@ -258,7 +258,130 @@ const de: typeof en = {
   ],
 }
 
-export const packs = { en, de }
+const fr: typeof en = {
+  title: 'Sleeveside, en comparaison',
+  description:
+    'Ce que Sleeveside est et n’est pas, à côté de Seller Matches, discdogs, WaxTracker, Groovv et les autres.',
+  back: '← Accueil',
+
+  sentence:
+    'Sleeveside lit le stock d’une boutique face à ta collection et te dit, raison à l’appui, ce qui a sa place sur ton étagère.',
+  sentenceAbout:
+    'Tout le reste en découle : la boutique est l’unité, la collection passe avant la liste d’envies, et la phrase est le produit.',
+  notTitle: 'Ce que ce n’est pas',
+  not: 'Une appli de catalogue, un suivi de prix, un service d’alertes, une surcouche du marché. Chacun existe, plusieurs fois, et certains sont bons. La liste dit qui fait quoi.',
+
+  sideBySide: 'Côte à côte',
+  theyDo: 'Ce que ça fait',
+  instead: 'Sleeveside, à la place',
+  rows: [
+    {
+      name: 'Appli Discogs, Seller Matches',
+      since: 'septembre 2026',
+      does: 'Jusqu’à cinq vendeurs, triés selon la part de ta liste d’envies qu’ils ont, et depuis octobre un filtre dans le stock d’un vendeur. Sur tous les vendeurs, car le marché appartient à Discogs. Et seulement selon la liste d’envies.',
+      fidelity:
+        'Trie le stock d’une boutique face à ce que tu possèdes, onze signaux, une note, une phrase, et planifie tes envies sur les boutiques que tu as fouillées, port compris. Sur tous les vendeurs, il ne peut pas : il n’existe aucun point d’accès « annonces par sortie », et c’est écrit dessus.',
+    },
+    {
+      name: 'Wantlister, discdogs',
+      since: 'Wantlister appartient à Discogs depuis juin 2024',
+      does: 'Alerte en temps réel quand un disque recherché est mis en vente : prix, état, pays, filtre vendeur ; mail ou Telegram. discdogs est gratuit et vient avec une extension de navigateur.',
+      fidelity:
+        'Pas d’alertes, exprès. La mise en vente appartient à Discogs ; un tiers ne peut que demander. Ce que Sleeveside suit, c’est une boutique : son stock a-t-il bougé depuis ta visite. Une requête pour tous, via le hub.',
+    },
+    {
+      name: 'WaxTracker et les applis de portefeuille',
+      does: 'Ta collection comme un portefeuille : prix du jour, gagnants de la semaine, gain face au prix d’achat, à partir de données du marché enregistrées.',
+      fidelity:
+        'Une courbe de valeur aussi, l’estimation de Discogs elle-même, une fois par jour, sur ton appareil, fraîche six heures, et rien par disque, rien gardé au-delà. Les conditions interdisent l’archive sur laquelle reposent ces applis, et la règle des six heures est dans le code.',
+    },
+    {
+      name: 'Groovv, Spinstack, On Rotation, Discographic, CLZ, My Vinyl+',
+      does: 'Cataloguer tes disques : lire les codes, rapprocher, feuilleter, journal d’écoute, photos d’étagère, statistiques. Joli, et résolu une douzaine de fois.',
+      fidelity:
+        'Pas de catalogue. Discogs est le catalogue ; Sleeveside le reflète sur l’appareil et demande quoi acheter. Le bilan de l’année et l’export CSV existent parce qu’ils tombent du reflet, pas parce que cataloguer serait le but.',
+    },
+    {
+      name: 'Discogs Enhancer',
+      since: 'Extension de navigateur, Premium sur abonnement',
+      does: 'Se pose sur discogs.com : bloquer des vendeurs, convertir les devises, mode sombre, marques « dans la collection » sur les annonces.',
+      fidelity:
+        'Bloque aussi une boutique et lit le prix d’une annonce port compris, mais sur ses propres écrans, pas sur discogs.com. Une surcouche est un second produit, avec validation en store et sans iOS ; noté, pas prévu.',
+    },
+    {
+      name: 'Record Scanner, VinylAI, RUNOUT., Deadwax',
+      does: 'Photographier la pochette, obtenir la sortie et la valeur. RUNOUT. et Deadwax lisent la matrice dans le sillon de sortie, gratuitement.',
+      fidelity:
+        'Le sillon de sortie plutôt que la pochette : le numéro gravé près du label désigne le pressage, et un numéro complet donne un résultat là où un code-barres en donne huit. Ensuite, quel pressage c’est, parmi tous. Aucune image ne quitte l’appareil.',
+    },
+    {
+      name: 'Reccogs',
+      since: 'Extension de navigateur, août 2026',
+      does: 'La même question : le stock d’un vendeur face à ta collection et ta liste d’envies, avec une raison par résultat. Dans aucun store, et inchangée depuis le premier jour.',
+      fidelity:
+        'Une note qui reste comparable dans le temps, producteurs et séries de catalogue tirés de l’horizon, le port sur les boutiques que tu as fouillées, et un téléphone entre les bacs.',
+    },
+    {
+      name: 'Vizcogs',
+      does: 'Des statistiques sur ta collection, payantes.',
+      fidelity:
+        'La carte et l’année sur l’étagère, à partir des champs ouverts du catalogue, gratuitement.',
+    },
+  ],
+
+  whyTitle: 'Pourquoi ce n’est pas « le même habillage d’API »',
+  whyLead:
+    'La plupart des applis tierces font ce que fait l’appli Discogs, sous une autre enveloppe : rapprocher, feuilleter, lire les codes, alerter. Elles lisent les mêmes points d’accès et montrent les mêmes lignes. Sleeveside lit les mêmes points d’accès et calcule quelque chose que l’API ne fournit pas :',
+  why: [
+    {
+      name: 'Un horizon.',
+      body: 'Ta collection, dépliée une fois en chaque sortie vers laquelle elle pointe : discographies des artistes, séries de catalogue des labels, pressages des albums recherchés, crédits des producteurs, chaque nom que porte un artiste. Mis en cache, partagé via un hub si tu en fais tourner un, et la raison pour laquelle une fouille ne coûte aucune requête.',
+    },
+    {
+      name: 'Une note avec une raison.',
+      body: 'Pas « 3 de tes envies sont ici », mais « Conny Plank à la console, 1974 : tu as 9 de ses productions, pas celle-ci. » Des constantes qui ne bougent jamais, pour que les notes restent comparables dans le temps et entre les gens.',
+    },
+    {
+      name: 'L’honnêteté comme fonction.',
+      body: 'La couverture en pourcentage, le coût en requêtes avant d’appuyer, les prix bloqués après six heures, « seulement les boutiques que tu as fouillées » écrit sur le plan.',
+    },
+  ],
+  refuses:
+    'Et ce qu’il refuse, parce que les conditions le disent et parce que c’est la bonne forme : aucun backend qui voit un token, aucune archive de prix, aucun scraping, aucun lien d’affiliation, aucun prix pour l’appli. Hub et catalogue sont facultatifs et ne contiennent rien de personnel.',
+
+  whereTitle: 'Où regarder',
+  where: [
+    {
+      name: 'L’appli, à héberger soi-même, et son code',
+      href: 'https://github.com/misterhonk/fidelity',
+    },
+    {
+      name: 'Pourquoi il n’y a pas de backend',
+      href: 'https://github.com/misterhonk/fidelity/blob/main/docs/adr/007-client-only-pwa.md',
+    },
+    {
+      name: 'La lecture juridique',
+      href: 'https://github.com/misterhonk/fidelity/blob/main/docs/09-LEGAL.md',
+    },
+  ],
+
+  sourcesTitle: 'Sources',
+  sourcesLead:
+    'Les lignes ci-dessus, état au 11 et 12 septembre 2026 : les textes de l’appli Discogs sur l’App Store et Play, et les pages de',
+  sources: [
+    { name: 'discdogs', href: 'https://discdogs.app/' },
+    { name: 'WaxTracker', href: 'https://waxtracker.app/' },
+    { name: 'Groovv', href: 'https://www.groovv.app/blog/best-vinyl-collection-apps' },
+    { name: 'Spinstack', href: 'https://spinstackios.app/blog/best-vinyl-apps-2026.html' },
+    {
+      name: 'My Vinyl+',
+      href: 'https://myvinyls.app/blog/2026/07/best-vinyl-collection-apps-2026/',
+    },
+    { name: 'On Rotation', href: 'https://apps.apple.com/us/app/on-rotation/id6756587007' },
+  ],
+}
+
+export const packs = { en, de, fr }
 
 export function useComparedMessages() {
   return computed(() => packs[activeLanguage()])

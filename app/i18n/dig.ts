@@ -601,7 +601,311 @@ const de: typeof en = {
   },
 }
 
-export const packs = { en, de }
+/** French counts nought and one in the singular. */
+const frCounted = (n: number, one: string, many: string) => `${n} ${n < 2 ? one : many}`
+
+const fr: typeof en = {
+  title: 'Fouiller',
+  lead: 'Choisis une boutique. On passe les bacs en revue et on sort ce qui te va.',
+  again: (shop) => `Refouiller ${shop}`,
+  actions: 'Ce que tu peux faire ici',
+  description:
+    'On passe en revue une boutique Discogs et on te sort les disques qui collent, avec une raison pour chacun.',
+  dealer: 'Boutique, nom ou lien',
+  dealerPlaceholder: 'juno_records, ou l’adresse de la page de la boutique',
+  check: 'Vérifier',
+  yourShops: 'Tes boutiques',
+  starters: 'Des boutiques pour commencer',
+  startersNote:
+    'Grandes, bien notées, elles livrent dans toute l’Europe. Ou tape n’importe quelle boutique là-haut.',
+  segments: {
+    label: 'Cette fouille',
+    finds: 'Trouvailles',
+    shop: 'Boutique',
+    visits: 'Visites',
+  },
+  freshUntil: (time) => `Prix jusqu’à ${time}`,
+  freshGone: 'Prix expirés',
+  perThousand: (rate) => `${rate} trouvailles pour mille disques`,
+  offline:
+    'Tu es hors ligne, pas de nouvelle fouille pour l’instant. La dernière est en dessous, complète.',
+  resume: 'Reprendre la fouille',
+  interrupted: (dealer: string, scanned: string, total: string) =>
+    `Une fouille chez ${dealer} s’est arrêtée à ${scanned} sur ${total}.`,
+  throttled: (seconds) =>
+    `Discogs demande une pause. Dans environ ${seconds} s on reprend, exactement là où on était. Rien n’est perdu.`,
+  slowLane: (howMany) =>
+    `Dans la dernière minute, seulement ${howMany} requêtes sont parties au lieu d’une cinquantaine. Les navigateurs freinent un onglet en arrière-plan. Garde celui-ci devant, et la fouille tourne à pleine vitesse.`,
+  scanning: (dealer: string) => `On fouille chez ${dealer}`,
+  matchCount: (n: string) => `${n} trouvailles`,
+  allFindsHeading: 'Toutes les trouvailles',
+  listings: (n) => `a ${n} annonces`,
+  truncated: (reachable, percent) =>
+    `Une fouille normale en atteint au plus ${reachable}, ${percent} % de la boutique.`,
+  takesAbout: (minutes) =>
+    `Prend environ ${frCounted(minutes, 'minute', 'minutes')}, avec cet onglet devant. En arrière-plan, le navigateur freine l’horloge.`,
+  incremental: {
+    short: 'seulement le nouveau',
+    unmoved: (howMany) =>
+      `Toujours ${howMany} en vente, le même chiffre qu’à ta dernière fouille. Il peut quand même y avoir du nouveau : une boutique qui en a vendu un et en a mis un en vente compte ici comme inchangée.`,
+    known: (minutes) =>
+      `Tu connais déjà cette boutique. On peut ne récupérer que ce qui est arrivé depuis la dernière fois, en général une ou deux requêtes au lieu de ${frCounted(minutes, 'minute', 'minutes')}.`,
+    fetch: 'Seulement le nouveau',
+  },
+  start: 'Lancer la fouille',
+  startAgain: 'Tout repasser en revue',
+  deep: {
+    about: (minutes) =>
+      `Une fouille en profondeur passe la même boutique dans treize tris : date, prix, écoute, titre, artiste, label, n° de catalogue, chacun dans les deux sens. Chacun montre d’autres disques dans ses 10 000 premiers. Prend jusqu’à ${minutes} minutes et s’arrête dès qu’un tri n’apporte plus rien de neuf.`,
+    start: 'Lancer une fouille en profondeur',
+  },
+  enriching: (done, total, requests) =>
+    `On cherche styles et prix du marché, ${done} sur ${total} (${requests} requêtes)`,
+  horizonLearned: (albums) =>
+    `On connaît maintenant ${frCounted(albums, 'album', 'albums')} de plus de tes artistes, dans tous les pressages`,
+  horizonCounts: 'Ça comptera à la prochaine fouille.',
+  earlierDigs: 'Fouilles précédentes',
+  visits: {
+    title: 'Tes visites',
+    full: (when, finds) =>
+      `complète le ${when}, ${frCounted(finds, 'trouvaille', 'trouvailles')}`,
+    since: (checks, newFinds, quiet) =>
+      [
+        checks > 0 ? `depuis, regardé ${checks} fois, ${newFinds} nouvelles` : null,
+        quiet > 0 ? `${quiet} fois rien de neuf` : null,
+      ]
+        .filter(Boolean)
+        .join(', '),
+    onlyChecked: (checks, newFinds) =>
+      checks > 0
+        ? `seulement regardé, ${checks} fois, ${newFinds} nouvelles`
+        : 'rien pour l’instant',
+    run: (kind, finds, listings) =>
+      kind === 'new'
+        ? `regardé, ${frCounted(finds, 'trouvaille', 'trouvailles')} parmi ${listings} nouvelles`
+        : `${kind === 'deep' ? 'fouille en profondeur' : 'fouille complète'}, ${frCounted(finds, 'trouvaille', 'trouvailles')}`,
+    gone: (gone, of) => `${gone} sur ${of} parties depuis`,
+    quiet: (n) => (n === 1 ? 'regardé, rien de neuf' : `regardé ${n} fois, rien de neuf`),
+    open: 'ouvrir',
+    current: 'ouverte',
+    sinceThis: (newFinds, gone) =>
+      gone === null
+        ? `Depuis cette fouille : ${frCounted(newFinds, 'nouvelle trouvaille', 'nouvelles trouvailles')}.`
+        : `Depuis cette fouille : ${newFinds} nouvelles, ${gone} parties.`,
+    latest: 'La boutique aujourd’hui',
+  },
+  compare: {
+    summary: (since, fresh, gone, kept) =>
+      `Depuis la visite du ${since} : ${fresh} nouvelles, ${gone === null ? 'parties inconnues' : `${gone} parties`}, ${kept} encore là`,
+    heading: (part, n) =>
+      `${part === 'fresh' ? 'Nouvelles' : part === 'gone' ? 'Parties' : 'Encore là'} · ${n}`,
+    goneUnknown:
+      'Cette fouille n’a pas vu toute la boutique, elle ne peut donc pas dire ce qui manque.',
+    none: 'Rien ici.',
+    more: (n) => `et ${n} de plus`,
+  },
+  hits: (n, dealer) => `${frCounted(n, 'trouvaille', 'trouvailles')} chez ${dealer}`,
+  newListings: (n, one) =>
+    `${n} ${one ? 'nouveau disque' : 'nouveaux disques'} depuis ton dernier coup d’œil`,
+  scanned: (done, total, percent) => `${done} sur ${total} passés (${percent} %)`,
+  folded: (n) => `${n} ${n < 2 ? 'autre exemplaire regroupé' : 'autres exemplaires regroupés'}`,
+  basis: (records, expanded, entities) =>
+    `Comparé à ${records} disques de tes artistes et labels, sur ${expanded} des ${entities} qu’on connaît.`,
+  basisMore: 'Construire le reste',
+  smallCollection:
+    'Ta collection est encore petite, moins de 50 disques. Peu de trouvailles ont donc une note élevée. Ça grandira avec elle.',
+  lane: 'On est encore en train d’apprendre tes artistes et tes labels. Il n’y a qu’une ligne vers Discogs, et on la sert dans l’ordre. Une fouille lancée maintenant commencera dès que ce sera fini.',
+  laneWatch: 'Regarder',
+  expired:
+    'Cette fouille a plus de six heures, les prix et les états sont donc partis. Les trouvailles et leurs raisons restent.',
+  refreshPrices: 'Rafraîchir les prix',
+  share: 'Partager cette liste',
+  sharedTitle: 'Une liste de trouvailles',
+  sharedFrom: (dealer) => `Trouvailles chez ${dealer}`,
+  sharedScope: (shown, total, coverage) =>
+    shown === total
+      ? `Les ${total}. On a lu ${coverage} % de la boutique.`
+      : `Les ${shown} meilleures sur ${total}. On a lu ${coverage} % de la boutique.`,
+  sharedGone: 'Ce lien a expiré. Les prix d’une boutique ne tiennent que six heures.',
+  sharedBadLink: 'Il manque quelque chose à ce lien, sans doute la partie après le #.',
+  sharedNoHub:
+    'Aucun hub ne répond à cette adresse. Le lien ne marche que là où quelqu’un a partagé la liste.',
+  sharedWhatIsThis: 'C’est quoi, Sleeveside ?',
+  sharedPitch:
+    'On passe en revue une boutique de disques avec ta collection en tête, et on te dit pour chaque trouvaille pourquoi elle te va.',
+  stack: {
+    title: 'L’une après l’autre',
+    lead: 'Tes trouvailles, un disque par écran. Fais glisser.',
+    empty: 'Pas encore de trouvailles fraîches. Une fouille remplit cet écran.',
+    toDig: 'Lancer une fouille',
+    through: 'C’était tout. Plus rien n’attend.',
+    position: (at, of, dealer) => `${at} sur ${of} chez ${dealer}`,
+    shop: (dealer, waiting) =>
+      waiting > 0 ? `${dealer}, encore ${waiting} en attente` : `${dealer}, tout vu`,
+    like: 'Intéressant',
+    hear: 'Écouter',
+    hearStop: 'Arrêter',
+    hearVia: 'Vient de YouTube. Google voit cet appareil tant que ça joue.',
+    basket: 'Panier',
+    share: 'Partager',
+    next: 'Suivant',
+    back: 'Retour',
+  },
+  shareBusy: 'On scelle …',
+  shareReady: (matches, total) =>
+    matches < total
+      ? `Le lien est prêt, avec les ${matches} meilleures trouvailles sur ${total}.`
+      : `Le lien est prêt, avec les ${matches} trouvailles.`,
+  shareCopy: 'Copier le lien',
+  shareCopied: 'Copié.',
+  shareGone: (when) => `Valable jusqu’à ${when}, ensuite il disparaît.`,
+  shareTells:
+    'Qui l’ouvre voit pour chaque disque pourquoi il te va, et donc un peu ce que tu collectionnes.',
+  refreshAbout: (minutes) =>
+    `${frCounted(minutes, 'minute', 'minutes')}. Ne trouve rien de neuf, seulement à nouveau ce que cette fouille a déjà trouvé.`,
+  refreshed: (n) => `${n} à jour de nouveau`,
+  refreshedSold: (n) => `${n} vendus entre-temps`,
+  refreshedGone: (n) => `${n} introuvables`,
+  refreshCost: (lookups, minutes) =>
+    `Rafraîchir coûte ${frCounted(lookups, 'requête', 'requêtes')}, donc environ ${frCounted(minutes, 'minute', 'minutes')}. Ça ne trouve rien de neuf, seulement à nouveau ce que cette fouille a déjà trouvé.`,
+  checked: (done, total) => `${done} sur ${total} vérifiés`,
+  alreadySold: (n) => `${n} déjà vendus`,
+  empty: {
+    wholeShop: 'Lire toute la boutique',
+    watchIt: 'L’ajouter à la tournée',
+    'incremental-empty': (dealer) =>
+      `Depuis ton dernier coup d’œil, ${dealer} n’a rien mis en vente de nouveau. Le reste était déjà là.`,
+    incremental:
+      'Parmi les nouveautés, rien pour toi. Ce qui était là avant, on ne l’a pas regardé à nouveau.',
+    full: 'Rien pour toi dans cette boutique. C’est un résultat, pas une erreur.',
+    noHorizon:
+      'On a vérifié chaque disque ici, et aucun ne collait. Mais on n’a pas encore cherché tes artistes et tes labels, il n’y avait donc presque rien à comparer. D’ici là, on ne reconnaît que les pressages que tu as déjà : pas d’autre pressage, pas le même artiste, pas le même label.',
+    buildIt: 'Chercher maintenant',
+  },
+  wall: 'Le mur',
+  filters: {
+    search: 'Filtrer les trouvailles',
+    searchPlaceholder: 'Artiste, titre, label, n° de catalogue …',
+    clear: 'Réinitialiser les filtres',
+    sorting: 'Tri',
+    shown: (shown, total) =>
+      total === null ? `${shown} trouvailles` : `${shown} trouvailles sur ${total}`,
+    sortBy: 'Trier',
+    sortedAsc: (label) => `${label}, croissant`,
+    sortedDesc: (label) => `${label}, décroissant`,
+    thenPrice: 'puis prix',
+    columns: 'Colonnes, appuie pour trier',
+    density: 'Densité',
+    comfortable: 'Détaillée',
+    crate: 'Bac',
+    compact: 'Compacte',
+    sorts: {
+      score: {
+        label: 'Note',
+        about: 'Meilleure trouvaille d’abord, et à note égale la moins chère',
+      },
+      price: { label: 'Prix', about: 'Les moins chers d’abord' },
+      landed: {
+        label: 'Port compris',
+        about: 'Les moins chers d’abord, avec le port que ce disque ajoute dans cette boutique',
+      },
+      year: { label: 'Année', about: 'Les plus récents d’abord' },
+      artist: { label: 'Artiste', about: 'Par ordre alphabétique' },
+    },
+    nothingMatches: 'Rien ne correspond à cette sélection.',
+    size: 'Taille',
+    sizes: { lp: 'LP', '12': '12"', '10': '10"', '7': '7"' },
+    upTo: 'Jusqu’à',
+    upToLabel: 'Au plus ce montant, port compris',
+    noPostage:
+      'On ne connaît pas encore le port de cette boutique, donc rien ici n’en tient compte. Mets un disque au panier, et tu pourras y saisir le tarif.',
+  },
+  landed: {
+    with: (amount) => `${amount} port compris`,
+    why: (postage, items, source) =>
+      `Le prix plus le port que ce disque ajoute dans cette boutique : ${postage} comme ${items}. Disque dans le colis${source ? `, ${source}` : ''}.`,
+    sources: {
+      user: 'tarif saisi par toi',
+      bundled: 'd’un tarif partagé',
+      parsed: 'notre estimation d’après le texte de la boutique',
+      discogs: 'indiqué par Discogs',
+      order: 'ce qu’a coûté ta dernière commande ici',
+    },
+  },
+  match: {
+    gone: 'parti',
+    fewPressings: (n) =>
+      n === 1
+        ? 'Le seul pressage de cet album.'
+        : `Il n’existe que ${n} pressages de cet album.`,
+    band: {
+      S: 'Side One, Track One',
+      A: 'Top Five',
+      B: 'Solide',
+      C: 'Note en marge',
+    },
+    score: (score: number) => `Barry Score ${score} sur 100`,
+    scoreBand: (score: number, band: string) => `Barry Score ${score} sur 100, ${band}`,
+    scoreWhat: 'Comment la note se forme',
+    scoreHow:
+      'La note compte les raisons pour lesquelles un disque est là. La plus forte compte pleinement, chacune des autres à 30 %. C’est pour ça qu’un 100 ne sort presque jamais ; une trouvaille parfaite de la liste d’envies fait 87 à elle seule. À partir de 85, c’est Side One Track One, à partir de 70 Top Five, à partir de 50 solide, en dessous une note en marge.',
+    verdicts: {
+      interesting: 'Noter',
+      bought: 'Marquer acheté',
+      meh: 'Bof',
+      wrong: 'À côté',
+    },
+    verdictsDone: {
+      interesting: 'Noté',
+      bought: 'Acheté',
+      meh: 'Bof',
+      wrong: 'À côté',
+    },
+    feedback: 'Elle valait quoi, cette trouvaille ?',
+    open: (record) => `Ouvrir ${record}`,
+    allFinds: 'Toutes les trouvailles',
+    inBasket: 'Au panier',
+    outOfBasket: 'Retirer du panier',
+    basketAdd: 'Au panier',
+    basketIn: 'Dans le panier',
+    inRunOut: 'dans la matrice',
+  },
+  sheet: {
+    offer: { price: 'Prix', landed: 'Port compris', media: 'Disque', sleeve: 'Pochette' },
+    loading: 'Chargement …',
+    previous: 'La trouvaille d’avant',
+    next: 'La trouvaille suivante',
+    askAgain: 'Redemander à la boutique',
+    asking: 'On demande …',
+    againSaid: {
+      refreshed:
+        'Redemandé à l’instant. Prix et état sont ceux que la boutique indique maintenant.',
+      sold: 'Vendu. Il était là et ne l’est plus.',
+      gone: 'L’annonce a complètement disparu de Discogs.',
+    },
+    goneTitle: 'Plus là',
+    gone: 'Cette trouvaille n’existe plus ici. Une fouille plus récente a pris sa place.',
+    goneAction: 'Refouiller la boutique',
+    market: 'État du marché',
+    forSale: (copies, one) =>
+      `${copies} ${one ? 'exemplaire' : 'exemplaires'} en vente dans le monde`,
+    lowest: 'Prix plancher',
+    signals: 'Signaux',
+    pressing: 'Pressage',
+    plant: 'Usine de pressage',
+    discography: 'Discographie',
+    owned: (owned, total) => `${owned} sur ${total}`,
+    ownedYear: (year) => `(le tien, de ${year})`,
+    ownedYears: (from, to) => `(les tiens, de ${from} à ${to})`,
+    connections: 'Liens avec ta collection',
+    atDiscogs: 'Voir sur Discogs',
+    want: 'Sur la liste d’envies',
+    wantShort: 'Envies',
+    wanted: 'Sur ta liste d’envies',
+  },
+}
+
+export const packs = { en, de, fr }
 
 export function useDigMessages() {
   return computed(() => packs[activeLanguage()])

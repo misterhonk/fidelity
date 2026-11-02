@@ -30,6 +30,7 @@ import en, { type Messages } from '~/i18n/en'
 export const LANGUAGES = {
   en: 'English',
   de: 'Deutsch',
+  fr: 'Français',
 } as const
 
 export type Language = keyof typeof LANGUAGES
@@ -41,6 +42,7 @@ const packs: Record<Language, () => Promise<Messages>> = {
   // Already in the bundle — this is the language the app boots in.
   en: () => Promise.resolve(en),
   de: () => import('~/i18n/de').then((module) => module.default),
+  fr: () => import('~/i18n/fr').then((module) => module.default),
 }
 
 /*
@@ -123,7 +125,7 @@ async function adopt(next: Language) {
 /**
  * What the device asks for, in the order it asks.
  *
- * `navigator.languages` is a preference list: somebody with `['fr', 'de', 'en']`
+ * `navigator.languages` is a preference list: somebody with `['pt', 'de', 'en']`
  * would rather have German than English, and gets it. The region is dropped —
  * `de-AT` and `de-CH` read the same pack.
  */

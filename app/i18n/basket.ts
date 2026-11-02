@@ -605,7 +605,260 @@ const de: typeof en = {
   },
 }
 
-export const packs = { en, de }
+/** French counts nought and one in the singular. */
+const frCounted = (n: number, one: string, many: string) => `${n} ${n < 2 ? one : many}`
+
+const fr: typeof en = {
+  title: 'Panier',
+  description: 'Un colis, avec assez de disques dedans pour que le port vaille le coup.',
+  lead: 'Un disque est dedans. Ce que tu trouves d’autre dans cette boutique vient pour le même port.',
+
+  tabs: { label: 'Acheter', basket: 'Panier', saved: 'Notés' },
+
+  empty:
+    'Rien dedans pour l’instant. Mets-y quelque chose d’une fouille, et on fait les comptes.',
+  emptyAction: 'Lancer une fouille',
+  shops: (shops, records) =>
+    `${shops} boutiques · ${records} disques. Chaque boutique est un envoi à part, avec son propre port.`,
+  clearAll: 'Tout vider',
+  clearAllConfirm: 'Appuie encore, et tout est vidé',
+
+  paste: {
+    title: 'Depuis le panier Discogs',
+    about:
+      'Colle ici des liens vers des disques, ou carrément toute la page du panier. Les liens vont dans le panier de leur boutique, et la page du panier nous dit ce que chaque boutique te prend de port.',
+    label: 'Liens vers des disques ou la page du panier',
+    fetching: 'On récupère …',
+    take: 'Reprendre',
+    took: (n) => `${n} repris`,
+    sold: (n) => `${n} déjà vendus`,
+    unknown: (n) => `${n} introuvables`,
+    acrossShops: (n) => `${frCounted(n, 'boutique', 'boutiques')}`,
+    noted: (n) => `Port de ${frCounted(n, 'boutique', 'boutiques')} noté`,
+    nothing: 'On n’a rien pu en tirer',
+  },
+
+  line: {
+    sold: 'vendu',
+    priceExpired: 'prix expiré',
+    remove: (title) => `Retirer ${title}`,
+    removeShort: 'Retirer',
+    removed: (title) => `${title} est retiré.`,
+    undo: 'Annuler',
+  },
+
+  records: 'Disques',
+  subtotal: 'Sous-total',
+  shipping: 'Port',
+  shippingUnknown: 'inconnu',
+  total: 'Total',
+  perRecord: 'par disque',
+
+  customs: { eu: 'Douane UE, estimée', uk: 'Douane UK, estimée', us: 'Douane US' },
+  customsOver: 'règles normales',
+  customsUnknown: 'on ne sait pas',
+  importVat: (rate) => `TVA à l’importation ${rate} %`,
+  allIn: 'Tout compris',
+  customsNote: (duty) =>
+    `Depuis l’extérieur de l’UE, depuis le 1er juillet 2026 : ${duty} de douane par type de marchandise sous 150 €. Discogs ne l’affiche pas. La taxe, Discogs l’ajoute à la caisse.`,
+  customsNoteOver:
+    'Depuis l’extérieur de l’UE et au-dessus de 150 € : tu paies la taxe à l’importation, et les règles douanières normales s’appliquent.',
+  customsNoteUk:
+    'Vers le Royaume-Uni, jusqu’à 135 £ : pas de douane. Les 20 % de taxe, Discogs les ajoute à la caisse.',
+  customsNoteUkOver:
+    'Vers le Royaume-Uni et au-dessus de 135 £ : tu paies la taxe à l’importation, et les règles douanières normales s’appliquent.',
+  customsNoteUs:
+    'Vers les États-Unis : depuis le 29 août 2025, il n’y a plus de franchise. La douane dépend de l’origine du disque, et le transporteur peut prendre des frais. Discogs n’affiche ni l’un ni l’autre.',
+
+  source: {
+    user: 'saisi par toi',
+    bundled: 'des profils fournis',
+    parsed: 'estimé d’après le texte libre de la boutique',
+    discogs: 'indiqué par Discogs pour ce disque',
+    order: 'de ta commande',
+  },
+  sourceShared: (n) =>
+    n === 1 ? 'partagé par une personne' : `partagé, ${n} personnes ont saisi la même chose`,
+  namedForOne: (original, converted) =>
+    `Discogs indique ${original}${converted ? ` (${converted})` : ''} pour un disque.`,
+  noShipping: 'Discogs dit que cette boutique n’expédie pas à ton adresse.',
+  converted: (from) => `(tarif en ${from}, au taux de Discogs)`,
+  freeOverMissing: (amount, missing) =>
+    `Port offert à partir de ${amount}, encore ${missing} d’ici là.`,
+  freeOverReached: (amount) => `Port offert, le panier dépasse ${amount}.`,
+  readOff: {
+    label: (n) => `Ce que Discogs affiche pour ${frCounted(n, 'disque', 'disques')}`,
+    hint: 'La ligne de port dans le panier Discogs, pour exactement ce panier.',
+    take: 'Reprendre',
+  },
+
+  subtotalExpired:
+    'Au moins un prix a plus de six heures. Une somme avec un trou serait plus petite que la vérité, alors refouille la boutique.',
+  missingToMinimum: (missing, minimum) =>
+    `Encore ${missing}, et la commande minimum de ${minimum} est atteinte. En dessous, la boutique n’expédie pas.`,
+
+  advice: (add, now, then) =>
+    `Encore ${frCounted(add, 'disque', 'disques')}, et le port passe de ${now} à ${then} par disque.`,
+  room: (more) =>
+    more === 0
+      ? 'À ce port, le colis est plein.'
+      : `Pour le même port, ${more === 1 ? 'il reste la place pour un disque' : `il reste la place pour ${more} disques`}.`,
+  roomOpen: 'Mets-en autant que tu veux, le port ne bouge pas.',
+  roomCandidates: (n) => `La dernière fouille ici en a ${n} qui pourraient te plaire.`,
+
+  parsedFrom: 'Notre estimation d’après le texte de la boutique',
+  parsedSection: (section) => `(section « ${section} »)`,
+  parsedMatched: (matched) => `reconnu : ${matched}`,
+  parsedWrong: 'Si ça a l’air faux, saisis le tarif toi-même.',
+
+  unknownLabel: 'On n’a pas pu lire le port. Qu’est-ce qu’on aurait compris ?',
+  unknownAbout:
+    'Le texte de la boutique ne contient aucun tarif qu’on puisse lire avec certitude. Voici les formes qu’on comprend. Si quelque chose comme ça figure sur la page de la boutique, ça aide de le saisir ici :',
+
+  weightLabel: 'Cette boutique compte au poids',
+  weightAbout:
+    'Son tarif est en grammes, et un disque n’a pas de poids fixe. Un LP avec pochette et carton d’envoi pèse entre 250 et 500 grammes, toute conversion serait donc devinée, et ce sur un chiffre autour duquel tu prévois un achat. Ses propres mots sont en dessous : lis ce que coûtent un, deux et trois disques, et saisis-le.',
+  noteLabel: 'Ce que la boutique dit de l’envoi',
+
+  compare: {
+    start: 'Moins cher ailleurs ?',
+    busy: 'On compare tes boutiques …',
+    scope: (shops) =>
+      shops === 0
+        ? 'Fouille une boutique, et ses prix seront dans la comparaison pendant six heures.'
+        : `Comparé à ${shops === 1 ? 'ta seule boutique fraîchement fouillée' : `tes ${shops} boutiques fraîchement fouillées`}.`,
+    covered: (has, of) => `en a ${has} sur tes ${of}`,
+    saves: (amount) => `${amount} de moins`,
+    costs: (amount) => `${amount} de plus`,
+    rest: (items, shop, amount) =>
+      `${items === 1 ? 'L’autre reste' : `Les ${items} autres restent`} chez ${shop} : ${amount} avec son propre port.`,
+    better: (n) => `${n} en meilleur état`,
+    worse: (n) => `${n} en moins bon état`,
+    noPostage: 'Saisis le tarif de port de cette boutique, et sa somme apparaîtra ici aussi.',
+    nothing:
+      'Rien de ce panier dans tes autres boutiques. Fouilles-en une de plus, et regarde à nouveau.',
+    tryThese: 'Valent une fouille : elles ont les mêmes labels',
+  },
+
+  editTiers: 'Modifier le tarif',
+  enterTiers: 'Saisir le tarif de port',
+  tiersTitle: 'Tarif de port',
+  tiersAbout: 'Il figure sur la page de la boutique sur Discogs. Saisi une fois, il reste.',
+  tiersFrom: 'à partir de combien de disques',
+  addTier: 'Ajouter un palier',
+
+  curve: 'Port par disque',
+
+  budget: {
+    title: 'Que faire avec un budget ?',
+    label: 'Budget',
+    including: (currency) => `${currency} port compris`,
+    compute: 'Calculer une proposition',
+    tooSmall: 'Ça ne suffit pas ici. Le port seul mange le budget.',
+    result: (records, goods, shipping, total) =>
+      `${frCounted(records, 'disque', 'disques')} · ${goods} plus ${shipping} de port = ${total}`,
+    belowMinimum: (minimum) =>
+      `Ça reste sous la commande minimum de ${minimum}, la boutique n’expédie pas comme ça. Plus de budget, ou une autre boutique.`,
+    caveat:
+      'Une proposition, pas une preuve. On remplit goulûment puis on échange, ce n’est pas optimisé exactement. Le panier reste tel quel, ceci ne change rien.',
+  },
+
+  candidates: {
+    title: 'Pourrait aussi faire l’affaire',
+    neverDug:
+      'Tu n’as pas encore fouillé cette boutique. Une fouille te dit ce qui te va d’autre ici, et ce qui en vient pour le même port.',
+    expired: (when) =>
+      `La dernière fouille date de ${when}. Les prix de plus de six heures sont partis, on ne sait donc pas ce qu’il y a ici en ce moment.`,
+    nothing: (when) => `À la fouille de ${when}, rien d’autre ici ne t’allait.`,
+    digAgain: 'Refouiller',
+    digNow: (dealer) => `Fouiller ${dealer}`,
+    closers: (n) =>
+      `${n} ${n < 2 ? 'fait' : 'font'} passer seul${n < 2 ? '' : 's'} le panier au-dessus de la commande minimum.`,
+    noClosers: 'Aucun ne suffit seul à dépasser la commande minimum. Deux ensemble, si.',
+    closesGap: 'comble l’écart',
+  },
+
+  toBuy: (records) =>
+    `Pour acheter : chaque ligne ci-dessus mène à son annonce sur Discogs, où se trouve le bouton « Add to Cart ». ${frCounted(records, 'disque est prêt', 'disques sont prêts')}.`,
+  viewAtDiscogs: (dealer) => `Voir ${dealer} sur Discogs`,
+
+  stillThere: 'Encore là ?',
+  clearThis: 'Vider ce panier',
+
+  tools: 'Outils : tarif de port, budget, autres boutiques',
+  pasteTools: 'Outils : coller depuis Discogs',
+  handOver: 'Mettre dans le panier Discogs',
+  handOverLead:
+    'Sur Discogs, ça se fait disque par disque : chaque lien ouvre la page avec le bouton « Add to Cart », et ici le suivant prend la place. Si le panier a un jour, un « Encore là ? » vaut le coup avant.',
+  handOverProgress: (done, total) => `${done} sur ${total} chez Discogs`,
+  handOverNext: (record) => `Ouvrir le suivant sur Discogs : ${record}`,
+  handOverDone: (records) =>
+    `${frCounted(records, 'disque est passé', 'disques sont passés')}. Le panier Discogs les a maintenant.`,
+  toCart: 'Vers le panier Discogs',
+  handOverReset: 'Recommencer le transfert',
+  atDiscogs: 'sur Discogs',
+  tiersTo: 'jusqu’à combien de disques',
+  tiersOpen: 'ouvert',
+  tiersPrice: 'Prix',
+  allStillThere: (records) =>
+    `Tout est encore là : ${frCounted(records, 'disque', 'disques')}, prix de nouveau frais.`,
+  someSold: (sold) => `${sold} vendus entre-temps. Le reste est de nouveau frais.`,
+  noDealer: 'Sans boutique',
+  forget: (record) => `Retirer ${record} des notés`,
+  unknownRecord: 'Disque inconnu',
+
+  saved: {
+    title: 'Notés',
+    stillThere: 'Encore là ?',
+    fetching: 'On récupère …',
+    toBasket: 'Au panier',
+    workOutPostage: 'Calculer le port',
+    release: (id: number) => `Sortie ${id}`,
+    gone: 'parti',
+    bought: 'acheté',
+    markBought: (record: string) => `Marquer ${record} comme acheté`,
+    forget: 'oublier',
+    boughtTitle: 'Achetés',
+
+    arrival: {
+      ask: 'Comment est-il arrivé ?',
+      asDescribed: 'Comme décrit',
+      better: 'Mieux',
+      worse: 'Moins bien',
+      askFor: (record: string) => `Comment ${record} est-il arrivé ?`,
+      said: {
+        'as-described': 'arrivé comme décrit',
+        better: 'arrivé mieux que décrit',
+        worse: 'arrivé moins bien que décrit',
+      },
+      undo: 'changer',
+      nudge: 'Il est arrivé ?',
+      more: (n) => `${n} autres en attente`,
+      why: 'Reste sur ton appareil. L’évaluation sur Discogs dit si le colis est arrivé vite, pas si l’état annoncé était juste. Ceci est ton propre relevé, et c’est de là que vient le chiffre d’honnêteté d’une boutique.',
+      whyLabel: 'Où ça va ?',
+    },
+    order: {
+      title: 'Plusieurs achetés d’un coup ?',
+      label: 'Numéro de commande Discogs',
+      hint: 'Par exemple 259022-32308',
+      submit: 'Lire la commande',
+      reading: 'Lecture …',
+      badShape: 'Ce n’est pas un numéro de commande. Il ressemble à 259022-32308.',
+      done: (records, dealer) =>
+        `${frCounted(records, 'disque', 'disques')} de ${dealer} ${records < 2 ? 'est' : 'sont'} maintenant sur la liste.`,
+      doneNoDealer: (records) =>
+        `${frCounted(records, 'disque', 'disques')} ${records < 2 ? 'est' : 'sont'} maintenant sur la liste.`,
+      already: (n) => `Tu en avais déjà noté ${n}.`,
+      postage: (records, amount) =>
+        `Le port était de ${amount} pour ${frCounted(records, 'disque', 'disques')}, noté pour la boutique.`,
+      nothing: 'Cette commande ne contient aucun disque.',
+      whyLabel: 'Où le trouver ?',
+      why: 'Sur discogs.com sous Marketplace → Achats, dans la première colonne. Tu dois le taper, parce que Discogs ne fournit une commande que si on l’appelle par son nom. La liste de tes achats, on ne peut pas la récupérer, seulement celle de ce que tu as vendu. Une requête, et on ne garde rien d’autre que les disques, la boutique, la date et le port : ni le prix, ni l’état promis.',
+    },
+  },
+}
+
+export const packs = { en, de, fr }
 
 export function useBasketMessages() {
   return computed(() => packs[activeLanguage()])
