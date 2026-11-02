@@ -53,8 +53,20 @@ test('edits rows in place, narrows by chips, and keeps the view in the address',
   const row = table.getByRole('row').filter({ hasText: 'BST 84194' }).last()
   await expect(row.getByTestId('row-sync')).toHaveText('In step')
 
-  // Rated in place: written here at once, and queued for Discogs.
   const rating = row.getByRole('combobox', { name: /^Rating, Wayne Shorter/ })
+  // Rated in the sheet: the row says so once the sheet closes.
+  await row.getByRole('button').first().click()
+  const sheet = page.getByRole('dialog')
+  await sheet.getByRole('button', { name: 'Rate 2 stars' }).click()
+  await expect(sheet.getByRole('button', { name: 'Rate 2 stars' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await page.keyboard.press('Escape')
+  await expect(sheet).toHaveCount(0)
+  await expect(rating).toHaveValue('2')
+
+  // Rated in place: written here at once, and queued for Discogs.
   await rating.selectOption('3')
   await expect
     .poll(async () =>

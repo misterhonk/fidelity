@@ -355,6 +355,10 @@ async function reread() {
  * basement with no signal. Discogs is one button away for the rest.
  */
 const open = useOpenInQuery('record', asId)
+// What the sheet changed (rating, grade, place) shows on the covers, in the rows and under the chips.
+watch(open, (now, was) => {
+  if (now === null && was !== null) void load()
+})
 
 /** Where the open record stands in the list on screen, and what is either side. */
 const walk = computed(() => {
