@@ -59,6 +59,7 @@ type MetaValue =
   | { key: 'preferences';  value: Preferences }
   | { key: 'tasteProfile'; value: TasteProfile }
   | { key: 'syncState';    value: SyncState }
+  | { key: 'pressingRules'; value: Record<number, PressingRule> } // per master, docs/04 §S2
 
 interface Preferences {
   // SOFT — below this it is damped, not discarded

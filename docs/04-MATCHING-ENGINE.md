@@ -124,6 +124,45 @@ wanted (suspected reissue).
 > *"Not the pressing from your wantlist, but the same album — a UK original from 1971
 > instead of the 2015 reissue."*
 
+#### Pressing rules · from Sprint 7 (#242)
+
+"Any pressing will do" is what S2 assumes, and for a good part of a wantlist it is wrong:
+*any pressing except the 2016 reissue*, *first pressing only*. Discogs has nowhere to put
+that but the free-text note, which a dig cannot read. So the rule is kept **on this
+device, per master** — the album, not the release, because the rule is about which of
+its pressings will do.
+
+```ts
+interface PressingRule {
+  firstOnly: boolean   // only a pressing from the album's first year or the one after
+  except: number[]     // release ids that will not do
+}
+// meta.pressingRules: Record<masterId, PressingRule>
+```
+
+| Rule | Effect on S2 |
+|---|---|
+| none (the default) | unchanged — confidence 0.9, 0.6 when ≥ 15 years younger than the want |
+| `except` holds the listing's release | S2 does not fire |
+| `firstOnly`, pressing year ≤ first year + 1 | fires at 0.9 — the rule *is* the reissue check |
+| `firstOnly`, pressing younger or year unknown | S2 does not fire |
+
+- **The first year** is the earliest pressing year the horizon knows for the master
+  (`/masters/{id}/versions`, already fetched), or the want's own year if that is earlier.
+  One year of grace, because pressings run on after release (the same reasoning as
+  `REISSUE_YEAR_GAP` in `worker/match/pressing.ts`, tighter on purpose: here somebody
+  asked for the first one).
+- **An unknown year never passes `firstOnly`.** The rule promises only what the data can
+  check; a listing that might be the original is still a listing the dig cannot vouch for.
+- **S2 only.** S1 is the exact release on the wantlist — somebody who wants that one has
+  said so already. A listing a rule rejects can still score on everything else (artist,
+  label, credits); it just stops being called "the album you want".
+- **No weight moves.** A rule removes or keeps a signal for one reader's records; `WEIGHTS`,
+  `SCALE` and `SECONDARY` stay what they are. Without rules the golden snapshot is
+  unchanged; the golden test pins a second ranking with a rule set (`golden.spec.ts`).
+- Takes effect on the next dig. Scores are stored with the dig; a rule does not rewrite
+  history.
+
 ### S3 · `ARTIST_KNOWN` — weight 55
 
 The core of the MVP. The artist is in the collection, this release is not.
