@@ -110,7 +110,7 @@ const en = {
       failing: 'Retrying',
       local: 'Only here',
     },
-    search: 'Artist, title or label',
+    search: 'Artist, title, label or cat. no.',
     searchLabel: 'Search the shelf',
     sorting: 'Sorting',
     /*
@@ -135,6 +135,7 @@ const en = {
       artist: { label: 'Artist', about: 'Alphabetical' },
       year: { label: 'Year', about: 'Oldest first, tap again to turn it around' },
       rating: { label: 'Rating', about: 'Best first, unrated last' },
+      catno: { label: 'Cat. no.', about: 'Catalogue number, WARP 9 before WARP 10' },
     },
     atDiscogs: (artist: string, title: string) => `${artist} — ${title}, view at Discogs`,
     readFully: (when: string) => `Last full sync ${when}`,
@@ -421,6 +422,9 @@ const en = {
         eu: 'From the EU',
         /* The continent, which is a different question from the customs union. */
         europe: 'From Europe',
+        uk: 'From the UK',
+        na: 'From North America',
+        jp: 'From Japan',
         leftOut: (shops: string) =>
           `${shops} elsewhere, or with no origin on record, left out.`,
       },
@@ -903,7 +907,7 @@ const de: typeof en = {
       failing: 'Versucht es weiter',
       local: 'Nur hier',
     },
-    search: 'Künstler, Titel oder Label',
+    search: 'Künstler, Titel, Label oder Katalognr.',
     searchLabel: 'Regal durchsuchen',
     sorting: 'Sortierung',
     sorts: {
@@ -911,6 +915,7 @@ const de: typeof en = {
       artist: { label: 'Künstler', about: 'Alphabetisch' },
       year: { label: 'Jahr', about: 'Älteste zuerst, nochmal antippen dreht um' },
       rating: { label: 'Bewertung', about: 'Beste zuerst, unbewertete zuletzt' },
+      catno: { label: 'Katalognr.', about: 'Nach Katalognummer, WARP 9 vor WARP 10' },
     },
     atDiscogs: (artist, title) => `${artist} – ${title}, bei Discogs ansehen`,
     readFully: (when) => `Ganz abgeglichen ${when}`,
@@ -1117,6 +1122,9 @@ const de: typeof en = {
         home: (country) => `Aus ${countryName(country)}`,
         eu: 'Aus der EU',
         europe: 'Aus Europa',
+        uk: 'Aus Großbritannien',
+        na: 'Aus Nordamerika',
+        jp: 'Aus Japan',
         leftOut: (shops) => `${shops} anderswo oder ohne Herkunft weggelassen.`,
       },
       shops: (n) => `${n} ${n === 1 ? 'Laden' : 'Läden'}`,

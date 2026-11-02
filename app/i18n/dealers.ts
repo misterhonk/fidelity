@@ -27,6 +27,9 @@ const en = {
     home: (country: string) => `From ${country}`,
     eu: 'From the EU',
     europe: 'From Europe',
+    uk: 'From the UK',
+    na: 'From North America',
+    jp: 'From Japan',
     none: 'None of your shops ships from there.',
   },
 
@@ -241,6 +244,9 @@ const de: typeof en = {
     home: (country) => `Aus ${countryName(country)}`,
     eu: 'Aus der EU',
     europe: 'Aus Europa',
+    uk: 'Aus Großbritannien',
+    na: 'Aus Nordamerika',
+    jp: 'Aus Japan',
     none: 'Von dort verschickt keiner deiner Läden.',
   },
 

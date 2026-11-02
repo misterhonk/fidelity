@@ -136,6 +136,27 @@ describe('Europe beside the EU', () => {
   })
 })
 
+/** The pressing regions a collector names beside Europe and home (#246). */
+describe('the UK, North America and Japan', () => {
+  it('takes each region on its own', () => {
+    expect(passesOrigin('United Kingdom', 'uk', 'Germany')).toBe(true)
+    expect(passesOrigin('Ireland', 'uk', 'Germany')).toBe(false)
+    expect(passesOrigin('United States', 'na', 'Germany')).toBe(true)
+    expect(passesOrigin('Canada', 'na', 'Germany')).toBe(true)
+    expect(passesOrigin('Mexico', 'na', 'Germany')).toBe(true)
+    expect(passesOrigin('Brazil', 'na', 'Germany')).toBe(false)
+    expect(passesOrigin('Japan', 'jp', 'Germany')).toBe(true)
+    expect(passesOrigin('China', 'jp', 'Germany')).toBe(false)
+    expect(passesOrigin(null, 'jp', 'Germany')).toBe(false)
+  })
+
+  it('reads them out of an address', () => {
+    expect(readOrigin('uk')).toBe('uk')
+    expect(readOrigin('na')).toBe('na')
+    expect(readOrigin('jp')).toBe('jp')
+  })
+})
+
 /**
  * Two fields say where a shop is, and only one of them is a country (M31).
  *
