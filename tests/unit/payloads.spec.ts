@@ -85,11 +85,21 @@ describe('a vault snapshot', () => {
       stores: {
         feedback: [{ listingId: 1, updatedAt: 3 }, { verdict: 'no key' }, 'not a row'],
         dealers: [{ username: 'tom', shippingTiers: [] }, { username: 'no-tiers' }],
+        placements: [
+          { instanceId: 1, paid: { cents: 1250, currency: 'EUR' }, arrivedOn: '2026-10-01' },
+          { instanceId: 2, paid: null },
+          { instanceId: 3, paid: { cents: 12.5, currency: 'EUR' } },
+          { instanceId: 4, paid: { cents: 100, currency: 'euro' } },
+          { instanceId: 5, arrivedOn: 'yesterday' },
+        ],
       },
     })
     expect(parsed.preferences).toEqual({ maxPrice: 1000 })
     expect(parsed.stores.feedback).toEqual([{ listingId: 1, updatedAt: 3 }])
     expect(parsed.stores.dealers).toEqual([{ username: 'tom', shippingTiers: [] }])
+    expect(
+      parsed.stores.placements?.map((row) => (row as { instanceId: number }).instanceId),
+    ).toEqual([1, 2])
   })
 
   it('refuses a sealed block whose contents are not a snapshot, with a code', async () => {
