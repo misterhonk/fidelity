@@ -45,8 +45,7 @@ let opener: HTMLElement | null = null
  */
 const madeInert: HTMLElement[] = []
 
-onMounted(() => {
-  opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
+function lockBehind() {
   for (let at = panel.value?.parentElement; at && at !== document.body; at = at.parentElement) {
     for (const sibling of at.parentElement?.children ?? []) {
       if (sibling === at || !(sibling instanceof HTMLElement) || sibling.inert) continue
@@ -54,13 +53,38 @@ onMounted(() => {
       madeInert.push(sibling)
     }
   }
+}
+
+function releaseBehind() {
+  for (const element of madeInert.splice(0)) element.inert = false
+}
+
+/**
+ * Docked beside the list on a wide screen (#230): no scrim, nothing inert, no
+ * focus trap. The list on the left is the other half of the same view, and
+ * `j`/`k` or a click there walks the sheet. Followed live, so narrowing the
+ * window turns the sheet back into the modal drawer.
+ */
+const docked = useDocked()
+let holdingDock = false
+function setDocked(on: boolean) {
+  if (on !== holdingDock) holdDock((holdingDock = on))
+  if (on) releaseBehind()
+  else if (madeInert.length === 0) lockBehind()
+}
+watch(docked, setDocked)
+
+onMounted(() => {
+  opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
+  setDocked(docked.value)
   panel.value?.focus()
   document.addEventListener('keydown', onEscapeAnywhere)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', onEscapeAnywhere)
-  for (const element of madeInert) element.inert = false
+  if (holdingDock) holdDock(false)
+  releaseBehind()
   if (opener?.isConnected) opener.focus()
 })
 
@@ -76,7 +100,9 @@ onBeforeUnmount(() => {
 function onEscapeAnywhere(event: KeyboardEvent) {
   if (event.key !== 'Escape' || !panel.value) return
   if (panel.value.contains(document.activeElement)) return
-  const sheets = document.querySelectorAll('[role="dialog"][aria-modal="true"]')
+  // Focus in another dialog — the palette over a docked sheet — is that dialog's Escape.
+  if (document.activeElement?.closest('[role="dialog"]')) return
+  const sheets = document.querySelectorAll('.fid-sheet[role="dialog"]')
   if (sheets[sheets.length - 1] !== panel.value) return
   emit('close')
 }
@@ -89,7 +115,7 @@ function onKeydown(event: KeyboardEvent) {
     emit('close')
     return
   }
-  if (event.key !== 'Tab' || !panel.value) return
+  if (event.key !== 'Tab' || !panel.value || docked.value) return
 
   // Only what can actually be reached: a hidden control is not a stop.
   const stops = [...panel.value.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
@@ -116,7 +142,8 @@ function onKeydown(event: KeyboardEvent) {
 
 <template>
   <div
-    class="fid-scrim fixed inset-0 z-40 flex justify-end bg-black/60"
+    class="fid-scrim fixed inset-0 z-40 flex justify-end"
+    :class="docked ? 'pointer-events-none' : 'bg-black/60'"
     @click.self="emit('close')"
     @keydown="onKeydown"
   >
@@ -124,10 +151,11 @@ function onKeydown(event: KeyboardEvent) {
     <aside
       ref="panel"
       role="dialog"
-      aria-modal="true"
+      :aria-modal="docked ? undefined : 'true'"
       :aria-label="props.label"
       tabindex="-1"
       class="fid-sheet @container relative isolate flex h-full w-full max-w-lg flex-col gap-6 overflow-y-auto border-l border-fid-border bg-fid-surface p-6 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] outline-none [&:not(:has(.sticky))]:pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] lg:max-w-2xl xl:max-w-3xl"
+      :class="docked && 'fid-sheet-docked pointer-events-auto'"
       :style="{ scrollbarGutter: 'stable', '--fid-sheet-name': props.transition ?? 'none' }"
     >
       <!--
