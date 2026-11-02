@@ -8,9 +8,17 @@ import type {
   ScanProgress,
 } from '#shared/protocol'
 import { STARTER_SHOPS } from '#shared/starter-shops'
-import type { Dealer, Dig, DigComparison, DigVisit, LandedContext } from '#shared/types'
+import type {
+  Dealer,
+  Dig,
+  DigComparison,
+  DigVisit,
+  LandedContext,
+  SharedFind,
+} from '#shared/types'
 
 import { useDigMessages } from '~/i18n/dig'
+import { reasonFor } from '~/i18n/reason'
 
 const d = useDigMessages()
 
@@ -39,7 +47,12 @@ const gaps = ref<{ expanded: number; requests: number; titles: string[] } | null
  * fragment, with no hub and no price (`app/utils/share-link.ts`).
  */
 const sharing = ref(false)
-const shareLink = ref<{ url: string; matches: number; total: number } | null>(null)
+const shareLink = ref<{
+  url: string
+  matches: number
+  total: number
+  top: SharedFind | null
+} | null>(null)
 const shareCopied = ref(false)
 /** A share sheet on this device, or only the clipboard: the button says which. */
 const canSend = ref(false)
@@ -56,6 +69,7 @@ async function share() {
       url: sharedUrl(made.data),
       matches: made.matches,
       total: result.value.matches.length,
+      top: made.top,
     }
   } catch (cause) {
     error.value = cause
@@ -68,6 +82,36 @@ async function sendShare() {
   if (!shareLink.value) return
   shareCopied.value = (await handOver(shareLink.value.url)) === 'copied'
 }
+
+/** The card where no share sheet takes files: on screen, to be saved by hand. */
+const cardUrl = ref<string | null>(null)
+
+/*
+ * The top find as a picture (#250). The picture carries the Discogs notice as
+ * text; the links — the list and the listing the notice belongs to — ride in
+ * the share text, since a picture cannot hold one.
+ */
+async function shareCard() {
+  const top = shareLink.value?.top
+  if (!shareLink.value || !top) return
+  const reason = reasonFor(top.signals)
+  const credit = m.value.nav.attribution
+  const file = await shareCardFile(top, { reason, credit, brand: 'Sleeveside' })
+  if (!file) return
+
+  const text = `${reason}\n${shareLink.value.url}\n${credit}: ${listingPage(top.listingId)}`
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], text })
+      return
+    } catch (cause) {
+      if (cause instanceof DOMException && cause.name === 'AbortError') return
+    }
+  }
+  if (cardUrl.value) URL.revokeObjectURL(cardUrl.value)
+  cardUrl.value = URL.createObjectURL(file)
+}
+onBeforeUnmount(() => cardUrl.value && URL.revokeObjectURL(cardUrl.value))
 
 const refreshing = ref<RefreshProgress | null>(null)
 const refreshed = ref<{ refreshed: number; sold: number; gone: number } | null>(null)
@@ -1229,6 +1273,23 @@ const noHorizon = computed(
             </button>
           </div>
           <p class="text-fid-xs text-fid-text-muted">{{ d.shareTells }}</p>
+          <button
+            v-if="shareLink.top"
+            type="button"
+            class="fid-action self-start rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
+            @click="shareCard"
+          >
+            {{ d.shareCard }}
+          </button>
+          <!-- A blob: URL of the card drawn here, never a Discogs image (#250). -->
+          <img
+            v-if="cardUrl"
+            :src="cardUrl"
+            :alt="d.shareCardAlt"
+            width="1080"
+            height="1080"
+            class="h-auto w-full max-w-80 rounded-fid-sm border border-fid-border"
+          />
         </div>
 
         <CreditExplorer v-if="result.matches.length > 0" :dig-id="result.dig.id" />

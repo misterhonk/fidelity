@@ -110,7 +110,7 @@ export async function encodeShare(snapshot: SharedDig): Promise<string> {
  */
 export async function createShare(
   loaded: DigWithMatches,
-): Promise<{ data: string; matches: number }> {
+): Promise<{ data: string; matches: number; top: SharedFind | null }> {
   /*
    * An expired dig is not shared. Its listings may have sold, and the link
    * would send somebody to six-hour-old stock as if it were fresh (rule 4).
@@ -118,7 +118,12 @@ export async function createShare(
   if (Date.now() >= loaded.dig.expiresAt) throw fail('dig-expired', 'dig expired')
 
   const snapshot = toSharedDig(loaded)
-  return { data: await encodeShare(snapshot), matches: snapshot.matches.length }
+  // The top find, as cleaned as the link: what the share card draws (#250).
+  return {
+    data: await encodeShare(snapshot),
+    matches: snapshot.matches.length,
+    top: snapshot.matches[0] ?? null,
+  }
 }
 
 /**

@@ -125,6 +125,11 @@ describe('what travels', () => {
     expect(data.length).toBeLessThan(8_000)
   })
 
+  it('hands back the top find for a share card, as cleaned as the link (#250)', async () => {
+    const { top } = await createShare(loaded(3))
+    expect(top).toEqual(toSharedDig(loaded(1)).matches[0])
+  })
+
   it('refuses to share a dig past its six hours', async () => {
     await expect(createShare(loaded(1, Date.now() - 1))).rejects.toMatchObject({
       code: 'dig-expired',

@@ -62,6 +62,30 @@ test('a shared list opens without a token, a hub or a price', async ({ page, bro
   }
 })
 
+/** The top find as a picture (#250): drawn here, from shapes and words, never a cover. */
+test('the share card is drawn on the device, without a Discogs image', async ({ page }) => {
+  // No share sheet: the card stays on screen, to be saved by hand.
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'share', { value: undefined })
+    Object.defineProperty(navigator, 'canShare', { value: undefined })
+  })
+  const covers: string[] = []
+  page.on('request', (request) => {
+    if (request.url().includes('i.discogs.com')) covers.push(request.url())
+  })
+  const dig = await seed(page)
+  await page.goto(`/shop?id=${dig.id}`)
+  await page.getByRole('button', { name: 'Shop', exact: true }).click()
+  await page.getByRole('button', { name: 'Share this list' }).click()
+
+  const before = covers.length
+  await page.getByRole('button', { name: 'Share the top find as a picture' }).click()
+  const card = page.getByRole('img', { name: /The top find as a picture/ })
+  await expect(card).toHaveAttribute('src', /^blob:/)
+  await expect.poll(() => card.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1080)
+  expect(covers.length).toBe(before)
+})
+
 test('a link with nothing after the # says so', async ({ page }) => {
   await page.goto('/shared')
   await expect(page.getByText('Something is missing from this link')).toBeVisible()
