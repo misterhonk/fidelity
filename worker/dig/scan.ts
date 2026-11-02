@@ -2,7 +2,7 @@ import { DIG_TTL_MS, pruneDigs } from '~~/db/expire'
 import { discardQuietCheck, markGone, noteChange } from './history'
 import { getMeta, getPreferences } from '~~/db/meta'
 import { openFidelityDb, type FidelityDatabase } from '~~/db/open'
-import type { Dig, Match, StockRow } from '#shared/types'
+import type { Dig, Match, StaleStock, StockRow } from '#shared/types'
 import type { ScanProgress, WorkerError } from '#shared/protocol'
 
 import type { DiscogsClient } from '../discogs/client'
@@ -14,6 +14,7 @@ import { NearMissAccumulator, type NearMiss } from '../horizon/nearmiss'
 import { blankDealer } from '~~/db/dealer'
 
 import { FingerprintAccumulator, matchesPerThousand } from './fingerprint'
+import { StaleStockCounter } from './stale'
 
 export const PER_PAGE = 100
 
@@ -259,6 +260,7 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   // Built while the listings stream past. Keeping them to compute this
   // afterwards would mean holding 40 MB of inventory for a few percentages.
   const fingerprint = new FingerprintAccumulator()
+  const stale = new StaleStockCounter(now())
   const { nearMisses } = ctx
 
   /*
@@ -430,6 +432,8 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
 
         const listing = toListing(row)
         fingerprint.add(listing)
+        // Once per listing: the windows overlap, and a share counted twice is a different share.
+        if (firstSight) stale.add(row.posted)
         nearMisses.add(listing)
 
         /*
@@ -582,6 +586,7 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
     minOrderTotal,
     minOrderCurrency,
     payment,
+    staleStock: stale.build(),
   })
   await noteChange(db, dig.dealer, now())
   // What the previous full dig found and this one no longer sees (M36).
@@ -861,6 +866,7 @@ async function saveDealer(
     minOrderTotal: number | null
     minOrderCurrency?: string | null
     payment: string | null
+    staleStock?: StaleStock | null
   } = {
     minOrderTotal: null,
     payment: null,
@@ -946,6 +952,8 @@ async function saveDealer(
     // changes as soon as another shop is scanned.
     affinity: rate,
     fingerprint: fingerprint.build(dig.listingsTotal),
+    // Like the fingerprint, only a full dig may say it; null when no row carried a date.
+    staleStock: seller.staleStock ?? null,
     // A dig started by name is asking for the shop, whatever was said before:
     // a full scan of a hidden shop puts it back on the lists (M19 #2).
     hiddenAt: null,

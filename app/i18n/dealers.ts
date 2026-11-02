@@ -179,6 +179,9 @@ const en = {
     noRatings: 'no ratings yet',
     since: (year: string) => `since ${year}`,
     dug: (when: string) => `dug ${when}`,
+    /* A count with its date and its n, and no adjective (#244, § 824 BGB). */
+    stale: (percent: string, asOf: string, n: string) =>
+      `${percent} % listed on Discogs more than five years ago (as of ${asOf}, n = ${n})`,
     suspended: 'Discogs has stopped this shop from selling.',
   },
   plates: {
@@ -396,6 +399,8 @@ const de: typeof en = {
     noRatings: 'noch keine Bewertungen',
     since: (year) => `seit ${year}`,
     dug: (when) => `gegraben ${when}`,
+    stale: (percent, asOf, n) =>
+      `${percent} % seit über fünf Jahren bei Discogs eingestellt (Stand ${asOf}, n = ${n})`,
     suspended: 'Discogs hat diesen Laden vom Verkauf ausgeschlossen.',
   },
   plates: {

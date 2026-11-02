@@ -1936,6 +1936,13 @@ export interface RoundProgress {
   found: number
 }
 
+/** Listings older than five years (`old`) out of those with a date (`dated`), as of a dig. */
+export interface StaleStock {
+  old: number
+  dated: number
+  asOf: number
+}
+
 export interface DealerFingerprint {
   sampledItems: number
   totalItems: number
@@ -2094,6 +2101,12 @@ export interface Dealer {
   affinity: number | null
   /** Derived, not marketplace content — so it outlives the six-hour window. */
   fingerprint: DealerFingerprint | null
+  /**
+   * How much of the last full dig was listed more than five years before it
+   * (#244). Shown to you on the shop's sheet and **never shared**: not in the
+   * backup file, not to the hub. Absent until a full dig has counted it.
+   */
+  staleStock?: StaleStock | null
   shippingTiers: ShippingTier[]
 
   // --- Watchlist (M6) ------------------------------------------------------
