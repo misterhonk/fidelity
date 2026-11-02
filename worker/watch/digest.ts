@@ -6,6 +6,17 @@ import { hasAnchor, runningRound } from '../dealers/round'
 import type { runDig as RunDig } from '../dig/scan'
 import { log } from '../log'
 
+/**
+ * Whether the pass is walking right now. It holds the one dig slot shop by
+ * shop, so a round started meanwhile would find every shop busy and record
+ * them all as failed — `runRound` says no instead.
+ */
+let digesting = false
+
+export function runningDigest(): boolean {
+  return digesting
+}
+
 /** The start page shows a taste per shop, not the list; the shop page has the rest. */
 export const DIGEST_FINDS = 3
 
@@ -36,41 +47,49 @@ export async function digestMoved({
   runDig,
 }: DigestOptions): Promise<WatchDigest[]> {
   // A round walking the same shops would make this pass a second visit.
-  if (dealers.length === 0 || runningRound()) return []
+  if (dealers.length === 0 || runningRound() || digesting) return []
+  digesting = true
 
-  const dig = runDig ?? (await import('../dig/scan')).runDig
-  const db = await openFidelityDb()
-  const digests: WatchDigest[] = []
+  try {
+    const scan = await import('../dig/scan')
+    const dig = runDig ?? scan.runDig
+    const db = await openFidelityDb()
+    const digests: WatchDigest[] = []
 
-  for (const username of dealers) {
-    signal?.throwIfAborted()
-    const dealer = await db.get('dealers', username)
-    if (!dealer || dealer.watching !== true || dealer.hiddenAt || !hasAnchor(dealer)) continue
+    for (const username of dealers) {
+      signal?.throwIfAborted()
+      // A dig somebody started is theirs; the rest of the pass waits for the next start.
+      if (scan.runningDig()) break
+      const dealer = await db.get('dealers', username)
+      if (!dealer || dealer.watching !== true || dealer.hiddenAt || !hasAnchor(dealer)) continue
 
-    try {
-      const done = await dig({
-        client,
-        dealer: username,
-        depth: 'neu',
-        digId: `${now().toString(36).padStart(9, '0')}-${crypto.randomUUID().slice(0, 8)}`,
-        signal,
-        now,
-      })
-      const digId = done.discarded ? null : done.id
-      digests.push({
-        dealer: username,
-        digId,
-        expiresAt: done.expiresAt,
-        finds: digId && done.matchCount > 0 ? await best(digId) : [],
-      })
-    } catch (error) {
-      if (signal?.aborted) throw error
-      // One shop that will not answer, or a dig already running, is not the pass failing.
-      log.warn('[digest] could not visit', username, error)
+      try {
+        const done = await dig({
+          client,
+          dealer: username,
+          depth: 'neu',
+          digId: `${now().toString(36).padStart(9, '0')}-${crypto.randomUUID().slice(0, 8)}`,
+          signal,
+          now,
+        })
+        const digId = done.discarded ? null : done.id
+        digests.push({
+          dealer: username,
+          digId,
+          expiresAt: done.expiresAt,
+          finds: digId && done.matchCount > 0 ? await best(digId) : [],
+        })
+      } catch (error) {
+        if (signal?.aborted) throw error
+        // One shop that will not answer, or a dig already running, is not the pass failing.
+        log.warn('[digest] could not visit', username, error)
+      }
     }
-  }
 
-  return digests
+    return digests
+  } finally {
+    digesting = false
+  }
 }
 
 async function best(digId: string): Promise<Match[]> {
