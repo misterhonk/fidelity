@@ -12,6 +12,35 @@ Für eine App bedeutet SemVer:
 ## [0.121.0](https://github.com/misterhonk/fidelity/compare/v0.120.0...v0.121.0) (2026-11-02)
 
 
+<!-- en -->
+**Tidy a whole shelf at once.** Show the shelf as a list and edit it in place, change many records
+in one go, and see every change that is still waiting for Discogs.
+
+- The shelf can be a list: pressing, rating, condition, place and folder, each editable right in
+  its row. Filters such as Unplaced, Ungraded, Doubles or Condition ≤ VG narrow it, and every
+  view is an address you can bookmark.
+- Tick records with x, shift-click or a long press, then give them all a place, a rating, a
+  grade or a folder. Sleeveside says how long Discogs will take to hear of it, and "Undo all"
+  takes it back.
+- The new outbox shows what is still on its way, grouped by record, with tries and the last
+  answer. If Discogs changed something you changed too, you choose: keep yours or take theirs.
+- A record that disappears from Discogs keeps its place for 30 days, in case it comes back.
+
+<!-- de -->
+**Räum ein ganzes Regal auf einmal auf.** Zeig das Regal als Liste und bearbeite es direkt, ändere
+viele Platten auf einmal und sieh jede Änderung, die noch auf Discogs wartet.
+
+- Das Regal kann eine Liste sein: Pressung, Bewertung, Zustand, Platz und Ordner, jeweils direkt
+  in der Zeile bearbeitbar. Filter wie Ohne Platz, Ohne Zustand, Doppelte oder Zustand ≤ VG
+  grenzen ein, und jede Ansicht ist eine Adresse, die du dir merken kannst.
+- Hak Platten mit x, Umschalt-Klick oder langem Drücken an und gib allen einen Platz, eine
+  Bewertung, einen Zustand oder einen Ordner. Sleeveside sagt dir, wie lange Discogs dafür
+  braucht, und "Alles rückgängig" nimmt es zurück.
+- Der neue Ausgang zeigt, was noch unterwegs ist, nach Platte sortiert, mit Versuchen und der
+  letzten Antwort. Hat Discogs etwas geändert, das du auch geändert hast, entscheidest du:
+  deins behalten oder das von Discogs nehmen.
+- Verschwindet eine Platte bei Discogs, behält sie ihren Platz 30 Tage, falls sie zurückkommt.
+
 ### Added
 
 * **collection:** add a shelf row view with inline edit, chips and saved views ([c2c41f0](https://github.com/misterhonk/fidelity/commit/c2c41f07acf045a26ce9a14c5a94c3f1a01f70f1))
