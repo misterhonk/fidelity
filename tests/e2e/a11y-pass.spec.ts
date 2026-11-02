@@ -17,14 +17,18 @@ const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 
 async function axe(page: Page) {
   // After the tiles have laid themselves out: half-faded text is a timing, not a contrast.
-  await page.evaluate(() =>
-    Promise.all(
-      document
+  // Until none are left: tiles that arrive late (covers, a second rail) start their own rise.
+  await page.evaluate(async () => {
+    for (let round = 0; round < 10; round++) {
+      const running = document
         .getAnimations()
         .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
-        .map((a) => a.finished.catch(() => undefined)),
-    ),
-  )
+        .filter((a) => a.playState === 'running' || a.playState === 'pending')
+      if (running.length === 0) return
+      await Promise.all(running.map((a) => a.finished.catch(() => undefined)))
+      await new Promise((resolve) => setTimeout(resolve, 100))
+    }
+  })
   const { violations } = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze()
   return violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)
 }
