@@ -1,7 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import type { Dig, StockRow } from '#shared/types'
-import { freshDigs, pickIdeas } from '~~/worker/gift'
+import type { DiscogsClient } from '~~/worker/discogs/client'
+import { findGifts, freshDigs, pickIdeas } from '~~/worker/gift'
 
 /**
  * A present for a friend (#245): the cheapest fresh copy of each of their
@@ -76,5 +78,37 @@ describe('pickIdeas', () => {
       'EUR',
     )
     expect(overBudget).toBe(0)
+  })
+})
+
+describe('findGifts', () => {
+  afterEach(async () => {
+    await deleteFidelityDb()
+  })
+
+  it('counts as owned only the wants in stock it left out', async () => {
+    const db = await openFidelityDb()
+    await db.put('digs', dig('d1', 'a', 1))
+    await db.put('stock', row('d1', 1, 10))
+    await db.put('stock', row('d1', 2, 12))
+    const page = (key: string, ids: number[]) => ({
+      pagination: { page: 1, pages: 1, per_page: 100, items: ids.length, urls: {} },
+      [key]: ids.map((id) => ({ id })),
+    })
+    // They want 1, 2 and 3 and own 2 and 3 — but only 2 is in a shop.
+    const get = vi.fn(async (path: string) =>
+      path.endsWith('/wants') ? page('wants', [1, 2, 3]) : page('releases', [2, 3]),
+    )
+
+    const result = await findGifts(
+      { get } as unknown as DiscogsClient,
+      'friend',
+      20,
+      NOW,
+      new AbortController().signal,
+    )
+
+    expect(result.ideas.map((idea) => idea.releaseId)).toEqual([1])
+    expect(result.owned).toBe(1)
   })
 })
