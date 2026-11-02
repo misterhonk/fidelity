@@ -52,6 +52,21 @@ function ready(): Promise<void> {
   })
 }
 
+/**
+ * When the browser last animated a Back itself — a swipe on iOS. Back reaches
+ * the sheet through the address (app.vue), a moment after `popstate`; a
+ * transition of ours on top would play the same move twice.
+ */
+let swipedAt = -Infinity
+const SWIPE_WINDOW_MS = 1000
+if (typeof window !== 'undefined') {
+  window.addEventListener('popstate', (event) => {
+    const ua = (event as PopStateEvent & { hasUAVisualTransition?: boolean })
+      .hasUAVisualTransition
+    swipedAt = ua ? performance.now() : -Infinity
+  })
+}
+
 function name(el: HTMLElement | null, value: string) {
   if (el) el.style.viewTransitionName = value
 }
@@ -60,7 +75,7 @@ function name(el: HTMLElement | null, value: string) {
  * Wraps a state change in a same-document View Transition where the browser
  * has one (docs/05 §4). Everything still works without it — the change just
  * happens instantly, which is also what somebody asking for reduced motion
- * gets, since the transition animations are dropped under that media query.
+ * gets: no transition is started for them at all.
  *
  * `before` is the cover named in the old picture, `after` the one named in the
  * new; the sheet's own cover carries the name for as long as it is open. A
@@ -84,7 +99,10 @@ function transition(
       finished: Promise<void>
     }
   }
-  if (typeof doc.startViewTransition !== 'function') {
+  // Reduced motion gets the change at once, not a paint hold with nothing moving in it.
+  const still = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  const swiped = performance.now() - swipedAt < SWIPE_WINDOW_MS
+  if (typeof doc.startViewTransition !== 'function' || still || swiped) {
     change()
     return
   }
