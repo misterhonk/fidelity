@@ -65,6 +65,7 @@ import type {
   SharedDig,
   RecordSearch,
   ShelfResult,
+  ShelfChip,
   ShelfSort,
   ShelfView,
   ShippingTier,
@@ -329,6 +330,8 @@ export interface WorkerContract {
       limit?: number
       /** Only records with no living place (M27.1c) — the ones still to sort in. */
       unplaced?: boolean
+      /** The shelf's filter chips (#236), all of which must hold. */
+      only?: ShelfChip[]
     }
     progress: never
     result: ShelfView
