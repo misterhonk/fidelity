@@ -36,6 +36,18 @@ describe('the link that carries a find list', () => {
     expect(withoutComments(DIG)).not.toMatch(/[?&]k=/)
   })
 
+  /** The link hangs off the app root, not off the page it was made on: /shop/shared is no route. */
+  it('builds the link from the app root, not from /shop', () => {
+    const strip = withoutComments(DIG).match(/location\.pathname\.replace\(\/(.+?)\/,/)
+    expect(strip).not.toBeNull()
+    const route = new RegExp(strip![1])
+    for (const path of ['/shop', '/shop/', '/sub/shop']) {
+      expect(`${path.replace(route, '')}/shared`).toBe(
+        path.startsWith('/sub') ? '/sub/shared' : '/shared',
+      )
+    }
+  })
+
   it('reads it back out of the fragment', () => {
     expect(withoutComments(PAGE)).toMatch(/location\.hash/)
     // And the id from the query, because that is where it belongs: the server
