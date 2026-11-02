@@ -53,10 +53,13 @@ async function friendOnDiscogs(context: BrowserContext, wantsStatus = 200) {
     }
     if (path === '/users/ada.friend/collection/folders/0/releases') {
       return json(200, {
-        pagination: pagination(1),
-        releases: [
-          { id: 702, date_added: '2026-01-01T00:00:00-00:00', basic_information: basic(702) },
-        ],
+        // 704 is owned too, but in no shop: nothing was left out for it.
+        pagination: pagination(2),
+        releases: [702, 704].map((id) => ({
+          id,
+          date_added: '2026-01-01T00:00:00-00:00',
+          basic_information: basic(id),
+        })),
       })
     }
     return json(404, { message: 'not here' })

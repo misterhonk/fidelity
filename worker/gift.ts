@@ -173,8 +173,14 @@ export async function findGifts(
 
   let { ideas, overBudget } = pickIdeas(rows, fresh, names, budget, currency)
   const result = { ...empty, wanted: new Set(wanted).size, ideas, overBudget }
+  // The wants that could be a gift: a priced copy in a fresh dig, in your currency.
+  const candidates = new Set(
+    rows
+      .filter((row) => fresh.has(row.digId) && row.price !== null && row.currency === currency)
+      .map((row) => row.releaseId),
+  )
   // Their shelf costs requests, so it is only read when there is something to take off it.
-  if (ideas.length + overBudget === 0) return result
+  if (candidates.size === 0) return result
 
   const owned = await releaseIds(
     client,
@@ -186,7 +192,8 @@ export async function findGifts(
   if (owned === null) return { ...result, owned: null, expiresAt: earliest(ideas, fresh) }
 
   const have = new Set(owned)
-  const left = new Set([...wanted].filter((id) => have.has(id)))
+  // Only what was actually taken off the list counts, not every owned want.
+  const left = [...candidates].filter((id) => have.has(id))
   ;({ ideas, overBudget } = pickIdeas(
     rows.filter((row) => !have.has(row.releaseId)),
     fresh,
@@ -194,7 +201,7 @@ export async function findGifts(
     budget,
     currency,
   ))
-  return { ...result, owned: left.size, ideas, overBudget, expiresAt: earliest(ideas, fresh) }
+  return { ...result, owned: left.length, ideas, overBudget, expiresAt: earliest(ideas, fresh) }
 }
 
 function earliest(ideas: GiftIdea[], fresh: Map<string, Dig>): number | null {
