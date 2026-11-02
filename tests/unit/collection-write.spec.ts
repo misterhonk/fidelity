@@ -497,6 +497,39 @@ describe('several copies of one record on their way', () => {
     expect(await keys()).toEqual([6, 7])
   })
 
+  /*
+   * Both copies refused readably, both marked — and both found next round.
+   * The second used to read its marks from before the first had landed, took
+   * the first one's id, and one bought copy was gone from the shelf.
+   */
+  it('gives two marked copies that land in one round an entry each', async () => {
+    await addCopy(copy())
+    await addCopy(copy())
+    const fake = client({
+      write: write(
+        new DiscogsError(500, 'Something went wrong'),
+        new DiscogsError(500, 'Something went wrong'),
+      ),
+    })
+    ;(fake.get as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({ releases: [] })
+      .mockResolvedValueOnce({ releases: [] })
+      .mockResolvedValue({
+        releases: [
+          { id: 12, instance_id: 6 },
+          { id: 12, instance_id: 7 },
+        ],
+      })
+
+    await drainOutbox(fake, 'mrtnmlchr')
+    const second = await drainOutbox(fake, 'mrtnmlchr')
+
+    expect(fake.write).toHaveBeenCalledTimes(2)
+    expect(second.sent).toBe(2)
+    expect(await pendingJobs()).toEqual([])
+    expect(await keys()).toEqual([6, 7])
+  })
+
   it('still sends an add queued before copies had keys of their own', async () => {
     const db = await openFidelityDb()
     await db.put('collection', record({ releaseId: 12, instanceId: -12, folderId: 0 }))
