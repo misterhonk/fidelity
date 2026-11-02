@@ -35,7 +35,10 @@ export async function copyOf(instanceId: number): Promise<CopyState> {
     : []
   // Ids are `${kind}:${instanceId}` or `${kind}:${instanceId}:${field}`; an add is keyed by release.
   const mine = jobs.filter(
-    (job) => job.kind !== 'collection.add' && job.id.split(':')[1] === String(instanceId),
+    (job) =>
+      job.kind.startsWith('collection.') &&
+      job.kind !== 'collection.add' &&
+      job.id.split(':')[1] === String(instanceId),
   )
   return {
     copies,
