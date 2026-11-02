@@ -180,9 +180,9 @@ const entries = computed<Entry[]>(() => {
 })
 
 /*
- * A shop's address offers that shop on top (#217, #314): the start page has one
+ * A shop's address offers that shop on top (#217, #314): the nav's Search has one
  * field, and on an iPhone a copied address is the way a shop gets in. Enter or
- * a tap opens it on the dig page — checked, never started. Offered, not
+ * a tap opens it on the shop page — checked, never started. Offered, not
  * followed: an address typed by hand passes through shorter, wrong usernames.
  * Only an address — a bare word is a search, not a guess at a username.
  */
@@ -195,7 +195,7 @@ const shopEntry = computed<Entry[]>(() => {
       id: 'paste-shop',
       group: m.palette.actions,
       label: m.palette.digAt(shop),
-      run: go('/dig', { dealer: shop }),
+      run: go('/shop', { dealer: shop }),
     },
   ]
 })

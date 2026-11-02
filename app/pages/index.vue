@@ -160,27 +160,27 @@ const tiles = computed(() => {
           -->
           <template #aside>
             <div class="flex items-center gap-1">
-            <NuxtLink
-              to="/settings"
-              :title="m.nav.profile.hint"
-              :aria-label="`${m.nav.profile.label}: ${identity.username}`"
-              class="flex min-h-11 items-center gap-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
-            >
-              <FidIcon name="circle-user" :size="20" />
-              {{ identity.username }}
-            </NuxtLink>
-            <!--
+              <NuxtLink
+                to="/settings"
+                :title="m.nav.profile.hint"
+                :aria-label="`${m.nav.profile.label}: ${identity.username}`"
+                class="flex min-h-11 items-center gap-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+              >
+                <FidIcon name="circle-user" :size="20" />
+                {{ identity.username }}
+              </NuxtLink>
+              <!--
               The in-store screen, built for a phone in one hand, which has no
               ⌘K to reach it. An icon up here costs the covers no line (#314).
             -->
-            <NuxtLink
-              to="/in-store"
-              :aria-label="m.home.inStore"
-              :title="m.home.inStore"
-              class="fid-action justify-center text-fid-text-muted transition-colors hover:text-fid-text"
-            >
-              <FidIcon name="store" :size="20" aria-hidden="true" />
-            </NuxtLink>
+              <NuxtLink
+                to="/in-store"
+                :aria-label="m.home.inStore"
+                :title="m.home.inStore"
+                class="fid-action justify-center text-fid-text-muted transition-colors hover:text-fid-text"
+              >
+                <FidIcon name="store" :size="20" aria-hidden="true" />
+              </NuxtLink>
             </div>
           </template>
         </PageHeader>
