@@ -6,6 +6,7 @@ import {
   SIGNAL_TYPES,
   type Match,
   type Preferences,
+  type PressingRules,
   type SharedDig,
   type VaultSnapshot,
 } from '#shared/types'
@@ -59,6 +60,22 @@ export function parsePreferences(value: unknown): Partial<Preferences> | null {
     if (parsed.success) kept[key] = parsed.data
   }
   return kept as Partial<Preferences>
+}
+
+const pressingRule = z.object({
+  firstOnly: z.boolean(),
+  except: z.array(z.number().int().positive()),
+})
+
+/** Pressing rules from a file (#242): per master id; a malformed entry is dropped, not the lot. */
+export function parsePressingRules(value: unknown): PressingRules | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const kept: PressingRules = {}
+  for (const [master, rule] of Object.entries(value)) {
+    const parsed = pressingRule.safeParse(rule)
+    if (/^[1-9]\d*$/.test(master) && parsed.success) kept[Number(master)] = parsed.data
+  }
+  return Object.keys(kept).length > 0 ? kept : null
 }
 
 /** A key IndexedDB can put a row under. */

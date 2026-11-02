@@ -113,6 +113,11 @@ export interface FullExport {
   preferences: unknown
   tasteProfile: unknown
   credits: unknown
+  /**
+   * Which pressings will do, per master (#242) — typed by you, nowhere else.
+   * shortcut: the file only, not the vault yet; #335 syncs it between devices.
+   */
+  pressingRules: unknown
   dealers: unknown[]
   digs: unknown[]
   matches: ExportedMatch[]
@@ -193,6 +198,7 @@ export async function exportEverything(now: number): Promise<FullExport> {
     preferences: withoutKeys(await getMeta('preferences')),
     tasteProfile: await getMeta('tasteProfile'),
     credits: await getMeta('credits'),
+    pressingRules: await getMeta('pressingRules'),
     dealers,
     digs,
     matches: matches.map(strip),

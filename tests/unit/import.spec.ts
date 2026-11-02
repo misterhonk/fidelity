@@ -239,4 +239,24 @@ describe('what a backup carries besides', () => {
     await importEverything(JSON.parse(JSON.stringify(file)))
     expect((await db.get('watched', 5))?.points).toHaveLength(1)
   })
+
+  /** Typed on this device and nowhere else (#242): a new device gets them from the file. */
+  it('carries the pressing rules, keeps the device’s own, and drops a malformed one', async () => {
+    await setMeta('pressingRules', { 42: { firstOnly: true, except: [9101] } })
+    const file = await exportEverything(9000)
+    expect(file.pressingRules).toEqual({ 42: { firstOnly: true, except: [9101] } })
+    await deleteFidelityDb()
+
+    const rule = { firstOnly: true, except: [9101] }
+    const tampered = { ...file, pressingRules: { 42: rule, x: rule, 7: { except: 'no' } } }
+    const report = await importEverything(JSON.parse(JSON.stringify(tampered)))
+    expect(report.meta).toContain('pressingRules')
+    expect(await getMeta('pressingRules')).toEqual({ 42: { firstOnly: true, except: [9101] } })
+
+    await setMeta('pressingRules', { 5: { firstOnly: false, except: [1] } })
+    expect((await importEverything(JSON.parse(JSON.stringify(file)))).meta).not.toContain(
+      'pressingRules',
+    )
+    expect(await getMeta('pressingRules')).toEqual({ 5: { firstOnly: false, except: [1] } })
+  })
 })
