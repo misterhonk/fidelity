@@ -762,7 +762,12 @@ async function remove() {
                 @change="paidText && setPaid()"
               />
             </div>
-            <p v-if="paidInvalid" class="text-fid-xs text-fid-error">
+            <p
+              v-if="paidInvalid"
+              role="alert"
+              class="flex items-center gap-1 text-fid-xs text-fid-error"
+            >
+              <FidIcon name="circle-alert" :size="14" aria-hidden="true" />
               {{ c.shelf.sheet.copy.notAPrice }}
             </p>
           </dd>
