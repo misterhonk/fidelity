@@ -162,14 +162,22 @@ export const handlers: HandlerMap = {
     // In before out: the read merges three ways with what is waiting (#238), so a
     // change made on discogs.com meanwhile is asked about instead of sent over.
     const { syncLibrary } = await library()
-    const result = await syncLibrary({
-      client: discogs(),
-      username: identity.username,
-      report: (progress) => report(progress),
-      signal,
-    })
     const { drainOutbox } = await import('./outbox')
-    const { undone } = await drainOutbox(discogs(), identity.username, signal)
+    const drain = () => drainOutbox(discogs(), identity.username, signal)
+    let result
+    try {
+      result = await syncLibrary({
+        client: discogs(),
+        username: identity.username,
+        report: (progress) => report(progress),
+        signal,
+      })
+    } catch (error) {
+      // A failed read still sends what is waiting, unmerged as before; the read's error is the one to show.
+      await drain().catch(() => {})
+      throw error
+    }
+    const { undone } = await drain()
 
     // The detail sheet's cached lookup counts what you own; the sync just
     // changed that.
