@@ -16,7 +16,7 @@
 import type { OriginFilter } from './countries'
 import type { CoverProgress } from '~~/worker/covers'
 import type { KeeperProgress, KeeperResult } from '~~/worker/keeper'
-import type { DrainResult } from '~~/worker/outbox'
+import type { DrainResult, OutboxOverview } from '~~/worker/outbox'
 import type { CheckProgress, WatchedCheck } from '~~/worker/watched/check'
 import type { DemoProgress, DemoResult } from '~~/worker/demo'
 import type { ImportReport } from '../worker/import'
@@ -405,6 +405,14 @@ export interface WorkerContract {
    * it touches nothing else: no sync, no watchlist, no horizon.
    */
   'outbox.flush': { params: undefined; progress: never; result: DrainResult }
+  /** What is still on its way, by record, and what a full sync no longer found (#238). No request. */
+  'outbox.list': { params: undefined; progress: never; result: OutboxOverview }
+  /** Answers a conflict: keep ours and send it, or take what Discogs holds. */
+  'outbox.resolve': {
+    params: { id: string; keep: 'mine' | 'theirs' }
+    progress: never
+    result: boolean
+  }
   /** The folders this collection is divided into. Empty before the first sync. */
   'collection.folders': { params: undefined; progress: never; result: CollectionFolder[] }
   /** Moves one copy into another folder. */

@@ -1,10 +1,18 @@
 import { z } from 'zod'
 
-import { dropJob, noteFailure, noteSending, OUTBOX_LOCK, pendingJobs } from '~~/db/outbox'
+import {
+  dropJob,
+  noteFailure,
+  noteSending,
+  OUTBOX_LOCK,
+  pendingJobs,
+  resolveConflict,
+  valueOf,
+} from '~~/db/outbox'
 import { openFidelityDb } from '~~/db/open'
 import { DiscogsError } from './discogs/errors'
 import { fail } from './fail'
-import type { OutboxJob, OutboxKind } from '~~/db/schema'
+import { GONE_KEEP_MS, type OutboxJob, type OutboxKind } from '~~/db/schema'
 import type { WantlistItem } from '#shared/types'
 import type { DiscogsClient } from './discogs/client'
 
@@ -346,6 +354,11 @@ async function drainOnce(
     // Read again: a copy settled earlier this round has added its id to this job's instancesBefore.
     const job = await db.get('outbox', queued.id)
     if (!job) continue
+    // Both sides changed it: nothing goes out until somebody says which (#238).
+    if (job.conflict) {
+      waiting += 1
+      continue
+    }
     try {
       const kind = KINDS[job.kind]
       if (kind.instances) {
@@ -415,4 +428,89 @@ async function titleOf(job: OutboxJob): Promise<string> {
     : // An add is still its provisional row: the payload's key, or `-releaseId` for an older one.
       await db.get('collection', Number(instanceId ?? -Number(releaseId)))
   return row?.title ?? `#${releaseId}`
+}
+
+/** One change waiting, as the outbox sheet shows it (#238). */
+export interface OutboxChange {
+  id: string
+  kind: OutboxKind
+  attempts: number
+  lastError: string | null
+  queuedAt: number
+  /** What it sets, ready to read — a value has no language. Empty for an add or a removal. */
+  ours: string
+  /** Set when Discogs changed it too: what Discogs holds now. */
+  theirs: string | null
+}
+
+export interface OutboxOverview {
+  /** Grouped by record, oldest change first. */
+  records: { key: string; title: string; changes: OutboxChange[] }[]
+  /** Copies a full sync no longer found, kept 30 days with their place. */
+  gone: { instanceId: number; title: string; place: string | null; until: number }[]
+}
+
+/** Everything still on its way, and everything gone — no request. */
+export async function outboxOverview(): Promise<OutboxOverview> {
+  const db = await openFidelityDb()
+  const folders = (await db.get('meta', 'collectionFolders'))?.value
+  const names = new Map(
+    (Array.isArray(folders) ? folders : []).map((folder) => [folder.id, folder.name]),
+  )
+  const shown = (job: OutboxJob, value: Record<string, number | string> | undefined) => {
+    if (!value) return ''
+    if (job.kind === 'collection.rating') return '★'.repeat(Number(value.rating)) || '–'
+    if (job.kind === 'collection.folder')
+      return names.get(Number(value.folderId)) ?? `#${value.folderId}`
+    if (job.kind === 'wantlist.note') return String(value.note)
+    return String(value.value ?? '')
+  }
+
+  const records = new Map<string, OutboxOverview['records'][number]>()
+  for (const job of await pendingJobs()) {
+    const store = job.kind.startsWith('wantlist.') ? 'wantlist' : 'collection'
+    const key = `${store}:${store === 'wantlist' ? job.payload.releaseId : (job.payload.instanceId ?? -Number(job.payload.releaseId))}`
+    const record = records.get(key) ?? {
+      key,
+      title: await titleOf(job).catch(() => `#${job.payload.releaseId}`),
+      changes: [],
+    }
+    record.changes.push({
+      id: job.id,
+      kind: job.kind,
+      attempts: job.attempts,
+      lastError: job.lastError ?? null,
+      queuedAt: job.queuedAt,
+      ours: shown(job, valueOf(job)),
+      theirs: job.conflict ? shown(job, job.conflict.remote) : null,
+    })
+    records.set(key, record)
+  }
+
+  const gone: OutboxOverview['gone'] = []
+  for (const entry of await db.getAll('gone')) {
+    const placeId = (await db.get('placements', entry.instanceId))?.placeId
+    const place = placeId ? await db.get('places', placeId) : undefined
+    gone.push({
+      instanceId: entry.instanceId,
+      title: entry.record.title,
+      place: place?.name ?? null,
+      until: entry.goneAt + GONE_KEEP_MS,
+    })
+  }
+  return { records: [...records.values()], gone: gone.sort((a, b) => a.until - b.until) }
+}
+
+/**
+ * Keeps ours or takes Discogs' for a change in conflict. `theirs` puts
+ * Discogs' value on the shelf the way giving up would put the old one back.
+ */
+export async function resolveOutboxConflict(
+  id: string,
+  keep: 'mine' | 'theirs',
+): Promise<boolean> {
+  const job = await resolveConflict(id, keep)
+  if (!job) return false
+  if (keep === 'theirs') await KINDS[job.kind].revert(job)
+  return true
 }
