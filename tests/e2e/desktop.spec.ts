@@ -91,7 +91,7 @@ test('docks the shelf sheet and leaves the shelf usable', async ({ page }) => {
   await expect(sheet).not.toHaveAttribute('aria-modal', 'true')
 
   // The filter beside it still takes typing — under a modal it could not.
-  const filter = page.getByPlaceholder('Artist, title or label')
+  const filter = page.getByPlaceholder('Artist, title, label or cat. no.')
   await filter.fill('Speak')
   await expect(filter).toHaveValue('Speak')
   await expect(sheet).toBeVisible()
