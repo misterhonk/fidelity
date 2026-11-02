@@ -43,6 +43,8 @@ test('on a phone the first cover is on the first screen, under at most three lin
       const parent = node.parentElement
       if (!node.textContent?.trim() || !parent) continue
       if (parent.closest('h1, h2, button, a, summary, input, [role="option"]')) continue
+      // A closed <details> still lays out its body in Chromium, hidden by content-visibility.
+      if (!parent.checkVisibility()) continue
       const range = document.createRange()
       range.selectNodeContents(node)
       for (const rect of range.getClientRects()) {

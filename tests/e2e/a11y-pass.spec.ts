@@ -19,12 +19,19 @@ async function axe(page: Page) {
   // After the tiles have laid themselves out: half-faded text is a timing, not a contrast.
   // Until none are left: tiles that arrive late (covers, a second rail) start their own rise.
   await page.evaluate(async () => {
-    for (let round = 0; round < 10; round++) {
+    // Quiet twice, 250 ms apart: a list the worker hands over after the first look has not risen yet.
+    let quiet = 0
+    for (let round = 0; round < 12; round++) {
       const running = document
         .getAnimations()
         .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
         .filter((a) => a.playState === 'running' || a.pending)
-      if (running.length === 0) return
+      if (running.length === 0) {
+        if (++quiet === 2) return
+        await new Promise((resolve) => setTimeout(resolve, 250))
+        continue
+      }
+      quiet = 0
       await Promise.all(running.map((a) => a.finished.catch(() => undefined)))
       await new Promise((resolve) => setTimeout(resolve, 100))
     }
