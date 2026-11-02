@@ -319,7 +319,9 @@ onMounted(async () => {
       loadShown(),
       loadFeedback(),
       loadBasket(),
-      call('preferences.get', undefined).then((prefs) => (ceiling.value = prefs)),
+      call('preferences.get', undefined)
+        .then((prefs) => (ceiling.value = prefs))
+        .catch(() => {}),
     ])
   } finally {
     loading.value = false
