@@ -503,9 +503,6 @@ const en = {
       watch: 'the shops you watch',
       horizon: 'your artists and labels',
     },
-
-    whyLabel: 'What refreshes by itself?',
-    why: 'Your collection, your wantlist, the shops you watch and your artists and labels: when the app opens, when you come back to the tab, and every twenty minutes. Usually that is a single lookup, because we only ask Discogs what has changed. Two things stay out on purpose. A dig is two to four minutes and a hundred lookups or more, so you start it, never a clock. And your orders we cannot fetch at all; Discogs only lists what you sold, so a purchase is read from its order number.',
   },
 
   /** What changed in the version you are running. */
@@ -602,9 +599,6 @@ const en = {
     description: 'Sleeveside, the person behind the counter for your Discogs digging.',
     /** The way into the in-store screen on a phone, where there is no ⌘K. */
     inStore: 'In a shop right now',
-    /** A shop's address copied out of Safari (#217). Also takes a bare name. */
-    pasteLink: 'Paste a Discogs link',
-    openShop: 'Open',
     counts: {
       collection: 'Collection',
       wantlist: 'Wantlist',
@@ -657,14 +651,14 @@ const en = {
     /** After the first dig and the lookup: the dig ran without what the lookup knows. */
     again: {
       cta: 'Dig it again',
-      title: (dealer: string) => `Now dig ${dealer} again`,
+      title: (dealer: string) => `Dig ${dealer} again, now with producers, runs and pressings`,
       body: 'Your first dig only knew your shelf. Now it also knows who produced your records, which catalogue runs you collect and the other pressings.',
     },
   },
 
   /** ⌘K. */
   palette: {
-    placeholder: 'Artist, title, label, cat. no., shop …',
+    placeholder: 'Artist, title, label, cat. no., shop, link …',
     nothing: 'Nothing found. Records, digs and shops turn up here as soon as there are some.',
     shelf: 'On your shelf',
     wantlist: 'On your wantlist',

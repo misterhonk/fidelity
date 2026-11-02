@@ -83,14 +83,6 @@ async function reload() {
   if (finds.length > 0) void requestCovers(finds.map((find) => find.releaseId))
 }
 
-const pasted = ref('')
-const pastedName = computed(() => dealerFromInput(pasted.value))
-
-function openPasted() {
-  const name = pastedName.value
-  if (name) void navigateTo({ path: '/shop', query: { dealer: name } })
-}
-
 const digAge = computed(() => {
   const dig = home.value?.dig
   return dig ? since(dig.startedAt) : null
@@ -160,13 +152,14 @@ const tiles = computed(() => {
       {{ m.common.loading }}
     </p>
     <template v-if="ready && identity">
-      <div class="flex flex-col gap-6 px-6">
+      <div class="flex flex-col gap-4 px-6">
         <PageHeader :title="m.home.title">
           <!--
             The name is the profile, and the profile is where the settings
             live (#228) — the phone bar has room for five, and they are not one.
           -->
           <template #aside>
+            <div class="flex items-center gap-1">
             <NuxtLink
               to="/settings"
               :title="m.nav.profile.hint"
@@ -176,47 +169,30 @@ const tiles = computed(() => {
               <FidIcon name="circle-user" :size="20" />
               {{ identity.username }}
             </NuxtLink>
+            <!--
+              The in-store screen, built for a phone in one hand, which has no
+              ⌘K to reach it. An icon up here costs the covers no line (#314).
+            -->
+            <NuxtLink
+              to="/in-store"
+              :aria-label="m.home.inStore"
+              :title="m.home.inStore"
+              class="fid-action justify-center text-fid-text-muted transition-colors hover:text-fid-text"
+            >
+              <FidIcon name="store" :size="20" aria-hidden="true" />
+            </NuxtLink>
+            </div>
           </template>
         </PageHeader>
 
-        <!--
-          A shop from Safari (#217): an iPhone has no extension and no share
-          target, so the way in is a copied address. Opens the dig screen with
-          the shop checked, never started — same as the watchlist banner.
-        -->
-        <form class="flex w-full max-w-md gap-2" @submit.prevent="openPasted">
-          <input
-            v-model="pasted"
-            type="text"
-            inputmode="url"
-            autocomplete="off"
-            spellcheck="false"
-            :aria-label="m.home.pasteLink"
-            :placeholder="m.home.pasteLink"
-            class="min-w-0 grow fid-field px-3 py-2 text-fid-sm text-fid-text"
-          />
-          <button
-            type="submit"
-            :disabled="!pastedName"
-            class="fid-action min-h-11 rounded-fid-sm border border-fid-border px-4 text-fid-sm text-fid-text disabled:opacity-40"
-          >
-            {{ m.home.openShop }}
-          </button>
-        </form>
-
-        <!--
-          How current this is, right under the heading.
-
-          The refresh buttons were spread over three settings pages and the app
-          never said how old anything was — so the honest state of the data was
-          something you could only find out by going looking for it.
-        -->
+        <!-- How current this is: one quiet line. What refreshes by itself is in Help. -->
         <SyncStatus
           :collection-synced-at="home?.library.collectionSyncedAt ?? null"
           @refreshed="reload"
         />
 
-        <OfflineNotice />
+        <!-- Online it renders an empty box, which would still cost two gaps. -->
+        <OfflineNotice class="empty:hidden" />
         <VersionNews />
         <WatchBanner />
         <ArrivalQuestion />
@@ -234,21 +210,6 @@ const tiles = computed(() => {
           decision about a view but about a shop.
         -->
         <StackShops v-if="shops.length > 0" :shops="shops" />
-
-        <!--
-          The in-store screen, from where somebody sets out.
-
-          The link here went in August 2026 with the report-style start page,
-          and the screen built for a phone in one hand was left reachable only
-          from the end of the setup and ⌘K — which a phone does not have.
-        -->
-        <NuxtLink
-          to="/in-store"
-          class="fid-action inline-flex w-fit items-center gap-2 rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
-        >
-          <FidIcon name="store" :size="16" aria-hidden="true" />
-          {{ m.home.inStore }}
-        </NuxtLink>
       </div>
 
       <!--

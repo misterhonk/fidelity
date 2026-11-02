@@ -344,9 +344,6 @@ const de: Messages = {
       watch: 'die Läden, die du beobachtest',
       horizon: 'deine Künstler und Labels',
     },
-
-    whyLabel: 'Was frischt sich von selbst auf?',
-    why: 'Deine Sammlung, deine Wantlist, die beobachteten Läden und deine Künstler und Labels: beim Öffnen, beim Zurückkommen in den Tab und alle zwanzig Minuten. Meistens ist das eine einzige Abfrage, weil wir Discogs nur fragen, was sich geändert hat. Zwei Dinge bleiben absichtlich draußen. Ein Dig dauert zwei bis vier Minuten und hundert Abfragen und mehr, den startest also du und keine Uhr. Und deine Bestellungen können wir gar nicht holen; Discogs listet nur, was du verkauft hast, einen Kauf lesen wir deshalb über seine Bestellnummer.',
   },
 
   news: {
@@ -416,8 +413,6 @@ const de: Messages = {
     title: 'Heute',
     description: 'Sleeveside, der Mensch hinterm Tresen für dein Graben bei Discogs.',
     inStore: 'Gerade im Laden',
-    pasteLink: 'Discogs-Link einfügen',
-    openShop: 'Öffnen',
     counts: {
       collection: 'Sammlung',
       wantlist: 'Wantlist',
@@ -460,13 +455,14 @@ const de: Messages = {
     },
     again: {
       cta: 'Nochmal graben',
-      title: (dealer) => `Jetzt ${dealer} nochmal durchgraben`,
+      title: (dealer) =>
+        `${dealer} nochmal durchgraben, jetzt mit Produzenten, Reihen und Pressungen`,
       body: 'Dein erster Dig kannte nur dein Regal. Jetzt weiß er auch, wer deine Platten produziert hat, welche Katalogreihen du sammelst und welche anderen Pressungen es gibt.',
     },
   },
 
   palette: {
-    placeholder: 'Künstler, Titel, Label, Katalognr., Laden …',
+    placeholder: 'Künstler, Titel, Label, Katalognr., Laden, Link …',
     nothing:
       'Nichts gefunden. Platten, Digs und Läden tauchen hier auf, sobald es welche gibt.',
     shelf: 'Im Regal',

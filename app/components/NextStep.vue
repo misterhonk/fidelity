@@ -90,20 +90,26 @@ const step = computed(() => {
 </script>
 
 <template>
+  <!--
+    One sentence and its button (#314). The why is folded: it was four lines
+    on a phone, in front of the covers, and read once.
+  -->
   <section
     v-if="step"
     class="flex flex-col gap-2 rounded-fid-md border border-fid-accent/40 bg-fid-accent/5 p-4"
     aria-labelledby="next-step"
   >
-    <h2 id="next-step" class="text-fid-base font-medium text-fid-text">{{ step.title }}</h2>
-    <p class="text-fid-sm text-fid-text-muted">{{ step.body }}</p>
-    <!--
-      One button, always in the same place, always the thing the sentence
-      above just named. Two different affordances for "go here" was a choice
-      nobody needed to make.
-    -->
-    <FidButton :to="step.to" class="self-start">
-      {{ step.cta }}
-    </FidButton>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h2 id="next-step" class="text-fid-base font-medium text-fid-text">{{ step.title }}</h2>
+      <!--
+        One button, always in the same place, always the thing the sentence
+        just named. Two different affordances for "go here" was a choice
+        nobody needed to make.
+      -->
+      <FidButton :to="step.to">
+        {{ step.cta }}
+      </FidButton>
+    </div>
+    <WhyNote>{{ step.body }}</WhyNote>
   </section>
 </template>

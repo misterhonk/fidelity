@@ -48,6 +48,15 @@ onBeforeUnmount(() => {
 let asked = 0
 let timer: ReturnType<typeof setTimeout> | undefined
 watch(query, (value) => {
+  /*
+   * A shop's address goes straight to that shop (#217, #314): the start page
+   * has one field, and on an iPhone a copied address is the way a shop gets
+   * in. Opened on the dig page, checked, never started. Only an address — a
+   * bare word is a search, not a guess at a username.
+   */
+  const shop = /discogs\.com\//i.test(value) ? dealerFromInput(value) : null
+  if (shop) return go('/dig', { dealer: shop })()
+
   clearTimeout(timer)
   // An older query's records would stay listed, and armed for Enter, until the
   // worker answers this one.
