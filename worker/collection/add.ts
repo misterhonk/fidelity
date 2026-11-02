@@ -322,12 +322,9 @@ export async function addStatus(adds: AddedCopy[]): Promise<AddState[]> {
   const states: AddState[] = []
   for (const add of adds) {
     const job = jobs.get(`collection.add:${add.key}`)
+    // Queued is waiting, retries included: the outbox keeps trying, and undo still works.
     if (job) {
-      states.push({
-        key: add.key,
-        status: job.attempts > 0 || job.lastError !== undefined ? 'failed' : 'waiting',
-        instanceId: null,
-      })
+      states.push({ key: add.key, status: 'waiting', instanceId: null })
       continue
     }
     const fresh = (await entriesOf(add.releaseId)).find(

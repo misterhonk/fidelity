@@ -73,7 +73,7 @@ describe('the tray', () => {
     ])
   })
 
-  it('reads failed after a failed run, and after the add was given up on', async () => {
+  it('reads waiting while a failed run retries, and failed once given up on', async () => {
     const added = await addPressing(dummy)
     const down = client({
       write: async () => {
@@ -81,7 +81,7 @@ describe('the tray', () => {
       },
     })
     await drainOutbox(down, 'mrtnmlchr')
-    expect((await addStatus([added]))[0]?.status).toBe('failed')
+    expect((await addStatus([added]))[0]?.status).toBe('waiting')
 
     for (let attempt = 1; attempt < MAX_ATTEMPTS; attempt++)
       await drainOutbox(down, 'mrtnmlchr')
