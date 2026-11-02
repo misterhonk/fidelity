@@ -1,8 +1,9 @@
 import { openFidelityDb } from '~~/db/open'
-import type { CollectionGaps, LabelStanding, ShelfGap } from '#shared/types'
+import type { CollectionGaps, LabelStanding, RunStanding, ShelfGap } from '#shared/types'
 
 import { buildLookup, labelLift } from '../horizon/lookup'
 import { norm } from '../match/normalize'
+import { MIN_RUN_OWNED } from '../match/signals'
 import { distinctReleases } from '~~/db/collection'
 
 /**
@@ -45,7 +46,7 @@ export async function collectionGaps(): Promise<CollectionGaps> {
     db.getAll('horizon'),
   ])
 
-  if (chunks.length === 0) return { built: false, artists: [], labels: [] }
+  if (chunks.length === 0) return { built: false, artists: [], labels: [], runs: [] }
 
   const lookup = buildLookup(chunks, collection, wantlist)
 
@@ -98,6 +99,24 @@ export async function collectionGaps(): Promise<CollectionGaps> {
     })
   }
 
+  // The runs CATALOG_RUN fires from, split by the thousand so a label's
+  // series read as the collector names them: Brain 1000, Blue Note 84000.
+  const runs: RunStanding[] = []
+  for (const run of lookup.runs.values()) {
+    const bySeries = new Map<number, { owned: number; total: number }>()
+    for (const num of run.numbers) {
+      const series = Math.floor(num / 1000) * 1000
+      const tally = bySeries.get(series) ?? { owned: 0, total: 0 }
+      tally.total += 1
+      if (run.owned.has(num)) tally.owned += 1
+      bySeries.set(series, tally)
+    }
+    for (const [series, { owned, total }] of bySeries) {
+      if (owned < MIN_RUN_OWNED) continue
+      runs.push({ label: run.label, prefix: run.prefix, series, owned, total })
+    }
+  }
+
   return {
     built: true,
     /*
@@ -115,6 +134,9 @@ export async function collectionGaps(): Promise<CollectionGaps> {
     artists: artists.sort((a, b) => b.owned - a.owned || b.total - a.total).slice(0, LIMIT),
     labels: labels
       .sort((a, b) => (b.lift ?? 0) - (a.lift ?? 0) || b.owned - a.owned)
+      .slice(0, LIMIT),
+    runs: runs
+      .sort((a, b) => b.owned / b.total - a.owned / a.total || b.owned - a.owned)
       .slice(0, LIMIT),
   }
 }

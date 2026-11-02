@@ -270,6 +270,11 @@ const en = {
     needsHorizon:
       'For gaps and label lift we need to know your artists and labels first. Two minutes in the settings.',
     howMuchLeft: 'How much is still out there',
+    /** Catalogue runs as badges (#247): the same runs a find's "catalogue run" reason reads. */
+    runs: 'Catalogue runs',
+    runsWhyLabel: 'Which numbers count',
+    runsWhy:
+      'Every number the label pressed in that series, counted by the thousand, against the ones on your shelf. From three records up.',
     yoursFrom: '· yours from',
     nothingByName: 'Nothing by that name on the list.',
   },
@@ -1019,6 +1024,10 @@ const de: typeof en = {
     needsHorizon:
       'Für Lücken und Label-Lift müssen wir erst deine Künstler und Labels kennen. Zwei Minuten in den Einstellungen.',
     howMuchLeft: 'Wie viel es noch gibt',
+    runs: 'Katalogserien',
+    runsWhyLabel: 'Welche Nummern zählen',
+    runsWhy:
+      'Jede Nummer, die das Label in der Serie gepresst hat, nach Tausendern gezählt, gegen die in deinem Regal. Ab drei Platten.',
     yoursFrom: '· deine von',
     nothingByName: 'Nichts mit diesem Namen auf der Liste.',
   },
