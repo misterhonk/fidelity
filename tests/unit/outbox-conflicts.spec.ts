@@ -198,6 +198,28 @@ describe('answering a conflict', () => {
     expect(side.client.write).toHaveBeenCalledOnce()
   })
 
+  it('keeps my folder: moves it out of the folder Discogs put it in', async () => {
+    await syncCollection(discogs([release(1, 3, 1)]), { full: true })
+    await queueJob({
+      id: 'collection.folder:501',
+      kind: 'collection.folder',
+      payload: { releaseId: 1, folderId: 1, instanceId: 501, moveTo: 5 },
+      revert: { folderId: 1 },
+      queuedAt: 1,
+    })
+    await syncCollection(discogs([release(1, 3, 7)]), { full: true })
+
+    expect(await resolveOutboxConflict('collection.folder:501', 'mine')).toBe(true)
+
+    const side = discogs([])
+    await drainOutbox(side.client, side.username)
+    expect(side.client.write).toHaveBeenCalledWith(
+      'POST',
+      '/users/mrtnmlchr/collection/folders/7/releases/1/instances/501',
+      expect.objectContaining({ body: { folder_id: 5 } }),
+    )
+  })
+
   it('takes Discogs: their value on the shelf, nothing sent', async () => {
     await inConflict()
 
