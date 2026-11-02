@@ -138,7 +138,7 @@ function pickPreferences(
 }
 
 /** Per master, the newer rule wins; ties and unstamped rules go to the local copy, as in `mergeRows`. */
-function mergePressingRules(
+export function mergePressingRules(
   mine: PressingRules | null | undefined,
   theirs: PressingRules | null | undefined,
 ): PressingRules | null {
