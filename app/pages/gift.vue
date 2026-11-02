@@ -30,9 +30,15 @@ useDeadline(
   () => (result.value = null),
 )
 
+// Leaving the page, or asking again, stops the reading: it holds the one request slot (rule 3).
+let running: AbortController | null = null
+onBeforeUnmount(() => running?.abort())
+
 async function find() {
   const username = friend.value
   if (!username || !(budget.value > 0)) return
+  running?.abort()
+  const mine = (running = new AbortController())
   busy.value = true
   error.value = null
   result.value = null
@@ -41,13 +47,16 @@ async function find() {
     result.value = await call(
       'gift.find',
       { username, budget: budget.value },
-      { onProgress: (p) => (progress.value = p) },
+      { onProgress: (p) => (progress.value = p), signal: mine.signal },
     )
     asked.value = username
   } catch (cause) {
-    error.value = cause
+    if (!isCancelled(cause)) error.value = cause
   } finally {
-    busy.value = false
+    if (running === mine) {
+      busy.value = false
+      running = null
+    }
   }
 }
 </script>
