@@ -17,7 +17,7 @@ import { seed } from './seed'
  */
 test('writes a vault file without a picker, in any browser', async ({ page }) => {
   await seed(page, 'en')
-  await page.goto('/settings/sync')
+  await page.goto('/settings/account#sync')
 
   const byHand = page.getByText('Or by hand, as a file')
   await expect(byHand).toBeVisible({ timeout: 15_000 })

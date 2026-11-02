@@ -119,14 +119,17 @@ const entries = computed<Entry[]>(() => {
   const goTo = m.palette.goTo
   const actions = m.palette.actions
 
+  // `sync`, `data` and `hub` are sections now (#229); their old addresses
+  // redirect to them, and their names are what somebody types.
   const settingsPages = [
     ['account', s.account.title],
-    ['appearance', s.appearance.title],
+    ['look', s.appearance.title],
     ['collection', s.library.title],
-    ['search', s.search.title],
+    ['finds', s.search.title],
     ['sync', s.sync.title],
     ['data', s.data.title],
     ['hub', s.hub.title],
+    ['advanced', s.advanced.title],
     ['help', s.help.title],
   ] as const
 

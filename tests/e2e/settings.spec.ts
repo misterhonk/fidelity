@@ -14,14 +14,29 @@ import { putRows, signIn } from './seed'
  * when a route is renamed.
  */
 
+/** Five pages and an advanced one (#229), where there were nine. */
 const SUBPAGES = [
-  ['/settings/account', 'Account'],
+  ['/settings/account', 'Account & data'],
   ['/settings/collection', 'Collection'],
-  ['/settings/search', 'Search'],
-  ['/settings/appearance', 'Appearance'],
-  ['/settings/sync', 'Sync devices'],
-  ['/settings/hub', 'Hub'],
-  ['/settings/data', 'Your data'],
+  ['/settings/finds', 'Finds & shops'],
+  ['/settings/look', 'Look & sound'],
+  ['/settings/help', 'Help'],
+  ['/settings/advanced', 'Advanced'],
+] as const
+
+/** Every setting that had a page or a card before #229, and where it lives now. */
+const SECTIONS = [
+  ['/settings/account', 'sync'],
+  ['/settings/account', 'data'],
+  ['/settings/collection', 'library'],
+  ['/settings/collection', 'horizon'],
+  ['/settings/collection', 'credits'],
+  ['/settings/collection', 'radar'],
+  ['/settings/finds', 'filter'],
+  ['/settings/finds', 'dealers'],
+  ['/settings/look', 'listen'],
+  ['/settings/advanced', 'hub'],
+  ['/settings/advanced', 'catalogue'],
 ] as const
 
 test.describe('settings', () => {
@@ -49,10 +64,29 @@ test.describe('settings', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Settings' })).toBeVisible()
   })
 
+  test('the index links every page and nothing else', async ({ page }) => {
+    await signIn(page)
+    await page.goto('/settings')
+    const links = page.getByRole('main').getByRole('navigation').getByRole('link')
+    await expect(links).toHaveCount(SUBPAGES.length)
+    for (const [path] of SUBPAGES) {
+      await expect(page.getByRole('main').locator(`a[href="${path}"]`)).toBeVisible()
+    }
+  })
+
+  test('every setting is reachable on its page', async ({ page }) => {
+    await signIn(page)
+    for (const [path, anchor] of SECTIONS) {
+      await page.goto(`${path}#${anchor}`)
+      // .first(): LibrarySync puts a second #library inside its own card.
+      await expect(page.locator(`#${anchor}`).first()).toBeVisible()
+    }
+  })
+
   /** English numbers on an English screen: 3,000, not 3.000 (#190). */
   test('your data writes its figures in English', async ({ page }) => {
     await signIn(page)
-    await page.goto('/settings/data')
+    await page.goto('/settings/account')
     // The header pulse carries the same table; this is the one on the page.
     const main = page.getByRole('main')
     await main.getByText('What takes how long').click()
@@ -64,7 +98,7 @@ test.describe('settings', () => {
   /** How full the disk is, beside what fills it (#211). */
   test('your data shows the storage estimate', async ({ page, browserName }) => {
     await signIn(page)
-    await page.goto('/settings/data')
+    await page.goto('/settings/account')
     const figures = /^Storage: [\d,.]+ (KB|MB|GB) of [\d,.]+ (KB|MB|GB) in use$/
     if (browserName === 'chromium') {
       await expect(page.getByTestId('storage-estimate')).toHaveText(figures)

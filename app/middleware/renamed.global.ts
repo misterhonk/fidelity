@@ -32,16 +32,26 @@ const RENAMED: Record<string, string> = {
   '/datenschutz': '/privacy',
   '/impressum': '/legal',
   '/einstellungen': '/settings',
-  '/einstellungen/abgleich': '/settings/sync',
-  '/einstellungen/darstellung': '/settings/appearance',
-  '/einstellungen/daten': '/settings/data',
+  '/einstellungen/abgleich': '/settings/account#sync',
+  '/einstellungen/darstellung': '/settings/look',
+  '/einstellungen/daten': '/settings/account#data',
   '/einstellungen/hilfe': '/settings/help',
-  '/einstellungen/hub': '/settings/hub',
+  '/einstellungen/hub': '/settings/advanced',
   '/einstellungen/konto': '/settings/account',
   '/einstellungen/sammlung': '/settings/collection',
-  '/einstellungen/suche': '/settings/search',
+  '/einstellungen/suche': '/settings/finds',
   /** Folded into the hub screen on 2026-09-12 (M26.3): one door field. */
-  '/settings/access': '/settings/hub',
+  '/settings/access': '/settings/advanced',
+  /*
+   * Nine settings pages became five and an advanced one (#229). `/settings/sync`
+   * is also the OAuth redirect URI registered at Dropbox and Google
+   * (app/utils/pkce.ts), so it must keep its query on the way through.
+   */
+  '/settings/sync': '/settings/account#sync',
+  '/settings/data': '/settings/account#data',
+  '/settings/search': '/settings/finds',
+  '/settings/appearance': '/settings/look',
+  '/settings/hub': '/settings/advanced',
 }
 
 export default defineNuxtRouteMiddleware((to) => {
@@ -50,6 +60,11 @@ export default defineNuxtRouteMiddleware((to) => {
   const moved = RENAMED[path]
   if (!moved) return
 
+  // A section of a merged page carries its anchor; a hash already in the address wins.
+  const [target, anchor] = moved.split('#')
   // `replace`, so the back button does not bounce off the old address.
-  return navigateTo({ path: moved, query: to.query, hash: to.hash }, { replace: true })
+  return navigateTo(
+    { path: target, query: to.query, hash: to.hash || (anchor ? `#${anchor}` : '') },
+    { replace: true },
+  )
 })

@@ -40,7 +40,7 @@ test.describe('the shops screen with nothing on it', () => {
 
   test('keeps the friends question and the search in the settings', async ({ page }) => {
     await signedInWithNoShops(page)
-    await page.goto('/settings/search')
+    await page.goto('/settings/finds')
 
     await expect(page.getByRole('checkbox', { name: /friends list as well/i })).toBeVisible({
       timeout: 15_000,

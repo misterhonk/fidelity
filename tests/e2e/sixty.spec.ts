@@ -40,11 +40,9 @@ const ROUTES = [
   '/dealers',
   '/in-store',
   '/settings',
-  '/settings/hub',
+  '/settings/advanced',
   '/settings/collection',
-  '/settings/search',
-  '/settings/sync',
-  '/settings/data',
+  '/settings/finds',
   '/settings/account',
 ]
 

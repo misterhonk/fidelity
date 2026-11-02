@@ -39,7 +39,7 @@ test('puts the catalogue’s lift on the bars and says which build it is', async
   })
 
   await seed(page, 'en')
-  await page.goto('/settings/hub')
+  await page.goto('/settings/advanced')
   await expect(
     page
       .getByText(/Found one|None running on this machine|Not reachable|Cannot search/)

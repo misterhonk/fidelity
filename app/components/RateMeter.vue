@@ -101,7 +101,7 @@ const nudge = computed(() => {
   }
 
   if (!helpers.value.hub && found.spent.record >= 50) {
-    return { text: m.value.limit.tryHub(count(found.spent.record)), to: '/settings/hub' }
+    return { text: m.value.limit.tryHub(count(found.spent.record)), to: '/settings/advanced' }
   }
 
   return null

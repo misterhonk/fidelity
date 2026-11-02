@@ -191,10 +191,10 @@ const SIGNED_IN = [
   '/compared',
   '/watched',
   '/dealers',
-  '/settings/appearance',
+  '/settings/look',
   '/settings/collection',
-  '/settings/search',
-  '/settings/sync',
+  '/settings/finds',
+  '/settings/account',
 ]
 
 test.describe('axe, signed in', () => {

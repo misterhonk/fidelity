@@ -8,7 +8,7 @@ import { seed } from './seed'
  */
 test('reads a backup back in and says what came back', async ({ page }) => {
   await seed(page, 'en')
-  await page.goto('/settings/data')
+  await page.goto('/settings/account#data')
 
   // A file on disk rather than a buffer built here: the e2e project has no
   // node types, and a fixture is easier to read than a literal anyway.

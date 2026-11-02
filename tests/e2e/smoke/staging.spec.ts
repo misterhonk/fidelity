@@ -46,7 +46,7 @@ test('the catalogue knows a pressing family', async ({ request, baseURL }) => {
 
 test('the settings pages are there, signed in', async ({ page }) => {
   await seed(page, 'en')
-  for (const [path, title] of [['/settings/hub', 'Hub']] as const) {
+  for (const [path, title] of [['/settings/advanced', 'Advanced']] as const) {
     await page.goto(path)
     await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible()
   }

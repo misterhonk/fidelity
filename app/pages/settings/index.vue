@@ -65,25 +65,6 @@ const library = computed(() => {
   return st.value.library.summary(count(counts.collection), count(counts.wantlist ?? 0))
 })
 
-const size = (bytes: number) =>
-  bytes < 1024 * 1024
-    ? `${count(Math.round(bytes / 1024))} KB`
-    : `${decimal(bytes / 1024 / 1024)} MB`
-/*
- * The data apart from the cover cache, where the browser tells them apart.
- * On Chrome the total is mostly padding — every cached cover is booked at
- * about seven megabytes (app/sw/sw.ts) — and "3,898 MB" for sixty-six records
- * read as a fault. The line names what is actually there.
- */
-const usage = computed(() => {
-  const s = stats.value
-  if (!s) return null
-  if (s.dataBytes !== null && s.coverEntries !== null)
-    return st.value.account.usedLine(size(s.dataBytes), count(s.coverEntries))
-  if (s.usageBytes === null) return null
-  return size(s.usageBytes)
-})
-
 const sync = computed(() => {
   const status = vault.value
   if (!status || status.target === 'none') return m.value.common.off
@@ -127,35 +108,30 @@ const appearance = computed(() => {
 
 /**
  * Ordered by how often somebody comes back: the account is what you check,
- * the collection is what you top up, the appearance is what you play with, and
- * deleting everything is at the bottom where it belongs.
+ * the collection is what you top up, the appearance is what you play with.
+ * Five pages and an advanced one, where there were nine (#229).
  */
 const SECTIONS = computed(() => [
   {
     to: '/settings/account',
     ...st.value.account,
-    status: identity.value?.username ?? null,
+    status: identity.value ? `${identity.value.username} · ${sync.value}` : null,
   },
   { to: '/settings/collection', ...st.value.library, status: library.value },
-  { to: '/settings/search', ...st.value.search, status: searchSummary.value },
+  { to: '/settings/finds', ...st.value.search, status: searchSummary.value },
   {
-    to: '/settings/appearance',
+    to: '/settings/look',
     title: st.value.appearance.title,
     hint: st.value.appearance.hint,
     status: appearance.value,
   },
-  { to: '/settings/sync', ...st.value.sync, status: sync.value },
-  { to: '/settings/hub', ...st.value.hub, status: hub.value },
-  { to: '/settings/data', ...st.value.data, status: usage.value },
   /*
-   * Right at the bottom, because it is looked for rather than stumbled over.
-   *
-   * Everything on this page above is something you change. This is the one
-   * thing you *read*, and somebody only comes looking for it once a question
-   * has already formed — so it does not compete with the settings, it waits
-   * where a manual waits.
+   * Help near the bottom, because it is looked for rather than stumbled over:
+   * everything else here is something you change, this is the one thing you
+   * read. Only the optional helpers come after it.
    */
   { to: '/settings/help', ...st.value.help, status: null },
+  { to: '/settings/advanced', ...st.value.advanced, status: hub.value },
 ])
 </script>
 

@@ -30,5 +30,18 @@ useSeoMeta({ title: () => st.value.appearance.title })
       <h2 class="text-fid-base font-medium text-fid-text">{{ st.appearance.theme.title }}</h2>
       <ThemePicker />
     </section>
+
+    <hr class="border-fid-border" />
+
+    <!--
+      The audio preview's switch (ADR-012). It stood beside the search filters
+      until #229; how a record sounds sits closer to how the screen looks than
+      to what a dig looks for.
+    -->
+    <section id="listen" class="flex scroll-mt-20 flex-col gap-3">
+      <h2 class="text-fid-base font-medium text-fid-text">{{ st.audio.title }}</h2>
+      <p class="max-w-prose text-fid-sm text-fid-text-muted">{{ st.audio.lead }}</p>
+      <AudioPreviewToggle />
+    </section>
   </SettingsPage>
 </template>

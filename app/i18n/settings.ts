@@ -24,7 +24,7 @@ import { counted } from '~/utils/plural'
 
 const en = {
   appearance: {
-    title: 'Appearance',
+    title: 'Look & sound',
     /*
      * The language is named first, and it is named at all, because the person
      * who commissioned the switch could not find it. The picker is the top
@@ -34,7 +34,7 @@ const en = {
      * it has to enumerate all of it, and nothing more: the type picker it
      * also named was removed on 2026-08-11 (#194).
      */
-    hint: 'Language, and light or dark',
+    hint: 'Language, light or dark, and how you hear a record',
 
     theme: {
       title: 'Theme',
@@ -60,9 +60,9 @@ const en = {
   back: 'Settings',
 
   account: {
-    lead: 'Only your token, on this device.',
-    title: 'Account',
-    hint: 'Your Discogs token, and what is kept on this device',
+    lead: 'Your token, your other devices, and what this one keeps.',
+    title: 'Account & data',
+    hint: 'Your Discogs token, syncing devices, export or delete',
     discogsAccount: 'Discogs account',
     dataLives: 'Data lives',
     inThisBrowser: 'in this browser, on this device',
@@ -203,8 +203,8 @@ const en = {
   },
   search: {
     lead: 'Applies to every dig.',
-    title: 'Search',
-    hint: 'What is looked for, where the shops come from, and how you hear a record',
+    title: 'Finds & shops',
+    hint: 'What a dig looks for, and where the shops come from',
     unrestricted: 'No restrictions',
     upTo: (price: string) => `up to ${price}`,
     originalsOnly: 'originals only',
@@ -628,6 +628,12 @@ const en = {
     // hiding behind "not set up" — the setting is set, it is wrong.
     unreadable: 'Address unreadable',
   },
+  /** Settings → Advanced: the hub and the catalogue, which nothing needs (#229). */
+  advanced: {
+    title: 'Advanced',
+    hint: 'Hub and catalogue, optional helpers that run elsewhere',
+    lead: 'Optional helpers that run somewhere else. Everything works without them.',
+  },
   data: {
     lead: 'Take it with you, or be rid of it.',
     title: 'Your data',
@@ -717,7 +723,7 @@ const en = {
     {
       title: 'How do I get all of it onto my phone?',
       body: [
-        'Under "Sync devices". We encrypt your data on this device and put it away as a single block: in your hub, in a sync folder, at Dropbox or at Google Drive, as you prefer. Only your devices can open it again.',
+        'Under "Account & data", in "Sync devices". We encrypt your data on this device and put it away as a single block: in your hub, in a sync folder, at Dropbox or at Google Drive, as you prefer. Only your devices can open it again.',
         'Or simply set the phone up afresh. Everything except your own judgements can be fetched from Discogs again.',
       ],
     },
@@ -731,7 +737,7 @@ const en = {
     {
       title: 'Something is wrong',
       body: [
-        'Under "Your data" you can export everything or delete everything. Deleting removes the token too; after that the device is empty and you can start over. Nothing is lost that could not be fetched from Discogs again.',
+        'Under "Account & data", in "Your data", you can export everything or delete everything. Deleting removes the token too; after that the device is empty and you can start over. Nothing is lost that could not be fetched from Discogs again.',
         'If we say we cannot reach Discogs although you are online, the lookup budget is usually spent for the moment. Waiting a few minutes helps.',
       ],
     },
@@ -765,8 +771,8 @@ const en = {
 /** Same shape, enforced. A missing key here is a build error, as everywhere. */
 const de: typeof en = {
   appearance: {
-    title: 'Darstellung',
-    hint: 'Sprache und hell oder dunkel',
+    title: 'Aussehen & Klang',
+    hint: 'Sprache, hell oder dunkel, und wie du reinhörst',
 
     theme: {
       title: 'Thema',
@@ -792,9 +798,9 @@ const de: typeof en = {
   back: 'Einstellungen',
 
   account: {
-    lead: 'Nur dein Token, auf diesem Gerät.',
-    title: 'Konto',
-    hint: 'Dein Discogs-Token und was auf diesem Gerät liegt',
+    lead: 'Dein Token, deine anderen Geräte und was dieses hier aufhebt.',
+    title: 'Konto & Daten',
+    hint: 'Dein Discogs-Token, Geräte abgleichen, exportieren oder löschen',
     discogsAccount: 'Discogs-Konto',
     dataLives: 'Daten liegen',
     inThisBrowser: 'in diesem Browser, auf diesem Gerät',
@@ -882,8 +888,8 @@ const de: typeof en = {
   },
   search: {
     lead: 'Gilt für jeden Dig.',
-    title: 'Suche',
-    hint: 'Wonach gesucht wird, woher die Läden kommen, und wie du reinhörst',
+    title: 'Funde & Läden',
+    hint: 'Wonach ein Dig sucht und woher die Läden kommen',
     unrestricted: 'Ohne Einschränkung',
     upTo: (price) => `bis ${price}`,
     originalsOnly: 'nur Originale',
@@ -1184,6 +1190,11 @@ const de: typeof en = {
     catalogue: 'Katalog',
     unreadable: 'Adresse unlesbar',
   },
+  advanced: {
+    title: 'Erweitert',
+    hint: 'Hub und Katalog, optionale Helfer, die woanders laufen',
+    lead: 'Optionale Helfer, die woanders laufen. Alles geht auch ohne sie.',
+  },
   data: {
     lead: 'Mitnehmen oder loswerden.',
     title: 'Deine Daten',
@@ -1262,7 +1273,7 @@ const de: typeof en = {
     {
       title: 'Wie bekomme ich alles auf mein Handy?',
       body: [
-        'Unter „Geräte abgleichen". Wir verschlüsseln deine Daten auf diesem Gerät und legen sie als einen einzigen Block ab: in deinem Hub, in einem Sync-Ordner, bei Dropbox oder Google Drive, wie du willst. Nur deine Geräte können ihn wieder öffnen.',
+        'Unter „Konto & Daten", bei „Geräte abgleichen". Wir verschlüsseln deine Daten auf diesem Gerät und legen sie als einen einzigen Block ab: in deinem Hub, in einem Sync-Ordner, bei Dropbox oder Google Drive, wie du willst. Nur deine Geräte können ihn wieder öffnen.',
         'Alternativ richtest du das Handy einfach neu ein. Alles außer deinen Urteilen lässt sich von Discogs neu holen.',
       ],
     },
@@ -1276,7 +1287,7 @@ const de: typeof en = {
     {
       title: 'Etwas stimmt nicht',
       body: [
-        'Unter „Deine Daten" kannst du alles exportieren oder alles löschen. Löschen entfernt auch den Token; danach ist das Gerät leer und du kannst von vorne anfangen. Verloren geht dabei nichts, was sich nicht von Discogs neu holen ließe.',
+        'Unter „Konto & Daten", bei „Deine Daten", kannst du alles exportieren oder alles löschen. Löschen entfernt auch den Token; danach ist das Gerät leer und du kannst von vorne anfangen. Verloren geht dabei nichts, was sich nicht von Discogs neu holen ließe.',
         'Sagen wir, wir kommen nicht an Discogs ran, obwohl du online bist, ist meist das Anfragebudget für den Moment aufgebraucht. Ein paar Minuten warten hilft.',
       ],
     },
