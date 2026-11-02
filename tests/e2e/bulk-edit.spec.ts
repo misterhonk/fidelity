@@ -40,6 +40,18 @@ test('rates a run of records at once, says what it costs, and undoes all of it',
   await tile('Gamma').click({ modifiers: ['Shift'] })
   await expect(page.getByText('3 selected')).toBeVisible()
 
+  // The box shows the selection: a shift-click on a ticked one keeps it ticked, a plain click unticks it.
+  const box = page.getByRole('checkbox', { name: /Beta$/ })
+  await box.click({ modifiers: ['Shift'] })
+  await expect(box).toBeChecked()
+  await expect(page.getByText('3 selected')).toBeVisible()
+  await box.click()
+  await expect(box).not.toBeChecked()
+  await expect(page.getByText('2 selected')).toBeVisible()
+  await box.click()
+  await expect(box).toBeChecked()
+  await expect(page.getByText('3 selected')).toBeVisible()
+
   await page.getByRole('combobox', { name: 'Rating' }).selectOption('5')
 
   const line = page.getByRole('status').filter({ hasText: 'changes' })

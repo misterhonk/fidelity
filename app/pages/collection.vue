@@ -910,6 +910,7 @@ const walk = computed(() => {
           style="--fid-far-height: 14rem"
         >
           <!-- In select mode the sleeve is a thing to tick, not a door. -->
+          <!-- A shift-click on a ticked box keeps it ticked, so Vue sees nothing to patch: @change sets the box back to the selection. -->
           <input
             v-if="selecting"
             type="checkbox"
@@ -917,6 +918,9 @@ const walk = computed(() => {
             :checked="selected.has(record.instanceId)"
             :aria-label="c.places.pick(record.artist, record.title)"
             @click="toggleSelect(record.instanceId, $event.shiftKey)"
+            @change="
+              ($event.target as HTMLInputElement).checked = selected.has(record.instanceId)
+            "
           />
           <button
             type="button"
