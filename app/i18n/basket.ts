@@ -71,6 +71,8 @@ const en = {
    */
   customs: { eu: 'EU customs, estimated', uk: 'UK customs, estimated', us: 'US customs' },
   customsOver: 'ordinary rules',
+  // The US has no allowance to be over: a missing duty there is a figure we cannot give.
+  customsUnknown: 'not known',
   importVat: (rate: string) => `Import VAT ${rate} %`,
   allIn: 'All in',
   customsNote: (duty: string) =>
@@ -402,6 +404,7 @@ const de: typeof en = {
 
   customs: { eu: 'EU-Zoll, geschätzt', uk: 'UK-Zoll, geschätzt', us: 'US-Zoll' },
   customsOver: 'normale Regeln',
+  customsUnknown: 'wissen wir nicht',
   importVat: (rate) => `Einfuhrumsatzsteuer ${rate} %`,
   allIn: 'Alles zusammen',
   customsNote: (duty) =>
