@@ -9,6 +9,59 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.121.0](https://github.com/misterhonk/fidelity/compare/v0.120.0...v0.121.0) (2026-11-02)
+
+
+<!-- en -->
+**Tidy a whole shelf at once.** Show the shelf as a list and edit it in place, change many records
+in one go, and see every change that is still waiting for Discogs.
+
+- The shelf can be a list: pressing, rating, condition, place and folder, each editable right in
+  its row. Filters such as Unplaced, Ungraded, Doubles or Condition ≤ VG narrow it, and every
+  view is an address you can bookmark.
+- Tick records with x, shift-click or a long press, then give them all a place, a rating, a
+  grade or a folder. Sleeveside says how long Discogs will take to hear of it, and "Undo all"
+  takes it back.
+- The new outbox shows what is still on its way, grouped by record, with tries and the last
+  answer. If Discogs changed something you changed too, you choose: keep yours or take theirs.
+- A record that disappears from Discogs keeps its place for 30 days, in case it comes back.
+
+<!-- de -->
+**Räum ein ganzes Regal auf einmal auf.** Zeig das Regal als Liste und bearbeite es direkt, ändere
+viele Platten auf einmal und sieh jede Änderung, die noch auf Discogs wartet.
+
+- Das Regal kann eine Liste sein: Pressung, Bewertung, Zustand, Platz und Ordner, jeweils direkt
+  in der Zeile bearbeitbar. Filter wie Ohne Platz, Ohne Zustand, Doppelte oder Zustand ≤ VG
+  grenzen ein, und jede Ansicht ist eine Adresse, die du dir merken kannst.
+- Hak Platten mit x, Umschalt-Klick oder langem Drücken an und gib allen einen Platz, eine
+  Bewertung, einen Zustand oder einen Ordner. Sleeveside sagt dir, wie lange Discogs dafür
+  braucht, und "Alles rückgängig" nimmt es zurück.
+- Der neue Ausgang zeigt, was noch unterwegs ist, nach Platte sortiert, mit Versuchen und der
+  letzten Antwort. Hat Discogs etwas geändert, das du auch geändert hast, entscheidest du:
+  deins behalten oder das von Discogs nehmen.
+- Verschwindet eine Platte bei Discogs, behält sie ihren Platz 30 Tage, falls sie zurückkommt.
+
+### Added
+
+* **collection:** add a shelf row view with inline edit, chips and saved views ([c2c41f0](https://github.com/misterhonk/fidelity/commit/c2c41f07acf045a26ce9a14c5a94c3f1a01f70f1))
+* **collection:** add the outbox sheet with keep mine / take Discogs ([06f11cc](https://github.com/misterhonk/fidelity/commit/06f11ccf0526b77bedf98ea3f2efde3405dac08f)), closes [#238](https://github.com/misterhonk/fidelity/issues/238)
+* **collection:** bulk edit with a cost estimate and undo all ([7edd4dd](https://github.com/misterhonk/fidelity/commit/7edd4dddc4f7be3c21d0da2a5b87f66b00ea3064))
+* **sync:** merge waiting changes three ways and keep gone copies 30 days ([58a2415](https://github.com/misterhonk/fidelity/commit/58a241596526468e0f52136aa82cef5d35573495)), closes [#238](https://github.com/misterhonk/fidelity/issues/238)
+
+
+### Fixed
+
+* **collection:** keep a ticked box ticked on shift-click ([8a96a92](https://github.com/misterhonk/fidelity/commit/8a96a92d90c4f338bf163b5fced5aaa15a4e62d0))
+* **collection:** mark a retrying row in the error colour, not the rating colour ([95f9595](https://github.com/misterhonk/fidelity/commit/95f95959e457ea3e6226042260f86476dd6e1882))
+* **collection:** reload the shelf after putting records in a place or taking it back ([57ea101](https://github.com/misterhonk/fidelity/commit/57ea101230c01af3dcb0ca955ed83121fb8d6035))
+* **collection:** reload the shelf when the record sheet closes ([92c5085](https://github.com/misterhonk/fidelity/commit/92c50854325169dd4b1fcb241a25d9f2c76bc063))
+* **collection:** skip the bulk line when nothing changed ([de6c103](https://github.com/misterhonk/fidelity/commit/de6c103323d60ec840d89ce72261f896a46fcd33))
+* **i18n:** say once that the hub and the catalogue are optional ([a2bf15d](https://github.com/misterhonk/fidelity/commit/a2bf15d376744406a440587327bad2147b0d7c50))
+* **i18n:** say one record leaves and stays in the bulk lines ([732ae66](https://github.com/misterhonk/fidelity/commit/732ae66a4880fc7a3ecee2a43d66038ae0181d07))
+* **sync:** send a kept folder move from the folder Discogs holds ([249ae2a](https://github.com/misterhonk/fidelity/commit/249ae2a0a3dfb4d6b7f620a79e77ea371af13a10))
+* **sync:** send waiting changes even when the library read fails ([9e5bead](https://github.com/misterhonk/fidelity/commit/9e5bead285fce4bcae8b63f78a6d87d92791cfde))
+* **sync:** take Discogs' row under the values still waiting ([93691bf](https://github.com/misterhonk/fidelity/commit/93691bf815b6cc4ad42b583676e93dc91e7e742b))
+
 ## [0.120.0](https://github.com/misterhonk/fidelity/compare/v0.119.0...v0.120.0) (2026-11-02)
 
 
