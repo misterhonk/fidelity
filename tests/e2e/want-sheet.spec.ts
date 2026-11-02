@@ -51,11 +51,17 @@ test('keeps a pressing rule for the album', async ({ page }) => {
     timeout: 15_000,
   })
   await sheet.getByRole('checkbox', { name: /First pressing only/ }).check()
+  // A master link is not a pressing: said out loud, not only to a screen reader.
+  await sheet.getByLabel('Any pressing except').fill('https://www.discogs.com/master/1234')
+  await sheet.getByRole('button', { name: 'Exclude' }).click()
+  const complaint = sheet.getByRole('alert').filter({ hasText: 'That is not a release' })
+  await expect(complaint).toBeVisible()
   await sheet
     .getByLabel('Any pressing except')
     .fill('https://www.discogs.com/release/9101-Dummy')
   await sheet.getByRole('button', { name: 'Exclude' }).click()
   await expect(sheet.getByRole('link', { name: /Not release 9101/ })).toBeVisible()
+  await expect(complaint).toBeHidden()
 
   await page.keyboard.press('Escape')
   await expect(sheet).toBeHidden()

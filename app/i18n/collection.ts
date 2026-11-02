@@ -332,6 +332,7 @@ const en = {
       exceptLabel: 'Any pressing except',
       exceptPlaceholder: 'Discogs release link or number',
       exceptAdd: 'Exclude',
+      notARelease: 'That is not a release. Paste a Discogs release link or its number.',
     },
     priority: {
       label: 'How much you want it',
@@ -1057,6 +1058,7 @@ const de: typeof en = {
       exceptLabel: 'Jede Pressung außer',
       exceptPlaceholder: 'Discogs-Link oder Nummer',
       exceptAdd: 'Ausschließen',
+      notARelease: 'Das ist kein Release. Füg einen Discogs-Release-Link oder die Nummer ein.',
     },
     priority: {
       label: 'Wie sehr du sie willst',
