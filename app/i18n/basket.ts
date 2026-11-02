@@ -416,7 +416,7 @@ const de: typeof en = {
   customsNoteUkOver:
     'Nach Großbritannien und über 135 £: Die Steuer zahlst du bei der Einfuhr, und es gelten die normalen Zollregeln.',
   customsNoteUs:
-    'In die USA: Seit 29. August 2025 gibt es keine Freigrenze mehr. Der Zoll hängt davon ab, wo die Platte herkommt, und der Paketdienst nimmt oft eine Gebühr. Beides zeigt Discogs nicht an.',
+    'In die USA: Seit 29. August 2025 gibt es keine Freigrenze mehr. Der Zoll hängt davon ab, wo die Platte herkommt, und der Paketdienst kann eine Gebühr nehmen. Beides zeigt Discogs nicht an.',
 
   source: {
     user: 'von dir eingetragen',
