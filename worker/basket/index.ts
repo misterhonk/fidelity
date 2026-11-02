@@ -296,7 +296,7 @@ export function summarise(
   const total =
     subtotalCents === null || postage === null ? null : (subtotalCents + cents(postage)) / 100
 
-  // Customs and import VAT, for a parcel that crosses into the EU.
+  // Customs and import VAT, for a parcel that crosses into the EU, the UK or the US.
   const charges = importCharges({
     from: dealer?.shipsFrom,
     to: destination,
