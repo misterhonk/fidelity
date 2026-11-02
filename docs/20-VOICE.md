@@ -78,6 +78,15 @@ triple apology. The warmth is in the wording, not in punctuation.
 | the round | die Runde | yes | "Rundgang" is a museum. A round through the shops you watch |
 | Sleeveside | Sleeveside | settings, account, legal | The product name, chosen 2026-11-01. Never translated, never "Fidelity" any more. In every other sentence the shop says "we" |
 
+**French (#251).** The same figure, in French: *tu*, never *vous*, as German says *du*. A dig is
+*une fouille* and *fouiller*; a find *une trouvaille*; a shop *une boutique*; the shelf
+*l'étagère*; a record *un disque*; a pressing *un pressage*; the wantlist *la liste d'envies*
+(Discogs' own French word); the basket *le panier*, postage *le port*; watch *suivre*; the round
+*la tournée*. French writes a space before `?`, `:`, `;` and `%`, elides *de* before a vowel
+(*d'Aphex Twin*, never *de Aphex Twin*) and counts nought in the singular (*0 disque*). The reason
+sentence is built in `app/i18n/reason.ts` per language, list joining included, and frozen per
+language in `tests/unit/__snapshots__/reason-golden.spec.ts.snap`.
+
 ---
 
 ## 4. The patterns
@@ -137,6 +146,8 @@ the test, and names the line:
 - no "this app", "diese App", "the user", "der Nutzer";
 - no spaced dash inside a string;
 - in German no "wurde", "erfolgt", "ermöglicht", "ist erforderlich";
-- no exclamation mark, no "scan" in a sentence.
+- no exclamation mark, no "scan" in a sentence;
+- in French no "vous", "votre", "vos", "veuillez", "l'utilisateur", "cette appli";
+- in `fr.ts`, which holds nothing but French, a space before `?`, `:` and `;`.
 
 The test replaces no reader. It catches the relapse.
