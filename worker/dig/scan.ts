@@ -261,6 +261,8 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
   // afterwards would mean holding 40 MB of inventory for a few percentages.
   const fingerprint = new FingerprintAccumulator()
   const stale = new StaleStockCounter(now())
+  // A resume starts the counter empty but skips the pages it already read.
+  const resumed = dig.cursor !== null
   const { nearMisses } = ctx
 
   /*
@@ -586,7 +588,13 @@ async function walk(dig: Dig, ctx: ScanContext): Promise<Dig> {
     minOrderTotal,
     minOrderCurrency,
     payment,
-    staleStock: stale.build(),
+    /*
+     * Only a walk that saw the whole shop in one go may say it. Past 20.000 the
+     * two windows are the oldest and the newest 10.000 — the very extremes the
+     * count is about — and a resume missed the pages read before it. Either
+     * keeps the last honest number instead (undefined).
+     */
+    staleStock: !resumed && dig.coverage === 1 ? stale.build() : undefined,
   })
   await noteChange(db, dig.dealer, now())
   // What the previous full dig found and this one no longer sees (M36).
@@ -952,8 +960,9 @@ async function saveDealer(
     // changes as soon as another shop is scanned.
     affinity: rate,
     fingerprint: fingerprint.build(dig.listingsTotal),
-    // Like the fingerprint, only a full dig may say it; null when no row carried a date.
-    staleStock: seller.staleStock ?? null,
+    // Only a whole, unbroken dig may say it (undefined keeps the last one); null when no row carried a date.
+    staleStock:
+      seller.staleStock === undefined ? (existing?.staleStock ?? null) : seller.staleStock,
     // A dig started by name is asking for the shop, whatever was said before:
     // a full scan of a hidden shop puts it back on the lists (M19 #2).
     hiddenAt: null,
