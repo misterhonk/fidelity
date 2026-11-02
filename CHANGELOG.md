@@ -9,6 +9,64 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.119.0](https://github.com/misterhonk/fidelity/compare/v0.118.0...v0.119.0) (2026-11-02)
+
+
+<!-- en -->
+**Sleeveside has four rooms now: Today, Shops, Collection and Basket, plus Search.** The start
+page shows your records first, and on a big screen the details open beside the list.
+
+- The bar at the bottom is shorter: Today, Shops, Collection, Basket and Search. Settings live
+  behind your name. Old bookmarks still work.
+- A shop has one page for its finds, its profile and your visits.
+- Collection has Shelf, Wantlist, Places and Insights in one row; "On watch" is a filter there.
+- Today puts the covers on the first screen: one status line, a small update chip and a short
+  next step. Paste a Discogs shop link into Search to open that shop.
+- Settings fit on five pages and an advanced one.
+- On a desk, the details open next to the list instead of covering it.
+- Many small fixes: one undo in the basket, the in-store bar no longer covers the last row,
+  and screen-reader messages stay audible while a sheet is open.
+
+<!-- de -->
+**Sleeveside hat jetzt vier Räume: Heute, Läden, Sammlung und Korb, dazu die Suche.** Die
+Startseite zeigt zuerst deine Platten, und auf einem großen Bildschirm öffnen sich Details
+neben der Liste.
+
+- Die Leiste unten ist kürzer: Heute, Läden, Sammlung, Korb und Suche. Die Einstellungen
+  findest du hinter deinem Namen. Alte Lesezeichen funktionieren weiter.
+- Ein Laden hat eine Seite für seine Funde, sein Profil und deine Besuche.
+- Die Sammlung hat Regal, Wunschliste, Orte und Einblicke in einer Reihe. "Im Blick" ist dort
+  ein Filter.
+- Heute zeigt die Cover gleich auf dem ersten Bildschirm: eine Statuszeile, ein kleiner
+  Update-Hinweis und ein kurzer nächster Schritt. Füg einen Discogs-Ladenlink in die Suche ein,
+  dann öffnet sich der Laden.
+- Die Einstellungen passen auf fünf Seiten und eine für Fortgeschrittene.
+- Am Schreibtisch öffnen sich Details neben der Liste, statt sie zu verdecken.
+- Viele kleine Fixes: ein Rückgängig im Korb, die Leiste im Laden verdeckt nicht mehr die
+  letzte Zeile, und Ansagen für Screenreader bleiben hörbar, solange ein Blatt offen ist.
+
+### Added
+
+* **ui:** dock the detail sheet beside its list on a desk ([f13685d](https://github.com/misterhonk/fidelity/commit/f13685de9595c28a48bcf5230b6dd3a249dc124b)), closes [#230](https://github.com/misterhonk/fidelity/issues/230)
+* **ui:** fold the settings into five pages and an advanced one ([6d6b07a](https://github.com/misterhonk/fidelity/commit/6d6b07aff5e5d1239d45196514f430d1acbf9005))
+* **ui:** navigate by Today, Shops, Collection, Basket and Search ([6627f21](https://github.com/misterhonk/fidelity/commit/6627f217523e1acc81a9c627ec0c99493299cf03)), closes [#228](https://github.com/misterhonk/fidelity/issues/228)
+* **ui:** put records before sentences on the start page ([b2f16a9](https://github.com/misterhonk/fidelity/commit/b2f16a9ff874386475a287d8640a0579c265a3a1)), closes [#314](https://github.com/misterhonk/fidelity/issues/314)
+
+
+### Fixed
+
+* **basket:** keep one undo, say postage tiers, sticky under the nav ([1d98b63](https://github.com/misterhonk/fidelity/commit/1d98b6349be96fd276f3bb3fc9937887fad76fdf)), closes [#313](https://github.com/misterhonk/fidelity/issues/313)
+* **collection:** name a single dropped want, and undo it with FidButton ([ef14710](https://github.com/misterhonk/fidelity/commit/ef14710294800a0a563575e2ffaa39648ffb9d42)), closes [#313](https://github.com/misterhonk/fidelity/issues/313)
+* **dig:** follow the segment with j and ?dealer=, and count only a synced collection ([3ff37eb](https://github.com/misterhonk/fidelity/commit/3ff37ebd28c1ea3e073738e9fb280b0896834f92)), closes [#313](https://github.com/misterhonk/fidelity/issues/313)
+* **ui:** build the shared link from the app root, not from /shop ([02f309c](https://github.com/misterhonk/fidelity/commit/02f309c23aeaec79cf661589d9b0b294e2b0fd75))
+* **ui:** keep the offline status mounted so a sheet cannot bury it ([fbfbc5f](https://github.com/misterhonk/fidelity/commit/fbfbc5f22d9325c1298031c9ffcb13e410d2f8ef))
+* **ui:** leave a live region whole when a sheet silences the page ([088c98b](https://github.com/misterhonk/fidelity/commit/088c98be36844f10f20aba8fca8e4736cbd055b4))
+* **ui:** leave sync out of the account status while no vault is set up ([dcc6d41](https://github.com/misterhonk/fidelity/commit/dcc6d41f44e0761f12e7c504e1dc0cd8391bc4ad))
+* **ui:** measure the in-store spacer, keep live regions under a sheet, one stagger ([f6d76d8](https://github.com/misterhonk/fidelity/commit/f6d76d82715ba06dd18654d38667d408063b8e02)), closes [#313](https://github.com/misterhonk/fidelity/issues/313)
+* **ui:** offer a pasted shop address in the palette instead of following it ([91e88e1](https://github.com/misterhonk/fidelity/commit/91e88e1f0f16b5c086da2c97c6b2599f8abe5422))
+* **ui:** open a pasted shop on /shop, and count only visible lines above the fold ([e275384](https://github.com/misterhonk/fidelity/commit/e275384f72875112d498a7c0a66d795ac1c4d0a4))
+* **ui:** point the empty review at the sync card on the account page ([42ec793](https://github.com/misterhonk/fidelity/commit/42ec79383540ef734e6817546f0c611b19f02aa4))
+
 ## [0.118.0](https://github.com/misterhonk/fidelity/compare/v0.117.0...v0.118.0) (2026-11-02)
 
 
