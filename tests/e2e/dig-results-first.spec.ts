@@ -49,3 +49,30 @@ test('opens on the finds, with the tools one segment away', async ({ page }) => 
   await segments.getByRole('button', { name: 'Finds' }).click()
   await expect(first).toBeVisible()
 })
+
+/* The keys and the deep link follow the segment that is up (#313). */
+test('j opens a find only while the finds are up', async ({ page }) => {
+  const dig = await seed(page, 'en')
+  await page.goto(`/dig?id=${dig.id}`)
+  await expect(page.getByRole('heading', { level: 1, name: /finds at/ })).toBeVisible({
+    timeout: 15_000,
+  })
+  const segments = page.getByRole('group', { name: 'This dig' })
+  await segments.getByRole('button', { name: 'Shop' }).click()
+  await expect(page.getByLabel('Shop name or link')).toBeVisible()
+  await page.keyboard.press('j')
+
+  // Back on the finds the same key opens one — so nothing above was a lost key.
+  await segments.getByRole('button', { name: 'Finds' }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await page.keyboard.press('j')
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15_000 })
+})
+
+test('a ?dealer= link opens on the Shop segment with its name filled in', async ({ page }) => {
+  const dig = await seed(page, 'en')
+  await page.goto(`/dig?id=${dig.id}&dealer=someshop`)
+  const field = page.getByLabel('Shop name or link')
+  await expect(field).toBeVisible({ timeout: 15_000 })
+  await expect(field).toHaveValue('someshop')
+})

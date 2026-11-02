@@ -1,4 +1,4 @@
-import { expect, test } from './support/test'
+import { expect, test, type Page } from './support/test'
 
 import { freshDig, putRows, seed } from './seed'
 
@@ -10,8 +10,16 @@ import { freshDig, putRows, seed } from './seed'
  * seeded collection has a handful of records, so the small-collection hint is
  * on the screen too.
  */
+/** The hint speaks of a collection that has been read through once (#313). */
+async function synced(page: Page) {
+  await putRows(page, {
+    meta: [{ key: 'syncState', value: { collectionSyncedAt: Date.now() } }],
+  })
+}
+
 test('cards wear a score sticker and the list explains it once', async ({ page }) => {
   const dig = await seed(page, 'en')
+  await synced(page)
   await page.goto(`/dig?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({ timeout: 15_000 })
 
@@ -38,6 +46,7 @@ test('cards wear a score sticker and the list explains it once', async ({ page }
  */
 test('a dig with no finds still says the collection is small', async ({ page }) => {
   await seed(page, 'en')
+  await synced(page)
   const dig = { ...freshDig(Date.now()), id: '01J0000000000000000000DIG0', matchCount: 0 }
   await putRows(page, { digs: [dig] })
 
@@ -45,4 +54,13 @@ test('a dig with no finds still says the collection is small', async ({ page }) 
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({ timeout: 15_000 })
   await expect(page.getByTestId('score-sticker')).toHaveCount(0)
   await expect(page.getByTestId('small-collection')).toBeVisible()
+})
+
+/* Never synced: nought records is "not counted yet", not "small" (#313). */
+test('a collection that was never synced is not called small', async ({ page }) => {
+  const dig = await seed(page, 'en')
+  await page.goto(`/dig?id=${dig.id}`)
+  await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByTestId('score-sticker').first()).toBeVisible()
+  await expect(page.getByTestId('small-collection')).toHaveCount(0)
 })
