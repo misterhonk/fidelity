@@ -340,8 +340,12 @@ async function drainOnce(
   const undone: string[] = []
   let waiting = 0
 
-  for (const [index, job] of jobs.entries()) {
+  const db = await openFidelityDb()
+  for (const [index, queued] of jobs.entries()) {
     signal?.throwIfAborted()
+    // Read again: a copy settled earlier this round has added its id to this job's instancesBefore.
+    const job = await db.get('outbox', queued.id)
+    if (!job) continue
     try {
       const kind = KINDS[job.kind]
       if (kind.instances) {
