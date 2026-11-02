@@ -718,15 +718,13 @@ const fr: typeof en = {
   refreshPrices: 'Rafraîchir les prix',
   share: 'Partager cette liste',
   sharedTitle: 'Une liste de trouvailles',
-  sharedFrom: (dealer) => `Trouvailles chez ${dealer}`,
   sharedScope: (shown, total, coverage) =>
     shown === total
       ? `Les ${total}. On a lu ${coverage} % de la boutique.`
       : `Les ${shown} meilleures sur ${total}. On a lu ${coverage} % de la boutique.`,
-  sharedGone: 'Ce lien a expiré. Les prix d’une boutique ne tiennent que six heures.',
+  sharedNewer: 'Ce lien vient d’un Sleeveside plus récent. Recharge la page pour le lire.',
+  sharedNoPrices: 'Ni prix ni états ne voyagent dans un lien. Discogs les a, à un geste d’ici.',
   sharedBadLink: 'Il manque quelque chose à ce lien, sans doute la partie après le #.',
-  sharedNoHub:
-    'Aucun hub ne répond à cette adresse. Le lien ne marche que là où quelqu’un a partagé la liste.',
   sharedWhatIsThis: 'C’est quoi, Sleeveside ?',
   sharedPitch:
     'On passe en revue une boutique de disques avec ta collection en tête, et on te dit pour chaque trouvaille pourquoi elle te va.',
@@ -748,16 +746,16 @@ const fr: typeof en = {
     next: 'Suivant',
     back: 'Retour',
   },
-  shareBusy: 'On scelle …',
+  shareBusy: 'On emballe …',
   shareReady: (matches, total) =>
     matches < total
       ? `Le lien est prêt, avec les ${matches} meilleures trouvailles sur ${total}.`
       : `Le lien est prêt, avec les ${matches} trouvailles.`,
   shareCopy: 'Copier le lien',
+  shareSend: 'Envoyer le lien',
   shareCopied: 'Copié.',
-  shareGone: (when) => `Valable jusqu’à ${when}, ensuite il disparaît.`,
   shareTells:
-    'Qui l’ouvre voit pour chaque disque pourquoi il te va, et donc un peu ce que tu collectionnes.',
+    'Qui l’ouvre voit pour chaque disque pourquoi il te va, et donc un peu ce que tu collectionnes. Sans prix, sans état, sans nom de boutique.',
   refreshAbout: (minutes) =>
     `${frCounted(minutes, 'minute', 'minutes')}. Ne trouve rien de neuf, seulement à nouveau ce que cette fouille a déjà trouvé.`,
   refreshed: (n) => `${n} à jour de nouveau`,
