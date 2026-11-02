@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import type { SignalType, SortDirection } from '#shared/types'
-import { SORTS, type Density, type SortKey } from '~/utils/digview'
+import { SORTS, type Density, type Size, type SortKey } from '~/utils/digview'
 import { useDigMessages } from '~/i18n/dig'
 
 const props = defineProps<{
   available: { type: SignalType; n: number }[]
   active: SignalType[]
+  /** The sizes in this list (#246), and the ones chosen. */
+  sizes: { size: Size; n: number }[]
+  sized: Size[]
   sort: SortKey
   /** Which way round the ordering runs — the arrow sits on the key in force. */
   direction: SortDirection
@@ -21,6 +24,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   toggleSignal: [SignalType]
+  toggleSize: [Size]
   setSort: [SortKey]
   setDensity: [Density]
   setQuery: [string]
@@ -65,6 +69,12 @@ const sortTabs = computed(() =>
 )
 
 const densityTabs = computed(() => DENSITIES.map((key) => ({ key, label: f.value[key] })))
+
+/** One size and nothing else is a chip that can only ever show the same screen again. */
+const sizesDivide = computed(
+  () =>
+    props.sizes.length > 1 || (props.sizes[0] !== undefined && props.sizes[0].n < props.total),
+)
 </script>
 
 <template>
@@ -117,12 +127,35 @@ const densityTabs = computed(() => DENSITIES.map((key) => ({ key, label: f.value
       </button>
 
       <button
-        v-if="active.length > 0 || query"
+        v-if="active.length > 0 || sized.length > 0 || query"
         type="button"
         class="min-h-6 rounded-fid-sm px-2 py-1 text-fid-xs text-fid-text-muted underline underline-offset-4"
         @click="emit('clear')"
       >
         {{ f.clear }}
+      </button>
+    </div>
+
+    <!--
+      The sizes (#246), only where they divide the list.
+    -->
+    <div
+      v-if="sizesDivide"
+      role="group"
+      :aria-label="f.size"
+      class="flex flex-wrap items-center gap-2"
+    >
+      <button
+        v-for="one in sizes"
+        :key="one.size"
+        type="button"
+        :aria-pressed="sized.includes(one.size)"
+        class="min-h-6 rounded-fid-sm border border-fid-border px-2 py-1 text-fid-xs text-fid-text transition-opacity"
+        :class="sized.length > 0 && !sized.includes(one.size) ? 'opacity-40' : 'opacity-100'"
+        @click="emit('toggleSize', one.size)"
+      >
+        {{ f.sizes[one.size] }}
+        <span class="fid-num ml-1 text-fid-text-muted">{{ one.n }}</span>
       </button>
     </div>
 
