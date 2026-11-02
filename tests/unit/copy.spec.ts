@@ -87,6 +87,8 @@ describe('your copy', () => {
     await queueJob({ ...job, id: 'collection.field:5:1', kind: 'collection.field' })
     await queueJob({ ...job, id: 'collection.rating:55', kind: 'collection.rating' })
     await queueJob({ ...job, id: 'collection.add:5', kind: 'collection.add' })
+    // A wantlist job is keyed by release; release 5 is not copy 5.
+    await queueJob({ ...job, id: 'wantlist.add:5', kind: 'wantlist.add' })
 
     expect(await copyOf(5)).toMatchObject({ waiting: 2, failing: false })
     expect(await copyOf(6)).toMatchObject({ waiting: 0, failing: false })
