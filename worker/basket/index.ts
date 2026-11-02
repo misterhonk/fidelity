@@ -87,20 +87,22 @@ export async function addToBasket(
 
 // shortcut: the undo stash lives in this worker's memory, so a reload forgets
 // it — fine for an undo line that is gone with the screen anyway.
-const removed = new Map<number, BasketItem>()
+// One line, not a map: the screen offers an undo for the last removal only, and
+// a map grew by every line ever removed in the session (#313).
+let removed: BasketItem | null = null
 
 export async function removeFromBasket(listingId: number): Promise<void> {
   const db = await openFidelityDb()
   const item = await db.get('basket', listingId)
-  if (item) removed.set(listingId, item)
+  if (item) removed = item
   await db.delete('basket', listingId)
 }
 
 /** The undo line after "Remove" (#221): the line comes back exactly as it was. */
 export async function restoreToBasket(listingId: number): Promise<void> {
-  const item = removed.get(listingId)
-  if (!item) return
-  removed.delete(listingId)
+  const item = removed
+  if (item?.listingId !== listingId) return
+  removed = null
   const db = await openFidelityDb()
   await db.put('basket', item)
 }

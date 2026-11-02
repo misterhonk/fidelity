@@ -50,7 +50,7 @@ test('folds the tools away until asked for', async ({ page }) => {
   await expect(compare).toBeHidden()
   await expect(paste).toBeHidden()
 
-  await page.getByText('Tools: postage table, budget, other shops').click()
+  await page.getByText('Tools: postage tiers, budget, other shops').click()
   await expect(compare).toBeVisible()
   await expect(page.getByText('What would fit a budget?', { exact: false })).toBeVisible()
 
