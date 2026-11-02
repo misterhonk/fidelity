@@ -797,14 +797,19 @@ export type WantlistItem = Omit<CollectionItem, 'rating' | 'instanceId' | 'folde
 /**
  * Which pressings of a wanted album will do (#242, docs/04 §S2).
  *
- * Per master and on this device only: Discogs has nowhere to keep it but the
- * free-text note, which a dig cannot read.
+ * Per master. Discogs has nowhere to keep it but the free-text note, which a
+ * dig cannot read, so it lives here and travels through the vault (#335).
  */
 export interface PressingRule {
   /** Only a pressing from the album's first year or the one after. */
   firstOnly: boolean
   /** Release ids that will not do — "any pressing except the 2016 reissue". */
   except: number[]
+  /**
+   * When it was last set, epoch ms — what the vault merge compares per master.
+   * Absent on rules written before #335, which then lose to any stamped one.
+   */
+  updatedAt?: number
 }
 
 /** Keyed by master id. */
@@ -972,6 +977,12 @@ export interface VaultSnapshot {
   /** Only the allowlisted keys — see `syncedPreferences`. */
   preferences: Partial<Preferences> | null
   stores: Partial<Record<string, unknown[]>>
+  /**
+   * Per master, the newer rule wins (#335). A cleared rule stays as an empty
+   * one with its stamp, so the other device learns it was cleared. Absent in
+   * vaults sealed before #335.
+   */
+  pressingRules?: PressingRules | null
 }
 
 /**

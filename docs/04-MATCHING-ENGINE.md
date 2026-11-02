@@ -128,17 +128,23 @@ wanted (suspected reissue).
 
 "Any pressing will do" is what S2 assumes, and for a good part of a wantlist it is wrong:
 *any pressing except the 2016 reissue*, *first pressing only*. Discogs has nowhere to put
-that but the free-text note, which a dig cannot read. So the rule is kept **on this
-device, per master** — the album, not the release, because the rule is about which of
-its pressings will do.
+that but the free-text note, which a dig cannot read. So the rule is kept **here, per
+master** — the album, not the release, because the rule is about which of its pressings
+will do — and carried to the other devices by the vault and the JSON backup (#335).
 
 ```ts
 interface PressingRule {
   firstOnly: boolean   // only a pressing from the album's first year or the one after
   except: number[]     // release ids that will not do
+  updatedAt?: number   // epoch ms of the last change; absent on rules from before #335
 }
 // meta.pressingRules: Record<masterId, PressingRule>
 ```
+
+**Between devices** (#335): per master, the rule with the newer `updatedAt` wins; ties and
+unstamped rules go to the local copy, as with every other vault row. Clearing a rule keeps
+it as an empty, stamped one (`firstOnly: false, except: []`, which changes nothing about
+S2) — a deleted entry would be a gap the other device fills in again.
 
 | Rule | Effect on S2 |
 |---|---|

@@ -33,7 +33,27 @@ describe('the pressing rule of a wanted album', () => {
         rule: { firstOnly: false, except: [] },
       }),
     ).toBeNull()
-    expect(await getMeta('pressingRules')).toEqual({ 78: { firstOnly: true, except: [] } })
+    expect(await handlers['wantlist.rule']({ masterId: 77 })).toBeNull()
+    expect(await handlers['wantlist.rule']({ masterId: 78 })).toEqual({
+      firstOnly: true,
+      except: [],
+    })
+    // Kept empty and stamped, so the vault tells the other device it was cleared (#335).
+    expect((await getMeta('pressingRules'))?.[77]).toMatchObject({
+      firstOnly: false,
+      except: [],
+      updatedAt: expect.any(Number),
+    })
+  })
+
+  it('writes nothing when clearing a rule that was never set', async () => {
+    expect(
+      await handlers['wantlist.setRule']({
+        masterId: 79,
+        rule: { firstOnly: false, except: [] },
+      }),
+    ).toBeNull()
+    expect(await getMeta('pressingRules')).toBeUndefined()
   })
 
   it('refuses an album that is not one', async () => {

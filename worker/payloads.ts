@@ -64,6 +64,7 @@ export function parsePreferences(value: unknown): Partial<Preferences> | null {
 const pressingRule = z.object({
   firstOnly: z.boolean(),
   except: z.array(z.number().int().positive()),
+  updatedAt: z.number().optional(),
 })
 
 /** Pressing rules from a file (#242): per master id; a malformed entry is dropped, not the lot. */
@@ -129,6 +130,7 @@ export const vaultSnapshotSchema = z.object({
         ]),
     ),
   ),
+  pressingRules: z.unknown().optional().transform(parsePressingRules),
 }) satisfies z.ZodType<VaultSnapshot>
 
 /**
