@@ -178,7 +178,7 @@ const en = {
         synced: 'In step with Discogs',
         waiting: (n: number) =>
           n === 1 ? '1 change waiting for Discogs' : `${n} changes waiting for Discogs`,
-        failing: 'Not at Discogs yet. It keeps trying.',
+        failing: 'Not at Discogs yet. We keep trying.',
       },
       write: {
         idle: '',
@@ -792,7 +792,7 @@ const de: typeof en = {
         synced: 'Stimmt mit Discogs überein',
         waiting: (n) =>
           n === 1 ? '1 Änderung wartet auf Discogs' : `${n} Änderungen warten auf Discogs`,
-        failing: 'Noch nicht bei Discogs. Es versucht es weiter.',
+        failing: 'Noch nicht bei Discogs. Wir versuchen es weiter.',
       },
       write: {
         idle: '',
