@@ -523,7 +523,7 @@ const de: Messages = {
       'Noch kein Dig, die Fundliste bleibt also leer. Deine Sammlung und deine Wantlist kannst du trotzdem durchsuchen, auch ohne Empfang.',
     expired:
       'Älter als sechs Stunden, Preise und Zustände sind darum weg. Die Funde und ihre Begründungen bleiben.',
-    yourMax: (amount) => `dein Limit ${amount}`,
+    yourMax: (amount) => `dein Höchstpreis ${amount}`,
     scan: 'Barcode lesen',
     scanning: 'Wird nachgeschlagen …',
     scanStop: 'Abbrechen',
