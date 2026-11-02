@@ -9,6 +9,85 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.118.0](https://github.com/misterhonk/fidelity/compare/v0.117.0...v0.118.0) (2026-11-02)
+
+
+<!-- en -->
+**Sleeveside looks calmer and reads the shop first.** A dig opens on its finds, the score is a
+price sticker with its word on it, and every screen has one clear main button.
+
+- The dig page leads with the shop's finds and its four best; the shop profile and your visits
+  are one tap away.
+- The basket reads like a receipt: lines, postage, total, and one button to put it all in at
+  Discogs. The tiers and the paste box wait under Tools.
+- In a shop: one field at the bottom for barcode, catalogue number or title, a big scan button
+  in reach of your thumb, and a dark screen.
+- On an iPhone, Sleeveside now reads barcodes with the camera. The reader loads once, the first
+  time you tap Scan, and works offline after that.
+- Every destructive tap has an undo, every button is big enough for a thumb, and Back closes any
+  sheet.
+- Moving between screens has a short, quiet animation. With reduced motion it is off.
+
+<!-- de -->
+**Sleeveside ist ruhiger und zeigt den Laden zuerst.** Ein Dig öffnet mit seinen Funden, der
+Score ist ein Preisschild mit seinem Wort, und jeder Bildschirm hat einen klaren Hauptknopf.
+
+- Die Dig-Seite zeigt zuerst die Funde des Ladens und seine besten vier. Ladenprofil und deine
+  Besuche sind einen Tipp entfernt.
+- Der Korb liest sich wie eine Quittung: Posten, Porto, Summe und ein Knopf, der alles bei
+  Discogs einlegt. Staffeln und Einfügen warten unter Werkzeuge.
+- Im Laden: ein Feld unten für Barcode, Katalognummer oder Titel, ein großer Scan-Knopf in
+  Daumennähe und ein dunkler Bildschirm.
+- Auf dem iPhone liest Sleeveside jetzt Barcodes mit der Kamera. Der Leser lädt einmal, beim
+  ersten Tipp auf Scannen, und läuft danach auch offline.
+- Jeder Tipp, der etwas löscht, lässt sich rückgängig machen. Jeder Knopf ist groß genug für den
+  Daumen, und Zurück schließt jedes Blatt.
+- Zwischen den Bildschirmen gibt es eine kurze, ruhige Bewegung. Mit reduzierter Bewegung ist
+  sie aus.
+
+### Added
+
+* **basket:** read each shop's basket as a receipt with one primary action ([aa07202](https://github.com/misterhonk/fidelity/commit/aa07202c0aa587ff67e10c9749eaab4828f79682)), closes [#224](https://github.com/misterhonk/fidelity/issues/224)
+* **dig:** open the dig page on its finds, with the tools a segment away ([ac5b458](https://github.com/misterhonk/fidelity/commit/ac5b4584d81e46e7858f758f622478335a626449)), closes [#223](https://github.com/misterhonk/fidelity/issues/223)
+* **ui:** motion pass with platform CSS ([17d68b0](https://github.com/misterhonk/fidelity/commit/17d68b0eb51637388128242727168a24eb32887b)), closes [#226](https://github.com/misterhonk/fidelity/issues/226)
+* **ui:** one FidButton with four tiers, and an undo after every destructive tap ([08cba1e](https://github.com/misterhonk/fidelity/commit/08cba1e3e1625597c6de151407c837c5d2d9ea36))
+* **ui:** one smart field at the bottom of the in-store screen ([be54a7c](https://github.com/misterhonk/fidelity/commit/be54a7c35db3d64eaacdf27fbcb09a79e05cf5b2)), closes [#225](https://github.com/misterhonk/fidelity/issues/225)
+* **ui:** read barcodes in Safari with a lazily loaded zxing-wasm reader ([9cb5a72](https://github.com/misterhonk/fidelity/commit/9cb5a7242329af51e1b12e6251b0fac310b25dd3))
+* **ui:** show the score as a price sticker with its band word ([d50875e](https://github.com/misterhonk/fidelity/commit/d50875eddc0981edcb31c0282602b0823ae3d90d)), closes [#222](https://github.com/misterhonk/fidelity/issues/222)
+* **ui:** skip link, Back closes every sheet, page behind a sheet inert ([0662ba7](https://github.com/misterhonk/fidelity/commit/0662ba7c147e3b2e64f6a21a87e2b2be436c4e83)), closes [#227](https://github.com/misterhonk/fidelity/issues/227)
+
+
+### Fixed
+
+* **basket:** drop the undo line on clear, on a toggle and when the page is left ([e53c83f](https://github.com/misterhonk/fidelity/commit/e53c83f5417d9d4a47a76573d741890f5a9f60a9))
+* **basket:** keep the undo when a restore fails, and show remove and undo errors ([9a18307](https://github.com/misterhonk/fidelity/commit/9a183071c8d49789ba774e512870747ffc316f7f))
+* **basket:** make the basket's outlined buttons secondary FidButtons ([0ad2c2d](https://github.com/misterhonk/fidelity/commit/0ad2c2dcb7df6387b186dd7ff434c61a0ac1d43d))
+* **basket:** open the tools fold when the postage is unknown ([9ff2e49](https://github.com/misterhonk/fidelity/commit/9ff2e497d3539210078756f51c1777c6f58711f4))
+* **basket:** put the total and its button ahead of the lines on a phone ([0ba23d0](https://github.com/misterhonk/fidelity/commit/0ba23d06cc16fb47ff33d7f98c1abc7dd918be25))
+* **deploy:** serve the barcode reader's .wasm as application/wasm on Apache ([d7fb36d](https://github.com/misterhonk/fidelity/commit/d7fb36da305fb4108ede66d11808d83c852be2d7)), closes [#304](https://github.com/misterhonk/fidelity/issues/304)
+* **dig:** show the small-collection hint on a dig with no finds too ([fa86f72](https://github.com/misterhonk/fidelity/commit/fa86f7213397c5d36110a15bbd35fd5b505b6aa4))
+* **i18n:** split the small-collection hint into sentences ([105a973](https://github.com/misterhonk/fidelity/commit/105a973f4694480a76715441aba1d835ac78ab03))
+* **ui:** dark status bar over the dark in-store screen ([9f55332](https://github.com/misterhonk/fidelity/commit/9f55332b2d0b3a8b05570950abc46f6a3d20cfc5))
+* **ui:** drop a ?place= naming a compartment that is gone ([f4f4800](https://github.com/misterhonk/fidelity/commit/f4f4800d627865859c0a9661aecbb73fadfce8d1))
+* **ui:** drop a ?want= the wantlist cannot show, so the next tap pushes ([cc00085](https://github.com/misterhonk/fidelity/commit/cc00085cbebd2542812341af37f090896beaa9fa))
+* **ui:** float back-to-the-top above the in-store field ([3f57680](https://github.com/misterhonk/fidelity/commit/3f576802dd29ae547eb0dfa65e107e94fd692d8d))
+* **ui:** give text actions, origin chips and want stars 44 px under a thumb ([5dc159d](https://github.com/misterhonk/fidelity/commit/5dc159d222f997d682e480ce801c30722810f8e8))
+* **ui:** give up on a barcode worker that stops answering ([605c388](https://github.com/misterhonk/fidelity/commit/605c3881228b55ec3ff2944fc5c919e6f8d84150))
+* **ui:** keep a code queued while the queue drains ([9172733](https://github.com/misterhonk/fidelity/commit/9172733d625f63b80574a393172429726a39651a))
+* **ui:** let screen readers hear the score sticker ([7621a6f](https://github.com/misterhonk/fidelity/commit/7621a6fc9d16cd566509fca5ab2022620bc75ade))
+* **ui:** let the cover grow into the sheet once the sheet has one ([65b524a](https://github.com/misterhonk/fidelity/commit/65b524a46e9fa157682298948c4133c5b0297b93))
+* **ui:** make the in-store screen actually dark on a light OS ([481f4d7](https://github.com/misterhonk/fidelity/commit/481f4d7029c33241e3c49371c372fc0080716407))
+* **ui:** never let a view transition hold the first paint ([db5499c](https://github.com/misterhonk/fidelity/commit/db5499c9b3363b1a1c876a912818a863f9717192))
+* **ui:** no 'nothing anywhere' for a catalogue number not yet looked up ([efbf3db](https://github.com/misterhonk/fidelity/commit/efbf3db0c68083cfe9c422afe022da645d349041))
+* **ui:** set aside a queued lookup that fails with signal ([14b24f1](https://github.com/misterhonk/fidelity/commit/14b24f1b89817aec6b6a68b8a06bf7a546ac80fb))
+* **ui:** terminate a barcode worker that reports an error ([89fba67](https://github.com/misterhonk/fidelity/commit/89fba670e46fe8a2ede35913fe594b73b203941e))
+
+
+### Changed
+
+* **ui:** decode barcodes in a worker of their own, off the main thread ([3a1d691](https://github.com/misterhonk/fidelity/commit/3a1d691c7ca3ca0fd9a65ece418d3db0eb766fa3)), closes [#304](https://github.com/misterhonk/fidelity/issues/304)
+* **ui:** drop the unused inList flag from useLeads ([7dbb7d2](https://github.com/misterhonk/fidelity/commit/7dbb7d2323aa2056f3500e2404db479b43a7e985))
+
 ## [0.117.0](https://github.com/misterhonk/fidelity/compare/v0.116.0...v0.117.0) (2026-11-01)
 
 
