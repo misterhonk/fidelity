@@ -169,8 +169,8 @@ const KINDS: Record<OutboxKind, JobKind> = {
          */
         { idempotent: false },
       )
-      // The record is over there now; let the same keeper round fetch it back
-      // properly rather than leaving a half-built row behind.
+      // The record is over there now; the next sync (the read runs before the
+      // drain since #238) fetches it back rather than leaving a half-built row.
       const { updateSyncState } = await import('~~/db/meta')
       await updateSyncState({ collectionSyncedAt: 0 })
       /*
