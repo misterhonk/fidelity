@@ -55,7 +55,7 @@ test('groups the earlier digs by shop, and an old dig says what came since', asy
     ],
   })
 
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({
     timeout: 15_000,
   })

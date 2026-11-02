@@ -1778,7 +1778,7 @@ const noHorizon = computed(
             {{ d.empty.wholeShop }}
           </FidButton>
           <NuxtLink
-            :to="`/dealers?shop=${encodeURIComponent(result.dig.dealer)}`"
+            :to="`/shops?shop=${encodeURIComponent(result.dig.dealer)}`"
             class="fid-action inline-flex items-center gap-2 rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
           >
             <FidIcon name="eye" :size="14" aria-hidden="true" />

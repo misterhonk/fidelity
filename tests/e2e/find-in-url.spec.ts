@@ -12,7 +12,7 @@ import { seed } from './seed'
  */
 test('keeps the open find in the address, and closes it on Back', async ({ page }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
 
   await page
     .getByRole('button', { name: /Point of Departure/i })
@@ -33,7 +33,7 @@ test('keeps the open find in the address, and closes it on Back', async ({ page 
   // Back closes the sheet and stays on the dig.
   await page.goBack()
   await expect(page.getByRole('dialog')).toBeHidden()
-  await expect(page).toHaveURL(/\/dig/)
+  await expect(page).toHaveURL(/\/shop/)
   await expect(page).not.toHaveURL(/find=/)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible()
 })
@@ -41,7 +41,7 @@ test('keeps the open find in the address, and closes it on Back', async ({ page 
 /** And the ✕ leaves no entry behind either — pressing Back again must not reopen it. */
 test('closing with the cross does not leave the find in the history', async ({ page }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
 
   await page
     .getByRole('button', { name: /Point of Departure/i })

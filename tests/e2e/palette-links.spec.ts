@@ -32,7 +32,7 @@ test('a shop in the palette opens that shop', async ({ page }) => {
   await expect(page.locator('main')).toBeVisible()
 
   await choose(page, 'Plattenkiste')
-  await expect(page).toHaveURL(/\/dealers\?shop=plattenkiste/, { timeout: 15_000 })
+  await expect(page).toHaveURL(/\/shops\?shop=plattenkiste/, { timeout: 15_000 })
   await expect(page.getByRole('heading', { name: 'Plattenkiste' })).toBeVisible()
 })
 
@@ -40,7 +40,7 @@ test('a shop in the palette replaces the one open on the shops screen', async ({
   await seed(page, 'en')
   await putRows(page, { dealers: [first] })
   await page.setViewportSize({ width: 1280, height: 800 })
-  await page.goto('/dealers')
+  await page.goto('/shops')
   await expect(page).toHaveURL(/shop=aardvark/, { timeout: 15_000 })
   await expect(page.getByRole('heading', { name: 'Aardvark Records' })).toBeVisible()
 
@@ -56,7 +56,7 @@ test('a find in the palette opens its sheet', async ({ page }) => {
   await expect(page.locator('main')).toBeVisible()
 
   await choose(page, 'Point of Departure')
-  await expect(page).toHaveURL(new RegExp(`/dig\\?.*find=${dig.id}(~|%7E)3204119887`), {
+  await expect(page).toHaveURL(new RegExp(`/shop\\?.*find=${dig.id}(~|%7E)3204119887`), {
     timeout: 15_000,
   })
   await expect(

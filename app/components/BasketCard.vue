@@ -737,7 +737,7 @@ const uid = useId()
 
       <NuxtLink
         class="self-start text-fid-sm text-fid-text underline underline-offset-4"
-        :to="{ path: '/dig', query: { dealer: summary.dealer } }"
+        :to="{ path: '/shop', query: { dealer: summary.dealer } }"
       >
         {{ summary.dig ? b.candidates.digAgain : b.candidates.digNow(summary.displayName) }}
       </NuxtLink>
@@ -1022,7 +1022,7 @@ const uid = useId()
                 <NuxtLink
                   v-for="candidate in comparison.candidates"
                   :key="candidate.dealer"
-                  :to="{ path: '/dig', query: { dealer: candidate.dealer } }"
+                  :to="{ path: '/shop', query: { dealer: candidate.dealer } }"
                   class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text-muted hover:text-fid-text"
                 >
                   {{ candidate.displayName }}

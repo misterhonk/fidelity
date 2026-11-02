@@ -18,15 +18,18 @@ onMounted(() => {
 })
 
 /**
- * The five nouns of the hobby, in the order somebody moves through them.
+ * Today · Shops · Collection · Basket · Search (#228).
  *
- * They were buttons inside the sync panel before, which put navigation inside
- * a piece of data and made "where am I" unanswerable. A persistent bar is the
- * plainest fix and the one every phone user already knows.
+ * The shop is the unit: its page holds the finds, the profile and the visits,
+ * and digging is the verb you use on it — so "Dig" is no longer a place of its
+ * own. `/shop` and `/stack` light the Shops tab; the collection's four views
+ * light the Collection tab.
  *
  * "In the shop" is deliberately not here: it is a *mode* you enter with a
  * record in your hand, not a section you browse. It is reached from the start
- * page, where somebody sets out, from the end of the setup and from ⌘K.
+ * page, from the end of the setup and from ⌘K. The settings are not here
+ * either: they live behind the profile — the name at the end of the bar on a
+ * desktop, and on Today on a phone, where the bar has room for five.
  *
  * The `key` names the entry in the message pack. What is left here is only what
  * does not change with the language: where it goes, what it looks like, and
@@ -34,16 +37,25 @@ onMounted(() => {
  */
 const SECTIONS = [
   { to: '/', key: 'start', icon: 'house' },
-  { to: '/dig', key: 'dig', icon: 'crate', also: ['/stack'] },
-  { to: '/basket', key: 'basket', icon: 'shopping-basket', also: ['/saved'] },
+  { to: '/shops', key: 'dealers', icon: 'store', also: ['/shop', '/stack'] },
   {
-    to: '/shelf',
+    to: '/collection',
     key: 'shelf',
     icon: 'shelf',
-    also: ['/map', '/wantlist', '/watched', '/places', '/review'],
+    also: ['/insights', '/wantlist', '/watched', '/places'],
   },
-  { to: '/dealers', key: 'dealers', icon: 'store' },
+  { to: '/basket', key: 'basket', icon: 'shopping-basket', also: ['/saved'] },
 ] as const
+
+const paletteOpen = usePaletteOpen()
+
+/**
+ * Where a tab goes. Shops leads to the running dig while one runs: the ring
+ * on the tab says a shop is being read, and tapping it should show that shop
+ * rather than the list it is one row of.
+ */
+const target = (section: (typeof SECTIONS)[number]) =>
+  section.to === '/shops' && digPercent.value !== null ? '/shop' : section.to
 
 const route = useRoute()
 /**
@@ -54,8 +66,8 @@ const route = useRoute()
  */
 const isCurrent = (section: { to: string; also?: readonly string[] }) => {
   if (section.to === '/') return route.path === '/'
-  if (route.path.startsWith(section.to)) return true
-  return (section.also ?? []).some((path) => route.path.startsWith(path))
+  const under = (path: string) => route.path === path || route.path.startsWith(`${path}/`)
+  return under(section.to) || (section.also ?? []).some(under)
 }
 
 const basketCount = computed(() => basketIds.value.size)
@@ -89,10 +101,10 @@ const basketCount = computed(() => basketIds.value.size)
       <NuxtLink
         v-for="section in SECTIONS"
         :key="section.to"
-        :to="section.to"
+        :to="target(section)"
         :aria-current="isCurrent(section) ? 'page' : undefined"
         :aria-describedby="
-          section.to === '/dig' && digPercent !== null ? 'nav-dig-running' : undefined
+          section.to === '/shops' && digPercent !== null ? 'nav-dig-running' : undefined
         "
         :title="m.nav[section.key].hint"
         class="relative flex min-h-11 items-center justify-center gap-2 border-b-2 px-3 text-fid-sm transition-colors max-md:min-h-16 max-md:flex-1 max-md:flex-col max-md:gap-1 max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0 max-md:px-1 max-md:py-3 max-md:text-fid-xs"
@@ -126,7 +138,7 @@ const basketCount = computed(() => basketIds.value.size)
             words are the link's description, after the links.
           -->
           <svg
-            v-if="section.to === '/dig' && digPercent !== null"
+            v-if="section.to === '/shops' && digPercent !== null"
             data-testid="dig-ring"
             class="pointer-events-none absolute -inset-1.5 -rotate-90"
             viewBox="0 0 36 36"
@@ -168,7 +180,7 @@ const basketCount = computed(() => basketIds.value.size)
         {{ m.nav[section.key].label }}
       </NuxtLink>
       <!--
-        A description, not part of the name: the tab stays "Dig" for anyone
+        A description, not part of the name: the tab stays "Shops" for anyone
         who finds it by name, and says it is busy to anyone who lands on it.
       -->
       <span v-if="digPercent !== null" id="nav-dig-running" class="sr-only">
@@ -176,39 +188,48 @@ const basketCount = computed(() => basketIds.value.size)
       </span>
 
       <!--
-        The sixth tab, and now built exactly like the other five.
-
-        It used to be a bare gear. Which contradicted the rule three comments
-        above it — "a bare glyph is a guess" — and cost a workaround: with no
-        label to fill the second row, centring the icon in a bar sized for
-        icon-plus-word dropped it eleven pixels below its neighbours, so it
-        carried `justify-start` and its own padding to fake the height a word
-        would have given it. Giving it the word deletes the compensation and
-        the guess in one go.
-
-        `md:ml-auto` stays: on a desktop the settings belong at the far end,
-        away from the five things somebody actually came to do.
+        The fifth entry is not a place but a door (#228): the palette searches
+        records, shops and actions at once, and a phone has no ⌘K. Built like
+        the tabs beside it so it lines up with them — a button, because it
+        opens a dialog rather than going anywhere.
       -->
+      <button
+        type="button"
+        aria-haspopup="dialog"
+        aria-keyshortcuts="Meta+K Control+K"
+        :title="m.nav.search.hint"
+        class="relative flex min-h-11 items-center justify-center gap-2 border-b-2 px-3 text-fid-sm transition-colors max-md:min-h-16 max-md:flex-1 max-md:flex-col max-md:gap-1 max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0 max-md:px-1 max-md:py-3 max-md:text-fid-xs border-transparent text-fid-text-muted hover:text-fid-text"
+        @click="paletteOpen = true"
+      >
+        <span class="relative flex shrink-0"><FidIcon name="search" :size="20" /></span>
+        {{ m.nav.search.label }}
+      </button>
+
       <!--
-        What this device has asked Discogs for (M31.9). Beside the settings on
+        What this device has asked Discogs for (M31.9). Beside the profile on
         a desktop, and nowhere on a phone: there is no room in that bar, and
         the same numbers live in Settings › Data.
       -->
       <RateMeter class="max-md:hidden md:ml-auto" />
 
+      <!--
+        The settings, behind the profile (#228), at the far end on a desktop —
+        away from the things somebody actually came to do. Not in the phone
+        bar, which holds five; there the name on Today is the door.
+      -->
       <NuxtLink
         to="/settings"
         :aria-current="isCurrent({ to: '/settings' }) ? 'page' : undefined"
-        :title="m.nav.settings.hint"
-        class="relative flex min-h-11 items-center justify-center gap-2 border-b-2 px-3 text-fid-sm transition-colors max-md:ml-auto max-md:min-h-16 max-md:flex-1 max-md:flex-col max-md:gap-1 max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0 max-md:px-1 max-md:py-3 max-md:text-fid-xs"
+        :title="m.nav.profile.hint"
+        class="relative flex min-h-11 items-center justify-center gap-2 border-b-2 px-3 text-fid-sm transition-colors max-md:min-h-16 max-md:flex-1 max-md:flex-col max-md:gap-1 max-md:rounded-fid-sm max-md:border-b-0 max-md:border-t-0 max-md:px-1 max-md:py-3 max-md:text-fid-xs max-md:hidden"
         :class="
           isCurrent({ to: '/settings' })
             ? 'border-fid-accent text-fid-text max-md:bg-fid-accent/15'
             : 'border-transparent text-fid-text-muted hover:text-fid-text'
         "
       >
-        <span class="relative flex shrink-0"><FidIcon name="settings" :size="20" /></span>
-        {{ m.nav.settings.label }}
+        <span class="relative flex shrink-0"><FidIcon name="circle-user" :size="20" /></span>
+        {{ m.nav.profile.label }}
       </NuxtLink>
     </div>
   </nav>

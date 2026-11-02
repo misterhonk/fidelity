@@ -112,7 +112,7 @@ function span(row: WatchedRelease): string | null {
     <section v-else-if="rows.length === 0" class="flex flex-col gap-3">
       <p class="text-fid-base text-fid-text-muted">{{ c.watched.empty }}</p>
       <NuxtLink
-        to="/shelf"
+        to="/collection"
         class="fid-action self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
       >
         {{ c.watched.toShelf }}

@@ -598,15 +598,13 @@ const en = {
 
   /** The start screen: what is new, and what is waiting. */
   home: {
-    title: 'Start',
+    title: 'Today',
     description: 'Sleeveside, the person behind the counter for your Discogs digging.',
     /** The way into the in-store screen on a phone, where there is no ⌘K. */
     inStore: 'In a shop right now',
     /** A shop's address copied out of Safari (#217). Also takes a bare name. */
     pasteLink: 'Paste a Discogs link',
     openShop: 'Open',
-    /** The way into ⌘K where there is no keyboard (#215). */
-    search: 'Search records, shops, actions',
     counts: {
       collection: 'Collection',
       wantlist: 'Wantlist',
@@ -925,14 +923,17 @@ const en = {
 
   nav: {
     label: 'Main sections',
-    start: { label: 'Start', hint: "What's new, what's waiting" },
+    start: { label: 'Today', hint: "What's new, what's waiting" },
     dig: { label: 'Dig', hint: 'Dig through a shop' },
     basket: { label: 'Basket', hint: 'What you mean to buy' },
     shelf: { label: 'Collection', hint: 'What you own and what you are after' },
     dealers: { label: 'Shops', hint: 'Who you buy from' },
-    settings: { label: 'Settings', hint: 'Token, sync, appearance' },
+    /** Not a page: opens the palette (⌘K), the one search over everything. */
+    search: { label: 'Search', hint: 'Records, shops and actions' },
+    /** Where the settings live now: behind who you are, not in a tab of their own. */
+    profile: { label: 'Profile', hint: 'Settings: token, sync, appearance' },
     inBasket: (count: number) => `${count} in the basket`,
-    /** Spoken with the Dig tab while a dig runs anywhere in the app. */
+    /** Spoken with the Shops tab while a dig runs anywhere in the app. */
     digRunning: (percent: number) => `dig running, ${percent}%`,
     attribution: 'Data provided by Discogs',
     disclaimer:

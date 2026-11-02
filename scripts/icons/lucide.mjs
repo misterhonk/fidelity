@@ -113,6 +113,8 @@ const NEEDED = {
   'map-pin': 'Collection tab: places',
   /* In the shop: scanning a barcode (M13). */
   scan: 'Scan a barcode',
+  /* Main nav: the profile, which is the way into the settings (#228). */
+  'circle-user': 'Main nav: profile and settings',
 }
 
 /**

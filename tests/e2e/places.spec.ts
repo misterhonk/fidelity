@@ -33,7 +33,7 @@ test('a room, a Kallax, and a record in B1', async ({ page }) => {
   await expect(wall.getByRole('button', { name: /^B2, 0 records/ })).toBeVisible()
 
   // A record goes into B1 from its own sheet, and the sheet reads the address back.
-  await page.goto('/shelf')
+  await page.goto('/collection')
   await page
     .getByRole('button', { name: /Maiden Voyage/ })
     .first()
@@ -149,7 +149,7 @@ test('a room, a Kallax, and a record in B1', async ({ page }) => {
   await page.keyboard.press('Escape')
 
   // From the shelf: tick a record, put it in B2 on the small wall, and undo.
-  await page.goto('/shelf')
+  await page.goto('/collection')
   await page.getByRole('button', { name: 'Select' }).click()
   await page.getByRole('checkbox', { name: /Maiden Voyage/ }).check()
   await page.getByRole('button', { name: 'Put 1 in …' }).click()

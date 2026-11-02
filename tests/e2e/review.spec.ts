@@ -42,7 +42,7 @@ async function olderRecord(page: Page) {
 test('opens on the latest year and switches to an earlier one', async ({ page }) => {
   await seed(page, 'en')
   await olderRecord(page)
-  await page.goto('/review')
+  await page.goto('/insights/year')
 
   await expect(
     page.getByRole('heading', { level: 2, name: 'A year on the shelf' }),
@@ -72,7 +72,7 @@ test('opens on the latest year and switches to an earlier one', async ({ page })
 
 test('is the first year, and says so, when there is only one', async ({ page }) => {
   await seed(page, 'de')
-  await page.goto('/review')
+  await page.goto('/insights/year')
   await expect(page.getByRole('group', { name: 'Welches Jahr' })).toHaveCount(0)
   await expect(page.getByText('2 Platten kamen 2024 dazu.')).toBeVisible()
   await expect(page.getByText('Das erste Jahr im Regal.')).toBeVisible()

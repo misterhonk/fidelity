@@ -85,7 +85,7 @@ test.describe('the arrival question', () => {
       { listingId: 9104, ageDays: 30, arrived: 'worse' },
     ])
 
-    await page.goto('/dealers')
+    await page.goto('/shops')
     await expect(page.getByText(/4 records judged so far/i)).toBeVisible({ timeout: 15_000 })
 
     // The fifth comes in through the question on the start page.
@@ -95,7 +95,7 @@ test.describe('the arrival question', () => {
     await expect(box).toBeVisible({ timeout: 15_000 })
     await box.getByRole('button', { name: 'As described' }).click()
 
-    await page.goto('/dealers')
+    await page.goto('/shops')
     // Four of five as described or better.
     await expect(page.getByText(/80 % of 5 records/i)).toBeVisible({ timeout: 15_000 })
     await expect(page.getByText(/1 was worse than described/i)).toBeVisible()

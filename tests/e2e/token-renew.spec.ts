@@ -59,7 +59,7 @@ test('renews the token on the account screen without losing the shelf', async ({
 
   // Still signed in as the same person, the shelf still there.
   await expect(page.getByText('mrtnmlchr')).toBeVisible()
-  await page.goto('/shelf')
+  await page.goto('/collection')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await expect(page).not.toHaveURL(/welcome/)
 })

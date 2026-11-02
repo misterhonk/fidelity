@@ -41,7 +41,7 @@ test('watches a shop that has never been dug', async ({ page, context }) => {
     return route.fulfill({ status: 404, headers: cors, body: '{}' })
   })
 
-  await page.goto('/dealers')
+  await page.goto('/shops')
   await page.getByLabel('Add a shop').fill('spirax.records')
   await page.getByRole('button', { name: 'Add', exact: true }).click()
 

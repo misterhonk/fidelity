@@ -77,7 +77,7 @@ describe('what a dig is entitled to claim', () => {
  * in the source. No browser is needed for that.
  */
 describe('the verdict a dig is allowed to give', () => {
-  const DIG = readFileSync('app/pages/dig.vue', 'utf8')
+  const DIG = readFileSync('app/pages/shop.vue', 'utf8')
 
   /**
    * Without comments, because this file explains the decision it checks.

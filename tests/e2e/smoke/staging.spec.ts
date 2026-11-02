@@ -116,7 +116,7 @@ test('the demo account syncs onto a fresh device', async ({ page }) => {
   // Sixty records at one request a second: the sync takes a while.
   await page.getByRole('button', { name: 'Carry on' }).click({ timeout: 180_000 })
 
-  await page.goto('/shelf')
+  await page.goto('/collection')
   await expect(page.locator('li[id^="record-"], main ul li').first()).toBeVisible({
     timeout: 30_000,
   })

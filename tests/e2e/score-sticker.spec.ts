@@ -20,7 +20,7 @@ async function synced(page: Page) {
 test('cards wear a score sticker and the list explains it once', async ({ page }) => {
   const dig = await seed(page, 'en')
   await synced(page)
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({ timeout: 15_000 })
 
   const stickers = page.getByTestId('score-sticker')
@@ -50,7 +50,7 @@ test('a dig with no finds still says the collection is small', async ({ page }) 
   const dig = { ...freshDig(Date.now()), id: '01J0000000000000000000DIG0', matchCount: 0 }
   await putRows(page, { digs: [dig] })
 
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({ timeout: 15_000 })
   await expect(page.getByTestId('score-sticker')).toHaveCount(0)
   await expect(page.getByTestId('small-collection')).toBeVisible()

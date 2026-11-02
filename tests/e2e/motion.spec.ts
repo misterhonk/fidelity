@@ -42,7 +42,7 @@ function unfolding(page: Page) {
 
 async function openDig(page: Page) {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   const wall = page.locator('section[aria-labelledby="the-wall"]')
   await expect(wall.locator('article').first()).toBeVisible({ timeout: 15_000 })
   return wall

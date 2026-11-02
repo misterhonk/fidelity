@@ -23,9 +23,9 @@
  */
 const RENAMED: Record<string, string> = {
   '/korb': '/basket',
-  '/regal': '/shelf',
-  '/haendler': '/dealers',
-  '/landkarte': '/map',
+  '/regal': '/collection',
+  '/haendler': '/shops',
+  '/landkarte': '/insights',
   '/gemerkt': '/saved',
   '/im-laden': '/in-store',
   '/willkommen': '/welcome',
@@ -52,6 +52,17 @@ const RENAMED: Record<string, string> = {
   '/settings/search': '/settings/finds',
   '/settings/appearance': '/settings/look',
   '/settings/hub': '/settings/advanced',
+  /*
+   * The second move (#228): the shop is the unit, and dig is the verb on it.
+   * The query carries the address — `?dealer=`, `?id=` — so a static host
+   * needs no route per shop. Old targets above point straight at the new
+   * addresses, so nothing redirects twice.
+   */
+  '/dig': '/shop',
+  '/dealers': '/shops',
+  '/shelf': '/collection',
+  '/map': '/insights',
+  '/review': '/insights/year',
 }
 
 export default defineNuxtRouteMiddleware((to) => {

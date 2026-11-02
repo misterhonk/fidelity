@@ -152,6 +152,6 @@ describe('the start screen', () => {
   })
 
   it('lets every shop lead to its own profile', () => {
-    expect(INDEX).toMatch(/path: '\/dealers', query: \{ dealer: shop\.username \}/)
+    expect(INDEX).toMatch(/path: '\/shops', query: \{ dealer: shop\.username \}/)
   })
 })

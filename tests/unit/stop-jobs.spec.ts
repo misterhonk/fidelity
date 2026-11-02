@@ -67,7 +67,7 @@ describe('progress is announced at milestones only', () => {
    * every 1.2 s — a screen reader read out every page of a dig.
    */
   const panels = [
-    'app/pages/dig.vue',
+    'app/pages/shop.vue',
     'app/components/LibrarySync.vue',
     'app/components/HorizonBuild.vue',
     'app/components/CreditHarvest.vue',

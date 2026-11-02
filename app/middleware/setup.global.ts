@@ -2,8 +2,8 @@
  * Without a token, nobody belongs on a screen full of data.
  *
  * Until 2026-08-14 the redirect lived in the start page's `onMounted` alone.
- * Anyone opening `/shelf` from a bookmark, anyone who had closed the app on
- * `/dealers` and reopened it, or anyone following a link, landed on a finished
+ * Anyone opening `/collection` from a bookmark, anyone who had closed the app on
+ * `/shops` and reopened it, or anyone following a link, landed on a finished
  * page saying "No records here yet. Fetch the collection in the settings." — a
  * statement about the collection where one about the state of the app belongs.
  * The reason is not that there is nothing there, but that nobody is set up.

@@ -18,9 +18,9 @@ import { signIn } from './seed'
 
 const MOVED = [
   ['/korb', '/basket'],
-  ['/regal', '/shelf'],
-  ['/haendler', '/dealers'],
-  ['/landkarte', '/map'],
+  ['/regal', '/collection'],
+  ['/haendler', '/shops'],
+  ['/landkarte', '/insights'],
   ['/gemerkt', '/saved'],
   ['/im-laden', '/in-store'],
   ['/willkommen', '/welcome'],
@@ -42,6 +42,12 @@ const MOVED = [
   ['/settings/access', '/settings/advanced'],
   ['/settings/sync', '/settings/account#sync'],
   ['/settings/data', '/settings/account#data'],
+  // The new navigation (#228): the shop is the unit, the collection the other.
+  ['/dig', '/shop'],
+  ['/dealers', '/shops'],
+  ['/shelf', '/collection'],
+  ['/map', '/insights'],
+  ['/review', '/insights/year'],
 ] as const
 
 test.describe('an address from before the rename', () => {
@@ -122,8 +128,17 @@ test.describe('an address from before the rename', () => {
     await expect(page).toHaveURL(/\/settings\/finds#dealers$/)
   })
 
+  /**
+   * A shop and a dig are addressed by their query (#228) — a static host has
+   * no route per shop — so the query is the whole of the old link.
+   */
+  test('a link to a dig still opens that shop', async ({ page }) => {
+    await page.goto('/dig?dealer=fatplastics')
+    await expect(page).toHaveURL(/\/shop\?dealer=fatplastics$/)
+  })
+
   test('leaves an address that was never renamed alone', async ({ page }) => {
-    await page.goto('/dig')
-    await expect(page).toHaveURL(/\/dig$/)
+    await page.goto('/wantlist')
+    await expect(page).toHaveURL(/\/wantlist$/)
   })
 })

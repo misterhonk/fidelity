@@ -105,7 +105,7 @@ test('lists shops from the hub, ranked against your own shelf', async ({ page, c
     ],
   })
 
-  await page.goto('/dealers')
+  await page.goto('/shops')
 
   await expect(page.getByRole('heading', { name: 'Shops others struck gold in' })).toBeVisible({
     timeout: 20_000,

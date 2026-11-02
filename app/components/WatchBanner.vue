@@ -33,7 +33,7 @@ const { alerts, dismiss } = useWatchlist()
 
     <ul class="flex flex-col gap-1">
       <li v-for="alert in alerts" :key="alert.dealer" class="text-fid-sm text-fid-text">
-        <NuxtLink class="underline underline-offset-4" :to="`/dig?dealer=${alert.dealer}`">
+        <NuxtLink class="underline underline-offset-4" :to="`/shop?dealer=${alert.dealer}`">
           {{ alert.dealer }}
         </NuxtLink>
         {{ m.watch.moved(count(alert.newListings), alert.newListings === 1) }}

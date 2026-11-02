@@ -43,7 +43,7 @@ test('takes a shop by name and stands it beside the dug ones', async ({ page, co
     return route.fulfill({ status: 404, headers: cors, body: '{}' })
   })
 
-  await page.goto('/dealers')
+  await page.goto('/shops')
 
   /*
    * Pasted as an address, not typed as a username: nobody carries a Discogs
@@ -68,8 +68,7 @@ test('takes a shop by name and stands it beside the dug ones', async ({ page, co
    * keeps the field and the shops you know under "Shop" (#223). The seed
    * leaves a result there, so this is that screen.
    */
-  await page.getByRole('link', { name: 'Dig', exact: true }).click()
-  await expect(page).toHaveURL(/dig/)
+  await page.goto('/shop')
   await page
     .getByRole('group', { name: 'This dig' })
     .getByRole('button', { name: 'Shop' })

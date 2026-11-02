@@ -6,7 +6,7 @@ import { signIn } from './seed'
  * Without a token, every route leads to the setup.
  *
  * Until 2026-08-14 the redirect lived in the start page's `onMounted` and
- * applied to exactly one of twelve screens. Anyone opening `/shelf` from a
+ * applied to exactly one of twelve screens. Anyone opening `/collection` from a
  * bookmark got a finished page saying "No records here yet. Fetch the
  * collection in the settings." — a statement about the collection where one
  * about the state of the app belongs.
@@ -18,7 +18,15 @@ import { signIn } from './seed'
  *
  * No seeding: the empty database *is* the case under test.
  */
-const GESPERRT = ['/shelf', '/wantlist', '/dig', '/dealers', '/basket', '/saved', '/map']
+const GESPERRT = [
+  '/collection',
+  '/wantlist',
+  '/shop',
+  '/shops',
+  '/basket',
+  '/saved',
+  '/insights',
+]
 
 /** Where you may go without a token — the settings above all, because that is
  *  where the token is entered. */
@@ -79,7 +87,7 @@ test.describe('with a token', () => {
     await signIn(page)
   })
 
-  for (const path of ['/shelf', '/dealers']) {
+  for (const path of ['/collection', '/shops']) {
     test(`${path} stays put`, async ({ page }) => {
       await page.goto(path)
       await page.waitForTimeout(1500)

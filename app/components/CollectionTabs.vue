@@ -25,30 +25,30 @@ onMounted(() => {
 })
 
 /**
- * Three views of one subject: the records, what they say about you, and the
- * ones still missing. Giving each its own top-level entry would have made
- * seven where five already fill a phone.
+ * Shelf · Wantlist · Places · Insights (#228): what you have, what you are
+ * after, where it stands, and what it says. Giving each its own top-level
+ * entry would have made seven where five already fill a phone.
  *
  * Full width on a phone, content width from a tablet up. A segmented control
- * stretched across 1680 pixels is three enormous buttons with nothing in them
+ * stretched across 1680 pixels is four enormous buttons with nothing in them
  * — it stops reading as a switch and starts reading as a header.
  */
 const TABS = [
-  { to: '/shelf', key: 'shelf', icon: 'shelf' },
-  { to: '/map', key: 'map', icon: 'map' },
+  { to: '/collection', key: 'shelf', icon: 'shelf' },
   { to: '/wantlist', key: 'wantlist', icon: 'wantlist' },
-  /*
-   * And the fourth: the same collection, from the market's direction.
-   *
-   * Here and not in the main bar — five entries is the limit there. "Watched"
-   * is not an area of its own but one more view of what you have and what you
-   * are after.
-   */
-  { to: '/watched', key: 'watched', icon: 'eye' },
   { to: '/places', key: 'places', icon: 'map-pin' },
-  /** And a year of it at a time — what arrived, and what it says (M19 #8). */
-  { to: '/review', key: 'review', icon: 'calendar' },
+  /** The map and the year, one tab with two views — both read the collection back to you. */
+  { to: '/insights', key: 'insights', icon: 'map' },
 ] as const
+
+/** Insights holds two views; the second row switches between them. */
+const VIEWS = [
+  { to: '/insights', key: 'map' },
+  { to: '/insights/year', key: 'review' },
+] as const
+
+const isCurrent = (to: string) => route.path === to || route.path.startsWith(`${to}/`)
+const inInsights = computed(() => isCurrent('/insights'))
 </script>
 
 <template>
@@ -84,17 +84,56 @@ const TABS = [
       v-for="tab in TABS"
       :key="tab.to"
       :to="tab.to"
-      :data-current="route.path === tab.to ? 'true' : undefined"
-      :aria-current="route.path === tab.to ? 'page' : undefined"
+      :data-current="isCurrent(tab.to) ? 'true' : undefined"
+      :aria-current="isCurrent(tab.to) ? 'page' : undefined"
       class="fid-plate -mb-px flex min-h-11 shrink-0 items-center gap-2 border-b-2 py-2 whitespace-nowrap transition-colors"
       :class="
-        route.path === tab.to
+        isCurrent(tab.to)
           ? 'border-fid-accent text-fid-text'
           : 'border-transparent text-fid-text-muted hover:text-fid-text'
       "
     >
       <FidIcon :name="tab.icon" :size="14" />
       {{ c.tabs[tab.key] }}
+    </NuxtLink>
+    <!--
+      Watched is a filter, not a place (#228): the shelf and the wantlist, cut
+      down to the records whose price is being followed. A chip at the end of
+      the bar rather than a fifth tab, pressed while you look through it.
+    -->
+    <NuxtLink
+      to="/watched"
+      :data-current="route.path === '/watched' ? 'true' : undefined"
+      :aria-current="route.path === '/watched' ? 'page' : undefined"
+      class="fid-plate my-1 ml-auto flex min-h-9 shrink-0 items-center gap-2 self-center rounded-full border px-3 whitespace-nowrap transition-colors"
+      :class="
+        route.path === '/watched'
+          ? 'border-fid-accent bg-fid-accent/15 text-fid-text'
+          : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+      "
+    >
+      <FidIcon name="eye" :size="14" />
+      {{ c.tabs.watched }}
+    </NuxtLink>
+  </nav>
+  <nav
+    v-if="inInsights"
+    :aria-label="c.tabs.insights"
+    class="flex gap-5 self-stretch md:self-start"
+  >
+    <NuxtLink
+      v-for="view in VIEWS"
+      :key="view.to"
+      :to="view.to"
+      :aria-current="route.path === view.to ? 'page' : undefined"
+      class="fid-plate flex min-h-11 items-center underline-offset-8 transition-colors"
+      :class="
+        route.path === view.to
+          ? 'text-fid-text underline decoration-fid-accent decoration-2'
+          : 'text-fid-text-muted hover:text-fid-text'
+      "
+    >
+      {{ c.tabs[view.key] }}
     </NuxtLink>
   </nav>
 </template>

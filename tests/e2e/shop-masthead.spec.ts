@@ -41,7 +41,7 @@ test('says the count before the percentage, and learns the year from the profile
     return route.fulfill({ status: 404, headers: cors, body: '{}' })
   })
 
-  await page.goto('/dealers')
+  await page.goto('/shops')
   const line = page.locator('[data-prose="data"]').first()
   await expect(line).toContainText('2,881 listings', { timeout: 15_000 })
 
@@ -87,7 +87,7 @@ test('walks from shop to shop with j and k, and with the arrows in the sheet', a
   await putRows(page, { dealers: [londonwax] })
 
   await page.setViewportSize({ width: 1280, height: 800 })
-  await page.goto('/dealers')
+  await page.goto('/shops')
   await expect(page).toHaveURL(/shop=plattenkiste/, { timeout: 15_000 })
 
   await page.keyboard.press('j')
@@ -102,7 +102,7 @@ test('walks from shop to shop with j and k, and with the arrows in the sheet', a
   await expect(page).toHaveURL(/shop=plattenkiste/)
 
   await page.setViewportSize({ width: 390, height: 800 })
-  await page.goto('/dealers?shop=plattenkiste')
+  await page.goto('/shops?shop=plattenkiste')
   const sheet = page.getByRole('dialog', { name: /plattenkiste/i })
   await expect(sheet).toBeVisible({ timeout: 15_000 })
   await expect(sheet.getByText('1 of 2')).toBeVisible()

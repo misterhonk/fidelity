@@ -39,13 +39,13 @@ async function columns(page: Page, selector: string) {
 const ROUTES = [
   '/',
   '/welcome',
-  '/dig',
+  '/shop',
   '/basket',
   '/saved',
-  '/shelf',
-  '/map',
+  '/collection',
+  '/insights',
   '/wantlist',
-  '/dealers',
+  '/shops',
   '/in-store',
   '/settings',
   '/settings/account',
@@ -79,7 +79,7 @@ test.describe('nothing scrolls sideways', () => {
 test.describe('room to breathe', () => {
   test('the shelf grid follows the width it is given', async ({ page }) => {
     await page.setViewportSize(PHONE)
-    await page.goto('/shelf')
+    await page.goto('/collection')
     await expect(page.locator('main')).toBeVisible()
 
     // Signed out there is no shelf to show, so the grid only proves itself
@@ -124,21 +124,22 @@ test.describe('the shelf grid itself', () => {
   // The grid needs records, and records need a signed-in state the e2e suite
   // does not have. What can be checked without one is the rule that decides
   // the column count, which is the part that was silently broken.
-  test('the collection tabs lead to all three views', async ({ page }) => {
+  test('the collection tabs lead to all four views', async ({ page }) => {
     await signIn(page)
     await page.setViewportSize(WIDE)
-    await page.goto('/shelf')
+    await page.goto('/collection')
 
     const tabs = page.getByRole('navigation', { name: 'Collection' })
     await expect(tabs.getByRole('link', { name: 'Shelf' })).toBeVisible()
-    await expect(tabs.getByRole('link', { name: 'Map' })).toBeVisible()
     await expect(tabs.getByRole('link', { name: 'Wantlist' })).toBeVisible()
+    await expect(tabs.getByRole('link', { name: 'Places' })).toBeVisible()
+    await expect(tabs.getByRole('link', { name: 'Insights' })).toBeVisible()
   })
 
   test('a wide grid really is wider', async ({ page }) => {
     await signIn(page)
     await page.setViewportSize(WIDE)
-    await page.goto('/shelf')
+    await page.goto('/collection')
     await expect(page.locator('main')).toBeVisible()
 
     // A container query on an element 110rem wide has to resolve differently
@@ -204,7 +205,7 @@ test.describe('installed on an iPhone', () => {
     page,
   }) => {
     await signIn(page)
-    await page.goto('/dealers')
+    await page.goto('/shops')
     await expect(page.locator('main header').first()).toBeVisible()
     expect(await padsWithInset(page, 'main header', 'top')).toBe(true)
     expect(await padsWithInset(page, 'nav', 'top')).toBe(true)

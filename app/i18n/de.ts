@@ -413,12 +413,11 @@ const de: Messages = {
   },
 
   home: {
-    title: 'Start',
+    title: 'Heute',
     description: 'Sleeveside, der Mensch hinterm Tresen für dein Graben bei Discogs.',
     inStore: 'Gerade im Laden',
     pasteLink: 'Discogs-Link einfügen',
     openShop: 'Öffnen',
-    search: 'Platten, Läden, Aktionen suchen',
     counts: {
       collection: 'Sammlung',
       wantlist: 'Wantlist',
@@ -662,12 +661,13 @@ const de: Messages = {
 
   nav: {
     label: 'Hauptbereiche',
-    start: { label: 'Start', hint: 'Was ist neu, was steht an' },
+    start: { label: 'Heute', hint: 'Was ist neu, was steht an' },
     dig: { label: 'Graben', hint: 'Einen Laden durchgraben' },
     basket: { label: 'Korb', hint: 'Was du kaufen willst' },
     shelf: { label: 'Sammlung', hint: 'Was du hast und was du suchst' },
     dealers: { label: 'Läden', hint: 'Bei wem du kaufst' },
-    settings: { label: 'Einstellungen', hint: 'Token, Abgleich, Aussehen' },
+    search: { label: 'Suche', hint: 'Platten, Läden und Aktionen' },
+    profile: { label: 'Profil', hint: 'Einstellungen: Token, Abgleich, Aussehen' },
     inBasket: (count) => `${count} im Korb`,
     digRunning: (percent) => `Dig läuft, ${percent} %`,
     attribution: 'Daten von Discogs',

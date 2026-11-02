@@ -55,7 +55,7 @@ const step = computed(() => {
    * dig better, and says so.
    */
   if (digs.value === 0) {
-    return { ...m.value.nextStep.dig, to: '/dig' }
+    return { ...m.value.nextStep.dig, to: '/shop' }
   }
 
   if (horizon.value.expanded < horizon.value.entities) {
@@ -81,7 +81,7 @@ const step = computed(() => {
       cta: words.cta,
       title: words.title(newest.value.dealer),
       body: words.body,
-      to: `/dig?dealer=${encodeURIComponent(newest.value.dealer)}`,
+      to: `/shop?dealer=${encodeURIComponent(newest.value.dealer)}`,
     }
   }
 
