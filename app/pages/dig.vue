@@ -291,6 +291,10 @@ onMounted(async () => {
   const wanted = route.query.dealer
   if (typeof wanted === 'string' && wanted.trim()) {
     dealer.value = wanted.trim()
+    // The field it filled in is under Shop (#313). After the tick, because a
+    // new result sends the segments back to Finds on that same tick.
+    await nextTick()
+    segment.value = 'shop'
     await check()
   }
 })
@@ -632,7 +636,9 @@ function onListKey(event: KeyboardEvent) {
     return
   }
 
-  if (event.key !== 'j' || sheet.open.value || event.shiftKey) return
+  // Only where the finds are on screen: under Shop or Visits, j opening a find is a surprise (#313).
+  if (event.key !== 'j' || sheet.open.value || event.shiftKey || segment.value !== 'finds')
+    return
   const first = wall.value[0] ?? view.visible.value[0]
   if (!first) return
   event.preventDefault()
@@ -790,7 +796,8 @@ const horizon = ref<Awaited<ReturnType<typeof call<'horizon.status'>>> | null>(n
 
 watchEffect(async () => {
   if (!result.value || horizon.value) return
-  horizon.value = await call('horizon.status', undefined)
+  // A basis line that cannot be read is left out, not thrown at nobody (#313).
+  horizon.value = await call('horizon.status', undefined).catch(() => null)
 })
 
 /**
@@ -822,7 +829,10 @@ const collectionSize = ref<number | null>(null)
 
 watchEffect(async () => {
   if (!result.value || collectionSize.value !== null) return
-  collectionSize.value = (await call('collection.records', { limit: 1 })).collection
+  const library = await call('library.summary', undefined).catch(() => null)
+  // Only a collection that has been read through once (#313): before the first
+  // sync, or during it, nought is "not counted yet", not "small".
+  if (library && library.collectionSyncedAt !== null) collectionSize.value = library.collection
 })
 
 /** Something is in the horizon, but not all of it — with the way to the rest. */
@@ -1759,15 +1769,14 @@ const noHorizon = computed(
           gets asked without anybody starting a dig.
         -->
         <div class="flex flex-wrap items-center gap-3">
-          <button
+          <FidButton
             v-if="kind !== 'full'"
-            type="button"
+            variant="secondary"
             :disabled="busy || !online"
-            class="fid-action fid-tonal rounded-fid-sm px-4 py-2 text-fid-sm font-medium disabled:opacity-50"
             @click="again()"
           >
             {{ d.empty.wholeShop }}
-          </button>
+          </FidButton>
           <NuxtLink
             :to="`/dealers?shop=${encodeURIComponent(result.dig.dealer)}`"
             class="fid-action inline-flex items-center gap-2 rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
