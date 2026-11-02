@@ -12,6 +12,29 @@ Für eine App bedeutet SemVer:
 ## [0.123.0](https://github.com/misterhonk/fidelity/compare/v0.122.0...v0.123.0) (2026-11-02)
 
 
+<!-- en -->
+**Pass your finds on, and Sleeveside now speaks French.** A shared list lives in the link itself,
+without prices, and the top find can go out as a picture.
+
+- Share a dig: the list travels inside the link. Whoever opens it needs no account and no token.
+  It never carries prices, conditions, the shop or covers, and the page credits Discogs.
+- Share the top find as a picture, drawn without cover art and with "Data provided by Discogs"
+  in the image.
+- Sleeveside speaks French. The reasons behind each find are now built per language, so they
+  read naturally in English, German and French.
+- Your pressing rules now travel between your devices through your own cloud storage.
+
+<!-- de -->
+**Gib deine Funde weiter, und Sleeveside spricht jetzt Französisch.** Eine geteilte Liste steckt
+im Link selbst, ohne Preise, und den besten Fund kannst du als Bild verschicken.
+
+- Teil einen Dig: Die Liste steckt im Link. Wer ihn öffnet, braucht kein Konto und keinen
+  Token. Preise, Zustand, Laden und Cover kommen nie mit, und die Seite nennt Discogs als Quelle.
+- Teil den besten Fund als Bild, gezeichnet ohne Cover und mit "Data provided by Discogs" im Bild.
+- Sleeveside spricht Französisch. Die Gründe zu jedem Fund werden jetzt pro Sprache gebaut, so
+  lesen sie sich auf Englisch, Deutsch und Französisch natürlich.
+- Deine Pressungsregeln wandern jetzt über deinen eigenen Cloud-Speicher zwischen deinen Geräten.
+
 ### Added
 
 * **dig:** share a find list in the link itself, without a hub or prices ([a0f5257](https://github.com/misterhonk/fidelity/commit/a0f52571b221d06920262b458560c6c698a3bf6f)), closes [#249](https://github.com/misterhonk/fidelity/issues/249)
