@@ -89,10 +89,14 @@ function decoderRequests(page: Page) {
     seen.push(
       url.endsWith('.wasm')
         ? Promise.resolve(url)
-        : response.text().then(
-            (text) => (text.includes('zxing_reader') ? url : null),
-            () => null,
-          ),
+        : // A prefetched chunk's body can stay pending forever in Chromium; don't wait on it.
+          Promise.race([
+            response.text().then(
+              (text) => (text.includes('zxing_reader') ? url : null),
+              () => null,
+            ),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 5_000)),
+          ]),
     )
   })
   return async () => (await Promise.all(seen)).filter((url) => url !== null)
