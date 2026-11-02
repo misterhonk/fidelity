@@ -14,6 +14,19 @@ const alerts = shallowRef<WatchAlert[]>([])
 /** What the "only what is new" pass found at the shops that moved (#240). */
 const digests = shallowRef<WatchDigest[]>([])
 let checked = false
+let expiry: ReturnType<typeof setTimeout> | undefined
+
+/**
+ * Rule 4: a digest's finds leave the screen when its dig expires, not at the
+ * next reload — a Start page can stay open for longer than six hours.
+ */
+function showDigests(list: WatchDigest[]) {
+  clearTimeout(expiry)
+  digests.value = list.filter((digest) => digest.expiresAt > Date.now())
+  if (digests.value.length === 0) return
+  const next = Math.min(...digests.value.map((digest) => digest.expiresAt))
+  expiry = setTimeout(() => showDigests(digests.value), next - Date.now())
+}
 
 /**
  * The badge, where the browser has one.
@@ -54,9 +67,11 @@ export function useWatchlist() {
       setBadge(result.alerts.length)
       if (result.checked > 0) await load()
       if (result.alerts.length > 0) {
-        digests.value = await call('watch.digest', {
-          dealers: result.alerts.map((alert) => alert.dealer),
-        })
+        showDigests(
+          await call('watch.digest', {
+            dealers: result.alerts.map((alert) => alert.dealer),
+          }),
+        )
       }
     } catch {
       // A shop that will not answer is not worth an error message on the
@@ -79,7 +94,7 @@ export function useWatchlist() {
 
   function dismiss() {
     alerts.value = []
-    digests.value = []
+    showDigests([])
     setBadge(0)
   }
 
