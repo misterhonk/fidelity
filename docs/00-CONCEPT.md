@@ -307,7 +307,7 @@ a perfectly readable table would fall into pieces that fit nothing.
 | Not building | Why |
 |---|---|
 | Wantlist alerts | Discogs owns Wantlister — hopeless |
-| Collection cataloguing | A dozen apps, a solved problem |
+| Collection cataloguing | A dozen apps, a solved problem. Discogs stays the catalogue; Sleeveside keeps only place, condition note, paid price (typed, never the order's) and arrival beside a copy, to answer the next purchase — [ADR-019](adr/019-collection-in-service-of-buying.md) |
 | Collection visualisation | Vizcogs, Groovv, Discogs Enhancer |
 | Our own marketplace / checkout | A ToS breach and strategically stupid |
 | Price arbitrage to eBay/Amazon | The ToS forbids diverting traffic |

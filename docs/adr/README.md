@@ -26,6 +26,7 @@ What gets easier, what gets harder? What is the way out?
 | ADR | Title | Status |
 |---|---|---|
 | [007](007-client-only-pwa.md) | **Client-only PWA, no backend** | **Accepted** |
+| [019](019-collection-in-service-of-buying.md) | Collection management, in service of buying | Accepted (#231) |
 | [018](018-lazy-wasm-barcode-decoder.md) | A barcode decoder for Safari, loaded only when asked for | Accepted (#301) |
 | [017](017-postage-from-your-own-order.md) | The postage of your own order is your own fact | Accepted |
 | [016](016-no-pooled-release-details.md) | The hub pools cover addresses and nothing else | Accepted |
