@@ -102,7 +102,8 @@ function provisional(match: Match & { title: string; artist: string }): Provisio
  * path takes it for an entry; and far below any `-releaseId`, which is still
  * the sync's stand-in for a row without an instance, so the two never collide.
  */
-const provisionalKey = () => -(Date.now() * 1000 + Math.floor(Math.random() * 1000))
+let sequence = 0
+const provisionalKey = () => -(Date.now() * 1000 + (sequence++ % 1000))
 
 /** The key a queued add's row waits under — `-releaseId` for one queued before per-copy keys. */
 export const provisionalKeyOf = (job: OutboxJob): number =>
@@ -119,11 +120,14 @@ export async function addCopy(
   copy: ProvisionalCopy,
   choices: CopyChoices = {},
 ): Promise<number> {
-  const instanceId = provisionalKey()
   // Folder 0 is Discogs' virtual "All" and cannot be written to.
   const folderId = choices.folderId && choices.folderId > 0 ? choices.folderId : 1
   const db = await openFidelityDb()
   const tx = db.transaction(['collection', 'placements', 'fieldValues'], 'readwrite')
+  // A taken key would be overwritten here and its job replaced by `queueJob`: one bought copy gone.
+  let instanceId = provisionalKey()
+  while ((await tx.objectStore('collection').getKey(instanceId)) !== undefined)
+    instanceId = provisionalKey()
   await tx.objectStore('collection').put({ ...copy, instanceId, folderId })
   if (choices.placeId)
     await tx
