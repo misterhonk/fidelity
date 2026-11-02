@@ -11,6 +11,7 @@ import type {
 import { reasonFor } from '~/i18n/reason'
 import { pressingText, stampText } from '~/i18n/pressing'
 import { useDigMessages } from '~/i18n/dig'
+import { useCollectionMessages } from '~/i18n/collection'
 import {
   drainLookups,
   lookupKind,
@@ -20,6 +21,8 @@ import {
 } from '~/utils/lookup'
 
 const d = useDigMessages()
+const c = useCollectionMessages()
+const addMode = useAddMode()
 
 const m = useMessages()
 useSeoMeta({
@@ -650,10 +653,19 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
               </button>
             </li>
           </ul>
-          <DiscogsCredit
-            :to="releasePage(familyFor ?? identified.candidates[0]!.releaseId)"
-            class="self-start"
-          />
+          <div class="flex flex-wrap items-center gap-4">
+            <!-- Bought it: straight into add mode with this answer, no second lookup (#233). -->
+            <FidButton
+              variant="secondary"
+              @click="addMode.open({ found: identified, releaseId: familyFor })"
+            >
+              {{ c.add.toShelf }}
+            </FidButton>
+            <DiscogsCredit
+              :to="releasePage(familyFor ?? identified.candidates[0]!.releaseId)"
+              class="self-start"
+            />
+          </div>
 
           <p v-if="reading" class="text-fid-sm text-fid-text-muted" aria-live="polite">
             {{ m.inStore.pressing.reading }}

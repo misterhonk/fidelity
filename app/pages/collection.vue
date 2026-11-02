@@ -6,6 +6,7 @@ import type { PlaceNode, ShelfSort, ShelfView, SortDirection } from '#shared/typ
 import { useCollectionMessages } from '~/i18n/collection'
 
 const c = useCollectionMessages()
+const { open: openAdd } = useAddMode()
 const { identity } = useIdentity()
 useSeoMeta({ title: () => c.value.title, description: () => c.value.shelf.description })
 
@@ -266,6 +267,11 @@ const walk = computed(() => {
       three across on a phone and eight on a monitor.
     -->
     <PageHeader :title="c.title">
+      <template #aside>
+        <FidButton variant="secondary" aria-keyshortcuts="a" @click="openAdd()">
+          + {{ c.add.open }}
+        </FidButton>
+      </template>
       <template #tabs><CollectionTabs /></template>
     </PageHeader>
 

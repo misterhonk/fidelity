@@ -1020,6 +1020,21 @@ export const handlers: HandlerMap = {
     return addRecord(match, folderId)
   },
 
+  'collection.addPressing': async ({ pressing, grade, placeId }) => {
+    const { addPressing } = await import('./collection/add')
+    return addPressing(pressing, { grade, placeId })
+  },
+
+  'collection.addStatus': async ({ adds }) => {
+    const { addStatus } = await import('./collection/add')
+    return addStatus(adds)
+  },
+
+  'collection.undoAdd': async ({ add }) => {
+    const { undoAdd } = await import('./collection/add')
+    return undoAdd(add)
+  },
+
   'collection.value': async () => {
     const { getMeta } = await import('~~/db/meta')
     return (await getMeta('collectionValue')) ?? null

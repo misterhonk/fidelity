@@ -1250,6 +1250,25 @@ export interface Identified {
   wantedAlbums: WantlistItem[]
 }
 
+/** One pressing a barcode or run-out named. */
+export type Pressing = Identified['candidates'][number]
+
+/** A copy put on the shelf in add mode (#233), and what undo needs to find it again. */
+export interface AddedCopy {
+  /** Its provisional key, until Discogs gives it an entry. */
+  key: number
+  releaseId: number
+  /** The entries of this release that were there before — a new one means it landed. */
+  before: number[]
+}
+
+export interface AddState {
+  key: number
+  status: 'waiting' | 'sent' | 'failed'
+  /** The entry it landed as, once sent. */
+  instanceId: number | null
+}
+
 /**
  * The pressing in your hand, placed among all the others (docs/06 M19 #7).
  *

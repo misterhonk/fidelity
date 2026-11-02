@@ -19,6 +19,7 @@ const emit = defineEmits<{ close: [] }>()
 
 const { call } = useFidelityWorker()
 const router = useRouter()
+const addMode = useAddMode()
 
 const query = ref('')
 const input = useTemplateRef<HTMLInputElement>('input')
@@ -161,6 +162,15 @@ const entries = computed<Entry[]>(() => {
     { id: 'nav-home', group: goTo, label: m.nav.start.label, run: go('/') },
 
     { id: 'act-scan', group: actions, label: m.palette.scan, run: go('/in-store') },
+    {
+      id: 'act-add',
+      group: actions,
+      label: c.add.open,
+      run: () => {
+        emit('close')
+        addMode.open()
+      },
+    },
     { id: 'act-basket', group: actions, label: m.nav.basket.label, run: go('/basket') },
     // Filled in and checked on the dig page, never started: a scan spends
     // somebody's rate limit, and that takes a second, deliberate press.
