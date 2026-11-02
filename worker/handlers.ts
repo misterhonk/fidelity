@@ -1030,6 +1030,11 @@ export const handlers: HandlerMap = {
     return addStatus(adds)
   },
 
+  'collection.placeAdd': async ({ add, placeId }) => {
+    const { placeAdd } = await import('./collection/add')
+    return placeAdd(add, placeId)
+  },
+
   'collection.undoAdd': async ({ add }) => {
     const { undoAdd } = await import('./collection/add')
     return undoAdd(add)

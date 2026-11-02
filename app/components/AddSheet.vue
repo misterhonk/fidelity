@@ -132,9 +132,15 @@ async function add() {
 }
 
 async function place(placeId: string) {
-  if (added.value === null) return
-  await call('places.assign', { instanceId: added.value, placeId })
-  placedIn.value = nameOf(placeId)
+  const entry = tray.value.find((e) => e.key === added.value)
+  if (!entry) return
+  error.value = null
+  try {
+    const add = { key: entry.key, releaseId: entry.releaseId, before: [...entry.before] }
+    if (await call('collection.placeAdd', { add, placeId })) placedIn.value = nameOf(placeId)
+  } catch (cause) {
+    error.value = cause
+  }
 }
 
 function again() {

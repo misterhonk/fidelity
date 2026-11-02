@@ -434,6 +434,12 @@ export interface WorkerContract {
   }
   /** Where this session's adds stand — read off the outbox and the shelf, no request. */
   'collection.addStatus': { params: { adds: AddedCopy[] }; progress: never; result: AddState[] }
+  /** Puts an add in a place under the entry it has by now. False when it never landed. */
+  'collection.placeAdd': {
+    params: { add: AddedCopy; placeId: string | null }
+    progress: never
+    result: boolean
+  }
   /** Takes an add back: dropped while it waits, removed once it landed. */
   'collection.undoAdd': { params: { add: AddedCopy }; progress: never; result: boolean }
   /** Adds a find to the wantlist. False when its six hours are up. */
