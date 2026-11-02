@@ -311,6 +311,8 @@ const en = {
        */
       drop: (n: string) => `Take ${n} off the wantlist`,
       dropped: (n: string) => `${n} off the wantlist`,
+      droppedOne: (artist: string, title: string) =>
+        `${artist} — ${title} is off the wantlist.`,
       undo: 'Undo',
       /*
        * Said only when it is true. A removal still waiting in the outbox is
@@ -870,6 +872,7 @@ const de: typeof en = {
       pick: (artist, title) => `${artist} – ${title} auswählen`,
       drop: (n) => `${n} von der Wantlist nehmen`,
       dropped: (n) => `${n} von der Wantlist genommen`,
+      droppedOne: (artist, title) => `${artist} – ${title} ist runter von der Wantlist.`,
       undo: 'Rückgängig',
       backAtDiscogs: (n) => `${n} bei Discogs neu angefragt`,
     },

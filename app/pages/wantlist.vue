@@ -134,7 +134,7 @@ async function drop(releaseId: number) {
   // row changes, and a list whose header disagrees with its body is worse
   // than one that takes a moment.
   overview.value = await call('collection.wantlist', undefined)
-  last.value = { line: c.value.wantlist.select.dropped(count(records.length)), records }
+  last.value = { line: droppedLine(records), records }
 }
 
 /**
@@ -297,7 +297,18 @@ async function dropSelected() {
   const records = await call('wantlist.removeMany', { releaseIds })
   stopSelecting()
   overview.value = await call('collection.wantlist', undefined)
-  last.value = { line: c.value.wantlist.select.dropped(count(records.length)), records }
+  last.value = { line: droppedLine(records), records }
+}
+
+/** One record is named, as the basket names it (#313); more are counted. */
+function droppedLine(records: WantlistItem[]): string {
+  const [one] = records
+  return records.length === 1 && one
+    ? c.value.wantlist.select.droppedOne(
+        one.artistNames[0] ?? one.artistNorms[0] ?? '',
+        one.title,
+      )
+    : c.value.wantlist.select.dropped(count(records.length))
 }
 
 async function undo() {
@@ -872,14 +883,9 @@ function waiting(addedAt: string): string | null {
     -->
     <p v-if="last" role="status" class="fid-toast">
       {{ last.line }}
-      <button
-        v-if="last.records"
-        type="button"
-        class="fid-action min-h-11 text-fid-sm text-fid-accent underline underline-offset-4"
-        @click="undo"
-      >
+      <FidButton v-if="last.records" variant="tertiary" @click="undo">
         {{ c.wantlist.select.undo }}
-      </button>
+      </FidButton>
     </p>
 
     <WantSheet
