@@ -274,6 +274,15 @@ describe('catalogue runs as badges (#247)', () => {
     expect((await collectionGaps()).runs).toEqual([])
   })
 
+  it('shows no badge for a label whose catalogue was cut short', async () => {
+    const owned = Array.from({ length: 38 }, (_, i) => 1001 + i)
+    await seed(
+      [{ ...brain, complete: false }],
+      owned.map((id) => record({ releaseId: id })),
+    )
+    expect((await collectionGaps()).runs).toEqual([])
+  })
+
   it('puts the fuller series first', async () => {
     const ohr = chunk({
       kind: 'label',
