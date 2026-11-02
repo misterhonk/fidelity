@@ -49,7 +49,8 @@ test('puts a band on the radar and keeps it there', async ({ page, context }) =>
   await expect(page.getByText('Nobody on the radar yet')).toBeVisible()
 
   await page.getByLabel('Find a band').fill('Exit North')
-  await page.getByRole('button', { name: 'Search', exact: true }).click()
+  // The nav has its own Search button now; this is the radar form's.
+  await page.getByRole('main').getByRole('button', { name: 'Search', exact: true }).click()
 
   // Both hits, and the one that was added goes quiet rather than vanishing
   // under the finger that tapped it.

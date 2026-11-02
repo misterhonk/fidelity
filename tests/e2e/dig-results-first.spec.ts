@@ -53,7 +53,7 @@ test('opens on the finds, with the tools one segment away', async ({ page }) => 
 /* The keys and the deep link follow the segment that is up (#313). */
 test('j opens a find only while the finds are up', async ({ page }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { level: 1, name: /finds at/ })).toBeVisible({
     timeout: 15_000,
   })
@@ -71,7 +71,7 @@ test('j opens a find only while the finds are up', async ({ page }) => {
 
 test('a ?dealer= link opens on the Shop segment with its name filled in', async ({ page }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}&dealer=someshop`)
+  await page.goto(`/shop?id=${dig.id}&dealer=someshop`)
   const field = page.getByLabel('Shop name or link')
   await expect(field).toBeVisible({ timeout: 15_000 })
   await expect(field).toHaveValue('someshop')

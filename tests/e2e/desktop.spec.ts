@@ -31,7 +31,7 @@ async function moreFinds(page: Page, digId: string) {
 
 test('docks the find beside a dense list, and j and k walk both', async ({ page }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({ timeout: 15_000 })
   await moreFinds(page, dig.id)
   await page.reload()
@@ -81,7 +81,7 @@ test('docks the find beside a dense list, and j and k walk both', async ({ page 
 
 test('docks the shelf sheet and leaves the shelf usable', async ({ page }) => {
   await seed(page, 'en')
-  await page.goto('/shelf')
+  await page.goto('/collection')
   const items = page.locator('main ul > li')
   await expect(items.first()).toBeVisible({ timeout: 15_000 })
   await items.first().getByRole('button').first().click()
@@ -100,13 +100,14 @@ test('docks the shelf sheet and leaves the shelf usable', async ({ page }) => {
 test('puts the covers beside the words on the start page', async ({ page }) => {
   await seed(page, 'en')
   await page.goto('/')
-  const search = page.getByRole('button', { name: /Search records/ })
+  // The page title: the search moved into the nav bar with #228.
+  const search = page.getByRole('heading', { level: 1 })
   const rail = page.getByRole('heading', { name: 'Found last time' })
   await expect(rail).toBeVisible({ timeout: 15_000 })
 
   const left = (await search.boundingBox())!
   const right = (await rail.boundingBox())!
-  // Beside, not under: the rail starts right of the search and level with the top.
+  // Beside, not under: the rail starts right of the title and level with the top.
   expect(right.x).toBeGreaterThan(left.x + left.width)
   expect(right.y).toBeLessThan(left.y + 200)
 })
