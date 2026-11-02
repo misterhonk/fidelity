@@ -28,6 +28,9 @@ const SHARE_VERSION = 2
  */
 const MAX_SHARED_MATCHES = 50
 
+/** The longest fragment a link may carry — fifty finds come to about 5,000. */
+const MAX_SHARE_LENGTH = 20_000
+
 /** Signals whose evidence is marketplace data — a price or a stock count. */
 const MARKET_SIGNALS: ReadonlySet<SignalType> = new Set(['PRICE_SIGNAL', 'SCARCITY'])
 
@@ -124,6 +127,9 @@ export async function createShare(
  * Null for a link from a newer Sleeveside — too new, not damaged.
  */
 export async function readShare(data: string): Promise<SharedDig | null> {
+  // An honest link is ~5,000 characters; a hand-made one could inflate to gigabytes.
+  if (data.length > MAX_SHARE_LENGTH) throw fail('malformed-payload', 'shared list too long')
+
   let envelope: unknown
   try {
     const json = await pipe(fromBase64Url(data), new DecompressionStream('deflate-raw'))
