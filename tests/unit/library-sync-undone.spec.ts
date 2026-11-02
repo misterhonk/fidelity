@@ -13,15 +13,18 @@ vi.mock('~~/worker/auth', async (original) => ({
   requestPersistence: async () => true,
   discogs: () => ({}),
 }))
-vi.mock('~~/worker/outbox', () => ({
-  drainOutbox: async () => ({ sent: 0, givenUp: 1, undone: ['Loveless'], waiting: 0 }),
+const drainOutbox = vi.fn(async () => ({
+  sent: 0,
+  givenUp: 1,
+  undone: ['Loveless'],
+  waiting: 0,
 }))
-vi.mock('~~/worker/sync/library', () => ({
-  syncLibrary: async () => ({
-    collection: { stored: 0, requests: 1, total: 0 },
-    wantlist: { stored: 0, requests: 1, total: 0 },
-  }),
+const syncLibrary = vi.fn(async () => ({
+  collection: { stored: 0, requests: 1, total: 0 },
+  wantlist: { stored: 0, requests: 1, total: 0 },
 }))
+vi.mock('~~/worker/outbox', () => ({ drainOutbox }))
+vi.mock('~~/worker/sync/library', () => ({ syncLibrary }))
 
 const { handlers } = await import('~~/worker/handlers')
 
@@ -29,5 +32,14 @@ describe('a library sync whose drain gives up', () => {
   it('hands back the record that went back', async () => {
     const result = await handlers['library.sync'](undefined, { report: () => {} } as never)
     expect(result.undone).toEqual(['Loveless'])
+  })
+
+  it('still sends what is waiting when the read fails', async () => {
+    syncLibrary.mockRejectedValueOnce(new Error('offline'))
+    drainOutbox.mockClear()
+    await expect(
+      handlers['library.sync'](undefined, { report: () => {} } as never),
+    ).rejects.toThrow('offline')
+    expect(drainOutbox).toHaveBeenCalledOnce()
   })
 })
