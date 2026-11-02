@@ -17,7 +17,14 @@ vi.stubGlobal('shallowRef', shallowRef)
 vi.stubGlobal('readonly', readonly)
 vi.stubGlobal('useFidelityWorker', () => ({ call }))
 
-const { useWatchlist } = await import('~/composables/useWatchlist')
+/** The watchlist keeps its state per module, as the app does per load: a fresh one each test. */
+async function opened() {
+  vi.resetModules()
+  const { useWatchlist } = await import('~/composables/useWatchlist')
+  const watchlist = useWatchlist()
+  await watchlist.checkOnce()
+  return watchlist
+}
 
 const NOW = 1_800_000_000_000
 const SIX_HOURS = 21_600_000
@@ -45,13 +52,29 @@ describe('the digests on Start', () => {
       throw new Error(name)
     })
 
-    const watchlist = useWatchlist()
-    await watchlist.checkOnce()
+    const watchlist = await opened()
     expect(watchlist.digests.value).toEqual([digest])
 
     vi.advanceTimersByTime(SIX_HOURS - 1)
     expect(watchlist.digests.value).toHaveLength(1)
     vi.advanceTimersByTime(1)
+    expect(watchlist.digests.value).toEqual([])
+  })
+
+  it('go when the shops are checked again', async () => {
+    vi.useFakeTimers({ now: NOW })
+    call.mockImplementation(async (name: string) => {
+      if (name === 'watch.list') return [{ username: 'moved' }]
+      if (name === 'watch.check') return { alerts: [alert], checked: 0 }
+      if (name === 'watch.digest') return [digest]
+      throw new Error(name)
+    })
+
+    const watchlist = await opened()
+    expect(watchlist.digests.value).toEqual([digest])
+
+    await watchlist.recheck()
+    expect(watchlist.alerts.value).toEqual([alert])
     expect(watchlist.digests.value).toEqual([])
   })
 })

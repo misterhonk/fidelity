@@ -82,6 +82,8 @@ export function useWatchlist() {
   async function recheck() {
     const result = await call('watch.check', { force: true })
     alerts.value = result.alerts
+    // Dug against the old alerts; under the new ones they would claim the wrong move.
+    showDigests([])
     setBadge(result.alerts.length)
     await load()
     return result
