@@ -47,7 +47,7 @@ buying. It does not become a catalogue.**
 
    A fifth field needs this ADR amended.
 3. **Local and vault.** They live in IndexedDB, travel in the JSON backup and in the
-   vault (`SYNCABLE_STORES`, merged by `updatedAt`, tombstones instead of deletions),
+   vault (`SYNCABLE_STORES`, merged by their timestamp, tombstones instead of deletions),
    never to the hub in clear, never to Discogs. A copy that leaves the Discogs
    collection keeps its row as a tombstone; the fields are the buyer's own and are not
    thrown away by a sync.
