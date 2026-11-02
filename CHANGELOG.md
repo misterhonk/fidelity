@@ -12,6 +12,39 @@ Für eine App bedeutet SemVer:
 ## [0.118.0](https://github.com/misterhonk/fidelity/compare/v0.117.0...v0.118.0) (2026-11-02)
 
 
+<!-- en -->
+**Sleeveside looks calmer and reads the shop first.** A dig opens on its finds, the score is a
+price sticker with its word on it, and every screen has one clear main button.
+
+- The dig page leads with the shop's finds and its four best; the shop profile and your visits
+  are one tap away.
+- The basket reads like a receipt: lines, postage, total, and one button to put it all in at
+  Discogs. The tiers and the paste box wait under Tools.
+- In a shop: one field at the bottom for barcode, catalogue number or title, a big scan button
+  in reach of your thumb, and a dark screen.
+- On an iPhone, Sleeveside now reads barcodes with the camera. The reader loads once, the first
+  time you tap Scan, and works offline after that.
+- Every destructive tap has an undo, every button is big enough for a thumb, and Back closes any
+  sheet.
+- Moving between screens has a short, quiet animation. With reduced motion it is off.
+
+<!-- de -->
+**Sleeveside ist ruhiger und zeigt den Laden zuerst.** Ein Dig öffnet mit seinen Funden, der
+Score ist ein Preisschild mit seinem Wort, und jeder Bildschirm hat einen klaren Hauptknopf.
+
+- Die Dig-Seite zeigt zuerst die Funde des Ladens und seine besten vier. Ladenprofil und deine
+  Besuche sind einen Tipp entfernt.
+- Der Korb liest sich wie eine Quittung: Posten, Porto, Summe und ein Knopf, der alles bei
+  Discogs einlegt. Staffeln und Einfügen warten unter Werkzeuge.
+- Im Laden: ein Feld unten für Barcode, Katalognummer oder Titel, ein großer Scan-Knopf in
+  Daumennähe und ein dunkler Bildschirm.
+- Auf dem iPhone liest Sleeveside jetzt Barcodes mit der Kamera. Der Leser lädt einmal, beim
+  ersten Tipp auf Scannen, und läuft danach auch offline.
+- Jeder Tipp, der etwas löscht, lässt sich rückgängig machen. Jeder Knopf ist groß genug für den
+  Daumen, und Zurück schließt jedes Blatt.
+- Zwischen den Bildschirmen gibt es eine kurze, ruhige Bewegung. Mit reduzierter Bewegung ist
+  sie aus.
+
 ### Added
 
 * **basket:** read each shop's basket as a receipt with one primary action ([aa07202](https://github.com/misterhonk/fidelity/commit/aa07202c0aa587ff67e10c9749eaab4828f79682)), closes [#224](https://github.com/misterhonk/fidelity/issues/224)
