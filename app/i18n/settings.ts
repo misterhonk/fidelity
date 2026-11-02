@@ -430,7 +430,7 @@ const en = {
   hubPanel: {
     whyLabel: 'What a hub gives you',
     why: 'Everything we have worked out about your artists and labels then does not have to be looked up again on every device. What is in it once is there immediately on the next device instead of after minutes. The same goes for postage per shop. And if friends use the same hub, you all work for each other.',
-    optional: 'Everything works the same without a hub. It only takes waiting away.',
+    optional: 'It only takes waiting away.',
 
     url: 'Hub URL',
     door: 'Access key or shared secret',
@@ -539,7 +539,7 @@ const en = {
   cataloguePanel: {
     whyLabel: 'What a catalogue gives you',
     why: 'Discogs publishes its whole database once a month. A catalogue is that month, read once, answering what the API answers slowly or not at all: every pressing of an album at once, every record a producer touched, a barcode without a single request. Nothing of yours goes there; it only knows the records.',
-    optional: 'Everything works the same without one. It only takes waiting away.',
+    optional: 'It only takes waiting away.',
 
     url: 'Catalogue URL',
     save: 'Save',
@@ -1056,7 +1056,7 @@ const de: typeof en = {
   hubPanel: {
     whyLabel: 'Was ein Hub bringt',
     why: 'Alles, was wir über deine Künstler und Labels herausgefunden haben, muss dann nicht jedes Gerät für sich nachschlagen. Was einmal drinsteht, ist auf dem nächsten Gerät sofort da statt nach Minuten. Dasselbe gilt für Versandkosten pro Laden. Und wenn Freunde denselben Hub benutzen, arbeitet ihr euch gegenseitig zu.',
-    optional: 'Ohne Hub funktioniert alles genauso. Er nimmt nur Wartezeit weg.',
+    optional: 'Er nimmt nur Wartezeit weg.',
 
     url: 'Hub-URL',
     door: 'Zugangsschlüssel oder Shared Secret',
@@ -1146,7 +1146,7 @@ const de: typeof en = {
   cataloguePanel: {
     whyLabel: 'Was ein Katalog bringt',
     why: 'Discogs veröffentlicht einmal im Monat seine ganze Datenbank. Ein Katalog ist dieser Monat, einmal gelesen, und beantwortet, was die API langsam oder gar nicht beantwortet: alle Pressungen eines Albums auf einen Schlag, jede Platte, an der ein Produzent beteiligt war, ein Barcode ohne eine einzige Anfrage. Nichts von dir geht dorthin; er kennt nur die Platten.',
-    optional: 'Ohne Katalog funktioniert alles genauso. Er nimmt nur Wartezeit weg.',
+    optional: 'Er nimmt nur Wartezeit weg.',
 
     url: 'Katalog-URL',
     save: 'Speichern',
