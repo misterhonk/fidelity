@@ -144,6 +144,13 @@ describe('the recipient', () => {
     await expect(readShare(broken)).rejects.toMatchObject({ code: 'malformed-payload' })
   })
 
+  it('refuses an oversized link before inflating it', async () => {
+    await expect(readShare('A'.repeat(20_001))).rejects.toMatchObject({
+      code: 'malformed-payload',
+      message: 'shared list too long',
+    })
+  })
+
   it('reads a link from a newer version as nothing, not as damaged', async () => {
     expect(await readShare(await encodeShare({ version: 3 } as never))).toBeNull()
   })
