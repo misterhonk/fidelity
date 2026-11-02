@@ -33,3 +33,38 @@ test('opens a wanted record in the app, with the note and the stars', async ({ p
   await page.keyboard.press('Escape')
   await expect(sheet).toBeHidden()
 })
+
+/**
+ * Which pressing will do (#242): "first pressing only", "anything but the 2016
+ * reissue". Kept on this device, so it is still there when the sheet reopens.
+ */
+test('keeps a pressing rule for the album', async ({ page }) => {
+  await seed(page, 'en')
+  await page.goto('/wantlist')
+
+  const cover = page.locator('main ul li button').first()
+  await expect(cover).toBeVisible({ timeout: 15_000 })
+  await cover.click()
+
+  const sheet = page.getByRole('dialog')
+  await expect(sheet.getByRole('heading', { name: 'Which pressing will do' })).toBeVisible({
+    timeout: 15_000,
+  })
+  await sheet.getByRole('checkbox', { name: /First pressing only/ }).check()
+  await sheet
+    .getByLabel('Any pressing except')
+    .fill('https://www.discogs.com/release/9101-Dummy')
+  await sheet.getByRole('button', { name: 'Exclude' }).click()
+  await expect(sheet.getByRole('link', { name: /Not release 9101/ })).toBeVisible()
+
+  await page.keyboard.press('Escape')
+  await expect(sheet).toBeHidden()
+  await cover.click()
+  await expect(sheet.getByRole('checkbox', { name: /First pressing only/ })).toBeChecked({
+    timeout: 15_000,
+  })
+  await expect(sheet.getByRole('link', { name: /Not release 9101/ })).toBeVisible()
+
+  await sheet.getByRole('button', { name: 'Allow release 9101 again' }).click()
+  await expect(sheet.getByRole('link', { name: /Not release 9101/ })).toBeHidden()
+})

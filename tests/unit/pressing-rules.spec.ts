@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
+import { releaseIdFrom } from '~/utils/discogs-pages'
 import { getMeta } from '~~/db/meta'
 import { deleteFidelityDb } from '~~/db/open'
 import { handlers } from '~~/worker/handlers'
@@ -43,5 +44,17 @@ describe('the pressing rule of a wanted album', () => {
       }),
     ).toBeNull()
     expect(await getMeta('pressingRules')).toBeUndefined()
+  })
+})
+
+describe('reading the release somebody wants excluded', () => {
+  it('takes a number or a release address, and nothing else', () => {
+    expect(releaseIdFrom(' 9101 ')).toBe(9101)
+    expect(releaseIdFrom('https://www.discogs.com/release/9101-Portishead-Dummy-2016')).toBe(
+      9101,
+    )
+    expect(releaseIdFrom('https://www.discogs.com/master/77')).toBeNull()
+    expect(releaseIdFrom('Dummy 2016')).toBeNull()
+    expect(releaseIdFrom('0')).toBeNull()
   })
 })

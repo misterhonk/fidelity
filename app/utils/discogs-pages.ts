@@ -12,3 +12,12 @@ export const collectionPage = (username: string) =>
   `${WEB}/user/${encodeURIComponent(username)}/collection`
 export const wantlistPage = (username: string) =>
   `${WEB}/wantlist?user=${encodeURIComponent(username)}`
+
+/** A release id typed as a number or pasted as a release address; null when neither. */
+export function releaseIdFrom(text: string): number | null {
+  const trimmed = text.trim()
+  const id = Number(
+    /\/release\/(\d+)/.exec(trimmed)?.[1] ?? (/^\d+$/.test(trimmed) ? trimmed : NaN),
+  )
+  return id > 0 ? id : null
+}
