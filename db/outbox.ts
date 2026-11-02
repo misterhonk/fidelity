@@ -226,7 +226,13 @@ export async function resolveConflict(
     return null
   }
   const { conflict, ...rest } = job
-  if (keep === 'mine') await tx.store.put({ ...rest, revert: conflict.remote, attempts: 0 })
+  // A move is addressed by the folder the copy is in, and that is Discogs' one now.
+  const payload =
+    job.kind === 'collection.folder'
+      ? { ...job.payload, folderId: Number(conflict.remote.folderId) }
+      : job.payload
+  if (keep === 'mine')
+    await tx.store.put({ ...rest, payload, revert: conflict.remote, attempts: 0 })
   else await tx.store.delete(id)
   await tx.done
   return { ...rest, revert: conflict.remote }
