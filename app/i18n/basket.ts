@@ -69,7 +69,7 @@ const en = {
    * A parcel from outside the EU (2026-10-21). Estimates, and called that:
    * the duty is a flat rule, the VAT the destination's standard rate.
    */
-  customs: 'EU customs, estimated',
+  customs: { eu: 'EU customs, estimated', uk: 'UK customs, estimated', us: 'US customs' },
   customsOver: 'ordinary rules',
   importVat: (rate: string) => `Import VAT ${rate} %`,
   allIn: 'All in',
@@ -77,6 +77,13 @@ const en = {
     `From outside the EU, since 1 July 2026: ${duty} customs per kind of item under €150, which Discogs does not show. It adds the VAT at checkout.`,
   customsNoteOver:
     'From outside the EU and over €150: the VAT is paid at import, and ordinary customs rules apply.',
+  // The UK and the US (#243): each its own allowance, said in its own currency.
+  customsNoteUk:
+    'Into the UK, up to £135: no customs, and Discogs adds the 20 % VAT at checkout.',
+  customsNoteUkOver:
+    'Into the UK and over £135: the VAT is paid at import, and ordinary customs rules apply.',
+  customsNoteUs:
+    'Into the US: no duty-free allowance since 29 August 2025. Duty depends on where the record was made, and the carrier may add a fee. Discogs does not show either.',
 
   /** Where the postage table came from — said out loud, never implied. */
   source: {
@@ -393,7 +400,7 @@ const de: typeof en = {
   total: 'Gesamt',
   perRecord: 'pro Platte',
 
-  customs: 'EU-Zoll, geschätzt',
+  customs: { eu: 'EU-Zoll, geschätzt', uk: 'UK-Zoll, geschätzt', us: 'US-Zoll' },
   customsOver: 'normale Regeln',
   importVat: (rate) => `Einfuhrumsatzsteuer ${rate} %`,
   allIn: 'Alles zusammen',
@@ -401,6 +408,12 @@ const de: typeof en = {
     `Von außerhalb der EU, seit 1. Juli 2026: ${duty} Zoll pro Warenart unter 150 €. Das zeigt Discogs nicht an. Die Steuer schlägt Discogs an der Kasse drauf.`,
   customsNoteOver:
     'Von außerhalb der EU und über 150 €: Die Steuer zahlst du bei der Einfuhr, und es gelten die normalen Zollregeln.',
+  customsNoteUk:
+    'In die UK, bis 135 £: kein Zoll. Die 20 % Steuer schlägt Discogs an der Kasse drauf.',
+  customsNoteUkOver:
+    'In die UK und über 135 £: Die Steuer zahlst du bei der Einfuhr, und es gelten die normalen Zollregeln.',
+  customsNoteUs:
+    'In die USA: Seit 29. August 2025 gibt es keine Freigrenze mehr. Der Zoll hängt davon ab, wo die Platte herkommt, und der Paketdienst nimmt oft eine Gebühr. Beides zeigt Discogs nicht an.',
 
   source: {
     user: 'von dir eingetragen',

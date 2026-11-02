@@ -269,6 +269,16 @@ const peak = computed(() =>
 /** The EU's flat duty, a euro figure by law (worker/basket/customs.ts holds the rule). */
 const flatDuty = computed(() => money(3, 'EUR') ?? '')
 
+/** The sentence under the receipt that says whose border and what it adds. */
+const customsNote = computed(() => {
+  const charges = props.summary.importCharges
+  if (!charges) return null
+  if (charges.region === 'us') return b.value.customsNoteUs
+  if (charges.region === 'uk')
+    return charges.overThreshold ? b.value.customsNoteUkOver : b.value.customsNoteUk
+  return charges.overThreshold ? b.value.customsNoteOver : b.value.customsNote(flatDuty.value)
+})
+
 /*
  * One prefix per card (2026-10-21). Every card wrote `id="budget"`,
  * `"curve"` and `"candidates"`, so with two shops in the basket the second
@@ -476,17 +486,19 @@ const uid = useId()
             adds up, and the lines below say what comes on top and where.
           -->
             <template v-if="summary.importCharges">
-              <dt class="text-fid-text-muted">{{ b.customs }}</dt>
+              <dt class="text-fid-text-muted">{{ b.customs[summary.importCharges.region] }}</dt>
               <dd class="fid-num text-right text-fid-text">
                 {{ money(summary.importCharges.duty, summary.currency) ?? b.customsOver }}
               </dd>
 
-              <dt class="text-fid-text-muted">
-                {{ b.importVat(count(summary.importCharges.vatRate)) }}
-              </dt>
-              <dd class="fid-num text-right text-fid-text">
-                {{ money(summary.importCharges.vat, summary.currency) ?? b.shippingUnknown }}
-              </dd>
+              <template v-if="summary.importCharges.vatRate !== null">
+                <dt class="text-fid-text-muted">
+                  {{ b.importVat(count(summary.importCharges.vatRate)) }}
+                </dt>
+                <dd class="fid-num text-right text-fid-text">
+                  {{ money(summary.importCharges.vat, summary.currency) ?? b.shippingUnknown }}
+                </dd>
+              </template>
 
               <dt class="font-medium text-fid-text">{{ b.allIn }}</dt>
               <dd class="fid-num text-right font-bold text-fid-text">
@@ -540,11 +552,7 @@ const uid = useId()
             </button>
           </section>
 
-          <p v-if="summary.importCharges" class="text-fid-xs text-fid-text-muted">
-            {{
-              summary.importCharges.overThreshold ? b.customsNoteOver : b.customsNote(flatDuty)
-            }}
-          </p>
+          <p v-if="customsNote" class="text-fid-xs text-fid-text-muted">{{ customsNote }}</p>
 
           <p v-if="summary.subtotal === null" class="text-fid-sm text-fid-sig-gap-text">
             {{ b.subtotalExpired }}

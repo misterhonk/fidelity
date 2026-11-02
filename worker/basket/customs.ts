@@ -70,16 +70,37 @@ export function inEu(country: string | null | undefined): boolean {
   return Boolean(country && country.trim() in EU_VAT_RATES)
 }
 
-/** Cents, so the sums do not drift (CLAUDE.md: never float for money). */
+/**
+ * The two other destinations with a rule worth naming (#243), as of
+ * November 2026:
+ *
+ * - **United Kingdom.** No customs duty on a parcel worth £135 or less (low
+ *   value relief, which the Budget of November 2025 ends by March 2029 at the
+ *   latest); the 20 % VAT is charged at checkout by the marketplace. Over
+ *   £135 the VAT is paid at import and ordinary duty rules apply — again,
+ *   nothing this file can say for a parcel of records.
+ * - **United States.** No allowance at all since 29 August 2025, when the
+ *   $800 de-minimis exemption was suspended for every country. What a record
+ *   then owes depends on where it was pressed and on a tariff that has moved
+ *   several times since, and the carrier adds a fee of its own. There is no
+ *   VAT; sales tax is the state's. So no figure: the card says that the
+ *   border costs something, not how much.
+ */
+const UK = 'United Kingdom'
+const US = 'United States'
+export const UK_VAT_RATE = 20
+export const UK_RELIEF_UP_TO_GBP = 135
 
 /**
  * The charges for one parcel, or null where none apply or none can be told.
  *
- * Null when the shop is inside the EU or its country is unknown, when the
- * destination is outside the EU, or when the basket is not in euros.
- * `subtotal` and `shipping` are the basket's own figures; a null shipping
- * leaves the VAT unknown, because VAT on the goods alone would be a smaller
- * number than the truth.
+ * Null when the shop is inside the destination's customs area or its country
+ * is unknown, when the destination is none of the EU, the UK or the US, or
+ * when the basket is not in the currency the rule is written in (euros for
+ * the EU, pounds for the UK). `subtotal` and `shipping` are the basket's own
+ * figures; a null shipping leaves the VAT unknown, because VAT on the goods
+ * alone would be a smaller number than the truth. The sums run in cents
+ * (CLAUDE.md: never float for money).
  */
 export function importCharges(input: {
   from: string | null | undefined
@@ -89,24 +110,58 @@ export function importCharges(input: {
   shipping: number | null
   formats: (string | null | undefined)[]
 }): ImportCharges | null {
-  const { from, to, currency, subtotal, shipping, formats } = input
-  if (!from || inEu(from) || !inEu(to)) return null
-  if (currency !== 'EUR' || subtotal === null || formats.length === 0) return null
-
-  const vatRate = EU_VAT_RATES[to!.trim()]!
-  const overThreshold = cents(subtotal) >= cents(FLAT_DUTY_UNDER_EUR)
+  const { currency, subtotal, shipping, formats } = input
+  const from = input.from?.trim()
+  const to = input.to?.trim()
+  if (!from || !to || subtotal === null || formats.length === 0) return null
 
   // Vinyl in any size is one sub-heading, a CD another (HS 8523 splits them).
-  const kinds = new Set(
+  const dutyLines = new Set(
     formats.map((format) => (unitsOf(format).unit === 'cd' ? 'cd' : 'vinyl')),
-  )
-  const dutyLines = kinds.size
-  const duty = overThreshold ? null : dutyLines * FLAT_DUTY_EUR
-
-  const vat =
+  ).size
+  const vatAt = (rate: number) =>
     shipping === null
       ? null
-      : Math.round(((cents(subtotal) + cents(shipping)) * vatRate) / 100) / 100
+      : Math.round(((cents(subtotal) + cents(shipping)) * rate) / 100) / 100
 
-  return { duty, dutyLines, vat, vatRate, vatAtCheckout: !overThreshold, overThreshold }
+  if (to === US) {
+    if (from === US) return null
+    return {
+      region: 'us',
+      duty: null,
+      dutyLines,
+      vat: null,
+      vatRate: null,
+      vatAtCheckout: false,
+      overThreshold: true,
+    }
+  }
+
+  if (to === UK) {
+    if (from === UK || currency !== 'GBP') return null
+    // The relief covers "£135 or less"; the EU's €150 below is "under".
+    const overThreshold = cents(subtotal) > cents(UK_RELIEF_UP_TO_GBP)
+    return {
+      region: 'uk',
+      duty: overThreshold ? null : 0,
+      dutyLines,
+      vat: vatAt(UK_VAT_RATE),
+      vatRate: UK_VAT_RATE,
+      vatAtCheckout: !overThreshold,
+      overThreshold,
+    }
+  }
+
+  if (inEu(from) || !inEu(to) || currency !== 'EUR') return null
+  const vatRate = EU_VAT_RATES[to]!
+  const overThreshold = cents(subtotal) >= cents(FLAT_DUTY_UNDER_EUR)
+  return {
+    region: 'eu',
+    duty: overThreshold ? null : dutyLines * FLAT_DUTY_EUR,
+    dutyLines,
+    vat: vatAt(vatRate),
+    vatRate,
+    vatAtCheckout: !overThreshold,
+    overThreshold,
+  }
 }

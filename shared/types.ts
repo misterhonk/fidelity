@@ -2271,20 +2271,26 @@ export interface BasketLine {
 }
 
 /**
- * What a parcel from outside the EU adds at the border (worker/basket/customs.ts):
- * the flat customs duty since 1 July 2026 and the import VAT. Estimates.
+ * What a parcel adds at the border into the EU, the UK or the US
+ * (worker/basket/customs.ts): the customs duty and the import VAT. Estimates.
  */
 export interface ImportCharges {
-  /** €3 per tariff sub-heading under €150; null over it, where ordinary rules apply. */
+  /** Whose border, and so whose rule and wording. */
+  region: 'eu' | 'uk' | 'us'
+  /**
+   * EU: €3 per tariff sub-heading under €150. UK: 0 up to £135. Null where
+   * ordinary rules apply — over the allowance, and always into the US.
+   */
   duty: number | null
   /** How many sub-headings the parcel holds: vinyl and CDs are two. */
   dutyLines: number
-  /** Null when the postage is unknown. */
+  /** Null when the postage is unknown, or the destination has no VAT (US). */
   vat: number | null
-  /** The destination's standard rate, in per cent. */
-  vatRate: number
-  /** Under €150 Discogs charges the VAT at checkout; over it, it is paid at import. */
+  /** The destination's standard rate, in per cent; null into the US. */
+  vatRate: number | null
+  /** Under the allowance Discogs charges the VAT at checkout; over it, it is paid at import. */
   vatAtCheckout: boolean
+  /** Over the allowance, or none to be under (US). */
   overThreshold: boolean
 }
 
