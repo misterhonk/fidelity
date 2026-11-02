@@ -322,7 +322,7 @@ const STACKED =
 
     <section v-if="!loading && shops.length === 0" class="flex flex-col gap-3">
       <p class="text-fid-base text-fid-text-muted">{{ d.stack.empty }}</p>
-      <FidButton to="/dig" class="self-start">
+      <FidButton to="/shop" class="self-start">
         {{ d.stack.toDig }}
       </FidButton>
     </section>
@@ -330,7 +330,7 @@ const STACKED =
     <section v-else-if="done" class="flex flex-col gap-3">
       <p class="text-fid-base text-fid-text">{{ d.stack.through }}</p>
       <NuxtLink
-        to="/dig"
+        to="/shop"
         class="fid-action self-start rounded-fid-sm border border-fid-border px-4 py-2 text-fid-sm text-fid-text"
       >
         {{ d.stack.toDig }}

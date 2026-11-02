@@ -259,7 +259,7 @@ screen, and the previous scale had two that nobody made.
 
 > **Design names, not file names.** The sections below describe *behaviour* under the
 > names the design was drawn with. In code, `ScanProgress` is the progress block in
-> `pages/dig.vue`, `SignalChip` is `utils/signals.ts` rendered by `MatchCard`/`MatchRow`,
+> `pages/shop.vue`, `SignalChip` is `utils/signals.ts` rendered by `MatchCard`/`MatchRow`,
 > `ShippingLadder` is the tier table in `BasketCard.vue`, and `CatalogRunGrid` is the one
 > that kept its name. A component of its own is cut when a second screen needs it — the
 > detail sheets got theirs (`SheetFrame`) on 2026-09-11, when the audit found the drawer

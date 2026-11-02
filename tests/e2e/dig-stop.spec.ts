@@ -57,7 +57,7 @@ test('stops a dig from another screen and resumes it later', async ({ page, cont
     return route.fulfill({ status: 404, headers: cors, body: '{}' })
   })
 
-  await page.goto('/dig')
+  await page.goto('/shop')
   await page
     .getByRole('group', { name: 'This dig' })
     .getByRole('button', { name: 'Shop' })
@@ -76,12 +76,12 @@ test('stops a dig from another screen and resumes it later', async ({ page, cont
 
   // Away: the nav still says a dig is running.
   await page.getByRole('link', { name: 'Collection', exact: true }).click()
-  await expect(page).toHaveURL(/shelf/)
+  await expect(page).toHaveURL(/collection/)
   await expect(page.getByTestId('dig-ring')).toBeVisible({ timeout: 5_000 })
 
   // Back, and stop it from the screen that did not start it.
-  await page.getByRole('link', { name: 'Dig', exact: true }).click()
-  await expect(page).toHaveURL(/dig/)
+  await page.getByRole('link', { name: 'Shops', exact: true }).click()
+  await expect(page).toHaveURL(/\/shop$/)
   await page.getByRole('button', { name: 'Stop', exact: true }).click()
 
   await expect(page.getByText('Digging through slowshop', { exact: true })).toBeHidden({

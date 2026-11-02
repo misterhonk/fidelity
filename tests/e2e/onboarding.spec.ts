@@ -137,7 +137,7 @@ test('a stranger sets up, syncs, and digs a shop without reading a document', as
   expect(asked.filter((path) => /^\/(artists|labels)\//.test(path))).toEqual([])
 
   await page.getByRole('link', { name: 'Pick any shop' }).click()
-  await expect(page).toHaveURL(/dig/)
+  await expect(page).toHaveURL(/shop/)
   await page.getByLabel('Shop name or link').fill('kompaktshop')
   await page.getByRole('button', { name: 'Check' }).click()
   await page.getByRole('button', { name: 'Start the dig' }).click()

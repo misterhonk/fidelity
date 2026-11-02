@@ -92,7 +92,7 @@ const recordEntries = computed<Entry[]>(() => {
       group: m.palette.shelf,
       label: label(hit),
       hint: hint(hit),
-      run: go('/shelf', { q: hit.title }),
+      run: go('/collection', { q: hit.title }),
     })),
     ...r.wantlist.map((hit) => ({
       id: `want-${hit.releaseId}`,
@@ -107,7 +107,7 @@ const recordEntries = computed<Entry[]>(() => {
       group: m.palette.lastDig,
       label: label(hit),
       hint: hint(hit),
-      run: go('/dig', { id: hit.digId ?? '', find: `${hit.digId}~${hit.listingId}` }),
+      run: go('/shop', { id: hit.digId ?? '', find: `${hit.digId}~${hit.listingId}` }),
     })),
   ]
 })
@@ -139,7 +139,7 @@ const entries = computed<Entry[]>(() => {
       group: m.palette.dealers,
       label: dealer.displayName || dealer.username,
       hint: dealer.affinity ? m.palette.affinity(decimal(dealer.affinity)) : undefined,
-      run: go('/dealers', { shop: dealer.username }),
+      run: go('/shops', { shop: dealer.username }),
     })),
 
     ...digs.value.map((dig) => ({
@@ -149,14 +149,14 @@ const entries = computed<Entry[]>(() => {
       hint: m.palette.digHint(dig.matchCount, shortDay(dig.startedAt)),
       // Every dig entry used to land on the newest one. Five are kept; four
       // were unreachable.
-      run: go('/dig', { id: dig.id }),
+      run: go('/shop', { id: dig.id }),
     })),
 
-    { id: 'nav-dig', group: goTo, label: m.nav.dig.label, run: go('/dig') },
-    { id: 'nav-shelf', group: goTo, label: c.tabs.shelf, run: go('/shelf') },
-    { id: 'nav-map', group: goTo, label: c.tabs.map, run: go('/map') },
+    { id: 'nav-dig', group: goTo, label: m.nav.dig.label, run: go('/shop') },
+    { id: 'nav-shelf', group: goTo, label: c.tabs.shelf, run: go('/collection') },
+    { id: 'nav-map', group: goTo, label: c.tabs.map, run: go('/insights') },
     { id: 'nav-want', group: goTo, label: c.tabs.wantlist, run: go('/wantlist') },
-    { id: 'nav-clerk', group: goTo, label: m.nav.dealers.label, run: go('/dealers') },
+    { id: 'nav-clerk', group: goTo, label: m.nav.dealers.label, run: go('/shops') },
     { id: 'nav-store', group: goTo, label: m.palette.inStore, run: go('/in-store') },
     { id: 'nav-home', group: goTo, label: m.nav.start.label, run: go('/') },
 
@@ -168,7 +168,7 @@ const entries = computed<Entry[]>(() => {
       id: `act-dig-${dealer.username}`,
       group: actions,
       label: m.palette.digAt(dealer.displayName || dealer.username),
-      run: go('/dig', { dealer: dealer.username }),
+      run: go('/shop', { dealer: dealer.username }),
     })),
     ...settingsPages.map(([path, title]) => ({
       id: `act-settings-${path}`,

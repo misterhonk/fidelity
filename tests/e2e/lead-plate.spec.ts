@@ -63,12 +63,12 @@ test('wears a worn-out reason as a plate, and keeps the sentence for the rest', 
   page,
 }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({
     timeout: 15_000,
   })
   await manyOfTheSame(page, dig.id)
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: '22 finds at plattenkiste' })).toBeVisible({
     timeout: 15_000,
   })
@@ -122,7 +122,7 @@ test('wears a worn-out reason as a plate, and keeps the sentence for the rest', 
  */
 test('breaks a tie on the price, and says on the tab that it does', async ({ page }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({
     timeout: 15_000,
   })
@@ -142,7 +142,7 @@ test('breaks a tie on the price, and says on the tab that it does', async ({ pag
   }))
   await putRows(page, { matches })
 
-  await page.goto(`/dig?id=${dig.id}&density=compact`)
+  await page.goto(`/shop?id=${dig.id}&density=compact`)
   await expect(page.getByRole('heading', { name: '10 finds at plattenkiste' })).toBeVisible({
     timeout: 15_000,
   })

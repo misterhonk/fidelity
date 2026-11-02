@@ -14,7 +14,7 @@ test.use({ viewport: { width: 390, height: 844 } })
 
 test('opens on the finds, with the tools one segment away', async ({ page }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
 
   const head = page.getByRole('heading', { level: 1, name: /finds at plattenkiste/ })
   await expect(head).toBeVisible({ timeout: 15_000 })

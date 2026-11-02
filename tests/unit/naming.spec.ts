@@ -6,7 +6,6 @@ import { packs as basket } from '~/i18n/basket'
 import { packs as collection } from '~/i18n/collection'
 import de from '~/i18n/de'
 import { packs as dealers } from '~/i18n/dealers'
-import { packs as dig } from '~/i18n/dig'
 import en from '~/i18n/en'
 
 /**
@@ -35,20 +34,20 @@ const NAV = 'app/components/AppNav.vue'
 
 /**
  * Which file serves a route, which pack pair its heading reads from, and which
- * entry of the nav names it. Only the five sections the nav bar names.
+ * entry of the nav names it. Only the four places the nav bar names — the
+ * fifth entry, Search, opens the palette and has no page (#228).
  */
 const SECTIONS = [
   { to: '/', page: 'app/pages/index.vue', nav: 'start', packs: { en, de }, path: 'home.title' },
-  { to: '/dig', page: 'app/pages/dig.vue', nav: 'dig', packs: dig, path: 'title' },
-  { to: '/basket', page: 'app/pages/basket.vue', nav: 'basket', packs: basket, path: 'title' },
-  { to: '/shelf', page: 'app/pages/shelf.vue', nav: 'shelf', packs: collection, path: 'title' },
+  { to: '/shops', page: 'app/pages/shops.vue', nav: 'dealers', packs: dealers, path: 'title' },
   {
-    to: '/dealers',
-    page: 'app/pages/dealers.vue',
-    nav: 'dealers',
-    packs: dealers,
+    to: '/collection',
+    page: 'app/pages/collection.vue',
+    nav: 'shelf',
+    packs: collection,
     path: 'title',
   },
+  { to: '/basket', page: 'app/pages/basket.vue', nav: 'basket', packs: basket, path: 'title' },
 ] as const
 
 /**
@@ -79,8 +78,8 @@ const nav = readFileSync(NAV, 'utf8')
 const navKeys = [...nav.matchAll(/to: '[^']+',\s*key: '([^']+)'/g)].map((match) => match[1]!)
 
 describe('what the nav promises', () => {
-  it('names five sections', () => {
-    expect(navKeys).toEqual(['start', 'dig', 'basket', 'shelf', 'dealers'])
+  it('names Today · Shops · Collection · Basket, in that order (#228)', () => {
+    expect(navKeys).toEqual(['start', 'dealers', 'shelf', 'basket'])
   })
 
   it.each(SECTIONS)('$to has a heading that comes from a pack', ({ to, page }) => {

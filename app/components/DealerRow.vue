@@ -200,7 +200,7 @@ const code = computed(() =>
       the profile, once, for the shop that is open.
     -->
     <NuxtLink
-      :to="`/dig?dealer=${encodeURIComponent(dealer.username)}`"
+      :to="`/shop?dealer=${encodeURIComponent(dealer.username)}`"
       class="fid-action fid-tonal relative shrink-0 gap-2 rounded-fid-sm px-3 text-fid-xs font-medium"
       :aria-label="h.digAt(dealer.displayName || dealer.username)"
     >

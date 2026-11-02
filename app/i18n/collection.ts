@@ -18,6 +18,8 @@ const en = {
     watched: 'On watch',
     places: 'Places',
     review: 'Year',
+    /** Map and year together (#228): what the collection says, not what it holds. */
+    insights: 'Insights',
   },
 
   loading: 'Loading …',
@@ -667,6 +669,7 @@ const de: typeof en = {
     watched: 'Im Blick',
     places: 'Orte',
     review: 'Jahr',
+    insights: 'Einblicke',
   },
 
   review: {

@@ -58,7 +58,7 @@ test('watches a shop, walks the round, and says what it found', async ({ page, c
     return route.fulfill({ status: 404, headers: cors, body: '{}' })
   })
 
-  await page.goto('/dealers')
+  await page.goto('/shops')
 
   // Nothing to walk yet: no shop is watched, so there is no round.
   await expect(page.getByRole('heading', { name: 'The round' })).toBeHidden()

@@ -824,7 +824,7 @@ function years(entry: { from: number; to: number }): string {
       <ErrorNote v-if="failed" :cause="failed" />
       <p v-else class="max-w-prose text-fid-base text-fid-text-muted">
         {{ d.sheet.gone }}
-        <NuxtLink to="/dig" class="text-fid-accent underline underline-offset-4">
+        <NuxtLink to="/shop" class="text-fid-accent underline underline-offset-4">
           {{ d.sheet.goneAction }}
         </NuxtLink>
       </p>

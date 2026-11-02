@@ -81,7 +81,7 @@ const records = computed(() =>
 
     <p v-if="baskets.length === 0" class="text-fid-base text-fid-text-muted">
       {{ b.empty }}
-      <NuxtLink class="fid-action text-fid-text underline underline-offset-4" to="/dig">{{
+      <NuxtLink class="fid-action text-fid-text underline underline-offset-4" to="/shop">{{
         b.emptyAction
       }}</NuxtLink>
     </p>

@@ -422,7 +422,7 @@ function waiting(addedAt: string): string | null {
         -->
         <p v-if="plan.shopsScanned === 0" class="text-fid-sm text-fid-text-muted">
           {{ c.wantlist.plan.empty }}
-          <NuxtLink to="/dig" class="fid-action text-fid-text underline underline-offset-4">{{
+          <NuxtLink to="/shop" class="fid-action text-fid-text underline underline-offset-4">{{
             c.wantlist.plan.emptyAction
           }}</NuxtLink>
         </p>
@@ -489,7 +489,7 @@ function waiting(addedAt: string): string | null {
             >
               <div class="flex flex-wrap items-baseline justify-between gap-x-3">
                 <NuxtLink
-                  :to="`/dig/${shop.digId}`"
+                  :to="`/shop?id=${shop.digId}`"
                   class="fid-action text-fid-sm font-medium text-fid-text underline-offset-4 hover:underline"
                 >
                   {{ shop.displayName }}
@@ -766,7 +766,7 @@ function waiting(addedAt: string): string | null {
           <!-- Seen by master, so a different pressing still counts — and a way back to that shop. -->
           <NuxtLink
             v-if="group.lead.lastSeen"
-            :to="`/dig?dealer=${encodeURIComponent(group.lead.lastSeen.dealer)}`"
+            :to="`/shop?dealer=${encodeURIComponent(group.lead.lastSeen.dealer)}`"
             class="fid-action fid-plate text-fid-sig-wantlist-text underline-offset-4 hover:underline"
           >
             {{ c.lastSeenAt }}

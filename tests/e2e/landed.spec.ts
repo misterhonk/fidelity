@@ -18,7 +18,7 @@ import { seed } from './seed'
 test.describe('the find list, with postage', () => {
   test('says what a record costs once it is in the parcel', async ({ page }) => {
     const dig = await seed(page, 'en')
-    await page.goto(`/dig?id=${dig.id}`)
+    await page.goto(`/shop?id=${dig.id}`)
 
     await expect(page.getByText('€34.00 with postage').first()).toBeVisible()
     await expect(page.getByText('€21.50 with postage').first()).toBeVisible()
@@ -36,7 +36,7 @@ test.describe('the find list, with postage', () => {
    */
   test('does not print the same number twice in the sheet', async ({ page }) => {
     const dig = await seed(page, 'en')
-    await page.goto(`/dig?id=${dig.id}`)
+    await page.goto(`/shop?id=${dig.id}`)
 
     await page
       .getByRole('button', { name: /Point of Departure/i })
@@ -50,7 +50,7 @@ test.describe('the find list, with postage', () => {
 
   test('in German too', async ({ page }) => {
     const dig = await seed(page, 'de')
-    await page.goto(`/dig?id=${dig.id}`)
+    await page.goto(`/shop?id=${dig.id}`)
 
     await expect(page.getByText('34,00 € mit Porto').first()).toBeVisible()
   })

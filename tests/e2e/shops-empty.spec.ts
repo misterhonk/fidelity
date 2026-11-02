@@ -14,7 +14,7 @@ import { settled, signIn } from './seed'
  */
 async function signedInWithNoShops(page: Page) {
   await signIn(page)
-  await page.goto('/dealers')
+  await page.goto('/shops')
   await settled(page)
 }
 

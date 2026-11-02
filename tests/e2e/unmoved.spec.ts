@@ -31,7 +31,7 @@ test('says when a shop has not moved since the last dig', async ({ context, page
     }),
   )
 
-  await page.goto('/dig')
+  await page.goto('/shop')
   await page
     .getByRole('group', { name: 'This dig' })
     .getByRole('button', { name: 'Shop' })

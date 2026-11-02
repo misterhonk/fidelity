@@ -28,7 +28,7 @@ const WANTED = 'Sound-Dust'
 test.describe('a device that has been used', () => {
   test('the find list shows what was found', async ({ page }) => {
     const dig = await seed(page, 'en')
-    await page.goto(`/dig?id=${dig.id}`)
+    await page.goto(`/shop?id=${dig.id}`)
 
     // `.first()` because a find list shows each record in the shortlist and
     // again in the long list below it.
@@ -78,7 +78,7 @@ test.describe('a device that has been used', () => {
 
   test('the shelf shows the records on it', async ({ page }) => {
     await seed(page, 'en')
-    await page.goto('/shelf')
+    await page.goto('/collection')
 
     await expect(page.getByText('Speak No Evil')).toBeVisible()
     await expect(page.getByText('Maiden Voyage')).toBeVisible()
@@ -94,7 +94,7 @@ test.describe('a device that has been used', () => {
    */
   test('a record of your own opens with its details named', async ({ page }) => {
     await seed(page, 'en')
-    await page.goto('/shelf')
+    await page.goto('/collection')
 
     await page.getByRole('button', { name: /Speak No Evil/ }).click()
 
@@ -181,7 +181,7 @@ test.describe('the same price in two languages', () => {
  */
 const POPULATED = [
   { path: '/basket', shows: RECORD },
-  { path: '/shelf', shows: OWNED },
+  { path: '/collection', shows: OWNED },
   { path: '/wantlist', shows: WANTED },
 ] as const
 

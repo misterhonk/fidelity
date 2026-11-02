@@ -206,7 +206,7 @@ describe('importance has one colour', () => {
    * screens now draw stars and "wanted most" in the importance role.
    */
   it('is the colour of stars and priority on the wantlist and the shelf', () => {
-    for (const file of ['app/pages/wantlist.vue', 'app/pages/shelf.vue']) {
+    for (const file of ['app/pages/wantlist.vue', 'app/pages/collection.vue']) {
       expect(readFileSync(file, 'utf8'), file).toContain('text-fid-importance')
     }
     const wantlist = readFileSync('app/pages/wantlist.vue', 'utf8')
@@ -221,7 +221,7 @@ describe('distribution bars', () => {
    * five signal hues (issue #219). They are cardboard with one shellac
    * highlight, and a signal colour there would read as a finding.
    */
-  it.each(['app/components/FacetBars.vue', 'app/pages/review.vue'])(
+  it.each(['app/components/FacetBars.vue', 'app/pages/insights/year.vue'])(
     '%s draws no bar in a signal colour',
     (file) => {
       const source = readFileSync(file, 'utf8')

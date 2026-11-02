@@ -295,7 +295,7 @@ const added = computed(() => {
 function shelfLinks(names: string[], facet: 'label' | 'artist') {
   return names
     .filter((name) => name.trim().length > 0)
-    .map((name) => ({ name, to: `/shelf?${facet}=${encodeURIComponent(name)}` }))
+    .map((name) => ({ name, to: `/collection?${facet}=${encodeURIComponent(name)}` }))
 }
 
 /**

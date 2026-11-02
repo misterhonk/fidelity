@@ -129,13 +129,13 @@ describe('how the score is shown', () => {
     const list = withoutComments(readFileSync('app/components/MatchList.vue', 'utf8'))
     expect(list.match(/d\.match\.scoreHow/g)).toHaveLength(1)
     // The top five is a list of its own, with its own single explanation.
-    const dig = withoutComments(readFileSync('app/pages/dig.vue', 'utf8'))
+    const dig = withoutComments(readFileSync('app/pages/shop.vue', 'utf8'))
     expect(dig.match(/d\.match\.scoreHow/g)).toHaveLength(1)
   })
 
   /** Below 50 records the low scores are the collection's doing, and the dig says so. */
   it('says when the collection is too small for high scores', () => {
-    const dig = withoutComments(readFileSync('app/pages/dig.vue', 'utf8'))
+    const dig = withoutComments(readFileSync('app/pages/shop.vue', 'utf8'))
     expect(dig).toMatch(/SMALL_COLLECTION = 50/)
     expect(dig).toMatch(/collectionSize < SMALL_COLLECTION/)
     // In both languages; read from source, like the band names above.

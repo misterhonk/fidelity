@@ -27,7 +27,7 @@ test('a dig opened after its six hours shows the find and not its price', async 
     matches: seedMatches(dig.id),
   })
 
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByText('Point of Departure').first()).toBeVisible()
   await expect(page.locator('main').getByText(PRICE)).toHaveCount(0)
 })
@@ -43,7 +43,7 @@ test('a dig left open past its six hours takes the price down', async ({ page })
     matches: seedMatches(dig.id),
   })
 
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.locator('main').getByText(PRICE).first()).toBeVisible()
 
   await expect(page.locator('main').getByText(PRICE)).toHaveCount(0, { timeout: 20_000 })

@@ -11,7 +11,7 @@ import { seed } from './seed'
  */
 test('walks the shelf from inside the sheet', async ({ page }) => {
   await seed(page, 'en')
-  await page.goto('/shelf')
+  await page.goto('/collection')
 
   // Whatever sorts first — the point is the order, not the record.
   const items = page.locator('main ul > li')

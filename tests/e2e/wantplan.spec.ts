@@ -135,7 +135,7 @@ test('before the first dig it says what would fill it, with the way there', asyn
 
   const box = page.getByTestId('want-plan')
   await expect(box).toContainText('No shop dug in the last six hours.', { timeout: 15_000 })
-  await expect(box.getByRole('link', { name: 'Start a dig' })).toHaveAttribute('href', '/dig')
+  await expect(box.getByRole('link', { name: 'Start a dig' })).toHaveAttribute('href', '/shop')
   await expect(box.getByRole('group', { name: 'Ships from' })).toHaveCount(0)
 })
 

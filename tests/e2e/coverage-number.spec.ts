@@ -29,7 +29,7 @@ test('counts distinct listings, never more than the shop holds', async ({ page }
     ],
   })
 
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByText('19,864 of 19,864 dug (100 %)')).toBeVisible({
     timeout: 15_000,
   })

@@ -12,7 +12,7 @@ import { seed } from './seed'
  */
 test('folds the question away and walks the list from inside the sheet', async ({ page }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
 
   const result = page.getByRole('heading', { name: /finds at/ })
   await expect(result).toBeVisible({ timeout: 15_000 })

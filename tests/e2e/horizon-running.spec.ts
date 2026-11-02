@@ -71,8 +71,14 @@ test('a build survives leaving the screen, and says so where the wait is felt', 
    * A full reload would take the worker with it, and that really is an
    * interrupted build: a different situation with a different screen.
    */
-  await page.getByRole('link', { name: 'Dig', exact: true }).click()
-  await expect(page).toHaveURL(/dig/)
+  // There is no Dig tab since #228: the palette's "Dig" is the way there.
+  await page
+    .getByRole('navigation', { name: 'Main sections' })
+    .getByRole('button', { name: 'Search' })
+    .click()
+  await page.keyboard.type('dig')
+  await page.getByRole('dialog').getByRole('option', { name: 'Dig', exact: true }).click()
+  await expect(page).toHaveURL(/\/shop$/)
 
   // And here is where the wait was felt: "now, after 10 minutes, the app starts
   // scanning my first shop. A bit illogical."

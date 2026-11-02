@@ -14,7 +14,7 @@ import { seed } from './seed'
 test('opens the shop over the list on a phone, and beside it on a desk', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 })
   await seed(page, 'en')
-  await page.goto('/dealers')
+  await page.goto('/shops')
 
   const row = page
     .getByRole('list', { name: 'Your shops' })

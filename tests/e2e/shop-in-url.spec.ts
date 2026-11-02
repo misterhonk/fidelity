@@ -13,7 +13,7 @@ import { seed } from './seed'
  */
 test('keeps the open shop across a reload, and in a link', async ({ page }) => {
   await seed(page, 'en')
-  await page.goto('/dealers')
+  await page.goto('/shops')
 
   // The seeded device knows one shop, so opening it is what the page does.
   await expect(page.getByRole('button', { name: /Plattenkiste/ })).toBeVisible({
@@ -22,7 +22,7 @@ test('keeps the open shop across a reload, and in a link', async ({ page }) => {
   await expect(page).toHaveURL(/shop=plattenkiste/)
 
   // And the address is enough on its own: no click, no memory.
-  await page.goto('/dealers?shop=plattenkiste')
+  await page.goto('/shops?shop=plattenkiste')
   await expect(page.getByText('2,881 listings', { exact: false })).toBeVisible({
     timeout: 15_000,
   })
@@ -30,6 +30,6 @@ test('keeps the open shop across a reload, and in a link', async ({ page }) => {
   await expect(page.getByText('from €4.50 postage, up to 3 records')).toBeVisible()
 
   // A name nobody knows falls back rather than showing an empty profile.
-  await page.goto('/dealers?shop=nobody-of-that-name')
+  await page.goto('/shops?shop=nobody-of-that-name')
   await expect(page).toHaveURL(/shop=plattenkiste/)
 })

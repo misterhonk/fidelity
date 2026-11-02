@@ -11,7 +11,7 @@ import { seed } from './seed'
  */
 test('finds without a cover show a sleeve in their label colour', async ({ page }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({ timeout: 15_000 })
 
   const departure = page

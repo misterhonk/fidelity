@@ -23,9 +23,9 @@
   RewriteEngine On
   RewriteBase __FIDELITY_BASE__
   RewriteRule "^korb/?$" "basket" [R=301,L,QSA]
-  RewriteRule "^regal/?$" "shelf" [R=301,L,QSA]
-  RewriteRule "^haendler/?$" "dealers" [R=301,L,QSA]
-  RewriteRule "^landkarte/?$" "map" [R=301,L,QSA]
+  RewriteRule "^regal/?$" "collection" [R=301,L,QSA]
+  RewriteRule "^haendler/?$" "shops" [R=301,L,QSA]
+  RewriteRule "^landkarte/?$" "insights" [R=301,L,QSA]
   RewriteRule "^gemerkt/?$" "saved" [R=301,L,QSA]
   RewriteRule "^im-laden/?$" "in-store" [R=301,L,QSA]
   RewriteRule "^willkommen/?$" "welcome" [R=301,L,QSA]
@@ -40,6 +40,11 @@
   RewriteRule "^einstellungen/sammlung/?$" "settings/collection" [R=301,L,QSA]
   RewriteRule "^einstellungen/suche/?$" "settings/search" [R=301,L,QSA]
   RewriteRule "^einstellungen/?$" "settings" [R=301,L,QSA]
+  RewriteRule "^dig/?$" "shop" [R=301,L,QSA]
+  RewriteRule "^dealers/?$" "shops" [R=301,L,QSA]
+  RewriteRule "^shelf/?$" "collection" [R=301,L,QSA]
+  RewriteRule "^map/?$" "insights" [R=301,L,QSA]
+  RewriteRule "^review/?$" "insights/year" [R=301,L,QSA]
 </IfModule>
 
 # --- 2. Jede Adresse fällt auf 200.html ---------------------------------------

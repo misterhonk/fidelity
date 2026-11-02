@@ -28,7 +28,7 @@ async function manyFinds(page: Page, digId: string) {
 
 test('names the columns and sorts by the one you click', async ({ page }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({
     timeout: 15_000,
   })
@@ -38,7 +38,7 @@ test('names the columns and sorts by the one you click', async ({ page }) => {
    * setting was called until ADR-010 reached it on 2026-09-16, and a dig's
    * address is the thing people send each other. It has to keep opening.
    */
-  await page.goto(`/dig?id=${dig.id}&dicht=kompakt`)
+  await page.goto(`/shop?id=${dig.id}&dicht=kompakt`)
   await expect(page.getByRole('heading', { name: '8 finds at plattenkiste' })).toBeVisible({
     timeout: 15_000,
   })
@@ -89,13 +89,13 @@ test('writes the density in English, and drops the German key it opened with', a
   page,
 }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({
     timeout: 15_000,
   })
   // The tools only stand over a list long enough to need arranging.
   await manyFinds(page, dig.id)
-  await page.goto(`/dig?id=${dig.id}&dicht=kiste`)
+  await page.goto(`/shop?id=${dig.id}&dicht=kiste`)
   await expect(page.getByRole('heading', { name: '8 finds at plattenkiste' })).toBeVisible({
     timeout: 15_000,
   })
@@ -126,13 +126,13 @@ test('writes the density in English, and drops the German key it opened with', a
  */
 test('remembers the density this device chose', async ({ page }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({
     timeout: 15_000,
   })
   // The density bar stands over the long list, below the top five.
   await manyFinds(page, dig.id)
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: '8 finds at plattenkiste' })).toBeVisible({
     timeout: 15_000,
   })
@@ -146,7 +146,7 @@ test('remembers the density this device chose', async ({ page }) => {
 
   // Away and back, with nothing in the address.
   await page.goto('/')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({
     timeout: 15_000,
   })
@@ -158,7 +158,7 @@ test('remembers the density this device chose', async ({ page }) => {
     .getByRole('button', { name: 'Detailed' })
     .click()
   await page.goto('/')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({
     timeout: 15_000,
   })

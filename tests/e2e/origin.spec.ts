@@ -132,7 +132,7 @@ test('the plan drops the shop across the Channel when asked, and says so', async
 test('the shops screen keeps only the chips from home', async ({ page }) => {
   await seed(page, 'en')
   await britishShop(page)
-  await page.goto('/dealers')
+  await page.goto('/shops')
 
   const shops = page.getByRole('list', { name: 'Your shops' })
   await expect(shops.getByRole('button', { name: /London Wax/ })).toBeVisible({
@@ -146,7 +146,7 @@ test('the shops screen keeps only the chips from home', async ({ page }) => {
 
 test('sagt es auf Deutsch', async ({ page }) => {
   await seed(page, 'de')
-  await page.goto('/dealers?from=eu')
+  await page.goto('/shops?from=eu')
   await expect(page.getByRole('button', { name: 'Aus der EU' })).toHaveAttribute(
     'aria-pressed',
     'true',

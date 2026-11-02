@@ -131,7 +131,7 @@ test.describe('smoke', () => {
     // token the address has led to the setup since the guard, and then this
     // test was checking the setup instead of the map.
     await signIn(page)
-    await page.goto('/map')
+    await page.goto('/insights')
 
     await expect(page.getByRole('heading', { level: 1, name: 'Collection' })).toBeVisible()
     await expect(page.getByText('No profile yet')).toBeVisible()
@@ -144,7 +144,7 @@ test.describe('smoke', () => {
 
   test('the dig screen asks for a dealer and stays accessible', async ({ page }) => {
     await signIn(page)
-    await page.goto('/dig')
+    await page.goto('/shop')
 
     await expect(page.getByRole('heading', { level: 1, name: 'Dig' })).toBeVisible()
     // Name *or* link: nobody carries a Discogs username around, they carry the
@@ -181,10 +181,10 @@ test.describe('smoke', () => {
  */
 const SCREENS = [
   '/',
-  '/dig',
-  '/map',
+  '/shop',
+  '/insights',
   '/wantlist',
-  '/dealers',
+  '/shops',
   '/basket',
   '/saved',
   '/in-store',
@@ -227,7 +227,7 @@ test.describe('accessibility', () => {
   }
 
   test('every screen can be reached and left with the keyboard alone', async ({ page }) => {
-    await page.goto('/dig')
+    await page.goto('/shop')
     await expect(page.locator('main')).toBeVisible()
 
     // Tab until something is focused, then check the focus ring is real —

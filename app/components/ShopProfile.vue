@@ -233,7 +233,7 @@ watch(
           plate word: reachable, not proposed.
         -->
         <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <FidButton :to="`/dig?dealer=${encodeURIComponent(dealer.username)}`">
+          <FidButton :to="`/shop?dealer=${encodeURIComponent(dealer.username)}`">
             {{ dealer.lastScannedAt === null ? h.digNow : h.digAgain }}
           </FidButton>
           <button
@@ -349,7 +349,7 @@ watch(
       <ul class="flex flex-wrap gap-3">
         <li v-for="record in profile.shelf" :key="record.releaseId">
           <NuxtLink
-            :to="`/shelf?release=${record.releaseId}`"
+            :to="`/collection?release=${record.releaseId}`"
             class="fid-cover-button block size-20 overflow-hidden rounded-fid-cover bg-fid-inset"
             :title="`${record.artist} – ${record.title} · ${record.label}`"
             :aria-label="`${record.artist} – ${record.title} · ${record.label}`"

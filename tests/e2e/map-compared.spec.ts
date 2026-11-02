@@ -75,7 +75,7 @@ test('puts the catalogue’s lift on the bars and says which build it is', async
     ],
   })
 
-  await page.goto('/map')
+  await page.goto('/insights')
   await expect(
     page.getByText('as of the catalogue of 2026-09-01', { exact: false }),
   ).toBeVisible({

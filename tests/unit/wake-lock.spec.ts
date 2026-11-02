@@ -129,6 +129,6 @@ describe('where it is used', () => {
   })
 
   it('keeps the screen on while a dig runs', () => {
-    expect(readFileSync('app/pages/dig.vue', 'utf8')).toMatch(/useWakeLock\(/)
+    expect(readFileSync('app/pages/shop.vue', 'utf8')).toMatch(/useWakeLock\(/)
   })
 })

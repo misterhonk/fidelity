@@ -83,7 +83,7 @@ async function backCloses(page: Page, path: RegExp, param: string, open: () => P
 
 test('the skip link is the first stop and lands on the main content', async ({ page }) => {
   await seed(page, 'en')
-  await page.goto('/shelf')
+  await page.goto('/collection')
   await expect(page.locator('main')).toBeVisible()
 
   await page.keyboard.press('Tab')
@@ -97,8 +97,8 @@ test('the skip link is the first stop and lands on the main content', async ({ p
 
 test('Back closes the shelf sheet', async ({ page }) => {
   await seed(page, 'en')
-  await page.goto('/shelf')
-  await backCloses(page, /\/shelf/, 'record', async () => {
+  await page.goto('/collection')
+  await backCloses(page, /\/collection/, 'record', async () => {
     await page
       .getByRole('button', { name: /Maiden Voyage/ })
       .first()
@@ -108,7 +108,7 @@ test('Back closes the shelf sheet', async ({ page }) => {
 
 test('the cross does not leave the shelf record in the history', async ({ page }) => {
   await seed(page, 'en')
-  await page.goto('/shelf')
+  await page.goto('/collection')
   await page
     .getByRole('button', { name: /Maiden Voyage/ })
     .first()
@@ -223,14 +223,14 @@ test('a compartment that is gone leaves no stale ?place= behind', async ({ page 
  */
 const SIGNED_IN = [
   '/',
-  '/dig',
-  '/shelf',
+  '/shop',
+  '/collection',
   '/places',
   '/stack',
-  '/review',
+  '/insights/year',
   '/compared',
   '/watched',
-  '/dealers',
+  '/shops',
   '/settings/look',
   '/settings/collection',
   '/settings/finds',
@@ -249,7 +249,7 @@ test.describe('axe, signed in', () => {
 
   test('an open sheet has no axe violations', async ({ page }) => {
     await seed(page, 'en')
-    await page.goto('/shelf')
+    await page.goto('/collection')
     await page
       .getByRole('button', { name: /Maiden Voyage/ })
       .first()

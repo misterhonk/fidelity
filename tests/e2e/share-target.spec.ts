@@ -34,7 +34,7 @@ test('a shared Discogs shop page opens that shop', async ({ page }) => {
     `/share?title=Discogs&text=${encodeURIComponent('fatplastics https://www.discogs.com/seller/fatplastics/profile')}`,
   )
 
-  await expect(page).toHaveURL(/\/dig\?dealer=fatplastics$/)
+  await expect(page).toHaveURL(/\/shop\?dealer=fatplastics$/)
   await expect(page.locator('main input').first()).toHaveValue('fatplastics')
 })
 

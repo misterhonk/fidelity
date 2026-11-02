@@ -219,7 +219,7 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
 
   const dealer = (event.notification.data as { dealer?: string } | undefined)?.dealer
   const target = new URL(
-    dealer ? `dig?dealer=${encodeURIComponent(dealer)}` : '',
+    dealer ? `shop?dealer=${encodeURIComponent(dealer)}` : '',
     self.registration.scope,
   ).href
 

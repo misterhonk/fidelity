@@ -29,7 +29,7 @@ async function moreFinds(page: Page, digId: string) {
 
 test('walks the finds with j and k, and jumps into the filter with /', async ({ page }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({
     timeout: 15_000,
   })

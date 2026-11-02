@@ -25,7 +25,7 @@ import { withoutComments } from '../helpers/german'
 const SHARE = readFileSync('worker/share.ts', 'utf8')
 const CLIENT = readFileSync('worker/hub/client.ts', 'utf8')
 const PAGE = readFileSync('app/pages/shared.vue', 'utf8')
-const DIG = readFileSync('app/pages/dig.vue', 'utf8')
+const DIG = readFileSync('app/pages/shop.vue', 'utf8')
 
 /** Without comments — this file explains what it checks, and so do the others. */
 

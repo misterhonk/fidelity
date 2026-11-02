@@ -10,7 +10,7 @@
 const route = useRoute()
 const name = dealerFromShare(route.query)
 
-await navigateTo(name ? { path: '/dig', query: { dealer: name } } : '/', { replace: true })
+await navigateTo(name ? { path: '/shop', query: { dealer: name } } : '/', { replace: true })
 </script>
 
 <template>

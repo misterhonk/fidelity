@@ -251,7 +251,7 @@ describe('keeping them', () => {
  */
 describe('the shops screen', () => {
   const DISCOVERY = readFileSync('app/components/DealerDiscovery.vue', 'utf8')
-  const PAGE = readFileSync('app/pages/dealers.vue', 'utf8')
+  const PAGE = readFileSync('app/pages/shops.vue', 'utf8')
   const SEARCH = readFileSync('app/pages/settings/finds.vue', 'utf8')
 
   it('ends in one field, with no search box under it', () => {

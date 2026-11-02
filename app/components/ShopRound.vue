@@ -124,7 +124,7 @@ const finds = computed(() => hits.value.reduce((sum, stop) => sum + stop.matches
         >
           <NuxtLink
             v-if="stop.digId"
-            :to="{ path: '/dig', query: { id: stop.digId } }"
+            :to="{ path: '/shop', query: { id: stop.digId } }"
             class="font-medium text-fid-accent underline underline-offset-4"
           >
             {{ stop.displayName }}

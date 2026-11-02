@@ -13,7 +13,6 @@ useSeoMeta({
 })
 
 const { call } = useFidelityWorker()
-const paletteOpen = usePaletteOpen()
 
 /*
  * The shops with fresh finds — for the row at the top.
@@ -89,7 +88,7 @@ const pastedName = computed(() => dealerFromInput(pasted.value))
 
 function openPasted() {
   const name = pastedName.value
-  if (name) void navigateTo({ path: '/dig', query: { dealer: name } })
+  if (name) void navigateTo({ path: '/shop', query: { dealer: name } })
 }
 
 const digAge = computed(() => {
@@ -132,10 +131,10 @@ const tiles = computed(() => {
 
   const words = m.value.home.counts
   return [
-    { label: words.collection, count: summary.collection, to: '/shelf' },
+    { label: words.collection, count: summary.collection, to: '/collection' },
     { label: words.wantlist, count: summary.wantlist, to: '/wantlist' },
     { label: words.marked, count: summary.marked, to: '/saved' },
-    { label: words.dealers, count: summary.dealers, to: '/dealers' },
+    { label: words.dealers, count: summary.dealers, to: '/shops' },
     { label: words.basket, count: summary.basket, to: '/basket' },
   ]
 })
@@ -163,26 +162,22 @@ const tiles = computed(() => {
     <template v-if="ready && identity">
       <div class="flex flex-col gap-6 px-6">
         <PageHeader :title="m.home.title">
+          <!--
+            The name is the profile, and the profile is where the settings
+            live (#228) — the phone bar has room for five, and they are not one.
+          -->
           <template #aside>
-            <p class="text-fid-sm text-fid-text-muted">{{ identity.username }}</p>
+            <NuxtLink
+              to="/settings"
+              :title="m.nav.profile.hint"
+              :aria-label="`${m.nav.profile.label}: ${identity.username}`"
+              class="flex min-h-11 items-center gap-2 text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
+            >
+              <FidIcon name="circle-user" :size="20" />
+              {{ identity.username }}
+            </NuxtLink>
           </template>
         </PageHeader>
-
-        <!--
-          ⌘K for a thumb (#215): a phone has no keyboard shortcut, so the
-          palette needs a door. A button that looks like a field, because the
-          field itself lives in the palette.
-        -->
-        <button
-          type="button"
-          class="flex w-full max-w-md items-center gap-3 rounded-fid-sm border border-fid-border bg-fid-surface px-3 py-2 text-left text-fid-sm text-fid-text-muted transition-colors hover:text-fid-text"
-          aria-haspopup="dialog"
-          aria-keyshortcuts="Meta+K Control+K"
-          @click="paletteOpen = true"
-        >
-          <FidIcon name="search" :size="16" aria-hidden="true" />
-          {{ m.home.search }}
-        </button>
 
         <!--
           A shop from Safari (#217): an iPhone has no extension and no share
@@ -272,7 +267,7 @@ const tiles = computed(() => {
           <CoverRail
             v-if="home.finds.length > 0 && home.dig"
             :title="m.home.lastFound"
-            to="/dig"
+            to="/shop"
             :note="`${home.dig.dealer} · ${digAge}`"
             :credit="sellerPage(home.dig.dealer)"
           >
@@ -303,7 +298,7 @@ const tiles = computed(() => {
           -->
             <p v-if="home.dig && !home.dig.complete" class="text-fid-sm text-fid-sig-gap-text">
               {{ m.home.interrupted(count(home.dig.scanned), count(home.dig.listingsTotal)) }}
-              <NuxtLink to="/dig" class="underline underline-offset-4">{{
+              <NuxtLink to="/shop" class="underline underline-offset-4">{{
                 m.home.carryOn
               }}</NuxtLink>
             </p>
@@ -339,7 +334,7 @@ const tiles = computed(() => {
           <CoverRail
             v-if="home.shelf.length > 0"
             :title="m.home.newOnShelf"
-            to="/shelf"
+            to="/collection"
             :note="m.home.owned(count(home.library.collection))"
             :credit="collectionPage(identity.username)"
           >
@@ -389,7 +384,7 @@ const tiles = computed(() => {
         -->
           <section v-if="home.shops.length > 0" class="flex flex-col gap-3 px-6">
             <h2 class="text-fid-base font-medium text-fid-text">
-              <NuxtLink to="/dealers" class="underline-offset-4 hover:underline">
+              <NuxtLink to="/shops" class="underline-offset-4 hover:underline">
                 {{ m.home.yourShops }}
               </NuxtLink>
             </h2>
@@ -405,7 +400,7 @@ const tiles = computed(() => {
             -->
               <li v-for="shop in home.shops" :key="shop.username">
                 <NuxtLink
-                  :to="{ path: '/dealers', query: { dealer: shop.username } }"
+                  :to="{ path: '/shops', query: { dealer: shop.username } }"
                   class="flex flex-col gap-1 rounded-fid-md border border-fid-border bg-fid-surface p-4 transition-colors hover:border-fid-text-muted"
                 >
                   <div class="flex items-baseline justify-between gap-3">

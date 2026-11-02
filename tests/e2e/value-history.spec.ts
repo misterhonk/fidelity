@@ -12,7 +12,7 @@ import { seed } from './seed'
  */
 test('the map draws the estimate day by day', async ({ page }) => {
   await seed(page, 'en')
-  await page.goto('/map')
+  await page.goto('/insights')
 
   await expect(page.getByRole('heading', { name: 'Over time' })).toBeVisible({
     timeout: 15_000,

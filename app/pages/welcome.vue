@@ -43,7 +43,7 @@ const { identity, ready, load, set } = useIdentity()
  *
  * Key, collection, first dig (#214). Artists and credits were steps of their
  * own for a while: minutes each, before anything was found. They now start in
- * the background once the first dig is through (`app/pages/dig.vue`), which
+ * the background once the first dig is through (`app/pages/shop.vue`), which
  * is when somebody has a list to look at instead of a bar to watch.
  */
 type Step = 'start' | 'token' | 'sync' | 'dig'
@@ -62,7 +62,7 @@ const backTo = computed(() => {
   const next = useRoute().query.next
   return typeof next === 'string' && next.startsWith('/') && !next.startsWith('//')
     ? next
-    : '/dig'
+    : '/shop'
 })
 const stepIndex = computed(() => STEPS.indexOf(step.value))
 
@@ -296,7 +296,7 @@ function focusHeading(panel: Element) {
               <NuxtLink
                 v-for="shop in STARTER_SHOPS"
                 :key="shop.username"
-                :to="{ path: '/dig', query: { dealer: shop.username } }"
+                :to="{ path: '/shop', query: { dealer: shop.username } }"
                 class="fid-action rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
               >
                 {{ shop.displayName }}
@@ -311,7 +311,7 @@ function focusHeading(panel: Element) {
               so. Everybody else goes to the dig.
             -->
           <FidButton :to="backTo" class="self-start">
-            {{ backTo === '/dig' ? w.dig.anyShop : w.dig.goBack }}
+            {{ backTo === '/shop' ? w.dig.anyShop : w.dig.goBack }}
           </FidButton>
         </section>
       </Transition>

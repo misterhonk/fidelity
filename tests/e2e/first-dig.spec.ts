@@ -24,12 +24,12 @@ test('with a collection and no dig, the next step is a dig, not the lookup', asy
   await expect(next).toBeVisible()
   await expect(page.getByRole('link', { name: 'Start a dig' })).toHaveAttribute(
     'href',
-    /\/dig$/,
+    /\/shop$/,
   )
 })
 
 test('a dig screen with no shops of its own offers some to start with', async ({ page }) => {
-  await page.goto('/dig')
+  await page.goto('/shop')
   const starters = page.getByRole('navigation', { name: 'Shops to start with' })
   await expect(starters).toBeVisible()
   await starters.getByRole('button', { name: /Juno Records/ }).click()

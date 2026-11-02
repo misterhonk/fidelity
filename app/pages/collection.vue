@@ -44,7 +44,7 @@ watch(
 
 /** The way back to the whole shelf, keeping whatever was typed in the box. */
 function clearFacet() {
-  void navigateTo({ path: '/shelf' })
+  void navigateTo({ path: '/collection' })
 }
 
 /**

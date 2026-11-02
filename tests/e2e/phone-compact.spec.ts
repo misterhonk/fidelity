@@ -30,12 +30,12 @@ test('keeps the record readable in a compact row, and the sheet’s arrows visib
   page,
 }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({
     timeout: 15_000,
   })
   await manyFinds(page, dig.id)
-  await page.goto(`/dig?id=${dig.id}&density=compact`)
+  await page.goto(`/shop?id=${dig.id}&density=compact`)
   await expect(page.getByRole('heading', { name: '8 finds at plattenkiste' })).toBeVisible({
     timeout: 15_000,
   })

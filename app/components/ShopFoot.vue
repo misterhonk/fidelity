@@ -81,7 +81,7 @@ function submit() {
         class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-fid-border pb-2 last:border-0"
       >
         <NuxtLink
-          :to="{ path: '/dig', query: { dealer: shop.username } }"
+          :to="{ path: '/shop', query: { dealer: shop.username } }"
           class="fid-action flex items-center gap-2 text-fid-base font-medium text-fid-text"
         >
           <ShopLogo :dealer="shop.username" :avatar-url="shop.avatarUrl" :size="20" />

@@ -15,6 +15,6 @@ test('a pasted Discogs link on Start opens that shop', async ({ page }) => {
   await field.fill('https://www.discogs.com/seller/fatplastics/profile')
   await field.press('Enter')
 
-  await expect(page).toHaveURL(/\/dig\?dealer=fatplastics$/)
+  await expect(page).toHaveURL(/\/shop\?dealer=fatplastics$/)
   await expect(page.locator('main input').first()).toHaveValue('fatplastics')
 })

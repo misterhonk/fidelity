@@ -59,7 +59,7 @@ test('names the shop being scanned when the page is opened mid-scan', async ({
     return route.fulfill({ status: 404, headers: cors, body: '{}' })
   })
 
-  await page.goto('/dig')
+  await page.goto('/shop')
   // The seed leaves a result on this screen, and a screen with a result folds
   // the field away (M31.13).
   await page
@@ -77,9 +77,11 @@ test('names the shop being scanned when the page is opened mid-scan', async ({
   // leaves a page. A full reload would take the worker with it, and that
   // is the "interrupted" case, which is a different screen.
   await page.getByRole('link', { name: 'Collection', exact: true }).click()
-  await expect(page).toHaveURL(/shelf/)
-  await page.getByRole('link', { name: 'Dig', exact: true }).click()
-  await expect(page).toHaveURL(/dig/)
+  await expect(page).toHaveURL(/collection/)
+  // While a dig runs, the Shops tab carries its ring and leads to it (#228).
+  await expect(page.getByTestId('dig-ring')).toBeVisible({ timeout: 5_000 })
+  await page.getByRole('link', { name: 'Shops', exact: true }).click()
+  await expect(page).toHaveURL(/\/shop$/)
   await expect(page.getByText('Digging through slowshop', { exact: true })).toBeVisible({
     timeout: 15_000,
   })

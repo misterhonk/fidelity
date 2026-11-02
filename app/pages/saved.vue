@@ -192,7 +192,7 @@ async function check() {
 
     <p v-else-if="!overview || overview.total === 0" class="text-fid-base text-fid-text-muted">
       {{ c.saved.empty }}
-      <NuxtLink class="fid-action text-fid-text underline underline-offset-4" to="/dig">{{
+      <NuxtLink class="fid-action text-fid-text underline underline-offset-4" to="/shop">{{
         c.saved.emptyAction
       }}</NuxtLink>
     </p>

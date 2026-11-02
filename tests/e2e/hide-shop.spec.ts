@@ -11,7 +11,7 @@ import { seed } from './seed'
  */
 test('a shop can be hidden, and shown again', async ({ page }) => {
   await seed(page, 'en')
-  await page.goto('/dealers')
+  await page.goto('/shops')
 
   const list = page.getByRole('list', { name: 'Your shops' })
   await expect(list.getByRole('button', { name: 'plattenkiste' })).toBeVisible({

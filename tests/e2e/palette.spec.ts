@@ -40,7 +40,7 @@ test('"blue" finds the Blue Note records, grouped', async ({ page }) => {
   await expect(page.locator(`#${active}`)).toHaveText(/Maiden Voyage/)
 
   await page.keyboard.press('Enter')
-  await expect(page).toHaveURL(/\/shelf\?q=Maiden/)
+  await expect(page).toHaveURL(/\/collection\?q=Maiden/)
   await expect(page.getByText('Maiden Voyage').first()).toBeVisible()
 })
 
@@ -60,11 +60,14 @@ test('the palette has no axe violations, with records in it', async ({ page }) =
   expect(violations.map((v) => `${v.id}: ${v.help}`)).toEqual([])
 })
 
-test('the start page opens it by touch, and focus comes back', async ({ page }) => {
+test('the Search tab opens it by touch, and focus comes back', async ({ page }) => {
   await seed(page, 'en')
   await page.goto('/')
 
-  const door = page.getByRole('button', { name: 'Search records, shops, actions' })
+  // The fifth entry of the main bar since #228, on every screen.
+  const door = page
+    .getByRole('navigation', { name: 'Main sections' })
+    .getByRole('button', { name: 'Search' })
   await door.click()
   const palette = page.getByRole('dialog', { name: 'Commands and search' })
   await expect(palette.getByRole('combobox')).toBeFocused()
