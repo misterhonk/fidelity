@@ -33,10 +33,12 @@ export async function instancesOf(
   client: DiscogsClient,
   username: string,
   releaseId: number,
+  signal?: AbortSignal,
 ): Promise<number[]> {
   const answer = await client.get(
     `/users/${encodeURIComponent(username)}/collection/releases/${releaseId}`,
     ownedSchema,
+    { signal },
   )
   return answer.releases.map((copy) => copy.instance_id)
 }

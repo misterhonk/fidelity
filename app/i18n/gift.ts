@@ -15,6 +15,8 @@ const en = {
   badName: 'That is not a Discogs name or profile link.',
   looking: 'Asking Discogs for their wantlist…',
   reading: (read: string, total: string) => `Reading their wantlist: ${read} of ${total}.`,
+  checking: (read: string, total: string) =>
+    `Checking their collection for the finds: ${read} of ${total}.`,
   closed: 'Their wantlist is private, or there is no such name.',
   found: (ideas: number, wanted: string) =>
     `${ideas} of their ${wanted} wants ${ideas === 1 ? 'is' : 'are'} in your shops within the budget.`,
@@ -36,6 +38,8 @@ const de: typeof en = {
   badName: 'Das ist kein Discogs-Name und kein Profil-Link.',
   looking: 'Frage Discogs nach der Wantlist…',
   reading: (read: string, total: string) => `Lese die Wantlist: ${read} von ${total}.`,
+  checking: (read: string, total: string) =>
+    `Schaue, ob die Funde schon in der Sammlung stehen: ${read} von ${total}.`,
   closed: 'Die Wantlist ist privat, oder den Namen gibt es nicht.',
   found: (ideas: number, wanted: string) =>
     `${ideas} von ${wanted} Wünschen ${ideas === 1 ? 'liegt' : 'liegen'} in deinen Läden im Budget.`,

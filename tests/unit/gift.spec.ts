@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import type { Dig, StockRow } from '#shared/types'
 import type { DiscogsClient } from '~~/worker/discogs/client'
+import { DiscogsError } from '~~/worker/discogs/errors'
 import { findGifts, freshDigs, pickIdeas } from '~~/worker/gift'
 
 /**
@@ -96,9 +97,12 @@ describe('findGifts', () => {
       [key]: ids.map((id) => ({ id })),
     })
     // They want 1, 2 and 3 and own 2 and 3 — but only 2 is in a shop.
-    const get = vi.fn(async (path: string) =>
-      path.endsWith('/wants') ? page('wants', [1, 2, 3]) : page('releases', [2, 3]),
-    )
+    const owned = new Set([2, 3])
+    const get = vi.fn(async (path: string) => {
+      if (path.endsWith('/wants')) return page('wants', [1, 2, 3])
+      const id = Number(path.split('/').pop())
+      return { releases: owned.has(id) ? [{ id, instance_id: id * 100 }] : [] }
+    })
 
     const result = await findGifts(
       { get } as unknown as DiscogsClient,
@@ -110,5 +114,35 @@ describe('findGifts', () => {
 
     expect(result.ideas.map((idea) => idea.releaseId)).toEqual([1])
     expect(result.owned).toBe(1)
+    // Only the two in stock are asked about, not their whole shelf.
+    expect(
+      get.mock.calls.map(([path]) => path).filter((p) => p.includes('/collection/')),
+    ).toEqual(['/users/friend/collection/releases/1', '/users/friend/collection/releases/2'])
+  })
+
+  it('says the collection is private when Discogs will not show it', async () => {
+    const db = await openFidelityDb()
+    await db.put('digs', dig('d1', 'a', 1))
+    await db.put('stock', row('d1', 1, 10))
+    const get = vi.fn(async (path: string) => {
+      if (path.endsWith('/wants')) {
+        return {
+          pagination: { page: 1, pages: 1, per_page: 100, items: 1, urls: {} },
+          wants: [{ id: 1 }],
+        }
+      }
+      throw new DiscogsError(403, 'private')
+    })
+
+    const result = await findGifts(
+      { get } as unknown as DiscogsClient,
+      'friend',
+      20,
+      NOW,
+      new AbortController().signal,
+    )
+
+    expect(result.owned).toBeNull()
+    expect(result.ideas.map((idea) => idea.releaseId)).toEqual([1])
   })
 })
