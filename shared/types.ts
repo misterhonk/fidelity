@@ -456,6 +456,20 @@ export interface LabelStanding {
 }
 
 /**
+ * A catalogue series you are filling, as a badge: "Brain 1000: 38 of 40" (#247).
+ *
+ * Read off the same runs CATALOG_RUN fires from — no new request, no streak.
+ */
+export interface RunStanding {
+  label: string
+  prefix: string
+  /** The thousand the numbers sit in (1000 for Brain 1001–1090); 0 below a thousand. */
+  series: number
+  owned: number
+  total: number
+}
+
+/**
  * A year on the shelf (docs/06 M19 #8).
  *
  * Read off what the device already holds — the shelf with its `addedAt`, the
@@ -503,6 +517,7 @@ export interface CollectionGaps {
   built: boolean
   artists: ShelfGap[]
   labels: LabelStanding[]
+  runs: RunStanding[]
 }
 
 /** One record on the wantlist, with what the device already knows about it. */

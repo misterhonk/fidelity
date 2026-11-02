@@ -63,7 +63,7 @@ async function seed(chunks: HorizonChunk[], collection: CollectionItem[]) {
 describe('what the shelf is missing', () => {
   it('says the horizon is not built rather than showing nothing', async () => {
     await seed([], [record()])
-    expect(await collectionGaps()).toEqual({ built: false, artists: [], labels: [] })
+    expect(await collectionGaps()).toEqual({ built: false, artists: [], labels: [], runs: [] })
   })
 
   it('counts what you own against what exists under that name', async () => {
@@ -239,5 +239,58 @@ describe('which labels you really collect', () => {
       ],
     )
     expect((await collectionGaps()).labels[0]?.owned).toBe(1)
+  })
+})
+
+describe('catalogue runs as badges (#247)', () => {
+  /** Brain 1001–1040 and two strays below a thousand, release id = catalogue number. */
+  const numbers = [60, 61, ...Array.from({ length: 40 }, (_, i) => 1001 + i)]
+  const brain = chunk({
+    kind: 'label',
+    entityId: 5,
+    name: 'Brain',
+    catnoPrefix: 'BRAIN',
+    releaseIds: Int32Array.from(numbers),
+    catnoNums: Int32Array.from(numbers),
+  })
+
+  it('reads "Brain 1000: 38 of 40" off the run CATALOG_RUN uses', async () => {
+    const owned = Array.from({ length: 38 }, (_, i) => 1001 + i)
+    await seed(
+      [brain],
+      [...owned, 60].map((id) => record({ releaseId: id })),
+    )
+
+    expect((await collectionGaps()).runs).toEqual([
+      { label: 'Brain', prefix: 'BRAIN', series: 1000, owned: 38, total: 40 },
+    ])
+  })
+
+  it('leaves out a series with fewer records than CATALOG_RUN needs', async () => {
+    await seed(
+      [brain],
+      [1001, 1002].map((id) => record({ releaseId: id })),
+    )
+    expect((await collectionGaps()).runs).toEqual([])
+  })
+
+  it('puts the fuller series first', async () => {
+    const ohr = chunk({
+      kind: 'label',
+      entityId: 6,
+      name: 'Ohr',
+      catnoPrefix: 'OMM',
+      releaseIds: Int32Array.from([2001, 2002, 2003, 2004]),
+      catnoNums: Int32Array.from([556001, 556002, 556003, 556004]),
+    })
+    await seed(
+      [brain, ohr],
+      [1001, 1002, 1003, 1004, 2001, 2002, 2003].map((id) => record({ releaseId: id })),
+    )
+
+    expect((await collectionGaps()).runs.map((run) => [run.label, run.series])).toEqual([
+      ['Ohr', 556000],
+      ['Brain', 1000],
+    ])
   })
 })

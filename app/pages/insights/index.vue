@@ -256,6 +256,37 @@ const decades = computed(() =>
           </template>
         </dl>
       </section>
+
+      <!--
+        Catalogue runs as badges (#247): "Brain 1000: 38 of 40". The same runs
+        a find's catalogue-run reason reads — a count, not a streak.
+      -->
+      <section
+        v-if="gaps.runs.length > 0"
+        class="flex flex-col gap-3 border-t border-fid-border pt-6"
+        aria-labelledby="catalogue-runs"
+      >
+        <div class="flex flex-col gap-1">
+          <h2 id="catalogue-runs" class="text-fid-base font-medium text-fid-text">
+            {{ c.map.runs }}
+          </h2>
+          <WhyNote :label="c.map.runsWhyLabel">{{ c.map.runsWhy }}</WhyNote>
+        </div>
+
+        <ul class="flex flex-wrap gap-2">
+          <li
+            v-for="run in gaps.runs"
+            :key="`${run.label}:${run.prefix}:${run.series}`"
+            class="rounded-fid-sm border border-fid-border px-3 py-1 text-fid-sm"
+          >
+            <span class="text-fid-text"
+              >{{ run.label }} {{ run.series > 0 ? run.series : run.prefix }}:&#32;</span
+            ><span class="fid-num text-fid-text-muted">{{
+              m.common.ofTotal(run.owned, run.total)
+            }}</span>
+          </li>
+        </ul>
+      </section>
     </div>
 
     <p v-else-if="gaps" class="max-w-prose text-fid-xs text-fid-text-muted">
