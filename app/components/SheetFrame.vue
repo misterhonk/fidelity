@@ -45,12 +45,27 @@ let opener: HTMLElement | null = null
  */
 const madeInert: HTMLElement[] = []
 
+/**
+ * Polite announcements stay reachable (#313): the route announcer, the offline
+ * and sync lines. An inert ancestor silences a live region, so a branch that
+ * holds one is not switched off whole — only what beside it is.
+ */
+const LIVE = '[aria-live]:not([aria-live="off"]), [role="status"], [role="alert"], [role="log"]'
+
+function silence(element: HTMLElement) {
+  if (element.inert) return
+  if (!element.matches(LIVE) && !element.querySelector(LIVE)) {
+    element.inert = true
+    madeInert.push(element)
+    return
+  }
+  for (const child of element.children) if (child instanceof HTMLElement) silence(child)
+}
+
 function lockBehind() {
   for (let at = panel.value?.parentElement; at && at !== document.body; at = at.parentElement) {
     for (const sibling of at.parentElement?.children ?? []) {
-      if (sibling === at || !(sibling instanceof HTMLElement) || sibling.inert) continue
-      sibling.inert = true
-      madeInert.push(sibling)
+      if (sibling !== at && sibling instanceof HTMLElement) silence(sibling)
     }
   }
 }

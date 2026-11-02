@@ -46,6 +46,15 @@ async function backCloses(page: Page, path: RegExp, param: string, open: () => P
     )
     .toBe(true)
 
+  // But the route announcer still speaks: a live region under `inert` is silent (#313).
+  expect(
+    await page
+      .locator('[aria-live]')
+      .evaluateAll((live) =>
+        live.filter((el) => el.closest('[inert]')).map((el) => el.outerHTML.slice(0, 80)),
+      ),
+  ).toEqual([])
+
   // A reload keeps it open — the address is the state.
   await page.reload()
   await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15_000 })

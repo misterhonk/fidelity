@@ -12,6 +12,7 @@ const zxing = vi.hoisted(() => ({
   imported: 0,
   created: 0,
   fail: false,
+  dies: false,
   read: [] as { rawValue: string }[],
 }))
 
@@ -21,7 +22,12 @@ vi.mock('~/composables/scan/zxing', () => {
     zxingDetector: async () => {
       zxing.created++
       if (zxing.fail) throw new TypeError('Failed to fetch')
-      return { detect: async () => zxing.read }
+      return {
+        detect: async () => {
+          if (zxing.dies) throw new Error('decoder-timeout')
+          return zxing.read
+        },
+      }
     },
   }
 })
@@ -35,6 +41,7 @@ const video = { srcObject: null, play: async () => {} } as unknown as HTMLVideoE
 beforeEach(() => {
   zxing.created = 0
   zxing.fail = false
+  zxing.dies = false
   zxing.read = [{ rawValue: '4006381333931' }]
   getUserMedia.mockClear()
   vi.stubGlobal('navigator', { mediaDevices: { getUserMedia } })
@@ -71,6 +78,17 @@ describe('useBarcodeScan without BarcodeDetector', () => {
     expect(scan.failure.value).toBe('unavailable')
     expect(scan.running.value).toBe(false)
     expect(getUserMedia).not.toHaveBeenCalled()
+    scope.stop()
+  })
+
+  it('turns the camera off and says so when the decoder dies mid-scan', async () => {
+    zxing.dies = true
+    track.stop.mockClear()
+    const { scan, scope } = scanner()
+    await scan.start(video, () => {})
+    await vi.waitFor(() => expect(scan.failure.value).toBe('unavailable'))
+    expect(scan.running.value).toBe(false)
+    expect(track.stop).toHaveBeenCalled()
     scope.stop()
   })
 

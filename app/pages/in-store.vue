@@ -323,16 +323,19 @@ watch(chosen, () => void loadShown())
  * makes it taller).
  */
 const bar = useTemplateRef<HTMLElement>('bar')
+/** The bar's height, for the spacer that keeps the list's end out from under it (#313). */
+const barHeight = ref(0)
 let barSize: ResizeObserver | undefined
 watch(bar, (element) => {
   barSize?.disconnect()
   if (!element) return
-  barSize = new ResizeObserver(() =>
+  barSize = new ResizeObserver(() => {
+    barHeight.value = element.offsetHeight
     document.documentElement.style.setProperty(
       '--fid-float-bottom',
       `calc(env(safe-area-inset-bottom) + 5.5rem + ${element.offsetHeight}px)`,
-    ),
-  )
+    )
+  })
   barSize.observe(element)
 })
 onBeforeUnmount(() => {
@@ -910,8 +913,13 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
           identifier is in the run-out — and the full string is more precise
           than any barcode (one hit instead of eight).
         -->
-      <!-- What the fixed bar would otherwise cover at the end of the list. -->
-      <div class="h-32 md:hidden" aria-hidden="true" />
+      <!-- What the fixed bar would otherwise cover at the end of the list: as tall as the bar is. -->
+      <div
+        class="h-32 md:hidden"
+        :style="barHeight ? { height: `${barHeight}px` } : undefined"
+        aria-hidden="true"
+        data-testid="in-store-spacer"
+      />
       <div
         ref="bar"
         class="z-10 flex flex-col gap-2 border-t border-fid-border bg-fid-bg/95 px-4 py-3 backdrop-blur max-md:fixed max-md:inset-x-0 max-md:bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] md:sticky md:bottom-0 md:-mx-4"
