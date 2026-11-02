@@ -54,7 +54,9 @@ export function watchNotice(data: unknown, language: string): Notice | null {
   const listings =
     language === 'de'
       ? `${one ? 'Angebot' : 'Angebote'} mehr als beim letzten Mal`
-      : `${one ? 'listing' : 'listings'} more on offer than last time`
+      : language === 'fr'
+        ? `${one ? 'annonce' : 'annonces'} de plus que la dernière fois`
+        : `${one ? 'listing' : 'listings'} more on offer than last time`
 
   return { title: data.dealer, body: `${data.newListings} ${listings}.` }
 }

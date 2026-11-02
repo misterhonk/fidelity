@@ -49,7 +49,24 @@ const de: Record<PressingWarningKind, Phrase> = {
     `Der Laden schreibt „Original", gepresst ist sie ${year}. Das Album ist von ${masterYear}.`,
 }
 
-export const packs = { en, de }
+const fr: Record<PressingWarningKind, Phrase> = {
+  reissue: ({ country, year, masterYear }) => {
+    const where = country ? ` (${country})` : ''
+    const when = year ? ` de ${year}` : ''
+    const original = masterYear ? `, pas l’original de ${masterYear}` : ''
+    return `Réédition${where}${when}${original}.`
+  },
+  'late-pressing': ({ year, masterYear }) =>
+    `Pressé en ${year}, l’album est de ${masterYear}. Sans doute pas un premier pressage.`,
+  special: ({ special }) =>
+    `Classé comme « ${special} », donc pas un pressage ordinaire du commerce.`,
+  'claims-original-but-reissue': () =>
+    'La boutique écrit « original » ; Discogs classe ce pressage comme réédition.',
+  'claims-original-but-late': ({ year, masterYear }) =>
+    `La boutique écrit « original », mais il a été pressé en ${year}. L’album est de ${masterYear}.`,
+}
+
+export const packs = { en, de, fr }
 
 /**
  * The marks in a runout, named.
@@ -93,7 +110,23 @@ const stampsDe: Record<PressingStamp['key'], StampText> = {
   KENDUN: { label: 'Kendun', note: 'Geschnitten bei Kendun Recorders.' },
 }
 
-const stampPacks = { en: stampsEn, de: stampsDe }
+const stampsFr: Record<PressingStamp['key'], StampText> = {
+  RVG: { label: 'RVG', note: 'Rudy Van Gelder a gravé la laque.' },
+  PLASTYLITE: {
+    label: 'Oreille Plastylite',
+    note: 'Pressé chez Plastylite. Chez Blue Note, la marque d’un premier pressage.',
+  },
+  STERLING: { label: 'Sterling', note: 'Gravé chez Sterling Sound.' },
+  MASTERDISK: { label: 'Masterdisk', note: 'Gravé chez Masterdisk.' },
+  RL: {
+    label: 'RL',
+    note: 'Gravé par Robert Ludwig, souvent le pressage le plus fort et le plus recherché.',
+  },
+  PORKY: { label: 'Porky / Pecko', note: 'Gravé par George Peckham.' },
+  KENDUN: { label: 'Kendun', note: 'Gravé chez Kendun Recorders.' },
+}
+
+const stampPacks = { en: stampsEn, de: stampsDe, fr: stampsFr }
 
 /** Label and sentence for one mark, in the language on screen. */
 export function stampText(stamp: PressingStamp): StampText {

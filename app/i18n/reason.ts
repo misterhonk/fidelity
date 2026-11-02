@@ -67,7 +67,12 @@ const en: {
   support: Table
   plate: Plates
   fallback: string
-  also: (rest: string) => string
+  /**
+   * The runners-up, joined the way the language joins a list, after the sentence.
+   * The pack owns the whole clause (#251): where the commas go, whether an
+   * "and" closes it and how the punctuation sits are grammar, not glue.
+   */
+  also: (extras: readonly string[]) => string
 } = {
   lead: {
     // "One you want most" only from Discogs' four stars up (M20 #1): the
@@ -290,7 +295,7 @@ const en: {
     },
   },
   fallback: 'Fits what you collect.',
-  also: (rest) => ` Also: ${rest}.`,
+  also: (extras) => ` Also: ${extras.join(', ')}.`,
 }
 
 const de: typeof en = {
@@ -487,7 +492,7 @@ const de: typeof en = {
     },
   },
   fallback: 'Passt zu dem, was du sammelst.',
-  also: (rest) => ` Außerdem: ${rest}.`,
+  also: (extras) => ` Außerdem: ${extras.join(', ')}.`,
 }
 
 /** "you have 3 records" at the start of a sentence. */
@@ -495,7 +500,223 @@ function capital(phrase: string): string {
   return phrase.charAt(0).toUpperCase() + phrase.slice(1)
 }
 
-export const packs = { en, de }
+/**
+ * "de" before a name, elided where French elides it: "d’Aphex Twin", "de Kompakt".
+ *
+ * Vowels only. A name starting with h is mostly an English or German name, and
+ * those keep their h aspirated: "de Herbie Hancock".
+ */
+const of = (name: string): string =>
+  /^[aeiouyàâäéèêëîïôöûü]/i.test(name) ? `d’${name}` : `de ${name}`
+
+/** "1 disque", "0 disque", "4 disques": French counts nought in the singular. */
+const records = (n: number): string => `${count(n)} ${n < 2 ? 'disque' : 'disques'}`
+
+/** A list the French way: "Minimal, Tech House et Deep House". */
+const listFr = (items: readonly string[]): string =>
+  new Intl.ListFormat('fr', { type: 'conjunction' }).format(items)
+
+/*
+ * French: the person behind the counter says "tu". A space goes before a
+ * colon, as French writes it; tests/unit/voice.spec.ts holds that line.
+ */
+const fr: typeof en = {
+  lead: {
+    WANTLIST_EXACT: (evidence) =>
+      Number(evidence.want ?? 0) >= WANT_MOST
+        ? 'Il est sur ta liste d’envies, parmi ceux que tu veux le plus.'
+        : 'Il est sur ta liste d’envies.',
+
+    ARTIST_KNOWN: (evidence) => {
+      const artist = String(evidence.artist ?? '')
+      const owned = Number(evidence.owned ?? 0)
+      if (!artist) return null
+
+      const via = String(evidence.via ?? '')
+      const relation = String(evidence.relation ?? '')
+      if (via && relation) {
+        const shelf =
+          owned > 1 ? `tu as ${records(owned)} ${of(artist)}` : `${artist} est sur ton étagère`
+        const [person, group] = relation === 'group' ? [artist, via] : [via, artist]
+        return relation === 'alias'
+          ? `${via}, c’est ${artist}. ${capital(shelf)}, mais pas celui-ci.`
+          : `${person} fait partie ${of(group)}. ${capital(shelf)}, mais pas celui-ci.`
+      }
+
+      return owned > 1
+        ? `Tu as ${records(owned)} ${of(artist)}, mais pas celui-ci.`
+        : `${artist} est sur ton étagère. Ce disque, non.`
+    },
+
+    ARTIST_FOLLOWED: (evidence) => {
+      const artist = String(evidence.artist ?? '')
+      if (!artist) return null
+      const via = String(evidence.via ?? '')
+      return via
+        ? `${via}, c’est ${artist}. Dans ton viseur, et encore rien sur l’étagère.`
+        : `${artist} est dans ton viseur, et rien sur l’étagère pour l’instant.`
+    },
+
+    LABEL_AFFINITY: (evidence) => {
+      const label = String(evidence.label ?? '')
+      const owned = Number(evidence.owned ?? 0)
+      if (!label) return null
+      const lift = typeof evidence.lift === 'number' ? evidence.lift : null
+      return lift
+        ? `Tu collectionnes ${label} exprès : ${records(owned)}, ${lift.toFixed(0)} fois ce qu’on attendrait.`
+        : `Tu collectionnes ${label}. Déjà ${records(owned)} sur l’étagère.`
+    },
+
+    WANTLIST_PRESSING: (evidence) => {
+      const album = String(evidence.album ?? '')
+      if (!album) return null
+      const wanted = Number(evidence.wantedYear ?? 0)
+      const pressing = Number(evidence.pressingYear ?? 0)
+      const most =
+        Number(evidence.want ?? 0) >= WANT_MOST ? ' Parmi ceux que tu veux le plus.' : ''
+      if (wanted > 0 && pressing > 0 && pressing - wanted >= 15) {
+        return `L’album de ta liste d’envies, mais un pressage de ${pressing}, pas l’original de ${wanted}.${most}`
+      }
+      return `Pas le pressage de ta liste d’envies, mais le même album : ${album}.${most}`
+    },
+
+    ARTIST_GAP: (evidence) => {
+      const artist = String(evidence.artist ?? '')
+      const owned = Number(evidence.owned ?? 0)
+      const total = Number(evidence.total ?? 0)
+      if (!artist || total === 0) return null
+      return `Tu as ${count(owned)} des ${records(total)} ${of(artist)}. Celui-ci manque.`
+    },
+
+    CATALOG_RUN: (evidence) => {
+      const label = String(evidence.label ?? '')
+      const owned = Number(evidence.owned ?? 0)
+      const inRun = Number(evidence.inRun ?? 0)
+      const prefix = String(evidence.prefix ?? '')
+      if (!label || inRun === 0) return null
+      return `${label}, série ${prefix} : tu as ${count(owned)} des ${count(inRun)} numéros autour de celui-ci, mais pas lui.`
+    },
+
+    CREDIT_GRAPH: (evidence) => {
+      const person = String(evidence.person ?? '')
+      const owned = Number(evidence.owned ?? 0)
+      if (!person) return null
+      return owned > 1
+        ? `${person} a travaillé dessus. Tu as ${records(owned)} avec son nom.`
+        : `${person} a travaillé dessus.`
+    },
+
+    STYLE_ADJACENT: (evidence) => {
+      const styles = Array.isArray(evidence.styles) ? (evidence.styles as string[]) : []
+      if (styles.length === 0) return null
+      return `${listFr(styles.slice(0, 3))} : ton terrain.`
+    },
+
+    FORMAT_UPGRADE: (evidence) => {
+      const album = String(evidence.album ?? '')
+      const ownedAs = String(evidence.ownedAs ?? '')
+      if (!album) return null
+      return ownedAs
+        ? `Tu as ${album}, mais en ${ownedAs}. Le voici en vinyle.`
+        : `Tu as ${album} dans un autre format.`
+    },
+
+    PRICE_SIGNAL: (evidence) => {
+      const paid = price(evidence, 'price')
+      const lowest = price(evidence, 'marketLowest')
+      return paid && lowest ? `${paid} ici, pour un plancher du marché à ${lowest}.` : null
+    },
+
+    SCARCITY: (evidence) => {
+      const n = Number(evidence.numForSale ?? 0)
+      if (n <= 0) return null
+      return n === 1
+        ? 'Un seul exemplaire en vente dans le monde.'
+        : `Seulement ${count(n)} exemplaires en vente dans le monde.`
+    },
+  },
+
+  support: {
+    WANTLIST_EXACT: (evidence) =>
+      Number(evidence.want ?? 0) >= WANT_MOST
+        ? 'sur ta liste d’envies, parmi les plus voulus'
+        : 'sur ta liste d’envies',
+    ARTIST_KNOWN: (evidence) => {
+      if (!evidence.artist) return null
+      const via = evidence.via ? `, sous le nom ${String(evidence.via)}` : ''
+      return `${String(evidence.artist)} est sur ton étagère${via}`
+    },
+    ARTIST_FOLLOWED: (evidence) =>
+      evidence.artist ? `${String(evidence.artist)} est dans ton viseur` : null,
+    LABEL_AFFINITY: (evidence) =>
+      evidence.label ? `tu collectionnes ${String(evidence.label)}` : null,
+    WANTLIST_PRESSING: (evidence) =>
+      evidence.album ? `un autre pressage ${of(String(evidence.album))}` : null,
+    ARTIST_GAP: (evidence) =>
+      evidence.artist ? `un trou dans tes disques ${of(String(evidence.artist))}` : null,
+    CATALOG_RUN: (evidence) =>
+      evidence.prefix ? `série de catalogue ${String(evidence.prefix)}` : null,
+    CREDIT_GRAPH: (evidence) =>
+      evidence.person ? `${String(evidence.person)} au travail` : null,
+    FORMAT_UPGRADE: () => 'tu l’as dans un autre format',
+    STYLE_ADJACENT: (evidence) => {
+      const styles = Array.isArray(evidence.styles) ? (evidence.styles as string[]) : []
+      return styles.length > 0 ? `ton genre de ${styles[0]}` : null
+    },
+    PRICE_SIGNAL: (evidence) => {
+      const lowest = price(evidence, 'marketLowest')
+      return lowest ? `sous le plancher du marché à ${lowest}` : 'sous le marché'
+    },
+    SCARCITY: (evidence) => {
+      const n = Number(evidence.numForSale ?? 0)
+      return n > 0 ? `seulement ${count(n)} en vente` : null
+    },
+  },
+
+  plate: {
+    WANTLIST_EXACT: (evidence) =>
+      Number(evidence.want ?? 0) >= WANT_MOST ? 'Le plus voulu' : 'Sur ta liste d’envies',
+    WANTLIST_PRESSING: () => 'Autre pressage',
+    ARTIST_KNOWN: (evidence) => shelved('Sur l’étagère', evidence.owned),
+    ARTIST_FOLLOWED: () => 'Dans le viseur',
+    ARTIST_GAP: (evidence) => {
+      const total = Number(evidence.total ?? 0)
+      if (total === 0) return 'Un trou'
+      return `Un trou · ${count(Number(evidence.owned ?? 0))} sur ${count(total)}`
+    },
+    LABEL_AFFINITY: (evidence) => shelved('Ton label', evidence.owned),
+    CATALOG_RUN: (evidence) => {
+      const inRun = Number(evidence.inRun ?? 0)
+      if (inRun === 0) return 'Une série'
+      return `Une série · ${count(Number(evidence.owned ?? 0))} sur ${count(inRun)}`
+    },
+    STYLE_ADJACENT: (evidence) => {
+      const styles = Array.isArray(evidence.styles) ? (evidence.styles as string[]) : []
+      return styles[0] ? `Ton terrain · ${styles[0]}` : 'Ton terrain'
+    },
+    CREDIT_GRAPH: (evidence) => {
+      const person = String(evidence.person ?? '')
+      if (!person) return 'Dans les crédits'
+      return shelved(`Crédits · ${person}`, evidence.owned)
+    },
+    FORMAT_UPGRADE: (evidence) => {
+      const ownedAs = String(evidence.ownedAs ?? '')
+      return ownedAs ? `Tu l’as en ${ownedAs}` : 'Tu l’as autrement'
+    },
+    PRICE_SIGNAL: (evidence) => {
+      const lowest = price(evidence, 'marketLowest')
+      return lowest ? `Sous ${lowest}` : 'Sous le marché'
+    },
+    SCARCITY: (evidence) => {
+      const n = Number(evidence.numForSale ?? 0)
+      return n > 0 ? `${count(n)} en vente` : 'Rare'
+    },
+  },
+  fallback: 'Va avec ce que tu collectionnes.',
+  also: (extras) => ` Aussi : ${listFr(extras)}.`,
+}
+
+export const packs = { en, de, fr }
 
 /**
  * The sentence, from the strongest signal, with the runners-up appended.
@@ -527,7 +748,7 @@ export function reasonFor(signals: readonly Signal[], without?: Signal['type']):
     .map((signal) => words.support[signal.type]?.(signal.evidence))
     .filter((phrase): phrase is string => typeof phrase === 'string' && phrase.length > 0)
 
-  return extras.length === 0 ? sentence : `${sentence}${words.also(extras.join(', '))}`
+  return extras.length === 0 ? sentence : `${sentence}${words.also(extras)}`
 }
 
 /**

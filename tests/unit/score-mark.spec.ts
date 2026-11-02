@@ -59,10 +59,10 @@ describe('which band a score falls into', () => {
    * composable that loads it along. Two `band:` blocks, one per language, and
    * every letter named in both.
    */
-  it('has a name for every band, in both languages', () => {
+  it('has a name for every band, in every language', () => {
     const dig = readFileSync('app/i18n/dig.ts', 'utf8')
     const blocks = [...dig.matchAll(/band: \{([^}]*)\}/g)].map((hit) => hit[1]!)
-    expect(blocks).toHaveLength(2)
+    expect(blocks).toHaveLength(3)
 
     for (const block of blocks) {
       for (const band of BANDS) {
@@ -138,8 +138,8 @@ describe('how the score is shown', () => {
     const dig = withoutComments(readFileSync('app/pages/shop.vue', 'utf8'))
     expect(dig).toMatch(/SMALL_COLLECTION = 50/)
     expect(dig).toMatch(/collectionSize < SMALL_COLLECTION/)
-    // In both languages; read from source, like the band names above.
-    expect(readFileSync('app/i18n/dig.ts', 'utf8').match(/smallCollection:/g)).toHaveLength(2)
+    // In every language; read from source, like the band names above.
+    expect(readFileSync('app/i18n/dig.ts', 'utf8').match(/smallCollection:/g)).toHaveLength(3)
   })
 
   /** And the sheet stands it next to the reasons, not in a corner. */

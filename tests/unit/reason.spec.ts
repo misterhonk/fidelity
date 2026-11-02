@@ -66,7 +66,7 @@ describe.each(LANGUAGES)('every signal can speak for itself, in %s', (language) 
     const sentence = reasonFor([signal('WANTLIST_EXACT'), signal(type)])
 
     if (type === 'WANTLIST_EXACT') return
-    expect(sentence).toContain(packs[language].also('').trim().replace(/\.$/, ''))
+    expect(sentence).toContain(packs[language].also(['']).trim().replace(/\.$/, ''))
   })
 
   it.each(SIGNAL_TYPES)('%s never writes undefined or NaN', (type) => {
@@ -306,8 +306,10 @@ describe.each(LANGUAGES)('the reason as a plate, in %s', (language) => {
    * the name twice and the point not at all.
    */
   it('says what is the matter, and counts rather than repeating the name', () => {
-    const shelf = language === 'de' ? 'Im Regal · 5' : 'On the shelf · 5'
-    const label = language === 'de' ? 'Dein Label · 3' : 'Your label · 3'
+    const shelf = { en: 'On the shelf · 5', de: 'Im Regal · 5', fr: 'Sur l’étagère · 5' }[
+      language
+    ]
+    const label = { en: 'Your label · 3', de: 'Dein Label · 3', fr: 'Ton label · 3' }[language]
 
     expect(plateFor(signal('ARTIST_KNOWN'))).toBe(shelf)
     expect(plateFor(signal('LABEL_AFFINITY'))).toBe(label)
@@ -321,12 +323,12 @@ describe.each(LANGUAGES)('the reason as a plate, in %s', (language) => {
   })
 
   it('leaves off a count of one, which counts nothing', () => {
-    const shelf = language === 'de' ? 'Im Regal' : 'On the shelf'
+    const shelf = { en: 'On the shelf', de: 'Im Regal', fr: 'Sur l’étagère' }[language]
     expect(plateFor(signal('ARTIST_KNOWN', { owned: 1 }))).toBe(shelf)
   })
 
   it('says a gap and a run as the fraction they are', () => {
-    const of = language === 'de' ? 'von' : 'of'
+    const of = { en: 'of', de: 'von', fr: 'sur' }[language]
     expect(plateFor(signal('ARTIST_GAP'))).toContain(`5 ${of} 12`)
     expect(plateFor(signal('CATALOG_RUN'))).toContain(`6 ${of} 9`)
   })

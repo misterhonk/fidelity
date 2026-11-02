@@ -1323,7 +1323,563 @@ const de: typeof en = {
   },
 }
 
-export const packs = { en, de }
+/** French counts nought and one in the singular. */
+const frCounted = (n: number, one: string, many: string) => `${n} ${n < 2 ? one : many}`
+
+const fr: typeof en = {
+  appearance: {
+    title: 'Apparence & son',
+    hint: 'Langue, clair ou sombre, et comment tu écoutes',
+
+    theme: {
+      title: 'Thème',
+      system: {
+        label: 'Système',
+        about: 'Suit l’appareil, y compris le passage automatique le soir.',
+      },
+      light: { label: 'Clair', about: 'Pour la lumière du jour et les listes papier à côté.' },
+      dark: {
+        label: 'Sombre',
+        about: 'Le réglage par défaut. Les pochettes brillent sur fond sombre.',
+      },
+      following: (resolved) =>
+        `Sur cet appareil, en ce moment ${resolved === 'dark' ? 'sombre' : 'clair'}.`,
+    },
+
+    language: {
+      title: 'Langue',
+      about: 'Reprise de l’appareil la première fois. Changée ici, elle reste changée.',
+      legend: 'Langue de l’interface',
+    },
+  },
+
+  title: 'Réglages',
+  lead: 'Ce que tu règles une fois et laisses ensuite tranquille.',
+  back: 'Réglages',
+
+  account: {
+    lead: 'Ton token, tes autres appareils et ce que celui-ci garde.',
+    title: 'Compte & données',
+    hint: 'Ton token Discogs, synchroniser tes appareils, exporter ou effacer',
+    discogsAccount: 'Compte Discogs',
+    dataLives: 'Les données sont',
+    inThisBrowser: 'dans ce navigateur, sur cet appareil',
+    used: 'Utilisé',
+    usedLine: (data, covers) => `${data} de données · ${covers} de pochettes en cache`,
+    protected: 'protégé contre le nettoyage',
+    signOut: 'Se déconnecter',
+    signOutWarning:
+      'Se déconnecter efface aussi la base de données : token, collection, tes artistes et labels, fouilles. Il n’y a aucune copie ailleurs. Exporte avant, si tu veux les garder.',
+  },
+  library: {
+    lead: 'Ce qu’on sait de tes disques, directement de Discogs. Tout le reste s’appuie dessus.',
+    title: 'Collection',
+    hint: 'Collection, liste d’envies, tes artistes et labels, crédits',
+    summary: (records, wants) =>
+      `${records} ${records === '1' || records === '0' ? 'disque' : 'disques'} · ${wants} ${wants === '1' || wants === '0' ? 'envie' : 'envies'}`,
+
+    fetch: {
+      title: 'Collection et liste d’envies',
+      collection: 'Collection',
+      wantlist: 'Liste d’envies',
+      lastSynced: 'Dernière récupération',
+      fetching: 'Récupération …',
+      progress: (what, stored, total) => `${what} : ${stored} sur ${total}`,
+      start: 'Récupérer la collection',
+      again: 'Récupérer à nouveau',
+    },
+
+    horizon: {
+      title: 'Tes artistes et labels',
+      about:
+        'Tes artistes et labels, cherchés une fois. Ensuite, aucune fouille ne coûte de requêtes en plus.',
+      entities: 'Artistes et labels',
+      ofTotal: (done, total) => `${done} sur ${total}`,
+      knownRecords: 'Disques connus',
+      remaining: (minutes) =>
+        `Encore environ ${frCounted(minutes, 'minute', 'minutes')}. Tourne par petites bouchées et survit à un rechargement ; ce qui est fini, on ne le récupère pas deux fois.`,
+      stale: (entries) =>
+        `${frCounted(entries, 'entrée a', 'entrées ont')} plus de 30 jours. On les rafraîchit petit à petit, une petite portion par jour.`,
+      records: 'Disques',
+      eta: (clock) => `encore env. ${clock}`,
+      build: 'Chercher artistes et labels',
+      refresh: 'Rafraîchir artistes et labels',
+      lastBuilt: (when) => `Dernière construction complète le ${when}`,
+      neverBuilt:
+        'Jamais allé jusqu’au bout. Ce qui est là vient de passages arrêtés plus tôt, du rafraîchissement quotidien et de ce que les fouilles ont trouvé.',
+      keepsRunning:
+        'Continue si tu quittes cet écran. Ça tourne en arrière-plan, pas sur cette page.',
+    },
+
+    radar: {
+      title: 'Dans le viseur',
+      about: 'Des groupes dont tu n’as rien, et qui doivent quand même compter.',
+      lead: 'Une fouille compare avec ce qui est sur l’étagère. Voici les noms qu’on doit reconnaître quand même : rien d’eux n’y est encore, et c’est justement le but.',
+      empty:
+        'Personne dans le viseur pour l’instant. Cherche quelqu’un ci-dessous et ajoute-le.',
+      searchLabel: 'Chercher un groupe',
+      searchPlaceholder: 'Exit North',
+      search: 'Chercher',
+      add: 'Dans le viseur',
+      onIt: 'Y est',
+      remove: 'Retirer',
+      noHits: 'Personne de ce nom trouvé sur Discogs.',
+      needsHorizon:
+        'Chacun coûte une ou deux requêtes la prochaine fois qu’on rafraîchit tes artistes. C’est ce qui transforme un nom en disques.',
+      toHorizon: 'Vers tes artistes et labels',
+    },
+
+    credits: {
+      title: 'Crédits',
+      about: 'Qui a fait tes disques préférés : producteurs, ingénieurs, remixeurs.',
+      lead: 'Qui a produit, mixé et masterisé, lu dans tes disques préférés, quatre et cinq étoiles.',
+      whyLabel: 'Pourquoi seulement les préférés',
+      why: 'On n’obtient les crédits qu’en cherchant un disque à la fois. Passer toute la collection prendrait des heures. Les disques notés en sont une fraction et disent le plus sur toi.',
+      noFavourites:
+        'Aucun disque noté quatre ou cinq étoiles pour l’instant. Donne-les sur Discogs, et on saura où regarder.',
+      read: (read, total) => `${read} disques préférés lus sur ${total}`,
+      worthExpanding: (people) =>
+        `${people === 1 ? 'personne apparaît' : 'personnes apparaissent'} assez souvent pour compter comme tes artistes`,
+      remaining: (records, minutes) =>
+        `Encore ${frCounted(records, 'disque', 'disques')}, environ ${frCounted(minutes, 'minute', 'minutes')}. Tourne par petites bouchées et survit à un rechargement.`,
+      people: 'Personnes',
+      harvest: 'Lire les crédits',
+      continue: 'Continuer la lecture',
+    },
+  },
+  search: {
+    lead: 'Vaut pour chaque fouille.',
+    title: 'Trouvailles & boutiques',
+    hint: 'Ce que cherche une fouille et d’où viennent les boutiques',
+    unrestricted: 'Sans restriction',
+    upTo: (price) => `jusqu’à ${price}`,
+    originalsOnly: 'seulement les originaux',
+    countriesBlocked: (blocked) =>
+      blocked === 1 ? '1 pays bloqué' : `${blocked} pays bloqués`,
+
+    filter: {
+      title: 'Ce qu’on cherche',
+      about: 'Ce qui n’apparaît même pas, et ce qui atterrit seulement plus bas.',
+
+      hard: 'Strict : ce qui n’apparaît même pas',
+      soft: 'Souple : ce qui apparaît encore, mais plus bas',
+
+      formats: 'Formats',
+      formatsHint:
+        'Rien de choisi veut dire : tout compte. Discogs écrit le vinyle 12", 2xLP ou 7", on lit tout ça.',
+
+      maxPrice: 'Prix maximum',
+      noLimit: 'pas de limite',
+      maxPriceHint: 'Ce qui est au-dessus, on le laisse de côté.',
+
+      minRating: 'Évaluation du vendeur au moins',
+      minRatingHint: 'En dessous, aucune fouille ne démarre.',
+
+      shipsTo: 'Où c’est livré',
+      shipsToHint:
+        'Décide du port : les boutiques écrivent leurs prix par pays de destination (« Germany: », « Europe: », « Non-Europe: »), et on ne lit que le bloc qui te concerne. En anglais, comme l’écrit Discogs ; « Deutschland », on le comprend aussi.',
+
+      blocked: 'Pas d’envoi depuis ces pays',
+      blockedPlaceholder: 'Chercher un pays',
+      blockedSearch: 'Chercher un pays à sauter',
+      unblock: (country) => `Ne plus sauter ${country}`,
+      blockedHint: 'Utile contre la douane et trois semaines d’attente.',
+
+      condition: 'État à partir de',
+      conditionHint: 'En dessous, ça ne compte plus que 40 %, mais ça ne disparaît pas.',
+      listen: 'Écouter sur',
+      listenNone: 'Nulle part',
+      listenHint: 'Un disque porte alors un lien vers la recherche de ce service.',
+
+      targetPrice: 'Prix idéal',
+      targetPriceAny: 'peu importe',
+      targetPriceHint:
+        'Au-dessus, une trouvaille compte 55 %, et c’est aussi la limite jusqu’à laquelle le panier fait des propositions.',
+
+      preferOriginals: 'Préférer les pressages originaux',
+      preferOriginalsHint: 'Les rééditions comptent alors moins.',
+      preferOriginalsWhyLabel: 'Atténué plutôt qu’écarté',
+      preferOriginalsWhy:
+        'Discogs ne dit si un disque est une réédition que quand on le cherche à part, et ça se fait après la fouille, pour les 50 meilleurs. Écarter n’écarterait donc rien.',
+
+      saved: 'Enregistré. Vaut dès la prochaine fouille.',
+      countryPlaceholder: 'France',
+    },
+
+    dealers: {
+      title: 'D’où viennent les boutiques',
+      about: 'Quelles sources l’import a le droit de lire.',
+      ordersAlways:
+        'Tes commandes, on les lit toujours. Discogs ne nous y montre que le côté vente, pour quelqu’un qui ne fait qu’acheter, ça ne trouve donc rien. La liste d’amis, c’est la moitié qui marche.',
+      friends: 'Lire aussi la liste d’amis Discogs',
+      friendsOff: 'Désactivé, tant que tu ne l’actives pas.',
+      friendsOn: 'Activé. On cherche aussi parmi les amis qui vendent des disques.',
+      whyLabel: 'Pourquoi c’est une exception',
+      why: 'Sinon, on n’utilise que des interfaces Discogs officiellement documentées.',
+      whyAfter:
+        'n’en est pas une. Elle marche, mais ne figure dans aucune documentation et peut disparaître sans prévenir. Si ça arrive, l’import perd une source et rien d’autre. C’est pour ça qu’elle reste désactivée jusqu’à ce que tu acceptes.',
+    },
+  },
+  sync: {
+    lead: 'Chiffré, pour que l’endroit où c’est stocké ne compte pas.',
+    title: 'Synchroniser les appareils',
+    hint: 'Coffre chiffré pour téléphone et ordinateur',
+    targets: {
+      none: 'Désactivé',
+      hub: 'Ton hub',
+      file: 'Fichier dans le dossier synchronisé',
+      dropbox: 'Dropbox',
+      drive: 'Google Drive',
+    },
+  },
+
+  audio: {
+    title: 'Écouter',
+    lead: 'Les extraits d’un disque viennent de YouTube. Qu’ils jouent ici ou s’ouvrent là-bas, c’est toi qui décides.',
+    label: 'Lire les extraits ici même',
+    off: 'Désactivé. Un extrait s’ouvre sur YouTube dans un nouvel onglet. On ne charge rien depuis Google.',
+    on: 'Activé. Les disques avec extraits ont ici un bouton lecture, et Google n’apprend l’existence de cet appareil qu’au moment où tu appuies.',
+    whyLabel: 'Ce qui se passe alors',
+    why: 'Discogs n’a qu’une seule source sonore : YouTube. Une écoute veut donc dire intégrer Google. Collection, liste d’envies et token restent sur cet appareil. Ce que Google apprend, c’est l’adresse de cet appareil et le disque qui joue. Avant d’appuyer, on ne charge rien, même avec l’interrupteur activé.',
+  },
+
+  vault: {
+    targets: {
+      none: { label: 'Seulement cet appareil', hint: 'Rien ne quitte le navigateur.' },
+      hub: { label: 'Ton hub', hint: 'Chiffré sur ton propre serveur.' },
+      file: {
+        label: 'Fichier dans le dossier synchronisé',
+        hint: 'iCloud, Dropbox ou Drive le transportent.',
+      },
+      cloud: { hint: 'Avec ta propre inscription d’appli.' },
+    },
+
+    blocked: {
+      'no-hub': 'Aucun hub saisi. L’adresse se règle dans les réglages, sous Hub.',
+      'signed-out': 'Connecte-toi d’abord : le coffre appartient à ton compte Discogs.',
+      'not-built': 'Cette destination n’est pas encore construite.',
+    },
+
+    clientId: (provider) => `Client ID de ${provider}`,
+    redirect: (uri) => `Comme URL de redirection, saisis ${uri}.`,
+    providerHint: {
+      dropbox: 'Scoped access, App folder, puis saisis l’App key.',
+      drive: 'ID client OAuth, type « Web application », Drive API activée.',
+    },
+    redirectMoved:
+      'Installé avant août 2026 ? L’adresse se terminait alors par /einstellungen/abgleich. Elle marche toujours, il n’y a rien à faire.',
+    connect: (provider) => `Se connecter à ${provider}`,
+    connected: 'Connecté.',
+    connectedTo: (provider) => `Connecté à ${provider}.`,
+    disconnect: 'Déconnecter',
+
+    pickFile: 'Choisir un fichier',
+    otherFile: 'Autre fichier',
+
+    passphrase: 'Phrase secrète',
+    passphraseHint:
+      'La même sur chaque appareil. On ne l’enregistre nulle part ; oubliée veut dire perdue.',
+    remember: 'Mémoriser sur cet appareil',
+    rememberHint: 'Alors on synchronise tout seul à l’ouverture.',
+    rememberWhyLabel: 'Ce n’est pas la clé posée à côté de la serrure ?',
+    rememberWhy:
+      'Non. La serrure est sur la copie au loin. Cette base de données ici n’est pas chiffrée et ne l’a jamais été : collection, notés et token Discogs y sont depuis longtemps. Poser la phrase secrète à côté ne donne à personne quoi que ce soit que posséder l’appareil ne donne pas déjà. Sur un ordinateur partagé, c’est une autre question. Alors décoche, et tape-la à chaque fois.',
+
+    syncing: 'Synchro …',
+    syncNow: 'Synchroniser maintenant',
+    setUp: 'Configurer',
+    merged: (entries) => `Fusionné : ${frCounted(entries, 'entrée', 'entrées')}.`,
+    firstBackup: (entries) => `Première copie : ${frCounted(entries, 'entrée', 'entrées')}.`,
+    emptySlot: (entries) =>
+      `Il n’y avait rien là-bas, alors que cet appareil a déjà synchronisé. ${frCounted(entries, 'entrée est partie', 'entrées sont parties')} comme copie neuve. Si tu as changé la phrase secrète : l’ancienne copie est toujours sous l’ancien mot. Synchroniser une fois avec lui réunit les deux.`,
+    lastSynced: (when) => `Dernière synchro le ${when}.`,
+
+    byHand: {
+      title: 'Ou à la main, en fichier',
+      about:
+        'Un tour sans destination fixe : lire le fichier écrit par l’autre appareil, et en enregistrer un neuf. Bien pour un transfert unique ou un appareil qui n’est pas configuré.',
+      aboutWebkit:
+        'Ce navigateur ne sait pas écrire dans un fichier de lui-même. C’est pour ça que « Fichier dans le dossier synchronisé » n’est pas proposé ci-dessus, et pour ça qu’il n’y a pas d’entrée iCloud : il manque à Safari l’API nécessaire, iCloud n’y est pour rien. À la main, ça marche : mets toi-même le fichier dans iCloud Drive et choisis-le ici sur l’autre appareil.',
+      file: 'Le fichier de l’autre appareil',
+      fileHint: 'Laisse vide sur le premier appareil ; il n’y a encore rien à lire.',
+      run: 'Synchroniser et enregistrer le fichier',
+      saved: 'Le fichier est enregistré. Mets-le là où l’autre appareil le trouvera.',
+    },
+
+    scopeWhyLabel: 'Ce qui part et ce qui reste',
+    scopeWhy:
+      'Part : les notés, les boutiques avec leurs tarifs de port, les réglages. Ne part pas : ton token Discogs et le panier. Ses prix vieillissent, et une ligne retirée ici reviendrait. Une clé sur trois appareils, c’est trois fois plus de surface d’attaque, chaque appareil se connecte donc lui-même. Tes artistes et labels, chaque appareil les cherche aussi lui-même. Et pas de fouilles : les prix partent de toute façon au bout de six heures et n’ont rien à faire sur un serveur.',
+  },
+
+  hubPanel: {
+    whyLabel: 'Ce qu’apporte un hub',
+    why: 'Tout ce qu’on a trouvé sur tes artistes et labels, chaque appareil n’a plus à le chercher de son côté. Ce qui y est une fois est là tout de suite sur l’appareil suivant, au lieu d’après des minutes. Pareil pour les frais de port par boutique. Et si des amis utilisent le même hub, chacun travaille pour les autres.',
+    optional: 'Il ne fait qu’enlever de l’attente.',
+    url: 'URL du hub',
+    door: 'Clé d’accès ou secret partagé',
+    removeDoor: 'Retirer',
+    notYourToken:
+      'Pas ton token Discogs ; lui ne quitte jamais cet appareil. Une clé commence par « fk1. » et ouvre un hub et un catalogue hébergés. Tout le reste est le secret de ton propre hub.',
+
+    save: 'Enregistrer',
+    test: 'Tester la connexion',
+    discover: 'Chercher ici',
+
+    found: 'Il y en a un sur cet ordinateur, adresse saisie. Enregistre maintenant.',
+    foundAndKept: 'Il y en a un sur cette page, saisi et gardé. Il n’y a rien d’autre à faire.',
+    foundSecured:
+      'Il y en a un sur cette page. Il demande un secret partagé : le mot choisi par la personne qui a installé le hub. Saisis-le ci-dessous, puis enregistre.',
+    blockedByMixedContent:
+      'Injoignable d’ici : cette page passe par HTTPS, et Safari refuse depuis là toute connexion à un localhost non chiffré. Dans Chrome, ça passe. La seule solution durable est de rendre le hub joignable en HTTPS.',
+    notFound:
+      'Il n’y en a aucun sur cet ordinateur. Saisis l’adresse à la main, s’il est ailleurs.',
+    searchFailed: 'Recherche impossible.',
+
+    showDoor: 'Afficher',
+    hideDoor: 'Masquer',
+    verdict: {
+      keyOk: 'Joignable. Ta clé d’accès l’ouvre, tout passe.',
+      secretOk: 'Joignable. Le secret est bon, tout passe.',
+      open: 'Joignable et ouvert, sans secret. Tout passe.',
+      keyWrong:
+        'Joignable, mais le hub refuse ta clé d’accès : expirée, retirée ou pas pour ce hub. En attendant, rien ne passe.',
+      secretWrong: 'Joignable, mais le secret n’est pas bon. En attendant, rien ne passe.',
+      locked: (doors) =>
+        `Joignable, mais fermé. Le hub veut ${
+          Array.isArray(doors) && doors.includes('key') && doors.includes('secret')
+            ? 'un secret ou une clé d’accès'
+            : Array.isArray(doors) && doors.includes('key')
+              ? 'une clé d’accès'
+              : 'un secret'
+        }, et il n’y en a pas ici. En attendant, rien ne passe.`,
+    },
+    holds: (entries, tiers) =>
+      `Dedans : ${frCounted(entries, 'entrée', 'entrées')} sur des artistes et labels, ${frCounted(tiers, 'tarif de port', 'tarifs de port')}.`,
+  },
+
+  dataPanel: {
+    exportAll: 'Tout exporter',
+    importAll: 'Relire une sauvegarde',
+    importing: 'Lecture …',
+    importReport: (rows) => `Relu : ${rows}.`,
+    importNothing: 'Rien dans le fichier qui puisse être relu.',
+    importStore: {
+      collection: 'collection',
+      wantlist: 'liste d’envies',
+      dealers: 'boutiques',
+      feedback: 'évaluations',
+      basket: 'panier',
+      places: 'lieux',
+      placements: 'places des disques',
+      valueHistory: 'l’estimation au fil du temps',
+      followed: 'artistes suivis',
+      watched: 'disques à l’œil',
+    } as Record<string, string>,
+    importSkippedPrices: (digs) =>
+      `${digs} fouilles sont restées dehors : une sauvegarde ne porte pas de prix, et une fouille sans eux est un titre au-dessus de rien.`,
+    importSkippedInvalid: (rows) =>
+      `${rows} lignes du fichier étaient incomplètes et sont restées dehors.`,
+    importSkippedOld:
+      'La collection et la liste d’envies de ce fichier datent d’avant la forme de ligne fixe. Récupère-les une fois, et elles sont de retour.',
+    importMeta:
+      'Les réglages et le profil de goût viennent du fichier, parce que cet appareil n’en avait pas.',
+    exportDig: 'Dernière fouille en fichier',
+    contents:
+      'Aucun des deux fichiers ne contient ton token, ni prix ni états ; selon les conditions d’utilisation de Discogs, les données du marché ne doivent pas être transmises. Ce qu’il y a dedans : quels disques collent à quel point et pourquoi, avec un lien vers chaque annonce.',
+    noDigYet: 'Pas encore de fouille à exporter.',
+
+    exportCollectionCsv: 'Collection en CSV',
+    exportWantlistCsv: 'Liste d’envies en CSV',
+    csvContents:
+      'Pour un tableur. Chaque colonne que l’export de Discogs laisse de côté, genres, styles, identifiants de sortie et de master, plus ce qui n’est qu’à toi : note, dossier, les champs d’état et l’endroit où est un disque. Ni prix ni estimation : ce sont des données du marché, elles restent dans l’appli.',
+
+    deleteAll: 'Tout effacer',
+    deleteWarning:
+      'Efface toute la base de données sur cet appareil : token, collection, tes artistes et labels, fouilles, panier et évaluations. Il n’y a aucune copie ailleurs et aucun retour possible.',
+    deleteConfirm: 'Oui, tout effacer',
+    cancel: 'Annuler',
+  },
+  cataloguePanel: {
+    whyLabel: 'Ce qu’apporte un catalogue',
+    why: 'Discogs publie une fois par mois toute sa base de données. Un catalogue, c’est ce mois-là, lu une fois, et il répond à ce que l’API répond lentement ou pas du tout : tous les pressages d’un album d’un coup, chaque disque auquel un producteur a participé, un code-barres sans une seule requête. Rien de toi n’y va ; il ne connaît que les disques.',
+    optional: 'Il ne fait qu’enlever de l’attente.',
+
+    url: 'URL du catalogue',
+    save: 'Enregistrer',
+    test: 'Tester la connexion',
+    discover: 'Chercher ici',
+
+    found: 'Un trouvé, adresse saisie. Enregistre maintenant.',
+    notFound:
+      'Il n’y en a aucun sur cet ordinateur. Saisis l’adresse à la main, s’il est ailleurs.',
+    searchFailed: 'Recherche impossible.',
+
+    reachable: 'Joignable',
+    build: (date: string) => `État au ${date}`,
+    releases: (count: string) => `${count} sorties`,
+  },
+
+  accessPanel: {
+    notAKey: 'Ça ne ressemble pas à une clé d’accès.',
+    reads: (tier, until) => `${tier} · valable jusqu’au ${until}`,
+    expired: 'expirée, demandes-en une neuve',
+    saved: 'Enregistrée. Le hub et le catalogue la reçoivent désormais avec chaque requête.',
+    removed:
+      'Retirée. Ton propre hub tourne comme avant ; un hub hébergé t’est maintenant fermé.',
+  },
+
+  supportPanel: {
+    tierName: (tier) =>
+      ({
+        beta: 'Clé bêta',
+        seven: 'Un 7"',
+        lp: 'Un LP',
+        double: 'Un double album',
+        first: 'Le premier pressage',
+        test: 'Le test pressing',
+      })[tier] ?? tier,
+  },
+
+  access: {
+    until: (date) => `jusqu’au ${date}`,
+    expired: 'expirée',
+  },
+  hub: {
+    lead: 'Un assistant sur ton propre réseau. Il retient ce qu’on a déjà trouvé.',
+    title: 'Hub',
+    hint: 'Assistant facultatif sur ton propre réseau',
+    notSetUp: 'Pas configuré',
+    catalogue: 'Catalogue',
+    unreadable: 'Adresse illisible',
+  },
+  advanced: {
+    title: 'Avancé',
+    hint: 'Hub et catalogue, assistants facultatifs qui tournent ailleurs',
+    lead: 'Des assistants facultatifs qui tournent ailleurs. Tout marche aussi sans eux.',
+  },
+  data: {
+    lead: 'L’emporter ou t’en débarrasser.',
+    title: 'Tes données',
+    hint: 'Exporter ou tout effacer',
+    storage: 'Stockage',
+    storageLine: (used, quota) => `${used} utilisés sur ${quota}`,
+    storageUnknown: 'combien est utilisé, ce navigateur ne le dit pas',
+    storageHint: (data) =>
+      `Dont ${data} de tes données. Le reste, ce sont surtout des pochettes en cache, elles partent en premier quand la place manque.`,
+  },
+  help: {
+    lead: 'Comment ça marche ici, ce que veulent dire les notes et où sont tes données.',
+    title: 'Aide',
+    hint: 'Comment ça marche ici et ce que veulent dire les notes',
+  },
+  chapters: [
+    {
+      title: 'Comment je commence ?',
+      body: [
+        'Il te faut un Personal Access Token de Discogs ; tu le crées toi-même sous « Settings → Developers ». Ensuite, on récupère une fois ta collection et ta liste d’envies. C’est la base : sans elles, on ne sait pas ce que tu aimes.',
+        'Puis tu nous donnes une boutique sous « Fouiller », son nom ou simplement le lien de sa page Discogs. On passe en revue ce qu’elle a, et on te dit ce qui te va.',
+      ],
+    },
+    {
+      title: 'Que veut dire le chiffre à côté d’un disque ?',
+      body: [
+        'Il dit à quel point ce disque va avec ta collection, de 0 à 100. Onze indices différents entrent en jeu : un artiste que tu collectionnes, une envie sur ta liste, un label que tu suis, un trou dans une série de catalogue, quelqu’un qui figure en petits caractères sur tes disques préférés.',
+        'L’indice le plus fort compte pleinement, les autres à 30 % chacun. Un disque avec une très bonne raison bat donc un disque avec trois faibles, comme le ferait une personne.',
+        'Sous chaque disque, une phrase dit pourquoi. Si la phrase ne te convainc pas, le chiffre ne vaut rien non plus. Appuie sur le disque, et tu vois chaque indice avec sa preuve.',
+      ],
+    },
+    {
+      title: 'Pourquoi une fouille prend-elle autant de temps ?',
+      body: [
+        'Discogs n’autorise qu’un nombre limité de requêtes par minute, et on le respecte : une requête après l’autre, avec de l’écart. Une boutique de trois mille disques, ça fait donc quelques minutes.',
+        'Tu peux t’en aller pendant ce temps. On garde la progression, même si tu fermes l’onglet : à la prochaine ouverture, on propose de reprendre là.',
+        'Pour les boutiques que tu as déjà fouillées, il y a « seulement le nouveau ». Ça ne lit que ce qui est arrivé depuis ta dernière visite, et c’est en général fini en quelques secondes.',
+      ],
+    },
+    {
+      title: 'Pourquoi les prix disparaissent-ils au bout de quelques heures ?',
+      body: [
+        'Parce qu’on n’a pas le droit de les garder plus longtemps. Discogs n’autorise l’usage de ses données du marché que peu de temps, et on s’y tient sans exception.',
+        'Les trouvailles et les raisons restent ; on les a calculées nous-mêmes. Seuls les prix et les états partent. Dans le panier, « Encore là ? » remet tout à jour.',
+      ],
+    },
+    {
+      title: 'Pourquoi un panier par boutique ?',
+      body: [
+        'Parce que le port se paie par envoi, pas par disque. Deux disques dans deux boutiques, c’est deux envois ; deux disques dans une boutique, souvent un seul.',
+        'C’est pour ça que chaque panier compte pour lui-même : sous-total, tarif de port, et ce que coûte vraiment chaque disque de plus. L’achat se fait sur Discogs ; on ne met rien dans le panier de quelqu’un d’autre.',
+      ],
+    },
+    {
+      title: 'Que veut dire « chercher artistes et labels » ?',
+      body: [
+        'On rassemble tout sur tes artistes et labels, pas seulement ce qui est sur ton étagère. Ça nous permet de reconnaître d’autres pressages du même disque, des trous dans les séries de catalogue et des albums que tu ne connais pas encore.',
+        'On les cherche une fois, puis on ne fait que les garder frais. Sans ça, tout marche, mais les trouvailles les plus intéressantes restent invisibles.',
+      ],
+    },
+    {
+      title: 'Et les crédits ?',
+      body: [
+        'Des disques que tu as notés quatre ou cinq étoiles sur Discogs, on lit qui les a faits : producteurs, remixeurs, gens de studio.',
+        'Quand la même personne revient souvent, on trouve plus tard aussi des disques où elle n’est pas sur la pochette. C’est la différence entre « chercher par artiste » et une personne qui connaît la boutique.',
+      ],
+    },
+    {
+      title: 'Où sont mes données ?',
+      body: [
+        'Sur cet appareil, dans le stockage de ton navigateur. Il n’y a aucun serveur où elles pourraient aller ; Sleeveside n’est fait que de fichiers qui tournent dans ton navigateur.',
+        'Ton token Discogs reste ici aussi. Il n’est jamais écrit dans une adresse, jamais journalisé et jamais transmis à personne.',
+        'On lit. On ne réécrit que ce que tu changes toi-même ici : notes, dossiers, achats, ta liste d’envies. On n’achète rien.',
+      ],
+    },
+    {
+      title: 'Comment tout mettre sur mon téléphone ?',
+      body: [
+        'Sous « Compte & données », à « Synchroniser les appareils ». On chiffre tes données sur cet appareil et on les dépose en un seul bloc : dans ton hub, dans un dossier synchronisé, sur Dropbox ou Google Drive, comme tu veux. Seuls tes appareils peuvent le rouvrir.',
+        'Sinon, tu configures simplement le téléphone à neuf. Tout sauf tes avis se récupère à nouveau depuis Discogs.',
+      ],
+    },
+    {
+      title: 'Qu’est-ce qui se rafraîchit tout seul ?',
+      body: [
+        'Ta collection, ta liste d’envies, les boutiques suivies et tes artistes et labels : à l’ouverture, au retour dans l’onglet et toutes les vingt minutes. La plupart du temps, c’est une seule requête, parce qu’on ne demande à Discogs que ce qui a changé. Deux choses restent dehors exprès. Une fouille prend deux à quatre minutes et cent requêtes ou plus, c’est donc toi qui la lances, pas une horloge. Et tes commandes, on ne peut pas les récupérer du tout ; Discogs ne liste que ce que tu as vendu, alors on lit un achat par son numéro de commande.',
+      ],
+    },
+    {
+      title: 'Ça marche sans réseau ?',
+      body: [
+        'Pour consulter, oui. Collection, liste d’envies, carte et dernières listes de trouvailles sont sur l’appareil. L’écran « En boutique » est fait pour ça : le disque en main, regarder si tu l’as déjà. Les boutiques de disques, ce sont des caves.',
+        'Les nouvelles fouilles ont besoin du réseau, car il faut lire la boutique.',
+      ],
+    },
+    {
+      title: 'Quelque chose ne va pas',
+      body: [
+        'Sous « Compte & données », à « Tes données », tu peux tout exporter ou tout effacer. Effacer retire aussi le token ; ensuite l’appareil est vide et tu peux recommencer de zéro. Rien ne se perd qui ne puisse se récupérer à nouveau depuis Discogs.',
+        'Si on dit qu’on n’arrive pas à joindre Discogs alors que tu es en ligne, c’est en général que le budget de requêtes est épuisé pour le moment. Attendre quelques minutes aide.',
+      ],
+    },
+    {
+      title: 'Raccourcis clavier',
+      body: [
+        'La première tabulation sur chaque écran propose « Aller au contenu ». Ça te fait passer la navigation.',
+        '⌘K, ou Ctrl+K hors Mac, cherche partout : disques, boutiques, écrans.',
+        'Dans une fouille, / saute dans le champ de recherche et j ouvre la première trouvaille. Dans un disque ouvert, j ou → passe au suivant, k ou ← au précédent. Échap le ferme, Retour aussi.',
+        'Dans les boutiques, j et k parcourent la liste. Dans la pile, ← et → changent de disque.',
+        'Devant une étagère, les flèches vont de casier en casier. Début et Fin sautent au premier et au dernier, une lettre au casier où elle figure, et M réarrange tout un casier.',
+      ],
+    },
+  ],
+
+  closing: {
+    title: 'Encore une question ?',
+    body: 'Sleeveside est open source. Comment il calcule, c’est dans le code, et pourquoi il calcule ainsi, dans les documents à côté. Qui veut savoir précisément comment une note se forme y trouve tout écrit.',
+    disclaimer:
+      'Cette application utilise l’API de Discogs, mais n’est pas affiliée à Discogs.',
+  },
+}
+
+export const packs = { en, de, fr }
 
 /**
  * The settings wording, as a computed.

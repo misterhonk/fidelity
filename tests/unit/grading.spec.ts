@@ -209,7 +209,7 @@ describe('what is never stored', () => {
     const blocks = [...i18n.matchAll(/arrival: \{([\s\S]*?)\n {4}\},/g)].map(
       (match) => match[1]!,
     )
-    expect(blocks).toHaveLength(2)
+    expect(blocks).toHaveLength(3)
 
     /*
      * What is forbidden is the **grades**, not the word "grade".

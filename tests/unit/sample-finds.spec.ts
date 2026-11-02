@@ -30,7 +30,7 @@ describe('the examples on the setup screen', () => {
       expect(sentence, `score ${find.score}`).not.toBe(packs[language].fallback)
       // Every one of these was picked because it has runners-up worth naming.
       expect(sentence, `score ${find.score}`).toContain(
-        packs[language].also('').trim().replace(/\.$/, ''),
+        packs[language].also(['']).trim().replace(/\.$/, ''),
       )
     }
   })

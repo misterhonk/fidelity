@@ -24,6 +24,7 @@ const DONE = [
   'de.ts',
   'settings.ts',
   'pressing.ts',
+  'fr.ts',
 ]
 
 /** Every string literal in a pack, with the line it starts on. */
@@ -54,6 +55,21 @@ const CHECKS: { name: string; bad: RegExp }[] = [
   },
   { name: 'shouts', bad: /!(?:\s|$)/ },
   { name: 'says scan for dig', bad: /\b[Ss]cann?(?:s|ed|ing|en|t)?\b/ },
+  // French (#251): the counter says "tu", as German says "du", and asks nothing in an office's words.
+  { name: 'says vous in French', bad: /\b(?:[Vv]ous|[Vv]otre|[Vv]os)\b/ },
+  {
+    name: 'writes French like an office',
+    bad: /\b(?:[Vv]euillez|l[’']utilisateur|cette appli\b|s[’']avère|effectuer)/,
+  },
+]
+
+/**
+ * French typography, for the one pack written in nothing else: a space before
+ * `?`, `:`, `;` and `!`. The area packs carry English and German beside their
+ * French, where "Also:" is right, so they are read by eye.
+ */
+const FRENCH: { name: string; bad: RegExp }[] = [
+  { name: 'glues French punctuation', bad: /[\p{L}’'»)][?:;](?:\s|$)/u },
 ]
 
 describe('the voice', () => {
@@ -61,8 +77,9 @@ describe('the voice', () => {
     it(`holds in ${pack}`, () => {
       const source = readFileSync(`app/i18n/${pack}`, 'utf8')
       const strays: string[] = []
+      const checks = pack === 'fr.ts' ? [...CHECKS, ...FRENCH] : CHECKS
       for (const { line, text } of literals(source)) {
-        for (const check of CHECKS) {
+        for (const check of checks) {
           if (check.bad.test(text)) strays.push(`${pack}:${line} ${check.name}: ${text}`)
         }
       }

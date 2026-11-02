@@ -51,7 +51,31 @@ const de: typeof en = {
   expires: (at: string) => `Preise vom Scan, gültig bis ${at}.`,
 }
 
-export const packs = { en, de }
+const fr: typeof en = {
+  title: 'Un cadeau pour quelqu’un',
+  lead: 'Ce que quelqu’un désire, dans les boutiques que tu as fouillées, dans ton budget.',
+  who: 'Son nom Discogs ou le lien de son profil',
+  budget: 'Au plus par disque',
+  find: 'Chercher',
+  forgotten: 'La liste d’envies est lue maintenant et oubliée quand tu quittes la page.',
+  badName: 'Ce n’est ni un nom Discogs ni un lien de profil.',
+  looking: 'On demande la liste d’envies à Discogs…',
+  reading: (read: string, total: string) =>
+    `Lecture de la liste d’envies : ${read} sur ${total}.`,
+  checking: (read: string, total: string) =>
+    `On regarde si les trouvailles sont déjà dans la collection : ${read} sur ${total}.`,
+  closed: 'La liste d’envies est privée, ou ce nom n’existe pas.',
+  found: (ideas: number, wanted: string) =>
+    `${ideas} des ${wanted} envies ${ideas < 2 ? 'est' : 'sont'} dans tes boutiques, dans le budget.`,
+  none: 'Aucune des envies n’est dans le budget dans une boutique des six dernières heures.',
+  owned: (n: number) => `Déjà dans la collection, donc laissées de côté : ${n}.`,
+  collectionClosed: 'La collection est privée. Certaines y sont peut-être déjà.',
+  overBudget: (n: number) => `${n} autres, seulement au-dessus du budget.`,
+  open: 's’ouvre sur Discogs',
+  expires: (at: string) => `Prix de la fouille, valables jusqu’à ${at}.`,
+}
+
+export const packs = { en, de, fr }
 
 export function useGiftMessages() {
   return computed(() => packs[activeLanguage()])

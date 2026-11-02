@@ -73,7 +73,40 @@ const de: typeof en = {
   },
 }
 
-export const packs = { en, de }
+const fr: typeof en = {
+  title: 'Bienvenue',
+  description: 'Installer Sleeveside : ta clé, ton étagère, ta première fouille.',
+  lead: 'Donne-nous une boutique. On te sort les disques qui collent, et on te dit pourquoi pour chacun.',
+  setUp: 'Installer avec ta collection',
+  setUpAbout:
+    'Une clé de Discogs, on récupère une fois collection et liste d’envies, et c’est parti. Sur ton compte, on ne change que ce que tu touches toi-même. Et tout reste sur cet appareil.',
+  signedInAs: (username) => `Connecté en tant que ${username}`,
+  syncAbout:
+    'Maintenant on récupère ta collection et ta liste d’envies. C’est comme ça qu’on apprend ce que tu aimes. Quelques secondes par millier de disques, et tout est sur cet appareil.',
+  asking: 'On demande à Discogs …',
+  syncing: (what, stored, total) => `${what} : ${stored} sur ${total}`,
+  fetchCollection: 'Récupérer la collection',
+  dig: {
+    title: 'Ta première fouille',
+    summary: (records, wants) =>
+      `${records} ${records === '1' || records === '0' ? 'disque' : 'disques'} et ${wants} ${wants === '1' || wants === '0' ? 'envie' : 'envies'} sont maintenant sur cet appareil. Choisis une boutique, on la passe en revue pour toi.`,
+    after:
+      'Une fois la fouille finie, on regarde ce que tes artistes ont fait d’autre et qui se cache derrière tes disques préférés. Ça tourne en arrière-plan, par la même ligne vers Discogs. Une fouille lancée pendant ce temps va donc plus lentement.',
+    starters: 'Des boutiques pour commencer',
+    anyShop: 'Choisir une boutique',
+    goBack: 'Revenir où tu étais',
+  },
+  alreadySetUp: 'Déjà installé ?',
+  startPage: 'Vers la page d’accueil',
+  setupProgress: 'Installation',
+  steps: {
+    token: 'Clé',
+    sync: 'Collection',
+    dig: 'Première fouille',
+  },
+}
+
+export const packs = { en, de, fr }
 
 export function useWelcomeMessages() {
   return computed(() => packs[activeLanguage()])

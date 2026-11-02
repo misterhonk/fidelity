@@ -172,7 +172,74 @@ const de: typeof en = {
   },
 }
 
-export const packs = { en, de }
+/*
+ * French, like English, is a translation for readers. The German text is the
+ * one § 5 DDG asks for.
+ */
+const fr: typeof en = {
+  back: '← Accueil',
+
+  privacy: {
+    title: 'Confidentialité',
+    description: 'Ce que Sleeveside enregistre, et où. Court, parce que c’est court.',
+    lead: 'Sleeveside n’a pas de serveur à lui. Tout ce que l’appli sait est dans la base de données de ton navigateur ; ce qui quitte cet appareil va chez Discogs, et à quelques autres endroits, chacun seulement si tu l’actives.',
+
+    onDevice: 'Ce qui est sur ton appareil',
+    items: [
+      'Ton Personal Access Token Discogs',
+      'Ta collection et ta liste d’envies, telles que Discogs les fournit',
+      'L’horizon : des identifiants de sorties et des liens, ni titres ni images',
+      'Les cinq dernières fouilles avec leurs trouvailles',
+      'Le panier, les notes et les tarifs de port que tu as saisis',
+    ],
+
+    connections: 'Où vont les connexions',
+    connectionsBody:
+      'En temps normal, uniquement vers api.discogs.com et vers i.discogs.com pour les pochettes. Ton token va alors chez Discogs, et chez personne d’autre. Pas d’analytics, pas de polices venues d’autres serveurs, pas de rapports d’erreur. Les sections ci-dessous sont les exceptions, et chacune reste fermée tant que tu ne l’ouvres pas.',
+
+    audio: 'Première exception : l’écoute',
+    audioBody:
+      'Discogs n’a qu’une seule source sonore : YouTube. Qui active l’écoute dans les réglages puis appuie sur « Écouter » charge un lecteur de Google. À partir de là, Google voit l’adresse de cet appareil et le disque qui joue, et dès que l’extrait démarre, YouTube peut stocker et lire des informations sur cet appareil, comme des cookies. Le lecteur est celui de YouTube, intégré via les YouTube API Services : les conditions d’utilisation de YouTube s’appliquent (youtube.com/t/terms), et ce que Google fait des données figure dans les règles de confidentialité de Google (policies.google.com/privacy). Collection, liste d’envies et token restent ici, rien de tout ça n’est envoyé. L’interrupteur est désactivé au départ, et tant qu’il l’est, rien n’est chargé depuis Google. Google LLC est établie aux États-Unis ; le transfert repose sur l’EU-US Data Privacy Framework. La base légale est ton consentement (Art. 6, par. 1, point a du RGPD, et pour le stockage sur l’appareil le § 25, al. 1 TDDDG) : tu le donnes en activant l’écoute et en appuyant sur lecture. Le désactiver dans les réglages le retire pour la suite.',
+
+    hub: 'Deuxième exception : ton propre hub',
+    hubBody:
+      'Sleeveside peut utiliser un petit serveur d’appoint : le hub. Il n’y en a aucun tant que tu ne saisis pas toi-même son adresse dans les réglages ; si le champ reste vide, on ne lui demande jamais rien. Pour qui en fait tourner un : la copie de sauvegarde et la liste partagée y vont scellées, le hub les garde sans pouvoir les lire. En clair, il voit les boutiques que tu suis, l’adresse push que ton navigateur fournit pour les notifications, et la boutique et le pays d’un tarif de port. Ton token Discogs n’en fait jamais partie.',
+
+    catalogue: 'Troisième exception : un catalogue',
+    catalogueBody:
+      'Un catalogue est un second serveur d’appoint, construit à partir des données publiques de Discogs, qui répond à ce que l’horizon demanderait sinon à Discogs. Il n’y en a aucun tant que tu ne saisis pas son adresse dans les réglages. Sinon : il voit les identifiants de sorties, d’artistes, de labels et de masters qu’on lui demande, et le code-barres ou la matrice que tu tapes en boutique. Il ne garde rien de toi, ni collection, ni liste d’envies, ni token, et ne sait jamais qui demande.',
+
+    access: 'Quatrième exception : une clé d’accès',
+    accessBody:
+      'Si tu saisis une clé d’accès dans les réglages, elle voyage avec chaque appel au hub et au catalogue : c’est ainsi qu’un hub hébergé distingue les lignes de ses membres. La clé correspond à une formule, pas à un compte Discogs : le hub apprend quelle clé demande et quand elle expire, et rien sur qui tu es sur Discogs. D’où vient la clé, justificatif ou paiement, reste chez le service qui l’a délivrée, et celui-ci a ses propres règles de confidentialité.',
+
+    hosting: 'D’où vient cette page',
+    hostingBody:
+      'L’appli est une poignée de fichiers statiques chez un hébergeur web. Comme tout serveur web, il journalise les requêtes auxquelles il répond : adresse, heure, quel fichier. Ça se passe avant que quoi que ce soit de l’appli ne tourne, et ces journaux ne contiennent rien de ta collection, de ta liste d’envies ou de ton token.',
+
+    marketplace: 'Données du marché',
+    marketplaceBody:
+      'Les prix et les états sont effacés six heures après une fouille, comme l’exigent les conditions d’utilisation de Discogs. Ce qui reste, ce sont les notes et les raisons calculées sur cet appareil.',
+
+    deleting: 'Effacer',
+    deletingBody:
+      '« Tout effacer » sur la page d’accueil supprime entièrement la base de données, token compris. Il n’existe aucune copie ailleurs qui resterait après.',
+
+    responsible: 'Responsable',
+    seeLegal: 'Voir les',
+    legalNotice: 'Mentions légales',
+  },
+
+  legal: {
+    title: 'Mentions légales',
+    description: 'Identification de l’éditeur.',
+    perStatute: 'Informations selon le § 5 DDG.',
+    about:
+      'Sleeveside est un outil privé, sans but lucratif. Il ne vend rien, ne sert d’intermédiaire pour rien et ne traite aucun paiement. Contact et signalements de bugs passent par le projet sur GitHub.',
+  },
+}
+
+export const packs = { en, de, fr }
 
 export function useLegalMessages() {
   return computed(() => packs[activeLanguage()])

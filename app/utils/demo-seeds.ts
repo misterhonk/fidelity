@@ -136,6 +136,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     promise: {
       en: 'Talkie Walkie is in the same shop.',
       de: 'Talkie Walkie steht im selben Laden.',
+      fr: 'Talkie Walkie est dans la même boutique.',
     },
     ...cover(
       'XrLzzdMAIL5QaHVghvH0DZQwjQZybt8gFQIA_pDOIW0',
@@ -163,6 +164,7 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     promise: {
       en: 'Another Audion on Spectral Sound.',
       de: 'Noch ein Audion auf Spectral Sound.',
+      fr: 'Encore un Audion sur Spectral Sound.',
     },
     ...cover(
       'mENrQPhtGSDdoaQL5V8qkZMXeVRgmqWeF3MEyHPkmM8',
@@ -179,7 +181,11 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'MCA Records',
     year: 2002,
     dealer: 'schoenwettermusik',
-    promise: { en: 'Over a hundred more by The Who.', de: 'Über hundert weitere von The Who.' },
+    promise: {
+      en: 'Over a hundred more by The Who.',
+      de: 'Über hundert weitere von The Who.',
+      fr: 'Plus d’une centaine d’autres de The Who.',
+    },
     ...cover(
       's4kc87yQLO4Kz3w6Yo2HrYM0gcbMQNnJPkzbYAugwxM',
       '31vKgRzBBOtonidx6mCfCK9ViSi82lkxCwr-M3iDSyM',
@@ -195,7 +201,11 @@ export const DEMO_SEEDS: DemoSeedOption[] = [
     label: 'Freude Am Tanzen',
     year: 2009,
     dealer: 'fatplastics',
-    promise: { en: 'Three more Hemmann in the shop.', de: 'Drei weitere Hemmann im Laden.' },
+    promise: {
+      en: 'Three more Hemmann in the shop.',
+      de: 'Drei weitere Hemmann im Laden.',
+      fr: 'Trois autres Hemmann dans la boutique.',
+    },
     ...cover(
       'PTGyNjQoisUYJsn1DThMEXbcIWRVVYpu6mVrDn9K-Sw',
       '3ayQvChu2PrjH073K9jfbGSm7K-hPUrjnNbd6-r2EXM',
