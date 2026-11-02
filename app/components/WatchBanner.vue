@@ -1,7 +1,16 @@
 <script setup lang="ts">
+import { reasonFor } from '~/i18n/reason'
+
 const m = useMessages()
 
-const { alerts, dismiss } = useWatchlist()
+const { alerts, digests, dismiss } = useWatchlist()
+
+/** The new-only pass for this shop, while its prices may still be shown (rule 4). */
+function digestOf(dealer: string) {
+  return digests.value.find(
+    (digest) => digest.dealer === dealer && digest.expiresAt > Date.now(),
+  )
+}
 </script>
 
 <template>
@@ -37,6 +46,24 @@ const { alerts, dismiss } = useWatchlist()
           {{ alert.dealer }}
         </NuxtLink>
         {{ m.watch.moved(count(alert.newListings), alert.newListings === 1) }}
+        <!-- What the "only what is new" dig found there (#240): the new finds and why. -->
+        <template v-if="digestOf(alert.dealer)">
+          <ul
+            v-if="digestOf(alert.dealer)!.finds.length > 0"
+            class="mt-1 flex flex-col gap-1 pl-3"
+          >
+            <li v-for="find in digestOf(alert.dealer)!.finds" :key="find.listingId">
+              <NuxtLink
+                class="font-medium underline-offset-4 hover:underline"
+                :to="`/shop?id=${find.digId}`"
+              >
+                {{ [find.artist, find.title].filter(Boolean).join(' · ') }}
+              </NuxtLink>
+              <span class="block text-fid-text-muted">{{ reasonFor(find.signals) }}</span>
+            </li>
+          </ul>
+          <span v-else class="text-fid-text-muted">{{ m.watch.nothingNew }}</span>
+        </template>
       </li>
     </ul>
 

@@ -87,6 +87,7 @@ import type {
   WantPlan,
   YearReview,
   WatchAlert,
+  WatchDigest,
   WatchedRelease,
   UnitShape,
   Finish,
@@ -880,6 +881,8 @@ export interface WorkerContract {
   }
   'watch.list': { params: undefined; progress: never; result: Dealer[] }
   'watch.check': { params: { force?: boolean }; progress: never; result: WatchCheck }
+  /** Shops that moved, each dug for only what is new; the best few finds per shop (#240). */
+  'watch.digest': { params: { dealers: string[] }; progress: never; result: WatchDigest[] }
   /**
    * Push, which needs a hub and works without one being embarrassing.
    *

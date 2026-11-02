@@ -94,7 +94,7 @@ async function watchedDealers(): Promise<Dealer[]> {
  * presses anything. A shop dug before `newestListedAt` existed still has
  * `lastScannedAt`, which is what the scanner falls back to.
  */
-function hasAnchor(dealer: Dealer): boolean {
+export function hasAnchor(dealer: Dealer): boolean {
   return Boolean(dealer.newestListedAt) || dealer.lastScannedAt !== null
 }
 

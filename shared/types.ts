@@ -396,6 +396,20 @@ export interface WatchAlert {
 }
 
 /**
+ * What the "only what is new" pass found at a shop that moved (#240).
+ *
+ * The finds are the best few of that one incremental dig — never the shop's
+ * whole stock — and carry the dig's `expiresAt`, past which they are not shown
+ * (rule 4).
+ */
+export interface WatchDigest {
+  dealer: string
+  digId: string | null
+  expiresAt: number
+  finds: Match[]
+}
+
+/**
  * This device's address for a push notification.
  *
  * `PushSubscription.toJSON()` in the three fields anybody needs: where to

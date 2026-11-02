@@ -685,6 +685,7 @@ const en = {
     moreListings: (n: number, one: boolean) =>
       `${one ? 'listing' : 'listings'} more on offer than last time.`,
     read: 'Read',
+    nothingNew: 'Nothing new for you there.',
     /*
      * Written to follow the shop's name, because the name is a link and a
      * link is markup: a translator handed `%s` to put inside an anchor will
