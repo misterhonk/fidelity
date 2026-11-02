@@ -10,6 +10,11 @@ import { putRows, readRows, seed, seedCollection } from './seed'
  * and every job is still only ours when "Undo all" comes: it cancels them, and
  * nothing is left waiting.
  */
+test.skip(
+  ({ browserName }) => browserName !== 'chromium',
+  "Playwright cannot route a worker's requests in WebKit: the 401 never comes, and a write whose answer is unknown is reversed, not cancelled",
+)
+
 test('rates a run of records at once, says what it costs, and undoes all of it', async ({
   page,
 }) => {
