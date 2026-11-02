@@ -1,4 +1,4 @@
-import { getPreferences } from '~~/db/meta'
+import { getMeta, getPreferences, setMeta } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
 import type { VaultSnapshot } from '#shared/types'
 import type { VaultTargetPort } from '#shared/ports'
@@ -51,7 +51,12 @@ export async function snapshotLocal(now: number): Promise<VaultSnapshot> {
     if (rows.length > 0) stores[store] = rows as unknown[]
   }
 
-  return { savedAt: now, preferences: syncedPreferences(await getPreferences()), stores }
+  return {
+    savedAt: now,
+    preferences: syncedPreferences(await getPreferences()),
+    stores,
+    pressingRules: (await getMeta('pressingRules')) ?? null,
+  }
 }
 
 /**
@@ -73,8 +78,10 @@ export async function applySnapshot(snapshot: VaultSnapshot): Promise<void> {
     await tx.done
   }
 
+  // The merge already holds this device's rules, so the merged map replaces them whole.
+  if (snapshot.pressingRules) await setMeta('pressingRules', snapshot.pressingRules)
+
   if (snapshot.preferences) {
-    const { setMeta } = await import('~~/db/meta')
     /*
      * The token is not in here and never was — but preferences arriving from
      * another device must not be able to smuggle one in either, so this writes

@@ -6,8 +6,8 @@ import { useCollectionMessages } from '~/i18n/collection'
  * Which pressings of a wanted album will do (#242, docs/04 §S2).
  *
  * "First pressing only", "anything but the 2016 reissue" — what people write
- * into the Discogs note, kept where a dig can read it. Per album and on this
- * device; the next dig honours it.
+ * into the Discogs note, kept where a dig can read it. Per album, carried by the
+ * vault to the other devices (#335); the next dig honours it.
  */
 const props = defineProps<{ masterId: number }>()
 

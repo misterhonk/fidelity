@@ -1,4 +1,4 @@
-import type { Preferences, VaultSnapshot } from '#shared/types'
+import type { Preferences, PressingRules, VaultSnapshot } from '#shared/types'
 
 /**
  * The preferences that travel — an allowlist, so a setting added later stays on
@@ -114,6 +114,7 @@ export function mergeSnapshots(mine: VaultSnapshot, theirs: VaultSnapshot): Vaul
     // Their own stamp, not `savedAt`: a local snapshot is always stamped "now".
     preferences: pickPreferences(mine.preferences, theirs.preferences),
     stores: {},
+    pressingRules: mergePressingRules(mine.pressingRules, theirs.pressingRules),
   }
 
   for (const store of SYNCABLE_STORES) {
@@ -134,6 +135,19 @@ function pickPreferences(
 ): VaultSnapshot['preferences'] {
   const newer = (theirs?.updatedAt ?? 0) > (mine?.updatedAt ?? 0) ? theirs : mine
   return newer ? syncedPreferences(newer) : null
+}
+
+/** Per master, the newer rule wins; ties and unstamped rules go to the local copy, as in `mergeRows`. */
+function mergePressingRules(
+  mine: PressingRules | null | undefined,
+  theirs: PressingRules | null | undefined,
+): PressingRules | null {
+  const merged: PressingRules = { ...mine }
+  for (const [master, rule] of Object.entries(theirs ?? {})) {
+    const here = merged[Number(master)]
+    if (!here || (rule.updatedAt ?? 0) > (here.updatedAt ?? 0)) merged[Number(master)] = rule
+  }
+  return Object.keys(merged).length > 0 ? merged : null
 }
 
 function mergeRows(store: SyncableStore, here: Row[], there: Row[]): Row[] {

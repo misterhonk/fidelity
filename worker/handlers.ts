@@ -993,21 +993,26 @@ export const handlers: HandlerMap = {
     return unwantRecord(releaseId)
   },
 
-  'wantlist.rule': async ({ masterId }) => (await getMeta('pressingRules'))?.[masterId] ?? null,
+  'wantlist.rule': async ({ masterId }) => {
+    const rule = (await getMeta('pressingRules'))?.[masterId]
+    // A cleared rule is kept empty for the vault (#335); to the screen it is no rule.
+    return rule && (rule.firstOnly || rule.except.length > 0)
+      ? { firstOnly: rule.firstOnly, except: rule.except }
+      : null
+  },
 
   'wantlist.setRule': async ({ masterId, rule }) => {
     if (!Number.isInteger(masterId) || masterId <= 0) return null
     const except = [...new Set(rule.except)].filter((id) => Number.isInteger(id) && id > 0)
     const firstOnly = rule.firstOnly === true
-    const kept = firstOnly || except.length > 0 ? { firstOnly, except } : null
-    const others = Object.entries((await getMeta('pressingRules')) ?? {}).filter(
-      ([id]) => Number(id) !== masterId,
-    )
-    await setMeta(
-      'pressingRules',
-      Object.fromEntries(kept ? [...others, [masterId, kept]] : others),
-    )
-    return kept
+    const rules = (await getMeta('pressingRules')) ?? {}
+    // Clearing a rule nobody set writes nothing; clearing a set one leaves a stamped empty rule, so the vault carries the clearing too.
+    if (!firstOnly && except.length === 0 && !rules[masterId]) return null
+    await setMeta('pressingRules', {
+      ...rules,
+      [masterId]: { firstOnly, except, updatedAt: Date.now() },
+    })
+    return firstOnly || except.length > 0 ? { firstOnly, except } : null
   },
 
   'wantlist.removeMany': async ({ releaseIds }) => {

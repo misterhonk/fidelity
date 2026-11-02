@@ -390,3 +390,88 @@ describe('what stays on this device', () => {
     await deleteFidelityDb()
   })
 })
+
+/** Pressing rules (#335): typed by the buyer, kept nowhere else, so the vault carries them. */
+describe('pressing rules between devices', () => {
+  it('merges per master, the newer rule winning on either side', () => {
+    const phone = snapshot({
+      pressingRules: {
+        1: { firstOnly: true, except: [], updatedAt: 500 },
+        2: { firstOnly: false, except: [9], updatedAt: 100 },
+      },
+    })
+    const laptop = snapshot({
+      pressingRules: {
+        2: { firstOnly: true, except: [], updatedAt: 300 },
+        3: { firstOnly: false, except: [7] },
+      },
+    })
+    const expected = {
+      1: { firstOnly: true, except: [], updatedAt: 500 },
+      2: { firstOnly: true, except: [], updatedAt: 300 },
+      3: { firstOnly: false, except: [7] },
+    }
+    expect(mergeSnapshots(phone, laptop).pressingRules).toEqual(expected)
+    expect(mergeSnapshots(laptop, phone).pressingRules).toEqual(expected)
+  })
+
+  it('carries a clearing, so the other device does not bring the rule back', () => {
+    const cleared = snapshot({
+      pressingRules: { 1: { firstOnly: false, except: [], updatedAt: 900 } },
+    })
+    const stale = snapshot({
+      pressingRules: { 1: { firstOnly: true, except: [], updatedAt: 100 } },
+    })
+    expect(mergeSnapshots(stale, cleared).pressingRules?.[1]).toMatchObject({
+      firstOnly: false,
+    })
+  })
+
+  it('reads a vault sealed before rules travelled, and drops a malformed one', async () => {
+    const { vaultSnapshotSchema } = await import('~~/worker/payloads')
+    expect(
+      vaultSnapshotSchema.parse({ savedAt: 1, preferences: null, stores: {} }).pressingRules,
+    ).toBeNull()
+    expect(
+      vaultSnapshotSchema.parse({
+        savedAt: 1,
+        preferences: null,
+        stores: {},
+        pressingRules: {
+          4: { firstOnly: true, except: [], updatedAt: 5 },
+          x: {},
+          6: { except: 'no' },
+        },
+      }).pressingRules,
+    ).toEqual({ 4: { firstOnly: true, except: [], updatedAt: 5 } })
+  })
+
+  it('goes out with the snapshot and comes back into the next dig', async () => {
+    const { getMeta } = await import('~~/db/meta')
+    const { deleteFidelityDb } = await import('~~/db/open')
+    const { snapshotLocal, applySnapshot } = await import('~~/worker/vault/sync')
+    const { handlers } = await import('~~/worker/handlers')
+
+    await handlers['wantlist.setRule']({ masterId: 42, rule: { firstOnly: true, except: [] } })
+    const local = await snapshotLocal(1000)
+    expect(local.pressingRules?.[42]).toMatchObject({ firstOnly: true })
+
+    const there = snapshot({
+      pressingRules: { 7: { firstOnly: false, except: [9101], updatedAt: Date.now() + 1000 } },
+    })
+    await applySnapshot(mergeSnapshots(local, there))
+    expect(await handlers['wantlist.rule']({ masterId: 7 })).toEqual({
+      firstOnly: false,
+      except: [9101],
+    })
+    expect(await handlers['wantlist.rule']({ masterId: 42 })).toEqual({
+      firstOnly: true,
+      except: [],
+    })
+
+    // A vault without rules leaves this device's alone.
+    await applySnapshot(snapshot())
+    expect(Object.keys((await getMeta('pressingRules')) ?? {})).toEqual(['7', '42'])
+    await deleteFidelityDb()
+  })
+})
