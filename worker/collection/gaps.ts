@@ -101,8 +101,14 @@ export async function collectionGaps(): Promise<CollectionGaps> {
 
   // The runs CATALOG_RUN fires from, split by the thousand so a label's
   // series read as the collector names them: Brain 1000, Blue Note 84000.
+  // A label cut short (too large, or past fifteen pages) knows only part of
+  // its catalogue, so its total would be wrong: no badge rather than a false one.
+  const cutShort = new Set(
+    chunks.filter((c) => c.kind === 'label' && !c.complete).map((c) => String(c.entityId)),
+  )
   const runs: RunStanding[] = []
-  for (const run of lookup.runs.values()) {
+  for (const [key, run] of lookup.runs) {
+    if (cutShort.has(key.split(':')[0]!)) continue
     const bySeries = new Map<number, { owned: number; total: number }>()
     for (const num of run.numbers) {
       const series = Math.floor(num / 1000) * 1000
