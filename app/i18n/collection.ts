@@ -322,6 +322,17 @@ const en = {
       since: (when: string) => `On the wantlist since ${when}`,
       lastSeen: (dealer: string, when: string) => `Last offered by ${dealer}, ${when}`,
     },
+    /** Which pressings will do (#242). Read by the next dig, kept on this device. */
+    rule: {
+      heading: 'Which pressing will do',
+      firstOnly: 'First pressing only',
+      firstOnlyHint: 'From the year the album came out, or the one after.',
+      notThis: (id: number) => `Not release ${id}`,
+      allow: (id: number) => `Allow release ${id} again`,
+      exceptLabel: 'Any pressing except',
+      exceptPlaceholder: 'Discogs release link or number',
+      exceptAdd: 'Exclude',
+    },
     priority: {
       label: 'How much you want it',
       set: (stars: number) => (stars === 1 ? 'Want it 1 star' : `Want it ${stars} stars`),
@@ -1036,6 +1047,16 @@ const de: typeof en = {
     sheet: {
       since: (when) => `Auf der Wantlist seit ${when}`,
       lastSeen: (dealer, when) => `Zuletzt angeboten bei ${dealer}, ${when}`,
+    },
+    rule: {
+      heading: 'Welche Pressung es sein darf',
+      firstOnly: 'Nur die Erstpressung',
+      firstOnlyHint: 'Aus dem Jahr, in dem das Album rauskam, oder dem danach.',
+      notThis: (id) => `Nicht Release ${id}`,
+      allow: (id) => `Release ${id} wieder zulassen`,
+      exceptLabel: 'Jede Pressung außer',
+      exceptPlaceholder: 'Discogs-Link oder Nummer',
+      exceptAdd: 'Ausschließen',
     },
     priority: {
       label: 'Wie sehr du sie willst',

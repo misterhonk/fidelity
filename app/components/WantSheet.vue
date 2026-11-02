@@ -175,6 +175,13 @@ useWalkKeys((to) =>
       {{ record.note }}
     </p>
 
+    <!-- Which pressings of the album will do (#242). No master, no other pressings. -->
+    <PressingRuleSection
+      v-if="record.masterId > 0"
+      :key="record.masterId"
+      :master-id="record.masterId"
+    />
+
     <!-- Where a dig last offered it — by master, so any pressing counts. -->
     <p v-if="record.lastSeen" class="text-fid-sm text-fid-text-muted">
       {{ c.wantlist.sheet.lastSeen(record.lastSeen.dealer, day(record.lastSeen.at)) }}
