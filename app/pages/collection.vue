@@ -70,7 +70,13 @@ function clearFacet() {
  * address, so the plain shelf is still plain `/collection`.
  */
 const router = useRouter()
-const SORTS = ['added', 'artist', 'year', 'rating'] as const satisfies readonly ShelfSort[]
+const SORTS = [
+  'added',
+  'artist',
+  'year',
+  'rating',
+  'catno',
+] as const satisfies readonly ShelfSort[]
 const sort = computed<ShelfSort>(() => SORTS.find((key) => key === route.query.sort) ?? 'added')
 const direction = computed(() =>
   route.query.dir === 'asc' || route.query.dir === 'desc'
@@ -541,7 +547,7 @@ const walk = computed(() => {
           class="fid-field min-w-56 grow px-3 py-2 text-fid-sm text-fid-text"
         />
 
-        <nav :aria-label="c.shelf.sorting" class="flex gap-4">
+        <nav :aria-label="c.shelf.sorting" class="flex flex-wrap gap-x-4">
           <button
             v-for="key in SORTS"
             :key="key"

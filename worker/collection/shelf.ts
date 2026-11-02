@@ -2,6 +2,7 @@ import { openFidelityDb } from '~~/db/open'
 import type { ShelfHit, ShelfResult } from '#shared/types'
 
 import { norm, tokens } from '../match/normalize'
+import { catnoText } from './records'
 import { distinctReleases } from '~~/db/collection'
 
 /**
@@ -96,9 +97,12 @@ export async function searchShelf(query: string, now: number): Promise<ShelfResu
   }
 }
 
-/** Every token has to appear somewhere in artist or title. */
-function matches(item: { title: string; artistNorms: string[] }, needles: string[]): boolean {
-  const haystack = `${item.artistNorms.join(' ')} ${norm(item.title)}`
+/** Every token has to appear somewhere in artist, title or catalogue number. */
+function matches(
+  item: { title: string; artistNorms: string[]; catnos: string[] },
+  needles: string[],
+): boolean {
+  const haystack = `${item.artistNorms.join(' ')} ${norm(item.title)} ${catnoText(item.catnos)}`
   return needles.every((needle) => haystack.includes(needle))
 }
 
