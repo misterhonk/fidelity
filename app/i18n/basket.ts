@@ -253,7 +253,7 @@ const en = {
    * memory of which are done that survives a closed tab.
    */
   /** The receipt's folded half (#224): what works on a basket rather than reads it. */
-  tools: 'Tools: postage table, budget, other shops',
+  tools: 'Tools: postage tiers, budget, other shops',
   pasteTools: 'Tools: paste from Discogs',
   handOver: 'Put these in at Discogs',
   handOverLead:
@@ -516,7 +516,7 @@ const de: typeof en = {
   stillThere: 'Noch da?',
   clearThis: 'Diesen Korb leeren',
 
-  tools: 'Werkzeuge: Portotabelle, Budget, andere Läden',
+  tools: 'Werkzeuge: Versandstaffel, Budget, andere Läden',
   pasteTools: 'Werkzeuge: aus Discogs einfügen',
   handOver: 'Bei Discogs einlegen',
   handOverLead:

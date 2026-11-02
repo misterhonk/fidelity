@@ -9,6 +9,7 @@ import {
   clearBasket,
   PRICE_TTL_MS,
   removeFromBasket,
+  restoreToBasket,
   summarise,
   type BasketLine,
 } from '~~/worker/basket'
@@ -155,6 +156,19 @@ describe('holding a basket', () => {
 
     await clearBasket()
     expect(await basketListingIds()).toEqual([])
+  })
+
+  it('undoes only the last removal', async () => {
+    // The screen offers one undo line; an older removal stays removed (#313).
+    await addToBasket(match({ listingId: 1 }), 'shop', 1000)
+    await addToBasket(match({ listingId: 2 }), 'shop', 1000)
+    await removeFromBasket(1)
+    await removeFromBasket(2)
+
+    await restoreToBasket(1)
+    expect(await basketListingIds()).toEqual([])
+    await restoreToBasket(2)
+    expect(await basketListingIds()).toEqual([2])
   })
 
   it('has no baskets while it is empty', async () => {

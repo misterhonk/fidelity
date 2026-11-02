@@ -56,7 +56,7 @@ const en = {
      */
     hub: 'The second exception: a hub of your own',
     hubBody:
-      'Sleeveside can make use of a small helper server — the hub. There is none until you enter its address in the settings yourself; with that field empty nothing is ever asked of it. If you do run one: your backup and any find list you share go there sealed, so the hub holds them and cannot read them. What it does see in plain sight is the shops you are watching, the push address your browser hands out for notifications, and the shop and country a postage table belongs to. Your Discogs token is never among it.',
+      'Sleeveside can make use of a small helper server — the hub. There is none until you enter its address in the settings yourself; with that field empty nothing is ever asked of it. If you do run one: your backup and any find list you share go there sealed, so the hub holds them and cannot read them. What it does see in plain sight is the shops you are watching, the push address your browser hands out for notifications, and the shop and country a set of postage tiers belongs to. Your Discogs token is never among it.',
 
     /*
      * The third exception. The catalogue is read-only and holds nothing of
