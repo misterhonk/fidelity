@@ -139,6 +139,42 @@ describe('database schema', () => {
     expect(back).toEqual(chunk)
   })
 
+  /*
+   * v17 adds `gone` (#238) and nothing else: a queued change, the shelf and a
+   * place have to come through the upgrade exactly as they went in.
+   */
+  it('adds the gone store on top of a v16 database, losing nothing', async () => {
+    const old = await openDB('fidelity', 16, {
+      upgrade(db) {
+        db.createObjectStore('collection', { keyPath: 'instanceId' })
+        db.createObjectStore('outbox', { keyPath: 'id' })
+        db.createObjectStore('placements', { keyPath: 'instanceId' })
+      },
+    })
+    const job = {
+      id: 'collection.rating:900',
+      kind: 'collection.rating',
+      payload: { releaseId: 42, folderId: 1, instanceId: 900, rating: 5 },
+      revert: { rating: 3 },
+      attempts: 2,
+      queuedAt: 1,
+      lastError: 'offline',
+    }
+    await old.put('collection', { instanceId: 900, releaseId: 42, title: 'From v16' })
+    await old.put('outbox', job)
+    await old.put('placements', { instanceId: 900, placeId: 'crate', at: 1 })
+    old.close()
+
+    const db = await openFidelityDb()
+
+    expect(db.version).toBe(17)
+    expect(db.objectStoreNames.contains('gone')).toBe(true)
+    expect(await db.count('gone')).toBe(0)
+    expect(await db.get('outbox', job.id)).toEqual(job)
+    expect((await db.get('collection', 900))?.title).toBe('From v16')
+    expect((await db.get('placements', 900))?.placeId).toBe('crate')
+  })
+
   it('creates every store with its indexes', async () => {
     const db = await openFidelityDb()
 
@@ -151,6 +187,7 @@ describe('database schema', () => {
       'feedback',
       'fieldValues',
       'followed',
+      'gone',
       'horizon',
       'matches',
       'meta',

@@ -37,8 +37,10 @@ export const DB_NAME = 'fidelity'
  * 4 — added the `covers` store. Additive: nothing existing is touched.
  *
  * 16 — repairs horizon chunks a vault round had flattened. No shape change.
+ *
+ * 17 — adds `gone`: copies a full sync no longer found, kept 30 days (#238).
  */
-export const DB_VERSION = 16
+export const DB_VERSION = 17
 
 /**
  * `meta` is a small key-value store rather than nine one-row stores. The union
@@ -285,6 +287,25 @@ export interface FidelityDB extends DBSchema {
    * has. Losing it would mean losing them for good.
    */
   fieldValues: { key: number; value: FieldValues }
+  /**
+   * Copies a full sync no longer found at Discogs, kept for 30 days (v17, #238).
+   *
+   * Sold, removed on discogs.com, or removed on another device — the shelf
+   * used to drop them without a word. Here they stay long enough to be named,
+   * and their place stays theirs: the same release coming back in that time
+   * takes its old place again (`worker/sync/library.ts`).
+   */
+  gone: { key: number; value: GoneRecord }
+}
+
+/** How long a copy gone from Discogs is still named, and keeps its place (#238). */
+export const GONE_KEEP_MS = 30 * 24 * 60 * 60 * 1000
+
+export interface GoneRecord {
+  instanceId: number
+  /** The row as it stood when it went — for its title, cover and release. */
+  record: CollectionItem
+  goneAt: number
 }
 
 /** The three fields Discogs offers, as far as this device knows them. */
@@ -308,6 +329,11 @@ export interface OutboxJob {
    * A change that is shown but never arrives is worse than one that was
    * refused outright: the shelf and Discogs disagree, and nothing on screen
    * says so. Whoever gives up on a job owes the user the old value back.
+   *
+   * It is also the **base** of the three-way merge (#238): what Discogs held
+   * when the change was made, stored with it, so a sync can tell "only we
+   * changed it" from "both sides did" without reading the copy again first.
+   * Moves forward when a sent value lands under a newer one (`dropJob`).
    */
   revert: Record<string, number | string>
   attempts: number
@@ -317,6 +343,14 @@ export interface OutboxJob {
   sentAt?: number
   /** Instance ids of the release Discogs held just before an add went out. A new one means it landed. */
   instancesBefore?: number[]
+  /**
+   * Both sides changed (#238): Discogs now holds `remote`, which is neither
+   * what this change started from (`revert`, the base) nor the change itself.
+   *
+   * A job with a conflict is not sent: it waits for the collector to keep
+   * theirs or take Discogs'. `remote` has the shape of `revert`.
+   */
+  conflict?: { remote: Record<string, number | string>; at: number }
 }
 
 export type OutboxKind =

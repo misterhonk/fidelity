@@ -294,6 +294,11 @@ export function openFidelityDb(): Promise<FidelityDatabase> {
         })
       }
 
+      // v17 keeps copies a full sync no longer found, for 30 days (#238). Additive.
+      if (oldVersion < 17) {
+        db.createObjectStore('gone', { keyPath: 'instanceId' })
+      }
+
       // Future versions go here. The rule: never migrate destructively unless
       // the state can be rebuilt from the API — which, so far, all of it can.
     },

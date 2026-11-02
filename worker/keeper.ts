@@ -182,27 +182,7 @@ export async function runKeeper(options: {
   if (isForegroundBusy()) return { ...result, deferred: true }
 
   /*
-   * 1 — changes waiting to go out, and they go before the sync reads back.
-   *
-   * The order is the whole point, not a preference. `syncCollection` writes
-   * Discogs' answer over the mirrored row; a rating tapped in a shop and not
-   * yet sent would be replaced by the old one, and the collector would watch
-   * their own change disappear with nothing to blame. Out first, then in.
-   *
-   * It also runs regardless of the staleness clock below: half an hour is a
-   * fine wait for "did anything change over there", and a poor one for
-   * "the thing I just did".
-   */
-  report?.({ job: 'outbox' })
-  const { drainOutbox } = await import('./outbox')
-  const drained = await drainOutbox(client, username)
-  if (drained.sent > 0 || drained.givenUp > 0) result.did.push('outbox')
-  result.pushed = drained.sent
-  result.givenUp = drained.givenUp
-  result.undone = drained.undone
-
-  /*
-   * 2 — the collection. Cheap, and it says the most: everything else in the
+   * 1 — the collection. Cheap, and it says the most: everything else in the
    * app is measured against what is on the shelf.
    */
   const syncState = await getSyncState()
@@ -242,7 +222,28 @@ export async function runKeeper(options: {
   }
 
   /*
-   * 2 — the watched shops. One request per shop, hourly at most, and
+   * 2 — changes waiting to go out, after the read and never instead of it.
+   *
+   * It used to be out first, so Discogs' answer could not overwrite a rating
+   * not yet sent. The sync no longer overwrites a row with a change waiting:
+   * it merges three ways against the value the change started from (#238).
+   * And only in this order can that merge see a change made on discogs.com in
+   * the meantime — out first sent ours straight over it, and nobody was asked.
+   *
+   * It runs regardless of the staleness clock above: half an hour is a fine
+   * wait for "did anything change over there", and a poor one for "the thing
+   * I just did".
+   */
+  report?.({ job: 'outbox' })
+  const { drainOutbox } = await import('./outbox')
+  const drained = await drainOutbox(client, username)
+  if (drained.sent > 0 || drained.givenUp > 0) result.did.push('outbox')
+  result.pushed = drained.sent
+  result.givenUp = drained.givenUp
+  result.undone = drained.undone
+
+  /*
+   * 3 — the watched shops. One request per shop, hourly at most, and
    * `watch.check` decides that for itself.
    */
   if (!isForegroundBusy()) {
@@ -263,7 +264,7 @@ export async function runKeeper(options: {
   }
 
   /*
-   * 3 — the horizon, in daily rations. Last, because it costs the most of the
+   * 4 — the horizon, in daily rations. Last, because it costs the most of the
    * three and is the least urgent: an entry a day older is still correct.
    */
   if (!isForegroundBusy()) {

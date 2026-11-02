@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 /**
- * The manual sync drains the queue first, and that drain can give up too.
+ * The manual sync drains the queue after reading (#238), and that drain can give up too.
  *
  * Its revert used to vanish with the drain's result, so the button that says
  * "fetch everything again" could quietly undo a change and say nothing.

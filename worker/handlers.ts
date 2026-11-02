@@ -159,9 +159,8 @@ export const handlers: HandlerMap = {
     if (!identity) throw fail('not-signed-in', 'not signed in')
 
     await requestPersistence()
-    // Out before in: what Discogs answers is older than a change still waiting here.
-    const { drainOutbox } = await import('./outbox')
-    const { undone } = await drainOutbox(discogs(), identity.username, signal)
+    // In before out: the read merges three ways with what is waiting (#238), so a
+    // change made on discogs.com meanwhile is asked about instead of sent over.
     const { syncLibrary } = await library()
     const result = await syncLibrary({
       client: discogs(),
@@ -169,6 +168,8 @@ export const handlers: HandlerMap = {
       report: (progress) => report(progress),
       signal,
     })
+    const { drainOutbox } = await import('./outbox')
+    const { undone } = await drainOutbox(discogs(), identity.username, signal)
 
     // The detail sheet's cached lookup counts what you own; the sync just
     // changed that.
@@ -990,6 +991,16 @@ export const handlers: HandlerMap = {
     if (!identity) return { sent: 0, givenUp: 0, undone: [], waiting: 0 }
     const { drainOutbox } = await import('./outbox')
     return drainOutbox(discogs(), identity.username)
+  },
+
+  'outbox.list': async () => {
+    const { outboxOverview } = await import('./outbox')
+    return outboxOverview()
+  },
+
+  'outbox.resolve': async ({ id, keep }) => {
+    const { resolveOutboxConflict } = await import('./outbox')
+    return resolveOutboxConflict(id, keep)
   },
 
   'collection.readFullyAt': async () => {

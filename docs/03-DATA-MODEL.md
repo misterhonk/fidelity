@@ -35,7 +35,7 @@ export interface FidelityDB extends DBSchema {
 
 The listing above is the v1 shape and is kept as the reading aid it was; the stores that
 arrived since (`covers`, `outbox`, `fieldValues`, `releaseDetail`, `stock`, `watched`,
-`places`, `placements`, `valueHistory`) are documented where they are declared, in
+`places`, `placements`, `valueHistory`, and since v17 `gone`) are documented where they are declared, in
 `db/schema.ts`, and their migrations in `db/open.ts`. `valueHistory` is the second store
 after `places` that cannot be rebuilt from the API — Discogs keeps no history of the number
 it shows — so it is in the JSON backup like the places are.

@@ -1,8 +1,10 @@
+import type { IDBPObjectStore, StoreNames } from 'idb'
 import type { ZodType } from 'zod'
 
 import { getMeta, updateSyncState } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
-import type { OutboxJob } from '~~/db/schema'
+import { merge3, remoteValueOf, valueOf } from '~~/db/outbox'
+import type { FidelityDB, OutboxJob } from '~~/db/schema'
 import type { CollectionItem, WantlistItem } from '#shared/types'
 
 import type { DiscogsClient } from '../discogs/client'
@@ -144,6 +146,64 @@ function pendingKeys(store: 'collection' | 'wantlist', jobs: OutboxJob[]): Set<n
   )
 }
 
+type OutboxStore = IDBPObjectStore<
+  FidelityDB,
+  ArrayLike<StoreNames<FidelityDB>>,
+  'outbox',
+  'readwrite'
+>
+
+/**
+ * Discogs' row against the changes still waiting on it — the three-way merge (#238).
+ *
+ * Settled or Discogs-only changes leave the queue; a change only we made stays
+ * and goes out; both sides changed is marked and waits for an answer. Returns
+ * the row to store: Discogs' whole row when nothing of ours is left, else the
+ * local one with Discogs' side taken where it won — or null to leave it be.
+ */
+async function mergeRow<T extends CollectionItem | WantlistItem>(
+  outbox: OutboxStore,
+  jobs: OutboxJob[],
+  remote: T,
+  local: T | undefined,
+): Promise<T | null> {
+  let waiting = false
+  const taken: Record<string, number | string> = {}
+  for (const job of jobs) {
+    const ours = valueOf(job)
+    const theirs = remoteValueOf(job, remote)
+    const outcome = ours ? merge3(job.revert, ours, theirs) : 'send'
+    if (outcome === 'settled' || outcome === 'theirs') {
+      await outbox.delete(job.id)
+      if (outcome === 'theirs') Object.assign(taken, theirs)
+      continue
+    }
+    waiting = true
+    if (outcome === 'conflict')
+      await outbox.put({ ...job, conflict: { remote: theirs!, at: Date.now() } })
+    // Discogs went back to the base: only ours differs now, so the question is gone.
+    else if (job.conflict) {
+      const { conflict: _gone, ...rest } = job
+      await outbox.put(rest)
+    }
+  }
+  if (!waiting) return remote
+  return local && Object.keys(taken).length > 0 ? { ...local, ...taken } : null
+}
+
+function jobsByKey(
+  store: 'collection' | 'wantlist',
+  jobs: OutboxJob[],
+): Map<number, OutboxJob[]> {
+  const byKey = new Map<number, OutboxJob[]>()
+  for (const job of jobs) {
+    if (!job.kind.startsWith(`${store}.`)) continue
+    const key = Number(store === 'collection' ? job.payload.instanceId : job.payload.releaseId)
+    byKey.set(key, [...(byKey.get(key) ?? []), job])
+  }
+  return byKey
+}
+
 interface PagedOptions<TPage, TItem> {
   kind: SyncProgress['kind']
   path: string
@@ -261,7 +321,7 @@ async function sweep(
 ): Promise<number> {
   const db = await openFidelityDb()
   // With the outbox in the same transaction, a change queued in between cannot be swept.
-  const tx = db.transaction([store, 'outbox'], 'readwrite')
+  const tx = db.transaction([store, 'outbox', 'gone'], 'readwrite')
   const rows = tx.objectStore(store)
   const present = (await rows.getAllKeys()) as number[]
 
@@ -280,11 +340,19 @@ async function sweep(
 
   const pending = pendingKeys(store, await tx.objectStore('outbox').getAll())
   let removed = 0
+  const now = Date.now()
   for (const key of present) {
-    if (seenKeys.has(key) || pending.has(key) || keep(key, await rows.get(key))) continue
+    const row = await rows.get(key)
+    if (seenKeys.has(key) || pending.has(key) || keep(key, row)) continue
+    // Named for 30 days rather than dropped without a word (#238).
+    if (store === 'collection' && row)
+      await tx
+        .objectStore('gone')
+        .put({ instanceId: key, record: row as CollectionItem, goneAt: now })
     await rows.delete(key)
     removed += 1
   }
+
   await tx.done
   return removed
 }
@@ -345,11 +413,17 @@ export async function syncCollection(
     write: async (items) => {
       // One transaction with the outbox: a rating queued between reading it and writing must win.
       const tx = db.transaction(['collection', 'outbox'], 'readwrite')
-      const pending = pendingKeys('collection', await tx.objectStore('outbox').getAll())
+      const outbox = tx.objectStore('outbox')
+      const pending = jobsByKey('collection', await outbox.getAll())
       const store = tx.objectStore('collection')
+      // Only entries new to this shelf: a second copy owned all along is not the one that left.
+      const fresh: CollectionItem[] = []
       for (const item of items) {
-        if (pending.has(item.instanceId)) continue
-        await store.put(item)
+        const jobs = pending.get(item.instanceId)
+        const known = await store.get(item.instanceId)
+        if (!known) fresh.push(item)
+        const row = jobs ? await mergeRow(outbox, jobs, item, known) : item
+        if (row) await store.put(row)
         /*
          * And the provisional row this replaces, if there was one.
          *
@@ -362,6 +436,7 @@ export async function syncCollection(
         if (item.instanceId > 0) await store.delete(-item.releaseId)
       }
       await tx.done
+      if (fresh.length > 0) await (await import('../collection/gone')).welcomeBack(fresh)
       await mirrorCovers(items)
     },
     knownSince: full ? null : (syncState?.lastCollectionAdd ?? null),
@@ -379,6 +454,7 @@ export async function syncCollection(
    */
   if (result.seen) await assertOwner(context.owner)
   result.removed = result.seen ? await sweep('collection', result.seen, (key) => key <= 0) : 0
+  if (result.seen) await (await import('../collection/gone')).forgetGone()
 
   /*
    * The estimate, but only when the shelf actually changed.
@@ -463,9 +539,16 @@ export async function syncWantlist(context: SyncContext): Promise<SyncSummary> {
     write: async (items) => {
       // One transaction with the outbox: a note queued between reading it and writing must win.
       const tx = db.transaction(['wantlist', 'outbox'], 'readwrite')
-      const pending = pendingKeys('wantlist', await tx.objectStore('outbox').getAll())
+      const outbox = tx.objectStore('outbox')
+      const pending = jobsByKey('wantlist', await outbox.getAll())
       const store = tx.objectStore('wantlist')
-      for (const item of items) if (!pending.has(item.releaseId)) await store.put(item)
+      for (const item of items) {
+        const jobs = pending.get(item.releaseId)
+        const row = jobs
+          ? await mergeRow(outbox, jobs, item, await store.get(item.releaseId))
+          : item
+        if (row) await store.put(row)
+      }
       await tx.done
       await mirrorCovers(items)
     },

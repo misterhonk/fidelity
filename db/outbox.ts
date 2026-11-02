@@ -40,6 +40,8 @@ export async function queueJob(job: Omit<OutboxJob, 'attempts'>): Promise<void> 
       ...job,
       payload: from === undefined ? job.payload : { ...job.payload, folderId: from },
       revert: existing?.revert ?? job.revert,
+      // A question about this copy stays asked until it is answered (#238).
+      ...(existing?.conflict ? { conflict: existing.conflict } : {}),
       attempts: 0,
     })
     await tx.done
@@ -71,12 +73,18 @@ export async function dropJob(id: string, sent?: OutboxJob): Promise<void> {
     (stored.queuedAt !== sent.queuedAt ||
       JSON.stringify(stored.payload) !== JSON.stringify(sent.payload))
   if (!replaced) await tx.store.delete(id)
-  // The sent move has landed, so the replacement now starts where it put the record.
-  else if (stored.kind === 'collection.folder' && sent.kind === 'collection.folder')
+  else {
+    // What was sent is what Discogs holds now: the replacement's base, and what giving up puts back.
+    const landed = valueOf(sent)
     await tx.store.put({
       ...stored,
-      payload: { ...stored.payload, folderId: Number(sent.payload.moveTo) },
+      ...(landed ? { revert: landed } : {}),
+      // The sent move has landed, so the replacement now starts where it put the record.
+      ...(stored.kind === 'collection.folder' && sent.kind === 'collection.folder'
+        ? { payload: { ...stored.payload, folderId: Number(sent.payload.moveTo) } }
+        : {}),
     })
+  }
   await tx.done
 }
 
@@ -122,4 +130,104 @@ export async function noteFailure(id: string, reason: string): Promise<OutboxJob
   await tx.store.put({ ...job, attempts, lastError: reason })
   await tx.done
   return null
+}
+
+type Value = Record<string, number | string>
+
+/**
+ * What a job sets, in the shape of its `revert` — so base, ours and Discogs'
+ * can be compared like with like. `undefined` for a job that sets no value
+ * (an add, a removal): there is nothing to merge, it just goes.
+ */
+export function valueOf(job: Pick<OutboxJob, 'kind' | 'payload'>): Value | undefined {
+  const { payload } = job
+  switch (job.kind) {
+    case 'collection.rating':
+      return { rating: Number(payload.rating) }
+    case 'collection.folder':
+      return { folderId: Number(payload.moveTo) }
+    case 'collection.field':
+      return { value: String(payload.value) }
+    case 'wantlist.note':
+      return { note: String(payload.note), want: Number(payload.want) }
+    default:
+      return undefined
+  }
+}
+
+/**
+ * Discogs' side of the same value, read off a synced row.
+ *
+ * `undefined` where the row does not say: a field (media, sleeve, notes) is
+ * in no listing Discogs answers (docs/02, spike #235), so a field job is never
+ * in conflict — it keeps going out as it did.
+ */
+export function remoteValueOf(
+  job: Pick<OutboxJob, 'kind'>,
+  row: { rating?: number; folderId?: number; note?: string; want?: number },
+): Value | undefined {
+  switch (job.kind) {
+    case 'collection.rating':
+      return row.rating === undefined ? undefined : { rating: row.rating }
+    case 'collection.folder':
+      return row.folderId === undefined ? undefined : { folderId: row.folderId }
+    case 'wantlist.note':
+      return row.note === undefined ? undefined : { note: row.note, want: row.want ?? 0 }
+    default:
+      return undefined
+  }
+}
+
+export type Merge =
+  /** Only we changed it, or Discogs says nothing: send ours. */
+  | 'send'
+  /** Discogs already holds ours: nothing left to send. */
+  | 'settled'
+  /** Only Discogs changed it: take theirs, drop ours. */
+  | 'theirs'
+  /** Both changed it, differently: ask. */
+  | 'conflict'
+
+const same = (a: Value, b: Value) =>
+  Object.keys({ ...a, ...b }).every((key) => String(a[key]) === String(b[key]))
+
+/**
+ * The three-way merge, as a pure decision (#238).
+ *
+ * `base` is what Discogs held when the change was made (the job's `revert`),
+ * `ours` the change, `theirs` what a sync just read. Ask only when both sides
+ * moved away from the base and did not land on the same value.
+ */
+export function merge3(base: Value, ours: Value, theirs: Value | undefined): Merge {
+  // Not knowing what Discogs holds is not knowing that ours is already there.
+  if (theirs === undefined) return 'send'
+  if (same(theirs, base)) return same(ours, base) ? 'settled' : 'send'
+  if (same(theirs, ours)) return 'settled'
+  if (same(ours, base)) return 'theirs'
+  return 'conflict'
+}
+
+/**
+ * Answers the question a conflict asked.
+ *
+ * `mine` keeps ours and sends it, now over what Discogs holds (the new base).
+ * `theirs` drops ours and hands back the job, whose `revert` now holds
+ * Discogs' value — the caller puts that on the shelf (`worker/outbox.ts`).
+ */
+export async function resolveConflict(
+  id: string,
+  keep: 'mine' | 'theirs',
+): Promise<OutboxJob | null> {
+  const db = await openFidelityDb()
+  const tx = db.transaction('outbox', 'readwrite')
+  const job = await tx.store.get(id)
+  if (!job?.conflict) {
+    await tx.done
+    return null
+  }
+  const { conflict, ...rest } = job
+  if (keep === 'mine') await tx.store.put({ ...rest, revert: conflict.remote, attempts: 0 })
+  else await tx.store.delete(id)
+  await tx.done
+  return { ...rest, revert: conflict.remote }
 }
