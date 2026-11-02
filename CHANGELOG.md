@@ -35,7 +35,7 @@ neben der Liste.
 - Die Leiste unten ist kürzer: Heute, Läden, Sammlung, Korb und Suche. Die Einstellungen
   findest du hinter deinem Namen. Alte Lesezeichen funktionieren weiter.
 - Ein Laden hat eine Seite für seine Funde, sein Profil und deine Besuche.
-- Die Sammlung hat Regal, Wunschliste, Orte und Einblicke in einer Reihe. "Beobachtet" ist dort
+- Die Sammlung hat Regal, Wunschliste, Orte und Einblicke in einer Reihe. "Im Blick" ist dort
   ein Filter.
 - Heute zeigt die Cover gleich auf dem ersten Bildschirm: eine Statuszeile, ein kleiner
   Update-Hinweis und ein kurzer nächster Schritt. Füg einen Discogs-Ladenlink in die Suche ein,
