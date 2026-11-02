@@ -9,6 +9,57 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.120.0](https://github.com/misterhonk/fidelity/compare/v0.119.0...v0.120.0) (2026-11-02)
+
+
+<!-- en -->
+**You can now add a record to your shelf in two to four taps.** Scan the barcode or type the
+catalogue number, pick the pressing, say what shape it is in and where it goes, done.
+
+- Add a record from the shelf's "+", from Search, with the key a, or straight from a result in
+  a shop. Copies you already own come first, and a second copy gets a gentle warning.
+- Open a record and you see your copy first: rating, place, what you paid and since when. With
+  two copies or more, switch between them.
+- Each record says whether it is in step with Discogs or still waiting. A copy that has not
+  landed yet keeps trying by itself, and you can undo it.
+- What you paid is only what you type in. Sleeveside never takes it from an order.
+
+<!-- de -->
+**Du kannst jetzt eine Platte mit zwei bis vier Tipps ins Regal stellen.** Barcode scannen oder
+Katalognummer tippen, Pressung wählen, Zustand und Platz sagen, fertig.
+
+- Hinzufügen geht über das "+" im Regal, über die Suche, mit der Taste a oder direkt aus einem
+  Treffer im Laden. Pressungen, die du schon hast, stehen oben, und bei einem zweiten Exemplar
+  gibt es einen kurzen Hinweis.
+- Öffnest du eine Platte, siehst du zuerst dein Exemplar: Bewertung, Platz, was du bezahlt hast
+  und seit wann. Bei zwei oder mehr Exemplaren schaltest du zwischen ihnen um.
+- Jede Platte sagt dir, ob sie mit Discogs übereinstimmt oder noch wartet. Ein Exemplar, das
+  noch nicht angekommen ist, versucht es von selbst weiter, und du kannst es rückgängig machen.
+- Was du bezahlt hast, ist nur das, was du selbst eintippst. Sleeveside nimmt es nie aus einer
+  Bestellung.
+
+### Added
+
+* **collection:** add a record in two to four taps ([8f3f555](https://github.com/misterhonk/fidelity/commit/8f3f555ada5fe2f5151ad893c67fcd5e079ceb6d)), closes [#233](https://github.com/misterhonk/fidelity/issues/233)
+* **collection:** give every pending copy its own key and folder ([fa50194](https://github.com/misterhonk/fidelity/commit/fa501940e23a06d0295a1282083802fb28e6c6f9))
+* **collection:** open the record sheet on your copy first ([ede82c1](https://github.com/misterhonk/fidelity/commit/ede82c1e808a7cfb01ecdba16ac7c1cf1d44cc21)), closes [#234](https://github.com/misterhonk/fidelity/issues/234)
+
+
+### Fixed
+
+* **collection:** count only collection jobs as waiting on a copy ([5f25d1f](https://github.com/misterhonk/fidelity/commit/5f25d1f70f73d15ab9709dda12163b83823a38b5))
+* **collection:** file a settled legacy copy in the folder it was sent to, not folder 0 ([e5c34cb](https://github.com/misterhonk/fidelity/commit/e5c34cbf35848675f8a9b15ef896659080a49564))
+* **collection:** ignore a second tap on 'Add to shelf' while the add runs ([8f0332f](https://github.com/misterhonk/fidelity/commit/8f0332f771bbcd0043a5a157ba9ed069989e9034))
+* **collection:** mark the 'not a price' line with the alert icon ([72d540e](https://github.com/misterhonk/fidelity/commit/72d540e92050f95a660dcd90417e2a1f40025424))
+* **collection:** never hand two pending copies the same provisional key ([1ea5dfe](https://github.com/misterhonk/fidelity/commit/1ea5dfebf9c236d19e174a4c1545e238588b4403))
+* **collection:** open add mode only when signed in ([04148be](https://github.com/misterhonk/fidelity/commit/04148bee8cb729e48ce3971f3b8e824b4b54e6be))
+* **collection:** place an add under the entry it landed as ([8e34ce8](https://github.com/misterhonk/fidelity/commit/8e34ce81f39866f23004a81705227e0aff0bc209))
+* **collection:** read each queued add afresh, so two copies landing in one round both stay ([b737b0c](https://github.com/misterhonk/fidelity/commit/b737b0c95ed9dade0e4f049316b33823d51c359b))
+* **collection:** show an add that is still retrying as waiting, with its undo ([68dda47](https://github.com/misterhonk/fidelity/commit/68dda477699c5154fc79dc65dbb5a5434e1a34bc))
+* **i18n:** say 'we keep trying' for a copy still waiting for Discogs ([cb3f4fa](https://github.com/misterhonk/fidelity/commit/cb3f4fa716512089b87ba708cf527e679d376dd5))
+* **i18n:** say 'we' while add mode looks up a code ([121bb24](https://github.com/misterhonk/fidelity/commit/121bb2498d57c2ceafb9a5b79dfa54266983bae4))
+* **sync:** check paid and arrival on a placement row from a backup or vault ([6445a6e](https://github.com/misterhonk/fidelity/commit/6445a6ee66d63839a5a9b3975ea59841cb6561ab))
+
 ## [0.119.0](https://github.com/misterhonk/fidelity/compare/v0.118.0...v0.119.0) (2026-11-02)
 
 
