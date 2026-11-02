@@ -1,7 +1,16 @@
 <script setup lang="ts">
+import { gradeFieldIds } from '#shared/grades'
 import { labelOf } from '#shared/places'
-import { DEFAULT_SHELF_DIRECTION } from '#shared/types'
-import type { PlaceNode, ShelfSort, ShelfView, SortDirection } from '#shared/types'
+import { DEFAULT_SHELF_DIRECTION, isOwnEntry, SHELF_CHIPS } from '#shared/types'
+import type {
+  CollectionField,
+  CollectionFolder,
+  PlaceNode,
+  ShelfChip,
+  ShelfRecord,
+  ShelfSort,
+  ShelfView,
+} from '#shared/types'
 
 import { useCollectionMessages } from '~/i18n/collection'
 
@@ -18,7 +27,6 @@ const loading = ref(true)
 const error = ref<unknown>(null)
 
 const query = ref('')
-const sort = ref<ShelfSort>('added')
 
 /**
  * "What do I own on this label" — asked from a record, answered here.
@@ -45,7 +53,43 @@ watch(
 
 /** The way back to the whole shelf, keeping whatever was typed in the box. */
 function clearFacet() {
-  void navigateTo({ path: '/collection' })
+  void navigateTo({
+    path: '/collection',
+    query: { ...route.query, label: undefined, artist: undefined },
+  })
+}
+
+/*
+ * A saved view is an address (#236).
+ *
+ * Order, direction, chips and rows-or-covers all live in the query string, so
+ * a view is kept by bookmarking it and shared by sending it — no store, no
+ * list of views to keep in step between devices. Defaults stay out of the
+ * address, so the plain shelf is still plain `/collection`.
+ */
+const router = useRouter()
+const SORTS = ['added', 'artist', 'year', 'rating'] as const satisfies readonly ShelfSort[]
+const sort = computed<ShelfSort>(() => SORTS.find((key) => key === route.query.sort) ?? 'added')
+const direction = computed(() =>
+  route.query.dir === 'asc' || route.query.dir === 'desc'
+    ? route.query.dir
+    : DEFAULT_SHELF_DIRECTION[sort.value],
+)
+const only = computed<ShelfChip[]>(() => {
+  const raw = typeof route.query.only === 'string' ? route.query.only.split(',') : []
+  return SHELF_CHIPS.filter((chip) => raw.includes(chip))
+})
+const rows = computed(() => route.query.as === 'rows')
+
+function setAddress(patch: Record<string, string | undefined>) {
+  void router.replace({ query: { ...route.query, ...patch } })
+}
+
+function toggleChip(chip: ShelfChip) {
+  const next = only.value.includes(chip)
+    ? only.value.filter((one) => one !== chip)
+    : [...only.value, chip]
+  setAddress({ only: next.length ? next.join(',') : undefined })
 }
 
 /**
@@ -57,24 +101,15 @@ function clearFacet() {
  * dragging along a direction that does not suit it: names want A–Z, ratings
  * want the best first.
  */
-const direction = ref<SortDirection>(DEFAULT_SHELF_DIRECTION.added)
-
 function chooseSort(key: ShelfSort) {
   if (sort.value === key) {
-    direction.value = direction.value === 'asc' ? 'desc' : 'asc'
+    const turned = direction.value === 'asc' ? 'desc' : 'asc'
+    setAddress({ dir: turned === DEFAULT_SHELF_DIRECTION[key] ? undefined : turned })
     return
   }
-  sort.value = key
-  direction.value = DEFAULT_SHELF_DIRECTION[key]
+  setAddress({ sort: key === 'added' ? undefined : key, dir: undefined })
 }
 const shown = ref(120)
-
-/**
- * The keys only. The label comes from the language pack, the arrow from the
- * direction — it used to sit inside the label, because each key had only one
- * direction.
- */
-const SORTS = ['added', 'artist', 'year', 'rating'] as const satisfies readonly ShelfSort[]
 
 /**
  * From the shelf into a compartment (M27.5, docs/18 §4). "Select" turns the
@@ -150,6 +185,7 @@ async function load() {
       artist: facet.value.artist,
       sort: sort.value,
       direction: direction.value,
+      only: [...only.value],
       limit: shown.value,
     })
     // A slower answer to an older query must not overwrite a newer one.
@@ -178,6 +214,8 @@ const GRIDS: Record<ShelfDensity, string> = {
 }
 function setDensity(value: ShelfDensity) {
   density.value = value
+  // Covers again, when the rows were showing.
+  if (rows.value) setAddress({ as: undefined })
   try {
     localStorage.setItem(DENSITY_KEY, value)
   } catch {
@@ -197,12 +235,84 @@ onMounted(async () => {
   readFullyAt.value = await call('collection.readFullyAt', undefined)
 })
 
-// A new filter or order starts from the top; loading more does not.
-watch([query, sort, direction, facet], () => {
-  shown.value = 120
-  void load()
-})
+// A new filter or order starts from the top; loading more does not. Watched as
+// one string: opening a record rewrites the address too, and must not reload.
+watch(
+  () => JSON.stringify([query.value, sort.value, direction.value, facet.value, only.value]),
+  () => {
+    shown.value = 120
+    void load()
+  },
+)
 watch(shown, load)
+
+/*
+ * The rows (#236): the same records, one per line, every column editable in
+ * place — through the same worker calls and the same outbox as the sheet.
+ */
+const fields = shallowRef<CollectionField[]>([])
+const folders = shallowRef<CollectionFolder[]>([])
+const grades = computed(() => {
+  const ids = gradeFieldIds(fields.value)
+  return {
+    media: fields.value.find((field) => field.id === ids.media) ?? null,
+    sleeve: fields.value.find((field) => field.id === ids.sleeve) ?? null,
+  }
+})
+const { state: writeState, push } = useWriteBack()
+
+watch(
+  rows,
+  async (on) => {
+    if (!on) return
+    // Definitions only: instance 0 has no values, and none are asked for.
+    const [noted, known, overview] = await Promise.all([
+      call('collection.fields', { instanceId: 0 }),
+      call('collection.folders', undefined),
+      call('places.overview', undefined),
+    ])
+    fields.value = noted.fields
+    folders.value = known
+    nodes.value = overview
+  },
+  { immediate: true },
+)
+
+async function edit(change: () => Promise<boolean>) {
+  await push(change)
+  await load()
+}
+const rate = (record: ShelfRecord, rating: number) =>
+  edit(() => call('collection.rate', { instanceId: record.instanceId, rating }))
+const grade = (record: ShelfRecord, field: CollectionField, value: string) =>
+  edit(() =>
+    call('collection.setField', { instanceId: record.instanceId, fieldId: field.id, value }),
+  )
+const moveTo = (record: ShelfRecord, folderId: number) =>
+  edit(() => call('collection.move', { instanceId: record.instanceId, folderId }))
+async function placeAt(record: ShelfRecord, placeId: string) {
+  // Ours alone (ADR-019): nothing goes to Discogs, so no outbox.
+  await call('places.assign', { instanceId: record.instanceId, placeId: placeId || null })
+  await load()
+}
+
+function syncOf(record: ShelfRecord): string {
+  if (!isOwnEntry(record)) return c.value.shelf.rows.local
+  if (record.failing) return c.value.shelf.rows.failing
+  return record.waiting > 0
+    ? c.value.shelf.rows.waiting(record.waiting)
+    : c.value.shelf.rows.synced
+}
+const pressingOf = (record: ShelfRecord) =>
+  [record.label, record.catno, record.year > 0 ? String(record.year) : '']
+    .filter(Boolean)
+    .join(' · ')
+const placeName = (record: ShelfRecord) => {
+  const node = nodes.value.find((one) => one.id === record.placeId)
+  return node ? labelOf(node) : c.value.shelf.rows.none
+}
+const folderName = (record: ShelfRecord) =>
+  folders.value.find((folder) => folder.id === record.folderId)?.name ?? c.value.shelf.rows.none
 
 const rest = computed(() => (view.value ? view.value.total - view.value.records.length : 0))
 
@@ -396,16 +506,30 @@ const walk = computed(() => {
             v-for="key in ['roomy', 'compact'] as const"
             :key="key"
             type="button"
-            :aria-pressed="density === key"
+            :aria-pressed="!rows && density === key"
             class="fid-plate min-h-9 border-b-2 transition-colors"
             :class="
-              density === key
+              !rows && density === key
                 ? 'border-fid-accent text-fid-text'
                 : 'border-transparent text-fid-text-muted hover:text-fid-text'
             "
             @click="setDensity(key)"
           >
             {{ c.shelf.density[key] }}
+          </button>
+          <!-- The dense table (#236): for a desk, so not offered on a phone. -->
+          <button
+            type="button"
+            :aria-pressed="rows"
+            class="fid-plate hidden min-h-9 border-b-2 transition-colors md:inline-block"
+            :class="
+              rows
+                ? 'border-fid-accent text-fid-text'
+                : 'border-transparent text-fid-text-muted hover:text-fid-text'
+            "
+            @click="setAddress({ as: 'rows' })"
+          >
+            {{ c.shelf.density.rows }}
           </button>
         </div>
 
@@ -421,6 +545,25 @@ const walk = computed(() => {
           @click="selecting ? stopSelecting() : (selecting = true)"
         >
           {{ selecting ? c.places.done : c.places.select }}
+        </button>
+      </div>
+
+      <!-- The chips (#236): each one narrows, together they combine, all of it in the address. -->
+      <div role="group" :aria-label="c.shelf.chips.label" class="flex flex-wrap gap-2">
+        <button
+          v-for="chip in SHELF_CHIPS"
+          :key="chip"
+          type="button"
+          :aria-pressed="only.includes(chip)"
+          class="fid-plate min-h-9 rounded-fid-sm border px-3 transition-colors"
+          :class="
+            only.includes(chip)
+              ? 'border-fid-accent text-fid-text'
+              : 'border-fid-border text-fid-text-muted hover:text-fid-text'
+          "
+          @click="toggleChip(chip)"
+        >
+          {{ c.shelf.chips[chip] }}
         </button>
       </div>
 
@@ -468,6 +611,156 @@ const walk = computed(() => {
       <p v-if="view.records.length === 0" class="text-fid-base text-fid-text-muted">
         {{ c.shelf.noMatch }}
       </p>
+
+      <!--
+        The rows (#236). Scrolls inside itself rather than the page, and every
+        cell that can change is a select: the sheet's own controls, one per
+        column, without opening anything. A copy Discogs has no entry for
+        shows its values and offers nothing to change.
+      -->
+      <div v-else-if="rows" class="flex flex-col gap-2">
+        <p role="status" class="fid-plate min-h-5 text-fid-text-muted">
+          {{ c.shelf.sheet.write[writeState] }}
+        </p>
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse text-fid-sm text-fid-text">
+            <caption class="sr-only">
+              {{
+                c.shelf.rows.caption
+              }}
+            </caption>
+            <thead>
+              <tr class="fid-plate text-left text-fid-text-muted">
+                <th v-if="selecting" scope="col" class="w-8"></th>
+                <th scope="col" class="py-2 pr-3 font-normal">{{ c.shelf.rows.record }}</th>
+                <th scope="col" class="py-2 pr-3 font-normal">{{ c.shelf.rows.pressing }}</th>
+                <th scope="col" class="py-2 pr-3 font-normal">{{ c.shelf.rows.rating }}</th>
+                <th scope="col" class="py-2 pr-3 font-normal">{{ c.shelf.rows.media }}</th>
+                <th scope="col" class="py-2 pr-3 font-normal">{{ c.shelf.rows.sleeve }}</th>
+                <th scope="col" class="py-2 pr-3 font-normal">{{ c.shelf.rows.place }}</th>
+                <th scope="col" class="py-2 pr-3 font-normal">{{ c.shelf.rows.folder }}</th>
+                <th scope="col" class="py-2 font-normal">{{ c.shelf.rows.sync }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="record in view.records"
+                :key="record.instanceId"
+                class="border-t border-fid-border align-middle"
+                :class="open === record.instanceId ? 'bg-fid-surface' : ''"
+              >
+                <td v-if="selecting">
+                  <input
+                    type="checkbox"
+                    class="size-5"
+                    :checked="selected.has(record.instanceId)"
+                    :aria-label="c.places.pick(record.artist, record.title)"
+                    @change="toggleSelect(record.instanceId)"
+                  />
+                </td>
+                <th scope="row" class="max-w-80 py-1 pr-3 text-left font-normal">
+                  <button
+                    type="button"
+                    :aria-label="c.open(record.artist, record.title)"
+                    class="fid-action flex min-h-9 w-full flex-col text-left hover:underline"
+                    @click="
+                      selecting ? toggleSelect(record.instanceId) : (open = record.instanceId)
+                    "
+                  >
+                    <span class="truncate font-semibold">{{ record.title }}</span>
+                    <span class="truncate text-fid-text-muted">{{ record.artist }}</span>
+                  </button>
+                </th>
+                <td class="fid-num py-1 pr-3 whitespace-nowrap text-fid-text-muted">
+                  {{ pressingOf(record) }}
+                </td>
+                <td class="py-1 pr-3">
+                  <select
+                    v-if="isOwnEntry(record)"
+                    :value="record.rating"
+                    :aria-label="
+                      c.shelf.rows.cell(c.shelf.rows.rating, record.artist, record.title)
+                    "
+                    class="fid-field min-h-9 px-1 text-fid-importance"
+                    @change="rate(record, Number(($event.target as HTMLSelectElement).value))"
+                  >
+                    <option :value="0">{{ c.shelf.rows.none }}</option>
+                    <option v-for="n in 5" :key="n" :value="n">{{ '★'.repeat(n) }}</option>
+                  </select>
+                  <span v-else class="text-fid-importance">{{
+                    record.rating > 0 ? '★'.repeat(record.rating) : c.shelf.rows.none
+                  }}</span>
+                </td>
+                <td v-for="side in ['media', 'sleeve'] as const" :key="side" class="py-1 pr-3">
+                  <select
+                    v-if="isOwnEntry(record) && grades[side]"
+                    :value="record[side]"
+                    :aria-label="
+                      c.shelf.rows.cell(c.shelf.rows[side], record.artist, record.title)
+                    "
+                    class="fid-field min-h-9 max-w-44 px-1"
+                    @change="
+                      grade(record, grades[side]!, ($event.target as HTMLSelectElement).value)
+                    "
+                  >
+                    <option value="">{{ c.shelf.rows.none }}</option>
+                    <option
+                      v-for="option in grades[side]!.options"
+                      :key="option"
+                      :value="option"
+                    >
+                      {{ option }}
+                    </option>
+                  </select>
+                  <span v-else class="text-fid-text-muted">{{
+                    record[side] || c.shelf.rows.none
+                  }}</span>
+                </td>
+                <td class="py-1 pr-3">
+                  <select
+                    v-if="nodes.length > 0"
+                    :value="record.placeId ?? ''"
+                    :aria-label="
+                      c.shelf.rows.cell(c.shelf.rows.place, record.artist, record.title)
+                    "
+                    class="fid-field min-h-9 max-w-44 px-1"
+                    @change="placeAt(record, ($event.target as HTMLSelectElement).value)"
+                  >
+                    <option value="">{{ c.places.nowhere }}</option>
+                    <option v-for="node in nodes" :key="node.id" :value="node.id">
+                      {{ '— '.repeat(node.depth) }}{{ labelOf(node) }}
+                    </option>
+                  </select>
+                  <span v-else class="text-fid-text-muted">{{ placeName(record) }}</span>
+                </td>
+                <td class="py-1 pr-3">
+                  <select
+                    v-if="isOwnEntry(record) && folders.length > 1"
+                    :value="record.folderId"
+                    :aria-label="
+                      c.shelf.rows.cell(c.shelf.rows.folder, record.artist, record.title)
+                    "
+                    class="fid-field min-h-9 max-w-36 px-1"
+                    @change="moveTo(record, Number(($event.target as HTMLSelectElement).value))"
+                  >
+                    <option v-for="folder in folders" :key="folder.id" :value="folder.id">
+                      {{ folder.name }}
+                    </option>
+                  </select>
+                  <span v-else class="text-fid-text-muted">{{ folderName(record) }}</span>
+                </td>
+                <td
+                  class="fid-plate py-1 whitespace-nowrap"
+                  :class="record.failing ? 'text-fid-importance' : 'text-fid-text-muted'"
+                  data-testid="row-sync"
+                >
+                  {{ syncOf(record) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <ul v-else class="grid gap-x-4 gap-y-8" :class="GRIDS[density]">
         <li

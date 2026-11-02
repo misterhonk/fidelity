@@ -830,7 +830,30 @@ export interface ShelfRecord {
   thumbUrl: string
   coverUrl: string
   addedAt: string
+  /** The row view's columns (#236), all read from this device — no request. */
+  catno: string
+  folderId: number
+  /** A living place, or null — a placement pointing at a dissolved one counts as none. */
+  placeId: string | null
+  /** The media and sleeve grade as Discogs words them, '' when never said. */
+  media: string
+  sleeve: string
+  /** Changes to this copy still waiting for Discogs, and whether one has failed already. */
+  waiting: number
+  failing: boolean
 }
+
+/**
+ * The filter chips above the shelf (#236). Combined, they narrow together.
+ *
+ * - `unplaced` — no living place yet.
+ * - `ungraded` — no media grade.
+ * - `doubles` — the same release more than once.
+ * - `otherPressing` — another release of the same master is on the shelf too.
+ * - `worn` — media or sleeve at Very Good or below.
+ */
+export const SHELF_CHIPS = ['unplaced', 'ungraded', 'doubles', 'otherPressing', 'worn'] as const
+export type ShelfChip = (typeof SHELF_CHIPS)[number]
 
 export type ShelfSort = 'added' | 'artist' | 'year' | 'rating'
 

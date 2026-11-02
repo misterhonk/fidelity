@@ -1,7 +1,14 @@
+import { getMeta } from '~~/db/meta'
 import { openFidelityDb } from '~~/db/open'
+import type { FieldValues, OutboxJob } from '~~/db/schema'
+import { gradeFieldIds, isWorn } from '#shared/grades'
 import { DEFAULT_SHELF_DIRECTION } from '#shared/types'
 import type {
+  CollectionField,
   CollectionItem,
+  Place,
+  Placement,
+  ShelfChip,
   ShelfRecord,
   ShelfSort,
   ShelfView,
@@ -44,37 +51,94 @@ export interface ShelfQuery {
   limit?: number
   /** Only what has no living place yet (M27.1c): the pile still to sort in. */
   unplaced?: boolean
+  /** The chips (#236). Every one given has to hold. */
+  only?: ShelfChip[]
 }
 
-export async function shelfView({
-  query = '',
-  label = '',
-  artist = '',
-  sort = 'added',
-  // With nothing given, the key's default — so every caller that does not know
-  // about direction behaves exactly as before.
-  direction,
-  offset = 0,
-  limit = PAGE_SIZE,
-  unplaced = false,
-}: ShelfQuery): Promise<ShelfView> {
+export async function shelfView(params: ShelfQuery): Promise<ShelfView> {
   const db = await openFidelityDb()
-  const all = await db.getAll('collection')
+  const [items, placements, places, fieldRows, jobs, fields] = await Promise.all([
+    db.getAll('collection'),
+    db.getAll('placements'),
+    db.getAll('places'),
+    db.getAll('fieldValues'),
+    db.getAll('outbox'),
+    getMeta('collectionFields'),
+  ])
+  return shelve({ items, placements, places, fieldRows, jobs, fields: fields ?? [] }, params)
+}
+
+/** What the shelf is built from: the stores, already read. */
+export interface ShelfStores {
+  items: CollectionItem[]
+  placements: Pick<Placement, 'instanceId' | 'placeId'>[]
+  places: Pick<Place, 'id' | 'removedAt'>[]
+  fieldRows: FieldValues[]
+  jobs: Pick<OutboxJob, 'id' | 'kind' | 'attempts' | 'lastError'>[]
+  fields: CollectionField[]
+}
+
+/**
+ * The shelf itself, without I/O — so 20,000 rows can be timed (#236).
+ *
+ * One pass to index what the chips and the row columns need, one to filter,
+ * one to sort. Maps keyed by instance rather than a lookup per row.
+ */
+export function shelve(
+  { items, placements, places, fieldRows, jobs, fields }: ShelfStores,
+  {
+    query = '',
+    label = '',
+    artist = '',
+    sort = 'added',
+    // With nothing given, the key's default — so every caller that does not know
+    // about direction behaves exactly as before.
+    direction,
+    offset = 0,
+    limit = PAGE_SIZE,
+    unplaced = false,
+    only = [],
+  }: ShelfQuery,
+): ShelfView {
+  const chips = new Set<ShelfChip>(only)
+  if (unplaced) chips.add('unplaced')
 
   /*
    * "Not placed yet" is a row without a placement, or with one that points
    * nowhere — or at a place another device has dissolved. The wall counts
    * only living places, and so does this.
    */
-  const placed = new Set<number>()
-  if (unplaced) {
-    const [placements, places] = await Promise.all([
-      db.getAll('placements'),
-      db.getAll('places'),
-    ])
-    const alive = new Set(places.filter((place) => !place.removedAt).map((place) => place.id))
-    for (const placement of placements) {
-      if (placement.placeId && alive.has(placement.placeId)) placed.add(placement.instanceId)
+  const alive = new Set(places.filter((place) => !place.removedAt).map((place) => place.id))
+  const placeOf = new Map<number, string>()
+  for (const placement of placements) {
+    if (placement.placeId && alive.has(placement.placeId))
+      placeOf.set(placement.instanceId, placement.placeId)
+  }
+
+  const grade = gradeFieldIds(fields)
+  const valuesOf = new Map(fieldRows.map((row) => [row.instanceId, row.values]))
+
+  // Ids are `${kind}:${instanceId}` or `${kind}:${instanceId}:${field}`; an add is keyed by release.
+  const outbox = new Map<number, { waiting: number; failing: boolean }>()
+  for (const job of jobs) {
+    if (!job.kind.startsWith('collection.') || job.kind === 'collection.add') continue
+    const instanceId = Number(job.id.split(':')[1])
+    const was = outbox.get(instanceId) ?? { waiting: 0, failing: false }
+    outbox.set(instanceId, {
+      waiting: was.waiting + 1,
+      failing: was.failing || job.attempts > 0 || job.lastError !== undefined,
+    })
+  }
+
+  // Copies per release, and distinct releases per master: doubles and other pressings.
+  const copies = new Map<number, number>()
+  const pressings = new Map<number, Set<number>>()
+  for (const item of items) {
+    copies.set(item.releaseId, (copies.get(item.releaseId) ?? 0) + 1)
+    if (item.masterId > 0) {
+      const set = pressings.get(item.masterId) ?? new Set<number>()
+      set.add(item.releaseId)
+      pressings.set(item.masterId, set)
     }
   }
 
@@ -82,29 +146,48 @@ export async function shelfView({
   const wantedLabel = norm(label)
   const wantedArtist = norm(artist)
 
-  const filtered = all.filter((item) => {
-    if (unplaced && placed.has(item.instanceId)) return false
-    if (wantedLabel && !item.labelNorms.includes(wantedLabel)) return false
-    if (wantedArtist && !item.artistNorms.includes(wantedArtist)) return false
-    if (!needles.length) return true
+  const records: ShelfRecord[] = []
+  for (const item of items) {
+    if (wantedLabel && !item.labelNorms.includes(wantedLabel)) continue
+    if (wantedArtist && !item.artistNorms.includes(wantedArtist)) continue
+    if (needles.length) {
+      const haystack = `${item.artistNorms.join(' ')} ${norm(item.title)} ${item.labelNorms.join(' ')}`
+      if (!needles.every((needle) => haystack.includes(needle))) continue
+    }
 
-    const haystack = `${item.artistNorms.join(' ')} ${norm(item.title)} ${item.labelNorms.join(' ')}`
-    return needles.every((needle) => haystack.includes(needle))
-  })
+    const values = valuesOf.get(item.instanceId) ?? {}
+    const media = values[grade.media] ?? ''
+    const sleeve = values[grade.sleeve] ?? ''
+    const placeId = placeOf.get(item.instanceId) ?? null
 
-  const records: ShelfRecord[] = filtered.map((item) => ({
-    instanceId: item.instanceId,
-    releaseId: item.releaseId,
-    title: item.title,
-    artist: item.artistNames[0] ?? '',
-    label: item.labelNames[0] ?? '',
-    year: item.year,
-    formats: item.formats,
-    rating: item.rating,
-    thumbUrl: item.thumbUrl ?? '',
-    coverUrl: item.coverUrl ?? '',
-    addedAt: item.addedAt,
-  }))
+    if (chips.has('unplaced') && placeId) continue
+    if (chips.has('ungraded') && media) continue
+    if (chips.has('doubles') && (copies.get(item.releaseId) ?? 0) < 2) continue
+    if (chips.has('otherPressing') && (pressings.get(item.masterId)?.size ?? 0) < 2) continue
+    if (chips.has('worn') && !isWorn(media, sleeve)) continue
+
+    const sync = item.instanceId > 0 ? outbox.get(item.instanceId) : undefined
+    records.push({
+      instanceId: item.instanceId,
+      releaseId: item.releaseId,
+      title: item.title,
+      artist: item.artistNames[0] ?? '',
+      label: item.labelNames[0] ?? '',
+      year: item.year,
+      formats: item.formats,
+      rating: item.rating,
+      thumbUrl: item.thumbUrl ?? '',
+      coverUrl: item.coverUrl ?? '',
+      addedAt: item.addedAt,
+      catno: item.catnos[0] ?? '',
+      folderId: item.folderId,
+      placeId,
+      media,
+      sleeve,
+      waiting: sync?.waiting ?? 0,
+      failing: sync?.failing ?? false,
+    })
+  }
 
   sortRecords(records, sort, direction ?? DEFAULT_SHELF_DIRECTION[sort])
 
@@ -112,7 +195,7 @@ export async function shelfView({
     records: records.slice(offset, offset + limit),
     total: records.length,
     /** Of the whole collection, not of the filtered set — the denominator. */
-    collection: all.length,
+    collection: items.length,
   }
 }
 
