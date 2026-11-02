@@ -26,6 +26,7 @@ const SIGNALS: Signal[] = [
     evidence: { price: 1234, marketLowest: 2000, currency: 'EUR' },
   },
   { type: 'SCARCITY', confidence: 0.5, evidence: { numForSale: 2 } },
+  { type: 'STYLE_ADJACENT', confidence: 0.4, evidence: { styles: ['Hard Bop'], owned: 9 } },
   { type: 'FORMAT_UPGRADE', confidence: 0.5, evidence: { album: 'Blue Train', ownedAs: 'CD' } },
 ]
 
@@ -105,8 +106,9 @@ describe('what travels', () => {
       year: 1957,
       signals: [
         { type: 'WANTLIST_EXACT', confidence: 1, evidence: {} },
-        { type: 'LABEL_AFFINITY', confidence: 0.8, evidence: { label: 'Blue Note' } },
-        { type: 'FORMAT_UPGRADE', confidence: 0.5, evidence: { album: 'Blue Train' } },
+        { type: 'LABEL_AFFINITY', confidence: 0.8, evidence: {} },
+        { type: 'STYLE_ADJACENT', confidence: 0.4, evidence: { styles: ['Hard Bop'] } },
+        { type: 'FORMAT_UPGRADE', confidence: 0.5, evidence: {} },
       ],
     })
   })
