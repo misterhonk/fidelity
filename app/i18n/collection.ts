@@ -445,8 +445,11 @@ const en = {
     grade: 'Media',
     folder: 'Folder',
     remove: (n: string) => `Remove ${n}`,
-    removeWhat: (n: string) =>
-      `${n} leave your collection at Discogs too. Undo all works until they have gone out.`,
+    /* Given the count and the count formatted. */
+    removeWhat: (n: number, formatted: string) =>
+      n === 1
+        ? `${formatted} leaves your collection at Discogs too. Undo all works until it has gone out.`
+        : `${formatted} leave your collection at Discogs too. Undo all works until they have gone out.`,
     removeConfirm: 'Remove them',
     keep: 'Keep them',
     /* "240 changes · about 5 min in the background". Given the count, formatted, and the minutes. */
@@ -455,7 +458,10 @@ const en = {
         minutes === 0 ? 'under a minute' : `about ${minutes} min`
       } in the background`,
     undoAll: 'Undo all',
-    gone: (n: string) => `${n} had already gone out to Discogs and stay removed.`,
+    gone: (n: number, formatted: string) =>
+      n === 1
+        ? `${formatted} had already gone out to Discogs and stays removed.`
+        : `${formatted} had already gone out to Discogs and stay removed.`,
     keys: 'x ticks the record in focus · shift-click ticks a run · on a phone, press and hold',
   },
 
@@ -1102,8 +1108,10 @@ const de: typeof en = {
     grade: 'Platte',
     folder: 'Ordner',
     remove: (n) => `${n} entfernen`,
-    removeWhat: (n) =>
-      `${n} fliegen auch bei Discogs aus deiner Sammlung. Alles zurück geht, bis sie raus sind.`,
+    removeWhat: (n, formatted) =>
+      n === 1
+        ? `${formatted} fliegt auch bei Discogs aus deiner Sammlung. Alles zurück geht, bis sie raus ist.`
+        : `${formatted} fliegen auch bei Discogs aus deiner Sammlung. Alles zurück geht, bis sie raus sind.`,
     removeConfirm: 'Entfernen',
     keep: 'Behalten',
     done: (n, formatted, minutes) =>
@@ -1111,7 +1119,10 @@ const de: typeof en = {
         minutes === 0 ? 'unter einer Minute' : `etwa ${minutes} Min.`
       } im Hintergrund`,
     undoAll: 'Alles zurück',
-    gone: (n) => `${n} waren schon an Discogs raus und bleiben entfernt.`,
+    gone: (n, formatted) =>
+      n === 1
+        ? `${formatted} war schon an Discogs raus und bleibt entfernt.`
+        : `${formatted} waren schon an Discogs raus und bleiben entfernt.`,
     keys: 'x hakt die Platte im Fokus ab · Shift-Klick eine ganze Reihe · am Handy lang drücken',
   },
 

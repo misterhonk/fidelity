@@ -233,7 +233,7 @@ async function undo() {
   const { undo: was } = last.value
   const result = await call('collection.bulkUndo', { undo: was })
   last.value = null
-  notice.value = result.gone > 0 ? c.value.bulk.gone(count(result.gone)) : null
+  notice.value = result.gone > 0 ? c.value.bulk.gone(result.gone, count(result.gone)) : null
   await load()
   if (was.kind !== 'place') void call('outbox.flush', undefined).catch(() => undefined)
 }
@@ -715,7 +715,7 @@ const walk = computed(() => {
         class="flex flex-wrap items-center gap-4 border-t border-fid-border pt-3"
       >
         <span class="text-fid-sm text-fid-text">{{
-          c.bulk.removeWhat(count(selected.size))
+          c.bulk.removeWhat(selected.size, count(selected.size))
         }}</span>
         <button
           type="button"
