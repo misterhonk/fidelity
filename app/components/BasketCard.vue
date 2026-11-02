@@ -481,7 +481,7 @@ const uid = useId()
             </dd>
 
             <!--
-            What the border adds, for a parcel from outside the EU (2026-10-21).
+            What the border adds, for a parcel into the EU, the UK or the US (2026-10-21).
             Under the total rather than in it: "Total" stays what Discogs' cart
             adds up, and the lines below say what comes on top and where.
           -->
