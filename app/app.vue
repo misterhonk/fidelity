@@ -174,6 +174,8 @@ function skipToMain() {
 const addMode = useAddMode()
 const adding = useOpenInQuery('add', (raw) => (raw === '1' ? 1 : null))
 watch(addMode.asked, () => (adding.value = 1))
+// Signed out there is no shelf to add to — /welcome, /settings and /privacy are open.
+const { identity } = useIdentity()
 
 function onKeydown(event: KeyboardEvent) {
   if (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)) {
@@ -185,6 +187,9 @@ function onKeydown(event: KeyboardEvent) {
   const on = document.activeElement
   if (
     event.key === 'a' &&
+    identity.value &&
+    !event.repeat &&
+    !event.isComposing &&
     !event.metaKey &&
     !event.ctrlKey &&
     !event.altKey &&
@@ -273,7 +278,7 @@ onBeforeUnmount(() => {
     <SiteFooter />
   </div>
   <LazyCommandPalette v-if="paletteOpen" @close="paletteOpen = false" />
-  <LazyAddSheet v-if="adding" @close="adding = null" />
+  <LazyAddSheet v-if="adding && identity" @close="adding = null" />
   <LazyReleaseSheet
     v-if="sheet.open.value"
     :key="sheet.open.value.listingId"
