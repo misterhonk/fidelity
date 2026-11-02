@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import { MAX_ATTEMPTS, pendingJobs } from '~~/db/outbox'
 import type { CollectionItem, Match } from '#shared/types'
-import { addRecord } from '~~/worker/collection/add'
+import { addCopy, addRecord } from '~~/worker/collection/add'
 import { removeRecord } from '~~/worker/collection/remove'
 import type { DiscogsClient } from '~~/worker/discogs/client'
 import { DiscogsError } from '~~/worker/discogs/errors'
@@ -139,11 +139,12 @@ describe('putting a bought record on the shelf', () => {
     expect(await addRecord(match())).toBe(true)
 
     const db = await openFidelityDb()
-    // Under a key of its own, derived from the release and negative — see
-    // `collection/add.ts`. Nothing to write to until the sync has been round.
-    const stored = await db.get('collection', -12)
+    // Under a negative key of its own — see `collection/add.ts`. Nothing to
+    // write to until Discogs has named the entry.
+    const [stored] = await db.getAllFromIndex('collection', 'by-release', 12)
     expect(stored?.title).toBe('Isn’t Anything')
-    expect(stored?.instanceId).toBe(-12)
+    expect(stored?.instanceId).toBeLessThan(0)
+    expect(stored?.folderId).toBe(1)
   })
 
   it('refuses a record already on the shelf, rather than filing a second copy', async () => {
@@ -239,7 +240,7 @@ describe('putting a bought record on the shelf', () => {
     const write = vi
       .fn()
       .mockRejectedValueOnce(new DiscogsError(0, 'Discogs is not answering'))
-      .mockResolvedValue(null)
+      .mockResolvedValue({ instance_id: 2 })
     const fake = client({
       write,
       get: async () => ({ releases: [{ id: 12, instance_id: 1 }] }),
@@ -307,7 +308,7 @@ describe('putting a bought record on the shelf', () => {
    */
   it('sends after a first lookup that failed, though a copy is already there', async () => {
     await addRecord(match())
-    const fake = client()
+    const fake = client({ write: async () => ({ instance_id: 2 }) })
     ;(fake.get as ReturnType<typeof vi.fn>)
       .mockRejectedValueOnce(new DiscogsError(0, 'Discogs is not answering'))
       .mockResolvedValue({ releases: [{ id: 12, instance_id: 1 }] })
@@ -334,7 +335,7 @@ describe('putting a bought record on the shelf', () => {
 
     expect(last.givenUp).toBe(1)
     expect(last.undone).toEqual(['Isn’t Anything'])
-    expect(await (await openFidelityDb()).get('collection', -12)).toBeUndefined()
+    expect(await (await openFidelityDb()).getAll('collection')).toEqual([])
   })
 
   it('leaves it queued when the lookup itself cannot be read', async () => {
@@ -359,5 +360,159 @@ describe('putting a bought record on the shelf', () => {
     // And above all: still queued, not dropped as though it had landed.
     expect(await pendingJobs()).toHaveLength(1)
     expect((await pendingJobs())[0]?.attempts).toBe(2)
+  })
+})
+
+/*
+ * Copies, not releases (#232).
+ *
+ * Two copies of one record on their way at once, each in the folder it was
+ * meant for, each keeping its place and condition when Discogs names it.
+ */
+describe('several copies of one record on their way', () => {
+  const copy = () => {
+    const { instanceId: _instance, folderId: _folder, ...rest } = record({ releaseId: 12 })
+    return rest
+  }
+  const write = (...answers: unknown[]) => {
+    const fn = vi.fn()
+    for (const answer of answers)
+      if (answer instanceof Error) fn.mockRejectedValueOnce(answer)
+      else fn.mockResolvedValueOnce(answer)
+    return fn.mockResolvedValue(null)
+  }
+  const paths = (fake: DiscogsClient) =>
+    (fake.write as ReturnType<typeof vi.fn>).mock.calls.map((call) => call[1])
+  const keys = async () =>
+    ((await (await openFidelityDb()).getAllKeys('collection')) as number[]).sort()
+
+  it('keeps two pending copies apart and gives each its own entry', async () => {
+    const first = await addCopy(copy())
+    const second = await addCopy(copy())
+    expect(first).not.toBe(second)
+    expect(await pendingJobs()).toHaveLength(2)
+
+    const result = await drainOutbox(
+      client({ write: write({ instance_id: 5 }, { instance_id: 6 }) }),
+      'mrtnmlchr',
+    )
+
+    expect(result.sent).toBe(2)
+    expect(await keys()).toEqual([5, 6])
+  })
+
+  it('files a copy straight into the folder it was meant for', async () => {
+    await addCopy(copy(), { folderId: 3 })
+    const fake = client({ write: write({ instance_id: 5 }) })
+
+    await drainOutbox(fake, 'mrtnmlchr')
+
+    expect(paths(fake)).toEqual(['/users/mrtnmlchr/collection/folders/3/releases/12'])
+    expect((await (await openFidelityDb()).get('collection', 5))?.folderId).toBe(3)
+  })
+
+  it('carries place and condition over to the real entry, and sends the condition', async () => {
+    const key = await addCopy(copy(), { placeId: 'a1', fields: { 1: 'Mint (M)' } })
+    const fake = client({ write: write({ instance_id: 5 }) })
+
+    await drainOutbox(fake, 'mrtnmlchr')
+
+    const db = await openFidelityDb()
+    expect((await db.get('placements', 5))?.placeId).toBe('a1')
+    // Written down, not deleted, so the vault does not bring it back.
+    expect((await db.get('placements', key))?.placeId).toBeNull()
+    expect((await db.get('fieldValues', 5))?.values).toEqual({ 1: 'Mint (M)' })
+    expect(await db.get('fieldValues', key)).toBeUndefined()
+    // And the condition is on its way to Discogs, addressed at the new entry.
+    await drainOutbox(fake, 'mrtnmlchr')
+    expect(paths(fake)).toEqual([
+      '/users/mrtnmlchr/collection/folders/1/releases/12',
+      '/users/mrtnmlchr/collection/folders/1/releases/12/instances/5/fields/1',
+    ])
+  })
+
+  it('moves the copy to the id the lookup found, after an unreadable failure', async () => {
+    const key = await addCopy(copy(), { placeId: 'a1' })
+    const fake = client({ write: write(new DiscogsError(0, 'Discogs is not answering')) })
+    ;(fake.get as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({ releases: [{ id: 12, instance_id: 1 }] })
+      .mockResolvedValue({
+        releases: [
+          { id: 12, instance_id: 1 },
+          { id: 12, instance_id: 9 },
+        ],
+      })
+
+    await drainOutbox(fake, 'mrtnmlchr')
+    await drainOutbox(fake, 'mrtnmlchr')
+
+    const db = await openFidelityDb()
+    expect(fake.write).toHaveBeenCalledTimes(1)
+    expect(await db.get('collection', key)).toBeUndefined()
+    expect((await db.get('collection', 9))?.title).toBe('Loveless')
+    expect((await db.get('placements', 9))?.placeId).toBe('a1')
+  })
+
+  it('looks next round when the add landed without naming the entry', async () => {
+    await addCopy(copy())
+    const fake = client({ write: write({}) })
+    ;(fake.get as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({ releases: [] })
+      .mockResolvedValue({ releases: [{ id: 12, instance_id: 4 }] })
+
+    await drainOutbox(fake, 'mrtnmlchr')
+    await drainOutbox(fake, 'mrtnmlchr')
+
+    expect(fake.write).toHaveBeenCalledTimes(1)
+    expect(await pendingJobs()).toEqual([])
+    expect(await keys()).toEqual([4])
+  })
+
+  /*
+   * The first copy was refused readably and stays marked; the second went out
+   * and landed. The first must not take the second's id for its own and be
+   * dropped — that is one copy on the shelf where two were bought.
+   */
+  it('does not let a waiting copy claim the id another copy just got', async () => {
+    await addCopy(copy())
+    await addCopy(copy())
+    const fake = client({
+      write: write(
+        new DiscogsError(500, 'Something went wrong'),
+        { instance_id: 6 },
+        {
+          instance_id: 7,
+        },
+      ),
+    })
+    ;(fake.get as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({ releases: [] })
+      .mockResolvedValueOnce({ releases: [] })
+      .mockResolvedValue({ releases: [{ id: 12, instance_id: 6 }] })
+
+    await drainOutbox(fake, 'mrtnmlchr')
+    await drainOutbox(fake, 'mrtnmlchr')
+
+    expect(fake.write).toHaveBeenCalledTimes(3)
+    expect(await keys()).toEqual([6, 7])
+  })
+
+  it('still sends an add queued before copies had keys of their own', async () => {
+    const db = await openFidelityDb()
+    await db.put('collection', record({ releaseId: 12, instanceId: -12, folderId: 0 }))
+    await db.put('outbox', {
+      id: 'collection.add:12',
+      kind: 'collection.add',
+      payload: { releaseId: 12 },
+      revert: {},
+      attempts: 0,
+      queuedAt: 1,
+    })
+    const fake = client({ write: write({ instance_id: 5 }) })
+
+    await drainOutbox(fake, 'mrtnmlchr')
+
+    expect(paths(fake)).toEqual(['/users/mrtnmlchr/collection/folders/1/releases/12'])
+    expect(await keys()).toEqual([5])
   })
 })

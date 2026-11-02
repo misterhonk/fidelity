@@ -353,8 +353,9 @@ export async function syncCollection(
         /*
          * And the provisional row this replaces, if there was one.
          *
-         * A record put on the shelf from a find sits under `-releaseId` until
-         * Discogs has been asked. Once the real entry arrives it would
+         * A stand-in without an instance, or a record added before copies had
+         * keys of their own, sits under `-releaseId` (newer ones are moved by
+         * the add itself, `collection/add.ts`). Once the real entry arrives it would
          * otherwise stand beside it — the same record twice, one of them
          * un-writable, which is exactly the bug this whole change is about.
          */
@@ -371,7 +372,7 @@ export async function syncCollection(
    * Taking sold records out of the mirror — only after a full pass.
    *
    * Negative keys survive: those are records put on the shelf from a find and
-   * waiting for Discogs to confirm them (`instanceId: -releaseId`, see above).
+   * waiting for Discogs to confirm them (negative keys, `collection/add.ts`).
    * Discogs does not know them yet, so their absence from the answer would be
    * evidence of nothing — clearing them away here would take back an entry
    * somebody has just made.

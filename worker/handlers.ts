@@ -1012,12 +1012,12 @@ export const handlers: HandlerMap = {
     return removeRecord(instanceId)
   },
 
-  'collection.add': async ({ digId, listingId }) => {
+  'collection.add': async ({ digId, listingId, folderId }) => {
     const db = await openFidelityDb()
     const match = await db.get('matches', [digId, listingId])
     if (!match) return false
     const { addRecord } = await import('./collection/add')
-    return addRecord(match)
+    return addRecord(match, folderId)
   },
 
   'collection.value': async () => {
