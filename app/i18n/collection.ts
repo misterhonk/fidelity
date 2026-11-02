@@ -652,6 +652,38 @@ const en = {
    * Enumerated by tests/unit/template-text.spec.ts rather than by reading:
    * a hand-written list of German words had already missed "von" three times.
    */
+  /** Add mode (#233): scan, pressing, your copy, place, tray. */
+  add: {
+    open: 'Add record',
+    title: 'Add a record',
+    field: 'Barcode or run-out',
+    look: 'Look it up',
+    camera: 'Read a barcode with the camera in the shop view',
+    looking: 'Looking it up …',
+    nothing: 'Discogs knows no pressing by this code.',
+    pick: 'Which pressing is it?',
+    you: (copies: number) => (copies === 1 ? 'you have 1 copy' : `you have ${copies} copies`),
+    secondCopy: 'You already have this pressing. Adding it makes a second copy.',
+    runout: 'Run-out, to narrow the list',
+    narrow: 'Narrow',
+    narrowNone: 'The run-out names none of these. The list stays as it was.',
+    grade: 'Media condition',
+    add: 'Add to shelf',
+    addSecond: 'Add a second copy',
+    place: 'Where does it go?',
+    putIn: (place: string) => `Put it in ${place}`,
+    elsewhere: 'Somewhere else',
+    later: 'Not now',
+    placed: (place: string) => `In ${place}.`,
+    next: 'Add another',
+    tray: 'Added on this visit',
+    status: { waiting: 'waiting', sent: 'sent', failed: 'failed' },
+    undo: 'Undo',
+    undone: (label: string) => `${label} taken back.`,
+    cannotUndo: 'Still on its way to Discogs. Try again in a moment.',
+    toShelf: 'Add to shelf',
+  },
+
   shelfCount: (shown: string, of: string | null, records: string) =>
     of === null ? `${shown} ${records}` : `${shown} of ${of} ${records}`,
   records: 'records',
@@ -1130,6 +1162,37 @@ const de: typeof en = {
       sold === 0
         ? `Alle ${left} noch zu haben.`
         : `${soldText} inzwischen weg, ${left} noch da.`,
+  },
+
+  add: {
+    open: 'Platte hinzufügen',
+    title: 'Platte hinzufügen',
+    field: 'Barcode oder Matrize',
+    look: 'Nachsehen',
+    camera: 'Barcode mit der Kamera lesen geht im Laden',
+    looking: 'Ich sehe nach …',
+    nothing: 'Zu diesem Code kennt Discogs keine Pressung.',
+    pick: 'Welche Pressung ist es?',
+    you: (copies) => (copies === 1 ? 'du hast 1 Exemplar' : `du hast ${copies} Exemplare`),
+    secondCopy: 'Die Pressung hast du schon. Das wird dein zweites Exemplar.',
+    runout: 'Matrize, um die Liste einzugrenzen',
+    narrow: 'Eingrenzen',
+    narrowNone: 'Die Matrize passt zu keiner davon. Die Liste bleibt, wie sie war.',
+    grade: 'Zustand der Platte',
+    add: 'Ins Regal',
+    addSecond: 'Zweites Exemplar ins Regal',
+    place: 'Wohin damit?',
+    putIn: (place) => `In ${place} stellen`,
+    elsewhere: 'Woandershin',
+    later: 'Später',
+    placed: (place) => `Steht in ${place}.`,
+    next: 'Noch eine',
+    tray: 'Diesmal hinzugefügt',
+    status: { waiting: 'wartet', sent: 'gesendet', failed: 'fehlgeschlagen' },
+    undo: 'Rückgängig',
+    undone: (label) => `${label} wieder raus.`,
+    cannotUndo: 'Ist gerade unterwegs zu Discogs. Gleich nochmal versuchen.',
+    toShelf: 'Ins Regal',
   },
 
   shelfCount: (shown: string, of: string | null, records: string) =>

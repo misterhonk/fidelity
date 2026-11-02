@@ -45,6 +45,9 @@ import type {
   FollowedArtist,
   GradingRecord,
   Identified,
+  AddedCopy,
+  AddState,
+  Pressing,
   PressingFamily,
   Identity,
   LandedContext,
@@ -423,6 +426,16 @@ export interface WorkerContract {
     progress: never
     result: boolean
   }
+  /** Add mode (#233): a pressing on the shelf as one more copy. No request; the outbox sends it. */
+  'collection.addPressing': {
+    params: { pressing: Pressing; grade?: string; placeId?: string | null }
+    progress: never
+    result: AddedCopy
+  }
+  /** Where this session's adds stand — read off the outbox and the shelf, no request. */
+  'collection.addStatus': { params: { adds: AddedCopy[] }; progress: never; result: AddState[] }
+  /** Takes an add back: dropped while it waits, removed once it landed. */
+  'collection.undoAdd': { params: { add: AddedCopy }; progress: never; result: boolean }
   /** Adds a find to the wantlist. False when its six hours are up. */
   'wantlist.add': {
     params: { digId: string; listingId: number }

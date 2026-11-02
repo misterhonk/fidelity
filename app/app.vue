@@ -167,10 +167,35 @@ function skipToMain() {
   main.focus()
 }
 
+/*
+ * Add mode (#233), in the address so Back closes it like every sheet. Opened
+ * from the shelf, ⌘K, the key `a` and a result in the shop.
+ */
+const addMode = useAddMode()
+const adding = useOpenInQuery('add', (raw) => (raw === '1' ? 1 : null))
+watch(addMode.asked, () => (adding.value = 1))
+
 function onKeydown(event: KeyboardEvent) {
   if (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)) {
     event.preventDefault()
     paletteOpen.value = !paletteOpen.value
+    return
+  }
+  // `a` is the letter a in a field, and nothing while another dialog is open.
+  const on = document.activeElement
+  if (
+    event.key === 'a' &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.altKey &&
+    !(
+      on instanceof HTMLElement &&
+      (on.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(on.tagName))
+    ) &&
+    !document.querySelector('[role="dialog"]')
+  ) {
+    event.preventDefault()
+    addMode.open()
   }
 }
 
@@ -248,6 +273,7 @@ onBeforeUnmount(() => {
     <SiteFooter />
   </div>
   <LazyCommandPalette v-if="paletteOpen" @close="paletteOpen = false" />
+  <LazyAddSheet v-if="adding" @close="adding = null" />
   <LazyReleaseSheet
     v-if="sheet.open.value"
     :key="sheet.open.value.listingId"

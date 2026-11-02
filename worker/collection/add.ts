@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { openFidelityDb } from '~~/db/open'
 import { queueJob } from '~~/db/outbox'
 import type { OutboxJob } from '~~/db/schema'
-import type { CollectionItem, Match } from '#shared/types'
+import type { AddedCopy, AddState, CollectionItem, Match, Pressing } from '#shared/types'
 import type { DiscogsClient } from '../discogs/client'
 import { norm } from '../match/normalize'
 
@@ -243,4 +243,130 @@ export async function addRecord(match: Match, folderId?: number): Promise<boolea
     folderId,
   })
   return true
+}
+
+/*
+ * Add mode (#233): a pressing named by its barcode or run-out, put on the shelf
+ * as a copy of its own. Zero requests here — the lookup was the request, and
+ * the add travels through the outbox like every other write.
+ */
+
+/** "Portishead - Dummy" → artist and title, the way Discogs' search names a release. */
+function splitTitle(title: string): { artist: string; title: string } {
+  const at = title.indexOf(' - ')
+  return at < 0
+    ? { artist: '', title }
+    : { artist: title.slice(0, at), title: title.slice(at + 3) }
+}
+
+/** The copies of a release on the shelf with an entry at Discogs. */
+async function entriesOf(releaseId: number): Promise<number[]> {
+  const db = await openFidelityDb()
+  return (await db.getAllFromIndex('collection', 'by-release', releaseId))
+    .map((copy) => copy.instanceId)
+    .filter((id) => id > 0)
+}
+
+/**
+ * Puts the pressing on the shelf as one more copy. A second copy is allowed on
+ * purpose — the screen warns, the collector decides.
+ */
+export async function addPressing(
+  pressing: Pressing,
+  choices: { grade?: string; placeId?: string | null; folderId?: number } = {},
+): Promise<AddedCopy> {
+  const before = await entriesOf(pressing.releaseId)
+  const { artist, title } = splitTitle(pressing.title)
+  const key = await addCopy(
+    {
+      releaseId: pressing.releaseId,
+      masterId: pressing.masterId,
+      title,
+      artistIds: [],
+      artistNorms: artist ? [norm(artist)] : [],
+      artistNames: artist ? [artist] : [],
+      labelIds: [],
+      labelNorms: pressing.label ? [norm(pressing.label)] : [],
+      labelNames: pressing.label ? [pressing.label] : [],
+      catnos: pressing.catno ? [pressing.catno] : [],
+      genres: [],
+      styles: [],
+      formats: pressing.format ? pressing.format.split(', ') : [],
+      year: pressing.year ?? 0,
+      thumbUrl: pressing.thumbUrl,
+      coverUrl: '',
+      rating: 0,
+      addedAt: new Date().toISOString(),
+    },
+    {
+      folderId: choices.folderId,
+      placeId: choices.placeId,
+      // Field 1 is Media Condition on every account (db/schema.ts).
+      fields: choices.grade ? { 1: choices.grade } : undefined,
+    },
+  )
+  return { key, releaseId: pressing.releaseId, before }
+}
+
+/**
+ * Where each add of this session stands: waiting, failed, or sent — and then
+ * under which entry, so undo can address it.
+ *
+ * Sent is read the way the outbox reads a landing: a copy of the release that
+ * was not there before the add. Two adds of one release take one new entry each.
+ */
+export async function addStatus(adds: AddedCopy[]): Promise<AddState[]> {
+  const db = await openFidelityDb()
+  const jobs = new Map((await db.getAll('outbox')).map((job) => [job.id, job]))
+  const taken = new Set<number>()
+  const states: AddState[] = []
+  for (const add of adds) {
+    const job = jobs.get(`collection.add:${add.key}`)
+    if (job) {
+      states.push({
+        key: add.key,
+        status: job.attempts > 0 || job.lastError !== undefined ? 'failed' : 'waiting',
+        instanceId: null,
+      })
+      continue
+    }
+    const fresh = (await entriesOf(add.releaseId)).find(
+      (id) => !add.before.includes(id) && !taken.has(id),
+    )
+    if (fresh !== undefined) taken.add(fresh)
+    // No job and no new entry: given up on, and its row already taken back.
+    states.push({
+      key: add.key,
+      status: fresh === undefined ? 'failed' : 'sent',
+      instanceId: fresh ?? null,
+    })
+  }
+  return states
+}
+
+/**
+ * Takes an add back. Free while it waits: the job is dropped before Discogs
+ * hears of it. Once it has landed, it is a removal of that entry like any
+ * other. Under the outbox lock — a drain reads the queue once and sends what
+ * it read, so dropping a job behind its back would not stop the POST.
+ */
+export async function undoAdd(add: AddedCopy): Promise<boolean> {
+  const { OUTBOX_LOCK } = await import('~~/db/outbox')
+  const locks = globalThis.navigator?.locks
+  const run = async () => {
+    const db = await openFidelityDb()
+    const job = await db.get('outbox', `collection.add:${add.key}`)
+    if (job) {
+      // Cut off mid-send: Discogs may have it. The next drain looks; nothing is guessed here.
+      if (job.sentAt !== undefined) return false
+      await db.delete('outbox', job.id)
+      await dropCopy(job)
+      return true
+    }
+    const [state] = await addStatus([add])
+    if (state?.instanceId == null) return false
+    const { removeRecord } = await import('./remove')
+    return removeRecord(state.instanceId)
+  }
+  return locks ? locks.request(OUTBOX_LOCK, run) : run()
 }
