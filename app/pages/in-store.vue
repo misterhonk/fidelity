@@ -19,6 +19,7 @@ import {
   readQueue,
   type QueuedLookup,
 } from '~/utils/lookup'
+import { standRow } from '~/utils/stand-row'
 
 const d = useDigMessages()
 const c = useCollectionMessages()
@@ -81,6 +82,8 @@ const chosen = computed(() => {
   return typeof value === 'string' ? value : ''
 })
 const fair = computed(() => stands.value.length > 1)
+/** Your own max price, for the rows past six hours (#241). Yours, so no clock on it. */
+const ceiling = shallowRef<{ maxPrice: number | null; currency: string } | null>(null)
 const allMode = computed(() => fair.value && chosen.value === 'all')
 
 /** Which stands are on the screen: all of them, the one asked for, or the newest. */
@@ -312,7 +315,12 @@ onMounted(async () => {
   if (online.value) void resolveQueued()
   try {
     stands.value = await call('dig.stands', undefined)
-    await Promise.all([loadShown(), loadFeedback(), loadBasket()])
+    await Promise.all([
+      loadShown(),
+      loadFeedback(),
+      loadBasket(),
+      call('preferences.get', undefined).then((prefs) => (ceiling.value = prefs)),
+    ])
   } finally {
     loading.value = false
   }
@@ -395,6 +403,24 @@ watch(query, (value) => {
  * catno or "808 State" can match), but that it matches nothing here is no
  * answer before Discogs was asked.
  */
+/** Each row's price, or past six hours its catalogue facts and your max price (#241). */
+const rows = computed(
+  () =>
+    new Map(
+      matches.value.map((match) => {
+        const row = standRow(match, ceiling.value?.maxPrice ?? null)
+        return [
+          match.listingId,
+          {
+            price: money(row.price, row.currency),
+            facts: row.facts,
+            max: money(row.maxPrice, ceiling.value?.currency),
+          },
+        ]
+      }),
+    ),
+)
+
 const nothingAnywhere = computed(
   () =>
     kind.value !== 'catno' &&
@@ -864,10 +890,23 @@ const expired = computed(() => results.value.some((entry) => clock.value > entry
                 {{ shopOf(match) }}
               </span>
               <span
-                v-if="money(match.price, match.currency)"
+                v-if="rows.get(match.listingId)?.price"
                 class="fid-num shrink-0 text-fid-sm text-fid-text-muted"
               >
-                {{ money(match.price, match.currency) }}
+                {{ rows.get(match.listingId)?.price }}
+              </span>
+              <!-- Past six hours: what the record is, and what you said you would pay (#241). -->
+              <span
+                v-if="match.expired && rows.get(match.listingId)?.facts"
+                class="truncate text-fid-xs text-fid-text-muted"
+              >
+                {{ rows.get(match.listingId)?.facts }}
+              </span>
+              <span
+                v-if="rows.get(match.listingId)?.max"
+                class="fid-num shrink-0 text-fid-xs text-fid-text"
+              >
+                {{ m.inStore.yourMax(rows.get(match.listingId)!.max!) }}
               </span>
               <DiscogsCredit :to="listingPage(match.listingId)" class="shrink-0" />
             </span>
