@@ -90,16 +90,30 @@ const cardUrl = ref<string | null>(null)
  * The top find as a picture (#250). The picture carries the Discogs notice as
  * text; the links — the list and the listing the notice belongs to — ride in
  * the share text, since a picture cannot hold one.
+ *
+ * Drawn as soon as the link exists, not on the click: WebKit only lets
+ * `navigator.share` run straight off the tap, and awaiting `toBlob` first
+ * spends that permission.
  */
-async function shareCard() {
-  const top = shareLink.value?.top
-  if (!shareLink.value || !top) return
+const card = shallowRef<{ file: File; text: string } | null>(null)
+
+watch(shareLink, async (link) => {
+  card.value = null
+  const top = link?.top
+  if (!link || !top) return
   const reason = reasonFor(top.signals)
   const credit = m.value.nav.attribution
   const file = await shareCardFile(top, { reason, credit, brand: 'Sleeveside' })
-  if (!file) return
+  if (!file || shareLink.value !== link) return
+  card.value = {
+    file,
+    text: `${reason}\n${link.url}\n${credit}: ${listingPage(top.listingId)}`,
+  }
+})
 
-  const text = `${reason}\n${shareLink.value.url}\n${credit}: ${listingPage(top.listingId)}`
+async function shareCard() {
+  if (!card.value) return
+  const { file, text } = card.value
   if (navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({ files: [file], text })
@@ -1274,7 +1288,7 @@ const noHorizon = computed(
           </div>
           <p class="text-fid-xs text-fid-text-muted">{{ d.shareTells }}</p>
           <button
-            v-if="shareLink.top"
+            v-if="card"
             type="button"
             class="fid-action self-start rounded-fid-sm border border-fid-border px-3 py-2 text-fid-sm text-fid-text"
             @click="shareCard"
