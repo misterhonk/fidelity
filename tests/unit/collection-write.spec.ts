@@ -401,6 +401,20 @@ describe('several copies of one record on their way', () => {
     expect(await keys()).toEqual([5, 6])
   })
 
+  it('keeps two copies added in the same millisecond apart', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
+    vi.spyOn(Math, 'random').mockReturnValue(0.5)
+    try {
+      const first = await addCopy(copy())
+      const second = await addCopy(copy())
+      expect(first).not.toBe(second)
+    } finally {
+      vi.restoreAllMocks()
+    }
+    expect(await pendingJobs()).toHaveLength(2)
+    expect(await keys()).toHaveLength(2)
+  })
+
   it('files a copy straight into the folder it was meant for', async () => {
     await addCopy(copy(), { folderId: 3 })
     const fake = client({ write: write({ instance_id: 5 }) })
