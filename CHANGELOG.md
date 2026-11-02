@@ -9,6 +9,26 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.123.0](https://github.com/misterhonk/fidelity/compare/v0.122.0...v0.123.0) (2026-11-02)
+
+
+### Added
+
+* **dig:** share a find list in the link itself, without a hub or prices ([a0f5257](https://github.com/misterhonk/fidelity/commit/a0f52571b221d06920262b458560c6c698a3bf6f)), closes [#249](https://github.com/misterhonk/fidelity/issues/249)
+* **dig:** share the top find as a picture without cover art ([57f9725](https://github.com/misterhonk/fidelity/commit/57f97250e39f2d5a386ed16aa0f09d437fc7efb8)), closes [#250](https://github.com/misterhonk/fidelity/issues/250)
+* **i18n:** build reason sentences per language and add French ([f341616](https://github.com/misterhonk/fidelity/commit/f341616b329f639c5d326ed50b893226aa04eb6e))
+* **sync:** carry pressing rules through the vault ([298ab98](https://github.com/misterhonk/fidelity/commit/298ab983c3757459f61ab5ef74ce6ce4222db79b))
+
+
+### Fixed
+
+* **dig:** draw the share card before the tap so WebKit lets it share ([ceca8fe](https://github.com/misterhonk/fidelity/commit/ceca8feb011024d7d46dfc6f53ad35e3d9775757))
+* **dig:** drop the old share picture when a new link is made ([63339b8](https://github.com/misterhonk/fidelity/commit/63339b8172d033edb622f0320302438b20589413))
+* **dig:** refuse an oversized share link before inflating it ([95de39c](https://github.com/misterhonk/fidelity/commit/95de39cffc22214b9cbd724544212235c3763cb1))
+* **dig:** share only the evidence a plate reads ([85b1afc](https://github.com/misterhonk/fidelity/commit/85b1afcd7ffd889defff684ea44861e692123b5f))
+* **i18n:** carry the share-link strings into the French pack ([886a581](https://github.com/misterhonk/fidelity/commit/886a581ed88aac3411d4c0a2eb5c3de32a9b1b54))
+* **sync:** keep a pressing rule set while the vault round runs ([b0db967](https://github.com/misterhonk/fidelity/commit/b0db967edeb47e5fecbaa60872a98e7ae2aeed6f))
+
 ## [0.122.0](https://github.com/misterhonk/fidelity/compare/v0.121.0...v0.122.0) (2026-11-02)
 
 
