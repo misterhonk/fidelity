@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { deleteFidelityDb, openFidelityDb } from '~~/db/open'
 import { MAX_ATTEMPTS, pendingJobs } from '~~/db/outbox'
 import type { Pressing } from '#shared/types'
-import { addPressing, addStatus, undoAdd } from '~~/worker/collection/add'
+import { addPressing, addStatus, placeAdd, undoAdd } from '~~/worker/collection/add'
 import type { DiscogsClient } from '~~/worker/discogs/client'
 import { DiscogsError } from '~~/worker/discogs/errors'
 import { drainOutbox } from '~~/worker/outbox'
@@ -123,5 +123,26 @@ describe('undo', () => {
 
     expect(await undoAdd(added)).toBe(false)
     expect(await pendingJobs()).toHaveLength(1)
+  })
+})
+
+describe('placing an add', () => {
+  it('places the entry it landed as, not its gone provisional key', async () => {
+    const added = await addPressing(dummy)
+    await drainOutbox(client(), 'mrtnmlchr')
+
+    expect(await placeAdd(added, 'crate-1')).toBe(true)
+    const db = await openFidelityDb()
+    expect((await db.get('placements', 7))?.placeId).toBe('crate-1')
+    expect(await db.get('placements', added.key)).toBeUndefined()
+  })
+
+  it('places a waiting add under its key, and the place follows it to the entry', async () => {
+    const added = await addPressing(dummy)
+    expect(await placeAdd(added, 'crate-1')).toBe(true)
+    await drainOutbox(client(), 'mrtnmlchr')
+
+    const db = await openFidelityDb()
+    expect((await db.get('placements', 7))?.placeId).toBe('crate-1')
   })
 })

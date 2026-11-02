@@ -370,3 +370,27 @@ export async function undoAdd(add: AddedCopy): Promise<boolean> {
   }
   return locks ? locks.request(OUTBOX_LOCK, run) : run()
 }
+
+/**
+ * Puts an add in a place, under the entry it has by now. The sheet drains the
+ * outbox right after the add, so its provisional key is often gone already: a
+ * place written there would be an orphan, counted and sent to the vault, while
+ * the real entry stays unplaced. Under the outbox lock, so no drain settles the
+ * copy between the look and the write. False when it never landed.
+ */
+export async function placeAdd(add: AddedCopy, placeId: string | null): Promise<boolean> {
+  const { OUTBOX_LOCK } = await import('~~/db/outbox')
+  const { placeRecord } = await import('../places')
+  const locks = globalThis.navigator?.locks
+  const run = async () => {
+    const db = await openFidelityDb()
+    // Still queued: settleCopy carries the place over to the entry.
+    const target = (await db.get('outbox', `collection.add:${add.key}`))
+      ? add.key
+      : ((await addStatus([add]))[0]?.instanceId ?? null)
+    if (target === null) return false
+    await placeRecord(target, placeId)
+    return true
+  }
+  return locks ? locks.request(OUTBOX_LOCK, run) : run()
+}
