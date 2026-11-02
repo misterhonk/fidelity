@@ -729,6 +729,8 @@ const en = {
       'No dig yet, so the list of finds stays empty. You can still search your collection and your wantlist, signal or not.',
     expired:
       'More than six hours old, so prices and conditions are gone. The finds and their reasons stay.',
+    /** Past six hours, in the price's place: the max price from your settings (#241). */
+    yourMax: (amount: string) => `your max ${amount}`,
     /*
      * The barcode scan (M13).
      *
