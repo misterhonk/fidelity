@@ -12,6 +12,39 @@ Für eine App bedeutet SemVer:
 ## [0.119.0](https://github.com/misterhonk/fidelity/compare/v0.118.0...v0.119.0) (2026-11-02)
 
 
+<!-- en -->
+**Sleeveside has four rooms now: Today, Shops, Collection and Basket, plus Search.** The start
+page shows your records first, and on a big screen the details open beside the list.
+
+- The bar at the bottom is shorter: Today, Shops, Collection, Basket and Search. Settings live
+  behind your name. Old bookmarks still work.
+- A shop has one page for its finds, its profile and your visits.
+- Collection has Shelf, Wantlist, Places and Insights in one row; "On watch" is a filter there.
+- Today puts the covers on the first screen: one status line, a small update chip and a short
+  next step. Paste a Discogs shop link into Search to open that shop.
+- Settings fit on five pages and an advanced one.
+- On a desk, the details open next to the list instead of covering it.
+- Many small fixes: one undo in the basket, the in-store bar no longer covers the last row,
+  and screen-reader messages stay audible while a sheet is open.
+
+<!-- de -->
+**Sleeveside hat jetzt vier Räume: Heute, Läden, Sammlung und Korb, dazu die Suche.** Die
+Startseite zeigt zuerst deine Platten, und auf einem großen Bildschirm öffnen sich Details
+neben der Liste.
+
+- Die Leiste unten ist kürzer: Heute, Läden, Sammlung, Korb und Suche. Die Einstellungen
+  findest du hinter deinem Namen. Alte Lesezeichen funktionieren weiter.
+- Ein Laden hat eine Seite für seine Funde, sein Profil und deine Besuche.
+- Die Sammlung hat Regal, Wunschliste, Orte und Einblicke in einer Reihe. "Beobachtet" ist dort
+  ein Filter.
+- Heute zeigt die Cover gleich auf dem ersten Bildschirm: eine Statuszeile, ein kleiner
+  Update-Hinweis und ein kurzer nächster Schritt. Füg einen Discogs-Ladenlink in die Suche ein,
+  dann öffnet sich der Laden.
+- Die Einstellungen passen auf fünf Seiten und eine für Fortgeschrittene.
+- Am Schreibtisch öffnen sich Details neben der Liste, statt sie zu verdecken.
+- Viele kleine Fixes: ein Rückgängig im Korb, die Leiste im Laden verdeckt nicht mehr die
+  letzte Zeile, und Ansagen für Screenreader bleiben hörbar, solange ein Blatt offen ist.
+
 ### Added
 
 * **ui:** dock the detail sheet beside its list on a desk ([f13685d](https://github.com/misterhonk/fidelity/commit/f13685de9595c28a48bcf5230b6dd3a249dc124b)), closes [#230](https://github.com/misterhonk/fidelity/issues/230)
