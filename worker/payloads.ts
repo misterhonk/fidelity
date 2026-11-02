@@ -75,7 +75,16 @@ export const ROW_SCHEMAS = {
   feedback: z.looseObject({ listingId: rowKey }),
   basket: z.looseObject({ listingId: rowKey }),
   places: z.looseObject({ id: rowKey }),
-  placements: z.looseObject({ instanceId: rowKey }),
+  placements: z.looseObject({
+    instanceId: rowKey,
+    paid: z
+      .object({
+        cents: z.number().int().nonnegative(),
+        currency: z.string().regex(/^[A-Z]{3}$/),
+      })
+      .nullish(),
+    arrivedOn: z.iso.date().nullish(),
+  }),
   valueHistory: z.looseObject({ day: rowKey }),
   followed: z.looseObject({ artistId: rowKey }),
   watched: z.looseObject({ releaseId: rowKey, points: z.array(z.unknown()) }),
