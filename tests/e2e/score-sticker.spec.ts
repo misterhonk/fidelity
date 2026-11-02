@@ -59,7 +59,7 @@ test('a dig with no finds still says the collection is small', async ({ page }) 
 /* Never synced: nought records is "not counted yet", not "small" (#313). */
 test('a collection that was never synced is not called small', async ({ page }) => {
   const dig = await seed(page, 'en')
-  await page.goto(`/dig?id=${dig.id}`)
+  await page.goto(`/shop?id=${dig.id}`)
   await expect(page.getByRole('heading', { name: /finds at/ })).toBeVisible({ timeout: 15_000 })
   await expect(page.getByTestId('score-sticker').first()).toBeVisible()
   await expect(page.getByTestId('small-collection')).toHaveCount(0)
