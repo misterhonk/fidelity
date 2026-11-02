@@ -1,10 +1,9 @@
 import { z } from 'zod'
 
-import { isHttps, LISTEN_SERVICES } from '#shared/listen'
+import { LISTEN_SERVICES } from '#shared/listen'
 import {
   CONDITIONS,
   SIGNAL_TYPES,
-  type Match,
   type Preferences,
   type PressingRules,
   type SharedDig,
@@ -132,54 +131,32 @@ export const vaultSnapshotSchema = z.object({
   ),
 }) satisfies z.ZodType<VaultSnapshot>
 
-/** An address from the other side: kept when it is https, nothing otherwise. */
-const httpsOrNull = z.unknown().transform((url) => (isHttps(url) ? url : null))
-
-const matchSchema = z.looseObject({
-  digId: z.string(),
-  listingId: z.number(),
-  releaseId: z.number(),
-  score: z.number(),
-  signals: z.array(
-    z.object({
-      type: z.enum(SIGNAL_TYPES),
-      confidence: z.number(),
-      evidence: z.record(z.string(), z.unknown()),
-    }),
-  ),
-  title: z.string().nullable(),
-  artist: z.string().nullable(),
-  label: z.string().nullable(),
-  catno: z.string().nullable(),
-  format: z.string().nullable(),
-  year: z.number().nullable(),
-  condition: z.string().nullable(),
-  sleeve: z.string().nullable(),
-  price: z.number().nullable(),
-  currency: z.string().nullable(),
-  comments: z.string().nullable(),
-  thumbUrl: httpsOrNull,
-  marketLowestPrice: z.number().nullable(),
-  marketNumForSale: z.number().nullable(),
-  videos: z
-    .array(z.object({ title: z.string(), uri: z.string() }))
-    .transform((videos) => videos.filter((video) => isHttps(video.uri)))
-    .optional(),
-  expired: z.boolean(),
-})
-
 /**
- * A find list somebody sent. What the shared page reads is checked; the rest
- * of each match (pressing details and the like) rides along as it came.
+ * A find list somebody sent (#249). Strict about what it reads, and blind to
+ * anything else: a price somebody slipped into a link is dropped, not shown.
  */
 export const sharedDigSchema = z.object({
   version: z.number(),
-  dealer: z.string(),
-  scannedAt: z.number(),
-  expiresAt: z.number(),
   coverage: z.number(),
-  listingsTotal: z.number(),
   matchesTotal: z.number(),
-  // shortcut: the unchecked rest of a Match is cast, upgrade when the shared page reads more of it.
-  matches: z.array(matchSchema).transform((matches) => matches as unknown as Match[]),
+  matches: z.array(
+    z.object({
+      releaseId: z.number(),
+      listingId: z.number(),
+      score: z.number(),
+      artist: z.string().nullable(),
+      title: z.string().nullable(),
+      label: z.string().nullable(),
+      catno: z.string().nullable(),
+      format: z.string().nullable(),
+      year: z.number().nullable(),
+      signals: z.array(
+        z.object({
+          type: z.enum(SIGNAL_TYPES),
+          confidence: z.number(),
+          evidence: z.record(z.string(), z.unknown()),
+        }),
+      ),
+    }),
+  ),
 }) satisfies z.ZodType<SharedDig>

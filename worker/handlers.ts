@@ -718,8 +718,8 @@ export const handlers: HandlerMap = {
    * Sharing — the one handler that has to manage without a token.
    *
    * `share.read` runs at somebody who may never have set Fidelity up: no
-   * collection, no token, no hub entered. So the hub address comes from the
-   * link rather than from the settings, and nothing here asks for an identity.
+   * collection, no token, no hub entered. The whole list comes in the link,
+   * and nothing here asks for an identity.
    */
   'grading.forDealer': async ({ dealer }) => {
     const { gradingFor } = await import('./grading')
@@ -905,9 +905,9 @@ export const handlers: HandlerMap = {
     return createShare(loaded)
   },
 
-  'share.read': async ({ hubUrl, id, key }) => {
+  'share.read': async ({ data }) => {
     const { readShare } = await import('./share')
-    return readShare(hubUrl, id, key)
+    return readShare(data)
   },
 
   'dig.detail': async ({ digId, listingId }) => {

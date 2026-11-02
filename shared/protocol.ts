@@ -1182,26 +1182,18 @@ export interface WorkerContract {
   'stack.seen': { params: { digId: string; seen: number }; progress: never; result: true }
 
   /**
-   * Share a find list.
-   *
-   * Returns an id **and** a key. The key belongs in the `#` fragment of the
-   * link and nowhere else — no browser sends a fragment to a server, and that
-   * is exactly what the hub's inability to read the contents rests on.
+   * Share a find list (#249): compressed into a string that belongs in the `#`
+   * fragment of a link and nowhere else. No hub, no price, no seller.
    */
   'share.create': {
     params: { digId: string }
     progress: never
-    result: { id: string; key: string; expiresAt: number; matches: number }
+    result: { data: string; matches: number }
   }
 
-  /**
-   * And open a shared link — **no token, no sign-in**.
-   *
-   * Whoever receives one may never have opened Fidelity. The hub address is
-   * in the link, because the recipient has not entered one.
-   */
+  /** And open a shared link — **no token, no sign-in**. Null when it is too new. */
   'share.read': {
-    params: { hubUrl: string; id: string; key: string }
+    params: { data: string }
     progress: never
     result: SharedDig | null
   }

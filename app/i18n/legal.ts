@@ -56,7 +56,7 @@ const en = {
      */
     hub: 'The second exception: a hub of your own',
     hubBody:
-      'Sleeveside can make use of a small helper server — the hub. There is none until you enter its address in the settings yourself; with that field empty nothing is ever asked of it. If you do run one: your backup and any find list you share go there sealed, so the hub holds them and cannot read them. What it does see in plain sight is the shops you are watching, the push address your browser hands out for notifications, and the shop and country a set of postage tiers belongs to. Your Discogs token is never among it.',
+      'Sleeveside can make use of a small helper server — the hub. There is none until you enter its address in the settings yourself; with that field empty nothing is ever asked of it. If you do run one: your backup goes there sealed, so the hub holds it and cannot read it. What it does see in plain sight is the shops you are watching, the push address your browser hands out for notifications, and the shop and country a set of postage tiers belongs to. Your Discogs token is never among it.',
 
     /*
      * The third exception. The catalogue is read-only and holds nothing of
@@ -136,7 +136,7 @@ const de: typeof en = {
 
     hub: 'Die zweite Ausnahme: ein eigener Hub',
     hubBody:
-      'Sleeveside kann einen kleinen Hilfsserver nutzen – den Hub. Es gibt keinen, solange du seine Adresse nicht selbst in den Einstellungen einträgst; bleibt das Feld leer, wird nie etwas bei ihm angefragt. Wer einen betreibt: Sicherung und geteilte Fundliste gehen versiegelt dorthin, der Hub hält sie und kann sie nicht lesen. Im Klartext sieht er die Läden, die du beobachtest, die Push-Adresse, die dein Browser für Benachrichtigungen herausgibt, und Laden und Land, zu dem eine Versandstaffel gehört. Dein Discogs-Token ist nie dabei.',
+      'Sleeveside kann einen kleinen Hilfsserver nutzen – den Hub. Es gibt keinen, solange du seine Adresse nicht selbst in den Einstellungen einträgst; bleibt das Feld leer, wird nie etwas bei ihm angefragt. Wer einen betreibt: die Sicherung geht versiegelt dorthin, der Hub hält sie und kann sie nicht lesen. Im Klartext sieht er die Läden, die du beobachtest, die Push-Adresse, die dein Browser für Benachrichtigungen herausgibt, und Laden und Land, zu dem eine Versandstaffel gehört. Dein Discogs-Token ist nie dabei.',
 
     catalogue: 'Die dritte Ausnahme: ein Katalog',
     catalogueBody:

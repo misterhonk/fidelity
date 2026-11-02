@@ -199,20 +199,6 @@ export interface HubClient {
   vaultForget(id: string): Promise<void>
 
   /**
-   * Share a find list — in such a way that the hub cannot read it.
-   *
-   * A sealed envelope like the vault's, only with a random key instead of a
-   * passphrase; the key sits in the `#` fragment of the link and reaches no
-   * server.
-   *
-   * `shareRead` is the **only** method here that has to manage without the hub
-   * secret: the link goes to somebody who does not know this hub. So it
-   * deliberately does not send the headers.
-   */
-  shareWrite(id: string, sealed: SealedVault, expiresAt: number): Promise<void>
-  shareRead(id: string): Promise<{ sealed: SealedVault; expiresAt: number } | null>
-
-  /**
    * The watcher — the one thing here that is not a cache.
    *
    * Everything else in this client makes the app faster. This makes it do
@@ -360,44 +346,6 @@ export function createHubClient({
         throw Object.assign(fail('hub-http-error', 'hub refused the vault'), {
           status: response.status,
         })
-    },
-
-    async shareWrite(id, sealed, expiresAt) {
-      const response = await fetchImpl(url('/v1/share'), {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ id, expiresAt, sealed }),
-      })
-      // As with the vault: somebody here is waiting for a link they mean to
-      // send. Failing silently would hand them a dead one.
-      if (!response.ok) {
-        throw Object.assign(fail('hub-http-error', 'hub refused the find list'), {
-          status: response.status,
-        })
-      }
-    },
-
-    async shareRead(id) {
-      /*
-       * Without `headers`, and that is the point.
-       *
-       * Whoever opens this link does not have the hub secret — they do not
-       * know the hub at all. If this method sent the recipient's headers, it
-       * would get a 401 at a foreign hub and a result at their own, which
-       * breaks the feature for exactly the people it is there for.
-       */
-      const response = await fetchImpl(url(`/v1/share/${id}`), {
-        headers: { 'content-type': 'application/json' },
-      })
-      if (!response.ok) return null
-
-      const body = (await response.json()) as { sealed?: unknown; expiresAt?: unknown }
-      const parsed = sealedSchema.safeParse(body?.sealed)
-      if (!parsed.success || typeof body?.expiresAt !== 'number') {
-        log.warn('[hub] shared-list answer does not match the schema')
-        return null
-      }
-      return { sealed: parsed.data, expiresAt: body.expiresAt }
     },
 
     async contributeHorizon(chunk) {

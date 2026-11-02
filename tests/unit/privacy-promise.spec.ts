@@ -37,7 +37,7 @@ describe('the privacy notice', () => {
    * line failing first and somebody reading why.
    */
   it('is about a hub that data actually goes to', () => {
-    expect(HUB).toMatch(/shareWrite/)
+    expect(HUB).toMatch(/vaultWrite/)
     expect(HUB).toMatch(/watchSubscribe/)
     expect(HUB).toMatch(/method: 'POST'/)
   })
