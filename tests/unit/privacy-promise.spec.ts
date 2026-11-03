@@ -143,3 +143,29 @@ describe('the privacy notice', () => {
     expect(packs.de.privacy.lead).not.toMatch(/keine Stelle, an der deine Daten verarbeitet/)
   })
 })
+
+/**
+ * The access service is not built yet (#253), but its row is decided:
+ * `docs/09-LEGAL.md` §3.1 lists the fields. The drafted addendum has to name
+ * every one of them, in the German half that binds and the English half that
+ * translates — so a field added to the plan cannot reach the service without
+ * reaching the notice. When the service exists, its schema should take over
+ * from the doc as the source.
+ */
+describe('the access-service privacy addendum', () => {
+  const plan = readFileSync('docs/09-LEGAL.md', 'utf8')
+  const fields = /keeps `([^`]+)`/.exec(plan)![1]!.split(/,\s*/)
+  const addendum = readFileSync('docs/legal/privacy-access.md', 'utf8')
+  const [german, english] = addendum.split(/^## English/m)
+
+  it('reads a field list from the plan', () => {
+    expect(fields).toContain('payer_id')
+    expect(fields.length).toBeGreaterThanOrEqual(6)
+  })
+
+  it('names every stored field in both languages', () => {
+    for (const half of [german!, english!]) {
+      expect(fields.filter((field) => !half.includes(`\`${field}\``))).toEqual([])
+    }
+  })
+})
