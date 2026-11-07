@@ -20,6 +20,12 @@
       "semanticCommitScope": "deps"
     },
     {
+      "description": "A base image is what the app ships, and only fix and feat cut a release: as a chore its digest would be merged and reach nobody. Three days, because Docker Hub ages a digest by the tag's last push, and an official image is pushed again often enough that a week could hold it back for good.",
+      "matchManagers": ["dockerfile"],
+      "semanticCommitType": "fix",
+      "minimumReleaseAge": "3 days"
+    },
+    {
       "description": "Our own images: the homelab follows its tag on purpose; promote.yml moves `stable`.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["ghcr.io/misterhonk/**"],
