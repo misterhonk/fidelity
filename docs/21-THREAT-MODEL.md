@@ -56,7 +56,8 @@ Any script that runs in the origin has the same reach as the app.
 - Renovate (`renovate.json`) proposes a release only once it is seven days old; CI fails on a
   high or critical advisory in production dependencies (`pnpm audit --prod`) — which list
   the client runtime Nuxt and Nuxt UI ship (vue-router, `@unhead/vue`, ofetch, reka-ui)
-  directly, because the two frameworks are build tools in devDependencies; actions and
+  directly, because the two frameworks are build tools in devDependencies — and for the hub
+  and the catalogue, each from its own lock file (`npm audit --omit=dev`); actions and
   base images are pinned by digest; release images and the release zip carry GitHub build
   provenance (`gh attestation verify`).
 - **Residual risk:** a compromised npm dependency ends up inside `'self'`. `pnpm-lock.yaml`
