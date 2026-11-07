@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { type Context, Hono } from 'hono'
 import { cors } from 'hono/cors'
 import type { DatabaseSync } from 'node:sqlite'
 import { Worker } from 'node:worker_threads'
@@ -26,8 +26,18 @@ export interface CatalogueAppOptions {
    * Absent (in tests, in memory): counted here, which is fine for 400 rows.
    */
   path?: () => string | null
+  /** Where a read leaves the request thread; a test has fewer rows than `HEAVY_ROWS`. */
+  heavyRows?: number
   now?: () => number
 }
+
+/** One read, as `read-worker.ts` takes it. */
+export interface Read {
+  sql: string
+  args: (number | string | null)[]
+}
+
+type Row = Record<string, unknown>
 
 /** A build this old means the monthly job has stopped — the alert's threshold. */
 export const STALE_AFTER_DAYS = 40
@@ -42,6 +52,8 @@ export const MAX_NAMES = 100
  * label still carries its run.
  */
 export const MAX_ROWS = 20_000
+/** Past this many rows a run or a credit list is read off the request thread. */
+export const HEAVY_ROWS = 20_000
 
 interface ReleaseRow {
   id: number
@@ -64,7 +76,12 @@ export function formatOf(name: string | null, descriptions: string | null): stri
   return parts.filter(Boolean).join(', ')
 }
 
-export function createCatalogueApp({ db, path, now = Date.now }: CatalogueAppOptions) {
+export function createCatalogueApp({
+  db,
+  path,
+  heavyRows = HEAVY_ROWS,
+  now = Date.now,
+}: CatalogueAppOptions) {
   const app = new Hono()
 
   app.use('/v1/*', cors({ origin: '*', allowMethods: ['GET', 'OPTIONS'], maxAge: 86_400 }))
@@ -74,6 +91,92 @@ export function createCatalogueApp({ db, path, now = Date.now }: CatalogueAppOpt
       db().prepare('SELECT value FROM meta WHERE key = ?').get(key) as
         { value: string } | undefined
     )?.value ?? null
+
+  const onThisThread = (reads: Read[]) =>
+    reads.map(
+      ({ sql, args }) =>
+        db()
+          .prepare(sql)
+          .all(...args) as Row[],
+    )
+
+  const offThread = (file: string, reads: Read[]) =>
+    new Promise<Row[][]>((resolve, reject) => {
+      const worker = new Worker(new URL('./read-worker.ts', import.meta.url), {
+        workerData: { path: file, reads },
+      })
+      worker.once('message', resolve)
+      worker.once('error', reject)
+      // Gone without a word: a promise nobody settles would hold `working` for good.
+      worker.once('exit', () => reject(new Error('read worker exited')))
+    })
+
+  /*
+   * The two routes whose size the asker chooses. A label of 350,000 rows took
+   * 24 s cold on the home lab (measured 2026-11-07), and on this thread every
+   * other route would have waited with it, for anybody who knows the address.
+   * So what is large is read off this thread, one at a time, and remembered
+   * until the next build: about a hundred labels and people are that large, so
+   * the memory stays small and asking twice costs nothing. A second large read
+   * while one runs is a 503, which the client treats like any miss.
+   *
+   * shortcut: below `heavyRows` the read stays here, about a second for 20,000
+   * cold rows; lower the line if that ever shows.
+   */
+  const remembered = new Map<string, string>()
+  let rememberedFor: string | null = null
+  let working: { key: string; text: Promise<string> } | null = null
+  const AS_JSON = { 'Content-Type': 'application/json' }
+
+  async function sized<T>(
+    c: Context,
+    table: 'release_label' | 'release_artist',
+    column: 'label_id' | 'artist_id',
+    id: number,
+    rows: Read,
+    shape: (total: number, rows: T[]) => unknown,
+  ): Promise<Response> {
+    const build = meta('build')
+    // The key carries the build; clearing only keeps last month out of memory.
+    if (rememberedFor !== build) {
+      remembered.clear()
+      rememberedFor = build
+    }
+    const key = `${build}:${table}:${id}`
+    const known = remembered.get(key)
+    if (known !== undefined) return c.body(known, 200, AS_JSON)
+
+    const reads: Read[] = [
+      {
+        sql: `SELECT COUNT(DISTINCT release_id) AS n FROM ${table} WHERE ${column} = ?`,
+        args: [id],
+      },
+      rows,
+    ]
+    const finish = ([counted, found]: Row[][]) =>
+      shape((counted![0] as { n: number }).n, found as unknown as T[])
+
+    const file = path?.() ?? null
+    const { n } = db()
+      .prepare(`SELECT COUNT(*) AS n FROM (SELECT 1 FROM ${table} WHERE ${column} = ? LIMIT ?)`)
+      .get(id, heavyRows + 1) as { n: number }
+    if (!file || n <= heavyRows) return c.json(finish(onThisThread(reads)))
+
+    if (working && working.key !== key) {
+      return c.json({ error: 'busy' }, 503, { 'Retry-After': '5' })
+    }
+    working ??= {
+      key,
+      text: offThread(file, reads)
+        .then((read) => JSON.stringify(finish(read)))
+        .finally(() => {
+          working = null
+        }),
+    }
+    const text = await working.text
+    remembered.set(key, text)
+    return c.body(text, 200, AS_JSON)
+  }
 
   /*
    * The build date on every answer. A `304` when the browser already has
@@ -87,10 +190,9 @@ export function createCatalogueApp({ db, path, now = Date.now }: CatalogueAppOpt
     }
     await next()
     c.header('ETag', tag)
-    c.header(
-      'Cache-Control',
-      c.req.path.endsWith('/health') ? 'no-cache' : 'public, max-age=2592000',
-    )
+    // A 503 is about this moment, and thirty days of it would outlive the moment.
+    const lifetime = c.req.path.endsWith('/health') ? 'no-cache' : 'public, max-age=2592000'
+    c.header('Cache-Control', c.res.status === 503 ? 'no-store' : lifetime)
   })
 
   /**
@@ -166,7 +268,7 @@ export function createCatalogueApp({ db, path, now = Date.now }: CatalogueAppOpt
    * 1,500-release cut (S6, any size). Rows, not a packed chunk: the client
    * packs with the app's own `packChunk`, so the two paths cannot disagree.
    */
-  app.get('/v1/catalogue/label/:id/run', (c) => {
+  app.get('/v1/catalogue/label/:id/run', async (c) => {
     const labelId = Number(c.req.param('id'))
     if (!Number.isSafeInteger(labelId) || labelId <= 0)
       return c.json({ error: 'not a label id' }, 400)
@@ -183,36 +285,34 @@ export function createCatalogueApp({ db, path, now = Date.now }: CatalogueAppOpt
           )
           .get(labelId) as { prefix: string } | undefined
       )?.prefix ?? null
-    const total = (
-      db()
-        .prepare('SELECT COUNT(DISTINCT release_id) AS n FROM release_label WHERE label_id = ?')
-        .get(labelId) as {
-        n: number
-      }
-    ).n
-    const rows = db()
-      .prepare(
-        `SELECT rl.release_id AS id, r.year, rl.catno_num AS num, rl.catno_prefix AS prefix
-         FROM release_label rl JOIN release r ON r.id = rl.release_id
-         WHERE rl.label_id = ?
-         ORDER BY (rl.catno_prefix IS ?) DESC, rl.catno_num, rl.release_id
-         LIMIT ?`,
-      )
-      .all(labelId, prefix, MAX_ROWS) as unknown as {
+
+    return sized<{
       id: number
       year: number | null
       num: number | null
       prefix: string | null
-    }[]
-
-    return c.json({
-      id: label.id,
-      name: label.name,
-      build: meta('build'),
-      total,
-      prefix,
-      releases: rows.map((row) => [row.id, row.year, row.num, row.prefix]),
-    })
+    }>(
+      c,
+      'release_label',
+      'label_id',
+      labelId,
+      {
+        sql: `SELECT rl.release_id AS id, r.year, rl.catno_num AS num, rl.catno_prefix AS prefix
+         FROM release_label rl JOIN release r ON r.id = rl.release_id
+         WHERE rl.label_id = ?
+         ORDER BY (rl.catno_prefix IS ?) DESC, rl.catno_num, rl.release_id
+         LIMIT ?`,
+        args: [labelId, prefix, MAX_ROWS],
+      },
+      (total, rows) => ({
+        id: label.id,
+        name: label.name,
+        build: meta('build'),
+        total,
+        prefix,
+        releases: rows.map((row) => [row.id, row.year, row.num, row.prefix]),
+      }),
+    )
   })
 
   /**
@@ -221,7 +321,7 @@ export function createCatalogueApp({ db, path, now = Date.now }: CatalogueAppOpt
    * (S8, the second degree). A credit the table has no name for counts as
    * main, exactly as the API path does, so a score cannot move between them.
    */
-  app.get('/v1/catalogue/artist/:id/credits', (c) => {
+  app.get('/v1/catalogue/artist/:id/credits', async (c) => {
     const artistId = Number(c.req.param('id'))
     if (!Number.isSafeInteger(artistId) || artistId <= 0)
       return c.json({ error: 'not an artist id' }, 400)
@@ -230,33 +330,28 @@ export function createCatalogueApp({ db, path, now = Date.now }: CatalogueAppOpt
       { id: number; name: string } | undefined
     if (!artist) return c.json({ error: 'unknown artist' }, 404)
 
-    const total = (
-      db()
-        .prepare(
-          'SELECT COUNT(DISTINCT release_id) AS n FROM release_artist WHERE artist_id = ?',
-        )
-        .get(artistId) as {
-        n: number
-      }
-    ).n
-    const rows = db()
-      .prepare(
-        `SELECT ra.release_id AS id, MIN(CASE WHEN ra.role < 0 THEN 0 ELSE ra.role END) AS role, r.year
+    return sized<{ id: number; role: number; year: number | null }>(
+      c,
+      'release_artist',
+      'artist_id',
+      artistId,
+      {
+        sql: `SELECT ra.release_id AS id, MIN(CASE WHEN ra.role < 0 THEN 0 ELSE ra.role END) AS role, r.year
          FROM release_artist ra JOIN release r ON r.id = ra.release_id
          WHERE ra.artist_id = ?
          GROUP BY ra.release_id
          ORDER BY ra.release_id
          LIMIT ?`,
-      )
-      .all(artistId, MAX_ROWS) as unknown as { id: number; role: number; year: number | null }[]
-
-    return c.json({
-      id: artist.id,
-      name: artist.name,
-      build: meta('build'),
-      total,
-      releases: rows.map((row) => [row.id, row.role, row.year]),
-    })
+        args: [artistId, MAX_ROWS],
+      },
+      (total, rows) => ({
+        id: artist.id,
+        name: artist.name,
+        build: meta('build'),
+        total,
+        releases: rows.map((row) => [row.id, row.role, row.year]),
+      }),
+    )
   })
 
   /**
@@ -346,25 +441,21 @@ export function createCatalogueApp({ db, path, now = Date.now }: CatalogueAppOpt
   const statsInFlight = new Map<string, Promise<Stats>>()
 
   /** Off the request thread when there is a file; on it when there is only memory. */
-  function countStats(kind: string, build: string): Promise<Stats> {
+  async function countStats(kind: string, build: string): Promise<Stats> {
+    const reads: Read[] = [
+      { sql: statsSql(kind), args: [] },
+      { sql: 'SELECT COUNT(*) AS n FROM release', args: [] },
+    ]
     const file = path?.() ?? null
-    if (!file) {
-      const rows = db().prepare(statsSql(kind)).all() as unknown as {
-        key: string
-        count: number
-      }[]
-      const total = (db().prepare('SELECT COUNT(*) AS n FROM release').get() as { n: number }).n
-      return Promise.resolve({ build, total, rows: rows.map((row) => [row.key, row.count]) })
+    const [rows, counted] = file ? await offThread(file, reads) : onThisThread(reads)
+    return {
+      build,
+      total: (counted![0] as { n: number }).n,
+      rows: (rows as unknown as { key: string; count: number }[]).map((row) => [
+        row.key,
+        row.count,
+      ]),
     }
-    return new Promise<Stats>((resolve, reject) => {
-      const worker = new Worker(new URL('./stats-worker.ts', import.meta.url), {
-        workerData: { path: file, kind },
-      })
-      worker.once('message', (answer: { total: number; rows: [string, number][] }) =>
-        resolve({ build, ...answer }),
-      )
-      worker.once('error', reject)
-    })
   }
 
   app.get('/v1/catalogue/stats/:kind', async (c) => {

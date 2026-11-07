@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict'
-import { describe, test } from 'node:test'
+import { mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { DatabaseSync } from 'node:sqlite'
+import { after, before, describe, test } from 'node:test'
 
 import { buildCatalogue } from '../src/etl/build.ts'
 import { createCatalogueApp, formatOf } from '../src/service/app.ts'
@@ -189,6 +193,106 @@ describe('a label’s run and a person’s credits (M21.5)', () => {
   test('are 404s for a label or a person the build does not know', async () => {
     assert.equal((await get('/v1/catalogue/label/999999999/run')).status, 404)
     assert.equal((await get('/v1/catalogue/artist/999999999/credits')).status, 404)
+  })
+})
+
+describe('a label or a person too large for the request thread', () => {
+  const RUN = '/v1/catalogue/label/5/run'
+  const CREDITS = '/v1/catalogue/artist/239/credits'
+  const dir = mkdtempSync(join(tmpdir(), 'fidelity-heavy-'))
+  const gone = join(dir, 'gone.sqlite')
+
+  /** On disk, because a worker thread opens a connection of its own; one dump, two dates. */
+  async function onDisk(build: string) {
+    const file = join(dir, `${build}.sqlite`)
+    const { db } = await buildCatalogue({
+      dumpDir: new URL('../fixtures/mini-dump/', import.meta.url).pathname,
+      date: '20260901',
+      out: file,
+    })
+    db.prepare("UPDATE meta SET value = ? WHERE key = 'build'").run(build)
+    db.close()
+    return { file, db: new DatabaseSync(file, { readOnly: true }) }
+  }
+  let september: Awaited<ReturnType<typeof onDisk>>
+  let october: Awaited<ReturnType<typeof onDisk>>
+
+  before(async () => {
+    september = await onDisk('2026-09-01')
+    october = await onDisk('2026-10-01')
+  })
+  after(() => {
+    september.db.close()
+    october.db.close()
+    rmSync(dir, { recursive: true, force: true })
+  })
+
+  const heavy = (file: () => string) =>
+    createCatalogueApp({ db: () => september.db, path: file, heavyRows: 0 })
+
+  test('gets the same answer off the thread as on it', async () => {
+    const threaded = heavy(() => september.file)
+    for (const path of [RUN, CREDITS]) {
+      const off = await threaded.request(path)
+      assert.equal(off.status, 200)
+      assert.match(off.headers.get('content-type') ?? '', /application\/json/)
+      assert.equal(await off.text(), await (await get(path)).text())
+    }
+  })
+
+  test('is read once and remembered', async () => {
+    let file = september.file
+    const threaded = heavy(() => file)
+    const first = await (await threaded.request(RUN)).text()
+    // Nothing is left to read: only memory can answer now.
+    file = gone
+    const again = await threaded.request(RUN)
+    assert.equal(again.status, 200)
+    assert.equal(await again.text(), first)
+  })
+
+  test('is the new build’s answer once a new build arrives', async () => {
+    let current = september
+    const threaded = createCatalogueApp({
+      db: () => current.db,
+      path: () => current.file,
+      heavyRows: 0,
+    })
+    const build = async () =>
+      ((await (await threaded.request(RUN)).json()) as { build: string }).build
+    assert.equal(await build(), '2026-09-01')
+    current = october
+    assert.equal(await build(), '2026-10-01')
+  })
+
+  test('is read one at a time, and “busy” is not kept', async () => {
+    const threaded = heavy(() => september.file)
+    const [run, credits] = await Promise.all([threaded.request(RUN), threaded.request(CREDITS)])
+    assert.equal(run.status, 200)
+    assert.equal(credits.status, 503)
+    assert.equal(credits.headers.get('cache-control'), 'no-store')
+    assert.equal((await threaded.request(CREDITS)).status, 200)
+  })
+
+  test('shares one read between two askers for the same answer', async () => {
+    const threaded = heavy(() => september.file)
+    const [one, two] = await Promise.all([threaded.request(RUN), threaded.request(RUN)])
+    assert.equal(one.status, 200)
+    assert.equal(two.status, 200)
+    assert.equal(await one.text(), await two.text())
+  })
+
+  test('says what went wrong when the read fails, and the next one still runs', async () => {
+    let file = gone
+    const threaded = heavy(() => file)
+    assert.equal((await threaded.request(RUN)).status, 500)
+    file = september.file
+    assert.equal((await threaded.request(RUN)).status, 200)
+  })
+
+  test('stays on the request thread below the line', async () => {
+    const small = createCatalogueApp({ db: () => september.db, path: () => gone })
+    assert.equal((await small.request(RUN)).status, 200)
   })
 })
 

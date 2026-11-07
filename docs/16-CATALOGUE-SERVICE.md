@@ -202,6 +202,13 @@ through the catalogue and pins the ranking identical to the API-built one, score
 The per-dig lookups for labels and people the horizon does not know wait for `resolve`,
 because a listing carries names and not ids.
 
+**Large answers (2026-11-07):** a run or a credit list past 20,000 rows is read off the
+request thread, one at a time, and remembered until the next build. Label 1866 has 351,000
+releases and took 24 s cold on the home lab, and SQLite's queries are synchronous: every
+other route waited with it, for anybody who knows the address. About a hundred labels and
+people are that large. A second large read while one runs is a `503` with `no-store`, which
+the client treats like any miss.
+
 **M21.6 (2026-09-12):** `identify`, `release/{id}` and `stats/{kind}`. `identify` is the
 index over every identifier in the dump, normalised the way the build normalised it,
 answering exact stamps only — a fragment is the search request's job, as `worker/identify.ts`
