@@ -129,6 +129,10 @@ does not (constants in `src/app.ts`):
 | `409` | a share id that already exists — shares are never overwritten (on every door) |
 | `stored: false` | a horizon chunk or family another key wrote less than 30 days ago (counted from its first write). The hold binds every other writer, the secret door included; rows from the secret door or from before the owner column have no owner and are open to everyone |
 
+The whole file has a ceiling of 512 MB on every door (`MAX_DB_BYTES`, `src/db.ts`), so a hub
+cannot fill the disk it shares with everything else. Past it a write answers `500` and reads
+keep working.
+
 The hub deletes expired shares, horizon chunks and families past the 30-day client TTL,
 and watch state for shops nobody watches, once an hour.
 
