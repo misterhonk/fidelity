@@ -35,7 +35,9 @@ ARG FIDELITY_CONNECT_SRC=
 RUN pnpm tokens:build && pnpm icons:build && pnpm exec nuxt build && node scripts/csp/write.mjs
 
 # --- serve ------------------------------------------------------------------
-FROM nginx:1.29-alpine@sha256:5616878291a2eed594aee8db4dade5878cf7edcb475e59193904b198d9b830de AS serve
+# The stable branch: a version tag like 1.29 stops being rebuilt the day its
+# branch ends, and from then on a rebuild changes nothing. Renovate moves both.
+FROM nginx:1.30-alpine@sha256:583b7f2fce1cdb8da5ad5c39ebd3c33b98b87d493190e548bdee1fa8c619c311 AS serve
 
 # The config with this build's Content-Security-Policy, written after the build.
 COPY --from=build /src/.output/nginx.conf /etc/nginx/conf.d/default.conf
