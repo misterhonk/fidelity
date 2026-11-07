@@ -21,6 +21,20 @@ import { DatabaseSync } from 'node:sqlite'
  * personal data in any sense it could act on, which is the condition ADR-008
  * sets for it being here at all.
  */
+/**
+ * How large the file may grow before a write is refused.
+ *
+ * A horizon chunk is up to 4 MB and a key may send two a second, which fills a
+ * small disk in half an hour, and the disk is rarely only this hub's. 512 MB is
+ * three hundred times what a hub of friends holds, and fourteen nightly copies
+ * of a full file are still 7 GB.
+ *
+ * shortcut: one ceiling for everybody, so one key can fill the file and block
+ * other writes until its rows expire; a quota per key once the key door has
+ * more than a handful of members.
+ */
+export const MAX_DB_BYTES = 512 * 1024 * 1024
+
 export function openHubDb(path: string): DatabaseSync {
   const db = new DatabaseSync(path)
 
@@ -28,6 +42,8 @@ export function openHubDb(path: string): DatabaseSync {
   // is not "single-threaded" once two friends open the app at once.
   db.exec('PRAGMA journal_mode = WAL')
   db.exec('PRAGMA foreign_keys = ON')
+  const { page_size: pageSize } = db.prepare('PRAGMA page_size').get() as { page_size: number }
+  db.exec(`PRAGMA max_page_count = ${Math.floor(MAX_DB_BYTES / pageSize)}`)
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS horizon (

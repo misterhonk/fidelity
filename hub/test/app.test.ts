@@ -12,7 +12,7 @@ import {
   issueKey,
 } from '../src/access.ts'
 import { createHubApp, MAX_CHUNK_BYTES } from '../src/app.ts'
-import { CATALOGUE_TTL_MS, openHubDb, sweepStale } from '../src/db.ts'
+import { CATALOGUE_TTL_MS, MAX_DB_BYTES, openHubDb, sweepStale } from '../src/db.ts'
 
 /**
  * The hub, tested against the rule that shapes it: a hub that is wrong must be
@@ -546,6 +546,28 @@ describe('the shipping ladders', () => {
       await app.request('/v1/shipping/vinyl-tom/germany', { headers: secret })
     ).json()
     assert.deepEqual(body, { tiers, confirmedBy: 1 })
+  })
+})
+
+describe('the ceiling on the file', () => {
+  const pragma = (db: DatabaseSync, name: string) =>
+    (db.prepare(`PRAGMA ${name}`).get() as Record<string, number>)[name]!
+
+  test('is set on every connection the hub opens', () => {
+    const db = openHubDb(':memory:')
+    assert.equal(pragma(db, 'max_page_count') * pragma(db, 'page_size'), MAX_DB_BYTES)
+  })
+
+  test('refuses a write past it, and reads keep answering', async () => {
+    const { app, db } = hub()
+    assert.equal((await put(app, '/v1/horizon/artist/55', chunk())).status, 200)
+    db.exec(`PRAGMA max_page_count = ${pragma(db, 'page_count')}`)
+
+    const large = chunk({ key: 'artist:2', entityId: 2, releaseIds: 'A'.repeat(1024 * 1024) })
+    assert.equal((await put(app, '/v1/horizon/artist/2', large)).status, 500)
+
+    assert.equal((await app.request('/v1/horizon/artist/2')).status, 404)
+    assert.equal((await app.request('/v1/horizon/artist/55')).status, 200)
   })
 })
 
