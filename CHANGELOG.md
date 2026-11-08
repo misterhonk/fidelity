@@ -12,6 +12,24 @@ Für eine App bedeutet SemVer:
 ## [0.123.1](https://github.com/misterhonk/fidelity/compare/v0.123.0...v0.123.1) (2026-11-08)
 
 
+<!-- en -->
+**Under the hood: the server side got sturdier.** Nothing changes on your screen.
+
+- The app is now served by a current nginx, with the latest security fixes in the system
+  underneath it.
+- The catalogue no longer stalls when somebody asks for a very large label or artist. Such
+  answers are worked out on the side and kept for the month.
+- A shared hub can no longer fill up the disk it runs on.
+
+<!-- de -->
+**Unter der Haube: Der Server-Teil ist robuster.** Auf deinem Bildschirm ändert sich nichts.
+
+- Die App kommt jetzt von einem aktuellen nginx, mit den neuesten Sicherheitsupdates im System
+  darunter.
+- Der Katalog hängt nicht mehr, wenn jemand ein riesiges Label oder einen sehr fleißigen
+  Künstler abfragt. Solche Antworten entstehen nebenher und bleiben für den Monat gespeichert.
+- Ein geteilter Hub kann die Platte, auf der er läuft, nicht mehr volllaufen lassen.
+
 ### Fixed
 
 * **deps:** move the app image to nginx 1.30, the branch that still gets rebuilt ([524f9e7](https://github.com/misterhonk/fidelity/commit/524f9e7db9ea9b2d17fdde7fc21774b222596782))
