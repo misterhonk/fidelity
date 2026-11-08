@@ -9,6 +9,15 @@ Für eine App bedeutet SemVer:
 **MAJOR** = Breaking Change am IndexedDB-Schema ohne automatische Migration ·
 **MINOR** = Features · **PATCH** = Fixes.
 
+## [0.123.1](https://github.com/misterhonk/fidelity/compare/v0.123.0...v0.123.1) (2026-11-08)
+
+
+### Fixed
+
+* **deps:** move the app image to nginx 1.30, the branch that still gets rebuilt ([524f9e7](https://github.com/misterhonk/fidelity/commit/524f9e7db9ea9b2d17fdde7fc21774b222596782))
+* **hub:** give the hub's database file a ceiling of 512 MB ([42f4f9c](https://github.com/misterhonk/fidelity/commit/42f4f9c9a872f139c25292e20d2d9fcdd99512b9))
+* **hub:** read a large catalogue answer off the request thread, once a month ([9dc6c88](https://github.com/misterhonk/fidelity/commit/9dc6c884a4a34b009c8112a29633104a7493e287))
+
 ## [0.123.0](https://github.com/misterhonk/fidelity/compare/v0.122.0...v0.123.0) (2026-11-02)
 
 
